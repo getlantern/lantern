@@ -1,0 +1,244 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>mg</groupId>
+    <artifactId>mg-parent</artifactId>
+    <packaging>pom</packaging>
+    <version>0.1-SNAPSHOT</version>
+    <name>MG Parent Project</name>
+    <description>
+        Parent project handling all modules of MG.
+    </description>
+
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <slf4j.version>1.5.10</slf4j.version>
+    </properties>
+
+    <organization>
+        <name>MG</name>
+    </organization>
+
+    <inceptionYear>2010</inceptionYear>
+
+    <issueManagement>
+        <system>JIRA</system>
+        <url>http://dev.littleshoot.org:8081/browse/MG</url>
+    </issueManagement>
+
+    <modules>
+        <module>client</module>
+    </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.google.collections</groupId>
+            <artifactId>google-collections</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <!-- Dependency management is specified in alphabetical order with the
+         'groupId' as the primary criteria and 'artifactId' as the secondary
+         criteria. -->
+    <dependencyManagement>
+        <dependencies>
+        <dependency>
+            <groupId>com.google.collections</groupId>
+            <artifactId>google-collections</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>1.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>javax.mail</groupId>
+            <artifactId>mail</artifactId>
+            <version>1.4.3</version>
+        </dependency>
+
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.8.1</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.14</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-log4j12</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>mg</groupId>
+            <artifactId>client</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
+
+        </dependencies>
+
+    </dependencyManagement>
+
+    <prerequisites>
+        <maven>2.2.0</maven>
+    </prerequisites>
+
+    <build>
+        <defaultGoal>install</defaultGoal>
+
+        <plugins>
+            <!-- Compiling with java 1.5 -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                    <target>1.5</target>
+                    <encoding>UTF-8</encoding>
+                    <!-- The following force compilation with full warnings. -->
+                        <fork>true</fork>
+                        <showWarnings>true</showWarnings>
+                        <showDeprecation>true</showDeprecation>
+                        <compilerArguments><Xlint/></compilerArguments>
+                    </configuration>
+                </plugin>
+            </plugins>
+
+    </build>
+
+    <reporting>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>2.3.1</version>
+                </plugin>
+
+            <!-- Standard maven site report -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-project-info-reports-plugin</artifactId>
+            </plugin>
+
+            <!-- Tag Report -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>taglist-maven-plugin</artifactId>
+                <configuration>
+                    <multipleLineComments>true</multipleLineComments>
+                     <tags>
+                        <tag>mudo</tag>
+                        <tag>todo</tag>
+                        <tag>idea</tag>
+                        <tag>MUDO</tag>
+                        <tag>TODO</tag>
+                        <tag>IDEA</tag>
+                        </tags>
+                </configuration>
+            </plugin>
+
+            <!-- Unit Test Report -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>surefire-report-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- Javadoc report -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <configuration>
+                    <source>1.5</source>
+                </configuration>
+            </plugin>
+
+            <!-- Source ref plugin -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>jxr-maven-plugin</artifactId>
+            </plugin>
+
+              <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>cobertura-maven-plugin</artifactId>
+                <configuration>
+                    <formats>
+                        <format>xml</format>
+                    </formats>
+                    <outputDirectory>target/cobertura</outputDirectory>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </reporting>
+
+    <repositories>
+        <repository>
+            <id>main</id>
+            <name>Maven Repository Switchboard</name>
+            <url>http://repo2.maven.org/maven2</url>
+        </repository>
+
+    </repositories>
+
+</project>
