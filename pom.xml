@@ -79,6 +79,16 @@
         </dependency>
 
         <dependency>
+            <groupId>org.jivesoftware.smack</groupId>
+            <artifactId>smack</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jivesoftware.smack</groupId>
+            <artifactId>smackx</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
         </dependency>
@@ -148,6 +158,18 @@
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-core-asl</artifactId>
             <version>1.5.4</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jivesoftware.smack</groupId>
+            <artifactId>smack</artifactId>
+            <version>3.1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.jivesoftware.smack</groupId>
+            <artifactId>smackx</artifactId>
+            <version>3.1.0</version>
         </dependency>
 
         <dependency>
