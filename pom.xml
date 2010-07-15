@@ -30,6 +30,7 @@
 
     <modules>
         <module>client</module>
+        <module>server</module>
     </modules>
 
     <dependencies>
@@ -79,14 +80,16 @@
         </dependency>
 
         <dependency>
-            <groupId>org.jivesoftware.smack</groupId>
+            <groupId>org.jivesoftware</groupId>
             <artifactId>smack</artifactId>
         </dependency>
 
+<!--
         <dependency>
             <groupId>org.jivesoftware.smack</groupId>
             <artifactId>smackx</artifactId>
         </dependency>
+-->
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -161,16 +164,18 @@
         </dependency>
 
         <dependency>
-            <groupId>org.jivesoftware.smack</groupId>
+            <groupId>org.jivesoftware</groupId>
             <artifactId>smack</artifactId>
-            <version>3.1.0</version>
+            <version>3.1.1-SNAPSHOT</version>
         </dependency>
 
+<!--
         <dependency>
             <groupId>org.jivesoftware.smack</groupId>
             <artifactId>smackx</artifactId>
             <version>3.1.0</version>
         </dependency>
+-->
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -304,6 +309,12 @@
             <id>littleshoot</id>
             <name>LittleShoot Repository</name>
             <url>http://svn.littleshoot.org/maven</url>
+        </repository>
+
+        <repository>
+            <id>littleshoot snapshots</id>
+            <name>LittleShoot Snapshot Repository</name>
+            <url>http://svn.littleshoot.org/maven-snapshots</url>
         </repository>
 
     </repositories>
