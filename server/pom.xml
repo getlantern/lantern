@@ -6,8 +6,8 @@
     <artifactId>mg-server</artifactId>
     <packaging>jar</packaging>
     <version>0.1-SNAPSHOT</version>
-    <name>Client</name>
-    <description>MG Client</description>
+    <name>Server</name>
+    <description>MG Server</description>
 
     <parent>
         <groupId>org.mg</groupId>
