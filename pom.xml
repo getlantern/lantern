@@ -164,6 +164,13 @@
         </dependency>
 
         <dependency>
+            <groupId>org.jboss.netty</groupId>
+            <artifactId>netty</artifactId>
+            <version>3.2.1.Final</version>
+            <scope>compile</scope>
+        </dependency>
+
+        <dependency>
             <groupId>org.jivesoftware</groupId>
             <artifactId>smack</artifactId>
             <version>3.1.1-SNAPSHOT</version>
@@ -303,6 +310,14 @@
             <id>codehaus</id>
 	    <name>Codehause Repository</name>
 	    <url>http://repository.codehaus.org</url>
+        </repository>
+
+        <repository>
+            <id>repository.jboss.org</id>
+            <url>http://repository.jboss.org/nexus/content/groups/public/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
 
         <repository>
