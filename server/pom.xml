@@ -16,6 +16,24 @@
     </parent>
 
     <dependencies>
+<!--
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpcore</artifactId>
+            <version>4.0.1</version>
+        </dependency>
+-->
+
+        <dependency>
+            <groupId>org.littleshoot</groupId>
+            <artifactId>littleproxy</artifactId>
+            <version>0.3-SNAPSHOT</version>
+        </dependency>
     </dependencies>
 
     <build>
