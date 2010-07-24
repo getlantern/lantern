@@ -1,10 +1,13 @@
 package org.mg.client;
 
+import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.codec.binary.Base64;
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
@@ -17,6 +20,12 @@ import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunk;
+import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
+import org.jivesoftware.smack.Chat;
+import org.jivesoftware.smack.ChatManager;
+import org.jivesoftware.smack.MessageListener;
+import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.packet.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +36,8 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 
     private final static Logger log = 
         LoggerFactory.getLogger(HttpRequestHandler.class);
+    private static final String HTTP_KEY = "HTTP";
+    
     private volatile boolean readingChunks;
     
     private static int totalBrowserToProxyConnections = 0;
@@ -36,7 +47,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         new ConcurrentHashMap<String, ChannelFuture>();
     
     private volatile int messagesReceived = 0;
-
+    
     /**
      * Note, we *can* receive requests for multiple different sites from the
      * same connection from the browser, so the host and port most certainly
@@ -49,6 +60,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
     private final ChannelGroup channelGroup;
 
     private final ClientSocketChannelFactory clientChannelFactory;
+    private Chat chat;
     
     /**
      * Creates a new class for handling HTTP requests with the specified
@@ -57,25 +69,87 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
      * @param channelGroup The group of channels for keeping track of all
      * channels we've opened.
      * @param clientChannelFactory The common channel factory for clients.
+     * @param conn The XMPP connection. 
      */
-    public HttpRequestHandler(
-        final ChannelGroup channelGroup, 
-        final ClientSocketChannelFactory clientChannelFactory) {
+    public HttpRequestHandler(final ChannelGroup channelGroup, 
+        final ClientSocketChannelFactory clientChannelFactory, 
+        final XMPPConnection conn) {
         this.channelGroup = channelGroup;
         this.clientChannelFactory = clientChannelFactory;
+        final ChatManager chatmanager = conn.getChatManager();
+        
+        this.chat = 
+            chatmanager.createChat("mglittleshoot@gmail.com", 
+            new MessageListener() {
+                public void processMessage(final Chat chat, final Message msg) {
+                    log.info("Received message: " + msg);
+                    // We need to grab the HTTP data from the message and send
+                    // it to the browser.
+                    final String data = (String) msg.getProperty(HTTP_KEY);
+                    if (data == null) {
+                        log.warn("No HTTP data");
+                        return;
+                    }
+                }
+            });
+        
     }
+    
+    private static final class LocalHttpRequestEncoder 
+        extends HttpRequestEncoder {
+        
+        @Override
+        protected Object encode(final ChannelHandlerContext chc, 
+            final Channel channel, final Object msg) throws Exception {
+            return super.encode(chc, channel, msg);
+        }
+    }
+
+    private Channel localChannel = new LocalChannel();
     
     @Override
     public void messageReceived(final ChannelHandlerContext ctx, 
         final MessageEvent me) {
         messagesReceived++;
         log.info("Received "+messagesReceived+" total messages");
+
+        final LocalHttpRequestEncoder encoder = new LocalHttpRequestEncoder();
+        try {
+            final ChannelBuffer encoded = 
+                (ChannelBuffer) encoder.encode(ctx, localChannel, me.getMessage());
+            final ByteBuffer buf = encoded.toByteBuffer();
+            final byte[] raw = toRawBytes(buf);
+            final String base64 = Base64.encodeBase64String(raw);
+            final Message msg = new Message();
+            msg.setProperty(HTTP_KEY, base64);
+            
+            // The other side will also need to know where the request came
+            // from to differentiate incoming HTTP connections.
+            msg.setProperty("LOCAL-IP", ctx.getChannel().getLocalAddress());
+            msg.setProperty("REMOTE-IP", ctx.getChannel().getRemoteAddress());
+            
+            this.chat.sendMessage(msg);
+            log.info("Sent message!!");
+        } catch (Exception e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+        
         if (!readingChunks) {
             processMessage(ctx, me);
         } 
         else {
             processChunk(ctx, me);
         }
+    }
+    
+    public static byte[] toRawBytes(final ByteBuffer buf) {
+        final int mark = buf.position();
+        final byte[] bytes = new byte[buf.remaining()];
+        buf.get(bytes);
+        
+        buf.position(mark);
+        return bytes;
     }
 
     private void processChunk(final ChannelHandlerContext ctx, 
