@@ -2,19 +2,14 @@ package org.mg.server;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smackx.filetransfer.FileTransferManager;
 import org.jivesoftware.smackx.filetransfer.FileTransferRequest;
@@ -35,7 +30,7 @@ public class HttpRequestRelayer implements Runnable {
     private static final ExecutorService readRelayPool = 
         Executors.newCachedThreadPool();
     
-    private final HttpClient httpclient = new DefaultHttpClient();
+    //private final HttpClient httpclient = new DefaultHttpClient();
 
     private final XMPPConnection conn;
     
@@ -59,6 +54,7 @@ public class HttpRequestRelayer implements Runnable {
     }
 
     public void run() {
+        log.info("Got call to run...");
         try {
             relay();
         } catch (final IOException e) {
@@ -85,8 +81,9 @@ public class HttpRequestRelayer implements Runnable {
     }
     
     private void relay() throws IOException {
+        log.info("Connecting to socket!!");
         final Socket relay = new Socket("127.0.0.1", 7777);
-        System.out.println("CONNECTED: " + relay.isConnected());
+        log.info("CONNECTED: " + relay.isConnected());
         
         //final OutputStream externalOs = sock.getOutputStream();
         //final InputStream externalIs = sock.getInputStream();

@@ -7,17 +7,26 @@ import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.jivesoftware.smack.Chat;
+import org.jivesoftware.smack.ChatManager;
+import org.jivesoftware.smack.ChatManagerListener;
 import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smackx.filetransfer.FileTransferListener;
 import org.jivesoftware.smackx.filetransfer.FileTransferManager;
 import org.jivesoftware.smackx.filetransfer.FileTransferRequest;
 import org.jivesoftware.smackx.filetransfer.IncomingFileTransfer;
 import org.littleshoot.proxy.Launcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class DefaultXmppProxy implements XmppProxy {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     /**
      * Buffer size between input and output
      */
@@ -43,8 +52,9 @@ public class DefaultXmppProxy implements XmppProxy {
         final XMPPConnection conn = new XMPPConnection(config);
         conn.connect();
         final Properties props = new Properties();
-        final File propsFile = 
-            new File(System.getProperty("user.home"), "mg.properties");
+        final File propsDir = new File(System.getProperty("user.home"), ".mg");
+        final File propsFile = new File(propsDir, "mg.properties");
+
         if (!propsFile.isFile()) {
             System.err.println("No properties file found at "+propsFile+
                 ". That file is required and must contain a property for " +
@@ -52,21 +62,40 @@ public class DefaultXmppProxy implements XmppProxy {
             System.exit(0);
         }
         props.load(new FileInputStream(propsFile));
-        final String user = props.getProperty("user");
-        final String pass = props.getProperty("pass");
+        final String user = props.getProperty("google.server.user");
+        final String pass = props.getProperty("google.server.pwd");
         conn.login(user, pass);
         
+        final ChatManager cm = conn.getChatManager();
+        ChatManagerListener listener = new ChatManagerListener() {
+            
+            public void chatCreated(Chat chat, boolean createdLocally) {
+                System.out.println("Created a chat!!");
+                final MessageListener ml = new MessageListener() {
+                    
+                    public void processMessage(final Chat ch, final Message msg) {
+                        System.out.println("Got message!!");
+                        System.out.println(msg.getPropertyNames());
+                    }
+                };
+                chat.addMessageListener(ml);
+            }
+        };
+        cm.addChatListener(listener);
+        
+        /*
         System.out.println("USER: "+conn.getUser());
         
         final FileTransferManager ftm = new FileTransferManager(conn);
         // Create the listener
         ftm.addFileTransferListener(new FileTransferListener() {
             public void fileTransferRequest(final FileTransferRequest request) {
-                System.out.println("GOT FILE TRANSFER REQUEST!!");
+                log.info("GOT FILE TRANSFER REQUEST!!");
                 requestReceiverPool.submit(new Runnable() {
                     public void run() {
                         try {
                             final IncomingFileTransfer ift = request.accept();
+                            log.info("Accepted request");
                             final File tempFile =  
                                 File.createTempFile(String.valueOf(request.hashCode()), null);
                             ift.recieveFile(tempFile);
@@ -81,7 +110,11 @@ public class DefaultXmppProxy implements XmppProxy {
                                     e.printStackTrace();
                                 }
                             }
-                            HttpRequestRelayer relayer = new HttpRequestRelayer(conn, request, tempFile);
+                            log.info("Received complete file");
+                            log.info("Creating relayer...");
+                            final HttpRequestRelayer relayer = 
+                                new HttpRequestRelayer(conn, request, tempFile);
+                            log.info("About to run..");
                             relayer.run();
                             
                         } catch (XMPPException e) {
@@ -97,6 +130,7 @@ public class DefaultXmppProxy implements XmppProxy {
                 });
             }
         });
+        */
     }
 
     /*
