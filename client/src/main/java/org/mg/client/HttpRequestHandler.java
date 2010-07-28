@@ -2,15 +2,11 @@ package org.mg.client;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
-import java.util.Collection;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.codec.binary.Base64;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
@@ -18,9 +14,8 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
-import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
+import org.jboss.netty.util.CharsetUtil;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.MessageListener;
@@ -38,29 +33,18 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         LoggerFactory.getLogger(HttpRequestHandler.class);
     private static final String HTTP_KEY = "HTTP";
     
-    private volatile boolean readingChunks;
-    
     private static int totalBrowserToProxyConnections = 0;
     private int browserToProxyConnections = 0;
     
-    private final Map<String, ChannelFuture> endpointsToChannelFutures = 
-        new ConcurrentHashMap<String, ChannelFuture>();
-    
     private volatile int messagesReceived = 0;
     
-    /**
-     * Note, we *can* receive requests for multiple different sites from the
-     * same connection from the browser, so the host and port most certainly
-     * does change.
-     * 
-     * Why do we need to store it? We need it to lookup the appropriate 
-     * external connection to send HTTP chunks to.
-     */
-    private String hostAndPort;
     private final ChannelGroup channelGroup;
 
-    private final ClientSocketChannelFactory clientChannelFactory;
     private Chat chat;
+    
+    private long sequenceNumber = 0L;
+    private Channel browserToProxyChannel;
+    private final XMPPConnection conn;
     
     /**
      * Creates a new class for handling HTTP requests with the specified
@@ -72,17 +56,17 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
      * @param conn The XMPP connection. 
      */
     public HttpRequestHandler(final ChannelGroup channelGroup, 
-        final ClientSocketChannelFactory clientChannelFactory, 
         final XMPPConnection conn) {
         this.channelGroup = channelGroup;
-        this.clientChannelFactory = clientChannelFactory;
+        this.conn = conn;
+        log.info("Using TLS: "+conn.isSecureConnection());
         final ChatManager chatmanager = conn.getChatManager();
         
         this.chat = 
             chatmanager.createChat("mglittleshoot@gmail.com", 
             new MessageListener() {
                 public void processMessage(final Chat chat, final Message msg) {
-                    log.info("Received message: " + msg);
+                    log.info("Received message: {}", msg);
                     // We need to grab the HTTP data from the message and send
                     // it to the browser.
                     final String data = (String) msg.getProperty(HTTP_KEY);
@@ -90,9 +74,18 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
                         log.warn("No HTTP data");
                         return;
                     }
+                    final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
+                    browserToProxyChannel.write(cb);
                 }
             });
-        
+    }
+    
+
+    private ChannelBuffer xmppToHttpChannelBuffer(final Message msg) {
+        final String data = (String) msg.getProperty(HTTP_KEY);
+        final byte[] raw = 
+            Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
+        return ChannelBuffers.wrappedBuffer(raw);
     }
     
     private static final class LocalHttpRequestEncoder 
@@ -104,8 +97,6 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
             return super.encode(chc, channel, msg);
         }
     }
-
-    private Channel localChannel = new LocalChannel();
     
     @Override
     public void messageReceived(final ChannelHandlerContext ctx, 
@@ -113,11 +104,17 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         messagesReceived++;
         log.info("Received "+messagesReceived+" total messages");
 
-        final LocalHttpRequestEncoder encoder = new LocalHttpRequestEncoder();
+        final Channel ch = ctx.getChannel();
+        if (this.browserToProxyChannel != null && this.browserToProxyChannel != ch) {
+            log.error("Got message on a different channel??!");
+        }
+        this.browserToProxyChannel = ch;
+        //final LocalHttpRequestEncoder encoder = new LocalHttpRequestEncoder();
         try {
-            final ChannelBuffer encoded = 
-                (ChannelBuffer) encoder.encode(ctx, localChannel, me.getMessage());
-            final ByteBuffer buf = encoded.toByteBuffer();
+            //final ChannelBuffer encoded = 
+            //    (ChannelBuffer) encoder.encode(ctx, localChannel, me.getMessage());
+            final ChannelBuffer cb = (ChannelBuffer) me.getMessage();
+            final ByteBuffer buf = cb.toByteBuffer();
             final byte[] raw = toRawBytes(buf);
             final String base64 = Base64.encodeBase64String(raw);
             final Message msg = new Message();
@@ -125,21 +122,18 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
             
             // The other side will also need to know where the request came
             // from to differentiate incoming HTTP connections.
-            msg.setProperty("LOCAL-IP", ctx.getChannel().getLocalAddress());
-            msg.setProperty("REMOTE-IP", ctx.getChannel().getRemoteAddress());
+            msg.setProperty("LOCAL-IP", ch.getLocalAddress().toString());
+            msg.setProperty("REMOTE-IP", ch.getRemoteAddress().toString());
+            
+            // We set the sequence number in case the server delivers the 
+            // packets out of order for any reason.
+            msg.setProperty("NUM", sequenceNumber);
             
             this.chat.sendMessage(msg);
+            sequenceNumber++;
             log.info("Sent message!!");
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-        
-        if (!readingChunks) {
-            processMessage(ctx, me);
-        } 
-        else {
-            processChunk(ctx, me);
+        } catch (final Exception e) {
+            log.error("Could not relay message", e);
         }
     }
     
@@ -147,47 +141,9 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         final int mark = buf.position();
         final byte[] bytes = new byte[buf.remaining()];
         buf.get(bytes);
-        
         buf.position(mark);
         return bytes;
     }
-
-    private void processChunk(final ChannelHandlerContext ctx, 
-        final MessageEvent me) {
-        log.info("Processing chunk...");
-        final HttpChunk chunk = (HttpChunk) me.getMessage();
-        
-        // Remember this will typically be a persistent connection, so we'll
-        // get another request after we're read the last chunk. So we need to
-        // reset it back to no longer read in chunk mode.
-        if (chunk.isLast()) {
-            this.readingChunks = false;
-        }
-        final ChannelFuture cf = 
-            endpointsToChannelFutures.get(hostAndPort);
-        
-        // We don't necessarily know the channel is connected yet!! This can
-        // happen if the client sends a chunk directly after the initial 
-        // request.
-        if (cf.getChannel().isConnected()) {
-            cf.getChannel().write(chunk);
-        }
-        else {
-            cf.addListener(new ChannelFutureListener() {
-                
-                public void operationComplete(final ChannelFuture future) 
-                    throws Exception {
-                    cf.getChannel().write(chunk);
-                }
-            });
-        }
-    }
-
-    private void processMessage(final ChannelHandlerContext ctx, 
-        final MessageEvent me) {
-
-    }
-
     
     @Override
     public void channelOpen(final ChannelHandlerContext ctx, 
@@ -211,21 +167,6 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         browserToProxyConnections--;
         log.info("Now "+totalBrowserToProxyConnections+" total browser to proxy channels...");
         log.info("Now this class has "+browserToProxyConnections+" browser to proxy channels...");
-        
-        // The following should always be the case with
-        // @ChannelPipelineCoverage("one")
-        if (browserToProxyConnections == 0) {
-            log.info("Closing all proxy to web channels for this browser " +
-                "to proxy connection!!!");
-            final Collection<ChannelFuture> futures = 
-                this.endpointsToChannelFutures.values();
-            for (final ChannelFuture future : futures) {
-                final Channel ch = future.getChannel();
-                if (ch.isOpen()) {
-                    future.getChannel().close();
-                }
-            }
-        }
     }
 
     @Override
@@ -244,6 +185,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         if (channel.isOpen()) {
             closeOnFlush(channel);
         }
+        this.conn.disconnect();
     }
     
     /**

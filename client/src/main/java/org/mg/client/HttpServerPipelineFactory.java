@@ -5,20 +5,14 @@ import static org.jboss.netty.channel.Channels.pipeline;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
-import java.util.concurrent.Executors;
 
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
-import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
-import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
-import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
@@ -27,8 +21,6 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Presence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.xml.internal.bind.v2.model.annotation.RuntimeInlineAnnotationReader;
 
 /**
  * Factory for creating pipelines for incoming requests to our listening
@@ -40,11 +32,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
     
     private final ChannelGroup channelGroup;
     
-    private final ClientSocketChannelFactory clientSocketChannelFactory =
-        new NioClientSocketChannelFactory(
-            Executors.newCachedThreadPool(),
-            Executors.newCachedThreadPool());
-
     private final String user;
 
     private final String pwd;
@@ -61,11 +48,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
      */
     public HttpServerPipelineFactory(final ChannelGroup channelGroup) {
         this.channelGroup = channelGroup;
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            public void run() {
-                clientSocketChannelFactory.releaseExternalResources();
-            }
-        }));
         final Properties props = new Properties();
         final File propsDir = new File(System.getProperty("user.home"), ".mg");
         final File file = new File(propsDir, "mg.properties");
@@ -105,12 +87,13 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         //pipeline.addLast("ssl", new SslHandler(engine));
         
         // We want to allow longer request lines, headers, and chunks respectively.
-        pipeline.addLast("decoder", new HttpRequestDecoder());
-        pipeline.addLast("encoder", new HttpResponseEncoder());//new ProxyHttpResponseEncoder(cacheManager));
+        //pipeline.addLast("decoder", new HttpRequestDecoder());
+        //pipeline.addLast("encoder", new HttpResponseEncoder());//new ProxyHttpResponseEncoder(cacheManager));
         pipeline.addLast("handler", 
-            new HttpRequestHandler(this.channelGroup, 
-                this.clientSocketChannelFactory, this.conn));
+            new HttpRequestHandler(this.channelGroup, this.conn));
         
+        // We create a new XMPP connection to give to the next incoming 
+        // connection.
         newXmppConnection();
         return pipeline;
     }
@@ -119,35 +102,38 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         final ConnectionConfiguration config = 
             new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
         config.setCompressionEnabled(true);
-        final XMPPConnection conn = new XMPPConnection(config);
-        conn.connect();
-        conn.login(this.user, this.pwd);
+        final XMPPConnection xmpp = new XMPPConnection(config);
+        xmpp.connect();
+        xmpp.login(this.user, this.pwd, "MG");
         
         final Collection<String> mgJids = new HashSet<String>();
-        final Roster roster = conn.getRoster();
+        final Roster roster = xmpp.getRoster();
         roster.addRosterListener(new RosterListener() {
             public void entriesDeleted(Collection<String> addresses) {}
             public void entriesUpdated(Collection<String> addresses) {}
             public void presenceChanged(final Presence presence) {
                 final String from = presence.getFrom();
                 if (from.startsWith("mglittleshoot@gmail.com")) {
-                    System.out.println("PACKET: "+presence);
-                    System.out.println(from);
+                    log.info("PACKET: "+presence);
+                    log.info("Packet is from: {}", from);
                     if (presence.isAvailable()) {
                         mgJids.add(from);
                     }
                     else {
+                        log.info("Removing connection with status {}", 
+                            presence.getStatus());
                         mgJids.remove(from);
                     }
                 }
             }
             public void entriesAdded(final Collection<String> addresses) {
-                System.out.println("Entries added: "+addresses);
+                log.info("Entries added: "+addresses);
             }
         });
 
-        roster.createEntry("mglittleshoot@gmail.com", "MG Baby!", null);
-        this.conn = conn;
+        // Make sure we look for MG packets.
+        roster.createEntry("mglittleshoot@gmail.com", "MG", null);
+        this.conn = xmpp;
         synchronized (this) {
             this.notifyAll();
         }
