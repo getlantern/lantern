@@ -1,12 +1,31 @@
 package org.mg.server;
 
+import static org.jboss.netty.channel.Channels.pipeline;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.ByteBuffer;
 import java.util.Properties;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import org.apache.commons.codec.binary.Base64;
+import org.jboss.netty.bootstrap.ClientBootstrap;
+import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelPipeline;
+import org.jboss.netty.channel.ChannelPipelineFactory;
+import org.jboss.netty.channel.ChannelStateEvent;
+import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
+import org.jboss.netty.util.CharsetUtil;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.ChatManagerListener;
@@ -15,10 +34,6 @@ import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
-import org.jivesoftware.smackx.filetransfer.FileTransferListener;
-import org.jivesoftware.smackx.filetransfer.FileTransferManager;
-import org.jivesoftware.smackx.filetransfer.FileTransferRequest;
-import org.jivesoftware.smackx.filetransfer.IncomingFileTransfer;
 import org.littleshoot.proxy.Launcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +41,11 @@ import org.slf4j.LoggerFactory;
 public class DefaultXmppProxy implements XmppProxy {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+    
+    private final ClientSocketChannelFactory channelFactory =
+        new NioClientSocketChannelFactory(
+            Executors.newCachedThreadPool(),
+            Executors.newCachedThreadPool());
     
     /**
      * Buffer size between input and output
@@ -37,6 +57,9 @@ public class DefaultXmppProxy implements XmppProxy {
     
     private final ExecutorService requestProcessorPool = 
         Executors.newCachedThreadPool();
+    
+    private final ConcurrentHashMap<String, ChannelFuture> connections =
+        new ConcurrentHashMap<String, ChannelFuture>();
     
     public DefaultXmppProxy() {
         // Start the HTTP proxy server that we relay data to. It has more
@@ -67,72 +90,132 @@ public class DefaultXmppProxy implements XmppProxy {
         conn.login(user, pass);
         
         final ChatManager cm = conn.getChatManager();
-        ChatManagerListener listener = new ChatManagerListener() {
+        final ChatManagerListener listener = new ChatManagerListener() {
             
-            public void chatCreated(Chat chat, boolean createdLocally) {
-                System.out.println("Created a chat!!");
+            public void chatCreated(final Chat chat, 
+                final boolean createdLocally) {
+                log.info("Created a chat!!");
                 final MessageListener ml = new MessageListener() {
                     
                     public void processMessage(final Chat ch, final Message msg) {
-                        System.out.println("Got message!!");
-                        System.out.println(msg.getPropertyNames());
+                        log.info("Got message!!");
+                        log.info("Property names: {}", msg.getPropertyNames());
+                        final String data = (String) msg.getProperty("HTTP");
+                        
+                        // The other side will also need to know where the 
+                        // request came from to differentiate incoming HTTP 
+                        // connections.
+                        final String remoteIp = 
+                            (String) msg.getProperty("LOCAL-IP");
+                        final String localIp = 
+                            (String) msg.getProperty("REMOTE-IP");
+                        final byte[] raw = 
+                            Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
+                        
+                        final String decoded = 
+                            new String(raw, CharsetUtil.UTF_8);
+                        log.info("Decoded HTTP:\n", decoded);
+                        
+                        // TODO: Check the sequence number.
+                        
+                        final ChannelFuture cf = 
+                            getChannel(localIp+remoteIp, ch);
+                        if (cf.getChannel().isConnected()) {
+                            cf.getChannel().write(decoded);
+                        }
+                        else {
+                            cf.addListener(new ChannelFutureListener() {
+                                public void operationComplete(
+                                    final ChannelFuture future) 
+                                    throws Exception {
+                                    cf.getChannel().write(decoded);
+                                }
+                            });
+                        }
                     }
                 };
                 chat.addMessageListener(ml);
             }
         };
         cm.addChatListener(listener);
-        
-        /*
-        System.out.println("USER: "+conn.getUser());
-        
-        final FileTransferManager ftm = new FileTransferManager(conn);
-        // Create the listener
-        ftm.addFileTransferListener(new FileTransferListener() {
-            public void fileTransferRequest(final FileTransferRequest request) {
-                log.info("GOT FILE TRANSFER REQUEST!!");
-                requestReceiverPool.submit(new Runnable() {
-                    public void run() {
-                        try {
-                            final IncomingFileTransfer ift = request.accept();
-                            log.info("Accepted request");
-                            final File tempFile =  
-                                File.createTempFile(String.valueOf(request.hashCode()), null);
-                            ift.recieveFile(tempFile);
-                            
-                            //readRequest(request);
-                            while (!ift.isDone()) {
-                                //System.out.println(ift.getStatus());
-                                try {
-                                    Thread.sleep(200);
-                                } catch (InterruptedException e) {
-                                    // TODO Auto-generated catch block
-                                    e.printStackTrace();
-                                }
-                            }
-                            log.info("Received complete file");
-                            log.info("Creating relayer...");
-                            final HttpRequestRelayer relayer = 
-                                new HttpRequestRelayer(conn, request, tempFile);
-                            log.info("About to run..");
-                            relayer.run();
-                            
-                        } catch (XMPPException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        } catch (IOException e) {
-                            // TODO Auto-generated catch block
-                            e.printStackTrace();
-                        }
-                        System.out.println("FILE NAME: "+request.getFileName());
-                        System.out.println("DESCRIPTION: "+request.getDescription());
-                    }
-                });
+    }
+    
+    /**
+     * This gets a channel to connect to the local HTTP proxy on. This is 
+     * slightly complex, as we're trying to mimic the state as if this HTTP
+     * request is coming in to a "normal" LittleProxy instance instead of
+     * having the traffic tunneled through XMPP. So we create a separate 
+     * connection to the proxy just as those separate connections were made
+     * from the browser to the proxy originally on the remote end.
+     * 
+     * If there's already an existing connection mimicking the original 
+     * connection, we use that.
+     *
+     * @param key The key for the remote IP/port pair.
+     * @param chat The chat session across Google Talk -- we need this to 
+     * send responses back to the original caller.
+     * @return The {@link ChannelFuture} that will connect to the local
+     * LittleProxy instance.
+     */
+    private ChannelFuture getChannel(final String key, final Chat chat) {
+        synchronized (connections) {
+            if (connections.containsKey(key)) {
+                return connections.get(key);
             }
-        });
-        */
+            // Configure the client.
+            final ClientBootstrap cb = new ClientBootstrap(this.channelFactory);
+            
+            final ChannelPipelineFactory cpf = new ChannelPipelineFactory() {
+                public ChannelPipeline getPipeline() throws Exception {
+                    // Create a default pipeline implementation.
+                    final ChannelPipeline pipeline = pipeline();
+                    
+                    final class HttpChatRelay extends SimpleChannelUpstreamHandler {
+                        @Override
+                        public void messageReceived(
+                            final ChannelHandlerContext ctx, 
+                            final MessageEvent me) throws Exception {
+                            final Message msg = new Message();
+                            final ByteBuffer buf = 
+                                ((ChannelBuffer) me.getMessage()).toByteBuffer();
+                            final byte[] raw = toRawBytes(buf);
+                            final String base64 = Base64.encodeBase64String(raw);
+                            
+                            //TODO: Set the sequence number.
+                            msg.setProperty("HTTP", base64);
+                            chat.sendMessage(msg);
+                        }
+                        @Override
+                        public void channelClosed(final ChannelHandlerContext ctx, 
+                            final ChannelStateEvent cse) {
+                            connections.remove(key);
+                        }
+                    }
+                    
+                    pipeline.addLast("handler", new HttpChatRelay());
+                    return pipeline;
+                }
+            };
+                
+            // Set up the event pipeline factory.
+            cb.setPipelineFactory(cpf);
+            cb.setOption("connectTimeoutMillis", 40*1000);
+
+            final ChannelFuture future = 
+                cb.connect(new InetSocketAddress("127.0.0.1", 7777));
+            connections.put(key, future);
+            return future;
+        }
     }
 
+    public static byte[] toRawBytes(final ByteBuffer buf) {
+        final int mark = buf.position();
+        final byte[] bytes = new byte[buf.remaining()];
+        buf.get(bytes);
+        buf.position(mark);
+        return bytes;
+    }
+    
     /*
     private void readRequest(final FileTransferRequest request) 
         throws XMPPException, IOException {
