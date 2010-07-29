@@ -7,6 +7,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -218,6 +220,7 @@ public class DefaultXmppProxy implements XmppProxy {
                             
                             //TODO: Set the sequence number??
                             msg.setProperty("HTTP", base64);
+                            msg.setProperty("MD5", toMd5(raw));
                             chat.sendMessage(msg);
                         }
                         @Override
@@ -252,6 +255,17 @@ public class DefaultXmppProxy implements XmppProxy {
                 cb.connect(new InetSocketAddress("127.0.0.1", 7777));
             connections.put(key, future);
             return future;
+        }
+    }
+    
+    private String toMd5(final byte[] raw) {
+        try {
+            final MessageDigest md = MessageDigest.getInstance("MD5");
+            final byte[] digest = md.digest(raw);
+            return Base64.encodeBase64String(digest);
+        } catch (final NoSuchAlgorithmException e) {
+            log.error("No MD5 -- will never happen", e);
+            return "NO MD5";
         }
     }
 
