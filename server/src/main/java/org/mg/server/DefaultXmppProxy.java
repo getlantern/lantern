@@ -9,12 +9,13 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -47,17 +48,6 @@ public class DefaultXmppProxy implements XmppProxy {
             Executors.newCachedThreadPool(),
             Executors.newCachedThreadPool());
     
-    /**
-     * Buffer size between input and output
-     */
-    private static final int BUFFER_SIZE = 8192;
-    
-    private final ExecutorService requestReceiverPool = 
-        Executors.newCachedThreadPool();
-    
-    private final ExecutorService requestProcessorPool = 
-        Executors.newCachedThreadPool();
-    
     private final ConcurrentHashMap<String, ChannelFuture> connections =
         new ConcurrentHashMap<String, ChannelFuture>();
     
@@ -69,11 +59,6 @@ public class DefaultXmppProxy implements XmppProxy {
     }
     
     public void start() throws XMPPException, IOException {
-        final ConnectionConfiguration config = 
-            new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
-        config.setCompressionEnabled(true);
-        final XMPPConnection conn = new XMPPConnection(config);
-        conn.connect();
         final Properties props = new Properties();
         final File propsDir = new File(System.getProperty("user.home"), ".mg");
         final File propsFile = new File(propsDir, "mg.properties");
@@ -87,7 +72,35 @@ public class DefaultXmppProxy implements XmppProxy {
         props.load(new FileInputStream(propsFile));
         final String user = props.getProperty("google.server.user");
         final String pass = props.getProperty("google.server.pwd");
-        conn.login(user, pass);
+        
+        for (int i = 0; i < 10; i++) {
+            // We create a bunch of connections to allow us to process as much
+            // incoming data as possible.
+            final XMPPConnection xmpp = newConnection(user, pass);
+            log.info("Created connection to: {}", xmpp);
+        }
+    }
+    
+    private XMPPConnection newConnection(final String user, final String pass) {
+        for (int i = 0; i < 10; i++) {
+            try {
+                return newSingleConnection(user, pass);
+            } catch (final XMPPException e) {
+                log.error("Could not create XMPP connection", e);
+            }
+        }
+        throw new RuntimeException("Could not connect to XMPP server");
+    }
+
+    private XMPPConnection newSingleConnection(final String user, 
+        final String pass) 
+        throws XMPPException {
+        final ConnectionConfiguration config = 
+            new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
+        config.setCompressionEnabled(true);
+        final XMPPConnection conn = new XMPPConnection(config);
+        conn.connect();
+        conn.login(user, pass, "MG");
         
         final ChatManager cm = conn.getChatManager();
         final ChatManagerListener listener = new ChatManagerListener() {
@@ -101,34 +114,25 @@ public class DefaultXmppProxy implements XmppProxy {
                         log.info("Got message!!");
                         log.info("Property names: {}", msg.getPropertyNames());
                         final String data = (String) msg.getProperty("HTTP");
+                        if (StringUtils.isBlank(data)) {
+                            log.warn("HTTP IS BLANK?? IGNORING...");
+                            return;
+                        }
                         
-                        // The other side will also need to know where the 
-                        // request came from to differentiate incoming HTTP 
-                        // connections.
-                        final String remoteIp = 
-                            (String) msg.getProperty("LOCAL-IP");
-                        final String localIp = 
-                            (String) msg.getProperty("REMOTE-IP");
-                        final byte[] raw = 
-                            Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
-                        
-                        final String decoded = 
-                            new String(raw, CharsetUtil.UTF_8);
-                        log.info("Decoded HTTP:\n", decoded);
-                        
-                        // TODO: Check the sequence number.
-                        
-                        final ChannelFuture cf = 
-                            getChannel(localIp+remoteIp, ch);
+                        // TODO: Check the sequence number??
+                        final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
+                        log.info("Getting channel future...");
+                        final ChannelFuture cf = getChannelFuture(msg, ch);
+                        log.info("Got channel: {}", cf);
                         if (cf.getChannel().isConnected()) {
-                            cf.getChannel().write(decoded);
+                            cf.getChannel().write(cb);
                         }
                         else {
                             cf.addListener(new ChannelFutureListener() {
                                 public void operationComplete(
                                     final ChannelFuture future) 
                                     throws Exception {
-                                    cf.getChannel().write(decoded);
+                                    cf.getChannel().write(cb);
                                 }
                             });
                         }
@@ -138,6 +142,14 @@ public class DefaultXmppProxy implements XmppProxy {
             }
         };
         cm.addChatListener(listener);
+        return conn;
+    }
+
+    private ChannelBuffer xmppToHttpChannelBuffer(final Message msg) {
+        final String data = (String) msg.getProperty("HTTP");
+        final byte[] raw = 
+            Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
+        return ChannelBuffers.wrappedBuffer(raw);
     }
     
     /**
@@ -157,9 +169,30 @@ public class DefaultXmppProxy implements XmppProxy {
      * @return The {@link ChannelFuture} that will connect to the local
      * LittleProxy instance.
      */
-    private ChannelFuture getChannel(final String key, final Chat chat) {
+    private ChannelFuture getChannelFuture(final Message message, 
+        final Chat chat) {
+        // The other side will also need to know where the 
+        // request came from to differentiate incoming HTTP 
+        // connections.
+        log.info("Getting properties...");
+        
+        // Not these will fail if the original properties were not set as
+        // strings.
+        final String remoteIp = 
+            (String) message.getProperty("LOCAL-IP");
+        final String localIp = 
+            (String) message.getProperty("REMOTE-IP");
+        final String MAC = 
+            (String) message.getProperty("MAC");
+        final String HASHCODE = 
+            (String) message.getProperty("HASHCODE");
+        
+        final String key = MAC + HASHCODE;
+        
+        log.info("Getting channel future...");
         synchronized (connections) {
             if (connections.containsKey(key)) {
+                log.info("Using existing connection");
                 return connections.get(key);
             }
             // Configure the client.
@@ -175,19 +208,32 @@ public class DefaultXmppProxy implements XmppProxy {
                         public void messageReceived(
                             final ChannelHandlerContext ctx, 
                             final MessageEvent me) throws Exception {
+                            log.info("HTTP message received from proxy on " +
+                                "relayer: {}", me.getMessage());
                             final Message msg = new Message();
                             final ByteBuffer buf = 
                                 ((ChannelBuffer) me.getMessage()).toByteBuffer();
                             final byte[] raw = toRawBytes(buf);
                             final String base64 = Base64.encodeBase64String(raw);
                             
-                            //TODO: Set the sequence number.
+                            //TODO: Set the sequence number??
                             msg.setProperty("HTTP", base64);
                             chat.sendMessage(msg);
                         }
                         @Override
                         public void channelClosed(final ChannelHandlerContext ctx, 
                             final ChannelStateEvent cse) {
+                            // We need to send the CLOSE directive to the other
+                            // side VIA google talk to simulate the proxy 
+                            // closing the connection to the browser.
+                            log.info("Got channel closed on C in A->B->C->D chain...");
+                            final Message msg = new Message();
+                            msg.setProperty("CLOSE", "true");
+                            try {
+                                chat.sendMessage(msg);
+                            } catch (final XMPPException e) {
+                                log.warn("Error sending close message", e);
+                            }
                             connections.remove(key);
                         }
                     }
@@ -201,6 +247,7 @@ public class DefaultXmppProxy implements XmppProxy {
             cb.setPipelineFactory(cpf);
             cb.setOption("connectTimeoutMillis", 40*1000);
 
+            log.info("Connecting to localhost proxy");
             final ChannelFuture future = 
                 cb.connect(new InetSocketAddress("127.0.0.1", 7777));
             connections.put(key, future);
