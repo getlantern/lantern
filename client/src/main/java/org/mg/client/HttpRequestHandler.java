@@ -2,6 +2,8 @@ package org.mg.client;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -119,8 +121,29 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         final String data = (String) msg.getProperty(HTTP_KEY);
         final byte[] raw = 
             Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
+        
+        final String md5 = toMd5(raw);
+        final String expected = (String) msg.getProperty("MD5");
+        if (!md5.equals(expected)) {
+            log.error("MD-5s not equal!!");
+        }
+        else {
+            log.info("MD-5s match!!");
+        }
+        
         log.info("Wrapping data: {}", new String(raw, CharsetUtil.UTF_8));
         return ChannelBuffers.wrappedBuffer(raw);
+    }
+    
+    private String toMd5(final byte[] raw) {
+        try {
+            final MessageDigest md = MessageDigest.getInstance("MD5");
+            final byte[] digest = md.digest(raw);
+            return Base64.encodeBase64String(digest);
+        } catch (final NoSuchAlgorithmException e) {
+            log.error("No MD5 -- will never happen", e);
+            return "NO MD5";
+        }
     }
     
     @Override
@@ -191,6 +214,9 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         browserToProxyConnections--;
         log.info("Now "+totalBrowserToProxyConnections+" total browser to proxy channels...");
         log.info("Now this class has "+browserToProxyConnections+" browser to proxy channels...");
+        
+        log.info("Disconnecting from XMPP server...");
+        this.conn.disconnect();
     }
 
     @Override
@@ -209,7 +235,6 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         if (channel.isOpen()) {
             closeOnFlush(channel);
         }
-        this.conn.disconnect();
     }
     
     /**
