@@ -2,6 +2,10 @@ package org.mg.client;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -45,6 +49,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
     private long sequenceNumber = 0L;
     private Channel browserToProxyChannel;
     private final XMPPConnection conn;
+    private final String macAddress;
     
     /**
      * Creates a new class for handling HTTP requests with the specified
@@ -54,19 +59,48 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
      * channels we've opened.
      * @param clientChannelFactory The common channel factory for clients.
      * @param conn The XMPP connection. 
+     * @param mgJids The IDs of MG to connect to. 
+     * @param macAddress The unique MAC address for this host.
      */
     public HttpRequestHandler(final ChannelGroup channelGroup, 
-        final XMPPConnection conn) {
+        final XMPPConnection conn, final Collection<String> mgJids, 
+        final String macAddress) {
+        if (mgJids.isEmpty()) {
+            log.info("No talk IDs...");
+            throw new IllegalArgumentException(
+                "Can't operate without talk IDs...");
+        }
+        
         this.channelGroup = channelGroup;
         this.conn = conn;
+        this.macAddress = macAddress;
         log.info("Using TLS: "+conn.isSecureConnection());
         final ChatManager chatmanager = conn.getChatManager();
+
+        final List<String> strs;
+        synchronized (mgJids) {
+            strs = new ArrayList<String>(mgJids);
+        }
+        
+        Collections.shuffle(strs);
+        final String id = strs.iterator().next();
         
         this.chat = 
-            chatmanager.createChat("mglittleshoot@gmail.com", 
+            chatmanager.createChat(id,//"mglittleshoot@gmail.com", 
             new MessageListener() {
                 public void processMessage(final Chat chat, final Message msg) {
-                    log.info("Received message: {}", msg);
+                    log.info("Received message with props: {}", 
+                        msg.getPropertyNames());
+                    final String close = (String) msg.getProperty("CLOSE");
+
+                    // If the other side is sending the close directive, we 
+                    // need to close the connection to the browser.
+                    if (close != null && close.trim().equalsIgnoreCase("true")) {
+                        log.info("Got CLOSE. Closing channel to browser.");
+                        browserToProxyChannel.close();
+                        return;
+                    }
+                    
                     // We need to grab the HTTP data from the message and send
                     // it to the browser.
                     final String data = (String) msg.getProperty(HTTP_KEY);
@@ -85,17 +119,8 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         final String data = (String) msg.getProperty(HTTP_KEY);
         final byte[] raw = 
             Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
+        log.info("Wrapping data: {}", new String(raw, CharsetUtil.UTF_8));
         return ChannelBuffers.wrappedBuffer(raw);
-    }
-    
-    private static final class LocalHttpRequestEncoder 
-        extends HttpRequestEncoder {
-        
-        @Override
-        protected Object encode(final ChannelHandlerContext chc, 
-            final Channel channel, final Object msg) throws Exception {
-            return super.encode(chc, channel, msg);
-        }
     }
     
     @Override
@@ -109,10 +134,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
             log.error("Got message on a different channel??!");
         }
         this.browserToProxyChannel = ch;
-        //final LocalHttpRequestEncoder encoder = new LocalHttpRequestEncoder();
         try {
-            //final ChannelBuffer encoded = 
-            //    (ChannelBuffer) encoder.encode(ctx, localChannel, me.getMessage());
             final ChannelBuffer cb = (ChannelBuffer) me.getMessage();
             final ByteBuffer buf = cb.toByteBuffer();
             final byte[] raw = toRawBytes(buf);
@@ -124,6 +146,8 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
             // from to differentiate incoming HTTP connections.
             msg.setProperty("LOCAL-IP", ch.getLocalAddress().toString());
             msg.setProperty("REMOTE-IP", ch.getRemoteAddress().toString());
+            msg.setProperty("MAC", this.macAddress);
+            msg.setProperty("HASHCODE", String.valueOf(this.hashCode()));
             
             // We set the sequence number in case the server delivers the 
             // packets out of order for any reason.

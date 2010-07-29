@@ -6,10 +6,17 @@ import static org.jboss.netty.channel.Channels.pipeline;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.Random;
 
+import org.apache.commons.codec.binary.Base64;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
@@ -37,6 +44,10 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
     private final String pwd;
 
     private XMPPConnection conn;
+    
+    private final Collection<String> mgJids = new HashSet<String>();
+
+    private String macAddress;
 
     /**
      * Creates a new pipeline factory with the specified class for processing
@@ -55,15 +66,54 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
             props.load(new FileInputStream(file));
             this.user = props.getProperty("google.user");
             this.pwd = props.getProperty("google.pwd");
-            newXmppConnection();
+            
+            final Enumeration<NetworkInterface> ints = 
+                NetworkInterface.getNetworkInterfaces();
+            this.macAddress = getMacAddress(ints);
         } catch (final IOException e) {
             final String msg = "Error loading props file at: " + file;
             log.error(msg);
             throw new RuntimeException(msg, e);
-        } catch (final XMPPException e) {
-            final String msg = "Error creating XMPP connection";
-            log.error(msg);
-            throw new RuntimeException(msg, e);
+        }
+        
+        persistentXmppConnection();
+    }
+
+    private void persistentXmppConnection() {
+        for (int i = 0; i < 10; i++) {
+            try {
+                log.info("Attempting XMPP connection...");
+                newXmppConnection();
+                log.info("Successfully connected...");
+                return;
+            } catch (final XMPPException e) {
+                final String msg = "Error creating XMPP connection";
+                log.error(msg, e);
+            }
+        }
+        throw new RuntimeException("Could not create XMPP connection!!");
+    }
+
+    private String getMacAddress(final Enumeration<NetworkInterface> nis) {
+        while (nis.hasMoreElements()) {
+            final NetworkInterface ni = nis.nextElement();
+            try {
+                final byte[] mac = ni.getHardwareAddress();
+                if (mac.length > 0) {
+                    return Base64.encodeBase64String(mac);
+                }
+            } catch (final SocketException e) {
+                log.warn("Could not get MAC address?");
+            }
+        }
+        try {
+            return Base64.encodeBase64String(
+                InetAddress.getLocalHost().getAddress()) + 
+                System.currentTimeMillis();
+        } catch (final UnknownHostException e) {
+            final byte[] bytes = new byte[24];
+            new Random().nextBytes(bytes);
+            return Base64.encodeBase64String(bytes);
         }
     }
 
@@ -71,7 +121,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         final ChannelPipeline pipeline = pipeline();
 
         synchronized (this) {
-            while (this.conn == null) {
+            while (this.mgJids.isEmpty()) {
                 wait(30000);
             }
         }
@@ -90,7 +140,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         //pipeline.addLast("decoder", new HttpRequestDecoder());
         //pipeline.addLast("encoder", new HttpResponseEncoder());//new ProxyHttpResponseEncoder(cacheManager));
         pipeline.addLast("handler", 
-            new HttpRequestHandler(this.channelGroup, this.conn));
+            new HttpRequestHandler(this.channelGroup, this.conn, this.mgJids, 
+                this.macAddress));
         
         // We create a new XMPP connection to give to the next incoming 
         // connection.
@@ -102,11 +153,12 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         final ConnectionConfiguration config = 
             new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
         config.setCompressionEnabled(true);
+        config.setRosterLoadedAtLogin(true);
+        //config.setReconnectionAllowed(true);
         final XMPPConnection xmpp = new XMPPConnection(config);
         xmpp.connect();
         xmpp.login(this.user, this.pwd, "MG");
         
-        final Collection<String> mgJids = new HashSet<String>();
         final Roster roster = xmpp.getRoster();
         roster.addRosterListener(new RosterListener() {
             public void entriesDeleted(Collection<String> addresses) {}
