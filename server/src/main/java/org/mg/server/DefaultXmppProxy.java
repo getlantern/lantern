@@ -124,7 +124,11 @@ public class DefaultXmppProxy implements XmppProxy {
                         // TODO: Check the sequence number??
                         final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
                         log.info("Getting channel future...");
-                        final ChannelFuture cf = getChannelFuture(msg, ch);
+                        final ChannelFuture cf = getChannelFuture(msg, chat);
+                        if (cf == null) {
+                            log.warn("Null channel future! Returning");
+                            return;
+                        }
                         log.info("Got channel: {}", cf);
                         if (cf.getChannel().isConnected()) {
                             cf.getChannel().write(cb);
@@ -184,14 +188,20 @@ public class DefaultXmppProxy implements XmppProxy {
             (String) message.getProperty("LOCAL-IP");
         final String localIp = 
             (String) message.getProperty("REMOTE-IP");
-        final String MAC = 
+        final String mac = 
             (String) message.getProperty("MAC");
-        final String HASHCODE = 
+        final String hc = 
             (String) message.getProperty("HASHCODE");
+
+        // We can sometimes get messages back that were not intended for us.
+        // Just ignore them.
+        if (mac == null || hc == null) {
+            log.error("Message not intended for us?!?!? Null MAC and/or HASH");
+            return null;
+        }
+        final String key = mac + hc;
         
-        final String key = MAC + HASHCODE;
-        
-        log.info("Getting channel future...");
+        log.info("Getting channel future for key: {}", key);
         synchronized (connections) {
             if (connections.containsKey(key)) {
                 log.info("Using existing connection");
@@ -216,7 +226,8 @@ public class DefaultXmppProxy implements XmppProxy {
                             final ByteBuffer buf = 
                                 ((ChannelBuffer) me.getMessage()).toByteBuffer();
                             final byte[] raw = toRawBytes(buf);
-                            final String base64 = Base64.encodeBase64String(raw);
+                            final String base64 = 
+                                Base64.encodeBase64URLSafeString(raw);
                             
                             //TODO: Set the sequence number??
                             msg.setProperty("HTTP", base64);
@@ -262,7 +273,7 @@ public class DefaultXmppProxy implements XmppProxy {
         try {
             final MessageDigest md = MessageDigest.getInstance("MD5");
             final byte[] digest = md.digest(raw);
-            return Base64.encodeBase64String(digest);
+            return Base64.encodeBase64URLSafeString(digest);
         } catch (final NoSuchAlgorithmException e) {
             log.error("No MD5 -- will never happen", e);
             return "NO MD5";
@@ -276,47 +287,4 @@ public class DefaultXmppProxy implements XmppProxy {
         buf.position(mark);
         return bytes;
     }
-    
-    /*
-    private void readRequest(final FileTransferRequest request) 
-        throws XMPPException, IOException {
-        final IncomingFileTransfer itf = request.accept();
-        final long fileSize = request.getFileSize();
-        final InputStream in = itf.recieveFile();
-        final byte[] b = new byte[BUFFER_SIZE];
-        int count = 0;
-        int amountWritten = 0;
-
-        // We actually write to a file here because it could be a large POST
-        // request.
-        final File tempFile = 
-            File.createTempFile(String.valueOf(request.hashCode()), null);
-        final OutputStream out = new FileOutputStream(tempFile);
-        do {
-            // write to the output stream
-            try {
-                out.write(b, 0, count);
-            } catch (IOException e) {
-                throw new XMPPException("error writing to output stream", e);
-            }
-
-            amountWritten += count;
-
-            // read more bytes from the input stream
-            try {
-                count = in.read(b);
-            } catch (IOException e) {
-                throw new XMPPException("error reading from input stream", e);
-            }
-        } while (count != -1 && !itf.getStatus().equals(Status.cancelled));
-
-        // the connection was likely terminated abrubtly if these are not equal
-        if (!itf.getStatus().equals(Status.cancelled) && 
-             itf.getError() == Error.none && amountWritten != fileSize) {
-            itf.setStatus(Status.error);
-            itf.setError(Error.connection);
-        }
-        System.out.println("Read: "+IOUtils.toString(new FileInputStream(tempFile)));
-    }
-    */
 }
