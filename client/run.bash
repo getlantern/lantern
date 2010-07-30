@@ -5,7 +5,7 @@ function die() {
 }
 
 pushd ..
-mvn package -Dmaven.test.skip=true || die "Could not package"
+#mvn package -Dmaven.test.skip=true || die "Could not package"
 popd
 
 fullPath=`dirname $0`

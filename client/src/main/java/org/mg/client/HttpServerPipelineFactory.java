@@ -10,11 +10,12 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.Collection;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.Properties;
 import java.util.Random;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import org.apache.commons.codec.binary.Base64;
 import org.jboss.netty.channel.ChannelPipeline;
@@ -22,10 +23,8 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.Roster;
-import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
-import org.jivesoftware.smack.packet.Presence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +42,19 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
 
     private final String pwd;
 
-    private XMPPConnection conn;
+    private final String macAddress;
     
-    private final Collection<String> mgJids = new HashSet<String>();
+    private final LinkedBlockingQueue<XMPPConnection> connections = 
+        new LinkedBlockingQueue<XMPPConnection>(NUM_CONNECTIONS);
 
-    private String macAddress;
-
+    private static final int NUM_CONNECTIONS = 10;
+    
+    /**
+     * Separate thread for creating new XMPP connections.
+     */
+    private final ExecutorService connector = 
+        Executors.newCachedThreadPool();
+    
     /**
      * Creates a new pipeline factory with the specified class for processing
      * proxy authentication.
@@ -76,7 +82,9 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
             throw new RuntimeException(msg, e);
         }
         
-        persistentXmppConnection();
+        for (int i = 0; i < NUM_CONNECTIONS; i++) {
+            threadedXmppConnection();
+        }
     }
 
     private void persistentXmppConnection() {
@@ -91,7 +99,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
                 log.error(msg, e);
             }
         }
-        throw new RuntimeException("Could not create XMPP connection!!");
     }
 
     private String getMacAddress(final Enumeration<NetworkInterface> nis) {
@@ -120,33 +127,25 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
     public ChannelPipeline getPipeline() throws Exception {
         final ChannelPipeline pipeline = pipeline();
 
-        synchronized (this) {
-            while (this.mgJids.isEmpty()) {
-                wait(30000);
-            }
-        }
-
-        if (this.conn == null) {
-            log.error("No connection!!");
-            throw new IllegalStateException("No XMPP connection");
-        }
+        log.info("Getting pipeline...waiting for connection");
+        final XMPPConnection conn = this.connections.take();
         
-        // Uncomment the following line if you want HTTPS
-        //SSLEngine engine = SecureChatSslContextFactory.getServerContext().createSSLEngine();
-        //engine.setUseClientMode(false);
-        //pipeline.addLast("ssl", new SslHandler(engine));
-        
-        // We want to allow longer request lines, headers, and chunks respectively.
-        //pipeline.addLast("decoder", new HttpRequestDecoder());
-        //pipeline.addLast("encoder", new HttpResponseEncoder());//new ProxyHttpResponseEncoder(cacheManager));
         pipeline.addLast("handler", 
-            new HttpRequestHandler(this.channelGroup, this.conn, this.mgJids, 
+            new HttpRequestHandler(this.channelGroup, conn, 
                 this.macAddress));
         
         // We create a new XMPP connection to give to the next incoming 
         // connection.
-        newXmppConnection();
+        threadedXmppConnection();
         return pipeline;
+    }
+
+    private void threadedXmppConnection() {
+        connector.submit(new Runnable() {
+            public void run() {
+                persistentXmppConnection();
+            }
+        });
     }
 
     private void newXmppConnection() throws XMPPException {
@@ -154,38 +153,16 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
             new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
         config.setCompressionEnabled(true);
         config.setRosterLoadedAtLogin(true);
-        //config.setReconnectionAllowed(true);
+        
         final XMPPConnection xmpp = new XMPPConnection(config);
         xmpp.connect();
         xmpp.login(this.user, this.pwd, "MG");
         
         final Roster roster = xmpp.getRoster();
-        roster.addRosterListener(new RosterListener() {
-            public void entriesDeleted(Collection<String> addresses) {}
-            public void entriesUpdated(Collection<String> addresses) {}
-            public void presenceChanged(final Presence presence) {
-                final String from = presence.getFrom();
-                if (from.startsWith("mglittleshoot@gmail.com")) {
-                    log.info("PACKET: "+presence);
-                    log.info("Packet is from: {}", from);
-                    if (presence.isAvailable()) {
-                        mgJids.add(from);
-                    }
-                    else {
-                        log.info("Removing connection with status {}", 
-                            presence.getStatus());
-                        mgJids.remove(from);
-                    }
-                }
-            }
-            public void entriesAdded(final Collection<String> addresses) {
-                log.info("Entries added: "+addresses);
-            }
-        });
 
         // Make sure we look for MG packets.
         roster.createEntry("mglittleshoot@gmail.com", "MG", null);
-        this.conn = xmpp;
+        this.connections.add(xmpp);
         synchronized (this) {
             this.notifyAll();
         }

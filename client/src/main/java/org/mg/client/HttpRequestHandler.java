@@ -7,6 +7,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
@@ -20,13 +22,14 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.util.CharsetUtil;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.MessageListener;
+import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.Presence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,13 +68,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
      * @param macAddress The unique MAC address for this host.
      */
     public HttpRequestHandler(final ChannelGroup channelGroup, 
-        final XMPPConnection conn, final Collection<String> mgJids, 
-        final String macAddress) {
-        if (mgJids.isEmpty()) {
-            log.info("No talk IDs...");
-            throw new IllegalArgumentException(
-                "Can't operate without talk IDs...");
-        }
+        final XMPPConnection conn, final String macAddress) {
         
         this.channelGroup = channelGroup;
         this.conn = conn;
@@ -79,6 +76,54 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         log.info("Using TLS: "+conn.isSecureConnection());
         final ChatManager chatmanager = conn.getChatManager();
 
+        final Collection<String> mgJids = new HashSet<String>();
+        final Roster roster = conn.getRoster();
+        final Iterator<Presence> presences = 
+            roster.getPresences("mglittleshoot@gmail.com");
+
+        while (presences.hasNext()) {
+            final Presence pres = presences.next();
+            final String from = pres.getFrom();
+            if (from.startsWith("mglittleshoot@gmail.com")) {
+                if (pres.isAvailable()) {
+                    mgJids.add(from);
+                }
+            }
+        }
+        /*
+        final Collection<RosterEntry> entries = roster.getEntries();
+        
+        roster.addRosterListener(new RosterListener() {
+            public void entriesDeleted(Collection<String> addresses) {}
+            public void entriesUpdated(Collection<String> addresses) {}
+            public void presenceChanged(final Presence presence) {
+                final String from = presence.getFrom();
+                if (from.startsWith("mglittleshoot@gmail.com")) {
+                    log.info("PACKET: "+presence);
+                    log.info("Packet is from: {}", from);
+                    if (presence.isAvailable()) {
+                        mgJids.add(from);
+                    }
+                    else {
+                        log.info("Removing connection with status {}", 
+                            presence.getStatus());
+                        mgJids.remove(from);
+                    }
+                }
+            }
+            public void entriesAdded(final Collection<String> addresses) {
+                log.info("Entries added: "+addresses);
+            }
+        });
+        */
+        /*
+        for (final RosterEntry entry : entries) {
+            if (entry.getUser().startsWith("mglittleshoot@gmail.com") {
+                final ItemStatus status = entry.getStatus();
+            }
+        }
+        */
+        
         final List<String> strs;
         synchronized (mgJids) {
             strs = new ArrayList<String>(mgJids);
@@ -116,6 +161,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
             });
     }
     
+    private long bytesSent = 0L;
 
     private ChannelBuffer xmppToHttpChannelBuffer(final Message msg) {
         final String data = (String) msg.getProperty(HTTP_KEY);
@@ -125,13 +171,15 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         final String md5 = toMd5(raw);
         final String expected = (String) msg.getProperty("MD5");
         if (!md5.equals(expected)) {
-            log.error("MD-5s not equal!!");
+            log.error("MD-5s not equal!! Expected:\n'"+expected+"'\nBut was:\n'"+md5+"'");
         }
         else {
             log.info("MD-5s match!!");
         }
         
         log.info("Wrapping data: {}", new String(raw, CharsetUtil.UTF_8));
+        bytesSent += raw.length;
+        log.info("Now sent "+bytesSent+" bytes after "+raw.length+" new");
         return ChannelBuffers.wrappedBuffer(raw);
     }
     
@@ -139,7 +187,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         try {
             final MessageDigest md = MessageDigest.getInstance("MD5");
             final byte[] digest = md.digest(raw);
-            return Base64.encodeBase64String(digest);
+            return Base64.encodeBase64URLSafeString(digest);
         } catch (final NoSuchAlgorithmException e) {
             log.error("No MD5 -- will never happen", e);
             return "NO MD5";
@@ -161,7 +209,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
             final ChannelBuffer cb = (ChannelBuffer) me.getMessage();
             final ByteBuffer buf = cb.toByteBuffer();
             final byte[] raw = toRawBytes(buf);
-            final String base64 = Base64.encodeBase64String(raw);
+            final String base64 = Base64.encodeBase64URLSafeString(raw);
             final Message msg = new Message();
             msg.setProperty(HTTP_KEY, base64);
             

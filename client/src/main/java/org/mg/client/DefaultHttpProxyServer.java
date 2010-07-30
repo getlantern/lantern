@@ -63,13 +63,5 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
                 bootstrap.releaseExternalResources();
             }
         }));
-        /*
-        final ServerBootstrap sslBootstrap = new ServerBootstrap(
-            new NioServerSocketChannelFactory(
-                Executors.newCachedThreadPool(),
-                Executors.newCachedThreadPool()));
-        sslBootstrap.setPipelineFactory(new HttpServerPipelineFactory());
-        sslBootstrap.bind(new InetSocketAddress("127.0.0.1", 8443));
-        */
     }
 }
