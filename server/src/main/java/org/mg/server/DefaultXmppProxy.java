@@ -34,9 +34,13 @@ import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.ChatManagerListener;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.MessageListener;
+import org.jivesoftware.smack.PacketListener;
+import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.Packet;
+import org.jivesoftware.smack.packet.Presence;
 import org.littleshoot.proxy.Launcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,13 +107,38 @@ public class DefaultXmppProxy implements XmppProxy {
         final XMPPConnection conn = new XMPPConnection(config);
         conn.connect();
         conn.login(user, pass, "MG");
+        final Roster roster = conn.getRoster();
+        roster.setSubscriptionMode(Roster.SubscriptionMode.accept_all);
+        
         
         final ChatManager cm = conn.getChatManager();
         final ChatManagerListener listener = new ChatManagerListener() {
+            private ChannelFuture cf;
             
             public void chatCreated(final Chat chat, 
                 final boolean createdLocally) {
                 log.info("Created a chat!!");
+                // We need to listen for the unavailability of clients we're chatting
+                // with so we can disconnect from their associated remote servers.
+                final PacketListener pl = new PacketListener() {
+                    public void processPacket(final Packet pack) {
+                        if (!(pack instanceof Presence)) return;
+                        final Presence pres = (Presence) pack;
+                        final String from = pres.getFrom();
+                        final String participant = chat.getParticipant();
+                        log.info("Comparing presence packet from "+from+
+                            " to particant "+participant);
+                        if (from.equals(participant) && !pres.isAvailable()) {
+                            if (cf != null) {
+                                log.info("Closing channel to local proxy");
+                                cf.getChannel().close();
+                            }
+                        }
+                    }
+                };
+                // Register the listener.
+                conn.addPacketListener(pl, null);
+                
                 final MessageListener ml = new MessageListener() {
                     
                     public void processMessage(final Chat ch, final Message msg) {
@@ -124,7 +153,7 @@ public class DefaultXmppProxy implements XmppProxy {
                         // TODO: Check the sequence number??
                         final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
                         log.info("Getting channel future...");
-                        final ChannelFuture cf = getChannelFuture(msg, chat);
+                        cf = getChannelFuture(msg, chat);
                         if (cf == null) {
                             log.warn("Null channel future! Returning");
                             return;
@@ -182,6 +211,7 @@ public class DefaultXmppProxy implements XmppProxy {
         // connections.
         log.info("Getting properties...");
         
+        
         // Not these will fail if the original properties were not set as
         // strings.
         final String remoteIp = 
@@ -216,6 +246,8 @@ public class DefaultXmppProxy implements XmppProxy {
                     final ChannelPipeline pipeline = pipeline();
                     
                     final class HttpChatRelay extends SimpleChannelUpstreamHandler {
+                        private long sequenceNumber = 0L;
+                        
                         @Override
                         public void messageReceived(
                             final ChannelHandlerContext ctx, 
@@ -229,10 +261,11 @@ public class DefaultXmppProxy implements XmppProxy {
                             final String base64 = 
                                 Base64.encodeBase64URLSafeString(raw);
                             
-                            //TODO: Set the sequence number??
                             msg.setProperty("HTTP", base64);
                             msg.setProperty("MD5", toMd5(raw));
+                            msg.setProperty("SEQ", sequenceNumber);
                             chat.sendMessage(msg);
+                            sequenceNumber++;
                         }
                         @Override
                         public void channelClosed(final ChannelHandlerContext ctx, 
