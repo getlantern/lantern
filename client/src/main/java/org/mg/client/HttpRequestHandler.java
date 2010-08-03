@@ -7,8 +7,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
@@ -26,10 +24,8 @@ import org.jboss.netty.util.CharsetUtil;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.MessageListener;
-import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Message;
-import org.jivesoftware.smack.packet.Presence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,10 +47,13 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
 
     private Chat chat;
     
-    private long sequenceNumber = 0L;
+    private long outgoingSequenceNumber = 0L;
     private Channel browserToProxyChannel;
     private final XMPPConnection conn;
     private final String macAddress;
+    
+    private long lastSequenceNumber = -1L;
+    private long bytesSent = 0L;
     
     /**
      * Creates a new class for handling HTTP requests with the specified
@@ -66,63 +65,17 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
      * @param conn The XMPP connection. 
      * @param mgJids The IDs of MG to connect to. 
      * @param macAddress The unique MAC address for this host.
+     * @param mgJids 
      */
     public HttpRequestHandler(final ChannelGroup channelGroup, 
-        final XMPPConnection conn, final String macAddress) {
+        final XMPPConnection conn, final String macAddress, 
+        final Collection<String> mgJids) {
         
         this.channelGroup = channelGroup;
         this.conn = conn;
         this.macAddress = macAddress;
         log.info("Using TLS: "+conn.isSecureConnection());
         final ChatManager chatmanager = conn.getChatManager();
-
-        final Collection<String> mgJids = new HashSet<String>();
-        final Roster roster = conn.getRoster();
-        final Iterator<Presence> presences = 
-            roster.getPresences("mglittleshoot@gmail.com");
-
-        while (presences.hasNext()) {
-            final Presence pres = presences.next();
-            final String from = pres.getFrom();
-            if (from.startsWith("mglittleshoot@gmail.com")) {
-                if (pres.isAvailable()) {
-                    mgJids.add(from);
-                }
-            }
-        }
-        /*
-        final Collection<RosterEntry> entries = roster.getEntries();
-        
-        roster.addRosterListener(new RosterListener() {
-            public void entriesDeleted(Collection<String> addresses) {}
-            public void entriesUpdated(Collection<String> addresses) {}
-            public void presenceChanged(final Presence presence) {
-                final String from = presence.getFrom();
-                if (from.startsWith("mglittleshoot@gmail.com")) {
-                    log.info("PACKET: "+presence);
-                    log.info("Packet is from: {}", from);
-                    if (presence.isAvailable()) {
-                        mgJids.add(from);
-                    }
-                    else {
-                        log.info("Removing connection with status {}", 
-                            presence.getStatus());
-                        mgJids.remove(from);
-                    }
-                }
-            }
-            public void entriesAdded(final Collection<String> addresses) {
-                log.info("Entries added: "+addresses);
-            }
-        });
-        */
-        /*
-        for (final RosterEntry entry : entries) {
-            if (entry.getUser().startsWith("mglittleshoot@gmail.com") {
-                final ItemStatus status = entry.getStatus();
-            }
-        }
-        */
         
         final List<String> strs;
         synchronized (mgJids) {
@@ -133,9 +86,9 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         final String id = strs.iterator().next();
         
         this.chat = 
-            chatmanager.createChat(id,//"mglittleshoot@gmail.com", 
+            chatmanager.createChat(id,
             new MessageListener() {
-                public void processMessage(final Chat chat, final Message msg) {
+                public void processMessage(final Chat ch, final Message msg) {
                     log.info("Received message with props: {}", 
                         msg.getPropertyNames());
                     final String close = (String) msg.getProperty("CLOSE");
@@ -161,9 +114,18 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
             });
     }
     
-    private long bytesSent = 0L;
-
     private ChannelBuffer xmppToHttpChannelBuffer(final Message msg) {
+        
+        final long sequenceNumber = (Long) msg.getProperty("SEQ");
+        if (lastSequenceNumber != -1L) {
+            final long expected = lastSequenceNumber + 1;
+            if (sequenceNumber != expected) {
+                log.error("BAD SEQUENCE NUMBER. EXPECTED "+expected+
+                    " BUT WAS "+sequenceNumber);
+            }
+        }
+        lastSequenceNumber = sequenceNumber;
+        
         final String data = (String) msg.getProperty(HTTP_KEY);
         final byte[] raw = 
             Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
@@ -222,10 +184,10 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
             
             // We set the sequence number in case the server delivers the 
             // packets out of order for any reason.
-            msg.setProperty("NUM", sequenceNumber);
+            msg.setProperty("SEQ", outgoingSequenceNumber);
             
             this.chat.sendMessage(msg);
-            sequenceNumber++;
+            outgoingSequenceNumber++;
             log.info("Sent message!!");
         } catch (final Exception e) {
             log.error("Could not relay message", e);

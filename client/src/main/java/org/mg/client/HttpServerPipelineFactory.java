@@ -10,7 +10,9 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -23,8 +25,11 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.Roster;
+import org.jivesoftware.smack.RosterListener;
+import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.packet.Presence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,10 +49,14 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
 
     private final String macAddress;
     
-    private final LinkedBlockingQueue<XMPPConnection> connections = 
-        new LinkedBlockingQueue<XMPPConnection>(NUM_CONNECTIONS);
-
+    private final LinkedBlockingQueue<ChannelPipeline> pipelines = 
+        new LinkedBlockingQueue<ChannelPipeline>(NUM_CONNECTIONS);
+    
     private static final int NUM_CONNECTIONS = 10;
+    
+    static {
+        SmackConfiguration.setPacketReplyTimeout(20 * 1000);
+    }
     
     /**
      * Separate thread for creating new XMPP connections.
@@ -125,14 +134,12 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
     }
 
     public ChannelPipeline getPipeline() throws Exception {
-        final ChannelPipeline pipeline = pipeline();
-
         log.info("Getting pipeline...waiting for connection");
-        final XMPPConnection conn = this.connections.take();
+        final ChannelPipeline pipeline = this.pipelines.take();
         
-        pipeline.addLast("handler", 
-            new HttpRequestHandler(this.channelGroup, conn, 
-                this.macAddress));
+        //final XMPPConnection conn = this.connections.take();
+        
+
         
         // We create a new XMPP connection to give to the next incoming 
         // connection.
@@ -159,12 +166,51 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         xmpp.login(this.user, this.pwd, "MG");
         
         final Roster roster = xmpp.getRoster();
+        final Collection<String> mgJids = new HashSet<String>();
+        
+        roster.addRosterListener(new RosterListener() {
+            public void entriesDeleted(Collection<String> addresses) {}
+            public void entriesUpdated(Collection<String> addresses) {}
+            public void presenceChanged(final Presence presence) {
+                final String from = presence.getFrom();
+                if (from.startsWith("mglittleshoot@gmail.com")) {
+                    log.info("PACKET: "+presence);
+                    log.info("Packet is from: {}", from);
+                    if (presence.isAvailable()) {
+                        mgJids.add(from);
+                        synchronized (mgJids) {
+                            mgJids.notifyAll();
+                        }
+                    }
+                    else {
+                        log.info("Removing connection with status {}", 
+                            presence.getStatus());
+                        mgJids.remove(from);
+                    }
+                }
+            }
+            public void entriesAdded(final Collection<String> addresses) {
+                log.info("Entries added: "+addresses);
+            }
+        });
 
         // Make sure we look for MG packets.
         roster.createEntry("mglittleshoot@gmail.com", "MG", null);
-        this.connections.add(xmpp);
-        synchronized (this) {
-            this.notifyAll();
+        
+        synchronized (mgJids) {
+            while (mgJids.size() < 4) {
+                try {
+                    mgJids.wait(10000);
+                } catch (final InterruptedException e) {
+                    log.error("Interruped?", e);
+                }
+            }
         }
+        final ChannelPipeline pipeline = pipeline();
+        pipeline.addLast("handler", 
+            new HttpRequestHandler(this.channelGroup, xmpp, 
+                this.macAddress, mgJids));
+        
+        this.pipelines.add(pipeline);
     }
 }
