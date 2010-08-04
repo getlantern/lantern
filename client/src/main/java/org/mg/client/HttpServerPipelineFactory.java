@@ -7,28 +7,43 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
+
+import javax.net.SocketFactory;
 
 import org.apache.commons.codec.binary.Base64;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
+import org.jivesoftware.smack.Chat;
+import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.ConnectionListener;
+import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,14 +64,28 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
 
     private final String macAddress;
     
-    private final LinkedBlockingQueue<ChannelPipeline> pipelines = 
-        new LinkedBlockingQueue<ChannelPipeline>(NUM_CONNECTIONS);
+    private volatile int connectionsToFetch = 0;
+    
+    //private final LinkedBlockingQueue<XMPPConnection> connections = 
+    //    new LinkedBlockingQueue<XMPPConnection>(NUM_CONNECTIONS);
     
     private static final int NUM_CONNECTIONS = 10;
     
+    private final List<Chat> chats = new ArrayList<Chat>(NUM_CONNECTIONS);
+    
+    final Map<String, HttpRequestHandler> hashCodesToHandlers =
+        new ConcurrentHashMap<String, HttpRequestHandler>();
+    
+    final ConcurrentHashMap<Chat, Collection<String>> chatsToHashCodes =
+        new ConcurrentHashMap<Chat, Collection<String>>();
+    
+    private final Timer timer = new Timer("XMPP-Reconnect-Timer", true);
+    
     static {
-        SmackConfiguration.setPacketReplyTimeout(20 * 1000);
+        SmackConfiguration.setPacketReplyTimeout(30 * 1000);
     }
+    
+    private final Collection<String> mgJids = new HashSet<String>();
     
     /**
      * Separate thread for creating new XMPP connections.
@@ -91,6 +120,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
             throw new RuntimeException(msg, e);
         }
         
+        persistentMonitoringConnection();
+        
         for (int i = 0; i < NUM_CONNECTIONS; i++) {
             threadedXmppConnection();
         }
@@ -101,6 +132,9 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
             try {
                 log.info("Attempting XMPP connection...");
                 newXmppConnection();
+                if (connectionsToFetch > 0) {
+                    connectionsToFetch--;
+                }
                 log.info("Successfully connected...");
                 return;
             } catch (final XMPPException e) {
@@ -135,16 +169,37 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
 
     public ChannelPipeline getPipeline() throws Exception {
         log.info("Getting pipeline...waiting for connection");
-        final ChannelPipeline pipeline = this.pipelines.take();
         
-        //final XMPPConnection conn = this.connections.take();
+        final Chat chat = getChat();
+        final ChannelPipeline pipeline = pipeline();
+        final HttpRequestHandler handler = 
+            new HttpRequestHandler(this.channelGroup, this.macAddress, chat);
+        pipeline.addLast("handler", handler);
         
-
+        final String hc = String.valueOf(handler.hashCode());
+        this.hashCodesToHandlers.put(hc, handler);
         
-        // We create a new XMPP connection to give to the next incoming 
-        // connection.
-        threadedXmppConnection();
+        final Collection<String> list = chatsToHashCodes.get(chat);
+        
+        // Could be some race conditions, so check for null.
+        if (list != null) {
+            list.add(hc);
+        }
+        
         return pipeline;
+    }
+
+    private Chat getChat() {
+        synchronized (this.chats) {
+            while (chats.isEmpty()) {
+                try {
+                    chats.wait(10000);
+                } catch (InterruptedException e) {
+                }
+            }
+            Collections.shuffle(chats);
+            return chats.get(0);
+        }
     }
 
     private void threadedXmppConnection() {
@@ -155,18 +210,184 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         });
     }
 
+    private void delayedXmppConnection() {
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                threadedXmppConnection();
+            }
+            
+        }, 5 * 1000);
+    }
+
     private void newXmppConnection() throws XMPPException {
         final ConnectionConfiguration config = 
             new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
         config.setCompressionEnabled(true);
+        config.setReconnectionAllowed(false);
+        config.setSocketFactory(new SocketFactory() {
+            
+            @Override
+            public Socket createSocket(InetAddress arg0, int arg1, InetAddress arg2,
+                    int arg3) throws IOException {
+                // TODO Auto-generated method stub
+                return null;
+            }
+            
+            @Override
+            public Socket createSocket(String arg0, int arg1, InetAddress arg2, int arg3)
+                    throws IOException, UnknownHostException {
+                // TODO Auto-generated method stub
+                return null;
+            }
+            
+            @Override
+            public Socket createSocket(InetAddress arg0, int arg1) throws IOException {
+                // TODO Auto-generated method stub
+                return null;
+            }
+            
+            @Override
+            public Socket createSocket(final String host, final int port) 
+                throws IOException, UnknownHostException {
+                log.info("Creating socket");
+                final Socket sock = new Socket();
+                sock.connect(new InetSocketAddress(host, port), 30000);
+                log.info("Socket connected");
+                return sock;
+            }
+        });
+        
+        final XMPPConnection xmpp = new XMPPConnection(config);
+        xmpp.connect();
+        xmpp.login(this.user, this.pwd, "MG");
+        
+        synchronized (mgJids) {
+            while (mgJids.size() < 4) {
+                try {
+                    mgJids.wait(10000);
+                } catch (final InterruptedException e) {
+                    log.error("Interruped?", e);
+                }
+            }
+        }
+        
+        final List<String> strs;
+        synchronized (mgJids) {
+            strs = new ArrayList<String>(mgJids);
+        }
+        
+        Collections.shuffle(strs);
+        final String jid = strs.iterator().next();
+
+        final ChatManager chatManager = xmpp.getChatManager();
+        final Chat chat = chatManager.createChat(jid,
+            new MessageListener() {
+            
+                public void processMessage(final Chat ch, final Message msg) {
+                    final String hashCode = (String) msg.getProperty("HASHCODE");
+                    final HttpRequestHandler handler = 
+                        hashCodesToHandlers.get(hashCode);
+                    
+                    if (handler == null) {
+                        log.error("NO MATCHING HANDLER??");
+                        return;
+                    }
+                    log.info("Sending message to handler...");
+                    handler.processMessage(ch, msg);
+                }
+            });
+        
+        xmpp.addConnectionListener(new ConnectionListener() {
+            
+            public void reconnectionSuccessful() {
+                log.info("Reconnection successful...");
+            }
+            
+            public void reconnectionFailed(final Exception e) {
+                log.info("Reconnection failed", e);
+            }
+            
+            public void reconnectingIn(final int time) {
+                log.info("Reconnecting to XMPP server in "+time);
+            }
+            
+            public void connectionClosedOnError(final Exception e) {
+                log.info("XMPP connection closed on error", e);
+            }
+            
+            public void connectionClosed() {
+                log.info("XMPP connection closed...removing chat");
+                //connectionsToFetch++;
+                chats.remove(chat);
+                final Collection<String> codes = chatsToHashCodes.remove(chat);
+                for (final String code : codes) {
+                    hashCodesToHandlers.remove(code);
+                }
+                delayedXmppConnection();
+            }
+        });
+        
+        this.chats.add(chat);
+        this.chatsToHashCodes.put(chat, new ArrayList<String>());
+    }
+    
+    private void persistentMonitoringConnection() {
+        for (int i = 0; i < 10; i++) {
+            try {
+                log.info("Attempting XMPP MONITORING connection...");
+                singleMonitoringConnection();
+                log.info("Successfully connected...");
+                return;
+            } catch (final XMPPException e) {
+                final String msg = "Error creating XMPP connection";
+                log.error(msg, e);
+            }
+        }
+    }
+
+    private void singleMonitoringConnection() throws XMPPException {
+        final ConnectionConfiguration config = 
+            new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
+        config.setCompressionEnabled(true);
         config.setRosterLoadedAtLogin(true);
+        config.setReconnectionAllowed(false);
+        config.setSocketFactory(new SocketFactory() {
+            
+            @Override
+            public Socket createSocket(InetAddress arg0, int arg1, InetAddress arg2,
+                int arg3) throws IOException {
+                return null;
+            }
+            
+            @Override
+            public Socket createSocket(String arg0, int arg1, InetAddress arg2, int arg3)
+                    throws IOException, UnknownHostException {
+                return null;
+            }
+            
+            @Override
+            public Socket createSocket(InetAddress arg0, int arg1) throws IOException {
+                return null;
+            }
+            
+            @Override
+            public Socket createSocket(final String host, final int port) 
+                throws IOException, UnknownHostException {
+                log.info("Creating socket");
+                final Socket sock = new Socket();
+                sock.connect(new InetSocketAddress(host, port), 30000);
+                log.info("Socket connected");
+                return sock;
+            }
+        });
         
         final XMPPConnection xmpp = new XMPPConnection(config);
         xmpp.connect();
         xmpp.login(this.user, this.pwd, "MG");
         
         final Roster roster = xmpp.getRoster();
-        final Collection<String> mgJids = new HashSet<String>();
+        
         
         roster.addRosterListener(new RosterListener() {
             public void entriesDeleted(Collection<String> addresses) {}
@@ -196,21 +417,29 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
 
         // Make sure we look for MG packets.
         roster.createEntry("mglittleshoot@gmail.com", "MG", null);
-        
-        synchronized (mgJids) {
-            while (mgJids.size() < 4) {
-                try {
-                    mgJids.wait(10000);
-                } catch (final InterruptedException e) {
-                    log.error("Interruped?", e);
-                }
+
+        xmpp.addConnectionListener(new ConnectionListener() {
+            
+            public void reconnectionSuccessful() {
+                log.info("Reconnection successful...");
             }
-        }
-        final ChannelPipeline pipeline = pipeline();
-        pipeline.addLast("handler", 
-            new HttpRequestHandler(this.channelGroup, xmpp, 
-                this.macAddress, mgJids));
-        
-        this.pipelines.add(pipeline);
+            
+            public void reconnectionFailed(final Exception e) {
+                log.info("Reconnection failed", e);
+            }
+            
+            public void reconnectingIn(final int time) {
+                log.info("Reconnecting to XMPP server in "+time);
+            }
+            
+            public void connectionClosedOnError(final Exception e) {
+                log.info("XMPP connection closed on error", e);
+            }
+            
+            public void connectionClosed() {
+                log.info("XMPP connection closed");
+                persistentMonitoringConnection();
+            }
+        });
     }
 }

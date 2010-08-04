@@ -4,10 +4,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -22,9 +18,8 @@ import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.util.CharsetUtil;
 import org.jivesoftware.smack.Chat;
-import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.MessageListener;
-import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +27,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Class for handling all HTTP requests from the browser to the proxy.
  */
-public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
+public class HttpRequestHandler extends SimpleChannelUpstreamHandler 
+    implements MessageListener {
 
     private final static Logger log = 
         LoggerFactory.getLogger(HttpRequestHandler.class);
@@ -45,11 +41,11 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
     
     private final ChannelGroup channelGroup;
 
-    private Chat chat;
+    private final Chat chat;
     
     private long outgoingSequenceNumber = 0L;
     private Channel browserToProxyChannel;
-    private final XMPPConnection conn;
+
     private final String macAddress;
     
     private long lastSequenceNumber = -1L;
@@ -63,55 +59,13 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
      * channels we've opened.
      * @param clientChannelFactory The common channel factory for clients.
      * @param conn The XMPP connection. 
-     * @param mgJids The IDs of MG to connect to. 
      * @param macAddress The unique MAC address for this host.
-     * @param mgJids 
      */
     public HttpRequestHandler(final ChannelGroup channelGroup, 
-        final XMPPConnection conn, final String macAddress, 
-        final Collection<String> mgJids) {
-        
+        final String macAddress, final Chat chat) {
         this.channelGroup = channelGroup;
-        this.conn = conn;
         this.macAddress = macAddress;
-        log.info("Using TLS: "+conn.isSecureConnection());
-        final ChatManager chatmanager = conn.getChatManager();
-        
-        final List<String> strs;
-        synchronized (mgJids) {
-            strs = new ArrayList<String>(mgJids);
-        }
-        
-        Collections.shuffle(strs);
-        final String id = strs.iterator().next();
-        
-        this.chat = 
-            chatmanager.createChat(id,
-            new MessageListener() {
-                public void processMessage(final Chat ch, final Message msg) {
-                    log.info("Received message with props: {}", 
-                        msg.getPropertyNames());
-                    final String close = (String) msg.getProperty("CLOSE");
-
-                    // If the other side is sending the close directive, we 
-                    // need to close the connection to the browser.
-                    if (close != null && close.trim().equalsIgnoreCase("true")) {
-                        log.info("Got CLOSE. Closing channel to browser.");
-                        browserToProxyChannel.close();
-                        return;
-                    }
-                    
-                    // We need to grab the HTTP data from the message and send
-                    // it to the browser.
-                    final String data = (String) msg.getProperty(HTTP_KEY);
-                    if (data == null) {
-                        log.warn("No HTTP data");
-                        return;
-                    }
-                    final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
-                    browserToProxyChannel.write(cb);
-                }
-            });
+        this.chat = chat;
     }
     
     private ChannelBuffer xmppToHttpChannelBuffer(final Message msg) {
@@ -189,8 +143,8 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
             this.chat.sendMessage(msg);
             outgoingSequenceNumber++;
             log.info("Sent message!!");
-        } catch (final Exception e) {
-            log.error("Could not relay message", e);
+        } catch (final XMPPException e) {
+            log.error("Error sending message", e);
         }
     }
     
@@ -224,9 +178,6 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
         browserToProxyConnections--;
         log.info("Now "+totalBrowserToProxyConnections+" total browser to proxy channels...");
         log.info("Now this class has "+browserToProxyConnections+" browser to proxy channels...");
-        
-        log.info("Disconnecting from XMPP server...");
-        this.conn.disconnect();
     }
 
     @Override
@@ -256,5 +207,31 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler {
             ch.write(ChannelBuffers.EMPTY_BUFFER).addListener(
                 ChannelFutureListener.CLOSE);
         }
+    }
+
+    public void processMessage(final Chat ch, final Message msg) {
+        log.info("Received message with props: {}", 
+            msg.getPropertyNames());
+        final String close = (String) msg.getProperty("CLOSE");
+
+        // If the other side is sending the close directive, we 
+        // need to close the connection to the browser.
+        if (close != null && close.trim().equalsIgnoreCase("true")) {
+            log.info("Got CLOSE. Closing channel to browser.");
+            if (browserToProxyChannel.isOpen()) {
+                browserToProxyChannel.close();
+            }
+            return;
+        }
+        
+        // We need to grab the HTTP data from the message and send
+        // it to the browser.
+        final String data = (String) msg.getProperty(HTTP_KEY);
+        if (data == null) {
+            log.warn("No HTTP data");
+            return;
+        }
+        final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
+        browserToProxyChannel.write(cb);
     }
 }
