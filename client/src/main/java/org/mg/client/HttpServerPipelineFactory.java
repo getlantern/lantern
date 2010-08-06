@@ -192,6 +192,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
     private Chat getChat() {
         synchronized (this.chats) {
             while (chats.isEmpty()) {
+                log.info("Waiting for chats...");
                 try {
                     chats.wait(10000);
                 } catch (InterruptedException e) {
@@ -264,6 +265,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         
         synchronized (mgJids) {
             while (mgJids.size() < 4) {
+                log.info("Waiting for JIDs of MG servers...");
                 try {
                     mgJids.wait(10000);
                 } catch (final InterruptedException e) {

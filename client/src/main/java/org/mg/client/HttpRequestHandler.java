@@ -74,7 +74,8 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         if (lastSequenceNumber != -1L) {
             final long expected = lastSequenceNumber + 1;
             if (sequenceNumber != expected) {
-                log.error("BAD SEQUENCE NUMBER. EXPECTED "+expected+
+                // This can happen with our new scheme.
+                log.info("BAD SEQUENCE NUMBER. EXPECTED "+expected+
                     " BUT WAS "+sequenceNumber);
             }
         }
@@ -142,7 +143,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
             
             this.chat.sendMessage(msg);
             outgoingSequenceNumber++;
-            log.info("Sent message!!");
+            log.info("Sent XMPP message!!");
         } catch (final XMPPException e) {
             log.error("Error sending message", e);
         }
