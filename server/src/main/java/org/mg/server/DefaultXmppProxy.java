@@ -9,6 +9,8 @@ import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -79,12 +81,26 @@ public class DefaultXmppProxy implements XmppProxy {
         final String user = props.getProperty("google.server.user");
         final String pass = props.getProperty("google.server.pwd");
         
+        final Collection<XMPPConnection> xmppConnections = 
+            new ArrayList<XMPPConnection>();
+        
         for (int i = 0; i < 10; i++) {
             // We create a bunch of connections to allow us to process as much
             // incoming data as possible.
             final XMPPConnection xmpp = newConnection(user, pass);
-            log.info("Created connection to: {}", xmpp);
+            xmppConnections.add(xmpp);
+            log.info("Created connection for user: {}", xmpp.getUser());
         }
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+            public void run() {
+                for (final XMPPConnection conn : xmppConnections) {
+                    log.info("Disconnecting user: {}", conn.getUser());
+                    conn.disconnect();
+                }
+            }
+            
+        }, "XMPP-Disconnect-On-Shutdown"));
     }
     
     private XMPPConnection newConnection(final String user, final String pass) {
@@ -226,7 +242,8 @@ public class DefaultXmppProxy implements XmppProxy {
         // We can sometimes get messages back that were not intended for us.
         // Just ignore them.
         if (mac == null || hc == null) {
-            log.error("Message not intended for us?!?!? Null MAC and/or HASH");
+            log.error("Message not intended for us?!?!?\n" +
+                "Null MAC and/or HASH and to: "+message.getTo());
             return null;
         }
         final String key = mac + hc;
@@ -261,6 +278,7 @@ public class DefaultXmppProxy implements XmppProxy {
                             final String base64 = 
                                 Base64.encodeBase64URLSafeString(raw);
                             
+                            msg.setTo(chat.getParticipant());
                             msg.setProperty("HTTP", base64);
                             msg.setProperty("MD5", toMd5(raw));
                             msg.setProperty("SEQ", sequenceNumber);
