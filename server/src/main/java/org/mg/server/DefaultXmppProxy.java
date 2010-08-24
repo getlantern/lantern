@@ -115,8 +115,7 @@ public class DefaultXmppProxy implements XmppProxy {
     }
 
     private XMPPConnection newSingleConnection(final String user, 
-        final String pass) 
-        throws XMPPException {
+        final String pass) throws XMPPException {
         final ConnectionConfiguration config = 
             new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
         config.setCompressionEnabled(true);
@@ -134,8 +133,9 @@ public class DefaultXmppProxy implements XmppProxy {
             public void chatCreated(final Chat chat, 
                 final boolean createdLocally) {
                 log.info("Created a chat!!");
-                // We need to listen for the unavailability of clients we're chatting
-                // with so we can disconnect from their associated remote servers.
+                // We need to listen for the unavailability of clients we're 
+                // chatting with so we can disconnect from their associated 
+                // remote servers.
                 final PacketListener pl = new PacketListener() {
                     public void processPacket(final Packet pack) {
                         if (!(pack instanceof Presence)) return;
@@ -172,6 +172,13 @@ public class DefaultXmppProxy implements XmppProxy {
                         cf = getChannelFuture(msg, chat);
                         if (cf == null) {
                             log.warn("Null channel future! Returning");
+                            return;
+                        }
+                        final String close = (String) msg.getProperty("CLOSE");
+                        if (close.trim().equalsIgnoreCase("close")) {
+                            log.info("Received close from client...closing " +
+                                "connection to the proxy");
+                            cf.getChannel().close();
                             return;
                         }
                         log.info("Got channel: {}", cf);
@@ -230,10 +237,10 @@ public class DefaultXmppProxy implements XmppProxy {
         
         // Not these will fail if the original properties were not set as
         // strings.
-        final String remoteIp = 
-            (String) message.getProperty("LOCAL-IP");
-        final String localIp = 
-            (String) message.getProperty("REMOTE-IP");
+        //final String remoteIp = 
+        //    (String) message.getProperty("LOCAL-IP");
+        //final String localIp = 
+        //    (String) message.getProperty("REMOTE-IP");
         final String mac = 
             (String) message.getProperty("MAC");
         final String hc = 
