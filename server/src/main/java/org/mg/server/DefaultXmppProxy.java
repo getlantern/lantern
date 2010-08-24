@@ -20,12 +20,14 @@ import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.ChannelStateEvent;
+import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
@@ -324,6 +326,25 @@ public class DefaultXmppProxy implements XmppProxy {
                             }
                             connections.remove(key);
                         }
+                        
+                        @Override
+                        public void exceptionCaught(final ChannelHandlerContext ctx, 
+                            final ExceptionEvent e) throws Exception {
+                            log.warn("Caught exception on C in A->B->C->D " +
+                                "chain...", e.getCause());
+                            if (e.getChannel().isOpen()) {
+                                log.warn("Closing open connection");
+                                closeOnFlush(e.getChannel());
+                            }
+                            else {
+                                // We've seen odd cases where channels seem to 
+                                // continually attempt connections. Make sure 
+                                // we explicitly close the connection here.
+                                log.warn("Closing connection even though " +
+                                    "isOpen is false");
+                                e.getChannel().close();
+                            }
+                        }
                     }
                     
                     pipeline.addLast("handler", new HttpChatRelay());
@@ -360,5 +381,16 @@ public class DefaultXmppProxy implements XmppProxy {
         buf.get(bytes);
         buf.position(mark);
         return bytes;
+    }
+    
+    /**
+     * Closes the specified channel after all queued write requests are flushed.
+     */
+    private void closeOnFlush(final Channel ch) {
+        log.info("Closing channel on flush: {}", ch);
+        if (ch.isConnected()) {
+            ch.write(ChannelBuffers.EMPTY_BUFFER).addListener(
+                ChannelFutureListener.CLOSE);
+        }
     }
 }
