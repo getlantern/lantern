@@ -160,27 +160,37 @@ public class DefaultXmppProxy implements XmppProxy {
                     public void processMessage(final Chat ch, final Message msg) {
                         log.info("Got message!!");
                         log.info("Property names: {}", msg.getPropertyNames());
-                        final String data = (String) msg.getProperty("HTTP");
-                        if (StringUtils.isBlank(data)) {
-                            log.warn("HTTP IS BLANK?? IGNORING...");
-                            return;
+                        
+                        final String closeString = 
+                            (String) msg.getProperty("CLOSE");
+                        final boolean close;
+                        if (closeString.trim().equalsIgnoreCase("close")) {
+                            close = true;
+                        }
+                        else {
+                            close = false;
+                            final String data = (String) msg.getProperty("HTTP");
+                            if (StringUtils.isBlank(data)) {
+                                log.warn("HTTP IS BLANK?? IGNORING...");
+                                return;
+                            }
                         }
                         
                         // TODO: Check the sequence number??
                         final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
+                        if (close) {
+                            log.info("Received close from client...closing " +
+                                "connection to the proxy");
+                            cf.getChannel().close();
+                            return;
+                        }
                         log.info("Getting channel future...");
                         cf = getChannelFuture(msg, chat);
                         if (cf == null) {
                             log.warn("Null channel future! Returning");
                             return;
                         }
-                        final String close = (String) msg.getProperty("CLOSE");
-                        if (close.trim().equalsIgnoreCase("close")) {
-                            log.info("Received close from client...closing " +
-                                "connection to the proxy");
-                            cf.getChannel().close();
-                            return;
-                        }
+
                         log.info("Got channel: {}", cf);
                         if (cf.getChannel().isConnected()) {
                             cf.getChannel().write(cb);
