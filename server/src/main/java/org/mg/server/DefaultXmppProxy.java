@@ -165,7 +165,7 @@ public class DefaultXmppProxy implements XmppProxy {
                             (String) msg.getProperty("CLOSE");
                         final boolean close;
                         if (StringUtils.isNotBlank(closeString) &&
-                            closeString.trim().equalsIgnoreCase("close")) {
+                            closeString.trim().equalsIgnoreCase("true")) {
                             close = true;
                         }
                         else {
