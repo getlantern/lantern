@@ -168,6 +168,7 @@ public class DefaultXmppProxy implements XmppProxy {
                         final boolean close;
                         if (StringUtils.isNotBlank(closeString) &&
                             closeString.trim().equalsIgnoreCase("true")) {
+                            log.info("Got close true");
                             close = true;
                         }
                         else {
@@ -179,22 +180,23 @@ public class DefaultXmppProxy implements XmppProxy {
                             }
                         }
                         
-                        // TODO: Check the sequence number??
-                        final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
+                        log.info("Getting channel future...");
+                        cf = getChannelFuture(msg, chat);
+                        log.info("Got channel: {}", cf);
+                        if (cf == null) {
+                            log.warn("Null channel future! Returning");
+                            return;
+                        }
                         if (close) {
                             log.info("Received close from client...closing " +
                                 "connection to the proxy");
                             cf.getChannel().close();
                             return;
                         }
-                        log.info("Getting channel future...");
-                        cf = getChannelFuture(msg, chat);
-                        if (cf == null) {
-                            log.warn("Null channel future! Returning");
-                            return;
-                        }
+                        
+                        // TODO: Check the sequence number??
+                        final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
 
-                        log.info("Got channel: {}", cf);
                         if (cf.getChannel().isConnected()) {
                             cf.getChannel().write(cb);
                         }
