@@ -11,6 +11,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -60,6 +61,9 @@ public class DefaultXmppProxy implements XmppProxy {
     
     private final ConcurrentHashMap<String, ChannelFuture> connections =
         new ConcurrentHashMap<String, ChannelFuture>();
+    
+    private final Collection<String> removedConnections = 
+        new HashSet<String>();
     
     public DefaultXmppProxy() {
         // Start the HTTP proxy server that we relay data to. It has more
@@ -277,6 +281,9 @@ public class DefaultXmppProxy implements XmppProxy {
                 log.info("Using existing connection");
                 return connections.get(key);
             }
+            if (removedConnections.contains(key)) {
+                log.warn("KEY IS IN REMOVED CONNECTIONS");
+            }
             // Configure the client.
             final ClientBootstrap cb = new ClientBootstrap(this.channelFactory);
             
@@ -327,6 +334,7 @@ public class DefaultXmppProxy implements XmppProxy {
                             } catch (final XMPPException e) {
                                 log.warn("Error sending close message", e);
                             }
+                            removedConnections.add(key);
                             connections.remove(key);
                         }
                         
