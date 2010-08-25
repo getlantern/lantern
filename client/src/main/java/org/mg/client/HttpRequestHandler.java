@@ -4,8 +4,11 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -51,6 +54,11 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
     private long lastSequenceNumber = -1L;
     private long bytesSent = 0L;
     
+    private long expectedSequenceNumber = 0L;
+    
+    private final Map<Long, Message> sequenceMap = 
+        new ConcurrentHashMap<Long, Message>();
+    
     /**
      * Creates a new class for handling HTTP requests with the specified
      * authentication manager.
@@ -73,10 +81,18 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         final long sequenceNumber = (Long) msg.getProperty("SEQ");
         if (lastSequenceNumber != -1L) {
             final long expected = lastSequenceNumber + 1;
-            if (sequenceNumber != expected) {
+            log.error("SEQUENCE NUMBER: "+sequenceNumber);
+            if (sequenceNumber != expectedSequenceNumber) {
                 // This can happen with our new scheme.
-                log.info("BAD SEQUENCE NUMBER. EXPECTED "+expected+
+                log.error("BAD SEQUENCE NUMBER. EXPECTED "+expected+
                     " BUT WAS "+sequenceNumber);
+                sequenceMap.put(sequenceNumber, msg);
+            }
+            else {
+                expectedSequenceNumber++;
+                while (sequenceMap.containsKey(expectedSequenceNumber)) {
+                    
+                }
             }
         }
         lastSequenceNumber = sequenceNumber;
@@ -177,8 +193,37 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         log.info("Channel closed: {}", cse.getChannel());
         totalBrowserToProxyConnections--;
         browserToProxyConnections--;
-        log.info("Now "+totalBrowserToProxyConnections+" total browser to proxy channels...");
-        log.info("Now this class has "+browserToProxyConnections+" browser to proxy channels...");
+        log.info("Now "+totalBrowserToProxyConnections+
+            " total browser to proxy channels...");
+        log.info("Now this class has "+browserToProxyConnections+
+            " browser to proxy channels...");
+        
+        // The following should always be the case with
+        // @ChannelPipelineCoverage("one")
+        // We need to notify the remote server that the client connection 
+        // has closed.
+        if (browserToProxyConnections == 0) {
+            log.warn("Closing all proxy to web channels for this browser " +
+                "to proxy connection!!!");
+            
+            final Message msg = new Message();
+            
+            // The other side will also need to know where the request came
+            // from to differentiate incoming HTTP connections.
+            final Channel ch = cse.getChannel();
+            msg.setProperty("LOCAL-IP", ch.getLocalAddress().toString());
+            msg.setProperty("REMOTE-IP", ch.getRemoteAddress().toString());
+            msg.setProperty("MAC", this.macAddress);
+            msg.setProperty("HASHCODE", String.valueOf(this.hashCode()));
+            msg.setProperty("CLOSE", "true");
+            
+            try {
+                this.chat.sendMessage(msg);
+                log.info("Sent close message");
+            } catch (final XMPPException e) {
+                log.warn("Error sending close message!!", e);
+            }
+        }
     }
 
     @Override
@@ -217,10 +262,11 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
 
         // If the other side is sending the close directive, we 
         // need to close the connection to the browser.
-        if (close != null && close.trim().equalsIgnoreCase("true")) {
+        if (StringUtils.isNotBlank(close) && 
+            close.trim().equalsIgnoreCase("true")) {
             log.info("Got CLOSE. Closing channel to browser.");
             if (browserToProxyChannel.isOpen()) {
-                browserToProxyChannel.close();
+                closeOnFlush(browserToProxyChannel);
             }
             return;
         }
@@ -232,7 +278,61 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
             log.warn("No HTTP data");
             return;
         }
-        final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
-        browserToProxyChannel.write(cb);
+        //final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
+        
+        
+        final long sequenceNumber = (Long) msg.getProperty("SEQ");
+        //if (lastSequenceNumber != -1L) {
+            //final long expected = lastSequenceNumber + 1;
+            log.error("SEQUENCE NUMBER: "+sequenceNumber);
+            if (sequenceNumber != expectedSequenceNumber) {
+                // This can happen with our new scheme.
+                log.error("BAD SEQUENCE NUMBER. EXPECTED "+expectedSequenceNumber+
+                    " BUT WAS "+sequenceNumber);
+                sequenceMap.put(sequenceNumber, msg);
+            }
+            else {
+                writeData(msg);
+                expectedSequenceNumber++;
+                
+                while (sequenceMap.containsKey(expectedSequenceNumber)) {
+                    log.error("Writing sequence number: "+
+                        expectedSequenceNumber);
+                    final Message curMessage = 
+                        sequenceMap.get(expectedSequenceNumber);
+                    writeData(curMessage);
+                    expectedSequenceNumber++;
+                }
+            }
+        //}
+        lastSequenceNumber = sequenceNumber;
+    }
+
+    private void writeData(final Message msg) {
+        final String data = (String) msg.getProperty(HTTP_KEY);
+        final byte[] raw = 
+            Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
+        
+        final String md5 = toMd5(raw);
+        final String expected = (String) msg.getProperty("MD5");
+        if (!md5.equals(expected)) {
+            log.error("MD-5s not equal!! Expected:\n'"+expected+
+                "'\nBut was:\n'"+md5+"'");
+        }
+        else {
+            log.info("MD-5s match!!");
+        }
+        
+        //log.info("Wrapping data: {}", new String(raw, CharsetUtil.UTF_8));
+        bytesSent += raw.length;
+        log.info("Now sent "+bytesSent+" bytes after "+raw.length+" new");
+        final ChannelBuffer cb = ChannelBuffers.wrappedBuffer(raw);
+        
+        if (browserToProxyChannel.isOpen()) {
+            browserToProxyChannel.write(cb);
+        }
+        else {
+            log.info("Not sending data to closed browser connection");
+        }
     }
 }
