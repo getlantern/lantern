@@ -308,6 +308,7 @@ public class DefaultXmppProxy implements XmppProxy {
                             msg.setProperty("SEQ", sequenceNumber);
                             msg.setProperty("HASHCODE", hc);
                             
+                            log.info("Sending to: {}", chat.getParticipant());
                             log.info("Sending SEQUENCE #: "+sequenceNumber);
                             chat.sendMessage(msg);
                             sequenceNumber++;
