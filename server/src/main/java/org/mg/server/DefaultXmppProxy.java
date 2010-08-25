@@ -293,8 +293,8 @@ public class DefaultXmppProxy implements XmppProxy {
                         public void messageReceived(
                             final ChannelHandlerContext ctx, 
                             final MessageEvent me) throws Exception {
-                            log.info("HTTP message received from proxy on " +
-                                "relayer: {}", me.getMessage());
+                            //log.info("HTTP message received from proxy on " +
+                            //    "relayer: {}", me.getMessage());
                             final Message msg = new Message();
                             final ByteBuffer buf = 
                                 ((ChannelBuffer) me.getMessage()).toByteBuffer();
