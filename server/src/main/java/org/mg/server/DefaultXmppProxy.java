@@ -162,6 +162,7 @@ public class DefaultXmppProxy implements XmppProxy {
                     public void processMessage(final Chat ch, final Message msg) {
                         log.info("Got message!!");
                         log.info("Property names: {}", msg.getPropertyNames());
+                        log.info("SEQUENCE #: "+ msg.getProperty("SEQ"));
                         
                         final String closeString = 
                             (String) msg.getProperty("CLOSE");
