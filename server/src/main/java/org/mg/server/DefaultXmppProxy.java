@@ -282,7 +282,7 @@ public class DefaultXmppProxy implements XmppProxy {
                 return connections.get(key);
             }
             if (removedConnections.contains(key)) {
-                log.warn("KEY IS IN REMOVED CONNECTIONS");
+                log.warn("KEY IS IN REMOVED CONNECTIONS: "+key);
             }
             // Configure the client.
             final ClientBootstrap cb = new ClientBootstrap(this.channelFactory);
@@ -328,6 +328,8 @@ public class DefaultXmppProxy implements XmppProxy {
                             // closing the connection to the browser.
                             log.info("Got channel closed on C in A->B->C->D chain...");
                             final Message msg = new Message();
+                            msg.setProperty("HASHCODE", hc);
+                            msg.setProperty("MAC", mac);
                             msg.setProperty("CLOSE", "true");
                             try {
                                 chat.sendMessage(msg);
