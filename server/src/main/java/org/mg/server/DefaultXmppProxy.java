@@ -259,10 +259,8 @@ public class DefaultXmppProxy implements XmppProxy {
         //    (String) message.getProperty("LOCAL-IP");
         //final String localIp = 
         //    (String) message.getProperty("REMOTE-IP");
-        final String mac = 
-            (String) message.getProperty("MAC");
-        final String hc = 
-            (String) message.getProperty("HASHCODE");
+        final String mac = (String) message.getProperty("MAC");
+        final String hc = (String) message.getProperty("HASHCODE");
 
         // We can sometimes get messages back that were not intended for us.
         // Just ignore them.
@@ -308,6 +306,7 @@ public class DefaultXmppProxy implements XmppProxy {
                             msg.setProperty("MD5", toMd5(raw));
                             msg.setProperty("SEQ", sequenceNumber);
                             msg.setProperty("HASHCODE", hc);
+                            msg.setProperty("MAC", mac);
                             
                             log.info("Sending to: {}", chat.getParticipant());
                             log.info("Sending SEQUENCE #: "+sequenceNumber);
