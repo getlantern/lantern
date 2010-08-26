@@ -5,20 +5,27 @@ import static org.jboss.netty.channel.Channels.pipeline;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -59,6 +66,19 @@ public class DefaultXmppProxy implements XmppProxy {
         new NioClientSocketChannelFactory(
             Executors.newCachedThreadPool(),
             Executors.newCachedThreadPool());
+    
+    private static final String MAC_ADDRESS;
+    
+    static {
+        String tempMac;
+        try {
+            tempMac = getMacAddress();
+        } catch (final SocketException e) {
+            e.printStackTrace();
+            tempMac = String.valueOf(RandomUtils.nextLong());
+        }
+        MAC_ADDRESS = tempMac;
+    }
     
     public DefaultXmppProxy() {
         // Start the HTTP proxy server that we relay data to. It has more
@@ -177,6 +197,12 @@ public class DefaultXmppProxy implements XmppProxy {
                         
                         log.info("FROM: "+msg.getFrom());
                         log.info("TO: "+msg.getTo());
+                        
+                        final String smac = (String) msg.getProperty("SMAC");
+                        if (smac.trim().equals(MAC_ADDRESS)) {
+                            log.warn("IGNORING MESSAGE FROM OURSELVES!!");
+                            return;
+                        }
                         
                         final String closeString = 
                             (String) msg.getProperty("CLOSE");
@@ -348,6 +374,12 @@ public class DefaultXmppProxy implements XmppProxy {
                             msg.setProperty("HASHCODE", hc);
                             msg.setProperty("MAC", mac);
                             
+                            // This is the server-side MAC address. This is
+                            // useful because there are odd cases where XMPP
+                            // servers echo back our own messages, and we
+                            // want to ignore them.
+                            msg.setProperty("SMAC", MAC_ADDRESS);
+                            
                             log.info("Sending to: {}", chat.getParticipant());
                             log.info("Sending SEQUENCE #: "+sequenceNumber);
                             chat.sendMessage(msg);
@@ -370,6 +402,12 @@ public class DefaultXmppProxy implements XmppProxy {
                             // messages out of order.
                             msg.setProperty("SEQ", sequenceNumber);
                             msg.setProperty("CLOSE", "true");
+                            
+                            // This is the server-side MAC address. This is
+                            // useful because there are odd cases where XMPP
+                            // servers echo back our own messages, and we
+                            // want to ignore them.
+                            msg.setProperty("SMAC", MAC_ADDRESS);
                             try {
                                 chat.sendMessage(msg);
                             } catch (final XMPPException e) {
@@ -443,6 +481,30 @@ public class DefaultXmppProxy implements XmppProxy {
         if (ch.isConnected()) {
             ch.write(ChannelBuffers.EMPTY_BUFFER).addListener(
                 ChannelFutureListener.CLOSE);
+        }
+    }
+    
+    private static String getMacAddress() throws SocketException {
+        final Enumeration<NetworkInterface> nis = 
+            NetworkInterface.getNetworkInterfaces();
+        while (nis.hasMoreElements()) {
+            final NetworkInterface ni = nis.nextElement();
+            try {
+                final byte[] mac = ni.getHardwareAddress();
+                if (mac.length > 0) {
+                    return Base64.encodeBase64String(mac);
+                }
+            } catch (final SocketException e) {
+            }
+        }
+        try {
+            return Base64.encodeBase64String(
+                InetAddress.getLocalHost().getAddress()) + 
+                System.currentTimeMillis();
+        } catch (final UnknownHostException e) {
+            final byte[] bytes = new byte[24];
+            new Random().nextBytes(bytes);
+            return Base64.encodeBase64String(bytes);
         }
     }
 }
