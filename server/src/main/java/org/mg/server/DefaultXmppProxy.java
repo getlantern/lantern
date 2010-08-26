@@ -202,7 +202,16 @@ public class DefaultXmppProxy implements XmppProxy {
                         log.info("SMAC: {}", smac);
                         if (StringUtils.isNotBlank(smac) && 
                             smac.trim().equals(MAC_ADDRESS)) {
-                            log.warn("IGNORING MESSAGE FROM OURSELVES!!");
+                            log.warn("MESSAGE FROM OURSELVES -- ATTEMPTING TO SEND BACK!!");
+                            msg.setTo(chat.getParticipant());
+                            msg.setFrom(conn.getUser());
+                            log.info("NEW FROM: {}",msg.getFrom());
+                            log.info("NEW TO: {}",msg.getTo());
+                            try {
+                                chat.sendMessage(msg);
+                            } catch (final XMPPException e) {
+                                log.error("XMPP error!!", e);
+                            }
                             return;
                         }
                         
