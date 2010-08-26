@@ -134,11 +134,15 @@ public class DefaultXmppProxy implements XmppProxy {
         
         final ChatManager cm = conn.getChatManager();
         final ChatManagerListener listener = new ChatManagerListener() {
-            private ChannelFuture cf;
+            //private ChannelFuture cf;
             
             public void chatCreated(final Chat chat, 
                 final boolean createdLocally) {
                 log.info("Created a chat!!");
+                
+                final Collection<ChannelFuture> chatChannels = 
+                    new HashSet<ChannelFuture>();
+                
                 // We need to listen for the unavailability of clients we're 
                 // chatting with so we can disconnect from their associated 
                 // remote servers.
@@ -151,9 +155,12 @@ public class DefaultXmppProxy implements XmppProxy {
                         log.info("Comparing presence packet from "+from+
                             " to particant "+participant);
                         if (from.equals(participant) && !pres.isAvailable()) {
-                            if (cf != null) {
-                                log.info("Closing channel to local proxy");
-                                cf.getChannel().close();
+                            log.info("Closing all channels for this chat");
+                            synchronized(chatChannels) {
+                                for (final ChannelFuture cf : chatChannels) {
+                                    log.info("Closing channel to local proxy");
+                                    cf.getChannel().close();
+                                }
                             }
                         }
                     }
@@ -188,18 +195,22 @@ public class DefaultXmppProxy implements XmppProxy {
                         }
                         
                         log.info("Getting channel future...");
-                        cf = getChannelFuture(msg, chat);
+                        final ChannelFuture cf = 
+                            getChannelFuture(msg, chat, close);
                         log.info("Got channel: {}", cf);
                         if (cf == null) {
-                            log.warn("Null channel future! Returning");
+                            log.info("Null channel future! Returning");
                             return;
                         }
+                        
                         if (close) {
                             log.info("Received close from client...closing " +
                                 "connection to the proxy");
                             cf.getChannel().close();
+                            chatChannels.remove(cf);
                             return;
                         }
+                        chatChannels.add(cf);
                         
                         // TODO: Check the sequence number??
                         final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
@@ -246,11 +257,13 @@ public class DefaultXmppProxy implements XmppProxy {
      * @param key The key for the remote IP/port pair.
      * @param chat The chat session across Google Talk -- we need this to 
      * send responses back to the original caller.
+     * @param close Whether or not this is a message to close the connection -
+     * we don't want to open a new connection if it is.
      * @return The {@link ChannelFuture} that will connect to the local
      * LittleProxy instance.
      */
     private ChannelFuture getChannelFuture(final Message message, 
-        final Chat chat) {
+        final Chat chat, final boolean close) {
         // The other side will also need to know where the 
         // request came from to differentiate incoming HTTP 
         // connections.
@@ -280,6 +293,11 @@ public class DefaultXmppProxy implements XmppProxy {
             if (connections.containsKey(key)) {
                 log.info("Using existing connection");
                 return connections.get(key);
+            }
+            if (close) {
+                // We've likely already closed the connection in this case.
+                log.warn("Returning null channel on close call");
+                return null;
             }
             if (removedConnections.contains(key)) {
                 log.warn("KEY IS IN REMOVED CONNECTIONS: "+key);
