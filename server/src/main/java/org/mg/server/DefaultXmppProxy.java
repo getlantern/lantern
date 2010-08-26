@@ -370,6 +370,7 @@ public class DefaultXmppProxy implements XmppProxy {
                             log.info("Connection service name: {}", conn.getServiceName());
                             log.info("Connection user: {}", conn.getUser());
                             msg.setTo(chat.getParticipant());
+                            msg.setFrom(conn.getUser());
                             msg.setProperty("HTTP", base64);
                             msg.setProperty("MD5", toMd5(raw));
                             msg.setProperty("SEQ", sequenceNumber);
@@ -399,6 +400,7 @@ public class DefaultXmppProxy implements XmppProxy {
                             final Message msg = new Message();
                             msg.setProperty("HASHCODE", hc);
                             msg.setProperty("MAC", mac);
+                            msg.setFrom(conn.getUser());
                             
                             // We set the sequence number so the client knows
                             // how many total messages to expect. This is 
