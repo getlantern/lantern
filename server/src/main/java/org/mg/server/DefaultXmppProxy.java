@@ -330,6 +330,12 @@ public class DefaultXmppProxy implements XmppProxy {
                             final Message msg = new Message();
                             msg.setProperty("HASHCODE", hc);
                             msg.setProperty("MAC", mac);
+                            
+                            // We set the sequence number so the client knows
+                            // how many total messages to expect. This is 
+                            // necessary because the XMPP server can deliver 
+                            // messages out of order.
+                            msg.setProperty("SEQ", sequenceNumber);
                             msg.setProperty("CLOSE", "true");
                             try {
                                 chat.sendMessage(msg);
