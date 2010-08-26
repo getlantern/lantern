@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
@@ -58,12 +59,6 @@ public class DefaultXmppProxy implements XmppProxy {
         new NioClientSocketChannelFactory(
             Executors.newCachedThreadPool(),
             Executors.newCachedThreadPool());
-    
-    private final ConcurrentHashMap<String, ChannelFuture> connections =
-        new ConcurrentHashMap<String, ChannelFuture>();
-    
-    private final Collection<String> removedConnections = 
-        new HashSet<String>();
     
     public DefaultXmppProxy() {
         // Start the HTTP proxy server that we relay data to. It has more
@@ -134,11 +129,16 @@ public class DefaultXmppProxy implements XmppProxy {
         
         final ChatManager cm = conn.getChatManager();
         final ChatManagerListener listener = new ChatManagerListener() {
-            //private ChannelFuture cf;
             
             public void chatCreated(final Chat chat, 
                 final boolean createdLocally) {
                 log.info("Created a chat!!");
+                
+                final ConcurrentHashMap<String, ChannelFuture> proxyConnections =
+                    new ConcurrentHashMap<String, ChannelFuture>();
+                
+                final Collection<String> removedConnections = 
+                    new HashSet<String>();
                 
                 final Collection<ChannelFuture> chatChannels = 
                     new HashSet<ChannelFuture>();
@@ -195,8 +195,10 @@ public class DefaultXmppProxy implements XmppProxy {
                         }
                         
                         log.info("Getting channel future...");
+                        
                         final ChannelFuture cf = 
-                            getChannelFuture(msg, chat, close);
+                            getChannelFuture(msg, chat, close, 
+                                proxyConnections, removedConnections);
                         log.info("Got channel: {}", cf);
                         if (cf == null) {
                             log.info("Null channel future! Returning");
@@ -207,6 +209,9 @@ public class DefaultXmppProxy implements XmppProxy {
                             log.info("Received close from client...closing " +
                                 "connection to the proxy");
                             cf.getChannel().close();
+                            
+                            // This will get added to the removed connections
+                            // in the close listener.
                             chatChannels.remove(cf);
                             return;
                         }
@@ -259,23 +264,25 @@ public class DefaultXmppProxy implements XmppProxy {
      * send responses back to the original caller.
      * @param close Whether or not this is a message to close the connection -
      * we don't want to open a new connection if it is.
+     * @param connections The connections to the local proxy that are 
+     * associated with this chat.
+     * @param removedConnections Keeps track of connections we've removed --
+     * for debugging.
      * @return The {@link ChannelFuture} that will connect to the local
      * LittleProxy instance.
      */
     private ChannelFuture getChannelFuture(final Message message, 
-        final Chat chat, final boolean close) {
+        final Chat chat, final boolean close, 
+        final Map<String,ChannelFuture> connections, 
+        final Collection<String> removedConnections) {
+        
         // The other side will also need to know where the 
         // request came from to differentiate incoming HTTP 
         // connections.
         log.info("Getting properties...");
         
-        
-        // Not these will fail if the original properties were not set as
+        // Note these will fail if the original properties were not set as
         // strings.
-        //final String remoteIp = 
-        //    (String) message.getProperty("LOCAL-IP");
-        //final String localIp = 
-        //    (String) message.getProperty("REMOTE-IP");
         final String mac = (String) message.getProperty("MAC");
         final String hc = (String) message.getProperty("HASHCODE");
 
