@@ -77,7 +77,7 @@ public class DefaultXmppProxy implements XmppProxy {
             e.printStackTrace();
             tempMac = String.valueOf(RandomUtils.nextLong());
         }
-        MAC_ADDRESS = tempMac;
+        MAC_ADDRESS = tempMac.trim();
     }
     
     public DefaultXmppProxy() {
