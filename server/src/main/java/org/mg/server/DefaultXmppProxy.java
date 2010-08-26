@@ -199,7 +199,8 @@ public class DefaultXmppProxy implements XmppProxy {
                         log.info("TO: "+msg.getTo());
                         
                         final String smac = (String) msg.getProperty("SMAC");
-                        if (smac.trim().equals(MAC_ADDRESS)) {
+                        if (StringUtils.isNotBlank(smac) && 
+                            smac.trim().equals(MAC_ADDRESS)) {
                             log.warn("IGNORING MESSAGE FROM OURSELVES!!");
                             return;
                         }
