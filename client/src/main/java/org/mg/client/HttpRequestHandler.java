@@ -60,6 +60,11 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         new ConcurrentHashMap<Long, Message>();
     
     /**
+     * Unique key identifying this connection.
+     */
+    private final String key;
+    
+    /**
      * Creates a new class for handling HTTP requests with the specified
      * authentication manager.
      * 
@@ -74,8 +79,14 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         this.channelGroup = channelGroup;
         this.macAddress = macAddress;
         this.chat = chat;
+        
+        this.key = newKey(this.macAddress, this.hashCode());
     }
     
+    private String newKey(String mac, int hc) {
+        return mac.trim() + hc;
+    }
+
     private ChannelBuffer xmppToHttpChannelBuffer(final Message msg) {
         
         final long sequenceNumber = (Long) msg.getProperty("SEQ");
@@ -258,6 +269,9 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
     public void processMessage(final Chat ch, final Message msg) {
         log.info("Received message with props: {}", 
             msg.getPropertyNames());
+        final long sequenceNumber = (Long) msg.getProperty("SEQ");
+        log.error("SEQUENCE NUMBER: "+sequenceNumber);
+        
         final String close = (String) msg.getProperty("CLOSE");
 
         // If the other side is sending the close directive, we 
@@ -266,6 +280,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
             close.trim().equalsIgnoreCase("true")) {
             log.info("Got CLOSE. Closing channel to browser.");
             if (browserToProxyChannel.isOpen()) {
+                log.info("Remaining messages: "+this.sequenceMap);
                 closeOnFlush(browserToProxyChannel);
             }
             return;
@@ -280,15 +295,20 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         }
         //final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
         
+        final String mac = (String) msg.getProperty("MAC");
+        final String hc = (String) msg.getProperty("HASHCODE");
+        final String localKey = newKey(mac, Integer.parseInt(hc));
+        if (!localKey.equals(this.key)) {
+            log.error("RECEIVED A MESSAGE THAT'S NOT FOR US?!?!?!");
+            log.error("\nOUR KEY IS:   "+this.key+
+                      "\nBUT RECEIVED: "+localKey);
+        }
         
-        final long sequenceNumber = (Long) msg.getProperty("SEQ");
-        //if (lastSequenceNumber != -1L) {
-            //final long expected = lastSequenceNumber + 1;
-            log.error("SEQUENCE NUMBER: "+sequenceNumber);
             if (sequenceNumber != expectedSequenceNumber) {
                 // This can happen with our new scheme.
-                log.error("BAD SEQUENCE NUMBER. EXPECTED "+expectedSequenceNumber+
-                    " BUT WAS "+sequenceNumber);
+                log.error("BAD SEQUENCE NUMBER. " +
+                    "EXPECTED "+expectedSequenceNumber+
+                    " BUT WAS "+sequenceNumber+" FOR KEY: "+localKey);
                 sequenceMap.put(sequenceNumber, msg);
             }
             else {

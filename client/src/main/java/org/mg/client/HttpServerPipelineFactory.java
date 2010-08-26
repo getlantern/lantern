@@ -85,7 +85,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         SmackConfiguration.setPacketReplyTimeout(30 * 1000);
     }
     
-    private final Collection<String> mgJids = new HashSet<String>();
+    private final Collection<String> serverSideJids = new HashSet<String>();
     
     /**
      * Separate thread for creating new XMPP connections.
@@ -253,7 +253,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
                 throws IOException, UnknownHostException {
                 log.info("Creating socket");
                 final Socket sock = new Socket();
-                sock.connect(new InetSocketAddress(host, port), 30000);
+                sock.connect(new InetSocketAddress(host, port), 50 * 1000);
                 log.info("Socket connected");
                 return sock;
             }
@@ -263,11 +263,11 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         xmpp.connect();
         xmpp.login(this.user, this.pwd, "MG");
         
-        synchronized (mgJids) {
-            while (mgJids.size() < 4) {
+        synchronized (serverSideJids) {
+            while (serverSideJids.size() < 4) {
                 log.info("Waiting for JIDs of MG servers...");
                 try {
-                    mgJids.wait(10000);
+                    serverSideJids.wait(10000);
                 } catch (final InterruptedException e) {
                     log.error("Interruped?", e);
                 }
@@ -275,8 +275,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         }
         
         final List<String> strs;
-        synchronized (mgJids) {
-            strs = new ArrayList<String>(mgJids);
+        synchronized (serverSideJids) {
+            strs = new ArrayList<String>(serverSideJids);
         }
         
         Collections.shuffle(strs);
@@ -400,15 +400,15 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
                     log.info("PACKET: "+presence);
                     log.info("Packet is from: {}", from);
                     if (presence.isAvailable()) {
-                        mgJids.add(from);
-                        synchronized (mgJids) {
-                            mgJids.notifyAll();
+                        serverSideJids.add(from);
+                        synchronized (serverSideJids) {
+                            serverSideJids.notifyAll();
                         }
                     }
                     else {
                         log.info("Removing connection with status {}", 
                             presence.getStatus());
-                        mgJids.remove(from);
+                        serverSideJids.remove(from);
                     }
                 }
             }
