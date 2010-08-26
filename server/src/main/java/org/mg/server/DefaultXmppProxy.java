@@ -175,6 +175,9 @@ public class DefaultXmppProxy implements XmppProxy {
                         log.info("Property names: {}", msg.getPropertyNames());
                         log.info("SEQUENCE #: "+ msg.getProperty("SEQ"));
                         
+                        log.info("FROM: "+msg.getFrom());
+                        log.info("TO: "+msg.getTo());
+                        
                         final String closeString = 
                             (String) msg.getProperty("CLOSE");
                         
@@ -195,10 +198,9 @@ public class DefaultXmppProxy implements XmppProxy {
                         }
                         
                         log.info("Getting channel future...");
-                        
                         final ChannelFuture cf = 
                             getChannelFuture(msg, chat, close, 
-                                proxyConnections, removedConnections);
+                                proxyConnections, removedConnections, conn);
                         log.info("Got channel: {}", cf);
                         if (cf == null) {
                             log.info("Null channel future! Returning");
@@ -268,13 +270,15 @@ public class DefaultXmppProxy implements XmppProxy {
      * associated with this chat.
      * @param removedConnections Keeps track of connections we've removed --
      * for debugging.
+     * @param conn The XMPP connection.
      * @return The {@link ChannelFuture} that will connect to the local
      * LittleProxy instance.
      */
     private ChannelFuture getChannelFuture(final Message message, 
         final Chat chat, final boolean close, 
         final Map<String,ChannelFuture> connections, 
-        final Collection<String> removedConnections) {
+        final Collection<String> removedConnections, 
+        final XMPPConnection conn) {
         
         // The other side will also need to know where the 
         // request came from to differentiate incoming HTTP 
@@ -333,6 +337,10 @@ public class DefaultXmppProxy implements XmppProxy {
                             final String base64 = 
                                 Base64.encodeBase64URLSafeString(raw);
                             
+                            log.info("Connection ID: ", conn.getConnectionID());
+                            log.info("Connection host: ", conn.getHost());
+                            log.info("Connection service name: ", conn.getServiceName());
+                            log.info("Connection user: ", conn.getUser());
                             msg.setTo(chat.getParticipant());
                             msg.setProperty("HTTP", base64);
                             msg.setProperty("MD5", toMd5(raw));
