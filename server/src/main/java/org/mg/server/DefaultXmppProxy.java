@@ -193,12 +193,13 @@ public class DefaultXmppProxy implements XmppProxy {
                     public void processMessage(final Chat ch, final Message msg) {
                         log.info("Got message!!");
                         log.info("Property names: {}", msg.getPropertyNames());
-                        log.info("SEQUENCE #: "+ msg.getProperty("SEQ"));
+                        log.info("SEQUENCE #: {}", msg.getProperty("SEQ"));
                         
-                        log.info("FROM: "+msg.getFrom());
-                        log.info("TO: "+msg.getTo());
+                        log.info("FROM: {}",msg.getFrom());
+                        log.info("TO: {}",msg.getTo());
                         
                         final String smac = (String) msg.getProperty("SMAC");
+                        log.info("SMAC: {}", smac);
                         if (StringUtils.isNotBlank(smac) && 
                             smac.trim().equals(MAC_ADDRESS)) {
                             log.warn("IGNORING MESSAGE FROM OURSELVES!!");
@@ -364,10 +365,10 @@ public class DefaultXmppProxy implements XmppProxy {
                             final String base64 = 
                                 Base64.encodeBase64URLSafeString(raw);
                             
-                            log.info("Connection ID: ", conn.getConnectionID());
-                            log.info("Connection host: ", conn.getHost());
-                            log.info("Connection service name: ", conn.getServiceName());
-                            log.info("Connection user: ", conn.getUser());
+                            log.info("Connection ID: {}", conn.getConnectionID());
+                            log.info("Connection host: {}", conn.getHost());
+                            log.info("Connection service name: {}", conn.getServiceName());
+                            log.info("Connection user: {}", conn.getUser());
                             msg.setTo(chat.getParticipant());
                             msg.setProperty("HTTP", base64);
                             msg.setProperty("MD5", toMd5(raw));
@@ -379,6 +380,7 @@ public class DefaultXmppProxy implements XmppProxy {
                             // useful because there are odd cases where XMPP
                             // servers echo back our own messages, and we
                             // want to ignore them.
+                            log.info("Setting SMAC to: {}", MAC_ADDRESS);
                             msg.setProperty("SMAC", MAC_ADDRESS);
                             
                             log.info("Sending to: {}", chat.getParticipant());
@@ -393,6 +395,7 @@ public class DefaultXmppProxy implements XmppProxy {
                             // side VIA google talk to simulate the proxy 
                             // closing the connection to the browser.
                             log.info("Got channel closed on C in A->B->C->D chain...");
+                            log.info("Sending close message");
                             final Message msg = new Message();
                             msg.setProperty("HASHCODE", hc);
                             msg.setProperty("MAC", mac);
@@ -408,7 +411,9 @@ public class DefaultXmppProxy implements XmppProxy {
                             // useful because there are odd cases where XMPP
                             // servers echo back our own messages, and we
                             // want to ignore them.
+                            log.info("Setting SMAC to: {}", MAC_ADDRESS);
                             msg.setProperty("SMAC", MAC_ADDRESS);
+                            
                             try {
                                 chat.sendMessage(msg);
                             } catch (final XMPPException e) {
