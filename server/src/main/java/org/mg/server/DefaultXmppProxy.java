@@ -214,6 +214,7 @@ public class DefaultXmppProxy implements XmppProxy {
                                 else {
                                     final Message sent = 
                                         sentMessages.values().iterator().next();
+                                    log.warn("Also randomly sending message with sequence number: "+sent.getProperty("SEQ"));
                                     try {
                                         chat.sendMessage(sent);
                                     } catch (final XMPPException e) {
