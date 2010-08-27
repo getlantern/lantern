@@ -389,8 +389,8 @@ public class DefaultXmppProxy implements XmppProxy {
                             msg.setProperty("HTTP", base64);
                             msg.setProperty("MD5", toMd5(raw));
                             msg.setProperty("SEQ", sequenceNumber);
-                            msg.setProperty("HASHCODE", msg.getProperty("HASHCODE"));
-                            msg.setProperty("MAC", msg.getProperty("MAC"));
+                            msg.setProperty("HASHCODE", message.getProperty("HASHCODE"));
+                            msg.setProperty("MAC", message.getProperty("MAC"));
                             
                             // This is the server-side MAC address. This is
                             // useful because there are odd cases where XMPP
@@ -413,8 +413,8 @@ public class DefaultXmppProxy implements XmppProxy {
                             log.info("Got channel closed on C in A->B->C->D chain...");
                             log.info("Sending close message");
                             final Message msg = new Message();
-                            msg.setProperty("HASHCODE", msg.getProperty("HASHCODE"));
-                            msg.setProperty("MAC", msg.getProperty("MAC"));
+                            msg.setProperty("HASHCODE", message.getProperty("HASHCODE"));
+                            msg.setProperty("MAC", message.getProperty("MAC"));
                             msg.setFrom(conn.getUser());
                             
                             // We set the sequence number so the client knows
