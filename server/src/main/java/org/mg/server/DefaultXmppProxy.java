@@ -49,6 +49,7 @@ import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.ChatManagerListener;
 import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.Roster;
@@ -190,9 +191,32 @@ public class DefaultXmppProxy implements XmppProxy {
         final Roster roster = conn.getRoster();
         roster.setSubscriptionMode(Roster.SubscriptionMode.accept_all);
         
+        conn.addConnectionListener(new ConnectionListener() {
+
+            public void connectionClosed() {
+                log.warn("XMPP connection closed!!");
+            }
+
+            public void connectionClosedOnError(final Exception e) {
+                log.warn("XMPP connection closed on error!!", e);
+            }
+
+            public void reconnectingIn(int seconds) {
+                log.info("XMPP connection reconnecting...");
+            }
+
+            public void reconnectionFailed(final Exception e) {
+                log.info("XMPP connection reconnection failed", e);
+            }
+
+            public void reconnectionSuccessful() {
+                log.info("Reconnection succeeded!!");
+            }
+            
+        });
         
         final ChatManager cm = conn.getChatManager();
-        final ChatManagerListener listener = new ChatManagerListener() {
+        cm.addChatListener(new ChatManagerListener() {
             
             public void chatCreated(final Chat chat, 
                 final boolean createdLocally) {
@@ -200,15 +224,6 @@ public class DefaultXmppProxy implements XmppProxy {
                 
                 final ConcurrentHashMap<String, ChannelFuture> proxyConnections =
                     new ConcurrentHashMap<String, ChannelFuture>();
-                
-                final Collection<String> removedConnections = 
-                    new HashSet<String>();
-                
-                final ConcurrentHashMap<Long, Message> sentMessages =
-                    new ConcurrentHashMap<Long, Message>();
-                
-                //final Collection<ChannelFuture> chatChannels = 
-                //    new HashSet<ChannelFuture>();
                 
                 // We need to listen for the unavailability of clients we're 
                 // chatting with so we can disconnect from their associated 
@@ -235,120 +250,145 @@ public class DefaultXmppProxy implements XmppProxy {
                 // Register the listener.
                 conn.addPacketListener(pl, null);
                 
-                final MessageListener ml = new MessageListener() {
-                    
-                    public void processMessage(final Chat ch, final Message msg) {
-                        log.info("Got message!!");
-                        log.info("Property names: {}", msg.getPropertyNames());
-                        log.info("SEQUENCE #: {}", msg.getProperty("SEQ"));
-                        log.info("HASHCODE #: {}", msg.getProperty("HASHCODE"));
-                        
-                        log.info("FROM: {}",msg.getFrom());
-                        log.info("TO: {}",msg.getTo());
-                        
-                        final String smac = (String) msg.getProperty("SMAC");
-                        log.info("SMAC: {}", smac);
-                        if (StringUtils.isNotBlank(smac) && 
-                            smac.trim().equals(MAC_ADDRESS)) {
-                            log.warn("MESSAGE FROM OURSELVES -- ATTEMPTING TO SEND BACK!!");
-                            synchronized (sentMessages) {
-                                if (sentMessages.isEmpty()) {
-                                    log.warn("No sent messages");
-                                }
-                                else {
-                                    final Message sent = 
-                                        sentMessages.values().iterator().next();
-                                    log.warn("Also randomly sending message with sequence number: "+sent.getProperty("SEQ"));
-                                    try {
-                                        chat.sendMessage(sent);
-                                    } catch (final XMPPException e) {
-                                        log.error("XMPP error!!", e);
-                                    }
-                                }
-                            }
-                            
-                            msg.setTo(chat.getParticipant());
-                            msg.setFrom(conn.getUser());
-                            log.info("NEW FROM: {}",msg.getFrom());
-                            log.info("NEW TO: {}",msg.getTo());
-                            try {
-                                chat.sendMessage(msg);
-                            } catch (final XMPPException e) {
-                                log.error("XMPP error!!", e);
-                            }
-                            return;
-                        }
-                        
-                        final String closeString = 
-                            (String) msg.getProperty("CLOSE");
-                        
-                        log.info("Close value: {}", closeString);
-                        final boolean close;
-                        if (StringUtils.isNotBlank(closeString) &&
-                            closeString.trim().equalsIgnoreCase("true")) {
-                            log.info("Got close true");
-                            close = true;
-                        }
-                        else {
-                            close = false;
-                            final String data = (String) msg.getProperty("HTTP");
-                            if (StringUtils.isBlank(data)) {
-                                log.warn("HTTP IS BLANK?? IGNORING...");
-                                return;
-                            }
-                        }
-                        
-                        if (close) {
-                            log.info("Received close from client...closing " +
-                                "connection to the proxy for HASHCODE: {}", 
-                                msg.getProperty("HASHCODE"));
-                            final String key = messageKey(msg);
-                            final ChannelFuture cf = proxyConnections.get(key);
-                            
-                            if (cf != null) {
-                                cf.getChannel().close();
-                                removedConnections.add(key);
-                            }
-                            else {
-                                log.error("Got close for connection we don't " +
-                                    "know about! Removed keys are: {}", 
-                                    removedConnections);
-                            }
-                            return;
-                        }
-                        log.info("Getting channel future...");
-                        final ChannelFuture cf = 
-                            getChannelFuture(msg, chat, close, 
-                                proxyConnections, removedConnections, conn,
-                                sentMessages);
-                        log.info("Got channel: {}", cf);
-                        if (cf == null) {
-                            log.info("Null channel future! Returning");
-                            return;
-                        }
-                        
-                        // TODO: Check the sequence number??
-                        final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
-
-                        if (cf.getChannel().isConnected()) {
-                            cf.getChannel().write(cb);
-                        }
-                        else {
-                            cf.addListener(new ChannelFutureListener() {
-                                public void operationComplete(
-                                    final ChannelFuture future) 
-                                    throws Exception {
-                                    cf.getChannel().write(cb);
-                                }
-                            });
-                        }
-                    }
-                };
+                final MessageListener ml = 
+                    new ProxyMessageListener(proxyConnections, chat, conn);
                 chat.addMessageListener(ml);
             }
-        };
-        cm.addChatListener(listener);
+        });
         return conn;
+    }
+    
+    /**
+     * Class for listening for messages for a specific chat.
+     */
+    private final class ProxyMessageListener implements MessageListener {
+        
+        private final Collection<String> removedConnections = 
+            new HashSet<String>();
+        
+        private final ConcurrentHashMap<Long, Message> sentMessages =
+            new ConcurrentHashMap<Long, Message>();
+        
+        private final Map<String, ChannelFuture> proxyConnections;
+
+        private final Chat chat;
+
+        private final XMPPConnection conn;
+
+        public ProxyMessageListener(
+            final Map<String, ChannelFuture> proxyConnections, 
+            final Chat chat, final XMPPConnection conn) {
+            this.proxyConnections = proxyConnections;
+            this.chat = chat;
+            this.conn = conn;
+        }
+
+        public void processMessage(final Chat ch, final Message msg) {
+            log.info("Got message!!");
+            log.info("Property names: {}", msg.getPropertyNames());
+            log.info("SEQUENCE #: {}", msg.getProperty("SEQ"));
+            log.info("HASHCODE #: {}", msg.getProperty("HASHCODE"));
+            
+            log.info("FROM: {}",msg.getFrom());
+            log.info("TO: {}",msg.getTo());
+            
+            final String smac = (String) msg.getProperty("SMAC");
+            log.info("SMAC: {}", smac);
+            if (StringUtils.isNotBlank(smac) && 
+                smac.trim().equals(MAC_ADDRESS)) {
+                log.warn("MESSAGE FROM OURSELVES -- ATTEMPTING TO SEND BACK!!");
+                synchronized (sentMessages) {
+                    if (sentMessages.isEmpty()) {
+                        log.warn("No sent messages");
+                    }
+                    else {
+                        final Message sent = 
+                            sentMessages.values().iterator().next();
+                        log.warn("Also randomly sending message with sequence number: "+sent.getProperty("SEQ"));
+                        try {
+                            chat.sendMessage(sent);
+                        } catch (final XMPPException e) {
+                            log.error("XMPP error!!", e);
+                        }
+                    }
+                }
+                
+                msg.setTo(chat.getParticipant());
+                msg.setFrom(conn.getUser());
+                log.info("NEW FROM: {}",msg.getFrom());
+                log.info("NEW TO: {}",msg.getTo());
+                try {
+                    chat.sendMessage(msg);
+                } catch (final XMPPException e) {
+                    log.error("XMPP error!!", e);
+                }
+                return;
+            }
+            
+            final String closeString = 
+                (String) msg.getProperty("CLOSE");
+            
+            log.info("Close value: {}", closeString);
+            final boolean close;
+            if (StringUtils.isNotBlank(closeString) &&
+                closeString.trim().equalsIgnoreCase("true")) {
+                log.info("Got close true");
+                close = true;
+            }
+            else {
+                close = false;
+                final String data = (String) msg.getProperty("HTTP");
+                if (StringUtils.isBlank(data)) {
+                    log.warn("HTTP IS BLANK?? IGNORING...");
+                    return;
+                }
+            }
+            
+            if (close) {
+                log.info("Received close from client...closing " +
+                    "connection to the proxy for HASHCODE: {}", 
+                    msg.getProperty("HASHCODE"));
+                final String key = messageKey(msg);
+                final ChannelFuture cf = proxyConnections.get(key);
+                
+                if (cf != null) {
+                    cf.getChannel().close();
+                    removedConnections.add(key);
+                }
+                else {
+                    log.error("Got close for connection we don't " +
+                        "know about! Removed keys are: {}", 
+                        removedConnections);
+                }
+                return;
+            }
+            log.info("Getting channel future...");
+            final ChannelFuture cf = 
+                getChannelFuture(msg, chat, close, 
+                    proxyConnections, removedConnections, conn,
+                    sentMessages);
+            log.info("Got channel: {}", cf);
+            if (cf == null) {
+                log.info("Null channel future! Returning");
+                return;
+            }
+            
+            // TODO: Check the sequence number??
+            final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
+
+            if (cf.getChannel().isConnected()) {
+                cf.getChannel().write(cb);
+            }
+            else {
+                cf.addListener(new ChannelFutureListener() {
+                    public void operationComplete(
+                        final ChannelFuture future) 
+                        throws Exception {
+                        cf.getChannel().write(cb);
+                    }
+                });
+            }
+        }
     }
 
     private ChannelBuffer xmppToHttpChannelBuffer(final Message msg) {
