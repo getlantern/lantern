@@ -453,9 +453,10 @@ public class DefaultXmppProxy implements XmppProxy {
                                 // We've seen odd cases where channels seem to 
                                 // continually attempt connections. Make sure 
                                 // we explicitly close the connection here.
-                                log.warn("Closing connection even though " +
-                                    "isOpen is false");
-                                e.getChannel().close();
+                                log.info("Channel is not open...ignoring");
+                                //log.warn("Closing connection even though " +
+                                //    "isOpen is false");
+                                //e.getChannel().close();
                             }
                         }
                     }
