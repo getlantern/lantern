@@ -160,8 +160,8 @@ public class DefaultXmppProxy implements XmppProxy {
                 final Collection<String> removedConnections = 
                     new HashSet<String>();
                 
-                final Collection<ChannelFuture> chatChannels = 
-                    new HashSet<ChannelFuture>();
+                //final Collection<ChannelFuture> chatChannels = 
+                //    new HashSet<ChannelFuture>();
                 
                 // We need to listen for the unavailability of clients we're 
                 // chatting with so we can disconnect from their associated 
@@ -172,12 +172,12 @@ public class DefaultXmppProxy implements XmppProxy {
                         final Presence pres = (Presence) pack;
                         final String from = pres.getFrom();
                         final String participant = chat.getParticipant();
-                        log.info("Comparing presence packet from "+from+
-                            " to particant "+participant);
+                        //log.info("Comparing presence packet from "+from+
+                        //    " to particant "+participant);
                         if (from.equals(participant) && !pres.isAvailable()) {
                             log.info("Closing all channels for this chat");
-                            synchronized(chatChannels) {
-                                for (final ChannelFuture cf : chatChannels) {
+                            synchronized(proxyConnections) {
+                                for (final ChannelFuture cf : proxyConnections.values()) {
                                     log.info("Closing channel to local proxy");
                                     cf.getChannel().close();
                                 }
@@ -194,6 +194,7 @@ public class DefaultXmppProxy implements XmppProxy {
                         log.info("Got message!!");
                         log.info("Property names: {}", msg.getPropertyNames());
                         log.info("SEQUENCE #: {}", msg.getProperty("SEQ"));
+                        log.info("HASHCODE #: {}", msg.getProperty("HASHCODE"));
                         
                         log.info("FROM: {}",msg.getFrom());
                         log.info("TO: {}",msg.getTo());
@@ -234,6 +235,28 @@ public class DefaultXmppProxy implements XmppProxy {
                             }
                         }
                         
+                        if (close) {
+                            log.info("Received close from client...closing " +
+                                "connection to the proxy for HASHCODE: {}", 
+                                msg.getProperty("HASHCODE"));
+                            final String key = messageKey(msg);
+                            final ChannelFuture cf = proxyConnections.get(key);
+                            
+                            if (cf != null) {
+                                cf.getChannel().close();
+                                removedConnections.add(key);
+                            }
+                            else {
+                                log.error("Got close for connection we don't " +
+                                    "know about! Removed keys are: {}", 
+                                    removedConnections);
+                            }
+                            
+                            // This will get added to the removed connections
+                            // in the close listener.
+                            //chatChannels.remove(cf);
+                            return;
+                        }
                         log.info("Getting channel future...");
                         final ChannelFuture cf = 
                             getChannelFuture(msg, chat, close, 
@@ -243,18 +266,7 @@ public class DefaultXmppProxy implements XmppProxy {
                             log.info("Null channel future! Returning");
                             return;
                         }
-                        
-                        if (close) {
-                            log.info("Received close from client...closing " +
-                                "connection to the proxy");
-                            cf.getChannel().close();
-                            
-                            // This will get added to the removed connections
-                            // in the close listener.
-                            chatChannels.remove(cf);
-                            return;
-                        }
-                        chatChannels.add(cf);
+                        //chatChannels.add(cf);
                         
                         // TODO: Check the sequence number??
                         final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
@@ -324,17 +336,11 @@ public class DefaultXmppProxy implements XmppProxy {
         
         // Note these will fail if the original properties were not set as
         // strings.
-        final String mac = (String) message.getProperty("MAC");
-        final String hc = (String) message.getProperty("HASHCODE");
-
-        // We can sometimes get messages back that were not intended for us.
-        // Just ignore them.
-        if (mac == null || hc == null) {
-            log.error("Message not intended for us?!?!?\n" +
-                "Null MAC and/or HASH and to: "+message.getTo());
+        final String key = messageKey(message);
+        if (StringUtils.isBlank(key)) {
+            log.error("Could not create key");
             return null;
         }
-        final String key = mac + hc;
         
         log.info("Getting channel future for key: {}", key);
         synchronized (connections) {
@@ -383,8 +389,8 @@ public class DefaultXmppProxy implements XmppProxy {
                             msg.setProperty("HTTP", base64);
                             msg.setProperty("MD5", toMd5(raw));
                             msg.setProperty("SEQ", sequenceNumber);
-                            msg.setProperty("HASHCODE", hc);
-                            msg.setProperty("MAC", mac);
+                            msg.setProperty("HASHCODE", msg.getProperty("HASHCODE"));
+                            msg.setProperty("MAC", msg.getProperty("MAC"));
                             
                             // This is the server-side MAC address. This is
                             // useful because there are odd cases where XMPP
@@ -407,8 +413,8 @@ public class DefaultXmppProxy implements XmppProxy {
                             log.info("Got channel closed on C in A->B->C->D chain...");
                             log.info("Sending close message");
                             final Message msg = new Message();
-                            msg.setProperty("HASHCODE", hc);
-                            msg.setProperty("MAC", mac);
+                            msg.setProperty("HASHCODE", msg.getProperty("HASHCODE"));
+                            msg.setProperty("MAC", msg.getProperty("MAC"));
                             msg.setFrom(conn.getUser());
                             
                             // We set the sequence number so the client knows
@@ -471,6 +477,21 @@ public class DefaultXmppProxy implements XmppProxy {
         }
     }
     
+    private String messageKey(final Message message) {
+        final String mac = (String) message.getProperty("MAC");
+        final String hc = (String) message.getProperty("HASHCODE");
+
+        // We can sometimes get messages back that were not intended for us.
+        // Just ignore them.
+        if (mac == null || hc == null) {
+            log.error("Message not intended for us?!?!?\n" +
+                "Null MAC and/or HASH and to: "+message.getTo());
+            return null;
+        }
+        final String key = mac + hc;
+        return key;
+    }
+
     private String toMd5(final byte[] raw) {
         try {
             final MessageDigest md = MessageDigest.getInstance("MD5");
