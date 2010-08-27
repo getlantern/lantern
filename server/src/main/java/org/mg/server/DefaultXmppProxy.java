@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
+import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
@@ -22,6 +23,8 @@ import java.util.Properties;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+
+import javax.net.SocketFactory;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -139,6 +142,47 @@ public class DefaultXmppProxy implements XmppProxy {
         final String pass) throws XMPPException {
         final ConnectionConfiguration config = 
             new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
+        config.setCompressionEnabled(true);
+        //config.setReconnectionAllowed(false);
+        config.setSocketFactory(new SocketFactory() {
+            
+            @Override
+            public Socket createSocket(final InetAddress host, 
+                final int port, final InetAddress localHost,
+                final int localPort) throws IOException {
+                // We ignore the local port binding.
+                return createSocket(host, port);
+            }
+            
+            @Override
+            public Socket createSocket(final String host, 
+                final int port, final InetAddress localHost,
+                final int localPort)
+                throws IOException, UnknownHostException {
+                // We ignore the local port binding.
+                return createSocket(host, port);
+            }
+            
+            @Override
+            public Socket createSocket(final InetAddress host, int port) 
+                throws IOException {
+                log.info("Creating socket");
+                final Socket sock = new Socket();
+                sock.connect(new InetSocketAddress(host, port), 40000);
+                log.info("Socket connected");
+                return sock;
+            }
+            
+            @Override
+            public Socket createSocket(final String host, final int port) 
+                throws IOException, UnknownHostException {
+                log.info("Creating socket");
+                return createSocket(InetAddress.getByName(host), port);
+            }
+        });
+        
+        //final ConnectionConfiguration config = 
+        //    new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
         config.setCompressionEnabled(true);
         final XMPPConnection conn = new XMPPConnection(config);
         conn.connect();
