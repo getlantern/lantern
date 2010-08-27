@@ -160,6 +160,9 @@ public class DefaultXmppProxy implements XmppProxy {
                 final Collection<String> removedConnections = 
                     new HashSet<String>();
                 
+                final ConcurrentHashMap<Long, Message> sentMessages =
+                    new ConcurrentHashMap<Long, Message>();
+                
                 //final Collection<ChannelFuture> chatChannels = 
                 //    new HashSet<ChannelFuture>();
                 
@@ -204,6 +207,21 @@ public class DefaultXmppProxy implements XmppProxy {
                         if (StringUtils.isNotBlank(smac) && 
                             smac.trim().equals(MAC_ADDRESS)) {
                             log.warn("MESSAGE FROM OURSELVES -- ATTEMPTING TO SEND BACK!!");
+                            synchronized (sentMessages) {
+                                if (sentMessages.isEmpty()) {
+                                    log.warn("No sent messages");
+                                }
+                                else {
+                                    final Message sent = 
+                                        sentMessages.values().iterator().next();
+                                    try {
+                                        chat.sendMessage(sent);
+                                    } catch (final XMPPException e) {
+                                        log.error("XMPP error!!", e);
+                                    }
+                                }
+                            }
+                            
                             msg.setTo(chat.getParticipant());
                             msg.setFrom(conn.getUser());
                             log.info("NEW FROM: {}",msg.getFrom());
@@ -251,22 +269,18 @@ public class DefaultXmppProxy implements XmppProxy {
                                     "know about! Removed keys are: {}", 
                                     removedConnections);
                             }
-                            
-                            // This will get added to the removed connections
-                            // in the close listener.
-                            //chatChannels.remove(cf);
                             return;
                         }
                         log.info("Getting channel future...");
                         final ChannelFuture cf = 
                             getChannelFuture(msg, chat, close, 
-                                proxyConnections, removedConnections, conn);
+                                proxyConnections, removedConnections, conn,
+                                sentMessages);
                         log.info("Got channel: {}", cf);
                         if (cf == null) {
                             log.info("Null channel future! Returning");
                             return;
                         }
-                        //chatChannels.add(cf);
                         
                         // TODO: Check the sequence number??
                         final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
@@ -320,6 +334,7 @@ public class DefaultXmppProxy implements XmppProxy {
      * @param removedConnections Keeps track of connections we've removed --
      * for debugging.
      * @param conn The XMPP connection.
+     * @param sentMessages Messages we've sent out.
      * @return The {@link ChannelFuture} that will connect to the local
      * LittleProxy instance.
      */
@@ -327,7 +342,7 @@ public class DefaultXmppProxy implements XmppProxy {
         final Chat chat, final boolean close, 
         final Map<String,ChannelFuture> connections, 
         final Collection<String> removedConnections, 
-        final XMPPConnection conn) {
+        final XMPPConnection conn, final Map<Long,Message> sentMessages) {
         
         // The other side will also need to know where the 
         // request came from to differentiate incoming HTTP 
@@ -389,7 +404,8 @@ public class DefaultXmppProxy implements XmppProxy {
                             msg.setProperty("HTTP", base64);
                             msg.setProperty("MD5", toMd5(raw));
                             msg.setProperty("SEQ", sequenceNumber);
-                            msg.setProperty("HASHCODE", message.getProperty("HASHCODE"));
+                            msg.setProperty("HASHCODE", 
+                                message.getProperty("HASHCODE"));
                             msg.setProperty("MAC", message.getProperty("MAC"));
                             
                             // This is the server-side MAC address. This is
@@ -401,6 +417,7 @@ public class DefaultXmppProxy implements XmppProxy {
                             
                             log.info("Sending to: {}", chat.getParticipant());
                             log.info("Sending SEQUENCE #: "+sequenceNumber);
+                            sentMessages.put(sequenceNumber, msg);
                             chat.sendMessage(msg);
                             sequenceNumber++;
                         }
