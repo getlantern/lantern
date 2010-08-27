@@ -58,6 +58,9 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smackx.ChatState;
+import org.jivesoftware.smackx.ChatStateListener;
+import org.jivesoftware.smackx.ChatStateManager;
 import org.littleshoot.proxy.Launcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -144,7 +147,7 @@ public class DefaultXmppProxy implements XmppProxy {
         final ConnectionConfiguration config = 
             new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
         config.setCompressionEnabled(true);
-        //config.setReconnectionAllowed(false);
+        config.setReconnectionAllowed(true);
         config.setSocketFactory(new SocketFactory() {
             
             @Override
@@ -184,7 +187,8 @@ public class DefaultXmppProxy implements XmppProxy {
         
         //final ConnectionConfiguration config = 
         //    new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
-        config.setCompressionEnabled(true);
+        //config.setCompressionEnabled(true);
+        
         final XMPPConnection conn = new XMPPConnection(config);
         conn.connect();
         conn.login(user, pass, "MG");
@@ -250,6 +254,7 @@ public class DefaultXmppProxy implements XmppProxy {
                 // Register the listener.
                 conn.addPacketListener(pl, null);
                 
+                final ChatStateManager csm = ChatStateManager.getInstance(conn);
                 final MessageListener ml = 
                     new ProxyMessageListener(proxyConnections, chat, conn);
                 chat.addMessageListener(ml);
@@ -261,7 +266,7 @@ public class DefaultXmppProxy implements XmppProxy {
     /**
      * Class for listening for messages for a specific chat.
      */
-    private final class ProxyMessageListener implements MessageListener {
+    private final class ProxyMessageListener implements ChatStateListener {
         
         private final Collection<String> removedConnections = 
             new HashSet<String>();
@@ -388,6 +393,11 @@ public class DefaultXmppProxy implements XmppProxy {
                     }
                 });
             }
+        }
+
+        public void stateChanged(final Chat monitoredChat, 
+            final ChatState state) {
+            log.info("Got chat state changed: ", state);
         }
     }
 
