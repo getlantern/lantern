@@ -302,6 +302,7 @@ public class DefaultXmppProxy implements XmppProxy {
             if (StringUtils.isNotBlank(smac) && 
                 smac.trim().equals(MAC_ADDRESS)) {
                 log.warn("MESSAGE FROM OURSELVES -- ATTEMPTING TO SEND BACK!!");
+                log.warn("Connected?? "+conn.isConnected());
                 synchronized (sentMessages) {
                     if (sentMessages.isEmpty()) {
                         log.warn("No sent messages");
