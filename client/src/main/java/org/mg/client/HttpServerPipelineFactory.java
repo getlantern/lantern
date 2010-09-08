@@ -144,32 +144,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         }
     }
 
-    private String getMacAddress(final Enumeration<NetworkInterface> nis) {
-        while (nis.hasMoreElements()) {
-            final NetworkInterface ni = nis.nextElement();
-            try {
-                final byte[] mac = ni.getHardwareAddress();
-                if (mac != null && mac.length > 0) {
-                    final String encoded = Base64.encodeBase64String(mac);
-                    log.info("Returning true mac address: {}", encoded);
-                    return encoded;
-                }
-            } catch (final SocketException e) {
-                log.warn("Could not get MAC address?");
-            }
-        }
-        try {
-            log.warn("Returning home-grown MAC address");
-            return Base64.encodeBase64String(
-                InetAddress.getLocalHost().getAddress()) + 
-                System.currentTimeMillis();
-        } catch (final UnknownHostException e) {
-            final byte[] bytes = new byte[24];
-            new Random().nextBytes(bytes);
-            return Base64.encodeBase64String(bytes);
-        }
-    }
-
     public ChannelPipeline getPipeline() throws Exception {
         log.info("Getting pipeline...waiting for connection");
         
@@ -360,30 +334,37 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         config.setSocketFactory(new SocketFactory() {
             
             @Override
-            public Socket createSocket(InetAddress arg0, int arg1, InetAddress arg2,
-                int arg3) throws IOException {
-                return null;
+            public Socket createSocket(final InetAddress host, 
+                final int port, final InetAddress localHost,
+                final int localPort) throws IOException {
+                // We ignore the local port binding.
+                return createSocket(host, port);
             }
             
             @Override
-            public Socket createSocket(String arg0, int arg1, InetAddress arg2, int arg3)
-                    throws IOException, UnknownHostException {
-                return null;
+            public Socket createSocket(final String host, 
+                final int port, final InetAddress localHost,
+                final int localPort)
+                throws IOException, UnknownHostException {
+                // We ignore the local port binding.
+                return createSocket(host, port);
             }
             
             @Override
-            public Socket createSocket(InetAddress arg0, int arg1) throws IOException {
-                return null;
+            public Socket createSocket(final InetAddress host, int port) 
+                throws IOException {
+                log.info("Creating socket");
+                final Socket sock = new Socket();
+                sock.connect(new InetSocketAddress(host, port), 30000);
+                log.info("Socket connected");
+                return sock;
             }
             
             @Override
             public Socket createSocket(final String host, final int port) 
                 throws IOException, UnknownHostException {
                 log.info("Creating socket");
-                final Socket sock = new Socket();
-                sock.connect(new InetSocketAddress(host, port), 30000);
-                log.info("Socket connected");
-                return sock;
+                return createSocket(InetAddress.getByName(host), port);
             }
         });
         
@@ -446,5 +427,30 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
                 persistentMonitoringConnection();
             }
         });
+    }
+    
+    private String getMacAddress(final Enumeration<NetworkInterface> nis) {
+        while (nis.hasMoreElements()) {
+            final NetworkInterface ni = nis.nextElement();
+            try {
+                final byte[] mac = ni.getHardwareAddress();
+                if (mac != null && mac.length > 0) {
+                    log.info("Returning 'normal' MAC address");
+                    return Base64.encodeBase64String(mac);
+                }
+            } catch (final SocketException e) {
+                log.warn("Could not get MAC address?");
+            }
+        }
+        try {
+            log.warn("Returning custom MAC address");
+            return Base64.encodeBase64String(
+                InetAddress.getLocalHost().getAddress()) + 
+                System.currentTimeMillis();
+        } catch (final UnknownHostException e) {
+            final byte[] bytes = new byte[24];
+            new Random().nextBytes(bytes);
+            return Base64.encodeBase64String(bytes);
+        }
     }
 }

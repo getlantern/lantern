@@ -19,6 +19,8 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.util.CharsetUtil;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
@@ -143,7 +145,11 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         final MessageEvent me) {
         messagesReceived++;
         log.info("Received "+messagesReceived+" total messages");
-
+        //final HttpRequest request = (HttpRequest) me.getMessage();
+        //final long contentLength = HttpHeaders.getContentLength(request);
+        
+        //log.info("Content-Length: "+contentLength);
+        
         final Channel ch = ctx.getChannel();
         if (this.browserToProxyChannel != null && this.browserToProxyChannel != ch) {
             log.error("Got message on a different channel??!");
@@ -266,22 +272,33 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         }
     }
 
+    private final Object writeLock = new Object();
+    
     public void processMessage(final Chat ch, final Message msg) {
         log.info("Received message with props: {}", 
             msg.getPropertyNames());
         final long sequenceNumber = (Long) msg.getProperty("SEQ");
-        log.error("SEQUENCE NUMBER: "+sequenceNumber);
-        
-        final String close = (String) msg.getProperty("CLOSE");
+        log.info("SEQUENCE NUMBER: "+sequenceNumber+ " FOR: "+hashCode() + 
+            " BROWSER TO PROXY CHANNEL: "+browserToProxyChannel);
 
         // If the other side is sending the close directive, we 
         // need to close the connection to the browser.
-        if (StringUtils.isNotBlank(close) && 
-            close.trim().equalsIgnoreCase("true")) {
-            log.info("Got CLOSE. Closing channel to browser.");
-            if (browserToProxyChannel.isOpen()) {
-                log.info("Remaining messages: "+this.sequenceMap);
-                closeOnFlush(browserToProxyChannel);
+        if (isClose(msg)) {
+            // This will happen quite often, as the XMPP server won't 
+            // necessarily deliver messages in order.
+            if (sequenceNumber != expectedSequenceNumber) {
+                log.info("BAD SEQUENCE NUMBER ON CLOSE. " +
+                    "EXPECTED "+expectedSequenceNumber+
+                    " BUT WAS "+sequenceNumber);
+                sequenceMap.put(sequenceNumber, msg);
+            }
+            else {
+                log.info("Got CLOSE. Closing channel to browser: {}", 
+                    browserToProxyChannel);
+                if (browserToProxyChannel.isOpen()) {
+                    log.info("Remaining messages: "+this.sequenceMap);
+                    closeOnFlush(browserToProxyChannel);
+                }
             }
             return;
         }
@@ -303,9 +320,9 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
             log.error("\nOUR KEY IS:   "+this.key+
                       "\nBUT RECEIVED: "+localKey);
         }
-        
+    
+        synchronized (writeLock) {
             if (sequenceNumber != expectedSequenceNumber) {
-                // This can happen with our new scheme.
                 log.error("BAD SEQUENCE NUMBER. " +
                     "EXPECTED "+expectedSequenceNumber+
                     " BUT WAS "+sequenceNumber+" FOR KEY: "+localKey);
@@ -316,16 +333,36 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
                 expectedSequenceNumber++;
                 
                 while (sequenceMap.containsKey(expectedSequenceNumber)) {
-                    log.error("Writing sequence number: "+
+                    log.error("WRITING SEQUENCE number: "+
                         expectedSequenceNumber);
                     final Message curMessage = 
-                        sequenceMap.get(expectedSequenceNumber);
+                        sequenceMap.remove(expectedSequenceNumber);
+                    
+                    // It's possible to get the close event itself out of
+                    // order, so we need to check if the stored message is a
+                    // close message.
+                    if (isClose(curMessage)) {
+                        log.info("Detected out-of-order CLOSE message!");
+                        closeOnFlush(browserToProxyChannel);
+                        break;
+                    }
                     writeData(curMessage);
                     expectedSequenceNumber++;
                 }
             }
-        //}
+        }
         lastSequenceNumber = sequenceNumber;
+    }
+
+    private boolean isClose(final Message msg) {
+        final String close = (String) msg.getProperty("CLOSE");
+        log.info("Close is: {}", close);
+
+        // If the other side is sending the close directive, we 
+        // need to close the connection to the browser.
+        return 
+            StringUtils.isNotBlank(close) && 
+            close.trim().equalsIgnoreCase("true");
     }
 
     private void writeData(final Message msg) {
