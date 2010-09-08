@@ -149,14 +149,17 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
             final NetworkInterface ni = nis.nextElement();
             try {
                 final byte[] mac = ni.getHardwareAddress();
-                if (mac.length > 0) {
-                    return Base64.encodeBase64String(mac);
+                if (mac != null && mac.length > 0) {
+                    final String encoded = Base64.encodeBase64String(mac);
+                    log.info("Returning true mac address: {}", encoded);
+                    return encoded;
                 }
             } catch (final SocketException e) {
                 log.warn("Could not get MAC address?");
             }
         }
         try {
+            log.warn("Returning home-grown MAC address");
             return Base64.encodeBase64String(
                 InetAddress.getLocalHost().getAddress()) + 
                 System.currentTimeMillis();
