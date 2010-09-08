@@ -333,7 +333,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
                 expectedSequenceNumber++;
                 
                 while (sequenceMap.containsKey(expectedSequenceNumber)) {
-                    log.error("WRITING SEQUENCE number: "+
+                    log.info("WRITING SEQUENCE number: "+
                         expectedSequenceNumber);
                     final Message curMessage = 
                         sequenceMap.remove(expectedSequenceNumber);
