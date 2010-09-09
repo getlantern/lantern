@@ -192,6 +192,21 @@ public class DefaultXmppProxy implements XmppProxy {
         final XMPPConnection conn = new XMPPConnection(config);
         conn.connect();
         conn.login(user, pass, "MG");
+        
+        // We wait a second because the roster fetch sometimes fails.
+        try {
+            Thread.sleep(1000);
+        } catch (final InterruptedException e2) {
+            log.error("Exception during sleep?", e2);
+        }
+        while (!conn.isAuthenticated()) {
+            log.info("Waiting for authentication");
+            try {
+                Thread.sleep(1000);
+            } catch (final InterruptedException e1) {
+                log.error("Exception during sleep?", e1);
+            }
+        }
         final Roster roster = conn.getRoster();
         roster.setSubscriptionMode(Roster.SubscriptionMode.accept_all);
         
