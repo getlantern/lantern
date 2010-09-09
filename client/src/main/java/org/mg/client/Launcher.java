@@ -24,7 +24,7 @@ public class Launcher {
                 log.error("Uncaught exception", e);
             }
         });
-        final int defaultPort = 8080;
+        final int defaultPort = 8787;
         int port;
         if (args.length > 0) {
             final String arg = args[0];
