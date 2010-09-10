@@ -136,7 +136,8 @@ public class WindowsRegistry {
             t.join();
             final String output = sw.toString();
             if (output.startsWith("ERROR")) {
-                LOG.error("GOT ERROR FROM NATIVE REG CALL FOR KEY '"+key+"':\n"+output);
+                LOG.error("GOT ERROR FROM NATIVE REG CALL FOR KEY '"+key+
+                    "':\n"+output);
             }
             //System.out.println("WRITE OUTPUT:\n"+output);
             return result;
@@ -188,8 +189,6 @@ public class WindowsRegistry {
             t.join();
             final String output = sw.toString();
             
-            System.out.println("OUTPUT: "+output);
-            
             // This seems like slight overkill, but we want to handle generic
             // whitespace separators to accommodate OS-specific differences.
             final Scanner scan = new Scanner(output);
@@ -218,7 +217,6 @@ public class WindowsRegistry {
                 final long longValue = Long.parseLong(parsed, 16);
                 return String.valueOf(longValue);
             }
-            System.out.println("TYPE: "+type);
             return value.trim();
         } catch (final IOException e) {
             LOG.error("Error reading reg with key '"+key+"' and val '"+

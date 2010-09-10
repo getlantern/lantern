@@ -96,7 +96,10 @@ public class Launcher {
                 final String proxyServer = WindowsRegistry.read(key, ps);
                 final String proxyEnable = WindowsRegistry.read(key, pe);
                 
-                if (proxyEnable.equals(proxyEnableOriginal)) {
+                //LOG.info("Proxy enable original: '{}'", proxyEnableUs);
+                //LOG.info("Proxy enable now: '{}'", proxyEnable);
+                
+                if (proxyEnable.equals(proxyEnableUs)) {
                     LOG.info("Setting proxy enable back to: {}", 
                         proxyEnableOriginal);
                     WindowsRegistry.writeREG_DWORD(key, pe,proxyEnableOriginal);
