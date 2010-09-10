@@ -67,9 +67,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
     
     private volatile int connectionsToFetch = 0;
     
-    //private final LinkedBlockingQueue<XMPPConnection> connections = 
-    //    new LinkedBlockingQueue<XMPPConnection>(NUM_CONNECTIONS);
-    
     private static final int NUM_CONNECTIONS = 10;
     
     private final List<Chat> chats = new ArrayList<Chat>(NUM_CONNECTIONS);

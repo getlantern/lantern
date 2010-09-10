@@ -97,9 +97,18 @@ public class WindowsRegistry {
     private static final int write(final String key, 
         final String valueName, final String valueData, final String type) {
         
+        // Setting something to the pure empty string will cause this to hang,
+        // so we just write a single space.
+        final String finalValue;
+        if (valueData.isEmpty()) {
+            finalValue = " ";
+        }
+        else {
+            finalValue = valueData;
+        }
         final ProcessBuilder pb = 
             new ProcessBuilder("reg", "add", "\""+ key + "\"", "/v", 
-                valueName, "/t", type, "/d", valueData, "/f");
+                valueName, "/t", type, "/d", finalValue, "/f");
         pb.redirectErrorStream(true);
         try {
             final Process process = pb.start();
@@ -222,21 +231,23 @@ public class WindowsRegistry {
         }
     }
 
+    /*
     public static void main(String[] args) {
-        String value = WindowsRegistry.read(
-            "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\"  + 
-            "Internet Settings", "ProxyServer");
+        final String key = 
+            "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\" +
+            "Internet Settings";
+        
+        final String ps = "ProxyServer";
+        final String pe = "ProxyEnable";
+        
+        String value = WindowsRegistry.read(key, "ProxyServer");
         System.out.println("'"+value+"'");
         
-        String val = WindowsRegistry.read(
-            "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\"  + 
-            "Internet Settings", "ProxyEnable");
+        String val = WindowsRegistry.read(key, "ProxyEnable");
         System.out.println("'"+val+"'");
         
         
-        int result = WindowsRegistry.writeREG_DWORD(
-            "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\"  + 
-            "Internet Settings", "ProxyEnableTest", "11");
+        int result = WindowsRegistry.writeREG_DWORD(key, "ProxyEnableTest", "11");
         System.out.println(result);
         
         val = WindowsRegistry.read(
@@ -244,5 +255,10 @@ public class WindowsRegistry {
             "Internet Settings", "ProxyEnableTest");
         System.out.println("'"+val+"'");
         
+        System.out.println("Setting proxy server to empty string!!");
+        WindowsRegistry.writeREG_SZ(key, ps, " ");
+        System.out.println("DONE!!");
+        
     }
+    */
 }

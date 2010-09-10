@@ -96,18 +96,24 @@ public class Launcher {
                 final String proxyServer = WindowsRegistry.read(key, ps);
                 final String proxyEnable = WindowsRegistry.read(key, pe);
                 
-                if (proxyServer.equals(proxyServerUs)) {
-                    LOG.info("Setting proxy server back to: {}", 
-                        proxyServerOriginal);
-                    WindowsRegistry.writeREG_SZ(key, ps, proxyServerOriginal);
-                }
                 if (proxyEnable.equals(proxyEnableOriginal)) {
                     LOG.info("Setting proxy enable back to: {}", 
                         proxyEnableOriginal);
                     WindowsRegistry.writeREG_DWORD(key, pe,proxyEnableOriginal);
+                    LOG.info("Successfully reset proxy enable");
+                }
+                
+                if (proxyServer.equals(proxyServerUs)) {
+                    LOG.info("Setting proxy server back to: {}", 
+                        proxyServerOriginal);
+                    WindowsRegistry.writeREG_SZ(key, ps, proxyServerOriginal);
+                    LOG.info("Successfully reset proxy server");
                 }
             }
         };
+        
+        // We don't make this a daemon thread because we want to make sure it
+        // executes before shutdown.
         Runtime.getRuntime().addShutdownHook(new Thread (runner));
     }
 }
