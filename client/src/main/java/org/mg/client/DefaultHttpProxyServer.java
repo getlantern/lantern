@@ -3,6 +3,7 @@ package org.mg.client;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -47,8 +48,20 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
         log.info("Starting proxy on port: "+this.port);
         final ServerBootstrap bootstrap = new ServerBootstrap(
             new NioServerSocketChannelFactory(
-                Executors.newCachedThreadPool(),
-                Executors.newCachedThreadPool()));
+                Executors.newCachedThreadPool(new ThreadFactory() {
+                    public Thread newThread(final Runnable r) {
+                        final Thread t = new Thread(r, "Daemon-Netty-Boss-Executor");
+                        t.setDaemon(true);
+                        return t;
+                    }
+                }),
+                Executors.newCachedThreadPool(new ThreadFactory() {
+                    public Thread newThread(final Runnable r) {
+                        final Thread t = new Thread(r, "Daemon-Netty-Worker-Executor");
+                        t.setDaemon(true);
+                        return t;
+                    }
+                })));
 
         final HttpServerPipelineFactory factory = 
             new HttpServerPipelineFactory(this.allChannels);

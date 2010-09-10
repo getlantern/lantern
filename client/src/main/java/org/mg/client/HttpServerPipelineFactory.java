@@ -26,6 +26,7 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import javax.net.SocketFactory;
 
@@ -91,7 +92,13 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
      * Separate thread for creating new XMPP connections.
      */
     private final ExecutorService connector = 
-        Executors.newCachedThreadPool();
+        Executors.newCachedThreadPool(new ThreadFactory() {
+            public Thread newThread(final Runnable r) {
+                final Thread t = new Thread(r, "XMPP-Connector-Thread");
+                t.setDaemon(true);
+                return t;
+            }
+        });
     
     /**
      * Creates a new pipeline factory with the specified class for processing
