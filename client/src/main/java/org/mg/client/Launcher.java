@@ -67,11 +67,12 @@ public class Launcher {
         // We first want to read the start values so we can return the
         // registry to the original state when we shut down.
         final String proxyServerOriginal = WindowsRegistry.read(key, ps);
-        final String proxyEnableOriginal  = WindowsRegistry.read(key, pe);
+        final String proxyEnableOriginal = WindowsRegistry.read(key, pe);
         
         final String proxyServerUs = "127.0.0.1:"+DEFAULT_PORT;
         final String proxyEnableUs = "1";
 
+        LOG.info("Setting registry to use MG as a proxy...");
         final int enableResult = 
             WindowsRegistry.writeREG_SZ(key, ps, proxyServerUs);
         final int serverResult = 
@@ -86,7 +87,8 @@ public class Launcher {
         }
         final Runnable runner = new Runnable() {
             public void run() {
-                LOG.info("Resetting Windows registry settings");
+                LOG.info("Resetting Windows registry settings to " +
+                    "original values.");
                 // On shutdown, we need to check if the user has modified the
                 // registry since we originally set it. If they have, we want
                 // to keep their setting. If not, we want to revert back to 
@@ -95,10 +97,14 @@ public class Launcher {
                 final String proxyEnable = WindowsRegistry.read(key, pe);
                 
                 if (proxyServer.equals(proxyServerUs)) {
+                    LOG.info("Setting proxy server back to: {}", 
+                        proxyServerOriginal);
                     WindowsRegistry.writeREG_SZ(key, ps, proxyServerOriginal);
                 }
                 if (proxyEnable.equals(proxyEnableOriginal)) {
-                    WindowsRegistry.writeREG_DWORD(key, pe, proxyEnableOriginal);
+                    LOG.info("Setting proxy enable back to: {}", 
+                        proxyEnableOriginal);
+                    WindowsRegistry.writeREG_DWORD(key, pe,proxyEnableOriginal);
                 }
             }
         };
