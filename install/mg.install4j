@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="5.0.4" transformSequenceNumber="3">
-  <directoryPresets config="C:/cygwin/home/afisk/mg/trunk/client" />
+  <directoryPresets config="C:/cygwin/home/afisk/mg/trunk/install" />
   <application name="MG" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="C:/cygwin/home/afisk/mg/trunk/client" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="mg" publisher="Brave New Software Project" publisherWeb="http://www.bravenewsoftware.com" version="0.1" allPathsRelative="false" backupOnSave="false" autoSave="false" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.5" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -21,7 +21,7 @@
       <mountPoint id="25" root="" location="" mode="755" />
     </mountPoints>
     <entries>
-      <dirEntry mountPoint="25" file="C:/cygwin/home/afisk/mg/trunk/install" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="install" excludeSuffixes="*.svn" dirMode="755" overrideDirMode="false">
+      <dirEntry mountPoint="25" file="C:/cygwin/home/afisk/mg/trunk/install" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="install" excludeSuffixes="*.svn, *.exe4j, *.install4j" dirMode="755" overrideDirMode="false">
         <exclude>
           <entry location="install_config.exe4j" fileType="regular" />
         </exclude>
@@ -31,7 +31,7 @@
   </files>
   <launchers>
     <launcher name="mg-0.1" id="27" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" swtApp="false" fileset="">
-      <executable name="mg-0.1" type="1" iconSet="false" iconFile="" executableDir="." redirectStderr="false" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="2" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
+      <executable name="mg" type="1" iconSet="true" iconFile="" executableDir="." redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
       <splashScreen show="false" autoOff="true" alwaysOnTop="true" width="0" height="0" bitmapFile="" java6SplashScreen="false">
@@ -54,7 +54,11 @@
       <customScript mode="1" file="">
         <content />
       </customScript>
-      <iconImageFiles />
+      <iconImageFiles>
+        <file path="C:/cygwin/home/afisk/mg/trunk/install/mg_16x16.png" />
+        <file path="C:/cygwin/home/afisk/mg/trunk/install/mg_32x32.png" />
+        <file path="C:/cygwin/home/afisk/mg/trunk/install/mg_48x48.png" />
+      </iconImageFiles>
     </launcher>
   </launchers>
   <installerGui installerType="1" addOnAppId="" suggestPreviousLocations="true" autoUpdateDescriptorUrl="" useAutoUpdateBaseUrl="false" autoUpdateBaseUrl="">
@@ -200,6 +204,11 @@ if (username.length() == 0) {
     Util.showWarningMessage("Please enter a valid user name.");
     return false;
 }
+if (!username.contains("@")) {
+    Util.showWarningMessage("MG requires the e-mail version of your user name, as in 'myles@gmail.com'.");
+    return false;  
+}
+
 final File userHome = new File(System.getProperty("user.home"));
 final File mgDir = new File(userHome, ".mg");
 if (!mgDir.isDirectory() &amp;&amp; !mgDir.mkdirs()) {
@@ -222,8 +231,7 @@ return true;</validation>
                     <object class="com.install4j.runtime.beans.formcomponents.MultilineHtmlLabelComponent">
                       <void property="labelHtml">
                         <string>&lt;html&gt;
-MG requires your Google Account credentials to access the Internet. We at MG headquarters never see these credentials. Instead, the MG software running on our computer uses them to log in to various Google services.&lt;br&gt;&lt;br&gt; 
-Your information will never be accessible to a third party (heck, we don't even have it to give to a third party if we wanted to!), and we'll always keep you safe.&lt;br&gt;
+MG requires your Google Account credentials to access the Internet. We at MG headquarters never see these credentials, and they're only ever stored locally on your computer. MG requires several Google Services to function properly, and that's why we need your user name and password.&lt;br&gt;
 &lt;/html&gt;</string>
                       </void>
                     </object>
@@ -246,7 +254,7 @@ Your information will never be accessible to a third party (heck, we don't even 
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.formcomponents.TextfieldComponent">
                       <void property="labelText">
-                        <string>Google (GMail) User Name</string>
+                        <string>Google User Name (ex. myles@gmail.com)</string>
                       </void>
                       <void property="variableName">
                         <string>username</string>
@@ -416,7 +424,7 @@ Your information will never be accessible to a third party (heck, we don't even 
                 </serializedBean>
                 <condition>!context.isUnattended()</condition>
               </action>
-              <action name="" id="40" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="">
+              <action name="" id="40" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="false" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction">
@@ -437,7 +445,7 @@ Your information will never be accessible to a third party (heck, we don't even 
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="41" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="41" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="false" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction">
@@ -452,6 +460,27 @@ Your information will never be accessible to a third party (heck, we don't even 
                       </void>
                       <void property="valueName">
                         <string>ProxyServer</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="" id="87" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction">
+                      <void property="keyName">
+                        <string>Software\Microsoft\Windows\CurrentVersion\Run</string>
+                      </void>
+                      <void property="registryRoot">
+                        <object class="com.install4j.api.windows.RegistryRoot" field="HKEY_CURRENT_USER" />
+                      </void>
+                      <void property="value">
+                        <string>${installer:sys.contentDir}\mg.exe</string>
+                      </void>
+                      <void property="valueName">
+                        <string>MG</string>
                       </void>
                     </object>
                   </java>
