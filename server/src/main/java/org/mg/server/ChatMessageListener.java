@@ -76,7 +76,7 @@ public class ChatMessageListener implements ChatStateListener {
     public void processMessage(final Chat ch, final Message msg) {
         log.info("Got message!!");
         log.info("Property names: {}", msg.getPropertyNames());
-        final long seq = Long.parseLong((String) msg.getProperty("SEQ"));
+        final long seq = (Long) msg.getProperty("SEQ");
         log.info("SEQUENCE #: {}", seq);
         log.info("HASHCODE #: {}", msg.getProperty("HASHCODE"));
         
