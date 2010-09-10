@@ -191,6 +191,12 @@ public class WindowsRegistry {
                 value = scan.next().trim();
             }
             
+            // If the value is a registry type, it means it's empty (there is
+            // no last token). Just return the empty string.
+            if (value.startsWith("REG_")) {
+                return "";
+            }
+            
             // Do auto-conversion from hex.
             if (type.equals("REG_DWORD")) {
                 final String parsed;
