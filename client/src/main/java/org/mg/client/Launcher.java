@@ -59,7 +59,7 @@ public class Launcher {
             return;
         }
         final String key = 
-            "HKCR\\Software\\Microsoft\\Windows\\CurrentVersion\\" +
+            "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\" +
             "Internet Settings";
         
         final String ps = "ProxyServer";
@@ -75,7 +75,7 @@ public class Launcher {
         final int enableResult = 
             WindowsRegistry.writeREG_SZ(key, ps, proxyServerUs);
         final int serverResult = 
-            WindowsRegistry.writeREG_SZ(key, pe, proxyEnableUs);
+            WindowsRegistry.writeREG_DWORD(key, pe, proxyEnableUs);
         
         if (enableResult != 0) {
             LOG.error("Error enabling the proxy server? Result: "+enableResult);
