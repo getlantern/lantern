@@ -162,16 +162,14 @@ public class ChatMessageListener implements ChatStateListener {
             return;
         }
         
-        // TODO: Check the sequence number??
-        final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
+        final ChannelBuffer cb = unwrap(msg);
 
         if (cf.getChannel().isConnected()) {
             cf.getChannel().write(cb);
         }
         else {
             cf.addListener(new ChannelFutureListener() {
-                public void operationComplete(
-                    final ChannelFuture future) 
+                public void operationComplete(final ChannelFuture future) 
                     throws Exception {
                     cf.getChannel().write(cb);
                 }
@@ -185,7 +183,7 @@ public class ChatMessageListener implements ChatStateListener {
     }
     
 
-    private ChannelBuffer xmppToHttpChannelBuffer(final Message msg) {
+    private ChannelBuffer unwrap(final Message msg) {
         final String data = (String) msg.getProperty("HTTP");
         final byte[] raw = 
             Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));

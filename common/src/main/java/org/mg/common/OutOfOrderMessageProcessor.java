@@ -4,16 +4,14 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFutureListener;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.packet.Message;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class OutOfSequenceMessageProcessor implements MessageListener {
+public class OutOfOrderMessageProcessor implements MessageListener {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -22,15 +20,12 @@ public class OutOfSequenceMessageProcessor implements MessageListener {
     private final Map<Long, Message> sequenceMap = 
         new ConcurrentHashMap<Long, Message>();
 
-    private final Channel browserToProxyChannel;
-
     private final String key;
 
-    private final MessageWriter messageWriter;
+    private final InOrderMessageWriter messageWriter;
     
-    public OutOfSequenceMessageProcessor(final Channel browserToProxyChannel, 
-        final String key, final MessageWriter messageWriter) {
-        this.browserToProxyChannel = browserToProxyChannel;
+    public OutOfOrderMessageProcessor(final Channel browserToProxyChannel, 
+        final String key, final InOrderMessageWriter messageWriter) {
         this.key = key;
         this.messageWriter = messageWriter;
     }
@@ -39,8 +34,7 @@ public class OutOfSequenceMessageProcessor implements MessageListener {
         log.info("Received message with props: {}", 
             msg.getPropertyNames());
         final long sequenceNumber = (Long) msg.getProperty("SEQ");
-        log.info("SEQUENCE NUMBER: "+sequenceNumber+ " FOR: "+hashCode() + 
-            " BROWSER TO PROXY CHANNEL: "+browserToProxyChannel);
+        log.info("SEQUENCE NUMBER: "+sequenceNumber+ " FOR: "+hashCode());
 
         // If the other side is sending the close directive, we 
         // need to close the connection to the browser.
@@ -54,12 +48,9 @@ public class OutOfSequenceMessageProcessor implements MessageListener {
                 sequenceMap.put(sequenceNumber, msg);
             }
             else {
-                log.info("Got CLOSE. Closing channel to browser: {}", 
-                    browserToProxyChannel);
-                if (browserToProxyChannel.isOpen()) {
-                    log.info("Remaining messages: "+this.sequenceMap);
-                    closeOnFlush(browserToProxyChannel);
-                }
+                log.info("Got CLOSE. Notifying in order writer.");
+                log.info("Remaining messages: "+this.sequenceMap);
+                this.messageWriter.onClose();
             }
             return;
         }
@@ -103,7 +94,7 @@ public class OutOfSequenceMessageProcessor implements MessageListener {
                     // close message.
                     if (isClose(curMessage)) {
                         log.info("Detected out-of-order CLOSE message!");
-                        closeOnFlush(browserToProxyChannel);
+                        this.messageWriter.onClose();
                         break;
                     }
                     this.messageWriter.write(msg);
@@ -116,17 +107,6 @@ public class OutOfSequenceMessageProcessor implements MessageListener {
     
     private String newKey(final String mac, final int hc) {
         return mac.trim() + hc;
-    }
-    
-    /**
-     * Closes the specified channel after all queued write requests are flushed.
-     */
-    private void closeOnFlush(final Channel ch) {
-        log.info("Closing on flush: {}", ch);
-        if (ch.isConnected()) {
-            ch.write(ChannelBuffers.EMPTY_BUFFER).addListener(
-                ChannelFutureListener.CLOSE);
-        }
     }
     
     private boolean isClose(final Message msg) {

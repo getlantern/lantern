@@ -95,8 +95,9 @@ public class DefaultXmppProxy implements XmppProxy {
             xmppConnections.add(xmpp);
             log.info("Created connection for user: {}", xmpp.getUser());
         }
+        
+        // Make sure we disconnect all chats on shutdown.
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
             public void run() {
                 for (final XMPPConnection conn : xmppConnections) {
                     log.info("Disconnecting user: {}", conn.getUser());
@@ -160,10 +161,6 @@ public class DefaultXmppProxy implements XmppProxy {
                 return createSocket(InetAddress.getByName(host), port);
             }
         });
-        
-        //final ConnectionConfiguration config = 
-        //    new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
-        //config.setCompressionEnabled(true);
         
         final XMPPConnection conn = new XMPPConnection(config);
         conn.connect();

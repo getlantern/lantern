@@ -20,7 +20,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
@@ -32,8 +31,9 @@ import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
-import org.mg.common.MessageWriter;
-import org.mg.common.OutOfSequenceMessageProcessor;
+import org.mg.common.InOrderMessageWriter;
+import org.mg.common.MgUtils;
+import org.mg.common.OutOfOrderMessageProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -198,10 +198,17 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         if (this.browserToProxyChannel != null) {
             log.error("Got a second channel opened??!");
         }
-        this.sequencer = new OutOfSequenceMessageProcessor(inboundChannel, 
-            this.key, new MessageWriter() {
+        this.sequencer = new OutOfOrderMessageProcessor(inboundChannel, 
+            this.key, new InOrderMessageWriter() {
                 public void write(final Message msg) {
                     writeData(msg);
+                }
+
+                public void onClose() {
+                    if (browserToProxyChannel.isOpen()) {
+                        log.info("Closing browser to proxy channel");
+                        MgUtils.closeOnFlush(browserToProxyChannel);
+                    }
                 }
             });
         this.browserToProxyChannel = inboundChannel;
@@ -260,18 +267,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
                 channel, cause);
         }
         if (channel.isOpen()) {
-            closeOnFlush(channel);
-        }
-    }
-    
-    /**
-     * Closes the specified channel after all queued write requests are flushed.
-     */
-    private static void closeOnFlush(final Channel ch) {
-        log.info("Closing on flush: {}", ch);
-        if (ch.isConnected()) {
-            ch.write(ChannelBuffers.EMPTY_BUFFER).addListener(
-                ChannelFutureListener.CLOSE);
+            MgUtils.closeOnFlush(channel);
         }
     }
     
