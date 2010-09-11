@@ -34,6 +34,11 @@
             <artifactId>littleproxy</artifactId>
             <version>0.4-SNAPSHOT</version>
         </dependency>
+        <dependency>
+            <groupId>org.mg</groupId>
+            <artifactId>mg-common</artifactId>
+        </dependency>
+
     </dependencies>
 
     <build>

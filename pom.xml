@@ -29,6 +29,7 @@
     </issueManagement>
 
     <modules>
+        <module>common</module>
         <module>client</module>
         <module>server</module>
     </modules>
@@ -95,7 +96,6 @@
             <artifactId>smackx</artifactId>
         </dependency>
 -->
-
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
@@ -169,6 +169,12 @@
         </dependency>
 
         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.0.2</version>
+        </dependency>
+
+        <dependency>
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-core-asl</artifactId>
             <version>1.5.4</version>
@@ -194,6 +200,11 @@
             <version>3.1.0</version>
         </dependency>
 -->
+        <dependency>
+            <groupId>org.mg</groupId>
+            <artifactId>mg-common</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
 
         <dependency>
             <groupId>org.slf4j</groupId>

@@ -87,7 +87,8 @@ public class ChatMessageListener implements ChatStateListener {
         
         if (seq != this.expectedSequenceNumber) {
             log.error("GOT UNEXPECTED SEQUENCE NUMBER. EXPECTED "+
-                expectedSequenceNumber+" BUT WAS "+seq);
+                expectedSequenceNumber+" BUT WAS "+seq+" WITH PARTICIPANT "+
+                ch.getParticipant());
         }
         
         expectedSequenceNumber++;
