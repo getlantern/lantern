@@ -75,6 +75,14 @@ public class ChatMessageListener implements ChatStateListener {
         final String smac = (String) msg.getProperty("SMAC");
         log.info("SMAC: {}", smac);
         
+        if (StringUtils.isNotBlank(smac) && 
+            smac.trim().equals(MAC_ADDRESS)) {
+            
+            log.error("MESSAGE FROM OURSELVES -- NOT GOOD!! MESSAGE BODY: {}", 
+                msg.getBodies());
+            log.warn("Connected?? "+conn.isConnected());
+            return;
+        }
         if (seq != this.expectedSequenceNumber) {
             log.error("GOT UNEXPECTED SEQUENCE NUMBER. EXPECTED "+
                 expectedSequenceNumber+" BUT WAS "+seq+" WITH PARTICIPANT "+
@@ -82,41 +90,6 @@ public class ChatMessageListener implements ChatStateListener {
         }
         
         expectedSequenceNumber++;
-        if (StringUtils.isNotBlank(smac) && 
-            smac.trim().equals(MAC_ADDRESS)) {
-            
-            log.error("MESSAGE FROM OURSELVES -- NOT GOOD!! MESSAGE BODY: {}", 
-                msg.getBodies());
-            log.warn("Connected?? "+conn.isConnected());
-            /*
-            synchronized (sentMessages) {
-                if (sentMessages.isEmpty()) {
-                    log.warn("No sent messages");
-                }
-                else {
-                    final Message sent = 
-                        sentMessages.values().iterator().next();
-                    log.warn("Also randomly sending message with sequence number: "+sent.getProperty("SEQ"));
-                    try {
-                        chat.sendMessage(sent);
-                    } catch (final XMPPException e) {
-                        log.error("XMPP error!!", e);
-                    }
-                }
-            }
-            
-            msg.setTo(chat.getParticipant());
-            msg.setFrom(conn.getUser());
-            log.info("NEW FROM: {}",msg.getFrom());
-            log.info("NEW TO: {}",msg.getTo());
-            try {
-                chat.sendMessage(msg);
-            } catch (final XMPPException e) {
-                log.error("XMPP error!!", e);
-            }
-            */
-            return;
-        }
         
         final String closeString = (String) msg.getProperty("CLOSE");
         
@@ -254,8 +227,8 @@ public class ChatMessageListener implements ChatStateListener {
                     final ChannelPipeline pipeline = pipeline();
                     
                     pipeline.addLast("handler", 
-                        new LocalProxyResponseToXmppRelayer(conn, chat, message, MAC_ADDRESS, 
-                            sentMessages));
+                        new LocalProxyResponseToXmppRelayer(conn, chat, message, 
+                            MAC_ADDRESS, sentMessages));
                     return pipeline;
                 }
             };

@@ -38,6 +38,9 @@ public class LocalProxyResponseToXmppRelayer extends SimpleChannelUpstreamHandle
 
     private final Map<Long, Message> sentMessages;
     
+    private static volatile int totalSentMessages = 0;
+    private static volatile int totalHttpBytesSent = 0;
+    
     public LocalProxyResponseToXmppRelayer(final XMPPConnection conn, 
         final Chat chat, final Message incomingXmppMessage, 
         final String macAddress, final Map<Long,Message> sentMessages) {
@@ -50,7 +53,7 @@ public class LocalProxyResponseToXmppRelayer extends SimpleChannelUpstreamHandle
     
     @Override
     public void messageReceived(final ChannelHandlerContext ctx, 
-        final MessageEvent me) throws Exception {
+        final MessageEvent me) {
         log.info("HTTP message received from proxy on relayer...");
         final Message msg = new Message();
         final ByteBuffer buf = ((ChannelBuffer) me.getMessage()).toByteBuffer();
@@ -79,8 +82,16 @@ public class LocalProxyResponseToXmppRelayer extends SimpleChannelUpstreamHandle
         log.info("Sending to: {}", chat.getParticipant());
         log.info("Sending SEQUENCE #: "+sequenceNumber);
         sentMessages.put(sequenceNumber, msg);
-        chat.sendMessage(msg);
-        sequenceNumber++;
+        try {
+            chat.sendMessage(msg);
+            totalSentMessages++;
+            totalHttpBytesSent += raw.length;
+            sequenceNumber++;
+            log.info("TOTAL SENT MESSAGES: "+totalSentMessages);
+            log.info("TOTAL HTTP BYTES SENT: "+totalHttpBytesSent);
+        } catch (final XMPPException e) {
+            log.error("XMPP error sending a message", e);
+        }
     }
     
     @Override
@@ -112,6 +123,7 @@ public class LocalProxyResponseToXmppRelayer extends SimpleChannelUpstreamHandle
         
         try {
             chat.sendMessage(msg);
+            totalSentMessages++;
         } catch (final XMPPException e) {
             log.warn("Error sending close message", e);
         }
