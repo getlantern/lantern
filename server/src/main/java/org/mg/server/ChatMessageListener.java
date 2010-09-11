@@ -152,7 +152,7 @@ public class ChatMessageListener implements ChatStateListener {
 
     public void stateChanged(final Chat monitoredChat, 
         final ChatState state) {
-        log.info("Got chat state changed: ", state);
+        log.info("Got chat state changed: {}", state);
     }
     
 
