@@ -3,9 +3,6 @@ package org.mg.server;
 import static org.jboss.netty.channel.Channels.pipeline;
 
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -16,21 +13,14 @@ import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
-import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
-import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.ExceptionEvent;
-import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.util.CharsetUtil;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smackx.ChatState;
 import org.jivesoftware.smackx.ChatStateListener;
@@ -94,7 +84,9 @@ public class ChatMessageListener implements ChatStateListener {
         expectedSequenceNumber++;
         if (StringUtils.isNotBlank(smac) && 
             smac.trim().equals(MAC_ADDRESS)) {
-            log.warn("MESSAGE FROM OURSELVES -- ATTEMPTING TO SEND BACK!!");
+            
+            log.error("MESSAGE FROM OURSELVES -- NOT GOOD!! MESSAGE BODY: {}", 
+                msg.getBodies());
             log.warn("Connected?? "+conn.isConnected());
             /*
             synchronized (sentMessages) {
@@ -126,8 +118,7 @@ public class ChatMessageListener implements ChatStateListener {
             return;
         }
         
-        final String closeString = 
-            (String) msg.getProperty("CLOSE");
+        final String closeString = (String) msg.getProperty("CLOSE");
         
         log.info("Close value: {}", closeString);
         final boolean close;
@@ -264,106 +255,9 @@ public class ChatMessageListener implements ChatStateListener {
                     // Create a default pipeline implementation.
                     final ChannelPipeline pipeline = pipeline();
                     
-                    final class HttpChatRelay extends SimpleChannelUpstreamHandler {
-                        private long sequenceNumber = 0L;
-                        
-                        @Override
-                        public void messageReceived(
-                            final ChannelHandlerContext ctx, 
-                            final MessageEvent me) throws Exception {
-                            //log.info("HTTP message received from proxy on " +
-                            //    "relayer: {}", me.getMessage());
-                            final Message msg = new Message();
-                            final ByteBuffer buf = 
-                                ((ChannelBuffer) me.getMessage()).toByteBuffer();
-                            final byte[] raw = toRawBytes(buf);
-                            final String base64 = 
-                                Base64.encodeBase64URLSafeString(raw);
-                            
-                            log.info("Connection ID: {}", conn.getConnectionID());
-                            log.info("Connection host: {}", conn.getHost());
-                            log.info("Connection service name: {}", conn.getServiceName());
-                            log.info("Connection user: {}", conn.getUser());
-                            msg.setTo(chat.getParticipant());
-                            msg.setFrom(conn.getUser());
-                            msg.setProperty("HTTP", base64);
-                            msg.setProperty("MD5", toMd5(raw));
-                            msg.setProperty("SEQ", sequenceNumber);
-                            msg.setProperty("HASHCODE", 
-                                message.getProperty("HASHCODE"));
-                            msg.setProperty("MAC", message.getProperty("MAC"));
-                            
-                            // This is the server-side MAC address. This is
-                            // useful because there are odd cases where XMPP
-                            // servers echo back our own messages, and we
-                            // want to ignore them.
-                            log.info("Setting SMAC to: {}", MAC_ADDRESS);
-                            msg.setProperty("SMAC", MAC_ADDRESS);
-                            
-                            log.info("Sending to: {}", chat.getParticipant());
-                            log.info("Sending SEQUENCE #: "+sequenceNumber);
-                            sentMessages.put(sequenceNumber, msg);
-                            chat.sendMessage(msg);
-                            sequenceNumber++;
-                        }
-                        @Override
-                        public void channelClosed(final ChannelHandlerContext ctx, 
-                            final ChannelStateEvent cse) {
-                            // We need to send the CLOSE directive to the other
-                            // side VIA google talk to simulate the proxy 
-                            // closing the connection to the browser.
-                            log.info("Got channel closed on C in A->B->C->D chain...");
-                            log.info("Sending close message");
-                            final Message msg = new Message();
-                            msg.setProperty("HASHCODE", message.getProperty("HASHCODE"));
-                            msg.setProperty("MAC", message.getProperty("MAC"));
-                            msg.setFrom(conn.getUser());
-                            
-                            // We set the sequence number so the client knows
-                            // how many total messages to expect. This is 
-                            // necessary because the XMPP server can deliver 
-                            // messages out of order.
-                            msg.setProperty("SEQ", sequenceNumber);
-                            msg.setProperty("CLOSE", "true");
-                            
-                            // This is the server-side MAC address. This is
-                            // useful because there are odd cases where XMPP
-                            // servers echo back our own messages, and we
-                            // want to ignore them.
-                            log.info("Setting SMAC to: {}", MAC_ADDRESS);
-                            msg.setProperty("SMAC", MAC_ADDRESS);
-                            
-                            try {
-                                chat.sendMessage(msg);
-                            } catch (final XMPPException e) {
-                                log.warn("Error sending close message", e);
-                            }
-                            removedConnections.add(key);
-                            proxyConnections.remove(key);
-                        }
-                        
-                        @Override
-                        public void exceptionCaught(final ChannelHandlerContext ctx, 
-                            final ExceptionEvent e) throws Exception {
-                            log.warn("Caught exception on C in A->B->C->D " +
-                                "chain...", e.getCause());
-                            if (e.getChannel().isOpen()) {
-                                log.warn("Closing open connection");
-                                closeOnFlush(e.getChannel());
-                            }
-                            else {
-                                // We've seen odd cases where channels seem to 
-                                // continually attempt connections. Make sure 
-                                // we explicitly close the connection here.
-                                log.info("Channel is not open...ignoring");
-                                //log.warn("Closing connection even though " +
-                                //    "isOpen is false");
-                                //e.getChannel().close();
-                            }
-                        }
-                    }
-                    
-                    pipeline.addLast("handler", new HttpChatRelay());
+                    pipeline.addLast("handler", 
+                        new LocalProxyResponseToXmppRelayer(conn, chat, message, MAC_ADDRESS, 
+                            sentMessages));
                     return pipeline;
                 }
             };
@@ -395,34 +289,5 @@ public class ChatMessageListener implements ChatStateListener {
         return key;
     }
     
-    /**
-     * Closes the specified channel after all queued write requests are flushed.
-     */
-    private void closeOnFlush(final Channel ch) {
-        log.info("Closing channel on flush: {}", ch);
-        if (ch.isConnected()) {
-            ch.write(ChannelBuffers.EMPTY_BUFFER).addListener(
-                ChannelFutureListener.CLOSE);
-        }
-    }
-    
-    private String toMd5(final byte[] raw) {
-        try {
-            final MessageDigest md = MessageDigest.getInstance("MD5");
-            final byte[] digest = md.digest(raw);
-            return Base64.encodeBase64URLSafeString(digest);
-        } catch (final NoSuchAlgorithmException e) {
-            log.error("No MD5 -- will never happen", e);
-            return "NO MD5";
-        }
-    }
-
-    public static byte[] toRawBytes(final ByteBuffer buf) {
-        final int mark = buf.position();
-        final byte[] bytes = new byte[buf.remaining()];
-        buf.get(bytes);
-        buf.position(mark);
-        return bytes;
-    }
 }
 
