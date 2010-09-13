@@ -157,22 +157,10 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
             final ChannelBuffer cb = (ChannelBuffer) me.getMessage();
             final ByteBuffer buf = cb.toByteBuffer();
             final byte[] raw = toRawBytes(buf);
-            final String base64 = Base64.encodeBase64URLSafeString(raw);
-            final Message msg = new Message();
-            msg.setProperty(MessagePropertyKeys.HTTP, base64);
-            
-            // The other side will also need to know where the request came
-            // from to differentiate incoming HTTP connections.
-            msg.setProperty(MessagePropertyKeys.MAC, this.macAddress);
-            msg.setProperty(MessagePropertyKeys.HASHCODE, 
-                String.valueOf(this.hashCode()));
-            
-            // We set the sequence number in case the server delivers the 
-            // packets out of order for any reason.
-            msg.setProperty(MessagePropertyKeys.SEQ, outgoingSequenceNumber);
-            
+            final Message msg = newMessage();
+            msg.setProperty(MessagePropertyKeys.HTTP, 
+                Base64.encodeBase64URLSafeString(raw));
             this.chat.sendMessage(msg);
-            outgoingSequenceNumber++;
             log.info("Sent XMPP message!!");
         } catch (final XMPPException e) {
             log.error("Error sending message", e);
@@ -220,15 +208,9 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
             log.warn("Closing all proxy to web channels for this browser " +
                 "to proxy connection!!!");
             
-            final Message msg = new Message();
-            
-            // The other side will also need to know where the request came
-            // from to differentiate incoming HTTP connections.
-            msg.setProperty(MessagePropertyKeys.MAC, this.macAddress);
-            msg.setProperty(MessagePropertyKeys.HASHCODE, 
-                String.valueOf(this.hashCode()));
+            final Message msg = newMessage();
             msg.setProperty(MessagePropertyKeys.CLOSE, "true");
-            
+
             try {
                 this.chat.sendMessage(msg);
                 log.info("Sent close message");
@@ -236,6 +218,22 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
                 log.warn("Error sending close message!!", e);
             }
         }
+    }
+    
+    private Message newMessage() {
+        final Message msg = new Message();
+        
+        // The other side will also need to know where the request came
+        // from to differentiate incoming HTTP connections.
+        msg.setProperty(MessagePropertyKeys.MAC, this.macAddress);
+        msg.setProperty(MessagePropertyKeys.HASHCODE, 
+            String.valueOf(this.hashCode()));
+        
+        // We set the sequence number in case the XMPP server delivers the 
+        // packets out of order for any reason.
+        msg.setProperty(MessagePropertyKeys.SEQ, outgoingSequenceNumber);
+        outgoingSequenceNumber++;
+        return msg;
     }
 
     @Override
