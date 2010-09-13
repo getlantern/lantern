@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -61,7 +62,8 @@ public class ChatMessageListener implements ChatStateListener {
 
     private final ChannelFactory channelFactory;
     
-    private volatile long expectedSequenceNumber = 0L;
+    private final ConcurrentHashMap<String, AtomicLong> channelsToSequenceNumbers =
+        new ConcurrentHashMap<String, AtomicLong>();
 
     public ChatMessageListener(
         final Map<String, ChannelFuture> proxyConnections, 
@@ -87,13 +89,7 @@ public class ChatMessageListener implements ChatStateListener {
         final String smac = 
             (String) msg.getProperty(MessagePropertyKeys.SERVER_MAC);
         log.info("SMAC: {}", smac);
-        
-        if (seq != this.expectedSequenceNumber) {
-            log.error("GOT UNEXPECTED SEQUENCE NUMBER. EXPECTED "+
-                expectedSequenceNumber+" BUT WAS "+seq);
-        }
-        
-        expectedSequenceNumber++;
+
         if (StringUtils.isNotBlank(smac) && 
             smac.trim().equals(MAC_ADDRESS)) {
             log.warn("MESSAGE FROM OURSELVES!! SEND THROUGH A DIFFERENT CHAT");
@@ -120,12 +116,13 @@ public class ChatMessageListener implements ChatStateListener {
                 return;
             }
         }
+
+        final String key = messageKey(msg);
         
         if (close) {
             log.info("Received close from client...closing " +
                 "connection to the proxy for HASHCODE: {}", 
                 msg.getProperty(MessagePropertyKeys.HASHCODE));
-            final String key = messageKey(msg);
             final ChannelFuture cf = proxyConnections.get(key);
             
             if (cf != null) {
@@ -149,9 +146,14 @@ public class ChatMessageListener implements ChatStateListener {
             return;
         }
         
-        // TODO: Check the sequence number??
         final ChannelBuffer cb = unwrap(msg);
 
+        final AtomicLong expected = getExpectedSequenceNumber(key);
+        if (seq != expected.get()) {
+            log.error("GOT UNEXPECTED REQUEST SEQUENCE NUMBER. EXPECTED " + 
+                expected.get()+" BUT WAS "+seq);
+        }
+        expected.incrementAndGet();
         if (cf.getChannel().isConnected()) {
             cf.getChannel().write(cb);
         }
@@ -164,6 +166,16 @@ public class ChatMessageListener implements ChatStateListener {
                 }
             });
         }
+    }
+
+    private AtomicLong getExpectedSequenceNumber(final String key) {
+        final AtomicLong zero = new AtomicLong(0);
+        final AtomicLong existing =
+            channelsToSequenceNumbers.putIfAbsent(key, zero);
+        if (existing != null) {
+            return existing;
+        }
+        return zero;
     }
 
     public void stateChanged(final Chat monitoredChat, final ChatState state) {
