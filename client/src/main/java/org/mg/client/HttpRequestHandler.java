@@ -167,27 +167,6 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         }
     }
     
-    public static byte[] toRawBytes(final ByteBuffer buf) {
-        final int mark = buf.position();
-        final byte[] bytes = new byte[buf.remaining()];
-        buf.get(bytes);
-        buf.position(mark);
-        return bytes;
-    }
-    
-    @Override
-    public void channelOpen(final ChannelHandlerContext ctx, 
-        final ChannelStateEvent cse) throws Exception {
-        final Channel inboundChannel = cse.getChannel();
-        log.info("New channel opened: {}", inboundChannel);
-        totalBrowserToProxyConnections++;
-        browserToProxyConnections++;
-        log.info("Now "+totalBrowserToProxyConnections+" browser to proxy channels...");
-        log.info("Now this class has "+browserToProxyConnections+" browser to proxy channels...");
-        
-        // We need to keep track of the channel so we can close it at the end.
-        this.channelGroup.add(inboundChannel);
-    }
     
     @Override
     public void channelClosed(final ChannelHandlerContext ctx, 
@@ -215,7 +194,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
                 this.chat.sendMessage(msg);
                 log.info("Sent close message");
             } catch (final XMPPException e) {
-                log.warn("Error sending close message!!", e);
+                log.error("Error sending close message!!", e);
             }
         }
     }
@@ -234,6 +213,28 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         msg.setProperty(MessagePropertyKeys.SEQ, outgoingSequenceNumber);
         outgoingSequenceNumber++;
         return msg;
+    }
+    
+    public static byte[] toRawBytes(final ByteBuffer buf) {
+        final int mark = buf.position();
+        final byte[] bytes = new byte[buf.remaining()];
+        buf.get(bytes);
+        buf.position(mark);
+        return bytes;
+    }
+    
+    @Override
+    public void channelOpen(final ChannelHandlerContext ctx, 
+        final ChannelStateEvent cse) throws Exception {
+        final Channel inboundChannel = cse.getChannel();
+        log.info("New channel opened: {}", inboundChannel);
+        totalBrowserToProxyConnections++;
+        browserToProxyConnections++;
+        log.info("Now "+totalBrowserToProxyConnections+" browser to proxy channels...");
+        log.info("Now this class has "+browserToProxyConnections+" browser to proxy channels...");
+        
+        // We need to keep track of the channel so we can close it at the end.
+        this.channelGroup.add(inboundChannel);
     }
 
     @Override
