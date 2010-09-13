@@ -141,7 +141,7 @@ public class ChatMessageListener implements ChatStateListener {
             return;
         }
         log.info("Getting channel future...");
-        final ChannelFuture cf = getChannelFuture(msg, close);
+        final ChannelFuture cf = getChannelFuture(msg, close, ch);
         log.info("Got channel: {}", cf);
         if (cf == null) {
             log.info("Null channel future! Returning");
@@ -201,23 +201,13 @@ public class ChatMessageListener implements ChatStateListener {
      * 
      * If there's already an existing connection mimicking the original 
      * connection, we use that.
-     *
-     * @param key The key for the remote IP/port pair.
-     * @param chat The chat session across Google Talk -- we need this to 
-     * send responses back to the original caller.
-     * @param close Whether or not this is a message to close the connection -
-     * we don't want to open a new connection if it is.
-     * @param connections The connections to the local proxy that are 
-     * associated with this chat.
-     * @param removedConnections Keeps track of connections we've removed --
-     * for debugging.
-     * @param conn The XMPP connection.
-     * @param sentMessages Messages we've sent out.
+     * 
+     * 
      * @return The {@link ChannelFuture} that will connect to the local
      * LittleProxy instance.
      */
     private ChannelFuture getChannelFuture(final Message message, 
-        final boolean close) {
+        final boolean close, final Chat requestChat) {
         
         // The other side will also need to know where the 
         // request came from to differentiate incoming HTTP 
@@ -315,6 +305,8 @@ public class ChatMessageListener implements ChatStateListener {
                             log.info("Sending SEQUENCE #: "+sequenceNumber);
                             sentMessages.put(sequenceNumber, msg);
                             
+                            log.info("Received from: {}", 
+                                requestChat.getParticipant());
                             final Chat chat = chats.poll();
                             log.info("Sending to: {}", chat.getParticipant());
                             msg.setTo(chat.getParticipant());
