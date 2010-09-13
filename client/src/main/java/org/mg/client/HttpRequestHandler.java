@@ -19,13 +19,12 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.util.CharsetUtil;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
+import org.mg.common.MessagePropertyKeys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +36,6 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
 
     private final static Logger log = 
         LoggerFactory.getLogger(HttpRequestHandler.class);
-    private static final String HTTP_KEY = "HTTP";
     
     private static int totalBrowserToProxyConnections = 0;
     private int browserToProxyConnections = 0;
@@ -91,7 +89,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
 
     private ChannelBuffer xmppToHttpChannelBuffer(final Message msg) {
         
-        final long sequenceNumber = (Long) msg.getProperty("SEQ");
+        final long sequenceNumber = (Long) msg.getProperty(MessagePropertyKeys.SEQ);
         if (lastSequenceNumber != -1L) {
             final long expected = lastSequenceNumber + 1;
             log.error("SEQUENCE NUMBER: "+sequenceNumber);
@@ -110,12 +108,12 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         }
         lastSequenceNumber = sequenceNumber;
         
-        final String data = (String) msg.getProperty(HTTP_KEY);
+        final String data = (String) msg.getProperty(MessagePropertyKeys.HTTP);
         final byte[] raw = 
             Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
         
         final String md5 = toMd5(raw);
-        final String expected = (String) msg.getProperty("MD5");
+        final String expected = (String) msg.getProperty(MessagePropertyKeys.MD5);
         if (!md5.equals(expected)) {
             log.error("MD-5s not equal!! Expected:\n'"+expected+"'\nBut was:\n'"+md5+"'");
         }
@@ -161,18 +159,17 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
             final byte[] raw = toRawBytes(buf);
             final String base64 = Base64.encodeBase64URLSafeString(raw);
             final Message msg = new Message();
-            msg.setProperty(HTTP_KEY, base64);
+            msg.setProperty(MessagePropertyKeys.HTTP, base64);
             
             // The other side will also need to know where the request came
             // from to differentiate incoming HTTP connections.
-            msg.setProperty("LOCAL-IP", ch.getLocalAddress().toString());
-            msg.setProperty("REMOTE-IP", ch.getRemoteAddress().toString());
-            msg.setProperty("MAC", this.macAddress);
-            msg.setProperty("HASHCODE", String.valueOf(this.hashCode()));
+            msg.setProperty(MessagePropertyKeys.MAC, this.macAddress);
+            msg.setProperty(MessagePropertyKeys.HASHCODE, 
+                String.valueOf(this.hashCode()));
             
             // We set the sequence number in case the server delivers the 
             // packets out of order for any reason.
-            msg.setProperty("SEQ", outgoingSequenceNumber);
+            msg.setProperty(MessagePropertyKeys.SEQ, outgoingSequenceNumber);
             
             this.chat.sendMessage(msg);
             outgoingSequenceNumber++;
@@ -227,12 +224,10 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
             
             // The other side will also need to know where the request came
             // from to differentiate incoming HTTP connections.
-            final Channel ch = cse.getChannel();
-            msg.setProperty("LOCAL-IP", ch.getLocalAddress().toString());
-            msg.setProperty("REMOTE-IP", ch.getRemoteAddress().toString());
-            msg.setProperty("MAC", this.macAddress);
-            msg.setProperty("HASHCODE", String.valueOf(this.hashCode()));
-            msg.setProperty("CLOSE", "true");
+            msg.setProperty(MessagePropertyKeys.MAC, this.macAddress);
+            msg.setProperty(MessagePropertyKeys.HASHCODE, 
+                String.valueOf(this.hashCode()));
+            msg.setProperty(MessagePropertyKeys.CLOSE, "true");
             
             try {
                 this.chat.sendMessage(msg);
@@ -277,7 +272,8 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
     public void processMessage(final Chat ch, final Message msg) {
         log.info("Received message with props: {}", 
             msg.getPropertyNames());
-        final long sequenceNumber = (Long) msg.getProperty("SEQ");
+        final long sequenceNumber = 
+            (Long) msg.getProperty(MessagePropertyKeys.SEQ);
         log.info("SEQUENCE NUMBER: "+sequenceNumber+ " FOR: "+hashCode() + 
             " BROWSER TO PROXY CHANNEL: "+browserToProxyChannel);
 
@@ -305,15 +301,15 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         
         // We need to grab the HTTP data from the message and send
         // it to the browser.
-        final String data = (String) msg.getProperty(HTTP_KEY);
+        final String data = (String) msg.getProperty(MessagePropertyKeys.HTTP);
         if (data == null) {
             log.warn("No HTTP data");
             return;
         }
         //final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
         
-        final String mac = (String) msg.getProperty("MAC");
-        final String hc = (String) msg.getProperty("HASHCODE");
+        final String mac = (String) msg.getProperty(MessagePropertyKeys.MAC);
+        final String hc = (String) msg.getProperty(MessagePropertyKeys.HASHCODE);
         final String localKey = newKey(mac, Integer.parseInt(hc));
         if (!localKey.equals(this.key)) {
             log.error("RECEIVED A MESSAGE THAT'S NOT FOR US?!?!?!");
@@ -355,7 +351,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
     }
 
     private boolean isClose(final Message msg) {
-        final String close = (String) msg.getProperty("CLOSE");
+        final String close = (String) msg.getProperty(MessagePropertyKeys.CLOSE);
         log.info("Close is: {}", close);
 
         // If the other side is sending the close directive, we 
@@ -366,12 +362,13 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
     }
 
     private void writeData(final Message msg) {
-        final String data = (String) msg.getProperty(HTTP_KEY);
+        final String data = (String) msg.getProperty(MessagePropertyKeys.HTTP);
         final byte[] raw = 
             Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
         
         final String md5 = toMd5(raw);
-        final String expected = (String) msg.getProperty("MD5");
+        final String expected = 
+            (String) msg.getProperty(MessagePropertyKeys.MD5);
         if (!md5.equals(expected)) {
             log.error("MD-5s not equal!! Expected:\n'"+expected+
                 "'\nBut was:\n'"+md5+"'");

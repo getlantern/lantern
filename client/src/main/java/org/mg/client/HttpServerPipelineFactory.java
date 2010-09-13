@@ -46,6 +46,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
+import org.mg.common.MessagePropertyKeys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -268,7 +269,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
             new MessageListener() {
             
                 public void processMessage(final Chat ch, final Message msg) {
-                    final String hashCode = (String) msg.getProperty("HASHCODE");
+                    final String hashCode = 
+                        (String) msg.getProperty(MessagePropertyKeys.HASHCODE);
                     final HttpRequestHandler handler = 
                         hashCodesToHandlers.get(hashCode);
                     

@@ -14,6 +14,7 @@ import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
+import org.mg.common.MessagePropertyKeys;
 import org.mg.common.MgUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,9 @@ import org.slf4j.LoggerFactory;
  * proxy. It wraps the responses in XMPP messages and sends them back to
  * the original requester.
  */
-public class LocalProxyResponseToXmppRelayer extends SimpleChannelUpstreamHandler {
+public class LocalProxyResponseToXmppRelayer 
+    extends SimpleChannelUpstreamHandler {
+    
     private long sequenceNumber = 0L;
     
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -66,18 +69,20 @@ public class LocalProxyResponseToXmppRelayer extends SimpleChannelUpstreamHandle
         log.info("Connection user: {}", conn.getUser());
         msg.setTo(chat.getParticipant());
         msg.setFrom(conn.getUser());
-        msg.setProperty("HTTP", base64);
-        msg.setProperty("MD5", MgUtils.toMd5(raw));
-        msg.setProperty("SEQ", sequenceNumber);
-        msg.setProperty("HASHCODE",incomingXmppMessage.getProperty("HASHCODE"));
-        msg.setProperty("MAC", incomingXmppMessage.getProperty("MAC"));
+        msg.setProperty(MessagePropertyKeys.HTTP, base64);
+        msg.setProperty(MessagePropertyKeys.MD5, MgUtils.toMd5(raw));
+        msg.setProperty(MessagePropertyKeys.SEQ, sequenceNumber);
+        msg.setProperty(MessagePropertyKeys.HASHCODE,
+            incomingXmppMessage.getProperty(MessagePropertyKeys.HASHCODE));
+        msg.setProperty(MessagePropertyKeys.MAC, 
+            incomingXmppMessage.getProperty(MessagePropertyKeys.MAC));
         
         // This is the server-side MAC address. This is
         // useful because there are odd cases where XMPP
         // servers echo back our own messages, and we
         // want to ignore them.
         log.info("Setting SMAC to: {}", macAddress);
-        msg.setProperty("SMAC", macAddress);
+        msg.setProperty(MessagePropertyKeys.SERVER_MAC, macAddress);
         
         log.info("Sending to: {}", chat.getParticipant());
         log.info("Sending SEQUENCE #: "+sequenceNumber);
@@ -103,23 +108,25 @@ public class LocalProxyResponseToXmppRelayer extends SimpleChannelUpstreamHandle
         log.info("Got channel closed on C in A->B->C->D chain...");
         log.info("Sending close message");
         final Message msg = new Message();
-        msg.setProperty("HASHCODE", incomingXmppMessage.getProperty("HASHCODE"));
-        msg.setProperty("MAC", incomingXmppMessage.getProperty("MAC"));
+        msg.setProperty(MessagePropertyKeys.HASHCODE, 
+            incomingXmppMessage.getProperty(MessagePropertyKeys.HASHCODE));
+        msg.setProperty(MessagePropertyKeys.MAC, 
+            incomingXmppMessage.getProperty(MessagePropertyKeys.MAC));
         msg.setFrom(conn.getUser());
         
         // We set the sequence number so the client knows
         // how many total messages to expect. This is 
         // necessary because the XMPP server can deliver 
         // messages out of order.
-        msg.setProperty("SEQ", sequenceNumber);
-        msg.setProperty("CLOSE", "true");
+        msg.setProperty(MessagePropertyKeys.SEQ, sequenceNumber);
+        msg.setProperty(MessagePropertyKeys.CLOSE, "true");
         
         // This is the server-side MAC address. This is
         // useful because there are odd cases where XMPP
         // servers echo back our own messages, and we
         // want to ignore them.
         log.info("Setting SMAC to: {}", macAddress);
-        msg.setProperty("SMAC", macAddress);
+        msg.setProperty(MessagePropertyKeys.SERVER_MAC, macAddress);
         
         try {
             chat.sendMessage(msg);

@@ -34,6 +34,7 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smackx.ChatState;
 import org.jivesoftware.smackx.ChatStateListener;
+import org.mg.common.MessagePropertyKeys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,13 +77,15 @@ public class ChatMessageListener implements ChatStateListener {
     public void processMessage(final Chat ch, final Message msg) {
         log.info("Got message!!");
         log.info("Property names: {}", msg.getPropertyNames());
-        final long seq = (Long) msg.getProperty("SEQ");
+        final long seq = (Long) msg.getProperty(MessagePropertyKeys.SEQ);
         log.info("SEQUENCE #: {}", seq);
-        log.info("HASHCODE #: {}", msg.getProperty("HASHCODE"));
+        log.info("HASHCODE #: {}", 
+            msg.getProperty(MessagePropertyKeys.HASHCODE));
         
         log.info("FROM: {}",msg.getFrom());
         log.info("TO: {}",msg.getTo());
-        final String smac = (String) msg.getProperty("SMAC");
+        final String smac = 
+            (String) msg.getProperty(MessagePropertyKeys.SERVER_MAC);
         log.info("SMAC: {}", smac);
         
         if (seq != this.expectedSequenceNumber) {
@@ -95,38 +98,11 @@ public class ChatMessageListener implements ChatStateListener {
             smac.trim().equals(MAC_ADDRESS)) {
             log.warn("MESSAGE FROM OURSELVES -- ATTEMPTING TO SEND BACK!!");
             log.warn("Connected?? "+conn.isConnected());
-            /*
-            synchronized (sentMessages) {
-                if (sentMessages.isEmpty()) {
-                    log.warn("No sent messages");
-                }
-                else {
-                    final Message sent = 
-                        sentMessages.values().iterator().next();
-                    log.warn("Also randomly sending message with sequence number: "+sent.getProperty("SEQ"));
-                    try {
-                        chat.sendMessage(sent);
-                    } catch (final XMPPException e) {
-                        log.error("XMPP error!!", e);
-                    }
-                }
-            }
-            
-            msg.setTo(chat.getParticipant());
-            msg.setFrom(conn.getUser());
-            log.info("NEW FROM: {}",msg.getFrom());
-            log.info("NEW TO: {}",msg.getTo());
-            try {
-                chat.sendMessage(msg);
-            } catch (final XMPPException e) {
-                log.error("XMPP error!!", e);
-            }
-            */
             return;
         }
         
         final String closeString = 
-            (String) msg.getProperty("CLOSE");
+            (String) msg.getProperty(MessagePropertyKeys.CLOSE);
         
         log.info("Close value: {}", closeString);
         final boolean close;
@@ -137,7 +113,8 @@ public class ChatMessageListener implements ChatStateListener {
         }
         else {
             close = false;
-            final String data = (String) msg.getProperty("HTTP");
+            final String data = 
+                (String) msg.getProperty(MessagePropertyKeys.HTTP);
             if (StringUtils.isBlank(data)) {
                 log.warn("HTTP IS BLANK?? IGNORING...");
                 return;
@@ -147,7 +124,7 @@ public class ChatMessageListener implements ChatStateListener {
         if (close) {
             log.info("Received close from client...closing " +
                 "connection to the proxy for HASHCODE: {}", 
-                msg.getProperty("HASHCODE"));
+                msg.getProperty(MessagePropertyKeys.HASHCODE));
             final String key = messageKey(msg);
             final ChannelFuture cf = proxyConnections.get(key);
             
@@ -171,7 +148,7 @@ public class ChatMessageListener implements ChatStateListener {
         }
         
         // TODO: Check the sequence number??
-        final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
+        final ChannelBuffer cb = unwrap(msg);
 
         if (cf.getChannel().isConnected()) {
             cf.getChannel().write(cb);
@@ -187,14 +164,12 @@ public class ChatMessageListener implements ChatStateListener {
         }
     }
 
-    public void stateChanged(final Chat monitoredChat, 
-        final ChatState state) {
-        log.info("Got chat state changed: ", state);
+    public void stateChanged(final Chat monitoredChat, final ChatState state) {
+        log.info("Got chat state changed: {}", state);
     }
-    
 
-    private ChannelBuffer xmppToHttpChannelBuffer(final Message msg) {
-        final String data = (String) msg.getProperty("HTTP");
+    private ChannelBuffer unwrap(final Message msg) {
+        final String data = (String) msg.getProperty(MessagePropertyKeys.HTTP);
         final byte[] raw = 
             Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
         return ChannelBuffers.wrappedBuffer(raw);
@@ -285,19 +260,21 @@ public class ChatMessageListener implements ChatStateListener {
                             log.info("Connection user: {}", conn.getUser());
                             msg.setTo(chat.getParticipant());
                             msg.setFrom(conn.getUser());
-                            msg.setProperty("HTTP", base64);
-                            msg.setProperty("MD5", toMd5(raw));
-                            msg.setProperty("SEQ", sequenceNumber);
-                            msg.setProperty("HASHCODE", 
-                                message.getProperty("HASHCODE"));
-                            msg.setProperty("MAC", message.getProperty("MAC"));
+                            msg.setProperty(MessagePropertyKeys.HTTP, base64);
+                            msg.setProperty(MessagePropertyKeys.MD5, toMd5(raw));
+                            msg.setProperty(MessagePropertyKeys.SEQ, sequenceNumber);
+                            msg.setProperty(MessagePropertyKeys.HASHCODE, 
+                                message.getProperty(MessagePropertyKeys.HASHCODE));
+                            msg.setProperty(MessagePropertyKeys.MAC, 
+                                message.getProperty(MessagePropertyKeys.MAC));
                             
                             // This is the server-side MAC address. This is
                             // useful because there are odd cases where XMPP
                             // servers echo back our own messages, and we
                             // want to ignore them.
                             log.info("Setting SMAC to: {}", MAC_ADDRESS);
-                            msg.setProperty("SMAC", MAC_ADDRESS);
+                            msg.setProperty(MessagePropertyKeys.SERVER_MAC, 
+                                MAC_ADDRESS);
                             
                             log.info("Sending to: {}", chat.getParticipant());
                             log.info("Sending SEQUENCE #: "+sequenceNumber);
@@ -314,23 +291,27 @@ public class ChatMessageListener implements ChatStateListener {
                             log.info("Got channel closed on C in A->B->C->D chain...");
                             log.info("Sending close message");
                             final Message msg = new Message();
-                            msg.setProperty("HASHCODE", message.getProperty("HASHCODE"));
-                            msg.setProperty("MAC", message.getProperty("MAC"));
+                            msg.setProperty(MessagePropertyKeys.HASHCODE, 
+                                message.getProperty(MessagePropertyKeys.HASHCODE));
+                            msg.setProperty(MessagePropertyKeys.MAC, 
+                                message.getProperty(MessagePropertyKeys.MAC));
                             msg.setFrom(conn.getUser());
                             
                             // We set the sequence number so the client knows
                             // how many total messages to expect. This is 
                             // necessary because the XMPP server can deliver 
                             // messages out of order.
-                            msg.setProperty("SEQ", sequenceNumber);
-                            msg.setProperty("CLOSE", "true");
+                            msg.setProperty(MessagePropertyKeys.SEQ, 
+                                sequenceNumber);
+                            msg.setProperty(MessagePropertyKeys.CLOSE, "true");
                             
                             // This is the server-side MAC address. This is
                             // useful because there are odd cases where XMPP
                             // servers echo back our own messages, and we
                             // want to ignore them.
                             log.info("Setting SMAC to: {}", MAC_ADDRESS);
-                            msg.setProperty("SMAC", MAC_ADDRESS);
+                            msg.setProperty(MessagePropertyKeys.SERVER_MAC, 
+                                MAC_ADDRESS);
                             
                             try {
                                 chat.sendMessage(msg);
@@ -380,8 +361,10 @@ public class ChatMessageListener implements ChatStateListener {
     }
     
     private String messageKey(final Message message) {
-        final String mac = (String) message.getProperty("MAC");
-        final String hc = (String) message.getProperty("HASHCODE");
+        final String mac = 
+            (String) message.getProperty(MessagePropertyKeys.MAC);
+        final String hc = 
+            (String) message.getProperty(MessagePropertyKeys.HASHCODE);
 
         // We can sometimes get messages back that were not intended for us.
         // Just ignore them.
