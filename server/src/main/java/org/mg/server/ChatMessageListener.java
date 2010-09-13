@@ -96,7 +96,7 @@ public class ChatMessageListener implements ChatStateListener {
         expectedSequenceNumber++;
         if (StringUtils.isNotBlank(smac) && 
             smac.trim().equals(MAC_ADDRESS)) {
-            log.warn("MESSAGE FROM OURSELVES -- ATTEMPTING TO SEND BACK!!");
+            log.warn("MESSAGE FROM OURSELVES!! SEND THROUGH A DIFFERENT CHAT");
             log.warn("Connected?? "+conn.isConnected());
             return;
         }
@@ -129,8 +129,10 @@ public class ChatMessageListener implements ChatStateListener {
             final ChannelFuture cf = proxyConnections.get(key);
             
             if (cf != null) {
+                log.info("Closing connection");
                 cf.getChannel().close();
                 removedConnections.add(key);
+                proxyConnections.remove(key);
             }
             else {
                 log.error("Got close for connection we don't " +
