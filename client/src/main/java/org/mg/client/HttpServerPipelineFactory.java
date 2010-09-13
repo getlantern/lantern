@@ -85,8 +85,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
     
     private final Collection<String> serverSideJids = new HashSet<String>();
     
-    private static volatile int totalReadMessages = 0;
-    
     /**
      * Separate thread for creating new XMPP connections.
      */
@@ -278,8 +276,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
                         log.error("NO MATCHING HANDLER??");
                         return;
                     }
-                    totalReadMessages++;
-                    log.info("Total read messages: "+totalReadMessages);
                     log.info("Sending message to handler...");
                     handler.processMessage(ch, msg);
                 }

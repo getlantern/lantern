@@ -1,39 +1,31 @@
 package org.mg.client;
 
-import java.lang.management.ManagementFactory;
-import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collection;
-import java.util.HashSet;
-
-import javax.management.InstanceAlreadyExistsException;
-import javax.management.MBeanRegistrationException;
-import javax.management.MBeanServer;
-import javax.management.MalformedObjectNameException;
-import javax.management.NotCompliantMBeanException;
-import javax.management.ObjectName;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.util.CharsetUtil;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
-import org.mg.common.InOrderMessageWriter;
-import org.mg.common.MgUtils;
-import org.mg.common.OutOfOrderMessageProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,15 +33,13 @@ import org.slf4j.LoggerFactory;
  * Class for handling all HTTP requests from the browser to the proxy.
  */
 public class HttpRequestHandler extends SimpleChannelUpstreamHandler 
-    implements MessageListener, HttpRequestHandlerData {
+    implements MessageListener {
 
     private final static Logger log = 
         LoggerFactory.getLogger(HttpRequestHandler.class);
     private static final String HTTP_KEY = "HTTP";
     
-    private static int totalBrowserToProxyConnectionsAllClasses = 0;
-    
-    private int totalBrowserToProxyConnections = 0;
+    private static int totalBrowserToProxyConnections = 0;
     private int browserToProxyConnections = 0;
     
     private volatile int messagesReceived = 0;
@@ -60,20 +50,21 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
     
     private long outgoingSequenceNumber = 0L;
     private Channel browserToProxyChannel;
-    
-    private MessageListener sequencer;
 
     private final String macAddress;
     
+    private long lastSequenceNumber = -1L;
     private long bytesSent = 0L;
+    
+    private long expectedSequenceNumber = 0L;
+    
+    private final Map<Long, Message> sequenceMap = 
+        new ConcurrentHashMap<Long, Message>();
     
     /**
      * Unique key identifying this connection.
      */
     private final String key;
-    
-    private final Collection<SocketAddress> incomingIps = 
-        new HashSet<SocketAddress>();
     
     /**
      * Creates a new class for handling HTTP requests with the specified
@@ -90,37 +81,52 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         this.channelGroup = channelGroup;
         this.macAddress = macAddress;
         this.chat = chat;
+        
         this.key = newKey(this.macAddress, this.hashCode());
-        configureJmx();
     }
     
-    private void configureJmx() {
-        final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
-        try {
-            final Class<? extends HttpRequestHandler> clazz = getClass();
-            final String pack = clazz.getPackage().getName();
-            final String oName =
-                pack+":type="+clazz.getSimpleName()+"-"+clazz.getSimpleName()+
-                "-"+this.key;
-            final ObjectName mxBeanName = new ObjectName(oName);
-            if(!mbs.isRegistered(mxBeanName)) {
-                log.info("Registering MBean with name: {}", oName);
-                mbs.registerMBean(this, mxBeanName);
-            }
-        } catch (final MalformedObjectNameException e) {
-            log.error("Could not set up JMX", e);
-        } catch (final InstanceAlreadyExistsException e) {
-            log.error("Could not set up JMX", e);
-        } catch (final MBeanRegistrationException e) {
-            log.error("Could not set up JMX", e);
-        } catch (final NotCompliantMBeanException e) {
-            log.error("Could not set up JMX", e);
-        }
-
-    }
-
     private String newKey(String mac, int hc) {
         return mac.trim() + hc;
+    }
+
+    private ChannelBuffer xmppToHttpChannelBuffer(final Message msg) {
+        
+        final long sequenceNumber = (Long) msg.getProperty("SEQ");
+        if (lastSequenceNumber != -1L) {
+            final long expected = lastSequenceNumber + 1;
+            log.error("SEQUENCE NUMBER: "+sequenceNumber);
+            if (sequenceNumber != expectedSequenceNumber) {
+                // This can happen with our new scheme.
+                log.error("BAD SEQUENCE NUMBER. EXPECTED "+expected+
+                    " BUT WAS "+sequenceNumber);
+                sequenceMap.put(sequenceNumber, msg);
+            }
+            else {
+                expectedSequenceNumber++;
+                while (sequenceMap.containsKey(expectedSequenceNumber)) {
+                    
+                }
+            }
+        }
+        lastSequenceNumber = sequenceNumber;
+        
+        final String data = (String) msg.getProperty(HTTP_KEY);
+        final byte[] raw = 
+            Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
+        
+        final String md5 = toMd5(raw);
+        final String expected = (String) msg.getProperty("MD5");
+        if (!md5.equals(expected)) {
+            log.error("MD-5s not equal!! Expected:\n'"+expected+"'\nBut was:\n'"+md5+"'");
+        }
+        else {
+            log.info("MD-5s match!!");
+        }
+        
+        log.info("Wrapping data: {}", new String(raw, CharsetUtil.UTF_8));
+        bytesSent += raw.length;
+        log.info("Now sent "+bytesSent+" bytes after "+raw.length+" new");
+        return ChannelBuffers.wrappedBuffer(raw);
     }
     
     private String toMd5(final byte[] raw) {
@@ -145,13 +151,29 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         //log.info("Content-Length: "+contentLength);
         
         final Channel ch = ctx.getChannel();
+        if (this.browserToProxyChannel != null && this.browserToProxyChannel != ch) {
+            log.error("Got message on a different channel??!");
+        }
+        this.browserToProxyChannel = ch;
         try {
             final ChannelBuffer cb = (ChannelBuffer) me.getMessage();
             final ByteBuffer buf = cb.toByteBuffer();
             final byte[] raw = toRawBytes(buf);
             final String base64 = Base64.encodeBase64URLSafeString(raw);
-            final Message msg = newMessage(ch);
+            final Message msg = new Message();
             msg.setProperty(HTTP_KEY, base64);
+            
+            // The other side will also need to know where the request came
+            // from to differentiate incoming HTTP connections.
+            msg.setProperty("LOCAL-IP", ch.getLocalAddress().toString());
+            msg.setProperty("REMOTE-IP", ch.getRemoteAddress().toString());
+            msg.setProperty("MAC", this.macAddress);
+            msg.setProperty("HASHCODE", String.valueOf(this.hashCode()));
+            
+            // We set the sequence number in case the server delivers the 
+            // packets out of order for any reason.
+            msg.setProperty("SEQ", outgoingSequenceNumber);
+            
             this.chat.sendMessage(msg);
             outgoingSequenceNumber++;
             log.info("Sent XMPP message!!");
@@ -159,22 +181,6 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
             log.error("Error sending message", e);
         }
     }
-
-    private Message newMessage(final Channel ch) {
-        final Message msg = new Message();
-        // The other side will also need to know where the request came
-        // from to differentiate incoming HTTP connections.
-        msg.setProperty("LOCAL-IP", ch.getLocalAddress().toString());
-        msg.setProperty("REMOTE-IP", ch.getRemoteAddress().toString());
-        msg.setProperty("MAC", this.macAddress);
-        msg.setProperty("HASHCODE", String.valueOf(this.hashCode()));
-        
-        // We set the sequence number in case the XMPP server delivers the 
-        // packets out of order for any reason.
-        msg.setProperty("SEQ", outgoingSequenceNumber);
-        return msg;
-    }
-
     
     public static byte[] toRawBytes(final ByteBuffer buf) {
         final int mark = buf.position();
@@ -189,44 +195,22 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         final ChannelStateEvent cse) throws Exception {
         final Channel inboundChannel = cse.getChannel();
         log.info("New channel opened: {}", inboundChannel);
-        totalBrowserToProxyConnectionsAllClasses++;
-        browserToProxyConnections++;
         totalBrowserToProxyConnections++;
-        log.info("Now "+totalBrowserToProxyConnectionsAllClasses+" browser to proxy channels...");
+        browserToProxyConnections++;
+        log.info("Now "+totalBrowserToProxyConnections+" browser to proxy channels...");
         log.info("Now this class has "+browserToProxyConnections+" browser to proxy channels...");
-        
-        if (this.browserToProxyChannel != null) {
-            log.error("Got a second channel opened??!");
-        }
-        this.sequencer = new OutOfOrderMessageProcessor(inboundChannel, 
-            this.key, new InOrderMessageWriter() {
-                public void write(final Message msg) {
-                    writeData(msg);
-                }
-
-                public void onClose() {
-                    if (browserToProxyChannel.isOpen()) {
-                        log.info("Closing browser to proxy channel");
-                        MgUtils.closeOnFlush(browserToProxyChannel);
-                    }
-                }
-            });
-        this.browserToProxyChannel = inboundChannel;
         
         // We need to keep track of the channel so we can close it at the end.
         this.channelGroup.add(inboundChannel);
-        
-        this.incomingIps.add(inboundChannel.getRemoteAddress());
     }
     
     @Override
     public void channelClosed(final ChannelHandlerContext ctx, 
         final ChannelStateEvent cse) {
-        final Channel ch = cse.getChannel();
-        log.info("Channel closed: {}", ch);
-        totalBrowserToProxyConnectionsAllClasses--;
+        log.info("Channel closed: {}", cse.getChannel());
+        totalBrowserToProxyConnections--;
         browserToProxyConnections--;
-        log.info("Now "+totalBrowserToProxyConnectionsAllClasses+
+        log.info("Now "+totalBrowserToProxyConnections+
             " total browser to proxy channels...");
         log.info("Now this class has "+browserToProxyConnections+
             " browser to proxy channels...");
@@ -239,8 +223,15 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
             log.warn("Closing all proxy to web channels for this browser " +
                 "to proxy connection!!!");
             
-            final Message msg = newMessage(ch);
+            final Message msg = new Message();
             
+            // The other side will also need to know where the request came
+            // from to differentiate incoming HTTP connections.
+            final Channel ch = cse.getChannel();
+            msg.setProperty("LOCAL-IP", ch.getLocalAddress().toString());
+            msg.setProperty("REMOTE-IP", ch.getRemoteAddress().toString());
+            msg.setProperty("MAC", this.macAddress);
+            msg.setProperty("HASHCODE", String.valueOf(this.hashCode()));
             msg.setProperty("CLOSE", "true");
             
             try {
@@ -250,9 +241,8 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
                 log.warn("Error sending close message!!", e);
             }
         }
-        this.incomingIps.remove(ch.getRemoteAddress());
     }
-    
+
     @Override
     public void exceptionCaught(final ChannelHandlerContext ctx, 
         final ExceptionEvent e) throws Exception {
@@ -267,14 +257,112 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
                 channel, cause);
         }
         if (channel.isOpen()) {
-            MgUtils.closeOnFlush(channel);
+            closeOnFlush(channel);
         }
     }
     
+    /**
+     * Closes the specified channel after all queued write requests are flushed.
+     */
+    private static void closeOnFlush(final Channel ch) {
+        log.info("Closing on flush: {}", ch);
+        if (ch.isConnected()) {
+            ch.write(ChannelBuffers.EMPTY_BUFFER).addListener(
+                ChannelFutureListener.CLOSE);
+        }
+    }
+
+    private final Object writeLock = new Object();
+    
     public void processMessage(final Chat ch, final Message msg) {
-        // We just pass the message on to the sequencer that takes care of
-        // re-ordering messages that come in out of order.
-        this.sequencer.processMessage(ch, msg);
+        log.info("Received message with props: {}", 
+            msg.getPropertyNames());
+        final long sequenceNumber = (Long) msg.getProperty("SEQ");
+        log.info("SEQUENCE NUMBER: "+sequenceNumber+ " FOR: "+hashCode() + 
+            " BROWSER TO PROXY CHANNEL: "+browserToProxyChannel);
+
+        // If the other side is sending the close directive, we 
+        // need to close the connection to the browser.
+        if (isClose(msg)) {
+            // This will happen quite often, as the XMPP server won't 
+            // necessarily deliver messages in order.
+            if (sequenceNumber != expectedSequenceNumber) {
+                log.info("BAD SEQUENCE NUMBER ON CLOSE. " +
+                    "EXPECTED "+expectedSequenceNumber+
+                    " BUT WAS "+sequenceNumber);
+                sequenceMap.put(sequenceNumber, msg);
+            }
+            else {
+                log.info("Got CLOSE. Closing channel to browser: {}", 
+                    browserToProxyChannel);
+                if (browserToProxyChannel.isOpen()) {
+                    log.info("Remaining messages: "+this.sequenceMap);
+                    closeOnFlush(browserToProxyChannel);
+                }
+            }
+            return;
+        }
+        
+        // We need to grab the HTTP data from the message and send
+        // it to the browser.
+        final String data = (String) msg.getProperty(HTTP_KEY);
+        if (data == null) {
+            log.warn("No HTTP data");
+            return;
+        }
+        //final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
+        
+        final String mac = (String) msg.getProperty("MAC");
+        final String hc = (String) msg.getProperty("HASHCODE");
+        final String localKey = newKey(mac, Integer.parseInt(hc));
+        if (!localKey.equals(this.key)) {
+            log.error("RECEIVED A MESSAGE THAT'S NOT FOR US?!?!?!");
+            log.error("\nOUR KEY IS:   "+this.key+
+                      "\nBUT RECEIVED: "+localKey);
+        }
+    
+        synchronized (writeLock) {
+            if (sequenceNumber != expectedSequenceNumber) {
+                log.error("BAD SEQUENCE NUMBER. " +
+                    "EXPECTED "+expectedSequenceNumber+
+                    " BUT WAS "+sequenceNumber+" FOR KEY: "+localKey);
+                sequenceMap.put(sequenceNumber, msg);
+            }
+            else {
+                writeData(msg);
+                expectedSequenceNumber++;
+                
+                while (sequenceMap.containsKey(expectedSequenceNumber)) {
+                    log.info("WRITING SEQUENCE number: "+
+                        expectedSequenceNumber);
+                    final Message curMessage = 
+                        sequenceMap.remove(expectedSequenceNumber);
+                    
+                    // It's possible to get the close event itself out of
+                    // order, so we need to check if the stored message is a
+                    // close message.
+                    if (isClose(curMessage)) {
+                        log.info("Detected out-of-order CLOSE message!");
+                        closeOnFlush(browserToProxyChannel);
+                        break;
+                    }
+                    writeData(curMessage);
+                    expectedSequenceNumber++;
+                }
+            }
+        }
+        lastSequenceNumber = sequenceNumber;
+    }
+
+    private boolean isClose(final Message msg) {
+        final String close = (String) msg.getProperty("CLOSE");
+        log.info("Close is: {}", close);
+
+        // If the other side is sending the close directive, we 
+        // need to close the connection to the browser.
+        return 
+            StringUtils.isNotBlank(close) && 
+            close.trim().equalsIgnoreCase("true");
     }
 
     private void writeData(final Message msg) {
@@ -303,38 +391,5 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         else {
             log.info("Not sending data to closed browser connection");
         }
-    }
-
-    public int getTotalBrowserToProxyConnections() {
-        return totalBrowserToProxyConnections;
-    }
-    
-    public int getTotalBrowserToProxyConnectionsAllClasses() {
-        return totalBrowserToProxyConnectionsAllClasses;
-    }
-
-    private long startTime = System.currentTimeMillis();
-    
-    public long getLifetime() {
-        return System.currentTimeMillis() - startTime;
-    }
-
-    public int getCurrentBrowserToProxyConnections() {
-        return browserToProxyConnections;
-    }
-
-    public String getIncomingIps() {
-        synchronized (this.incomingIps) {
-            final StringBuilder sb = new StringBuilder();
-            for (final SocketAddress sa : this.incomingIps) {
-                sb.append(sa.toString());
-                sb.append("\n");
-            }
-            return sb.toString();
-        }
-    }
-
-    public int getMessagesReceived() {
-        return messagesReceived;
     }
 }
