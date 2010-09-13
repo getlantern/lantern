@@ -51,7 +51,6 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
 
     private final String macAddress;
     
-    private long lastSequenceNumber = -1L;
     private long bytesSent = 0L;
     
     private long expectedSequenceNumber = 0L;
@@ -79,63 +78,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         this.channelGroup = channelGroup;
         this.macAddress = macAddress;
         this.chat = chat;
-        
         this.key = newKey(this.macAddress, this.hashCode());
-    }
-    
-    private String newKey(String mac, int hc) {
-        return mac.trim() + hc;
-    }
-
-    private ChannelBuffer xmppToHttpChannelBuffer(final Message msg) {
-        
-        final long sequenceNumber = (Long) msg.getProperty(MessagePropertyKeys.SEQ);
-        if (lastSequenceNumber != -1L) {
-            final long expected = lastSequenceNumber + 1;
-            log.error("SEQUENCE NUMBER: "+sequenceNumber);
-            if (sequenceNumber != expectedSequenceNumber) {
-                // This can happen with our new scheme.
-                log.error("BAD SEQUENCE NUMBER. EXPECTED "+expected+
-                    " BUT WAS "+sequenceNumber);
-                sequenceMap.put(sequenceNumber, msg);
-            }
-            else {
-                expectedSequenceNumber++;
-                while (sequenceMap.containsKey(expectedSequenceNumber)) {
-                    
-                }
-            }
-        }
-        lastSequenceNumber = sequenceNumber;
-        
-        final String data = (String) msg.getProperty(MessagePropertyKeys.HTTP);
-        final byte[] raw = 
-            Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
-        
-        final String md5 = toMd5(raw);
-        final String expected = (String) msg.getProperty(MessagePropertyKeys.MD5);
-        if (!md5.equals(expected)) {
-            log.error("MD-5s not equal!! Expected:\n'"+expected+"'\nBut was:\n'"+md5+"'");
-        }
-        else {
-            log.info("MD-5s match!!");
-        }
-        
-        log.info("Wrapping data: {}", new String(raw, CharsetUtil.UTF_8));
-        bytesSent += raw.length;
-        log.info("Now sent "+bytesSent+" bytes after "+raw.length+" new");
-        return ChannelBuffers.wrappedBuffer(raw);
-    }
-    
-    private String toMd5(final byte[] raw) {
-        try {
-            final MessageDigest md = MessageDigest.getInstance("MD5");
-            final byte[] digest = md.digest(raw);
-            return Base64.encodeBase64URLSafeString(digest);
-        } catch (final NoSuchAlgorithmException e) {
-            log.error("No MD5 -- will never happen", e);
-            return "NO MD5";
-        }
     }
     
     @Override
@@ -166,7 +109,6 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
             log.error("Error sending message", e);
         }
     }
-    
     
     @Override
     public void channelClosed(final ChannelHandlerContext ctx, 
@@ -305,8 +247,6 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
             log.warn("No HTTP data");
             return;
         }
-        //final ChannelBuffer cb = xmppToHttpChannelBuffer(msg);
-        
         final String mac = (String) msg.getProperty(MessagePropertyKeys.MAC);
         final String hc = (String) msg.getProperty(MessagePropertyKeys.HASHCODE);
         final String localKey = newKey(mac, Integer.parseInt(hc));
@@ -346,7 +286,6 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
                 }
             }
         }
-        lastSequenceNumber = sequenceNumber;
     }
 
     private boolean isClose(final Message msg) {
@@ -381,6 +320,21 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         }
         else {
             log.info("Not sending data to closed browser connection");
+        }
+    }
+    
+    private String newKey(final String mac, final int hc) {
+        return mac.trim() + hc;
+    }
+    
+    private String toMd5(final byte[] raw) {
+        try {
+            final MessageDigest md = MessageDigest.getInstance("MD5");
+            final byte[] digest = md.digest(raw);
+            return Base64.encodeBase64URLSafeString(digest);
+        } catch (final NoSuchAlgorithmException e) {
+            log.error("No MD5 -- will never happen", e);
+            return "NO MD5";
         }
     }
 }

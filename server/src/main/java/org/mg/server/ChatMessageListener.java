@@ -9,6 +9,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -54,8 +55,6 @@ public class ChatMessageListener implements ChatStateListener {
     
     private final Map<String, ChannelFuture> proxyConnections;
 
-    private final Chat chat;
-
     private final XMPPConnection conn;
 
     private final String MAC_ADDRESS;
@@ -65,12 +64,15 @@ public class ChatMessageListener implements ChatStateListener {
     private final ConcurrentHashMap<String, AtomicLong> channelsToSequenceNumbers =
         new ConcurrentHashMap<String, AtomicLong>();
 
+    private final Queue<Chat> chats;
+
     public ChatMessageListener(
         final Map<String, ChannelFuture> proxyConnections, 
-        final Chat chat, final XMPPConnection conn, final String macAddress, 
+        final Queue<Chat> chats, final XMPPConnection conn, 
+        final String macAddress, 
         final ChannelFactory channelFactory) {
         this.proxyConnections = proxyConnections;
-        this.chat = chat;
+        this.chats = chats;
         this.conn = conn;
         this.MAC_ADDRESS = macAddress;
         this.channelFactory = channelFactory;
@@ -258,7 +260,7 @@ public class ChatMessageListener implements ChatStateListener {
                         @Override
                         public void messageReceived(
                             final ChannelHandlerContext ctx, 
-                            final MessageEvent me) throws Exception {
+                            final MessageEvent me) {
                             //log.info("HTTP message received from proxy on " +
                             //    "relayer: {}", me.getMessage());
                             final Message msg = new Message();
@@ -268,34 +270,12 @@ public class ChatMessageListener implements ChatStateListener {
                             final String base64 = 
                                 Base64.encodeBase64URLSafeString(raw);
                             
-                            log.info("Connection ID: {}", conn.getConnectionID());
-                            log.info("Connection host: {}", conn.getHost());
-                            log.info("Connection service name: {}", conn.getServiceName());
-                            log.info("Connection user: {}", conn.getUser());
-                            msg.setTo(chat.getParticipant());
-                            msg.setFrom(conn.getUser());
                             msg.setProperty(MessagePropertyKeys.HTTP, base64);
                             msg.setProperty(MessagePropertyKeys.MD5, toMd5(raw));
-                            msg.setProperty(MessagePropertyKeys.SEQ, sequenceNumber);
-                            msg.setProperty(MessagePropertyKeys.HASHCODE, 
-                                message.getProperty(MessagePropertyKeys.HASHCODE));
-                            msg.setProperty(MessagePropertyKeys.MAC, 
-                                message.getProperty(MessagePropertyKeys.MAC));
                             
-                            // This is the server-side MAC address. This is
-                            // useful because there are odd cases where XMPP
-                            // servers echo back our own messages, and we
-                            // want to ignore them.
-                            log.info("Setting SMAC to: {}", MAC_ADDRESS);
-                            msg.setProperty(MessagePropertyKeys.SERVER_MAC, 
-                                MAC_ADDRESS);
-                            
-                            log.info("Sending to: {}", chat.getParticipant());
-                            log.info("Sending SEQUENCE #: "+sequenceNumber);
-                            sentMessages.put(sequenceNumber, msg);
-                            chat.sendMessage(msg);
-                            sequenceNumber++;
+                            sendMessage(msg);
                         }
+
                         @Override
                         public void channelClosed(final ChannelHandlerContext ctx, 
                             final ChannelStateEvent cse) {
@@ -305,19 +285,25 @@ public class ChatMessageListener implements ChatStateListener {
                             log.info("Got channel closed on C in A->B->C->D chain...");
                             log.info("Sending close message");
                             final Message msg = new Message();
-                            msg.setProperty(MessagePropertyKeys.HASHCODE, 
-                                message.getProperty(MessagePropertyKeys.HASHCODE));
-                            msg.setProperty(MessagePropertyKeys.MAC, 
-                                message.getProperty(MessagePropertyKeys.MAC));
-                            msg.setFrom(conn.getUser());
+                            msg.setProperty(MessagePropertyKeys.CLOSE, "true");
+                            sendMessage(msg);
                             
+                            removedConnections.add(key);
+                            proxyConnections.remove(key);
+                        }
+                        
+                        private void sendMessage(final Message msg) {
                             // We set the sequence number so the client knows
                             // how many total messages to expect. This is 
                             // necessary because the XMPP server can deliver 
                             // messages out of order.
                             msg.setProperty(MessagePropertyKeys.SEQ, 
                                 sequenceNumber);
-                            msg.setProperty(MessagePropertyKeys.CLOSE, "true");
+                            msg.setFrom(conn.getUser());
+                            msg.setProperty(MessagePropertyKeys.HASHCODE, 
+                                message.getProperty(MessagePropertyKeys.HASHCODE));
+                            msg.setProperty(MessagePropertyKeys.MAC, 
+                                message.getProperty(MessagePropertyKeys.MAC));
                             
                             // This is the server-side MAC address. This is
                             // useful because there are odd cases where XMPP
@@ -326,20 +312,31 @@ public class ChatMessageListener implements ChatStateListener {
                             log.info("Setting SMAC to: {}", MAC_ADDRESS);
                             msg.setProperty(MessagePropertyKeys.SERVER_MAC, 
                                 MAC_ADDRESS);
+                            log.info("Sending SEQUENCE #: "+sequenceNumber);
+                            sentMessages.put(sequenceNumber, msg);
+                            
+                            final Chat chat = chats.poll();
+                            log.info("Sending to: {}", chat.getParticipant());
+                            msg.setTo(chat.getParticipant());
                             
                             try {
                                 chat.sendMessage(msg);
+                                sequenceNumber++;
+                                
+                                // Note we don't do this in a finally block.
+                                // if an exception happens, it's likely there's
+                                // something wrong with the chat, and we don't
+                                // want to add it back.
+                                chats.offer(chat);
                             } catch (final XMPPException e) {
-                                log.warn("Error sending close message", e);
+                                log.error("Could not send chat message", e);
                             }
-                            removedConnections.add(key);
-                            proxyConnections.remove(key);
                         }
                         
                         @Override
                         public void exceptionCaught(final ChannelHandlerContext ctx, 
                             final ExceptionEvent e) throws Exception {
-                            log.warn("Caught exception on C in A->B->C->D " +
+                            log.error("Caught exception on C in A->B->C->D " +
                                 "chain...", e.getCause());
                             if (e.getChannel().isOpen()) {
                                 log.warn("Closing open connection");

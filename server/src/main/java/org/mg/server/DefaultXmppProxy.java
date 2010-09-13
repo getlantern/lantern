@@ -13,13 +13,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import javax.net.SocketFactory;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
@@ -216,10 +219,12 @@ public class DefaultXmppProxy implements XmppProxy {
             public void chatCreated(final Chat chat, 
                 final boolean createdLocally) {
                 log.info("Created a chat!!");
+                final Queue<Chat> chats = addToGroup(chat);
                 
                 final ConcurrentHashMap<String, ChannelFuture> proxyConnections =
                     new ConcurrentHashMap<String, ChannelFuture>();
                 
+                final String participant = chat.getParticipant();
                 // We need to listen for the unavailability of clients we're 
                 // chatting with so we can disconnect from their associated 
                 // remote servers.
@@ -228,7 +233,7 @@ public class DefaultXmppProxy implements XmppProxy {
                         if (!(pack instanceof Presence)) return;
                         final Presence pres = (Presence) pack;
                         final String from = pres.getFrom();
-                        final String participant = chat.getParticipant();
+                        
                         //log.info("Comparing presence packet from "+from+
                         //    " to particant "+participant);
                         if (from.equals(participant) && !pres.isAvailable()) {
@@ -247,13 +252,35 @@ public class DefaultXmppProxy implements XmppProxy {
                 
                 final ChatStateManager csm = ChatStateManager.getInstance(conn);
                 final MessageListener ml = 
-                    new ChatMessageListener(proxyConnections, chat, conn, 
+                    new ChatMessageListener(proxyConnections, chats, conn, 
                         MAC_ADDRESS, channelFactory);
                 chat.addMessageListener(ml);
             }
         });
         return conn;
     }
+    
+    private Queue<Chat> addToGroup(final Chat chat) {
+        final String participant = chat.getParticipant();
+        final String userAndMac = 
+            StringUtils.substringBeforeLast(participant, "-");
+        log.info("Parsed user and mac: {}", userAndMac);
+        final Queue<Chat> empty = new LinkedBlockingQueue<Chat>();
+        final Queue<Chat> existing = 
+            userAndMacsToChats.putIfAbsent(userAndMac, empty);
+        final Queue<Chat> chats;
+        if (existing == null) {
+            chats = empty;
+        }
+        else {
+            chats = existing;
+        }
+        chats.add(chat);
+        return chats;
+    }
+    
+    private final ConcurrentHashMap<String, Queue<Chat>> userAndMacsToChats =
+        new ConcurrentHashMap<String, Queue<Chat>>();
     
 
     private static String getMacAddress() throws SocketException {

@@ -243,7 +243,9 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         
         final XMPPConnection xmpp = new XMPPConnection(config);
         xmpp.connect();
-        xmpp.login(this.user, this.pwd, "MG");
+        final String id = "MG-"+macAddress+"-";
+        log.info("Chat ID: "+id);
+        xmpp.login(this.user, this.pwd, id);
         
         synchronized (serverSideJids) {
             while (serverSideJids.size() < 4) {
@@ -442,7 +444,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
                 final byte[] mac = ni.getHardwareAddress();
                 if (mac != null && mac.length > 0) {
                     log.info("Returning 'normal' MAC address");
-                    return Base64.encodeBase64String(mac);
+                    return Base64.encodeBase64String(mac).trim();
                 }
             } catch (final SocketException e) {
                 log.warn("Could not get MAC address?");
