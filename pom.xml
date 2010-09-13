@@ -348,12 +348,6 @@
             <url>http://svn.littleshoot.org/maven</url>
         </repository>
 
-        <repository>
-            <id>littleshoot snapshots</id>
-            <name>LittleShoot Snapshot Repository</name>
-            <url>http://svn.littleshoot.org/maven-snapshots</url>
-        </repository>
-
     </repositories>
 
 </project>
