@@ -352,8 +352,6 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
 
     private boolean isClose(final Message msg) {
         final String close = (String) msg.getProperty(MessagePropertyKeys.CLOSE);
-        log.info("Close is: {}", close);
-
         // If the other side is sending the close directive, we 
         // need to close the connection to the browser.
         return 
@@ -372,9 +370,6 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         if (!md5.equals(expected)) {
             log.error("MD-5s not equal!! Expected:\n'"+expected+
                 "'\nBut was:\n'"+md5+"'");
-        }
-        else {
-            log.info("MD-5s match!!");
         }
         
         //log.info("Wrapping data: {}", new String(raw, CharsetUtil.UTF_8));
