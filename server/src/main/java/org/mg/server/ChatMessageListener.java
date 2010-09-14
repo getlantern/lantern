@@ -64,16 +64,23 @@ public class ChatMessageListener implements ChatStateListener {
     private final ConcurrentHashMap<String, AtomicLong> channelsToSequenceNumbers =
         new ConcurrentHashMap<String, AtomicLong>();
 
-    private final Queue<Pair<Chat, XMPPConnection>> chatsAndConnections;
+    private final XMPPConnection conn;
+
+    private final Chat chat;
+
+    //private final Queue<Pair<Chat, XMPPConnection>> chatsAndConnections;
 
     public ChatMessageListener(
         final Map<String, ChannelFuture> proxyConnections, 
         final Queue<Pair<Chat, XMPPConnection>> chatsAndConnections, 
-        final String macAddress, final ChannelFactory channelFactory) {
+        final String macAddress, final ChannelFactory channelFactory,
+        final Chat chat, final XMPPConnection conn) {
         this.proxyConnections = proxyConnections;
-        this.chatsAndConnections = chatsAndConnections;
+        //this.chatsAndConnections = chatsAndConnections;
         this.MAC_ADDRESS = macAddress;
         this.channelFactory = channelFactory;
+        this.chat = chat;
+        this.conn = conn;
     }
 
     public void processMessage(final Chat ch, final Message msg) {
@@ -304,13 +311,14 @@ public class ChatMessageListener implements ChatStateListener {
                             
                             log.info("Received from: {}", 
                                 requestChat.getParticipant());
-                            final Pair<Chat, XMPPConnection> pair = 
-                                chatsAndConnections.poll();
-                            final Chat chat = pair.getFirst();
+                            
+                            //final Pair<Chat, XMPPConnection> pair = 
+                            //    chatsAndConnections.poll();
+                            //final Chat chat = pair.getFirst();
                             log.info("Sending to: {}", chat.getParticipant());
                             msg.setTo(chat.getParticipant());
                             
-                            final XMPPConnection conn = pair.getSecond();
+                            //final XMPPConnection conn = pair.getSecond();
                             final String from = conn.getUser();
                             msg.setFrom(from);
                             
@@ -322,7 +330,7 @@ public class ChatMessageListener implements ChatStateListener {
                                 // if an exception happens, it's likely there's
                                 // something wrong with the chat, and we don't
                                 // want to add it back.
-                                chatsAndConnections.offer(pair);
+                                //chatsAndConnections.offer(pair);
                             } catch (final XMPPException e) {
                                 log.error("Could not send chat message", e);
                             }
