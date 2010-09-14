@@ -109,8 +109,6 @@ public class ChatMessageListener implements ChatStateListener {
             final XMPPError error = msg.getError();
             if (error != null) {
                 final int code = msg.getError().getCode();
-                log.info("HTTP IN ERROR MESSAGE: "+
-                    msg.getProperty(MessagePropertyKeys.HTTP));
                 if (code == 500) {
                     // Something's up on the server -- we're probably sending
                     // bytes too fast. Slow down.
@@ -413,8 +411,8 @@ public class ChatMessageListener implements ChatStateListener {
                                 (String) reject.getProperty(MessagePropertyKeys.HTTP);
                             if (StringUtils.isNotBlank(http)) {
                                 msg.setProperty(MessagePropertyKeys.HTTP, http);
-                                msg.setProperty(MessagePropertyKeys.MAC, 
-                                    reject.getProperty(MessagePropertyKeys.MAC));
+                                msg.setProperty(MessagePropertyKeys.MD5, 
+                                    reject.getProperty(MessagePropertyKeys.MD5));
                             }
                             return msg;
                         }
