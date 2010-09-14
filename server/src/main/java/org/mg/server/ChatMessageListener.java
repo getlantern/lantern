@@ -34,6 +34,7 @@ import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.XMPPError;
 import org.jivesoftware.smackx.ChatState;
 import org.jivesoftware.smackx.ChatStateListener;
 import org.mg.common.MessagePropertyKeys;
@@ -70,6 +71,8 @@ public class ChatMessageListener implements ChatStateListener {
 
     //private final Queue<Pair<Chat, XMPPConnection>> chatsAndConnections;
 
+    private long lastResourceConstraintMessage = 0L;
+    
     public ChatMessageListener(
         final Map<String, ChannelFuture> proxyConnections, 
         final Queue<Pair<Chat, XMPPConnection>> chatsAndConnections, 
@@ -99,7 +102,18 @@ public class ChatMessageListener implements ChatStateListener {
 
         if (StringUtils.isNotBlank(smac) && 
             smac.trim().equals(MAC_ADDRESS)) {
-            log.warn("MESSAGE FROM OURSELVES!! AN ERROR?");
+            log.error("MESSAGE FROM OURSELVES!! AN ERROR?");
+            final XMPPError error = msg.getError();
+            if (error != null) {
+                final int code = msg.getError().getCode();
+                log.info("HTTP IN ERROR MESSAGE: "+
+                    msg.getProperty(MessagePropertyKeys.HTTP));
+                if (code == 500) {
+                    // Something's up on the server -- we're probably sending
+                    // bytes too fast. Slow down.
+                    lastResourceConstraintMessage = System.currentTimeMillis();
+                }
+            }
             MgUtils.printMessage(msg);
             return;
         }
@@ -288,6 +302,20 @@ public class ChatMessageListener implements ChatStateListener {
                         }
                         
                         private void sendMessage(final Message msg) {
+                            final long now = System.currentTimeMillis();
+                            final long elapsed = 
+                                now - lastResourceConstraintMessage;
+                            
+                            if (elapsed < 20000) {
+                                log.info("Waiting before sending message");
+                                try {
+                                    Thread.sleep(4000);
+                                } catch (InterruptedException e) {
+                                    // TODO Auto-generated catch block
+                                    e.printStackTrace();
+                                }
+                            }
+                            
                             // We set the sequence number so the client knows
                             // how many total messages to expect. This is 
                             // necessary because the XMPP server can deliver 
