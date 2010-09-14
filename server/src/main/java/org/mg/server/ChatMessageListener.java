@@ -275,7 +275,7 @@ public class ChatMessageListener implements ChatStateListener {
                     final ChannelPipeline pipeline = pipeline();
                     
                     final class HttpChatRelay extends SimpleChannelUpstreamHandler {
-                        private long sequenceNumber = 0L;
+                        private AtomicLong sequenceNumber = new AtomicLong(0L);
                         
                         @Override
                         public void messageReceived(
@@ -317,7 +317,7 @@ public class ChatMessageListener implements ChatStateListener {
                             // necessary because the XMPP server can deliver 
                             // messages out of order.
                             msg.setProperty(MessagePropertyKeys.SEQ, 
-                                sequenceNumber);
+                                sequenceNumber.incrementAndGet() - 1);
                             msg.setProperty(MessagePropertyKeys.HASHCODE, 
                                 message.getProperty(MessagePropertyKeys.HASHCODE));
                             msg.setProperty(MessagePropertyKeys.MAC, 
@@ -340,9 +340,12 @@ public class ChatMessageListener implements ChatStateListener {
                                 System.currentTimeMillis() - 
                                 lastResourceConstraintMessage;
                             if (elapsed < 20000) {
+                                log.info("Caching message for sending later...");
                                 rejected.add(msg);
+                                log.info("Now {} cached", rejected.size());
                                 return;
                             }
+                            log.info("Sending cached messages...");
                             sendRejects();
                             sendWithChat(msg);
                         }
@@ -404,7 +407,6 @@ public class ChatMessageListener implements ChatStateListener {
                             
                             try {
                                 chat.sendMessage(msg);
-                                sequenceNumber++;
                                 
                                 // Note we don't do this in a finally block.
                                 // if an exception happens, it's likely there's
