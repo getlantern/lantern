@@ -255,7 +255,7 @@ public class DefaultXmppProxy implements XmppProxy {
                 
                 final ChatStateManager csm = ChatStateManager.getInstance(conn);
                 final MessageListener ml = 
-                    new ChatMessageListener(proxyConnections, chats, conn, 
+                    new ChatMessageListener(proxyConnections, chats, 
                         MAC_ADDRESS, channelFactory);
                 chat.addMessageListener(ml);
             }
