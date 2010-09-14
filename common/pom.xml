@@ -6,7 +6,7 @@
     <artifactId>mg-common</artifactId>
     <packaging>jar</packaging>
     <version>0.1-SNAPSHOT</version>
-    <name>Client</name>
+    <name>Common</name>
     <description>MG Common Code</description>
 
     <parent>
