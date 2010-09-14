@@ -291,7 +291,7 @@ public class ChatMessageListener implements ChatStateListener {
                             
                             msg.setProperty(MessagePropertyKeys.HTTP, base64);
                             msg.setProperty(MessagePropertyKeys.MD5, toMd5(raw));
-                            sendMessage(msg);
+                            sendMessage(msg, false);
                         }
 
                         @Override
@@ -304,13 +304,14 @@ public class ChatMessageListener implements ChatStateListener {
                             log.info("Sending close message");
                             final Message msg = new Message();
                             msg.setProperty(MessagePropertyKeys.CLOSE, "true");
-                            sendMessage(msg);
+                            sendMessage(msg, true);
                             
                             removedConnections.add(key);
                             proxyConnections.remove(key);
                         }
                         
-                        private void sendMessage(final Message msg) {
+                        private void sendMessage(final Message msg, 
+                            final boolean isClose) {
                             
                             // We set the sequence number so the client knows
                             // how many total messages to expect. This is 
@@ -340,12 +341,21 @@ public class ChatMessageListener implements ChatStateListener {
                                 System.currentTimeMillis() - 
                                 lastResourceConstraintMessage;
                             if (elapsed < 20000) {
-                                log.info("Caching message for sending later...");
-                                rejected.add(msg);
-                                log.info("Now {} cached", rejected.size());
-                                return;
+                                if (isClose) {
+                                    log.info("Got close...waiting to send");
+                                    try {
+                                        Thread.sleep(5000);
+                                    } catch (InterruptedException e) {
+                                    }
+                                }
+                                else {
+                                    log.info("Caching message for sending later...");
+                                    rejected.add(msg);
+                                    log.info("Now {} cached", rejected.size());
+                                    return;
+                                }
                             }
-                            log.info("Sending cached messages...");
+                            
                             sendRejects();
                             sendWithChat(msg);
                         }
@@ -382,12 +392,15 @@ public class ChatMessageListener implements ChatStateListener {
                                 }
                             }
                             */
+                            if (!rejected.isEmpty()) {
+                                log.info("Sending rejects: {}",rejected.size());
+                            }
                             while (!rejected.isEmpty()) {
                                 final Message reject = rejected.poll();
                                 sendWithChat(makeCopy(reject));
                                 log.info("Waiting before sending message");
                                 try {
-                                    Thread.sleep(2000);
+                                    Thread.sleep(1200);
                                 } catch (final InterruptedException e) {
                                     log.error("Error while sleeping?");
                                 }
