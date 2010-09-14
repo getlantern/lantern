@@ -311,14 +311,6 @@ public class ChatMessageListener implements ChatStateListener {
                         }
                         
                         private void sendMessage(final Message msg) {
-                            final long elapsed = 
-                                System.currentTimeMillis() - 
-                                lastResourceConstraintMessage;
-                            if (elapsed < 20000) {
-                                rejected.add(msg);
-                                return;
-                            }
-                            sendRejects();
                             
                             // We set the sequence number so the client knows
                             // how many total messages to expect. This is 
@@ -343,6 +335,15 @@ public class ChatMessageListener implements ChatStateListener {
                             
                             log.info("Received from: {}", 
                                 requestChat.getParticipant());
+                            
+                            final long elapsed = 
+                                System.currentTimeMillis() - 
+                                lastResourceConstraintMessage;
+                            if (elapsed < 20000) {
+                                rejected.add(msg);
+                                return;
+                            }
+                            sendRejects();
                             sendWithChat(msg);
                         }
                         
