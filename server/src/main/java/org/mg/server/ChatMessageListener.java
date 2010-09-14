@@ -54,9 +54,6 @@ public class ChatMessageListener implements ChatStateListener {
     private final Collection<String> removedConnections = 
         new HashSet<String>();
     
-    private final ConcurrentHashMap<Long, Message> sentMessages =
-        new ConcurrentHashMap<Long, Message>();
-    
     private final Map<String, ChannelFuture> proxyConnections;
 
     private final String MAC_ADDRESS;
@@ -304,6 +301,36 @@ public class ChatMessageListener implements ChatStateListener {
                         }
                         
                         private void sendMessage(final Message msg) {
+                            sendRejects();
+                            
+                            // We set the sequence number so the client knows
+                            // how many total messages to expect. This is 
+                            // necessary because the XMPP server can deliver 
+                            // messages out of order.
+                            msg.setProperty(MessagePropertyKeys.SEQ, 
+                                sequenceNumber);
+                            msg.setProperty(MessagePropertyKeys.HASHCODE, 
+                                message.getProperty(MessagePropertyKeys.HASHCODE));
+                            msg.setProperty(MessagePropertyKeys.MAC, 
+                                message.getProperty(MessagePropertyKeys.MAC));
+                            
+                            // This is the server-side MAC address. This is
+                            // useful because there are odd cases where XMPP
+                            // servers echo back our own messages, and we
+                            // want to ignore them.
+                            log.info("Setting SMAC to: {}", MAC_ADDRESS);
+                            msg.setProperty(MessagePropertyKeys.SERVER_MAC, 
+                                MAC_ADDRESS);
+                            log.info("Sending SEQUENCE #: "+sequenceNumber);
+                            //sentMessages.put(sequenceNumber, msg);
+                            
+                            log.info("Received from: {}", 
+                                requestChat.getParticipant());
+                            
+                            sendWithChat(msg);
+                        }
+                        
+                        private void sendRejects() {
                             final long now = System.currentTimeMillis();
                             final long elapsed = 
                                 now - lastResourceConstraintMessage;
@@ -333,43 +360,18 @@ public class ChatMessageListener implements ChatStateListener {
                             if (!rejected.isEmpty()) {
                                 while (!rejected.isEmpty()) {
                                     final Message reject = rejected.poll();
+                                    sendWithChat(makeCopy(reject));
+                                    log.info("Waiting before sending message");
                                     try {
-                                        chat.sendMessage(makeCopy(reject));
-                                        Thread.sleep(1200);
+                                        Thread.sleep(2000);
                                     } catch (final InterruptedException e) {
-                                        log.error(
-                                            "Could not send chat message", e);
-                                    } catch (final XMPPException e) {
-                                        log.error(
-                                            "Could not send chat message", e);
+                                        log.error("Error while sleeping?");
                                     }
                                 }
                             }
-                            
-                            // We set the sequence number so the client knows
-                            // how many total messages to expect. This is 
-                            // necessary because the XMPP server can deliver 
-                            // messages out of order.
-                            msg.setProperty(MessagePropertyKeys.SEQ, 
-                                sequenceNumber);
-                            msg.setProperty(MessagePropertyKeys.HASHCODE, 
-                                message.getProperty(MessagePropertyKeys.HASHCODE));
-                            msg.setProperty(MessagePropertyKeys.MAC, 
-                                message.getProperty(MessagePropertyKeys.MAC));
-                            
-                            // This is the server-side MAC address. This is
-                            // useful because there are odd cases where XMPP
-                            // servers echo back our own messages, and we
-                            // want to ignore them.
-                            log.info("Setting SMAC to: {}", MAC_ADDRESS);
-                            msg.setProperty(MessagePropertyKeys.SERVER_MAC, 
-                                MAC_ADDRESS);
-                            log.info("Sending SEQUENCE #: "+sequenceNumber);
-                            //sentMessages.put(sequenceNumber, msg);
-                            
-                            log.info("Received from: {}", 
-                                requestChat.getParticipant());
-                            
+                        }
+                        
+                        private void sendWithChat(final Message msg) {
                             //final Pair<Chat, XMPPConnection> pair = 
                             //    chatsAndConnections.poll();
                             //final Chat chat = pair.getFirst();
@@ -393,7 +395,7 @@ public class ChatMessageListener implements ChatStateListener {
                                 log.error("Could not send chat message", e);
                             }
                         }
-                        
+
                         private Message makeCopy(final Message reject) {
                             final Message msg = new Message();
                             msg.setProperty(MessagePropertyKeys.SEQ, 
@@ -404,8 +406,8 @@ public class ChatMessageListener implements ChatStateListener {
                                 reject.getProperty(MessagePropertyKeys.MAC));
                             msg.setProperty(MessagePropertyKeys.SERVER_MAC, 
                                 MAC_ADDRESS);
-                            msg.setTo(chat.getParticipant());
-                            msg.setFrom(conn.getUser());
+                            //msg.setTo(chat.getParticipant());
+                            //msg.setFrom(conn.getUser());
                             
                             final String http = 
                                 (String) reject.getProperty(MessagePropertyKeys.HTTP);
