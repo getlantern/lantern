@@ -350,7 +350,7 @@ public class ChatMessageListener implements ChatStateListener {
                             }
                             
                             if (sleepTime > 0) {
-                                log.info("Waiting before sending message");
+                                log.info("Waiting {} to send...", sleepTime);
                                 try {
                                     Thread.sleep(sleepTime);
                                 } catch (final InterruptedException e) {
