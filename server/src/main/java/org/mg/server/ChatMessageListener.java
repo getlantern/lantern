@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.codec.binary.Base64;
@@ -86,6 +87,8 @@ public class ChatMessageListener implements ChatStateListener {
         this.conn = conn;
     }
 
+    private Queue<Message> rejected = new LinkedBlockingQueue<Message>();
+    
     public void processMessage(final Chat ch, final Message msg) {
         log.info("Got message!!");
         log.info("Property names: {}", msg.getPropertyNames());
@@ -112,6 +115,7 @@ public class ChatMessageListener implements ChatStateListener {
                     // Something's up on the server -- we're probably sending
                     // bytes too fast. Slow down.
                     lastResourceConstraintMessage = System.currentTimeMillis();
+                    rejected.add(msg);
                 }
             }
             MgUtils.printMessage(msg);
@@ -306,13 +310,39 @@ public class ChatMessageListener implements ChatStateListener {
                             final long elapsed = 
                                 now - lastResourceConstraintMessage;
                             
-                            if (elapsed < 20000) {
+                            final long sleepTime;
+                            if (elapsed < 5000) {
+                                sleepTime = 10000;
+                            } 
+                            else if (elapsed < 10000) {
+                                sleepTime = 5000;
+                            } 
+                            else if (elapsed < 30000) {
+                                sleepTime = 1000;
+                            }
+                            else {
+                                sleepTime = 0;
+                            }
+                            
+                            if (sleepTime > 0) {
                                 log.info("Waiting before sending message");
                                 try {
-                                    Thread.sleep(4000);
-                                } catch (InterruptedException e) {
-                                    // TODO Auto-generated catch block
-                                    e.printStackTrace();
+                                    Thread.sleep(sleepTime);
+                                } catch (final InterruptedException e) {
+                                    log.error("Error while sleeping?");
+                                }
+                            }
+                            if (!rejected.isEmpty()) {
+                                for (final Message reject : rejected) {
+                                    try {
+                                        Thread.sleep(1000);
+                                        chat.sendMessage(makeCopy(reject));
+                                    } catch (final InterruptedException e) {
+                                        
+                                    } catch (final XMPPException e) {
+                                        log.error(
+                                            "Could not send chat message", e);
+                                    }
                                 }
                             }
                             
@@ -335,7 +365,7 @@ public class ChatMessageListener implements ChatStateListener {
                             msg.setProperty(MessagePropertyKeys.SERVER_MAC, 
                                 MAC_ADDRESS);
                             log.info("Sending SEQUENCE #: "+sequenceNumber);
-                            sentMessages.put(sequenceNumber, msg);
+                            //sentMessages.put(sequenceNumber, msg);
                             
                             log.info("Received from: {}", 
                                 requestChat.getParticipant());
@@ -364,6 +394,29 @@ public class ChatMessageListener implements ChatStateListener {
                             }
                         }
                         
+                        private Message makeCopy(Message reject) {
+                            final Message msg = new Message();
+                            msg.setProperty(MessagePropertyKeys.SEQ, 
+                                reject.getProperty(MessagePropertyKeys.SEQ));
+                            msg.setProperty(MessagePropertyKeys.HASHCODE, 
+                                reject.getProperty(MessagePropertyKeys.HASHCODE));
+                            msg.setProperty(MessagePropertyKeys.MAC, 
+                                reject.getProperty(MessagePropertyKeys.MAC));
+                            msg.setProperty(MessagePropertyKeys.SERVER_MAC, 
+                                MAC_ADDRESS);
+                            msg.setTo(chat.getParticipant());
+                            msg.setFrom(conn.getUser());
+                            
+                            final String http = 
+                                (String) reject.getProperty(MessagePropertyKeys.HTTP);
+                            if (StringUtils.isNotBlank(http)) {
+                                msg.setProperty(MessagePropertyKeys.HTTP, http);
+                                msg.setProperty(MessagePropertyKeys.MAC, 
+                                    reject.getProperty(MessagePropertyKeys.MAC));
+                            }
+                            return msg;
+                        }
+
                         @Override
                         public void exceptionCaught(final ChannelHandlerContext ctx, 
                             final ExceptionEvent e) throws Exception {
