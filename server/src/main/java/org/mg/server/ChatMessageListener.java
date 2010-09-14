@@ -37,6 +37,7 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smackx.ChatState;
 import org.jivesoftware.smackx.ChatStateListener;
 import org.mg.common.MessagePropertyKeys;
+import org.mg.common.MgUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -96,6 +97,7 @@ public class ChatMessageListener implements ChatStateListener {
             smac.trim().equals(MAC_ADDRESS)) {
             log.warn("MESSAGE FROM OURSELVES!! SEND THROUGH A DIFFERENT CHAT");
             log.warn("Connected?? "+conn.isConnected());
+            MgUtils.printMessage(msg);
             return;
         }
         
