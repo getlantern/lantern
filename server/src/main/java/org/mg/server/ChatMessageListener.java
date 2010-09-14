@@ -38,6 +38,7 @@ import org.jivesoftware.smackx.ChatState;
 import org.jivesoftware.smackx.ChatStateListener;
 import org.mg.common.MessagePropertyKeys;
 import org.mg.common.MgUtils;
+import org.mg.common.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,8 +57,6 @@ public class ChatMessageListener implements ChatStateListener {
     
     private final Map<String, ChannelFuture> proxyConnections;
 
-    private final XMPPConnection conn;
-
     private final String MAC_ADDRESS;
 
     private final ChannelFactory channelFactory;
@@ -65,16 +64,14 @@ public class ChatMessageListener implements ChatStateListener {
     private final ConcurrentHashMap<String, AtomicLong> channelsToSequenceNumbers =
         new ConcurrentHashMap<String, AtomicLong>();
 
-    private final Queue<Chat> chats;
+    private final Queue<Pair<Chat, XMPPConnection>> chatsAndConnections;
 
     public ChatMessageListener(
         final Map<String, ChannelFuture> proxyConnections, 
-        final Queue<Chat> chats, final XMPPConnection conn, 
-        final String macAddress, 
-        final ChannelFactory channelFactory) {
+        final Queue<Pair<Chat, XMPPConnection>> chatsAndConnections, 
+        final String macAddress, final ChannelFactory channelFactory) {
         this.proxyConnections = proxyConnections;
-        this.chats = chats;
-        this.conn = conn;
+        this.chatsAndConnections = chatsAndConnections;
         this.MAC_ADDRESS = macAddress;
         this.channelFactory = channelFactory;
     }
@@ -95,8 +92,7 @@ public class ChatMessageListener implements ChatStateListener {
 
         if (StringUtils.isNotBlank(smac) && 
             smac.trim().equals(MAC_ADDRESS)) {
-            log.warn("MESSAGE FROM OURSELVES!! SEND THROUGH A DIFFERENT CHAT");
-            log.warn("Connected?? "+conn.isConnected());
+            log.warn("MESSAGE FROM OURSELVES!! AN ERROR?");
             MgUtils.printMessage(msg);
             return;
         }
@@ -291,7 +287,6 @@ public class ChatMessageListener implements ChatStateListener {
                             // messages out of order.
                             msg.setProperty(MessagePropertyKeys.SEQ, 
                                 sequenceNumber);
-                            msg.setFrom(conn.getUser());
                             msg.setProperty(MessagePropertyKeys.HASHCODE, 
                                 message.getProperty(MessagePropertyKeys.HASHCODE));
                             msg.setProperty(MessagePropertyKeys.MAC, 
@@ -309,9 +304,15 @@ public class ChatMessageListener implements ChatStateListener {
                             
                             log.info("Received from: {}", 
                                 requestChat.getParticipant());
-                            final Chat chat = chats.poll();
+                            final Pair<Chat, XMPPConnection> pair = 
+                                chatsAndConnections.poll();
+                            final Chat chat = pair.getFirst();
                             log.info("Sending to: {}", chat.getParticipant());
                             msg.setTo(chat.getParticipant());
+                            
+                            final XMPPConnection conn = pair.getSecond();
+                            final String from = conn.getUser();
+                            msg.setFrom(from);
                             
                             try {
                                 chat.sendMessage(msg);
@@ -321,7 +322,7 @@ public class ChatMessageListener implements ChatStateListener {
                                 // if an exception happens, it's likely there's
                                 // something wrong with the chat, and we don't
                                 // want to add it back.
-                                chats.offer(chat);
+                                chatsAndConnections.offer(pair);
                             } catch (final XMPPException e) {
                                 log.error("Could not send chat message", e);
                             }

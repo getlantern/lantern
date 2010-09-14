@@ -41,6 +41,8 @@ import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smackx.ChatStateManager;
 import org.littleshoot.proxy.Launcher;
+import org.mg.common.Pair;
+import org.mg.common.PairImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -219,7 +221,8 @@ public class DefaultXmppProxy implements XmppProxy {
             public void chatCreated(final Chat chat, 
                 final boolean createdLocally) {
                 log.info("Created a chat!!");
-                final Queue<Chat> chats = addToGroup(chat);
+                final Queue<Pair<Chat, XMPPConnection>> chats = 
+                    addToGroup(chat, conn);
                 
                 final ConcurrentHashMap<String, ChannelFuture> proxyConnections =
                     new ConcurrentHashMap<String, ChannelFuture>();
@@ -260,27 +263,29 @@ public class DefaultXmppProxy implements XmppProxy {
         return conn;
     }
     
-    private Queue<Chat> addToGroup(final Chat chat) {
+    private Queue<Pair<Chat, XMPPConnection>> addToGroup(final Chat chat, 
+        final XMPPConnection conn) {
         final String participant = chat.getParticipant();
         final String userAndMac = 
             StringUtils.substringBeforeLast(participant, "-");
         log.info("Parsed user and mac: {}", userAndMac);
-        final Queue<Chat> empty = new LinkedBlockingQueue<Chat>();
-        final Queue<Chat> existing = 
+        final Queue<Pair<Chat, XMPPConnection>> empty = 
+            new LinkedBlockingQueue<Pair<Chat,XMPPConnection>>();
+        final Queue<Pair<Chat, XMPPConnection>> existing = 
             userAndMacsToChats.putIfAbsent(userAndMac, empty);
-        final Queue<Chat> chats;
+        final Queue<Pair<Chat, XMPPConnection>> chats;
         if (existing == null) {
             chats = empty;
         }
         else {
             chats = existing;
         }
-        chats.add(chat);
+        chats.add(new PairImpl<Chat,XMPPConnection>(chat, conn));
         return chats;
     }
     
-    private final ConcurrentHashMap<String, Queue<Chat>> userAndMacsToChats =
-        new ConcurrentHashMap<String, Queue<Chat>>();
+    private final ConcurrentHashMap<String, Queue<Pair<Chat, XMPPConnection>>> userAndMacsToChats =
+        new ConcurrentHashMap<String, Queue<Pair<Chat, XMPPConnection>>>();
     
 
     private static String getMacAddress() throws SocketException {
