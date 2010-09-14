@@ -39,16 +39,21 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.XMPPError;
 import org.jivesoftware.smackx.ChatState;
 import org.jivesoftware.smackx.ChatStateListener;
+import org.lastbamboo.common.download.RateCalculator;
+import org.lastbamboo.common.download.RateCalculatorImpl;
+import org.mg.common.ChatData;
 import org.mg.common.MessagePropertyKeys;
 import org.mg.common.MgUtils;
 import org.mg.common.Pair;
+import org.mg.common.RangeDownloaderAdaptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Class for listening for messages for a specific chat.
  */
-public class ChatMessageListener implements ChatStateListener {
+public class ChatMessageListener implements ChatStateListener,
+    ChatData {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -68,6 +73,8 @@ public class ChatMessageListener implements ChatStateListener {
 
     private final Chat chat;
     
+    private final RateCalculator rateCalculator = new RateCalculatorImpl();
+    
     private Queue<Message> rejected = new PriorityQueue<Message>(100, 
         new Comparator<Message>() {
         public int compare(final Message msg1, final Message msg2) {
@@ -76,6 +83,7 @@ public class ChatMessageListener implements ChatStateListener {
             return seq1.compareTo(seq2);
         }
     });
+    
 
     //private final Queue<Pair<Chat, XMPPConnection>> chatsAndConnections;
     
@@ -418,8 +426,34 @@ public class ChatMessageListener implements ChatStateListener {
                             final String from = conn.getUser();
                             msg.setFrom(from);
                             
+                            final long now = System.currentTimeMillis();
                             try {
                                 chat.sendMessage(msg);
+                                
+                                rateCalculator.addData(new RangeDownloaderAdaptor() {
+                                    
+                                    @Override
+                                    public long getRangeStartTime() {
+                                        return now;
+                                    }
+                                    
+                                    @Override
+                                    public long getRangeIndex() {
+                                        return (Long) msg.getProperty(MessagePropertyKeys.SEQ);
+                                    }
+                                    
+                                    @Override
+                                    public long getNumBytesDownloaded() {
+                                        final String http = 
+                                            (String) msg.getProperty(
+                                                MessagePropertyKeys.HTTP);
+                                        if (StringUtils.isBlank(http)) {
+                                            return 0;
+                                        }
+                                        return http.length();
+                                    }
+                                    
+                                });
                                 
                                 // Note we don't do this in a finally block.
                                 // if an exception happens, it's likely there's
@@ -537,6 +571,10 @@ public class ChatMessageListener implements ChatStateListener {
         buf.get(bytes);
         buf.position(mark);
         return bytes;
+    }
+
+    public double getRate() {
+        return rateCalculator.getRate();
     }
 }
 

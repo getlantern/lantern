@@ -3,6 +3,7 @@ package org.mg.server;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
@@ -19,6 +20,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 import javax.net.SocketFactory;
 
 import org.apache.commons.codec.binary.Base64;
@@ -32,7 +39,6 @@ import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.ChatManagerListener;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
-import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.XMPPConnection;
@@ -46,7 +52,7 @@ import org.mg.common.PairImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DefaultXmppProxy implements XmppProxy {
+public class DefaultXmppProxy implements XmppProxy, XmppProxyData {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -56,6 +62,12 @@ public class DefaultXmppProxy implements XmppProxy {
             Executors.newCachedThreadPool());
     
     private static final String MAC_ADDRESS;
+    
+    private final Collection<ChatMessageListener> allChats = 
+        new ArrayList<ChatMessageListener>();
+    
+    private final ConcurrentHashMap<String, Queue<Pair<Chat, XMPPConnection>>> userAndMacsToChats =
+        new ConcurrentHashMap<String, Queue<Pair<Chat, XMPPConnection>>>();
     
     static {
         String tempMac;
@@ -73,8 +85,31 @@ public class DefaultXmppProxy implements XmppProxy {
         // developed logic for handling different types of requests, and we'd
         // otherwise have to duplicate that here.
         Launcher.main("7777");
+        addJmx();
     }
     
+    private void addJmx() {
+        final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        try {
+            final Class<? extends DefaultXmppProxy> clazz = getClass();
+            final String pack = clazz.getPackage().getName();
+            final String oName =
+                pack+":type=XmppProxy";
+            final ObjectName mxBeanName = new ObjectName(oName);
+            if(!mbs.isRegistered(mxBeanName)) {
+                mbs.registerMBean(this, mxBeanName);
+            }
+        } catch (final MalformedObjectNameException e) {
+            log.error("Could not set up JMX", e);
+        } catch (final InstanceAlreadyExistsException e) {
+            log.error("Could not set up JMX", e);
+        } catch (final MBeanRegistrationException e) {
+            log.error("Could not set up JMX", e);
+        } catch (final NotCompliantMBeanException e) {
+            log.error("Could not set up JMX", e);
+        }
+    }
+
     public void start() throws XMPPException, IOException {
         final Properties props = new Properties();
         final File propsDir = new File(System.getProperty("user.home"), ".mg");
@@ -221,6 +256,7 @@ public class DefaultXmppProxy implements XmppProxy {
             public void chatCreated(final Chat chat, 
                 final boolean createdLocally) {
                 log.info("Created a chat!!");
+                
                 final Queue<Pair<Chat, XMPPConnection>> chats = 
                     addToGroup(chat, conn);
                 
@@ -254,9 +290,10 @@ public class DefaultXmppProxy implements XmppProxy {
                 conn.addPacketListener(pl, null);
                 
                 final ChatStateManager csm = ChatStateManager.getInstance(conn);
-                final MessageListener ml = 
+                final ChatMessageListener ml = 
                     new ChatMessageListener(proxyConnections, chats, 
                         MAC_ADDRESS, channelFactory, chat, conn);
+                allChats.add(ml);
                 chat.addMessageListener(ml);
             }
         });
@@ -268,7 +305,7 @@ public class DefaultXmppProxy implements XmppProxy {
         final String participant = chat.getParticipant();
         final String userAndMac = 
             StringUtils.substringBeforeLast(participant, "-");
-        log.info("Parsed user and mac: {}", userAndMac);
+        log.info("Parsed user and mac: "+ userAndMac+" from "+participant);
         final Queue<Pair<Chat, XMPPConnection>> empty = 
             new LinkedBlockingQueue<Pair<Chat,XMPPConnection>>();
         final Queue<Pair<Chat, XMPPConnection>> existing = 
@@ -284,10 +321,6 @@ public class DefaultXmppProxy implements XmppProxy {
         return chats;
     }
     
-    private final ConcurrentHashMap<String, Queue<Pair<Chat, XMPPConnection>>> userAndMacsToChats =
-        new ConcurrentHashMap<String, Queue<Pair<Chat, XMPPConnection>>>();
-    
-
     private static String getMacAddress() throws SocketException {
         final Enumeration<NetworkInterface> nis = 
             NetworkInterface.getNetworkInterfaces();
@@ -309,6 +342,16 @@ public class DefaultXmppProxy implements XmppProxy {
             final byte[] bytes = new byte[24];
             new Random().nextBytes(bytes);
             return Base64.encodeBase64String(bytes);
+        }
+    }
+
+    public double getRate() {
+        synchronized (allChats) {
+            double total = 0;
+            for (final ChatMessageListener ml : allChats) {
+                total += ml.getRate();
+            }
+            return total;
         }
     }
 }
