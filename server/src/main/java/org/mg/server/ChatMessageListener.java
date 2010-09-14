@@ -7,11 +7,12 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.apache.commons.codec.binary.Base64;
@@ -66,8 +67,20 @@ public class ChatMessageListener implements ChatStateListener {
     private final XMPPConnection conn;
 
     private final Chat chat;
+    
+    private Queue<Message> rejected = new PriorityQueue<Message>(100, 
+        new Comparator<Message>() {
+        public int compare(final Message msg1, final Message msg2) {
+            final Long seq1 = (Long) msg1.getProperty(MessagePropertyKeys.SEQ);
+            final Long seq2 = (Long) msg2.getProperty(MessagePropertyKeys.SEQ);
+            return seq1.compareTo(seq2);
+        }
+    });
 
     //private final Queue<Pair<Chat, XMPPConnection>> chatsAndConnections;
+    
+    //private final Map<Long, Message> rejectedMessages = 
+    //    new TreeMap<Long, Message>();
 
     private long lastResourceConstraintMessage = 0L;
     
@@ -84,8 +97,6 @@ public class ChatMessageListener implements ChatStateListener {
         this.conn = conn;
     }
 
-    private Queue<Message> rejected = new LinkedBlockingQueue<Message>();
-    
     public void processMessage(final Chat ch, final Message msg) {
         log.info("Got message!!");
         log.info("Property names: {}", msg.getPropertyNames());
@@ -110,6 +121,7 @@ public class ChatMessageListener implements ChatStateListener {
                     // Something's up on the server -- we're probably sending
                     // bytes too fast. Slow down.
                     lastResourceConstraintMessage = System.currentTimeMillis();
+                    //rejectedMessages.put(seq, msg);
                     rejected.add(msg);
                 }
             }
@@ -269,8 +281,7 @@ public class ChatMessageListener implements ChatStateListener {
                         public void messageReceived(
                             final ChannelHandlerContext ctx, 
                             final MessageEvent me) {
-                            //log.info("HTTP message received from proxy on " +
-                            //    "relayer: {}", me.getMessage());
+                            log.info("HTTP message received from proxy relay");
                             final Message msg = new Message();
                             final ByteBuffer buf = 
                                 ((ChannelBuffer) me.getMessage()).toByteBuffer();
@@ -280,7 +291,6 @@ public class ChatMessageListener implements ChatStateListener {
                             
                             msg.setProperty(MessagePropertyKeys.HTTP, base64);
                             msg.setProperty(MessagePropertyKeys.MD5, toMd5(raw));
-                            
                             sendMessage(msg);
                         }
 
@@ -301,6 +311,13 @@ public class ChatMessageListener implements ChatStateListener {
                         }
                         
                         private void sendMessage(final Message msg) {
+                            final long elapsed = 
+                                System.currentTimeMillis() - 
+                                lastResourceConstraintMessage;
+                            if (elapsed < 20000) {
+                                rejected.add(msg);
+                                return;
+                            }
                             sendRejects();
                             
                             // We set the sequence number so the client knows
@@ -326,14 +343,17 @@ public class ChatMessageListener implements ChatStateListener {
                             
                             log.info("Received from: {}", 
                                 requestChat.getParticipant());
-                            
                             sendWithChat(msg);
                         }
                         
                         private void sendRejects() {
+                            /*
                             final long now = System.currentTimeMillis();
                             final long elapsed = 
                                 now - lastResourceConstraintMessage;
+                            if (elapsed < 10000) {
+                                
+                            }
                             
                             final long sleepTime;
                             if (elapsed < 5000) {
@@ -357,16 +377,15 @@ public class ChatMessageListener implements ChatStateListener {
                                     log.error("Error while sleeping?");
                                 }
                             }
-                            if (!rejected.isEmpty()) {
-                                while (!rejected.isEmpty()) {
-                                    final Message reject = rejected.poll();
-                                    sendWithChat(makeCopy(reject));
-                                    log.info("Waiting before sending message");
-                                    try {
-                                        Thread.sleep(2000);
-                                    } catch (final InterruptedException e) {
-                                        log.error("Error while sleeping?");
-                                    }
+                            */
+                            while (!rejected.isEmpty()) {
+                                final Message reject = rejected.poll();
+                                sendWithChat(makeCopy(reject));
+                                log.info("Waiting before sending message");
+                                try {
+                                    Thread.sleep(2000);
+                                } catch (final InterruptedException e) {
+                                    log.error("Error while sleeping?");
                                 }
                             }
                         }
