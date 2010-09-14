@@ -243,7 +243,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         
         final XMPPConnection xmpp = new XMPPConnection(config);
         xmpp.connect();
-        final String id = "MG-"+macAddress+"-";
+        final String id = "-"+macAddress+"-";
         log.info("Chat ID: "+id);
         xmpp.login(this.user, this.pwd, id);
         

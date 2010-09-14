@@ -210,7 +210,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
 
     private final Object writeLock = new Object();
     
-    public void processMessage(final Chat ch, final Message msg) {
+    public void processMessage(final Chat ignored, final Message msg) {
         log.info("Received message with props: {}", 
             msg.getPropertyNames());
         final long sequenceNumber = 
