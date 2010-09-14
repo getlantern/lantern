@@ -333,12 +333,14 @@ public class ChatMessageListener implements ChatStateListener {
                                 }
                             }
                             if (!rejected.isEmpty()) {
-                                for (final Message reject : rejected) {
+                                while (!rejected.isEmpty()) {
+                                    final Message reject = rejected.poll();
                                     try {
-                                        Thread.sleep(1000);
                                         chat.sendMessage(makeCopy(reject));
+                                        Thread.sleep(1200);
                                     } catch (final InterruptedException e) {
-                                        
+                                        log.error(
+                                            "Could not send chat message", e);
                                     } catch (final XMPPException e) {
                                         log.error(
                                             "Could not send chat message", e);
@@ -394,7 +396,7 @@ public class ChatMessageListener implements ChatStateListener {
                             }
                         }
                         
-                        private Message makeCopy(Message reject) {
+                        private Message makeCopy(final Message reject) {
                             final Message msg = new Message();
                             msg.setProperty(MessagePropertyKeys.SEQ, 
                                 reject.getProperty(MessagePropertyKeys.SEQ));
