@@ -3,6 +3,7 @@ package org.mg.server;
 import static org.jboss.netty.channel.Channels.pipeline;
 
 import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
@@ -47,10 +48,11 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.XMPPError;
 import org.jivesoftware.smackx.ChatState;
 import org.jivesoftware.smackx.ChatStateListener;
+import org.lastbamboo.common.amazon.ec2.AmazonEc2Utils;
 import org.lastbamboo.common.download.RateCalculator;
 import org.lastbamboo.common.download.RateCalculatorImpl;
 import org.mg.common.ChatData;
-import org.mg.common.MessagePropertyKeys;
+import org.mg.common.XmppMessageConstants;
 import org.mg.common.MgUtils;
 import org.mg.common.Pair;
 import org.mg.common.RangeDownloaderAdaptor;
@@ -86,8 +88,8 @@ public class ChatMessageListener implements ChatStateListener,
     private Queue<Message> rejected = new PriorityQueue<Message>(100, 
         new Comparator<Message>() {
         public int compare(final Message msg1, final Message msg2) {
-            final Long seq1 = (Long) msg1.getProperty(MessagePropertyKeys.SEQ);
-            final Long seq2 = (Long) msg2.getProperty(MessagePropertyKeys.SEQ);
+            final Long seq1 = (Long) msg1.getProperty(XmppMessageConstants.SEQ);
+            final Long seq2 = (Long) msg2.getProperty(XmppMessageConstants.SEQ);
             return seq1.compareTo(seq2);
         }
     });
@@ -142,15 +144,27 @@ public class ChatMessageListener implements ChatStateListener,
     public void processMessage(final Chat ch, final Message msg) {
         log.info("Got message!!");
         log.info("Property names: {}", msg.getPropertyNames());
-        final long seq = (Long) msg.getProperty(MessagePropertyKeys.SEQ);
+        final Integer type = (Integer) msg.getProperty(XmppMessageConstants.TYPE);
+        if (type != null) {
+            switch (type) {
+                case XmppMessageConstants.INFO_TYPE:
+                    sendInfo(ch);
+                    break;
+                default:
+                    log.error("Unhandled type? "+type);
+            }
+            return;
+        }
+        
+        final long seq = (Long) msg.getProperty(XmppMessageConstants.SEQ);
         log.info("SEQUENCE #: {}", seq);
         log.info("HASHCODE #: {}", 
-            msg.getProperty(MessagePropertyKeys.HASHCODE));
+            msg.getProperty(XmppMessageConstants.HASHCODE));
         
         log.info("FROM: {}",msg.getFrom());
         log.info("TO: {}",msg.getTo());
         final String smac = 
-            (String) msg.getProperty(MessagePropertyKeys.SERVER_MAC);
+            (String) msg.getProperty(XmppMessageConstants.SERVER_MAC);
         log.info("SMAC: {}", smac);
 
         if (StringUtils.isNotBlank(smac) && 
@@ -172,7 +186,7 @@ public class ChatMessageListener implements ChatStateListener,
         }
         
         final String closeString = 
-            (String) msg.getProperty(MessagePropertyKeys.CLOSE);
+            (String) msg.getProperty(XmppMessageConstants.CLOSE);
         
         log.info("Close value: {}", closeString);
         final boolean close;
@@ -184,7 +198,7 @@ public class ChatMessageListener implements ChatStateListener,
         else {
             close = false;
             final String data = 
-                (String) msg.getProperty(MessagePropertyKeys.HTTP);
+                (String) msg.getProperty(XmppMessageConstants.HTTP);
             if (StringUtils.isBlank(data)) {
                 log.warn("HTTP IS BLANK?? IGNORING...");
                 return;
@@ -196,7 +210,7 @@ public class ChatMessageListener implements ChatStateListener,
         if (close) {
             log.info("Received close from client...closing " +
                 "connection to the proxy for HASHCODE: {}", 
-                msg.getProperty(MessagePropertyKeys.HASHCODE));
+                msg.getProperty(XmppMessageConstants.HASHCODE));
             final ChannelFuture cf = proxyConnections.get(key);
             
             if (cf != null) {
@@ -242,6 +256,21 @@ public class ChatMessageListener implements ChatStateListener,
         }
     }
 
+    private void sendInfo(final Chat ch) {
+        final Message msg = new Message();
+        msg.setProperty(XmppMessageConstants.TYPE, 
+            XmppMessageConstants.INFO_TYPE);
+        final InetAddress address = AmazonEc2Utils.getPublicAddress();
+        final String proxies = 
+            address.getHostAddress() + ":"+ServerConstants.PROXY_PORT;
+        msg.setProperty(XmppMessageConstants.PROXIES, proxies);
+        try {
+            ch.sendMessage(msg);
+        } catch (final XMPPException e) {
+            log.error("Could not send info message", e);
+        }
+    }
+
     private AtomicLong getExpectedSequenceNumber(final String key) {
         final AtomicLong zero = new AtomicLong(0);
         final AtomicLong existing =
@@ -257,7 +286,7 @@ public class ChatMessageListener implements ChatStateListener,
     }
 
     private ChannelBuffer unwrap(final Message msg) {
-        final String data = (String) msg.getProperty(MessagePropertyKeys.HTTP);
+        final String data = (String) msg.getProperty(XmppMessageConstants.HTTP);
         final byte[] raw = 
             Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
         return ChannelBuffers.wrappedBuffer(raw);
@@ -331,8 +360,8 @@ public class ChatMessageListener implements ChatStateListener,
                             final String base64 = 
                                 Base64.encodeBase64URLSafeString(raw);
                             
-                            msg.setProperty(MessagePropertyKeys.HTTP, base64);
-                            msg.setProperty(MessagePropertyKeys.MD5, toMd5(raw));
+                            msg.setProperty(XmppMessageConstants.HTTP, base64);
+                            msg.setProperty(XmppMessageConstants.MD5, toMd5(raw));
                             sendMessage(msg, false);
                         }
 
@@ -345,7 +374,7 @@ public class ChatMessageListener implements ChatStateListener,
                             log.info("Got channel closed on C in A->B->C->D chain...");
                             log.info("Sending close message");
                             final Message msg = new Message();
-                            msg.setProperty(MessagePropertyKeys.CLOSE, "true");
+                            msg.setProperty(XmppMessageConstants.CLOSE, "true");
                             sendMessage(msg, true);
                             
                             removedConnections.add(key);
@@ -359,19 +388,19 @@ public class ChatMessageListener implements ChatStateListener,
                             // how many total messages to expect. This is 
                             // necessary because the XMPP server can deliver 
                             // messages out of order.
-                            msg.setProperty(MessagePropertyKeys.SEQ, 
+                            msg.setProperty(XmppMessageConstants.SEQ, 
                                 sequenceNumber.incrementAndGet() - 1);
-                            msg.setProperty(MessagePropertyKeys.HASHCODE, 
-                                message.getProperty(MessagePropertyKeys.HASHCODE));
-                            msg.setProperty(MessagePropertyKeys.MAC, 
-                                message.getProperty(MessagePropertyKeys.MAC));
+                            msg.setProperty(XmppMessageConstants.HASHCODE, 
+                                message.getProperty(XmppMessageConstants.HASHCODE));
+                            msg.setProperty(XmppMessageConstants.MAC, 
+                                message.getProperty(XmppMessageConstants.MAC));
                             
                             // This is the server-side MAC address. This is
                             // useful because there are odd cases where XMPP
                             // servers echo back our own messages, and we
                             // want to ignore them.
                             log.info("Setting SMAC to: {}", MAC_ADDRESS);
-                            msg.setProperty(MessagePropertyKeys.SERVER_MAC, 
+                            msg.setProperty(XmppMessageConstants.SERVER_MAC, 
                                 MAC_ADDRESS);
                             log.info("Sending SEQUENCE #: "+sequenceNumber);
                             //sentMessages.put(sequenceNumber, msg);
@@ -445,7 +474,7 @@ public class ChatMessageListener implements ChatStateListener,
                             try {
                                 chat.sendMessage(msg);
                                 final String http = (String) msg.getProperty(
-                                    MessagePropertyKeys.HTTP);
+                                    XmppMessageConstants.HTTP);
                                 final long length;
                                 if (StringUtils.isBlank(http)) {
                                     length = 0;
@@ -465,7 +494,7 @@ public class ChatMessageListener implements ChatStateListener,
                                     
                                     @Override
                                     public long getRangeIndex() {
-                                        return (Long) msg.getProperty(MessagePropertyKeys.SEQ);
+                                        return (Long) msg.getProperty(XmppMessageConstants.SEQ);
                                     }
                                     
                                     @Override
@@ -488,23 +517,23 @@ public class ChatMessageListener implements ChatStateListener,
 
                         private Message makeCopy(final Message reject) {
                             final Message msg = new Message();
-                            msg.setProperty(MessagePropertyKeys.SEQ, 
-                                reject.getProperty(MessagePropertyKeys.SEQ));
-                            msg.setProperty(MessagePropertyKeys.HASHCODE, 
-                                reject.getProperty(MessagePropertyKeys.HASHCODE));
-                            msg.setProperty(MessagePropertyKeys.MAC, 
-                                reject.getProperty(MessagePropertyKeys.MAC));
-                            msg.setProperty(MessagePropertyKeys.SERVER_MAC, 
+                            msg.setProperty(XmppMessageConstants.SEQ, 
+                                reject.getProperty(XmppMessageConstants.SEQ));
+                            msg.setProperty(XmppMessageConstants.HASHCODE, 
+                                reject.getProperty(XmppMessageConstants.HASHCODE));
+                            msg.setProperty(XmppMessageConstants.MAC, 
+                                reject.getProperty(XmppMessageConstants.MAC));
+                            msg.setProperty(XmppMessageConstants.SERVER_MAC, 
                                 MAC_ADDRESS);
                             //msg.setTo(chat.getParticipant());
                             //msg.setFrom(conn.getUser());
                             
                             final String http = 
-                                (String) reject.getProperty(MessagePropertyKeys.HTTP);
+                                (String) reject.getProperty(XmppMessageConstants.HTTP);
                             if (StringUtils.isNotBlank(http)) {
-                                msg.setProperty(MessagePropertyKeys.HTTP, http);
-                                msg.setProperty(MessagePropertyKeys.MD5, 
-                                    reject.getProperty(MessagePropertyKeys.MD5));
+                                msg.setProperty(XmppMessageConstants.HTTP, http);
+                                msg.setProperty(XmppMessageConstants.MD5, 
+                                    reject.getProperty(XmppMessageConstants.MD5));
                             }
                             return msg;
                         }
@@ -549,9 +578,9 @@ public class ChatMessageListener implements ChatStateListener,
     
     private String messageKey(final Message message) {
         final String mac = 
-            (String) message.getProperty(MessagePropertyKeys.MAC);
+            (String) message.getProperty(XmppMessageConstants.MAC);
         final String hc = 
-            (String) message.getProperty(MessagePropertyKeys.HASHCODE);
+            (String) message.getProperty(XmppMessageConstants.HASHCODE);
 
         // We can sometimes get messages back that were not intended for us.
         // Just ignore them.

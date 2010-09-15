@@ -3,9 +3,9 @@ package org.mg.common;
 /**
  * Class containing constants for message property keys.
  */
-public class MessagePropertyKeys {
+public class XmppMessageConstants {
 
-    private MessagePropertyKeys() {}
+    private XmppMessageConstants() {}
     
     public static final String MAC = "M";
     
@@ -20,4 +20,10 @@ public class MessagePropertyKeys {
     public static final String SERVER_MAC = "SM";
 
     public static final String CLOSE = "CL";
+
+    public static final String TYPE = "T";
+    
+    public static final int INFO_TYPE = 1;
+
+    public static final String PROXIES = "P";
 }

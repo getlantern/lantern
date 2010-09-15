@@ -46,7 +46,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
-import org.mg.common.MessagePropertyKeys;
+import org.mg.common.XmppMessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -246,6 +246,14 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         final String id = "-"+macAddress+"-";
         log.info("Chat ID: "+id);
         xmpp.login(this.user, this.pwd, id);
+        while (!xmpp.isAuthenticated()) {
+            log.info("Waiting for authentication");
+            try {
+                Thread.sleep(1000);
+            } catch (final InterruptedException e1) {
+                log.error("Exception during sleep?", e1);
+            }
+        }
         
         synchronized (serverSideJids) {
             while (serverSideJids.size() < 4) {
@@ -272,7 +280,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
             
                 public void processMessage(final Chat ch, final Message msg) {
                     final String hashCode = 
-                        (String) msg.getProperty(MessagePropertyKeys.HASHCODE);
+                        (String) msg.getProperty(XmppMessageConstants.HASHCODE);
                     final HttpRequestHandler handler = 
                         hashCodesToHandlers.get(hashCode);
                     
@@ -315,6 +323,10 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
             }
         });
         
+        // Send an "info" message to gather proxy data.
+        final Message msg = new Message();
+        msg.setProperty(XmppMessageConstants.TYPE, XmppMessageConstants.INFO_TYPE);
+        chat.sendMessage(msg);
         this.chats.add(chat);
         this.chatsToHashCodes.put(chat, new ArrayList<String>());
     }

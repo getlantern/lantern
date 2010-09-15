@@ -24,7 +24,7 @@ import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
-import org.mg.common.MessagePropertyKeys;
+import org.mg.common.XmppMessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,7 +101,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
             final ByteBuffer buf = cb.toByteBuffer();
             final byte[] raw = toRawBytes(buf);
             final Message msg = newMessage();
-            msg.setProperty(MessagePropertyKeys.HTTP, 
+            msg.setProperty(XmppMessageConstants.HTTP, 
                 Base64.encodeBase64URLSafeString(raw));
             this.chat.sendMessage(msg);
             log.info("Sent XMPP message!!");
@@ -130,7 +130,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
                 "to proxy connection!!!");
             
             final Message msg = newMessage();
-            msg.setProperty(MessagePropertyKeys.CLOSE, "true");
+            msg.setProperty(XmppMessageConstants.CLOSE, "true");
 
             try {
                 this.chat.sendMessage(msg);
@@ -146,13 +146,13 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         
         // The other side will also need to know where the request came
         // from to differentiate incoming HTTP connections.
-        msg.setProperty(MessagePropertyKeys.MAC, this.macAddress);
-        msg.setProperty(MessagePropertyKeys.HASHCODE, 
+        msg.setProperty(XmppMessageConstants.MAC, this.macAddress);
+        msg.setProperty(XmppMessageConstants.HASHCODE, 
             String.valueOf(this.hashCode()));
         
         // We set the sequence number in case the XMPP server delivers the 
         // packets out of order for any reason.
-        msg.setProperty(MessagePropertyKeys.SEQ, outgoingSequenceNumber);
+        msg.setProperty(XmppMessageConstants.SEQ, outgoingSequenceNumber);
         outgoingSequenceNumber++;
         return msg;
     }
@@ -214,7 +214,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         log.info("Received message with props: {}", 
             msg.getPropertyNames());
         final long sequenceNumber = 
-            (Long) msg.getProperty(MessagePropertyKeys.SEQ);
+            (Long) msg.getProperty(XmppMessageConstants.SEQ);
         log.info("SEQUENCE NUMBER: "+sequenceNumber+ " FOR: "+hashCode() + 
             " BROWSER TO PROXY CHANNEL: "+browserToProxyChannel);
 
@@ -242,13 +242,13 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         
         // We need to grab the HTTP data from the message and send
         // it to the browser.
-        final String data = (String) msg.getProperty(MessagePropertyKeys.HTTP);
+        final String data = (String) msg.getProperty(XmppMessageConstants.HTTP);
         if (data == null) {
             log.warn("No HTTP data");
             return;
         }
-        final String mac = (String) msg.getProperty(MessagePropertyKeys.MAC);
-        final String hc = (String) msg.getProperty(MessagePropertyKeys.HASHCODE);
+        final String mac = (String) msg.getProperty(XmppMessageConstants.MAC);
+        final String hc = (String) msg.getProperty(XmppMessageConstants.HASHCODE);
         final String localKey = newKey(mac, Integer.parseInt(hc));
         if (!localKey.equals(this.key)) {
             log.error("RECEIVED A MESSAGE THAT'S NOT FOR US?!?!?!");
@@ -289,7 +289,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
     }
 
     private boolean isClose(final Message msg) {
-        final String close = (String) msg.getProperty(MessagePropertyKeys.CLOSE);
+        final String close = (String) msg.getProperty(XmppMessageConstants.CLOSE);
         // If the other side is sending the close directive, we 
         // need to close the connection to the browser.
         return 
@@ -298,13 +298,13 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
     }
 
     private void writeData(final Message msg) {
-        final String data = (String) msg.getProperty(MessagePropertyKeys.HTTP);
+        final String data = (String) msg.getProperty(XmppMessageConstants.HTTP);
         final byte[] raw = 
             Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
         
         final String md5 = toMd5(raw);
         final String expected = 
-            (String) msg.getProperty(MessagePropertyKeys.MD5);
+            (String) msg.getProperty(XmppMessageConstants.MD5);
         if (!md5.equals(expected)) {
             log.error("MD-5s not equal!! Expected:\n'"+expected+
                 "'\nBut was:\n'"+md5+"'");

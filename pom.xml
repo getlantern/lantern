@@ -92,6 +92,11 @@
 
         <dependency>
             <groupId>org.lastbamboo</groupId>
+            <artifactId>lastbamboo-common-amazon-ec2</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.lastbamboo</groupId>
             <artifactId>lastbamboo-common-download</artifactId>
         </dependency>
 
@@ -190,6 +195,12 @@
             <groupId>org.jivesoftware</groupId>
             <artifactId>smack</artifactId>
             <version>3.1.1-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.lastbamboo</groupId>
+            <artifactId>lastbamboo-common-amazon-ec2</artifactId>
+            <version>1.0</version>
         </dependency>
 
         <dependency>

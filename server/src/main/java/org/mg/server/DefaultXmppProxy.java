@@ -87,7 +87,7 @@ public class DefaultXmppProxy implements XmppProxy, ChatData {
         // Start the HTTP proxy server that we relay data to. It has more
         // developed logic for handling different types of requests, and we'd
         // otherwise have to duplicate that here.
-        Launcher.main("7777");
+        Launcher.main(String.valueOf(ServerConstants.PROXY_PORT));
         addJmx();
     }
     
@@ -228,12 +228,6 @@ public class DefaultXmppProxy implements XmppProxy, ChatData {
         conn.connect();
         conn.login(user, pass, "MG");
         
-        // We wait a second because the roster fetch sometimes fails.
-        try {
-            Thread.sleep(1000);
-        } catch (final InterruptedException e2) {
-            log.error("Exception during sleep?", e2);
-        }
         while (!conn.isAuthenticated()) {
             log.info("Waiting for authentication");
             try {

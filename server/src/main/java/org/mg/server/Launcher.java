@@ -24,17 +24,17 @@ public class Launcher {
         final XmppProxy proxy = new DefaultXmppProxy();
         try {
             proxy.start();
-        } catch (XMPPException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (final XMPPException e) {
+            log.error("Could not start proxy?", e);
+        } catch (final IOException e) {
+            log.error("Could not start proxy?", e);
         }
         // Keep the server open.
         synchronized (proxy) {
             try {
                 proxy.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+            } catch (final InterruptedException e) {
+                log.error("Interrupt while waiting", e);
             }
         }
     }
