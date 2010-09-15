@@ -417,6 +417,7 @@ public class ChatMessageListener implements ChatStateListener,
                                     start = lastResourceConstraintMessage;
                                     newRejects++;
                                     sleepTime = 3000 * newRejects;
+                                    log.info("Set sleep time to {}", sleepTime);
                                 }
                                 else {
                                     sleepTime = 1200;
