@@ -403,46 +403,26 @@ public class ChatMessageListener implements ChatStateListener,
                         }
                         
                         private void sendRejects() {
-                            /*
-                            final long now = System.currentTimeMillis();
-                            final long elapsed = 
-                                now - lastResourceConstraintMessage;
-                            if (elapsed < 10000) {
-                                
-                            }
-                            
-                            final long sleepTime;
-                            if (elapsed < 5000) {
-                                sleepTime = 10000;
-                            } 
-                            else if (elapsed < 10000) {
-                                sleepTime = 5000;
-                            } 
-                            else if (elapsed < 30000) {
-                                sleepTime = 1000;
-                            }
-                            else {
-                                sleepTime = 0;
-                            }
-                            
-                            if (sleepTime > 0) {
-                                log.info("Waiting {} to send...", sleepTime);
-                                try {
-                                    Thread.sleep(sleepTime);
-                                } catch (final InterruptedException e) {
-                                    log.error("Error while sleeping?");
-                                }
-                            }
-                            */
                             if (!rejected.isEmpty()) {
                                 log.info("Sending rejects: {}",rejected.size());
                             }
+                            long start = lastResourceConstraintMessage;
+                            int newRejects = 0;
                             while (!rejected.isEmpty()) {
                                 final Message reject = rejected.poll();
                                 sendWithChat(makeCopy(reject));
                                 log.info("Waiting before sending message");
+                                final long sleepTime;
+                                if (lastResourceConstraintMessage != start) {
+                                    start = lastResourceConstraintMessage;
+                                    newRejects++;
+                                    sleepTime = 3000 * newRejects;
+                                }
+                                else {
+                                    sleepTime = 1200;
+                                }
                                 try {
-                                    Thread.sleep(1200);
+                                    Thread.sleep(sleepTime);
                                 } catch (final InterruptedException e) {
                                     log.error("Error while sleeping?");
                                 }
