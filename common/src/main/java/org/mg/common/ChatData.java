@@ -6,4 +6,10 @@ import javax.management.MXBean;
 public interface ChatData {
 
     double getRate();
+    
+    int getAverageMessageSize();
+    
+    int getTotalMessages();
+    
+    long getTotalBytes();
 }
