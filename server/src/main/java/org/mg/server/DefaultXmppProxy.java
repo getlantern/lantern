@@ -16,6 +16,8 @@ import java.util.Enumeration;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Random;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -47,12 +49,13 @@ import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smackx.ChatStateManager;
 import org.littleshoot.proxy.Launcher;
+import org.mg.common.ChatData;
 import org.mg.common.Pair;
 import org.mg.common.PairImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DefaultXmppProxy implements XmppProxy, XmppProxyData {
+public class DefaultXmppProxy implements XmppProxy, ChatData {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -145,8 +148,24 @@ public class DefaultXmppProxy implements XmppProxy, XmppProxyData {
             }
             
         }, "XMPP-Disconnect-On-Shutdown"));
+        
+        log();
     }
     
+    private void log() {
+        final Timer t = new Timer(true);
+        t.schedule(new TimerTask() {
+            
+            @Override
+            public void run() {
+                getAverageMessageSize();
+                getRate();
+                getTotalBytes();
+                getTotalMessages();
+            }
+        }, 10000, 15000);
+    }
+
     private XMPPConnection newConnection(final String user, final String pass) {
         for (int i = 0; i < 10; i++) {
             try {
@@ -347,10 +366,54 @@ public class DefaultXmppProxy implements XmppProxy, XmppProxyData {
 
     public double getRate() {
         synchronized (allChats) {
+            if (allChats.isEmpty()) {
+                log.info("Average rate: 0");
+                return 0;
+            }
             double total = 0;
             for (final ChatMessageListener ml : allChats) {
                 total += ml.getRate();
             }
+            final double average = total/allChats.size();
+            log.info("Average rate: "+average+" Kb/s");
+            return average;
+        }
+    }
+
+    public int getAverageMessageSize() {
+        synchronized (allChats) {
+            if (allChats.isEmpty()) {
+                log.info("Average message size: 0");
+                return 0;
+            }
+            int total = 0;
+            for (final ChatMessageListener ml : allChats) {
+                total += ml.getAverageMessageSize();
+            }
+            final int average = total/allChats.size();
+            log.info("Average message size: "+total);
+            return average;
+        }
+    }
+
+    public int getTotalMessages() {
+        synchronized (allChats) {
+            int total = 0;
+            for (final ChatMessageListener ml : allChats) {
+                total += ml.getTotalMessages();
+            }
+            log.info("Total messages sent: "+total);
+            return total;
+        }
+    }
+
+    public long getTotalBytes() {
+        synchronized (allChats) {
+            int total = 0;
+            for (final ChatMessageListener ml : allChats) {
+                total += ml.getTotalBytes();
+            }
+            log.info("Total bytes sent: "+total);
             return total;
         }
     }

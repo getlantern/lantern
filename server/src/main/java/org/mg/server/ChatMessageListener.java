@@ -2,6 +2,7 @@ package org.mg.server;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 
+import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
@@ -14,6 +15,13 @@ import java.util.PriorityQueue;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -90,7 +98,11 @@ public class ChatMessageListener implements ChatStateListener,
     //private final Map<Long, Message> rejectedMessages = 
     //    new TreeMap<Long, Message>();
 
-    private long lastResourceConstraintMessage = 0L;
+    private volatile long lastResourceConstraintMessage = 0L;
+    
+    private volatile long totalHttpBytesSent = 0L;
+    
+    private volatile int totalMessages = 0;
     
     public ChatMessageListener(
         final Map<String, ChannelFuture> proxyConnections, 
@@ -103,6 +115,28 @@ public class ChatMessageListener implements ChatStateListener,
         this.channelFactory = channelFactory;
         this.chat = chat;
         this.conn = conn;
+        addJmx();
+    }
+    
+    private void addJmx() {
+        final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        try {
+            final Class<? extends ChatMessageListener> clazz = getClass();
+            final String pack = clazz.getPackage().getName();
+            final String oName = pack+":type=XmppChat-"+hashCode();
+            final ObjectName mxBeanName = new ObjectName(oName);
+            if(!mbs.isRegistered(mxBeanName)) {
+                mbs.registerMBean(this, mxBeanName);
+            }
+        } catch (final MalformedObjectNameException e) {
+            log.error("Could not set up JMX", e);
+        } catch (final InstanceAlreadyExistsException e) {
+            log.error("Could not set up JMX", e);
+        } catch (final MBeanRegistrationException e) {
+            log.error("Could not set up JMX", e);
+        } catch (final NotCompliantMBeanException e) {
+            log.error("Could not set up JMX", e);
+        }
     }
 
     public void processMessage(final Chat ch, final Message msg) {
@@ -429,6 +463,17 @@ public class ChatMessageListener implements ChatStateListener,
                             final long now = System.currentTimeMillis();
                             try {
                                 chat.sendMessage(msg);
+                                final String http = (String) msg.getProperty(
+                                    MessagePropertyKeys.HTTP);
+                                final long length;
+                                if (StringUtils.isBlank(http)) {
+                                    length = 0;
+                                }
+                                else {
+                                    length = http.length();
+                                }
+                                totalMessages++;
+                                totalHttpBytesSent += length;
                                 
                                 rateCalculator.addData(new RangeDownloaderAdaptor() {
                                     
@@ -444,16 +489,11 @@ public class ChatMessageListener implements ChatStateListener,
                                     
                                     @Override
                                     public long getNumBytesDownloaded() {
-                                        final String http = 
-                                            (String) msg.getProperty(
-                                                MessagePropertyKeys.HTTP);
-                                        if (StringUtils.isBlank(http)) {
-                                            return 0;
-                                        }
-                                        return http.length();
+                                        return length;
                                     }
                                     
                                 });
+                                
                                 
                                 // Note we don't do this in a finally block.
                                 // if an exception happens, it's likely there's
@@ -575,6 +615,21 @@ public class ChatMessageListener implements ChatStateListener,
 
     public double getRate() {
         return rateCalculator.getRate();
+    }
+
+    public int getAverageMessageSize() {
+        if (totalMessages == 0) {
+            return 0;
+        }
+        return (int) (totalHttpBytesSent/totalMessages);
+    }
+
+    public int getTotalMessages() {
+        return totalMessages;
+    }
+
+    public long getTotalBytes() {
+        return totalHttpBytesSent;
     }
 }
 
