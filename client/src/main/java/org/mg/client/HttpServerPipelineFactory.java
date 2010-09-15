@@ -20,10 +20,15 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Queue;
 import java.util.Random;
+import java.util.Scanner;
+import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
@@ -31,9 +36,13 @@ import java.util.concurrent.ThreadFactory;
 import javax.net.SocketFactory;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
+import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.ConnectionConfiguration;
@@ -80,9 +89,19 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
     
     private final Timer timer = new Timer("XMPP-Reconnect-Timer", true);
     
+    private final Set<InetSocketAddress> proxySet = 
+        new HashSet<InetSocketAddress>();
+    private final Queue<InetSocketAddress> proxies = 
+        new ConcurrentLinkedQueue<InetSocketAddress>();
+    
     static {
         SmackConfiguration.setPacketReplyTimeout(30 * 1000);
     }
+    
+    private final Executor executor = Executors.newCachedThreadPool();
+    
+    private final ClientSocketChannelFactory clientSocketChannelFactory =
+        new NioClientSocketChannelFactory(executor, executor);
     
     private final Collection<String> serverSideJids = new HashSet<String>();
     
@@ -152,8 +171,20 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
     public ChannelPipeline getPipeline() throws Exception {
         log.info("Getting pipeline...waiting for connection");
         
-        final Chat chat = getChat();
         final ChannelPipeline pipeline = pipeline();
+        
+        synchronized (proxies) {
+            if (!proxies.isEmpty()) {
+                final InetSocketAddress proxy = proxies.poll();
+                proxies.add(proxy);
+                final SimpleChannelUpstreamHandler handler = 
+                    new ProxyRelayHandler(proxy, clientSocketChannelFactory);
+                pipeline.addLast("handler", handler);
+                return pipeline;
+            }
+        }
+
+        final Chat chat = getChat();
         final HttpRequestHandler handler = 
             new HttpRequestHandler(this.channelGroup, this.macAddress, chat);
         pipeline.addLast("handler", handler);
@@ -279,6 +310,12 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
             new MessageListener() {
             
                 public void processMessage(final Chat ch, final Message msg) {
+                    final Integer type = 
+                        (Integer) msg.getProperty(XmppMessageConstants.TYPE);
+                    if (type != null) {
+                        processTypedMessage(msg, type, ch);
+                        return;
+                    }
                     final String hashCode = 
                         (String) msg.getProperty(XmppMessageConstants.HASHCODE);
                     final HttpRequestHandler handler = 
@@ -325,12 +362,71 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         
         // Send an "info" message to gather proxy data.
         final Message msg = new Message();
-        msg.setProperty(XmppMessageConstants.TYPE, XmppMessageConstants.INFO_TYPE);
+        msg.setProperty(XmppMessageConstants.TYPE, 
+            XmppMessageConstants.INFO_TYPE);
         chat.sendMessage(msg);
         this.chats.add(chat);
         this.chatsToHashCodes.put(chat, new ArrayList<String>());
     }
     
+    private void sendErrorMessage(final Chat chat, final InetSocketAddress isa,
+        final String message) {
+        final Message msg = new Message();
+        msg.setProperty(XmppMessageConstants.TYPE, 
+            XmppMessageConstants.ERROR_TYPE);
+        final String errorMessage = "Error: "+message+" with host: "+isa;
+        msg.setProperty(XmppMessageConstants.MESSAGE, errorMessage);
+        try {
+            chat.sendMessage(msg);
+        } catch (final XMPPException e) {
+            log.error("Error sending message", e);
+        }
+    }
+    
+    protected void processTypedMessage(final Message msg, final Integer type, 
+        final Chat chat) {
+        switch (type) {
+            case (XmppMessageConstants.INFO_TYPE):
+                final String proxyString = 
+                    (String) msg.getProperty(XmppMessageConstants.PROXIES);
+                log.info("Got proxies: {}", proxyString);
+                final Scanner scan = new Scanner(proxyString);
+                while (scan.hasNext()) {
+                    final String cur = scan.next();
+                    final String hostname = 
+                        StringUtils.substringBefore(cur, ":");
+                    final int port = 
+                        Integer.parseInt(StringUtils.substringAfter(cur, ":"));
+                    final InetSocketAddress isa = 
+                        new InetSocketAddress(hostname, port);
+                    
+                    final Socket sock = new Socket();
+                    try {
+                        sock.connect(isa, 30*1000);
+                        synchronized (proxySet) {
+                            if (!proxySet.contains(isa)) {
+                                proxySet.add(isa);
+                                proxies.add(isa);
+                            }
+                        }
+                    } catch (final IOException e) {
+                        log.error("Could not connect to: {}", isa);
+                        sendErrorMessage(chat, isa, e.getMessage());
+                    } finally {
+                        try {
+                            sock.close();
+                        } catch (final IOException e) {
+                            log.info("Exception closing", e);
+                        }
+                    }
+                }
+                
+                break;
+            default:
+                break;
+        }
+    }
+
     private void persistentMonitoringConnection() {
         for (int i = 0; i < 10; i++) {
             try {
