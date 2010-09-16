@@ -26,4 +26,8 @@ public class XmppMessageConstants {
     public static final int INFO_TYPE = 1;
 
     public static final String PROXIES = "P";
+
+    public static final int ERROR_TYPE = 2;
+
+    public static final String MESSAGE = "ME";
 }

@@ -63,7 +63,8 @@ import org.slf4j.LoggerFactory;
  * Factory for creating pipelines for incoming requests to our listening
  * socket.
  */
-public class HttpServerPipelineFactory implements ChannelPipelineFactory {
+public class HttpServerPipelineFactory implements ChannelPipelineFactory, 
+    ProxyStatusListener {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -145,10 +146,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         }
         
         persistentMonitoringConnection();
-        
-        for (int i = 0; i < NUM_CONNECTIONS; i++) {
-            threadedXmppConnection();
-        }
     }
 
     private void persistentXmppConnection() {
@@ -168,22 +165,24 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         }
     }
 
-    public ChannelPipeline getPipeline() throws Exception {
-        log.info("Getting pipeline...waiting for connection");
+    public ChannelPipeline getPipeline() {
+        log.info("Getting pipeline...");
         
         final ChannelPipeline pipeline = pipeline();
         
         synchronized (proxies) {
             if (!proxies.isEmpty()) {
+                log.info("Using direct proxy connection...");
                 final InetSocketAddress proxy = proxies.poll();
                 proxies.add(proxy);
                 final SimpleChannelUpstreamHandler handler = 
-                    new ProxyRelayHandler(proxy, clientSocketChannelFactory);
+                    new ProxyRelayHandler(proxy,clientSocketChannelFactory,this);
                 pipeline.addLast("handler", handler);
                 return pipeline;
             }
         }
 
+        log.info("Using XMPP relays...");
         final Chat chat = getChat();
         final HttpRequestHandler handler = 
             new HttpRequestHandler(this.channelGroup, this.macAddress, chat);
@@ -360,11 +359,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
             }
         });
         
-        // Send an "info" message to gather proxy data.
-        final Message msg = new Message();
-        msg.setProperty(XmppMessageConstants.TYPE, 
-            XmppMessageConstants.INFO_TYPE);
-        chat.sendMessage(msg);
         this.chats.add(chat);
         this.chatsToHashCodes.put(chat, new ArrayList<String>());
     }
@@ -402,7 +396,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
                     
                     final Socket sock = new Socket();
                     try {
-                        sock.connect(isa, 30*1000);
+                        sock.connect(isa, 60*1000);
                         synchronized (proxySet) {
                             if (!proxySet.contains(isa)) {
                                 proxySet.add(isa);
@@ -412,6 +406,12 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
                     } catch (final IOException e) {
                         log.error("Could not connect to: {}", isa);
                         sendErrorMessage(chat, isa, e.getMessage());
+                        
+                        // If we don't have any more proxies to connect to,
+                        // revert to XMPP relay mode.
+                        if (!scan.hasNext()) {
+                            onCouldNotConnect(isa);
+                        }
                     } finally {
                         try {
                             sock.close();
@@ -471,7 +471,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
                 throws IOException {
                 log.info("Creating socket");
                 final Socket sock = new Socket();
-                sock.connect(new InetSocketAddress(host, port), 30000);
+                sock.connect(new InetSocketAddress(host, port), 40000);
                 log.info("Socket connected");
                 return sock;
             }
@@ -486,10 +486,22 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
         
         final XMPPConnection xmpp = new XMPPConnection(config);
         xmpp.connect();
-        xmpp.login(this.user, this.pwd, "MG");
+        
+        // We have a limited number of bytes to work with here, so we just
+        // append the MAC straight after the "MG".
+        final String id = "MG"+macAddress;
+        xmpp.login(this.user, this.pwd, id);
+        
+        while (!xmpp.isAuthenticated()) {
+            log.info("Waiting for authentication");
+            try {
+                Thread.sleep(1000);
+            } catch (final InterruptedException e1) {
+                log.error("Exception during sleep?", e1);
+            }
+        }
         
         final Roster roster = xmpp.getRoster();
-        
         
         roster.addRosterListener(new RosterListener() {
             public void entriesDeleted(Collection<String> addresses) {}
@@ -500,6 +512,31 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
                     log.info("PACKET: "+presence);
                     log.info("Packet is from: {}", from);
                     if (presence.isAvailable()) {
+                        final ChatManager chatManager = xmpp.getChatManager();
+                        final Chat chat = chatManager.createChat(from,
+                            new MessageListener() {
+                            
+                                public void processMessage(final Chat ch, 
+                                    final Message msg) {
+                                    final Integer type = 
+                                        (Integer) msg.getProperty(XmppMessageConstants.TYPE);
+                                    if (type != null) {
+                                        processTypedMessage(msg, type, ch);
+                                        return;
+                                    }
+                                }
+                            });
+                        
+                        // Send an "info" message to gather proxy data.
+                        final Message msg = new Message();
+                        msg.setProperty(XmppMessageConstants.TYPE, 
+                            XmppMessageConstants.INFO_TYPE);
+                        try {
+                            chat.sendMessage(msg);
+                        } catch (final XMPPException e) {
+                            log.error("Could not send INFO message");
+                        }
+                        
                         serverSideJids.add(from);
                         synchronized (serverSideJids) {
                             serverSideJids.notifyAll();
@@ -519,7 +556,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
 
         // Make sure we look for MG packets.
         roster.createEntry("mglittleshoot@gmail.com", "MG", null);
-
+        
         xmpp.addConnectionListener(new ConnectionListener() {
             
             public void reconnectionSuccessful() {
@@ -539,7 +576,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
             }
             
             public void connectionClosed() {
-                log.info("XMPP connection closed");
+                log.info("XMPP connection closed. Creating new connection.");
                 persistentMonitoringConnection();
             }
         });
@@ -567,6 +604,19 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory {
             final byte[] bytes = new byte[24];
             new Random().nextBytes(bytes);
             return Base64.encodeBase64String(bytes);
+        }
+    }
+
+    public void onCouldNotConnect(final InetSocketAddress proxyAddress) {
+        log.info("COULD NOT CONNECT!! Proxy address: {}", proxyAddress);
+        synchronized (this.proxySet) {
+            this.proxySet.remove(proxyAddress);
+            this.proxies.remove(proxyAddress);
+        }
+        if (this.proxySet.isEmpty()) {
+            for (int i = 0; i < NUM_CONNECTIONS; i++) {
+                threadedXmppConnection();
+            }
         }
     }
 }

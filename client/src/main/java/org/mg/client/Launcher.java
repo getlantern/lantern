@@ -1,7 +1,10 @@
 package org.mg.client;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,10 +88,33 @@ public class Launcher {
         if (serverResult != 0) {
             LOG.error("Error setting proxy server? Result: "+serverResult);
         }
+        final File ff = 
+            new File(System.getenv("ProgramFiles"), "Mozilla Firefox");
+        final File pref = new File(new File(ff, "defaults"), "pref");
+        LOG.info("Prefs dir: {}", pref);
+        if (!pref.isDirectory()) {
+            LOG.error("No directory at: {}", pref);
+        }
+        final File config = new File("all-bravenewsoftware.js");
+        
+        if (!config.isFile()) {
+            LOG.error("NO CONFIG FILE AT {}", config);
+        }
+        else {
+            try {
+                FileUtils.copyFileToDirectory(config, pref);
+                final File installedConfig = new File(pref, config.getName());
+                installedConfig.deleteOnExit();
+            } catch (final IOException e) {
+                LOG.error("Could not copy config file?", e);
+            }
+        }
+        
         final Runnable runner = new Runnable() {
             public void run() {
                 LOG.info("Resetting Windows registry settings to " +
                     "original values.");
+                
                 // On shutdown, we need to check if the user has modified the
                 // registry since we originally set it. If they have, we want
                 // to keep their setting. If not, we want to revert back to 

@@ -33,11 +33,15 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
     private Channel outboundChannel;
 
     private Channel inboundChannel;
+
+    private final ProxyStatusListener proxyStatusListener;
     
     public ProxyRelayHandler(final InetSocketAddress proxyAddress, 
-        final ClientSocketChannelFactory clientSocketChannelFactory) {
+        final ClientSocketChannelFactory clientSocketChannelFactory,
+        final ProxyStatusListener proxyStatusListener) {
         this.proxyAddress = proxyAddress;
         this.clientSocketChannelFactory = clientSocketChannelFactory;
+        this.proxyStatusListener = proxyStatusListener;
     }
     
     @Override
@@ -75,6 +79,7 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 } else {
                     // Close the connection if the connection attempt has failed.
                     inboundChannel.close();
+                    proxyStatusListener.onCouldNotConnect(proxyAddress);
                 }
             }
         });
