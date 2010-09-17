@@ -88,27 +88,7 @@ public class Launcher {
         if (serverResult != 0) {
             LOG.error("Error setting proxy server? Result: "+serverResult);
         }
-        final File ff = 
-            new File(System.getenv("ProgramFiles"), "Mozilla Firefox");
-        final File pref = new File(new File(ff, "defaults"), "pref");
-        LOG.info("Prefs dir: {}", pref);
-        if (!pref.isDirectory()) {
-            LOG.error("No directory at: {}", pref);
-        }
-        final File config = new File("all-bravenewsoftware.js");
-        
-        if (!config.isFile()) {
-            LOG.error("NO CONFIG FILE AT {}", config);
-        }
-        else {
-            try {
-                FileUtils.copyFileToDirectory(config, pref);
-                final File installedConfig = new File(pref, config.getName());
-                installedConfig.deleteOnExit();
-            } catch (final IOException e) {
-                LOG.error("Could not copy config file?", e);
-            }
-        }
+        copyFirefoxConfig();
         
         final Runnable runner = new Runnable() {
             public void run() {
@@ -144,5 +124,32 @@ public class Launcher {
         // We don't make this a daemon thread because we want to make sure it
         // executes before shutdown.
         Runtime.getRuntime().addShutdownHook(new Thread (runner));
+    }
+
+    /**
+     * Installs the FireFox config file on startup. Public for testing.
+     */
+    public static void copyFirefoxConfig() {
+        final File ff = 
+            new File(System.getenv("ProgramFiles"), "Mozilla Firefox");
+        final File pref = new File(new File(ff, "defaults"), "pref");
+        LOG.info("Prefs dir: {}", pref);
+        if (!pref.isDirectory()) {
+            LOG.error("No directory at: {}", pref);
+        }
+        final File config = new File("all-bravenewsoftware.js");
+        
+        if (!config.isFile()) {
+            LOG.error("NO CONFIG FILE AT {}", config);
+        }
+        else {
+            try {
+                FileUtils.copyFileToDirectory(config, pref);
+                final File installedConfig = new File(pref, config.getName());
+                installedConfig.deleteOnExit();
+            } catch (final IOException e) {
+                LOG.error("Could not copy config file?", e);
+            }
+        }
     }
 }

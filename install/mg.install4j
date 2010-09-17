@@ -378,14 +378,14 @@ MG requires your Google Account credentials to access the Internet. We at MG hea
                     <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
                       <void property="destinationFile">
                         <object class="java.io.File">
-                          <string>${installer:sys.programFilesDir}/Mozilla Firefox/defaults/profile</string>
+                          <string>${installer:sys.programFilesDir}/Mozilla Firefox/defaults/pref</string>
                         </object>
                       </void>
                       <void property="files">
                         <array class="java.io.File" length="1">
                           <void index="0">
                             <object class="java.io.File">
-                              <string>user.js</string>
+                              <string>all-bravenewsoftware.js</string>
                             </object>
                           </void>
                         </array>
@@ -550,6 +550,24 @@ MG requires your Google Account credentials to access the Internet. We at MG hea
             <preActivation />
             <postActivation />
             <actions>
+              <action name="" id="119" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.DeleteFileAction">
+                      <void property="files">
+                        <array class="java.io.File" length="1">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>./log.txt</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
               <action name="" id="17" customizedId="" beanClass="com.install4j.runtime.beans.actions.UninstallFilesAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
