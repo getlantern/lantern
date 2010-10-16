@@ -380,50 +380,76 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     protected void processTypedMessage(final Message msg, final Integer type, 
         final Chat chat) {
         switch (type) {
-            case (XmppMessageConstants.INFO_TYPE):
-                final String proxyString = 
-                    (String) msg.getProperty(XmppMessageConstants.PROXIES);
-                log.info("Got proxies: {}", proxyString);
-                final Scanner scan = new Scanner(proxyString);
-                while (scan.hasNext()) {
-                    final String cur = scan.next();
-                    final String hostname = 
-                        StringUtils.substringBefore(cur, ":");
-                    final int port = 
-                        Integer.parseInt(StringUtils.substringAfter(cur, ":"));
-                    final InetSocketAddress isa = 
-                        new InetSocketAddress(hostname, port);
-                    
-                    final Socket sock = new Socket();
-                    try {
-                        sock.connect(isa, 60*1000);
-                        synchronized (proxySet) {
-                            if (!proxySet.contains(isa)) {
-                                proxySet.add(isa);
-                                proxies.add(isa);
-                            }
-                        }
-                    } catch (final IOException e) {
-                        log.error("Could not connect to: {}", isa);
-                        sendErrorMessage(chat, isa, e.getMessage());
-                        
-                        // If we don't have any more proxies to connect to,
-                        // revert to XMPP relay mode.
-                        if (!scan.hasNext()) {
-                            onCouldNotConnect(isa);
-                        }
-                    } finally {
-                        try {
-                            sock.close();
-                        } catch (final IOException e) {
-                            log.info("Exception closing", e);
-                        }
-                    }
-                }
+            case (XmppMessageConstants.INFO_REQUEST_TYPE):
+                sendInfoResponse(chat);
+                break;
+            case (XmppMessageConstants.INFO_RESPONSE_TYPE):
+                processInfoResponse(msg, chat);
                 
                 break;
             default:
                 break;
+        }
+    }
+    
+    private void processInfoResponse(final Message msg, final Chat chat) {
+        final String proxyString = 
+            (String) msg.getProperty(XmppMessageConstants.PROXIES);
+        log.info("Got proxies: {}", proxyString);
+        final Scanner scan = new Scanner(proxyString);
+        while (scan.hasNext()) {
+            final String cur = scan.next();
+            final String hostname = 
+                StringUtils.substringBefore(cur, ":");
+            final int port = 
+                Integer.parseInt(StringUtils.substringAfter(cur, ":"));
+            final InetSocketAddress isa = 
+                new InetSocketAddress(hostname, port);
+            
+            final Socket sock = new Socket();
+            try {
+                sock.connect(isa, 60*1000);
+                synchronized (proxySet) {
+                    if (!proxySet.contains(isa)) {
+                        proxySet.add(isa);
+                        proxies.add(isa);
+                    }
+                }
+            } catch (final IOException e) {
+                log.error("Could not connect to: {}", isa);
+                sendErrorMessage(chat, isa, e.getMessage());
+                
+                // If we don't have any more proxies to connect to,
+                // revert to XMPP relay mode.
+                if (!scan.hasNext()) {
+                    onCouldNotConnect(isa);
+                }
+            } finally {
+                try {
+                    sock.close();
+                } catch (final IOException e) {
+                    log.info("Exception closing", e);
+                }
+            }
+        }
+    }
+
+    private void sendInfoResponse(final Chat ch) {
+        final Message msg = new Message();
+        msg.setProperty(XmppMessageConstants.TYPE, 
+            XmppMessageConstants.INFO_RESPONSE_TYPE);
+        //final InetAddress address = AmazonEc2Utils.getPublicAddress();
+        //final String proxies = 
+        //    address.getHostAddress() + ":"+;
+        
+        // We want to separate out direct friend proxies here from the
+        // proxies that are friends of friends. We only want to notify our
+        // friends of other direct friend proxies, not friends of friends.
+        msg.setProperty(XmppMessageConstants.PROXIES, "");
+        try {
+            ch.sendMessage(msg);
+        } catch (final XMPPException e) {
+            log.error("Could not send info message", e);
         }
     }
 
@@ -509,44 +535,11 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             public void presenceChanged(final Presence presence) {
                 final String from = presence.getFrom();
                 if (from.startsWith("mglittleshoot@gmail.com")) {
-                    log.info("PACKET: "+presence);
-                    log.info("Packet is from: {}", from);
-                    if (presence.isAvailable()) {
-                        final ChatManager chatManager = xmpp.getChatManager();
-                        final Chat chat = chatManager.createChat(from,
-                            new MessageListener() {
-                            
-                                public void processMessage(final Chat ch, 
-                                    final Message msg) {
-                                    final Integer type = 
-                                        (Integer) msg.getProperty(XmppMessageConstants.TYPE);
-                                    if (type != null) {
-                                        processTypedMessage(msg, type, ch);
-                                        return;
-                                    }
-                                }
-                            });
-                        
-                        // Send an "info" message to gather proxy data.
-                        final Message msg = new Message();
-                        msg.setProperty(XmppMessageConstants.TYPE, 
-                            XmppMessageConstants.INFO_TYPE);
-                        try {
-                            chat.sendMessage(msg);
-                        } catch (final XMPPException e) {
-                            log.error("Could not send INFO message");
-                        }
-                        
-                        serverSideJids.add(from);
-                        synchronized (serverSideJids) {
-                            serverSideJids.notifyAll();
-                        }
-                    }
-                    else {
-                        log.info("Removing connection with status {}", 
-                            presence.getStatus());
-                        serverSideJids.remove(from);
-                    }
+                    processPresenceChanged(presence, from, xmpp);
+                }
+                else if (isMg(from)) {
+                    // We've received a changed presence state for an MG peer.
+                    processPresenceChanged(presence, from, xmpp);
                 }
             }
             public void entriesAdded(final Collection<String> addresses) {
@@ -581,7 +574,60 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             }
         });
     }
-    
+
+    protected boolean isMg(final String from) {
+        // Here's the format we're looking for: 
+        // final String id = "-"+macAddress+"-";
+        if (from.endsWith("-") && from.contains("/-")) {
+            log.info("Returning MG TRUE for from: {}", from);
+            return true;
+        }
+        log.info("Returning MG FALSE for from: {}", from);
+        return false;
+    }
+
+    protected void processPresenceChanged(final Presence presence, 
+        final String from, final XMPPConnection xmpp) {
+        log.info("PACKET: "+presence);
+        log.info("Packet is from: {}", from);
+        if (presence.isAvailable()) {
+            final ChatManager chatManager = xmpp.getChatManager();
+            final Chat chat = chatManager.createChat(from,
+                new MessageListener() {
+                
+                    public void processMessage(final Chat ch, 
+                        final Message msg) {
+                        final Integer type = 
+                            (Integer) msg.getProperty(XmppMessageConstants.TYPE);
+                        if (type != null) {
+                            processTypedMessage(msg, type, ch);
+                            return;
+                        }
+                    }
+                });
+            
+            // Send an "info" message to gather proxy data.
+            final Message msg = new Message();
+            msg.setProperty(XmppMessageConstants.TYPE, 
+                XmppMessageConstants.INFO_REQUEST_TYPE);
+            try {
+                chat.sendMessage(msg);
+            } catch (final XMPPException e) {
+                log.error("Could not send INFO message", e);
+            }
+            
+            serverSideJids.add(from);
+            synchronized (serverSideJids) {
+                serverSideJids.notifyAll();
+            }
+        }
+        else {
+            log.info("Removing connection with status {}", 
+                presence.getStatus());
+            serverSideJids.remove(from);
+        }
+    }
+
     private String getMacAddress(final Enumeration<NetworkInterface> nis) {
         while (nis.hasMoreElements()) {
             final NetworkInterface ni = nis.nextElement();
