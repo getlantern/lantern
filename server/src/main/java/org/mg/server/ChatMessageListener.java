@@ -147,7 +147,7 @@ public class ChatMessageListener implements ChatStateListener,
         final Integer type = (Integer) msg.getProperty(XmppMessageConstants.TYPE);
         if (type != null) {
             switch (type) {
-                case XmppMessageConstants.INFO_TYPE:
+                case XmppMessageConstants.INFO_REQUEST_TYPE:
                     sendInfo(ch);
                     break;
                 default:
@@ -259,7 +259,7 @@ public class ChatMessageListener implements ChatStateListener,
     private void sendInfo(final Chat ch) {
         final Message msg = new Message();
         msg.setProperty(XmppMessageConstants.TYPE, 
-            XmppMessageConstants.INFO_TYPE);
+            XmppMessageConstants.INFO_RESPONSE_TYPE);
         final InetAddress address = AmazonEc2Utils.getPublicAddress();
         final String proxies = 
             address.getHostAddress() + ":"+ServerConstants.PROXY_PORT;
@@ -353,13 +353,13 @@ public class ChatMessageListener implements ChatStateListener,
                             final ChannelHandlerContext ctx, 
                             final MessageEvent me) {
                             log.info("HTTP message received from proxy relay");
-                            final Message msg = new Message();
                             final ByteBuffer buf = 
                                 ((ChannelBuffer) me.getMessage()).toByteBuffer();
-                            final byte[] raw = toRawBytes(buf);
+                            final byte[] raw = MgUtils.toRawBytes(buf);
                             final String base64 = 
                                 Base64.encodeBase64URLSafeString(raw);
-                            
+
+                            final Message msg = new Message();
                             msg.setProperty(XmppMessageConstants.HTTP, base64);
                             msg.setProperty(XmppMessageConstants.MD5, toMd5(raw));
                             sendMessage(msg, false);
@@ -613,14 +613,6 @@ public class ChatMessageListener implements ChatStateListener,
             log.error("No MD5 -- will never happen", e);
             return "NO MD5";
         }
-    }
-
-    public static byte[] toRawBytes(final ByteBuffer buf) {
-        final int mark = buf.position();
-        final byte[] bytes = new byte[buf.remaining()];
-        buf.get(bytes);
-        buf.position(mark);
-        return bytes;
     }
 
     public double getRate() {
