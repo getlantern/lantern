@@ -23,11 +23,13 @@ public class XmppMessageConstants {
 
     public static final String TYPE = "T";
     
-    public static final int INFO_TYPE = 1;
+    public static final int INFO_REQUEST_TYPE = 1;
+    
+    public static final int INFO_RESPONSE_TYPE = 3;
+    
+    public static final int ERROR_TYPE = 3;
 
     public static final String PROXIES = "P";
-
-    public static final int ERROR_TYPE = 2;
 
     public static final String MESSAGE = "ME";
 }
