@@ -1,18 +1,20 @@
 package org.mg.client;
 
-import java.net.InetSocketAddress;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.Socket;
+import java.net.URI;
+import java.nio.ByteBuffer;
 
-import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.lastbamboo.common.util.ByteBufferUtils;
+import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.mg.common.MgUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,96 +22,104 @@ import org.slf4j.LoggerFactory;
 /**
  * Handler that relays traffic to another proxy.
  */
-public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
+public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private volatile long messagesReceived = 0L;
 
-    private final InetSocketAddress proxyAddress;
+    private final URI peerUri;
 
-    private final ClientSocketChannelFactory clientSocketChannelFactory;
-
-    private Channel outboundChannel;
 
     private Channel inboundChannel;
 
     private final ProxyStatusListener proxyStatusListener;
+
+    private final XmppP2PClient p2pClient;
+
+    private Socket outgoingSocket;
     
     /**
-     * Creates a new relayer to a proxy.
+     * Creates a new relayer to a peer proxy.
      * 
-     * @param proxyAddress The address of the proxy.
-     * @param clientSocketChannelFactory The factory for creating socket 
-     * channels to the proxy.
+     * @param peerUri The URI of the peer to connect to.
      * @param proxyStatusListener The class to notify of changes in the proxy
      * status.
+     * @param p2pClient The client for creating P2P connections.
      */
-    public ProxyRelayHandler(final InetSocketAddress proxyAddress, 
-        final ClientSocketChannelFactory clientSocketChannelFactory,
-        final ProxyStatusListener proxyStatusListener) {
-        // TODO: We also need to handle p2p URIs as addresses here so we
-        // can create P2P connections to them.
-        this.proxyAddress = proxyAddress;
-        this.clientSocketChannelFactory = clientSocketChannelFactory;
+    public PeerProxyRelayHandler(final URI peerUri, 
+        final ProxyStatusListener proxyStatusListener, 
+        final XmppP2PClient p2pClient) {
+        this.peerUri = peerUri;
         this.proxyStatusListener = proxyStatusListener;
+        this.p2pClient = p2pClient;
     }
     
     @Override
     public void messageReceived(final ChannelHandlerContext ctx, 
-        final MessageEvent me) {
+        final MessageEvent me) throws IOException {
         messagesReceived++;
         log.info("Received {} total messages", messagesReceived);
-        this.outboundChannel.write(me.getMessage());
+        
+        // We need to convert the Netty message to raw bytes for sending over
+        // the socket.
+        final ChannelBuffer msg = (ChannelBuffer) me.getMessage();
+        final ByteBuffer buf = msg.toByteBuffer();
+        final byte[] data = ByteBufferUtils.toRawBytes(buf);
+        final OutputStream os = this.outgoingSocket.getOutputStream();
+        os.write(data);
     }
     
     @Override
     public void channelOpen(final ChannelHandlerContext ctx, 
         final ChannelStateEvent e) {
-        if (this.outboundChannel != null) {
+        if (this.outgoingSocket != null) {
             log.error("Outbound channel already assigned?");
         }
         this.inboundChannel = e.getChannel();
-        inboundChannel.setReadable(false);
+        
+        // This ensures we won't read any messages before we've successfully
+        // created the socket.
+        this.inboundChannel.setReadable(false);
 
         // Start the connection attempt.
-        final ClientBootstrap cb = 
-            new ClientBootstrap(this.clientSocketChannelFactory);
-        cb.getPipeline().addLast("handler", 
-            new OutboundHandler(e.getChannel()));
-        final ChannelFuture cf = cb.connect(this.proxyAddress);
-
-        this.outboundChannel = cf.getChannel();
-        cf.addListener(new ChannelFutureListener() {
-            public void operationComplete(final ChannelFuture future) 
-                throws Exception {
-                if (future.isSuccess()) {
-                    // Connection attempt succeeded:
-                    // Begin to accept incoming traffic.
-                    inboundChannel.setReadable(true);
-                } else {
-                    // Close the connection if the connection attempt has failed.
-                    inboundChannel.close();
-                    proxyStatusListener.onCouldNotConnect(proxyAddress);
-                }
-            }
-        });
+        try {
+            log.info("Creating a new socket to {}", this.peerUri);
+            this.outgoingSocket = this.p2pClient.newSocket(this.peerUri);
+            inboundChannel.setReadable(true);
+        } catch (final IOException ioe) {
+            proxyStatusListener.onCouldNotConnectToPeer(peerUri);
+            log.warn("Could not connection to peer", ioe);
+            this.inboundChannel.close();
+        }
     }
     
     @Override 
     public void channelClosed(final ChannelHandlerContext ctx, 
-        final ChannelStateEvent e) {
+        final ChannelStateEvent cse) {
         log.info("Got inbound channel closed. Closing outbound.");
-        MgUtils.closeOnFlush(this.outboundChannel);
+        closeOutgoing();
     }
-    
+
     @Override
     public void exceptionCaught(final ChannelHandlerContext ctx, 
-        final ExceptionEvent e) throws Exception {
+        final ExceptionEvent e) {
         log.error("Caught exception on INBOUND channel", e.getCause());
         MgUtils.closeOnFlush(this.inboundChannel);
+        closeOutgoing();
     }
     
+    private void closeOutgoing() {
+        if (this.outgoingSocket != null) {
+            try {
+                this.outgoingSocket.close();
+            } catch (final IOException e) {
+                log.info("Exception closing socket", e);
+            }
+        }
+    }
+    
+    /*
     private static class OutboundHandler extends SimpleChannelUpstreamHandler {
 
         private final Logger log = LoggerFactory.getLogger(getClass());
@@ -140,5 +150,6 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
             MgUtils.closeOnFlush(e.getChannel());
         }
     }
+    */
 
 }

@@ -15,12 +15,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * HTTP proxy server.
+ * HTTP proxy server for local requests from the browser to Lantern.
  */
-public class DefaultHttpProxyServer implements HttpProxyServer {
+public class LanternHttpProxyServer implements HttpProxyServer {
     
     private final Logger log = 
-        LoggerFactory.getLogger(DefaultHttpProxyServer.class);
+        LoggerFactory.getLogger(LanternHttpProxyServer.class);
     
     private final ChannelGroup allChannels = 
         new DefaultChannelGroup("HTTP-Proxy-Server");
@@ -33,7 +33,7 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
      * @param port The port the server should run on.
      * @param filters HTTP filters to apply.
      */
-    public DefaultHttpProxyServer(final int port) {
+    public LanternHttpProxyServer(final int port) {
         this.port = port;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             
@@ -50,14 +50,16 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
             new NioServerSocketChannelFactory(
                 Executors.newCachedThreadPool(new ThreadFactory() {
                     public Thread newThread(final Runnable r) {
-                        final Thread t = new Thread(r, "Daemon-Netty-Boss-Executor");
+                        final Thread t = 
+                            new Thread(r, "Daemon-Netty-Boss-Executor");
                         t.setDaemon(true);
                         return t;
                     }
                 }),
                 Executors.newCachedThreadPool(new ThreadFactory() {
                     public Thread newThread(final Runnable r) {
-                        final Thread t = new Thread(r, "Daemon-Netty-Worker-Executor");
+                        final Thread t = 
+                            new Thread(r, "Daemon-Netty-Worker-Executor");
                         t.setDaemon(true);
                         return t;
                     }
@@ -66,7 +68,10 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
         final HttpServerPipelineFactory factory = 
             new HttpServerPipelineFactory(this.allChannels);
         bootstrap.setPipelineFactory(factory);
-        final Channel channel = bootstrap.bind(new InetSocketAddress(port));
+        
+        // We always only bind to localhost here for better security.
+        final Channel channel = 
+            bootstrap.bind(new InetSocketAddress("127.0.0.1", port));
         allChannels.add(channel);
         
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {

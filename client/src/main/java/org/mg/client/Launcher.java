@@ -6,6 +6,8 @@ import java.lang.Thread.UncaughtExceptionHandler;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.littleshoot.proxy.DefaultHttpProxyServer;
+import org.mg.common.LanternConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,8 +47,12 @@ public class Launcher {
         }
         
         System.out.println("About to start server on port: "+port);
-        final HttpProxyServer server = new DefaultHttpProxyServer(port);
+        final HttpProxyServer server = new LanternHttpProxyServer(port);
         server.start();
+        
+        final org.littleshoot.proxy.HttpProxyServer rawProxy = 
+            new DefaultHttpProxyServer(LanternConstants.LANTERN_PROXY_PORT);
+        rawProxy.start(true);
     }
 
     private static void configure() {

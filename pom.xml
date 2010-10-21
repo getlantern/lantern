@@ -101,6 +101,16 @@
         </dependency>
 
         <dependency>
+            <groupId>org.littleshoot</groupId>
+            <artifactId>littleproxy</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.littleshoot</groupId>
+            <artifactId>littleshoot-p2p</artifactId>
+        </dependency>
+
+        <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
         </dependency>
@@ -206,6 +216,18 @@
         <dependency>
             <groupId>org.lastbamboo</groupId>
             <artifactId>lastbamboo-common-download</artifactId>
+            <version>1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.littleshoot</groupId>
+            <artifactId>littleproxy</artifactId>
+            <version>0.4-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.littleshoot</groupId>
+            <artifactId>littleshoot-p2p</artifactId>
             <version>1.0</version>
         </dependency>
 

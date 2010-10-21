@@ -460,9 +460,6 @@ public class ChatMessageListener implements ChatStateListener,
                         }
                         
                         private void sendWithChat(final Message msg) {
-                            //final Pair<Chat, XMPPConnection> pair = 
-                            //    chatsAndConnections.poll();
-                            //final Chat chat = pair.getFirst();
                             log.info("Sending to: {}", chat.getParticipant());
                             msg.setTo(chat.getParticipant());
                             

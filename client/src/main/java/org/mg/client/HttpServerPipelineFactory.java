@@ -1,6 +1,5 @@
 package org.mg.client;
 
-
 import static org.jboss.netty.channel.Channels.pipeline;
 
 import java.io.File;
@@ -11,6 +10,7 @@ import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -55,6 +55,10 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
+import org.lastbamboo.common.ice.IceMediaStreamDesc;
+import org.littleshoot.commom.xmpp.XmppP2PClient;
+import org.littleshoot.p2p.P2P;
+import org.mg.common.LanternConstants;
 import org.mg.common.XmppMessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,11 +94,14 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     
     private final Timer timer = new Timer("XMPP-Reconnect-Timer", true);
     
-    private final Set<InetSocketAddress> proxySet = 
+    private final Set<InetSocketAddress> proxySet =
         new HashSet<InetSocketAddress>();
     private final Queue<InetSocketAddress> proxies = 
         new ConcurrentLinkedQueue<InetSocketAddress>();
     
+    private final Set<URI> peerProxySet = new HashSet<URI>();
+    private final Queue<URI> peerProxies = new ConcurrentLinkedQueue<URI>();
+
     static {
         SmackConfiguration.setPacketReplyTimeout(30 * 1000);
     }
@@ -104,7 +111,11 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     private final ClientSocketChannelFactory clientSocketChannelFactory =
         new NioClientSocketChannelFactory(executor, executor);
     
-    private final Collection<String> serverSideJids = new HashSet<String>();
+    private final Collection<String> proxyJids = new HashSet<String>();
+    
+    private final Collection<String> peerProxyJids = new HashSet<String>();
+
+    private final XmppP2PClient client;
     
     /**
      * Separate thread for creating new XMPP connections.
@@ -141,27 +152,27 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             this.macAddress = getMacAddress(ints);
         } catch (final IOException e) {
             final String msg = "Error loading props file at: " + file;
-            log.error(msg);
+            log.error(msg, e);
             throw new RuntimeException(msg, e);
         }
         
-        persistentMonitoringConnection();
-    }
-
-    private void persistentXmppConnection() {
-        for (int i = 0; i < 10; i++) {
-            try {
-                log.info("Attempting XMPP connection...");
-                newXmppConnection();
-                if (connectionsToFetch > 0) {
-                    connectionsToFetch--;
-                }
-                log.info("Successfully connected...");
-                return;
-            } catch (final XMPPException e) {
-                final String msg = "Error creating XMPP connection";
-                log.error(msg, e);
-            }
+        //persistentMonitoringConnection();
+        
+        final IceMediaStreamDesc streamDesc = 
+            new IceMediaStreamDesc(true, true, "message", "http", 1, false);
+        try {
+            this.client = P2P.newXmppP2PClient(streamDesc, 
+                LanternConstants.LANTERN_PROXY_PORT);
+            this.client.login(this.user, this.pwd);
+            addRosterListener();
+        } catch (final IOException e) {
+            final String msg = "Could not log in!!";
+            log.warn(msg, e);
+            throw new RuntimeException(msg, e);
+        } catch (final XMPPException e) {
+            final String msg = "Could not configure roster!!";
+            log.warn(msg, e);
+            throw new RuntimeException(msg, e);
         }
     }
 
@@ -170,13 +181,28 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         
         final ChannelPipeline pipeline = pipeline();
         
-        synchronized (proxies) {
-            if (!proxies.isEmpty()) {
+        // TODO: We should make sure to mix up all the proxies, sometimes
+        // using peers, sometimes using centralized.
+        synchronized (proxySet) {
+            if (!proxySet.isEmpty()) {
                 log.info("Using direct proxy connection...");
+                // We just use it as a cyclic queue.
                 final InetSocketAddress proxy = proxies.poll();
                 proxies.add(proxy);
                 final SimpleChannelUpstreamHandler handler = 
                     new ProxyRelayHandler(proxy,clientSocketChannelFactory,this);
+                pipeline.addLast("handler", handler);
+                return pipeline;
+            }
+        }
+        
+        synchronized (peerProxySet) {
+            if (!peerProxySet.isEmpty()) {
+                log.info("Using PEER proxy connection...");
+                final URI proxy = peerProxies.poll();
+                peerProxies.add(proxy);
+                final SimpleChannelUpstreamHandler handler = 
+                    new PeerProxyRelayHandler(proxy, this, this.client);
                 pipeline.addLast("handler", handler);
                 return pipeline;
             }
@@ -200,6 +226,32 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         
         return pipeline;
     }
+    
+    private void addRosterListener() throws XMPPException {
+        final XMPPConnection xmpp = this.client.getXmppConnection();
+        final Roster roster = xmpp.getRoster();
+        
+        roster.addRosterListener(new RosterListener() {
+            public void entriesDeleted(Collection<String> addresses) {}
+            public void entriesUpdated(Collection<String> addresses) {}
+            public void presenceChanged(final Presence presence) {
+                final String from = presence.getFrom();
+                if (from.startsWith("mglittleshoot@gmail.com")) {
+                    processPresenceChanged(presence, from, xmpp, proxyJids);
+                }
+                else if (isMg(from)) {
+                    // We've received a changed presence state for an MG peer.
+                    processPresenceChanged(presence, from, xmpp, peerProxyJids);
+                }
+            }
+            public void entriesAdded(final Collection<String> addresses) {
+                log.info("Entries added: "+addresses);
+            }
+        });
+
+        // Make sure we look for MG packets.
+        roster.createEntry("mglittleshoot@gmail.com", "MG", null);
+    }
 
     private Chat getChat() {
         synchronized (this.chats) {
@@ -221,6 +273,23 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 persistentXmppConnection();
             }
         });
+    }
+    
+    private void persistentXmppConnection() {
+        for (int i = 0; i < 10; i++) {
+            try {
+                log.info("Attempting XMPP connection...");
+                newXmppConnection();
+                if (connectionsToFetch > 0) {
+                    connectionsToFetch--;
+                }
+                log.info("Successfully connected...");
+                return;
+            } catch (final XMPPException e) {
+                final String msg = "Error creating XMPP connection";
+                log.error(msg, e);
+            }
+        }
     }
 
     private void delayedXmppConnection() {
@@ -285,11 +354,11 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             }
         }
         
-        synchronized (serverSideJids) {
-            while (serverSideJids.size() < 4) {
+        synchronized (proxyJids) {
+            while (proxyJids.size() < 4) {
                 log.info("Waiting for JIDs of MG servers...");
                 try {
-                    serverSideJids.wait(10000);
+                    proxyJids.wait(10000);
                 } catch (final InterruptedException e) {
                     log.error("Interruped?", e);
                 }
@@ -297,8 +366,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         }
         
         final List<String> strs;
-        synchronized (serverSideJids) {
-            strs = new ArrayList<String>(serverSideJids);
+        synchronized (proxyJids) {
+            strs = new ArrayList<String>(proxyJids);
         }
         
         Collections.shuffle(strs);
@@ -486,8 +555,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             @Override
             public Socket createSocket(final String host, 
                 final int port, final InetAddress localHost,
-                final int localPort)
-                throws IOException, UnknownHostException {
+                final int localPort) throws IOException, UnknownHostException {
                 // We ignore the local port binding.
                 return createSocket(host, port);
             }
@@ -535,11 +603,11 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             public void presenceChanged(final Presence presence) {
                 final String from = presence.getFrom();
                 if (from.startsWith("mglittleshoot@gmail.com")) {
-                    processPresenceChanged(presence, from, xmpp);
+                    processPresenceChanged(presence, from, xmpp, proxyJids);
                 }
                 else if (isMg(from)) {
                     // We've received a changed presence state for an MG peer.
-                    processPresenceChanged(presence, from, xmpp);
+                    processPresenceChanged(presence, from, xmpp, peerProxyJids);
                 }
             }
             public void entriesAdded(final Collection<String> addresses) {
@@ -587,7 +655,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     }
 
     protected void processPresenceChanged(final Presence presence, 
-        final String from, final XMPPConnection xmpp) {
+        final String from, final XMPPConnection xmpp, 
+        final Collection<String> jids) {
         log.info("PACKET: "+presence);
         log.info("Packet is from: {}", from);
         if (presence.isAvailable()) {
@@ -616,15 +685,15 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 log.error("Could not send INFO message", e);
             }
             
-            serverSideJids.add(from);
-            synchronized (serverSideJids) {
-                serverSideJids.notifyAll();
+            jids.add(from);
+            synchronized (jids) {
+                jids.notifyAll();
             }
         }
         else {
             log.info("Removing connection with status {}", 
                 presence.getStatus());
-            serverSideJids.remove(from);
+            jids.remove(from);
         }
     }
 
@@ -659,10 +728,19 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             this.proxySet.remove(proxyAddress);
             this.proxies.remove(proxyAddress);
         }
+        /*
         if (this.proxySet.isEmpty()) {
             for (int i = 0; i < NUM_CONNECTIONS; i++) {
                 threadedXmppConnection();
             }
+        }
+        */
+    }
+
+    public void onCouldNotConnectToPeer(final URI peerUri) {
+        synchronized (this.peerProxySet) {
+            this.peerProxySet.remove(peerUri);
+            this.peerProxies.remove(peerUri);
         }
     }
 }
