@@ -17,6 +17,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -42,6 +43,7 @@ import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.Roster;
+import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
@@ -159,7 +161,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             this.client = P2P.newXmppP2PClient(streamDesc, 
                 LanternConstants.LANTERN_PROXY_PORT);
             this.client.login(this.user, this.pwd, ID);
-            addRosterListener();
+            configureRoster();
         } catch (final IOException e) {
             final String msg = "Could not log in!!";
             log.warn(msg, e);
@@ -229,9 +231,13 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         return pipeline;
     }
     
-    private void addRosterListener() throws XMPPException {
+    private void configureRoster() throws XMPPException {
         final XMPPConnection xmpp = this.client.getXmppConnection();
+        
+        
         final Roster roster = xmpp.getRoster();
+        // Make sure we look for MG packets.
+        roster.createEntry("mglittleshoot@gmail.com", "MG", null);
         
         roster.addRosterListener(new RosterListener() {
             public void entriesDeleted(final Collection<String> addresses) {
@@ -254,9 +260,30 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 log.info("Entries added: "+addresses);
             }
         });
-
-        // Make sure we look for MG packets.
-        roster.createEntry("mglittleshoot@gmail.com", "MG", null);
+        
+        // Now we add all the existing entries to get people who are already
+        // online.
+        final Collection<RosterEntry> entries = roster.getEntries();
+        for (final RosterEntry entry : entries) {
+            log.info("Got entry: {}", entry);
+            final String jid = entry.getUser();
+            log.info("Roster entry user: {}",jid);
+            System.out.println(entry.getName());
+            System.out.println(entry.getStatus());
+            System.out.println(entry.getType());
+            final Iterator<Presence> presences = 
+                roster.getPresences(entry.getUser());
+            while (presences.hasNext()) {
+                final Presence p = presences.next();
+                final String from = p.getFrom();
+                log.info("Got presence with from: {}", from);
+                if (isMg(from) && p.isAvailable()) {
+                    log.info("Adding from to peer JIDs: {}", from);
+                    this.peerProxyJids.add(from);
+                }
+            }
+        }
+        
         log.info("Finished adding listeners");
     }
 
@@ -370,7 +397,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         // "-mg-"
         // final String id = "-"+macAddress+"-";
         //if (from.endsWith("-") && from.contains("/-")) {
-        if (from.contains(ID)) {
+        if (from.contains("/"+ID)) {
             log.info("Returning MG TRUE for from: {}", from);
             return true;
         }
@@ -378,7 +405,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         return false;
     }
 
-    protected void processPresenceChanged(final Presence presence, 
+    private void processPresenceChanged(final Presence presence, 
         final String from, final XMPPConnection xmpp, 
         final Collection<String> jids) {
         log.info("PACKET: "+presence);
