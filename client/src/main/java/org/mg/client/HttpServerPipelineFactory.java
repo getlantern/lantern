@@ -25,15 +25,12 @@ import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
-
-import javax.net.SocketFactory;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -45,8 +42,6 @@ import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
-import org.jivesoftware.smack.ConnectionConfiguration;
-import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
@@ -117,6 +112,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
 
     private final XmppP2PClient client;
     
+    private static final String ID = "-la-";
+    
     /**
      * Separate thread for creating new XMPP connections.
      */
@@ -163,7 +160,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         try {
             this.client = P2P.newXmppP2PClient(streamDesc, 
                 LanternConstants.LANTERN_PROXY_PORT);
-            this.client.login(this.user, this.pwd);
+            this.client.login(this.user, this.pwd, ID);
             addRosterListener();
         } catch (final IOException e) {
             final String msg = "Could not log in!!";
@@ -267,6 +264,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         }
     }
 
+    /*
     private void threadedXmppConnection() {
         connector.submit(new Runnable() {
             public void run() {
@@ -431,6 +429,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         this.chats.add(chat);
         this.chatsToHashCodes.put(chat, new ArrayList<String>());
     }
+    */
     
     private void sendErrorMessage(final Chat chat, final InetSocketAddress isa,
         final String message) {
@@ -522,6 +521,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         }
     }
 
+    /*
     private void persistentMonitoringConnection() {
         for (int i = 0; i < 10; i++) {
             try {
@@ -642,11 +642,14 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             }
         });
     }
+    */
 
     protected boolean isMg(final String from) {
         // Here's the format we're looking for: 
+        // "-mg-"
         // final String id = "-"+macAddress+"-";
-        if (from.endsWith("-") && from.contains("/-")) {
+        //if (from.endsWith("-") && from.contains("/-")) {
+        if (from.contains(ID)) {
             log.info("Returning MG TRUE for from: {}", from);
             return true;
         }
