@@ -11,6 +11,7 @@ import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -108,7 +109,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     
     private final Collection<String> proxyJids = new HashSet<String>();
     
-    private final Collection<String> peerProxyJids = new HashSet<String>();
+    //private final Collection<String> peerProxyJids = new HashSet<String>();
 
     private final XmppP2PClient client;
     
@@ -251,9 +252,10 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 if (from.startsWith("mglittleshoot@gmail.com")) {
                     processPresenceChanged(presence, from, xmpp, proxyJids);
                 }
-                else if (isMg(from)) {
+                else {
+                    processPresence(presence);
                     // We've received a changed presence state for an MG peer.
-                    processPresenceChanged(presence, from, xmpp, peerProxyJids);
+                    //processPresenceChanged(presence, from, xmpp, new HashSet<String>());
                 }
             }
             public void entriesAdded(final Collection<String> addresses) {
@@ -275,16 +277,30 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 roster.getPresences(entry.getUser());
             while (presences.hasNext()) {
                 final Presence p = presences.next();
-                final String from = p.getFrom();
-                log.info("Got presence with from: {}", from);
-                if (isMg(from) && p.isAvailable()) {
-                    log.info("Adding from to peer JIDs: {}", from);
-                    this.peerProxyJids.add(from);
-                }
+                processPresence(p);
             }
         }
         
         log.info("Finished adding listeners");
+    }
+
+    private void processPresence(final Presence p) {
+        final String from = p.getFrom();
+        log.info("Got presence with from: {}", from);
+        if (isMg(from) && p.isAvailable()) {
+            log.info("Adding from to peer JIDs: {}", from);
+            try {
+                final URI uri = new URI(from);
+                synchronized (peerProxySet) {
+                    if (!peerProxySet.contains(uri)) {
+                        peerProxySet.add(uri);
+                        peerProxies.add(uri);
+                    }
+                }
+            } catch (final URISyntaxException e) {
+                log.error("Could not create URI from: {}", from);
+            }
+        }
     }
 
     private Chat getChat() {
@@ -301,7 +317,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         }
     }
 
-    
     private void sendErrorMessage(final Chat chat, final InetSocketAddress isa,
         final String message) {
         final Message msg = new Message();
