@@ -65,56 +65,6 @@ public class NativeUtils
             }
         return null;
         }
-
-    public static void openFolder(final File folder) throws IOException 
-        {
-        if (!folder.isDirectory())
-            {
-            LOG.warn("No directory at: {}", folder);
-            }
-        if (SystemUtils.IS_OS_WINDOWS)
-        //if (SystemUtils.isJavaVersionAtLeast(1.6f))
-            {
-            final Class[] argTypes = new Class[]{java.io.File.class};
-            try
-                {
-                final Class desktopClass = Class.forName("java.awt.Desktop");
-                final Object obj = 
-                    desktopClass.getDeclaredMethod("getDesktop").invoke(null);
-                desktopClass.getDeclaredMethod("open", argTypes).invoke(obj, 
-                    folder);
-                }
-            catch (final Exception e)
-                {
-                LOG.error("Opening folder failed!!", e);
-                if (SystemUtils.IS_OS_MAC_OSX)
-                    {
-                    exec ("open", "'"+folder.getCanonicalPath()+"'");
-                    }
-                throw new IOExceptionWithCause("Can't open folders on:" + 
-                    SystemUtils.OS_NAME, e);
-                }
-            }
-        else if (SystemUtils.IS_OS_MAC_OSX)
-            {
-            try
-                {
-                final String path = folder.getCanonicalPath();
-                LOG.debug("Opening path: {}", path);
-                final Process proc = exec ("open", path);
-                //LOG.debug("Process is: " + IOUtils.toString(proc.getInputStream()));
-                }
-            catch (final IOException e)
-                {
-                LOG.error("Exception opening folder", e);
-                }
-            }
-        else
-            {
-            LOG.debug("We don't know how to open folders on other OSes");
-            throw new IOException("Can't open folders on:"+SystemUtils.OS_NAME);
-            }
-        }
     
     /**
      * Adds a tray icon using reflection.  This succeeds if the underlying 
