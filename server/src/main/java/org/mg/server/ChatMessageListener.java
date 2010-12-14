@@ -257,6 +257,7 @@ public class ChatMessageListener implements ChatStateListener,
     }
 
     private void sendInfo(final Chat ch) {
+        log.info("Sending info response");
         final Message msg = new Message();
         msg.setProperty(XmppMessageConstants.TYPE, 
             XmppMessageConstants.INFO_RESPONSE_TYPE);
