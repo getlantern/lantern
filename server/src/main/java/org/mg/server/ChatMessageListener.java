@@ -148,12 +148,16 @@ public class ChatMessageListener implements ChatStateListener,
         if (type != null) {
             switch (type) {
                 case XmppMessageConstants.INFO_REQUEST_TYPE:
-                    sendInfo(ch);
+                    log.info("Sending info response");
+                    sendInfoResponse(ch);
                     break;
                 default:
                     log.error("Unhandled type? "+type);
             }
             return;
+        }
+        else {
+            log.info("Type is null");
         }
         
         final long seq = (Long) msg.getProperty(XmppMessageConstants.SEQ);
@@ -256,7 +260,7 @@ public class ChatMessageListener implements ChatStateListener,
         }
     }
 
-    private void sendInfo(final Chat ch) {
+    private void sendInfoResponse(final Chat ch) {
         log.info("Sending info response");
         final Message msg = new Message();
         msg.setProperty(XmppMessageConstants.TYPE, 
