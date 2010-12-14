@@ -43,6 +43,8 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jivesoftware.smack.Chat;
+import org.jivesoftware.smack.ChatManager;
+import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
@@ -52,6 +54,7 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 import org.lastbamboo.common.ice.IceMediaStreamDesc;
+import org.lastbamboo.common.util.NetworkUtils;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.p2p.P2P;
 import org.mg.common.LanternConstants;
@@ -93,6 +96,11 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     private final Set<InetSocketAddress> proxySet =
         new HashSet<InetSocketAddress>();
     private final Queue<InetSocketAddress> proxies = 
+        new ConcurrentLinkedQueue<InetSocketAddress>();
+    
+    private final Set<InetSocketAddress> gaeProxySet =
+        new HashSet<InetSocketAddress>();
+    private final Queue<InetSocketAddress> gaeProxies = 
         new ConcurrentLinkedQueue<InetSocketAddress>();
     
     private final Set<URI> peerProxySet = new HashSet<URI>();
@@ -144,6 +152,15 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             props.load(new FileInputStream(file));
             this.user = props.getProperty("google.user");
             this.pwd = props.getProperty("google.pwd");
+            if (StringUtils.isBlank(this.user)) {
+                log.error("No user name");
+                throw new IllegalStateException("No user name in: " + file);
+            }
+            
+            if (StringUtils.isBlank(this.pwd)) {
+                log.error("No password.");
+                throw new IllegalStateException("No password in: " + file);
+            }
             
             final Enumeration<NetworkInterface> ints = 
                 NetworkInterface.getNetworkInterfaces();
@@ -159,8 +176,10 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         final IceMediaStreamDesc streamDesc = 
             new IceMediaStreamDesc(true, true, "message", "http", 1, false);
         try {
-            this.client = P2P.newXmppP2PClient(streamDesc, 
+            final InetSocketAddress ina = new InetSocketAddress(
+                NetworkUtils.getLocalHost(), 
                 LanternConstants.LANTERN_PROXY_PORT);
+            this.client = P2P.newXmppP2PClient(streamDesc, ina);
             this.client.login(this.user, this.pwd, ID);
             configureRoster();
         } catch (final IOException e) {
@@ -208,6 +227,9 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 pipeline.addLast("handler", handler);
                 return pipeline;
             }
+            else {
+                log.error("No DIRECT proxies either!");
+            }
         }
         
         /*
@@ -253,7 +275,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                     processPresenceChanged(presence, from, xmpp, proxyJids);
                 }
                 else {
-                    processPresence(presence);
+                    processPresence(presence, xmpp);
                     // We've received a changed presence state for an MG peer.
                     //processPresenceChanged(presence, from, xmpp, new HashSet<String>());
                 }
@@ -270,24 +292,52 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             log.info("Got entry: {}", entry);
             final String jid = entry.getUser();
             log.info("Roster entry user: {}",jid);
-            System.out.println(entry.getName());
-            System.out.println(entry.getStatus());
-            System.out.println(entry.getType());
+            //System.out.println(entry.getName());
+            //System.out.println(entry.getStatus());
+            //System.out.println(entry.getType());
             final Iterator<Presence> presences = 
                 roster.getPresences(entry.getUser());
             while (presences.hasNext()) {
                 final Presence p = presences.next();
-                processPresence(p);
+                processPresence(p, xmpp);
             }
         }
         
         log.info("Finished adding listeners");
     }
 
-    private void processPresence(final Presence p) {
+    private void processPresence(final Presence p, final XMPPConnection xmpp) {
         final String from = p.getFrom();
         log.info("Got presence with from: {}", from);
-        if (isMg(from) && p.isAvailable()) {
+        if (isLanternProxy(from)) {
+            log.info("Got lantern proxy!!");
+            final ChatManager chatManager = xmpp.getChatManager();
+            final Chat chat = chatManager.createChat(from,
+                new MessageListener() {
+                    public void processMessage(final Chat ch, 
+                        final Message msg) {
+                        final Integer type = 
+                            (Integer) msg.getProperty(XmppMessageConstants.TYPE);
+                        if (type != null) {
+                            processTypedMessage(msg, type, ch);
+                            return;
+                        }
+                    }
+                });
+            
+            
+            // Send an "info" message to gather proxy data.
+            final Message msg = new Message();
+            msg.setProperty(XmppMessageConstants.TYPE, 
+                XmppMessageConstants.INFO_REQUEST_TYPE);
+            try {
+                log.info("Sending info message");
+                chat.sendMessage(msg);
+            } catch (final XMPPException e) {
+                log.error("Could not send INFO message", e);
+            }
+        }
+        else if (isMg(from) && p.isAvailable()) {
             log.info("Adding from to peer JIDs: {}", from);
             try {
                 final URI uri = new URI(from);
@@ -301,6 +351,10 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 log.error("Could not create URI from: {}", from);
             }
         }
+    }
+
+    private boolean isLanternProxy(final String from) {
+        return from.startsWith("mglittleshoot");
     }
 
     private Chat getChat() {
@@ -333,6 +387,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     
     private void processTypedMessage(final Message msg, final Integer type, 
         final Chat chat) {
+        log.info("Processing typed message");
         switch (type) {
             case (XmppMessageConstants.INFO_REQUEST_TYPE):
                 sendInfoResponse(chat);
@@ -342,6 +397,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 
                 break;
             default:
+                log.warn("Did not understand type: "+type);
                 break;
         }
     }
