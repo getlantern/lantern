@@ -26,7 +26,6 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
@@ -79,8 +78,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
 
     private final String macAddress;
     
-    private volatile int connectionsToFetch = 0;
-    
     private static final int NUM_CONNECTIONS = 10;
     
     private final List<Chat> chats = new ArrayList<Chat>(NUM_CONNECTIONS);
@@ -90,8 +87,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     
     final ConcurrentHashMap<Chat, Collection<String>> chatsToHashCodes =
         new ConcurrentHashMap<Chat, Collection<String>>();
-    
-    private final Timer timer = new Timer("XMPP-Reconnect-Timer", true);
     
     private final Set<InetSocketAddress> proxySet =
         new HashSet<InetSocketAddress>();
@@ -115,10 +110,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     private final ClientSocketChannelFactory clientSocketChannelFactory =
         new NioClientSocketChannelFactory(executor, executor);
     
-    private final Collection<String> proxyJids = new HashSet<String>();
-    
-    //private final Collection<String> peerProxyJids = new HashSet<String>();
-
     private final XmppP2PClient client;
     
     private static final String ID = "-la-";
@@ -195,65 +186,56 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
 
     public ChannelPipeline getPipeline() {
         log.info("Getting pipeline...");
-        
-        final ChannelPipeline pipeline = pipeline();
-        
-        // TODO: We should make sure to mix up all the proxies, sometimes
-        // using peers, sometimes using centralized.
-        
+
+        // We randomly use peers and centralized proxies.
         synchronized (peerProxySet) {
-            if (!peerProxySet.isEmpty()) {
-                log.info("Using PEER proxy connection...");
-                final URI proxy = peerProxies.poll();
-                peerProxies.add(proxy);
-                final SimpleChannelUpstreamHandler handler = 
-                    new PeerProxyRelayHandler(proxy, this, this.client);
-                pipeline.addLast("handler", handler);
-                return pipeline;
-            }
-            else {
-                log.info("No peer proxies!!");
+            if (usePeerProxies()) {
+                return peerProxy();
             }
         }
-        
         synchronized (proxySet) {
-            if (!proxySet.isEmpty()) {
-                log.info("Using DIRECT proxy connection...");
-                // We just use it as a cyclic queue.
-                final InetSocketAddress proxy = proxies.poll();
-                proxies.add(proxy);
-                final SimpleChannelUpstreamHandler handler = 
-                    new ProxyRelayHandler(proxy,clientSocketChannelFactory,this);
-                pipeline.addLast("handler", handler);
-                return pipeline;
-            }
-            else {
-                log.error("No DIRECT proxies either!");
-            }
+            return centralizedProxy();
         }
         
-        /*
-        log.info("Using XMPP relays...");
-        final Chat chat = getChat();
-        final HttpRequestHandler handler = 
-            new HttpRequestHandler(this.channelGroup, this.macAddress, chat);
-        pipeline.addLast("handler", handler);
-        
-        final String hc = String.valueOf(handler.hashCode());
-        this.hashCodesToHandlers.put(hc, handler);
-        
-        final Collection<String> list = chatsToHashCodes.get(chat);
-        
-        // Could be some race conditions, so check for null.
-        if (list != null) {
-            list.add(hc);
-        }
-        
-        return pipeline;
-        */
-        return pipeline;
     }
     
+    private ChannelPipeline peerProxy() {
+        log.info("Using PEER proxy connection...");
+        final URI proxy = peerProxies.poll();
+        peerProxies.add(proxy);
+        final SimpleChannelUpstreamHandler handler = 
+            new PeerProxyRelayHandler(proxy, this, this.client);
+        final ChannelPipeline pipeline = pipeline();
+        pipeline.addLast("handler", handler);
+        return pipeline;
+    }
+
+    private ChannelPipeline centralizedProxy() {
+        log.info("Using DIRECT proxy connection...");
+        // We just use it as a cyclic queue.
+        final InetSocketAddress proxy = proxies.poll();
+        proxies.add(proxy);
+        final SimpleChannelUpstreamHandler handler = 
+            new ProxyRelayHandler(proxy,clientSocketChannelFactory,this);
+        final ChannelPipeline pipeline = pipeline();
+        pipeline.addLast("handler", handler);
+        return pipeline;
+    }
+
+    private boolean usePeerProxies() {
+        if (peerProxySet.isEmpty()) {
+            log.info("No peer proxies, so not using peers");
+            return false;
+        }
+        final double rand = Math.random();
+        if (rand > 0.25) {
+            log.info("Using peer proxies - random was "+rand);
+            return true;
+        }
+        log.info("Not using peer proxies -- random was "+rand);
+        return false;
+    }
+
     private void configureRoster() throws XMPPException {
         final XMPPConnection xmpp = this.client.getXmppConnection();
         
@@ -270,15 +252,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 log.info("Entries updated: {}", addresses);
             }
             public void presenceChanged(final Presence presence) {
-                final String from = presence.getFrom();
-                if (from.startsWith("mglittleshoot@gmail.com")) {
-                    processPresenceChanged(presence, from, xmpp, proxyJids);
-                }
-                else {
-                    processPresence(presence, xmpp);
-                    // We've received a changed presence state for an MG peer.
-                    //processPresenceChanged(presence, from, xmpp, new HashSet<String>());
-                }
+                processPresence(presence, xmpp);
             }
             public void entriesAdded(final Collection<String> addresses) {
                 log.info("Entries added: "+addresses);
@@ -292,9 +266,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             log.info("Got entry: {}", entry);
             final String jid = entry.getUser();
             log.info("Roster entry user: {}",jid);
-            //System.out.println(entry.getName());
-            //System.out.println(entry.getStatus());
-            //System.out.println(entry.getType());
             final Iterator<Presence> presences = 
                 roster.getPresences(entry.getUser());
             while (presences.hasNext()) {
@@ -308,7 +279,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
 
     private void processPresence(final Presence p, final XMPPConnection xmpp) {
         final String from = p.getFrom();
-        log.info("Got presence with from: {}", from);
+        //log.info("Got presence with from: {}", from);
         if (isLanternProxy(from)) {
             log.info("Got lantern proxy!!");
             final ChatManager chatManager = xmpp.getChatManager();
@@ -337,7 +308,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 log.error("Could not send INFO message", e);
             }
         }
-        else if (isMg(from) && p.isAvailable()) {
+        else if (isLanternJid(from) && p.isAvailable()) {
             log.info("Adding from to peer JIDs: {}", from);
             try {
                 final URI uri = new URI(from);
@@ -355,20 +326,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
 
     private boolean isLanternProxy(final String from) {
         return from.startsWith("mglittleshoot");
-    }
-
-    private Chat getChat() {
-        synchronized (this.chats) {
-            while (chats.isEmpty()) {
-                log.info("Waiting for chats...");
-                try {
-                    chats.wait(10000);
-                } catch (InterruptedException e) {
-                }
-            }
-            Collections.shuffle(chats);
-            return chats.get(0);
-        }
     }
 
     private void sendErrorMessage(final Chat chat, final InetSocketAddress isa,
@@ -415,6 +372,10 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 Integer.parseInt(StringUtils.substringAfter(cur, ":"));
             final InetSocketAddress isa = 
                 new InetSocketAddress(hostname, port);
+            if (proxySet.contains(isa)) {
+                log.info("We already know about this proxy");
+                return;
+            }
             
             final Socket sock = new Socket();
             try {
@@ -463,62 +424,17 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         }
     }
 
-    protected boolean isMg(final String from) {
+    protected boolean isLanternJid(final String from) {
         // Here's the format we're looking for: 
         // "-mg-"
         // final String id = "-"+macAddress+"-";
         //if (from.endsWith("-") && from.contains("/-")) {
         if (from.contains("/"+ID)) {
-            log.info("Returning MG TRUE for from: {}", from);
+            log.info("Returning Lantern TRUE for from: {}", from);
             return true;
         }
-        log.info("Returning MG FALSE for from: {}", from);
+        //log.info("Returning Lantern FALSE for from: {}", from);
         return false;
-    }
-
-    private void processPresenceChanged(final Presence presence, 
-        final String from, final XMPPConnection xmpp, 
-        final Collection<String> jids) {
-        log.info("PACKET: "+presence);
-        log.info("Packet is from: {}", from);
-        if (presence.isAvailable()) {
-            /*
-            final ChatManager chatManager = xmpp.getChatManager();
-            final Chat chat = chatManager.createChat(from,
-                new MessageListener() {
-                
-                    public void processMessage(final Chat ch, 
-                        final Message msg) {
-                        final Integer type = 
-                            (Integer) msg.getProperty(XmppMessageConstants.TYPE);
-                        if (type != null) {
-                            processTypedMessage(msg, type, ch);
-                            return;
-                        }
-                    }
-                });
-            
-            
-            // Send an "info" message to gather proxy data.
-            final Message msg = new Message();
-            msg.setProperty(XmppMessageConstants.TYPE, 
-                XmppMessageConstants.INFO_REQUEST_TYPE);
-            try {
-                chat.sendMessage(msg);
-            } catch (final XMPPException e) {
-                log.error("Could not send INFO message", e);
-            }
-            */
-            jids.add(from);
-            synchronized (jids) {
-                jids.notifyAll();
-            }
-        }
-        else {
-            log.info("Removing connection with status {}", 
-                presence.getStatus());
-            jids.remove(from);
-        }
     }
 
     private String getMacAddress(final Enumeration<NetworkInterface> nis) {
@@ -552,13 +468,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             this.proxySet.remove(proxyAddress);
             this.proxies.remove(proxyAddress);
         }
-        /*
-        if (this.proxySet.isEmpty()) {
-            for (int i = 0; i < NUM_CONNECTIONS; i++) {
-                threadedXmppConnection();
-            }
-        }
-        */
     }
 
     public void onCouldNotConnectToPeer(final URI peerUri) {

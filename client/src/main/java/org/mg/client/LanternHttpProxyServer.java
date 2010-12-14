@@ -19,8 +19,7 @@ import org.slf4j.LoggerFactory;
  */
 public class LanternHttpProxyServer implements HttpProxyServer {
     
-    private final Logger log = 
-        LoggerFactory.getLogger(LanternHttpProxyServer.class);
+    private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final ChannelGroup allChannels = 
         new DefaultChannelGroup("HTTP-Proxy-Server");
@@ -76,9 +75,11 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
+                log.info("Got shutdown hook...closing all channels.");
                 final ChannelGroupFuture future = allChannels.close();
                 future.awaitUninterruptibly(120*1000);
                 bootstrap.releaseExternalResources();
+                log.info("Closed all channels...");
             }
         }));
     }
