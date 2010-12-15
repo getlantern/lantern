@@ -3,7 +3,6 @@ package org.mg.client;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
-import java.net.URI;
 import java.nio.ByteBuffer;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -14,7 +13,6 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.lastbamboo.common.util.ByteBufferUtils;
-import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.mg.common.MgUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,16 +26,9 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
     
     private volatile long messagesReceived = 0L;
 
-    private final URI peerUri;
-
-
     private Channel inboundChannel;
 
-    private final ProxyStatusListener proxyStatusListener;
-
-    private final XmppP2PClient p2pClient;
-
-    private Socket outgoingSocket;
+    private final Socket peerSocket;
     
     /**
      * Creates a new relayer to a peer proxy.
@@ -47,12 +38,8 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * status.
      * @param p2pClient The client for creating P2P connections.
      */
-    public PeerProxyRelayHandler(final URI peerUri, 
-        final ProxyStatusListener proxyStatusListener, 
-        final XmppP2PClient p2pClient) {
-        this.peerUri = peerUri;
-        this.proxyStatusListener = proxyStatusListener;
-        this.p2pClient = p2pClient;
+    public PeerProxyRelayHandler(final Socket peerSocket) {
+        this.peerSocket = peerSocket;
     }
     
     @Override
@@ -66,32 +53,14 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final ChannelBuffer msg = (ChannelBuffer) me.getMessage();
         final ByteBuffer buf = msg.toByteBuffer();
         final byte[] data = ByteBufferUtils.toRawBytes(buf);
-        final OutputStream os = this.outgoingSocket.getOutputStream();
+        log.info("Sending message on outgoing socket");
+        final OutputStream os = this.peerSocket.getOutputStream();
         os.write(data);
     }
     
     @Override
     public void channelOpen(final ChannelHandlerContext ctx, 
         final ChannelStateEvent e) {
-        if (this.outgoingSocket != null) {
-            log.error("Outbound channel already assigned?");
-        }
-        this.inboundChannel = e.getChannel();
-        
-        // This ensures we won't read any messages before we've successfully
-        // created the socket.
-        this.inboundChannel.setReadable(false);
-
-        // Start the connection attempt.
-        try {
-            log.info("Creating a new socket to {}", this.peerUri);
-            this.outgoingSocket = this.p2pClient.newSocket(this.peerUri);
-            inboundChannel.setReadable(true);
-        } catch (final IOException ioe) {
-            proxyStatusListener.onCouldNotConnectToPeer(peerUri);
-            log.warn("Could not connection to peer", ioe);
-            this.inboundChannel.close();
-        }
     }
     
     @Override 
@@ -110,9 +79,9 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
     }
     
     private void closeOutgoing() {
-        if (this.outgoingSocket != null) {
+        if (this.peerSocket != null) {
             try {
-                this.outgoingSocket.close();
+                this.peerSocket.close();
             } catch (final IOException e) {
                 log.info("Exception closing socket", e);
             }

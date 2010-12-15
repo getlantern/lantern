@@ -77,7 +77,11 @@ public class LanternHttpProxyServer implements HttpProxyServer {
             public void run() {
                 log.info("Got shutdown hook...closing all channels.");
                 final ChannelGroupFuture future = allChannels.close();
-                future.awaitUninterruptibly(120*1000);
+                try {
+                    future.await(6*1000);
+                } catch (final InterruptedException e) {
+                    log.info("Interrupted", e);
+                }
                 bootstrap.releaseExternalResources();
                 log.info("Closed all channels...");
             }

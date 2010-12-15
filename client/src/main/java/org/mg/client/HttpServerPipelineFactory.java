@@ -13,13 +13,10 @@ import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
@@ -53,7 +50,6 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 import org.lastbamboo.common.ice.IceMediaStreamDesc;
-import org.lastbamboo.common.util.NetworkUtils;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.p2p.P2P;
 import org.mg.common.LanternConstants;
@@ -70,18 +66,10 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private final ChannelGroup channelGroup;
-    
     private final String user;
 
     private final String pwd;
 
-    private final String macAddress;
-    
-    private static final int NUM_CONNECTIONS = 10;
-    
-    private final List<Chat> chats = new ArrayList<Chat>(NUM_CONNECTIONS);
-    
     final Map<String, HttpRequestHandler> hashCodesToHandlers =
         new ConcurrentHashMap<String, HttpRequestHandler>();
     
@@ -99,7 +87,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         new ConcurrentLinkedQueue<InetSocketAddress>();
     
     private final Set<URI> peerProxySet = new HashSet<URI>();
-    private final Queue<URI> peerProxies = new ConcurrentLinkedQueue<URI>();
+    private final Queue<Socket> peerProxies = 
+        new ConcurrentLinkedQueue<Socket>();
 
     static {
         SmackConfiguration.setPacketReplyTimeout(30 * 1000);
@@ -115,12 +104,12 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     private static final String ID = "-la-";
     
     /**
-     * Separate thread for creating new XMPP connections.
+     * Separate thread for creating new sockets to peers.
      */
     private final ExecutorService connector = 
         Executors.newCachedThreadPool(new ThreadFactory() {
             public Thread newThread(final Runnable r) {
-                final Thread t = new Thread(r, "XMPP-Connector-Thread");
+                final Thread t = new Thread(r, "P2P-Socket-Connector-Thread");
                 t.setDaemon(true);
                 return t;
             }
@@ -135,7 +124,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
      * @param filters HTTP filters to apply.
      */
     public HttpServerPipelineFactory(final ChannelGroup channelGroup) {
-        this.channelGroup = channelGroup;
         final Properties props = new Properties();
         final File propsDir = new File(System.getProperty("user.home"), ".mg");
         final File file = new File(propsDir, "mg.properties");
@@ -152,24 +140,19 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 log.error("No password.");
                 throw new IllegalStateException("No password in: " + file);
             }
-            
-            final Enumeration<NetworkInterface> ints = 
-                NetworkInterface.getNetworkInterfaces();
-            this.macAddress = getMacAddress(ints);
         } catch (final IOException e) {
             final String msg = "Error loading props file at: " + file;
             log.error(msg, e);
             throw new RuntimeException(msg, e);
         }
         
-        //persistentMonitoringConnection();
-        
         final IceMediaStreamDesc streamDesc = 
             new IceMediaStreamDesc(true, true, "message", "http", 1, false);
         try {
+            // The Lantern proxy is bound on 127.0.0.1 only -- make sure to
+            // bind to localhost here.
             final InetSocketAddress ina = new InetSocketAddress(
-                NetworkUtils.getLocalHost(), 
-                LanternConstants.LANTERN_PROXY_PORT);
+                "127.0.0.1", LanternConstants.LANTERN_PROXY_PORT);
             this.client = P2P.newXmppP2PClient(streamDesc, ina);
             this.client.login(this.user, this.pwd, ID);
             configureRoster();
@@ -196,15 +179,14 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         synchronized (proxySet) {
             return centralizedProxy();
         }
-        
     }
     
     private ChannelPipeline peerProxy() {
         log.info("Using PEER proxy connection...");
-        final URI proxy = peerProxies.poll();
-        peerProxies.add(proxy);
+        final Socket sock = peerProxies.poll();
+        peerProxies.add(sock);
         final SimpleChannelUpstreamHandler handler = 
-            new PeerProxyRelayHandler(proxy, this, this.client);
+            new PeerProxyRelayHandler(this, this.client, sock);
         final ChannelPipeline pipeline = pipeline();
         pipeline.addLast("handler", handler);
         return pipeline;
@@ -318,18 +300,31 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         }
         else if (isLanternJid(from) && p.isAvailable()) {
             log.info("Adding from to peer JIDs: {}", from);
-            try {
-                final URI uri = new URI(from);
-                synchronized (peerProxySet) {
-                    if (!peerProxySet.contains(uri)) {
-                        peerProxySet.add(uri);
-                        peerProxies.add(uri);
-                    }
-                }
-            } catch (final URISyntaxException e) {
-                log.error("Could not create URI from: {}", from);
-            }
+            addPeerSocket(from);
         }
+    }
+
+    private void addPeerSocket(final String from) {
+        final Runnable runner = new Runnable() {
+            public void run() {
+                try {
+                    final URI uri = new URI(from);
+                    synchronized (peerProxySet) {
+                        if (!peerProxySet.contains(uri)) {
+                            final Socket sock = client.newSocket(uri);
+                            peerProxies.add(sock);
+                            peerProxySet.add(uri);
+                        }
+                    }
+                } catch (final URISyntaxException e) {
+                    log.error("Could not create URI from: {}", from);
+                } catch (final IOException e) {
+                    log.info("Could not create socket!!", e);
+                }
+            }
+        };
+        // Connect on a separate thread.
+        this.connector.execute(runner);
     }
 
     private boolean isLanternProxy(final String from) {
