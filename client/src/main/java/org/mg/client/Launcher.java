@@ -52,7 +52,7 @@ public class Launcher {
         
         final org.littleshoot.proxy.HttpProxyServer rawProxy = 
             new DefaultHttpProxyServer(LanternConstants.LANTERN_PROXY_PORT);
-        rawProxy.start(true);
+        rawProxy.start(false);
     }
 
     private static void configure() {

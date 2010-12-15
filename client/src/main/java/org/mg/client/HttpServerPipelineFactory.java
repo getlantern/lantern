@@ -149,10 +149,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         final IceMediaStreamDesc streamDesc = 
             new IceMediaStreamDesc(true, true, "message", "http", 1, false);
         try {
-            // The Lantern proxy is bound on 127.0.0.1 only -- make sure to
-            // bind to localhost here.
             final InetSocketAddress ina = new InetSocketAddress(
-                "127.0.0.1", LanternConstants.LANTERN_PROXY_PORT);
+                LanternConstants.LANTERN_PROXY_PORT);
             this.client = P2P.newXmppP2PClient(streamDesc, ina);
             this.client.login(this.user, this.pwd, ID);
             configureRoster();
