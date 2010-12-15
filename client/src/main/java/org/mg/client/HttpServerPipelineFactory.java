@@ -213,6 +213,10 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     private ChannelPipeline centralizedProxy() {
         log.info("Using DIRECT proxy connection...");
         // We just use it as a cyclic queue.
+        if (proxies.isEmpty()) {
+            log.info("No centralized proxies!!");
+            return pipeline();
+        }
         final InetSocketAddress proxy = proxies.poll();
         proxies.add(proxy);
         final SimpleChannelUpstreamHandler handler = 
