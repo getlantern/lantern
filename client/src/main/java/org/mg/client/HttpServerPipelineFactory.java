@@ -186,7 +186,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         final Socket sock = peerProxies.poll();
         peerProxies.add(sock);
         final SimpleChannelUpstreamHandler handler = 
-            new PeerProxyRelayHandler(this, this.client, sock);
+            new PeerProxyRelayHandler(sock);
         final ChannelPipeline pipeline = pipeline();
         pipeline.addLast("handler", handler);
         return pipeline;
