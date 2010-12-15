@@ -52,10 +52,10 @@ import org.lastbamboo.common.amazon.ec2.AmazonEc2Utils;
 import org.lastbamboo.common.download.RateCalculator;
 import org.lastbamboo.common.download.RateCalculatorImpl;
 import org.mg.common.ChatData;
-import org.mg.common.XmppMessageConstants;
 import org.mg.common.MgUtils;
 import org.mg.common.Pair;
 import org.mg.common.RangeDownloaderAdaptor;
+import org.mg.common.XmppMessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -185,7 +185,7 @@ public class ChatMessageListener implements ChatStateListener,
                     rejected.add(msg);
                 }
             }
-            MgUtils.printMessage(msg);
+            //XmppUtils.printMessage(msg);
             return;
         }
         
