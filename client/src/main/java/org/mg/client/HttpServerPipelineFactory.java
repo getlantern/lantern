@@ -231,6 +231,10 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             log.info("No peer proxies, so not using peers");
             return false;
         }
+        if (proxySet.isEmpty()) {
+            log.info("Using peer proxies since there are no centralized ones");
+            return true;
+        }
         final double rand = Math.random();
         if (rand > 0.25) {
             log.info("Using peer proxies - random was "+rand);
