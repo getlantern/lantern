@@ -21,6 +21,10 @@ public class MgUtils {
      */
     public static void closeOnFlush(final Channel ch) {
         LOG.info("Closing channel on flush: {}", ch);
+        if (ch == null) {
+            LOG.warn("Channel is NULL!!");
+            return;
+        }
         if (ch.isConnected()) {
             ch.write(ChannelBuffers.EMPTY_BUFFER).addListener(
                 ChannelFutureListener.CLOSE);
