@@ -3,6 +3,9 @@
 # This can be useful for testing of making sure the proxy is returning the same files as 
 # direct connections.
 
+# Note this only runs a single thread. Certain issues may only show up when running with
+# multiple threads. curl also likely has different socket closing behavior than a web
+# browser in many scenarios.
 function die() {
   echo $*
   exit 1
