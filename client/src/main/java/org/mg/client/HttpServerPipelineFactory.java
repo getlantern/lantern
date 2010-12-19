@@ -25,10 +25,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -87,33 +84,19 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         new ConcurrentLinkedQueue<InetSocketAddress>();
     
     private final Set<URI> peerProxySet = new HashSet<URI>();
-    private final Queue<Socket> peerProxies = 
-        new ConcurrentLinkedQueue<Socket>();
+    private final Queue<URI> peerProxies = 
+        new ConcurrentLinkedQueue<URI>();
 
     static {
         SmackConfiguration.setPacketReplyTimeout(30 * 1000);
     }
     
-    private final Executor executor = Executors.newCachedThreadPool();
     
-    private final ClientSocketChannelFactory clientSocketChannelFactory =
-        new NioClientSocketChannelFactory(executor, executor);
+    private final ClientSocketChannelFactory clientSocketChannelFactory;
     
     private final XmppP2PClient client;
     
     private static final String ID = "-la-";
-    
-    /**
-     * Separate thread for creating new sockets to peers.
-     */
-    private final ExecutorService connector = 
-        Executors.newCachedThreadPool(new ThreadFactory() {
-            public Thread newThread(final Runnable r) {
-                final Thread t = new Thread(r, "P2P-Socket-Connector-Thread");
-                t.setDaemon(true);
-                return t;
-            }
-        });
     
     /**
      * Creates a new pipeline factory with the specified class for processing
@@ -147,11 +130,27 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         }
         
         final IceMediaStreamDesc streamDesc = 
-            new IceMediaStreamDesc(true, true, "message", "http", 1, false);
+            new IceMediaStreamDesc(true, false, "message", "http", 1, false);
         try {
             final InetSocketAddress ina = new InetSocketAddress(
                 LanternConstants.LANTERN_PROXY_PORT);
             this.client = P2P.newXmppP2PClient(streamDesc, ina);
+            final MessageListener ml = new MessageListener() {
+                
+                public void processMessage(final Chat ch, final Message msg) {
+                    final String part = ch.getParticipant();
+                    if (part.startsWith("lanternxmpp@appspot.com")) {
+                        final String body = msg.getBody();
+                        final Scanner scan = new Scanner(body);
+                        scan.useDelimiter(",");
+                        while (scan.hasNext()) {
+                            final String ip = scan.next();
+                            addProxy(ip, scan, ch);
+                        }
+                    }
+                }
+            };
+            this.client.addMessageListener(ml);
             this.client.login(this.user, this.pwd, ID);
             configureRoster();
         } catch (final IOException e) {
@@ -163,6 +162,10 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             log.warn(msg, e);
             throw new RuntimeException(msg, e);
         }
+        
+        clientSocketChannelFactory =
+            new NioClientSocketChannelFactory(Executors.newCachedThreadPool(), 
+                Executors.newCachedThreadPool());
     }
 
     public ChannelPipeline getPipeline() {
@@ -181,10 +184,10 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     
     private ChannelPipeline peerProxy() {
         log.info("Using PEER proxy connection...");
-        final Socket sock = peerProxies.poll();
-        peerProxies.add(sock);
+        final URI uri = peerProxies.poll();
+        peerProxies.add(uri);
         final SimpleChannelUpstreamHandler handler = 
-            new PeerProxyRelayHandler(sock);
+            new PeerProxyRelayHandler(uri, this, client);
         final ChannelPipeline pipeline = pipeline();
         pipeline.addLast("handler", handler);
         return pipeline;
@@ -199,14 +202,16 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         }
         final InetSocketAddress proxy = proxies.poll();
         proxies.add(proxy);
-        final SimpleChannelUpstreamHandler handler = 
-            new ProxyRelayHandler(proxy,clientSocketChannelFactory,this);
+        final SimpleChannelUpstreamHandler handler =
+            new RawSocketProxyRelayHandler(proxy, this);
+            //new ProxyRelayHandler(proxy,clientSocketChannelFactory,this);
         final ChannelPipeline pipeline = pipeline();
         pipeline.addLast("handler", handler);
         return pipeline;
     }
 
     private boolean usePeerProxies() {
+        if (peerProxySet != null) return true;
         if (peerProxySet.isEmpty()) {
             log.info("No peer proxies, so not using peers");
             return false;
@@ -230,7 +235,9 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         
         final Roster roster = xmpp.getRoster();
         // Make sure we look for MG packets.
-        roster.createEntry("mglittleshoot@gmail.com", "MG", null);
+        //roster.createEntry("mglittleshoot@gmail.com", "MG", null);
+        //roster.createEntry("bravenewsoftware@appspot.com", "MG", null);
+        roster.createEntry("lanternxmpp@appspot.com", "Lantern", null);
         
         roster.addRosterListener(new RosterListener() {
             public void entriesDeleted(final Collection<String> addresses) {
@@ -267,8 +274,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
 
     private void processPresence(final Presence p, final XMPPConnection xmpp) {
         final String from = p.getFrom();
-        //log.info("Got presence with from: {}", from);
-        if (isLanternProxy(from)) {
+        log.info("Got presence with from: {}", from);
+        if (isLanternHub(from)) {
             log.info("Got lantern proxy!!");
             final ChatManager chatManager = xmpp.getChatManager();
             final Chat chat = chatManager.createChat(from,
@@ -287,8 +294,9 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             
             // Send an "info" message to gather proxy data.
             final Message msg = new Message();
-            msg.setProperty(XmppMessageConstants.TYPE, 
-                XmppMessageConstants.INFO_REQUEST_TYPE);
+            msg.setBody("/info");
+            //msg.setProperty(XmppMessageConstants.TYPE, 
+            //    XmppMessageConstants.INFO_REQUEST_TYPE);
             try {
                 log.info("Sending info message");
                 chat.sendMessage(msg);
@@ -298,35 +306,24 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         }
         else if (isLanternJid(from) && p.isAvailable()) {
             log.info("Adding from to peer JIDs: {}", from);
-            addPeerSocket(from);
+            try {
+                final URI uri = new URI(from);
+                synchronized (peerProxySet) {
+                    if (!peerProxySet.contains(uri)) {
+                        //final Socket sock = client.newSocket(uri);
+                        peerProxies.add(uri);
+                        peerProxySet.add(uri);
+                    }
+                }
+            } catch (final URISyntaxException e) {
+                log.error("Could not create URI from: {}", from);
+            }
         }
     }
 
-    private void addPeerSocket(final String from) {
-        final Runnable runner = new Runnable() {
-            public void run() {
-                try {
-                    final URI uri = new URI(from);
-                    synchronized (peerProxySet) {
-                        if (!peerProxySet.contains(uri)) {
-                            final Socket sock = client.newSocket(uri);
-                            peerProxies.add(sock);
-                            peerProxySet.add(uri);
-                        }
-                    }
-                } catch (final URISyntaxException e) {
-                    log.error("Could not create URI from: {}", from);
-                } catch (final IOException e) {
-                    log.info("Could not create socket!!", e);
-                }
-            }
-        };
-        // Connect on a separate thread.
-        this.connector.execute(runner);
-    }
-
-    private boolean isLanternProxy(final String from) {
-        return from.startsWith("mglittleshoot");
+    private boolean isLanternHub(final String from) {
+        //return from.startsWith("mglittleshoot");
+        return from.startsWith("lanternxmpp@appspot.com");
     }
 
     private void sendErrorMessage(final Chat chat, final InetSocketAddress isa,
@@ -367,41 +364,47 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         final Scanner scan = new Scanner(proxyString);
         while (scan.hasNext()) {
             final String cur = scan.next();
-            final String hostname = 
-                StringUtils.substringBefore(cur, ":");
-            final int port = 
-                Integer.parseInt(StringUtils.substringAfter(cur, ":"));
-            final InetSocketAddress isa = 
-                new InetSocketAddress(hostname, port);
-            if (proxySet.contains(isa)) {
-                log.info("We already know about this proxy");
-                return;
+            addProxy(cur, scan, chat);
+        }
+    }
+
+    private void addProxy(final String cur, final Scanner scan, 
+        final Chat chat) {
+        log.info("Adding proxy: {}", cur);
+        final String hostname = 
+            StringUtils.substringBefore(cur, ":");
+        final int port = 
+            Integer.parseInt(StringUtils.substringAfter(cur, ":"));
+        final InetSocketAddress isa = 
+            new InetSocketAddress(hostname, port);
+        if (proxySet.contains(isa)) {
+            log.info("We already know about this proxy");
+            return;
+        }
+        
+        final Socket sock = new Socket();
+        try {
+            sock.connect(isa, 60*1000);
+            synchronized (proxySet) {
+                if (!proxySet.contains(isa)) {
+                    proxySet.add(isa);
+                    proxies.add(isa);
+                }
             }
+        } catch (final IOException e) {
+            log.error("Could not connect to: {}", isa);
+            sendErrorMessage(chat, isa, e.getMessage());
             
-            final Socket sock = new Socket();
+            // If we don't have any more proxies to connect to,
+            // revert to XMPP relay mode.
+            if (!scan.hasNext()) {
+                onCouldNotConnect(isa);
+            }
+        } finally {
             try {
-                sock.connect(isa, 60*1000);
-                synchronized (proxySet) {
-                    if (!proxySet.contains(isa)) {
-                        proxySet.add(isa);
-                        proxies.add(isa);
-                    }
-                }
+                sock.close();
             } catch (final IOException e) {
-                log.error("Could not connect to: {}", isa);
-                sendErrorMessage(chat, isa, e.getMessage());
-                
-                // If we don't have any more proxies to connect to,
-                // revert to XMPP relay mode.
-                if (!scan.hasNext()) {
-                    onCouldNotConnect(isa);
-                }
-            } finally {
-                try {
-                    sock.close();
-                } catch (final IOException e) {
-                    log.info("Exception closing", e);
-                }
+                log.info("Exception closing", e);
             }
         }
     }
@@ -472,6 +475,15 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     }
 
     public void onCouldNotConnectToPeer(final URI peerUri) {
+        removePeerUri(peerUri);
+    }
+
+    public void onError(final URI peerUri) {
+        //removePeerUri(peerUri);
+    }
+
+    private void removePeerUri(final URI peerUri) {
+        log.info("Removing peer with URI: {}", peerUri);
         synchronized (this.peerProxySet) {
             this.peerProxySet.remove(peerUri);
             this.peerProxies.remove(peerUri);

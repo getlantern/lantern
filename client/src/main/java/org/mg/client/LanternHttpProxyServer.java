@@ -22,7 +22,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final ChannelGroup allChannels = 
-        new DefaultChannelGroup("HTTP-Proxy-Server");
+        new DefaultChannelGroup("Local-HTTP-Proxy-Server");
             
     private final int port;
     

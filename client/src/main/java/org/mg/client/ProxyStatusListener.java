@@ -17,4 +17,6 @@ public interface ProxyStatusListener {
 
     void onCouldNotConnectToPeer(URI peerUri);
 
+    void onError(URI peerUri);
+
 }

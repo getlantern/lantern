@@ -3,8 +3,8 @@ package org.mg.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.URI;
 import java.nio.ByteBuffer;
 
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -16,7 +16,6 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.lastbamboo.common.util.ByteBufferUtils;
-import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.mg.common.MgUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,39 +23,27 @@ import org.slf4j.LoggerFactory;
 /**
  * Handler that relays traffic to another proxy.
  */
-public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
+public class RawSocketProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private volatile long messagesReceived = 0L;
 
-    private final URI peerUri;
-
-
     private Channel inboundChannel;
 
     private final ProxyStatusListener proxyStatusListener;
 
-    private final XmppP2PClient p2pClient;
-
     private Socket outgoingSocket;
+
+    private final InetSocketAddress proxy;
     
-    /**
-     * Creates a new relayer to a peer proxy.
-     * 
-     * @param peerUri The URI of the peer to connect to.
-     * @param proxyStatusListener The class to notify of changes in the proxy
-     * status.
-     * @param p2pClient The client for creating P2P connections.
-     */
-    public PeerProxyRelayHandler(final URI peerUri, 
-        final ProxyStatusListener proxyStatusListener, 
-        final XmppP2PClient p2pClient) {
-        this.peerUri = peerUri;
+    
+    public RawSocketProxyRelayHandler(final InetSocketAddress proxy,
+        final ProxyStatusListener proxyStatusListener) {
+        this.proxy = proxy;
         this.proxyStatusListener = proxyStatusListener;
-        this.p2pClient = p2pClient;
     }
-    
+
     @Override
     public void messageReceived(final ChannelHandlerContext ctx, 
         final MessageEvent me) {
@@ -73,7 +60,7 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
             final OutputStream os = this.outgoingSocket.getOutputStream();
             os.write(data);
         } catch (final IOException e) {
-            this.proxyStatusListener.onError(this.peerUri);
+            //this.proxyStatusListener.onError(this.peerUri);
         }
     }
     
@@ -91,12 +78,13 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
         // Start the connection attempt.
         try {
-            log.info("Creating a new socket to {}", this.peerUri);
-            this.outgoingSocket = this.p2pClient.newSocket(this.peerUri);
+            //log.info("Creating a new socket to {}", this.peerUri);
+            this.outgoingSocket = new Socket();
+            this.outgoingSocket.connect(this.proxy, 40000);
             inboundChannel.setReadable(true);
             startReading();
         } catch (final IOException ioe) {
-            proxyStatusListener.onCouldNotConnectToPeer(peerUri);
+            //proxyStatusListener.onCouldNotConnectToPeer(proxy);
             log.warn("Could not connection to peer", ioe);
             this.inboundChannel.close();
         }
@@ -155,7 +143,7 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     log.info("Exception relaying peer data back to browser",e);
                     MgUtils.closeOnFlush(inboundChannel);
                     //inboundChannel.close();
-                    proxyStatusListener.onError(peerUri);
+                    //proxyStatusListener.onError(peerUri);
                 }
             }
         };
