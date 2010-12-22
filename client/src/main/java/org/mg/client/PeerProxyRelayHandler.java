@@ -6,6 +6,9 @@ import java.io.OutputStream;
 import java.net.Socket;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -15,6 +18,7 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.util.ByteBufferUtils;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.mg.common.MgUtils;
@@ -40,6 +44,17 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
     private final XmppP2PClient p2pClient;
 
     private Socket outgoingSocket;
+    
+    private static Map<URI, Long> peerConnectionTimes =
+        new ConcurrentHashMap<URI, Long>();
+    
+    /**
+     * Map recording the number of consecutive connection failures for a
+     * given peer. Note that a successful connection will reset this count
+     * back to zero.
+     */
+    private static Map<URI, AtomicInteger> peerFailureCount =
+        new ConcurrentHashMap<URI, AtomicInteger>();
     
     /**
      * Creates a new relayer to a peer proxy.
@@ -93,11 +108,30 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
         try {
             log.info("Creating a new socket to {}", this.peerUri);
             this.outgoingSocket = this.p2pClient.newSocket(this.peerUri);
+            peerConnectionTimes.put(this.peerUri, System.currentTimeMillis());
+            peerFailureCount.put(this.peerUri, new AtomicInteger(0));
             inboundChannel.setReadable(true);
             startReading();
+        } catch (final NoAnswerException nae) {
+            // This is tricky, as it can mean two things. First, it can mean
+            // the XMPP message was somehow lost. Second, it can also mean
+            // the other side is actually not there and didn't respond as a
+            // result.
+            log.info("Did not get answer!! Closing channel from browser", nae);
+            final AtomicInteger count = peerFailureCount.get(this.peerUri);
+            if (count == null) {
+                log.info("Incrementing failure count");
+                peerFailureCount.put(this.peerUri, new AtomicInteger(0));
+            }
+            else if (count.incrementAndGet() > 5) {
+                log.info("Got a bunch of failures in a row to this peer. " +
+                    "Removing it.");
+                proxyStatusListener.onCouldNotConnectToPeer(peerUri);
+            } 
+            this.inboundChannel.close();
         } catch (final IOException ioe) {
             proxyStatusListener.onCouldNotConnectToPeer(peerUri);
-            log.warn("Could not connection to peer", ioe);
+            log.warn("Could not connect to peer", ioe);
             this.inboundChannel.close();
         }
     }
