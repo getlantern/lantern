@@ -126,6 +126,12 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
             else if (count.incrementAndGet() > 5) {
                 log.info("Got a bunch of failures in a row to this peer. " +
                     "Removing it.");
+                
+                // We still reset it back to zero. Note this all should 
+                // ideally never happen, and we should be able to use the
+                // XMPP presence alerts to determine if peers are still valid
+                // or not.
+                peerFailureCount.put(this.peerUri, new AtomicInteger(0));
                 proxyStatusListener.onCouldNotConnectToPeer(peerUri);
             } 
             this.inboundChannel.close();
