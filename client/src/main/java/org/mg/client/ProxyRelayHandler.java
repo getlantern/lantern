@@ -1,6 +1,7 @@
 package org.mg.client;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.Executors;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -13,6 +14,7 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.mg.common.MgUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,13 +30,17 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final InetSocketAddress proxyAddress;
 
-    private final ClientSocketChannelFactory clientSocketChannelFactory;
-
     private Channel outboundChannel;
 
     private Channel inboundChannel;
 
     private final ProxyStatusListener proxyStatusListener;
+    
+    private final ClientSocketChannelFactory clientSocketChannelFactory =
+        new NioClientSocketChannelFactory(
+            Executors.newCachedThreadPool(),
+            Executors.newCachedThreadPool());
+
     
     /**
      * Creates a new relayer to a proxy.
@@ -46,12 +52,10 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * status.
      */
     public ProxyRelayHandler(final InetSocketAddress proxyAddress, 
-        final ClientSocketChannelFactory clientSocketChannelFactory,
         final ProxyStatusListener proxyStatusListener) {
         // TODO: We also need to handle p2p URIs as addresses here so we
         // can create P2P connections to them.
         this.proxyAddress = proxyAddress;
-        this.clientSocketChannelFactory = clientSocketChannelFactory;
         this.proxyStatusListener = proxyStatusListener;
     }
     

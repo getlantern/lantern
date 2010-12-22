@@ -155,7 +155,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
 
     public ChannelPipeline getPipeline() {
         log.info("Getting pipeline...");
-
         // We randomly use peers and centralized proxies.
         synchronized (peerProxySet) {
             if (usePeerProxies()) {
@@ -188,8 +187,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         final InetSocketAddress proxy = proxies.poll();
         proxies.add(proxy);
         final SimpleChannelUpstreamHandler handler =
-            new RawSocketProxyRelayHandler(proxy, this);
-            //new ProxyRelayHandler(proxy,clientSocketChannelFactory,this);
+            new ProxyRelayHandler(proxy,this);
         final ChannelPipeline pipeline = pipeline();
         pipeline.addLast("handler", handler);
         return pipeline;
@@ -280,8 +278,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             // Send an "info" message to gather proxy data.
             final Message msg = new Message();
             msg.setBody("/info");
-            //msg.setProperty(XmppMessageConstants.TYPE, 
-            //    XmppMessageConstants.INFO_REQUEST_TYPE);
             try {
                 log.info("Sending info message");
                 chat.sendMessage(msg);
@@ -312,12 +308,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             }
         }
         else {
-            log.info("Removing JID for peer '"+from+"' with status: {}", 
-                p.getStatus());
-            synchronized (peerProxySet) {
-                peerProxies.remove(uri);
-                peerProxySet.remove(uri);
-            }
+            log.info("Removing JID for peer '"+from+"' with presence: {}", p);
+            removePeerUri(uri);
         }
     }
 
@@ -413,9 +405,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         final Message msg = new Message();
         msg.setProperty(XmppMessageConstants.TYPE, 
             XmppMessageConstants.INFO_RESPONSE_TYPE);
-        //final InetAddress address = AmazonEc2Utils.getPublicAddress();
-        //final String proxies = 
-        //    address.getHostAddress() + ":"+;
         
         // We want to separate out direct friend proxies here from the
         // proxies that are friends of friends. We only want to notify our
@@ -429,15 +418,11 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     }
 
     protected boolean isLanternJid(final String from) {
-        // Here's the format we're looking for: 
-        // "-mg-"
-        // final String id = "-"+macAddress+"-";
-        //if (from.endsWith("-") && from.contains("/-")) {
+        // Here's the format we're looking for: "-la-"
         if (from.contains("/"+ID)) {
             log.info("Returning Lantern TRUE for from: {}", from);
             return true;
         }
-        //log.info("Returning Lantern FALSE for from: {}", from);
         return false;
     }
 
@@ -479,7 +464,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     }
 
     public void onError(final URI peerUri) {
-        //removePeerUri(peerUri);
+        removePeerUri(peerUri);
     }
 
     private void removePeerUri(final URI peerUri) {

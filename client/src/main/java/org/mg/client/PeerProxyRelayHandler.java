@@ -88,7 +88,9 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
             final OutputStream os = this.outgoingSocket.getOutputStream();
             os.write(data);
         } catch (final IOException e) {
-            this.proxyStatusListener.onError(this.peerUri);
+            // They probably just closed the connection, as they will in
+            // many cases.
+            //this.proxyStatusListener.onError(this.peerUri);
         }
     }
     
@@ -194,8 +196,12 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 } catch (final IOException e) {
                     log.info("Exception relaying peer data back to browser",e);
                     MgUtils.closeOnFlush(inboundChannel);
+                    
+                    // The other side probably just closed the connection!!
+                    
                     //inboundChannel.close();
-                    proxyStatusListener.onError(peerUri);
+                    //proxyStatusListener.onError(peerUri);
+                    
                 }
             }
         };
