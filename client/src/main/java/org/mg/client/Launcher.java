@@ -3,10 +3,13 @@ package org.mg.client;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.HashMap;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
+import org.littleshoot.proxy.HttpFilter;
+import org.littleshoot.proxy.KeyStoreManager;
 import org.mg.common.LanternConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,13 +49,17 @@ public class Launcher {
             port = DEFAULT_PORT;
         }
         
-        System.out.println("About to start server on port: "+port);
-        final HttpProxyServer server = new LanternHttpProxyServer(port);
+        final KeyStoreManager proxyKeyStore = new LanternKeyStoreManager(true);
+        final org.littleshoot.proxy.HttpProxyServer rawProxy = 
+            new DefaultHttpProxyServer(LanternConstants.LANTERN_PROXY_PORT,
+                new HashMap<String, HttpFilter>(), null, proxyKeyStore);
+        
+        System.out.println("About to start Lantern server on port: "+port);
+        final HttpProxyServer server = 
+            new LanternHttpProxyServer(port, proxyKeyStore);
         server.start();
         
-        final org.littleshoot.proxy.HttpProxyServer rawProxy = 
-            new DefaultHttpProxyServer(LanternConstants.LANTERN_PROXY_PORT);
-        rawProxy.start(false);
+        rawProxy.start(false, false);
     }
 
     private static void configure() {

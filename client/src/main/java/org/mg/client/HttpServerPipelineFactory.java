@@ -44,8 +44,10 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 import org.lastbamboo.common.ice.IceMediaStreamDesc;
+import org.lastbamboo.common.p2p.P2PConstants;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.p2p.P2P;
+import org.littleshoot.proxy.KeyStoreManager;
 import org.mg.common.LanternConstants;
 import org.mg.common.XmppMessageConstants;
 import org.slf4j.Logger;
@@ -84,21 +86,40 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     }
     
     private final XmppP2PClient client;
+
+    private final MessageListener typedListener = new MessageListener() {
+        public void processMessage(final Chat ch, 
+                final Message msg) {
+                final Integer type = 
+                    (Integer) msg.getProperty(XmppMessageConstants.TYPE);
+                if (type != null) {
+                    processTypedMessage(msg, type, ch);
+                    return;
+                }
+            }
+        };
     
     private static final String ID = "-la-";
+
+    private final KeyStoreManager keyStoreManager;
+    
+    public HttpServerPipelineFactory(final ChannelGroup allChannels) {
+        this(allChannels, null);
+    }
     
     /**
      * Creates a new pipeline factory with the specified class for processing
      * proxy authentication.
      * 
-     * @param authorizationManager The manager for proxy authentication.
      * @param channelGroup The group that keeps track of open channels.
-     * @param filters HTTP filters to apply.
      */
-    public HttpServerPipelineFactory(final ChannelGroup channelGroup) {
+    public HttpServerPipelineFactory(final ChannelGroup channelGroup,
+        final KeyStoreManager keyStoreManager) {
+        this.keyStoreManager = keyStoreManager;
         final Properties props = new Properties();
-        final File propsDir = new File(System.getProperty("user.home"), ".mg");
-        final File file = new File(propsDir, "mg.properties");
+        final File propsDir = 
+            new File(System.getProperty("user.home"), ".lantern");
+        final File file = new File(propsDir, "lantern.properties");
         try {
             props.load(new FileInputStream(file));
             this.user = props.getProperty("google.user");
@@ -184,17 +205,20 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             log.info("No centralized proxies!!");
             return pipeline();
         }
-        final InetSocketAddress proxy = proxies.poll();
-        proxies.add(proxy);
+        //final InetSocketAddress proxy = proxies.poll();
+        final InetSocketAddress proxy = new InetSocketAddress("127.0.0.1", 8080);
+        log.info("Using proxy: {}", proxy);
+        //proxies.add(proxy);
         final SimpleChannelUpstreamHandler handler =
-            new ProxyRelayHandler(proxy,this);
+            new ProxyRelayHandler(proxy, this, this.keyStoreManager);
         final ChannelPipeline pipeline = pipeline();
+
         pipeline.addLast("handler", handler);
         return pipeline;
     }
 
     private boolean usePeerProxies() {
-        if (peerProxySet != null) return true;
+        if (peerProxySet != null) return false;
         if (peerProxySet.isEmpty()) {
             log.info("No peer proxies, so not using peers");
             return false;
@@ -261,18 +285,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         if (isLanternHub(from)) {
             log.info("Got lantern proxy!!");
             final ChatManager chatManager = xmpp.getChatManager();
-            final Chat chat = chatManager.createChat(from,
-                new MessageListener() {
-                    public void processMessage(final Chat ch, 
-                        final Message msg) {
-                        final Integer type = 
-                            (Integer) msg.getProperty(XmppMessageConstants.TYPE);
-                        if (type != null) {
-                            processTypedMessage(msg, type, ch);
-                            return;
-                        }
-                    }
-                });
+            final Chat chat = chatManager.createChat(from, typedListener);
             
             
             // Send an "info" message to gather proxy data.
@@ -286,11 +299,12 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             }
         }
         else if (isLanternJid(from)) {
-            addOrRemovePeer(p, from);
+            addOrRemovePeer(p, from, xmpp);
         }
     }
 
-    private void addOrRemovePeer(final Presence p, final String from) {
+    private void addOrRemovePeer(final Presence p, final String from, 
+        final XMPPConnection xmpp) {
         final URI uri;
         try {
             uri = new URI(from);
@@ -300,11 +314,15 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         }
         if (p.isAvailable()) {
             log.info("Adding from to peer JIDs: {}", from);
-            synchronized (peerProxySet) {
-                if (!peerProxySet.contains(uri)) {
-                    peerProxies.add(uri);
-                    peerProxySet.add(uri);
-                }
+            final Message cert = new Message();
+            cert.setProperty(P2PConstants.MESSAGE_TYPE, 
+                XmppMessageConstants.INFO_REQUEST_TYPE);
+            final ChatManager cm = xmpp.getChatManager();
+            final Chat chat = cm.createChat(from, typedListener);
+            try {
+                chat.sendMessage(cert);
+            } catch (final XMPPException e) {
+                log.info("Could not send message to peer", e); 
             }
         }
         else {
@@ -341,7 +359,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 break;
             case (XmppMessageConstants.INFO_RESPONSE_TYPE):
                 processInfoResponse(msg, chat);
-                
                 break;
             default:
                 log.warn("Did not understand type: "+type);
@@ -352,11 +369,41 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     private void processInfoResponse(final Message msg, final Chat chat) {
         final String proxyString = 
             (String) msg.getProperty(XmppMessageConstants.PROXIES);
-        log.info("Got proxies: {}", proxyString);
-        final Scanner scan = new Scanner(proxyString);
-        while (scan.hasNext()) {
-            final String cur = scan.next();
-            addProxy(cur, scan, chat);
+        if (StringUtils.isNotBlank(proxyString)) {
+            log.info("Got proxies: {}", proxyString);
+            final Scanner scan = new Scanner(proxyString);
+            while (scan.hasNext()) {
+                final String cur = scan.next();
+                addProxy(cur, scan, chat);
+            }
+        }
+        
+        final String base64Cert =
+            (String) msg.getProperty(LanternConstants.CERT);
+        if (StringUtils.isNotBlank(base64Cert)) {
+            // First we need to add this certificate to the trusted 
+            // certificates on the proxy. Then we can add it to our list of
+            // peers.
+            final URI uri;
+            try {
+                uri = new URI(chat.getParticipant());
+            } catch (final URISyntaxException e) {
+                log.error("Could not create URI from: {}", 
+                    chat.getParticipant());
+                return;
+            }
+            try {
+                // Add the peer if we're able to add the cert.
+                this.keyStoreManager.addBase64Cert(uri, base64Cert);
+                synchronized (peerProxySet) {
+                    if (!peerProxySet.contains(uri)) {
+                        peerProxies.add(uri);
+                        peerProxySet.add(uri);
+                    }
+                }
+            } catch (final IOException e) {
+                log.error("Could not add cert??", e);
+            }
         }
     }
 

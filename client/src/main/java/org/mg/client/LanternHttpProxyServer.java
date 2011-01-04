@@ -11,6 +11,7 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.ChannelGroupFuture;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,6 +26,8 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         new DefaultChannelGroup("Local-HTTP-Proxy-Server");
             
     private final int port;
+
+    private final KeyStoreManager keyStoreManager;
     
     /**
      * Creates a new proxy server.
@@ -33,9 +36,14 @@ public class LanternHttpProxyServer implements HttpProxyServer {
      * @param filters HTTP filters to apply.
      */
     public LanternHttpProxyServer(final int port) {
+        this(port, null);
+    }
+    
+    public LanternHttpProxyServer(final int port, 
+        final KeyStoreManager keyStoreManager) {
         this.port = port;
+        this.keyStoreManager = keyStoreManager;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
-            
             public void uncaughtException(final Thread t, final Throwable e) {
                 log.error("Uncaught exception", e);
             }
@@ -65,7 +73,8 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                 })));
 
         final HttpServerPipelineFactory factory = 
-            new HttpServerPipelineFactory(this.allChannels);
+            new HttpServerPipelineFactory(this.allChannels, 
+                this.keyStoreManager);
         bootstrap.setPipelineFactory(factory);
         
         // We always only bind to localhost here for better security.

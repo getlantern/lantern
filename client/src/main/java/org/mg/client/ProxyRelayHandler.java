@@ -3,18 +3,24 @@ package org.mg.client;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
+import javax.net.ssl.SSLEngine;
+
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
+import org.jboss.netty.handler.ssl.SslHandler;
+import org.littleshoot.proxy.KeyStoreManager;
+import org.littleshoot.proxy.SslContextFactory;
 import org.mg.common.MgUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +47,8 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
             Executors.newCachedThreadPool(),
             Executors.newCachedThreadPool());
 
+    private final KeyStoreManager keyStoreManager;
+
     
     /**
      * Creates a new relayer to a proxy.
@@ -50,13 +58,14 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * channels to the proxy.
      * @param proxyStatusListener The class to notify of changes in the proxy
      * status.
+     * @param keyStoreManager 
      */
     public ProxyRelayHandler(final InetSocketAddress proxyAddress, 
-        final ProxyStatusListener proxyStatusListener) {
-        // TODO: We also need to handle p2p URIs as addresses here so we
-        // can create P2P connections to them.
+        final ProxyStatusListener proxyStatusListener, 
+        final KeyStoreManager keyStoreManager) {
         this.proxyAddress = proxyAddress;
         this.proxyStatusListener = proxyStatusListener;
+        this.keyStoreManager = keyStoreManager;
     }
     
     @Override
@@ -79,7 +88,20 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
         // Start the connection attempt.
         final ClientBootstrap cb = 
             new ClientBootstrap(this.clientSocketChannelFactory);
-        cb.getPipeline().addLast("handler", 
+        
+        final ChannelPipeline pipeline = cb.getPipeline();
+        
+        if (this.keyStoreManager != null) {
+            log.info("Adding SSL for client connection");
+            final SslContextFactory sslFactory = 
+                new SslContextFactory(this.keyStoreManager);
+            final SSLEngine engine =
+                sslFactory.getClientContext().createSSLEngine();
+            engine.setUseClientMode(true);
+            pipeline.addLast("ssl", new SslHandler(engine));
+        }
+        
+        pipeline.addLast("handler", 
             new OutboundHandler(e.getChannel()));
         final ChannelFuture cf = cb.connect(this.proxyAddress);
 
