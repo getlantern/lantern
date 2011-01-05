@@ -7,8 +7,5 @@ public class LanternConstants {
 
     private LanternConstants() {}
     
-    /**
-     * The port lantern runs its HTTP proxy on.
-     */
-    public static final int LANTERN_PROXY_PORT = 8777;
+    public static final String CERT = "LA_CERT";
 }
