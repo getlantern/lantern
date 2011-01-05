@@ -53,7 +53,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         if (regenerate) {
             resetStores();
         }
-        
 
         final File littleProxyCert = new File("lantern_littleproxy_cert");
         if (littleProxyCert.isFile()) {

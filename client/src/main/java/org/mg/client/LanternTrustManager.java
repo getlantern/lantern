@@ -52,13 +52,12 @@ public class LanternTrustManager implements X509TrustManager {
 
     public void checkClientTrusted(final X509Certificate[] chain, 
         final String authType) throws CertificateException {
-        System.err.println(
-                "UNKNOWN CLIENT CERTIFICATE: " + chain[0].getSubjectDN());
+        log.info("UNKNOWN CLIENT CERTIFICATE: " + chain[0].getSubjectDN());
     }
 
     public void checkServerTrusted(final X509Certificate[] chain, 
         final String authType) throws CertificateException {
-        System.out.println("CHECKING IF SERVER IS TRUSTED");
+        log.info("CHECKING IF SERVER IS TRUSTED");
         if (chain == null || chain.length == 0) {
             throw new IllegalArgumentException(
                 "null or zero-length certificate chain");
@@ -74,11 +73,7 @@ public class LanternTrustManager implements X509TrustManager {
             throw new CertificateException("No name!!");
         }
         final String alias = StringUtils.substringAfterLast(name, "CN=");
-        System.err.println(
-                "CHECKING SERVER CERTIFICATE FOR: " + alias);
-        
-        System.err.println("VERIFYING CERT: "+cert);
-        log.info("Checking certs");
+        log.info("CHECKING SERVER CERTIFICATE FOR: " + alias);
         try {
             final Certificate local = getKs().getCertificate(alias);
             if (local == null || !local.equals(cert)) {

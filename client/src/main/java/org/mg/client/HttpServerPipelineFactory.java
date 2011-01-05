@@ -13,6 +13,9 @@ import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashSet;
@@ -25,6 +28,9 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLContext;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -45,6 +51,7 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 import org.lastbamboo.common.ice.IceMediaStreamDesc;
 import org.lastbamboo.common.p2p.P2PConstants;
+import org.lastbamboo.jni.JLibTorrent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.p2p.P2P;
 import org.littleshoot.proxy.KeyStoreManager;
@@ -102,10 +109,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     private static final String ID = "-la-";
 
     private final KeyStoreManager keyStoreManager;
-    
-    public HttpServerPipelineFactory(final ChannelGroup allChannels) {
-        this(allChannels, null);
-    }
+
+    private final int proxyPort;
     
     /**
      * Creates a new pipeline factory with the specified class for processing
@@ -114,8 +119,9 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
      * @param channelGroup The group that keeps track of open channels.
      */
     public HttpServerPipelineFactory(final ChannelGroup channelGroup,
-        final KeyStoreManager keyStoreManager) {
+        final KeyStoreManager keyStoreManager, final int proxyPort) {
         this.keyStoreManager = keyStoreManager;
+        this.proxyPort = proxyPort;
         final Properties props = new Properties();
         final File propsDir = 
             new File(System.getProperty("user.home"), ".lantern");
@@ -142,9 +148,17 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         final IceMediaStreamDesc streamDesc = 
             new IceMediaStreamDesc(true, false, "message", "http", 1, false);
         try {
-            final InetSocketAddress ina = new InetSocketAddress(
-                LanternConstants.LANTERN_PROXY_PORT);
-            this.client = P2P.newXmppP2PClient(streamDesc, ina);
+            final String libName = System.mapLibraryName("jnltorrent");
+            final JLibTorrent libTorrent = 
+                new JLibTorrent(Arrays.asList(new File (new File(".."), 
+                    libName), new File (libName)), true);
+            
+            final SocketFactory socketFactory = newTlsSocketFactory();
+            
+            this.client = P2P.newXmppP2PClient(streamDesc, "shoot", 
+                libTorrent, libTorrent, new InetSocketAddress(this.proxyPort), 
+                socketFactory);
+            
             final MessageListener ml = new MessageListener() {
                 
                 public void processMessage(final Chat ch, final Message msg) {
@@ -166,11 +180,27 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         } catch (final IOException e) {
             final String msg = "Could not log in!!";
             log.warn(msg, e);
-            throw new RuntimeException(msg, e);
+            throw new Error(msg, e);
         } catch (final XMPPException e) {
             final String msg = "Could not configure roster!!";
             log.warn(msg, e);
-            throw new RuntimeException(msg, e);
+            throw new Error(msg, e);
+        }
+    }
+
+    private SocketFactory newTlsSocketFactory() {
+        log.info("Creating TLS socket factory");
+        try {
+            final SSLContext clientContext = SSLContext.getInstance("TLS");
+            clientContext.init(null, this.keyStoreManager.getTrustManagers(), 
+                null);
+            return clientContext.getSocketFactory();
+        } catch (final NoSuchAlgorithmException e) {
+            log.error("No TLS?", e);
+            throw new Error("No TLS?", e);
+        } catch (final KeyManagementException e) {
+            log.error("Key managmement issue?", e);
+            throw new Error("Key managmement issue?", e);
         }
     }
 
@@ -218,7 +248,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     }
 
     private boolean usePeerProxies() {
-        if (peerProxySet != null) return false;
+        if (peerProxySet != null) return true;
         if (peerProxySet.isEmpty()) {
             log.info("No peer proxies, so not using peers");
             return false;

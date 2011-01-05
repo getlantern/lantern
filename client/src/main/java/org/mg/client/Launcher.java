@@ -7,10 +7,10 @@ import java.util.HashMap;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.KeyStoreManager;
-import org.mg.common.LanternConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,16 +50,22 @@ public class Launcher {
         }
         
         final KeyStoreManager proxyKeyStore = new LanternKeyStoreManager(true);
+        final int randomPort = randomPort();
+        LOG.info("Running straight HTTP proxy on port: "+randomPort);
         final org.littleshoot.proxy.HttpProxyServer rawProxy = 
-            new DefaultHttpProxyServer(LanternConstants.LANTERN_PROXY_PORT,
+            new DefaultHttpProxyServer(randomPort,
                 new HashMap<String, HttpFilter>(), null, proxyKeyStore);
         
         System.out.println("About to start Lantern server on port: "+port);
         final HttpProxyServer server = 
-            new LanternHttpProxyServer(port, proxyKeyStore);
+            new LanternHttpProxyServer(port, proxyKeyStore, randomPort);
         server.start();
         
         rawProxy.start(false, false);
+    }
+    
+    private static int randomPort() {
+        return 1024 + (RandomUtils.nextInt() % 60000);
     }
 
     private static void configure() {

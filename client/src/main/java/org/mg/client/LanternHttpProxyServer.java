@@ -28,21 +28,22 @@ public class LanternHttpProxyServer implements HttpProxyServer {
     private final int port;
 
     private final KeyStoreManager keyStoreManager;
+
+    private final int proxyPort;
     
     /**
      * Creates a new proxy server.
      * 
      * @param port The port the server should run on.
      * @param filters HTTP filters to apply.
+     * @param proxyPort The port of the HTTP proxy that other peers will 
+     * relay to.
      */
-    public LanternHttpProxyServer(final int port) {
-        this(port, null);
-    }
-    
     public LanternHttpProxyServer(final int port, 
-        final KeyStoreManager keyStoreManager) {
+        final KeyStoreManager keyStoreManager, final int proxyPort) {
         this.port = port;
         this.keyStoreManager = keyStoreManager;
+        this.proxyPort = proxyPort;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             public void uncaughtException(final Thread t, final Throwable e) {
                 log.error("Uncaught exception", e);
@@ -74,7 +75,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
         final HttpServerPipelineFactory factory = 
             new HttpServerPipelineFactory(this.allChannels, 
-                this.keyStoreManager);
+                this.keyStoreManager, this.proxyPort);
         bootstrap.setPipelineFactory(factory);
         
         // We always only bind to localhost here for better security.
