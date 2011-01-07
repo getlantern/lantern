@@ -170,7 +170,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 libTorrent, libTorrent, new InetSocketAddress(this.proxyPort), 
                 socketFactory);
 
-            this.client.addMessageListener(typedListener);
+            //this.client.addMessageListener(typedListener);
             this.client.login(this.user, this.pwd, ID);
             configureRoster();
         } catch (final IOException e) {
