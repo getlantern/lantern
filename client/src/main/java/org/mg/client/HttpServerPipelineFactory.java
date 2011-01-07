@@ -95,22 +95,24 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     private final XmppP2PClient client;
 
     private final MessageListener typedListener = new MessageListener() {
-        public void processMessage(final Chat ch, 
-                final Message msg) {
-                final Integer type = 
-                    (Integer) msg.getProperty(XmppMessageConstants.TYPE);
-                if (type != null) {
-                    processTypedMessage(msg, type, ch);
-                    return;
-                }
+        public void processMessage(final Chat ch, final Message msg) {
+            final Integer type = 
+                (Integer) msg.getProperty(P2PConstants.MESSAGE_TYPE);
+            if (type != null) {
+                processTypedMessage(msg, type, ch);
+            } else {
+                log.warn("Did not understand message");
             }
-        };
+        }
+    };
     
     private static final String ID = "-la-";
 
     private final KeyStoreManager keyStoreManager;
 
     private final int proxyPort;
+
+    private Collection<String> trustedPeers = new HashSet<String>();
     
     /**
      * Creates a new pipeline factory with the specified class for processing
@@ -160,10 +162,11 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 socketFactory);
             
             final MessageListener ml = new MessageListener() {
-                
                 public void processMessage(final Chat ch, final Message msg) {
+                    log.info("Processing message on base XMPP client");
                     final String part = ch.getParticipant();
                     if (part.startsWith("lanternxmpp@appspot.com")) {
+                        log.info("Lantern controlling agent response");
                         final String body = msg.getBody();
                         final Scanner scan = new Scanner(body);
                         scan.useDelimiter(",");
@@ -171,6 +174,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                             final String ip = scan.next();
                             addProxy(ip, scan, ch);
                         }
+                    } else {
+                        log.warn("Got message from peer we're not handling?");
                     }
                 }
             };
@@ -295,9 +300,9 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         // online.
         final Collection<RosterEntry> entries = roster.getEntries();
         for (final RosterEntry entry : entries) {
-            log.info("Got entry: {}", entry);
+            //log.info("Got entry: {}", entry);
             final String jid = entry.getUser();
-            log.info("Roster entry user: {}",jid);
+            //log.info("Roster entry user: {}",jid);
             final Iterator<Presence> presences = 
                 roster.getPresences(entry.getUser());
             while (presences.hasNext()) {
@@ -311,12 +316,11 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
 
     private void processPresence(final Presence p, final XMPPConnection xmpp) {
         final String from = p.getFrom();
-        log.info("Got presence with from: {}", from);
+        //log.info("Got presence with from: {}", from);
         if (isLanternHub(from)) {
             log.info("Got lantern proxy!!");
             final ChatManager chatManager = xmpp.getChatManager();
             final Chat chat = chatManager.createChat(from, typedListener);
-            
             
             // Send an "info" message to gather proxy data.
             final Message msg = new Message();
@@ -329,6 +333,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             }
         }
         else if (isLanternJid(from)) {
+            this.trustedPeers.add(from);
             addOrRemovePeer(p, from, xmpp);
         }
     }
@@ -350,6 +355,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             final ChatManager cm = xmpp.getChatManager();
             final Chat chat = cm.createChat(from, typedListener);
             try {
+                log.info("Sending INFO request");
                 chat.sendMessage(cert);
             } catch (final XMPPException e) {
                 log.info("Could not send message to peer", e); 
@@ -369,7 +375,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     private void sendErrorMessage(final Chat chat, final InetSocketAddress isa,
         final String message) {
         final Message msg = new Message();
-        msg.setProperty(XmppMessageConstants.TYPE, 
+        msg.setProperty(P2PConstants.MESSAGE_TYPE, 
             XmppMessageConstants.ERROR_TYPE);
         final String errorMessage = "Error: "+message+" with host: "+isa;
         msg.setProperty(XmppMessageConstants.MESSAGE, errorMessage);
@@ -383,6 +389,12 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     private void processTypedMessage(final Message msg, final Integer type, 
         final Chat chat) {
         log.info("Processing typed message");
+        final String from = chat.getParticipant();
+        if (!this.trustedPeers.contains(from)) {
+            log.warn("Ignoring message from untrusted peer: {}", from);
+            log.warn("Peer not in: {}", this.trustedPeers);
+            return;
+        }
         switch (type) {
             case (XmppMessageConstants.INFO_REQUEST_TYPE):
                 sendInfoResponse(chat);
@@ -397,6 +409,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     }
     
     private void processInfoResponse(final Message msg, final Chat chat) {
+        log.info("Processing INFO RESPONSE");
         final String proxyString = 
             (String) msg.getProperty(XmppMessageConstants.PROXIES);
         if (StringUtils.isNotBlank(proxyString)) {
@@ -480,7 +493,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
 
     private void sendInfoResponse(final Chat ch) {
         final Message msg = new Message();
-        msg.setProperty(XmppMessageConstants.TYPE, 
+        msg.setProperty(P2PConstants.MESSAGE_TYPE, 
             XmppMessageConstants.INFO_RESPONSE_TYPE);
         
         // We want to separate out direct friend proxies here from the
