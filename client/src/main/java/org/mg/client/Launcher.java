@@ -54,7 +54,7 @@ public class Launcher {
         LOG.info("Running straight HTTP proxy on port: "+randomPort);
         final org.littleshoot.proxy.HttpProxyServer rawProxy = 
             new DefaultHttpProxyServer(randomPort,
-                new HashMap<String, HttpFilter>(), null, proxyKeyStore);
+                new HashMap<String, HttpFilter>(), null, proxyKeyStore, null);
         
         System.out.println("About to start Lantern server on port: "+port);
         final HttpProxyServer server = 
