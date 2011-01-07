@@ -8,6 +8,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
@@ -17,6 +18,7 @@ import javax.net.ssl.TrustManager;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.lastbamboo.common.util.FileUtils;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -171,12 +173,27 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         final byte[] decoded = Base64.decodeBase64(base64Cert);
         final GZIPInputStream gzip = 
             new GZIPInputStream(new ByteArrayInputStream(decoded));
-        final File certFile = new File(uri.toASCIIString());
-        IOUtils.copy(gzip, new FileOutputStream(certFile));
+        final String fileName = normalizeName(uri);
+        final File certFile = new File(fileName);
+        OutputStream os = null;
+        try {
+            os = new FileOutputStream(certFile);
+            IOUtils.copy(gzip, os);
+        } catch (final IOException e) {
+            log.error("Could not write to file: " + certFile, e);
+            throw e;
+        } finally {
+            IOUtils.closeQuietly(os);
+        }
         
         nativeCall("keytool", "-importcert", "-alias", AL, "-keystore", 
             TRUSTSTORE_FILE.getName(), "-file", certFile.getName(), 
             "-keypass", PASS, "-storepass", PASS);
+    }
+
+    private String normalizeName(final URI uri) {
+        final String full = uri.toASCIIString();
+        return FileUtils.removeIllegalCharsFromFileName(full);
     }
 
     private String nativeCall(final String... commands) {
