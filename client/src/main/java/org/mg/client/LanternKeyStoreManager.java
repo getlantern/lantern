@@ -75,7 +75,8 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             //final GZIPOutputStream gout = new GZIPOutputStream(baos);
             //IOUtils.copy(is, gout);
             
-            CERT = Base64.encodeBase64URLSafeString(IOUtils.toByteArray(is));
+            //CERT = Base64.encodeBase64URLSafeString(IOUtils.toByteArray(is));
+            CERT = IOUtils.toString(is);
         } catch (final FileNotFoundException e) {
             log.error("Cert file not found?", e);
             throw new Error("Cert file not found", e);
