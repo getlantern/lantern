@@ -72,10 +72,10 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             
             // Compress it to save bandwidth.
             final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            final GZIPOutputStream gout = new GZIPOutputStream(baos);
-            IOUtils.copy(is, gout);
+            //final GZIPOutputStream gout = new GZIPOutputStream(baos);
+            //IOUtils.copy(is, gout);
             
-            CERT = Base64.encodeBase64URLSafeString(baos.toByteArray());
+            CERT = Base64.encodeBase64URLSafeString(IOUtils.toByteArray(is));
         } catch (final FileNotFoundException e) {
             log.error("Cert file not found?", e);
             throw new Error("Cert file not found", e);
@@ -171,14 +171,14 @@ public class LanternKeyStoreManager implements KeyStoreManager {
          [-providerpath <pathlist>]
          */
         final byte[] decoded = Base64.decodeBase64(base64Cert);
-        final GZIPInputStream gzip = 
-            new GZIPInputStream(new ByteArrayInputStream(decoded));
+        //final GZIPInputStream gzip = 
+        //    new GZIPInputStream(new ByteArrayInputStream(decoded));
         final String fileName = normalizeName(uri);
         final File certFile = new File(fileName);
         OutputStream os = null;
         try {
             os = new FileOutputStream(certFile);
-            IOUtils.copy(gzip, os);
+            IOUtils.copy(new ByteArrayInputStream(decoded), os);
         } catch (final IOException e) {
             log.error("Could not write to file: " + certFile, e);
             throw e;

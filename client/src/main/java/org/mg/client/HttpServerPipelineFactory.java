@@ -414,7 +414,10 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         
         final String base64Cert =
             (String) msg.getProperty(P2PConstants.CERT);
+        log.info("Base 64 cert: {}", base64Cert);
         if (StringUtils.isNotBlank(base64Cert)) {
+            log.info("Got certificate:\n"+
+                new String(Base64.decodeBase64(base64Cert)));
             // First we need to add this certificate to the trusted 
             // certificates on the proxy. Then we can add it to our list of
             // peers.
