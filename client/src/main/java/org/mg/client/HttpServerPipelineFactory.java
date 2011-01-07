@@ -55,7 +55,6 @@ import org.lastbamboo.jni.JLibTorrent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.p2p.P2P;
 import org.littleshoot.proxy.KeyStoreManager;
-import org.mg.common.LanternConstants;
 import org.mg.common.XmppMessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -414,7 +413,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         }
         
         final String base64Cert =
-            (String) msg.getProperty(LanternConstants.CERT);
+            (String) msg.getProperty(P2PConstants.CERT);
         if (StringUtils.isNotBlank(base64Cert)) {
             // First we need to add this certificate to the trusted 
             // certificates on the proxy. Then we can add it to our list of
@@ -492,6 +491,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         // proxies that are friends of friends. We only want to notify our
         // friends of other direct friend proxies, not friends of friends.
         msg.setProperty(XmppMessageConstants.PROXIES, "");
+        msg.setProperty(P2PConstants.CERT, this.keyStoreManager.getBase64Cert());
         try {
             ch.sendMessage(msg);
         } catch (final XMPPException e) {
