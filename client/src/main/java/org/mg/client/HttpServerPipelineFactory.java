@@ -170,7 +170,11 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 libTorrent, libTorrent, new InetSocketAddress(this.proxyPort), 
                 socketFactory);
 
-            //this.client.addMessageListener(typedListener);
+            // This is a glabal, backup listener added to the client. We might
+            // get notifications of messages twice in some cases, but that's
+            // better than the alternative of sometimes not being notified
+            // at all.
+            this.client.addMessageListener(typedListener);
             this.client.login(this.user, this.pwd, ID);
             configureRoster();
         } catch (final IOException e) {
@@ -340,14 +344,19 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         }
         if (p.isAvailable()) {
             log.info("Adding from to peer JIDs: {}", from);
-            final Message cert = new Message();
-            cert.setProperty(P2PConstants.MESSAGE_TYPE, 
+            final Message msg = new Message();
+            msg.setProperty(P2PConstants.MESSAGE_TYPE, 
                 XmppMessageConstants.INFO_REQUEST_TYPE);
+            
+            // Set our certificate in the request as well -- we wan't to make
+            // extra sure these get through!
+            msg.setProperty(P2PConstants.CERT,
+                this.keyStoreManager.getBase64Cert());
             final ChatManager cm = xmpp.getChatManager();
             final Chat chat = cm.createChat(from, typedListener);
             try {
                 log.info("Sending INFO request to: {}", from);
-                chat.sendMessage(cert);
+                chat.sendMessage(msg);
             } catch (final XMPPException e) {
                 log.info("Could not send message to peer", e); 
             }
@@ -388,10 +397,13 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         }
         switch (type) {
             case (XmppMessageConstants.INFO_REQUEST_TYPE):
+                log.info("Handling INFO request from {}", from);
+                processInfoData(msg, chat);
                 sendInfoResponse(chat);
                 break;
             case (XmppMessageConstants.INFO_RESPONSE_TYPE):
-                processInfoResponse(msg, chat);
+                log.info("Handling INFO response from {}", from);
+                processInfoData(msg, chat);
                 break;
             default:
                 log.warn("Did not understand type: "+type);
@@ -399,8 +411,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         }
     }
     
-    private void processInfoResponse(final Message msg, final Chat chat) {
-        log.info("Processing INFO RESPONSE");
+    private void processInfoData(final Message msg, final Chat chat) {
+        log.info("Processing INFO data from request or response.");
         final String proxyString = 
             (String) msg.getProperty(XmppMessageConstants.PROXIES);
         if (StringUtils.isNotBlank(proxyString)) {
@@ -494,7 +506,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         // proxies that are friends of friends. We only want to notify our
         // friends of other direct friend proxies, not friends of friends.
         msg.setProperty(XmppMessageConstants.PROXIES, "");
-        msg.setProperty(P2PConstants.CERT, this.keyStoreManager.getBase64Cert());
+        msg.setProperty(P2PConstants.CERT,this.keyStoreManager.getBase64Cert());
         try {
             ch.sendMessage(msg);
         } catch (final XMPPException e) {
