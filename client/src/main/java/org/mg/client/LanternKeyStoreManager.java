@@ -173,6 +173,17 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         } finally {
             IOUtils.closeQuietly(os);
         }
+        /*
+         * -delete      [-v] [-protected] -alias <alias>
+         [-keystore <keystore>] [-storepass <storepass>]
+         [-storetype <storetype>] [-providername <name>]
+         [-providerclass <provider_class_name> [-providerarg <arg>]] ...
+         [-providerpath <pathlist>]
+
+         */
+        // Make sure we delete the old one.
+        nativeCall("keytool", "-delete", "-alias", fileName, 
+            "-keystore", TRUSTSTORE_FILE.getName(), "-storepass", PASS);
         
         nativeCall("keytool", "-importcert", "-noprompt", "-alias", fileName, 
             "-keystore", 

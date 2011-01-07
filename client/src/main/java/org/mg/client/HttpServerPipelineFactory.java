@@ -317,7 +317,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             final Message msg = new Message();
             msg.setBody("/info");
             try {
-                log.info("Sending info message");
+                log.info("Sending info message to Lantern Hub");
                 chat.sendMessage(msg);
             } catch (final XMPPException e) {
                 log.error("Could not send INFO message", e);
@@ -346,7 +346,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             final ChatManager cm = xmpp.getChatManager();
             final Chat chat = cm.createChat(from, typedListener);
             try {
-                log.info("Sending INFO request");
+                log.info("Sending INFO request to: {}", from);
                 chat.sendMessage(cert);
             } catch (final XMPPException e) {
                 log.info("Could not send message to peer", e); 
@@ -379,8 +379,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     
     private void processTypedMessage(final Message msg, final Integer type, 
         final Chat chat) {
-        log.info("Processing typed message");
         final String from = chat.getParticipant();
+        log.info("Processing typed message from {}", from);
         if (!this.trustedPeers.contains(from)) {
             log.warn("Ignoring message from untrusted peer: {}", from);
             log.warn("Peer not in: {}", this.trustedPeers);
