@@ -96,13 +96,23 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
 
     private final MessageListener typedListener = new MessageListener() {
         public void processMessage(final Chat ch, final Message msg) {
+            final String part = ch.getParticipant();
+            if (part.startsWith("lanternxmpp@appspot.com")) {
+                log.info("Lantern controlling agent response");
+                final String body = msg.getBody();
+                final Scanner scan = new Scanner(body);
+                scan.useDelimiter(",");
+                while (scan.hasNext()) {
+                    final String ip = scan.next();
+                    addProxy(ip, scan, ch);
+                }
+            }
             final Integer type = 
                 (Integer) msg.getProperty(P2PConstants.MESSAGE_TYPE);
             if (type != null) {
+                log.info("Processing typed message");
                 processTypedMessage(msg, type, ch);
-            } else {
-                log.warn("Did not understand message");
-            }
+            } 
         }
     };
     
@@ -160,26 +170,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             this.client = P2P.newXmppP2PClient(streamDesc, "shoot", 
                 libTorrent, libTorrent, new InetSocketAddress(this.proxyPort), 
                 socketFactory);
-            
-            final MessageListener ml = new MessageListener() {
-                public void processMessage(final Chat ch, final Message msg) {
-                    log.info("Processing message on base XMPP client");
-                    final String part = ch.getParticipant();
-                    if (part.startsWith("lanternxmpp@appspot.com")) {
-                        log.info("Lantern controlling agent response");
-                        final String body = msg.getBody();
-                        final Scanner scan = new Scanner(body);
-                        scan.useDelimiter(",");
-                        while (scan.hasNext()) {
-                            final String ip = scan.next();
-                            addProxy(ip, scan, ch);
-                        }
-                    } else {
-                        log.warn("Got message from peer we're not handling?");
-                    }
-                }
-            };
-            this.client.addMessageListener(ml);
+
+            this.client.addMessageListener(typedListener);
             this.client.login(this.user, this.pwd, ID);
             configureRoster();
         } catch (final IOException e) {
