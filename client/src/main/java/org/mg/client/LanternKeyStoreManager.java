@@ -1,7 +1,6 @@
 package org.mg.client;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,8 +10,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 import javax.net.ssl.TrustManager;
 
@@ -23,10 +20,10 @@ import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 public class LanternKeyStoreManager implements KeyStoreManager {
     
-    private final Logger log = 
-        LoggerFactory.getLogger(LanternKeyStoreManager.class);
+    private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final File KEYSTORE_FILE = new File("lantern_keystore.jks");
     
@@ -49,7 +46,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     }
     
     public LanternKeyStoreManager(final boolean regenerate) {
-        //PASS = String.valueOf(RandomUtils.nextLong());
         System.out.println("PASSWORD: "+PASS);
         
         if (regenerate) {
@@ -69,14 +65,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
 
         try {
             final InputStream is = new FileInputStream(CERT_FILE);
-            
-            // Compress it to save bandwidth.
-            final ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            //final GZIPOutputStream gout = new GZIPOutputStream(baos);
-            //IOUtils.copy(is, gout);
-            
-            //CERT = Base64.encodeBase64URLSafeString(IOUtils.toByteArray(is));
-            CERT = IOUtils.toString(is);
+            CERT = Base64.encodeBase64String(IOUtils.toByteArray(is));
         } catch (final FileNotFoundException e) {
             log.error("Cert file not found?", e);
             throw new Error("Cert file not found", e);
@@ -172,8 +161,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
          [-providerpath <pathlist>]
          */
         final byte[] decoded = Base64.decodeBase64(base64Cert);
-        //final GZIPInputStream gzip = 
-        //    new GZIPInputStream(new ByteArrayInputStream(decoded));
         final String fileName = normalizeName(uri);
         final File certFile = new File(fileName);
         OutputStream os = null;
@@ -187,7 +174,8 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             IOUtils.closeQuietly(os);
         }
         
-        nativeCall("keytool", "-importcert", "-alias", AL, "-keystore", 
+        nativeCall("keytool", "-importcert", "-noprompt", "-alias", fileName, 
+            "-keystore", 
             TRUSTSTORE_FILE.getName(), "-file", certFile.getName(), 
             "-keypass", PASS, "-storepass", PASS);
     }
