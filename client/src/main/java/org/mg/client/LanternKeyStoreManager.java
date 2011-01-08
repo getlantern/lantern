@@ -29,13 +29,13 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
     private final File TRUSTSTORE_FILE = new File("lantern_truststore.jks");
     
-    private final File CERT_FILE = new File("lantern_cert");
+    private final File CERT_FILE = new File("local_lantern_cert");
     
     //private final String AL = "lantern";
     
     private static final String PASS = "Be Your Own Lantern";
 
-    private final String CERT;
+    private String localCert;
     
     private final TrustManager[] trustManagers = {
         new LanternTrustManager(this)
@@ -58,17 +58,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
                 TRUSTSTORE_FILE.getName(), "-storepass",  PASS);
         } else {
             log.warn("NO LITTLEPROXY CERT FILE TO IMPORT!!");
-        }
-
-        try {
-            final InputStream is = new FileInputStream(CERT_FILE);
-            CERT = Base64.encodeBase64String(IOUtils.toByteArray(is));
-        } catch (final FileNotFoundException e) {
-            log.error("Cert file not found?", e);
-            throw new Error("Cert file not found", e);
-        } catch (final IOException e) {
-            log.error("Could not base 64 encode cert?", e);
-            throw new Error("Could not base 64 encode cert?", e);
         }
     }
     
@@ -107,6 +96,17 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         nativeCall("keytool", "-exportcert", "-alias", dname, "-keystore", 
             KEYSTORE_FILE.getName(), "-storepass", PASS, "-file", 
             CERT_FILE.getName());
+        
+        try {
+            final InputStream is = new FileInputStream(CERT_FILE);
+            localCert = Base64.encodeBase64String(IOUtils.toByteArray(is));
+        } catch (final FileNotFoundException e) {
+            log.error("Cert file not found?", e);
+            throw new Error("Cert file not found", e);
+        } catch (final IOException e) {
+            log.error("Could not base 64 encode cert?", e);
+            throw new Error("Could not base 64 encode cert?", e);
+        }
 
         log.info("Creating trust store");
         
@@ -121,10 +121,11 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             "-alias", AL, "-keystore", TRUSTSTORE_FILE.getName(), "-storepass", 
             PASS);
             */
+
     }
 
     public String getBase64Cert() {
-        return CERT;
+        return localCert;
     }
 
     public InputStream keyStoreAsInputStream() {
