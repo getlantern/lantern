@@ -97,23 +97,23 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         
         // Note we use DSA instead of RSA because apparently only the JDK 
         // has RSA available.
-        nativeCall("keytool", "-genkey", "-alias", "lantern", "-keysize", 
+        nativeCall("keytool", "-genkey", "-alias", dname, "-keysize", 
             "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
             "CN="+dname, "-keypass", PASS, "-storepass", 
             PASS, "-keystore", KEYSTORE_FILE.getName());
         
         // Now grab our newly-generated cert. All of our trusted peers will
         // use this to connect.
-        nativeCall("keytool", "-exportcert", "-alias", "lantern", "-keystore", 
+        nativeCall("keytool", "-exportcert", "-alias", dname, "-keystore", 
             KEYSTORE_FILE.getName(), "-storepass", PASS, "-file", 
             CERT_FILE.getName());
 
         log.info("Creating trust store");
         
         nativeCall("keytool", "-genkey", "-alias", "foo", "-keysize", 
-                "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
-                "CN=lantern", "-keystore", 
-            TRUSTSTORE_FILE.getName(), "-keypass", PASS, "-storepass", PASS);
+            "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
+            "CN="+dname, "-keystore", TRUSTSTORE_FILE.getName(), 
+            "-keypass", PASS, "-storepass", PASS);
         
         /*
         log.info("Importing cert");
