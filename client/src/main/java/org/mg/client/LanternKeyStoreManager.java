@@ -31,7 +31,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
     private final File CERT_FILE = new File("lantern_cert");
     
-    private final String AL = "lantern";
+    //private final String AL = "lantern";
     
     private static final String PASS = "Be Your Own Lantern";
 
@@ -40,18 +40,15 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     private final TrustManager[] trustManagers = {
         new LanternTrustManager(this)
     };
+
+    private final boolean regenerate;
     
     public LanternKeyStoreManager() {
         this(true);
     }
     
     public LanternKeyStoreManager(final boolean regenerate) {
-        System.out.println("PASSWORD: "+PASS);
-        
-        if (regenerate) {
-            resetStores();
-        }
-
+        this.regenerate = regenerate;
         final File littleProxyCert = new File("lantern_littleproxy_cert");
         if (littleProxyCert.isFile()) {
             log.info("Importing cert");
@@ -75,7 +72,12 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         }
     }
     
-    private void resetStores() {
+
+    public void reset(final String jid) {
+        if (!this.regenerate) {
+            log.info("Not regenerating keystore.");
+            return;
+        }
         log.info("RESETTING KEYSTORE AND TRUSTSTORE!!");
         if (KEYSTORE_FILE.isFile()) {
             System.out.println("Deleting existing keystore file at: " +
@@ -89,16 +91,20 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             TRUSTSTORE_FILE.delete();
         }
     
+        final String alias = FileUtils.removeIllegalCharsFromFileName(jid);
+        
+        log.info("Normalized alias: "+alias);
+        
         // Note we use DSA instead of RSA because apparently only the JDK 
         // has RSA available.
-        nativeCall("keytool", "-genkey", "-alias", AL, "-keysize", 
+        nativeCall("keytool", "-genkey", "-alias", alias, "-keysize", 
             "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
             "CN=lantern", "-keypass", PASS, "-storepass", 
             PASS, "-keystore", KEYSTORE_FILE.getName());
         
         // Now grab our newly-generated cert. All of our trusted peers will
         // use this to connect.
-        nativeCall("keytool", "-exportcert", "-alias", AL, "-keystore", 
+        nativeCall("keytool", "-exportcert", "-alias", alias, "-keystore", 
             KEYSTORE_FILE.getName(), "-storepass", PASS, "-file", 
             CERT_FILE.getName());
 

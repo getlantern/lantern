@@ -129,6 +129,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     private final int proxyPort;
 
     private Collection<String> trustedPeers = new HashSet<String>();
+
+    private String jid;
     
     /**
      * Creates a new pipeline factory with the specified class for processing
@@ -184,7 +186,9 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             // better than the alternative of sometimes not being notified
             // at all.
             this.client.addMessageListener(typedListener);
-            this.client.login(this.user, this.pwd, ID);
+            this.jid = this.client.login(this.user, this.pwd, ID);
+            System.out.println("\n\n\n\nJID: "+this.jid+"\n\n\n\n");
+            this.keyStoreManager.reset(this.jid);
             configureRoster();
         } catch (final IOException e) {
             final String msg = "Could not log in!!";
