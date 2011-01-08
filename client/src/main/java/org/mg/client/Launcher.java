@@ -55,13 +55,12 @@ public class Launcher {
         final org.littleshoot.proxy.HttpProxyServer rawProxy = 
             new DefaultHttpProxyServer(randomPort,
                 new HashMap<String, HttpFilter>(), null, proxyKeyStore, null);
+        rawProxy.start(false, false);
         
-        System.out.println("About to start Lantern server on port: "+port);
+        LOG.info("About to start Lantern server on port: "+port);
         final HttpProxyServer server = 
             new LanternHttpProxyServer(port, proxyKeyStore, randomPort);
         server.start();
-        
-        rawProxy.start(false, false);
     }
     
     private static int randomPort() {
