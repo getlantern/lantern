@@ -168,7 +168,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             final SocketFactory socketFactory = newTlsSocketFactory();
             
             this.client = P2P.newXmppP2PClient(streamDesc, "shoot", libTorrent, 
-                libTorrent, new InetSocketAddress("127.0.0.1", this.proxyPort), 
+                libTorrent, new InetSocketAddress(this.proxyPort), 
                 socketFactory);
 
             // This is a glabal, backup listener added to the client. We might
