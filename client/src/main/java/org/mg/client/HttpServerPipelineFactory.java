@@ -14,7 +14,12 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Security;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -31,8 +36,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocketFactory;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -57,7 +62,6 @@ import org.lastbamboo.jni.JLibTorrent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.p2p.P2P;
 import org.littleshoot.proxy.KeyStoreManager;
-import org.littleshoot.proxy.NetworkUtils;
 import org.mg.common.XmppMessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,21 +199,36 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
 
     private ServerSocketFactory newTlsServerSocketFactory() {
         log.info("Creating TLS server socket factory");
-        return SSLServerSocketFactory.getDefault();
-        /*
-        try {
-            final SSLContext clientContext = SSLContext.getInstance("TLS");
-            clientContext.init(null, this.keyStoreManager.getTrustManagers(), 
-                null);
-            return clientContext.getServerSocketFactory();
-        } catch (final NoSuchAlgorithmException e) {
-            log.error("No TLS?", e);
-            throw new Error("No TLS?", e);
-        } catch (final KeyManagementException e) {
-            log.error("Key managmement issue?", e);
-            throw new Error("Key managmement issue?", e);
+        String algorithm = Security.getProperty("ssl.KeyManagerFactory.algorithm");
+        if (algorithm == null) {
+            algorithm = "SunX509";
         }
-        */
+        try {
+            final KeyStore ks = KeyStore.getInstance("JKS");
+            ks.load(this.keyStoreManager.keyStoreAsInputStream(),
+                    this.keyStoreManager.getKeyStorePassword());
+
+            // Set up key manager factory to use our key store
+            final KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
+            kmf.init(ks, this.keyStoreManager.getCertificatePassword());
+
+            // Initialize the SSLContext to work with our key managers.
+            final SSLContext serverContext = SSLContext.getInstance("TLS");
+            serverContext.init(kmf.getKeyManagers(), null, null);
+            return serverContext.getServerSocketFactory();
+        } catch (final KeyStoreException e) {
+            throw new Error("Could not create SSL server socket factory.", e);
+        } catch (final NoSuchAlgorithmException e) {
+            throw new Error("Could not create SSL server socket factory.", e);
+        } catch (final CertificateException e) {
+            throw new Error("Could not create SSL server socket factory.", e);
+        } catch (final IOException e) {
+            throw new Error("Could not create SSL server socket factory.", e);
+        } catch (final UnrecoverableKeyException e) {
+            throw new Error("Could not create SSL server socket factory.", e);
+        } catch (final KeyManagementException e) {
+            throw new Error("Could not create SSL server socket factory.", e);
+        }
     }
 
     private SocketFactory newTlsSocketFactory() {
