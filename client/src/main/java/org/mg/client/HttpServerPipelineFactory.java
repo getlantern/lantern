@@ -55,6 +55,7 @@ import org.lastbamboo.jni.JLibTorrent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.p2p.P2P;
 import org.littleshoot.proxy.KeyStoreManager;
+import org.littleshoot.proxy.NetworkUtils;
 import org.mg.common.XmppMessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -166,8 +167,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             
             final SocketFactory socketFactory = newTlsSocketFactory();
             
-            this.client = P2P.newXmppP2PClient(streamDesc, "shoot", 
-                libTorrent, libTorrent, new InetSocketAddress(this.proxyPort), 
+            this.client = P2P.newXmppP2PClient(streamDesc, "shoot", libTorrent, 
+                libTorrent, new InetSocketAddress("127.0.0.1", this.proxyPort), 
                 socketFactory);
 
             // This is a glabal, backup listener added to the client. We might
