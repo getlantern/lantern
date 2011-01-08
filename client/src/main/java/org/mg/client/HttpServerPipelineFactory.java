@@ -388,6 +388,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             
             // Set our certificate in the request as well -- we wan't to make
             // extra sure these get through!
+            msg.setProperty(P2PConstants.MAC, LanternUtils.getMacAddress());
             msg.setProperty(P2PConstants.CERT,
                 this.keyStoreManager.getBase64Cert());
             final ChatManager cm = xmpp.getChatManager();
@@ -462,10 +463,10 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             }
         }
         
-        final String base64Cert =
-            (String) msg.getProperty(P2PConstants.CERT);
         final String mac =
             (String) msg.getProperty(P2PConstants.MAC);
+        final String base64Cert =
+            (String) msg.getProperty(P2PConstants.CERT);
         log.info("Base 64 cert: {}", base64Cert);
         if (StringUtils.isNotBlank(base64Cert)) {
             log.info("Got certificate:\n"+
@@ -546,6 +547,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         // proxies that are friends of friends. We only want to notify our
         // friends of other direct friend proxies, not friends of friends.
         msg.setProperty(XmppMessageConstants.PROXIES, "");
+        msg.setProperty(P2PConstants.MAC, LanternUtils.getMacAddress());
         msg.setProperty(P2PConstants.CERT,this.keyStoreManager.getBase64Cert());
         try {
             ch.sendMessage(msg);
