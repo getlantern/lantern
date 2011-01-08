@@ -91,20 +91,20 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             TRUSTSTORE_FILE.delete();
         }
     
-        final String alias = FileUtils.removeIllegalCharsFromFileName(jid);
+        final String dname = FileUtils.removeIllegalCharsFromFileName(jid);
         
-        log.info("Normalized alias: "+alias);
+        log.info("Normalized dname: "+dname);
         
         // Note we use DSA instead of RSA because apparently only the JDK 
         // has RSA available.
-        nativeCall("keytool", "-genkey", "-alias", alias, "-keysize", 
+        nativeCall("keytool", "-genkey", "-alias", "lantern", "-keysize", 
             "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
-            "CN=lantern", "-keypass", PASS, "-storepass", 
+            "CN="+dname, "-keypass", PASS, "-storepass", 
             PASS, "-keystore", KEYSTORE_FILE.getName());
         
         // Now grab our newly-generated cert. All of our trusted peers will
         // use this to connect.
-        nativeCall("keytool", "-exportcert", "-alias", alias, "-keystore", 
+        nativeCall("keytool", "-exportcert", "-alias", "lantern", "-keystore", 
             KEYSTORE_FILE.getName(), "-storepass", PASS, "-file", 
             CERT_FILE.getName());
 
