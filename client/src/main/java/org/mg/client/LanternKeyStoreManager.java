@@ -8,7 +8,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.util.Arrays;
 
 import javax.net.ssl.TrustManager;
@@ -41,14 +40,14 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         new LanternTrustManager(this)
     };
 
-    private final boolean regenerate;
-    
     public LanternKeyStoreManager() {
         this(true);
     }
     
     public LanternKeyStoreManager(final boolean regenerate) {
-        this.regenerate = regenerate;
+        if(regenerate) {
+            reset(LanternUtils.getMacAddress());
+        }
         final File littleProxyCert = new File("lantern_littleproxy_cert");
         if (littleProxyCert.isFile()) {
             log.info("Importing cert");
@@ -62,11 +61,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     }
     
 
-    public void reset(final String jid) {
-        if (!this.regenerate) {
-            log.info("Not regenerating keystore.");
-            return;
-        }
+    private void reset(final String macAddress) {
         log.info("RESETTING KEYSTORE AND TRUSTSTORE!!");
         if (KEYSTORE_FILE.isFile()) {
             System.out.println("Deleting existing keystore file at: " +
@@ -80,20 +75,16 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             TRUSTSTORE_FILE.delete();
         }
     
-        final String dname = FileUtils.removeIllegalCharsFromFileName(jid);
-        
-        log.info("Normalized dname: "+dname);
-        
         // Note we use DSA instead of RSA because apparently only the JDK 
         // has RSA available.
-        nativeCall("keytool", "-genkey", "-alias", dname, "-keysize", 
+        nativeCall("keytool", "-genkey", "-alias", macAddress, "-keysize", 
             "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
-            "CN="+dname, "-keypass", PASS, "-storepass", 
+            "CN="+macAddress, "-keypass", PASS, "-storepass", 
             PASS, "-keystore", KEYSTORE_FILE.getName());
         
         // Now grab our newly-generated cert. All of our trusted peers will
         // use this to connect.
-        nativeCall("keytool", "-exportcert", "-alias", dname, "-keystore", 
+        nativeCall("keytool", "-exportcert", "-alias", macAddress, "-keystore", 
             KEYSTORE_FILE.getName(), "-storepass", PASS, "-file", 
             CERT_FILE.getName());
         
@@ -112,7 +103,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         
         nativeCall("keytool", "-genkey", "-alias", "foo", "-keysize", 
             "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
-            "CN="+dname, "-keystore", TRUSTSTORE_FILE.getName(), 
+            "CN="+macAddress, "-keystore", TRUSTSTORE_FILE.getName(), 
             "-keypass", PASS, "-storepass", PASS);
         
         /*
@@ -152,7 +143,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         return PASS.toCharArray();
     }
     
-    public void addBase64Cert(final URI uri, final String base64Cert) 
+    public void addBase64Cert(final String macAddress, final String base64Cert) 
         throws IOException {
         // Alright, we need to decode the certificate from base 64, write it
         // to a file, and then use keytool to import it.
@@ -168,7 +159,8 @@ public class LanternKeyStoreManager implements KeyStoreManager {
          [-providerpath <pathlist>]
          */
         final byte[] decoded = Base64.decodeBase64(base64Cert);
-        final String fileName = normalizeName(uri);
+        final String fileName = 
+            FileUtils.removeIllegalCharsFromFileName(macAddress);
         final File certFile = new File(fileName);
         OutputStream os = null;
         try {
@@ -198,10 +190,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             "-keypass", PASS, "-storepass", PASS);
     }
 
-    private String normalizeName(final URI uri) {
-        final String full = uri.toASCIIString();
-        return FileUtils.removeIllegalCharsFromFileName(full);
-    }
 
     private String nativeCall(final String... commands) {
         log.info("Running '{}'", Arrays.asList(commands));

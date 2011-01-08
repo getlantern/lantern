@@ -5,14 +5,10 @@ import static org.jboss.netty.channel.Channels.pipeline;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 import java.net.Socket;
-import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -22,13 +18,11 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
-import java.util.Random;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -99,7 +93,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     }
     
     private final XmppP2PClient client;
-
+    
     private final MessageListener typedListener = new MessageListener() {
         public void processMessage(final Chat ch, final Message msg) {
             final String part = ch.getParticipant();
@@ -130,8 +124,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
 
     private Collection<String> trustedPeers = new HashSet<String>();
 
-    private String jid;
-    
     /**
      * Creates a new pipeline factory with the specified class for processing
      * proxy authentication.
@@ -181,14 +173,12 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 libTorrent, new InetSocketAddress(this.proxyPort), 
                 socketFactory, serverSocketFactory);
 
-            // This is a glabal, backup listener added to the client. We might
+            // This is a global, backup listener added to the client. We might
             // get notifications of messages twice in some cases, but that's
             // better than the alternative of sometimes not being notified
             // at all.
             this.client.addMessageListener(typedListener);
-            this.jid = this.client.login(this.user, this.pwd, ID);
-            System.out.println("\n\n\n\nJID: "+this.jid+"\n\n\n\n");
-            this.keyStoreManager.reset(this.jid);
+            this.client.login(this.user, this.pwd, ID);
             configureRoster();
         } catch (final IOException e) {
             final String msg = "Could not log in!!";
@@ -203,7 +193,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
 
     private ServerSocketFactory newTlsServerSocketFactory() {
         log.info("Creating TLS server socket factory");
-        String algorithm = Security.getProperty("ssl.KeyManagerFactory.algorithm");
+        String algorithm = 
+            Security.getProperty("ssl.KeyManagerFactory.algorithm");
         if (algorithm == null) {
             algorithm = "SunX509";
         }
@@ -473,6 +464,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         
         final String base64Cert =
             (String) msg.getProperty(P2PConstants.CERT);
+        final String mac =
+            (String) msg.getProperty(P2PConstants.MAC);
         log.info("Base 64 cert: {}", base64Cert);
         if (StringUtils.isNotBlank(base64Cert)) {
             log.info("Got certificate:\n"+
@@ -490,7 +483,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             }
             try {
                 // Add the peer if we're able to add the cert.
-                this.keyStoreManager.addBase64Cert(uri, base64Cert);
+                this.keyStoreManager.addBase64Cert(mac, base64Cert);
                 synchronized (peerProxySet) {
                     if (!peerProxySet.contains(uri)) {
                         peerProxies.add(uri);
@@ -568,31 +561,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             return true;
         }
         return false;
-    }
-
-    private String getMacAddress(final Enumeration<NetworkInterface> nis) {
-        while (nis.hasMoreElements()) {
-            final NetworkInterface ni = nis.nextElement();
-            try {
-                final byte[] mac = ni.getHardwareAddress();
-                if (mac != null && mac.length > 0) {
-                    log.info("Returning 'normal' MAC address");
-                    return Base64.encodeBase64String(mac).trim();
-                }
-            } catch (final SocketException e) {
-                log.warn("Could not get MAC address?");
-            }
-        }
-        try {
-            log.warn("Returning custom MAC address");
-            return Base64.encodeBase64String(
-                InetAddress.getLocalHost().getAddress()) + 
-                System.currentTimeMillis();
-        } catch (final UnknownHostException e) {
-            final byte[] bytes = new byte[24];
-            new Random().nextBytes(bytes);
-            return Base64.encodeBase64String(bytes);
-        }
     }
 
     public void onCouldNotConnect(final InetSocketAddress proxyAddress) {

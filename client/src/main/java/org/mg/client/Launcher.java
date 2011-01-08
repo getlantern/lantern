@@ -3,8 +3,16 @@ package org.mg.client;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
+import java.net.UnknownHostException;
+import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Random;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -49,7 +57,8 @@ public class Launcher {
             port = DEFAULT_PORT;
         }
         
-        final KeyStoreManager proxyKeyStore = new LanternKeyStoreManager(true);
+        final KeyStoreManager proxyKeyStore = 
+            new LanternKeyStoreManager(true);
         final int randomPort = randomPort();
         LOG.info("Running straight HTTP proxy on port: "+randomPort);
         final org.littleshoot.proxy.HttpProxyServer rawProxy = 
@@ -66,7 +75,7 @@ public class Launcher {
     private static int randomPort() {
         return 1024 + (RandomUtils.nextInt() % 60000);
     }
-
+    
     private static void configure() {
         final SystemTray tray = new SystemTrayImpl();
         tray.createTray();
