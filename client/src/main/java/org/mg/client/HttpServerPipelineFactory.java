@@ -29,8 +29,10 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocketFactory;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -166,10 +168,12 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                     libName), new File (libName)), true);
             
             final SocketFactory socketFactory = newTlsSocketFactory();
+            final ServerSocketFactory serverSocketFactory =
+                newTlsServerSocketFactory();
             
             this.client = P2P.newXmppP2PClient(streamDesc, "shoot", libTorrent, 
                 libTorrent, new InetSocketAddress(this.proxyPort), 
-                socketFactory);
+                socketFactory, serverSocketFactory);
 
             // This is a glabal, backup listener added to the client. We might
             // get notifications of messages twice in some cases, but that's
@@ -187,6 +191,25 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             log.warn(msg, e);
             throw new Error(msg, e);
         }
+    }
+
+    private ServerSocketFactory newTlsServerSocketFactory() {
+        log.info("Creating TLS server socket factory");
+        return SSLServerSocketFactory.getDefault();
+        /*
+        try {
+            final SSLContext clientContext = SSLContext.getInstance("TLS");
+            clientContext.init(null, this.keyStoreManager.getTrustManagers(), 
+                null);
+            return clientContext.getServerSocketFactory();
+        } catch (final NoSuchAlgorithmException e) {
+            log.error("No TLS?", e);
+            throw new Error("No TLS?", e);
+        } catch (final KeyManagementException e) {
+            log.error("Key managmement issue?", e);
+            throw new Error("Key managmement issue?", e);
+        }
+        */
     }
 
     private SocketFactory newTlsSocketFactory() {
