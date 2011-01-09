@@ -120,7 +120,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
 
     private final KeyStoreManager keyStoreManager;
 
-    private final int proxyPort;
+    private final int sslProxyRandomPort;
 
     private Collection<String> trustedPeers = new HashSet<String>();
 
@@ -129,11 +129,16 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
      * proxy authentication.
      * 
      * @param channelGroup The group that keeps track of open channels.
+     * @param sslProxyRandomPort The port of the HTTP proxy that other peers  
+     * will relay to.
+     * @param plainTextProxyRandomPort The port of the HTTP proxy running
+     * only locally and accepting plain-text sockets.
      */
     public HttpServerPipelineFactory(final ChannelGroup channelGroup,
-        final KeyStoreManager keyStoreManager, final int proxyPort) {
+        final KeyStoreManager keyStoreManager, final int sslProxyRandomPort, 
+        final int plainTextProxyRandomPort) {
         this.keyStoreManager = keyStoreManager;
-        this.proxyPort = proxyPort;
+        this.sslProxyRandomPort = sslProxyRandomPort;
         final Properties props = new Properties();
         final File propsDir = 
             new File(System.getProperty("user.home"), ".lantern");
@@ -169,9 +174,11 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             final ServerSocketFactory serverSocketFactory =
                 newTlsServerSocketFactory();
             
+            final InetSocketAddress plainTextProxyRelayAddress = 
+                new InetSocketAddress(plainTextProxyRandomPort);
             this.client = P2P.newXmppP2PClient(streamDesc, "shoot", libTorrent, 
-                libTorrent, new InetSocketAddress(this.proxyPort), 
-                socketFactory, serverSocketFactory);
+                libTorrent, new InetSocketAddress(this.sslProxyRandomPort), 
+                socketFactory, serverSocketFactory, plainTextProxyRelayAddress);
 
             // This is a global, backup listener added to the client. We might
             // get notifications of messages twice in some cases, but that's
