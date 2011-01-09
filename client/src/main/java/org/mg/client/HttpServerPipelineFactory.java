@@ -175,7 +175,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 newTlsServerSocketFactory();
             
             final InetSocketAddress plainTextProxyRelayAddress = 
-                new InetSocketAddress(plainTextProxyRandomPort);
+                new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
             this.client = P2P.newXmppP2PClient(streamDesc, "shoot", libTorrent, 
                 libTorrent, new InetSocketAddress(this.sslProxyRandomPort), 
                 socketFactory, serverSocketFactory, plainTextProxyRelayAddress);
