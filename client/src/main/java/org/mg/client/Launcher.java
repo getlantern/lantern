@@ -52,7 +52,7 @@ public class Launcher {
         final KeyStoreManager proxyKeyStore = 
             new LanternKeyStoreManager(true);
         //final int randomPort = randomPort();
-        final int sslRandomPort = 7778;
+        final int sslRandomPort = 7777;
         LOG.info("Running straight HTTP proxy on port: "+sslRandomPort);
         final org.littleshoot.proxy.HttpProxyServer sslProxy = 
             new DefaultHttpProxyServer(sslRandomPort,
