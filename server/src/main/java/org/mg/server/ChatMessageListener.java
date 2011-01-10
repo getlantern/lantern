@@ -51,6 +51,7 @@ import org.jivesoftware.smackx.ChatStateListener;
 import org.lastbamboo.common.amazon.ec2.AmazonEc2Utils;
 import org.lastbamboo.common.download.RateCalculator;
 import org.lastbamboo.common.download.RateCalculatorImpl;
+import org.lastbamboo.common.p2p.P2PConstants;
 import org.mg.common.ChatData;
 import org.mg.common.MgUtils;
 import org.mg.common.Pair;
@@ -144,7 +145,8 @@ public class ChatMessageListener implements ChatStateListener,
     public void processMessage(final Chat ch, final Message msg) {
         log.info("Got message!!");
         log.info("Property names: {}", msg.getPropertyNames());
-        final Integer type = (Integer) msg.getProperty(XmppMessageConstants.TYPE);
+        final Integer type = 
+            (Integer) msg.getProperty(P2PConstants.MESSAGE_TYPE);
         if (type != null) {
             switch (type) {
                 case XmppMessageConstants.INFO_REQUEST_TYPE:
@@ -263,7 +265,7 @@ public class ChatMessageListener implements ChatStateListener,
     private void sendInfoResponse(final Chat ch) {
         log.info("Sending info response");
         final Message msg = new Message();
-        msg.setProperty(XmppMessageConstants.TYPE, 
+        msg.setProperty(P2PConstants.MESSAGE_TYPE, 
             XmppMessageConstants.INFO_RESPONSE_TYPE);
         final InetAddress address = AmazonEc2Utils.getPublicAddress();
         final String proxies = 
