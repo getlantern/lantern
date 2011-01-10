@@ -58,7 +58,10 @@ public class Launcher {
                 new HashMap<String, HttpFilter>(), null, proxyKeyStore, null);
         sslProxy.start(false, false);
         
-        //final int plainTextRandomPort = randomPort();
+        // We just use a fixed port for the plain-text proxy on localhost, as
+        // there's no reason to randomize it since it's not public.
+        // If testing two instances on the same machine, just change it on
+        // one of them.
         final int plainTextRandomPort = 7777;
         final org.littleshoot.proxy.HttpProxyServer plainTextProxy = 
             new DefaultHttpProxyServer(plainTextRandomPort);

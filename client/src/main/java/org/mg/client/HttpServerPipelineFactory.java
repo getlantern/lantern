@@ -293,7 +293,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     }
 
     private boolean usePeerProxies() {
-        if (peerProxySet != null) return true;
         if (peerProxySet.isEmpty()) {
             log.info("No peer proxies, so not using peers");
             return false;
@@ -302,6 +301,9 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             log.info("Using peer proxies since there are no centralized ones");
             return true;
         }
+        
+        // TODO: We currently just roll the dice, but ideally we'd be smarter
+        // about this based on the performance of the peer proxies.
         final double rand = Math.random();
         if (rand > 0.25) {
             log.info("Using peer proxies - random was "+rand);
