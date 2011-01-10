@@ -2,17 +2,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.mg</groupId>
-    <artifactId>mg-client</artifactId>
+    <groupId>org.lantern</groupId>
+    <artifactId>lantern-client</artifactId>
     <packaging>jar</packaging>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
     <name>Client</name>
     <description>MG Client</description>
 
     <parent>
         <groupId>org.mg</groupId>
         <artifactId>mg-parent</artifactId>
-        <version>0.1-SNAPSHOT</version>
+        <version>0.2-SNAPSHOT</version>
     </parent>
 
     <dependencies>
