@@ -2,17 +2,17 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.mg</groupId>
-    <artifactId>mg-server</artifactId>
+    <groupId>org.lantern</groupId>
+    <artifactId>lantern-server</artifactId>
     <packaging>jar</packaging>
-    <version>0.1-SNAPSHOT</version>
+    <version>0.2-SNAPSHOT</version>
     <name>Server</name>
-    <description>MG Server</description>
+    <description>Lantern Server</description>
 
     <parent>
-        <groupId>org.mg</groupId>
-        <artifactId>mg-parent</artifactId>
-        <version>0.1-SNAPSHOT</version>
+        <groupId>org.lantern</groupId>
+        <artifactId>lantern-parent</artifactId>
+        <version>0.2-SNAPSHOT</version>
     </parent>
 
     <dependencies>
@@ -30,8 +30,8 @@
 -->
 
         <dependency>
-            <groupId>org.mg</groupId>
-            <artifactId>mg-common</artifactId>
+            <groupId>org.lantern</groupId>
+            <artifactId>lantern-common</artifactId>
         </dependency>
 
     </dependencies>

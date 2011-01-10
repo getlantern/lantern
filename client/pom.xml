@@ -10,8 +10,8 @@
     <description>MG Client</description>
 
     <parent>
-        <groupId>org.mg</groupId>
-        <artifactId>mg-parent</artifactId>
+        <groupId>org.lantern</groupId>
+        <artifactId>lantern-parent</artifactId>
         <version>0.2-SNAPSHOT</version>
     </parent>
 
@@ -26,8 +26,8 @@
             <artifactId>netty</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.mg</groupId>
-            <artifactId>mg-common</artifactId>
+            <groupId>org.lantern</groupId>
+            <artifactId>lantern-common</artifactId>
         </dependency>
     </dependencies>
 
