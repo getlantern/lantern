@@ -33,5 +33,4 @@ public class XmppMessageConstants {
 
     public static final String MESSAGE = "ME";
 
-    public static final String CERT = "CERT";
 }
