@@ -2,13 +2,13 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.mg</groupId>
-    <artifactId>mg-parent</artifactId>
+    <groupId>org.lantern</groupId>
+    <artifactId>lantern-parent</artifactId>
     <packaging>pom</packaging>
-    <version>0.1-SNAPSHOT</version>
-    <name>MG Parent Project</name>
+    <version>0.2-SNAPSHOT</version>
+    <name>Lantern Parent Project</name>
     <description>
-        Parent project handling all modules of MG.
+        Parent project handling all modules of Lantern.
     </description>
 
     <properties>
@@ -18,7 +18,7 @@
     </properties>
 
     <organization>
-        <name>MG</name>
+        <name>Brave New Software Project, Inc.</name>
     </organization>
 
     <inceptionYear>2010</inceptionYear>
@@ -239,9 +239,9 @@
         </dependency>
 -->
         <dependency>
-            <groupId>org.mg</groupId>
-            <artifactId>mg-common</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <groupId>org.lantern</groupId>
+            <artifactId>lantern-common</artifactId>
+            <version>0.2-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -257,9 +257,9 @@
         </dependency>
 
         <dependency>
-            <groupId>mg</groupId>
-            <artifactId>client</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <groupId>org.lantern</groupId>
+            <artifactId>lantern-client</artifactId>
+            <version>0.2-SNAPSHOT</version>
         </dependency>
 
         </dependencies>
