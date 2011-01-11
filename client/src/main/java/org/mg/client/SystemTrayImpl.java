@@ -75,7 +75,7 @@ public class SystemTrayImpl implements SystemTray
                 }
             final PopupMenu popup = new PopupMenu();
             
-            final MenuItem quitItem = new MenuItem("Quit MG");
+            final MenuItem quitItem = new MenuItem("Quit Lantern");
             quitItem.addActionListener(new ActionListener()
                 {
                 public void actionPerformed(ActionEvent e)
