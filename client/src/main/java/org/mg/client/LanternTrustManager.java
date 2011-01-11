@@ -23,9 +23,11 @@ public class LanternTrustManager implements X509TrustManager {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final KeyStoreManager ksm;
+    private final KeyStore keyStore;
     
     public LanternTrustManager(final KeyStoreManager ksm) {
         this.ksm = ksm;
+        this.keyStore = getKs();
     }
     
     private KeyStore getKs() {
@@ -75,7 +77,7 @@ public class LanternTrustManager implements X509TrustManager {
         final String alias = StringUtils.substringAfterLast(name, "CN=");
         log.info("CHECKING SERVER CERTIFICATE FOR: " + alias);
         try {
-            final Certificate local = getKs().getCertificate(alias);
+            final Certificate local = this.keyStore.getCertificate(alias);
             if (local == null || !local.equals(cert)) {
                 log.info("Certs not equal:\n"+local+"\n and:\n"+cert);
                 throw new CertificateException("Did not recognize cert: "+cert);
