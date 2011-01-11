@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="5.0.4" transformSequenceNumber="3">
-  <directoryPresets config="C:/cygwin/home/afisk/mg/trunk/install" />
-  <application name="MG" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="C:/cygwin/home/afisk/mg/trunk/client" mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="mg" publisher="Brave New Software Project" publisherWeb="http://www.bravenewsoftware.com" version="0.1" allPathsRelative="false" backupOnSave="false" autoSave="false" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.5" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
+<install4j version="5.0.6" transformSequenceNumber="3">
+  <directoryPresets config="../../../littleshoot/trunk/lib/jnltorrent.dll" />
+  <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Brave New Software Project, Inc" publisherWeb="http://www.bravenewsoftware.org/lantern" version="0.2" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.5" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
       <additionalLanguages />
@@ -14,24 +14,38 @@
     <variables />
     <mergedProjects />
   </application>
-  <files keepModificationTimes="false" missingFilesStrategy="warn" defaultOverwriteMode="4" defaultUninstallMode="0" launcherOverwriteMode="3" defaultFileMode="644" defaultDirMode="755">
-    <filesets />
-    <roots />
+  <files keepModificationTimes="false" missingFilesStrategy="warn" globalExcludeSuffixes="" defaultOverwriteMode="4" defaultUninstallMode="0" launcherOverwriteMode="3" defaultFileMode="644" defaultDirMode="755">
+    <filesets>
+      <fileset name="Windows File Set" id="145" customizedId="" />
+      <fileset name="OSX File Set" id="147" customizedId="" />
+    </filesets>
+    <roots>
+      <root id="146" fileset="145" location="" />
+      <root id="148" fileset="147" location="" />
+    </roots>
     <mountPoints>
       <mountPoint id="25" root="" location="" mode="755" />
+      <mountPoint id="149" root="146" location="" mode="755" />
+      <mountPoint id="150" root="148" location="" mode="755" />
     </mountPoints>
     <entries>
-      <dirEntry mountPoint="25" file="C:/cygwin/home/afisk/mg/trunk/install" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="install" excludeSuffixes="*.svn, *.exe4j, *.install4j" dirMode="755" overrideDirMode="false">
+      <dirEntry mountPoint="25" file="." overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="install" excludeSuffixes="*.svn, *.exe4j, *.install4j" dirMode="755" overrideDirMode="false">
         <exclude>
           <entry location="install_config.exe4j" fileType="regular" />
+          <entry location="Lantern.exe" fileType="regular" />
+          <entry location="lantern_macos_0_2.dmg" fileType="regular" />
+          <entry location="lantern_macos_0_2.tgz" fileType="regular" />
+          <entry location="mg.install4j" fileType="regular" />
         </exclude>
       </dirEntry>
+      <fileEntry mountPoint="149" file="../../../littleshoot/trunk/lib/jnltorrent.dll" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
+      <fileEntry mountPoint="150" file="../../../littleshoot/trunk/lib/libjnltorrent.jnilib" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
     </entries>
     <components />
   </files>
   <launchers>
-    <launcher name="mg-0.1" id="27" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" swtApp="false" fileset="">
-      <executable name="mg" type="1" iconSet="true" iconFile="" executableDir="." redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
+    <launcher name="lantern-osx-gui" id="27" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" swtApp="false" fileset="147">
+      <executable name="lantern" type="1" iconSet="true" iconFile="" executableDir="." redirectStderr="false" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="3" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="true" globalSingleInstance="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
       <splashScreen show="false" autoOff="true" alwaysOnTop="true" width="0" height="0" bitmapFile="" java6SplashScreen="false">
@@ -42,7 +56,39 @@
       </splashScreen>
       <java mainClass="org.mg.client.Launcher" vmParameters="" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
-          <archive location="mg-0.1.jar" failOnError="false" />
+          <archive location="lantern.jar" failOnError="false" />
+        </classPath>
+        <nativeLibraryDirectories>
+          <directory name="." />
+        </nativeLibraryDirectories>
+      </java>
+      <includedFiles />
+      <unextractableFiles />
+      <vmOptionsFile mode="template" overwriteMode="0" fileMode="644">
+        <content />
+      </vmOptionsFile>
+      <customScript mode="1" file="">
+        <content />
+      </customScript>
+      <iconImageFiles>
+        <file path="./mg_16x16.png" />
+        <file path="./mg_32x32.png" />
+        <file path="./mg_48x48.png" />
+      </iconImageFiles>
+    </launcher>
+    <launcher name="lantern-osx-service" id="158" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" swtApp="false" fileset="147">
+      <executable name="lantern" type="1" iconSet="false" iconFile="" executableDir="." redirectStderr="false" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="3" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
+        <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
+      </executable>
+      <splashScreen show="false" autoOff="true" alwaysOnTop="true" width="0" height="0" bitmapFile="" java6SplashScreen="false">
+        <text>
+          <statusLine x="20" y="20" text="" font="Arial" fontSize="8" fontColor="0,0,0" fontWeight="500" />
+          <versionLine x="20" y="40" text="version ${compiler:sys.version}" font="Arial" fontSize="8" fontColor="0,0,0" fontWeight="500" />
+        </text>
+      </splashScreen>
+      <java mainClass="org.mg.client.Launcher" vmParameters="" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+        <classPath>
+          <archive location="lantern.jar" failOnError="false" />
         </classPath>
         <nativeLibraryDirectories />
       </java>
@@ -54,11 +100,33 @@
       <customScript mode="1" file="">
         <content />
       </customScript>
-      <iconImageFiles>
-        <file path="C:/cygwin/home/afisk/mg/trunk/install/mg_16x16.png" />
-        <file path="C:/cygwin/home/afisk/mg/trunk/install/mg_32x32.png" />
-        <file path="C:/cygwin/home/afisk/mg/trunk/install/mg_48x48.png" />
-      </iconImageFiles>
+      <iconImageFiles />
+    </launcher>
+    <launcher name="lantern-windows-gui" id="224" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" swtApp="false" fileset="145">
+      <executable name="lantern" type="1" iconSet="false" iconFile="" executableDir="" redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="false" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
+        <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
+      </executable>
+      <splashScreen show="false" autoOff="true" alwaysOnTop="true" width="0" height="0" bitmapFile="" java6SplashScreen="false">
+        <text>
+          <statusLine x="20" y="20" text="" font="Arial" fontSize="8" fontColor="0,0,0" fontWeight="500" />
+          <versionLine x="20" y="40" text="version ${compiler:sys.version}" font="Arial" fontSize="8" fontColor="0,0,0" fontWeight="500" />
+        </text>
+      </splashScreen>
+      <java mainClass="org.mg.client.Launcher" vmParameters="" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+        <classPath>
+          <archive location="lantern.jar" failOnError="false" />
+        </classPath>
+        <nativeLibraryDirectories />
+      </java>
+      <includedFiles />
+      <unextractableFiles />
+      <vmOptionsFile mode="template" overwriteMode="0" fileMode="644">
+        <content />
+      </vmOptionsFile>
+      <customScript mode="1" file="">
+        <content />
+      </customScript>
+      <iconImageFiles />
     </launcher>
   </launchers>
   <installerGui installerType="1" addOnAppId="" suggestPreviousLocations="true" autoUpdateDescriptorUrl="" useAutoUpdateBaseUrl="false" autoUpdateBaseUrl="">
@@ -179,7 +247,7 @@
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.FormScreen">
                   <void property="subTitle">
-                    <string>MG needs your Google Account information to operate successfully.</string>
+                    <string>Lantern needs your Google Account information to operate successfully.</string>
                   </void>
                   <void property="title">
                     <string>Google Account</string>
@@ -210,12 +278,12 @@ if (!username.contains("@")) {
 }
 
 final File userHome = new File(System.getProperty("user.home"));
-final File mgDir = new File(userHome, ".mg");
+final File mgDir = new File(userHome, ".lantern");
 if (!mgDir.isDirectory() &amp;&amp; !mgDir.mkdirs()) {
     Util.showWarningMessage("Could not create your configuration directory. Do you have permissions to "+userHome+"?");
     return false;
 }
-final FileWriter fw = new FileWriter(new File(mgDir, "mg.properties"));
+final FileWriter fw = new FileWriter(new File(mgDir, "lantern.properties"));
 fw.write("google.user="+username+"\n");
 fw.write("google.pwd="+password1+"\n");
 fw.close();
@@ -231,7 +299,7 @@ return true;</validation>
                     <object class="com.install4j.runtime.beans.formcomponents.MultilineHtmlLabelComponent">
                       <void property="labelHtml">
                         <string>&lt;html&gt;
-MG requires your Google Account credentials to access the Internet. We at MG headquarters never see these credentials, and they're only ever stored locally on your computer. MG requires several Google Services to function properly, and that's why we need your user name and password.&lt;br&gt;
+Lantern requires your Google Account credentials to access the Internet. What you enter is completely private, never leaves your computer, and is never sent to our servers. Lantern requires several Google Services to function properly, and that's why we need your user name and password.&lt;br&gt;
 &lt;/html&gt;</string>
                       </void>
                     </object>
@@ -398,6 +466,29 @@ MG requires your Google Account credentials to access the Internet. We at MG hea
                 </serializedBean>
                 <condition />
               </action>
+              <action name="" id="154" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
+                      <void property="destinationFile">
+                        <object class="java.io.File">
+                          <string>/Applications/Firefox.app/Contents/MacOS/defaults/pref</string>
+                        </object>
+                      </void>
+                      <void property="files">
+                        <array class="java.io.File" length="1">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>all-bravenewsoftware.js</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
             </actions>
             <formComponents />
           </screen>
@@ -423,6 +514,18 @@ MG requires your Google Account credentials to access the Internet. We at MG hea
                   </java>
                 </serializedBean>
                 <condition>!context.isUnattended()</condition>
+              </action>
+              <action name="" id="226" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction">
+                      <void property="launcherId">
+                        <string>224</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>context.getBooleanVariable("executeLauncherAction") &amp;&amp; (!context.isUnattended())</condition>
               </action>
               <action name="" id="40" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="false" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="">
                 <serializedBean>
@@ -477,10 +580,40 @@ MG requires your Google Account credentials to access the Internet. We at MG hea
                         <object class="com.install4j.api.windows.RegistryRoot" field="HKEY_CURRENT_USER" />
                       </void>
                       <void property="value">
-                        <string>${installer:sys.contentDir}\mg.exe</string>
+                        <string>${installer:sys.contentDir}\lantern.exe</string>
                       </void>
                       <void property="valueName">
-                        <string>MG</string>
+                        <string>Lantern</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="" id="155" customizedId="" beanClass="com.install4j.runtime.beans.actions.services.InstallServiceAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.services.InstallServiceAction">
+                      <void property="description">
+                        <string>Lantern Proxy Service</string>
+                      </void>
+                      <void property="launcherId">
+                        <string>27</string>
+                      </void>
+                      <void property="macosIdentifier">
+                        <string>org.bns.lantern</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="" id="220" customizedId="" beanClass="com.install4j.runtime.beans.actions.services.StartServiceAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.services.StartServiceAction">
+                      <void property="launcherId">
+                        <string>27</string>
                       </void>
                     </object>
                   </java>
@@ -488,7 +621,27 @@ MG requires your Google Account credentials to access the Internet. We at MG hea
                 <condition />
               </action>
             </actions>
-            <formComponents />
+            <formComponents>
+              <formComponent name="Execute launcher" id="227" customizedId="" beanClass="com.install4j.runtime.beans.formcomponents.CheckboxComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.formcomponents.CheckboxComponent">
+                      <void property="checkboxText">
+                        <string>${i18n:RunEntryExec("${compiler:sys.fullName}")}</string>
+                      </void>
+                      <void property="initiallySelected">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="variableName">
+                        <string>executeLauncherAction</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <initScript />
+                <visibilityScript />
+              </formComponent>
+            </formComponents>
           </screen>
         </screens>
       </application>
@@ -610,11 +763,21 @@ MG requires your Google Account credentials to access the Internet. We at MG hea
     </applications>
   </installerGui>
   <mediaSets>
-    <windows name="Windows" id="26" customizedId="" mediaFileName="" installDir="mg" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreFtpURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
-      <excludedLaunchers />
+    <windows name="Windows" id="26" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="2" jreURL="http://cloudfront.littleshoot.org/jre.exe" jreFtpURL="" jreShared="true" directDownload="true" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
+      <excludedLaunchers>
+        <launcher id="27" />
+        <launcher id="158" />
+      </excludedLaunchers>
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
-      <exclude />
+      <exclude>
+        <entry location="Lantern.dmg" fileType="regular" />
+        <entry location="Lantern.tgz" fileType="regular" />
+        <entry location="launchdConfig.bash" fileType="regular" />
+        <entry location="org.bns.lantern.plist" fileType="regular" />
+        <entry location="postflight" fileType="regular" />
+        <entry location=".i4j_fileset_147" fileType="regular" />
+      </exclude>
       <variables />
       <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
         <commentFiles />
@@ -623,7 +786,46 @@ MG requires your Google Account credentials to access the Internet. We at MG hea
       <excludedComponents />
       <includedDownloadableComponents />
     </windows>
+    <macos name="Mac OS X Single Bundle" id="157" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" customInstallBaseDir="" contentFilesType="1" downloadURL="" launcherId="224">
+      <excludedBeans />
+      <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
+      <exclude>
+        <entry location="debug_Lantern" fileType="regular" />
+        <entry location="Lantern.dmg" fileType="regular" />
+        <entry location="Lantern.tgz" fileType="regular" />
+        <entry location=".i4j_fileset_145" fileType="regular" />
+      </exclude>
+      <variables />
+      <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
+        <commentFiles />
+        <customAttributes />
+      </autoUpdate>
+      <excludedComponents />
+      <includedDownloadableComponents />
+    </macos>
+    <macosFolder name="Mac OS X Folder" id="242" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" customInstallBaseDir="" contentFilesType="1" downloadURL="">
+      <excludedLaunchers>
+        <launcher id="158" />
+        <launcher id="224" />
+      </excludedLaunchers>
+      <excludedBeans />
+      <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
+      <exclude>
+        <entry location="Lantern.tgz" fileType="regular" />
+        <entry location=".i4j_fileset_145" fileType="regular" />
+      </exclude>
+      <variables />
+      <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
+        <commentFiles />
+        <customAttributes />
+      </autoUpdate>
+      <excludedComponents />
+      <includedDownloadableComponents />
+    </macosFolder>
   </mediaSets>
-  <buildIds buildAll="true" />
+  <buildIds buildAll="false">
+    <mediaSet refId="26" />
+  </buildIds>
+  <buildOptions verbose="false" faster="false" debug="false" />
 </install4j>
 
