@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="5.0.6" transformSequenceNumber="3">
-  <directoryPresets config="../../../littleshoot/trunk/lib/jnltorrent.dll" />
+  <directoryPresets config="." />
   <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Brave New Software Project, Inc" publisherWeb="http://www.bravenewsoftware.org/lantern" version="0.2" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.5" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -29,23 +29,27 @@
       <mountPoint id="150" root="148" location="" mode="755" />
     </mountPoints>
     <entries>
-      <dirEntry mountPoint="25" file="." overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="install" excludeSuffixes="*.svn, *.exe4j, *.install4j" dirMode="755" overrideDirMode="false">
+      <dirEntry mountPoint="25" file="./common" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="common" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude>
-          <entry location="install_config.exe4j" fileType="regular" />
-          <entry location="Lantern.exe" fileType="regular" />
-          <entry location="lantern_macos_0_2.dmg" fileType="regular" />
-          <entry location="lantern_macos_0_2.tgz" fileType="regular" />
-          <entry location="mg.install4j" fileType="regular" />
+          <entry location=".svn" fileType="regular" />
         </exclude>
       </dirEntry>
-      <fileEntry mountPoint="149" file="../../../littleshoot/trunk/lib/jnltorrent.dll" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
-      <fileEntry mountPoint="150" file="../../../littleshoot/trunk/lib/libjnltorrent.jnilib" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
+      <dirEntry mountPoint="149" file="./win" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="win" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+        <exclude>
+          <entry location=".svn" fileType="regular" />
+        </exclude>
+      </dirEntry>
+      <dirEntry mountPoint="150" file="./osx" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="osx" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+        <exclude>
+          <entry location=".svn" fileType="regular" />
+        </exclude>
+      </dirEntry>
     </entries>
     <components />
   </files>
   <launchers>
     <launcher name="lantern-osx-gui" id="27" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" swtApp="false" fileset="147">
-      <executable name="lantern" type="1" iconSet="true" iconFile="" executableDir="." redirectStderr="false" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="3" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="true" globalSingleInstance="false">
+      <executable name="lantern" type="1" iconSet="true" iconFile="" executableDir="." redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="false" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="true" globalSingleInstance="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
       <splashScreen show="false" autoOff="true" alwaysOnTop="true" width="0" height="0" bitmapFile="" java6SplashScreen="false">
@@ -113,6 +117,32 @@
         </text>
       </splashScreen>
       <java mainClass="org.mg.client.Launcher" vmParameters="" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
+        <classPath>
+          <archive location="lantern.jar" failOnError="false" />
+        </classPath>
+        <nativeLibraryDirectories />
+      </java>
+      <includedFiles />
+      <unextractableFiles />
+      <vmOptionsFile mode="template" overwriteMode="0" fileMode="644">
+        <content />
+      </vmOptionsFile>
+      <customScript mode="1" file="">
+        <content />
+      </customScript>
+      <iconImageFiles />
+    </launcher>
+    <launcher name="LanternService" id="273" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" swtApp="false" fileset="147">
+      <executable name="LanternService" type="1" iconSet="false" iconFile="" executableDir="/Library/LaunchDaemons" redirectStderr="false" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="3" changeWorkingDirectory="true" workingDirectory="." singleInstance="false" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
+        <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
+      </executable>
+      <splashScreen show="false" autoOff="true" alwaysOnTop="true" width="0" height="0" bitmapFile="" java6SplashScreen="false">
+        <text>
+          <statusLine x="20" y="20" text="" font="Arial" fontSize="8" fontColor="0,0,0" fontWeight="500" />
+          <versionLine x="20" y="40" text="version ${compiler:sys.version}" font="Arial" fontSize="8" fontColor="0,0,0" fontWeight="500" />
+        </text>
+      </splashScreen>
+      <java mainClass="com.mg.client.Launcher" vmParameters="" arguments="" allowVMPassthroughParameters="true" preferredVM="" bundleRuntime="true">
         <classPath>
           <archive location="lantern.jar" failOnError="false" />
         </classPath>
@@ -408,6 +438,29 @@ Lantern requires your Google Account credentials to access the Internet. What yo
             <preActivation />
             <postActivation />
             <actions>
+              <action name="" id="340" customizedId="" beanClass="com.install4j.runtime.beans.actions.UninstallPreviousAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.UninstallPreviousAction" />
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="" id="261" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="We apologize, but we were unable to stop the existing Lantern installation running on this computer. Please manually close it in Task Manager and run the installer again.">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction">
+                      <void property="closeStrategy">
+                        <object class="com.install4j.runtime.beans.actions.misc.CloseStrategy" field="TERMINATE" />
+                      </void>
+                      <void property="timeOut">
+                        <int>25000</int>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
               <action name="" id="9" customizedId="" beanClass="com.install4j.runtime.beans.actions.InstallFilesAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="${i18n:FileCorrupted}">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
@@ -489,6 +542,49 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition />
               </action>
+              <action name="" id="272" customizedId="" beanClass="com.install4j.runtime.beans.actions.services.InstallServiceAction" enabled="false" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.services.InstallServiceAction">
+                      <void property="autoStart">
+                        <boolean>false</boolean>
+                      </void>
+                      <void property="description">
+                        <string>Lantern Proxy Service</string>
+                      </void>
+                      <void property="launcherId">
+                        <string>273</string>
+                      </void>
+                      <void property="macosIdentifier">
+                        <string>org.bns.lantern</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="" id="341" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="We're sorry, but there was an error configuring Lantern.">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
+                      <void property="executable">
+                        <object class="java.io.File">
+                          <string>configureOsx.bash</string>
+                        </object>
+                      </void>
+                      <void property="wait">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="workingDirectory">
+                        <object class="java.io.File">
+                          <string>${installer:sys.workingDir}</string>
+                        </object>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
             </actions>
             <formComponents />
           </screen>
@@ -503,18 +599,6 @@ Lantern requires your Google Account credentials to access the Internet. What yo
             <preActivation />
             <postActivation />
             <actions>
-              <action name="" id="32" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction">
-                      <void property="launcherId">
-                        <string>27</string>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition>!context.isUnattended()</condition>
-              </action>
               <action name="" id="226" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
@@ -590,30 +674,12 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="155" customizedId="" beanClass="com.install4j.runtime.beans.actions.services.InstallServiceAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.services.InstallServiceAction">
-                      <void property="description">
-                        <string>Lantern Proxy Service</string>
-                      </void>
-                      <void property="launcherId">
-                        <string>27</string>
-                      </void>
-                      <void property="macosIdentifier">
-                        <string>org.bns.lantern</string>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition />
-              </action>
-              <action name="" id="220" customizedId="" beanClass="com.install4j.runtime.beans.actions.services.StartServiceAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="">
+              <action name="" id="220" customizedId="" beanClass="com.install4j.runtime.beans.actions.services.StartServiceAction" enabled="false" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.services.StartServiceAction">
                       <void property="launcherId">
-                        <string>27</string>
+                        <string>273</string>
                       </void>
                     </object>
                   </java>
@@ -786,13 +852,17 @@ Lantern requires your Google Account credentials to access the Internet. What yo
       <excludedComponents />
       <includedDownloadableComponents />
     </windows>
-    <macos name="Mac OS X Single Bundle" id="157" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" customInstallBaseDir="" contentFilesType="1" downloadURL="" launcherId="224">
+    <macos name="Mac OS X Single Bundle" id="157" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" customInstallBaseDir="" contentFilesType="1" downloadURL="" launcherId="27">
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
       <exclude>
-        <entry location="debug_Lantern" fileType="regular" />
+        <entry location="jnltorrent.dll" fileType="regular" />
+        <entry location="Lantern-0.2.exe" fileType="regular" />
+        <entry location="Lantern.bat" fileType="regular" />
         <entry location="Lantern.dmg" fileType="regular" />
         <entry location="Lantern.tgz" fileType="regular" />
+        <entry location="log.txt" fileType="regular" />
+        <entry location="postflight" fileType="regular" />
         <entry location=".i4j_fileset_145" fileType="regular" />
       </exclude>
       <variables />
@@ -824,8 +894,8 @@ Lantern requires your Google Account credentials to access the Internet. What yo
     </macosFolder>
   </mediaSets>
   <buildIds buildAll="false">
-    <mediaSet refId="26" />
+    <mediaSet refId="157" />
   </buildIds>
-  <buildOptions verbose="false" faster="false" debug="false" />
+  <buildOptions verbose="false" faster="true" debug="true" />
 </install4j>
 
