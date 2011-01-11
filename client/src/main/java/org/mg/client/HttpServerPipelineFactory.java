@@ -280,10 +280,9 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             log.info("No centralized proxies!!");
             return pipeline();
         }
-        //final InetSocketAddress proxy = proxies.poll();
-        final InetSocketAddress proxy = new InetSocketAddress("127.0.0.1", 8080);
+        final InetSocketAddress proxy = proxies.poll();
         log.info("Using proxy: {}", proxy);
-        //proxies.add(proxy);
+        proxies.add(proxy);
         final SimpleChannelUpstreamHandler handler =
             new ProxyRelayHandler(proxy, this, this.keyStoreManager);
         final ChannelPipeline pipeline = pipeline();
