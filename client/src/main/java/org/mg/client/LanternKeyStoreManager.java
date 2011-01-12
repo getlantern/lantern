@@ -56,7 +56,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             nativeCall("keytool", "-import", "-noprompt", "-file", 
                 littleProxyCert.getName(), 
                 "-alias", "littleproxy", "-keystore", 
-                TRUSTSTORE_FILE.getName(), "-storepass",  PASS);
+                TRUSTSTORE_FILE.getAbsolutePath(), "-storepass",  PASS);
         } else {
             log.warn("NO LITTLEPROXY CERT FILE TO IMPORT!!");
         }
@@ -76,7 +76,8 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         nativeCall("keytool", "-genkey", "-alias", "foo", "-keysize", 
             "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
             "CN="+LanternUtils.getMacAddress(), "-keystore", 
-            TRUSTSTORE_FILE.getName(), "-keypass", PASS, "-storepass", PASS);
+            TRUSTSTORE_FILE.getAbsolutePath(), "-keypass", PASS, 
+            "-storepass", PASS);
     }
 
     private void reset(final String macAddress) {
@@ -98,13 +99,13 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         nativeCall("keytool", "-genkey", "-alias", macAddress, "-keysize", 
             "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
             "CN="+macAddress, "-keypass", PASS, "-storepass", 
-            PASS, "-keystore", KEYSTORE_FILE.getName());
+            PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
         
         // Now grab our newly-generated cert. All of our trusted peers will
         // use this to connect.
         nativeCall("keytool", "-exportcert", "-alias", macAddress, "-keystore", 
-            KEYSTORE_FILE.getName(), "-storepass", PASS, "-file", 
-            CERT_FILE.getName());
+            KEYSTORE_FILE.getAbsolutePath(), "-storepass", PASS, "-file", 
+            CERT_FILE.getAbsolutePath());
         
         try {
             final InputStream is = new FileInputStream(CERT_FILE);
@@ -137,6 +138,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         try {
             return new FileInputStream(KEYSTORE_FILE);
         } catch (final FileNotFoundException e) {
+            log.error("Key store file not found", e);
             throw new Error("Could not find keystore file!!");
         }
     }
@@ -145,6 +147,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         try {
             return new FileInputStream(TRUSTSTORE_FILE);
         } catch (final FileNotFoundException e) {
+            log.error("Trust store file not found", e);
             throw new Error("Could not find keystore file!!");
         }
     }
@@ -196,11 +199,11 @@ public class LanternKeyStoreManager implements KeyStoreManager {
          */
         // Make sure we delete the old one.
         nativeCall("keytool", "-delete", "-alias", fileName, 
-            "-keystore", TRUSTSTORE_FILE.getName(), "-storepass", PASS);
+            "-keystore", TRUSTSTORE_FILE.getAbsolutePath(), "-storepass", PASS);
         
         nativeCall("keytool", "-importcert", "-noprompt", "-alias", fileName, 
-            "-keystore", 
-            TRUSTSTORE_FILE.getName(), "-file", certFile.getName(), 
+            "-keystore", TRUSTSTORE_FILE.getAbsolutePath(), 
+            "-file", certFile.getAbsolutePath(), 
             "-keypass", PASS, "-storepass", PASS);
     }
 
@@ -214,6 +217,15 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             final String data = IOUtils.toString(is);
             log.info("Completed native call: '{}'\nResponse: '"+data+"'", 
                 Arrays.asList(commands));
+            final int ev = process.exitValue();
+            if (ev != 0) {
+                final String msg = "Process not completed normally! " + 
+                    Arrays.asList(commands)+" Exited with: "+ev;
+                System.err.println(msg);
+                log.error(msg);
+            } else {
+                log.info("Process completed normally!");
+            }
             return data;
         } catch (final IOException e) {
             log.error("Error running commands: " + Arrays.asList(commands), e);

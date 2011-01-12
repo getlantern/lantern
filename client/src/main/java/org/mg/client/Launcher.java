@@ -4,10 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.HashMap;
+import java.util.Properties;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
+import org.apache.log4j.PropertyConfigurator;
+import org.lastbamboo.common.util.CommonUtils;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.KeyStoreManager;
@@ -16,11 +19,11 @@ import org.slf4j.LoggerFactory;
 
 
 /**
- * Launches a new HTTP proxy.
+ * Launches a new Lantern HTTP proxy.
  */
 public class Launcher {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Launcher.class);
+    private static Logger LOG;
     
     private final static int DEFAULT_PORT = 8787;
     
@@ -30,6 +33,8 @@ public class Launcher {
      * @param args Any command line arguments.
      */
     public static void main(final String... args) {
+        configureLogger();
+        LOG = LoggerFactory.getLogger(Launcher.class);
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             public void uncaughtException(final Thread t, final Throwable e) {
                 LOG.error("Uncaught exception", e);
@@ -74,6 +79,73 @@ public class Launcher {
         server.start();
     }
     
+    private static void configureLogger() {
+        final File logDirParent;
+        final File logDir;
+        if (SystemUtils.IS_OS_WINDOWS) {
+            logDirParent = CommonUtils.getDataDir();
+            logDir = new File(logDirParent, "logs");
+        } else if (SystemUtils.IS_OS_MAC_OSX) {
+            logDirParent = new File("/Library/Logs/");
+            logDir = new File(logDirParent, "Lantern");
+        } else {
+            logDirParent = new File(SystemUtils.getUserHome(), ".lantern");
+            logDir = new File(logDirParent, "logs");
+        }
+
+        if (!logDirParent.isDirectory()) {
+            if (!logDirParent.mkdirs()) {
+                System.out.println("Could not create parent at: "
+                        + logDirParent);
+                return;
+            }
+        }
+        if (!logDir.isDirectory()) {
+            if (!logDir.mkdirs()) {
+                System.out.println("Could not create dir at: " + logDir);
+                return;
+            }
+        }
+
+        final String propsPath = "src/main/resources/log4j.properties";
+        final File props = new File(propsPath);
+        if (props.isFile()) {
+            System.out.println("Running from main line");
+            PropertyConfigurator.configure(propsPath);
+        } else {
+            System.out.println("Not on main line...");
+            final File logFile = new File(logDir, "java.log");
+            setLoggerProps(logFile);
+        }
+    }
+    
+    private static void setLoggerProps(final File logFile) {
+        final Properties props = new Properties();
+        try {
+            final String logPath = logFile.getCanonicalPath();
+            props.put("log4j.appender.RollingTextFile.File", logPath);
+            props.put("log4j.rootLogger", "warn, RollingTextFile");
+            props.put("log4j.appender.RollingTextFile",
+                    "org.apache.log4j.RollingFileAppender");
+            props.put("log4j.appender.RollingTextFile.MaxFileSize", "1MB");
+            props.put("log4j.appender.RollingTextFile.MaxBackupIndex", "1");
+            props.put("log4j.appender.RollingTextFile.layout",
+                    "org.apache.log4j.PatternLayout");
+            props.put(
+                    "log4j.appender.RollingTextFile.layout.ConversionPattern",
+                    "%-6r %d{ISO8601} %-5p [%t] %c{2}.%M (%F:%L) - %m%n");
+
+            // This throws and swallows a FileNotFoundException, but it
+            // doesn't matter. Just weird.
+            PropertyConfigurator.configure(props);
+            System.out.println("Set logger file to: " + logPath);
+        } catch (final IOException e) {
+            System.out.println("Exception setting log4j props with file: "
+                    + logFile);
+            e.printStackTrace();
+        }
+    }
+
     private static int randomPort() {
         return 1024 + (RandomUtils.nextInt() % 60000);
     }
