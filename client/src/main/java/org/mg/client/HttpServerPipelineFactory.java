@@ -140,9 +140,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         this.keyStoreManager = keyStoreManager;
         this.sslProxyRandomPort = sslProxyRandomPort;
         final Properties props = new Properties();
-        final File propsDir = 
-            new File(System.getProperty("user.home"), ".lantern");
-        final File file = new File(propsDir, "lantern.properties");
+        final File file = 
+            new File(LanternUtils.configDir(), "lantern.properties");
         try {
             props.load(new FileInputStream(file));
             this.user = props.getProperty("google.user");

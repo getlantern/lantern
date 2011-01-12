@@ -1,5 +1,6 @@
 package org.mg.common;
 
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -14,7 +15,6 @@ import org.slf4j.LoggerFactory;
 public class MgUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(MgUtils.class);
-    
     
     /**
      * Closes the specified channel after all queued write requests are flushed.

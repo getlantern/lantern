@@ -24,21 +24,22 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private final File KEYSTORE_FILE = new File("lantern_keystore.jks");
+    private final File CONFIG_DIR = LanternUtils.configDir();
     
-    private final File TRUSTSTORE_FILE = new File("lantern_truststore.jks");
+    private final File KEYSTORE_FILE = 
+        new File(CONFIG_DIR, "lantern_keystore.jks");
     
-    private final File CERT_FILE = new File("local_lantern_cert");
+    private final File TRUSTSTORE_FILE = 
+        new File(CONFIG_DIR, "lantern_truststore.jks");
     
-    //private final String AL = "lantern";
+    private final File CERT_FILE = 
+        new File(CONFIG_DIR, "local_lantern_cert");
     
     private static final String PASS = "Be Your Own Lantern";
 
     private String localCert;
     
-    private final TrustManager[] trustManagers = {
-        new LanternTrustManager(this)
-    };
+    private final TrustManager[] trustManagers;
 
     public LanternKeyStoreManager() {
         this(true);
@@ -48,6 +49,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         if(regenerate) {
             reset(LanternUtils.getMacAddress());
         }
+        createTrustStore();
         final File littleProxyCert = new File("lantern_littleproxy_cert");
         if (littleProxyCert.isFile()) {
             log.info("Importing cert");
@@ -58,8 +60,24 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         } else {
             log.warn("NO LITTLEPROXY CERT FILE TO IMPORT!!");
         }
+        
+        trustManagers = new TrustManager[] {
+            new LanternTrustManager(this)
+        };
     }
     
+
+    private void createTrustStore() {
+        if (TRUSTSTORE_FILE.isFile()) {
+            log.info("Trust store already exists");
+            return;
+        }
+        
+        nativeCall("keytool", "-genkey", "-alias", "foo", "-keysize", 
+            "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
+            "CN="+LanternUtils.getMacAddress(), "-keystore", 
+            TRUSTSTORE_FILE.getName(), "-keypass", PASS, "-storepass", PASS);
+    }
 
     private void reset(final String macAddress) {
         log.info("RESETTING KEYSTORE AND TRUSTSTORE!!");
@@ -100,11 +118,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         }
 
         log.info("Creating trust store");
-        
-        nativeCall("keytool", "-genkey", "-alias", "foo", "-keysize", 
-            "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
-            "CN="+macAddress, "-keystore", TRUSTSTORE_FILE.getName(), 
-            "-keypass", PASS, "-storepass", PASS);
+        createTrustStore();
         
         /*
         log.info("Importing cert");

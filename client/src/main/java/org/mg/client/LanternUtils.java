@@ -1,5 +1,6 @@
 package org.mg.client;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -17,6 +18,9 @@ public class LanternUtils {
         LoggerFactory.getLogger(LanternUtils.class);
     
     private static String MAC_ADDRESS;
+    
+    private static final File CONFIG_DIR = 
+        new File(System.getProperty("user.home"), ".lantern");
     
     public static String getMacAddress() {
         if (MAC_ADDRESS != null) {
@@ -57,5 +61,10 @@ public class LanternUtils {
             new Random().nextBytes(bytes);
             return Base64.encodeBase64String(bytes);
         }
+    }
+    
+
+    public static File configDir() {
+        return CONFIG_DIR;
     }
 }
