@@ -1,20 +1,16 @@
 package org.mg.client;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.Arrays;
 
 import javax.net.ssl.TrustManager;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
-import org.lastbamboo.common.util.FileUtils;
+import org.lastbamboo.common.util.CommonUtils;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +37,8 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
     private final TrustManager[] trustManagers;
 
+    private final LanternTrustManager lanternTrustManager;
+
     public LanternKeyStoreManager() {
         this(true);
     }
@@ -53,7 +51,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         final File littleProxyCert = new File("lantern_littleproxy_cert");
         if (littleProxyCert.isFile()) {
             log.info("Importing cert");
-            nativeCall("keytool", "-import", "-noprompt", "-file", 
+            CommonUtils.nativeCall("keytool", "-import", "-noprompt", "-file", 
                 littleProxyCert.getName(), 
                 "-alias", "littleproxy", "-keystore", 
                 TRUSTSTORE_FILE.getAbsolutePath(), "-storepass",  PASS);
@@ -61,8 +59,11 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             log.warn("NO LITTLEPROXY CERT FILE TO IMPORT!!");
         }
         
+        this.lanternTrustManager = 
+            new LanternTrustManager(this, TRUSTSTORE_FILE, PASS);
+        
         trustManagers = new TrustManager[] {
-            new LanternTrustManager(this)
+            lanternTrustManager
         };
     }
     
@@ -73,7 +74,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             return;
         }
         
-        nativeCall("keytool", "-genkey", "-alias", "foo", "-keysize", 
+        CommonUtils.nativeCall("keytool", "-genkey", "-alias", "foo", "-keysize", 
             "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
             "CN="+LanternUtils.getMacAddress(), "-keystore", 
             TRUSTSTORE_FILE.getAbsolutePath(), "-keypass", PASS, 
@@ -96,14 +97,14 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
         // Note we use DSA instead of RSA because apparently only the JDK 
         // has RSA available.
-        nativeCall("keytool", "-genkey", "-alias", macAddress, "-keysize", 
+        CommonUtils.nativeCall("keytool", "-genkey", "-alias", macAddress, "-keysize", 
             "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
             "CN="+macAddress, "-keypass", PASS, "-storepass", 
             PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
         
         // Now grab our newly-generated cert. All of our trusted peers will
         // use this to connect.
-        nativeCall("keytool", "-exportcert", "-alias", macAddress, "-keystore", 
+       CommonUtils.nativeCall("keytool", "-exportcert", "-alias", macAddress, "-keystore", 
             KEYSTORE_FILE.getAbsolutePath(), "-storepass", PASS, "-file", 
             CERT_FILE.getAbsolutePath());
         
@@ -162,75 +163,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
     public void addBase64Cert(final String macAddress, final String base64Cert) 
         throws IOException {
-        // Alright, we need to decode the certificate from base 64, write it
-        // to a file, and then use keytool to import it.
-        
-        // Here's the keytool doc:
-        /*
-         * -importcert  [-v] [-noprompt] [-trustcacerts] [-protected]
-         [-alias <alias>]
-         [-file <cert_file>] [-keypass <keypass>]
-         [-keystore <keystore>] [-storepass <storepass>]
-         [-storetype <storetype>] [-providername <name>]
-         [-providerclass <provider_class_name> [-providerarg <arg>]] ...
-         [-providerpath <pathlist>]
-         */
-        final byte[] decoded = Base64.decodeBase64(base64Cert);
-        final String fileName = 
-            FileUtils.removeIllegalCharsFromFileName(macAddress);
-        final File certFile = new File(fileName);
-        OutputStream os = null;
-        try {
-            os = new FileOutputStream(certFile);
-            IOUtils.copy(new ByteArrayInputStream(decoded), os);
-        } catch (final IOException e) {
-            log.error("Could not write to file: " + certFile, e);
-            throw e;
-        } finally {
-            IOUtils.closeQuietly(os);
-        }
-        /*
-         * -delete      [-v] [-protected] -alias <alias>
-         [-keystore <keystore>] [-storepass <storepass>]
-         [-storetype <storetype>] [-providername <name>]
-         [-providerclass <provider_class_name> [-providerarg <arg>]] ...
-         [-providerpath <pathlist>]
-
-         */
-        // Make sure we delete the old one.
-        nativeCall("keytool", "-delete", "-alias", fileName, 
-            "-keystore", TRUSTSTORE_FILE.getAbsolutePath(), "-storepass", PASS);
-        
-        nativeCall("keytool", "-importcert", "-noprompt", "-alias", fileName, 
-            "-keystore", TRUSTSTORE_FILE.getAbsolutePath(), 
-            "-file", certFile.getAbsolutePath(), 
-            "-keypass", PASS, "-storepass", PASS);
-    }
-
-
-    private String nativeCall(final String... commands) {
-        log.info("Running '{}'", Arrays.asList(commands));
-        final ProcessBuilder pb = new ProcessBuilder(commands);
-        try {
-            final Process process = pb.start();
-            final InputStream is = process.getInputStream();
-            final String data = IOUtils.toString(is);
-            log.info("Completed native call: '{}'\nResponse: '"+data+"'", 
-                Arrays.asList(commands));
-            final int ev = process.exitValue();
-            if (ev != 0) {
-                final String msg = "Process not completed normally! " + 
-                    Arrays.asList(commands)+" Exited with: "+ev;
-                System.err.println(msg);
-                log.error(msg);
-            } else {
-                log.info("Process completed normally!");
-            }
-            return data;
-        } catch (final IOException e) {
-            log.error("Error running commands: " + Arrays.asList(commands), e);
-            return "";
-        }
+        this.lanternTrustManager.addBase64Cert(macAddress, base64Cert);
     }
 
     public TrustManager[] getTrustManagers() {

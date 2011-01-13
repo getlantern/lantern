@@ -3,11 +3,8 @@ package org.mg.client;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.PopupMenu;
-import java.io.File;
-import java.io.IOException;
 import java.lang.reflect.Constructor;
 
-import org.apache.commons.io.IOExceptionWithCause;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

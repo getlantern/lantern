@@ -1,6 +1,10 @@
 package org.mg.client;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -10,7 +14,11 @@ import java.security.cert.X509Certificate;
 
 import javax.net.ssl.X509TrustManager;
 
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.lastbamboo.common.util.CommonUtils;
+import org.lastbamboo.common.util.FileUtils;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,12 +31,18 @@ public class LanternTrustManager implements X509TrustManager {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final KeyStoreManager ksm;
-    private final KeyStore keyStore;
+    private KeyStore keyStore;
+    private final File trustStoreFile;
+    private final String password;
     
-    public LanternTrustManager(final KeyStoreManager ksm) {
+    public LanternTrustManager(final KeyStoreManager ksm, 
+        final File trustStoreFile, final String password) {
         this.ksm = ksm;
+        this.trustStoreFile = trustStoreFile;
+        this.password = password;
         this.keyStore = getKs();
     }
+    
     
     private KeyStore getKs() {
         try {
@@ -46,6 +60,57 @@ public class LanternTrustManager implements X509TrustManager {
             log.error("Key store error?", e);
         }
         throw new Error("Could not create trust manager!");
+    }
+    
+    public void addBase64Cert(final String macAddress, final String base64Cert) 
+        throws IOException {
+        // Alright, we need to decode the certificate from base 64, write it
+        // to a file, and then use keytool to import it.
+        
+        // Here's the keytool doc:
+        /*
+         * -importcert  [-v] [-noprompt] [-trustcacerts] [-protected]
+         [-alias <alias>]
+         [-file <cert_file>] [-keypass <keypass>]
+         [-keystore <keystore>] [-storepass <storepass>]
+         [-storetype <storetype>] [-providername <name>]
+         [-providerclass <provider_class_name> [-providerarg <arg>]] ...
+         [-providerpath <pathlist>]
+         */
+        final byte[] decoded = Base64.decodeBase64(base64Cert);
+        final String fileName = 
+            FileUtils.removeIllegalCharsFromFileName(macAddress);
+        final File certFile = new File(fileName);
+        OutputStream os = null;
+        try {
+            os = new FileOutputStream(certFile);
+            IOUtils.copy(new ByteArrayInputStream(decoded), os);
+        } catch (final IOException e) {
+            log.error("Could not write to file: " + certFile, e);
+            throw e;
+        } finally {
+            IOUtils.closeQuietly(os);
+        }
+        /*
+         * -delete      [-v] [-protected] -alias <alias>
+         [-keystore <keystore>] [-storepass <storepass>]
+         [-storetype <storetype>] [-providername <name>]
+         [-providerclass <provider_class_name> [-providerarg <arg>]] ...
+         [-providerpath <pathlist>]
+    
+         */
+        // Make sure we delete the old one.
+        CommonUtils.nativeCall("keytool", "-delete", "-alias", fileName, 
+            "-keystore", trustStoreFile.getAbsolutePath(), "-storepass", 
+            this.password);
+        
+        CommonUtils.nativeCall("keytool", "-importcert", "-noprompt", "-alias", 
+            fileName, "-keystore", trustStoreFile.getAbsolutePath(), 
+            "-file", certFile.getAbsolutePath(), 
+            "-keypass", this.password, "-storepass", this.password);
+        
+        // We need to reload the keystore with the latest data.
+        this.keyStore = getKs();
     }
 
     public X509Certificate[] getAcceptedIssuers() {
