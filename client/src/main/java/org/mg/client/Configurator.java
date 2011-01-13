@@ -25,6 +25,8 @@ public class Configurator {
             configureOsxProxy();
         } else if (SystemUtils.IS_OS_WINDOWS) {
             configureWindowsProxy();
+            // The firewall config is actually handled in a bat file from the
+            // installer.
             //configureWindowsFirewall();
         }
     }
