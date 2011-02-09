@@ -116,7 +116,7 @@ fetch the changes and merge them into your project with git.
         partial1.html
         partial2.html
 
-    jsTestDriver.conf   --> config file for JsTestDriver
+    config/jsTestDriver.conf    --> config file for JsTestDriver
 
     logs/               --> JSTD and other logs go here (git-ignored)
 

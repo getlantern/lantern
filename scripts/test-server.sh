@@ -9,4 +9,4 @@ echo "Please open the url above and capture one or more browsers."
 echo ""
 echo "For more info please see: http://code.google.com/p/js-test-driver/"
 
-java -jar "$base_dir/../test/lib/jstestdriver/JsTestDriver.jar" --port $port --browserTimeout 20000
+java -jar "$base_dir/../test/lib/jstestdriver/JsTestDriver.jar" --port $port --browserTimeout 20000 --config "$base_dir/../config/jsTestDriver.conf" --basePath "$base_dir/.."
