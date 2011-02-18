@@ -16,7 +16,6 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.lastbamboo.common.util.ByteBufferUtils;
-import org.mg.common.MgUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,7 +100,7 @@ public class RawSocketProxyRelayHandler extends SimpleChannelUpstreamHandler {
     public void exceptionCaught(final ChannelHandlerContext ctx, 
         final ExceptionEvent e) {
         log.error("Caught exception on INBOUND channel", e.getCause());
-        MgUtils.closeOnFlush(this.inboundChannel);
+        LanternUtils.closeOnFlush(this.inboundChannel);
         closeOutgoing();
     }
     
@@ -137,11 +136,11 @@ public class RawSocketProxyRelayHandler extends SimpleChannelUpstreamHandler {
                         log.info("In while");
                     }
                     log.info("Out of while");
-                    MgUtils.closeOnFlush(inboundChannel);
+                    LanternUtils.closeOnFlush(inboundChannel);
 
                 } catch (final IOException e) {
                     log.info("Exception relaying peer data back to browser",e);
-                    MgUtils.closeOnFlush(inboundChannel);
+                    LanternUtils.closeOnFlush(inboundChannel);
                     //inboundChannel.close();
                     //proxyStatusListener.onError(peerUri);
                 }

@@ -9,9 +9,15 @@ import java.util.Enumeration;
 import java.util.Random;
 
 import org.apache.commons.codec.binary.Base64;
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Utility methods for use with Lantern.
+ */
 public class LanternUtils {
 
     private static final Logger LOG = 
@@ -21,6 +27,21 @@ public class LanternUtils {
     
     private static final File CONFIG_DIR = 
         new File(System.getProperty("user.home"), ".lantern");
+    
+    /**
+     * Closes the specified channel after all queued write requests are flushed.
+     */
+    public static void closeOnFlush(final Channel ch) {
+        LOG.info("Closing channel on flush: {}", ch);
+        if (ch == null) {
+            LOG.warn("Channel is NULL!!");
+            return;
+        }
+        if (ch.isConnected()) {
+            ch.write(ChannelBuffers.EMPTY_BUFFER).addListener(
+                ChannelFutureListener.CLOSE);
+        }
+    }
     
     public static String getMacAddress() {
         if (MAC_ADDRESS != null) {

@@ -25,10 +25,12 @@
             <groupId>org.jboss.netty</groupId>
             <artifactId>netty</artifactId>
         </dependency>
+        <!-- 
         <dependency>
             <groupId>org.lantern</groupId>
             <artifactId>lantern-common</artifactId>
         </dependency>
+         -->
     </dependencies>
 
     <build>

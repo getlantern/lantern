@@ -56,7 +56,6 @@ import org.lastbamboo.jni.JLibTorrent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.p2p.P2P;
 import org.littleshoot.proxy.KeyStoreManager;
-import org.mg.common.XmppMessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

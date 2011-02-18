@@ -24,7 +24,6 @@ import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
-import org.mg.common.XmppMessageConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

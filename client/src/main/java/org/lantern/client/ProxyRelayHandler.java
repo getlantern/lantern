@@ -21,7 +21,6 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.SslContextFactory;
-import org.mg.common.MgUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,14 +125,14 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
     public void channelClosed(final ChannelHandlerContext ctx, 
         final ChannelStateEvent e) {
         log.info("Got inbound channel closed. Closing outbound.");
-        MgUtils.closeOnFlush(this.outboundChannel);
+        LanternUtils.closeOnFlush(this.outboundChannel);
     }
     
     @Override
     public void exceptionCaught(final ChannelHandlerContext ctx, 
         final ExceptionEvent e) throws Exception {
         log.error("Caught exception on INBOUND channel", e.getCause());
-        MgUtils.closeOnFlush(this.inboundChannel);
+        LanternUtils.closeOnFlush(this.inboundChannel);
     }
     
     private static class OutboundHandler extends SimpleChannelUpstreamHandler {
@@ -156,14 +155,14 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
         @Override
         public void channelClosed(final ChannelHandlerContext ctx, 
             final ChannelStateEvent e) throws Exception {
-            MgUtils.closeOnFlush(inboundChannel);
+            LanternUtils.closeOnFlush(inboundChannel);
         }
 
         @Override
         public void exceptionCaught(final ChannelHandlerContext ctx, 
             final ExceptionEvent e) throws Exception {
             log.error("Caught exception on OUTBOUND channel", e.getCause());
-            MgUtils.closeOnFlush(e.getChannel());
+            LanternUtils.closeOnFlush(e.getChannel());
         }
     }
 
