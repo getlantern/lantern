@@ -1,4 +1,4 @@
-package org.lantern.client;
+package org.lantern;
 
 /**
  * Interface for system tray implementations.

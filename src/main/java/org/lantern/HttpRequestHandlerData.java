@@ -1,4 +1,4 @@
-package org.lantern.client;
+package org.lantern;
 
 import javax.management.MXBean;
 

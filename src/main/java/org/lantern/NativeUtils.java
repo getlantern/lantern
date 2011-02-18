@@ -1,4 +1,4 @@
-package org.lantern.client;
+package org.lantern;
 
 import java.awt.Dimension;
 import java.awt.Image;

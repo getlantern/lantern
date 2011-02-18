@@ -1,4 +1,4 @@
-package org.lantern.client;
+package org.lantern;
 
 import java.net.InetSocketAddress;
 import java.net.URI;

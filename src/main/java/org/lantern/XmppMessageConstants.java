@@ -1,4 +1,4 @@
-package org.lantern.client;
+package org.lantern;
 
 /**
  * Class containing constants for message property keys.

@@ -1,4 +1,4 @@
-package org.lantern.client;
+package org.lantern;
 
 import java.io.File;
 import java.io.FileInputStream;

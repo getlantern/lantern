@@ -1,4 +1,4 @@
-package org.lantern.client;
+package org.lantern;
 
 import java.io.IOException;
 import java.io.InputStream;

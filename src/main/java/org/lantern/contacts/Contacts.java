@@ -1,4 +1,4 @@
-package org.lantern.client.contacts;
+package org.lantern.contacts;
 
 import java.io.IOException;
 import java.util.Collection;

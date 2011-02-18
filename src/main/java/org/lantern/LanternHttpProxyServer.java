@@ -1,4 +1,4 @@
-package org.lantern.client;
+package org.lantern;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetSocketAddress;

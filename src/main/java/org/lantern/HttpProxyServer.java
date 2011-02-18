@@ -1,4 +1,4 @@
-package org.lantern.client;
+package org.lantern;
 
 /**
  * Interface for the top-level proxy server class.

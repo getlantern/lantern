@@ -29,16 +29,17 @@
     </issueManagement>
 
     <dependencies>
-        <dependency>
-            <groupId>com.google.collections</groupId>
-            <artifactId>google-collections</artifactId>
-            <version>1.0</version>
-        </dependency>
 
         <dependency>
             <groupId>com.google.gdata</groupId>
             <artifactId>gdata</artifactId>
             <version>2.2.1-alpha</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>r08</version>
         </dependency>
 
         <dependency>
@@ -119,6 +120,12 @@
             <groupId>org.lastbamboo</groupId>
             <artifactId>lastbamboo-common-download</artifactId>
             <version>1.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.littleshoot</groupId>
+            <artifactId>geoip</artifactId>
+            <version>0.1-SNAPSHOT</version>
         </dependency>
 
         <dependency>
