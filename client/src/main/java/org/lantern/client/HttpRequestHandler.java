@@ -1,4 +1,4 @@
-package org.mg.client;
+package org.lantern.client;
 
 import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;

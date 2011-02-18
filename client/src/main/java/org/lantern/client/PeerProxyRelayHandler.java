@@ -1,11 +1,14 @@
-package org.mg.client;
+package org.lantern.client;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -15,7 +18,9 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.util.ByteBufferUtils;
+import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.mg.common.MgUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,27 +28,50 @@ import org.slf4j.LoggerFactory;
 /**
  * Handler that relays traffic to another proxy.
  */
-public class RawSocketProxyRelayHandler extends SimpleChannelUpstreamHandler {
+public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private volatile long messagesReceived = 0L;
 
+    private final URI peerUri;
+
+
     private Channel inboundChannel;
 
     private final ProxyStatusListener proxyStatusListener;
 
+    private final XmppP2PClient p2pClient;
+
     private Socket outgoingSocket;
-
-    private final InetSocketAddress proxy;
     
+    private static Map<URI, Long> peerConnectionTimes =
+        new ConcurrentHashMap<URI, Long>();
     
-    public RawSocketProxyRelayHandler(final InetSocketAddress proxy,
-        final ProxyStatusListener proxyStatusListener) {
-        this.proxy = proxy;
+    /**
+     * Map recording the number of consecutive connection failures for a
+     * given peer. Note that a successful connection will reset this count
+     * back to zero.
+     */
+    private static Map<URI, AtomicInteger> peerFailureCount =
+        new ConcurrentHashMap<URI, AtomicInteger>();
+    
+    /**
+     * Creates a new relayer to a peer proxy.
+     * 
+     * @param peerUri The URI of the peer to connect to.
+     * @param proxyStatusListener The class to notify of changes in the proxy
+     * status.
+     * @param p2pClient The client for creating P2P connections.
+     */
+    public PeerProxyRelayHandler(final URI peerUri, 
+        final ProxyStatusListener proxyStatusListener, 
+        final XmppP2PClient p2pClient) {
+        this.peerUri = peerUri;
         this.proxyStatusListener = proxyStatusListener;
+        this.p2pClient = p2pClient;
     }
-
+    
     @Override
     public void messageReceived(final ChannelHandlerContext ctx, 
         final MessageEvent me) {
@@ -60,6 +88,8 @@ public class RawSocketProxyRelayHandler extends SimpleChannelUpstreamHandler {
             final OutputStream os = this.outgoingSocket.getOutputStream();
             os.write(data);
         } catch (final IOException e) {
+            // They probably just closed the connection, as they will in
+            // many cases.
             //this.proxyStatusListener.onError(this.peerUri);
         }
     }
@@ -78,14 +108,38 @@ public class RawSocketProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
         // Start the connection attempt.
         try {
-            //log.info("Creating a new socket to {}", this.peerUri);
-            this.outgoingSocket = new Socket();
-            this.outgoingSocket.connect(this.proxy, 40000);
+            log.info("Creating a new socket to {}", this.peerUri);
+            this.outgoingSocket = this.p2pClient.newSocket(this.peerUri);
+            peerConnectionTimes.put(this.peerUri, System.currentTimeMillis());
+            peerFailureCount.put(this.peerUri, new AtomicInteger(0));
             inboundChannel.setReadable(true);
             startReading();
+        } catch (final NoAnswerException nae) {
+            // This is tricky, as it can mean two things. First, it can mean
+            // the XMPP message was somehow lost. Second, it can also mean
+            // the other side is actually not there and didn't respond as a
+            // result.
+            log.info("Did not get answer!! Closing channel from browser", nae);
+            final AtomicInteger count = peerFailureCount.get(this.peerUri);
+            if (count == null) {
+                log.info("Incrementing failure count");
+                peerFailureCount.put(this.peerUri, new AtomicInteger(0));
+            }
+            else if (count.incrementAndGet() > 5) {
+                log.info("Got a bunch of failures in a row to this peer. " +
+                    "Removing it.");
+                
+                // We still reset it back to zero. Note this all should 
+                // ideally never happen, and we should be able to use the
+                // XMPP presence alerts to determine if peers are still valid
+                // or not.
+                peerFailureCount.put(this.peerUri, new AtomicInteger(0));
+                proxyStatusListener.onCouldNotConnectToPeer(peerUri);
+            } 
+            this.inboundChannel.close();
         } catch (final IOException ioe) {
-            //proxyStatusListener.onCouldNotConnectToPeer(proxy);
-            log.warn("Could not connection to peer", ioe);
+            proxyStatusListener.onCouldNotConnectToPeer(peerUri);
+            log.warn("Could not connect to peer", ioe);
             this.inboundChannel.close();
         }
     }
@@ -142,8 +196,12 @@ public class RawSocketProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 } catch (final IOException e) {
                     log.info("Exception relaying peer data back to browser",e);
                     MgUtils.closeOnFlush(inboundChannel);
+                    
+                    // The other side probably just closed the connection!!
+                    
                     //inboundChannel.close();
                     //proxyStatusListener.onError(peerUri);
+                    
                 }
             }
         };

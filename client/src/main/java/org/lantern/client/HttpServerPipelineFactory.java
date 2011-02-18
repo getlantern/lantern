@@ -1,4 +1,4 @@
-package org.mg.client;
+package org.lantern.client;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 

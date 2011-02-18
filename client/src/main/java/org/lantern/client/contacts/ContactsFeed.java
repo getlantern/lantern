@@ -1,4 +1,4 @@
-package org.mg.client.contacts;
+package org.lantern.client.contacts;
 
 import com.google.api.client.googleapis.GoogleTransport;
 import com.google.api.client.googleapis.GoogleUrl;

@@ -1,4 +1,4 @@
-package org.mg.client.contacts;
+package org.lantern.client.contacts;
 
 import com.google.api.client.util.DateTime;
 import com.google.api.client.util.Key;

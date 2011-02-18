@@ -1,4 +1,4 @@
-package org.mg.client.xmpp;
+package org.lantern.client.xmpp;
 
 import java.util.Collection;
 import java.util.HashSet;

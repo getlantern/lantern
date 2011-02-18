@@ -1,4 +1,4 @@
-package org.mg.client;
+package org.lantern.client;
 
 import java.io.File;
 import java.net.InetAddress;
