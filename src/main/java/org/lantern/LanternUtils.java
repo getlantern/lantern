@@ -72,7 +72,6 @@ public class LanternUtils {
             final Country country = 
                 cl.getCountry(PublicIpAddress.getPublicIpAddress());
             LOG.info("Country is: {}", country);
-            System.out.println(country.getName());
             return CENSORED.contains(country.getName());
         } catch (final IOException e) {
             return true;
