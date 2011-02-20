@@ -125,7 +125,7 @@
         <dependency>
             <groupId>org.littleshoot</groupId>
             <artifactId>geoip</artifactId>
-            <version>0.1-SNAPSHOT</version>
+            <version>0.1</version>
         </dependency>
 
         <dependency>
@@ -218,15 +218,27 @@
 
     <repositories>
         <repository>
-            <id>main</id>
-            <name>Maven Repository Switchboard</name>
-            <url>http://repo2.maven.org/maven2</url>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
         </repository>
 
-	<repository>
-            <id>codehaus</id>
-	    <name>Codehause Repository</name>
-	    <url>http://repository.codehaus.org</url>
+        <repository>
+            <id>sonatype-nexus-releases</id>
+            <name>Sonatype Nexus Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/releases</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
         </repository>
 
         <repository>
