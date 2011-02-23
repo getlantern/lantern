@@ -17,9 +17,9 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.lastbamboo.common.util.CommonUtils;
-import org.lastbamboo.common.util.FileUtils;
 import org.littleshoot.proxy.KeyStoreManager;
+import org.littleshoot.util.CommonUtils;
+import org.littleshoot.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

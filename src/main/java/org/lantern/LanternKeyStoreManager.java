@@ -10,8 +10,8 @@ import javax.net.ssl.TrustManager;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
-import org.lastbamboo.common.util.CommonUtils;
 import org.littleshoot.proxy.KeyStoreManager;
+import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

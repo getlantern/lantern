@@ -9,10 +9,10 @@ import java.util.Properties;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.log4j.PropertyConfigurator;
-import org.lastbamboo.common.util.CommonUtils;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.KeyStoreManager;
+import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

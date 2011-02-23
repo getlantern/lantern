@@ -105,9 +105,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.jivesoftware</groupId>
-            <artifactId>smack</artifactId>
-            <version>3.1.1-SNAPSHOT</version>
+            <groupId>org.littleshoot</groupId>
+            <artifactId>smack-xmpp</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -136,8 +136,8 @@
 
         <dependency>
             <groupId>org.littleshoot</groupId>
-            <artifactId>littleshoot-p2p</artifactId>
-            <version>1.0</version>
+            <artifactId>p2p</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
 
 <!--

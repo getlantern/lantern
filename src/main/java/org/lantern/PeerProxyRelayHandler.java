@@ -19,8 +19,8 @@ import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
-import org.lastbamboo.common.util.ByteBufferUtils;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
+import org.littleshoot.util.ByteBufferUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
