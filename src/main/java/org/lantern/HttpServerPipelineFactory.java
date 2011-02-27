@@ -39,6 +39,7 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.MessageListener;
@@ -250,6 +251,9 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     public ChannelPipeline getPipeline() {
         log.info("Getting pipeline...");
         // We randomly use peers and centralized proxies.
+        if (true) {
+            return appEngineProxy();
+        }
         synchronized (peerProxySet) {
             if (usePeerProxies()) {
                 return peerProxy();
@@ -260,6 +264,18 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         }
     }
     
+    private ChannelPipeline appEngineProxy() {
+        log.info("Using GAE proxy connection...");
+        final InetSocketAddress proxy =
+            new InetSocketAddress("mirrorrr.appspot.com", 80);
+        final SimpleChannelUpstreamHandler handler = 
+            new GaeProxyRelayHandler(proxy, this, null);
+        final ChannelPipeline pipeline = pipeline();
+        pipeline.addLast("decoder", new HttpRequestDecoder());
+        pipeline.addLast("handler", handler);
+        return pipeline;
+    }
+
     private ChannelPipeline peerProxy() {
         log.info("Using PEER proxy connection...");
         final URI uri = peerProxies.poll();
