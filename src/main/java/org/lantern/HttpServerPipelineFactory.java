@@ -175,7 +175,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             
             final InetSocketAddress plainTextProxyRelayAddress = 
                 new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
-            this.client = P2P.newXmppP2PClient(streamDesc, "shoot", libTorrent, 
+            this.client = P2P.newXmppP2PHttpClient(streamDesc, "shoot", libTorrent, 
                 libTorrent, new InetSocketAddress(this.sslProxyRandomPort), 
                 socketFactory, serverSocketFactory, plainTextProxyRelayAddress);
 
@@ -267,7 +267,8 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     private ChannelPipeline appEngineProxy() {
         log.info("Using GAE proxy connection...");
         final InetSocketAddress proxy =
-            new InetSocketAddress("mirrorrr.appspot.com", 80);
+            new InetSocketAddress("freelantern.appspot.com", 80);
+            //new InetSocketAddress("mirrorrr.appspot.com", 80);
         final SimpleChannelUpstreamHandler handler = 
             new GaeProxyRelayHandler(proxy, this, null);
         final ChannelPipeline pipeline = pipeline();

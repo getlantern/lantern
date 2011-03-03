@@ -22,7 +22,6 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.littleshoot.proxy.KeyStoreManager;
-import org.littleshoot.proxy.ProxyUtils;
 import org.littleshoot.proxy.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -80,9 +79,14 @@ public class GaeProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final HttpRequest request = (HttpRequest)msg;
         final String uri = request.getUri();
         //final String url = StringUtils.substringAfter(uri, "GET ")
-        final String modified = "http://mirrorrr.appspot.com/"+uri.substring(7);
-        log.info("Modified:"+modified);
-        request.setUri(modified);
+        final String proxyHost = "http://freelantern.appspot.com/";
+        if (!uri.startsWith(proxyHost)) {
+            final String modified = proxyHost +uri.substring(7);
+            log.info("Modified:"+modified);
+            request.setUri(modified);
+        } else {
+            log.info("NOT MODIFYING URI -- ALREADY HAS FREELANTERN");
+        }
         this.outboundChannel.write(request);
     }
     
