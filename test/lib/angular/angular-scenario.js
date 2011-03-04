@@ -12769,7 +12769,7 @@ angularServiceInject("$hover", function(browser, document) {
       tooltip = _null;
     }
   });
-}, ['$browser', '$document']);
+}, ['$browser', '$document'], true);
 /**
  * @workInProgress
  * @ngdoc service
