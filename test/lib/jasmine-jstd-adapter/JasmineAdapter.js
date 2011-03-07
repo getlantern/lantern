@@ -7,7 +7,7 @@
   var describePath = [];
   rootDescribes.collectMode();
   
-  var jasmineTest = TestCase('Jasmine Adapter Tests');
+  var jasmineTest = TestCase('Jasmine Adapter Tests', null, 'jasmine test case');
   
   var jasminePlugin = {
       name:'jasmine',
@@ -44,8 +44,11 @@
             for ( var i = 0; i < resultItems.length; i++) {
               if (!resultItems[i].passed()) {
                 state = resultItems[i].message.match(/AssertionError:/) ? 'error' : 'failed';
-                messages.push(resultItems[i].toString());
-                messages.push(formatStack(resultItems[i].trace.stack));
+                messages.push({
+                	message: resultItems[i].toString(),
+                	name: resultItems[i].trace.name,
+                	stack: formatStack(resultItems[i].trace.stack)
+            	});
               }
             }
             onTestDone(
@@ -53,7 +56,7 @@
                 suite.getFullName(), 
                 spec.description, 
                 state, 
-                messages.join('\n'), 
+                jstestdriver.angular.toJson(messages),
                 specLog.join('\n'),
                 end - start));
           },
