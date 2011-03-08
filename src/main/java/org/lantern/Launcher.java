@@ -82,6 +82,9 @@ public class Launcher {
         
         final Server server = new Server();
         final SelectChannelConnector connector = new SelectChannelConnector();
+        
+        // More secure
+        connector.setHost("127.0.0.1");
         connector.setPort(8383);
         server.addConnector(connector);
  
