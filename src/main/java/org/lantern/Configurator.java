@@ -19,6 +19,13 @@ public class Configurator {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     public void configure() {
+        final File git = new File(".git");
+        if (git.isDirectory()) {
+            log.info("Running from repository...not auto-configuring proxy.");
+            return;
+        }
+        
+        log.info("Auto-configuring proxy...");
         
         // We only want to configure the proxy if the user is in censored mode.
         if (SystemUtils.IS_OS_MAC_OSX) {
