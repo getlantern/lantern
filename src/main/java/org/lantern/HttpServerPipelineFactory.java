@@ -51,7 +51,6 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
-import org.lastbamboo.common.ice.IceMediaStreamDesc;
 import org.lastbamboo.common.p2p.P2PConstants;
 import org.lastbamboo.jni.JLibTorrent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
@@ -161,8 +160,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             throw new RuntimeException(msg, e);
         }
         
-        final IceMediaStreamDesc streamDesc = 
-            new IceMediaStreamDesc(true, false, "message", "http", 1, false);
         try {
             final String libName = System.mapLibraryName("jnltorrent");
             final JLibTorrent libTorrent = 
@@ -175,7 +172,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             
             final InetSocketAddress plainTextProxyRelayAddress = 
                 new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
-            this.client = P2P.newXmppP2PHttpClient(streamDesc, "shoot", libTorrent, 
+            this.client = P2P.newXmppP2PHttpClient("shoot", libTorrent, 
                 libTorrent, new InetSocketAddress(this.sslProxyRandomPort), 
                 socketFactory, serverSocketFactory, plainTextProxyRelayAddress);
 
