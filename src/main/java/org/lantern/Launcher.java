@@ -9,6 +9,12 @@ import java.util.Properties;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.log4j.PropertyConfigurator;
+import org.eclipse.jetty.server.Handler;
+import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.DefaultHandler;
+import org.eclipse.jetty.server.handler.HandlerList;
+import org.eclipse.jetty.server.handler.ResourceHandler;
+import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.KeyStoreManager;
@@ -67,8 +73,37 @@ public class Launcher {
                 proxyKeyStore, sslRandomPort,
                 LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
         server.start();
+        
+        launchJetty();
     }
     
+    private static void launchJetty() {
+        LOG.info("Launching Jetty...");
+        
+        final Server server = new Server();
+        final SelectChannelConnector connector = new SelectChannelConnector();
+        connector.setPort(8383);
+        server.addConnector(connector);
+ 
+        final ResourceHandler resource_handler = new ResourceHandler();
+        resource_handler.setDirectoriesListed(true);
+        resource_handler.setWelcomeFiles(new String[]{ "index.html" });
+ 
+        resource_handler.setResourceBase(".");
+ 
+        final HandlerList handlers = new HandlerList();
+        handlers.setHandlers(
+            new Handler[] { resource_handler, new DefaultHandler() });
+        server.setHandler(handlers);
+ 
+        try {
+            server.start();
+            server.join();
+        } catch (final Exception e) {
+            LOG.error("Could not start Jetty?", e);
+        }
+    }
+
     private static void configureLogger() {
         final File logDirParent;
         final File logDir;
