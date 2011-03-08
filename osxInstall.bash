@@ -13,7 +13,7 @@ fi
 #cd client
 mvn clean || die "Could not clean?"
 mvn install -Dmaven.test.skip=true || die "Could not build?"
-cd -
+#cd -
 cp target/lantern-*-jar-with-dependencies.jar install/common/lantern.jar || die "Could not copy jar?"
 
 
