@@ -64,6 +64,15 @@ public class Configurator {
             LanternConstants.LANTERN_LOCALHOST_PORT);
         CommonUtils.nativeCall("networksetup -setwebproxy Ethernet 127.0.0.1 " + 
             LanternConstants.LANTERN_LOCALHOST_PORT);
+        
+        final Thread hook = new Thread(new Runnable() {
+            public void run() {
+                CommonUtils.nativeCall("networksetup -setwebproxystate Airport off");
+                CommonUtils.nativeCall("networksetup -setwebproxystate Ethernet off");
+            }
+            
+        }, "Unset-Web-Proxy-OSX");
+        Runtime.getRuntime().addShutdownHook(hook);
     }
 
     private void configureWindowsProxy() {
