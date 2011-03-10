@@ -78,12 +78,13 @@ public class GaeProxyRelayHandler extends SimpleChannelUpstreamHandler {
         log.info("Msg is "+msg);
         final HttpRequest request = (HttpRequest)msg;
         final String uri = request.getUri();
-        //final String url = StringUtils.substringAfter(uri, "GET ")
         final String proxyHost = "http://freelantern.appspot.com/";
         if (!uri.startsWith(proxyHost)) {
-            final String modified = proxyHost +uri.substring(7);
-            log.info("Modified:"+modified);
-            request.setUri(modified);
+            final String scheme = uri.substring(0, uri.indexOf(':'));
+            final String path = "/" + uri.substring(scheme.length() + 3);
+            final String proxyUri = proxyHost + scheme + path;
+            log.debug("proxyUri: " + proxyUri);
+            request.setUri(proxyUri);
         } else {
             log.info("NOT MODIFYING URI -- ALREADY HAS FREELANTERN");
         }
