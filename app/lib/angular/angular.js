@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-(function(window, document){
+(function(window, document, undefined){
 ////////////////////////////////////
 
 if (typeof document.getAttribute == $undefined)
@@ -113,8 +113,8 @@ var _undefined        = undefined,
     msie              = parseInt((/msie (\d+)/.exec(lowercase(navigator.userAgent)) || [])[1], 10),
     jqLite,           // delay binding since jQuery could be loaded after us.
     jQuery,           // delay binding
-    slice             = Array.prototype.slice,
-    push              = Array.prototype.push,
+    slice             = [].slice,
+    push              = [].push,
     error             = window[$console]
                            ? bind(window[$console], window[$console]['error'] || noop)
                            : noop,
@@ -860,19 +860,7 @@ function encodeUriSegment(val) {
  * This section explains how to bootstrap your application with angular, using either the angular
  * javascript file, or manually.
  *
- *
- * ## The angular distribution
- * Note that there are two versions of the angular javascript file that you can use:
- *
- * * `angular.js` - the development version - this file is unobfuscated, uncompressed, and thus
- *    human-readable and useful when developing your angular applications.
- * * `angular.min.js` - the production version - this is a minified and obfuscated version of
- *    `angular.js`. You want to use this version when you want to load a smaller but functionally
- *    equivalent version of the code in your application. We use the Closure compiler to create this
- *    file.
- *
- *
- * ## Auto-bootstrap with `ng:autobind`
+ * # Auto-bootstrap with `ng:autobind`
  * The simplest way to get an <angular/> application up and running is by inserting a script tag in
  * your HTML file that bootstraps the `http://code.angularjs.org/angular-x.x.x.min.js` code and uses
  * the special `ng:autobind` attribute, like in this snippet of HTML:
@@ -890,9 +878,13 @@ function encodeUriSegment(val) {
     &lt;/html&gt;
  * </pre>
  *
- * The `ng:autobind` attribute tells <angular/> to compile and manage the whole HTML document. The
- * compilation occurs in the page's `onLoad` handler. Note that you don't need to explicitly add an
- * `onLoad` event; auto bind mode takes care of all the magic for you.
+ * The `ng:autobind` attribute without any value tells angular to compile and manage the whole HTML
+ * document. The compilation occurs as soon as the document is ready for DOM manipulation. Note that
+ * you don't need to explicitly add an `onLoad` event handler; auto bind mode takes care of all the
+ * work for you.
+ *
+ * In order to compile only a part of the document, specify the id of the element that should be
+ * compiled as the value of the `ng:autobind` attribute, e.g. `ng:autobind="angularContent"`.
  *
  *
  * ## Auto-bootstrap with `#autobind`
@@ -917,6 +909,8 @@ function encodeUriSegment(val) {
  *
  * In this case it's the `#autobind` URL fragment that tells angular to auto-bootstrap.
  *
+ * Similarly to `ng:autobind`, you can specify an element id that should be exclusively targeted for
+ * compilation as the value of the `#autobind`, e.g. `#autobind=angularContent`.
  *
  * ## Filename Restrictions for Auto-bootstrap
  * In order for us to find the auto-bootstrap script attribute or URL fragment, the value of the
@@ -950,12 +944,9 @@ function encodeUriSegment(val) {
       &lt;script type="text/javascript" src="http://code.angularjs.org/angular-0.9.3.min.js"
               ng:autobind&gt;&lt;/script&gt;
       &lt;script type="text/javascript"&gt;
-       (function(window, previousOnLoad){
-         window.onload = function(){
-          try { (previousOnLoad||angular.noop)(); } catch(e) {}
-          angular.compile(window.document);
-         };
-       })(window, window.onload);
+       (angular.element(document).ready(function() {
+         angular.compile(document)();
+       })(document);
       &lt;/script&gt;
      &lt;/head&gt;
      &lt;body&gt;
@@ -997,10 +988,12 @@ function encodeUriSegment(val) {
  * APIs are bound to fields of this global object.
  *
  */
-function angularInit(config){
-  if (config.autobind) {
-    // TODO default to the source of angular.js
-    var scope = compile(window.document)(createScope({'$config':config})),
+function angularInit(config, document){
+  var autobind = config.autobind;
+
+  if (autobind) {
+    var element = isString(autobind) ? document.getElementById(autobind) : document,
+        scope = compile(element)(createScope({'$config':config})),
         $browser = scope.$service('$browser');
 
     if (config.css)
@@ -1026,7 +1019,7 @@ function angularJsConfig(document, config) {
       eachAttribute(jqLite(scripts[j]), function(value, name){
         if (/^ng:/.exec(name)) {
           name = name.substring(3).replace(/-/g, '_');
-          if (name == 'autobind') value = true;
+          value = value || true;
           config[name] = value;
         }
       });
@@ -1105,7 +1098,7 @@ function fromJson(json, useNative) {
   var obj, p, expression;
 
   try {
-    if (useNative && JSON && JSON.parse) {
+    if (useNative && window.JSON && window.JSON.parse) {
       obj = JSON.parse(json);
       return transformDates(obj);
     }
@@ -3163,6 +3156,11 @@ var XHR = window.XMLHttpRequest || function () {
   try { return new ActiveXObject("Msxml2.XMLHTTP"); } catch (e3) {}
   throw new Error("This browser does not support XMLHttpRequest.");
 };
+var XHR_HEADERS = {
+  "Content-Type": "application/x-www-form-urlencoded",
+  "Accept": "application/json, text/plain, */*",
+  "X-Requested-With": "XMLHttpRequest"
+};
 
 /**
  * @private
@@ -3226,35 +3224,37 @@ function Browser(window, document, body, XHR, $log) {
    *
    * @param {string} method Requested method (get|post|put|delete|head|json)
    * @param {string} url Requested url
-   * @param {string=} post Post data to send
+   * @param {?string} post Post data to send (null if nothing to post)
    * @param {function(number, string)} callback Function that will be called on response
+   * @param {object=} header additional HTTP headers to send with XHR.
+   *   Standard headers are:
+   *   <ul>
+   *     <li><tt>Content-Type</tt>: <tt>application/x-www-form-urlencoded</tt></li>
+   *     <li><tt>Accept</tt>: <tt>application/json, text/plain, &#42;/&#42;</tt></li>
+   *     <li><tt>X-Requested-With</tt>: <tt>XMLHttpRequest</tt></li>
+   *   </ul>
    *
    * @description
    * Send ajax request
    */
-  self.xhr = function(method, url, post, callback) {
-    if (isFunction(post)) {
-      callback = post;
-      post = _null;
-    }
+  self.xhr = function(method, url, post, callback, headers) {
     outstandingRequestCount ++;
     if (lowercase(method) == 'json') {
-      var callbackId = "angular_" + Math.random() + '_' + (idCounter++);
-      callbackId = callbackId.replace(/\d\./, '');
-      var script = document[0].createElement('script');
-      script.type = 'text/javascript';
-      script.src = url.replace('JSON_CALLBACK', callbackId);
+      var callbackId = ("angular_" + Math.random() + '_' + (idCounter++)).replace(/\d\./, '');
+      var script = jqLite('<script>')
+          .attr({type: 'text/javascript', src: url.replace('JSON_CALLBACK', callbackId)});
       window[callbackId] = function(data){
         window[callbackId] = _undefined;
+        script.remove();
         completeOutstandingRequest(callback, 200, data);
       };
       body.append(script);
     } else {
       var xhr = new XHR();
       xhr.open(method, url, true);
-      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-      xhr.setRequestHeader("Accept", "application/json, text/plain, */*");
-      xhr.setRequestHeader("X-Requested-With", "XMLHttpRequest");
+      forEach(extend(XHR_HEADERS, headers || {}), function(value, key){
+        if (value) xhr.setRequestHeader(key, value);
+      });
       xhr.onreadystatechange = function() {
         if (xhr.readyState == 4) {
           completeOutstandingRequest(callback, xhr.status || 200, xhr.responseText);
@@ -3436,7 +3436,7 @@ function Browser(window, document, body, XHR, $log) {
    * @returns {Object} Hash of all cookies (if called without any parameter)
    */
   self.cookies = function (name, value) {
-    var cookieLength, cookieArray, i, keyValue;
+    var cookieLength, cookieArray, cookie, i, keyValue, index;
 
     if (name) {
       if (value === _undefined) {
@@ -3463,9 +3463,10 @@ function Browser(window, document, body, XHR, $log) {
         lastCookies = {};
 
         for (i = 0; i < cookieArray.length; i++) {
-          keyValue = cookieArray[i].split("=");
-          if (keyValue.length === 2) { //ignore nameless cookies
-            lastCookies[unescape(keyValue[0])] = unescape(keyValue[1]);
+          cookie = cookieArray[i];
+          index = cookie.indexOf('=');
+          if (index > 0) { //ignore nameless cookies
+            lastCookies[unescape(cookie.substring(0, index))] = unescape(cookie.substring(index + 1));
           }
         }
       }
@@ -4001,7 +4002,7 @@ function JQLiteAddNodes(root, elements) {
 //////////////////////////////////////////
 // Functions which are declared directly.
 //////////////////////////////////////////
-var JQLitePrototype = JQLite.prototype = extend([], {
+var JQLitePrototype = JQLite.prototype = {
   ready: function(fn) {
     var fired = false;
 
@@ -4019,8 +4020,12 @@ var JQLitePrototype = JQLite.prototype = extend([], {
     var value = [];
     forEach(this, function(e){ value.push('' + e);});
     return '[' + value.join(', ') + ']';
-  }
-});
+  },
+  length: 0,
+  push: push,
+  sort: [].sort,
+  splice: [].splice
+};
 
 //////////////////////////////////////////
 // Functions iterating getter/setters.
@@ -4798,12 +4803,13 @@ var angularArray = {
    * {@link angular.Array} for more info.
    *
    * @param {Array} array The array to sort.
-   * @param {function(*, *)|string|Array.<(function(*, *)|string)>} expression A predicate to be
+   * @param {function(*)|string|Array.<(function(*)|string)>} expression A predicate to be
    *    used by the comparator to determine the order of elements.
    *
    *    Can be one of:
    *
-   *    - `function`: JavaScript's Array#sort comparator function
+   *    - `function`: getter function. The result of this function will be sorted using the
+   *      `<`, `=`, `>` operator
    *    - `string`: angular expression which evaluates to an object to order by, such as 'name' to
    *      sort by a property called 'name'. Optionally prefixed with `+` or `-` to control ascending
    *      or descending sort order (e.g. +name or -name).
@@ -7679,13 +7685,71 @@ angularServiceInject('$xhr.error', function($log){
  * @ngdoc service
  * @name angular.service.$xhr
  * @function
- * @requires $browser
- * @requires $xhr.error
- * @requires $log
+ * @requires $browser $xhr delegates all XHR requests to the `$browser.xhr()`. A mock version
+ *                    of the $browser exists which allows setting expectaitions on XHR requests
+ *                    in your tests
+ * @requires $xhr.error $xhr delegates all non `2xx` response code to this service.
+ * @requires $log $xhr delegates all exceptions to `$log.error()`.
+ * @requires $updateView After a server response the view needs to be updated for data-binding to
+ *           take effect.
  *
  * @description
- * Generates an XHR request. The $xhr service adds error handling then delegates all requests to
- * {@link angular.service.$browser $browser.xhr()}.
+ * Generates an XHR request. The $xhr service delegates all requests to
+ * {@link angular.service.$browser $browser.xhr()} and adds error handling and security features.
+ * While $xhr service provides nicer api than raw XmlHttpRequest, it is still considered a lower
+ * level api in angular. For a higher level abstraction that utilizes `$xhr`, please check out the
+ * {@link angular.service$resource $resource} service.
+ *
+ * # Error handling
+ * All XHR responses with response codes other then `2xx` are delegated to
+ * {@link angular.service.$xhr.error $xhr.error}. The `$xhr.error` can intercept the request
+ * and process it in application specific way, or resume normal execution by calling the
+ * request callback method.
+ *
+ * # Security Considerations
+ * When designing web applications your design needs to consider security threats from
+ * {@link http://haacked.com/archive/2008/11/20/anatomy-of-a-subtle-json-vulnerability.aspx
+ * JSON Vulnerability} and {@link http://en.wikipedia.org/wiki/Cross-site_request_forgery XSRF}.
+ * Both server and the client must cooperate in order to eliminate these threats. Angular comes
+ * pre-configured with strategies that address these issues, but for this to work backend server
+ * cooperation is required.
+ *
+ * ## JSON Vulnerability Protection
+ * A {@link http://haacked.com/archive/2008/11/20/anatomy-of-a-subtle-json-vulnerability.aspx
+ * JSON Vulnerability} allows third party web-site to turn your JSON resource URL into
+ * {@link http://en.wikipedia.org/wiki/JSON#JSONP JSONP} request under some conditions. To
+ * counter this your server can prefix all JSON requests with following string `")]}',\n"`.
+ * Angular will automatically strip the prefix before processing it as JSON.
+ *
+ * For example if your server needs to return:
+ * <pre>
+ * ['one','two']
+ * </pre>
+ *
+ * which is vulnerable to attack, your server can return:
+ * <pre>
+ * )]}',
+ * ['one','two']
+ * </pre>
+ *
+ * angular will strip the prefix, before processing the JSON.
+ *
+ *
+ * ## Cross Site Request Forgery (XSRF) Protection
+ * {@link http://en.wikipedia.org/wiki/Cross-site_request_forgery XSRF} is a technique by which an
+ * unauthorized site can gain your user's private data. Angular provides following mechanism to
+ * counter XSRF. When performing XHR requests, the $xhr service reads a token from a cookie
+ * called `XSRF-TOKEN` and sets it as the HTTP header `X-XSRF-TOKEN`. Since only JavaScript that
+ * runs on your domain could read the cookie, your server can be assured that the XHR came from
+ * JavaScript running on your domain.
+ *
+ * To take advantage of this, your server needs to set a token in a JavaScript readable session
+ * cookie called `XSRF-TOKEN` on first HTTP GET request. On subsequent non-GET requests the server
+ * can verify that the cookie matches `X-XSRF-TOKEN` HTTP header, and therefore be sure that only
+ * JavaScript running on your domain could have read the token. The token must be unique for each
+ * user and must be verifiable by  the server (to prevent the JavaScript making up its own tokens).
+ * We recommend that the token is a digest of your site's authentication cookie with
+ * {@link http://en.wikipedia.org/wiki/Rainbow_table salt for added security}.
  *
  * @param {string} method HTTP method to use. Valid values are: `GET`, `POST`, `PUT`, `DELETE`, and
  *   `JSON`. `JSON` is a special case which causes a
@@ -7743,8 +7807,7 @@ angularServiceInject('$xhr.error', function($log){
      </doc:source>
    </doc:example>
  */
-angularServiceInject('$xhr', function($browser, $error, $log){
-  var self = this;
+angularServiceInject('$xhr', function($browser, $error, $log, $updateView){
   return function(method, url, post, callback){
     if (isFunction(post)) {
       callback = post;
@@ -7753,6 +7816,7 @@ angularServiceInject('$xhr', function($browser, $error, $log){
     if (post && isObject(post)) {
       post = toJson(post);
     }
+
     $browser.xhr(method, url, post, function(code, response){
       try {
         if (isString(response)) {
@@ -7761,7 +7825,7 @@ angularServiceInject('$xhr', function($browser, $error, $log){
             response = fromJson(response, true);
           }
         }
-        if (code == 200) {
+        if (200 <= code && code < 300) {
           callback(code, response);
         } else {
           $error(
@@ -7771,11 +7835,13 @@ angularServiceInject('$xhr', function($browser, $error, $log){
       } catch (e) {
         $log.error(e);
       } finally {
-        self.$eval();
+        $updateView();
       }
+    }, {
+        'X-XSRF-TOKEN': $browser.cookies()['XSRF-TOKEN']
     });
   };
-}, ['$browser', '$xhr.error', '$log']);
+}, ['$browser', '$xhr.error', '$log', '$updateView']);
 /**
  * @workInProgress
  * @ngdoc directive
@@ -9853,8 +9919,8 @@ bindJQuery();
 
 
   jqLiteWrap(document).ready(function(){
-    angularInit(angularJsConfig(document));
+    angularInit(angularJsConfig(document), document);
   });
 
 })(window, document);
-document.write('<style type="text/css">@charset "UTF-8";.ng-format-negative{color:red;}.ng-exception{border:2px solid #FF0000;font-family:"Courier New",Courier,monospace;font-size:smaller;white-space:pre;}.ng-validation-error{border:2px solid #FF0000;}#ng-callout{margin:0;padding:0;border:0;outline:0;font-size:13px;font-weight:normal;font-family:Verdana,Arial,Helvetica,sans-serif;vertical-align:baseline;background:transparent;text-decoration:none;}#ng-callout .ng-arrow-left{background-image:url("data:image/gif;base64,R0lGODlhCwAXAKIAAMzMzO/v7/f39////////wAAAAAAAAAAACH5BAUUAAQALAAAAAALABcAAAMrSLoc/AG8FeUUIN+sGebWAnbKSJodqqlsOxJtqYooU9vvk+vcJIcTkg+QAAA7");background-repeat:no-repeat;background-position:left top;position:absolute;z-index:101;left:-12px;height:23px;width:10px;top:-3px;}#ng-callout .ng-arrow-right{background-image:url("data:image/gif;base64,R0lGODlhCwAXAKIAAMzMzO/v7/f39////////wAAAAAAAAAAACH5BAUUAAQALAAAAAALABcAAAMrCLTcoM29yN6k9socs91e5X3EyJloipYrO4ohTMqA0Fn2XVNswJe+H+SXAAA7");background-repeat:no-repeat;background-position:left top;position:absolute;z-index:101;height:23px;width:11px;top:-2px;}#ng-callout{position:absolute;z-index:100;border:2px solid #CCCCCC;background-color:#fff;}#ng-callout .ng-content{padding:10px 10px 10px 10px;color:#333333;}#ng-callout .ng-title{background-color:#CCCCCC;text-align:left;padding-left:8px;padding-bottom:5px;padding-top:2px;font-weight:bold;}.ng-input-indicator-wait{background-image:url("data:image/png;base64,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");background-position:right;background-repeat:no-repeat;}</style>');
+angular.element(document).find('head').append('<style type="text/css">@charset "UTF-8";.ng-format-negative{color:red;}.ng-exception{border:2px solid #FF0000;font-family:"Courier New",Courier,monospace;font-size:smaller;white-space:pre;}.ng-validation-error{border:2px solid #FF0000;}#ng-callout{margin:0;padding:0;border:0;outline:0;font-size:13px;font-weight:normal;font-family:Verdana,Arial,Helvetica,sans-serif;vertical-align:baseline;background:transparent;text-decoration:none;}#ng-callout .ng-arrow-left{background-image:url("data:image/gif;base64,R0lGODlhCwAXAKIAAMzMzO/v7/f39////////wAAAAAAAAAAACH5BAUUAAQALAAAAAALABcAAAMrSLoc/AG8FeUUIN+sGebWAnbKSJodqqlsOxJtqYooU9vvk+vcJIcTkg+QAAA7");background-repeat:no-repeat;background-position:left top;position:absolute;z-index:101;left:-12px;height:23px;width:10px;top:-3px;}#ng-callout .ng-arrow-right{background-image:url("data:image/gif;base64,R0lGODlhCwAXAKIAAMzMzO/v7/f39////////wAAAAAAAAAAACH5BAUUAAQALAAAAAALABcAAAMrCLTcoM29yN6k9socs91e5X3EyJloipYrO4ohTMqA0Fn2XVNswJe+H+SXAAA7");background-repeat:no-repeat;background-position:left top;position:absolute;z-index:101;height:23px;width:11px;top:-2px;}#ng-callout{position:absolute;z-index:100;border:2px solid #CCCCCC;background-color:#fff;}#ng-callout .ng-content{padding:10px 10px 10px 10px;color:#333333;}#ng-callout .ng-title{background-color:#CCCCCC;text-align:left;padding-left:8px;padding-bottom:5px;padding-top:2px;font-weight:bold;}.ng-input-indicator-wait{background-image:url("data:image/png;base64,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");background-position:right;background-repeat:no-repeat;}</style>');
