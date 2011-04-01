@@ -76,9 +76,7 @@ if ('i' !== 'I'.toLowerCase()) {
 function fromCharCode(code) { return String.fromCharCode(code); }
 
 
-var _undefined        = undefined,
-    _null             = null,
-    $$element         = '$element',
+var $$element         = '$element',
     $$update          = '$update',
     $$scope           = '$scope',
     $$validate        = '$validate',
@@ -339,7 +337,7 @@ function isDefined(value){ return typeof value != $undefined; }
  * @param {*} value Reference to check.
  * @returns {boolean} True if `value` is an `Object` but not `null`.
  */
-function isObject(value){ return value!=_null && typeof value == $object;}
+function isObject(value){ return value!=null && typeof value == $object;}
 
 
 /**
@@ -487,12 +485,14 @@ function map(obj, iterator, context) {
  * @function
  *
  * @description
- * Determines the number of elements in an array or number of properties of an object.
+ * Determines the number of elements in an array, number of properties of an object or string
+ * length.
  *
  * Note: this function is used to augment the Object type in angular expressions. See
  * {@link angular.Object} for more info.
  *
- * @param {Object|Array} obj Object or array to inspect.
+ * @param {Object|Array|string} obj Object, array or string to inspect.
+ * @param {boolean} [ownPropsOnly=false] Count only "own" properties in an object
  * @returns {number} The size of `obj` or `0` if `obj` is neither an object or an array.
  *
  * @example
@@ -509,18 +509,21 @@ function map(obj, iterator, context) {
  *  </doc:scenario>
  * </doc:example>
  */
-function size(obj) {
+function size(obj, ownPropsOnly) {
   var size = 0, key;
-  if (obj) {
-    if (isNumber(obj.length)) {
-      return obj.length;
-    } else if (isObject(obj)){
-      for (key in obj)
+
+  if (isArray(obj) || isString(obj)) {
+    return obj.length;
+  } else if (isObject(obj)){
+    for (key in obj)
+      if (!ownPropsOnly || obj.hasOwnProperty(key))
         size++;
-    }
   }
+
   return size;
 }
+
+
 function includes(array, obj) {
   for ( var i = 0; i < array.length; i++) {
     if (obj === array[i]) return true;
@@ -723,10 +726,19 @@ function isRenderableElement(element) {
   return name && name.charAt(0) != '#' &&
     !includes(['TR', 'COL', 'COLGROUP', 'TBODY', 'THEAD', 'TFOOT'], name);
 }
+
 function elementError(element, type, error) {
+  var parent;
+
   while (!isRenderableElement(element)) {
-    element = element.parent() || jqLite(document.body);
+    parent = element.parent();
+    if (parent.length) {
+      element = element.parent();
+    } else {
+      return;
+    }
   }
+
   if (element[0]['$NG_ERROR'] !== error) {
     element[0]['$NG_ERROR'] = error;
     if (error) {
@@ -832,19 +844,43 @@ function toKeyValue(obj) {
 
 /**
  * we need our custom mehtod because encodeURIComponent is too agressive and doesn't follow
- * http://www.ietf.org/rfc/rfc2396.txt with regards to the character set (pchar) allowed in path
- * segments
+ * http://www.ietf.org/rfc/rfc3986.txt with regards to the character set (pchar) allowed in path
+ * segments:
+ *    segment       = *pchar
+ *    pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+ *    pct-encoded   = "%" HEXDIG HEXDIG
+ *    unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+ *    sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+ *                     / "*" / "+" / "," / ";" / "="
  */
 function encodeUriSegment(val) {
+  return encodeUriQuery(val, true).
+             replace(/%26/gi, '&').
+             replace(/%3D/gi, '=').
+             replace(/%2B/gi, '+');
+}
+
+
+/**
+ * This method is intended for encoding *key* or *value* parts of query component. We need a custom
+ * method becuase encodeURIComponent is too agressive and encodes stuff that doesn't have to be
+ * encoded per http://tools.ietf.org/html/rfc3986:
+ *    query       = *( pchar / "/" / "?" )
+ *    pchar         = unreserved / pct-encoded / sub-delims / ":" / "@"
+ *    unreserved    = ALPHA / DIGIT / "-" / "." / "_" / "~"
+ *    pct-encoded   = "%" HEXDIG HEXDIG
+ *    sub-delims    = "!" / "$" / "&" / "'" / "(" / ")"
+ *                     / "*" / "+" / "," / ";" / "="
+ */
+function encodeUriQuery(val, pctEncodeSpaces) {
   return encodeURIComponent(val).
              replace(/%40/gi, '@').
              replace(/%3A/gi, ':').
-             replace(/%26/gi, '&').
-             replace(/%3D/gi, '=').
-             replace(/%2B/gi, '+').
              replace(/%24/g, '$').
-             replace(/%2C/gi, ',');
+             replace(/%2C/gi, ',').
+             replace((pctEncodeSpaces ? null : /%20/g), '+');
 }
+
 
 /**
  * @workInProgress
@@ -1053,11 +1089,11 @@ function assertArg(arg, name, reason) {
     if (window.console) window.console.log(error.stack);
     throw error;
   }
-};
+}
 
 function assertArgFn(arg, name) {
   assertArg(isFunction(arg, name, 'not a function'));
-};
+}
 var array = [].constructor;
 
 /**
@@ -1075,7 +1111,7 @@ var array = [].constructor;
  */
 function toJson(obj, pretty) {
   var buf = [];
-  toJsonArray(buf, obj, pretty ? "\n  " : _null, []);
+  toJsonArray(buf, obj, pretty ? "\n  " : null, []);
   return buf.join('');
 }
 
@@ -1147,7 +1183,7 @@ function toJsonArray(buf, obj, pretty, stack) {
     }
     stack.push(obj);
   }
-  if (obj === _null) {
+  if (obj === null) {
     buf.push($null);
   } else if (obj instanceof RegExp) {
     buf.push(angular['String']['quoteUnicode'](obj.toString()));
@@ -1188,7 +1224,7 @@ function toJsonArray(buf, obj, pretty, stack) {
       var childPretty = pretty ? pretty + "  " : false;
       var keys = [];
       for(var k in obj) {
-        if (obj[k] === _undefined)
+        if (obj[k] === undefined)
           continue;
         keys.push(k);
       }
@@ -1546,7 +1582,7 @@ Compiler.prototype = {
         template.addChild(i, self.templatize(child, i, priority));
       });
     }
-    return template.empty() ? _null : template;
+    return template.empty() ? null : template;
   }
 };
 
@@ -1590,7 +1626,7 @@ function getter(instance, path, unboundFn) {
     if (isUndefined(instance)  && key.charAt(0) == '$') {
       var type = angular['Global']['typeOf'](lastInstance);
       type = angular[type.charAt(0).toUpperCase()+type.substring(1)];
-      var fn = type ? type[[key.substring(1)]] : _undefined;
+      var fn = type ? type[[key.substring(1)]] : undefined;
       if (fn) {
         instance = bind(lastInstance, fn, lastInstance);
         return instance;
@@ -2294,7 +2330,7 @@ function createInjector(providerScope, providers, cache) {
 }
 
 function injectService(services, fn) {
-  return extend(fn, {$inject:services});;
+  return extend(fn, {$inject:services});
 }
 
 function injectUpdateView(fn) {
@@ -2333,9 +2369,9 @@ function injectionArgs(fn) {
     });
   }
   return fn.$inject;
-};
+}
 var OPERATORS = {
-    'null':function(self){return _null;},
+    'null':function(self){return null;},
     'true':function(self){return true;},
     'false':function(self){return false;},
     $undefined:noop,
@@ -2698,7 +2734,6 @@ function parser(text, json){
     var token = expect();
     var formatter = angularFormatter[token.text];
     var argFns = [];
-    var token;
     if (!formatter) throwError('is not a valid formatter.', token);
     while(true) {
       if ((token = expect(':'))) {
@@ -2902,7 +2937,7 @@ function parser(text, json){
       function (self){
         var o = obj(self);
         var i = indexFn(self);
-        return (o) ? o[i] : _undefined;
+        return (o) ? o[i] : undefined;
       }, {
         assign:function(self, value){
           return obj(self)[indexFn(self)] = value;
@@ -3031,14 +3066,14 @@ Route.prototype = {
 
     params = params || {};
     forEach(this.urlParams, function(_, urlParam){
-      encodedVal = encodeUriSegment(params[urlParam] || self.defaults[urlParam] || "")
+      encodedVal = encodeUriSegment(params[urlParam] || self.defaults[urlParam] || "");
       url = url.replace(new RegExp(":" + urlParam + "(\\W)"), encodedVal + "$1");
     });
     url = url.replace(/\/?#$/, '');
     var query = [];
     forEachSorted(params, function(value, key){
       if (!self.urlParams[key]) {
-        query.push(encodeUriSegment(key) + '=' + encodeUriSegment(value));
+        query.push(encodeUriQuery(key) + '=' + encodeUriQuery(value));
       }
     });
     url = url.replace(/\/*$/, '');
@@ -3109,13 +3144,15 @@ ResourceFactory.prototype = {
           data,
           function(status, response, clear) {
             if (status == 200) {
-              if (action.isArray) {
-                value.length = 0;
-                forEach(response, function(item){
-                  value.push(new Resource(item));
-                });
-              } else {
-                copy(response, value);
+              if (response) {
+                if (action.isArray) {
+                  value.length = 0;
+                  forEach(response, function(item){
+                    value.push(new Resource(item));
+                  });
+                } else {
+                  copy(response, value);
+                }
               }
               (callback||noop)(value);
             } else {
@@ -3140,7 +3177,7 @@ ResourceFactory.prototype = {
         default:
           throw "Expected between 1-2 arguments [params, callback], got " + arguments.length + " arguments.";
         }
-        var data = isPostOrPut ? this : _undefined;
+        var data = isPostOrPut ? this : undefined;
         Resource[name].call(this, params, data, callback);
       };
     });
@@ -3244,7 +3281,7 @@ function Browser(window, document, body, XHR, $log) {
       var script = jqLite('<script>')
           .attr({type: 'text/javascript', src: url.replace('JSON_CALLBACK', callbackId)});
       window[callbackId] = function(data){
-        window[callbackId] = _undefined;
+        window[callbackId] = undefined;
         script.remove();
         completeOutstandingRequest(callback, 200, data);
       };
@@ -3439,7 +3476,7 @@ function Browser(window, document, body, XHR, $log) {
     var cookieLength, cookieArray, cookie, i, keyValue, index;
 
     if (name) {
-      if (value === _undefined) {
+      if (value === undefined) {
         rawDocument.cookie = escape(name) + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT";
       } else {
         if (isString(value)) {
@@ -3923,7 +3960,7 @@ function JQLite(element) {
     div.innerHTML = '<div>&nbsp;</div>' + element; // IE insanity to make NoScope elements work!
     div.removeChild(div.firstChild); // remove the superfluous div
     JQLiteAddNodes(this, div.childNodes);
-    this.remove(); // detach the elements form the temporary DOM div.
+    this.remove(); // detach the elements from the temporary DOM div.
   } else {
     JQLiteAddNodes(this, element);
   }
@@ -3962,7 +3999,7 @@ function JQLiteData(element, key, value) {
     }
     cache[key] = value;
   } else {
-    return cache ? cache[key] : _null;
+    return cache ? cache[key] : null;
   }
 }
 
@@ -3993,8 +4030,7 @@ function JQLiteAddNodes(root, elements) {
       ? elements
       : [ elements ];
     for(var i=0; i < elements.length; i++) {
-      if (elements[i].nodeType != 11)
-        root.push(elements[i]);
+      root.push(elements[i]);
     }
   }
 }
@@ -4108,11 +4144,13 @@ forEach({
    * Properties: writes return selection, reads return first value
    */
   JQLite.prototype[name] = function(arg1, arg2) {
+    var i, key;
+
     if ((fn.length == 2 ? arg1 : arg2) === undefined) {
       if (isObject(arg1)) {
         // we are a write, but the object properties are the key/values
-        for(var i=0; i < this.length; i++) {
-          for ( var key in arg1) {
+        for(i=0; i < this.length; i++) {
+          for (key in arg1) {
             fn(this[i], key, arg1[key]);
           }
         }
@@ -4125,7 +4163,7 @@ forEach({
       }
     } else {
       // we are a write, so apply to all children
-      for(var i=0; i < this.length; i++) {
+      for(i=0; i < this.length; i++) {
         fn(this[i], arg1, arg2);
       }
       // return self for chaining
@@ -4198,7 +4236,8 @@ forEach({
 
   append: function(element, node) {
     forEach(new JQLite(node), function(child){
-      element.appendChild(child);
+      if (element.nodeType === 1)
+        element.appendChild(child);
     });
   },
 
@@ -4227,8 +4266,8 @@ forEach({
   },
 
   parent: function(element) {
-    // in IE it returns undefined, but we need differentiate it from functions which have no return
-    return element.parentNode || null;
+    var parent = element.parentNode;
+    return parent && parent.nodeType !== 11 ? parent : null;
   },
 
   next: function(element) {
@@ -4262,7 +4301,7 @@ forEach({
 });
 var angularGlobal = {
   'typeOf':function(obj){
-    if (obj === _null) return $null;
+    if (obj === null) return $null;
     var type = typeof obj;
     if (type == $object) {
       if (obj instanceof Array) return $array;
@@ -5574,7 +5613,7 @@ angularFilter.linky = function(text){
 };
 function formatter(format, parse) {return {'format':format, 'parse':parse || format};}
 function toString(obj) {
-  return (isDefined(obj) && obj !== _null) ? "" + obj : obj;
+  return (isDefined(obj) && obj !== null) ? "" + obj : obj;
 }
 
 var NUMBER = /^\s*[-+]?\d*(\.\d*)?\s*$/;
@@ -5668,8 +5707,8 @@ angularFormatter['boolean'] = formatter(toString, toBoolean);
    </doc:example>
  */
 angularFormatter.number = formatter(toString, function(obj){
-  if (obj == _null || NUMBER.exec(obj)) {
-    return obj===_null || obj === '' ? _null : 1*obj;
+  if (obj == null || NUMBER.exec(obj)) {
+    return obj===null || obj === '' ? null : 1*obj;
   } else {
     throw "Not a number";
   }
@@ -5810,7 +5849,7 @@ angularFormatter.index = formatter(
   }
 );
 extend(angularValidator, {
-  'noop': function() { return _null; },
+  'noop': function() { return null; },
 
   /**
    * @workInProgress
@@ -5853,7 +5892,7 @@ extend(angularValidator, {
       return msg ||
         "Value does not match expected format " + regexp + ".";
     } else {
-      return _null;
+      return null;
     }
   },
 
@@ -5905,7 +5944,7 @@ extend(angularValidator, {
       if (typeof min != $undefined && num > max) {
         return "Value can not be greater than " + max + ".";
       }
-      return _null;
+      return null;
     } else {
       return "Not a number";
     }
@@ -5955,7 +5994,7 @@ extend(angularValidator, {
     if (!("" + value).match(/^\s*[\d+]*\s*$/) || value != Math.round(value)) {
       return "Not a whole number";
     }
-    return _null;
+    return null;
   },
 
   /**
@@ -5993,7 +6032,7 @@ extend(angularValidator, {
             date.getFullYear() == fields[3] &&
             date.getMonth() == fields[1]-1 &&
             date.getDate() == fields[2])
-              ? _null 
+              ? null
               : "Value is not a date. (Expecting format: 12/31/2009).";
   },
 
@@ -6026,7 +6065,7 @@ extend(angularValidator, {
    */
   'email': function(value) {
     if (value.match(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/)) {
-      return _null;
+      return null;
     }
     return "Email needs to be in username@host.com format.";
   },
@@ -6060,10 +6099,10 @@ extend(angularValidator, {
    */
   'phone': function(value) {
     if (value.match(/^1\(\d\d\d\)\d\d\d-\d\d\d\d$/)) {
-      return _null;
+      return null;
     }
     if (value.match(/^\+\d{2,3} (\(\d{1,5}\))?[\d ]+\d$/)) {
-      return _null;
+      return null;
     }
     return "Phone number needs to be in 1(987)654-3210 format in North America or +999 (123) 45678 906 internationaly.";
   },
@@ -6097,7 +6136,7 @@ extend(angularValidator, {
    */
   'url': function(value) {
     if (value.match(/^(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?$/)) {
-      return _null;
+      return null;
     }
     return "URL needs to be in http://server[:port]/path format.";
   },
@@ -6133,7 +6172,7 @@ extend(angularValidator, {
   'json': function(value) {
     try {
       fromJson(value);
-      return _null;
+      return null;
     } catch (e) {
       return e.toString();
     }
@@ -6375,7 +6414,7 @@ angularServiceInject('$cookies', function($browser) {
     //delete any cookies deleted in $cookies
     for (name in lastCookies) {
       if (isUndefined(cookies[name])) {
-        $browser.cookies(name, _undefined);
+        $browser.cookies(name, undefined);
       }
     }
 
@@ -6531,7 +6570,7 @@ angularServiceInject("$hover", function(browser, document) {
       }
     } else if (tooltip) {
       tooltip.callout.remove();
-      tooltip = _null;
+      tooltip = null;
     }
   });
 }, ['$browser', '$document'], true);
@@ -6803,7 +6842,7 @@ angularServiceInject("$location", function($browser) {
    */
   function composeHref(loc) {
     var url = toKeyValue(loc.search);
-    var port = (loc.port == DEFAULT_PORTS[loc.protocol] ? _null : loc.port);
+    var port = (loc.port == DEFAULT_PORTS[loc.protocol] ? null : loc.port);
 
     return loc.protocol  + '://' + loc.host +
           (port ? ':' + port : '') + loc.path +
@@ -6837,7 +6876,7 @@ angularServiceInject("$location", function($browser) {
       loc.href = href.replace(/#$/, '');
       loc.protocol = match[1];
       loc.host = match[3] || '';
-      loc.port = match[5] || DEFAULT_PORTS[loc.protocol] || _null;
+      loc.port = match[5] || DEFAULT_PORTS[loc.protocol] || null;
       loc.path = match[6] || '';
       loc.search = parseKeyValue(match[8]);
       loc.hash = match[10] || '';
@@ -7360,14 +7399,14 @@ angularServiceInject('$route', function(location, $updateView) {
       });
       if (dstName) this.$set(dstName, dst);
     }
-    return match ? dst : _null;
+    return match ? dst : null;
   }
 
 
   function updateRoute(){
     var childScope, routeParams, pathParams, segmentMatch, key, redir;
 
-    $route.current = _null;
+    $route.current = null;
     forEach(routes, function(rParams, rPath) {
       if (!pathParams) {
         if (pathParams = matcher(location.hashPath, rPath)) {
@@ -7377,7 +7416,7 @@ angularServiceInject('$route', function(location, $updateView) {
     });
 
     // "otherwise" fallback
-    routeParams = routeParams || routes[_null];
+    routeParams = routeParams || routes[null];
 
     if(routeParams) {
       if (routeParams.redirectTo) {
@@ -7530,7 +7569,7 @@ angularServiceInject('$xhr.bulk', function($xhr, $error, $log){
   function bulkXHR(method, url, post, callback) {
     if (isFunction(post)) {
       callback = post;
-      post = _null;
+      post = null;
     }
     var currentQueue;
     forEach(bulkXHR.urls, function(queue){
@@ -7595,18 +7634,25 @@ angularServiceInject('$xhr.bulk', function($xhr, $error, $log){
  * @param {boolean=} [verifyCache=false] If `true` then a result is immediately returned from cache
  *   (if present) while a request is sent to the server for a fresh response that will update the
  *   cached entry. The `callback` function will be called when the response is received.
+ * @param {boolean=} [sync=false] in case of cache hit execute `callback` synchronously.
  */
 angularServiceInject('$xhr.cache', function($xhr, $defer, $log){
   var inflight = {}, self = this;
-  function cache(method, url, post, callback, verifyCache){
+  function cache(method, url, post, callback, verifyCache, sync){
     if (isFunction(post)) {
       callback = post;
-      post = _null;
+      post = null;
     }
     if (method == 'GET') {
       var data, dataCached;
       if (dataCached = cache.data[url]) {
-        $defer(function() { callback(200, copy(dataCached.value)); });
+
+        if (sync) {
+          callback(200, copy(dataCached.value));
+        } else {
+          $defer(function() { callback(200, copy(dataCached.value)); });
+        }
+
         if (!verifyCache)
           return;
       }
@@ -7811,7 +7857,7 @@ angularServiceInject('$xhr', function($browser, $error, $log, $updateView){
   return function(method, url, post, callback){
     if (isFunction(post)) {
       callback = post;
-      post = _null;
+      post = null;
     }
     if (post && isObject(post)) {
       post = toJson(post);
@@ -8046,7 +8092,7 @@ angularDirective("ng:bind", function(expression, element){
     var lastValue = noop, lastError = noop;
     this.$onEval(function() {
       var error, value, html, isHtml, isDomElement,
-          oldElement = this.hasOwnProperty($$element) ? this.$element : _undefined;
+          oldElement = this.hasOwnProperty($$element) ? this.$element : undefined;
       this.$element = element;
       value = this.$tryEval(expression, function(e){
         error = formatError(e);
@@ -8073,7 +8119,7 @@ angularDirective("ng:bind", function(expression, element){
           element.html('');
           element.append(value);
         } else {
-          element.text(value == _undefined ? '' : value);
+          element.text(value == undefined ? '' : value);
         }
       }
     }, element);
@@ -8101,7 +8147,7 @@ function compileBindTemplate(template){
     });
     bindTemplateCache[template] = fn = function(element, prettyPrintJson){
       var parts = [], self = this,
-         oldElement = this.hasOwnProperty($$element) ? self.$element : _undefined;
+         oldElement = this.hasOwnProperty($$element) ? self.$element : undefined;
       self.$element = element;
       for ( var i = 0; i < bindings.length; i++) {
         var value = bindings[i].call(self, element);
@@ -8611,7 +8657,7 @@ angularDirective("ng:style", function(expression, element){
     this.$onEval(function(){
       var style = this.$eval(expression) || {}, key, mergedStyle = {};
       for(key in style) {
-        if (resetStyle[key] === _undefined) resetStyle[key] = '';
+        if (resetStyle[key] === undefined) resetStyle[key] = '';
         mergedStyle[key] = style[key];
       }
       for(key in resetStyle) {
@@ -8644,11 +8690,11 @@ function parseBindings(string) {
 
 function binding(string) {
   var binding = string.replace(/\n/gm, ' ').match(/^\{\{(.*)\}\}$/);
-  return binding ? binding[1] : _null;
+  return binding ? binding[1] : null;
 }
 
 function hasBindings(bindings) {
-  return bindings.length > 1 || binding(bindings[0]) !== _null;
+  return bindings.length > 1 || binding(bindings[0]) !== null;
 }
 
 angularTextMarkup('{{}}', function(text, textNode, parentElement) {
@@ -8923,7 +8969,7 @@ function modelAccessor(scope, element) {
         return scope.$eval(expr);
       },
       set: function(value) {
-        if (value !== _undefined) {
+        if (value !== undefined) {
           return scope.$tryEval(function(){
             assign(scope, value);
           }, element);
@@ -9085,7 +9131,7 @@ function valueAccessor(scope, element) {
   return {
     get: function(){
       if (lastError)
-        elementError(element, NG_VALIDATION_ERROR, _null);
+        elementError(element, NG_VALIDATION_ERROR, null);
       try {
         var value = parse(scope, element.val());
         validate();
@@ -9108,13 +9154,13 @@ function valueAccessor(scope, element) {
   function validate() {
     var value = trim(element.val());
     if (element[0].disabled || element[0].readOnly) {
-      elementError(element, NG_VALIDATION_ERROR, _null);
+      elementError(element, NG_VALIDATION_ERROR, null);
       invalidWidgets.markValid(element);
     } else {
       var error, validateScope = inherit(scope, {$element:element});
       error = required && !value
               ? 'Required'
-              : (value ? validator(validateScope, value) : _null);
+              : (value ? validator(validateScope, value) : null);
       elementError(element, NG_VALIDATION_ERROR, error);
       lastError = error;
       if (error) {
@@ -9142,7 +9188,7 @@ function radioAccessor(scope, element) {
   var domElement = element[0];
   return {
     get: function(){
-      return domElement.checked ? domElement.value : _null;
+      return domElement.checked ? domElement.value : null;
     },
     set: function(value){
       domElement.checked = value == domElement.value;
@@ -9200,7 +9246,7 @@ var textWidget = inputWidget('keydown change', modelAccessor, valueAccessor, ini
       'image':           buttonWidget,
       'checkbox':        inputWidget('click', modelFormattedAccessor, checkedAccessor, initWidgetValue(false)),
       'radio':           inputWidget('click', modelFormattedAccessor, radioAccessor, radioInit),
-      'select-one':      inputWidget('change', modelAccessor, valueAccessor, initWidgetValue(_null)),
+      'select-one':      inputWidget('change', modelAccessor, valueAccessor, initWidgetValue(null)),
       'select-multiple': inputWidget('change', modelAccessor, optionsAccessor, initWidgetValue([]))
 //      'file':            fileWidget???
     };
@@ -9223,9 +9269,9 @@ function radioInit(model, view, element) {
  input.checked = false;
  input.name = this.$id + '@' + input.name;
  if (isUndefined(modelValue)) {
-   model.set(modelValue = _null);
+   model.set(modelValue = null);
  }
- if (modelValue == _null && viewValue !== _null) {
+ if (modelValue == null && viewValue !== null) {
    model.set(viewValue);
  }
  view.set(modelValue);
@@ -9448,12 +9494,12 @@ angularWidget('ng:include', function(element){
             useScope = this.$eval(scopeExp);
 
         if (src) {
-          xhr('GET', src, function(code, response){
+          xhr('GET', src, null, function(code, response){
             element.html(response);
             childScope = useScope || createScope(scope);
             compiler.compile(element)(childScope);
             scope.$eval(onloadExp);
-          });
+          }, false, true);
         } else {
           childScope = null;
           element.html('');
@@ -9688,18 +9734,11 @@ angularWidget('@ng:repeat', function(expression, element){
           childCount = children.length,
           lastIterElement = iterStartElement,
           collection = this.$tryEval(rhs, iterStartElement),
-          is_array = isArray(collection),
-          collectionLength = 0,
+          collectionLength = size(collection, true),
+          fragment = (element[0].nodeName != 'OPTION') ? document.createDocumentFragment() : null,
+          addFragment,
           childScope,
           key;
-
-      if (is_array) {
-        collectionLength = collection.length;
-      } else {
-        for (key in collection)
-          if (collection.hasOwnProperty(key))
-            collectionLength++;
-      }
 
       for (key in collection) {
         if (collection.hasOwnProperty(key)) {
@@ -9709,6 +9748,7 @@ angularWidget('@ng:repeat', function(expression, element){
             childScope[valueIdent] = collection[key];
             if (keyIdent) childScope[keyIdent] = key;
             lastIterElement = childScope.$element;
+            childScope.$eval();
           } else {
             // grow children
             childScope = createScope(currentScope);
@@ -9721,14 +9761,26 @@ angularWidget('@ng:repeat', function(expression, element){
             children.push(childScope);
             linker(childScope, function(clone){
               clone.attr('ng:repeat-index', index);
-              lastIterElement.after(clone);
-              lastIterElement = clone;
+
+              if (fragment) {
+                fragment.appendChild(clone[0]);
+                addFragment = true;
+              } else {
+                //temporarily preserve old way for option element
+                lastIterElement.after(clone);
+                lastIterElement = clone;
+              }
             });
           }
-          childScope.$eval();
           index ++;
         }
       }
+
+      //attach new nodes buffered in doc fragment
+      if (addFragment) {
+        lastIterElement.after(jqLite(fragment));
+      }
+
       // shrink children
       while(children.length > index) {
         children.pop().$element.remove();
@@ -9841,10 +9893,10 @@ angularWidget('ng:view', function(element) {
         }
 
         if (src) {
-          $xhr('GET', src, function(code, response){
+          $xhr('GET', src, null, function(code, response){
             element.html(response);
             compiler.compile(element)(childScope);
-          });
+          }, false, true);
         } else {
           element.html('');
         }
