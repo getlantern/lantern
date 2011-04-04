@@ -264,10 +264,9 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     private ChannelPipeline appEngineProxy() {
         log.info("Using GAE proxy connection...");
         final InetSocketAddress proxy =
-          //new InetSocketAddress("localhost", 8080);
-            new InetSocketAddress("freelantern.appspot.com", 80);
+            new InetSocketAddress("freelantern.appspot.com", 443);
         final SimpleChannelUpstreamHandler handler = 
-            new GaeProxyRelayHandler(proxy, this, null);
+            new GaeProxyRelayHandler(proxy, this);
         final ChannelPipeline pipeline = pipeline();
         pipeline.addLast("decoder", new HttpRequestDecoder());
         pipeline.addLast("handler", handler);
