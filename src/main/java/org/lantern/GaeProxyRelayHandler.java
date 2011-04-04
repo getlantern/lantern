@@ -1,8 +1,10 @@
 package org.lantern;
 
 import java.net.InetSocketAddress;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.Executors;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
@@ -21,8 +23,6 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.ssl.SslHandler;
-import org.littleshoot.proxy.KeyStoreManager;
-import org.littleshoot.proxy.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,8 +48,6 @@ public class GaeProxyRelayHandler extends SimpleChannelUpstreamHandler {
             Executors.newCachedThreadPool(),
             Executors.newCachedThreadPool());
 
-    private final KeyStoreManager keyStoreManager;
-
     
     /**
      * Creates a new relayer to a proxy.
@@ -59,14 +57,11 @@ public class GaeProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * channels to the proxy.
      * @param proxyStatusListener The class to notify of changes in the proxy
      * status.
-     * @param keyStoreManager 
      */
     public GaeProxyRelayHandler(final InetSocketAddress proxyAddress, 
-        final ProxyStatusListener proxyStatusListener, 
-        final KeyStoreManager keyStoreManager) {
+        final ProxyStatusListener proxyStatusListener) {
         this.proxyAddress = proxyAddress;
         this.proxyStatusListener = proxyStatusListener;
-        this.keyStoreManager = keyStoreManager;
     }
     
     @Override
@@ -78,10 +73,8 @@ public class GaeProxyRelayHandler extends SimpleChannelUpstreamHandler {
         log.info("Msg is "+msg);
         final HttpRequest request = (HttpRequest)msg;
         final String uri = request.getUri();
-        final String proxyScheme = "http";
-      //final String proxyHost = "localhost:8080";
         final String proxyHost = "freelantern.appspot.com";
-        final String proxyBaseUri = proxyScheme + "://" + proxyHost;
+        final String proxyBaseUri = "https://" + proxyHost;
         if (!uri.startsWith(proxyBaseUri)) {
             request.setHeader("Host", proxyHost);
             final String scheme = uri.substring(0, uri.indexOf(':'));
@@ -109,16 +102,16 @@ public class GaeProxyRelayHandler extends SimpleChannelUpstreamHandler {
             new ClientBootstrap(this.clientSocketChannelFactory);
         
         final ChannelPipeline pipeline = cb.getPipeline();
-        
-        if (this.keyStoreManager != null) {
-            log.info("Adding SSL for client connection");
-            final SslContextFactory sslFactory = 
-                new SslContextFactory(this.keyStoreManager);
+        try {
+            log.info("Creating SSL engine");
             final SSLEngine engine =
-                sslFactory.getClientContext().createSSLEngine();
+                SSLContext.getDefault().createSSLEngine();
             engine.setUseClientMode(true);
             pipeline.addLast("ssl", new SslHandler(engine));
+        } catch (final NoSuchAlgorithmException nsae) {
+            log.error("Could not create default SSL context");
         }
+        
         pipeline.addLast("encoder", new HttpRequestEncoder());
         pipeline.addLast("handler", 
             new OutboundHandler(e.getChannel()));
