@@ -90,6 +90,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
             bootstrap.bind(new InetSocketAddress("127.0.0.1", port));
         allChannels.add(channel);
         
+        /*
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
                 log.info("Got shutdown hook...closing all channels.");
@@ -103,5 +104,6 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                 log.info("Closed all channels...");
             }
         }));
+        */
     }
 }
