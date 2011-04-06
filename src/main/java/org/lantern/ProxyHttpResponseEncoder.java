@@ -45,7 +45,7 @@ public class ProxyHttpResponseEncoder extends HttpResponseEncoder {
             
             return encoded;
         }
-        log.info("Returning raw message object");
+        log.info("Returning raw message object: {}", msg);
         return msg;
     }
 }
