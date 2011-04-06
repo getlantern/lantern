@@ -208,6 +208,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
                 else {
                     break;
                 }
+                site = br.readLine();
             }
         } catch (final FileNotFoundException e) {
             log.error("Could not find whitelist file!!", e);
@@ -288,6 +289,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         log.info("Using GAE proxy connection...");
         final InetSocketAddress proxy =
             new InetSocketAddress("freelantern.appspot.com", 443);
+            //new InetSocketAddress("127.0.0.1", 8080);
         final SimpleChannelUpstreamHandler handler = 
             new DispatchingProxyRelayHandler(proxy, this, this.whitelist);
         final ChannelPipeline pipeline = pipeline();
