@@ -1,83 +1,96 @@
 package org.lantern;
 
-import java.nio.ByteBuffer;
-import java.nio.channels.ClosedChannelException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import static org.jboss.netty.channel.Channels.pipeline;
+
+import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
-import org.jboss.netty.buffer.ChannelBuffer;
+import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelPipeline;
+import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.ChannelStateEvent;
-import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.util.CharsetUtil;
-import org.jivesoftware.smack.Chat;
-import org.jivesoftware.smack.MessageListener;
-import org.jivesoftware.smack.XMPPException;
-import org.jivesoftware.smack.packet.Message;
+import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
+import org.jboss.netty.handler.codec.http.HttpChunk;
+import org.jboss.netty.handler.codec.http.HttpMethod;
+import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
+import org.littleshoot.proxy.HttpConnectRelayingHandler;
+import org.littleshoot.proxy.HttpRelayingHandler;
+import org.littleshoot.proxy.ProxyHttpRequestEncoder;
+import org.littleshoot.proxy.ProxyUtils;
+import org.littleshoot.proxy.RelayListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Class for handling all HTTP requests from the browser to the proxy.
+ * 
+ * Note this class only ever handles a single connection from the browser.
+ * The browser can and will, however, send requests to multiple hosts using
+ * that same connection, i.e. it will send a request to host B once a request
+ * to host A has completed.
  */
 public class HttpRequestHandler extends SimpleChannelUpstreamHandler 
-    implements MessageListener {
+    implements RelayListener {
 
     private final static Logger log = 
         LoggerFactory.getLogger(HttpRequestHandler.class);
+    private volatile boolean readingChunks;
     
-    private static int totalBrowserToProxyConnections = 0;
     private int browserToProxyConnections = 0;
+    
+    private final Map<String, ChannelFuture> endpointsToChannelFutures = 
+        new ConcurrentHashMap<String, ChannelFuture>();
     
     private volatile int messagesReceived = 0;
     
-    private final ChannelGroup channelGroup;
-
-    private final Chat chat;
-    
-    private long outgoingSequenceNumber = 0L;
-    private Channel browserToProxyChannel;
-
-    private final String macAddress;
-    
-    private long bytesSent = 0L;
-    
-    private long expectedSequenceNumber = 0L;
-    
-    private final Map<Long, Message> sequenceMap = 
-        new ConcurrentHashMap<Long, Message>();
+    private volatile int numWebConnections = 0;
     
     /**
-     * Unique key identifying this connection.
+     * Note, we *can* receive requests for multiple different sites from the
+     * same connection from the browser, so the host and port most certainly
+     * does change.
+     * 
+     * Why do we need to store it? We need it to lookup the appropriate 
+     * external connection to send HTTP chunks to.
      */
-    private final String key;
+    private String hostAndPort;
     
+    private final ClientSocketChannelFactory clientSocketChannelFactory =
+        new NioClientSocketChannelFactory(
+            Executors.newCachedThreadPool(),
+            Executors.newCachedThreadPool());
+    
+    //private final ChannelGroup channelGroup;
+
     /**
      * Creates a new class for handling HTTP requests with the specified
      * authentication manager.
      * 
+     * @param cacheManager The manager for the cache. 
+     * @param authorizationManager The class that handles any 
+     * proxy authentication requirements.
      * @param channelGroup The group of channels for keeping track of all
      * channels we've opened.
+     * @param filters HTTP filtering rules.
      * @param clientChannelFactory The common channel factory for clients.
-     * @param conn The XMPP connection. 
-     * @param macAddress The unique MAC address for this host.
+     * @param chainProxyHostAndPort upstream proxy server host and port or null 
+     * if none used.
+     * @param requestFilter An optional filter for HTTP requests.
      */
-    public HttpRequestHandler(final ChannelGroup channelGroup, 
-        final String macAddress, final Chat chat) {
-        this.channelGroup = channelGroup;
-        this.macAddress = macAddress;
-        this.chat = chat;
-        this.key = newKey(this.macAddress, this.hashCode());
+    public HttpRequestHandler() {
+        //this.channelGroup = channelGroup;
     }
     
     @Override
@@ -85,255 +98,292 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         final MessageEvent me) {
         messagesReceived++;
         log.info("Received "+messagesReceived+" total messages");
-        //final HttpRequest request = (HttpRequest) me.getMessage();
-        //final long contentLength = HttpHeaders.getContentLength(request);
-        
-        //log.info("Content-Length: "+contentLength);
-        
-        final Channel ch = ctx.getChannel();
-        if (this.browserToProxyChannel != null && this.browserToProxyChannel != ch) {
-            log.error("Got message on a different channel??!");
+        if (!readingChunks) {
+            processMessage(ctx, me);
+        } 
+        else {
+            processChunk(ctx, me);
         }
-        this.browserToProxyChannel = ch;
-        try {
-            final ChannelBuffer cb = (ChannelBuffer) me.getMessage();
-            final ByteBuffer buf = cb.toByteBuffer();
-            final byte[] raw = toRawBytes(buf);
-            final Message msg = newMessage();
-            msg.setProperty(XmppMessageConstants.HTTP, 
-                Base64.encodeBase64URLSafeString(raw));
-            this.chat.sendMessage(msg);
-            log.info("Sent XMPP message!!");
-        } catch (final XMPPException e) {
-            log.error("Error sending message", e);
-        }
-    }
-    
-    @Override
-    public void channelClosed(final ChannelHandlerContext ctx, 
-        final ChannelStateEvent cse) {
-        log.info("Channel closed: {}", cse.getChannel());
-        totalBrowserToProxyConnections--;
-        browserToProxyConnections--;
-        log.info("Now "+totalBrowserToProxyConnections+
-            " total browser to proxy channels...");
-        log.info("Now this class has "+browserToProxyConnections+
-            " browser to proxy channels...");
-        
-        // The following should always be the case with
-        // @ChannelPipelineCoverage("one")
-        // We need to notify the remote server that the client connection 
-        // has closed.
-        if (browserToProxyConnections == 0) {
-            log.warn("Closing all proxy to web channels for this browser " +
-                "to proxy connection!!!");
-            
-            final Message msg = newMessage();
-            msg.setProperty(XmppMessageConstants.CLOSE, "true");
-
-            try {
-                this.chat.sendMessage(msg);
-                log.info("Sent close message");
-            } catch (final XMPPException e) {
-                log.error("Error sending close message!!", e);
-            }
-        }
-    }
-    
-    private Message newMessage() {
-        final Message msg = new Message();
-        
-        // The other side will also need to know where the request came
-        // from to differentiate incoming HTTP connections.
-        msg.setProperty(XmppMessageConstants.MAC, this.macAddress);
-        msg.setProperty(XmppMessageConstants.HASHCODE, 
-            String.valueOf(this.hashCode()));
-        
-        // We set the sequence number in case the XMPP server delivers the 
-        // packets out of order for any reason.
-        msg.setProperty(XmppMessageConstants.SEQ, outgoingSequenceNumber);
-        outgoingSequenceNumber++;
-        return msg;
-    }
-    
-    public static byte[] toRawBytes(final ByteBuffer buf) {
-        final int mark = buf.position();
-        final byte[] bytes = new byte[buf.remaining()];
-        buf.get(bytes);
-        buf.position(mark);
-        return bytes;
-    }
-    
-    @Override
-    public void channelOpen(final ChannelHandlerContext ctx, 
-        final ChannelStateEvent cse) throws Exception {
-        final Channel inboundChannel = cse.getChannel();
-        log.info("New channel opened: {}", inboundChannel);
-        totalBrowserToProxyConnections++;
-        browserToProxyConnections++;
-        log.info("Now "+totalBrowserToProxyConnections+" browser to proxy channels...");
-        log.info("Now this class has "+browserToProxyConnections+" browser to proxy channels...");
-        
-        // We need to keep track of the channel so we can close it at the end.
-        this.channelGroup.add(inboundChannel);
     }
 
-    @Override
-    public void exceptionCaught(final ChannelHandlerContext ctx, 
-        final ExceptionEvent e) throws Exception {
-        final Channel channel = e.getChannel();
-        final Throwable cause = e.getCause();
-        if (cause instanceof ClosedChannelException) {
-            log.info("Caught an exception on browser to proxy channel: "+
-                channel, cause);
+    private void processChunk(final ChannelHandlerContext ctx, 
+        final MessageEvent me) {
+        log.info("Processing chunk...");
+        final HttpChunk chunk = (HttpChunk) me.getMessage();
+        
+        // Remember this will typically be a persistent connection, so we'll
+        // get another request after we're read the last chunk. So we need to
+        // reset it back to no longer read in chunk mode.
+        if (chunk.isLast()) {
+            this.readingChunks = false;
+        }
+        final ChannelFuture cf = 
+            endpointsToChannelFutures.get(hostAndPort);
+        
+        // We don't necessarily know the channel is connected yet!! This can
+        // happen if the client sends a chunk directly after the initial 
+        // request.
+        if (cf.getChannel().isConnected()) {
+            cf.getChannel().write(chunk);
         }
         else {
-            log.warn("Caught an exception on browser to proxy channel: "+
-                channel, cause);
-        }
-        if (channel.isOpen()) {
-            closeOnFlush(channel);
-        }
-    }
-    
-    /**
-     * Closes the specified channel after all queued write requests are flushed.
-     */
-    private static void closeOnFlush(final Channel ch) {
-        log.info("Closing on flush: {}", ch);
-        if (ch.isConnected()) {
-            ch.write(ChannelBuffers.EMPTY_BUFFER).addListener(
-                ChannelFutureListener.CLOSE);
-        }
-    }
-
-    private final Object writeLock = new Object();
-    
-    public void processMessage(final Chat ignored, final Message msg) {
-        log.info("Received message with props: {}", 
-            msg.getPropertyNames());
-        final long sequenceNumber = 
-            (Long) msg.getProperty(XmppMessageConstants.SEQ);
-        log.info("SEQUENCE NUMBER: "+sequenceNumber+ " FOR: "+hashCode() + 
-            " BROWSER TO PROXY CHANNEL: "+browserToProxyChannel);
-
-        // If the other side is sending the close directive, we 
-        // need to close the connection to the browser.
-        if (isClose(msg)) {
-            // This will happen quite often, as the XMPP server won't 
-            // necessarily deliver messages in order.
-            if (sequenceNumber != expectedSequenceNumber) {
-                log.info("BAD SEQUENCE NUMBER ON CLOSE. " +
-                    "EXPECTED "+expectedSequenceNumber+
-                    " BUT WAS "+sequenceNumber);
-                sequenceMap.put(sequenceNumber, msg);
-            }
-            else {
-                log.info("Got CLOSE. Closing channel to browser: {}", 
-                    browserToProxyChannel);
-                if (browserToProxyChannel.isOpen()) {
-                    log.info("Remaining messages: "+this.sequenceMap);
-                    closeOnFlush(browserToProxyChannel);
-                }
-            }
-            return;
-        }
-        
-        // We need to grab the HTTP data from the message and send
-        // it to the browser.
-        final String data = (String) msg.getProperty(XmppMessageConstants.HTTP);
-        if (data == null) {
-            log.warn("No HTTP data");
-            return;
-        }
-        final String mac = (String) msg.getProperty(XmppMessageConstants.MAC);
-        final String hc = (String) msg.getProperty(XmppMessageConstants.HASHCODE);
-        final String localKey = newKey(mac, Integer.parseInt(hc));
-        if (!localKey.equals(this.key)) {
-            log.error("RECEIVED A MESSAGE THAT'S NOT FOR US?!?!?!");
-            log.error("\nOUR KEY IS:   "+this.key+
-                      "\nBUT RECEIVED: "+localKey);
-        }
-    
-        synchronized (writeLock) {
-            if (sequenceNumber != expectedSequenceNumber) {
-                log.error("BAD SEQUENCE NUMBER. " +
-                    "EXPECTED "+expectedSequenceNumber+
-                    " BUT WAS "+sequenceNumber+" FOR KEY: "+localKey);
-                sequenceMap.put(sequenceNumber, msg);
-            }
-            else {
-                writeData(msg);
-                expectedSequenceNumber++;
+            cf.addListener(new ChannelFutureListener() {
                 
-                while (sequenceMap.containsKey(expectedSequenceNumber)) {
-                    log.info("WRITING SEQUENCE number: "+
-                        expectedSequenceNumber);
-                    final Message curMessage = 
-                        sequenceMap.remove(expectedSequenceNumber);
-                    
-                    // It's possible to get the close event itself out of
-                    // order, so we need to check if the stored message is a
-                    // close message.
-                    if (isClose(curMessage)) {
-                        log.info("Detected out-of-order CLOSE message!");
-                        closeOnFlush(browserToProxyChannel);
-                        break;
-                    }
-                    writeData(curMessage);
-                    expectedSequenceNumber++;
+                public void operationComplete(final ChannelFuture future) 
+                    throws Exception {
+                    cf.getChannel().write(chunk);
+                }
+            });
+        }
+    }
+
+    private void processMessage(final ChannelHandlerContext ctx, 
+        final MessageEvent me) {
+        final HttpRequest request = (HttpRequest) me.getMessage();
+        
+        log.info("Got request: {} on channel: "+me.getChannel(), request);
+        
+        // Check if we are running in proxy chain mode and modify request 
+        // accordingly
+        final HttpRequest httpRequestCopy = ProxyUtils.copyHttpRequest(request, 
+            false);
+        
+        this.hostAndPort = ProxyUtils.parseHostAndPort(request);
+        
+        final Channel inboundChannel = me.getChannel();
+        
+        final class OnConnect {
+            public ChannelFuture onConnect(final ChannelFuture cf) {
+                if (httpRequestCopy.getMethod() != HttpMethod.CONNECT) {
+                    return cf.getChannel().write(httpRequestCopy);
+                }
+                else {
+                    writeConnectResponse(ctx, request, cf.getChannel());
+                    return cf;
                 }
             }
         }
-    }
-
-    private boolean isClose(final Message msg) {
-        final String close = (String) msg.getProperty(XmppMessageConstants.CLOSE);
-        // If the other side is sending the close directive, we 
-        // need to close the connection to the browser.
-        return 
-            StringUtils.isNotBlank(close) && 
-            close.trim().equalsIgnoreCase("true");
-    }
-
-    private void writeData(final Message msg) {
-        final String data = (String) msg.getProperty(XmppMessageConstants.HTTP);
-        final byte[] raw = 
-            Base64.decodeBase64(data.getBytes(CharsetUtil.UTF_8));
+     
+        final OnConnect onConnect = new OnConnect();
         
-        final String md5 = toMd5(raw);
-        final String expected = 
-            (String) msg.getProperty(XmppMessageConstants.MD5);
-        if (!md5.equals(expected)) {
-            log.error("MD-5s not equal!! Expected:\n'"+expected+
-                "'\nBut was:\n'"+md5+"'");
+        // We synchronize to avoid creating duplicate connections to the
+        // same host, which we shouldn't for a single connection from the
+        // browser. Note the synchronization here is short-lived, however,
+        // due to the asynchronous connection establishment.
+        synchronized (endpointsToChannelFutures) {
+            final ChannelFuture curFuture = 
+                endpointsToChannelFutures.get(hostAndPort);
+            if (curFuture != null) {
+                log.info("Using exising connection...");
+                if (curFuture.getChannel().isConnected()) {
+                    onConnect.onConnect(curFuture);
+                }
+                else {
+                    final ChannelFutureListener cfl = new ChannelFutureListener() {
+                        public void operationComplete(final ChannelFuture future)
+                            throws Exception {
+                            onConnect.onConnect(curFuture);
+                        }
+                    };
+                    curFuture.addListener(cfl);
+                }
+            }
+            else {
+                log.info("Establishing new connection");
+                /*
+                final ChannelFutureListener closedCfl = new ChannelFutureListener() {
+                    public void operationComplete(final ChannelFuture closed) 
+                        throws Exception {
+                        endpointsToChannelFutures.remove(hostAndPort);
+                    }
+                };
+                */
+                final ChannelFuture cf = 
+                    newChannelFuture(httpRequestCopy, inboundChannel);
+                endpointsToChannelFutures.put(hostAndPort, cf);
+                cf.addListener(new ChannelFutureListener() {
+                    public void operationComplete(final ChannelFuture future)
+                        throws Exception {
+                        final Channel channel = future.getChannel();
+                        //channelGroup.add(channel);
+                        if (future.isSuccess()) {
+                            log.info("Connected successfully to: {}", channel);
+                            log.info("Writing message on channel...");
+                            final ChannelFuture wf = onConnect.onConnect(cf);
+                            wf.addListener(new ChannelFutureListener() {
+                                public void operationComplete(final ChannelFuture wcf)
+                                    throws Exception {
+                                    log.info("Finished write: "+wcf+ " to: "+
+                                        httpRequestCopy.getMethod()+" "+
+                                        httpRequestCopy.getUri());
+                                }
+                            });
+                        }
+                        else {
+                            log.info("Could not connect to "+hostAndPort, 
+                                future.getCause());
+                            if (browserToProxyConnections == 1) {
+                                log.warn("Closing browser to proxy channel " +
+                                    "after not connecting to: {}", hostAndPort);
+                                me.getChannel().close();
+                                endpointsToChannelFutures.remove(hostAndPort);
+                            }
+                        }
+                    }
+                });
+            }
         }
+            
+        if (request.isChunked()) {
+            readingChunks = true;
+        }
+    }
+
+    private void writeConnectResponse(final ChannelHandlerContext ctx, 
+        final HttpRequest httpRequest, final Channel outgoingChannel) {
+        final int port = ProxyUtils.parsePort(httpRequest);
+        final Channel browserToProxyChannel = ctx.getChannel();
         
-        //log.info("Wrapping data: {}", new String(raw, CharsetUtil.UTF_8));
-        bytesSent += raw.length;
-        log.info("Now sent "+bytesSent+" bytes after "+raw.length+" new");
-        final ChannelBuffer cb = ChannelBuffers.wrappedBuffer(raw);
-        
-        if (browserToProxyChannel.isOpen()) {
-            browserToProxyChannel.write(cb);
+        // TODO: We should really only allow access on 443, but this breaks
+        // what a lot of browsers do in practice.
+        //if (port != 443) {
+        if (port < 0) {
+            log.warn("Connecting on port other than 443!!");
+            final String statusLine = "HTTP/1.1 502 Proxy Error\r\n";
+            ProxyUtils.writeResponse(browserToProxyChannel, statusLine, 
+                ProxyUtils.PROXY_ERROR_HEADERS);
         }
         else {
-            log.info("Not sending data to closed browser connection");
+            browserToProxyChannel.setReadable(false);
+            
+            // We need to modify both the pipeline encoders and decoders for the
+            // browser to proxy channel *and* the encoders and decoders for the
+            // proxy to external site channel.
+            ctx.getPipeline().remove("encoder");
+            ctx.getPipeline().remove("decoder");
+            ctx.getPipeline().remove("handler");
+            
+            ctx.getPipeline().addLast("handler", 
+                new HttpConnectRelayingHandler(outgoingChannel, null));
+            
+            final String statusLine = "HTTP/1.1 200 Connection established\r\n";
+            ProxyUtils.writeResponse(browserToProxyChannel, statusLine, 
+                ProxyUtils.CONNECT_OK_HEADERS);
+            
+            browserToProxyChannel.setReadable(true);
         }
     }
-    
-    private String newKey(final String mac, final int hc) {
-        return mac.trim() + hc;
+
+    private ChannelFuture newChannelFuture(final HttpRequest httpRequest, 
+        final Channel browserToProxyChannel) {
+        this.numWebConnections++;
+        final String host;
+        final int port;
+        if (hostAndPort.contains(":")) {
+            host = StringUtils.substringBefore(hostAndPort, ":");
+            final String portString = 
+                StringUtils.substringAfter(hostAndPort, ":");
+            port = Integer.parseInt(portString);
+        }
+        else {
+            host = hostAndPort;
+            port = 80;
+        }
+        
+        // Configure the client.
+        final ClientBootstrap cb = 
+            new ClientBootstrap(this.clientSocketChannelFactory);
+        
+        final ChannelPipelineFactory cpf;
+        if (httpRequest.getMethod() == HttpMethod.CONNECT) {
+            // In the case of CONNECT, we just want to relay all data in both 
+            // directions. We SHOULD make sure this is traffic on a reasonable
+            // port, however, such as 80 or 443, to reduce security risks.
+            cpf = new ChannelPipelineFactory() {
+                public ChannelPipeline getPipeline() throws Exception {
+                    // Create a default pipeline implementation.
+                    final ChannelPipeline pipeline = pipeline();
+                    pipeline.addLast("handler", 
+                        new HttpConnectRelayingHandler(browserToProxyChannel,
+                            null));
+                    return pipeline;
+                }
+            };
+        }
+        else {
+            cpf = newDefaultRelayPipeline(httpRequest, browserToProxyChannel);
+        }
+            
+        // Set up the event pipeline factory.
+        cb.setPipelineFactory(cpf);
+        cb.setOption("connectTimeoutMillis", 40*1000);
+        
+
+        // Start the connection attempt.
+        log.info("Starting new connection to: "+hostAndPort);
+        final ChannelFuture future = 
+            cb.connect(new InetSocketAddress(host, port));
+        return future;
     }
     
-    private String toMd5(final byte[] raw) {
-        try {
-            final MessageDigest md = MessageDigest.getInstance("MD5");
-            final byte[] digest = md.digest(raw);
-            return Base64.encodeBase64URLSafeString(digest);
-        } catch (final NoSuchAlgorithmException e) {
-            log.error("No MD5 -- will never happen", e);
-            return "NO MD5";
+    private ChannelPipelineFactory newDefaultRelayPipeline(
+        final HttpRequest httpRequest, final Channel browserToProxyChannel) {
+        return new ChannelPipelineFactory() {
+            public ChannelPipeline getPipeline() throws Exception {
+                // Create a default pipeline implementation.
+                final ChannelPipeline pipeline = pipeline();
+                
+                // We always include the request and response decoders
+                // regardless of whether or not this is a URL we're 
+                // filtering responses for. The reason is that we need to
+                // follow connection closing rules based on the response
+                // headers and HTTP version. 
+                //
+                // We also importantly need to follow the cache directives
+                // in the HTTP response.
+                pipeline.addLast("decoder", new HttpResponseDecoder());
+                
+                log.info("Querying for host and port: {}", hostAndPort);
+                
+                // The trick here is we need to determine whether or not
+                // to cache responses based on the full URI of the request.
+                // This request encoder will only get the URI without the
+                // host, so we just have to be aware of that and construct
+                // the original.
+                final HttpRelayingHandler handler = 
+                    new HttpRelayingHandler(browserToProxyChannel, 
+                        null, HttpRequestHandler.this, hostAndPort);
+                
+                final ProxyHttpRequestEncoder encoder = 
+                    new ProxyHttpRequestEncoder(handler);
+                pipeline.addLast("encoder", encoder);
+                pipeline.addLast("handler", handler);
+                return pipeline;
+            }
+        };
+    }
+
+    
+    public void onRelayChannelClose(final ChannelHandlerContext ctx, 
+        final ChannelStateEvent e, final Channel browserToProxyChannel, 
+        final String key) {
+        this.numWebConnections--;
+        if (this.numWebConnections == 0) {
+            log.info("Closing browser to proxy channel");
+            browserToProxyChannel.close();
+        }
+        else {
+            log.info("Not closing browser to proxy channel. Still "+
+                this.numWebConnections+" connections...");
+        }
+        this.endpointsToChannelFutures.remove(key);
+        
+        if (numWebConnections != this.endpointsToChannelFutures.size()) {
+            log.error("Something's amiss. We have "+numWebConnections+" and "+
+                this.endpointsToChannelFutures.size()+" connections stored");
+        }
+        else {
+            log.info("WEB CONNECTIONS COUNTS IN SYNC");
         }
     }
 }
