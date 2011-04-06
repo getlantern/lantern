@@ -269,22 +269,6 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     }
 
     public ChannelPipeline getPipeline() {
-        log.info("Getting pipeline...");
-        // We randomly use peers and centralized proxies.
-        if (true) {
-            return appEngineProxy();
-        }
-        synchronized (peerProxySet) {
-            if (usePeerProxies()) {
-                return peerProxy();
-            }
-        }
-        synchronized (proxySet) {
-            return centralizedProxy();
-        }
-    }
-    
-    private ChannelPipeline appEngineProxy() {
         log.info("Using GAE proxy connection...");
         final InetSocketAddress proxy =
             new InetSocketAddress("laeproxy.appspot.com", 443);
