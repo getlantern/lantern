@@ -2,8 +2,11 @@ package org.lantern;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -20,12 +23,10 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.net.ServerSocketFactory;
@@ -34,6 +35,7 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
@@ -56,6 +58,7 @@ import org.lastbamboo.jni.JLibTorrent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.p2p.P2P;
 import org.littleshoot.proxy.KeyStoreManager;
+import org.littleshoot.proxy.ProxyHttpResponseEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,15 +71,11 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
+    private final Collection<String> whitelist = new HashSet<String>();
+    
     private final String user;
 
     private final String pwd;
-
-    final Map<String, HttpRequestHandler> hashCodesToHandlers =
-        new ConcurrentHashMap<String, HttpRequestHandler>();
-    
-    final ConcurrentHashMap<Chat, Collection<String>> chatsToHashCodes =
-        new ConcurrentHashMap<Chat, Collection<String>>();
     
     private final Set<InetSocketAddress> proxySet =
         new HashSet<InetSocketAddress>();
@@ -192,8 +191,32 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
             log.warn(msg, e);
             throw new Error(msg, e);
         }
+        
+        buildWhitelist();
     }
 
+    private void buildWhitelist() {
+        final File file = new File("whitelist.txt");
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new FileReader(file));
+            String site = br.readLine();
+            while (site != null) {
+                if (StringUtils.isNotBlank(site)) {
+                    whitelist.add(site);
+                }
+                else {
+                    break;
+                }
+            }
+        } catch (final FileNotFoundException e) {
+            log.error("Could not find whitelist file!!", e);
+        } catch (final IOException e) {
+            log.error("Could not read whitelist file", e);
+        } finally {
+            IOUtils.closeQuietly(br);
+        }
+    }
     private ServerSocketFactory newTlsServerSocketFactory() {
         log.info("Creating TLS server socket factory");
         String algorithm = 
@@ -266,9 +289,10 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
         final InetSocketAddress proxy =
             new InetSocketAddress("freelantern.appspot.com", 443);
         final SimpleChannelUpstreamHandler handler = 
-            new GaeProxyRelayHandler(proxy, this);
+            new DispatchingProxyRelayHandler(proxy, this, this.whitelist);
         final ChannelPipeline pipeline = pipeline();
         pipeline.addLast("decoder", new HttpRequestDecoder());
+        pipeline.addLast("encoder", new ProxyHttpResponseEncoder());
         pipeline.addLast("handler", handler);
         return pipeline;
     }
