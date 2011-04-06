@@ -97,7 +97,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         if (shouldProxy) {
             log.info("Proxying!");
             // We need to decide which proxy to send the request to here.
-            final String proxyHost = "freelantern.appspot.com";
+            final String proxyHost = "laeproxy.appspot.com";
+            //final String proxyHost = "127.0.0.1";
             final String proxyBaseUri = "https://" + proxyHost;
             if (!uri.startsWith(proxyBaseUri)) {
                 request.setHeader("Host", proxyHost);

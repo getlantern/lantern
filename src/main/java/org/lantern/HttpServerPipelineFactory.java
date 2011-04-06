@@ -58,7 +58,6 @@ import org.lastbamboo.jni.JLibTorrent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.p2p.P2P;
 import org.littleshoot.proxy.KeyStoreManager;
-import org.littleshoot.proxy.ProxyHttpResponseEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -288,7 +287,7 @@ public class HttpServerPipelineFactory implements ChannelPipelineFactory,
     private ChannelPipeline appEngineProxy() {
         log.info("Using GAE proxy connection...");
         final InetSocketAddress proxy =
-            new InetSocketAddress("freelantern.appspot.com", 443);
+            new InetSocketAddress("laeproxy.appspot.com", 443);
             //new InetSocketAddress("127.0.0.1", 8080);
         final SimpleChannelUpstreamHandler handler = 
             new DispatchingProxyRelayHandler(proxy, this, this.whitelist);
