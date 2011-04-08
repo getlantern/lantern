@@ -50,7 +50,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private Channel outboundChannel;
 
-    private Channel inboundChannel;
+    private Channel browserToProxyChannel;
 
     private final ProxyStatusListener proxyStatusListener;
     
@@ -138,8 +138,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         if (this.outboundChannel != null) {
             log.error("Outbound channel already assigned?");
         }
-        this.inboundChannel = channel;
-        inboundChannel.setReadable(false);
+        this.browserToProxyChannel = channel;
+        browserToProxyChannel.setReadable(false);
 
         // Start the connection attempt.
         final ClientBootstrap cb = 
@@ -158,8 +158,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         
         pipeline.addLast("decoder", new HttpResponseDecoder());
         pipeline.addLast("encoder", new HttpRequestEncoder());
-        pipeline.addLast("handler", 
-            new OutboundHandler(this.inboundChannel));
+        pipeline.addLast("handler", new OutboundHandler());
         final ChannelFuture cf = cb.connect(this.proxyAddress);
 
         this.outboundChannel = cf.getChannel();
@@ -174,10 +173,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 if (future.isSuccess()) {
                     // Connection attempt succeeded:
                     // Begin to accept incoming traffic.
-                    inboundChannel.setReadable(true);
+                    browserToProxyChannel.setReadable(true);
                 } else {
                     // Close the connection if the connection attempt has failed.
-                    inboundChannel.close();
+                    browserToProxyChannel.close();
                     proxyStatusListener.onCouldNotConnect(proxyAddress);
                 }
             }
@@ -195,18 +194,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     public void exceptionCaught(final ChannelHandlerContext ctx, 
         final ExceptionEvent e) throws Exception {
         log.error("Caught exception on INBOUND channel", e.getCause());
-        LanternUtils.closeOnFlush(this.inboundChannel);
+        LanternUtils.closeOnFlush(this.browserToProxyChannel);
     }
     
     private class OutboundHandler extends SimpleChannelUpstreamHandler {
-
-        private final Logger log = LoggerFactory.getLogger(getClass());
-        
-        private final Channel inboundChannel;
-
-        OutboundHandler(final Channel inboundChannel) {
-            this.inboundChannel = inboundChannel;
-        }
 
         @Override
         public void messageReceived(final ChannelHandlerContext ctx, 
@@ -219,7 +210,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 if (chunk.isLast()) {
                     log.info("GOT LAST CHUNK");
                 }
-                inboundChannel.write(chunk);
+                browserToProxyChannel.write(chunk);
             } else {
                 log.info("Got message on outbound handler: {}", msg);
                 // There should always be a one-to-one relaationship between
@@ -234,12 +225,12 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 final int code = response.getStatus().getCode();
                 if (code != 206) {
                     log.info("No 206. Writing whole response");
-                    inboundChannel.write(response);
+                    browserToProxyChannel.write(response);
                 } else {
                     
                     
-                    // We just grab this before the thread because we're about
-                    // to remove it.
+                    // We just grab this before queuing the request because
+                    // we're about to remove it.
                     final String cr = 
                         response.getHeader(HttpHeaders.Names.CONTENT_RANGE);
                     final long cl = parseFullContentLength(cr);
@@ -255,17 +246,17 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                         log.info("Setting Content Length to: "+cl+" from "+cr);
                         response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, cl);
                         response.removeHeader(HttpHeaders.Names.CONTENT_RANGE);
-                        inboundChannel.write(response);
+                        browserToProxyChannel.write(response);
                     } else {
                         // We need to grab the body of the partial response
                         // and return it as an HTTP chunk.
                         final HttpChunk chunk = 
                             new DefaultHttpChunk(response.getContent());
-                        inboundChannel.write(chunk);
+                        browserToProxyChannel.write(chunk);
                     }
                     
                     // Spin up additional requests on a new thread.
-                    queueRangeRequests(request, response, cr, cl);
+                    requestRange(request, response, cr, cl);
                 }
             }
         }
@@ -273,7 +264,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         @Override
         public void channelClosed(final ChannelHandlerContext ctx, 
             final ChannelStateEvent e) throws Exception {
-            LanternUtils.closeOnFlush(inboundChannel);
+            LanternUtils.closeOnFlush(browserToProxyChannel);
         }
 
         @Override
@@ -308,7 +299,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private static final long CHUNK_SIZE = 1024 * 1024 * 10 - (2 * 1024);
 
-    private void queueRangeRequests(final HttpRequest request, 
+    private void requestRange(final HttpRequest request, 
         final HttpResponse response, final String contentRange, 
         final long fullContentLength) {
         log.info("Queuing request based on Content-Range: {}", contentRange);

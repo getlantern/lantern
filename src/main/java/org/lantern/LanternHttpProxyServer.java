@@ -1,10 +1,19 @@
 package org.lantern;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetSocketAddress;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.group.ChannelGroup;
@@ -37,8 +46,8 @@ public class LanternHttpProxyServer implements HttpProxyServer {
      * 
      * @param port The port the server should run on.
      * @param filters HTTP filters to apply.
-     * @param sslProxyRandomPort The port of the HTTP proxy that other peers will 
-     * relay to.
+     * @param sslProxyRandomPort The port of the HTTP proxy that other peers  
+     * will relay to.
      * @param plainTextProxyRandomPort The port of the HTTP proxy running
      * only locally and accepting plain-text sockets.
      */
@@ -78,10 +87,12 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                     }
                 })));
 
+        final Collection<String> whitelist = buildWhitelist();
+        final XmppHandler xmpp = 
+            new XmppHandler(keyStoreManager, sslProxyRandomPort, 
+                plainTextProxyRandomPort);
         final HttpServerPipelineFactory factory = 
-            new HttpServerPipelineFactory(this.allChannels, 
-                this.keyStoreManager, this.sslProxyRandomPort, 
-                this.plainTextProxyRandomPort);
+            new HttpServerPipelineFactory(xmpp, whitelist);
         bootstrap.setPipelineFactory(factory);
         
         // We always only bind to localhost here for better security.
@@ -104,5 +115,31 @@ public class LanternHttpProxyServer implements HttpProxyServer {
             }
         }));
         */
+    }
+    
+    private Collection<String> buildWhitelist() {
+        final Collection<String> whitelist = new HashSet<String>();
+        final File file = new File("whitelist.txt");
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(new FileReader(file));
+            String site = br.readLine();
+            while (site != null) {
+                if (StringUtils.isNotBlank(site)) {
+                    whitelist.add(site);
+                }
+                else {
+                    break;
+                }
+                site = br.readLine();
+            }
+        } catch (final FileNotFoundException e) {
+            log.error("Could not find whitelist file!!", e);
+        } catch (final IOException e) {
+            log.error("Could not read whitelist file", e);
+        } finally {
+            IOUtils.closeQuietly(br);
+        }
+        return whitelist;
     }
 }
