@@ -9,7 +9,6 @@ import java.util.concurrent.Executors;
 
 import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.bootstrap.ClientBootstrap;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
@@ -24,10 +23,10 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
 import org.littleshoot.proxy.HttpRelayingHandler;
-import org.littleshoot.proxy.ProxyHttpRequestEncoder;
 import org.littleshoot.proxy.ProxyUtils;
 import org.littleshoot.proxy.RelayListener;
 import org.slf4j.Logger;
@@ -71,27 +70,6 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         new NioClientSocketChannelFactory(
             Executors.newCachedThreadPool(),
             Executors.newCachedThreadPool());
-    
-    //private final ChannelGroup channelGroup;
-
-    /**
-     * Creates a new class for handling HTTP requests with the specified
-     * authentication manager.
-     * 
-     * @param cacheManager The manager for the cache. 
-     * @param authorizationManager The class that handles any 
-     * proxy authentication requirements.
-     * @param channelGroup The group of channels for keeping track of all
-     * channels we've opened.
-     * @param filters HTTP filtering rules.
-     * @param clientChannelFactory The common channel factory for clients.
-     * @param chainProxyHostAndPort upstream proxy server host and port or null 
-     * if none used.
-     * @param requestFilter An optional filter for HTTP requests.
-     */
-    public HttpRequestHandler() {
-        //this.channelGroup = channelGroup;
-    }
     
     @Override
     public void messageReceived(final ChannelHandlerContext ctx, 
@@ -354,9 +332,10 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
                     new HttpRelayingHandler(browserToProxyChannel, 
                         null, HttpRequestHandler.this, hostAndPort);
                 
-                final ProxyHttpRequestEncoder encoder = 
-                    new ProxyHttpRequestEncoder(handler);
-                pipeline.addLast("encoder", encoder);
+                //final ProxyHttpRequestEncoder encoder = 
+                //    new ProxyHttpRequestEncoder(handler);
+                
+                pipeline.addLast("encoder", new HttpRequestEncoder());
                 pipeline.addLast("handler", handler);
                 return pipeline;
             }
