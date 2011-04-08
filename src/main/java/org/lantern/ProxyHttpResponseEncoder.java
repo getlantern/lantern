@@ -3,6 +3,7 @@ package org.lantern;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
@@ -42,7 +43,14 @@ public class ProxyHttpResponseEncoder extends HttpResponseEncoder {
             
             final ChannelBuffer encoded = 
                 (ChannelBuffer) super.encode(ctx, channel, response);
-            
+            return encoded;
+        } else if (msg instanceof HttpResponse) {
+            final ChannelBuffer encoded = 
+                (ChannelBuffer) super.encode(ctx, channel, msg);
+            return encoded;
+        } else if (msg instanceof HttpChunk) {
+            final ChannelBuffer encoded = 
+                (ChannelBuffer) super.encode(ctx, channel, msg);
             return encoded;
         }
         log.info("Returning raw message object: {}", msg);
