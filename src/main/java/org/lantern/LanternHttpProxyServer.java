@@ -1,5 +1,7 @@
 package org.lantern;
 
+import static org.jboss.netty.channel.Channels.pipeline;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,9 +18,13 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelPipeline;
+import org.jboss.netty.channel.ChannelPipelineFactory;
+import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,6 +74,11 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     public void start() {
         log.info("Starting proxy on port: "+this.port);
+        final Collection<String> whitelist = buildWhitelist();
+        final XmppHandler xmpp = 
+            new XmppHandler(keyStoreManager, sslProxyRandomPort, 
+                plainTextProxyRandomPort);
+        
         final ServerBootstrap bootstrap = new ServerBootstrap(
             new NioServerSocketChannelFactory(
                 Executors.newCachedThreadPool(new ThreadFactory() {
@@ -87,13 +98,21 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                     }
                 })));
 
-        final Collection<String> whitelist = buildWhitelist();
-        final XmppHandler xmpp = 
-            new XmppHandler(keyStoreManager, sslProxyRandomPort, 
-                plainTextProxyRandomPort);
-        final HttpServerPipelineFactory factory = 
-            new HttpServerPipelineFactory(xmpp, whitelist);
-        bootstrap.setPipelineFactory(factory);
+        bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
+            public ChannelPipeline getPipeline() throws Exception {
+                log.info("Building pipeline...");
+                final InetSocketAddress proxy =
+                    new InetSocketAddress("laeproxy.appspot.com", 443);
+                    //new InetSocketAddress("127.0.0.1", 8080);
+                final SimpleChannelUpstreamHandler handler = 
+                    new DispatchingProxyRelayHandler(proxy, xmpp, whitelist);
+                final ChannelPipeline pipeline = pipeline();
+                pipeline.addLast("decoder", new HttpRequestDecoder());
+                pipeline.addLast("encoder", new ProxyHttpResponseEncoder());
+                pipeline.addLast("handler", handler);
+                return pipeline;
+            }
+        });
         
         // We always only bind to localhost here for better security.
         final Channel channel = 
