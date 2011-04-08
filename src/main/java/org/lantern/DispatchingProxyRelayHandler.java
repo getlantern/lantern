@@ -311,35 +311,27 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     private void queueRangeRequests(final HttpRequest request, 
         final HttpResponse response, final String contentRange, 
         final long fullContentLength) {
-        final Runnable runner = new Runnable() {
-            public void run() {
-                log.info("Got Content-Range: {}", contentRange);
-                final String body = 
-                    StringUtils.substringAfter(contentRange, "bytes ");
-                if (StringUtils.isBlank(body)) {
-                    log.error("Blank bytes body: "+contentRange);
-                    return;
-                }
-                final long contentLength = HttpHeaders.getContentLength(response);
-                //final String cl = StringUtils.substringAfter(body, "/");
-                final String startPlus = StringUtils.substringAfter(body, "-");
-                final String startString = StringUtils.substringBefore(startPlus, "/");
-                final long start = Long.parseLong(startString) + 1;
-                final long end;
-                if (contentLength - start > CHUNK_SIZE) {
-                    end = start + CHUNK_SIZE;
-                } else {
-                    end = fullContentLength;
-                }
-                request.setHeader(HttpHeaders.Names.RANGE, "bytes="+start+"-"+end);
-                writeRequest(request);
-            }
-            
-        };
-        
-        final Thread t = new Thread(runner, "Range-Request-Thread");
-        t.setDaemon(true);
-        t.start();
+        log.info("Queuing request based on Content-Range: {}", contentRange);
+        // Note we don't need to thread this since it's all asynchronous 
+        // anyway.
+        final String body = 
+            StringUtils.substringAfter(contentRange, "bytes ");
+        if (StringUtils.isBlank(body)) {
+            log.error("Blank bytes body: "+contentRange);
+            return;
+        }
+        final long contentLength = HttpHeaders.getContentLength(response);
+        final String startPlus = StringUtils.substringAfter(body, "-");
+        final String startString = StringUtils.substringBefore(startPlus, "/");
+        final long start = Long.parseLong(startString) + 1;
+        final long end;
+        if (contentLength - start > CHUNK_SIZE) {
+            end = start + CHUNK_SIZE;
+        } else {
+            end = fullContentLength;
+        }
+        request.setHeader(HttpHeaders.Names.RANGE, "bytes="+start+"-"+end);
+        writeRequest(request);
     }
 
 }
