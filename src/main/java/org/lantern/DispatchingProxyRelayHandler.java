@@ -127,24 +127,19 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             } else {
                 if (this.outboundChannel == null) {
                     log.error("Outbound channel already assigned?");
-                    openOutgoingChannel();
-                }
-                
-                // We need to decide which proxy to send the request to here.
-                final String proxyHost = "laeproxy.appspot.com";
-                //final String proxyHost = "127.0.0.1";
-                final String proxyBaseUri = "https://" + proxyHost;
-                if (!uri.startsWith(proxyBaseUri)) {
-                    request.setHeader("Host", proxyHost);
-                    final String scheme = uri.substring(0, uri.indexOf(':'));
-                    final String rest = uri.substring(scheme.length() + 3);
-                    final String proxyUri = proxyBaseUri + "/" + scheme + "/" + rest;
-                    log.debug("proxyUri: " + proxyUri);
-                    request.setUri(proxyUri);
+                    final ChannelFuture future = openOutgoingChannel();
+                    future.addListener(new ChannelFutureListener() {
+                        
+                        public void operationComplete(final ChannelFuture cf) 
+                            throws Exception {
+                            if (cf.isSuccess()) {
+                                writeRequest(uri, request);
+                            }
+                        }
+                    });
                 } else {
-                    log.info("NOT MODIFYING URI -- ALREADY HAS FREELANTERN");
+                    writeRequest(uri, request);
                 }
-                writeRequest(request);
             }
         } else {
             log.info("Not proxying!");
@@ -153,6 +148,24 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         }
     }
     
+    private void writeRequest(final String uri, final HttpRequest request) {
+        // We need to decide which proxy to send the request to here.
+        final String proxyHost = "laeproxy.appspot.com";
+        //final String proxyHost = "127.0.0.1";
+        final String proxyBaseUri = "https://" + proxyHost;
+        if (!uri.startsWith(proxyBaseUri)) {
+            request.setHeader("Host", proxyHost);
+            final String scheme = uri.substring(0, uri.indexOf(':'));
+            final String rest = uri.substring(scheme.length() + 3);
+            final String proxyUri = proxyBaseUri + "/" + scheme + "/" + rest;
+            log.debug("proxyUri: " + proxyUri);
+            request.setUri(proxyUri);
+        } else {
+            log.info("NOT MODIFYING URI -- ALREADY HAS FREELANTERN");
+        }
+        writeRequest(request);
+    }
+
     @Override
     public void channelOpen(final ChannelHandlerContext ctx, 
         final ChannelStateEvent e) {
@@ -161,7 +174,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         this.browserToProxyChannel = e.getChannel();
     }
     
-    private void openOutgoingChannel() {
+    private ChannelFuture openOutgoingChannel() {
         
         if (this.outboundChannel != null) {
             log.error("Outbound channel already assigned?");
@@ -209,6 +222,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 }
             }
         });
+        return cf;
     }
     
     private void openOutgoingRelayChannel(final ChannelHandlerContext ctx, 
