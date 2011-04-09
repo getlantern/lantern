@@ -417,11 +417,18 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final String startPlus = StringUtils.substringAfter(body, "-");
         final String startString = StringUtils.substringBefore(startPlus, "/");
         final long start = Long.parseLong(startString) + 1;
+        
+        // This means the last response provided the final range, so we don't
+        // want to request another one.
+        if (start == fullContentLength) {
+            log.info("Received full length...not requesting new range");
+            return;
+        }
         final long end;
         if (contentLength - start > CHUNK_SIZE) {
             end = start + CHUNK_SIZE;
         } else {
-            end = fullContentLength;
+            end = fullContentLength - 1;
         }
         request.setHeader(HttpHeaders.Names.RANGE, "bytes="+start+"-"+end);
         writeRequest(request);
