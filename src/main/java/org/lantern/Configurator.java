@@ -68,9 +68,15 @@ public class Configurator {
 
     private void configureOsxProxy() {
         CommonUtils.nativeCall("networksetup -setwebproxy Airport 127.0.0.1 " + 
-            LanternConstants.LANTERN_LOCALHOST_PORT);
+            LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
         CommonUtils.nativeCall("networksetup -setwebproxy Ethernet 127.0.0.1 " + 
-            LanternConstants.LANTERN_LOCALHOST_PORT);
+            LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
+        
+        // Also set it for HTTPS!!
+        CommonUtils.nativeCall("networksetup -setsecurewebproxy Airport 127.0.0.1 " + 
+            LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
+        CommonUtils.nativeCall("networksetup -setsecurewebproxy Ethernet 127.0.0.1 " + 
+            LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
         
         final Thread hook = new Thread(new Runnable() {
             public void run() {
@@ -100,7 +106,7 @@ public class Configurator {
         final String proxyEnableOriginal = WindowsRegistry.read(key, pe);
         
         final String proxyServerUs = "127.0.0.1:"+
-            LanternConstants.LANTERN_LOCALHOST_PORT;
+            LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
         final String proxyEnableUs = "1";
 
         log.info("Setting registry to use MG as a proxy...");

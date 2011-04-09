@@ -39,28 +39,33 @@ public class LanternHttpProxyServer implements HttpProxyServer {
     private final ChannelGroup allChannels = 
         new DefaultChannelGroup("Local-HTTP-Proxy-Server");
             
-    private final int port;
+    private final int httpLocalPort;
 
     private final KeyStoreManager keyStoreManager;
 
     private final int sslProxyRandomPort;
 
     private final int plainTextProxyRandomPort;
+
+    private final int httpsLocalPort;
     
     /**
      * Creates a new proxy server.
      * 
-     * @param port The port the server should run on.
+     * @param httpLocalPort The port the HTTP server should run on.
+     * @param httpsLocalPort The port the HTTPS server should run on.
      * @param filters HTTP filters to apply.
      * @param sslProxyRandomPort The port of the HTTP proxy that other peers  
      * will relay to.
      * @param plainTextProxyRandomPort The port of the HTTP proxy running
      * only locally and accepting plain-text sockets.
      */
-    public LanternHttpProxyServer(final int port, 
-        final KeyStoreManager keyStoreManager, final int sslProxyRandomPort, 
+    public LanternHttpProxyServer(final int httpLocalPort, 
+        final int httpsLocalPort, final KeyStoreManager keyStoreManager, 
+        final int sslProxyRandomPort, 
         final int plainTextProxyRandomPort) {
-        this.port = port;
+        this.httpLocalPort = httpLocalPort;
+        this.httpsLocalPort = httpsLocalPort;
         this.keyStoreManager = keyStoreManager;
         this.sslProxyRandomPort = sslProxyRandomPort;
         this.plainTextProxyRandomPort = plainTextProxyRandomPort;
@@ -73,12 +78,36 @@ public class LanternHttpProxyServer implements HttpProxyServer {
     
 
     public void start() {
-        log.info("Starting proxy on port: "+this.port);
+        log.info("Starting proxy on HTTP port "+httpLocalPort+
+            " and HTTPS port "+httpsLocalPort);
         final Collection<String> whitelist = buildWhitelist();
         final XmppHandler xmpp = 
             new XmppHandler(keyStoreManager, sslProxyRandomPort, 
                 plainTextProxyRandomPort);
         
+        newServerBootstrap(newHttpChannelPipelineFactory(whitelist, xmpp), 
+            httpLocalPort);
+        log.info("Build HTTP server");
+        
+        /*
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            public void run() {
+                log.info("Got shutdown hook...closing all channels.");
+                final ChannelGroupFuture future = allChannels.close();
+                try {
+                    future.await(6*1000);
+                } catch (final InterruptedException e) {
+                    log.info("Interrupted", e);
+                }
+                bootstrap.releaseExternalResources();
+                log.info("Closed all channels...");
+            }
+        }));
+        */
+    }
+    
+    private ServerBootstrap newServerBootstrap(
+        final ChannelPipelineFactory pipelineFactory, final int port) {
         final ServerBootstrap bootstrap = new ServerBootstrap(
             new NioServerSocketChannelFactory(
                 Executors.newCachedThreadPool(new ThreadFactory() {
@@ -98,44 +127,33 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                     }
                 })));
 
-        bootstrap.setPipelineFactory(new ChannelPipelineFactory() {
-            public ChannelPipeline getPipeline() throws Exception {
-                log.info("Building pipeline...");
-                final InetSocketAddress proxy =
-                    new InetSocketAddress("laeproxy.appspot.com", 443);
-                    //new InetSocketAddress("127.0.0.1", 8080);
-                final SimpleChannelUpstreamHandler handler = 
-                    new DispatchingProxyRelayHandler(proxy, xmpp, whitelist);
-                final ChannelPipeline pipeline = pipeline();
-                pipeline.addLast("decoder", new HttpRequestDecoder());
-                pipeline.addLast("encoder", new ProxyHttpResponseEncoder());
-                pipeline.addLast("handler", handler);
-                return pipeline;
-            }
-        });
+        bootstrap.setPipelineFactory(pipelineFactory);
         
         // We always only bind to localhost here for better security.
         final Channel channel = 
             bootstrap.bind(new InetSocketAddress("127.0.0.1", port));
         allChannels.add(channel);
         
-        /*
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            public void run() {
-                log.info("Got shutdown hook...closing all channels.");
-                final ChannelGroupFuture future = allChannels.close();
-                try {
-                    future.await(6*1000);
-                } catch (final InterruptedException e) {
-                    log.info("Interrupted", e);
-                }
-                bootstrap.releaseExternalResources();
-                log.info("Closed all channels...");
-            }
-        }));
-        */
+        return bootstrap;
     }
-    
+
+
+    private ChannelPipelineFactory newHttpChannelPipelineFactory(
+        final Collection<String> whitelist, final XmppHandler xmpp) {
+        return new ChannelPipelineFactory() {
+            public ChannelPipeline getPipeline() throws Exception {
+                log.info("Building pipeline...");
+                final SimpleChannelUpstreamHandler handler = 
+                    new DispatchingProxyRelayHandler(xmpp, whitelist);
+                final ChannelPipeline pipeline = pipeline();
+                pipeline.addLast("decoder", new HttpRequestDecoder());
+                pipeline.addLast("encoder", new ProxyHttpResponseEncoder());
+                pipeline.addLast("handler", handler);
+                return pipeline;
+            }
+        };
+    }
+
     private Collection<String> buildWhitelist() {
         final Collection<String> whitelist = new HashSet<String>();
         final File file = new File("whitelist.txt");
@@ -144,8 +162,12 @@ public class LanternHttpProxyServer implements HttpProxyServer {
             br = new BufferedReader(new FileReader(file));
             String site = br.readLine();
             while (site != null) {
+                site = site.trim();
                 if (StringUtils.isNotBlank(site)) {
-                    whitelist.add(site);
+                    // Ignore commented-out sites.
+                    if (!site.startsWith("#")) {
+                        whitelist.add(site);
+                    }
                 }
                 else {
                     break;
