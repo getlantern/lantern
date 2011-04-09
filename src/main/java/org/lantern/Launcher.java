@@ -1,18 +1,11 @@
 package org.lantern;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Properties;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.log4j.PropertyConfigurator;
@@ -70,13 +63,16 @@ public class Launcher {
         // If testing two instances on the same machine, just change it on
         // one of them.
         final org.littleshoot.proxy.HttpProxyServer plainTextProxy = 
-            new DefaultHttpProxyServer(LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
+            new DefaultHttpProxyServer(
+                LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
         plainTextProxy.start(true, false);
         
         LOG.info("About to start Lantern server on port: "+
-            LanternConstants.LANTERN_LOCALHOST_PORT);
+            LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
         final HttpProxyServer server = 
-            new LanternHttpProxyServer(LanternConstants.LANTERN_LOCALHOST_PORT, 
+            new LanternHttpProxyServer(
+                LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
+                LanternConstants.LANTERN_LOCALHOST_HTTPS_PORT, 
                 proxyKeyStore, sslRandomPort,
                 LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
         server.start();

@@ -11,7 +11,8 @@ import org.junit.Test;
 public class DomainWhitelisterTest {
 
     @Test public void testWhitelisted() throws Exception {
-        final Collection<String> whitelist = Arrays.asList("nytimes.com");
+        final Collection<String> whitelist = 
+            Arrays.asList("nytimes.com", "facebook.com", "google.com");
         boolean whitelisted = 
             DomainWhitelister.isWhitelisted(
                 "http://graphics8.nytimes.com/adx/images/ADS/25/67/ad.256707/MJ_NYT_Text-Right.jpg", 
@@ -28,14 +29,14 @@ public class DomainWhitelisterTest {
         
         whitelisted = 
             DomainWhitelister.isWhitelisted(
-                "http://www.nytimes.com", 
+                "www.facebook.com:443", 
                 whitelist);
         
         assertTrue("Should be whitelisted", whitelisted);
         
         whitelisted = 
             DomainWhitelister.isWhitelisted(
-                "http://nytimes.com", 
+                "https://s-static.ak.facebook.com", 
                 whitelist);
         
         assertTrue("Should be whitelisted", whitelisted);

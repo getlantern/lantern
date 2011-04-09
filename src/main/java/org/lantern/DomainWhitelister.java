@@ -24,15 +24,25 @@ public class DomainWhitelister {
      */
     public static boolean isWhitelisted(final String uri, 
         final Collection<String> whitelist) {
-        final String afterHttp = StringUtils.substringAfter(uri, "://");
+        LOG.info("Parsing full URI: {}", uri);
+        final String afterHttp;
+        if (!uri.startsWith("http")) {
+            afterHttp = uri;
+        } else {
+            afterHttp = StringUtils.substringAfter(uri, "://");
+        }
         final String base;
         if (afterHttp.contains("/")) {
             base = StringUtils.substringBefore(afterHttp, "/");
         } else {
             base = afterHttp;
         }
+        String domainExtension = StringUtils.substringAfterLast(base, ".");
         
-        final String domainExtension = StringUtils.substringAfterLast(base, ".");
+        // Make sure we strip alternative ports, like 443.
+        if (domainExtension.contains(":")) {
+            domainExtension = StringUtils.substringBefore(domainExtension, ":");
+        }
         final String domain = StringUtils.substringBeforeLast(base, ".");
         final String toMatchBase;
         if (domain.contains(".")) {
@@ -42,7 +52,6 @@ public class DomainWhitelister {
         }
         final String toMatch = toMatchBase + "." + domainExtension;
         LOG.info("Matching against: {}", toMatch);
-        
         return whitelist.contains(toMatch);
     }
 }
