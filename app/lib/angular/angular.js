@@ -452,7 +452,7 @@ function HTML(html, option) {
       };
 }
 
-if (msie) {
+if (msie < 9) {
   nodeName_ = function(element) {
     element = element.nodeName ? element : element[0];
     return (element.scopeName && element.scopeName != 'HTML' ) ? uppercase(element.scopeName + ':' + element.nodeName) : element.nodeName;
@@ -571,7 +571,8 @@ function isLeafNode (node) {
  *
  * @param {*} source The source to be used to make a copy.
  *                   Can be any type including primitives, `null` and `undefined`.
- * @param {(Object|Array)=} destination Optional destination into which the source is copied.
+ * @param {(Object|Array)=} destination Optional destination into which the source is copied. If
+ *     provided, must be of the same type as `source`.
  * @returns {*} The copy or updated `destination` if `destination` was specified.
  *
  * @example
@@ -893,13 +894,17 @@ function encodeUriQuery(val, pctEncodeSpaces) {
  * @TODO rename to ng:autobind to ng:autoboot
  *
  * @description
- * This section explains how to bootstrap your application with angular, using either the angular
- * javascript file, or manually.
+ * This doc explains how to bootstrap your application with angular. You can either use
+ * `ng:autobind` script tag attribute or perform a manual bootstrap.
  *
  * # Auto-bootstrap with `ng:autobind`
- * The simplest way to get an <angular/> application up and running is by inserting a script tag in
- * your HTML file that bootstraps the `http://code.angularjs.org/angular-x.x.x.min.js` code and uses
- * the special `ng:autobind` attribute, like in this snippet of HTML:
+ * The simplest way to get an angular application up and running is by adding a script tag in
+ * your HTML file that contains `ng:autobind` attribute. This will:
+ *
+ * * Load the angular script
+ * * Tell angular to compile the entire document (or just its portion if the attribute has a value)
+ *
+ * For example:
  *
  * <pre>
     &lt;!doctype html&gt;
@@ -919,14 +924,14 @@ function encodeUriQuery(val, pctEncodeSpaces) {
  * you don't need to explicitly add an `onLoad` event handler; auto bind mode takes care of all the
  * work for you.
  *
- * In order to compile only a part of the document, specify the id of the element that should be
- * compiled as the value of the `ng:autobind` attribute, e.g. `ng:autobind="angularContent"`.
+ * In order to compile only a part of the document with a root element, specify the id of the root
+ * element as the value of the `ng:autobind` attribute, e.g. `ng:autobind="angularContent"`.
  *
  *
  * ## Auto-bootstrap with `#autobind`
- * In rare cases when you can't define the `ng` namespace before the script tag (e.g. in some CMS
- * systems, etc), it is possible to auto-bootstrap angular by appending `#autobind` to the script
- * src URL, like in this snippet:
+ * In some rare cases you can't define the `ng:` prefix before the script tag's attribute  (e.g. in
+ * some CMS systems). In these situations it is possible to auto-bootstrap angular by appending
+ * `#autobind` to the script `src` URL, like in this snippet:
  *
  * <pre>
     &lt;!doctype html&gt;
@@ -943,14 +948,14 @@ function encodeUriQuery(val, pctEncodeSpaces) {
     &lt;/html&gt;
  * </pre>
  *
- * In this case it's the `#autobind` URL fragment that tells angular to auto-bootstrap.
+ * In this snippet it is the `#autobind` URL fragment that tells angular to auto-bootstrap.
  *
  * Similarly to `ng:autobind`, you can specify an element id that should be exclusively targeted for
  * compilation as the value of the `#autobind`, e.g. `#autobind=angularContent`.
  *
  * ## Filename Restrictions for Auto-bootstrap
  * In order for us to find the auto-bootstrap script attribute or URL fragment, the value of the
- * `script` `src` attribute that loads angular script must match one of these naming
+ * `script` `src` attribute that loads the angular script must match one of these naming
  * conventions:
  *
  * - `angular.js`
@@ -961,15 +966,15 @@ function encodeUriQuery(val, pctEncodeSpaces) {
  * - `angular-x.x.x-xxxxxxxx.min.js` (dev snapshot)
  * - `angular-bootstrap.js` (used for development of angular)
  *
- * Optionally, any of the filename format above can be prepended with relative or absolute URL that
- * ends with `/`.
+ * Optionally, any of the filename formats above can be prepended with a relative or absolute URL
+ * that ends with `/`.
  *
  *
- * ## Manual Bootstrap
- * Using auto-bootstrap is a handy way to start using <angular/>, but advanced users who want more
- * control over the initialization process might prefer to use manual bootstrap instead.
+ * # Manual Bootstrap
+ * Using auto-bootstrap is a handy way to start using angular, but advanced users who want more
+ * control over the initialization process might prefer to use the manual bootstrap method instead.
  *
- * The best way to get started with manual bootstraping is to look at the magic behind `ng:autobind`
+ * The best way to get started with manual bootstraping is to look at the magic behind `ng:autobind`,
  * by writing out each step of the autobind process explicitly. Note that the following code is
  * equivalent to the code in the previous section.
  *
@@ -993,22 +998,23 @@ function encodeUriQuery(val, pctEncodeSpaces) {
  *
  * This is the sequence that your code should follow if you're bootstrapping angular on your own:
  *
- * * After the page is loaded, find the root of the HTML template, which is typically the root of
- *   the document.
- * * Run the HTML compiler, which converts the templates into an executable, bi-directionally bound
- *   application.
+ * 1. After the page is loaded, find the root of the HTML template, which is typically the root of
+ *    the document.
+ * 2. Run the HTML compiler, which converts the templates into an executable, bi-directionally bound
+ *    application.
  *
  *
- * ##XML Namespace
- * *IMPORTANT:* When using <angular/> you must declare the ng namespace using the xmlns tag. If you
- * don't declare the namespace, Internet Explorer does not render widgets properly.
+ * ## XML Namespace
+ * *IMPORTANT:* When using angular, you must declare the ng namespace using the xmlns tag. If you
+ * don't declare the namespace, Internet Explorer older than 9 does not render widgets properly. The
+ * namespace must be declared even if you use HTML instead of XHTML.
  *
  * <pre>
  * &lt;html xmlns:ng="http://angularjs.org"&gt;
  * </pre>
  *
  *
- * ## Create your own namespace
+ * ### Create your own namespace
  * If you want to define your own widgets, you must create your own namespace and use that namespace
  * to form the fully qualified widget name. For example, you could map the alias `my` to your domain
  * and create a widget called my:widget. To create your own namespace, simply add another xmlsn tag
@@ -1019,8 +1025,8 @@ function encodeUriQuery(val, pctEncodeSpaces) {
  * </pre>
  *
  *
- * ## Global Object
- * The <angular/> script creates a single global variable `angular` in the global namespace. All
+ * ### Global Object
+ * The angular script creates a single global variable `angular` in the global namespace. All
  * APIs are bound to fields of this global object.
  *
  */
@@ -3143,7 +3149,7 @@ ResourceFactory.prototype = {
           route.url(extend({}, action.params || {}, extractParams(data), params)),
           data,
           function(status, response, clear) {
-            if (status == 200) {
+            if (200 <= status && status < 300) {
               if (response) {
                 if (action.isArray) {
                   value.length = 0;
@@ -4103,7 +4109,7 @@ forEach({
     }
   },
 
-  text: extend(msie
+  text: extend((msie < 9)
       ? function(element, value) {
         // NodeType == 3 is text node
         if (element.nodeType == 3) {
@@ -5449,10 +5455,10 @@ angularFilter.uppercase = uppercase;
  * @example
    <doc:example>
      <doc:source>
-       Snippet: <textarea name="snippet" cols="60" rows="3">
-&lt;p style="color:blue"&gt;an html
-&lt;em onmouseover="this.textContent='PWN3D!'"&gt;click here&lt;/em&gt;
-snippet&lt;/p&gt;</textarea>
+      Snippet: <textarea name="snippet" cols="60" rows="3">
+     &lt;p style="color:blue"&gt;an html
+     &lt;em onmouseover="this.textContent='PWN3D!'"&gt;click here&lt;/em&gt;
+     snippet&lt;/p&gt;</textarea>
        <table>
          <tr>
            <td>Filter</td>
@@ -6651,31 +6657,61 @@ var URL_MATCH = /^(file|ftp|http|https):\/\/(\w+:{0,1}\w*@)?([\w\.-]*)(:([0-9]+)
  * @name angular.service.$location
  * @requires $browser
  *
- * @property {string} href
- * @property {string} protocol
- * @property {string} host
- * @property {number} port
- * @property {string} path
- * @property {Object.<string|boolean>} search
- * @property {string} hash
- * @property {string} hashPath
- * @property {Object.<string|boolean>} hashSearch
+ * @property {string} href The full URL of the current location.
+ * @property {string} protocol The protocol part of the URL (e.g. http or https).
+ * @property {string} host The host name, ip address or FQDN of the current location.
+ * @property {number} port The port number of the current location (e.g. 80, 443, 8080).
+ * @property {string} path The path of the current location (e.g. /myapp/inbox).
+ * @property {Object.<string|boolean>} search Map of query parameters (e.g. {user:"foo", page:23}).
+ * @property {string} hash The fragment part of the URL of the current location (e.g. #foo).
+ * @property {string} hashPath Similar to `path`, but located in the `hash` fragment
+ *     (e.g. ../foo#/some/path  => /some/path).
+ * @property {Object.<string|boolean>} hashSearch Similar to `search` but located in `hash`
+ *     fragment (e.g. .../foo#/some/path?hashQuery=param  =>  {hashQuery: "param"}).
  *
  * @description
  * Parses the browser location url and makes it available to your application.
- * Any changes to the url are reflected into $location service and changes to
- * $location are reflected to url.
+ * Any changes to the url are reflected into `$location` service and changes to
+ * `$location` are reflected in the browser location url.
+ *
  * Notice that using browser's forward/back buttons changes the $location.
  *
  * @example
    <doc:example>
      <doc:source>
-       <a href="#">clear hash</a> |
-       <a href="#myPath?name=misko">test hash</a><br/>
-       <input type='text' name="$location.hash"/>
-       <pre>$location = {{$location}}</pre>
+       <div ng:init="$location = $service('$location')">
+         <a id="ex-test" href="#myPath?name=misko">test hash</a>|
+         <a id="ex-reset" href="#!angular.service.$location">reset hash</a><br/>
+         <input type='text' name="$location.hash" size="30">
+         <pre>$location = {{$location}}</pre>
+       </div>
      </doc:source>
      <doc:scenario>
+       it('should initialize the input field', function() {
+         expect(using('.doc-example-live').element('input[name=$location.hash]').val()).
+           toBe('!angular.service.$location');
+       });
+
+
+       it('should bind $location.hash to the input field', function() {
+         using('.doc-example-live').input('$location.hash').enter('foo');
+         expect(browser().location().hash()).toBe('foo');
+       });
+
+
+       it('should set the hash to a test string with test link is presed', function() {
+         using('.doc-example-live').element('#ex-test').click();
+         expect(using('.doc-example-live').element('input[name=$location.hash]').val()).
+           toBe('myPath?name=misko');
+       });
+
+       it('should reset $location when reset link is pressed', function() {
+         using('.doc-example-live').input('$location.hash').enter('foo');
+         using('.doc-example-live').element('#ex-reset').click();
+         expect(using('.doc-example-live').element('input[name=$location.hash]').val()).
+           toBe('!angular.service.$location');
+       });
+
      </doc:scenario>
     </doc:example>
  */
@@ -6704,22 +6740,18 @@ angularServiceInject("$location", function($browser) {
    * @methodOf angular.service.$location
    *
    * @description
-   * Update location object
-   * Does not immediately update the browser
-   * Browser is updated at the end of $eval()
+   * Updates the location object.
    *
-   * @example
-    <doc:example>
-      <doc:source>
-        scope.$location.update('http://www.angularjs.org/path#hash?search=x');
-        scope.$location.update({host: 'www.google.com', protocol: 'https'});
-        scope.$location.update({hashPath: '/path', hashSearch: {a: 'b', x: true}});
-      </doc:source>
-      <doc:scenario>
-      </doc:scenario>
-    </doc:example>
+   * Does not immediately update the browser. Instead the browser is updated at the end of $eval()
+   * cycle.
    *
-   * @param {(string|Object)} href Full href as a string or object with properties
+   * <pre>
+       $location.update('http://www.angularjs.org/path#hash?search=x');
+       $location.update({host: 'www.google.com', protocol: 'https'});
+       $location.update({hashPath: '/path', hashSearch: {a: 'b', x: true}});
+     </pre>
+   *
+   * @param {string|Object} href Full href as a string or object with properties
    */
   function update(href) {
     if (isString(href)) {
@@ -6746,24 +6778,20 @@ angularServiceInject("$location", function($browser) {
    * @methodOf angular.service.$location
    *
    * @description
-   * Update location hash part
+   * Updates the hash fragment part of the url.
+   *
    * @see update()
    *
-   * @example
-    <doc:example>
-      <doc:source>
-        scope.$location.updateHash('/hp')
+   * <pre>
+       scope.$location.updateHash('/hp')
          ==> update({hashPath: '/hp'})
-        scope.$location.updateHash({a: true, b: 'val'})
+       scope.$location.updateHash({a: true, b: 'val'})
          ==> update({hashSearch: {a: true, b: 'val'}})
-        scope.$location.updateHash('/hp', {a: true})
+       scope.$location.updateHash('/hp', {a: true})
          ==> update({hashPath: '/hp', hashSearch: {a: true}})
-      </doc:source>
-      <doc:scenario>
-      </doc:scenario>
-    </doc:example>
+     </pre>
    *
-   * @param {(string|Object)} path A hashPath or hashSearch object
+   * @param {string|Object} path A hashPath or hashSearch object
    * @param {Object=} search A hashSearch object
    */
   function updateHash(path, search) {
@@ -6795,11 +6823,11 @@ angularServiceInject("$location", function($browser) {
    * - `$location.hash`
    * - everything else
    *
-   * @example
-   * <pre>
-   *   scope.$location.href = 'http://www.angularjs.org/path#a/b'
-   * </pre>
-   * immediately after this call, other properties are still the old ones...
+   * Keep in mind that if the following code is executed:
+   *
+   * scope.$location.href = 'http://www.angularjs.org/path#a/b'
+   *
+   * immediately afterwards all other properties are still the old ones...
    *
    * This method checks the changes and update location to the consistent state
    */
@@ -7894,7 +7922,7 @@ angularServiceInject('$xhr', function($browser, $error, $log, $updateView){
  * @name angular.directive.ng:init
  *
  * @description
- * `ng:init` attribute allows the for initialization tasks to be executed
+ * The `ng:init` attribute specifies initialization tasks to be executed
  *  before the template enters execution mode during bootstrap.
  *
  * @element ANY
@@ -7927,21 +7955,31 @@ angularDirective("ng:init", function(expression){
  * @name angular.directive.ng:controller
  *
  * @description
- * To support the Model-View-Controller design pattern, it is possible
- * to assign behavior to a scope through `ng:controller`. The scope is
- * the MVC model. The HTML (with data bindings) is the MVC view.
- * The `ng:controller` directive specifies the MVC controller class
+ * The `ng:controller` directive assigns behavior to a scope. This is a key aspect of how angular
+ * supports the principles behind the Model-View-Controller design pattern.
+ *
+ * MVC components in angular:
+ *
+ * * Model — The Model is data in scope properties; scopes are attached to the DOM.
+ * * View — The template (HTML with data bindings) is rendered into the View.
+ * * Controller — The `ng:controller` directive specifies a Controller class; the class has
+ *   methods that typically express the business logic behind the application.
+ *
+ * Note that an alternative way to define controllers is via the `{@link angular.service.$route}`
+ * service.
  *
  * @element ANY
- * @param {expression} expression {@link guide.expression Expression} to eval.
+ * @param {expression} expression Name of a globally accessible constructor function or an
+ *     {@link guide.expression expression} that on the current scope evaluates to a constructor
+ *     function.
  *
  * @example
- * Here is a simple form for editing the user contact information. Adding, removing clearing and
- * greeting are methods which are declared on the controller (see source tab). These methods can
- * easily be called from the angular markup. Notice that the scope becomes the controller's class
- * this. This allows for easy access to the view data from the controller. Also notice that any
- * changes to the data are automatically reflected in the view without the need to update it
- * manually.
+ * Here is a simple form for editing user contact information. Adding, removing, clearing, and
+ * greeting are methods declared on the controller (see source tab). These methods can
+ * easily be called from the angular markup. Notice that the scope becomes the `this` for the
+ * controller's instance. This allows for easy access to the view data from the controller. Also
+ * notice that any changes to the data are automatically reflected in the View without the need
+ * for a manual update.
    <doc:example>
      <doc:source>
       <script type="text/javascript">
@@ -8034,8 +8072,9 @@ angularDirective("ng:controller", function(expression){
          * <input name="obj.b" value="2">
          = {{obj.multiplied = obj.a * obj.b}} <br>
        <span ng:eval="obj.divide = obj.a / obj.b"></span>
-       <span ng:eval="obj.updateCount = 1 + (obj.updateCount||0)"></span>
-       <tt>obj.divide = {{obj.divide}}</tt><br/>
+       <span ng:eval="obj.updateCount = 1 + (obj.updateCount||0)">
+       </span>
+       <tt>obj.divide = {{obj.divide}}</tt><br>
        <tt>obj.updateCount = {{obj.updateCount}}</tt>
      </doc:source>
      <doc:scenario>
@@ -8061,20 +8100,20 @@ angularDirective("ng:eval", function(expression){
  * @name angular.directive.ng:bind
  *
  * @description
- * The `ng:bind` attribute asks <angular/> to replace the text content of this
- * HTML element with the value of the given expression and kept it up to
- * date when the expression's value changes. Usually you just write
- * {{expression}} and let <angular/> compile it into
+ * The `ng:bind` attribute asks angular to replace the text content of this
+ * HTML element with the value of the given expression, and to keep the text
+ * content up to date when the expression's value changes. Usually you would
+ * just write `{{ expression }}` and let angular compile it into
  * `<span ng:bind="expression"></span>` at bootstrap time.
  *
  * @element ANY
  * @param {expression} expression {@link guide.expression Expression} to eval.
  *
  * @example
- * Try it here: enter text in text box and watch the greeting change.
+ * You can try it right here: enter text in the text box and watch the greeting change.
    <doc:example>
      <doc:source>
-       Enter name: <input type="text" name="name" value="Whirled">. <br>
+       Enter name: <input type="text" name="name" value="Whirled"> <br>
        Hello <span ng:bind="name" />!
      </doc:source>
      <doc:scenario>
@@ -8232,7 +8271,7 @@ var REMOVE_ATTRIBUTES = {
  * contains a JSON key value pairs representing which attributes need to be mapped to which
  * {@link guide.expression expressions}.
  *
- * You don’t usually write the `ng:bind-attr` in the HTML since embedding
+ * You don't usually write the `ng:bind-attr` in the HTML since embedding
  * <tt ng:non-bindable>{{expression}}</tt> into the attribute directly as the attribute value is
  * preferred. The attributes get translated into `<span ng:bind-attr="{attr:expression}"/>` at
  * compile time.
@@ -8543,8 +8582,8 @@ angularDirective("ng:class-even", ngClass(function(i){return i % 2 === 1;}));
  * @name angular.directive.ng:show
  *
  * @description
- * The `ng:show` and `ng:hide` allows you to show or hide a portion
- * of the HTML conditionally.
+ * The `ng:show` and `ng:hide` directives show or hide a portion of the DOM tree (HTML)
+ * conditionally.
  *
  * @element ANY
  * @param {expression} expression If the {@link guide.expression expression} is truthy then the element
@@ -8554,8 +8593,8 @@ angularDirective("ng:class-even", ngClass(function(i){return i % 2 === 1;}));
    <doc:example>
      <doc:source>
         Click me: <input type="checkbox" name="checked"><br/>
-        Show: <span ng:show="checked">I show up when you checkbox is checked?</span> <br/>
-        Hide: <span ng:hide="checked">I hide when you checkbox is checked?</span>
+        Show: <span ng:show="checked">I show up when your checkbox is checked.</span> <br/>
+        Hide: <span ng:hide="checked">I hide when your checkbox is checked.</span>
      </doc:source>
      <doc:scenario>
        it('should check ng:show / ng:hide', function(){
@@ -8584,7 +8623,7 @@ angularDirective("ng:show", function(expression, element){
  * @name angular.directive.ng:hide
  *
  * @description
- * The `ng:show` and `ng:hide` allows you to show or hide a portion
+ * The `ng:hide` and `ng:show` directives hide or show a portion
  * of the HTML conditionally.
  *
  * @element ANY
@@ -8825,8 +8864,8 @@ angularAttrMarkup('{{}}', function(value, name, element){
  * @name angular.widget.HTML
  *
  * @description
- * The most common widgets you will use will be in the from of the
- * standard HTML set. These widgets are bound using the name attribute
+ * The most common widgets you will use will be in the form of the
+ * standard HTML set. These widgets are bound using the `name` attribute
  * to an expression. In addition they can have `ng:validate`, `ng:required`,
  * `ng:format`, `ng:change` attribute to further control their behavior.
  *
@@ -9657,18 +9696,20 @@ angularWidget('a', function() {
  * @name angular.widget.@ng:repeat
  *
  * @description
- * `ng:repeat` instantiates a template once per item from a collection. The collection is enumerated
- * with `ng:repeat-index` attribute starting from 0. Each template instance gets its own scope where
- * the given loop variable is set to the current collection item and `$index` is set to the item
- * index or key.
+ * The `ng:repeat` widget instantiates a template once per item from a collection. The collection is
+ * enumerated with the `ng:repeat-index` attribute, starting from 0. Each template instance gets 
+ * its own scope, where the given loop variable is set to the current collection item, and `$index` 
+ * is set to the item index or key.
  *
- * There are special properties exposed on the local scope of each template instance:
+ * Special properties are exposed on the local scope of each template instance, including:
  *
  *   * `$index` – `{number}` – iterator offset of the repeated element (0..length-1)
- *   * `$position` – {string} – position of the repeated element in the iterator. One of: `'first'`,
- *     `'middle'` or `'last'`.
+ *   * `$position` – `{string}` – position of the repeated element in the iterator. One of: 
+ *        * `'first'`,
+ *        * `'middle'` 
+ *        * `'last'`
  *
- * NOTE: `ng:repeat` looks like a directive, but is actually an attribute widget.
+ * Note: Although `ng:repeat` looks like a directive, it is actually an attribute widget.
  *
  * @element ANY
  * @param {string} repeat_expression The expression indicating how to enumerate a collection. Two
@@ -9678,6 +9719,7 @@ angularWidget('a', function() {
  *     is a scope expression giving the collection to enumerate.
  *
  *     For example: `track in cd.tracks`.
+ *
  *   * `(key, value) in expression` – where `key` and `value` can be any user defined identifiers,
  *     and `expression` is the scope expression giving the collection to enumerate.
  *
@@ -9685,7 +9727,7 @@ angularWidget('a', function() {
  *
  * @example
  * This example initializes the scope to a list of names and
- * than uses `ng:repeat` to display every person.
+ * then uses `ng:repeat` to display every person:
     <doc:example>
       <doc:source>
         <div ng:init="friends = [{name:'John', age:25}, {name:'Mary', age:28}]">
@@ -9893,10 +9935,11 @@ angularWidget('ng:view', function(element) {
         }
 
         if (src) {
-          $xhr('GET', src, null, function(code, response){
+          //xhr's callback must be async, see commit history for more info
+          $xhr('GET', src, function(code, response){
             element.html(response);
             compiler.compile(element)(childScope);
-          }, false, true);
+          });
         } else {
           element.html('');
         }
