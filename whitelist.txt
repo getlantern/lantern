@@ -1,3 +1,5 @@
+torproject.org
+bittorrent.com
 balatarin.com
 flickr.com
 google.com
