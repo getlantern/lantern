@@ -9,9 +9,9 @@ import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Random;
-import java.util.Set;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.codec.binary.Base64;
@@ -40,11 +40,49 @@ public class LanternUtils {
     private static final File CONFIG_DIR = 
         new File(System.getProperty("user.home"), ".lantern");
     
-    private static final Set<String> CENSORED = 
-        Sets.newHashSet("China", "Iran", "Burma", "Vietnam", "Egypt", 
-            "Bahrain", "Tunisia", "Syria", "Libya", "Venezuela");
+    /**
+     * Censored country codes, in order of population.
+     */
+    private static final Collection<String> CENSORED =
+        Sets.newHashSet(
+            "CN",
+            "IN",
+            "PK",
+            "RU",
+            "VN",
+            "EG",
+            "ET",
+            "IR",
+            "TH",
+            "MM",
+            "KR",
+            "UA",
+            "SD",
+            "DZ",
+            "MA",
+            "AF",
+            "UZ",
+            "SA",
+            "YE",
+            "SY",
+            "KZ",
+            "TN",
+            "BY",
+            "AZ",
+            "LY",
+            "OM");
+        //Sets.newHashSet("China", "Iran", "Burma", "Vietnam", "Egypt", 
+        //    "Bahrain", "Tunisia", "Syria", "Libya", "Venezuela");
+        
+    // These country codes have US export restrictions, and therefore cannot
+    // access App Engine sites.
+    private static final Collection<String> EXPORT_RESTRICTED =
+        Sets.newHashSet(
+            "SY");
     
     private static final File UNZIPPED = new File("GeoIP.dat");
+    
+    private static LookupService lookupService;
     
     static {
         if (!UNZIPPED.isFile())  {
@@ -62,22 +100,46 @@ public class LanternUtils {
                 IOUtils.closeQuietly(os);
             }
         }
-    }
-    
-    public static boolean isCensored() {
-        
         try {
-            final LookupService cl = new LookupService(UNZIPPED,
-                LookupService.GEOIP_MEMORY_CACHE);
-            final Country country = 
-                cl.getCountry(PublicIpAddress.getPublicIpAddress());
-            LOG.info("Country is: {}", country);
-            return CENSORED.contains(country.getName());
+            lookupService = new LookupService(UNZIPPED, 
+                    LookupService.GEOIP_MEMORY_CACHE);
         } catch (final IOException e) {
-            return true;
+            lookupService = null;
         }
     }
     
+    public static boolean isCensored() {
+        return isCensored(PublicIpAddress.getPublicIpAddress());
+    }
+    
+    public static boolean isCensored(final InetAddress address) {
+        return isMatch(address, CENSORED);
+    }
+
+    public static boolean isCensored(final String address) throws IOException {
+        return isCensored(InetAddress.getByName(address));
+    }
+    
+    public static boolean isExportRestricted() {
+        return isExportRestricted(PublicIpAddress.getPublicIpAddress());
+    }
+    
+    public static boolean isExportRestricted(final InetAddress address) { 
+        return isMatch(address, EXPORT_RESTRICTED);
+    }
+
+    public static boolean isExportRestricted(final String address) 
+        throws IOException {
+        return isExportRestricted(InetAddress.getByName(address));
+    }
+    
+    public static boolean isMatch(final InetAddress address, 
+        final Collection<String> countries) { 
+        final Country country = lookupService.getCountry(address);
+        LOG.info("Country is: {}", country);
+        return countries.contains(country.getCode().trim());
+    }
+
     /**
      * Closes the specified channel after all queued write requests are flushed.
      */
