@@ -23,10 +23,10 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
 import org.littleshoot.proxy.HttpRelayingHandler;
+import org.littleshoot.proxy.ProxyHttpRequestEncoder;
 import org.littleshoot.proxy.ProxyUtils;
 import org.littleshoot.proxy.RelayListener;
 import org.slf4j.Logger;
@@ -332,10 +332,10 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
                     new HttpRelayingHandler(browserToProxyChannel, 
                         null, HttpRequestHandler.this, hostAndPort);
                 
-                //final ProxyHttpRequestEncoder encoder = 
-                //    new ProxyHttpRequestEncoder(handler);
+                final ProxyHttpRequestEncoder encoder = 
+                    new ProxyHttpRequestEncoder(handler);
                 
-                pipeline.addLast("encoder", new HttpRequestEncoder());
+                pipeline.addLast("encoder", encoder);
                 pipeline.addLast("handler", handler);
                 return pipeline;
             }
