@@ -67,6 +67,17 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private String proxyHost;
     
+    private final HttpRequestHandler requestHandler = new HttpRequestHandler();
+
+    private boolean readingChunks;
+
+    /**
+     * Specifies whether or not we're currently proxying requests. This is 
+     * necessary because we don't have all the initial HTTP request data,
+     * such as the referer or the URI, when we're processing HTTP chunks.
+     */
+    private boolean proxying;
+    
     /**
      * Creates a new handler that reads incoming HTTP requests and dispatches
      * them to proxies as appropriate.
@@ -86,15 +97,38 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void messageReceived(final ChannelHandlerContext ctx, 
         final MessageEvent me) {
-
         messagesReceived++;
         log.info("Received {} total messages", messagesReceived);
-        final Object msg = me.getMessage();
-        log.info("Msg is "+msg);
+        if (!readingChunks) {
+            processRequest(ctx, me);
+        } 
+        else {
+            processChunk(ctx, me);
+        }
+    }
+    
+    private void processChunk(final ChannelHandlerContext ctx, 
+        final MessageEvent me) {
+        log.info("Processing chunk...");
+        final HttpChunk chunk = (HttpChunk) me.getMessage();
         
-        // TODO: This could be a chunk!! We also need to reset this somehow
-        // when the current request changes. Tricky.
-        final HttpRequest request = (HttpRequest)msg;
+        // Remember this will typically be a persistent connection, so we'll
+        // get another request after we're read the last chunk. So we need to
+        // reset it back to no longer read in chunk mode.
+        if (chunk.isLast()) {
+            this.readingChunks = false;
+        }
+        if (this.proxying) {
+            // We need to make sure we send this to a proxy that's capable 
+            // of handling HTTP chunks.
+        } else {
+            this.requestHandler.messageReceived(ctx, me);
+        }
+    }
+    
+    private void processRequest(final ChannelHandlerContext ctx, 
+        final MessageEvent me) {
+        final HttpRequest request = (HttpRequest)me.getMessage();
         final String uri = request.getUri();
         log.info("URI is: {}", uri);
 
@@ -108,47 +142,56 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             uriToCheck = uri;
         }
         
-        final boolean shouldProxy = 
+        this.proxying = 
             DomainWhitelister.isWhitelisted(uriToCheck, whitelist);
         
-        if (shouldProxy) {
-            log.info("Proxying!");
-            if (request.getMethod().equals(HttpMethod.CONNECT)) {
-                // We need to forward the CONNECT request from this proxy to an
-                // external proxy that can handle it. We effectively want to 
-                // relay all traffic in this case without doing anything on 
-                // our own other than direct the CONNECT request to the correct 
-                // proxy.
-                if (this.outboundChannel == null) {
-                    log.info("Opening HTTP CONNECT tunnel");
-                    openOutgoingRelayChannel(ctx, request);
-                } else {
-                    log.error("Outbound channel already assigned?");
-                }
-            } else {
-                if (this.outboundChannel == null) {
-                    log.error("Outbound channel already assigned?");
-                    final ChannelFuture future = openOutgoingChannel();
-                    future.addListener(new ChannelFutureListener() {
-                        
-                        public void operationComplete(final ChannelFuture cf) 
-                            throws Exception {
-                            if (cf.isSuccess()) {
-                                writeRequest(uri, request);
-                            }
-                        }
-                    });
-                } else {
-                    writeRequest(uri, request);
-                }
-            }
+        if (proxying) {
+            processRequestWithProxy(uri, ctx, request);
         } else {
             log.info("Not proxying!");
-            final HttpRequestHandler rh = new HttpRequestHandler();
-            rh.messageReceived(ctx, me);
+            this.requestHandler.messageReceived(ctx, me);
+        }
+        if (request.isChunked()) {
+            readingChunks = true;
+        } else {
+            readingChunks = false;
         }
     }
-    
+
+    private void processRequestWithProxy(final String uri, 
+        final ChannelHandlerContext ctx, final HttpRequest request) {
+        log.info("Proxying!");
+        if (request.getMethod().equals(HttpMethod.CONNECT)) {
+            // We need to forward the CONNECT request from this proxy to an
+            // external proxy that can handle it. We effectively want to 
+            // relay all traffic in this case without doing anything on 
+            // our own other than direct the CONNECT request to the correct 
+            // proxy.
+            if (this.outboundChannel == null) {
+                log.info("Opening HTTP CONNECT tunnel");
+                openOutgoingRelayChannel(ctx, request);
+            } else {
+                log.error("Outbound channel already assigned?");
+            }
+        } else {
+            if (this.outboundChannel == null) {
+                log.error("Outbound channel already assigned?");
+                final ChannelFuture future = openOutgoingChannel();
+                future.addListener(new ChannelFutureListener() {
+                    
+                    public void operationComplete(final ChannelFuture cf) 
+                        throws Exception {
+                        if (cf.isSuccess()) {
+                            writeRequest(uri, request);
+                        }
+                    }
+                });
+            } else {
+                writeRequest(uri, request);
+            }
+        }
+    }
+
     private void writeRequest(final String uri, final HttpRequest request) {
         // We need to decide which proxy to send the request to here.
         //final String proxyHost = "laeproxy.appspot.com";
