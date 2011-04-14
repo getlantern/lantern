@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
  * Handles logging in to the XMPP server and processing trusted users through
  * the roster.
  */
-public class XmppHandler implements ProxyStatusListener {
+public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -62,14 +62,19 @@ public class XmppHandler implements ProxyStatusListener {
 
     private final String pwd;
     
-    private final Set<InetSocketAddress> proxySet =
-        new HashSet<InetSocketAddress>();
-    private final Queue<InetSocketAddress> proxies = 
-        new ConcurrentLinkedQueue<InetSocketAddress>();
+    private final Set<ProxyHolder> proxySet =
+        new HashSet<ProxyHolder>();
+    private final Queue<ProxyHolder> proxies = 
+        new ConcurrentLinkedQueue<ProxyHolder>();
     
     private final Set<URI> peerProxySet = new HashSet<URI>();
     private final Queue<URI> peerProxies = 
         new ConcurrentLinkedQueue<URI>();
+    
+    private final Set<ProxyHolder> laeProxySet =
+        new HashSet<ProxyHolder>();
+    private final Queue<ProxyHolder> laeProxies = 
+        new ConcurrentLinkedQueue<ProxyHolder>();
 
     static {
         SmackConfiguration.setPacketReplyTimeout(30 * 1000);
@@ -418,35 +423,52 @@ public class XmppHandler implements ProxyStatusListener {
     private void addProxy(final String cur, final Scanner scan, 
         final Chat chat) {
         log.info("Adding proxy: {}", cur);
+        if (cur.contains("appspot")) {
+            addLaeProxy(cur, chat);
+        } else {
+            addGeneralProxy(cur, scan, chat);
+        }
+    }
+
+    private void addLaeProxy(final String cur, final Chat chat) {
+        log.info("Adding LAE proxy");
+        addProxyWithChecks(this.laeProxySet, this.laeProxies, 
+            new ProxyHolder(cur, new InetSocketAddress(cur, 443)), chat);
+    }
+    
+    private void addGeneralProxy(final String cur, final Scanner scan,
+        final Chat chat) {
         final String hostname = 
             StringUtils.substringBefore(cur, ":");
         final int port = 
             Integer.parseInt(StringUtils.substringAfter(cur, ":"));
         final InetSocketAddress isa = 
             new InetSocketAddress(hostname, port);
-        if (proxySet.contains(isa)) {
-            log.info("We already know about this proxy");
+        addProxyWithChecks(proxySet, proxies, new ProxyHolder(hostname, isa), chat);
+    }
+
+    private void addProxyWithChecks(final Set<ProxyHolder> set,
+        final Queue<ProxyHolder> queue, final ProxyHolder ph, 
+        final Chat chat) {
+        if (set.contains(ph)) {
+            log.info("We already know about proxy "+ph+" in {}", set);
             return;
         }
         
         final Socket sock = new Socket();
         try {
-            sock.connect(isa, 60*1000);
-            synchronized (proxySet) {
-                if (!proxySet.contains(isa)) {
-                    proxySet.add(isa);
-                    proxies.add(isa);
+            sock.connect(ph.isa, 60*1000);
+            synchronized (set) {
+                if (!set.contains(ph)) {
+                    set.add(ph);
+                    queue.add(ph);
+                    log.info("Queue is now: {}", queue);
                 }
             }
         } catch (final IOException e) {
-            log.error("Could not connect to: {}", isa);
-            sendErrorMessage(chat, isa, e.getMessage());
-            
-            // If we don't have any more proxies to connect to,
-            // revert to XMPP relay mode.
-            if (!scan.hasNext()) {
-                onCouldNotConnect(isa);
-            }
+            log.error("Could not connect to: {}", ph);
+            sendErrorMessage(chat, ph.isa, e.getMessage());
+            onCouldNotConnect(ph.isa);
         } finally {
             try {
                 sock.close();
@@ -483,18 +505,29 @@ public class XmppHandler implements ProxyStatusListener {
         return false;
     }
 
+    
     public void onCouldNotConnect(final InetSocketAddress proxyAddress) {
         log.info("COULD NOT CONNECT!! Proxy address: {}", proxyAddress);
+        onCouldNotConnect(new ProxyHolder(proxyAddress.getHostName(), proxyAddress), this.proxySet, this.proxies);
+    }
+    
+    public void onCouldNotConnectToLae(final InetSocketAddress proxyAddress) {
+        onCouldNotConnect(new ProxyHolder(proxyAddress.getHostName(), proxyAddress), this.laeProxySet, this.laeProxies);
+    }
+    
+    public void onCouldNotConnect(final ProxyHolder proxyAddress,
+        final Set<ProxyHolder> set, final Queue<ProxyHolder> queue){
+        log.info("COULD NOT CONNECT!! Proxy address: {}", proxyAddress);
         synchronized (this.proxySet) {
-            this.proxySet.remove(proxyAddress);
-            this.proxies.remove(proxyAddress);
+            set.remove(proxyAddress);
+            queue.remove(proxyAddress);
         }
     }
 
     public void onCouldNotConnectToPeer(final URI peerUri) {
         removePeerUri(peerUri);
     }
-
+    
     public void onError(final URI peerUri) {
         removePeerUri(peerUri);
     }
@@ -504,6 +537,69 @@ public class XmppHandler implements ProxyStatusListener {
         synchronized (this.peerProxySet) {
             this.peerProxySet.remove(peerUri);
             this.peerProxies.remove(peerUri);
+        }
+    }
+
+    public InetSocketAddress getLaeProxy() {
+        return getProxy(this.laeProxySet, this.laeProxies);
+    }
+    
+    public InetSocketAddress getProxy() {
+        return getProxy(this.proxySet, this.proxies);
+    }
+    
+    private InetSocketAddress getProxy(final Collection<ProxyHolder> set,
+        final Queue<ProxyHolder> queue) {
+        final ProxyHolder proxy = queue.remove();
+        queue.add(proxy);
+        log.info("FIFO queue is now: {}", queue);
+        return proxy.isa;
+    }
+
+    private static final class ProxyHolder {
+        
+        private final String id;
+        private final InetSocketAddress isa;
+
+        private ProxyHolder(final String id, final InetSocketAddress isa) {
+            this.id = id;
+            this.isa = isa;
+        }
+        
+        @Override
+        public String toString() {
+            return "ProxyHolder [isa=" + isa + "]";
+        }
+        
+        @Override
+        public int hashCode() {
+            final int prime = 31;
+            int result = 1;
+            result = prime * result + ((id == null) ? 0 : id.hashCode());
+            result = prime * result + ((isa == null) ? 0 : isa.hashCode());
+            return result;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            ProxyHolder other = (ProxyHolder) obj;
+            if (id == null) {
+                if (other.id != null)
+                    return false;
+            } else if (!id.equals(other.id))
+                return false;
+            if (isa == null) {
+                if (other.isa != null)
+                    return false;
+            } else if (!isa.equals(other.isa))
+                return false;
+            return true;
         }
     }
 }
