@@ -49,8 +49,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     
     private volatile long messagesReceived = 0L;
 
-    private final InetSocketAddress proxyAddress;
-
     private Channel outboundChannel;
 
     private Channel browserToProxyChannel;
@@ -64,6 +62,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final Queue<HttpRequest> httpRequests = 
         new ConcurrentLinkedQueue<HttpRequest>();
+
+    private final ProxyProvider proxyProvider;
+
+    private String proxyHost;
     
     /**
      * Creates a new handler that reads incoming HTTP requests and dispatches
@@ -73,11 +75,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * status.
      * @param whitelist The list of sites to proxy.
      */
-    public DispatchingProxyRelayHandler(
+    public DispatchingProxyRelayHandler(final ProxyProvider proxyProvider,
         final ProxyStatusListener proxyStatusListener, 
         final Collection<String> whitelist) {
-        this.proxyAddress = new InetSocketAddress("laeproxy.appspot.com", 443);
-            //new InetSocketAddress("127.0.0.1", 8080);
+        this.proxyProvider = proxyProvider;
         this.proxyStatusListener = proxyStatusListener;
         this.whitelist = whitelist;
     }
@@ -150,11 +151,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     
     private void writeRequest(final String uri, final HttpRequest request) {
         // We need to decide which proxy to send the request to here.
-        final String proxyHost = "laeproxy.appspot.com";
+        //final String proxyHost = "laeproxy.appspot.com";
         //final String proxyHost = "127.0.0.1";
-        final String proxyBaseUri = "https://" + proxyHost;
+        final String proxyBaseUri = "https://" + this.proxyHost;
         if (!uri.startsWith(proxyBaseUri)) {
-            request.setHeader("Host", proxyHost);
+            request.setHeader("Host", this.proxyHost);
             final String scheme = uri.substring(0, uri.indexOf(':'));
             final String rest = uri.substring(scheme.length() + 3);
             final String proxyUri = proxyBaseUri + "/" + scheme + "/" + rest;
@@ -200,7 +201,12 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         pipeline.addLast("decoder", new HttpResponseDecoder());
         pipeline.addLast("encoder", new HttpRequestEncoder());
         pipeline.addLast("handler", new OutboundHandler());
-        final ChannelFuture cf = cb.connect(this.proxyAddress);
+        final InetSocketAddress isa = this.proxyProvider.getLaeProxy();
+        this.proxyHost = isa.getHostName();
+        
+        log.info("Connecting to proxy at: {}", isa);
+        
+        final ChannelFuture cf = cb.connect(isa);
 
         this.outboundChannel = cf.getChannel();
         log.info("Got an outbound channel on: {}", hashCode());
@@ -218,7 +224,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 } else {
                     // Close the connection if the connection attempt has failed.
                     browserToProxyChannel.close();
-                    proxyStatusListener.onCouldNotConnect(proxyAddress);
+                    proxyStatusListener.onCouldNotConnectToLae(isa);
                 }
             }
         });
@@ -244,8 +250,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             new HttpConnectRelayingHandler(browserToProxyChannel, null));
         
         log.info("Connecting to relay proxy");
-        final ChannelFuture cf = cb.connect(
-            new InetSocketAddress("75.101.155.190", 7777));
+        final InetSocketAddress isa = this.proxyProvider.getProxy();
+        final ChannelFuture cf = cb.connect(isa);
 
         this.outboundChannel = cf.getChannel();
         log.info("Got an outbound channel on: {}", hashCode());
@@ -279,7 +285,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 } else {
                     // Close the connection if the connection attempt has failed.
                     browserToProxyChannel.close();
-                    proxyStatusListener.onCouldNotConnect(proxyAddress);
+                    proxyStatusListener.onCouldNotConnect(isa);
                 }
             }
         });

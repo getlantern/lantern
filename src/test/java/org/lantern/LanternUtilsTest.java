@@ -2,12 +2,29 @@ package org.lantern;
 
 import static org.junit.Assert.*;
 
+import java.net.InetSocketAddress;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.Test;
 
 /**
  * Test for Lantern utilities.
  */
 public class LanternUtilsTest {
+    
+    @Test public void inetSocketTest() throws Exception {
+        final Set<InetSocketAddress> set = new HashSet<InetSocketAddress>();
+        final InetSocketAddress isa1 = 
+            new InetSocketAddress("racheljohnsonftw.appspot.com", 443);
+        set.add(isa1);
+        
+        final InetSocketAddress isa2 = 
+            new InetSocketAddress("racheljohnsonla.appspot.com", 443);
+        
+        set.add(isa2);
+        assertEquals(2, set.size());
+    }
 
     @Test public void testCensored() throws Exception {
         final boolean censored = LanternUtils.isCensored();
