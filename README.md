@@ -101,6 +101,7 @@ fetch the changes and merge them into your project with git.
       css/              --> css files
         app.css         --> default stylesheet
       img/              --> image files
+      index.html        --> app layout file (the main html template file of the app)
       js/               --> javascript files
         controllers.js  --> application controllers
         filters.js      --> custom angular filters
