@@ -19,6 +19,6 @@ public interface ProxyStatusListener {
 
     void onError(URI peerUri);
 
-    void onCouldNotConnectToLae(InetSocketAddress isa);
+    void onCouldNotConnectToLae(InetSocketAddress proxyAddress);
 
 }

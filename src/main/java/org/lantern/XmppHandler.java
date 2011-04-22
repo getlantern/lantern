@@ -42,6 +42,9 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.lastbamboo.common.p2p.P2PConstants;
 import org.lastbamboo.jni.JLibTorrent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
@@ -56,6 +59,9 @@ import org.slf4j.LoggerFactory;
  */
 public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
+    //private static final String LANTERN_JID = "lanternxmpp@appspot.com";
+    private static final String LANTERN_JID = "lantern-controller@appspot.com";
+
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final String user;
@@ -71,6 +77,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private final Queue<URI> peerProxies = 
         new ConcurrentLinkedQueue<URI>();
     
+    private final Set<String> lanternProxySet = new HashSet<String>();
+    private final Queue<String> lanternProxies = 
+        new ConcurrentLinkedQueue<String>();
+    
     private final Set<ProxyHolder> laeProxySet =
         new HashSet<ProxyHolder>();
     private final Queue<ProxyHolder> laeProxies = 
@@ -85,15 +95,25 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private final MessageListener typedListener = new MessageListener() {
         public void processMessage(final Chat ch, final Message msg) {
             final String part = ch.getParticipant();
-            if (part.startsWith("lanternxmpp@appspot.com")) {
+            if (part.startsWith(LANTERN_JID)) {
                 log.info("Lantern controlling agent response");
                 final String body = msg.getBody();
+                final Object obj = JSONValue.parse(body);
+                final JSONObject json = (JSONObject) obj;
+                final JSONArray servers = (JSONArray) json.get("servers");
+                final Iterator<String> iter = servers.iterator();
+                while (iter.hasNext()) {
+                    final String server = iter.next();
+                    addProxy(server, ch);
+                }
+                /*
                 final Scanner scan = new Scanner(body);
                 scan.useDelimiter(",");
                 while (scan.hasNext()) {
                     final String ip = scan.next();
                     addProxy(ip, scan, ch);
                 }
+                */
             }
             final Integer type = 
                 (Integer) msg.getProperty(P2PConstants.MESSAGE_TYPE);
@@ -239,7 +259,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         
         final Roster roster = xmpp.getRoster();
         // Make sure we look for Lantern packets.
-        roster.createEntry("lanternxmpp@appspot.com", "Lantern", null);
+        //roster.createEntry(LANTERN_JID, "Lantern", null);
+        roster.createEntry(LANTERN_JID, "Lantern", null);
         
         roster.addRosterListener(new RosterListener() {
             public void entriesDeleted(final Collection<String> addresses) {
@@ -281,7 +302,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             
             // Send an "info" message to gather proxy data.
             final Message msg = new Message();
-            msg.setBody("/info");
+            final JSONObject json = new JSONObject();
+            json.put("un", this.user);
+            json.put("pwd", this.pwd);
+            //msg.setBody("/info");
+            msg.setBody(json.toJSONString());
             try {
                 log.info("Sending info message to Lantern Hub");
                 chat.sendMessage(msg);
@@ -331,7 +356,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     }
 
     private boolean isLanternHub(final String from) {
-        return from.startsWith("lanternxmpp@appspot.com");
+        return from.startsWith(LANTERN_JID);
     }
 
     private void sendErrorMessage(final Chat chat, final InetSocketAddress isa,
@@ -382,7 +407,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             final Scanner scan = new Scanner(proxyString);
             while (scan.hasNext()) {
                 final String cur = scan.next();
-                addProxy(cur, scan, chat);
+                addProxy(cur, chat);
             }
         }
         
@@ -420,13 +445,22 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
     }
 
-    private void addProxy(final String cur, final Scanner scan, 
-        final Chat chat) {
+    private void addProxy(final String cur, final Chat chat) {
         log.info("Adding proxy: {}", cur);
         if (cur.contains("appspot")) {
             addLaeProxy(cur, chat);
+        } else if (cur.contains("@")) {
+            addLanternProxy(cur, chat);
         } else {
-            addGeneralProxy(cur, scan, chat);
+            addGeneralProxy(cur, chat);
+        }
+    }
+
+    private void addLanternProxy(final String cur, final Chat chat) {
+        log.info("Adding Lantern proxy");
+        synchronized (lanternProxySet) {
+            this.lanternProxySet.add(cur);
+            this.lanternProxies.add(cur);
         }
     }
 
@@ -436,8 +470,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             new ProxyHolder(cur, new InetSocketAddress(cur, 443)), chat);
     }
     
-    private void addGeneralProxy(final String cur, final Scanner scan,
-        final Chat chat) {
+    private void addGeneralProxy(final String cur, final Chat chat) {
         final String hostname = 
             StringUtils.substringBefore(cur, ":");
         final int port = 
