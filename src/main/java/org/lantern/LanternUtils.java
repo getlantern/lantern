@@ -11,6 +11,7 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Random;
 import java.util.zip.GZIPInputStream;
 
@@ -19,6 +20,8 @@ import org.apache.commons.io.IOUtils;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.HttpMessage;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -199,5 +202,19 @@ public class LanternUtils {
 
     public static File configDir() {
         return CONFIG_DIR;
+    }
+    
+    public static boolean isTransferEncodingChunked(final HttpMessage m) {
+        List<String> chunked = m.getHeaders(HttpHeaders.Names.TRANSFER_ENCODING);
+        if (chunked.isEmpty()) {
+            return false;
+        }
+
+        for (String v: chunked) {
+            if (v.equalsIgnoreCase(HttpHeaders.Values.CHUNKED)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
