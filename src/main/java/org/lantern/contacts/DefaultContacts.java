@@ -63,6 +63,7 @@ public class DefaultContacts implements Contacts {
         } catch (final HttpResponseException e) {
             throw new IOException("Could not access contacts!!", e);
         } finally {
+            
         }
     }
 
