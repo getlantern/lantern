@@ -26,6 +26,7 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.DefaultHttpChunk;
 import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.HttpHeaders.Names;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
@@ -34,7 +35,6 @@ import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
-import org.littleshoot.proxy.ProxyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,7 +49,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     
     private volatile long messagesReceived = 0L;
 
-    private Channel outboundChannel;
+    private ChannelFuture outboundChannelFuture;
 
     private Channel browserToProxyChannel;
 
@@ -67,6 +67,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private String proxyHost;
     
+    private static final long REQUEST_SIZE_LIMIT = 1024 * 1024 * 10 - 4096;
+    
     private final HttpRequestHandler requestHandler = new HttpRequestHandler();
 
     private boolean readingChunks;
@@ -77,6 +79,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * such as the referer or the URI, when we're processing HTTP chunks.
      */
     private boolean proxying;
+
+    private boolean isLae;
     
     /**
      * Creates a new handler that reads incoming HTTP requests and dispatches
@@ -121,11 +125,17 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         if (this.proxying) {
             // We need to make sure we send this to a proxy that's capable 
             // of handling HTTP chunks.
+            processChunkWithProxy(ctx, me);
         } else {
             this.requestHandler.messageReceived(ctx, me);
         }
     }
     
+    private void processChunkWithProxy(final ChannelHandlerContext ctx,
+        final MessageEvent me) {
+        genericWrite(me.getMessage());
+    }
+
     private void processRequest(final ChannelHandlerContext ctx, 
         final MessageEvent me) {
         final HttpRequest request = (HttpRequest)me.getMessage();
@@ -161,22 +171,28 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     private void processRequestWithProxy(final String uri, 
         final ChannelHandlerContext ctx, final HttpRequest request) {
         log.info("Proxying!");
-        if (request.getMethod().equals(HttpMethod.CONNECT)) {
+        if (request.getMethod() == HttpMethod.CONNECT) {
             // We need to forward the CONNECT request from this proxy to an
             // external proxy that can handle it. We effectively want to 
             // relay all traffic in this case without doing anything on 
             // our own other than direct the CONNECT request to the correct 
             // proxy.
-            if (this.outboundChannel == null) {
+            if (this.outboundChannelFuture == null) {
                 log.info("Opening HTTP CONNECT tunnel");
                 openOutgoingRelayChannel(ctx, request);
             } else {
                 log.error("Outbound channel already assigned?");
             }
         } else {
-            if (this.outboundChannel == null) {
+            this.isLae = isLae(request);
+            if (this.outboundChannelFuture == null) {
                 log.error("Outbound channel already assigned?");
-                final ChannelFuture future = openOutgoingChannel();
+                final ChannelFuture future;
+                if (isLae) {
+                    future = openLaeOutgoingChannel();
+                } else {
+                    future = openStandardOutgoingChannel();
+                }
                 future.addListener(new ChannelFutureListener() {
                     
                     public void operationComplete(final ChannelFuture cf) 
@@ -187,9 +203,39 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     }
                 });
             } else {
+                // It's possible we could be receiving a new request type
+                // the requires a different type of proxy than the prior one,
+                // so we need to do extra processing to determine that.
                 writeRequest(uri, request);
             }
         }
+    }
+    
+    private boolean isLae(final HttpRequest request) {
+        final HttpMethod method = request.getMethod();
+        if (method == HttpMethod.GET) {
+            return true;
+        }
+        if (LanternUtils.isTransferEncodingChunked(request)) {
+            return false;
+        }
+        // From http://code.google.com/appengine/docs/quotas.html, we cannot
+        // send requests larger than 10MB. 
+        if (method == HttpMethod.POST) {
+            final String contentLength = 
+                request.getHeader(Names.CONTENT_LENGTH);
+            if (StringUtils.isBlank(contentLength)) {
+                // If it's a post without a content length, we want to be 
+                // cautious.
+                return false;
+            }
+            final long cl = Long.parseLong(contentLength);
+            if (cl > REQUEST_SIZE_LIMIT) {
+                return false;
+            }
+            return true;
+        }
+        return false;
     }
 
     private void writeRequest(final String uri, final HttpRequest request) {
@@ -214,16 +260,23 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     public void channelOpen(final ChannelHandlerContext ctx, 
         final ChannelStateEvent e) {
         log.info("Got incoming channel");
-        //openOutgoingChannel(e.getChannel());
         this.browserToProxyChannel = e.getChannel();
     }
     
-    private ChannelFuture openOutgoingChannel() {
+    private ChannelFuture openLaeOutgoingChannel() {
+        return openOutgoingChannel(this.proxyProvider.getLaeProxy(), true);
+    }
+    
+    private ChannelFuture openStandardOutgoingChannel() {
+        return openOutgoingChannel(this.proxyProvider.getProxy(), false);
+    }
+    
+    private ChannelFuture openOutgoingChannel(
+        final InetSocketAddress proxyAddress, final boolean lae) {
         
-        if (this.outboundChannel != null) {
+        if (this.outboundChannelFuture != null) {
             log.error("Outbound channel already assigned?");
         }
-        //this.browserToProxyChannel = incomingChannel;
         browserToProxyChannel.setReadable(false);
 
         // Start the connection attempt.
@@ -244,14 +297,14 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         pipeline.addLast("decoder", new HttpResponseDecoder());
         pipeline.addLast("encoder", new HttpRequestEncoder());
         pipeline.addLast("handler", new OutboundHandler());
-        final InetSocketAddress isa = this.proxyProvider.getLaeProxy();
-        this.proxyHost = isa.getHostName();
+        this.proxyHost = proxyAddress.getHostName();
         
-        log.info("Connecting to proxy at: {}", isa);
+        log.info("Connecting to proxy at: {}", proxyAddress);
         
-        final ChannelFuture cf = cb.connect(isa);
+        final ChannelFuture cf = cb.connect(proxyAddress);
 
-        this.outboundChannel = cf.getChannel();
+        this.outboundChannelFuture = cf;
+        //this.outboundChannel = cf.getChannel();
         log.info("Got an outbound channel on: {}", hashCode());
         
         // This is handy, as set readable to false while the channel is 
@@ -267,7 +320,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 } else {
                     // Close the connection if the connection attempt has failed.
                     browserToProxyChannel.close();
-                    proxyStatusListener.onCouldNotConnectToLae(isa);
+                    if (lae) {
+                        proxyStatusListener.onCouldNotConnectToLae(proxyAddress);
+                    } else {
+                        proxyStatusListener.onCouldNotConnect(proxyAddress);
+                    }
                 }
             }
         });
@@ -277,7 +334,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     private void openOutgoingRelayChannel(final ChannelHandlerContext ctx, 
         final HttpRequest request) {
         
-        if (this.outboundChannel != null) {
+        if (this.outboundChannelFuture != null) {
             log.error("Outbound channel already assigned?");
         }
         //this.browserToProxyChannel = incomingChannel;
@@ -296,7 +353,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final InetSocketAddress isa = this.proxyProvider.getProxy();
         final ChannelFuture cf = cb.connect(isa);
 
-        this.outboundChannel = cf.getChannel();
+        this.outboundChannelFuture = cf;
+        //this.outboundChannel = cf.getChannel();
         log.info("Got an outbound channel on: {}", hashCode());
         
         final ChannelPipeline browserPipeline = ctx.getPipeline();
@@ -304,7 +362,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         browserPipeline.remove("decoder");
         browserPipeline.remove("handler");
         browserPipeline.addLast("handler", 
-            new HttpConnectRelayingHandler(this.outboundChannel, null));
+            new HttpConnectRelayingHandler(cf.getChannel(), null));
         
         // This is handy, as set readable to false while the channel is 
         // connecting ensures we won't get any incoming messages until
@@ -313,16 +371,20 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             public void operationComplete(final ChannelFuture future) 
                 throws Exception {
                 if (future.isSuccess()) {
-                    outboundChannel.write(request).addListener(
+                    cf.getChannel().write(request).addListener(
                         new ChannelFutureListener() {
-                        
-                        public void operationComplete(
-                            final ChannelFuture future) throws Exception {
-                            pipeline.remove("encoder");
-                            
-                            // Begin to accept incoming traffic.
-                            browserToProxyChannel.setReadable(true);
-                        }
+                            public void operationComplete(
+                                final ChannelFuture future) throws Exception {
+                                // we're using HTTP connect here, so we need
+                                // to remove the encoder and start reading
+                                // from the inbound channel only when we've
+                                // used the original encoder to properly encode
+                                // the CONNECT request.
+                                pipeline.remove("encoder");
+                                
+                                // Begin to accept incoming traffic.
+                                browserToProxyChannel.setReadable(true);
+                            }
                     });
                     
                 } else {
@@ -338,7 +400,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     public void channelClosed(final ChannelHandlerContext ctx, 
         final ChannelStateEvent e) {
         log.info("Got inbound channel closed. Closing outbound.");
-        LanternUtils.closeOnFlush(this.outboundChannel);
+        LanternUtils.closeOnFlush(this.outboundChannelFuture.getChannel());
     }
     
     @Override
@@ -435,7 +497,24 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     private void writeRequest(final HttpRequest request) {
         this.httpRequests.add(request);
         log.info("Writing request: {}", request);
-        this.outboundChannel.write(request);
+        genericWrite(request);
+    }
+    
+    private void genericWrite(final Object message) {
+        final Channel ch = this.outboundChannelFuture.getChannel();
+        if (ch.isConnected()) {
+            ch.write(message);
+        } else {
+            this.outboundChannelFuture.addListener(new ChannelFutureListener() {
+                
+                public void operationComplete(final ChannelFuture cf) 
+                    throws Exception {
+                    if (cf.isSuccess()) {
+                        cf.getChannel().write(message);
+                    }
+                }
+            });
+        }
     }
     
     private boolean isFirstChunk(final String contentRange) {
@@ -481,42 +560,5 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         }
         request.setHeader(HttpHeaders.Names.RANGE, "bytes="+start+"-"+end);
         writeRequest(request);
-    }
-
-    private void handleHttpConnect(final ChannelHandlerContext ctx, 
-        final HttpRequest httpRequest, final Channel outgoingChannel) {
-        final int port = ProxyUtils.parsePort(httpRequest);
-        final Channel browserToProxyChannel = ctx.getChannel();
-        
-        // TODO: We should really only allow access on 443, but this breaks
-        // what a lot of browsers do in practice.
-        //if (port != 443) {
-        if (port < 0) {
-            log.warn("Connecting on port other than 443!!");
-            final String statusLine = "HTTP/1.1 502 Proxy Error\r\n";
-            ProxyUtils.writeResponse(browserToProxyChannel, statusLine, 
-                ProxyUtils.PROXY_ERROR_HEADERS);
-        }
-        else {
-            
-            
-            // We need to modify both the pipeline encoders and decoders for the
-            // browser to proxy channel *and* the encoders and decoders for the
-            // proxy to external site channel.
-            ctx.getPipeline().remove("encoder");
-            ctx.getPipeline().remove("decoder");
-            ctx.getPipeline().remove("handler");
-            
-            ctx.getPipeline().addLast("handler", 
-                new HttpConnectRelayingHandler(outgoingChannel, null));
-            
-            //final String statusLine = "HTTP/1.1 200 Connection established\r\n";
-            //ProxyUtils.writeResponse(browserToProxyChannel, statusLine, 
-            //    ProxyUtils.CONNECT_OK_HEADERS);
-            //final HttpRequestEncoder encoder = new HttpRequestEncoder();
-            //final int cb = encoder.
-            
-            browserToProxyChannel.setReadable(true);
-        }
     }
 }
