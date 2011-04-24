@@ -80,9 +80,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private final Queue<URI> peerProxies = 
         new ConcurrentLinkedQueue<URI>();
     
-    private final Set<String> lanternProxySet = new HashSet<String>();
-    private final Queue<String> lanternProxies = 
-        new ConcurrentLinkedQueue<String>();
+    private final Set<URI> lanternProxySet = new HashSet<URI>();
+    private final Queue<URI> lanternProxies = 
+        new ConcurrentLinkedQueue<URI>();
     
     private final Set<ProxyHolder> laeProxySet =
         new HashSet<ProxyHolder>();
@@ -106,6 +106,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             if (part.startsWith(LANTERN_JID)) {
                 log.info("Lantern controlling agent response");
                 final String body = msg.getBody();
+                log.info("Body: {}", body);
                 final Object obj = JSONValue.parse(body);
                 final JSONObject json = (JSONObject) obj;
                 final JSONArray servers = (JSONArray) json.get("servers");
@@ -190,14 +191,14 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             // at all.
             this.client.addMessageListener(typedListener);
             this.client.login(this.user, this.pwd, ID);
-            final XMPPConnection connection = client.getXmppConnection();
+            final XMPPConnection connection = this.client.getXmppConnection();
             
             // Here we handle allowing the server to subscribe to our presence.
             connection.addPacketListener(new PacketListener() {
                 
                 public void processPacket(final Packet pack) {
-                    log.info("Got packet: {}", pack);
-                    log.info(pack.getFrom());
+                    //log.info("Got packet: {}", pack);
+                    //log.info(pack.getFrom());
                     
                     final Presence packet = 
                         new Presence(Presence.Type.subscribed);
@@ -227,12 +228,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                     return false;
                 }
             });
-            
-            
-            //log.info("Setting presence to available");
-            //final Presence avail = new Presence(Type.available);
-            //avail.setMode(M);
-            //connection.sendPacket(avail);
             
             configureRoster();
         } catch (final IOException e) {
@@ -303,7 +298,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         
         final Roster roster = xmpp.getRoster();
         // Make sure we look for Lantern packets.
-        //roster.createEntry(LANTERN_JID, "Lantern", null);
         final RosterEntry lantern = roster.getEntry(LANTERN_JID);
         if (lantern == null) {
             log.info("Creating roster entry for Lantern...");
@@ -508,13 +502,17 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         if (cur.contains("appspot")) {
             addLaeProxy(cur, chat);
         } else if (cur.contains("@")) {
-            addLanternProxy(cur, chat);
+            try {
+                addLanternProxy(new URI(cur), chat);
+            } catch (final URISyntaxException e) {
+                log.info("Error with proxy URI", e);
+            }
         } else {
             addGeneralProxy(cur, chat);
         }
     }
 
-    private void addLanternProxy(final String cur, final Chat chat) {
+    private void addLanternProxy(final URI cur, final Chat chat) {
         log.info("Adding Lantern proxy");
         synchronized (lanternProxySet) {
             this.lanternProxySet.add(cur);
@@ -641,12 +639,32 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         return getProxy(this.proxySet, this.proxies);
     }
     
+    public URI getLanternProxy() {
+        return getProxyUri(this.lanternProxySet, this.lanternProxies);
+    }
+
+    public URI getPeerProxy() {
+        return getProxyUri(this.peerProxySet, this.peerProxies);
+    }
+    
+    private URI getProxyUri(final Collection<URI> set,
+        final Queue<URI> queue) {
+        final URI proxy = queue.remove();
+        queue.add(proxy);
+        log.info("FIFO queue is now: {}", queue);
+        return proxy;
+    }
+
     private InetSocketAddress getProxy(final Collection<ProxyHolder> set,
         final Queue<ProxyHolder> queue) {
         final ProxyHolder proxy = queue.remove();
         queue.add(proxy);
         log.info("FIFO queue is now: {}", queue);
         return proxy.isa;
+    }
+
+    public XmppP2PClient getP2PClient() {
+        return client;
     }
 
     private static final class ProxyHolder {
