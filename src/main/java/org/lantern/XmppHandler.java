@@ -649,6 +649,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     private URI getProxyUri(final Collection<URI> set,
         final Queue<URI> queue) {
+        if (queue.isEmpty()) {
+            log.info("No proxy URIs");
+            return null;
+        }
         final URI proxy = queue.remove();
         queue.add(proxy);
         log.info("FIFO queue is now: {}", queue);
@@ -657,6 +661,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private InetSocketAddress getProxy(final Collection<ProxyHolder> set,
         final Queue<ProxyHolder> queue) {
+        if (queue.isEmpty()) {
+            log.info("No proxy addresses");
+            return null;
+        }
         final ProxyHolder proxy = queue.remove();
         queue.add(proxy);
         log.info("FIFO queue is now: {}", queue);
