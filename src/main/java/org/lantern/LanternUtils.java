@@ -4,24 +4,49 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
+import java.net.Socket;
 import java.net.SocketException;
+import java.net.URI;
 import java.net.UnknownHostException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.Random;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.jboss.netty.bootstrap.ClientBootstrap;
+import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelPipeline;
+import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMessage;
+import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
+import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
+import org.jboss.netty.handler.ssl.SslHandler;
+import org.lastbamboo.common.offer.answer.NoAnswerException;
+import org.lastbamboo.common.p2p.P2PClient;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +67,11 @@ public class LanternUtils {
     
     private static final File CONFIG_DIR = 
         new File(System.getProperty("user.home"), ".lantern");
+    
+    public static final ClientSocketChannelFactory clientSocketChannelFactory =
+        new NioClientSocketChannelFactory(
+            Executors.newCachedThreadPool(),
+            Executors.newCachedThreadPool());
     
     /**
      * Censored country codes, in order of population.
@@ -141,6 +171,182 @@ public class LanternUtils {
         final Country country = lookupService.getCountry(address);
         LOG.info("Country is: {}", country);
         return countries.contains(country.getCode().trim());
+    }
+    
+    /**
+     * Helper method that ensures all written requests are properly recorded.
+     * 
+     * @param request The request.
+     */
+    public static void writeRequest(final Queue<HttpRequest> httpRequests,
+        final HttpRequest request, final ChannelFuture cf) {
+        httpRequests.add(request);
+        LOG.info("Writing request: {}", request);
+        LanternUtils.genericWrite(request, cf);
+    }
+    
+    public static void genericWrite(final Object message, 
+        final ChannelFuture future) {
+        final Channel ch = future.getChannel();
+        if (ch.isConnected()) {
+            ch.write(message);
+        } else {
+            future.addListener(new ChannelFutureListener() {
+                
+                public void operationComplete(final ChannelFuture cf) 
+                    throws Exception {
+                    if (cf.isSuccess()) {
+                        ch.write(message);
+                    }
+                }
+            });
+        }
+    }
+
+    public static ChannelFuture openOutgoingChannel(
+        final Channel browserToProxyChannel, 
+        final InetSocketAddress proxyAddress, final boolean lae,
+        final Queue<HttpRequest> httpRequests, 
+        final ProxyStatusListener proxyStatusListener) {
+        
+        browserToProxyChannel.setReadable(false);
+
+        // Start the connection attempt.
+        final ClientBootstrap cb = 
+            new ClientBootstrap(clientSocketChannelFactory);
+        
+        final ChannelPipeline pipeline = cb.getPipeline();
+        try {
+            LOG.info("Creating SSL engine");
+            final SSLEngine engine =
+                SSLContext.getDefault().createSSLEngine();
+            engine.setUseClientMode(true);
+            pipeline.addLast("ssl", new SslHandler(engine));
+        } catch (final NoSuchAlgorithmException nsae) {
+            LOG.error("Could not create default SSL context");
+        }
+        
+        pipeline.addLast("decoder", new HttpResponseDecoder());
+        pipeline.addLast("encoder", new HttpRequestEncoder());
+        pipeline.addLast("handler", 
+            new OutboundHandler(browserToProxyChannel, httpRequests));
+        //this.proxyHost = proxyAddress.getHostName();
+        
+        LOG.info("Connecting to proxy at: {}", proxyAddress);
+        
+        final ChannelFuture cf = cb.connect(proxyAddress);
+
+        // This is handy, as set readable to false while the channel is 
+        // connecting ensures we won't get any incoming messages until
+        // we're fully connected.
+        cf.addListener(new ChannelFutureListener() {
+            public void operationComplete(final ChannelFuture future) 
+                throws Exception {
+                if (future.isSuccess()) {
+                    // Connection attempt succeeded:
+                    // Begin to accept incoming traffic.
+                    browserToProxyChannel.setReadable(true);
+                } else {
+                    // Close the connection if the connection attempt has failed.
+                    browserToProxyChannel.close();
+                    if (lae) {
+                        proxyStatusListener.onCouldNotConnectToLae(proxyAddress);
+                    } else {
+                        proxyStatusListener.onCouldNotConnect(proxyAddress);
+                    }
+                }
+            }
+        });
+        return cf;
+    }
+    
+    public static Socket openOutgoingPeerSocket(
+        final Channel browserToProxyChannel,
+        final URI uri, final ChannelHandlerContext ctx,
+        final ProxyStatusListener proxyStatusListener,
+        final P2PClient p2pClient,
+        final Map<URI, AtomicInteger> peerFailureCount) throws IOException {
+        
+        // This ensures we won't read any messages before we've successfully
+        // created the socket.
+        browserToProxyChannel.setReadable(false);
+
+        // Start the connection attempt.
+        try {
+            LOG.info("Creating a new socket to {}", uri);
+            final Socket sock = p2pClient.newSocket(uri);
+            browserToProxyChannel.setReadable(true);
+            startReading(sock, browserToProxyChannel);
+            return sock;
+        } catch (final NoAnswerException nae) {
+            // This is tricky, as it can mean two things. First, it can mean
+            // the XMPP message was somehow lost. Second, it can also mean
+            // the other side is actually not there and didn't respond as a
+            // result.
+            LOG.info("Did not get answer!! Closing channel from browser", nae);
+            final AtomicInteger count = peerFailureCount.get(uri);
+            if (count == null) {
+                LOG.info("Incrementing failure count");
+                peerFailureCount.put(uri, new AtomicInteger(0));
+            }
+            else if (count.incrementAndGet() > 5) {
+                LOG.info("Got a bunch of failures in a row to this peer. " +
+                    "Removing it.");
+                
+                // We still reset it back to zero. Note this all should 
+                // ideally never happen, and we should be able to use the
+                // XMPP presence alerts to determine if peers are still valid
+                // or not.
+                peerFailureCount.put(uri, new AtomicInteger(0));
+                proxyStatusListener.onCouldNotConnectToPeer(uri);
+            } 
+            throw nae;
+        } catch (final IOException ioe) {
+            proxyStatusListener.onCouldNotConnectToPeer(uri);
+            LOG.warn("Could not connect to peer", ioe);
+            throw ioe;
+        }
+    }
+    
+    private static void startReading(final Socket sock, final Channel channel) {
+        final Runnable runner = new Runnable() {
+
+            public void run() {
+                final byte[] buffer = new byte[4096];
+                long count = 0;
+                int n = 0;
+                try {
+                    final InputStream is = sock.getInputStream();
+                    while (-1 != (n = is.read(buffer))) {
+                        //LOG.info("Writing response data: {}", new String(buffer, 0, n));
+                        // We need to make a copy of the buffer here because
+                        // the writes are asynchronous, so the bytes can
+                        // otherwise get scrambled.
+                        final ChannelBuffer buf =
+                            ChannelBuffers.copiedBuffer(buffer, 0, n);
+                        channel.write(buf);
+                        count += n;
+                        LOG.info("In while");
+                    }
+                    LOG.info("Out of while");
+                    LanternUtils.closeOnFlush(channel);
+
+                } catch (final IOException e) {
+                    LOG.info("Exception relaying peer data back to browser",e);
+                    LanternUtils.closeOnFlush(channel);
+                    
+                    // The other side probably just closed the connection!!
+                    
+                    //channel.close();
+                    //proxyStatusListener.onError(peerUri);
+                    
+                }
+            }
+        };
+        final Thread peerReadingThread = 
+            new Thread(runner, "Peer-Data-Reading-Thread");
+        peerReadingThread.setDaemon(true);
+        peerReadingThread.start();
     }
 
     /**
