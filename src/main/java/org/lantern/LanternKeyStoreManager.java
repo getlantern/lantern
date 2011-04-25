@@ -102,11 +102,15 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             "CN="+macAddress, "-keypass", PASS, "-storepass", 
             PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
         
+        waitForFile(KEYSTORE_FILE);
+        
         // Now grab our newly-generated cert. All of our trusted peers will
         // use this to connect.
-       CommonUtils.nativeCall("keytool", "-exportcert", "-alias", macAddress, "-keystore", 
-            KEYSTORE_FILE.getAbsolutePath(), "-storepass", PASS, "-file", 
-            CERT_FILE.getAbsolutePath());
+        CommonUtils.nativeCall("keytool", "-exportcert", "-alias", macAddress, 
+            "-keystore", KEYSTORE_FILE.getAbsolutePath(), "-storepass", PASS, 
+            "-file", CERT_FILE.getAbsolutePath());
+        
+        waitForFile(CERT_FILE);
         
         try {
             final InputStream is = new FileInputStream(CERT_FILE);
@@ -129,6 +133,24 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             PASS);
             */
 
+    }
+
+    /**
+     * The completion of the native calls is dependent on OS process 
+     * scheduling, so we need to wait until files actually exist.
+     * 
+     * @param file The file to wait for.
+     */
+    private void waitForFile(final File file) {
+        int i = 0;
+        while (!file.isFile() && i < 20) {
+            try {
+                Thread.sleep(200);
+                i++;
+            } catch (final InterruptedException e) {
+                log.error("Interrupted?", e);
+            }
+        }
     }
 
     public String getBase64Cert() {
