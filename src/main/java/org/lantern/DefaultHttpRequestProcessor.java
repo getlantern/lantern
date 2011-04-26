@@ -116,21 +116,24 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
             new ClientBootstrap(clientSocketChannelFactory);
         
         final ChannelPipeline pipeline = cb.getPipeline();
-        //if (lae) {
-            //try {
-                log.info("Creating SSL engine");
-                final SslContextFactory sslFactory =
-                    new SslContextFactory(this.keyStoreManager);
-                final SSLEngine engine =
-                    sslFactory.getClientContext().createSSLEngine();
-                //final SSLEngine engine =
-                //    SSLContext.getDefault().createSSLEngine();
-                engine.setUseClientMode(true);
-                pipeline.addLast("ssl", new SslHandler(engine));
-            //} catch (final NoSuchAlgorithmException nsae) {
-            //    log.error("Could not create default SSL context");
-            //}
-        //}
+        final SSLEngine engine;
+        if (lae) {
+            log.info("Creating standard SSL engine");
+            try {
+                engine = SSLContext.getDefault().createSSLEngine();
+            } catch (final NoSuchAlgorithmException e) {
+                log.error("Could not create default SSL context", e);
+                throw new IllegalArgumentException("No algo?", e);
+            }
+        }
+        else {
+            log.info("Creating Lantern SSL engine");
+            final SslContextFactory sslFactory =
+                new SslContextFactory(this.keyStoreManager);
+            engine = sslFactory.getClientContext().createSSLEngine();
+        }
+        engine.setUseClientMode(true);
+        pipeline.addLast("ssl", new SslHandler(engine));
         
         pipeline.addLast("decoder", new HttpResponseDecoder());
         pipeline.addLast("encoder", new HttpRequestEncoder());

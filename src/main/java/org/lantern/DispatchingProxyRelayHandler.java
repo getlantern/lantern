@@ -381,6 +381,9 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             new ClientBootstrap(LanternUtils.clientSocketChannelFactory);
         
         final ChannelPipeline pipeline = cb.getPipeline();
+        
+        // This is slightly odd, as we tunnel SSL inside SSL, but we'd 
+        // otherwise just be running an open CONNECT proxy.
         final SslContextFactory sslFactory =
             new SslContextFactory(this.keyStoreManager);
         final SSLEngine engine =
