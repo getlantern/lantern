@@ -314,7 +314,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 log.info("Entries updated: {}", addresses);
             }
             public void presenceChanged(final Presence presence) {
-                log.info("Processing presence changed: {}", presence);
+                //log.info("Processing presence changed: {}", presence);
                 processPresence(presence, xmpp);
             }
             public void entriesAdded(final Collection<String> addresses) {
@@ -330,7 +330,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 roster.getPresences(entry.getUser());
             while (presences.hasNext()) {
                 final Presence p = presences.next();
-                log.info("Processing presence from roster config");
+                //log.info("Processing presence from roster config");
                 processPresence(p, xmpp);
             }
         }
@@ -636,7 +636,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     }
     
     public InetSocketAddress getProxy() {
-        return getProxy(this.proxySet, this.proxies);
+        //return getProxy(this.proxySet, this.proxies);
+        return new InetSocketAddress("75.101.134.244", 7777);
+        //return new InetSocketAddress("dev.littleshoot.org", 7777);
     }
     
     public URI getLanternProxy() {

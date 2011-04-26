@@ -5,6 +5,8 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Collection;
 
+import javax.net.ssl.SSLEngine;
+
 import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -22,13 +24,17 @@ import org.jboss.netty.handler.codec.http.HttpHeaders.Names;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
+import org.jboss.netty.handler.ssl.SslHandler;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
+import org.littleshoot.proxy.KeyStoreManager;
+import org.littleshoot.proxy.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Handler that relays traffic to another proxy.
+ * Handler that relays traffic to another proxy, dispatching between 
+ * appropriate proxies depending on the type of request.
  */
 public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
@@ -93,6 +99,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
      */
     private boolean proxying;
 
+    private final KeyStoreManager keyStoreManager;
+
     /**
      * Creates a new handler that reads incoming HTTP requests and dispatches
      * them to proxies as appropriate.
@@ -102,13 +110,16 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * status.
      * @param whitelist The list of sites to proxy.
      * @param p2pClient The client for creating P2P connections.
+     * @param keyStoreManager Keeps track of all trusted keys. 
      */
     public DispatchingProxyRelayHandler(final ProxyProvider proxyProvider,
         final ProxyStatusListener proxyStatusListener, 
-        final Collection<String> whitelist, final XmppP2PClient p2pClient) {
+        final Collection<String> whitelist, final XmppP2PClient p2pClient, 
+        final KeyStoreManager keyStoreManager) {
         this.proxyProvider = proxyProvider;
         this.proxyStatusListener = proxyStatusListener;
         this.whitelist = whitelist;
+        this.keyStoreManager = keyStoreManager;
         this.anonymousPeerRequestProcessor =
             new PeerHttpRequestProcessor(new Proxy() {
                 public InetSocketAddress getProxy() {
@@ -132,9 +143,34 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             },  proxyStatusListener, p2pClient);
         
         this.proxyRequestProcessor =
-            new ProxyHttpRequestProcessor(proxyProvider, proxyStatusListener);
+            new DefaultHttpRequestProcessor(proxyStatusListener,
+                new HttpRequestTransformer() {
+                    public void transform(final HttpRequest request, 
+                        final InetSocketAddress proxyAddress) {
+                        // Does nothing.
+                    }
+                }, false,
+                new Proxy() {
+                    public URI getPeerProxy() {
+                        throw new UnsupportedOperationException(
+                            "Peer proxy not supported here.");
+                    }
+                    public InetSocketAddress getProxy() {
+                        return proxyProvider.getProxy();
+                    }
+                }, this.keyStoreManager);
         this.laeRequestProcessor =
-            new LaeHttpRequestProcessor(proxyProvider, proxyStatusListener);
+            new DefaultHttpRequestProcessor(proxyStatusListener,
+                new LaeHttpRequestTransformer(), true,
+                new Proxy() {
+                    public URI getPeerProxy() {
+                        throw new UnsupportedOperationException(
+                            "Peer proxy not supported here.");
+                    }
+                    public InetSocketAddress getProxy() {
+                        return proxyProvider.getLaeProxy();
+                    }
+            }, this.keyStoreManager);
     }
 
     @Override
@@ -187,13 +223,12 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         this.proxying = 
             DomainWhitelister.isWhitelisted(uriToCheck, whitelist);
         
-        if (request.isChunked()) {
-            readingChunks = true;
-        } else {
-            readingChunks = false;
-        }
-        
         if (proxying) {
+            if (request.isChunked()) {
+                readingChunks = true;
+            } else {
+                readingChunks = false;
+            }
             return dispatchProxyRequest(ctx, me);
         } else {
             log.info("Not proxying!");
@@ -244,7 +279,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 this.trustedPeerRequestProcessor.processRequest(
                     browserToProxyChannel, ctx, me);
                 return this.trustedPeerRequestProcessor;
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -262,6 +297,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             
         } 
         if (this.proxyRequestProcessor.hasProxy()) {
+            log.info("Using standard proxy");
             try {
                 this.proxyRequestProcessor.processRequest(
                     browserToProxyChannel, ctx, me);
@@ -295,6 +331,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     }
 
     private boolean isLae(final HttpRequest request) {
+        final String uri = request.getUri();
+        if (uri.contains("youtube.com")) {
+            log.info("NOT USING LAE FOR YOUTUBE");
+            return false;
+        }
         final HttpMethod method = request.getMethod();
         if (method == HttpMethod.GET) {
             return true;
@@ -333,25 +374,28 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     
     private ChannelFuture openOutgoingRelayChannel(
         final ChannelHandlerContext ctx, final HttpRequest request) {
-        browserToProxyChannel.setReadable(false);
+        this.browserToProxyChannel.setReadable(false);
 
         // Start the connection attempt.
         final ClientBootstrap cb = 
             new ClientBootstrap(LanternUtils.clientSocketChannelFactory);
         
         final ChannelPipeline pipeline = cb.getPipeline();
+        final SslContextFactory sslFactory =
+            new SslContextFactory(this.keyStoreManager);
+        final SSLEngine engine =
+            sslFactory.getClientContext().createSSLEngine();
+        engine.setUseClientMode(true);
+        pipeline.addLast("ssl", new SslHandler(engine));
         pipeline.addLast("encoder", new HttpRequestEncoder());
         pipeline.addLast("handler", 
-            new HttpConnectRelayingHandler(browserToProxyChannel, null));
+            new HttpConnectRelayingHandler(this.browserToProxyChannel, null));
         
         log.info("Connecting to relay proxy");
         final InetSocketAddress isa = this.proxyProvider.getProxy();
         final ChannelFuture cf = cb.connect(isa);
 
-        //this.laeOutboundChannelFuture = cf;
-        //this.outboundChannel = cf.getChannel();
         log.info("Got an outbound channel on: {}", hashCode());
-        
         final ChannelPipeline browserPipeline = ctx.getPipeline();
         browserPipeline.remove("encoder");
         browserPipeline.remove("decoder");

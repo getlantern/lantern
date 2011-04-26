@@ -1,0 +1,31 @@
+package org.lantern;
+
+import java.net.InetSocketAddress;
+
+import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class LaeHttpRequestTransformer implements HttpRequestTransformer {
+
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
+    public void transform(final HttpRequest request,
+        final InetSocketAddress proxyAddress) {
+        final String uri = request.getUri();
+        
+        final String host = proxyAddress.getHostName();
+        final String proxyBaseUri = "https://" + host;
+        if (!uri.startsWith(proxyBaseUri)) {
+            request.setHeader("Host", host);
+            final String scheme = uri.substring(0, uri.indexOf(':'));
+            final String rest = uri.substring(scheme.length() + 3);
+            final String proxyUri = proxyBaseUri + "/" + scheme + "/" + rest;
+            log.debug("proxyUri: " + proxyUri);
+            request.setUri(proxyUri);
+        } else {
+            log.info("NOT MODIFYING URI -- ALREADY HAS FREELANTERN");
+        }
+    }
+
+}
