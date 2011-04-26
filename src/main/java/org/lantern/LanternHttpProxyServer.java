@@ -145,7 +145,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                 log.info("Building pipeline...");
                 final SimpleChannelUpstreamHandler handler = 
                     new DispatchingProxyRelayHandler(xmpp, xmpp, whitelist, 
-                        xmpp.getP2PClient());
+                        xmpp.getP2PClient(), keyStoreManager);
                 final ChannelPipeline pipeline = pipeline();
                 pipeline.addLast("decoder", new HttpRequestDecoder());
                 pipeline.addLast("encoder", new ProxyHttpResponseEncoder());
