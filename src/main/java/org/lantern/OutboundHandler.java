@@ -18,6 +18,10 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Handles connections from the local proxy to external proxies, relaying
+ * data back to the original channel to the browser.
+ */
 public class OutboundHandler extends SimpleChannelUpstreamHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -154,6 +158,7 @@ public class OutboundHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void channelClosed(final ChannelHandlerContext ctx, 
         final ChannelStateEvent e) throws Exception {
+        log.info("Channel to external proxy closed");
         LanternUtils.closeOnFlush(browserToProxyChannel);
     }
 
