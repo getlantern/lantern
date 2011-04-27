@@ -22,5 +22,5 @@ VERSION=$1
 
 mv install/Lantern.dmg lantern-$VERSION.dmg
 aws -putp lantern lantern-$VERSION.dmg
+echo "Uploaded lantern to http://cdn.bravenewsoftware.org/lantern-$VERSION.dmg"
 
-#scp install/Lantern.exe afisk@10.0.46.68:/home/afisk || die "Could not copy file"
