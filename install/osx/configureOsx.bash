@@ -21,6 +21,7 @@ PLIST_INSTALL_FULL=/Applications/Lantern.app/Contents/Resources/app/$PLIST_FILE
 LAUNCHD_PLIST=$PLIST_DIR/$PLIST_FILE
 
 echo "Copying launchd plist file"
+test -f $PLIST_INSTALL_FULL || die "plist file does not exist at $PLIST_INSTALL_FULL?"
 cp $PLIST_INSTALL_FULL $PLIST_DIR || die "Could not copy plist file from $PLIST_INSTALL_FULL to $PLIST_DIR"
 
 echo "Changing permissions on launchd plist file"
