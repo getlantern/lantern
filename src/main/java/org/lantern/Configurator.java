@@ -82,6 +82,8 @@ public class Configurator {
             public void run() {
                 CommonUtils.nativeCall("networksetup -setwebproxystate Airport off");
                 CommonUtils.nativeCall("networksetup -setwebproxystate Ethernet off");
+                CommonUtils.nativeCall("networksetup -setsecurewebproxystate Airport off");
+                CommonUtils.nativeCall("networksetup -setsecurewebproxystate Ethernet off");
             }
             
         }, "Unset-Web-Proxy-OSX");
