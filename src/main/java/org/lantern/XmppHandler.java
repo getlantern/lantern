@@ -18,10 +18,12 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.net.ServerSocketFactory;
@@ -53,6 +55,7 @@ import org.lastbamboo.jni.JLibTorrent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.p2p.P2P;
 import org.littleshoot.proxy.KeyStoreManager;
+import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -99,7 +102,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
      * Collection of Lantern hub addresses we've sent info requests to.
      */
     private final Collection<String> infoRequestSent = new HashSet<String>();
-    
+
     private final MessageListener typedListener = new MessageListener() {
         public void processMessage(final Chat ch, final Message msg) {
             final String part = ch.getParticipant();
@@ -367,7 +370,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             }
         }
         else if (isLanternJid(from)) {
-            this.trustedPeers.add(from);
             addOrRemovePeer(p, from, xmpp);
         }
     }
@@ -383,6 +385,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
         if (p.isAvailable()) {
             log.info("Adding from to peer JIDs: {}", from);
+            this.trustedPeers.add(from);
+            
+            /*
             final Message msg = new Message();
             msg.setProperty(P2PConstants.MESSAGE_TYPE, 
                 XmppMessageConstants.INFO_REQUEST_TYPE);
@@ -392,14 +397,20 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             msg.setProperty(P2PConstants.MAC, LanternUtils.getMacAddress());
             msg.setProperty(P2PConstants.CERT,
                 this.keyStoreManager.getBase64Cert());
+            
+            msg.setProperty(P2PConstants.SECRET_KEY, getSecretKey(from));
+            
             final ChatManager cm = xmpp.getChatManager();
             final Chat chat = cm.createChat(from, typedListener);
             try {
                 log.info("Sending INFO request to: {}", from);
-                chat.sendMessage(msg);
+                //chat.sendMessage(msg);
+                
+                this.trustedPeers.add(from);
             } catch (final XMPPException e) {
                 log.info("Could not send message to peer", e); 
             }
+            */
         }
         else {
             log.info("Removing JID for peer '"+from+"' with presence: {}", p);
@@ -463,11 +474,33 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             }
         }
         
-        final String mac =
-            (String) msg.getProperty(P2PConstants.MAC);
+        //final String mac =
+        //    (String) msg.getProperty(P2PConstants.MAC);
         final String base64Cert =
             (String) msg.getProperty(P2PConstants.CERT);
         log.info("Base 64 cert: {}", base64Cert);
+        
+        final String secret =
+            (String) msg.getProperty(P2PConstants.SECRET_KEY);
+        log.info("Secret key: {}", secret);
+        if (StringUtils.isNotBlank(secret)) {
+            final URI uri;
+            try {
+                uri = new URI(chat.getParticipant());
+            } catch (final URISyntaxException e) {
+                log.error("Could not create URI from: {}", 
+                    chat.getParticipant());
+                return;
+            }
+            synchronized (peerProxySet) {
+                if (!peerProxySet.contains(uri)) {
+                    peerProxies.add(uri);
+                    peerProxySet.add(uri);
+                }
+            }
+        }
+        
+        /*
         if (StringUtils.isNotBlank(base64Cert)) {
             log.info("Got certificate:\n"+
                 new String(Base64.decodeBase64(base64Cert)));
@@ -495,6 +528,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 log.error("Could not add cert??", e);
             }
         }
+        */
     }
 
     private void addProxy(final String cur, final Chat chat) {
@@ -566,6 +600,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             }
         }
     }
+    
+    private final Map<String, String> secretKeys = 
+        new ConcurrentHashMap<String, String>();
 
     private void sendInfoResponse(final Chat ch) {
         final Message msg = new Message();
@@ -578,10 +615,22 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         msg.setProperty(XmppMessageConstants.PROXIES, "");
         msg.setProperty(P2PConstants.MAC, LanternUtils.getMacAddress());
         msg.setProperty(P2PConstants.CERT,this.keyStoreManager.getBase64Cert());
+        msg.setProperty(P2PConstants.SECRET_KEY, getSecretKey(ch.getParticipant()));
         try {
             ch.sendMessage(msg);
         } catch (final XMPPException e) {
             log.error("Could not send info message", e);
+        }
+    }
+
+    private String getSecretKey(final String jid) {
+        synchronized (secretKeys) {
+            if (secretKeys.containsKey(jid)) {
+                return secretKeys.get(jid);
+            }
+            final String key = CommonUtils.generateBase64Key();
+            secretKeys.put(jid, key);
+            return key;
         }
     }
 

@@ -44,6 +44,11 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     }
     
     public LanternKeyStoreManager(final boolean regenerate) {
+        if (!CONFIG_DIR.isDirectory()) {
+            if (!CONFIG_DIR.mkdir()) {
+                log.error("Could not create config dir!! "+CONFIG_DIR);
+            }
+        }
         if(regenerate) {
             reset(LanternUtils.getMacAddress());
         }
@@ -97,9 +102,9 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
         // Note we use DSA instead of RSA because apparently only the JDK 
         // has RSA available.
-        CommonUtils.nativeCall("keytool", "-genkey", "-alias", macAddress, "-keysize", 
-            "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
-            "CN="+macAddress, "-keypass", PASS, "-storepass", 
+        CommonUtils.nativeCall("keytool", "-genkey", "-alias", macAddress, 
+            "-keysize", "1024", "-validity", "36500", "-keyalg", "DSA", 
+            "-dname", "CN="+macAddress, "-keypass", PASS, "-storepass", 
             PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
         
         waitForFile(KEYSTORE_FILE);
@@ -116,7 +121,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             final InputStream is = new FileInputStream(CERT_FILE);
             localCert = Base64.encodeBase64String(IOUtils.toByteArray(is));
         } catch (final FileNotFoundException e) {
-            log.error("Cert file not found?", e);
+            log.error("Cert file not found at "+CERT_FILE, e);
             throw new Error("Cert file not found", e);
         } catch (final IOException e) {
             log.error("Could not base 64 encode cert?", e);
