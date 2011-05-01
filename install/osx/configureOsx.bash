@@ -10,7 +10,11 @@ echo "Running as `whoami`"
 echo "USER is $USER"
 echo "User name is $userName"
 echo "Executing perl replace on Info.plist"
+
+# The following test is due to bizarre installer behavior where it installs to 
+# /Applications/Lantern.app sometimes and /Applications/Lantern/Lantern.app in others.
 APP_PATH=/Applications/Lantern/Lantern.app
+test -d $APP_PATH || APP_PATH=/Applications/Lantern.app
 perl -pi -e "s/<dict>/<dict><key>LSUIElement<\/key><string>1<\/string>/g" $APP_PATH/Contents/Info.plist || die "Could not fix Info.plist"
 
 echo "Running in `pwd`"
