@@ -12,9 +12,6 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.UnknownHostException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
@@ -24,15 +21,6 @@ import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
-
-import javax.crypto.BadPaddingException;
-import javax.crypto.Cipher;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.KeyGenerator;
-import javax.crypto.Mac;
-import javax.crypto.NoSuchPaddingException;
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -50,7 +38,6 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
-import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,8 +105,6 @@ public class LanternUtils {
     
     private static final File UNZIPPED = new File("GeoIP.dat");
     
-    private final static KeyGenerator keyGenerator;
-    
     private static LookupService lookupService;
     
     static {
@@ -143,11 +128,6 @@ public class LanternUtils {
                     LookupService.GEOIP_MEMORY_CACHE);
         } catch (final IOException e) {
             lookupService = null;
-        }
-        try {
-            keyGenerator = KeyGenerator.getInstance("AES");
-        } catch (final NoSuchAlgorithmException e) {
-            throw new IllegalArgumentException("No AES?", e);
         }
     }
     
@@ -376,140 +356,6 @@ public class LanternUtils {
         }
         return false;
     }
-    
-
-    public static byte[] encode(final byte[] key, final String msg) {
-        /*
-        0                   1                   2                   3
-        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |    Version    |         Message Length        |               
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |                                                               |
-       |                        Message (N bytes)                      |
-       |                                                               |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |                          MAC (N bytes)                        |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       */
-        final SecretKeySpec skeySpec = new SecretKeySpec(key, "AES");
-        final Cipher cipher;
-        final byte[] cipherText;
-        try {
-            cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.ENCRYPT_MODE, skeySpec);
-            cipherText = cipher.doFinal(msg.getBytes());
-        } catch (final NoSuchAlgorithmException e) {
-            throw new IllegalArgumentException("No AES?", e);
-        } catch (final NoSuchPaddingException e) {
-            throw new IllegalArgumentException("Wrong padding?", e);
-        } catch (final InvalidKeyException e) {
-            throw new IllegalArgumentException("Bad key?", e);
-        } catch (final IllegalBlockSizeException e) {
-            throw new IllegalArgumentException("Bad block size?", e);
-        } catch (final BadPaddingException e) {
-            throw new IllegalArgumentException("Bad padding?", e);
-        }
-        
-        final byte[] version = new byte[] {1};
-        final int big = (cipherText.length & 0x0000FF00) >> 8;
-        final byte[] length = new byte[] {
-            (byte) big, 
-            (byte) (cipherText.length & 0x000000FF)
-        };
-
-        final Mac mac;
-        try {
-            mac = Mac.getInstance("hmacSHA256");
-            mac.init(skeySpec);
-        } catch (final NoSuchAlgorithmException e) {
-            throw new IllegalArgumentException("No HMAC 256?", e);
-        } catch (final InvalidKeyException e) {
-            throw new IllegalArgumentException("Bad key?", e);
-        }
-
-        mac.update(version);
-        mac.update(length);
-        mac.update(cipherText);
-        final byte[] rawMac = mac.doFinal();
-        return CommonUtils.combine(version, length, cipherText, rawMac);
-    }
-    
-    public static byte[] decode(final byte[] key, final byte[] msg) {
-        /*
-        0                   1                   2                   3
-        0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |    Version    |         Message Length        |               
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |                                                               |
-       |                        Message (N bytes)                      |
-       |                                                               |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       |                          MAC (N bytes)                        |
-       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-       */
-        final byte version = msg[0];
-        final short size = (short) ((msg[1] << 8) + msg[2]);
-        
-        final byte[] cipherText = new byte[size];
-        System.arraycopy(msg, 3, cipherText, 0, cipherText.length);
-        
-        final byte[] rawMac = new byte[32];
-        System.arraycopy(msg, 3 + cipherText.length, rawMac, 0, rawMac.length);
-        
-        final SecretKeySpec skeySpec = new SecretKeySpec(key, "AES");
-        final Cipher cipher;
-        final byte[] plainText;
-        try {
-            cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.DECRYPT_MODE, skeySpec);
-            plainText = cipher.doFinal(cipherText);
-        } catch (final NoSuchAlgorithmException e) {
-            throw new IllegalArgumentException("No AES?", e);
-        } catch (final NoSuchPaddingException e) {
-            throw new IllegalArgumentException("No padding?", e);
-        } catch (final InvalidKeyException e) {
-            throw new IllegalArgumentException("Bad key?", e);
-        } catch (final IllegalBlockSizeException e) {
-            throw new IllegalArgumentException("Bad block size?", e);
-        } catch (final BadPaddingException e) {
-            throw new IllegalArgumentException("Bad padding?", e);
-        }
-        
-        final byte[] length = new byte[] {
-            msg[1], 
-            msg[2]
-        };
-        
-        
-        // Does the mac include the length and the version? Probably.
-        final Mac mac256;
-        try {
-            mac256 = Mac.getInstance("hmacSHA256");
-            mac256.init(skeySpec);
-        } catch (final NoSuchAlgorithmException e) {
-            throw new IllegalArgumentException("No hmacSHA256?", e);
-        } catch (final InvalidKeyException e) {
-            throw new IllegalArgumentException("Bad key?", e);
-        }
-        mac256.update(version);
-        mac256.update(length);
-        mac256.update(cipherText);
-        final byte[] mac = mac256.doFinal();
-
-        // Now make sure the MACs match.
-        if (!Arrays.equals(mac, rawMac)) {
-            LOG.error("MACs don't match!!");
-            throw new IllegalArgumentException("Macs don't match!!");
-        }
-        return plainText;
-    }
-
-    public static byte[] generateKey() {
-        // TODO: Switch to 256 or higher.
-        keyGenerator.init(128); 
-        final SecretKey skey = keyGenerator.generateKey();
-        return skey.getEncoded();
-    }
 }
+
+

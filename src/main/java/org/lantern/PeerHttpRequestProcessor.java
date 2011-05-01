@@ -64,7 +64,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
     private static final ChannelBuffer LAST_CHUNK =
         copiedBuffer("0\r\n\r\n", CharsetUtil.US_ASCII);
     
-    private URI proxyAddress;
+    private URI peerInfo;
     private final ProxyStatusListener proxyStatusListener;
     private final P2PClient p2pClient;
     
@@ -91,11 +91,11 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
     }
 
     public boolean hasProxy() {
-        if (this.proxyAddress != null) {
+        if (this.peerInfo != null) {
             return true;
         }
-        this.proxyAddress = this.proxy.getPeerProxy();
-        if (this.proxyAddress != null) {
+        this.peerInfo = this.proxy.getPeerProxy();
+        if (this.peerInfo != null) {
             return true;
         }
         return false;
@@ -117,7 +117,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         throws IOException {
         if (this.socket == null) {
             this.socket = LanternUtils.openOutgoingPeerSocket(
-                browserToProxyChannel, this.proxyAddress, ctx, 
+                browserToProxyChannel, this.peerInfo, ctx, 
                 this.proxyStatusListener, this.p2pClient, peerFailureCount);
         }
         // We need to convert the Netty message to raw bytes for sending over
@@ -136,7 +136,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         final ByteBuffer buf = cb.toByteBuffer();
         final byte[] data = ByteBufferUtils.toRawBytes(buf);
         try {
-            log.info("Writing {}", new String(data));
+            //log.info("Writing {}", new String(data));
             final OutputStream os = this.socket.getOutputStream();
             os.write(data);
         } catch (final IOException e) {
