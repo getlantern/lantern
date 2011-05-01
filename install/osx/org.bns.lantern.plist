@@ -7,7 +7,7 @@
 		<string>org.bns.lantern</string>
 		<key>ProgramArguments</key>
 		<array>
-			<string>/Applications/Lantern.app/Contents/MacOS/JavaApplicationStub</string>
+			<string>/Applications/Lantern/Lantern.app/Contents/MacOS/JavaApplicationStub</string>
 			<string>launchd</string>
 		</array>
 
