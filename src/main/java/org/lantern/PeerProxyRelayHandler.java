@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
@@ -33,9 +32,6 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
     
     private volatile long messagesReceived = 0L;
 
-    private final URI peerUri;
-
-
     private Channel inboundChannel;
 
     private final ProxyStatusListener proxyStatusListener;
@@ -54,6 +50,8 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
      */
     private static Map<URI, AtomicInteger> peerFailureCount =
         new ConcurrentHashMap<URI, AtomicInteger>();
+
+    private final URI peerUri;
     
     /**
      * Creates a new relayer to a peer proxy.
@@ -112,7 +110,7 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
             peerConnectionTimes.put(this.peerUri, System.currentTimeMillis());
             peerFailureCount.put(this.peerUri, new AtomicInteger(0));
             inboundChannel.setReadable(true);
-            startReading();
+            //startReading();
         } catch (final NoAnswerException nae) {
             // This is tricky, as it can mean two things. First, it can mean
             // the XMPP message was somehow lost. Second, it can also mean
@@ -169,15 +167,30 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
         }
     }
     
-    private void startReading() {
+    private void startReading(final byte[] key) {
         final Runnable runner = new Runnable() {
 
             public void run() {
-                final byte[] buffer = new byte[4096];
-                long count = 0;
-                int n = 0;
+                //final byte[] buffer = new byte[4096];
+                //long count = 0;
+                //int n = 0;
                 try {
                     final InputStream is = outgoingSocket.getInputStream();
+                    
+                    // This will keep going until the stream is closed. We
+                    // just need to know the key!!
+                    /*
+                    CommonUtils.decode(key, is, new DataListener() {
+                        
+                        public void onData(final byte[] data) {
+                            final ChannelBuffer buf =
+                                ChannelBuffers.copiedBuffer(data, 0, data.length);
+                            inboundChannel.write(buf);
+                        }
+                    });
+                    */
+                    // TODO: We need to decode all incoming data here.
+                    /*
                     while (-1 != (n = is.read(buffer))) {
                         //log.info("Writing response data: {}", new String(buffer, 0, n));
                         // We need to make a copy of the buffer here because
@@ -189,6 +202,7 @@ public class PeerProxyRelayHandler extends SimpleChannelUpstreamHandler {
                         count += n;
                         log.info("In while");
                     }
+                    */
                     log.info("Out of while");
                     LanternUtils.closeOnFlush(inboundChannel);
 
