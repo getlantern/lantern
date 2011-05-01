@@ -470,6 +470,9 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                           </void>
                         </array>
                       </void>
+                      <void property="overwriteMode">
+                        <object class="com.install4j.api.context.OverwriteMode" field="IF_NEWER_OTHERWISE_ASK" />
+                      </void>
                       <void property="triggerReboot">
                         <boolean>false</boolean>
                       </void>
@@ -495,6 +498,9 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                             </object>
                           </void>
                         </array>
+                      </void>
+                      <void property="overwriteMode">
+                        <object class="com.install4j.api.context.OverwriteMode" field="IF_NEWER_OTHERWISE_ASK" />
                       </void>
                     </object>
                   </java>
@@ -588,48 +594,6 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                       </void>
                       <void property="logArguments">
                         <boolean>true</boolean>
-                      </void>
-                      <void property="stderrFile">
-                        <object class="java.io.File">
-                          <string>${installer:sys.userHome}/install4jerr.txt</string>
-                        </object>
-                      </void>
-                      <void property="stdoutFile">
-                        <object class="java.io.File">
-                          <string>${installer:sys.userHome}/install4jout.txt</string>
-                        </object>
-                      </void>
-                      <void property="wait">
-                        <boolean>true</boolean>
-                      </void>
-                      <void property="workingDirectory">
-                        <object class="java.io.File">
-                          <string>${installer:sys.installationDir}</string>
-                        </object>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition />
-              </action>
-              <action name="" id="341" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="false" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="We're sorry, but there was an error installing Lantern.">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
-                      <void property="arguments">
-                        <array class="java.lang.String" length="1">
-                          <void index="0">
-                            <string>${installer:sys.userName}</string>
-                          </void>
-                        </array>
-                      </void>
-                      <void property="executable">
-                        <object class="java.io.File">
-                          <string>configureOsx.bash</string>
-                        </object>
-                      </void>
-                      <void property="executionType">
-                        <object class="com.install4j.runtime.beans.actions.misc.ExecutionType" field="ADMIN" />
                       </void>
                       <void property="stderrFile">
                         <object class="java.io.File">
@@ -922,17 +886,10 @@ Lantern requires your Google Account credentials to access the Internet. What yo
       <excludedComponents />
       <includedDownloadableComponents />
     </windows>
-    <macos name="Mac OS X Single Bundle" id="157" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" customInstallBaseDir="" contentFilesType="1" downloadURL="" launcherId="27">
+    <macos name="Mac OS X Single Bundle" id="157" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" customInstallBaseDir="/Applications" contentFilesType="1" downloadURL="" launcherId="27">
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
       <exclude>
-        <entry location="jnltorrent.dll" fileType="regular" />
-        <entry location="Lantern-0.2.exe" fileType="regular" />
-        <entry location="Lantern.bat" fileType="regular" />
-        <entry location="Lantern.dmg" fileType="regular" />
-        <entry location="Lantern.tgz" fileType="regular" />
-        <entry location="log.txt" fileType="regular" />
-        <entry location="postflight" fileType="regular" />
         <entry location=".i4j_fileset_145" fileType="regular" />
       </exclude>
       <variables />
@@ -966,6 +923,6 @@ Lantern requires your Google Account credentials to access the Internet. What yo
   <buildIds buildAll="false">
     <mediaSet refId="157" />
   </buildIds>
-  <buildOptions verbose="false" faster="true" debug="true" />
+  <buildOptions verbose="true" faster="true" debug="true" />
 </install4j>
 
