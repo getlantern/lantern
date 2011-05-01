@@ -21,6 +21,7 @@ VERSION=$1
 /Applications/install4j\ 5/bin/install4jc -m macos -r $VERSION ./install/lantern.install4j
 
 mv install/Lantern.dmg lantern-$VERSION.dmg
+echo "Uploading to http://cdn.bravenewsoftware.org/lantern-$VERSION.dmg..."
 aws -putp lantern lantern-$VERSION.dmg
 echo "Uploaded lantern to http://cdn.bravenewsoftware.org/lantern-$VERSION.dmg"
 
