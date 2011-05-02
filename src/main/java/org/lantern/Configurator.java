@@ -19,6 +19,23 @@ public class Configurator {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     public void configure() {
+        final File home = new File(System.getProperty("user.home"), ".lantern");
+        if (!home.isDirectory()) {
+            if (!home.mkdir()) {
+                log.error("Could not make lantern directory?");
+            }
+        }
+        final File props = new File(home, "lantern.properties");
+        if (!props.isFile()) {
+            System.out.println("PLEASE ENTER YOUR GOOGLE ACCOUNT DATA IN " + props+
+                "in the following form:" +
+                "\ngoogle.user=your_name@gmail.com\ngoogle.pwd=your_password");
+            try {
+                props.createNewFile();
+            } catch (IOException e) {
+                log.error("Could not create file?", e);
+            }
+        }
         final File git = new File(".git");
         if (git.isDirectory()) {
             log.info("Running from repository...not auto-configuring proxy.");
