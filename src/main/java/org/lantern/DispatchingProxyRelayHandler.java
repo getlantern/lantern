@@ -56,6 +56,14 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     private final ProxyProvider proxyProvider;
 
     private static final long REQUEST_SIZE_LIMIT = 1024 * 1024 * 10 - 4096;
+
+    private static final boolean PROXIES_ACTIVE = true;
+
+    private static final boolean ANONYMOUS_ACTIVE = true;
+
+    private static final boolean TRUSTED_ACTIVE = true;
+
+    private static final boolean LAE_ACTIVE = true;
     
     private final HttpRequestProcessor unproxiedRequestProcessor = 
         new HttpRequestProcessor() {
@@ -264,7 +272,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             }
         }
         
-        if (isLae(request) && this.laeRequestProcessor.hasProxy()) {
+        if (LAE_ACTIVE && isLae(request) && this.laeRequestProcessor.hasProxy()) {
             try {
                 this.laeRequestProcessor.processRequest(browserToProxyChannel, 
                     ctx, me);
@@ -274,7 +282,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 e.printStackTrace();
             }
         } 
-        if (this.trustedPeerRequestProcessor.hasProxy())  {
+        if (TRUSTED_ACTIVE && this.trustedPeerRequestProcessor.hasProxy())  {
             try {
                 this.trustedPeerRequestProcessor.processRequest(
                     browserToProxyChannel, ctx, me);
@@ -284,7 +292,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 e.printStackTrace();
             }
         } 
-        if (isAnonymous(request) && 
+        if (ANONYMOUS_ACTIVE && isAnonymous(request) && 
             this.anonymousPeerRequestProcessor.hasProxy()) {
             try {
                 this.anonymousPeerRequestProcessor.processRequest(
@@ -296,7 +304,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             }
             
         } 
-        if (this.proxyRequestProcessor.hasProxy()) {
+        if (PROXIES_ACTIVE && this.proxyRequestProcessor.hasProxy()) {
             log.info("Using standard proxy");
             try {
                 this.proxyRequestProcessor.processRequest(
