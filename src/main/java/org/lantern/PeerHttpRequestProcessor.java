@@ -29,6 +29,9 @@ import org.littleshoot.util.ByteBufferUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * HTTP request processor that sends requests to peers.
+ */
 public class PeerHttpRequestProcessor implements HttpRequestProcessor {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -98,6 +101,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         if (this.peerInfo != null) {
             return true;
         }
+        log.info("No peer proxies!");
         return false;
     }
     

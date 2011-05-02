@@ -31,7 +31,6 @@ import javax.net.SocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
@@ -134,8 +133,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private final int sslProxyRandomPort;
 
-    private final Collection<String> trustedPeers = new HashSet<String>();
-
     /**
      * Creates a new XMPP handler.
      * 
@@ -178,15 +175,17 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 new JLibTorrent(Arrays.asList(new File (new File(".."), 
                     libName), new File (libName)), true);
             
-            final SocketFactory socketFactory = newTlsSocketFactory();
-            final ServerSocketFactory serverSocketFactory =
-                newTlsServerSocketFactory();
-            
+            //final SocketFactory socketFactory = newTlsSocketFactory();
+            //final ServerSocketFactory serverSocketFactory =
+            //    newTlsServerSocketFactory();
+
             final InetSocketAddress plainTextProxyRelayAddress = 
                 new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
+            
             this.client = P2P.newXmppP2PHttpClient("shoot", libTorrent, 
                 libTorrent, new InetSocketAddress(this.sslProxyRandomPort), 
-                socketFactory, serverSocketFactory, plainTextProxyRelayAddress);
+                SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
+                plainTextProxyRelayAddress);
 
             // This is a global, backup listener added to the client. We might
             // get notifications of messages twice in some cases, but that's
@@ -333,7 +332,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 roster.getPresences(entry.getUser());
             while (presences.hasNext()) {
                 final Presence p = presences.next();
-                //log.info("Processing presence from roster config");
                 processPresence(p, xmpp);
             }
         }
@@ -376,6 +374,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private void addOrRemovePeer(final Presence p, final String from, 
         final XMPPConnection xmpp) {
+        log.info("Processing peer: {}", from);
         final URI uri;
         try {
             uri = new URI(from);
@@ -385,7 +384,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
         if (p.isAvailable()) {
             log.info("Adding from to peer JIDs: {}", from);
-            this.trustedPeers.add(from);
+            addPeerProxy(uri);
             
             /*
             final Message msg = new Message();
@@ -439,10 +438,17 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private void processTypedMessage(final Message msg, final Integer type, 
         final Chat chat) {
         final String from = chat.getParticipant();
+        final URI uri;
+        try {
+            uri = new URI(from);
+        } catch (final URISyntaxException e) {
+            log.error("Could not create URI from: {}", from);
+            return;
+        }
         log.info("Processing typed message from {}", from);
-        if (!this.trustedPeers.contains(from)) {
+        if (!this.peerProxySet.contains(uri)) {
             log.warn("Ignoring message from untrusted peer: {}", from);
-            log.warn("Peer not in: {}", this.trustedPeers);
+            log.warn("Peer not in: {}", this.peerProxySet);
             return;
         }
         switch (type) {
@@ -537,7 +543,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             addLaeProxy(cur, chat);
         } else if (cur.contains("@")) {
             try {
-                addLanternProxy(new URI(cur), chat);
+                addLanternProxy(new URI(cur));
             } catch (final URISyntaxException e) {
                 log.info("Error with proxy URI", e);
             }
@@ -546,11 +552,22 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
     }
 
-    private void addLanternProxy(final URI cur, final Chat chat) {
+    private void addLanternProxy(final URI cur) {
         log.info("Adding Lantern proxy");
-        synchronized (lanternProxySet) {
-            this.lanternProxySet.add(cur);
-            this.lanternProxies.add(cur);
+        addPeerProxy(cur, this.lanternProxySet, this.lanternProxies);
+    }
+    
+    private void addPeerProxy(final URI cur) {
+        log.info("Adding Lantern proxy");
+        addPeerProxy(cur, this.peerProxySet, this.peerProxies);
+    }
+    
+    private void addPeerProxy(final URI cur, final Set<URI> peerSet, 
+        final Queue<URI> peerQueue) {
+        log.info("Adding peeer proxy");
+        synchronized (peerSet) {
+            peerSet.add(cur);
+            peerQueue.add(cur);
         }
     }
 
@@ -685,9 +702,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     }
     
     public InetSocketAddress getProxy() {
-        //return getProxy(this.proxySet, this.proxies);
-        return new InetSocketAddress("75.101.134.244", 7777);
-        //return new InetSocketAddress("dev.littleshoot.org", 7777);
+        return getProxy(this.proxySet, this.proxies);
     }
     
     public URI getLanternProxy() {
