@@ -208,6 +208,7 @@ public class LanternUtils {
         try {
             LOG.info("Creating a new socket to {}", uri);
             final Socket sock = p2pClient.newSocket(uri);
+            LOG.info("Got outgoing peer socket: {}", sock);
             browserToProxyChannel.setReadable(true);
             startReading(sock, browserToProxyChannel);
             return sock;
@@ -259,9 +260,7 @@ public class LanternUtils {
                             ChannelBuffers.copiedBuffer(buffer, 0, n);
                         channel.write(buf);
                         count += n;
-                        LOG.info("In while");
                     }
-                    LOG.info("Out of while");
                     LanternUtils.closeOnFlush(channel);
 
                 } catch (final IOException e) {
