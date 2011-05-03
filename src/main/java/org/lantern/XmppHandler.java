@@ -121,8 +121,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             final Integer type = 
                 (Integer) msg.getProperty(P2PConstants.MESSAGE_TYPE);
             if (type != null) {
-                log.info("Processing typed message");
-                processTypedMessage(msg, type, ch);
+                log.info("Not processing typed message");
+                //processTypedMessage(msg, type, ch);
             } 
         }
     };
@@ -435,6 +435,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
     }
     
+    /*
     private void processTypedMessage(final Message msg, final Integer type, 
         final Chat chat) {
         final String from = chat.getParticipant();
@@ -466,6 +467,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 break;
         }
     }
+    */
     
     private void processInfoData(final Message msg, final Chat chat) {
         log.info("Processing INFO data from request or response.");
@@ -622,6 +624,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         new ConcurrentHashMap<String, String>();
 
     private void sendInfoResponse(final Chat ch) {
+        /*
         final Message msg = new Message();
         msg.setProperty(P2PConstants.MESSAGE_TYPE, 
             XmppMessageConstants.INFO_RESPONSE_TYPE);
@@ -629,7 +632,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         // We want to separate out direct friend proxies here from the
         // proxies that are friends of friends. We only want to notify our
         // friends of other direct friend proxies, not friends of friends.
-        msg.setProperty(XmppMessageConstants.PROXIES, "");
+        //msg.setProperty(XmppMessageConstants.PROXIES, "");
         msg.setProperty(P2PConstants.MAC, LanternUtils.getMacAddress());
         msg.setProperty(P2PConstants.CERT,this.keyStoreManager.getBase64Cert());
         msg.setProperty(P2PConstants.SECRET_KEY, getSecretKey(ch.getParticipant()));
@@ -638,6 +641,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         } catch (final XMPPException e) {
             log.error("Could not send info message", e);
         }
+        */
     }
 
     private String getSecretKey(final String jid) {
