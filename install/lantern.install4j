@@ -426,7 +426,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="42" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="42" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="Could not copy FireFox configuration.">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
@@ -453,7 +453,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                     </object>
                   </java>
                 </serializedBean>
-                <condition />
+                <condition>return Util.isWindows();</condition>
               </action>
               <action name="" id="154" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
@@ -479,7 +479,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                     </object>
                   </java>
                 </serializedBean>
-                <condition />
+                <condition>return Util.isMacOS();</condition>
               </action>
               <action name="" id="272" customizedId="" beanClass="com.install4j.runtime.beans.actions.services.InstallServiceAction" enabled="false" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="">
                 <serializedBean>
@@ -524,7 +524,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                     </object>
                   </java>
                 </serializedBean>
-                <condition />
+                <condition>return Util.isMacOS();</condition>
               </action>
               <action name="" id="343" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetModeAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not fix file permissions.">
                 <serializedBean>
@@ -545,7 +545,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                     </object>
                   </java>
                 </serializedBean>
-                <condition />
+                <condition>return Util.isMacOS();</condition>
               </action>
               <action name="" id="430" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="We're sorry, but there was an error installing Lantern.">
                 <serializedBean>
@@ -590,9 +590,9 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                     </object>
                   </java>
                 </serializedBean>
-                <condition />
+                <condition>return Util.isMacOS();</condition>
               </action>
-              <action name="" id="390" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="390" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not execute bat file. Would you like to continue?">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
@@ -614,6 +614,16 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                       <void property="logArguments">
                         <boolean>true</boolean>
                       </void>
+                      <void property="stderrFile">
+                        <object class="java.io.File">
+                          <string>${installer:sys.userHome}/install4jerr.txt</string>
+                        </object>
+                      </void>
+                      <void property="stdoutFile">
+                        <object class="java.io.File">
+                          <string>${installer:sys.userHome}/install4jout.txt</string>
+                        </object>
+                      </void>
                       <void property="wait">
                         <boolean>true</boolean>
                       </void>
@@ -625,7 +635,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                     </object>
                   </java>
                 </serializedBean>
-                <condition />
+                <condition>return Util.isWindows();</condition>
               </action>
             </actions>
             <formComponents />
@@ -662,7 +672,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="87" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="87" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not configure Lantern to run on startup">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction">
@@ -681,7 +691,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                     </object>
                   </java>
                 </serializedBean>
-                <condition />
+                <condition>return Util.isWindows();</condition>
               </action>
               <action name="" id="220" customizedId="" beanClass="com.install4j.runtime.beans.actions.services.StartServiceAction" enabled="false" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="">
                 <serializedBean>
