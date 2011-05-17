@@ -49,14 +49,20 @@ public class Launcher {
         final Configurator config = new Configurator();
         config.configure();
         
-        final KeyStoreManager proxyKeyStore = 
-            new LanternKeyStoreManager(true);
+        //final KeyStoreManager proxyKeyStore = 
+        //    new LanternKeyStoreManager(true);
         final int sslRandomPort = randomPort();
         LOG.info("Running straight HTTP proxy on port: "+sslRandomPort);
+        /*
         final org.littleshoot.proxy.HttpProxyServer sslProxy = 
             new DefaultHttpProxyServer(sslRandomPort,
                 new HashMap<String, HttpFilter>(), null, proxyKeyStore, null);
+               
+        final org.littleshoot.proxy.HttpProxyServer sslProxy = 
+            new DefaultHttpProxyServer(sslRandomPort,
+                new HashMap<String, HttpFilter>(), null, null, null);
         sslProxy.start(false, false);
+         */
         
         // We just use a fixed port for the plain-text proxy on localhost, as
         // there's no reason to randomize it since it's not public.
@@ -73,7 +79,7 @@ public class Launcher {
             new LanternHttpProxyServer(
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
                 LanternConstants.LANTERN_LOCALHOST_HTTPS_PORT, 
-                proxyKeyStore, sslRandomPort,
+                null, sslRandomPort,
                 LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
         server.start();
         
