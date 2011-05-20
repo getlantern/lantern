@@ -140,7 +140,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         final ByteBuffer buf = cb.toByteBuffer();
         final byte[] data = ByteBufferUtils.toRawBytes(buf);
         try {
-            //log.info("Writing {}", new String(data));
+            log.info("Writing {}", new String(data));
             final OutputStream os = this.socket.getOutputStream();
             os.write(data);
         } catch (final IOException e) {
@@ -162,7 +162,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         
         final ByteBuffer buf = cb.toByteBuffer();
         final byte[] data = ByteBufferUtils.toRawBytes(buf);
-        log.info("Writing {}", new String(data));
+        log.info("Writing chunk {}", new String(data));
         final OutputStream os = this.socket.getOutputStream();
         os.write(data);
     }
