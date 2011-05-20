@@ -392,6 +392,9 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         
         // This is slightly odd, as we tunnel SSL inside SSL, but we'd 
         // otherwise just be running an open CONNECT proxy.
+        
+        // It's also necessary to use our own engine here, as we need to trust
+        // the cert from the proxy.
         final SslContextFactory sslFactory =
             new SslContextFactory(this.keyStoreManager);
         final SSLEngine engine =
