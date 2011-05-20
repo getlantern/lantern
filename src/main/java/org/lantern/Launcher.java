@@ -49,8 +49,8 @@ public class Launcher {
         final Configurator config = new Configurator();
         config.configure();
         
-        //final KeyStoreManager proxyKeyStore = 
-        //    new LanternKeyStoreManager(true);
+        final KeyStoreManager proxyKeyStore = 
+            new LanternKeyStoreManager(true);
         final int sslRandomPort = randomPort();
         LOG.info("Running straight HTTP proxy on port: "+sslRandomPort);
         /*
