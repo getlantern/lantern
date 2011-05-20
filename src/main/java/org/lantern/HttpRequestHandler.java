@@ -6,6 +6,7 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.bootstrap.ClientBootstrap;
@@ -15,7 +16,6 @@ import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
-import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
@@ -47,7 +47,7 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         LoggerFactory.getLogger(HttpRequestHandler.class);
     private volatile boolean readingChunks;
     
-    private int browserToProxyConnections = 0;
+    private volatile int browserToProxyConnections = 0;
     
     private final Map<String, ChannelFuture> endpointsToChannelFutures = 
         new ConcurrentHashMap<String, ChannelFuture>();
@@ -55,6 +55,8 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
     private volatile int messagesReceived = 0;
     
     private volatile int numWebConnections = 0;
+    
+    private final AtomicBoolean browserChannelClosed = new AtomicBoolean(false);
     
     /**
      * Note, we *can* receive requests for multiple different sites from the
@@ -342,14 +344,14 @@ public class HttpRequestHandler extends SimpleChannelUpstreamHandler
         };
     }
 
-    
-    public void onRelayChannelClose(final ChannelHandlerContext ctx, 
-        final ChannelStateEvent e, final Channel browserToProxyChannel, 
+    public void onRelayChannelClose(final Channel browserToProxyChannel, 
         final String key) {
         this.numWebConnections--;
         if (this.numWebConnections == 0) {
-            log.info("Closing browser to proxy channel");
-            browserToProxyChannel.close();
+            if (!browserChannelClosed.getAndSet(true)) {
+                //log.warn("Closing browser to proxy channel");
+                ProxyUtils.closeOnFlush(browserToProxyChannel);
+            }
         }
         else {
             log.info("Not closing browser to proxy channel. Still "+
