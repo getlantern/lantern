@@ -6,6 +6,10 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 
+/**
+ * Processor for HTTP requests. Different implementations might go to peers or
+ * other forms of proxies, or even reply directly through a cache.
+ */
 public interface HttpRequestProcessor {
 
     boolean hasProxy();
