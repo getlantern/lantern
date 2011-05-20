@@ -57,7 +57,8 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * channels to the proxy.
      * @param proxyStatusListener The class to notify of changes in the proxy
      * status.
-     * @param keyStoreManager 
+     * @param keyStoreManager Determines whether the proxy should be trusted.
+     * This can be <code>null</code> in some cases.
      */
     public ProxyRelayHandler(final InetSocketAddress proxyAddress, 
         final ProxyStatusListener proxyStatusListener, 
