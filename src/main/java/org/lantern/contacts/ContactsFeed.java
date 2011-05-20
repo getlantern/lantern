@@ -1,12 +1,12 @@
 package org.lantern.contacts;
 
+import java.io.IOException;
+import java.util.List;
+
 import com.google.api.client.googleapis.GoogleTransport;
 import com.google.api.client.googleapis.GoogleUrl;
 import com.google.api.client.http.HttpRequest;
 import com.google.api.client.util.Key;
-
-import java.io.IOException;
-import java.util.List;
 
 /**
  * Feed for Google Contacts.
