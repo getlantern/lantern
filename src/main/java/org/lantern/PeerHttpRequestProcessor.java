@@ -206,12 +206,13 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         }
     }
     
-    private void encodeTrailingHeaders(ChannelBuffer buf, HttpChunkTrailer trailer) {
+    private void encodeTrailingHeaders(final ChannelBuffer buf, 
+        final HttpChunkTrailer trailer) {
         try {
-            for (Map.Entry<String, String> h: trailer.getHeaders()) {
+            for (final Map.Entry<String, String> h: trailer.getHeaders()) {
                 encodeHeader(buf, h.getKey(), h.getValue());
             }
-        } catch (UnsupportedEncodingException e) {
+        } catch (final UnsupportedEncodingException e) {
             throw (Error) new Error().initCause(e);
         }
     }
