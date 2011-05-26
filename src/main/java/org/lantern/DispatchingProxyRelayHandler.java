@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Collection;
+import java.util.concurrent.Executors;
 
 import javax.net.ssl.SSLEngine;
 
@@ -18,6 +19,8 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names;
@@ -65,10 +68,23 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private static final boolean LAE_ACTIVE = true;
     
+    private static final ClientSocketChannelFactory clientSocketChannelFactory =
+        new NioClientSocketChannelFactory(
+            Executors.newCachedThreadPool(),
+            Executors.newCachedThreadPool());
+    
+    static {
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            public void run() {
+                //clientSocketChannelFactory.releaseExternalResources();
+            }
+        }));
+    }
+    
     private final HttpRequestProcessor unproxiedRequestProcessor = 
         new HttpRequestProcessor() {
-            private final HttpRequestHandler requestHandler = 
-                new HttpRequestHandler();
+            private final org.littleshoot.proxy.HttpRequestHandler requestHandler =
+                new org.littleshoot.proxy.HttpRequestHandler(clientSocketChannelFactory);
             public void processRequest(final Channel browserChannel,
                 final ChannelHandlerContext ctx, final MessageEvent me) 
                 throws IOException {
@@ -119,6 +135,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * @param whitelist The list of sites to proxy.
      * @param p2pClient The client for creating P2P connections.
      * @param keyStoreManager Keeps track of all trusted keys. 
+     * @param clientSocketChannelFactory Factory for creating client channels.
      */
     public DispatchingProxyRelayHandler(final ProxyProvider proxyProvider,
         final ProxyStatusListener proxyStatusListener, 
