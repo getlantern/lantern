@@ -26,6 +26,7 @@ import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.littleshoot.proxy.KeyStoreManager;
+import org.littleshoot.proxy.ProxyHttpResponseEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,8 +148,8 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                     new DispatchingProxyRelayHandler(xmpp, xmpp, whitelist, 
                         xmpp.getP2PClient(), keyStoreManager);
                 final ChannelPipeline pipeline = pipeline();
-                pipeline.addLast("decoder", new HttpRequestDecoder());
-                pipeline.addLast("encoder", new ProxyHttpResponseEncoder());
+                pipeline.addLast("decoder", new HttpRequestDecoder(8192, 8192*2, 8192*2));
+                pipeline.addLast("encoder", new ProxyHttpResponseEncoder(false));
                 pipeline.addLast("handler", handler);
                 return pipeline;
             }
