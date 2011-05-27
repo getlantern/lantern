@@ -83,8 +83,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
             " and HTTPS port "+httpsLocalPort);
         final Collection<String> whitelist = buildWhitelist();
         final XmppHandler xmpp = 
-            new XmppHandler(keyStoreManager, sslProxyRandomPort, 
-                plainTextProxyRandomPort);
+            new XmppHandler(sslProxyRandomPort, plainTextProxyRandomPort);
         
         newServerBootstrap(newHttpChannelPipelineFactory(whitelist, xmpp), 
             httpLocalPort);

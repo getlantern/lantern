@@ -195,7 +195,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     public InetSocketAddress getProxy() {
                         return proxyProvider.getLaeProxy();
                     }
-            }, this.keyStoreManager);
+            }, null);
     }
 
     @Override
