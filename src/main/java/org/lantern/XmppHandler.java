@@ -7,13 +7,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Security;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -28,8 +21,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
 
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.Chat;
@@ -53,7 +44,6 @@ import org.lastbamboo.common.p2p.P2PConstants;
 import org.lastbamboo.jni.JLibTorrent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.p2p.P2P;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -129,8 +119,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     private static final String ID = "-la-";
 
-    private final KeyStoreManager keyStoreManager;
-
     private final int sslProxyRandomPort;
 
     /**
@@ -142,10 +130,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
      * @param plainTextProxyRandomPort The port of the HTTP proxy running
      * only locally and accepting plain-text sockets.
      */
-    public XmppHandler(final KeyStoreManager keyStoreManager, 
-        final int sslProxyRandomPort, 
+    public XmppHandler(final int sslProxyRandomPort, 
         final int plainTextProxyRandomPort) {
-        this.keyStoreManager = keyStoreManager;
         this.sslProxyRandomPort = sslProxyRandomPort;
         final Properties props = new Properties();
         final File file = 
@@ -242,7 +228,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             throw new Error(msg, e);
         }
     }
-
+    
+    /*
     private ServerSocketFactory newTlsServerSocketFactory() {
         log.info("Creating TLS server socket factory");
         String algorithm = 
@@ -293,6 +280,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             throw new Error("Key managmement issue?", e);
         }
     }
+    */
 
     private void configureRoster() throws XMPPException {
         final XMPPConnection xmpp = this.client.getXmppConnection();
