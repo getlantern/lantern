@@ -1,10 +1,14 @@
-set base_dir=%~p0
+@echo off
 
-set tests=%1
-if "%tests%" == "" set tests="all"
+REM Windows script for running unit tests
+REM You have to run server and capture some browser first
+REM
+REM Requirements:
+REM - Java (http://www.java.com)
 
-java -jar "%base_dir%/../test/lib/jstestdriver/JsTestDriver.jar" ^
-	 --config "%base_dir%/../config/jsTestDriver.conf" ^
-	 --basePath "%base_dir%/.." ^
-	 --tests "%tests%"
+set BASE_DIR=%~dp0
 
+java -jar "%BASE_DIR%/../test/lib/jstestdriver/JsTestDriver.jar" ^
+     --config "%BASE_DIR%/../config/jsTestDriver.conf" ^
+     --basePath "%BASE_DIR%/.." ^
+     --tests all
