@@ -14,7 +14,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <slf4j.version>1.5.10</slf4j.version>
+        <slf4j.version>1.6.1</slf4j.version>
     </properties>
 
     <organization>
@@ -25,16 +25,24 @@
 
     <issueManagement>
         <system>JIRA</system>
-        <url>http://dev.littleshoot.org:8081/browse/MG</url>
+        <url>http://issues.littleshoot.org:8080/browse/MG</url>
     </issueManagement>
 
     <dependencies>
+
+<!--
+        <dependency>
+            <groupId>com.google.api.client</groupId>
+            <artifactId>google-api-client</artifactId>
+            <version>1.4.1-beta</version>
+        </dependency>
 
         <dependency>
             <groupId>com.google.gdata</groupId>
             <artifactId>gdata</artifactId>
             <version>2.2.1-alpha</version>
         </dependency>
+-->
 
         <dependency>
             <groupId>com.google.guava</groupId>
@@ -60,11 +68,13 @@
             <version>2.4</version>
         </dependency>
 
+<!--
         <dependency>
             <groupId>javax.mail</groupId>
             <artifactId>mail</artifactId>
-            <version>1.4.3</version>
+            <version>1.4</version>
         </dependency>
+-->
 
         <dependency>
             <groupId>junit</groupId>
@@ -130,9 +140,9 @@
         </dependency>
 
         <dependency>
-            <groupId>org.lastbamboo</groupId>
-            <artifactId>lastbamboo-common-download</artifactId>
-            <version>1.0</version>
+            <groupId>org.littleshoot</groupId>
+            <artifactId>littleshoot-downloader</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
 
         <dependency>
@@ -252,20 +262,6 @@
             <snapshots>
                 <enabled>false</enabled>
             </snapshots>
-        </repository>
-
-        <repository>
-            <id>repository.jboss.org</id>
-            <url>http://repository.jboss.org/nexus/content/groups/public/</url>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-        </repository>
-
-        <repository>
-            <id>littleshoot</id>
-            <name>LittleShoot Repository</name>
-            <url>http://svn.littleshoot.org/maven</url>
         </repository>
 
     </repositories>
