@@ -57,10 +57,10 @@ to use whatever works for you.
 
 Requires java and a local or remote browser.
 
-* start `scripts/test-server.sh`
+* start `scripts/test-server.sh` (on windows: `scripts\test-server.bat`)
 * navigate your browser to `http://localhost:9876/`
 * click on one of the capture links (preferably the "strict" one)
-* run `scripts/test.sh`
+* run `scripts/test.sh` (on windows: `scripts\test.bat`)
 
 
 ### Continuous unit testing
@@ -68,7 +68,7 @@ Requires java and a local or remote browser.
 Requires ruby and [watchr](https://github.com/mynyml/watchr) gem.
 
 * start JSTD server and capture a browser as described above
-* start watchr as `watchr scripts/watchr.rb`
+* start watchr with `watchr scripts/watchr.rb`
 * in a different window/tab/editor `tail -f logs/jstd.log`
 * edit files in `app/` or `src/` and save them
 * watch the log to see updates
@@ -83,6 +83,8 @@ angular ships with a baked-in end-to-end test runner that understands angular, y
 you to write your tests with jasmine-like BDD syntax.
 
 Requires a webserver, node.js or your backend server that hosts the angular static files.
+
+Check out the [end-to-end runner's documentation](http://goo.gl/e8n06) for more info.
 
 * create your end-to-end tests in `test/e2e/scenarios.js`
 * serve your project directory with your http/backend server or node.js + `scripts/web-server.js`
@@ -122,8 +124,10 @@ fetch the changes and merge them into your project with git.
     logs/               --> JSTD and other logs go here (git-ignored)
 
     scripts/            --> handy shell/js/ruby scripts
-      test-server.sh    --> starts JSTD server
-      test.sh           --> runs all unit tests
+      test-server.bat   --> starts JSTD server (windows)
+      test-server.sh    --> starts JSTD server (*nix)
+      test.bat          --> runs all unit tests (windows)
+      test.sh           --> runs all unit tests (*nix)
       watchr.rb         --> config script for continuous testing with watchr
       web-server.js     --> simple development webserver based on node.js
 
