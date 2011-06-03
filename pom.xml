@@ -154,7 +154,7 @@
         <dependency>
             <groupId>org.littleshoot</groupId>
             <artifactId>littleproxy</artifactId>
-            <version>0.4-SNAPSHOT</version>
+            <version>0.4</version>
         </dependency>
 
         <dependency>
@@ -162,14 +162,6 @@
             <artifactId>p2p</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
-
-<!--
-        <dependency>
-            <groupId>org.jivesoftware.smack</groupId>
-            <artifactId>smackx</artifactId>
-            <version>3.1.0</version>
-        </dependency>
--->
 
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -249,18 +241,6 @@
             </releases>
             <snapshots>
                 <enabled>true</enabled>
-            </snapshots>
-        </repository>
-
-        <repository>
-            <id>sonatype-nexus-releases</id>
-            <name>Sonatype Nexus Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/releases</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>false</enabled>
             </snapshots>
         </repository>
 
