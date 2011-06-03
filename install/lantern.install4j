@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="5.0.8" transformSequenceNumber="3">
-  <directoryPresets config="." />
+  <directoryPresets config="./common" />
   <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Brave New Software Project, Inc" publisherWeb="http://www.getlantern.org" version="0.2" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.5" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -81,7 +81,7 @@
       </iconImageFiles>
     </launcher>
     <launcher name="lantern-windows-gui" id="224" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" swtApp="false" fileset="145">
-      <executable name="lantern" type="1" iconSet="false" iconFile="" executableDir="" redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="false" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
+      <executable name="lantern" type="1" iconSet="true" iconFile="" executableDir="" redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="false" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
       <splashScreen show="false" autoOff="true" alwaysOnTop="true" width="0" height="0" bitmapFile="" java6SplashScreen="false">
@@ -104,7 +104,11 @@
       <customScript mode="1" file="">
         <content />
       </customScript>
-      <iconImageFiles />
+      <iconImageFiles>
+        <file path="./common/mg_16x16.png" />
+        <file path="./common/mg_32x32.png" />
+        <file path="./common/mg_48x48.png" />
+      </iconImageFiles>
     </launcher>
   </launchers>
   <installerGui installerType="1" addOnAppId="" suggestPreviousLocations="true" autoUpdateDescriptorUrl="" useAutoUpdateBaseUrl="false" autoUpdateBaseUrl="">
@@ -117,7 +121,28 @@
       <application name="" id="installer" customizedId="" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" fileset="" customIcnsFile="" customIcoFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
         <serializedBean>
           <java class="java.beans.XMLDecoder">
-            <object class="com.install4j.runtime.beans.applications.InstallerApplication" />
+            <object class="com.install4j.runtime.beans.applications.InstallerApplication">
+              <void property="customIconImageFiles">
+                <void method="add">
+                  <object class="com.install4j.api.beans.ExternalFile">
+                    <string>./common/mg_16x16.png</string>
+                  </object>
+                </void>
+                <void method="add">
+                  <object class="com.install4j.api.beans.ExternalFile">
+                    <string>./common/mg_32x32.png</string>
+                  </object>
+                </void>
+                <void method="add">
+                  <object class="com.install4j.api.beans.ExternalFile">
+                    <string>./common/mg_48x48.png</string>
+                  </object>
+                </void>
+              </void>
+              <void property="useCustomIcon">
+                <boolean>true</boolean>
+              </void>
+            </object>
           </java>
         </serializedBean>
         <launcherIds />
@@ -343,7 +368,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
             <actions />
             <formComponents />
           </screen>
-          <screen name="" id="7" customizedId="" beanClass="com.install4j.runtime.beans.screens.StandardProgramGroupScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="7" customizedId="" beanClass="com.install4j.runtime.beans.screens.StandardProgramGroupScreen" enabled="false" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.StandardProgramGroupScreen">
@@ -651,6 +676,18 @@ Lantern requires your Google Account credentials to access the Internet. What yo
             <preActivation />
             <postActivation />
             <actions>
+              <action name="" id="472" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="There was a problem starting Lantern">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction">
+                      <void property="launcherId">
+                        <string>224</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
               <action name="" id="41" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="false" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
@@ -683,7 +720,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                         <object class="com.install4j.api.windows.RegistryRoot" field="HKEY_CURRENT_USER" />
                       </void>
                       <void property="value">
-                        <string>${installer:sys.contentDir}\lantern.exe</string>
+                        <string>"${installer:sys.contentDir}\lantern.exe"</string>
                       </void>
                       <void property="valueName">
                         <string>Lantern</string>
@@ -733,7 +770,28 @@ Lantern requires your Google Account credentials to access the Internet. What yo
       <application name="" id="uninstaller" customizedId="" beanClass="com.install4j.runtime.beans.applications.UninstallerApplication" enabled="true" commentSet="false" comment="" fileset="" customIcnsFile="" customIcoFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
         <serializedBean>
           <java class="java.beans.XMLDecoder">
-            <object class="com.install4j.runtime.beans.applications.UninstallerApplication" />
+            <object class="com.install4j.runtime.beans.applications.UninstallerApplication">
+              <void property="customIconImageFiles">
+                <void method="add">
+                  <object class="com.install4j.api.beans.ExternalFile">
+                    <string>./common/mg_16x16.png</string>
+                  </object>
+                </void>
+                <void method="add">
+                  <object class="com.install4j.api.beans.ExternalFile">
+                    <string>./common/mg_32x32.png</string>
+                  </object>
+                </void>
+                <void method="add">
+                  <object class="com.install4j.api.beans.ExternalFile">
+                    <string>./common/mg_48x48.png</string>
+                  </object>
+                </void>
+              </void>
+              <void property="useCustomIcon">
+                <boolean>true</boolean>
+              </void>
+            </object>
           </java>
         </serializedBean>
         <launcherIds />
@@ -787,6 +845,24 @@ Lantern requires your Google Account credentials to access the Internet. What yo
             <preActivation />
             <postActivation />
             <actions>
+              <action name="" id="470" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.DeleteRegistryItemAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="true" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.registry.DeleteRegistryItemAction">
+                      <void property="keyName">
+                        <string>Software\Microsoft\Windows\CurrentVersion\Run</string>
+                      </void>
+                      <void property="registryRoot">
+                        <object class="com.install4j.api.windows.RegistryRoot" field="HKEY_CURRENT_USER" />
+                      </void>
+                      <void property="valueName">
+                        <string>Lantern</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return Util.isWindows();</condition>
+              </action>
               <action name="" id="119" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
