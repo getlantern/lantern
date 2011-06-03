@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.concurrent.Executors;
 
 import javax.net.ssl.SSLEngine;
@@ -19,6 +20,7 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunk;
@@ -29,8 +31,12 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
+import org.littleshoot.proxy.DefaultRelayPipelineFactoryFactory;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
+import org.littleshoot.proxy.HttpFilter;
+import org.littleshoot.proxy.HttpRequestHandler;
 import org.littleshoot.proxy.KeyStoreManager;
+import org.littleshoot.proxy.RelayPipelineFactoryFactory;
 import org.littleshoot.proxy.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -83,8 +89,12 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     
     private final HttpRequestProcessor unproxiedRequestProcessor = 
         new HttpRequestProcessor() {
-            private final org.littleshoot.proxy.HttpRequestHandler requestHandler =
-                new org.littleshoot.proxy.HttpRequestHandler(clientSocketChannelFactory);
+            final RelayPipelineFactoryFactory pf = 
+                new DefaultRelayPipelineFactoryFactory(null, 
+                    new HashMap<String, HttpFilter>(), null, 
+                        new DefaultChannelGroup("HTTP-Proxy-Server"));
+            private final HttpRequestHandler requestHandler =
+                new HttpRequestHandler(clientSocketChannelFactory, pf);
             public void processRequest(final Channel browserChannel,
                 final ChannelHandlerContext ctx, final MessageEvent me) 
                 throws IOException {
