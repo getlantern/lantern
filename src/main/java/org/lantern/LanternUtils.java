@@ -35,9 +35,11 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMessage;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.json.simple.JSONArray;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
+import org.littleshoot.proxy.ProxyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +59,14 @@ public class LanternUtils {
     
     private static final File CONFIG_DIR = 
         new File(System.getProperty("user.home"), ".lantern");
+    
+    static {
+        if (CONFIG_DIR.isDirectory()) {
+            if (!CONFIG_DIR.mkdirs()) {
+                LOG.error("Could not make config directory at: "+CONFIG_DIR);
+            }
+        }
+    }
     
     public static final ClientSocketChannelFactory clientSocketChannelFactory =
         new NioClientSocketChannelFactory(
@@ -94,9 +104,7 @@ public class LanternUtils {
             "AZ",
             "LY",
             "OM");
-        //Sets.newHashSet("China", "Iran", "Burma", "Vietnam", "Egypt", 
-        //    "Bahrain", "Tunisia", "Syria", "Libya", "Venezuela");
-        
+
     // These country codes have US export restrictions, and therefore cannot
     // access App Engine sites.
     private static final Collection<String> EXPORT_RESTRICTED =
@@ -261,11 +269,11 @@ public class LanternUtils {
                         channel.write(buf);
                         count += n;
                     }
-                    LanternUtils.closeOnFlush(channel);
+                    ProxyUtils.closeOnFlush(channel);
 
                 } catch (final IOException e) {
                     LOG.info("Exception relaying peer data back to browser",e);
-                    LanternUtils.closeOnFlush(channel);
+                    ProxyUtils.closeOnFlush(channel);
                     
                     // The other side probably just closed the connection!!
                     
@@ -279,21 +287,6 @@ public class LanternUtils {
             new Thread(runner, "Peer-Data-Reading-Thread");
         peerReadingThread.setDaemon(true);
         peerReadingThread.start();
-    }
-
-    /**
-     * Closes the specified channel after all queued write requests are flushed.
-     */
-    public static void closeOnFlush(final Channel ch) {
-        LOG.info("Closing channel on flush: {}", ch);
-        if (ch == null) {
-            LOG.warn("Channel is NULL!!");
-            return;
-        }
-        if (ch.isConnected()) {
-            ch.write(ChannelBuffers.EMPTY_BUFFER).addListener(
-                ChannelFutureListener.CLOSE);
-        }
     }
     
     public static String getMacAddress() {
@@ -354,6 +347,14 @@ public class LanternUtils {
             }
         }
         return false;
+    }
+
+    public static JSONArray toJsonArray(final Collection<String> strs) {
+        final JSONArray json = new JSONArray();
+        synchronized (strs) {
+            json.addAll(strs);
+        }
+        return json;
     }
 }
 
