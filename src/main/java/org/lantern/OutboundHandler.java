@@ -15,6 +15,7 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.littleshoot.proxy.ProxyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -159,13 +160,13 @@ public class OutboundHandler extends SimpleChannelUpstreamHandler {
     public void channelClosed(final ChannelHandlerContext ctx, 
         final ChannelStateEvent e) throws Exception {
         log.info("Channel to external proxy closed");
-        LanternUtils.closeOnFlush(browserToProxyChannel);
+        ProxyUtils.closeOnFlush(browserToProxyChannel);
     }
 
     @Override
     public void exceptionCaught(final ChannelHandlerContext ctx, 
         final ExceptionEvent e) throws Exception {
         log.error("Caught exception on OUTBOUND channel", e.getCause());
-        LanternUtils.closeOnFlush(e.getChannel());
+        ProxyUtils.closeOnFlush(e.getChannel());
     }
 }
