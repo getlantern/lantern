@@ -24,6 +24,7 @@ import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.littleshoot.proxy.KeyStoreManager;
+import org.littleshoot.proxy.ProxyUtils;
 import org.littleshoot.proxy.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -102,7 +103,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         if (cf == null) {
             return;
         }
-        LanternUtils.closeOnFlush(this.cf.getChannel());
+        ProxyUtils.closeOnFlush(this.cf.getChannel());
     }
 
     private ChannelFuture openOutgoingChannel(

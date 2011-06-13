@@ -2,20 +2,11 @@ package org.lantern;
 
 import static org.jboss.netty.channel.Channels.pipeline;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetSocketAddress;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelPipeline;
@@ -50,6 +41,8 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     private final int httpsLocalPort;
     
+    private final StatsTracker statsTracker = new StatsTracker();
+    
     /**
      * Creates a new proxy server.
      * 
@@ -81,11 +74,12 @@ public class LanternHttpProxyServer implements HttpProxyServer {
     public void start() {
         log.info("Starting proxy on HTTP port "+httpLocalPort+
             " and HTTPS port "+httpsLocalPort);
-        final Collection<String> whitelist = buildWhitelist();
-        final XmppHandler xmpp = 
-            new XmppHandler(sslProxyRandomPort, plainTextProxyRandomPort);
         
-        newServerBootstrap(newHttpChannelPipelineFactory(whitelist, xmpp), 
+        final XmppHandler xmpp = 
+            new XmppHandler(sslProxyRandomPort, plainTextProxyRandomPort, 
+                statsTracker);
+        
+        newServerBootstrap(newHttpChannelPipelineFactory(xmpp), 
             httpLocalPort);
         log.info("Build HTTP server");
         
@@ -139,49 +133,19 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
 
     private ChannelPipelineFactory newHttpChannelPipelineFactory(
-        final Collection<String> whitelist, final XmppHandler xmpp) {
+        final XmppHandler xmpp) {
         return new ChannelPipelineFactory() {
             public ChannelPipeline getPipeline() throws Exception {
                 log.info("Building pipeline...");
                 final SimpleChannelUpstreamHandler handler = 
-                    new DispatchingProxyRelayHandler(xmpp, xmpp, whitelist, 
+                    new DispatchingProxyRelayHandler(xmpp, xmpp, 
                         xmpp.getP2PClient(), keyStoreManager);
                 final ChannelPipeline pipeline = pipeline();
                 pipeline.addLast("decoder", new HttpRequestDecoder(8192, 8192*2, 8192*2));
-                pipeline.addLast("encoder", new ProxyHttpResponseEncoder(false));
+                pipeline.addLast("encoder", new LanternHttpResponseEncoder(statsTracker));
                 pipeline.addLast("handler", handler);
                 return pipeline;
             }
         };
-    }
-
-    private Collection<String> buildWhitelist() {
-        final Collection<String> whitelist = new HashSet<String>();
-        final File file = new File("whitelist.txt");
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(new FileReader(file));
-            String site = br.readLine();
-            while (site != null) {
-                site = site.trim();
-                if (StringUtils.isNotBlank(site)) {
-                    // Ignore commented-out sites.
-                    if (!site.startsWith("#")) {
-                        whitelist.add(site);
-                    }
-                }
-                else {
-                    break;
-                }
-                site = br.readLine();
-            }
-        } catch (final FileNotFoundException e) {
-            log.error("Could not find whitelist file!!", e);
-        } catch (final IOException e) {
-            log.error("Could not read whitelist file", e);
-        } finally {
-            IOUtils.closeQuietly(br);
-        }
-        return whitelist;
     }
 }

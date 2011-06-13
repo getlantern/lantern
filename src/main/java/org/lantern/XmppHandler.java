@@ -16,6 +16,8 @@ import java.util.Properties;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -43,6 +45,7 @@ import org.json.simple.JSONValue;
 import org.lastbamboo.common.p2p.P2PConstants;
 import org.lastbamboo.jni.JLibTorrent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
+import org.littleshoot.commom.xmpp.XmppUtils;
 import org.littleshoot.p2p.P2P;
 import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
@@ -102,10 +105,14 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 final Object obj = JSONValue.parse(body);
                 final JSONObject json = (JSONObject) obj;
                 final JSONArray servers = (JSONArray) json.get("servers");
-                final Iterator<String> iter = servers.iterator();
-                while (iter.hasNext()) {
-                    final String server = iter.next();
-                    addProxy(server, ch);
+                if (servers == null) {
+                    log.info("XMPP: "+XmppUtils.toString(msg));
+                } else {
+                    final Iterator<String> iter = servers.iterator();
+                    while (iter.hasNext()) {
+                        final String server = iter.next();
+                        addProxy(server, ch);
+                    }
                 }
             }
             final Integer type = 
@@ -121,6 +128,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private final int sslProxyRandomPort;
 
+    private final StatsTracker statsTracker;
+
+    private String hubAddress;
+    
+    private final Timer updateTimer = new Timer(true);
+
     /**
      * Creates a new XMPP handler.
      * 
@@ -129,10 +142,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
      * will relay to.
      * @param plainTextProxyRandomPort The port of the HTTP proxy running
      * only locally and accepting plain-text sockets.
+     * @param statsTracker Keeps track of statistics for this Lantern instance.
      */
     public XmppHandler(final int sslProxyRandomPort, 
-        final int plainTextProxyRandomPort) {
+        final int plainTextProxyRandomPort, final StatsTracker statsTracker) {
         this.sslProxyRandomPort = sslProxyRandomPort;
+        this.statsTracker = statsTracker;
         final Properties props = new Properties();
         final File file = 
             new File(LanternUtils.configDir(), "lantern.properties");
@@ -337,26 +352,52 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 return;
             }
             infoRequestSent.add(from);
-            
-            final ChatManager chatManager = xmpp.getChatManager();
-            final Chat chat = chatManager.createChat(from, typedListener);
-            
-            // Send an "info" message to gather proxy data.
-            final Message msg = new Message();
-            final JSONObject json = new JSONObject();
-            json.put("un", this.user);
-            json.put("pwd", this.pwd);
-            //msg.setBody("/info");
-            msg.setBody(json.toJSONString());
-            try {
-                log.info("Sending info message to Lantern Hub");
-                chat.sendMessage(msg);
-            } catch (final XMPPException e) {
-                log.error("Could not send INFO message", e);
-            }
+            this.hubAddress = from;
+            this.updateTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    sendInfoRequest();
+                }
+                
+            }, 0L, 20*1000);//1 * 60 * 60 *1000);
         }
         else if (isLanternJid(from)) {
             addOrRemovePeer(p, from, xmpp);
+        }
+    }
+
+    private void sendInfoRequest() {
+        final XMPPConnection xmpp = this.client.getXmppConnection();
+        final ChatManager chatManager = xmpp.getChatManager();
+        final Chat chat = 
+            chatManager.createChat(this.hubAddress, typedListener);
+        
+        // Send an "info" message to gather proxy data.
+        final Message msg = new Message();
+        final JSONObject json = new JSONObject();
+        json.put(LanternConstants.USER_NAME, this.user);
+        json.put(LanternConstants.PASSWORD, this.pwd);
+        json.put(LanternConstants.BYTES_PROXIED, 
+            this.statsTracker.getBytesProxied());
+        json.put(LanternConstants.DIRECT_BYTES, 
+            this.statsTracker.getDirectBytes());
+        json.put(LanternConstants.REQUESTS_PROXIED, 
+            this.statsTracker.getProxiedRequests());
+        json.put(LanternConstants.DIRECT_REQUESTS, 
+            this.statsTracker.getDirectRequests());
+        json.put(LanternConstants.WHITELIST_ADDITIONS, 
+            LanternUtils.toJsonArray(Whitelist.getAdditions()));
+        json.put(LanternConstants.WHITELIST_REMOVALS, 
+            LanternUtils.toJsonArray(Whitelist.getRemovals()));
+        final String str = json.toJSONString();
+        log.info("Reporting data: {}", str);
+        msg.setBody(str);
+        try {
+            log.info("Sending info message to Lantern Hub");
+            chat.sendMessage(msg);
+            Whitelist.whitelistReported();
+        } catch (final XMPPException e) {
+            log.error("Could not send INFO message", e);
         }
     }
 
