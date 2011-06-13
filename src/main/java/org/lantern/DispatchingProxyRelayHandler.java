@@ -3,7 +3,6 @@ package org.lantern;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.concurrent.Executors;
 
@@ -36,6 +35,7 @@ import org.littleshoot.proxy.HttpConnectRelayingHandler;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestHandler;
 import org.littleshoot.proxy.KeyStoreManager;
+import org.littleshoot.proxy.ProxyUtils;
 import org.littleshoot.proxy.RelayPipelineFactoryFactory;
 import org.littleshoot.proxy.SslContextFactory;
 import org.slf4j.Logger;
@@ -48,8 +48,6 @@ import org.slf4j.LoggerFactory;
 public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
-    private final Collection<String> whitelist;
     
     private volatile long messagesReceived = 0L;
 
@@ -149,11 +147,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
      */
     public DispatchingProxyRelayHandler(final ProxyProvider proxyProvider,
         final ProxyStatusListener proxyStatusListener, 
-        final Collection<String> whitelist, final XmppP2PClient p2pClient, 
+        final XmppP2PClient p2pClient, 
         final KeyStoreManager keyStoreManager) {
         this.proxyProvider = proxyProvider;
         this.proxyStatusListener = proxyStatusListener;
-        this.whitelist = whitelist;
         this.keyStoreManager = keyStoreManager;
         this.anonymousPeerRequestProcessor =
             new PeerHttpRequestProcessor(new Proxy() {
@@ -255,8 +252,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             uriToCheck = uri;
         }
         
-        this.proxying = 
-            DomainWhitelister.isWhitelisted(uriToCheck, whitelist);
+        this.proxying = Whitelist.isWhitelisted(uriToCheck);
         
         if (proxying) {
             if (request.isChunked()) {
@@ -284,6 +280,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final ChannelHandlerContext ctx, final MessageEvent me) {
         final HttpRequest request = (HttpRequest) me.getMessage();
         if (request.getMethod() == HttpMethod.CONNECT) {
+            
+            // TODO: We should pass this through more than just the main 
+            // proxy -- should be able to go through any peer in theory.
+            
             // We need to forward the CONNECT request from this proxy to an
             // external proxy that can handle it. We effectively want to 
             // relay all traffic in this case without doing anything on 
@@ -493,7 +493,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     public void exceptionCaught(final ChannelHandlerContext ctx, 
         final ExceptionEvent e) throws Exception {
         log.error("Caught exception on INBOUND channel", e.getCause());
-        LanternUtils.closeOnFlush(this.browserToProxyChannel);
+        ProxyUtils.closeOnFlush(this.browserToProxyChannel);
     }
     
 }

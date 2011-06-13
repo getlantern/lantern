@@ -23,6 +23,7 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.ssl.SslHandler;
+import org.littleshoot.proxy.ProxyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,14 +139,14 @@ public class GaeProxyRelayHandler extends SimpleChannelUpstreamHandler {
     public void channelClosed(final ChannelHandlerContext ctx, 
         final ChannelStateEvent e) {
         log.info("Got inbound channel closed. Closing outbound.");
-        LanternUtils.closeOnFlush(this.outboundChannel);
+        ProxyUtils.closeOnFlush(this.outboundChannel);
     }
     
     @Override
     public void exceptionCaught(final ChannelHandlerContext ctx, 
         final ExceptionEvent e) throws Exception {
         log.error("Caught exception on INBOUND channel", e.getCause());
-        LanternUtils.closeOnFlush(this.inboundChannel);
+        ProxyUtils.closeOnFlush(this.inboundChannel);
     }
     
     private static class OutboundHandler extends SimpleChannelUpstreamHandler {
@@ -168,14 +169,14 @@ public class GaeProxyRelayHandler extends SimpleChannelUpstreamHandler {
         @Override
         public void channelClosed(final ChannelHandlerContext ctx, 
             final ChannelStateEvent e) throws Exception {
-            LanternUtils.closeOnFlush(inboundChannel);
+            ProxyUtils.closeOnFlush(inboundChannel);
         }
 
         @Override
         public void exceptionCaught(final ChannelHandlerContext ctx, 
             final ExceptionEvent e) throws Exception {
             log.error("Caught exception on OUTBOUND channel", e.getCause());
-            LanternUtils.closeOnFlush(e.getChannel());
+            ProxyUtils.closeOnFlush(e.getChannel());
         }
     }
 
