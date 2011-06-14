@@ -134,6 +134,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     private final Timer updateTimer = new Timer(true);
 
+    private Chat hubChat;
+
     /**
      * Creates a new XMPP handler.
      * 
@@ -233,6 +235,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             });
             
             configureRoster();
+            
+            final ChatManager chatManager = connection.getChatManager();
+            this.hubChat = 
+                chatManager.createChat(this.hubAddress, typedListener);
         } catch (final IOException e) {
             final String msg = "Could not log in!!";
             log.warn(msg, e);
@@ -359,7 +365,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                     sendInfoRequest();
                 }
                 
-            }, 0L, 20*1000);//1 * 60 * 60 *1000);
+            }, 0L, 30*1000);//1 * 60 * 60 *1000);
         }
         else if (isLanternJid(from)) {
             addOrRemovePeer(p, from, xmpp);
@@ -367,14 +373,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     }
 
     private void sendInfoRequest() {
-        final XMPPConnection xmpp = this.client.getXmppConnection();
-        final ChatManager chatManager = xmpp.getChatManager();
-        final Chat chat = 
-            chatManager.createChat(this.hubAddress, typedListener);
+
         
         // Send an "info" message to gather proxy data.
         final Message msg = new Message();
         final JSONObject json = new JSONObject();
+        json.put(LanternConstants.COUNTRY_CODE, LanternUtils.countryCode());
         json.put(LanternConstants.USER_NAME, this.user);
         json.put(LanternConstants.PASSWORD, this.pwd);
         json.put(LanternConstants.BYTES_PROXIED, 
@@ -394,8 +398,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         msg.setBody(str);
         try {
             log.info("Sending info message to Lantern Hub");
-            chat.sendMessage(msg);
+            this.hubChat.sendMessage(msg);
             Whitelist.whitelistReported();
+            this.statsTracker.clear();
         } catch (final XMPPException e) {
             log.error("Could not send INFO message", e);
         }

@@ -24,6 +24,7 @@ import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -114,6 +115,8 @@ public class LanternUtils {
     private static final File UNZIPPED = new File("GeoIP.dat");
     
     private static LookupService lookupService;
+
+    private static String countryCode;
     
     static {
         if (!UNZIPPED.isFile())  {
@@ -137,6 +140,21 @@ public class LanternUtils {
         } catch (final IOException e) {
             lookupService = null;
         }
+    }
+    
+    public static String countryCode() {
+        if (StringUtils.isNotBlank(countryCode)) {
+            return countryCode;
+        }
+        
+        countryCode = countryCode(PublicIpAddress.getPublicIpAddress());
+        return countryCode;
+    }
+    
+    public static String countryCode(final InetAddress address) {
+        final Country country = lookupService.getCountry(address);
+        LOG.info("Country is: {}", country);
+        return country.getCode().trim();
     }
     
     public static boolean isCensored() {
@@ -168,6 +186,7 @@ public class LanternUtils {
         final Collection<String> countries) { 
         final Country country = lookupService.getCountry(address);
         LOG.info("Country is: {}", country);
+        countryCode = country.getCode().trim();
         return countries.contains(country.getCode().trim());
     }
     
@@ -356,6 +375,7 @@ public class LanternUtils {
         }
         return json;
     }
+
 }
 
 
