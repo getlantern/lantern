@@ -95,6 +95,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
      */
     private final Collection<String> infoRequestSent = new HashSet<String>();
 
+    protected int updateTime = 10 * 60 * 1000;
+
     private final MessageListener typedListener = new MessageListener() {
         public void processMessage(final Chat ch, final Message msg) {
             final String part = ch.getParticipant();
@@ -104,7 +106,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 log.info("Body: {}", body);
                 final Object obj = JSONValue.parse(body);
                 final JSONObject json = (JSONObject) obj;
-                final JSONArray servers = (JSONArray) json.get("servers");
+                final JSONArray servers = 
+                    (JSONArray) json.get(LanternConstants.SERVERS);
+                updateTime = (Integer) json.get(LanternConstants.UPDATE_TIME);
                 if (servers == null) {
                     log.info("XMPP: "+XmppUtils.toString(msg));
                 } else {
@@ -130,7 +134,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private final StatsTracker statsTracker;
 
-    private String hubAddress;
+    private String hubAddress = "";
     
     private final Timer updateTimer = new Timer(true);
 
@@ -352,20 +356,24 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final String from = p.getFrom();
         //log.info("Got presence with from: {}", from);
         if (isLanternHub(from)) {
-            log.info("Got lantern proxy!!");
-            if (infoRequestSent.contains(from)) {
-                log.info("Not sending duplicate request to: {}", from);
-                return;
-            }
-            infoRequestSent.add(from);
-            this.hubAddress = from;
-            this.updateTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    sendInfoRequest();
+            synchronized (infoRequestSent) {
+                log.info("Got lantern proxy!!");
+                final String toStore = StringUtils.substringBefore(from, "/bot");
+                if (infoRequestSent.contains(toStore)) {
+                    log.info("Not sending duplicate request to: {}", from);
+                    return;
                 }
-                
-            }, 0L, 30*1000);//1 * 60 * 60 *1000);
+                log.info("Server {} not in {}", toStore, infoRequestSent);
+                infoRequestSent.add(toStore);
+                this.hubAddress = from;
+                log.info("Scheduling info request...");
+                this.updateTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        sendInfoRequest();
+                    }
+                }, 0L, this.updateTime);//1 * 60 * 60 *1000);
+            }
         }
         else if (isLanternJid(from)) {
             addOrRemovePeer(p, from, xmpp);
@@ -373,8 +381,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     }
 
     private void sendInfoRequest() {
-
-        
         // Send an "info" message to gather proxy data.
         final Message msg = new Message();
         final JSONObject json = new JSONObject();
