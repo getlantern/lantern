@@ -27,6 +27,7 @@ public class LanternConstants {
     public static final String COUNTRY_CODE = "cc";
     public static final String WHITELIST_ADDITIONS = "wa";
     public static final String WHITELIST_REMOVALS = "wr";
-    
+    public static final String SERVERS = "s";
+    public static final String UPDATE_TIME = "ut";
 
 }
