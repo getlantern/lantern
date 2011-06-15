@@ -153,7 +153,7 @@ public class LanternUtils {
     
     public static String countryCode(final InetAddress address) {
         final Country country = lookupService.getCountry(address);
-        LOG.info("Country is: {}", country);
+        LOG.info("Country is: {}", country.getName());
         return country.getCode().trim();
     }
     
