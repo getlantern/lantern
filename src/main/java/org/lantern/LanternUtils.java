@@ -16,6 +16,7 @@ import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.Executors;
@@ -61,8 +62,11 @@ public class LanternUtils {
     private static final File CONFIG_DIR = 
         new File(System.getProperty("user.home"), ".lantern");
     
+    private static final File PROPS_FILE =
+        new File(CONFIG_DIR, "lantern.properties");
+    
     static {
-        if (CONFIG_DIR.isDirectory()) {
+        if (!CONFIG_DIR.isDirectory()) {
             if (!CONFIG_DIR.mkdirs()) {
                 LOG.error("Could not make config directory at: "+CONFIG_DIR);
             }
@@ -354,6 +358,10 @@ public class LanternUtils {
         return CONFIG_DIR;
     }
     
+    public static File propsFile() {
+        return PROPS_FILE;
+    }
+    
     public static boolean isTransferEncodingChunked(final HttpMessage m) {
         List<String> chunked = m.getHeaders(HttpHeaders.Names.TRANSFER_ENCODING);
         if (chunked.isEmpty()) {
@@ -376,6 +384,28 @@ public class LanternUtils {
         return json;
     }
 
+    public static boolean forceProxy() {
+        final Properties props = new Properties();
+        InputStream is = null;
+        try {
+            is = new FileInputStream(PROPS_FILE);
+            props.load(is);
+            return getBooleanProperty(LanternConstants.FORCE_PROXY, props);
+        } catch (final IOException e) {
+            LOG.error("Error loading props file: "+PROPS_FILE, e);
+        }
+        return false;
+        
+    }
+
+    private static boolean getBooleanProperty(final String key, 
+        final Properties props) {
+        final String val = props.getProperty(key);
+        if (StringUtils.isBlank(val)) {
+            return true;
+        }
+        return "true".equalsIgnoreCase(val.trim());
+    }
 }
 
 
