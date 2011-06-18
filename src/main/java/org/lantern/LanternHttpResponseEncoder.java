@@ -28,6 +28,9 @@ public class LanternHttpResponseEncoder extends ProxyHttpResponseEncoder {
         final Channel channel, final Object msg) throws Exception {
         final ChannelBuffer cb = 
             (ChannelBuffer) super.encode(ctx, channel, msg);
+        if (cb == null) {
+            return null;
+        }
         final int bytes = cb.readableBytes();
         log.info("Bytes: " + bytes);
         if (msg instanceof ProxyHttpResponse) {
