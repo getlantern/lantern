@@ -95,7 +95,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
      */
     private final Collection<String> infoRequestSent = new HashSet<String>();
 
-    protected int updateTime = 10 * 60 * 1000;
+    protected long updateTime = 10 * 60 * 1000;
 
     private final MessageListener typedListener = new MessageListener() {
         public void processMessage(final Chat ch, final Message msg) {
@@ -108,7 +108,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 final JSONObject json = (JSONObject) obj;
                 final JSONArray servers = 
                     (JSONArray) json.get(LanternConstants.SERVERS);
-                updateTime = (Integer) json.get(LanternConstants.UPDATE_TIME);
+                final Long ut = (Long) json.get(LanternConstants.UPDATE_TIME);
+                updateTime = ut;
+                log.info("Update time is: {}", ut);
                 if (servers == null) {
                     log.info("XMPP: "+XmppUtils.toString(msg));
                 } else {
