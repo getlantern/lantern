@@ -184,7 +184,7 @@
     <dependency>
       <groupId>${swt.groupId}</groupId>
       <artifactId>${swt.artifactId}</artifactId>
-      <version>3.4.2</version>
+      <version>3.6.2</version>
     </dependency>
   </dependencies>
 
@@ -249,7 +249,7 @@
         </os>
       </activation>
       <properties>
-        <swt.groupId>org.eclipse.swt.carbon</swt.groupId>
+        <swt.groupId>org.eclipse.swt.cocoa</swt.groupId>
         <swt.artifactId>macosx</swt.artifactId>
       </properties>
     </profile>
