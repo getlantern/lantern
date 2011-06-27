@@ -181,7 +181,12 @@
             <version>${slf4j.version}</version>
         </dependency>
 
-    </dependencies>
+      <dependency>
+        <groupId>${swt.groupId}</groupId>
+        <artifactId>${swt.artifactId}</artifactId>
+        <version>3.6.2</version>
+      </dependency>
+  </dependencies>
 
     <prerequisites>
         <maven>2.2.1</maven>
@@ -237,19 +242,44 @@
     </build>
 
 
-    <repositories>
-        <repository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
+  <profiles>
+    <profile>
+      <id>mac</id>
+      <activation>
+        <os>
+          <name>mac os x</name>
+        </os>
+      </activation>
+      <properties>
+        <swt.groupId>org.eclipse.swt.carbon</swt.groupId>
+        <swt.artifactId>macosx</swt.artifactId>
+      </properties>
+    </profile>
+    <profile>
+      <id>windows</id>
+      <activation>
+        <os>
+          <family>windows</family>
+        </os>
+      </activation>
+      <properties>
+        <swt.groupId>org.eclipse.swt.win32.win32</swt.groupId>
+        <swt.artifactId>x86</swt.artifactId>
+      </properties>
+    </profile>
+  </profiles>
 
-    </repositories>
-
+  <repositories>
+    <repository>
+      <id>sonatype-nexus-snapshots</id>
+      <name>Sonatype Nexus Snapshots</name>
+      <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+      <releases>
+        <enabled>false</enabled>
+      </releases>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
 </project>
