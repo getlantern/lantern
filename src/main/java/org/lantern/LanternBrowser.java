@@ -16,7 +16,7 @@ public class LanternBrowser {
         this.shell = new Shell(display);
         shell.setText("Lantern Installation");
         shell.setSize(700, 500);
-        shell.setFullScreen(true);
+        //shell.setFullScreen(true);
 
         this.browser = new Browser(shell, SWT.NONE);
         //browser.setSize(700, 500);
