@@ -88,3 +88,6 @@ font-size: 80%; margin-top: 10px;
 	background: #ebf3fc url(../img/bar-bg-active.png) repeat-x;
 	border: 3px solid #abd2ff;
 }
+
+#contacts {
+    overflow: scroll;
