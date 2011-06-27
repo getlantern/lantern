@@ -1,245 +1,243 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>org.lantern</groupId>
-    <artifactId>lantern</artifactId>
-    <packaging>jar</packaging>
-    <version>0.3-SNAPSHOT</version>
-    <name>Lantern Censorship Circumvention and Monitoring Prevention Tool</name>
-    <description>
-        Lantern is a peer-to-peer and trust-network-based tool for circumventing censors and preventing monitoring.
-    </description>
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.lantern</groupId>
+  <artifactId>lantern</artifactId>
+  <packaging>jar</packaging>
+  <version>0.3-SNAPSHOT</version>
+  <name>Lantern Censorship Circumvention and Monitoring Prevention Tool</name>
+  <description>
+    Lantern is a peer-to-peer and trust-network-based tool for circumventing censors and preventing monitoring.
+  </description>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <slf4j.version>1.6.1</slf4j.version>
-    </properties>
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <slf4j.version>1.6.1</slf4j.version>
+  </properties>
 
-    <organization>
-        <name>Brave New Software Project, Inc.</name>
-    </organization>
+  <organization>
+    <name>Brave New Software Project, Inc.</name>
+  </organization>
 
-    <inceptionYear>2010</inceptionYear>
+  <inceptionYear>2010</inceptionYear>
 
-    <issueManagement>
-        <system>JIRA</system>
-        <url>http://issues.littleshoot.org:8080/browse/MG</url>
-    </issueManagement>
+  <issueManagement>
+    <system>JIRA</system>
+    <url>http://issues.littleshoot.org:8080/browse/MG</url>
+  </issueManagement>
 
-    <dependencies>
-
-<!--
-        <dependency>
-            <groupId>com.google.api.client</groupId>
-            <artifactId>google-api-client</artifactId>
-            <version>1.4.1-beta</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.google.gdata</groupId>
-            <artifactId>gdata</artifactId>
-            <version>2.2.1-alpha</version>
-        </dependency>
--->
-
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>r09</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.googlecode.json-simple</groupId>
-            <artifactId>json-simple</artifactId>
-            <version>1.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-codec</groupId>
-            <artifactId>commons-codec</artifactId>
-            <version>1.5</version>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.0.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.6</version>
-        </dependency>
+  <dependencies>
 
 <!--
-        <dependency>
-            <groupId>javax.mail</groupId>
-            <artifactId>mail</artifactId>
-            <version>1.4</version>
-        </dependency>
+    <dependency>
+      <groupId>com.google.api.client</groupId>
+      <artifactId>google-api-client</artifactId>
+      <version>1.4.1-beta</version>
+    </dependency>
+
+    <dependency>
+      <groupId>com.google.gdata</groupId>
+      <artifactId>gdata</artifactId>
+      <version>2.2.1-alpha</version>
+    </dependency>
 -->
 
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.8.1</version>
-            <scope>test</scope>
-        </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>r09</version>
+    </dependency>
 
-        <dependency>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-            <version>1.2.14</version>
-        </dependency>
+    <dependency>
+      <groupId>com.googlecode.json-simple</groupId>
+      <artifactId>json-simple</artifactId>
+      <version>1.1</version>
+    </dependency>
 
-        <dependency>
-            <groupId>net.sf.kxml</groupId>
-            <artifactId>kxml2</artifactId>
-            <version>2.3.0</version>
-        </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+      <version>1.5</version>
+    </dependency>
 
-        <dependency>
-            <groupId>org.apache.httpcomponents</groupId>
-            <artifactId>httpclient</artifactId>
-            <version>4.0.2</version>
-        </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>2.0.1</version>
+    </dependency>
 
-        <dependency>
-            <groupId>org.codehaus.jackson</groupId>
-            <artifactId>jackson-core-asl</artifactId>
-            <version>1.5.4</version>
-        </dependency>
+    <dependency>
+      <groupId>commons-lang</groupId>
+      <artifactId>commons-lang</artifactId>
+      <version>2.6</version>
+    </dependency>
 
-        <dependency>
-            <groupId>org.eclipse.jetty</groupId>
-            <artifactId>jetty-servlet</artifactId>
-            <version>7.3.1.v20110307</version>
-        </dependency>
-
-        <dependency>
-            <groupId>org.jboss.netty</groupId>
-            <artifactId>netty</artifactId>
-            <version>3.2.4.Final</version>
-            <scope>compile</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.littleshoot</groupId>
-            <artifactId>littleshoot-smack-xmpp</artifactId>
-            <version>3.2.0-SNAPSHOT</version>
-        </dependency>
 <!--
-        <dependency>
-            <groupId>org.littleshoot</groupId>
-            <artifactId>smack-xmpp</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
+    <dependency>
+      <groupId>javax.mail</groupId>
+      <artifactId>mail</artifactId>
+      <version>1.4</version>
+    </dependency>
 -->
 
-        <dependency>
-            <groupId>org.littleshoot</groupId>
-            <artifactId>amazon-ec2</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.8.1</version>
+      <scope>test</scope>
+    </dependency>
 
-        <dependency>
-            <groupId>org.littleshoot</groupId>
-            <artifactId>littleshoot-downloader</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.14</version>
+    </dependency>
 
-        <dependency>
-            <groupId>org.littleshoot</groupId>
-            <artifactId>geoip</artifactId>
-            <version>0.1</version>
-        </dependency>
+    <dependency>
+      <groupId>net.sf.kxml</groupId>
+      <artifactId>kxml2</artifactId>
+      <version>2.3.0</version>
+    </dependency>
 
-        <dependency>
-            <groupId>org.littleshoot</groupId>
-            <artifactId>littleproxy</artifactId>
-            <version>0.4</version>
-        </dependency>
+    <dependency>
+      <groupId>org.apache.httpcomponents</groupId>
+      <artifactId>httpclient</artifactId>
+      <version>4.0.2</version>
+    </dependency>
 
-        <dependency>
-            <groupId>org.littleshoot</groupId>
-            <artifactId>p2p</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
+    <dependency>
+      <groupId>org.codehaus.jackson</groupId>
+      <artifactId>jackson-core-asl</artifactId>
+      <version>1.5.4</version>
+    </dependency>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-log4j12</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
+    <dependency>
+      <groupId>org.eclipse.jetty</groupId>
+      <artifactId>jetty-servlet</artifactId>
+      <version>7.3.1.v20110307</version>
+    </dependency>
 
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-            <version>${slf4j.version}</version>
-        </dependency>
+    <dependency>
+      <groupId>org.jboss.netty</groupId>
+      <artifactId>netty</artifactId>
+      <version>3.2.4.Final</version>
+      <scope>compile</scope>
+    </dependency>
 
-      <dependency>
-        <groupId>${swt.groupId}</groupId>
-        <artifactId>${swt.artifactId}</artifactId>
-        <version>3.6.2</version>
-      </dependency>
+    <dependency>
+      <groupId>org.littleshoot</groupId>
+      <artifactId>littleshoot-smack-xmpp</artifactId>
+      <version>3.2.0-SNAPSHOT</version>
+    </dependency>
+<!--
+    <dependency>
+      <groupId>org.littleshoot</groupId>
+      <artifactId>smack-xmpp</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+-->
+
+    <dependency>
+      <groupId>org.littleshoot</groupId>
+      <artifactId>amazon-ec2</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.littleshoot</groupId>
+      <artifactId>littleshoot-downloader</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.littleshoot</groupId>
+      <artifactId>geoip</artifactId>
+      <version>0.1</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.littleshoot</groupId>
+      <artifactId>littleproxy</artifactId>
+      <version>0.4</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.littleshoot</groupId>
+      <artifactId>p2p</artifactId>
+      <version>1.0-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${slf4j.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>${swt.groupId}</groupId>
+      <artifactId>${swt.artifactId}</artifactId>
+      <version>3.4.2</version>
+    </dependency>
   </dependencies>
 
-    <prerequisites>
-        <maven>2.2.1</maven>
-    </prerequisites>
+  <prerequisites>
+    <maven>2.2.1</maven>
+  </prerequisites>
 
-    <build>
-        <defaultGoal>install</defaultGoal>
+  <build>
+    <defaultGoal>install</defaultGoal>
 
-        <plugins>
-            <!-- Compiling with java 1.5 -->
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.5</source>
-                    <target>1.5</target>
-                    <encoding>UTF-8</encoding>
-                    <!-- The following force compilation with full warnings. -->
-                    <fork>true</fork>
-                    <showWarnings>true</showWarnings>
-                    <showDeprecation>true</showDeprecation>
-                    <compilerArguments><Xlint/></compilerArguments>
-                </configuration>
-            </plugin>
+    <plugins>
+      <!-- Compiling with java 1.5 -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.5</source>
+          <target>1.5</target>
+          <encoding>UTF-8</encoding>
+          <!-- The following force compilation with full warnings. -->
+          <fork>true</fork>
+          <showWarnings>true</showWarnings>
+          <showDeprecation>true</showDeprecation>
+          <compilerArguments><Xlint/></compilerArguments>
+        </configuration>
+      </plugin>
 
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <version>2.2-beta-5</version>
-                <executions>
-                    <execution>
-                        <id>latest-build</id>
-                        <phase>package</phase>
-                        <configuration>
-                            <descriptorRefs>
-                                <descriptorRef>jar-with-dependencies</descriptorRef>
-                            </descriptorRefs>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>2.2-beta-5</version>
+        <executions>
+          <execution>
+            <id>latest-build</id>
+            <phase>package</phase>
+            <configuration>
+              <descriptorRefs>
+                <descriptorRef>jar-with-dependencies</descriptorRef>
+              </descriptorRefs>
 
-                            <archive>
-                                <manifest>
-                                    <mainClass>org.lantern.Launcher</mainClass>
-                                </manifest>
-                            </archive>
-                        </configuration>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-
-        </plugins>
-
-    </build>
+              <archive>
+                <manifest>
+                  <mainClass>org.lantern.Launcher</mainClass>
+                </manifest>
+              </archive>
+            </configuration>
+            <goals>
+              <goal>single</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 
 
   <profiles>
