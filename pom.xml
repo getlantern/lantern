@@ -184,7 +184,7 @@
     <dependency>
       <groupId>${swt.groupId}</groupId>
       <artifactId>${swt.artifactId}</artifactId>
-      <version>3.6.2</version>
+      <version>3.7</version>
     </dependency>
   </dependencies>
 
@@ -250,7 +250,6 @@
       </activation>
       <properties>
         <swt.groupId>org.eclipse.swt.cocoa</swt.groupId>
-        <swt.artifactId>macosx</swt.artifactId>
       </properties>
     </profile>
     <profile>
@@ -263,6 +262,32 @@
       <properties>
         <swt.groupId>org.eclipse.swt.win32.win32</swt.groupId>
         <swt.artifactId>x86</swt.artifactId>
+      </properties>
+    </profile>
+    
+    <profile>
+      <id>32bit</id>
+      <activation>
+        <property>
+          <name>sun.arch.data.model</name>
+          <value>32</value>
+        </property>
+      </activation>
+      <properties>
+        <swt.artifactId>x86</swt.artifactId>
+      </properties>
+    </profile>
+    
+    <profile>
+      <id>64bit</id>
+      <activation>
+        <property>
+          <name>sun.arch.data.model</name>
+          <value>64</value>
+        </property>
+      </activation>
+      <properties>
+        <swt.artifactId>x86_64</swt.artifactId>
       </properties>
     </profile>
   </profiles>
