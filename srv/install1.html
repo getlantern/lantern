@@ -9,6 +9,7 @@
     <script src="js/jquery-1.5.1.min.js"></script>
     <script src="js/jquery-ui-1.8.13.custom.min.js"></script> 
 	<script src="js/jquery.validate.min.js"></script>
+	<script src="js/jquery.form.js"></script>
   </head> 
 
   <body>
@@ -40,7 +41,8 @@
 			<!--
               <form id="gmailForm" onSubmit="getContacts(); return false;" action="contacts">
 			  -->
-			  <form id="gmailForm" onSubmit="getContacts(); return false;">
+			  <div class="baseTop">error_div_content</div>
+			  <form id="gmailForm" action="install1" method="post">
                   <input id="email" type="text" name="email" />
                   <input id="pwd" type="password" name="pwd" />
                   <input type="submit" value="Show My Contacts">
@@ -58,11 +60,36 @@
 		    alert("Getting contacts!!");
 			return false;
 		}
+		funtion processContacts(contacts) {
+		}
+		/*
+		$(document).ready(function() { 
+			var options = { 
+				beforeSubmit:  showRequest,  // pre-submit callback 
+				success:       processContacts,  // post-submit callback 
+				type:          'get',
+				url:           'contacts&callback=processContacts',
+				timeout:       60000,
+				// other available options: 
+				//url:       url         // override for form's 'action' attribute 
+				//type:      type        // 'get' or 'post', override for form's 'method' attribute 
+				//dataType:  null        // 'xml', 'script', or 'json' (expected server response type) 
+				//clearForm: true        // clear all form fields after successful submit 
+				//resetForm: true        // reset the form after successful submit 
+		 
+				// $.ajax options can be used here too, for example: 
+				//timeout:   3000 
+			}; 
+		 
+			// bind form using 'ajaxForm' 
+			$('#myForm1').ajaxForm(options); 
+		});
+		*/
     $(function() {
 
 		
 	$( "input:submit").button();
-	    $.validator.setDefaults({submitHandler: function() { alert("submitted!"); }});
+	    //$.validator.setDefaults({submitHandler: function() { alert("submitted!"); }});
 		
         
 		$("#gmailForm").validate({
@@ -78,7 +105,6 @@
 		messages: {
 			pwd: {
 				required: "Please provide a password",
-				minlength: "Your password must be at least 5 characters long"
 			},
 			email: "Please enter a valid email address"
 		}
@@ -95,6 +121,7 @@
             if($(this).attr("value") == "") $(this).attr("value", etext);
         });
         
+		/*
         var ptext = "password";
         $("#pwd").attr("value", ptext);
         $("#pwd").focus(function() {
@@ -105,6 +132,7 @@
             $(this).removeClass("active");
             if($(this).attr("value") == "") $(this).attr("value", ptext);
         });
+		*/
     });
     </script>
   </body>
