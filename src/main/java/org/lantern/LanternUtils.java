@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.Socket;
 import java.net.SocketException;
@@ -23,9 +24,14 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 
+import javax.net.SocketFactory;
+
+import net.sf.ehcache.store.chm.ConcurrentHashMap;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -37,6 +43,12 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMessage;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jivesoftware.smack.ConnectionConfiguration;
+import org.jivesoftware.smack.ConnectionListener;
+import org.jivesoftware.smack.Roster;
+import org.jivesoftware.smack.RosterEntry;
+import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.XMPPException;
 import org.json.simple.JSONArray;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
@@ -121,7 +133,7 @@ public class LanternUtils {
     private static LookupService lookupService;
 
     private static String countryCode;
-    
+
     static {
         if (!UNZIPPED.isFile())  {
             final File file = new File("GeoIP.dat.gz");
@@ -352,7 +364,6 @@ public class LanternUtils {
             return Base64.encodeBase64String(bytes);
         }
     }
-    
 
     public static File configDir() {
         return CONFIG_DIR;
@@ -393,6 +404,8 @@ public class LanternUtils {
             return getBooleanProperty(LanternConstants.FORCE_PROXY, props);
         } catch (final IOException e) {
             LOG.error("Error loading props file: "+PROPS_FILE, e);
+        } finally {
+            IOUtils.closeQuietly(is);
         }
         return false;
         
@@ -405,6 +418,183 @@ public class LanternUtils {
             return true;
         }
         return "true".equalsIgnoreCase(val.trim());
+    }
+    
+    public static boolean isConfigured() {
+        if (!PROPS_FILE.isFile()) {
+            return false;
+        }
+        final Properties props = new Properties();
+        InputStream is = null;
+        try {
+            is = new FileInputStream(PROPS_FILE);
+            props.load(is);
+            final String un = props.getProperty("google.user");
+            final String pwd = props.getProperty("google.pwd");
+            return (StringUtils.isNotBlank(un) && StringUtils.isNotBlank(pwd));
+        } catch (final IOException e) {
+            LOG.error("Error loading props file: "+PROPS_FILE, e);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+        return false;
+    }
+
+    private static final String keyString = String.valueOf(RandomUtils.nextLong());
+    public static String keyString() {
+        return keyString;
+    }
+    
+    
+    public static Collection<RosterEntry> getRosterEntries(final String email,
+        final String pwd) throws IOException {
+        final XMPPConnection conn = 
+            persistentXmppConnection(email, pwd, "lantern");
+        final Roster roster = conn.getRoster();
+        return roster.getEntries();
+    }
+    
+    private static final Map<String, XMPPConnection> xmppConnections = 
+        new ConcurrentHashMap<String, XMPPConnection>();
+
+    private static XMPPConnection persistentXmppConnection(final String username, 
+        final String password, final String id) throws IOException {
+        final String key = username+password;
+        if (xmppConnections.containsKey(key)) {
+            return xmppConnections.get(key);
+        }
+        XMPPException exc = null;
+        for (int i = 0; i < 5; i++) {
+            try {
+                LOG.info("Attempting XMPP connection...");
+                final XMPPConnection conn = 
+                    singleXmppConnection(username, password, id);
+                LOG.info("Created offerer");
+                xmppConnections.put(key, conn);
+                return conn;
+            } catch (final XMPPException e) {
+                final String msg = "Error creating XMPP connection";
+                LOG.error(msg, e);
+                exc = e;    
+            }
+            
+            // Gradual backoff.
+            try {
+                Thread.sleep(i * 600);
+            } catch (final InterruptedException e) {
+                LOG.info("Interrupted?", e);
+            }
+        }
+        if (exc != null) {
+            throw new IOException("Could not log in!!", exc);
+        }
+        else {
+            throw new IOException("Could not log in?");
+        }
+    }
+    
+    private static XMPPConnection singleXmppConnection(final String username, 
+        final String password, final String id) throws XMPPException {
+        final ConnectionConfiguration config = 
+            new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
+            //new ConnectionConfiguration(this.host, this.port, this.serviceName);
+        config.setCompressionEnabled(true);
+        config.setRosterLoadedAtLogin(true);
+        config.setReconnectionAllowed(false);
+        
+        // TODO: This should probably be an SSLSocketFactory no??
+        config.setSocketFactory(new SocketFactory() {
+            
+            @Override
+            public Socket createSocket(final InetAddress host, final int port, 
+                final InetAddress localHost, final int localPort) 
+                throws IOException {
+                // We ignore the local port binding.
+                return createSocket(host, port);
+            }
+            
+            @Override
+            public Socket createSocket(final String host, final int port, 
+                final InetAddress localHost, final int localPort)
+                throws IOException, UnknownHostException {
+                // We ignore the local port binding.
+                return createSocket(host, port);
+            }
+            
+            @Override
+            public Socket createSocket(final InetAddress host, final int port) 
+                throws IOException {
+                LOG.info("Creating socket");
+                final Socket sock = new Socket();
+                sock.connect(new InetSocketAddress(host, port), 40000);
+                LOG.info("Socket connected");
+                return sock;
+            }
+            
+            @Override
+            public Socket createSocket(final String host, final int port) 
+                throws IOException, UnknownHostException {
+                LOG.info("Creating socket");
+                return createSocket(InetAddress.getByName(host), port);
+            }
+        });
+        
+        return newConnection(username, password, config, id);
+    }
+
+    private static XMPPConnection newConnection(final String username, 
+        final String password, final ConnectionConfiguration config,
+        final String id) throws XMPPException {
+        final XMPPConnection conn = new XMPPConnection(config);
+        conn.connect();
+        
+        LOG.info("Connection is Secure: {}", conn.isSecureConnection());
+        LOG.info("Connection is TLS: {}", conn.isUsingTLS());
+        conn.login(username, password, id);
+        
+        while (!conn.isAuthenticated()) {
+            LOG.info("Waiting for authentication");
+            try {
+                Thread.sleep(400);
+            } catch (final InterruptedException e1) {
+                LOG.error("Exception during sleep?", e1);
+            }
+        }
+        
+        conn.addConnectionListener(new ConnectionListener() {
+            
+            public void reconnectionSuccessful() {
+                LOG.info("Reconnection successful...");
+            }
+            
+            public void reconnectionFailed(final Exception e) {
+                LOG.info("Reconnection failed", e);
+            }
+            
+            public void reconnectingIn(final int time) {
+                LOG.info("Reconnecting to XMPP server in "+time);
+            }
+            
+            public void connectionClosedOnError(final Exception e) {
+                LOG.info("XMPP connection closed on error", e);
+                try {
+                    persistentXmppConnection(username, password, id);
+                } catch (final IOException e1) {
+                    LOG.error("Could not re-establish connection?", e1);
+                }
+            }
+            
+            public void connectionClosed() {
+                LOG.info("XMPP connection closed. Creating new connection.");
+                try {
+                    persistentXmppConnection(username, password, id);
+                } catch (final IOException e1) {
+                    LOG.error("Could not re-establish connection?", e1);
+                }
+            }
+        });
+        
+        return conn;
     }
 }
 
