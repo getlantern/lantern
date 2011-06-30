@@ -161,12 +161,19 @@ function MockBrowser() {
   self.lastCookieHash = {};
   self.deferredFns = [];
 
-  self.defer = function(fn) {
-    self.deferredFns.push(fn);
+  self.defer = function(fn, delay) {
+    delay = delay || 0;
+    self.deferredFns.push({time:(self.defer.now + delay), fn:fn});
+    self.deferredFns.sort(function(a,b){ return a.time - b.time;});
   };
 
-  self.defer.flush = function() {
-    while (self.deferredFns.length) self.deferredFns.shift()();
+  self.defer.now = 0;
+
+  self.defer.flush = function(time) {
+    self.defer.now += (time || 0);
+    while (self.deferredFns.length && self.deferredFns[0].time <= self.defer.now) {
+      self.deferredFns.shift().fn();
+    }
   };
 }
 MockBrowser.prototype = {
@@ -378,9 +385,12 @@ function TzDate(offset, timestamp) {
     return this.origDate.getUTCSeconds();
   };
 
+  this.getDay = function() {
+    return this.origDate.getDay();
+  };
 
   //hide all methods not implemented in this mock that the Date prototype exposes
-  var unimplementedMethods = ['getDay', 'getMilliseconds', 'getTime', 'getUTCDay',
+  var unimplementedMethods = ['getMilliseconds', 'getTime', 'getUTCDay',
       'getUTCMilliseconds', 'getYear', 'setDate', 'setFullYear', 'setHours', 'setMilliseconds',
       'setMinutes', 'setMonth', 'setSeconds', 'setTime', 'setUTCDate', 'setUTCFullYear',
       'setUTCHours', 'setUTCMilliseconds', 'setUTCMinutes', 'setUTCMonth', 'setUTCSeconds',

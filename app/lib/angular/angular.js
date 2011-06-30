@@ -76,8 +76,9 @@ if ('i' !== 'I'.toLowerCase()) {
 function fromCharCode(code) { return String.fromCharCode(code); }
 
 
-var $$element         = '$element',
-    $$update          = '$update',
+var _undefined        = undefined,
+    _null             = null,
+    $$element         = '$element',
     $$scope           = '$scope',
     $$validate        = '$validate',
     $angular          = 'angular',
@@ -138,6 +139,7 @@ var $$element         = '$element',
     angularCallbacks  = extensionMap(angular, 'callbacks'),
     nodeName_,
     rngScript         = /^(|.*\/)angular(-.*?)?(\.min)?.js(\?[^#]*)?(#(.*))?$/,
+    uid               = ['0', '0', '0'];
     DATE_ISOSTRING_LN = 24;
 
 /**
@@ -213,6 +215,36 @@ function formatError(arg) {
   return arg;
 }
 
+/**
+ * @description
+ * A consistent way of creating unique IDs in angular. The ID is a sequence of alpha numeric
+ * characters such as '012ABC'. The reason why we are not using simply a number counter is that
+ * the number string gets longer over time, and it can also overflow, where as the the nextId
+ * will grow much slower, it is a string, and it will never overflow.
+ *
+ * @returns an unique alpha-numeric string
+ */
+function nextUid() {
+  var index = uid.length;
+  var digit;
+
+  while(index) {
+    index--;
+    digit = uid[index].charCodeAt(0);
+    if (digit == 57 /*'9'*/) {
+      uid[index] = 'A';
+      return uid.join('');
+    }
+    if (digit == 90  /*'Z'*/) {
+      uid[index] = '0';
+    } else {
+      uid[index] = String.fromCharCode(digit + 1);
+      return uid.join('');
+    }
+  }
+  uid.unshift('0');
+  return uid.join('');
+}
 
 /**
  * @workInProgress
@@ -435,6 +467,19 @@ function isElement(node) {
     (node.nodeName  // we are a direct element
     || (node.bind && node.find));  // we have a bind and find method part of jQuery API
 }
+
+/**
+ * @param str 'key1,key2,...'
+ * @returns {object} in the form of {key1:true, key2:true, ...}
+ */
+function makeMap(str){
+  var obj = {}, items = str.split(","), i;
+  for ( i = 0; i < items.length; i++ )
+    obj[ items[i] ] = true;
+  return obj;
+}
+
+
 
 /**
  * HTML class which is the only class which can be used in ng:bind to inline HTML for security reasons.
@@ -775,13 +820,21 @@ function concat(array1, array2, index) {
  * @returns {function()} Function that wraps the `fn` with all the specified bindings.
  */
 function bind(self, fn) {
-  var curryArgs = arguments.length > 2 ? slice.call(arguments, 2, arguments.length) : [];
+  var curryArgs = arguments.length > 2
+    ? slice.call(arguments, 2, arguments.length)
+    : [];
   if (typeof fn == $function && !(fn instanceof RegExp)) {
-    return curryArgs.length ? function() {
-      return arguments.length ? fn.apply(self, curryArgs.concat(slice.call(arguments, 0, arguments.length))) : fn.apply(self, curryArgs);
-    }: function() {
-      return arguments.length ? fn.apply(self, arguments) : fn.call(self);
-    };
+    return curryArgs.length
+      ? function() {
+          return arguments.length
+            ? fn.apply(self, curryArgs.concat(slice.call(arguments, 0, arguments.length)))
+            : fn.apply(self, curryArgs);
+        }
+      : function() {
+          return arguments.length
+            ? fn.apply(self, arguments)
+            : fn.call(self);
+        };
   } else {
     // in IE, native methods are not functions and so they can not be bound (but they don't need to be)
     return fn;
@@ -966,7 +1019,6 @@ function assertArg(arg, name, reason) {
   if (!arg) {
     var error = new Error("Argument '" + (name||'?') + "' is " +
         (reason || "required"));
-    if (window.console) window.console.log(error.stack);
     throw error;
   }
 }
@@ -1011,19 +1063,14 @@ function toJson(obj, pretty) {
 function fromJson(json, useNative) {
   if (!isString(json)) return json;
 
-  var obj, p, expression;
+  var obj;
 
   try {
     if (useNative && window.JSON && window.JSON.parse) {
       obj = JSON.parse(json);
       return transformDates(obj);
     }
-
-    p = parser(json, true);
-    expression =  p.primary();
-    p.assertAllConsumed();
-    return expression();
-
+    return parser(json, true).primary()();
   } catch (e) {
     error("fromJson error: ", json, e);
     throw e;
@@ -1042,8 +1089,8 @@ function fromJson(json, useNative) {
   }
 }
 
-angular['toJson'] = toJson;
-angular['fromJson'] = fromJson;
+angular.toJson = toJson;
+angular.fromJson = fromJson;
 
 function toJsonArray(buf, obj, pretty, stack) {
   if (isObject(obj)) {
@@ -1066,7 +1113,7 @@ function toJsonArray(buf, obj, pretty, stack) {
   if (obj === null) {
     buf.push($null);
   } else if (obj instanceof RegExp) {
-    buf.push(angular['String']['quoteUnicode'](obj.toString()));
+    buf.push(angular.String.quoteUnicode(obj.toString()));
   } else if (isFunction(obj)) {
     return;
   } else if (isBoolean(obj)) {
@@ -1078,7 +1125,7 @@ function toJsonArray(buf, obj, pretty, stack) {
       buf.push('' + obj);
     }
   } else if (isString(obj)) {
-    return buf.push(angular['String']['quoteUnicode'](obj));
+    return buf.push(angular.String.quoteUnicode(obj));
   } else if (isObject(obj)) {
     if (isArray(obj)) {
       buf.push("[");
@@ -1096,7 +1143,7 @@ function toJsonArray(buf, obj, pretty, stack) {
       }
       buf.push("]");
     } else if (isDate(obj)) {
-      buf.push(angular['String']['quoteUnicode'](angular['Date']['toString'](obj)));
+      buf.push(angular.String.quoteUnicode(angular.Date.toString(obj)));
     } else {
       buf.push("{");
       if (pretty) buf.push(pretty);
@@ -1104,9 +1151,9 @@ function toJsonArray(buf, obj, pretty, stack) {
       var childPretty = pretty ? pretty + "  " : false;
       var keys = [];
       for(var k in obj) {
-        if (obj[k] === undefined)
-          continue;
-        keys.push(k);
+        if (obj.hasOwnProperty(k) && obj[k] !== undefined) {
+          keys.push(k);
+        }
       }
       keys.sort();
       for ( var keyIndex = 0; keyIndex < keys.length; keyIndex++) {
@@ -1117,7 +1164,7 @@ function toJsonArray(buf, obj, pretty, stack) {
             buf.push(",");
             if (pretty) buf.push(pretty);
           }
-          buf.push(angular['String']['quote'](key));
+          buf.push(angular.String.quote(key));
           buf.push(":");
           toJsonArray(buf, value, childPretty, stack);
           comma = true;
@@ -1166,7 +1213,7 @@ Template.prototype = {
     forEach(this.inits, function(fn) {
       queue.push(function() {
         childScope.$tryEval(function(){
-          return childScope.$service(fn, childScope, element);
+          return childScope.$service.invoke(childScope, fn, [element]);
         }, element);
       });
     });
@@ -1181,9 +1228,11 @@ Template.prototype = {
   },
 
 
-  addInit:function(init) {
-    if (init) {
-      this.inits.push(init);
+  addInit:function(linkingFn) {
+    if (linkingFn) {
+      if (!linkingFn.$inject)
+        linkingFn.$inject = [];
+      this.inits.push(linkingFn);
     }
   },
 
@@ -1321,6 +1370,11 @@ Compiler.prototype = {
     var index = 0,
         template,
         parent = templateElement.parent();
+    if (templateElement.length > 1) {
+      // https://github.com/angular/angular.js/issues/338
+      throw Error("Cannot compile multiple element roots: " +
+          jqLite('<div>').append(templateElement.clone()).html());
+    }
     if (parent && parent[0]) {
       parent = parent[0];
       for(var i = 0; i < parent.childNodes.length; i++) {
@@ -1610,7 +1664,6 @@ function expressionCompile(exp){
   if (!fn) {
     var p = parser(exp);
     var fnSelf = p.statements();
-    p.assertAllConsumed();
     fn = compileCache[exp] = extend(
       function(){ return fnSelf(this);},
       {fnSelf: fnSelf});
@@ -1991,7 +2044,7 @@ function createScope(parent, providers, instanceCache) {
         forEach(Class.prototype, function(fn, name){
           instance[name] = bind(instance, fn);
         });
-        instance.$service.apply(instance, concat([Class, instance], arguments, 1));
+        instance.$service.invoke(instance, Class, slice.call(arguments, 1, arguments.length));
 
         //TODO: backwards compatibility hack, remove when we don't depend on init methods
         if (isFunction(Class.prototype.init)) {
@@ -2044,7 +2097,7 @@ function createScope(parent, providers, instanceCache) {
      * @param {string} serviceId String ID of the service to return.
      * @returns {*} Value, object or function returned by the service factory function if any.
      */
-    (instance.$service = createInjector(instance, providers, instanceCache))();
+    (instance.$service = createInjector(instance, providers, instanceCache)).eager();
   }
 
   $log = instance.$service('$log');
@@ -2058,81 +2111,114 @@ function createScope(parent, providers, instanceCache) {
  * @function
  *
  * @description
- * Creates an inject function that can be used for dependency injection.
- * (See {@link guide/dev_guide.di dependency injection})
+ * Creates an injector function that can be used for retrieving services as well as for
+ * dependency injection (see {@link guide/dev_guide.di dependency injection}).
  *
- * The inject function can be used for retrieving service instances or for calling any function
- * which has the $inject property so that the services can be automatically provided. Angular
- * creates an injection function automatically for the root scope and it is available as
- * {@link angular.scope.$service $service}.
+ * Angular creates an injector automatically for the root scope and it is available as the
+ * {@link angular.scope.$service $service} property. Creation of the injector automatically creates
+ * all of the `$eager` {@link angular.service services}.
  *
- * @param {Object=} [providerScope={}] provider's `this`
- * @param {Object.<string, function()>=} [providers=angular.service] Map of provider (factory)
- *     function.
- * @param {Object.<string, function()>=} [cache={}] Place where instances are saved for reuse. Can
- *     also be used to override services speciafied by `providers` (useful in tests).
- * @returns
- *   {function()} Injector function: `function(value, scope, args...)`:
+ * @param {Object=} [factoryScope={}] `this` for the service factory function.
+ * @param {Object.<string, function()>=} [factories=angular.service] Map of service factory
+ *     functions.
+ * @param {Object.<string, function()>=} [instanceCache={}] Place where instances of services are
+ *     saved for reuse. Can also be used to override services specified by `serviceFactory`
+ *     (useful in tests).
+ * @returns {function()} Injector function:
  *
- *     * `value` - `{string|array|function}`
- *     * `scope(optional=rootScope)` -  optional function "`this`" when `value` is type `function`.
- *     * `args(optional)` - optional set of arguments to pass to function after injection arguments.
- *        (also known as curry arguments or currying).
+ *   * `injector(serviceName)`:
+ *     * `serviceName` - `{string=}` - name of the service to retrieve.
  *
- *   #Return value of `function(value, scope, args...)`
- *   The injector function return value depended on the type of `value` argument:
+ * The injector function also has these properties:
  *
- *     * `string`: return an instance for the injection key.
- *     * `array` of keys: returns an array of instances for those keys. (see `string` above.)
- *     * `function`: look at `$inject` property of function to determine instances to inject
- *       and then call the function with instances and `scope`. Any additional arguments
- *       (`args`) are appended to the function arguments.
- *     * `none`: initialize eager providers.
- *
+ *   * an `invoke` property which can be used to invoke methods with dependency-injected arguments.
+ *    `injector.invoke(self, fn, curryArgs)`
+ *     * `self` -  "`this`" to be used when invoking the function.
+ *     * `fn` - the function to be invoked. The function may have the `$inject` property which
+ *        lists the set of arguments which should be auto injected
+ *        (see {@link guide.di dependency injection}).
+ *     * `curryArgs(array)` - optional array of arguments to pass to function invocation after the
+ *        injection arguments (also known as curry arguments or currying).
+ *   * an `eager` property which is used to initialize the eager services.
+ *     `injector.eager()`
  */
-function createInjector(providerScope, providers, cache) {
-  providers = providers || angularService;
-  cache = cache || {};
-  providerScope = providerScope || {};
-  return function inject(value, scope, args){
-    var returnValue, provider;
-    if (isString(value)) {
-      if (!(value in cache)) {
-        provider = providers[value];
-        if (!provider) throw "Unknown provider for '"+value+"'.";
-        cache[value] = inject(provider, providerScope);
-      }
-      returnValue = cache[value];
-    } else if (isArray(value)) {
-      returnValue = [];
-      forEach(value, function(name) {
-        returnValue.push(inject(name));
-      });
-    } else if (isFunction(value)) {
-      returnValue = inject(injectionArgs(value));
-      returnValue = value.apply(scope, concat(returnValue, arguments, 2));
-    } else if (isObject(value)) {
-      forEach(providers, function(provider, name){
-        if (provider.$eager)
-          inject(name);
+function createInjector(factoryScope, factories, instanceCache) {
+  factories = factories || angularService;
+  instanceCache = instanceCache || {};
+  factoryScope = factoryScope || {};
+  injector.invoke = invoke;
 
-        if (provider.$creation)
-          throw new Error("Failed to register service '" + name +
-              "': $creation property is unsupported. Use $eager:true or see release notes.");
-      });
-    } else {
-      returnValue = inject(providerScope);
-    }
-    return returnValue;
+  injector.eager = function(){
+    forEach(factories, function(factory, name){
+      if (factory.$eager)
+        injector(name);
+
+      if (factory.$creation)
+        throw new Error("Failed to register service '" + name +
+        "': $creation property is unsupported. Use $eager:true or see release notes.");
+    });
   };
+  return injector;
+
+  function injector(value){
+    if (!(value in instanceCache)) {
+      var factory = factories[value];
+      if (!factory) throw Error("Unknown provider for '"+value+"'.");
+      instanceCache[value] = invoke(factoryScope, factory);
+    }
+    return instanceCache[value];
+  };
+
+  function invoke(self, fn, args){
+    args = args || [];
+    var injectNames = injectionArgs(fn);
+    var i = injectNames.length;
+    while(i--) {
+      args.unshift(injector(injectNames[i]));
+    }
+    return fn.apply(self, args);
+  }
 }
 
-function injectService(services, fn) {
-  return extend(fn, {$inject:services});
-}
-
-function injectUpdateView(fn) {
-  return injectService(['$updateView'], fn);
+/*NOT_PUBLIC_YET
+ * @ngdoc function
+ * @name angular.annotate
+ * @function
+ *
+ * @description
+ * Annotate the function with injection arguments. This is equivalent to setting the `$inject`
+ * property as described in {@link guide.di dependency injection}.
+ *
+ * <pre>
+ * var MyController = angular.annotate('$location', function($location){ ... });
+ * </pre>
+ *
+ * is the same as
+ *
+ * <pre>
+ * var MyController = function($location){ ... };
+ * MyController.$inject = ['$location'];
+ * </pre>
+ *
+ * @param {String|Array} serviceName... zero or more service names to inject into the
+ *     `annotatedFunction`.
+ * @param {function} annotatedFunction function to annotate with `$inject`
+ *     functions.
+ * @returns {function} `annotatedFunction`
+ */
+function annotate(services, fn) {
+  if (services instanceof Array) {
+    fn.$inject = services;
+    return fn;
+  } else {
+    var i = 0,
+        length = arguments.length - 1, // last one is the destination function
+        $inject = arguments[length].$inject = [];
+    for (; i < length; i++) {
+      $inject.push(arguments[i]);
+    }
+    return arguments[length]; // return the last one
+  }
 }
 
 function angularServiceInject(name, fn, inject, eager) {
@@ -2143,12 +2229,12 @@ function angularServiceInject(name, fn, inject, eager) {
 /**
  * @returns the $inject property of function. If not found the
  * the $inject is computed by looking at the toString of function and
- * extracting all arguments which start with $ or end with _ as the
+ * extracting all arguments which and assuming that they are the
  * injection names.
  */
 var FN_ARGS = /^function\s*[^\(]*\(([^\)]*)\)/;
 var FN_ARG_SPLIT = /,/;
-var FN_ARG = /^\s*(((\$?).+?)(_?))\s*$/;
+var FN_ARG = /^\s*(.+?)\s*$/;
 var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
 function injectionArgs(fn) {
   assertArgFn(fn);
@@ -2157,12 +2243,8 @@ function injectionArgs(fn) {
     var fnText = fn.toString().replace(STRIP_COMMENTS, '');
     var argDecl = fnText.match(FN_ARGS);
     forEach(argDecl[1].split(FN_ARG_SPLIT), function(arg){
-      arg.replace(FN_ARG, function(all, name, injectName, $, _){
-        assertArg(args, name, 'after non-injectable arg');
-        if ($ || _)
-          args.push(injectName);
-        else
-          args = null; // once we reach an argument which is not injectable then ignore
+      arg.replace(FN_ARG, function(all, name){
+        args.push(name);
       });
     });
   }
@@ -2409,23 +2491,32 @@ function parser(text, json){
       pipeFunction =
         function (){ throwError("is not valid json", {text:text, index:0}); };
   }
+  //TODO: Shouldn't all of the public methods have assertAllConsumed?
+  //TODO: I think these should be public as part of the parser api instead of scope.$eval().
   return {
-      assertAllConsumed: assertAllConsumed,
-      assignable: assignable,
-      primary: primary,
-      statements: statements,
-      validator: validator,
-      formatter: formatter,
-      filter: filter,
-      //TODO: delete me, since having watch in UI is logic in UI. (leftover form getangular)
-      watch: watch
+      assignable: assertConsumed(assignable),
+      primary: assertConsumed(primary),
+      statements: assertConsumed(statements),
+      validator: assertConsumed(validator),
+      formatter: assertConsumed(formatter),
+      filter: assertConsumed(filter)
   };
+
+  function assertConsumed(fn) {
+    return function(){
+      var value = fn();
+      if (tokens.length !== 0) {
+        throwError("is an unexpected token", tokens[0]);
+      }
+      return value;
+    };
+  }
 
   ///////////////////////////////////
   function throwError(msg, token) {
-    throw Error("Parse Error: Token '" + token.text +
+    throw Error("Syntax Error: Token '" + token.text +
       "' " + msg + " at column " +
-      (token.index + 1) + " of expression [" +
+      (token.index + 1) + " of the expression [" +
       text + "] starting at [" + text.substring(token.index) + "].");
   }
 
@@ -2483,27 +2574,25 @@ function parser(text, json){
     return tokens.length > 0;
   }
 
-  function assertAllConsumed(){
-    if (tokens.length !== 0) {
-      throwError("is extra token not part of expression", tokens[0]);
-    }
-  }
-
   function statements(){
     var statements = [];
     while(true) {
       if (tokens.length > 0 && !peek('}', ')', ';', ']'))
         statements.push(filterChain());
       if (!expect(';')) {
-        return function (self){
-          var value;
-          for ( var i = 0; i < statements.length; i++) {
-            var statement = statements[i];
-            if (statement)
-              value = statement(self);
-          }
-          return value;
-        };
+        // optimize for the common case where there is only one statement.
+        // TODO(size): maybe we should not support multiple statements?
+        return statements.length == 1
+          ? statements[0]
+          : function (self){
+            var value;
+            for ( var i = 0; i < statements.length; i++) {
+              var statement = statements[i];
+              if (statement)
+                value = statement(self);
+            }
+            return value;
+          };
       }
     }
   }
@@ -2805,24 +2894,6 @@ function parser(text, json){
     };
   }
 
-  //TODO: delete me, since having watch in UI is logic in UI. (leftover form getangular)
-  function watch () {
-    var decl = [];
-    while(hasTokens()) {
-      decl.push(watchDecl());
-      if (!expect(';')) {
-        assertAllConsumed();
-      }
-    }
-    assertAllConsumed();
-    return function (self){
-      for ( var i = 0; i < decl.length; i++) {
-        var d = decl[i](self);
-        self.addListener(d.name, d.fn);
-      }
-    };
-  }
-
   function watchDecl () {
     var anchorName = expect().text;
     consume(":");
@@ -2839,7 +2910,6 @@ function parser(text, json){
     };
   }
 }
-
 
 
 
@@ -2992,14 +3062,6 @@ var XHR = window.XMLHttpRequest || function () {
   throw new Error("This browser does not support XMLHttpRequest.");
 };
 
-// default xhr headers
-var XHR_HEADERS = {
-  DEFAULT: {
-    "Accept": "application/json, text/plain, */*",
-    "X-Requested-With": "XMLHttpRequest"
-  },
-  POST: {'Content-Type': 'application/x-www-form-urlencoded'}
-};
 
 /**
  * @private
@@ -3021,6 +3083,7 @@ var XHR_HEADERS = {
  */
 function Browser(window, document, body, XHR, $log) {
   var self = this,
+      rawDocument = document[0],
       location = window.location,
       setTimeout = window.setTimeout;
 
@@ -3080,7 +3143,7 @@ function Browser(window, document, body, XHR, $log) {
     outstandingRequestCount ++;
     if (lowercase(method) == 'json') {
       var callbackId = ("angular_" + Math.random() + '_' + (idCounter++)).replace(/\d\./, '');
-      var script = jqLite('<script>')
+      var script = jqLite(rawDocument.createElement('script'))
           .attr({type: 'text/javascript', src: url.replace('JSON_CALLBACK', callbackId)});
       window[callbackId] = function(data){
         window[callbackId] = undefined;
@@ -3091,8 +3154,7 @@ function Browser(window, document, body, XHR, $log) {
     } else {
       var xhr = new XHR();
       xhr.open(method, url, true);
-      forEach(extend({}, XHR_HEADERS.DEFAULT, XHR_HEADERS[uppercase(method)] || {}, headers || {}),
-        function(value, key) {
+      forEach(headers, function(value, key) {
           if (value) xhr.setRequestHeader(key, value);
       });
       xhr.onreadystatechange = function() {
@@ -3256,7 +3318,6 @@ function Browser(window, document, body, XHR, $log) {
   //////////////////////////////////////////////////////////////
   // Cookies API
   //////////////////////////////////////////////////////////////
-  var rawDocument = document[0];
   var lastCookies = {};
   var lastCookieString = '';
 
@@ -3611,17 +3672,6 @@ function htmlParser( html, handler ) {
 }
 
 /**
- * @param str 'key1,key2,...'
- * @returns {object} in the form of {key1:true, key2:true, ...}
- */
-function makeMap(str){
-  var obj = {}, items = str.split(","), i;
-  for ( i = 0; i < items.length; i++ )
-    obj[ items[i] ] = true;
-  return obj;
-}
-
-/**
  * decodes all entities into regular string
  * @param value
  * @returns {string} A string with decoded entities.
@@ -3788,6 +3838,7 @@ function getStyle(element) {
   return current;
 }
 
+//TODO: delete me! dead code?
 if (msie) {
   extend(JQLite.prototype, {
     text: function(value) {
@@ -3930,6 +3981,8 @@ var JQLitePrototype = JQLite.prototype = {
 // these functions return self on setter and
 // value on get.
 //////////////////////////////////////////
+var SPECIAL_ATTR = makeMap("multiple,selected,checked,disabled,readonly");
+
 forEach({
   data: JQLiteData,
 
@@ -3956,7 +4009,13 @@ forEach({
   },
 
   attr: function(element, name, value){
-    if (isDefined(value)) {
+    if (SPECIAL_ATTR[name]) {
+      if (isDefined(value)) {
+        element[name] = !!value;
+      } else {
+        return element[name];
+      }
+    } else if (isDefined(value)) {
       element.setAttribute(name, value);
     } else if (element.getAttribute) {
       // the extra argument "2" is to get the right thing for a.href in IE, see jQuery code
@@ -4101,6 +4160,20 @@ forEach({
       if (element.nodeType === 1)
         element.appendChild(child);
     });
+  },
+
+  prepend: function(element, node) {
+    if (element.nodeType === 1) {
+      var index = element.firstChild;
+      forEach(new JQLite(node), function(child){
+        if (index) {
+          element.insertBefore(child, index);
+        } else {
+          element.appendChild(child);
+          index = child;
+        }
+      });
+    }
   },
 
   remove: function(element) {
@@ -4744,18 +4817,17 @@ var angularArray = {
                                   {name:'Adam', phone:'555-5678', age:35},
                                   {name:'Julie', phone:'555-8765', age:29}]"></div>
 
-         <pre>Sorting predicate = {{predicate}}</pre>
+         <pre>Sorting predicate = {{predicate}}; reverse = {{reverse}}</pre>
          <hr/>
+         [ <a href="" ng:click="predicate=''">unsorted</a> ]
          <table ng:init="predicate='-age'">
            <tr>
-             <th><a href="" ng:click="predicate = 'name'">Name</a>
-                 (<a href ng:click="predicate = '-name'">^</a>)</th>
-             <th><a href="" ng:click="predicate = 'phone'">Phone</a>
-                 (<a href ng:click="predicate = '-phone'">^</a>)</th>
-             <th><a href="" ng:click="predicate = 'age'">Age</a>
-                 (<a href ng:click="predicate = '-age'">^</a>)</th>
+             <th><a href="" ng:click="predicate = 'name'; reverse=false">Name</a>
+                 (<a href ng:click="predicate = '-name'; reverse=false">^</a>)</th>
+             <th><a href="" ng:click="predicate = 'phone'; reverse=!reverse">Phone Number</a></th>
+             <th><a href="" ng:click="predicate = 'age'; reverse=!reverse">Age</a></th>
            <tr>
-           <tr ng:repeat="friend in friends.$orderBy(predicate)">
+           <tr ng:repeat="friend in friends.$orderBy(predicate, reverse)">
              <td>{{friend.name}}</td>
              <td>{{friend.phone}}</td>
              <td>{{friend.age}}</td>
@@ -4764,7 +4836,7 @@ var angularArray = {
        </doc:source>
        <doc:scenario>
          it('should be reverse ordered by aged', function() {
-           expect(binding('predicate')).toBe('Sorting predicate = -age');
+           expect(binding('predicate')).toBe('Sorting predicate = -age; reverse = ');
            expect(repeater('.doc-example-live table', 'friend in friends').column('friend.age')).
              toEqual(['35', '29', '21', '19', '10']);
            expect(repeater('.doc-example-live table', 'friend in friends').column('friend.name')).
@@ -4778,7 +4850,7 @@ var angularArray = {
            expect(repeater('.doc-example-live table', 'friend in friends').column('friend.age')).
              toEqual(['35', '10', '29', '19', '21']);
 
-           element('.doc-example-live a:contains("Phone")+a:contains("^")').click();
+           element('.doc-example-live a:contains("Phone")').click();
            expect(repeater('.doc-example-live table', 'friend in friends').column('friend.phone')).
              toEqual(['555-9876', '555-8765', '555-5678', '555-4321', '555-1212']);
            expect(repeater('.doc-example-live table', 'friend in friends').column('friend.name')).
@@ -4787,35 +4859,34 @@ var angularArray = {
        </doc:scenario>
      </doc:example>
    */
-  //TODO: WTH is descend param for and how/when it should be used, how is it affected by +/- in
-  //      predicate? the code below is impossible to read and specs are not very good.
-  'orderBy':function(array, expression, descend) {
-    expression = isArray(expression) ? expression: [expression];
-    expression = map(expression, function($){
-      var descending = false, get = $ || identity;
-      if (isString($)) {
-        if (($.charAt(0) == '+' || $.charAt(0) == '-')) {
-          descending = $.charAt(0) == '-';
-          $ = $.substring(1);
+  'orderBy':function(array, sortPredicate, reverseOrder) {
+    if (!sortPredicate) return array;
+    sortPredicate = isArray(sortPredicate) ? sortPredicate: [sortPredicate];
+    sortPredicate = map(sortPredicate, function(predicate){
+      var descending = false, get = predicate || identity;
+      if (isString(predicate)) {
+        if ((predicate.charAt(0) == '+' || predicate.charAt(0) == '-')) {
+          descending = predicate.charAt(0) == '-';
+          predicate = predicate.substring(1);
         }
-        get = expressionCompile($).fnSelf;
+        get = expressionCompile(predicate).fnSelf;
       }
-      return reverse(function(a,b){
+      return reverseComparator(function(a,b){
         return compare(get(a),get(b));
       }, descending);
     });
     var arrayCopy = [];
     for ( var i = 0; i < array.length; i++) { arrayCopy.push(array[i]); }
-    return arrayCopy.sort(reverse(comparator, descend));
+    return arrayCopy.sort(reverseComparator(comparator, reverseOrder));
 
     function comparator(o1, o2){
-      for ( var i = 0; i < expression.length; i++) {
-        var comp = expression[i](o1, o2);
+      for ( var i = 0; i < sortPredicate.length; i++) {
+        var comp = sortPredicate[i](o1, o2);
         if (comp !== 0) return comp;
       }
       return 0;
     }
-    function reverse(comp, descending) {
+    function reverseComparator(comp, descending) {
       return toBoolean(descending)
           ? function(a,b){return comp(b,a);}
           : comp;
@@ -4970,6 +5041,69 @@ var angularFunction = {
   }
 };
 
+/**
+ * Computes a hash of an 'obj'.
+ * Hash of a:
+ *  string is string
+ *  number is number as string
+ *  object is either call $hashKey function on object or assign unique hashKey id.
+ *
+ * @param obj
+ * @returns {String} hash string such that the same input will have the same hash string
+ */
+function hashKey(obj) {
+  var objType = typeof obj;
+  var key = obj;
+  if (objType == 'object') {
+    if (typeof (key = obj.$hashKey) == 'function') {
+      // must invoke on object to keep the right this
+      key = obj.$hashKey();
+    } else if (key === undefined) {
+      key = obj.$hashKey = nextUid();
+    }
+  };
+  return objType + ':' + key;
+}
+
+/**
+ * HashMap which can use objects as keys
+ */
+function HashMap(){}
+HashMap.prototype = {
+  /**
+   * Store key value pair
+   * @param key key to store can be any type
+   * @param value value to store can be any type
+   * @returns old value if any
+   */
+  put: function(key, value) {
+    var _key = hashKey(key);
+    var oldValue = this[_key];
+    this[_key] = value;
+    return oldValue;
+  },
+
+  /**
+   * @param key
+   * @returns the value for the key
+   */
+  get: function(key) {
+    return this[hashKey(key)];
+  },
+
+  /**
+   * Remove the key/value pair
+   * @param key
+   * @returns value associated with key before it was removed
+   */
+  remove: function(key) {
+    var _key = hashKey(key);
+    var value = this[_key];
+    delete this[_key];
+    return value;
+  }
+};
+
 function defineApi(dst, chain){
   angular[dst] = angular[dst] || {};
   forEach(chain, function(parent){
@@ -4983,7 +5117,7 @@ defineApi('Object', [angularGlobal, angularCollection, angularObject]);
 defineApi('String', [angularGlobal, angularString]);
 defineApi('Date', [angularGlobal, angularDate]);
 //IE bug
-angular['Date']['toString'] = angularDate['toString'];
+angular.Date.toString = angularDate.toString;
 defineApi('Function', [angularGlobal, angularCollection, angularFunction]);
 /**
  * @workInProgress
@@ -5049,7 +5183,7 @@ defineApi('Function', [angularGlobal, angularCollection, angularFunction]);
  */
 angularFilter.currency = function(amount){
   this.$element.toggleClass('ng-format-negative', amount < 0);
-  return '$' + angularFilter['number'].apply(this, [amount, 2]);
+  return '$' + angularFilter.number.apply(this, [amount, 2]);
 };
 
 /**
@@ -5095,28 +5229,39 @@ angularFilter.number = function(number, fractionSize){
   if (isNaN(number) || !isFinite(number)) {
     return '';
   }
-  fractionSize = typeof fractionSize == $undefined ? 2 : fractionSize;
-  var isNegative = number < 0;
-  number = Math.abs(number);
-  var pow = Math.pow(10, fractionSize);
-  var text = "" + Math.round(number * pow);
-  var whole = text.substring(0, text.length - fractionSize);
-  whole = whole || '0';
-  var frc = text.substring(text.length - fractionSize);
-  text = isNegative ? '-' : '';
-  for (var i = 0; i < whole.length; i++) {
+  fractionSize = isUndefined(fractionSize)? 2 : fractionSize;
+
+  var isNegative = number < 0,
+      pow = Math.pow(10, fractionSize),
+      whole = '' + number,
+      formatedText = '',
+      i;
+
+  if (whole.indexOf('e') > -1) return whole;
+
+  number = Math.round(number * pow) / pow;
+  fraction = ('' + number).split('.');
+  whole = fraction[0];
+  fraction = fraction[1] || '';
+  if (isNegative) {
+    formatedText = '-';
+    whole = whole.substring(1);
+  }
+
+
+  for (i = 0; i < whole.length; i++) {
     if ((whole.length - i)%3 === 0 && i !== 0) {
-      text += ',';
+      formatedText += ',';
     }
-    text += whole.charAt(i);
+    formatedText += whole.charAt(i);
   }
-  if (fractionSize > 0) {
-    for (var j = frc.length; j < fractionSize; j++) {
-      frc += '0';
+  if (fractionSize) {
+    while(fraction.length < fractionSize) {
+      fraction += '0';
     }
-    text += '.' + frc.substring(0, fractionSize);
+    formatedText += '.' + fraction.substring(0, fractionSize);
   }
-  return text;
+  return formatedText;
 };
 
 
@@ -5144,31 +5289,53 @@ function dateGetter(name, size, offset, trim) {
   };
 }
 
+function dateStrGetter(name, shortForm) {
+  return function(date) {
+    var value = date['get' + name]();
+
+    if(name == 'Month') {
+      value = MONTH[value];
+    } else {
+      value = DAY[value];
+    }
+
+    return shortForm ? value.substr(0,3) : value;
+  };
+}
+
+var DAY = 'Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday'.split(',');
+
+var MONTH = 'January,February,March,April,May,June,July,August,September,October,November,December'.
+             split(',');
 
 var DATE_FORMATS = {
   yyyy: dateGetter('FullYear', 4),
-  yy:   dateGetter('FullYear', 2, 0, true),
-  MM:   dateGetter('Month', 2, 1),
-   M:   dateGetter('Month', 1, 1),
-  dd:   dateGetter('Date', 2),
-   d:   dateGetter('Date', 1),
-  HH:   dateGetter('Hours', 2),
-   H:   dateGetter('Hours', 1),
-  hh:   dateGetter('Hours', 2, -12),
-   h:   dateGetter('Hours', 1, -12),
-  mm:   dateGetter('Minutes', 2),
-   m:   dateGetter('Minutes', 1),
-  ss:   dateGetter('Seconds', 2),
-   s:   dateGetter('Seconds', 1),
-  a:    function(date){return date.getHours() < 12 ? 'am' : 'pm';},
-  Z:    function(date){
+    yy: dateGetter('FullYear', 2, 0, true),
+ MMMMM: dateStrGetter('Month'),
+   MMM: dateStrGetter('Month', true),
+    MM: dateGetter('Month', 2, 1),
+     M: dateGetter('Month', 1, 1),
+    dd: dateGetter('Date', 2),
+     d: dateGetter('Date', 1),
+    HH: dateGetter('Hours', 2),
+     H: dateGetter('Hours', 1),
+    hh: dateGetter('Hours', 2, -12),
+     h: dateGetter('Hours', 1, -12),
+    mm: dateGetter('Minutes', 2),
+     m: dateGetter('Minutes', 1),
+    ss: dateGetter('Seconds', 2),
+     s: dateGetter('Seconds', 1),
+  EEEE: dateStrGetter('Day'),
+   EEE: dateStrGetter('Day', true),
+     a: function(date){return date.getHours() < 12 ? 'am' : 'pm';},
+     Z: function(date){
           var offset = date.getTimezoneOffset();
           return padNumber(offset / 60, 2) + padNumber(Math.abs(offset % 60), 2);
         }
 };
 
 
-var DATE_FORMATS_SPLIT = /([^yMdHhmsaZ]*)(y+|M+|d+|H+|h+|m+|s+|a|Z)(.*)/;
+var DATE_FORMATS_SPLIT = /([^yMdHhmsaZE]*)(E+|y+|M+|d+|H+|h+|m+|s+|a|Z)(.*)/;
 var NUMBER_STRING = /^\d+$/;
 
 
@@ -5185,10 +5352,14 @@ var NUMBER_STRING = /^\d+$/;
  *
  *   * `'yyyy'`: 4 digit representation of year e.g. 2010
  *   * `'yy'`: 2 digit representation of year, padded (00-99)
+ *   * `'MMMMM'`: Month in year (January‒December)
+ *   * `'MMM'`: Month in year (Jan - Dec)
  *   * `'MM'`: Month in year, padded (01‒12)
  *   * `'M'`: Month in year (1‒12)
  *   * `'dd'`: Day in month, padded (01‒31)
  *   * `'d'`: Day in month (1-31)
+ *   * `'EEEE'`: Day in Week,(Sunday‒Saturday)
+ *   * `'EEE'`: Day in Week, (Sun-Sat)
  *   * `'HH'`: Hour in day, padded (00‒23)
  *   * `'H'`: Hour in day (0-23)
  *   * `'hh'`: Hour in am/pm, padded (01‒12)
@@ -5718,65 +5889,6 @@ angularFormatter.list = formatter(
  */
 angularFormatter.trim = formatter(
   function(obj) { return obj ? trim("" + obj) : ""; }
-);
-
-/**
- * @workInProgress
- * @ngdoc formatter
- * @name angular.formatter.index
- * @description
- * Index formatter is meant to be used with `select` input widget. It is useful when one needs
- * to select from a set of objects. To create pull-down one can iterate over the array of object
- * to build the UI. However  the value of the pull-down must be a string. This means that when on
- * object is selected form the pull-down, the pull-down value is a string which needs to be
- * converted back to an object. This conversion from string to on object is not possible, at best
- * the converted object is a copy of the original object. To solve this issue we create a pull-down
- * where the value strings are an index of the object in the array. When pull-down is selected the
- * index can be used to look up the original user object.
- *
- * @inputType select
- * @param {array} array to be used for selecting an object.
- * @returns {object} object which is located at the selected position.
- *
- * @example
-   <doc:example>
-     <doc:source>
-        <script>
-        function DemoCntl(){
-          this.users = [
-            {name:'guest', password:'guest'},
-            {name:'user', password:'123'},
-            {name:'admin', password:'abc'}
-          ];
-        }
-        </script>
-        <div ng:controller="DemoCntl">
-          User:
-          <select name="currentUser" ng:format="index:users">
-            <option ng:repeat="user in users" value="{{$index}}">{{user.name}}</option>
-          </select>
-          <select name="currentUser" ng:format="index:users">
-            <option ng:repeat="user in users" value="{{$index}}">{{user.name}}</option>
-          </select>
-          user={{currentUser.name}}<br/>
-          password={{currentUser.password}}<br/>
-     </doc:source>
-     <doc:scenario>
-        it('should retrieve object by index', function(){
-          expect(binding('currentUser.password')).toEqual('guest');
-          select('currentUser').option('2');
-          expect(binding('currentUser.password')).toEqual('abc');
-        });
-     </doc:scenario>
-   </doc:example>
- */
-angularFormatter.index = formatter(
-  function(object, array){
-    return '' + indexOf(array || [], object);
-  },
-  function(index, array){
-    return (array||[])[index];
-  }
 );
 /**
  * @workInProgress
@@ -6643,7 +6755,7 @@ var URL_MATCH = /^(file|ftp|http|https):\/\/(\w+:{0,1}\w*@)?([\w\.-]*)(:([0-9]+)
      </doc:source>
      <doc:scenario>
        it('should initialize the input field', function() {
-         expect(using('.doc-example-live').element('input[name=$location.hash]').val()).
+         expect(using('.doc-example-live').input('$location.hash').val()).
            toBe('!/api/angular.service.$location');
        });
 
@@ -6656,14 +6768,14 @@ var URL_MATCH = /^(file|ftp|http|https):\/\/(\w+:{0,1}\w*@)?([\w\.-]*)(:([0-9]+)
 
        it('should set the hash to a test string with test link is presed', function() {
          using('.doc-example-live').element('#ex-test').click();
-         expect(using('.doc-example-live').element('input[name=$location.hash]').val()).
+         expect(using('.doc-example-live').input('$location.hash').val()).
            toBe('myPath?name=misko');
        });
 
        it('should reset $location when reset link is pressed', function() {
          using('.doc-example-live').input('$location.hash').enter('foo');
          using('.doc-example-live').element('#ex-reset').click();
-         expect(using('.doc-example-live').element('input[name=$location.hash]').val()).
+         expect(using('.doc-example-live').input('$location.hash').val()).
            toBe('!/api/angular.service.$location');
        });
 
@@ -7735,6 +7847,22 @@ angularServiceInject('$xhr.error', function($log){
  * and process it in application specific way, or resume normal execution by calling the
  * request callback method.
  *
+ * # HTTP Headers
+ * The $xhr service will automatically add certain http headers to all requests. These defaults can
+ * be fully configured by accessing the `$xhr.defaults.headers` configuration object, which
+ * currently contains this default configuration:
+ *
+ * - `$xhr.defaults.headers.common` (headers that are common for all requests):
+ *   - `Accept: application/json, text/plain, *\/*`
+ *   - `X-Requested-With: XMLHttpRequest`
+ * - `$xhr.defaults.headers.post` (header defaults for HTTP POST requests):
+ *   - `Content-Type: application/x-www-form-urlencoded`
+ *
+ * To add or overwrite these defaults, simple add or remove a property from this configuration
+ * object. To add headers for an HTTP method other than POST, simple create a new object with name
+ * equal to the lowercased http method name, e.g. `$xhr.defaults.headers.get['My-Header']='value'`.
+ *
+ *
  * # Security Considerations
  * When designing web applications your design needs to consider security threats from
  * {@link http://haacked.com/archive/2008/11/20/anatomy-of-a-subtle-json-vulnerability.aspx
@@ -7837,7 +7965,21 @@ angularServiceInject('$xhr.error', function($log){
    </doc:example>
  */
 angularServiceInject('$xhr', function($browser, $error, $log, $updateView){
-  return function(method, url, post, callback){
+
+  var xhrHeaderDefaults = {
+    common: {
+      "Accept": "application/json, text/plain, */*",
+      "X-Requested-With": "XMLHttpRequest"
+    },
+    post: {'Content-Type': 'application/x-www-form-urlencoded'},
+    get: {},      // all these empty properties are needed so that client apps can just do:
+    head: {},     // $xhr.defaults.headers.head.foo="bar" without having to create head object
+    put: {},      // it also means that if we add a header for these methods in the future, it
+    'delete': {}, // won't be easily silently lost due to an object assignment.
+    patch: {}
+  };
+
+  function xhr(method, url, post, callback){
     if (isFunction(post)) {
       callback = post;
       post = null;
@@ -7866,10 +8008,14 @@ angularServiceInject('$xhr', function($browser, $error, $log, $updateView){
       } finally {
         $updateView();
       }
-    }, {
-        'X-XSRF-TOKEN': $browser.cookies()['XSRF-TOKEN']
-    });
+    }, extend({'X-XSRF-TOKEN': $browser.cookies()['XSRF-TOKEN']},
+              xhrHeaderDefaults.common,
+              xhrHeaderDefaults[lowercase(method)]));
   };
+
+  xhr.defaults = {headers: xhrHeaderDefaults};
+
+  return xhr;
 }, ['$browser', '$xhr.error', '$log', '$updateView']);
 /**
  * @workInProgress
@@ -8257,7 +8403,8 @@ var REMOVE_ATTRIBUTES = {
   'disabled':'disabled',
   'readonly':'readOnly',
   'checked':'checked',
-  'selected':'selected'
+  'selected':'selected',
+  'multiple':'multiple'
 };
 /**
  * @workInProgress
@@ -8316,10 +8463,8 @@ var REMOVE_ATTRIBUTES = {
 angularDirective("ng:bind-attr", function(expression){
   return function(element){
     var lastValue = {};
-    var updateFn = element.data($$update) || noop;
     this.$onEval(function(){
-      var values = this.$eval(expression),
-          dirty = noop;
+      var values = this.$eval(expression);
       for(var key in values) {
         var value = compileBindTemplate(values[key]).call(this, element),
             specialName = REMOVE_ATTRIBUTES[lowercase(key)];
@@ -8337,10 +8482,8 @@ angularDirective("ng:bind-attr", function(expression){
           } else {
             element.attr(key, value);
           }
-          dirty = updateFn;
         }
       }
-      dirty();
     }, element);
   };
 });
@@ -8384,7 +8527,7 @@ angularDirective("ng:bind-attr", function(expression){
  * TODO: maybe we should consider allowing users to control event propagation in the future.
  */
 angularDirective("ng:click", function(expression, element){
-  return injectUpdateView(function($updateView, element){
+  return annotate('$updateView', function($updateView, element){
     var self = this;
     element.bind('click', function(event){
       self.$tryEval(expression, element);
@@ -8434,7 +8577,7 @@ angularDirective("ng:click", function(expression, element){
    </doc:example>
  */
 angularDirective("ng:submit", function(expression, element) {
-  return injectUpdateView(function($updateView, element) {
+  return annotate('$updateView', function($updateView, element) {
     var self = this;
     element.bind('submit', function(event) {
       self.$tryEval(expression, element);
@@ -8880,32 +9023,32 @@ angularTextMarkup('option', function(text, textNode, parentElement){
       <doc:scenario>
         it('should execute ng:click but not reload when href without value', function() {
           element('#link-1').click();
-          expect(element('input[name=value]').val()).toEqual('1');
+          expect(input('value').val()).toEqual('1');
           expect(element('#link-1').attr('href')).toBe("");
         });
 
         it('should execute ng:click but not reload when href empty string', function() {
           element('#link-2').click();
-          expect(element('input[name=value]').val()).toEqual('2');
+          expect(input('value').val()).toEqual('2');
           expect(element('#link-2').attr('href')).toBe("");
         });
 
         it('should execute ng:click and change url when ng:href specified', function() {
           element('#link-3').click();
-          expect(element('input[name=value]').val()).toEqual('3');
+          expect(input('value').val()).toEqual('3');
           expect(element('#link-3').attr('href')).toBe("#123");
           expect(browser().location().hash()).toEqual('123');
         });
 
         it('should execute ng:click but not reload when href empty string and name specified', function() {
           element('#link-4').click();
-          expect(element('input[name=value]').val()).toEqual('4');
+          expect(input('value').val()).toEqual('4');
           expect(element('#link-4').attr('href')).toBe("");
         });
 
         it('should execute ng:click but not reload when no href but name specified', function() {
           element('#link-5').click();
-          expect(element('input[name=value]').val()).toEqual('5');
+          expect(input('value').val()).toEqual('5');
           expect(element('#link-5').attr('href')).toBe(undefined);
         });
 
@@ -8945,8 +9088,175 @@ angularTextMarkup('option', function(text, textNode, parentElement){
  * @param {template} template any string which can contain `{{}}` markup.
  */
 
+/**
+ * @workInProgress
+ * @ngdoc directive
+ * @name angular.directive.ng:disabled
+ *
+ * @description
+ *
+ * The following markup will make the button enabled on Chrome/Firefox but not on IE8 and older IEs:
+ * <pre>
+ * <div ng:init="scope = { isDisabled: false }">
+ *  <button disabled="{{scope.isDisabled}}">Disabled</button>
+ * </div>
+ * </pre>
+ *
+ * the HTML specs do not require browsers preserve the special attributes such as disabled.(The presense of them means true and absense means false)
+ * This prevents the angular compiler from correctly retrieving the binding expression.
+ * To solve this problem, we introduce ng:disabled.
+ *
+ * @example
+    <doc:example>
+      <doc:source>
+        Click me to toggle: <input type="checkbox" name="checked"><br/>
+        <button name="button" ng:disabled="{{checked}}">Button</button>
+      </doc:source>
+      <doc:scenario>
+        it('should toggle button', function() {
+          expect(element('.doc-example-live :button').attr('disabled')).toBeFalsy();
+          input('checked').check();
+          expect(element('.doc-example-live :button').attr('disabled')).toBeTruthy();
+        });
+      </doc:scenario>
+    </doc:example>
+ *
+ * @element ANY
+ * @param {template} template any string which can contain '{{}}' markup.
+ */
+
+
+/**
+ * @workInProgress
+ * @ngdoc directive
+ * @name angular.directive.ng:checked
+ *
+ * @description
+ * the HTML specs do not require browsers preserve the special attributes such as checked.(The presense of them means true and absense means false)
+ * This prevents the angular compiler from correctly retrieving the binding expression.
+ * To solve this problem, we introduce ng:checked.
+ * @example
+    <doc:example>
+      <doc:source>
+        Check me to check both: <input type="checkbox" name="master"><br/>
+        <input id="checkSlave" type="checkbox" ng:checked="{{master}}">
+      </doc:source>
+      <doc:scenario>
+        it('should check both checkBoxes', function() {
+          expect(element('.doc-example-live #checkSlave').attr('checked')).toBeFalsy();
+          input('master').check();
+          expect(element('.doc-example-live #checkSlave').attr('checked')).toBeTruthy();
+        });
+      </doc:scenario>
+    </doc:example>
+ *
+ * @element ANY
+ * @param {template} template any string which can contain '{{}}' markup.
+ */
+
+
+/**
+ * @workInProgress
+ * @ngdoc directive
+ * @name angular.directive.ng:multiple
+ *
+ * @description
+ * the HTML specs do not require browsers preserve the special attributes such as multiple.(The presense of them means true and absense means false)
+ * This prevents the angular compiler from correctly retrieving the binding expression.
+ * To solve this problem, we introduce ng:multiple.
+ *
+ * @example
+     <doc:example>
+       <doc:source>
+         Check me check multiple: <input type="checkbox" name="checked"><br/>
+         <select id="select" ng:multiple="{{checked}}">
+           <option>Misko</option>
+           <option>Igor</option>
+           <option>Vojita</option>
+           <option>Di</option>
+         </select>
+       </doc:source>
+       <doc:scenario>
+         it('should toggle multiple', function() {
+           expect(element('.doc-example-live #select').attr('multiple')).toBeFalsy();
+           input('checked').check();
+           expect(element('.doc-example-live #select').attr('multiple')).toBeTruthy();
+         });
+       </doc:scenario>
+     </doc:example>
+ *
+ * @element ANY
+ * @param {template} template any string which can contain '{{}}' markup.
+ */
+
+
+/**
+ * @workInProgress
+ * @ngdoc directive
+ * @name angular.directive.ng:readonly
+ *
+ * @description
+ * the HTML specs do not require browsers preserve the special attributes such as readonly.(The presense of them means true and absense means false)
+ * This prevents the angular compiler from correctly retrieving the binding expression.
+ * To solve this problem, we introduce ng:readonly.
+ * @example
+    <doc:example>
+      <doc:source>
+        Check me to make text readonly: <input type="checkbox" name="checked"><br/>
+        <input type="text" ng:readonly="{{checked}}" value="I'm Angular"/>
+      </doc:source>
+      <doc:scenario>
+        it('should toggle readonly attr', function() {
+          expect(element('.doc-example-live :text').attr('readonly')).toBeFalsy();
+          input('checked').check();
+          expect(element('.doc-example-live :text').attr('readonly')).toBeTruthy();
+        });
+      </doc:scenario>
+    </doc:example>
+ *
+ * @element ANY
+ * @param {template} template any string which can contain '{{}}' markup.
+ */
+
+
+/**
+* @workInProgress
+* @ngdoc directive
+* @name angular.directive.ng:selected
+*
+* @description
+* the HTML specs do not require browsers preserve the special attributes such as selected.(The presense of them means true and absense means false)
+* This prevents the angular compiler from correctly retrieving the binding expression.
+* To solve this problem, we introduce ng:selected.
+* @example
+   <doc:example>
+     <doc:source>
+       Check me to select: <input type="checkbox" name="checked"><br/>
+       <select>
+         <option>Hello!</option>
+         <option id="greet" ng:selected="{{checked}}">Greetings!</option>
+       </select>
+     </doc:source>
+     <doc:scenario>
+       it('should select Greetings!', function() {
+         expect(element('.doc-example-live #greet').attr('selected')).toBeFalsy();
+         input('checked').check();
+         expect(element('.doc-example-live #greet').attr('selected')).toBeTruthy();
+       });
+     </doc:scenario>
+   </doc:example>
+* @element ANY
+* @param {template} template any string which can contain '{{}}' markup.
+*/
+
+
 var NG_BIND_ATTR = 'ng:bind-attr';
-var SPECIAL_ATTRS = {'ng:src': 'src', 'ng:href': 'href'};
+var SPECIAL_ATTRS = {};
+
+forEach('src,href,checked,disabled,multiple,readonly,selected'.split(','), function(name) {
+  SPECIAL_ATTRS['ng:' + name] = name;
+});
+
 angularAttrMarkup('{{}}', function(value, name, element){
   // don't process existing attribute markup
   if (angularDirective(name) || angularDirective("@" + name)) return;
@@ -9129,18 +9439,19 @@ angularAttrMarkup('{{}}', function(value, name, element){
 
 function modelAccessor(scope, element) {
   var expr = element.attr('name');
-  var assign;
+  var exprFn, assignFn;
   if (expr) {
-    assign = parser(expr).assignable().assign;
-    if (!assign) throw new Error("Expression '" + expr + "' is not assignable.");
+    exprFn = parser(expr).assignable();
+    assignFn = exprFn.assign;
+    if (!assignFn) throw new Error("Expression '" + expr + "' is not assignable.");
     return {
       get: function() {
-        return scope.$eval(expr);
+        return exprFn(scope);
       },
       set: function(value) {
         if (value !== undefined) {
           return scope.$tryEval(function(){
-            assign(scope, value);
+            assignFn(scope, value);
           }, element);
         }
       }
@@ -9485,7 +9796,7 @@ function radioInit(model, view, element) {
     </doc:example>
  */
 function inputWidget(events, modelAccessor, viewAccessor, initFn, textBox) {
-  return injectService(['$updateView', '$defer'], function($updateView, $defer, element) {
+  return annotate('$updateView', '$defer', function($updateView, $defer, element) {
     var scope = this,
         model = modelAccessor(scope, element),
         view = viewAccessor(scope, element),
@@ -9524,64 +9835,241 @@ function inputWidgetSelector(element){
 angularWidget('input', inputWidgetSelector);
 angularWidget('textarea', inputWidgetSelector);
 angularWidget('button', inputWidgetSelector);
+
+/**
+ * @workInProgress
+ * @ngdoc directive
+ * @name angular.directive.ng:options
+ *
+ * @description
+ * Dynamically generate a list of `<option>` elements for a `<select>` element using the array
+ * obtained by evaluating the `ng:options` expression.
+ *
+ * When an item in the select menu is select, the array element represented by the selected option
+ * will be bound to the model identified by the `name` attribute of the parent select element.
+ *
+ * Optionally, a single hard-coded `<option>` element, with the value set to an empty string, can
+ * be nested into the `<select>` element. This element will then represent `null` or "not selected"
+ * option. See example below for demonstration.
+ *
+ * Note: `ng:options` provides iterator facility for `<option>` element which must be used instead
+ * of {@link angular.widget.@ng:repeat ng:repeat}. `ng:repeat` is not suitable for use with
+ * `<option>` element because of the following reasons:
+ *
+ *   * value attribute of the option element that we need to bind to requires a string, but the
+ *     source of data for the iteration might be in a form of array containing objects instead of
+ *     strings
+ *   * {@link angular.widget.@ng:repeat ng:repeat} unrolls after the select binds causing
+ *     incorect rendering on most browsers.
+ *   * binding to a value not in list confuses most browsers.
+ *
+ * @element select
+ * @param {comprehension_expression} comprehension _expresion_ `for` _item_ `in` _array_.
+ *
+ *   * _array_: an expression which evaluates to an array of objects to bind.
+ *   * _item_: local variable which will reffer to the item in the _array_ during the itteration
+ *   * _expression_: The result of this expression will is `option` label. The
+ *        `expression` most likely reffers to the _item_ varibale.
+ *
+ * @example
+    <doc:example>
+      <doc:source>
+        <script>
+        function MyCntrl(){
+          this.colors = [
+            {name:'black'},
+            {name:'white'},
+            {name:'red'},
+            {name:'blue'},
+            {name:'green'}
+          ];
+          this.color = this.colors[2]; // red
+        }
+        </script>
+        <div ng:controller="MyCntrl">
+          <ul>
+            <li ng:repeat="color in colors">
+              Name: <input name="color.name"/> [<a href ng:click="colors.$remove(color)">X</a>]
+            </li>
+            <li>
+              [<a href ng:click="colors.push({})">add</a>]
+            </li>
+          </ul>
+          <hr/>
+          Color (null not allowed):
+          <select name="color" ng:options="c.name for c in colors"></select><br/>
+
+          Color (null allowed):
+          <select name="color" ng:options="c.name for c in colors">
+            <option value="">-- chose color --</option>
+          </select><br/>
+
+          Select <a href ng:click="color={name:'not in list'}">bogus</a>. <br/>
+          <hr/>
+          Currently selected: {{ {selected_color:color}  }}
+          <div style="border:solid 1px black;"
+               ng:style="{'background-color':color.name}">
+             &nbsp;
+          </div>
+        </div>
+      </doc:source>
+      <doc:scenario>
+         it('should check ng:options', function(){
+           expect(binding('color')).toMatch('red');
+           select('color').option('0');
+           expect(binding('color')).toMatch('black');
+           select('color').option('');
+           expect(binding('color')).toMatch('null');
+         });
+      </doc:scenario>
+    </doc:example>
+ */
+
+var NG_OPTIONS_REGEXP = /^(.*)\s+for\s+([\$\w][\$\w\d]*)\s+in\s+(.*)$/;
 angularWidget('select', function(element){
   this.descend(true);
-  return inputWidgetSelector.call(this, element);
-});
-
-
-/*
- * Consider this:
- * <select name="selection">
- *   <option ng:repeat="x in [1,2]">{{x}}</option>
- * </select>
- *
- * The issue is that the select gets evaluated before option is unrolled.
- * This means that the selection is undefined, but the browser
- * default behavior is to show the top selection in the list.
- * To fix that we register a $update function on the select element
- * and the option creation then calls the $update function when it is
- * unrolled. The $update function then calls this update function, which
- * then tries to determine if the model is unassigned, and if so it tries to
- * chose one of the options from the list.
- */
-angularWidget('option', function(){
-  this.descend(true);
   this.directives(true);
-  return function(option) {
-    var select = option.parent();
-    var isMultiple = select[0].type == 'select-multiple';
-    var scope = select.scope();
-    var model = modelAccessor(scope, select);
+  var isMultiselect = element.attr('multiple');
+  var expression = element.attr('ng:options');
+  var match;
+  if (!expression) {
+    return inputWidgetSelector.call(this, element);
+  }
+  if (! (match = expression.match(NG_OPTIONS_REGEXP))) {
+    throw Error(
+        "Expected ng:options in form of '_expresion_ for _item_ in _collection_' but got '" +
+        expression + "'.");
+  }
+  var displayFn = expressionCompile(match[1]).fnSelf;
+  var itemName = match[2];
+  var collectionFn = expressionCompile(match[3]).fnSelf;
+  // we can't just jqLite('<option>') since jqLite is not smart enough
+  // to create it in <select> and IE barfs otherwise.
+  var option = jqLite(document.createElement('option'));
+  return function(select){
+    var scope = this;
+    var optionElements = [];
+    var optionTexts = [];
+    var lastSelectValue = isMultiselect ? {} : false;
+    var nullOption = option.clone().val('');
+    var missingOption = option.clone().val('?');
+    var model = modelAccessor(scope, element);
 
-    //if parent select doesn't have a name, don't bother doing anything any more
-    if (!model) return;
+    // find existing special options
+    forEach(select.children(), function(option){
+      if (option.value == '') nullOption = false;
+    });
 
-    var formattedModel = modelFormattedAccessor(scope, select);
-    var view = isMultiple
-      ? optionsAccessor(scope, select)
-      : valueAccessor(scope, select);
-    var lastValue = option.attr($value);
-    var wasSelected = option.attr('ng-' + $selected);
-    option.data($$update, isMultiple
-      ? function(){
-          view.set(model.get());
+    select.bind('change', function(){
+      var collection = collectionFn(scope) || [];
+      var value = select.val();
+      var index, length;
+      if (isMultiselect) {
+        value = [];
+        for (index = 0, length = optionElements.length; index < length; index++) {
+          if (optionElements[index][0].selected) {
+            value.push(collection[index]);
+          }
         }
-      : function(){
-          var currentValue = option.attr($value);
-          var isSelected = option.attr('ng-' + $selected);
-          var modelValue = model.get();
-          if (wasSelected != isSelected || lastValue != currentValue) {
-            wasSelected = isSelected;
-            lastValue = currentValue;
-            if (isSelected || !modelValue == null || modelValue == undefined )
-              formattedModel.set(currentValue);
-            if (currentValue == modelValue) {
-              view.set(lastValue);
+      } else {
+        if (value == '?') {
+          value = undefined;
+        } else {
+          value = (value == '' ? null : collection[value]);
+        }
+      }
+      if (!isUndefined(value)) model.set(value);
+      scope.$tryEval(function(){
+        scope.$root.$eval();
+      });
+    });
+
+    scope.$onEval(function(){
+      var scope = this;
+      var collection = collectionFn(scope) || [];
+      var value;
+      var length;
+      var fragment;
+      var index;
+      var optionText;
+      var optionElement;
+      var optionScope = scope.$new();
+      var modelValue = model.get();
+      var currentItem;
+      var selectValue = '';
+      var isMulti = isMultiselect;
+
+      if (isMulti) {
+        selectValue = new HashMap();
+        if (modelValue && isNumber(length = modelValue.length)) {
+          for (index = 0; index < length; index++) {
+            selectValue.put(modelValue[index], true);
+          }
+        }
+      }
+      try {
+        for (index = 0, length = collection.length; index < length; index++) {
+          currentItem = optionScope[itemName] = collection[index];
+          optionText = displayFn(optionScope);
+          if (optionTexts.length > index) {
+            // reuse
+            optionElement = optionElements[index];
+            if (optionText != optionTexts[index]) {
+              (optionElement).text(optionTexts[index] = optionText);
+            }
+          } else {
+            // grow
+            if (!fragment) {
+              fragment = document.createDocumentFragment();
+            }
+            optionTexts.push(optionText);
+            optionElements.push(optionElement = option.clone());
+            optionElement.attr('value', index).text(optionText);
+            fragment.appendChild(optionElement[0]);
+          }
+          if (isMulti) {
+            if (lastSelectValue[index] != (value = selectValue.remove(currentItem))) {
+              optionElement[0].selected = !!(lastSelectValue[index] = value);
+            }
+          } else {
+            if (modelValue == currentItem) {
+              selectValue = index;
             }
           }
         }
-    );
+        if (fragment) select.append(jqLite(fragment));
+        // shrink children
+        while(optionElements.length > index) {
+          optionElements.pop().remove();
+          delete lastSelectValue[optionElements.length];
+        }
+
+        if (!isMulti) {
+          if (selectValue === '' && modelValue) {
+            // We could not find a match
+            selectValue = '?';
+          }
+
+          // update the selected item
+          if (lastSelectValue !== selectValue) {
+            if (nullOption) {
+              if (lastSelectValue == '') nullOption.remove();
+              if (selectValue === '') select.prepend(nullOption);
+            }
+
+            if (missingOption) {
+              if (lastSelectValue == '?') missingOption.remove();
+              if (selectValue === '?') select.prepend(missingOption);
+            }
+
+            select.val(lastSelectValue = selectValue);
+          }
+        }
+
+      } finally {
+        optionScope = null;
+      }
+    });
   };
 });
 
@@ -9889,13 +10377,13 @@ angularWidget('a', function() {
  */
 angularWidget('@ng:repeat', function(expression, element){
   element.removeAttr('ng:repeat');
-  element.replaceWith(jqLite('<!-- ng:repeat: ' + expression + ' --!>'));
+  element.replaceWith(jqLite('<!-- ng:repeat: ' + expression + ' -->'));
   var linker = this.compile(element);
   return function(iterStartElement){
     var match = expression.match(/^\s*(.+)\s+in\s+(.*)\s*$/),
         lhs, rhs, valueIdent, keyIdent;
     if (! match) {
-      throw Error("Expected ng:repeat in form of 'item in collection' but got '" +
+      throw Error("Expected ng:repeat in form of '_item_ in _collection_' but got '" +
       expression + "'.");
     }
     lhs = match[1];
@@ -9928,6 +10416,9 @@ angularWidget('@ng:repeat', function(expression, element){
             childScope[valueIdent] = collection[key];
             if (keyIdent) childScope[keyIdent] = key;
             lastIterElement = childScope.$element;
+            childScope.$position = index == 0
+                ? 'first'
+                : (index == collectionLength - 1 ? 'last' : 'middle');
             childScope.$eval();
           } else {
             // grow children
@@ -10060,7 +10551,7 @@ angularWidget('ng:view', function(element) {
 
   if (!element[0]['ng:compiled']) {
     element[0]['ng:compiled'] = true;
-    return injectService(['$xhr.cache', '$route'], function($xhr, $route, element){
+    return annotate('$xhr.cache', '$route', function($xhr, $route, element){
       var parentScope = this,
           childScope;
 
@@ -10117,6 +10608,8 @@ angularService('$browser', function($log){
 }, {$inject:['$log']});
 
 extend(angular, {
+  // disabled for now until we agree on public name
+  //'annotate': annotate,
   'element': jqLite,
   'compile': compile,
   'scope': createScope,
