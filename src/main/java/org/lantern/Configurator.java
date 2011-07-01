@@ -26,7 +26,7 @@ public class Configurator {
             return;
         }
         final File git = new File(".git");
-        if (git.isDirectory()) {
+        if (git.isDirectory() && !LanternUtils.forceProxy()) {
             log.info("Running from repository...not auto-configuring proxy.");
             return;
         }
