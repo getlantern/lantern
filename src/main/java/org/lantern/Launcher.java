@@ -52,27 +52,30 @@ public class Launcher {
         config.configure();
         
         
+        launchLantern();
+        /*
         if (!LanternUtils.isConfigured()) {
             launchJettyThreaded();
             launchBrowser();
         } else {
             launchLantern();
         }
+        */
     }
     
     private static void launchJettyThreaded() {
         final Thread t = new Thread(new Runnable() {
 
-			public void run() {
-				launchJetty();
-			}
+            public void run() {
+                launchJetty();
+            }
         
         }, "Jetty-Thread");
         t.setDaemon(true);
         t.start();
-	}
+    }
 
-	private static void launchLantern() {
+    public static void launchLantern() {
         final KeyStoreManager proxyKeyStore = 
             new LanternKeyStoreManager(true);
         final int sslRandomPort = randomPort();
@@ -108,16 +111,16 @@ public class Launcher {
                 proxyKeyStore, sslRandomPort,
                 LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
         server.start();
-	}
+    }
 
-	private static void launchBrowser() {
-		final LanternBrowser browser = new LanternBrowser();
-		browser.install();
+    private static void launchBrowser() {
+        final LanternBrowser browser = LanternHub.getLanternBrowser();
+        browser.install();
 
-	}
-	
-	private static void launchJetty() {
-		final Server server = new Server();
+    }
+    
+    private static void launchJetty() {
+        final Server server = new Server();
         final String apiName = "API";
         final String fsName = "FileServer";
         final ContextHandlerCollection contexts = 
@@ -154,13 +157,12 @@ public class Launcher {
         //files.addServlet(new ServletHolder(ds),"/*");
         
         try {
-			server.start();
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-	
+            server.start();
+        } catch (final Exception e) {
+            LOG.error("Error starting", e);
+        }
+    }
+    
     
     private static ServletContextHandler newContext(final String path,
         final String name) {
