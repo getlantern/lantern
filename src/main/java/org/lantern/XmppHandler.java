@@ -1,7 +1,6 @@
 package org.lantern;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -12,7 +11,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.Set;
@@ -100,6 +98,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private final MessageListener typedListener = new MessageListener() {
         public void processMessage(final Chat ch, final Message msg) {
             final String part = ch.getParticipant();
+            log.info("Got chat participant: {}", part);
             if (part.startsWith(LANTERN_JID)) {
                 log.info("Lantern controlling agent response");
                 final String body = msg.getBody();
@@ -136,7 +135,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private final StatsTracker statsTracker;
 
-    private String hubAddress = "";
+    //private String hubAddress = "";
     
     private final Timer updateTimer = new Timer(true);
 
@@ -156,26 +155,16 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final int plainTextProxyRandomPort, final StatsTracker statsTracker) {
         this.sslProxyRandomPort = sslProxyRandomPort;
         this.statsTracker = statsTracker;
-        final Properties props = new Properties();
-        final File file = 
-            new File(LanternUtils.configDir(), "lantern.properties");
-        try {
-            props.load(new FileInputStream(file));
-            this.user = props.getProperty("google.user");
-            this.pwd = props.getProperty("google.pwd");
-            if (StringUtils.isBlank(this.user)) {
-                log.error("No user name");
-                throw new IllegalStateException("No user name in: " + file);
-            }
-            
-            if (StringUtils.isBlank(this.pwd)) {
-                log.error("No password.");
-                throw new IllegalStateException("No password in: " + file);
-            }
-        } catch (final IOException e) {
-            final String msg = "Error loading props file at: " + file;
-            log.error(msg, e);
-            throw new RuntimeException(msg, e);
+        this.user = LanternUtils.getStringProperty("google.user");
+        this.pwd = LanternUtils.getStringProperty("google.pwd");
+        if (StringUtils.isBlank(this.user)) {
+            log.error("No user name");
+            throw new IllegalStateException("No user name");
+        }
+        
+        if (StringUtils.isBlank(this.pwd)) {
+            log.error("No password.");
+            throw new IllegalStateException("No password");
         }
         
         try {
@@ -200,6 +189,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             // get notifications of messages twice in some cases, but that's
             // better than the alternative of sometimes not being notified
             // at all.
+            log.info("Adding message listener...");
             this.client.addMessageListener(typedListener);
             this.client.login(this.user, this.pwd, ID);
             final XMPPConnection connection = this.client.getXmppConnection();
@@ -244,7 +234,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             
             final ChatManager chatManager = connection.getChatManager();
             this.hubChat = 
-                chatManager.createChat(this.hubAddress, typedListener);
+                chatManager.createChat(LANTERN_JID, typedListener);
         } catch (final IOException e) {
             final String msg = "Could not log in!!";
             log.warn(msg, e);
@@ -361,7 +351,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     private void processPresence(final Presence p, final XMPPConnection xmpp) {
         final String from = p.getFrom();
-        //log.info("Got presence with from: {}", from);
+        log.info("Got presence with from: {}", from);
         if (isLanternHub(from)) {
             synchronized (infoRequestSent) {
                 log.info("Got lantern proxy!!");
@@ -372,7 +362,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 }
                 log.info("Server {} not in {}", toStore, infoRequestSent);
                 infoRequestSent.add(toStore);
-                this.hubAddress = from;
+                //this.hubAddress = from;
                 log.info("Scheduling info request...");
                 this.updateTimer.schedule(new TimerTask() {
                     @Override
@@ -392,8 +382,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final Message msg = new Message();
         final JSONObject json = new JSONObject();
         json.put(LanternConstants.COUNTRY_CODE, LanternUtils.countryCode());
-        json.put(LanternConstants.USER_NAME, this.user);
-        json.put(LanternConstants.PASSWORD, this.pwd);
+        //json.put(LanternConstants.USER_NAME, this.user);
+        //json.put(LanternConstants.PASSWORD, this.pwd);
         json.put(LanternConstants.BYTES_PROXIED, 
             this.statsTracker.getBytesProxied());
         json.put(LanternConstants.DIRECT_BYTES, 
