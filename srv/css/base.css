@@ -6,8 +6,8 @@ html,body{
 }
 
 body{
-  min-width:562px;
-  min-height:372px;
+  min-width:600px;
+  min-height:420px;
   background-color: #E8E8E8;
   font-family: Helvetica,Arial,sans-serif;
   font-size: 100%;
@@ -15,18 +15,19 @@ body{
 
 #vertical {
   position: absolute; 
-  top: 40px;
+  top: 6px;
   width: 100%;
   /*margin-top:-186px; half main elements height*/
-  left:0;
   background-color: #E8E8E8;
 }
 
 #main {
   position: relative;
   margin-left: auto; margin-right: auto;
-  width: 562px;
-  height: 372px; 
+  min-width: 600px;
+  min-height: 420px; 
+  width: 600px;
+  height: 420px; 
   background-color: #E8E8E8;
 }
 #logo {
@@ -36,6 +37,7 @@ body{
 #body {
   clear: both;
   background-color: white;
+  height: 100%;
   border-style:solid;
   border-color: #EFEFEF;
   border-width:8px;
@@ -83,12 +85,33 @@ body{
   */
   font: italic 12px Georgia; color: #898989;
   outline: none; /*Remove Chrome and Safari glows on focus*/
-}   
+}
+
 #searchbar.active {
   background: #ebf3fc url(../img/bar-bg-active.png) repeat-x;
   border: 3px solid #abd2ff;
 }
 
 #contacts {
-  overflow: scroll;
+    padding: 6px;
 }
+
+.contactName {
+    float:left;
+    font-size: 80%;
+}
+.contactCheck {
+    float:right;
+}
+
+.submit {
+	font-size: 120%;
+}
+
+.bottomFormContainer {
+    clear: both;
+    position:relative;
+    with:100%;
+}
+
+	
