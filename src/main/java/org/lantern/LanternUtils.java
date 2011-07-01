@@ -3,6 +3,7 @@ package org.lantern;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -25,6 +26,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 
 import javax.net.SocketFactory;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import net.sf.ehcache.store.chm.ConcurrentHashMap;
 
@@ -77,11 +81,23 @@ public class LanternUtils {
     private static final File PROPS_FILE =
         new File(CONFIG_DIR, "lantern.properties");
     
+    private static final Properties PROPS = new Properties();
+    
     static {
         if (!CONFIG_DIR.isDirectory()) {
             if (!CONFIG_DIR.mkdirs()) {
                 LOG.error("Could not make config directory at: "+CONFIG_DIR);
             }
+        }
+        
+        InputStream is = null;
+        try {
+            is = new FileInputStream(PROPS_FILE);
+            PROPS.load(is);
+        } catch (final IOException e) {
+            LOG.error("Error loading props file: "+PROPS_FILE, e);
+        } finally {
+            IOUtils.closeQuietly(is);
         }
     }
     
@@ -396,18 +412,7 @@ public class LanternUtils {
     }
 
     public static boolean forceProxy() {
-        final Properties props = new Properties();
-        InputStream is = null;
-        try {
-            is = new FileInputStream(PROPS_FILE);
-            props.load(is);
-            return getBooleanProperty(LanternConstants.FORCE_PROXY, props);
-        } catch (final IOException e) {
-            LOG.error("Error loading props file: "+PROPS_FILE, e);
-        } finally {
-            IOUtils.closeQuietly(is);
-        }
-        return false;
+        return getBooleanProperty(LanternConstants.FORCE_PROXY, PROPS);
         
     }
 
@@ -417,6 +422,7 @@ public class LanternUtils {
         if (StringUtils.isBlank(val)) {
             return true;
         }
+        LOG.info("Checking property: {}", val);
         return "true".equalsIgnoreCase(val.trim());
     }
     
@@ -595,6 +601,63 @@ public class LanternUtils {
         });
         
         return conn;
+    }
+
+    public static boolean isDebug() {
+        return true;
+    }
+
+    public static boolean hasKeyCookie(final HttpServletRequest request) {
+        final Cookie[] cookies = request.getCookies();
+        if (cookies.length < 1) {
+            return false;
+        }
+        String key = null;
+        for (final Cookie cookie : cookies) {
+            if (cookie.getName().equals("key")) {
+                key = cookie.getValue();
+                break;
+            }
+        }
+        if (StringUtils.isBlank(key)) {
+            return false;
+        }
+        if (StringUtils.isBlank(key)) {
+            return false;
+        }
+        if (!key.equals(LanternUtils.keyString())) {
+            return false;
+        }
+        return true;
+    }
+
+
+    public static boolean processKeyArgument(final HttpServletRequest request,
+        final HttpServletResponse response) {
+        final String key = request.getParameter("key");
+        if (StringUtils.isBlank(key)) {
+            return false;
+        }
+        if (!key.equals(LanternUtils.keyString())) {
+            return false;
+        } else {
+            response.addCookie(new Cookie("key", key));
+            return true;
+        }
+    }
+
+    public static void writeCredentials(final String email, final String pwd) {
+        PROPS.setProperty("google.user", email);
+        PROPS.setProperty("google.pwd", pwd);
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter(PROPS_FILE);
+            PROPS.store(fw, "");
+        } catch (final IOException e) {
+            LOG.error("Could not store props?");
+        } finally {
+            IOUtils.closeQuietly(fw);
+        }
     }
 }
 
