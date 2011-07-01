@@ -5,12 +5,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URLEncoder;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,7 +18,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.RosterEntry;
-import org.jivesoftware.smack.RosterGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,7 +65,14 @@ public class Install2Servlet extends HttpServlet {
             }
         }
         
-        final String contacts = contactsDiv(request);
+        final String contacts;
+        try {
+            contacts = contactsDiv(request, response);
+        } catch (final IOException e) {
+            LanternUtils.clear("google.user");
+            LanternUtils.clear("google.pwd");
+            return;
+        }
         //log.info("Inserting contacts div: {}", contacts);
         final File file = new File("srv/install2.html");
         final OutputStream os = response.getOutputStream();
@@ -80,24 +86,26 @@ public class Install2Servlet extends HttpServlet {
         IOUtils.closeQuietly(is);
     }
 
-    private String contactsDiv(final HttpServletRequest request) 
-        throws IOException {
-        final Cookie[] cookies = request.getCookies();
-        String email = null;
-        String pwd = null;
-        for (final Cookie cook : cookies) {
-            final String name = cook.getName();
-            if (name.equals("email")) {
-                email = cook.getValue();
-            } else if (name.equals("pwd")) {
-                pwd = cook.getValue();
-            }
+    private String contactsDiv(final HttpServletRequest request, 
+        final HttpServletResponse response) throws IOException {
+        final String email = LanternUtils.getStringProperty("google.user");
+        final String pwd = LanternUtils.getStringProperty("google.pwd");
+        
+        if (StringUtils.isBlank(email)) {
+            sendError(response, "Please enter a valid e-mail address.");
         }
-        if (StringUtils.isBlank(email) || StringUtils.isBlank(pwd)) {
+        if (StringUtils.isBlank(pwd)) {
+            sendError(response, "Please enter a valid password.");
+        }
+        final Collection<RosterEntry> entries;
+        try {
+            entries = LanternUtils.getRosterEntries(email, pwd);
+        } catch (final IOException e) {
+            final String str = "Error logging in. Are you sure you " +
+                "entered the correct user name and password?";
+            sendError(response, str);
             return "";
         }
-        final Collection<RosterEntry> entries = 
-            LanternUtils.getRosterEntries(email, pwd);
         
         final StringBuilder sb = new StringBuilder();
         sb.append("<div id='contacts'>\n");
@@ -118,5 +126,13 @@ public class Install2Servlet extends HttpServlet {
         
         sb.append("</div>\n");
         return sb.toString();
+    }
+
+    private void sendError(final HttpServletResponse response, final String str) 
+        throws IOException {
+        final String msg = URLEncoder.encode(str, "UTF-8");
+        response.sendRedirect(LanternConstants.BASE_URL + 
+            "/install1?errorText="+msg);
+        throw new IOException(str);
     }
 }
