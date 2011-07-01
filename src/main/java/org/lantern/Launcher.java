@@ -48,19 +48,14 @@ public class Launcher {
         final SystemTray tray = new SystemTrayImpl();
         tray.createTray();
         
-        final Configurator config = new Configurator();
-        config.configure();
         
-        
-        launchLantern();
-        /*
+        //launchLantern();
         if (!LanternUtils.isConfigured()) {
             launchJettyThreaded();
             launchBrowser();
         } else {
             launchLantern();
         }
-        */
     }
     
     private static void launchJettyThreaded() {
@@ -111,6 +106,8 @@ public class Launcher {
                 proxyKeyStore, sslRandomPort,
                 LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
         server.start();
+        final Configurator config = new Configurator();
+        config.configure();
     }
 
     private static void launchBrowser() {

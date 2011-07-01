@@ -279,6 +279,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     private HttpRequestProcessor dispatchProxyRequest(
         final ChannelHandlerContext ctx, final MessageEvent me) {
         final HttpRequest request = (HttpRequest) me.getMessage();
+        log.info("Dispatching request");
         if (request.getMethod() == HttpMethod.CONNECT) {
             
             // TODO: We should pass this through more than just the main 
@@ -325,7 +326,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 this.anonymousPeerRequestProcessor.processRequest(
                     browserToProxyChannel, ctx, me);
                 return this.anonymousPeerRequestProcessor;
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
             }
@@ -348,12 +349,12 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     }
 
     private boolean isAnonymous(final HttpRequest request) {
-        final String cookie = request.getHeader(HttpHeaders.Names.COOKIE);
-        if (StringUtils.isNotBlank(cookie)) {
-            return false;
-        }
         final HttpMethod method = request.getMethod();
         if (method == HttpMethod.CONNECT) {
+            return true;
+        }
+        final String cookie = request.getHeader(HttpHeaders.Names.COOKIE);
+        if (StringUtils.isNotBlank(cookie)) {
             return false;
         }
         if (method == HttpMethod.POST) {
