@@ -342,7 +342,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         // Now we add all the existing entries to get people who are already
         // online.
         final Collection<RosterEntry> entries = roster.getEntries();
+        final TrustedContactsManager tcm = 
+            LanternHub.getTrustedContactsManager();
         for (final RosterEntry entry : entries) {
+            if (!tcm.isTrusted(entry.getUser())) {
+                continue;
+            }
             final Iterator<Presence> presences = 
                 roster.getPresences(entry.getUser());
             while (presences.hasNext()) {
