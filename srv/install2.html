@@ -4,15 +4,14 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8" /> 
     <title>Lantern Installation</title>
     
-    <link rel="stylesheet" href="css/custom-theme/jquery-ui-.custom.css">
-	<link rel="stylesheet" href="css/base.css">	
+    <link rel="stylesheet" href="css/custom-theme/jquery-ui-.custom.css"/>
+    <link rel="stylesheet" href="css/base.css"/>    
     <script src="js/jquery-1.5.1.min.js"></script>
     <script src="js/jquery-ui-1.8.13.custom.min.js"></script> 
-	<script src="js/jquery.validate.min.js"></script>
+    <script src="js/jquery.validate.min.js"></script>
   </head> 
 
   <body>
-    <div id="vertical">
       <div id="main">
         <div id="logo">
         <img src="img/logo.png"/>
@@ -23,39 +22,35 @@
             <div id="title">Complete Your Installation</div>
             <div id="spacer"></div>
             <div id="textBody">
-              Please select your trusted friends below to send them a request to join your Lantern network.
-			  (If any of your trusted contacts are already using Lantern, they'll automatically be added as an
-			  instant access point!)
+              Please select your trusted friends below to send them a request to join your Lantern network. These friends will serve as your access points to the open internet.
             </div>
             
-			<div style="float:right; margin-bottom: 4px">
-			  <span style="float:left; color:#55C8FA; font-size: 80%; font-weight: bold;">Select All</span>
-		      <form id="selectAllForm" style="float:left">
-			    <input id="selectAllCheckBox" type="checkbox" name="selectAllCheckBox"/>
-			  </form>
-		    </div>
-			 
-            <div style="clear:both; border-style:solid;border-color: #EFEFEF; border-width:2px; margin-bottom: 20px">
-              <form id="trustForm" onSubmit="getContacts(); return false;" action="contacts">
-			    
-                <div>
-				  <span style="float:left">Adam Fisk</span><input id="contact1" type="checkbox" name="contact1" style="float:right"/>
-				</div>
-                    contacts_div
-	            <div style="clear:both;"></div>
-				<input type="submit" value="Approve these Contacts" style="float:right; margin-top: 12px">
+            <div style="float:right; margin-bottom: 4px">
+              <span style="float:left; color:#55C8FA; font-size: 80%; font-weight: bold;">Select All</span>
+              <form id="selectAllForm" style="float:left">
+                <input type="checkbox" id="selectAllCheckBox" name="selectAllCheckBox"/>
               </form>
             </div>
-
-			
+             
+            <div class="bottomFormContainer" style="height: 200px;">
+            <div class="bottomForm">
+	            <form id="trustForm" action="install2" method="post">
+	                <div style="border-style:solid;border-color: #EFEFEF; border-width:2px; height: 160px; width: 100%; overflow: auto;">
+	                    contacts_div
+	                </div>
+	                <div style="clear:both;"></div>
+	                <input type="submit" value="Approve these Contacts" style="float:right; margin-top: 8px" class="submit">
+	            </form>
+	            <div style="clear:both; margin-top: 8px"></div>
+            </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
     
     <script>
     $(function() {
-		$( "input:submit").button();
+        $( "input:submit").button();
     });
     </script>
   </body>

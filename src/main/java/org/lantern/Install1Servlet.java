@@ -21,7 +21,7 @@ public class Install1Servlet extends HttpServlet {
 
     private static final long serialVersionUID = -7539717861807079835L;
     private final Logger log = LoggerFactory.getLogger(getClass());
-
+    
     @Override
     protected void doPost(final HttpServletRequest request, 
         final HttpServletResponse response) throws ServletException, 
@@ -29,29 +29,19 @@ public class Install1Servlet extends HttpServlet {
         log.info("Request URL: {}", request.getRequestURL());
         log.info("Handling request query: {}", request.getQueryString());
         log.info("Body: {}", request.getParameterMap());
+        if (!LanternUtils.isDebug()) {
+            if (!LanternUtils.hasKeyCookie(request)) {
+                return;
+            }
+        }
         
         final String email = request.getParameter("email");
         final String pwd = request.getParameter("pwd");
-        final Cookie[] cookies = request.getCookies();
-        if (cookies.length < 1) {
-            return;
-        }
-        String key = null;
-        for (final Cookie cookie : cookies) {
-            if (cookie.getName().equals("key")) {
-                key = cookie.getValue();
-                break;
-            }
-        }
-        if (StringUtils.isBlank(key)) {
-            return;
-        }
-        if (!key.equals(LanternUtils.keyString())) {
-            return;
-        }
+        
         if (StringUtils.isNotBlank(email) && StringUtils.isNotBlank(pwd)) {
             response.addCookie(new Cookie("email", email));
             response.addCookie(new Cookie("pwd", pwd));
+            LanternUtils.writeCredentials(email, pwd);
             response.sendRedirect(LanternConstants.BASE_URL + "/install2");
         }
     }
@@ -63,12 +53,12 @@ public class Install1Servlet extends HttpServlet {
         log.info("Request URL: {}", request.getRequestURL());
         log.info("Handling request query: {}", request.getQueryString());
         log.info("Body: {}", request.getParameterMap());
-        final String key = request.getParameter("key");
-        if (!key.equals(LanternUtils.keyString())) {
-            return;
-        } else {
-            response.addCookie(new Cookie("key", key));
+        if (!LanternUtils.isDebug()) {
+            if (!LanternUtils.processKeyArgument(request, response)) {
+                return;
+            }
         }
+
         final String errorText = request.getParameter("errorText");
         
         final File file = new File("srv/install1.html");
