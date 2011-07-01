@@ -7,7 +7,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -39,8 +38,8 @@ public class Install1Servlet extends HttpServlet {
         final String pwd = request.getParameter("pwd");
         
         if (StringUtils.isNotBlank(email) && StringUtils.isNotBlank(pwd)) {
-            response.addCookie(new Cookie("email", email));
-            response.addCookie(new Cookie("pwd", pwd));
+            //response.addCookie(new Cookie("email", email));
+            //response.addCookie(new Cookie("pwd", pwd));
             LanternUtils.writeCredentials(email, pwd);
             response.sendRedirect(LanternConstants.BASE_URL + "/install2");
         }
