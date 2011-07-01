@@ -111,32 +111,24 @@ public class LanternUtils {
      */
     private static final Collection<String> CENSORED =
         Sets.newHashSet(
+            // Asia 
             "CN",
-            "IN",
-            "PK",
-            "RU",
             "VN",
-            "EG",
-            "ET",
-            "IR",
-            "TH",
             "MM",
-            "KR",
-            "UA",
-            "SD",
-            "DZ",
-            "MA",
-            "AF",
-            "UZ",
-            "SA",
-            "YE",
+            //Mideast: 
+            "IR", 
+            "BH", 
+            "YE", 
+            "SA", 
             "SY",
-            "KZ",
-            "TN",
-            "BY",
-            "AZ",
-            "LY",
-            "OM");
+            //Eurasia: 
+            "UZ", 
+            "TM",
+            //Africa: 
+            "ET", 
+            "ER",
+            // LAC: 
+            "CU");
 
     // These country codes have US export restrictions, and therefore cannot
     // access App Engine sites.
@@ -649,6 +641,19 @@ public class LanternUtils {
     public static void writeCredentials(final String email, final String pwd) {
         PROPS.setProperty("google.user", email);
         PROPS.setProperty("google.pwd", pwd);
+        persistProps();
+    }
+
+    public static String getStringProperty(final String key) {
+        return PROPS.getProperty(key);
+    }
+
+    public static void clear(final String key) {
+        PROPS.remove(key);
+        persistProps();
+    }
+
+    private static void persistProps() {
         FileWriter fw = null;
         try {
             fw = new FileWriter(PROPS_FILE);
