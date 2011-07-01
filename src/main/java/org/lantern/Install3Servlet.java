@@ -21,6 +21,22 @@ public class Install3Servlet extends HttpServlet {
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Override
+    protected void doPost(final HttpServletRequest request, 
+        final HttpServletResponse response) throws ServletException, 
+        IOException {
+        log.info("Request URL: {}", request.getRequestURL());
+        log.info("Handling request query: {}", request.getQueryString());
+        log.info("Body: {}", request.getParameterMap());
+        if (!LanternUtils.isDebug()) {
+            if (!LanternUtils.hasKeyCookie(request)) {
+                return;
+            }
+        }
+        LanternHub.getLanternBrowser().close();
+        Launcher.launchLantern();
+    }
+    
+    @Override
     protected void doGet(final HttpServletRequest request, 
         final HttpServletResponse response) throws ServletException, 
         IOException {
