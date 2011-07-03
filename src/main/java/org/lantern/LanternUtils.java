@@ -14,6 +14,7 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.List;
@@ -47,6 +48,7 @@ import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMessage;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.Roster;
@@ -58,6 +60,7 @@ import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.littleshoot.proxy.ProxyUtils;
+import org.littleshoot.util.ByteBufferUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -663,6 +666,31 @@ public class LanternUtils {
         } finally {
             IOUtils.closeQuietly(fw);
         }
+    }
+    
+    /**
+     * We subclass here purely to expose the encoding method of the built-in
+     * request encoder.
+     */
+    private static final class RequestEncoder extends HttpRequestEncoder {
+        private ChannelBuffer encode(final HttpRequest request, 
+            final Channel ch) throws Exception {
+            return (ChannelBuffer) super.encode(null, ch, request);
+        }
+    }
+
+    public static byte[] toByteBuffer(final HttpRequest request,
+        final ChannelHandlerContext ctx) throws Exception {
+        // We need to convert the Netty message to raw bytes for sending over
+        // the socket.
+        final RequestEncoder encoder = new RequestEncoder();
+        final ChannelBuffer cb = encoder.encode(request, ctx.getChannel());
+        return toRawBytes(cb);
+    }
+
+    public static byte[] toRawBytes(final ChannelBuffer cb) {
+        final ByteBuffer buf = cb.toByteBuffer();
+        return ByteBufferUtils.toRawBytes(buf);
     }
 }
 
