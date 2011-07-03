@@ -105,17 +105,6 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         return false;
     }
     
-    /**
-     * We subclass here purely to expose the encoding method of the built-in
-     * request encoder.
-     */
-    private static final class RequestEncoder extends HttpRequestEncoder {
-        private ChannelBuffer encode(final HttpRequest request, 
-            final Channel ch) throws Exception {
-            return (ChannelBuffer) super.encode(null, ch, request);
-        }
-    }
-
     public void processRequest(final Channel browserToProxyChannel,
         final ChannelHandlerContext ctx, final MessageEvent me) 
         throws IOException {
@@ -124,21 +113,17 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
                 browserToProxyChannel, this.peerInfo, ctx, 
                 this.proxyStatusListener, this.p2pClient, peerFailureCount);
         }
-        // We need to convert the Netty message to raw bytes for sending over
-        // the socket.
-        final RequestEncoder encoder = new RequestEncoder();
+
         final HttpRequest request = (HttpRequest) me.getMessage();
         this.chunked = LanternUtils.isTransferEncodingChunked(request);
-        final ChannelBuffer cb;
+        
+        final byte[] data;
         try {
-            cb = encoder.encode(request, ctx.getChannel());
+            data = LanternUtils.toByteBuffer(request, ctx);
         } catch (final Exception e) {
             log.error("Could not encode request?", e);
             return;
         }
-        
-        final ByteBuffer buf = cb.toByteBuffer();
-        final byte[] data = ByteBufferUtils.toRawBytes(buf);
         try {
             log.info("Writing {}", new String(data));
             final OutputStream os = this.socket.getOutputStream();
@@ -146,7 +131,11 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         } catch (final IOException e) {
             // They probably just closed the connection, as they will in
             // many cases.
-            //this.proxyStatusListener.onError(this.peerUri);
+            
+            // Note that we don't record this "failure," as it's frequently
+            // not a failure. We instead actually remove peers from our
+            // peer proxy list if we can't connect to them in addition to
+            // removing them when we detect they're unavailable through XMPP.
         }
     }
 
