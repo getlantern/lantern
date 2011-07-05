@@ -5,9 +5,9 @@ function die() {
 }
 
 #pushd ..
-mvn install:install-file -DgroupId=org.eclipse.swt.cocoa -DartifactId=x86 -Dversion=3.7 -Dpackaging=jar -Dfile=lib/swt-3.7-cocoa-macosx.jar
-mvn install:install-file -DgroupId=org.eclipse.swt.cocoa -DartifactId=x86_64 -Dversion=3.7 -Dpackaging=jar -Dfile=lib/swt-3.7-cocoa-macosx-x86_64.jar
-mvn install:install-file -DgroupId=org.eclipse.swt.win32.win32 -DartifactId=x86 -Dversion=3.7 -Dpackaging=jar -Dfile=lib/swt-3.7-win32-win32-x86.jar
+test -d target || mvn install:install-file -DgroupId=org.eclipse.swt.cocoa -DartifactId=x86 -Dversion=3.7 -Dpackaging=jar -Dfile=lib/swt-3.7-cocoa-macosx.jar
+test -d target || mvn install:install-file -DgroupId=org.eclipse.swt.cocoa -DartifactId=x86_64 -Dversion=3.7 -Dpackaging=jar -Dfile=lib/swt-3.7-cocoa-macosx-x86_64.jar
+test -d target || mvn install:install-file -DgroupId=org.eclipse.swt.win32.win32 -DartifactId=x86 -Dversion=3.7 -Dpackaging=jar -Dfile=lib/swt-3.7-win32-win32-x86.jar
 mvn package -Dmaven.test.skip=true || die "Could not package"
 #popd
 
