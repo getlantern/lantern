@@ -1,0 +1,89 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" /> 
+    <title>Lantern Installation</title>
+    
+    <link rel="stylesheet" href="css/custom-theme/jquery-ui-.custom.css"/>
+    <link rel="stylesheet" href="css/base.css"/>    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.14/jquery-ui.min.js"></script> 
+    <script src="js/jquery.validate.min.js"></script>
+    <script src="js/jquery.form.js"></script>
+  </head> 
+
+  <body>
+    <div id="main">
+      <div id="logo">
+      <img src="img/logo.png"/>
+      </div>
+      <div id="body">
+        <div id="content">
+          <div id="lead">Welcome to Lantern! You're almost done.</div>
+          <div id="title">Complete Your Installation</div>
+          <div id="spacer"></div>
+          <div id="textBody">
+            Lantern allows Lantern users living in censored to access the open internet through your computer 
+            when you're not using it, creating a cooperative global network to combat censorship. 
+            We make these connections using your GMail contacts, and this is how we know it's you. 
+            We do not store your password on our servers, although we do store your e-mail
+            because we need it to connect you to other users. <b>We will never send you e-mail or 
+            provide your e-mail to any third party.</b>
+            <br/><br/>
+            
+          </div>
+          <div class="bottomFormContainer" style="margin-top: 20px;">
+            <div class="baseTop">
+              <b>Please enter your user name and password from</b> <img src="img/gmail.png" alt="GMail"/>.
+            </div>
+            <div class="baseTop">
+              <div class="baseTop" style="color: red; font-size:100%;" id="errorMessage">error_message</div>
+              <form id="gmailForm">
+                  <input id="email" type="text" name="email" />
+                  <input id="pwd" type="password" name="pwd" />
+                  <input type="submit" value="Submit" class="submit">
+              </form>
+            </div>
+            <div style="clear:both"></div>
+        </div>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+        $(function() {
+            var query = window.location.search;
+            if (query) {
+                for(var i=0; i < query.split("&").length; i++) {
+                    var name = query.split("=")[0];
+                    if (name == "errorText" || name == "?errorText") {
+                        var errorText = query.split("=")[1];
+                        $("#errorMessage").html(errorText).fadeIn(2500);
+                    }
+                }
+            }
+            $( ".submit").button();
+            var etext = "(Enter GMail Address)";
+            $("#email").attr("value", etext);
+            $("#email").focus(function() {
+                $(this).addClass("active");
+                if($(this).attr("value") == etext) $(this).attr("value", "");
+            });
+            $("#email").blur(function() {
+                $(this).removeClass("active");
+                if($(this).attr("value") == "") $(this).attr("value", etext);
+            });
+            
+            $("#gmailForm").submit(function() {
+                var email = $("#email").val();
+                var pwd = $("#pwd").val();
+                
+                window.location.href = "loginUncensored&email="+email+"&pwd="+pwd;
+                //$("span").text("Not valid!").show().fadeOut(1000);
+                return false;
+            });
+        }); 
+    </script>
+  </body>
+</html>
