@@ -29,12 +29,13 @@
             <br/><br/>
             
             Use your gmail login below to select the trusted gmail contacts you'd like to use as your
-            access points. (Nothing will be sent to anyone without your permission, and we never store
-            your login information.)
+            access points. (We need this because Lantern uses GMail to build its trust network. 
+			If you're in an uncensored country, we store your e-mail address only to allow censored users 
+			to connect to you. We will never e-mail you or share it, and we never store your password.)
           </div>
-          <div class="bottomFormContainer" style="margin-top: 40px;">
+          <div class="bottomFormContainer" style="margin-top: 20px;">
             <div class="baseTop">
-              <b>Add your trusted contacts from</b> GMail.
+              <b>Add your trusted contacts from</b> <img src="img/gmail.png" alt="GMail"/>.
             </div>
             <div class="baseTop">
             <!--
@@ -55,7 +56,8 @@
     
     <script>
 	    $(function() {
-	        $( "input:submit").button();
+	        //$( ".submitTest").button();
+			$( ".submit").button();
 	    }); 
 
         /*
