@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"> 
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" /> 
+    <title>Lantern Installation</title>
+    
+    <link rel="stylesheet" href="css/custom-theme/jquery-ui-.custom.css"/>
+    <link rel="stylesheet" href="css/base.css"/>    
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.14/jquery-ui.min.js"></script> 
+    <script src="js/jquery.validate.min.js"></script>
+    <script src="js/jquery.form.js"></script>
+  </head> 
+
+  <body>
+    <div id="main">
+      <div id="logo">
+      <img src="img/logo.png"/>
+      </div>
+      <div id="body">
+        <div id="content">
+          <div id="lead">Welcome to Lantern! You're almost done.</div>
+          <div id="title">Complete Your Installation</div>
+          <div id="spacer"></div>
+          <div id="textBody">
+            Lantern uses your friends as your as your personal access points to the open internet.
+            The more access points you have, the better your experience will be, so we encourage you to
+            invite your <b>most trusted friends</b> to use Lantern.
+            <br/><br/>
+            
+            Use your gmail login below to select your trusted gmail contacts. 
+            We need this because Lantern uses GMail to build its "trust network." We don't store any 
+            of this information - <b>it stays safe on your own computer</b>.
+          </div>
+          <div class="bottomFormContainer" style="margin-top: 20px;">
+            <div class="baseTop">
+              <b>Add your trusted contacts from</b> <img src="img/gmail.png" alt="GMail"/>.
+            </div>
+            <div class="baseTop">
+            <!--
+              <form id="gmailForm" onSubmit="getContacts(); return false;" action="contacts">
+              -->
+              <div class="baseTop" style="color: red; font-size:100%;">error_div_content</div>
+              <form id="gmailForm" action="install1" method="post">
+                  <input id="email" type="text" name="email" />
+                  <input id="pwd" type="password" name="pwd" />
+                  <input type="submit" value="Show My Contacts" class="submit">
+              </form>
+            </div>
+            <div style="clear:both"></div>
+        </div>
+        </div>
+        <div id="buttons">
+            <div id="innerButtons">
+                <form id="buttons" action="installFinished" method="post">
+                    <input type="submit" value="Back" class="submit submitLarge">
+                    <input type="submit" value="Next" class="submit submitLarge">
+                </form>
+            </div>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+        $(function() {
+            $( ".submit").button();
+        }); 
+    
+        var etext = "(Enter GMail Address)";
+        $("#email").attr("value", etext);
+        $("#email").focus(function() {
+            $(this).addClass("active");
+            if($(this).attr("value") == etext) $(this).attr("value", "");
+        });
+        $("#email").blur(function() {
+            $(this).removeClass("active");
+            if($(this).attr("value") == "") $(this).attr("value", etext);
+        });
+    </script>
+  </body>
+</html>
