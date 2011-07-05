@@ -22,20 +22,25 @@
             <div id="title">Complete Your Installation</div>
             <div id="spacer"></div>
             <div id="textBody">
-              Please select your trusted friends below to send them a request to join your Lantern network. These friends will serve as your access points to the open internet.
+              Please select your <b>trusted</b> friends below to send them a request to join your Lantern network. 
+			  These friends will serve as your access points to the open internet. <b>Only select the 
+			  people you absolutely trust</b>.
             </div>
             
-            <div style="float:right; margin-bottom: 4px">
-              <span style="float:left; color:#55C8FA; font-size: 80%; font-weight: bold;">Select All</span>
+            <div style="float:right; margin-bottom: 4px"> 
+			  <a href="javascript:selectAll()" style="float:left; color:#55C8FA; font-size: 80%; font-weight: bold;">Select All</a>
+			  <!--
+			  <span style="float:left; color:#55C8FA; font-size: 80%; font-weight: bold;">Select All</span>
               <form id="selectAllForm" style="float:left">
                 <input type="checkbox" id="selectAllCheckBox" name="selectAllCheckBox"/>
               </form>
+			  -->
             </div>
              
             <div class="bottomFormContainer" style="height: 200px;">
             <div class="bottomForm">
 	            <form id="trustForm" action="install2" method="post">
-	                <div style="border-style:solid;border-color: #EFEFEF; border-width:2px; height: 160px; width: 100%; overflow: auto;">
+	                <div style="border-style:solid; border-color: #EFEFEF; border-width:2px; height: 160px; width: 100%; overflow: auto;">
 	                    contacts_div
 	                </div>
 	                <div style="clear:both;"></div>
@@ -49,8 +54,15 @@
       </div>
     
     <script>
+	    function selectAll() {
+			$(function() {
+				alert("Selecting all");
+			});
+		}
+		
     $(function() {
         $( "input:submit").button();
+		
     });
     </script>
   </body>
