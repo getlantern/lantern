@@ -52,6 +52,11 @@ public class Whitelist {
     
     public static boolean isWhitelisted(final String uri,
         final Collection<String> wl) {
+        final String toMatch = toBaseUri(uri);
+        return wl.contains(toMatch);
+    }
+    
+    public static String toBaseUri(final String uri) {
         LOG.info("Parsing full URI: {}", uri);
         final String afterHttp;
         if (!uri.startsWith("http")) {
@@ -80,7 +85,7 @@ public class Whitelist {
         }
         final String toMatch = toMatchBase + "." + domainExtension;
         LOG.info("Matching against: {}", toMatch);
-        return wl.contains(toMatch);
+        return toMatch;
     }
     
     /**
