@@ -23,12 +23,13 @@ import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpChunk;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
+import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.ssl.SslHandler;
+import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.proxy.DefaultRelayPipelineFactoryFactory;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
@@ -79,6 +80,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     
     static {
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
             public void run() {
                 //clientSocketChannelFactory.releaseExternalResources();
             }
@@ -141,19 +143,22 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * @param proxyStatusListener The class to notify of changes in the proxy
      * status.
      * @param whitelist The list of sites to proxy.
-     * @param p2pClient The client for creating P2P connections.
+     * @param encryptingP2pClient The client for creating P2P connections.
      * @param keyStoreManager Keeps track of all trusted keys. 
      * @param clientSocketChannelFactory Factory for creating client channels.
      */
     public DispatchingProxyRelayHandler(final ProxyProvider proxyProvider,
         final ProxyStatusListener proxyStatusListener, 
-        final XmppP2PClient p2pClient, 
+        final XmppP2PClient encryptingP2pClient, 
         final KeyStoreManager keyStoreManager) {
         this.proxyProvider = proxyProvider;
         this.proxyStatusListener = proxyStatusListener;
         this.keyStoreManager = keyStoreManager;
+        
+        // This uses the raw p2p client because all traffic sent over these
+        // connections already uses end-to-end encryption.
         this.anonymousPeerRequestProcessor =
-            new PeerHttpRequestProcessor(new Proxy() {
+            new PeerHttpConnectRequestProcessor(new Proxy() {
                 public InetSocketAddress getProxy() {
                     throw new UnsupportedOperationException(
                         "Peer proxy required");
@@ -161,7 +166,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 public URI getPeerProxy() {
                     return proxyProvider.getLanternProxy();
                 }
-            },  proxyStatusListener, p2pClient);
+            },  proxyStatusListener, encryptingP2pClient);
         
         this.trustedPeerRequestProcessor =
             new PeerHttpRequestProcessor(new Proxy() {
@@ -172,7 +177,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 public URI getPeerProxy() {
                     return proxyProvider.getPeerProxy();
                 }
-            },  proxyStatusListener, p2pClient);
+            },  proxyStatusListener, encryptingP2pClient);
         
         this.proxyRequestProcessor =
             new DefaultHttpRequestProcessor(proxyStatusListener,
@@ -255,6 +260,21 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         this.proxying = Whitelist.isWhitelisted(uriToCheck);
         
         if (proxying) {
+            final HttpRequest req = (HttpRequest) me.getMessage();
+            // If it's an HTTP request, see if we can redirect it to HTTPS.
+            final HttpResponse httpsRedirectResponse = 
+                HttpsEverywhere.toHttps(req);
+            if (httpsRedirectResponse != null) {
+                
+                // Note this redirect should result in a new HTTPS request 
+                // coming in on this connection or a new connection -- in face
+                // this redirect should always result in an HTTP CONNECT 
+                // request as a result of the redirect. That new request
+                // will not attempt to use the existing processor, so it's 
+                // not an issue to return null here.
+                return null;
+            }
+            
             if (request.isChunked()) {
                 readingChunks = true;
             } else {
@@ -281,22 +301,27 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final HttpRequest request = (HttpRequest) me.getMessage();
         log.info("Dispatching request");
         if (request.getMethod() == HttpMethod.CONNECT) {
-            
-            // TODO: We should pass this through more than just the main 
-            // proxy -- should be able to go through any peer in theory.
-            
-            // We need to forward the CONNECT request from this proxy to an
-            // external proxy that can handle it. We effectively want to 
-            // relay all traffic in this case without doing anything on 
-            // our own other than direct the CONNECT request to the correct 
-            // proxy.
-            if (this.httpConnectChannelFuture == null) {
-                log.info("Opening HTTP CONNECT tunnel");
-                this.httpConnectChannelFuture = 
-                    openOutgoingRelayChannel(ctx, request);
-                return null;
+            if (ANONYMOUS_ACTIVE && this.anonymousPeerRequestProcessor.hasProxy()) {
+                try {
+                    this.anonymousPeerRequestProcessor.processRequest(
+                        browserToProxyChannel, ctx, me);
+                } catch (final IOException e) {
+                    log.warn("Could not send CONNECT to anonymous proxy", e);
+                }
             } else {
-                log.error("Outbound channel already assigned?");
+                // We need to forward the CONNECT request from this proxy to an
+                // external proxy that can handle it. We effectively want to 
+                // relay all traffic in this case without doing anything on 
+                // our own other than direct the CONNECT request to the correct 
+                // proxy.
+                if (this.httpConnectChannelFuture == null) {
+                    log.info("Opening HTTP CONNECT tunnel");
+                    this.httpConnectChannelFuture = 
+                        openOutgoingRelayChannel(ctx, request);
+                    return null;
+                } else {
+                    log.error("Outbound channel already assigned?");
+                }
             }
         }
         
@@ -320,18 +345,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 e.printStackTrace();
             }
         } 
-        if (ANONYMOUS_ACTIVE && isAnonymous(request) && 
-            this.anonymousPeerRequestProcessor.hasProxy()) {
-            try {
-                this.anonymousPeerRequestProcessor.processRequest(
-                    browserToProxyChannel, ctx, me);
-                return this.anonymousPeerRequestProcessor;
-            } catch (final IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-            
-        } 
         if (PROXIES_ACTIVE && this.proxyRequestProcessor.hasProxy()) {
             log.info("Using standard proxy");
             try {
@@ -346,24 +359,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         
         // Not much we can do if no proxy can handle it.
         return null;
-    }
-
-    private boolean isAnonymous(final HttpRequest request) {
-        final HttpMethod method = request.getMethod();
-        if (method == HttpMethod.CONNECT) {
-            return true;
-        }
-        final String cookie = request.getHeader(HttpHeaders.Names.COOKIE);
-        if (StringUtils.isNotBlank(cookie)) {
-            return false;
-        }
-        if (method == HttpMethod.POST) {
-            return false;
-        }
-        if (method == HttpMethod.PUT) {
-            return false;
-        }
-        return true;
     }
 
     private boolean isLae(final HttpRequest request) {
