@@ -136,12 +136,13 @@ body{
 	/*font-size: 120%;
 	border: 1px solid #bbbdc0;
 	*/
+	font-size: 120%;
 	font-weight: bold;
 	height: 32px;
 }
 
 .submitSmall {
-	font-size: 80%;
+	font-size: 100%;
 	font-weight: normal;
 	height: 22px;
 }
@@ -153,13 +154,22 @@ body{
 }
 
 .secondButton {
-    margin-top: 12px;
+    margin-top: 20px;
 }
 
 .bottomFormContainer {
     clear: both;
     position:relative;
     width:100%;
+}
+
+.contactDiv {
+	display: inline-block;
+	width: 100%;
+}
+
+.odd {
+	background-color: #EFEFEF;
 }
 
 	

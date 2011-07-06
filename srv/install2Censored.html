@@ -8,7 +8,6 @@
     <link rel="stylesheet" href="css/base.css"/>    
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.14/jquery-ui.min.js"></script> 
-    <script src="js/jquery.validate.min.js"></script>
   </head> 
 
   <body>
@@ -29,14 +28,7 @@
             
             <div style="float:right; margin-bottom: 4px"> 
               <a href="javascript:selectAll()" style="float:left; color:#55C8FA; font-size: 80%; font-weight: bold;">Select All</a>
-              
               <a href="javascript:unselectAll()" style="float:left; color:#55C8FA; font-size: 80%; font-weight: bold; margin-left: 8px;">Select None</a>
-              <!--
-              <span style="float:left; color:#55C8FA; font-size: 80%; font-weight: bold;">Select All</span>
-              <form id="selectAllForm" style="float:left">
-                <input type="checkbox" id="selectAllCheckBox" name="selectAllCheckBox"/>
-              </form>
-              -->
             </div>
              
             <div class="bottomFormContainer" style="height: 200px;">
@@ -58,46 +50,18 @@
     <script>
         function selectAll() {
             $(function() {
-                alert("Selecting all");
                 $(':input', '#trustForm').attr('checked', true);
-                /*
-                $(':input','#trustForm')
-                .not(':button, :submit, :reset, :hidden')
-                .val('')
-                .removeAttr('checked')
-                .removeAttr('selected');
-                */
             });
         }
         
         function unselectAll() {
             $(function() {
-                alert("Unselecting all");
                 $(':input', '#trustForm').removeAttr('checked');
             });
         }
         
 	    $(function() {
 	        $(".submit").button();
-	        
-	        /*
-	        $("#trustForm").submit(function() {
-	        	alert("Got submit");
-	            //var inputs = $.makeArray($("#trustForm").elements)
-	            //var checked = $('input:checkbox:checked'); 
-	            //checked.each(function(val)) {
-	            //	alert("val: "+val);
-	            //});
-	            $(':input').each(function(val) {
-	                //alert("val: "+val);
-	                
-	                //alert("input: "+JSON.stringify(val, null, 4));
-	            }); 
-	            
-	            //window.location.href = "loginUncensored&email="+email+"&pwd="+pwd;
-	            return false;
-	        });
-	    */
 	    });
     </script>
   </body>
