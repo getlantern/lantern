@@ -134,6 +134,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
     private ChannelPipelineFactory newHttpChannelPipelineFactory(
         final XmppHandler xmpp) {
         return new ChannelPipelineFactory() {
+            @Override
             public ChannelPipeline getPipeline() throws Exception {
                 log.info("Building pipeline...");
                 final SimpleChannelUpstreamHandler handler = 

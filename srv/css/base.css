@@ -152,6 +152,10 @@ body{
 	height: 42px;
 }
 
+.secondButton {
+    margin-top: 12px;
+}
+
 .bottomFormContainer {
     clear: both;
     position:relative;

@@ -3,6 +3,7 @@
   <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" /> 
     <title>Lantern Installation</title>
+    
     <link rel="stylesheet" href="css/custom-theme/jquery-ui-.custom.css"/>
     <link rel="stylesheet" href="css/base.css"/>    
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"></script>
@@ -22,34 +23,24 @@
           <div id="title">Complete Your Installation</div>
           <div id="spacer"></div>
           <div id="textBody">
-            You appear to be running Lantern to <b>provide</b> access to blocked web sites for your 
-            fellow global citizens in censored countries. Is that correct?
+            <b>That's it! Lantern is now configured to automatically give 
+            you access to the open internet from all browsers.</b>
             <br/><br/>
-         
           </div>
-          <div class="bottomFormContainer" style="margin-top: 20px;">
-            <center>
-            <div class="baseTop">
-                <input id="provideAccess" type="submit" value="Yes - I want to provide access to the open internet." class="submit"/>
-                <input id="needAccess" type="submit" value="No - I need to access the open internet myself." class="submit submitSmall secondButton"/>
-            </div>
-            </center>
-            <div style="clear:both"></div>
         </div>
+        <div id="buttons">
+            <div id="innerButtons">
+            <form action="finished" method="post">
+                <input type="submit" value="Finish" class="submit submitLarge"/>
+            </form>
+            </div>
         </div>
       </div>
     </div>
     
     <script>
-
         $(function() {
             $( ".submit").button();
-            $("#provideAccess").click(function() {
-                window.location.href = "install1Uncensored.html";
-            });
-            $("#needAccess").click(function() {
-                window.location.href = "install1Censored.html";
-            });
         }); 
     </script>
   </body>
