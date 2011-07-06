@@ -38,7 +38,7 @@
               <b>Please enter your user name and password from</b> <img src="img/gmail.png" alt="GMail"/>.
             </div>
             <div class="baseTop">
-              <div class="baseTop" style="color: red; font-size:100%;" id="errorMessage">error_message</div>
+              <div class="baseTop" style="color: red; font-size:100%;">error_message</div>
               <form id="gmailForm">
                   <input id="email" type="text" name="email" />
                   <input id="pwd" type="password" name="pwd" />
@@ -53,16 +53,6 @@
     
     <script>
         $(function() {
-            var query = window.location.search;
-            if (query) {
-                for(var i=0; i < query.split("&").length; i++) {
-                    var name = query.split("=")[0];
-                    if (name == "errorText" || name == "?errorText") {
-                        var errorText = query.split("=")[1];
-                        $("#errorMessage").html(errorText).fadeIn(2500);
-                    }
-                }
-            }
             $( ".submit").button();
             var etext = "(Enter GMail Address)";
             $("#email").attr("value", etext);
@@ -80,7 +70,6 @@
                 var pwd = $("#pwd").val();
                 
                 window.location.href = "loginUncensored&email="+email+"&pwd="+pwd;
-                //$("span").text("Not valid!").show().fadeOut(1000);
                 return false;
             });
         }); 

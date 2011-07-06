@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -82,13 +84,75 @@ public class LanternBrowser {
         
         browser.setUrl(url);
         browser.addLocationListener(new LocationAdapter() {
+            @Override
             public void changing(final LocationEvent event) {
                 final String location = event.location;
                 log.info("Got location: {}", location);
                 if (location.endsWith("-copy.html")) {
+                    log.info("Accepting copied location");
                     return;
-                }
-                if (location.contains("loginUncensored")) {
+                } else if (location.contains("trustForm")) {
+                    final String elements = 
+                        StringUtils.substringAfter(location, "trustForm");
+                    if (StringUtils.isNotBlank(elements)) {
+                        log.info("Got elements: {}", elements);
+                        try {
+                            String decoded = 
+                                URLDecoder.decode(elements, "UTF-8");
+                            if (decoded.startsWith("?")) {
+                                decoded = decoded.substring(1);
+                            }
+                            log.info("Decoded: {}", decoded);
+                            final String[] contacts = decoded.split("&");
+                            final TrustedContactsManager tcm =
+                                LanternHub.getTrustedContactsManager();
+                            for (final String contact : contacts) {
+                                final String email = StringUtils.substringBefore(contact, "=");
+                                final String val = StringUtils.substringAfter(contact, "=");
+                                if ("on".equalsIgnoreCase(val) || "true".equalsIgnoreCase(val)) {
+                                    log.info("Adding contact: {}", email);
+                                    tcm.addTrustedContact(email);
+                                }
+                            }
+                        } catch (final UnsupportedEncodingException e) {
+                            log.error("Encoding?", e);
+                        }
+                    }
+
+                    final File finish = 
+                        new File(tmp, "installFinishedCensored.html").getAbsoluteFile();
+                    browser.setUrl(finish.toURI().toASCIIString());
+                } else if (location.contains("loginUncensored")) {
+                    final String args = 
+                        StringUtils.substringAfter(location, "&");
+                    if (StringUtils.isBlank(args)) {
+                        log.error("Weird location: {}", location);
+                        return;
+                    }
+                    final String email = 
+                        StringUtils.substringBetween(location, "&email=", "&");
+                    final String pwd = 
+                        StringUtils.substringAfter(location, "&pwd=");
+                    
+                    try {
+                        // TODO: We should just do a simple login instead
+                        // of this persistent lookup here.
+                        final String contactsDiv = contactsDiv(email, pwd);
+                        LanternUtils.writeCredentials(email, pwd);
+                        //browser.setText(contactsDiv, true);
+                        final File finish = 
+                            new File(tmp, "installFinishedUncensored.html").getAbsoluteFile();
+                        browser.setUrl(finish.toURI().toASCIIString());
+                        
+                    } catch (final IOException e) {
+                        log.warn("Error accessing contacts", e);
+                        final File error = 
+                            new File(tmp, "install1Uncensored.html");
+                        
+                        setUrl(error, "error_message", 
+                            "Error logging in. E-mail or password incorrect?");
+                    }
+                } else if (location.contains("loginCensored")) {
                     final String args = 
                         StringUtils.substringAfter(location, "&");
                     if (StringUtils.isBlank(args)) {
@@ -103,37 +167,33 @@ public class LanternBrowser {
                     try {
                         final String contactsDiv = contactsDiv(email, pwd);
                         //browser.setText(contactsDiv, true);
-                        final File file = 
-                            new File(tmp, "installFinishedUncensored.html").getAbsoluteFile();
-                        browser.setUrl(file.toURI().toASCIIString());
+                        final File contacts = 
+                            new File(tmp, "install2Censored.html").getAbsoluteFile();
+                        setUrl(contacts, "contacts_div", contactsDiv);
+                        //browser.setUrl(finish.toURI().toASCIIString());
                         
                     } catch (final IOException e) {
                         log.warn("Error accessing contacts", e);
-                        final File file = 
-                            new File(tmp, "install1Uncensored.html");
+                        final File error = 
+                            new File(tmp, "install1Censored.html");
                         
-                        setUrl(file, "error_message", 
+                        setUrl(error, "error_message", 
                             "Error logging in. E-mail or password incorrect?");
                     }
-                } else if (location.contains("finished")) {
+                } 
+                else if (location.contains("finished")) {
                     close();
                 } else {
                     final String page = StringUtils.substringAfterLast(location, "/");
                     //log.info("Page: "+page);
-                    final File file = new File(tmp, page);
-                    setUrl(file, "error_message", "");
+                    final File defaultFile = new File(tmp, page);
+                    setUrl(defaultFile, "error_message", "");
                 }
                 event.doit = false;
-                //final File file = new File("srv/"+location).getAbsoluteFile();
-                //browser.setUrl(file.toURI().toASCIIString());
-                //event.doit = false;
             }
         });
         
         shell.open();
-        //browser.setUrl("http://127.0.0.1:8383/install1.html");
-        //browser.setUrl(LanternConstants.BASE_URL+"/install1?key="+
-        //    LanternUtils.keyString());
         while (!shell.isDisposed()) {
             if (!this.display.readAndDispatch())
                 this.display.sleep();
@@ -166,7 +226,9 @@ public class LanternBrowser {
             IOUtils.closeQuietly(fw);
         }
         //FileUtils.copyFile(file, copy);
-        browser.setUrl(copy.toURI().toASCIIString());
+        final String url = copy.toURI().toASCIIString();
+        log.info("Setting url to: {}", url);
+        browser.setUrl(url);
     }
     
     public void install2() {
