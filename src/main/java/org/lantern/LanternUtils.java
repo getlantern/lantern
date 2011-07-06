@@ -236,7 +236,7 @@ public class LanternUtils {
             ch.write(message);
         } else {
             future.addListener(new ChannelFutureListener() {
-                
+                @Override
                 public void operationComplete(final ChannelFuture cf) 
                     throws Exception {
                     if (cf.isSuccess()) {
@@ -246,13 +246,34 @@ public class LanternUtils {
             });
         }
     }
-
+    
+    public static Socket openRawOutgoingPeerSocket(
+        final Channel browserToProxyChannel,
+        final URI uri, final ChannelHandlerContext ctx,
+        final ProxyStatusListener proxyStatusListener,
+        final P2PClient p2pClient,
+        final Map<URI, AtomicInteger> peerFailureCount) throws IOException {
+        return openOutgoingPeerSocket(browserToProxyChannel, uri, ctx, 
+            proxyStatusListener, p2pClient, peerFailureCount, true);
+    }
+    
     public static Socket openOutgoingPeerSocket(
         final Channel browserToProxyChannel,
         final URI uri, final ChannelHandlerContext ctx,
         final ProxyStatusListener proxyStatusListener,
         final P2PClient p2pClient,
         final Map<URI, AtomicInteger> peerFailureCount) throws IOException {
+        return openOutgoingPeerSocket(browserToProxyChannel, uri, ctx, 
+            proxyStatusListener, p2pClient, peerFailureCount, false);
+    }
+    
+    private static Socket openOutgoingPeerSocket(
+        final Channel browserToProxyChannel,
+        final URI uri, final ChannelHandlerContext ctx,
+        final ProxyStatusListener proxyStatusListener,
+        final P2PClient p2pClient,
+        final Map<URI, AtomicInteger> peerFailureCount,
+        final boolean raw) throws IOException {
         
         // This ensures we won't read any messages before we've successfully
         // created the socket.
@@ -261,7 +282,12 @@ public class LanternUtils {
         // Start the connection attempt.
         try {
             LOG.info("Creating a new socket to {}", uri);
-            final Socket sock = p2pClient.newSocket(uri);
+            final Socket sock;
+            if (raw) {
+                sock = p2pClient.newRawSocket(uri);
+            } else {
+                sock = p2pClient.newSocket(uri);
+            }
             LOG.info("Got outgoing peer socket: {}", sock);
             browserToProxyChannel.setReadable(true);
             startReading(sock, browserToProxyChannel);
@@ -299,6 +325,7 @@ public class LanternUtils {
     private static void startReading(final Socket sock, final Channel channel) {
         final Runnable runner = new Runnable() {
 
+            @Override
             public void run() {
                 final byte[] buffer = new byte[4096];
                 long count = 0;
