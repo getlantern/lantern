@@ -4,19 +4,11 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.log4j.PropertyConfigurator;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.servlet.DefaultServlet;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.KeyStoreManager;
@@ -41,6 +33,7 @@ public class Launcher {
         configureLogger();
         LOG = LoggerFactory.getLogger(Launcher.class);
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+            @Override
             public void uncaughtException(final Thread t, final Throwable e) {
                 LOG.error("Uncaught exception", e);
             }
@@ -51,23 +44,10 @@ public class Launcher {
         
         //launchLantern();
         if (!LanternUtils.isConfigured()) {
-            launchJettyThreaded();
             launchBrowser();
         } else {
             launchLantern();
         }
-    }
-    
-    private static void launchJettyThreaded() {
-        final Thread t = new Thread(new Runnable() {
-
-            public void run() {
-                launchJetty();
-            }
-        
-        }, "Jetty-Thread");
-        t.setDaemon(true);
-        t.start();
     }
 
     public static void launchLantern() {
@@ -113,70 +93,8 @@ public class Launcher {
     private static void launchBrowser() {
         final LanternBrowser browser = LanternHub.getLanternBrowser();
         browser.install();
-
     }
     
-    private static void launchJetty() {
-        final Server server = new Server();
-        final String apiName = "API";
-        final String fsName = "FileServer";
-        final ContextHandlerCollection contexts = 
-            new ContextHandlerCollection();
-        
-        final ServletContextHandler api = newContext("/", apiName);
-        api.setResourceBase("srv");
-        contexts.addHandler(api);
-        
-        server.setHandler(contexts);
-        server.setStopAtShutdown(true);
-        
-        final SelectChannelConnector apiConnector = 
-            new SelectChannelConnector();
-        apiConnector.setPort(8384);
-        
-        // TODO: Make sure this works on Linux!!
-        apiConnector.setHost("127.0.0.1");
-        apiConnector.setName(apiName);
-        
-        server.setConnectors(new Connector[]{apiConnector});
-        
-        api.addServlet(new ServletHolder(new ContactsServlet()),"/contacts");
-        api.addServlet(new ServletHolder(new Install1Servlet()),"/install1");
-        api.addServlet(new ServletHolder(new Install2Servlet()),"/install2");
-        api.addServlet(new ServletHolder(new Install3Servlet()),"/install3");
-        
-        final DefaultServlet ds = new DefaultServlet();
-        api.addServlet(new ServletHolder(ds),"/css/*");
-        api.addServlet(new ServletHolder(ds),"/js/*");
-        api.addServlet(new ServletHolder(ds),"/img/*");
-        //final DefaultServlet ds = new DefaultServlet();
-        //api.addServlet(new ServletHolder(ds),"/favicon.ico");
-        //files.addServlet(new ServletHolder(ds),"/*");
-        
-        try {
-            server.start();
-        } catch (final Exception e) {
-            LOG.error("Error starting", e);
-        }
-    }
-    
-    
-    private static ServletContextHandler newContext(final String path,
-        final String name) {
-        final ServletContextHandler context = 
-            new ServletContextHandler(ServletContextHandler.SESSIONS);
-        
-        final Map<String, String> params = context.getInitParams();
-        params.put("org.eclipse.jetty.servlet.Default.gzip", "false");
-        params.put("org.eclipse.jetty.servlet.Default.welcomeServlets", "false");
-        params.put("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
-        params.put("org.eclipse.jetty.servlet.Default.aliases", "false");
-        //params.put("javax.servlet.include.request_uri", "true");
-        context.setContextPath(path);
-        context.setConnectorNames(new String[] {name});
-        return context;
-    }
-
     private static void configureLogger() {
         final File logDirParent;
         final File logDir;
