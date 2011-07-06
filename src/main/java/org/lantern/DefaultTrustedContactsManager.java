@@ -2,7 +2,6 @@ package org.lantern;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -56,6 +55,7 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
         this.trustedContacts = loadTrustedContacts();
     }
     
+    @Override
     public void addTrustedContact(final String email) {
         log.info("Adding trusted contact: {}", email);
         trustedContacts.add(email);
@@ -72,6 +72,7 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
         }
     }
 
+    @Override
     public boolean isTrusted(final String email) {
         return trustedContacts.contains(email);
     }
