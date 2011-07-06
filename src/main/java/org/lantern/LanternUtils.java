@@ -16,12 +16,14 @@ import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Random;
+import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
@@ -475,24 +477,44 @@ public class LanternUtils {
     
     
     public static Collection<RosterEntry> getRosterEntries(final String email,
-        final String pwd) throws IOException {
+        final String pwd, final int attempts) throws IOException {
         final XMPPConnection conn = 
-            persistentXmppConnection(email, pwd, "lantern");
+            persistentXmppConnection(email, pwd, "lantern", attempts);
         final Roster roster = conn.getRoster();
-        return roster.getEntries();
+        final Collection<RosterEntry> unordered = roster.getEntries();
+        final Comparator<RosterEntry> comparator = new Comparator<RosterEntry>() {
+            @Override
+            public int compare(final RosterEntry re1, final RosterEntry re2) {
+                return re1.getName().compareToIgnoreCase(re2.getName());
+            }
+        };
+        final Collection<RosterEntry> entries = 
+            new TreeSet<RosterEntry>(comparator);
+        for (final RosterEntry entry : unordered) {
+            final String name = entry.getName();
+            if (StringUtils.isNotBlank(name)) {
+                entries.add(entry);
+            }
+        }
+        return entries;
     }
     
     private static final Map<String, XMPPConnection> xmppConnections = 
         new ConcurrentHashMap<String, XMPPConnection>();
 
     private static XMPPConnection persistentXmppConnection(final String username, 
-        final String password, final String id) throws IOException {
+            final String password, final String id) throws IOException {
+        return persistentXmppConnection(username, password, id, 4);
+    }
+    
+    private static XMPPConnection persistentXmppConnection(final String username, 
+        final String password, final String id, final int attempts) throws IOException {
         final String key = username+password;
         if (xmppConnections.containsKey(key)) {
             return xmppConnections.get(key);
         }
         XMPPException exc = null;
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < attempts; i++) {
             try {
                 LOG.info("Attempting XMPP connection...");
                 final XMPPConnection conn = 
