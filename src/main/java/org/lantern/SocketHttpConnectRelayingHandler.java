@@ -19,7 +19,8 @@ import org.slf4j.LoggerFactory;
  * another channel passed in to the constructor.
  */
 @Sharable
-public class SocketHttpConnectRelayingHandler extends SimpleChannelUpstreamHandler {
+public class SocketHttpConnectRelayingHandler 
+    extends SimpleChannelUpstreamHandler {
     
     private static final Logger LOG = 
         LoggerFactory.getLogger(SocketHttpConnectRelayingHandler.class);

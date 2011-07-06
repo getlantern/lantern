@@ -23,24 +23,17 @@
           <div id="title">Complete Your Installation</div>
           <div id="spacer"></div>
           <div id="textBody">
-		    You appear to be running Lantern to gain access to blocked web sites from a censored country. Is that correct?
+            You appear to be running Lantern to gain access to blocked web sites from a censored country. Is that correct?
             <br/><br/>
          
           </div>
           <div class="bottomFormContainer" style="margin-top: 20px;">
+            <center>
             <div class="baseTop">
-			<center>
-              <form id="continue" action="installCensored1" method="post">
-				  <input type="submit" value="Yes - I need access to the blocked internet." class="submit">
-			  </form>
-				  </br>
-				  </br>
-				  </br>
-			  <form id="switch" action="installUncensored1" method="post">
-				  <input type="submit" value="No - I want to provide access instead." class="submit submitSmall">
-              </form>
-			</center>
+                <input id="needAccess" type="submit" value="Yes - I need access to the blocked internet." class="submit"/>
+                <input id="provideAccess" type="submit" value="No - I want to provide access instead." class="submit submitSmall secondButton"/>
             </div>
+            </center>
             <div style="clear:both"></div>
         </div>
         </div>
@@ -48,9 +41,15 @@
     </div>
     
     <script>
-	    $(function() {
-			$( ".submit").button();
-	    }); 
+        $(function() {
+            $( ".submit").button();
+            $("#provideAccess").click(function() {
+                window.location.href = "install1Uncensored.html";
+            });
+            $("#needAccess").click(function() {
+                window.location.href = "install1Censored.html";
+            });
+        }); 
     </script>
   </body>
 </html>
