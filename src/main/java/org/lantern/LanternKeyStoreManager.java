@@ -8,8 +8,6 @@ import java.io.InputStream;
 
 import javax.net.ssl.TrustManager;
 
-import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
@@ -28,12 +26,12 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     private final File TRUSTSTORE_FILE = 
         new File(CONFIG_DIR, "lantern_truststore.jks");
     
-    private final File CERT_FILE = 
-        new File(CONFIG_DIR, "local_lantern_cert");
+    //private final File CERT_FILE = 
+    //    new File(CONFIG_DIR, "local_lantern_cert");
     
     private static final String PASS = "Be Your Own Lantern";
 
-    private String localCert;
+    //private String localCert;
     
     private final TrustManager[] trustManagers;
 
@@ -88,11 +86,13 @@ public class LanternKeyStoreManager implements KeyStoreManager {
 
     private void reset(final String macAddress) {
         log.info("RESETTING KEYSTORE AND TRUSTSTORE!!");
+        /*
         if (KEYSTORE_FILE.isFile()) {
             System.out.println("Deleting existing keystore file at: " +
                 KEYSTORE_FILE.getAbsolutePath());
             KEYSTORE_FILE.delete();
         }
+        */
         
         if (TRUSTSTORE_FILE.isFile()) {
             System.out.println("Deleting existing truststore file at: " +
@@ -102,6 +102,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
         // Note we use DSA instead of RSA because apparently only the JDK 
         // has RSA available.
+        /*
         CommonUtils.nativeCall("keytool", "-genkey", "-alias", macAddress, 
             "-keysize", "1024", "-validity", "36500", "-keyalg", "DSA", 
             "-dname", "CN="+macAddress, "-keypass", PASS, "-storepass", 
@@ -129,6 +130,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         }
 
         log.info("Creating trust store");
+        */
         createTrustStore();
         
         /*
@@ -158,9 +160,11 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         }
     }
 
+    /*
     public String getBase64Cert() {
         return localCert;
     }
+    */
 
     public InputStream keyStoreAsInputStream() {
         try {
