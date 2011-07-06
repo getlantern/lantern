@@ -68,6 +68,10 @@ public class Install2Servlet extends HttpServlet {
         final String contacts;
         try {
             contacts = contactsDiv(request, response);
+            
+            // TODO: We just auto-clear while testing!!!
+            LanternUtils.clear("google.user");
+            LanternUtils.clear("google.pwd");
         } catch (final IOException e) {
             LanternUtils.clear("google.user");
             LanternUtils.clear("google.pwd");
