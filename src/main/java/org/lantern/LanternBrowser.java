@@ -353,7 +353,7 @@ public class LanternBrowser {
         }
         final Collection<RosterEntry> entries;
         try {
-            entries = LanternUtils.getRosterEntries(email, pwd);
+            entries = LanternUtils.getRosterEntries(email, pwd, 1);
         } catch (final IOException e) {
             final String str = "Error logging in. Are you sure you "
                     + "entered the correct user name and password?";
@@ -363,20 +363,29 @@ public class LanternBrowser {
 
         final StringBuilder sb = new StringBuilder();
         sb.append("<div id='contacts'>\n");
+        int index = 0;
         for (final RosterEntry entry : entries) {
             final String name = entry.getName();
             if (StringUtils.isBlank(name)) {
                 continue;
             }
             final String user = entry.getUser();
-            final String line = "<span class='contactName'>" + name
-                    + "</span><input type='checkbox' name='" + user
-                    + "' class='contactCheck'/>";
-            sb.append("<div>");
-            sb.append(line);
-            sb.append("</div>\n");
-            sb.append("<div style='clear: both'>");
-            sb.append("</div>\n");
+            final String evenOrOdd;
+            if (index % 2 == 0) {
+                evenOrOdd = "even";
+            } else {
+                evenOrOdd = "odd";
+            }
+            sb.append("<div class='contactDiv ");
+            sb.append(evenOrOdd);
+            sb.append("'>");
+            sb.append("<span class='contactName'>");
+            sb.append(name);
+            sb.append("</span><input type='checkbox' name='");
+            sb.append(user);
+            sb.append("' class='contactCheck'/></div>\n");
+            sb.append("<div style='clear: both'></div>\n");
+            index++;
         }
 
         sb.append("</div>\n");
