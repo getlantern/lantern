@@ -436,15 +436,17 @@ public class LanternUtils {
     }
 
     public static boolean forceProxy() {
-        return getBooleanProperty(LanternConstants.FORCE_PROXY, PROPS);
-        
+        final boolean force = 
+            getBooleanProperty(LanternConstants.FORCE_PROXY, PROPS);
+        LOG.info("Forcing proxy: "+force);
+        return force;
     }
 
     private static boolean getBooleanProperty(final String key, 
         final Properties props) {
         final String val = props.getProperty(key);
         if (StringUtils.isBlank(val)) {
-            return true;
+            return false;
         }
         LOG.info("Checking property: {}", val);
         return "true".equalsIgnoreCase(val.trim());
