@@ -61,11 +61,22 @@ public class Configurator {
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
         
         final Thread hook = new Thread(new Runnable() {
+            @Override
             public void run() {
+                // Note that non-daemon hooks can exit prematurely with CTL-C,
+                // but not if System.exit is used as it should be in deployed
+                // versions.
+                log.info("Unsetting web airport");
                 CommonUtils.nativeCall("networksetup -setwebproxystate Airport off");
+                
+                log.info("Unsetting web ethernet");
                 CommonUtils.nativeCall("networksetup -setwebproxystate Ethernet off");
+                log.info("Unsetting secure airport");
+                
                 CommonUtils.nativeCall("networksetup -setsecurewebproxystate Airport off");
+                log.info("Unsetting secure ethernet");
                 CommonUtils.nativeCall("networksetup -setsecurewebproxystate Ethernet off");
+                
             }
             
         }, "Unset-Web-Proxy-OSX");
@@ -109,6 +120,7 @@ public class Configurator {
         copyFirefoxConfig();
         
         final Runnable runner = new Runnable() {
+            @Override
             public void run() {
                 log.info("Resetting Windows registry settings to " +
                     "original values.");
