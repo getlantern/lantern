@@ -262,6 +262,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         if (proxying) {
             final HttpRequest req = (HttpRequest) me.getMessage();
             // If it's an HTTP request, see if we can redirect it to HTTPS.
+            /*
             final HttpResponse httpsRedirectResponse = 
                 HttpsEverywhere.toHttps(req);
             if (httpsRedirectResponse != null) {
@@ -274,6 +275,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 // not an issue to return null here.
                 return null;
             }
+            */
             
             if (request.isChunked()) {
                 readingChunks = true;
