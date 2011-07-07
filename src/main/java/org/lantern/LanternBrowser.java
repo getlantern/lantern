@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Arrays;
@@ -19,6 +18,9 @@ import org.eclipse.swt.browser.LocationAdapter;
 import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 import org.jivesoftware.smack.RosterEntry;
@@ -35,10 +37,12 @@ public class LanternBrowser {
 
     private Display display;
 
-    public LanternBrowser() {
-        Display.setAppName("Lantern");
-        this.display = new Display();
-        //
+    private File tmp;
+
+    private boolean closed;
+
+    public LanternBrowser(final Display display) {
+        this.display = display;
         this.shell = new Shell(display);
         // this.shell = createShell(this.display);
         this.shell.setText("Lantern Installation");
@@ -62,9 +66,8 @@ public class LanternBrowser {
     }
     public void install() {
         final File srv = new File("srv");
-        final File tmp;
         try {
-            tmp = createTempDirectory();
+            this.tmp = createTempDirectory();
             FileUtils.copyDirectory(srv, tmp);
         } catch (final IOException e) {
             log.error("Could not copy to temp dir", e);
@@ -81,8 +84,27 @@ public class LanternBrowser {
         final File file = new File(tmp, startFile).getAbsoluteFile();
         final String url = file.toURI().toASCIIString();
         log.info("Setting url to:\n{}", url);
+        shell.addListener (SWT.Close, new Listener () {
+
+            @Override
+            public void handleEvent(final Event event) {
+                log.info("CLOSE EVENT: {}", event);
+                if (!closed) {
+                    final int style = SWT.APPLICATION_MODAL | SWT.YES | SWT.NO;
+                    final MessageBox messageBox = new MessageBox (shell, style);
+                    messageBox.setText ("Exit?");
+                    messageBox.setMessage ("Are you sure you want to cancel installing Lantern?");
+                    event.doit = messageBox.open () == SWT.YES;
+                    if (event.doit) {
+                        display.dispose();
+                        System.exit(1);
+                    }
+                }
+            }
+        });
         
         browser.setUrl(url);
+
         browser.addLocationListener(new LocationAdapter() {
             @Override
             public void changing(final LocationEvent event) {
@@ -137,7 +159,7 @@ public class LanternBrowser {
                     try {
                         // TODO: We should just do a simple login instead
                         // of this persistent lookup here.
-                        final String contactsDiv = contactsDiv(email, pwd);
+                        final String contactsDiv = contactsDiv(email, pwd, 1);
                         LanternUtils.writeCredentials(email, pwd);
                         //browser.setText(contactsDiv, true);
                         final File finish = 
@@ -165,10 +187,10 @@ public class LanternBrowser {
                         StringUtils.substringAfter(location, "&pwd=");
                     
                     try {
-                        final String contactsDiv = contactsDiv(email, pwd);
-                        //browser.setText(contactsDiv, true);
+                        final String contactsDiv = contactsDiv(email, pwd, 5);
                         final File contacts = 
                             new File(tmp, "install2Censored.html").getAbsoluteFile();
+                        LanternUtils.writeCredentials(email, pwd);
                         setUrl(contacts, "contacts_div", contactsDiv);
                         //browser.setUrl(finish.toURI().toASCIIString());
                         
@@ -182,6 +204,7 @@ public class LanternBrowser {
                     }
                 } 
                 else if (location.contains("finished")) {
+                    log.info("Got finished...closing");
                     close();
                 } else {
                     final String page = StringUtils.substringAfterLast(location, "/");
@@ -198,7 +221,6 @@ public class LanternBrowser {
             if (!this.display.readAndDispatch())
                 this.display.sleep();
         }
-        this.display.dispose();
     }
 
     protected void setUrl(final File file, final String token, 
@@ -230,96 +252,6 @@ public class LanternBrowser {
         log.info("Setting url to: {}", url);
         browser.setUrl(url);
     }
-    
-    public void install2() {
-        final File srv = new File("srv");
-        File tmp;
-        try {
-            tmp = createTempDirectory();
-            FileUtils.copyDirectory(srv, tmp);
-        } catch (final IOException e) {
-            log.error("Could not copy to temp dir", e);
-        }
-        final String startFile;
-        if (LanternUtils.isCensored()) {
-            startFile = "srv/install0Censored.html";
-        } else {
-            startFile = "srv/install0Uncensored.html";
-        }
-        final File file = new File(startFile).getAbsoluteFile();
-        
-        InputStream is = null;
-        try {
-            is = new FileInputStream(file);
-            final String txt = IOUtils.toString(is, "UTF-8");
-            final String baseDir = new File(".").getCanonicalFile().toURI().toASCIIString();
-            final String baseHref = baseDir.replace("file:", "file://");
-            final String str = txt.replaceAll("base_href", baseHref);
-            browser.setText(str);
-        } catch (final IOException e2) {
-            // TODO Auto-generated catch block
-            e2.printStackTrace();
-        } finally {
-            IOUtils.closeQuietly(is);
-        }
-
-        //browser.setUrl(file.toURI().toASCIIString());
-        browser.addLocationListener(new LocationAdapter() {
-            public void changing(final LocationEvent event) {
-                final String location = event.location;
-                log.info("Got location: {}", location);
-                
-                if (location.contains("srv/login")) {
-                    final String args = 
-                        StringUtils.substringAfter(location, "&");
-                    if (StringUtils.isBlank(args)) {
-                        log.error("Weird location: {}", location);
-                        return;
-                    }
-                    final String email = 
-                        StringUtils.substringBetween(location, "&email=", "&");
-                    final String pwd = 
-                        StringUtils.substringAfter(location, "&pwd=");
-                    
-                    try {
-                        final String contactsDiv = contactsDiv(email, pwd);
-                        //browser.setText(contactsDiv, true);
-                    } catch (final IOException e) {
-                        log.warn("Error accessing contacts", e);
-                    }
-                    
-                    final File file = new File("srv/installFinishedUncensored.html").getAbsoluteFile();
-                    browser.setUrl(file.toURI().toASCIIString());
-                    event.doit = false;
-                } else if (location.contains("srv/finished")) {
-                    close();
-                }
-                //final File file = new File("srv/"+location).getAbsoluteFile();
-                //browser.setUrl(file.toURI().toASCIIString());
-                //event.doit = false;
-            }
-        });
-        /*
-        new BrowserFunction(browser, "javaFunc") {
-            
-            @Override 
-            public Object function (final Object[] arguments) {
-                System.out.println ("theJavaFunction() called from javascript with args:");
-                //int z = 3 / 0; // uncomment to cause a java error instead
-                return new Object[] {};
-            }
-        };
-        */
-        shell.open();
-        //browser.setUrl("http://127.0.0.1:8383/install1.html");
-        //browser.setUrl(LanternConstants.BASE_URL+"/install1?key="+
-        //    LanternUtils.keyString());
-        while (!shell.isDisposed()) {
-            if (!this.display.readAndDispatch())
-                this.display.sleep();
-        }
-        this.display.dispose();
-    }
 
     private File createTempDirectory() throws IOException {
         final File temp = 
@@ -336,24 +268,33 @@ public class LanternBrowser {
     }
 
     public void close() {
+        this.closed = true;
         display.syncExec(new Runnable() {
+            @Override
             public void run() {
-                shell.dispose();
+                try {
+                    shell.dispose();
+                    FileUtils.deleteDirectory(tmp);
+                } catch (final IOException e) {
+                    log.error("Error deleting tmp dir", e);
+                }
+                
             }
         });
     }
 
-    private String contactsDiv(final String email, final String pwd)
-            throws IOException {
+    private String contactsDiv(final String email, final String pwd, 
+        final int attempts) throws IOException {
+        log.info("Creating contacts with {} retries", attempts);
         if (StringUtils.isBlank(email)) {
-            // sendError(response, "Please enter a valid e-mail address.");
+            throw new IOException("Please enter an e-mail address.");
         }
         if (StringUtils.isBlank(pwd)) {
-            // sendError(response, "Please enter a valid password.");
+            throw new IOException("Please enter a password.");
         }
         final Collection<RosterEntry> entries;
         try {
-            entries = LanternUtils.getRosterEntries(email, pwd, 1);
+            entries = LanternUtils.getRosterEntries(email, pwd, attempts);
         } catch (final IOException e) {
             final String str = "Error logging in. Are you sure you "
                     + "entered the correct user name and password?";
