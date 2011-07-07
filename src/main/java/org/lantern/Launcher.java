@@ -9,6 +9,7 @@ import java.util.Properties;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.log4j.PropertyConfigurator;
+import org.eclipse.swt.widgets.Display;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.KeyStoreManager;
@@ -38,15 +39,24 @@ public class Launcher {
                 LOG.error("Uncaught exception", e);
             }
         });
-        final SystemTray tray = new SystemTrayImpl();
+        Display.setAppName("Lantern");
+        final Display display = new Display();
+        //final Shell shell = new Shell(display);
+        final SystemTray tray = new SystemTrayImpl(display);
         tray.createTray();
         
-        
-        //launchLantern();
         if (!LanternUtils.isConfigured()) {
-            launchBrowser();
+            launchBrowser(display);
+            LOG.info("Browser completed");
+
         } else {
             launchLantern();
+        }
+        
+        // This is necessary to keep the tray/menu item up in the case
+        // where we're not launching a browser.
+        while (!display.isDisposed ()) {
+            if (!display.readAndDispatch ()) display.sleep ();
         }
     }
 
@@ -90,8 +100,8 @@ public class Launcher {
         config.configure();
     }
 
-    private static void launchBrowser() {
-        final LanternBrowser browser = LanternHub.getLanternBrowser();
+    private static void launchBrowser(final Display display) {
+        final LanternBrowser browser = new LanternBrowser(display);
         browser.install();
     }
     
