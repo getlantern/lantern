@@ -9,8 +9,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.xpath.XPathExpressionException;
 
-import org.eclipse.jetty.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
@@ -67,7 +67,7 @@ public class HttpsEverywhere {
             final HttpResponse response = 
                 new DefaultHttpResponse(request.getProtocolVersion(), 
                     HttpResponseStatus.TEMPORARY_REDIRECT);
-            response.setHeader(HttpHeaders.LOCATION, redirect);
+            response.setHeader(HttpHeaders.Names.LOCATION, redirect);
             return response;
         }
     }
