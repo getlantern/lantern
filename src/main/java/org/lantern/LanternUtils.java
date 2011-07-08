@@ -29,9 +29,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 
 import javax.net.SocketFactory;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import net.sf.ehcache.store.chm.ConcurrentHashMap;
 
@@ -92,6 +89,15 @@ public class LanternUtils {
         if (!CONFIG_DIR.isDirectory()) {
             if (!CONFIG_DIR.mkdirs()) {
                 LOG.error("Could not make config directory at: "+CONFIG_DIR);
+            }
+        }
+        if (!PROPS_FILE.isFile()) {
+            try {
+                if (!PROPS_FILE.createNewFile()) {
+                    LOG.error("Could not create props file!!");
+                }
+            } catch (final IOException e) {
+                LOG.error("Could not create props file!!", e);
             }
         }
         
@@ -652,46 +658,7 @@ public class LanternUtils {
     public static boolean isDebug() {
         return true;
     }
-
-    public static boolean hasKeyCookie(final HttpServletRequest request) {
-        final Cookie[] cookies = request.getCookies();
-        if (cookies.length < 1) {
-            return false;
-        }
-        String key = null;
-        for (final Cookie cookie : cookies) {
-            if (cookie.getName().equals("key")) {
-                key = cookie.getValue();
-                break;
-            }
-        }
-        if (StringUtils.isBlank(key)) {
-            return false;
-        }
-        if (StringUtils.isBlank(key)) {
-            return false;
-        }
-        if (!key.equals(LanternUtils.keyString())) {
-            return false;
-        }
-        return true;
-    }
-
-
-    public static boolean processKeyArgument(final HttpServletRequest request,
-        final HttpServletResponse response) {
-        final String key = request.getParameter("key");
-        if (StringUtils.isBlank(key)) {
-            return false;
-        }
-        if (!key.equals(LanternUtils.keyString())) {
-            return false;
-        } else {
-            response.addCookie(new Cookie("key", key));
-            return true;
-        }
-    }
-
+    
     public static void writeCredentials(final String email, final String pwd) {
         PROPS.setProperty("google.user", email);
         PROPS.setProperty("google.pwd", pwd);
