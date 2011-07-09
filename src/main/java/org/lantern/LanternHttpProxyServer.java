@@ -63,6 +63,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         this.sslProxyRandomPort = sslProxyRandomPort;
         this.plainTextProxyRandomPort = plainTextProxyRandomPort;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+            @Override
             public void uncaughtException(final Thread t, final Throwable e) {
                 log.error("Uncaught exception", e);
             }
@@ -70,6 +71,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
     }
     
 
+    @Override
     public void start() {
         log.info("Starting proxy on HTTP port "+httpLocalPort+
             " and HTTPS port "+httpsLocalPort);
@@ -104,6 +106,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         final ServerBootstrap bootstrap = new ServerBootstrap(
             new NioServerSocketChannelFactory(
                 Executors.newCachedThreadPool(new ThreadFactory() {
+                    @Override
                     public Thread newThread(final Runnable r) {
                         final Thread t = 
                             new Thread(r, "Daemon-Netty-Boss-Executor");
@@ -112,6 +115,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                     }
                 }),
                 Executors.newCachedThreadPool(new ThreadFactory() {
+                    @Override
                     public Thread newThread(final Runnable r) {
                         final Thread t = 
                             new Thread(r, "Daemon-Netty-Worker-Executor");

@@ -111,8 +111,19 @@ public class LanternBrowser {
                 final String location = event.location;
                 log.info("Got location: {}", location);
                 if (location.endsWith("-copy.html")) {
+                    // This just means it's a request we've already prepared
+                    // for serving. If we don't do this check, we'll get an
+                    // infinite loop of copies.
                     log.info("Accepting copied location");
                     return;
+                } else if (location.contains("install1Censored.html")) {
+                    // We use this to check if the user has selected to run
+                    // in censored mode even if they don't appear to be in a
+                    // censored country.
+                    if (!LanternUtils.isCensored()) {
+                        LanternUtils.forceCensored();
+                    }
+                    defaultPage(location);
                 } else if (location.contains("trustForm")) {
                     final String elements = 
                         StringUtils.substringAfter(location, "trustForm");
@@ -161,7 +172,6 @@ public class LanternBrowser {
                         // of this persistent lookup here.
                         final String contactsDiv = contactsDiv(email, pwd, 1);
                         LanternUtils.writeCredentials(email, pwd);
-                        //browser.setText(contactsDiv, true);
                         final File finish = 
                             new File(tmp, "installFinishedUncensored.html").getAbsoluteFile();
                         browser.setUrl(finish.toURI().toASCIIString());
@@ -207,10 +217,7 @@ public class LanternBrowser {
                     log.info("Got finished...closing");
                     close();
                 } else {
-                    final String page = StringUtils.substringAfterLast(location, "/");
-                    //log.info("Page: "+page);
-                    final File defaultFile = new File(tmp, page);
-                    setUrl(defaultFile, "error_message", "");
+                    defaultPage(location);
                 }
                 event.doit = false;
             }
@@ -221,6 +228,13 @@ public class LanternBrowser {
             if (!this.display.readAndDispatch())
                 this.display.sleep();
         }
+    }
+    
+    protected void defaultPage(final String location) {
+        final String page = StringUtils.substringAfterLast(location, "/");
+        //log.info("Page: "+page);
+        final File defaultFile = new File(tmp, page);
+        setUrl(defaultFile, "error_message", "");
     }
 
     protected void setUrl(final File file, final String token, 
