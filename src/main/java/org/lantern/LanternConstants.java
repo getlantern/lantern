@@ -34,11 +34,6 @@ public class LanternConstants {
     /*
      * The following are keys in the properties files.
      */
-    public static final String FORCE_PROXY = "forceProxy";
+    public static final String FORCE_CENSORED = "forceCensored";
     
-    /**
-     * Base URL for install screens.
-     */
-    public static final String BASE_URL = "http://127.0.0.1:8384";
-
 }

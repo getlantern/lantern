@@ -25,7 +25,7 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private URI peerInfo;
+    private URI peerUri;
     private final ProxyStatusListener proxyStatusListener;
     private final P2PClient p2pClient;
     
@@ -51,11 +51,11 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
 
     @Override
     public boolean hasProxy() {
-        if (this.peerInfo != null) {
+        if (this.peerUri != null) {
             return true;
         }
-        this.peerInfo = this.proxy.getPeerProxy();
-        if (this.peerInfo != null) {
+        this.peerUri = this.proxy.getPeerProxy();
+        if (this.peerUri != null) {
             return true;
         }
         log.info("No peer proxies!");
@@ -64,17 +64,24 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
 
     @Override
     public void processRequest(final Channel browserToProxyChannel,
-        final ChannelHandlerContext ctx, final MessageEvent me) 
-        throws IOException {
+        final ChannelHandlerContext ctx, final MessageEvent me) throws IOException {
         browserToProxyChannel.setReadable(false);
         final HttpRequest request = (HttpRequest) me.getMessage();
         
         if (this.socket == null) {
             // We can pass raw traffic here because this is all tunneled SSL
             // using HTTP CONNECT.
-            this.socket = LanternUtils.openRawOutgoingPeerSocket(
-                browserToProxyChannel, this.peerInfo, ctx, 
-                this.proxyStatusListener, this.p2pClient, peerFailureCount);
+            try {
+                this.socket = LanternUtils.openRawOutgoingPeerSocket(
+                    browserToProxyChannel, this.peerUri, ctx, 
+                    this.proxyStatusListener, this.p2pClient, peerFailureCount);
+            } catch (final IOException e) {
+                // Notify the requester an outgoing connection has failed.
+                // We notify the listener in this case because it's a CONNECT
+                // request -- the remote side should never close it. 
+                this.proxyStatusListener.onCouldNotConnectToPeer(this.peerUri);
+                throw e;
+            }
         }
 
         log.info("Got an outbound channel on: {}", hashCode());
@@ -94,7 +101,6 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
             os.write(data);
         } catch (final Exception e) {
             log.error("Could not encode request?", e);
-            // Notify the requester an outgoing connection has failed.
         }
     }
 
