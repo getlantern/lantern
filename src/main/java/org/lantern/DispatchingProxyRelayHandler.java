@@ -27,9 +27,7 @@ import org.jboss.netty.handler.codec.http.HttpHeaders.Names;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
-import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.ssl.SslHandler;
-import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.proxy.DefaultRelayPipelineFactoryFactory;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
@@ -38,7 +36,6 @@ import org.littleshoot.proxy.HttpRequestHandler;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.ProxyUtils;
 import org.littleshoot.proxy.RelayPipelineFactoryFactory;
-import org.littleshoot.proxy.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,20 +92,24 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                         new DefaultChannelGroup("HTTP-Proxy-Server"));
             private final HttpRequestHandler requestHandler =
                 new HttpRequestHandler(clientSocketChannelFactory, pf);
+            @Override
             public void processRequest(final Channel browserChannel,
                 final ChannelHandlerContext ctx, final MessageEvent me) 
                 throws IOException {
                 requestHandler.messageReceived(ctx, me);
             }
             
+            @Override
             public boolean hasProxy() {
                 return false;
             }
 
+            @Override
             public void processChunk(final ChannelHandlerContext ctx, 
                 final MessageEvent me) throws IOException {
                 requestHandler.messageReceived(ctx, me);
             }
+            @Override
             public void close() {
             }
         };
@@ -260,11 +261,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         this.proxying = Whitelist.isWhitelisted(uriToCheck);
         
         if (proxying) {
-            final HttpRequest req = (HttpRequest) me.getMessage();
             // If it's an HTTP request, see if we can redirect it to HTTPS.
             /*
             final HttpResponse httpsRedirectResponse = 
-                HttpsEverywhere.toHttps(req);
+                HttpsEverywhere.toHttps(request);
             if (httpsRedirectResponse != null) {
                 
                 // Note this redirect should result in a new HTTPS request 
@@ -309,6 +309,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                         browserToProxyChannel, ctx, me);
                 } catch (final IOException e) {
                     log.warn("Could not send CONNECT to anonymous proxy", e);
+                    // This will happen whenever the server's giving us bad
+                    // anonymous proxies, which could happen quite often.
+                    // We should fall back to central.
+                    return centralConnect(ctx, request);
                 }
             } else {
                 // We need to forward the CONNECT request from this proxy to an
@@ -316,14 +320,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 // relay all traffic in this case without doing anything on 
                 // our own other than direct the CONNECT request to the correct 
                 // proxy.
-                if (this.httpConnectChannelFuture == null) {
-                    log.info("Opening HTTP CONNECT tunnel");
-                    this.httpConnectChannelFuture = 
-                        openOutgoingRelayChannel(ctx, request);
-                    return null;
-                } else {
-                    log.error("Outbound channel already assigned?");
-                }
+                return centralConnect(ctx, request);
             }
         }
         
@@ -361,6 +358,19 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         
         // Not much we can do if no proxy can handle it.
         return null;
+    }
+
+    private HttpRequestProcessor centralConnect(final ChannelHandlerContext ctx,
+        final HttpRequest request) {
+        if (this.httpConnectChannelFuture == null) {
+            log.info("Opening HTTP CONNECT tunnel");
+            this.httpConnectChannelFuture = 
+                openOutgoingRelayChannel(ctx, request);
+            return null;
+        } else {
+            log.error("Outbound channel already assigned?");
+            return null;
+        }
     }
 
     private boolean isLae(final HttpRequest request) {
@@ -420,8 +430,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         
         // It's also necessary to use our own engine here, as we need to trust
         // the cert from the proxy.
-        final SslContextFactory sslFactory =
-            new SslContextFactory(this.keyStoreManager);
+        final LanternClientSslContextFactory sslFactory =
+            new LanternClientSslContextFactory(this.keyStoreManager);
         final SSLEngine engine =
             sslFactory.getClientContext().createSSLEngine();
         engine.setUseClientMode(true);
