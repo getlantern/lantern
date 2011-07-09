@@ -25,7 +25,6 @@ import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.ProxyUtils;
-import org.littleshoot.proxy.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,6 +70,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         this.keyStoreManager = keyStoreManager;
     }
     
+    @Override
     public boolean hasProxy() {
         if (this.proxyAddress != null) {
             return true;
@@ -82,6 +82,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         return false;
     }
 
+    @Override
     public void processRequest(final Channel browserToProxyChannel,
         final ChannelHandlerContext ctx, final MessageEvent me) {
         
@@ -94,11 +95,13 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         LanternUtils.writeRequest(this.httpRequests, request, cf);
     }
 
+    @Override
     public void processChunk(final ChannelHandlerContext ctx, 
         final MessageEvent me) throws IOException {
         cf.getChannel().write(me.getMessage());
     }
 
+    @Override
     public void close() {
         if (cf == null) {
             return;
@@ -129,8 +132,8 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         }
         else {
             log.info("Creating Lantern SSL engine");
-            final SslContextFactory sslFactory =
-                new SslContextFactory(this.keyStoreManager);
+            final LanternClientSslContextFactory sslFactory =
+                new LanternClientSslContextFactory(this.keyStoreManager);
             engine = sslFactory.getClientContext().createSSLEngine();
         }
         engine.setUseClientMode(true);
