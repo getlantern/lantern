@@ -47,8 +47,8 @@ public class Launcher {
         
         if (!LanternUtils.isConfigured()) {
             launchBrowser(display);
-            LOG.info("Browser completed");
-
+            LOG.info("Browser completed...launching Lantern");
+            launchLantern();
         } else {
             launchLantern();
         }
@@ -96,8 +96,6 @@ public class Launcher {
                 proxyKeyStore, sslRandomPort,
                 LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
         server.start();
-        final Configurator config = new Configurator();
-        config.configure();
     }
 
     private static void launchBrowser(final Display display) {
