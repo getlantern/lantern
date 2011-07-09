@@ -441,16 +441,24 @@ public class LanternUtils {
         return json;
     }
 
-    public static boolean forceProxy() {
+    public static boolean isForceCensored() {
         final boolean force = 
-            getBooleanProperty(LanternConstants.FORCE_PROXY, PROPS);
+            getBooleanProperty(LanternConstants.FORCE_CENSORED);
         LOG.info("Forcing proxy: "+force);
         return force;
     }
 
-    private static boolean getBooleanProperty(final String key, 
-        final Properties props) {
-        final String val = props.getProperty(key);
+    public static void forceCensored() {
+        setBooleanProperty(LanternConstants.FORCE_CENSORED, true);
+    }
+
+    private static void setBooleanProperty(final String key, 
+        final boolean value) {
+        PROPS.setProperty(key, String.valueOf(value));
+    }
+
+    private static boolean getBooleanProperty(final String key) {
+        final String val = PROPS.getProperty(key);
         if (StringUtils.isBlank(val)) {
             return false;
         }
@@ -519,7 +527,14 @@ public class LanternUtils {
         final String password, final String id, final int attempts) throws IOException {
         final String key = username+password;
         if (xmppConnections.containsKey(key)) {
-            return xmppConnections.get(key);
+            final XMPPConnection conn = xmppConnections.get(key);
+            if (conn.isAuthenticated() && conn.isConnected()) {
+                LOG.info("Returning existing xmpp connection");
+                return conn;
+            } else {
+                LOG.info("Removing stale connection");
+                xmppConnections.remove(key);
+            }
         }
         XMPPException exc = null;
         for (int i = 0; i < attempts; i++) {

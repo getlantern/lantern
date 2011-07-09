@@ -16,9 +16,16 @@ import org.slf4j.LoggerFactory;
  */
 public class Configurator {
     
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = 
+        LoggerFactory.getLogger(Configurator.class);
+    private volatile static boolean configured = false;
     
-    public void configure() {
+    public static void configure() {
+        if (configured) {
+            LOG.error("Configure called twice?");
+            return;
+        }
+        configured = true;
         if (!LanternUtils.propsFile().isFile()) {
             System.out.println("PLEASE ENTER YOUR GOOGLE ACCOUNT DATA IN " + 
                 LanternUtils.propsFile() + " in the following form:" +
@@ -26,13 +33,13 @@ public class Configurator {
             return;
         }
         final File git = new File(".git");
-        if (git.isDirectory() && !LanternUtils.forceProxy()) {
-            log.info("Running from repository...not auto-configuring proxy.");
+        if (git.isDirectory() && !LanternUtils.isForceCensored()) {
+            LOG.info("Running from repository...not auto-configuring proxy.");
             return;
         }
         
-        if (LanternUtils.isCensored() || LanternUtils.forceProxy()) {
-            log.info("Auto-configuring proxy...");
+        if (LanternUtils.isCensored() || LanternUtils.isForceCensored()) {
+            LOG.info("Auto-configuring proxy...");
             
             // We only want to configure the proxy if the user is in censored mode.
             if (SystemUtils.IS_OS_MAC_OSX) {
@@ -44,11 +51,11 @@ public class Configurator {
                 //configureWindowsFirewall();
             }
         } else {
-            log.info("Not auto-configuring proxy in an uncensored country");
+            LOG.info("Not auto-configuring proxy in an uncensored country");
         }
     }
 
-    private void configureOsxProxy() {
+    private static void configureOsxProxy() {
         CommonUtils.nativeCall("networksetup -setwebproxy Airport 127.0.0.1 " + 
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
         CommonUtils.nativeCall("networksetup -setwebproxy Ethernet 127.0.0.1 " + 
@@ -66,15 +73,15 @@ public class Configurator {
                 // Note that non-daemon hooks can exit prematurely with CTL-C,
                 // but not if System.exit is used as it should be in deployed
                 // versions.
-                log.info("Unsetting web airport");
+                LOG.info("Unsetting web airport");
                 CommonUtils.nativeCall("networksetup -setwebproxystate Airport off");
                 
-                log.info("Unsetting web ethernet");
+                LOG.info("Unsetting web ethernet");
                 CommonUtils.nativeCall("networksetup -setwebproxystate Ethernet off");
-                log.info("Unsetting secure airport");
+                LOG.info("Unsetting secure airport");
                 
                 CommonUtils.nativeCall("networksetup -setsecurewebproxystate Airport off");
-                log.info("Unsetting secure ethernet");
+                LOG.info("Unsetting secure ethernet");
                 CommonUtils.nativeCall("networksetup -setsecurewebproxystate Ethernet off");
                 
             }
@@ -83,9 +90,9 @@ public class Configurator {
         Runtime.getRuntime().addShutdownHook(hook);
     }
 
-    private void configureWindowsProxy() {
+    private static void configureWindowsProxy() {
         if (!SystemUtils.IS_OS_WINDOWS) {
-            log.info("Not running on Windows");
+            LOG.info("Not running on Windows");
             return;
         }
         final String key = 
@@ -104,25 +111,25 @@ public class Configurator {
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
         final String proxyEnableUs = "1";
 
-        log.info("Setting registry to use MG as a proxy...");
+        LOG.info("Setting registry to use MG as a proxy...");
         final int enableResult = 
             WindowsRegistry.writeREG_SZ(key, ps, proxyServerUs);
         final int serverResult = 
             WindowsRegistry.writeREG_DWORD(key, pe, proxyEnableUs);
         
         if (enableResult != 0) {
-            log.error("Error enabling the proxy server? Result: "+enableResult);
+            LOG.error("Error enabling the proxy server? Result: "+enableResult);
         }
     
         if (serverResult != 0) {
-            log.error("Error setting proxy server? Result: "+serverResult);
+            LOG.error("Error setting proxy server? Result: "+serverResult);
         }
         copyFirefoxConfig();
         
         final Runnable runner = new Runnable() {
             @Override
             public void run() {
-                log.info("Resetting Windows registry settings to " +
+                LOG.info("Resetting Windows registry settings to " +
                     "original values.");
                 
                 // On shutdown, we need to check if the user has modified the
@@ -136,19 +143,19 @@ public class Configurator {
                 //LOG.info("Proxy enable now: '{}'", proxyEnable);
                 
                 if (proxyEnable.equals(proxyEnableUs)) {
-                    log.info("Setting proxy enable back to: {}", 
+                    LOG.info("Setting proxy enable back to: {}", 
                         proxyEnableOriginal);
                     WindowsRegistry.writeREG_DWORD(key, pe,proxyEnableOriginal);
-                    log.info("Successfully reset proxy enable");
+                    LOG.info("Successfully reset proxy enable");
                 }
                 
                 if (proxyServer.equals(proxyServerUs)) {
-                    log.info("Setting proxy server back to: {}", 
+                    LOG.info("Setting proxy server back to: {}", 
                         proxyServerOriginal);
                     WindowsRegistry.writeREG_SZ(key, ps, proxyServerOriginal);
-                    log.info("Successfully reset proxy server");
+                    LOG.info("Successfully reset proxy server");
                 }
-                log.info("Done resetting the Windows registry");
+                LOG.info("Done resetting the Windows registry");
             }
         };
         
@@ -160,18 +167,18 @@ public class Configurator {
     /**
      * Installs the FireFox config file on startup. Public for testing.
      */
-    private void copyFirefoxConfig() {
+    private static void copyFirefoxConfig() {
         final File ff = 
             new File(System.getenv("ProgramFiles"), "Mozilla Firefox");
         final File pref = new File(new File(ff, "defaults"), "pref");
-        log.info("Prefs dir: {}", pref);
+        LOG.info("Prefs dir: {}", pref);
         if (!pref.isDirectory()) {
-            log.error("No directory at: {}", pref);
+            LOG.error("No directory at: {}", pref);
         }
         final File config = new File("all-bravenewsoftware.js");
         
         if (!config.isFile()) {
-            log.error("NO CONFIG FILE AT {}", config);
+            LOG.error("NO CONFIG FILE AT {}", config);
         }
         else {
             try {
@@ -179,9 +186,13 @@ public class Configurator {
                 final File installedConfig = new File(pref, config.getName());
                 installedConfig.deleteOnExit();
             } catch (final IOException e) {
-                log.error("Could not copy config file?", e);
+                LOG.error("Could not copy config file?", e);
             }
         }
+    }
+
+    public static boolean configured() {
+        return configured;
     }
 
 
