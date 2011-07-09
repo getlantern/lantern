@@ -69,6 +69,17 @@ public class LanternBrowser {
         try {
             this.tmp = createTempDirectory();
             FileUtils.copyDirectory(srv, tmp);
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        FileUtils.deleteDirectory(tmp);
+                    } catch (final IOException e) {
+                        // Could have already been deleted at this point.
+                        log.warn("Could not delete temp dir?", e);
+                    }
+                }
+            }));
         } catch (final IOException e) {
             log.error("Could not copy to temp dir", e);
             return;
@@ -81,9 +92,6 @@ public class LanternBrowser {
         } else {
             startFile = "install0Uncensored.html";
         }
-        final File file = new File(tmp, startFile).getAbsoluteFile();
-        final String url = file.toURI().toASCIIString();
-        log.info("Setting url to:\n{}", url);
         shell.addListener (SWT.Close, new Listener () {
 
             @Override
@@ -93,17 +101,24 @@ public class LanternBrowser {
                     final int style = SWT.APPLICATION_MODAL | SWT.YES | SWT.NO;
                     final MessageBox messageBox = new MessageBox (shell, style);
                     messageBox.setText ("Exit?");
-                    messageBox.setMessage ("Are you sure you want to cancel installing Lantern?");
+                    messageBox.setMessage (
+                        "Are you sure you want to cancel installing Lantern?");
                     event.doit = messageBox.open () == SWT.YES;
                     if (event.doit) {
                         display.dispose();
+                        try {
+                            FileUtils.deleteDirectory(tmp);
+                        } catch (final IOException e) {
+                            log.warn("Could not delete temp dir?", e);
+                        }
                         System.exit(1);
                     }
                 }
             }
         });
         
-        browser.setUrl(url);
+        final File file = new File(tmp, startFile).getAbsoluteFile();
+        setUrl(file);
 
         browser.addLocationListener(new LocationAdapter() {
             @Override
@@ -123,7 +138,7 @@ public class LanternBrowser {
                     if (!LanternUtils.isCensored()) {
                         LanternUtils.forceCensored();
                     }
-                    defaultPage(location);
+                    setUrl("install1Censored.html");
                 } else if (location.contains("trustForm")) {
                     final String elements = 
                         StringUtils.substringAfter(location, "trustForm");
@@ -154,7 +169,7 @@ public class LanternBrowser {
 
                     final File finish = 
                         new File(tmp, "installFinishedCensored.html").getAbsoluteFile();
-                    browser.setUrl(finish.toURI().toASCIIString());
+                    setUrl(finish);
                 } else if (location.contains("loginUncensored")) {
                     final String args = 
                         StringUtils.substringAfter(location, "&");
@@ -174,8 +189,7 @@ public class LanternBrowser {
                         LanternUtils.writeCredentials(email, pwd);
                         final File finish = 
                             new File(tmp, "installFinishedUncensored.html").getAbsoluteFile();
-                        browser.setUrl(finish.toURI().toASCIIString());
-                        
+                        setUrl(finish);
                     } catch (final IOException e) {
                         log.warn("Error accessing contacts", e);
                         final File error = 
@@ -212,8 +226,7 @@ public class LanternBrowser {
                         setUrl(error, "error_message", 
                             "Error logging in. E-mail or password incorrect?");
                     }
-                } 
-                else if (location.contains("finished")) {
+                } else if (location.contains("finished")) {
                     log.info("Got finished...closing");
                     close();
                 } else {
@@ -232,22 +245,28 @@ public class LanternBrowser {
     
     protected void defaultPage(final String location) {
         final String page = StringUtils.substringAfterLast(location, "/");
-        //log.info("Page: "+page);
-        final File defaultFile = new File(tmp, page);
-        setUrl(defaultFile, "error_message", "");
+        setUrl(page);
     }
 
+    protected void setUrl(final String page) {
+        final File defaultFile = new File(tmp, page);
+        setUrl(defaultFile);
+    }
+    
+    protected void setUrl(final File file) {
+        setUrl(file, "error_message", "");
+    }
+    
     protected void setUrl(final File file, final String token, 
         final String replacement) {
         String copyStr;
         try {
             copyStr = IOUtils.toString(new FileInputStream(file), "UTF-8");
-        } catch (final IOException e2) {
-            log.error("Could not read file to string?", e2);
+        } catch (final IOException e) {
+            log.error("Could not read file to string?", e);
             return;
         }
-        //System.out.println("COPY: "+copyStr);
-        copyStr = copyStr.replaceAll(token, replacement);
+        copyStr = copyStr.replace(token, replacement);
         
         final String name = 
             StringUtils.substringBefore(file.getName(), ".html") + "-copy.html";
@@ -256,15 +275,16 @@ public class LanternBrowser {
         try {
             fw = new FileWriter(copy);
             fw.write(copyStr);
-        } catch (final IOException e1) {
-            log.error("Could not write new file?", e1);
+        } catch (final IOException e) {
+            log.error("Could not write new file?", e);
         } finally {
             IOUtils.closeQuietly(fw);
         }
         //FileUtils.copyFile(file, copy);
         final String url = copy.toURI().toASCIIString();
-        log.info("Setting url to: {}", url);
-        browser.setUrl(url);
+        final String parsed = url.replace("file:/", "file:///");
+        log.info("Setting url to: {}", parsed);
+        browser.setUrl(parsed);
     }
 
     private File createTempDirectory() throws IOException {
