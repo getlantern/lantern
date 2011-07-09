@@ -22,7 +22,6 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpChunkTrailer;
 import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.util.CharsetUtil;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.littleshoot.util.ByteBufferUtils;
@@ -93,6 +92,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         this.p2pClient = p2pClient;
     }
 
+    @Override
     public boolean hasProxy() {
         if (this.peerInfo != null) {
             return true;
@@ -105,13 +105,20 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         return false;
     }
     
+    @Override
     public void processRequest(final Channel browserToProxyChannel,
         final ChannelHandlerContext ctx, final MessageEvent me) 
         throws IOException {
         if (this.socket == null) {
-            this.socket = LanternUtils.openOutgoingPeerSocket(
-                browserToProxyChannel, this.peerInfo, ctx, 
-                this.proxyStatusListener, this.p2pClient, peerFailureCount);
+            try {
+                this.socket = LanternUtils.openOutgoingPeerSocket(
+                    browserToProxyChannel, this.peerInfo, ctx, 
+                    this.proxyStatusListener, this.p2pClient, peerFailureCount);
+            } catch (final IOException e) {
+                // Notify the requester an outgoing connection has failed.
+                this.proxyStatusListener.onCouldNotConnectToPeer(this.peerInfo);
+                throw e;
+            }
         }
 
         final HttpRequest request = (HttpRequest) me.getMessage();
@@ -139,6 +146,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         }
     }
 
+    @Override
     public void processChunk(final ChannelHandlerContext ctx, 
         final MessageEvent me) throws IOException {
         // We need to convert the Netty message to raw bytes for sending over
@@ -216,6 +224,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         buf.writeByte(LF);
     }
 
+    @Override
     public void close() {
         IOUtils.closeQuietly(this.socket);
     }
