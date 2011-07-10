@@ -2,11 +2,9 @@ package org.lantern;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
@@ -26,7 +24,6 @@ import java.util.Random;
 import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.zip.GZIPInputStream;
 
 import javax.net.SocketFactory;
 
@@ -35,7 +32,6 @@ import net.sf.ehcache.store.chm.ConcurrentHashMap;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.RandomUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -57,15 +53,10 @@ import org.jivesoftware.smack.XMPPException;
 import org.json.simple.JSONArray;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
-import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.littleshoot.proxy.ProxyUtils;
 import org.littleshoot.util.ByteBufferUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.Sets;
-import com.maxmind.geoip.Country;
-import com.maxmind.geoip.LookupService;
 
 /**
  * Utility methods for use with Lantern.
@@ -117,113 +108,6 @@ public class LanternUtils {
             Executors.newCachedThreadPool(),
             Executors.newCachedThreadPool());
     
-    /**
-     * Censored country codes, in order of population.
-     */
-    private static final Collection<String> CENSORED =
-        Sets.newHashSet(
-            // Asia 
-            "CN",
-            "VN",
-            "MM",
-            //Mideast: 
-            "IR", 
-            "BH", 
-            "YE", 
-            "SA", 
-            "SY",
-            //Eurasia: 
-            "UZ", 
-            "TM",
-            //Africa: 
-            "ET", 
-            "ER",
-            // LAC: 
-            "CU");
-
-    // These country codes have US export restrictions, and therefore cannot
-    // access App Engine sites.
-    private static final Collection<String> EXPORT_RESTRICTED =
-        Sets.newHashSet(
-            "SY");
-    
-    private static final File UNZIPPED = new File("GeoIP.dat");
-    
-    private static LookupService lookupService;
-
-    private static String countryCode;
-
-    static {
-        if (!UNZIPPED.isFile())  {
-            final File file = new File("GeoIP.dat.gz");
-            GZIPInputStream is = null;
-            OutputStream os = null;
-            try {
-                is = new GZIPInputStream(new FileInputStream(file));
-                os = new FileOutputStream(UNZIPPED);
-                IOUtils.copy(is, os);
-            } catch (final IOException e) {
-                LOG.warn("Error expanding file?", e);
-            } finally {
-                IOUtils.closeQuietly(is);
-                IOUtils.closeQuietly(os);
-            }
-        }
-        try {
-            lookupService = new LookupService(UNZIPPED, 
-                    LookupService.GEOIP_MEMORY_CACHE);
-        } catch (final IOException e) {
-            lookupService = null;
-        }
-    }
-    
-    public static String countryCode() {
-        if (StringUtils.isNotBlank(countryCode)) {
-            return countryCode;
-        }
-        
-        countryCode = countryCode(PublicIpAddress.getPublicIpAddress());
-        return countryCode;
-    }
-    
-    public static String countryCode(final InetAddress address) {
-        final Country country = lookupService.getCountry(address);
-        LOG.info("Country is: {}", country.getName());
-        return country.getCode().trim();
-    }
-    
-    public static boolean isCensored() {
-        return isCensored(PublicIpAddress.getPublicIpAddress());
-    }
-    
-    public static boolean isCensored(final InetAddress address) {
-        return isMatch(address, CENSORED);
-    }
-
-    public static boolean isCensored(final String address) throws IOException {
-        return isCensored(InetAddress.getByName(address));
-    }
-    
-    public static boolean isExportRestricted() {
-        return isExportRestricted(PublicIpAddress.getPublicIpAddress());
-    }
-    
-    public static boolean isExportRestricted(final InetAddress address) { 
-        return isMatch(address, EXPORT_RESTRICTED);
-    }
-
-    public static boolean isExportRestricted(final String address) 
-        throws IOException {
-        return isExportRestricted(InetAddress.getByName(address));
-    }
-    
-    public static boolean isMatch(final InetAddress address, 
-        final Collection<String> countries) { 
-        final Country country = lookupService.getCountry(address);
-        LOG.info("Country is: {}", country);
-        countryCode = country.getCode().trim();
-        return countries.contains(country.getCode().trim());
-    }
     
     /**
      * Helper method that ensures all written requests are properly recorded.
@@ -441,23 +325,12 @@ public class LanternUtils {
         return json;
     }
 
-    public static boolean isForceCensored() {
-        final boolean force = 
-            getBooleanProperty(LanternConstants.FORCE_CENSORED);
-        LOG.info("Forcing proxy: "+force);
-        return force;
-    }
-
-    public static void forceCensored() {
-        setBooleanProperty(LanternConstants.FORCE_CENSORED, true);
-    }
-
-    private static void setBooleanProperty(final String key, 
+    public static void setBooleanProperty(final String key, 
         final boolean value) {
         PROPS.setProperty(key, String.valueOf(value));
     }
 
-    private static boolean getBooleanProperty(final String key) {
+    public static boolean getBooleanProperty(final String key) {
         final String val = PROPS.getProperty(key);
         if (StringUtils.isBlank(val)) {
             return false;
@@ -485,12 +358,6 @@ public class LanternUtils {
         }
         return false;
     }
-
-    private static final String keyString = String.valueOf(RandomUtils.nextLong());
-    public static String keyString() {
-        return keyString;
-    }
-    
     
     public static Collection<RosterEntry> getRosterEntries(final String email,
         final String pwd, final int attempts) throws IOException {
@@ -668,10 +535,6 @@ public class LanternUtils {
         });
         
         return conn;
-    }
-
-    public static boolean isDebug() {
-        return true;
     }
     
     public static void writeCredentials(final String email, final String pwd) {

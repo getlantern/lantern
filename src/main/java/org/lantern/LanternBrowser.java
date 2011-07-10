@@ -87,7 +87,7 @@ public class LanternBrowser {
         log.info("tmp files: "+Arrays.asList(tmp.listFiles()));
         
         final String startFile;
-        if (LanternUtils.isCensored()) {
+        if (CensoredUtils.isCensored()) {
             startFile = "install0Censored.html";
         } else {
             startFile = "install0Uncensored.html";
@@ -135,8 +135,8 @@ public class LanternBrowser {
                     // We use this to check if the user has selected to run
                     // in censored mode even if they don't appear to be in a
                     // censored country.
-                    if (!LanternUtils.isCensored()) {
-                        LanternUtils.forceCensored();
+                    if (!CensoredUtils.isCensored()) {
+                        CensoredUtils.forceCensored();
                     }
                     setUrl("install1Censored.html");
                 } else if (location.contains("trustForm")) {
