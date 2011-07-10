@@ -379,7 +379,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         // Send an "info" message to gather proxy data.
         final Message msg = new Message();
         final JSONObject json = new JSONObject();
-        json.put(LanternConstants.COUNTRY_CODE, LanternUtils.countryCode());
+        json.put(LanternConstants.COUNTRY_CODE, CensoredUtils.countryCode());
         //json.put(LanternConstants.USER_NAME, this.user);
         //json.put(LanternConstants.PASSWORD, this.pwd);
         json.put(LanternConstants.BYTES_PROXIED, 
