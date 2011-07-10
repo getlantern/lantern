@@ -33,12 +33,12 @@ public class Configurator {
             return;
         }
         final File git = new File(".git");
-        if (git.isDirectory() && !LanternUtils.isForceCensored()) {
+        if (git.isDirectory() && !CensoredUtils.isForceCensored()) {
             LOG.info("Running from repository...not auto-configuring proxy.");
             return;
         }
         
-        if (LanternUtils.isCensored() || LanternUtils.isForceCensored()) {
+        if (CensoredUtils.isCensored() || CensoredUtils.isForceCensored()) {
             LOG.info("Auto-configuring proxy...");
             
             // We only want to configure the proxy if the user is in censored mode.
