@@ -110,7 +110,16 @@ public class Launcher {
             logDirParent = CommonUtils.getDataDir();
             logDir = new File(logDirParent, "logs");
         } else if (SystemUtils.IS_OS_MAC_OSX) {
-            logDirParent = new File("/Library/Logs/");
+            final File homeLibrary = 
+                new File(System.getProperty("user.home"), "Library");
+            logDirParent = new File(homeLibrary, "Logs");
+            if (!logDirParent.isDirectory()) {
+                if (!logDirParent.mkdirs()) {
+                    System.err.println("Could not create parent log dir: " + 
+                        logDirParent);
+                    return;
+                }
+            }
             logDir = new File(logDirParent, "Lantern");
         } else {
             logDirParent = new File(SystemUtils.getUserHome(), ".lantern");
@@ -119,14 +128,14 @@ public class Launcher {
 
         if (!logDirParent.isDirectory()) {
             if (!logDirParent.mkdirs()) {
-                System.out.println("Could not create parent at: "
+                System.err.println("Could not create parent at: "
                         + logDirParent);
                 return;
             }
         }
         if (!logDir.isDirectory()) {
             if (!logDir.mkdirs()) {
-                System.out.println("Could not create dir at: " + logDir);
+                System.err.println("Could not create dir at: " + logDir);
                 return;
             }
         }
