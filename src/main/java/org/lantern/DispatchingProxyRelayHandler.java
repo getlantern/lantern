@@ -258,6 +258,15 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             uriToCheck = uri;
         }
         
+        // We need to set this outside of proxying rules because we first
+        // send incoming messages down chunked versus unchunked paths and
+        // then send them down proxied versus unproxied paths.
+        if (request.isChunked()) {
+            readingChunks = true;
+        } else {
+            readingChunks = false;
+        }
+        
         this.proxying = Whitelist.isWhitelisted(uriToCheck);
         
         if (proxying) {
@@ -277,11 +286,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             }
             */
             
-            if (request.isChunked()) {
-                readingChunks = true;
-            } else {
-                readingChunks = false;
-            }
             return dispatchProxyRequest(ctx, me);
         } else {
             log.info("Not proxying!");
