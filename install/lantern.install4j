@@ -156,22 +156,6 @@
               <void property="frameWidth">
                 <int>220</int>
               </void>
-              <void property="headerBackground">
-                <object class="java.awt.Color">
-                  <int>0</int>
-                  <int>0</int>
-                  <int>0</int>
-                  <int>255</int>
-                </object>
-              </void>
-              <void property="headerForeground">
-                <object class="java.awt.Color">
-                  <int>255</int>
-                  <int>255</int>
-                  <int>153</int>
-                  <int>255</int>
-                </object>
-              </void>
               <void property="splashMessage">
                 <string>Lantern Installer</string>
               </void>
