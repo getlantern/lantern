@@ -9,8 +9,22 @@ echo "First arg is: $1"
 echo "Running as `whoami`"
 echo "USER is $USER"
 echo "User name is $userName"
-echo "Executing perl replace on Info.plist"
 
+#PLIST_DIR=/Library/LaunchAgents
+PLIST_DIR=~/Library/LaunchAgents
+PLIST_FILE=org.bns.lantern.plist
+PLIST_INSTALL_FULL=$APP_PATH/Contents/Resources/app/$PLIST_FILE
+LAUNCHD_PLIST=$PLIST_DIR/$PLIST_FILE
+
+echo "Unloading launchd plist file just in case"
+# Attempt to unload in case an old one is there
+launchctl unload -F $LAUNCHD_PLIST 
+
+echo "Removing old trust store"
+test -f ~/.lantern/lantern_truststore.jks && rm -rf ~/.lantern/lantern_truststore.jks
+test -f ~/.lantern/lantern_truststore.jks && echo "trust store still exists!! not good."
+
+echo "Executing perl replace on Info.plist"
 # The following test is due to bizarre installer behavior where it installs to 
 # /Applications/Lantern.app sometimes and /Applications/Lantern/Lantern.app in others.
 APP_PATH=/Applications/Lantern/Lantern.app
@@ -21,11 +35,6 @@ perl -pi -e "s:/Applications/Lantern/Lantern.app:$APP_PATH:g" $APP_PATH/Contents
 # We also need to change the contents of the Info.plist file to reflect the correct path.
 echo "Running in `pwd`"
 
-#PLIST_DIR=/Library/LaunchAgents
-PLIST_DIR=~/Library/LaunchAgents
-PLIST_FILE=org.bns.lantern.plist
-PLIST_INSTALL_FULL=$APP_PATH/Contents/Resources/app/$PLIST_FILE
-LAUNCHD_PLIST=$PLIST_DIR/$PLIST_FILE
 
 echo "Copying launchd plist file"
 test -f $PLIST_INSTALL_FULL || die "plist file does not exist at $PLIST_INSTALL_FULL?"
@@ -34,10 +43,6 @@ cp $PLIST_INSTALL_FULL $PLIST_DIR || die "Could not copy plist file from $PLIST_
 echo "Changing permissions on launchd plist file"
 chmod 644 $LAUNCHD_PLIST || die "Could not change permissions"
 
-echo "Unloading launchd plist file just in case"
-
-# Attempt to unload in case an old one is there
-launchctl unload -F $LAUNCHD_PLIST 
 
 echo "Loading launchd plist file"
 launchctl load -F $LAUNCHD_PLIST || die "Could not load plist via launchctl"
