@@ -612,6 +612,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 log.info("Actually adding peer proxy: {}", cur);
                 peerSet.add(cur);
                 peerQueue.add(cur);
+            } else {
+                log.info("We already know about the peer proxy");
             }
             
         }
@@ -688,18 +690,20 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     }
 
     
+    @Override
     public void onCouldNotConnect(final InetSocketAddress proxyAddress) {
         log.info("COULD NOT CONNECT!! Proxy address: {}", proxyAddress);
         onCouldNotConnect(new ProxyHolder(proxyAddress.getHostName(), proxyAddress), 
             this.proxySet, this.proxies);
     }
     
+    @Override
     public void onCouldNotConnectToLae(final InetSocketAddress proxyAddress) {
         onCouldNotConnect(new ProxyHolder(proxyAddress.getHostName(), proxyAddress), 
             this.laeProxySet, this.laeProxies);
     }
     
-    public void onCouldNotConnect(final ProxyHolder proxyAddress,
+    private void onCouldNotConnect(final ProxyHolder proxyAddress,
         final Set<ProxyHolder> set, final Queue<ProxyHolder> queue){
         log.info("COULD NOT CONNECT!! Proxy address: {}", proxyAddress);
         synchronized (this.proxySet) {
@@ -708,10 +712,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
     }
 
+    @Override
     public void onCouldNotConnectToPeer(final URI peerUri) {
         removePeerUri(peerUri);
     }
     
+    @Override
     public void onError(final URI peerUri) {
         removePeerUri(peerUri);
     }
@@ -724,19 +730,25 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
     }
 
+    @Override
     public InetSocketAddress getLaeProxy() {
         return getProxy(this.laeProxySet, this.laeProxies);
     }
     
+    @Override
     public InetSocketAddress getProxy() {
         return getProxy(this.proxySet, this.proxies);
     }
     
+    @Override
     public URI getLanternProxy() {
+        log.info("Getting Lantern proxy");
         return getProxyUri(this.lanternProxySet, this.lanternProxies);
     }
 
+    @Override
     public URI getPeerProxy() {
+        log.info("Getting peer proxy");
         return getProxyUri(this.peerProxySet, this.peerProxies);
     }
     
