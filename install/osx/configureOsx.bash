@@ -16,7 +16,9 @@ echo "Executing perl replace on Info.plist"
 APP_PATH=/Applications/Lantern/Lantern.app
 test -d $APP_PATH || APP_PATH=/Applications/Lantern.app
 perl -pi -e "s/<dict>/<dict><key>LSUIElement<\/key><string>1<\/string>/g" $APP_PATH/Contents/Info.plist || die "Could not fix Info.plist"
+perl -pi -e "s:/Applications/Lantern/Lantern.app:$APP_PATH:g" $APP_PATH/Contents/Info.plist || die "Could not fix Info.plist"
 
+# We also need to change the contents of the Info.plist file to reflect the correct path.
 echo "Running in `pwd`"
 
 #PLIST_DIR=/Library/LaunchAgents
