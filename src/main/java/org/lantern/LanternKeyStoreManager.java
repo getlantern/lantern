@@ -54,10 +54,23 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         final File littleProxyCert = new File("lantern_littleproxy_cert");
         if (littleProxyCert.isFile()) {
             log.info("Importing cert");
-            CommonUtils.nativeCall("keytool", "-import", "-noprompt", "-file", 
+            final String result = runKeytool("-import", "-noprompt", "-file", 
                 littleProxyCert.getName(), 
                 "-alias", "littleproxy", "-keystore", 
                 TRUSTSTORE_FILE.getAbsolutePath(), "-storepass",  PASS);
+            
+            log.info("Result of running keytool: {}", result);
+            /*
+            final String keytoolPath = findKeytoolPath();
+            if (StringUtils.isBlank(keytoolPath)) {
+                log.error("Bad keytool path?");
+            } else {
+                CommonUtils.nativeCall("keytool", "-import", "-noprompt", "-file", 
+                    littleProxyCert.getName(), 
+                    "-alias", "littleproxy", "-keystore", 
+                    TRUSTSTORE_FILE.getAbsolutePath(), "-storepass",  PASS);
+            }
+            */
         } else {
             log.warn("NO LITTLEPROXY CERT FILE TO IMPORT!!");
         }
@@ -70,6 +83,32 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         };
     }
     
+    /** 
+     * Execute keytool, returning the output.
+     */
+    private String runKeytool(final String... args) {
+        final CommandLine command = new CommandLine(findKeytoolPath(), args);
+        command.execute();
+        final String output = command.getStdOut();
+        if (!command.isSuccessful()) {
+            log.warn("Command failed!! -- {}", args);
+        }
+        return output;
+    }
+    
+
+    private String findKeytoolPath() {
+        File defaultLocation = new File("/usr/bin/keytool");
+        if (defaultLocation.exists()) {
+            return defaultLocation.getAbsolutePath();
+        }
+        String networkSetupBin = CommandLine.findExecutable("keytool");
+        if (networkSetupBin != null) {
+            return networkSetupBin;
+        }
+        log.error("Could not fine keytool?!?!?!?");
+        return null;
+    }
 
     private void createTrustStore() {
         if (TRUSTSTORE_FILE.isFile()) {
@@ -180,7 +219,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             return new FileInputStream(TRUSTSTORE_FILE);
         } catch (final FileNotFoundException e) {
             log.error("Trust store file not found", e);
-            throw new Error("Could not find keystore file!!");
+            throw new Error("Could not find truststore file!!");
         }
     }
 

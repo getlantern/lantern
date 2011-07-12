@@ -107,7 +107,8 @@ public class Launcher {
         final File logDirParent;
         final File logDir;
         if (SystemUtils.IS_OS_WINDOWS) {
-            logDirParent = CommonUtils.getDataDir();
+            //logDirParent = CommonUtils.getDataDir();
+            logDirParent = new File(System.getenv("APPDATA"));
             logDir = new File(logDirParent, "logs");
         } else if (SystemUtils.IS_OS_MAC_OSX) {
             final File homeLibrary = 
