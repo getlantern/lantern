@@ -160,21 +160,31 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         // connections already uses end-to-end encryption.
         this.anonymousPeerRequestProcessor =
             new PeerHttpConnectRequestProcessor(new Proxy() {
+                @Override
                 public InetSocketAddress getProxy() {
                     throw new UnsupportedOperationException(
                         "Peer proxy required");
                 }
+                @Override
                 public URI getPeerProxy() {
-                    return proxyProvider.getLanternProxy();
+                    // For CONNECT we can use either an anonymous peer or a
+                    // trusted peer.
+                    final URI lantern = proxyProvider.getLanternProxy();
+                    if (lantern == null) {
+                        return proxyProvider.getPeerProxy();
+                    }
+                    return lantern;
                 }
             },  proxyStatusListener, encryptingP2pClient);
         
         this.trustedPeerRequestProcessor =
             new PeerHttpRequestProcessor(new Proxy() {
+                @Override
                 public InetSocketAddress getProxy() {
                     throw new UnsupportedOperationException(
                         "Peer proxy required");
                 }
+                @Override
                 public URI getPeerProxy() {
                     return proxyProvider.getPeerProxy();
                 }
@@ -183,16 +193,19 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         this.proxyRequestProcessor =
             new DefaultHttpRequestProcessor(proxyStatusListener,
                 new HttpRequestTransformer() {
+                    @Override
                     public void transform(final HttpRequest request, 
                         final InetSocketAddress proxyAddress) {
                         // Does nothing.
                     }
                 }, false,
                 new Proxy() {
+                    @Override
                     public URI getPeerProxy() {
                         throw new UnsupportedOperationException(
                             "Peer proxy not supported here.");
                     }
+                    @Override
                     public InetSocketAddress getProxy() {
                         return proxyProvider.getProxy();
                     }
@@ -201,10 +214,12 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             new DefaultHttpRequestProcessor(proxyStatusListener,
                 new LaeHttpRequestTransformer(), true,
                 new Proxy() {
+                    @Override
                     public URI getPeerProxy() {
                         throw new UnsupportedOperationException(
                             "Peer proxy not supported here.");
                     }
+                    @Override
                     public InetSocketAddress getProxy() {
                         return proxyProvider.getLaeProxy();
                     }
