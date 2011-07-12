@@ -160,7 +160,7 @@
                 <int>220</int>
               </void>
               <void property="splashMessage">
-                <string>Lantern Installer</string>
+                <string>Lantern Installer - Double Click Me</string>
               </void>
               <void property="useCustomIcon">
                 <boolean>true</boolean>
@@ -956,7 +956,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
     </applications>
   </installerGui>
   <mediaSets>
-    <windows name="Windows" id="26" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="2" jreURL="http://cloudfront.littleshoot.org/jre.exe" jreFtpURL="" jreShared="true" directDownload="true" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
+    <windows name="Windows" id="26" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="../windows-x86-1.6.0_26.tar.gz" manualJREEntry="true" bundleType="2" jreURL="http://cdn.bravenewsoftware.org/windows-x86-1.6.0_26.tar.gz" jreFtpURL="" jreShared="true" directDownload="true" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
       <excludedLaunchers>
         <launcher id="27" />
         <launcher id="158" />
