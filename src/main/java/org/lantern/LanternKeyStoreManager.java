@@ -115,12 +115,12 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             log.info("Trust store already exists");
             return;
         }
-        
-        CommonUtils.nativeCall("keytool", "-genkey", "-alias", "foo", "-keysize", 
+        final String result = runKeytool("-genkey", "-alias", "foo", "-keysize", 
             "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
             "CN="+LanternUtils.getMacAddress(), "-keystore", 
             TRUSTSTORE_FILE.getAbsolutePath(), "-keypass", PASS, 
             "-storepass", PASS);
+        log.info("Got result of creating trust store: {}", result);
     }
 
     private void reset(final String macAddress) {
