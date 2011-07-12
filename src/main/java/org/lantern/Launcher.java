@@ -108,19 +108,12 @@ public class Launcher {
         final File logDir;
         if (SystemUtils.IS_OS_WINDOWS) {
             //logDirParent = CommonUtils.getDataDir();
-            logDirParent = new File(System.getenv("APPDATA"));
+            logDirParent = new File(System.getenv("APPDATA"), "Lantern");
             logDir = new File(logDirParent, "logs");
         } else if (SystemUtils.IS_OS_MAC_OSX) {
             final File homeLibrary = 
                 new File(System.getProperty("user.home"), "Library");
             logDirParent = new File(homeLibrary, "Logs");
-            if (!logDirParent.isDirectory()) {
-                if (!logDirParent.mkdirs()) {
-                    System.err.println("Could not create parent log dir: " + 
-                        logDirParent);
-                    return;
-                }
-            }
             logDir = new File(logDirParent, "Lantern");
         } else {
             logDirParent = new File(SystemUtils.getUserHome(), ".lantern");
