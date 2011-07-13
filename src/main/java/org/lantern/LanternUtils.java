@@ -588,6 +588,10 @@ public class LanternUtils {
         final ByteBuffer buf = cb.toByteBuffer();
         return ByteBufferUtils.toRawBytes(buf);
     }
+
+    public static String jidToUser(final String jid) {
+        return StringUtils.substringBefore(jid, "/");
+    }
 }
 
 
