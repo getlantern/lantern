@@ -100,4 +100,10 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
         }
         return Collections.emptySet();
     }
+
+    @Override
+    public boolean isJidTrusted(final String jid) {
+        final String email = LanternUtils.jidToUser(jid);
+        return isTrusted(email);
+    }
 }
