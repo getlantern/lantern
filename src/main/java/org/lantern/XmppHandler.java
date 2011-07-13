@@ -745,7 +745,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     }
     
     @Override
-    public URI getLanternProxy() {
+    public URI getAnonymousProxy() {
         log.info("Getting Lantern proxy");
         return getProxyUri(this.anonymousProxySet, this.anonymousProxies);
     }
