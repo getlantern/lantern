@@ -6,4 +6,6 @@ public interface TrustedContactsManager {
 
     boolean isTrusted(String email);
 
+    boolean isJidTrusted(String from);
+
 }
