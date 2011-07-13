@@ -10,7 +10,7 @@ public interface ProxyProvider {
 
     InetSocketAddress getLaeProxy();
     
-    URI getLanternProxy();
+    URI getAnonymousProxy();
     
     URI getPeerProxy();
 
