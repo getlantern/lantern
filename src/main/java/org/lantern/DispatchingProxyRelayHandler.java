@@ -169,7 +169,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 public URI getPeerProxy() {
                     // For CONNECT we can use either an anonymous peer or a
                     // trusted peer.
-                    final URI lantern = proxyProvider.getLanternProxy();
+                    final URI lantern = proxyProvider.getAnonymousProxy();
                     if (lantern == null) {
                         return proxyProvider.getPeerProxy();
                     }
@@ -326,6 +326,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 try {
                     this.anonymousPeerRequestProcessor.processRequest(
                         browserToProxyChannel, ctx, me);
+                    log.info("Processed CONNECT on peer...returning");
+                    return null;
                 } catch (final IOException e) {
                     log.warn("Could not send CONNECT to anonymous proxy", e);
                     // This will happen whenever the server's giving us bad
