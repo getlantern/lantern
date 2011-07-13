@@ -324,6 +324,15 @@ public class LanternUtils {
         }
         return json;
     }
+    
+
+    public static boolean newInstall() {
+        return getBooleanProperty("newInstall");
+    }
+    
+    public static void installed() {
+        setBooleanProperty("newInstall", false);
+    }
 
     public static void setBooleanProperty(final String key, 
         final boolean value) {
