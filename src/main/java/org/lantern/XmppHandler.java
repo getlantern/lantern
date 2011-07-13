@@ -73,8 +73,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private final Queue<URI> peerProxies = 
         new ConcurrentLinkedQueue<URI>();
     
-    private final Set<URI> lanternProxySet = new HashSet<URI>();
-    private final Queue<URI> lanternProxies = 
+    private final Set<URI> anonymousProxySet = new HashSet<URI>();
+    private final Queue<URI> anonymousProxies = 
         new ConcurrentLinkedQueue<URI>();
     
     private final Set<ProxyHolder> laeProxySet =
@@ -409,6 +409,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private void addOrRemovePeer(final Presence p, final String from) {
         log.info("Processing peer: {}", from);
+        
+        
         final URI uri;
         try {
             uri = new URI(from);
@@ -416,38 +418,21 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             log.error("Could not create URI from: {}", from);
             return;
         }
+        final TrustedContactsManager tcm = 
+            LanternHub.getTrustedContactsManager();
+        final boolean trusted = tcm.isJidTrusted(from);
         if (p.isAvailable()) {
             log.info("Adding from to peer JIDs: {}", from);
-            addPeerProxy(uri);
             
-            /*
-            final Message msg = new Message();
-            msg.setProperty(P2PConstants.MESSAGE_TYPE, 
-                XmppMessageConstants.INFO_REQUEST_TYPE);
-            
-            // Set our certificate in the request as well -- we wan't to make
-            // extra sure these get through!
-            msg.setProperty(P2PConstants.MAC, LanternUtils.getMacAddress());
-            msg.setProperty(P2PConstants.CERT,
-                this.keyStoreManager.getBase64Cert());
-            
-            msg.setProperty(P2PConstants.SECRET_KEY, getSecretKey(from));
-            
-            final ChatManager cm = xmpp.getChatManager();
-            final Chat chat = cm.createChat(from, typedListener);
-            try {
-                log.info("Sending INFO request to: {}", from);
-                //chat.sendMessage(msg);
-                
-                this.trustedPeers.add(from);
-            } catch (final XMPPException e) {
-                log.info("Could not send message to peer", e); 
+            if (trusted) {
+                addPeerProxy(uri);
+            } else {
+                addAnonymousProxy(uri);
             }
-            */
         }
         else {
             log.info("Removing JID for peer '"+from+"' with presence: {}", p);
-            removePeerUri(uri);
+            removePeer(uri);
         }
     }
 
@@ -585,7 +570,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             addLaeProxy(cur, chat);
         } else if (cur.contains("@")) {
             try {
-                addLanternProxy(new URI(cur));
+                addAnonymousProxy(new URI(cur));
             } catch (final URISyntaxException e) {
                 log.info("Error with proxy URI", e);
             }
@@ -594,9 +579,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
     }
 
-    private void addLanternProxy(final URI cur) {
+    private void addAnonymousProxy(final URI cur) {
         log.info("Considering Lantern proxy");
-        addPeerProxy(cur, this.lanternProxySet, this.lanternProxies);
+        addPeerProxy(cur, this.anonymousProxySet, this.anonymousProxies);
     }
     
     private void addPeerProxy(final URI cur) {
@@ -615,7 +600,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             } else {
                 log.info("We already know about the peer proxy");
             }
-            
         }
     }
 
@@ -714,22 +698,40 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     @Override
     public void onCouldNotConnectToPeer(final URI peerUri) {
-        removePeerUri(peerUri);
+        removePeer(peerUri);
     }
     
     @Override
     public void onError(final URI peerUri) {
-        removePeerUri(peerUri);
+        removePeer(peerUri);
     }
 
+    private void removePeer(final URI uri) {
+        // We always remove from both since their trusted status could have
+        // changed 
+        removePeerUri(uri);
+        removeAnonymousPeerUri(uri);
+    }
+    
     private void removePeerUri(final URI peerUri) {
         log.info("Removing peer with URI: {}", peerUri);
-        synchronized (this.peerProxySet) {
-            this.peerProxySet.remove(peerUri);
-            this.peerProxies.remove(peerUri);
-        }
+        remove(peerUri, this.peerProxySet, this.peerProxies);
     }
 
+    private void removeAnonymousPeerUri(final URI peerUri) {
+        log.info("Removing anonymous peer with URI: {}", peerUri);
+        remove(peerUri, this.anonymousProxySet, this.anonymousProxies);
+    }
+    
+    private void remove(final URI peerUri, final Set<URI> set, 
+        final Queue<URI> queue) {
+        log.info("Removing peer with URI: {}", peerUri);
+        synchronized (set) {
+            set.remove(peerUri);
+            queue.remove(peerUri);
+        }
+    }
+    
     @Override
     public InetSocketAddress getLaeProxy() {
         return getProxy(this.laeProxySet, this.laeProxies);
@@ -743,7 +745,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     @Override
     public URI getLanternProxy() {
         log.info("Getting Lantern proxy");
-        return getProxyUri(this.lanternProxySet, this.lanternProxies);
+        return getProxyUri(this.anonymousProxySet, this.anonymousProxies);
     }
 
     @Override
