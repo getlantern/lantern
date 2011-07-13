@@ -228,6 +228,7 @@ public class LanternBrowser {
                     }
                 } else if (location.contains("finished")) {
                     log.info("Got finished...closing");
+                    LanternUtils.installed();
                     close();
                 } else {
                     defaultPage(location);
