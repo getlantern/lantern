@@ -45,10 +45,13 @@ public class Launcher {
         final SystemTray tray = new SystemTrayImpl(display);
         tray.createTray();
         
-        if (!LanternUtils.isConfigured()) {
+        if (!LanternUtils.isConfigured() || LanternUtils.newInstall()) {
             launchBrowser(display);
-            LOG.info("Browser completed...launching Lantern");
-            launchLantern();
+            
+            if (!display.isDisposed ()) {
+                LOG.info("Browser completed...launching Lantern");
+                launchLantern();
+            }
         } else {
             launchLantern();
         }

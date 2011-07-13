@@ -705,7 +705,39 @@ Lantern requires your Google Account credentials to access the Internet. What yo
             </serializedBean>
             <condition />
             <validation />
-            <preActivation />
+            <preActivation>final File userHome = new File(System.getProperty("user.home"));
+final File mgDir = new File(userHome, ".lantern");
+final File propsFile = new File(mgDir, "lantern.properties");
+if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
+    FileReader fr = null;
+    FileWriter fw = null;
+    try {
+        fr = new FileReader(propsFile);
+        final Properties props = new Properties();
+        props.load(fr);
+        props.setProperty("newInstall", "true");
+        fw = new FileWriter(propsFile);
+        props.store(fw, "");
+    } catch (final IOException e) {
+        e.printStackTrace();
+    } finally {
+        if (fr != null) {
+            try {
+                fr.close();
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
+        } 
+        if (fw != null) {
+            try {
+                fw.close();
+            } catch (final IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+</preActivation>
             <postActivation />
             <actions>
               <action name="" id="472" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="There was a problem starting Lantern">
