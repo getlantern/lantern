@@ -171,7 +171,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             final String libName = System.mapLibraryName("jnltorrent");
             final JLibTorrent libTorrent = 
                 new JLibTorrent(Arrays.asList(new File (new File(".."), 
-                    libName), new File (libName)), true);
+                    libName), new File (libName), new File ("lib", libName)), true);
             
             //final SocketFactory socketFactory = newTlsSocketFactory();
             //final ServerSocketFactory serverSocketFactory =
@@ -342,9 +342,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final TrustedContactsManager tcm = 
             LanternHub.getTrustedContactsManager();
         for (final RosterEntry entry : entries) {
-            if (!tcm.isTrusted(entry.getUser())) {
-                continue;
-            }
+            //if (!tcm.isTrusted(entry.getUser())) {
+            //    continue;
+            //}
             final Iterator<Presence> presences = 
                 roster.getPresences(entry.getUser());
             while (presences.hasNext()) {
@@ -410,7 +410,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private void addOrRemovePeer(final Presence p, final String from) {
         log.info("Processing peer: {}", from);
         
-        
         final URI uri;
         try {
             uri = new URI(from);
@@ -423,7 +422,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final boolean trusted = tcm.isJidTrusted(from);
         if (p.isAvailable()) {
             log.info("Adding from to peer JIDs: {}", from);
-            
             if (trusted) {
                 addPeerProxy(uri);
             } else {
@@ -592,6 +590,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private void addPeerProxy(final URI cur, final Set<URI> peerSet, 
         final Queue<URI> peerQueue) {
         log.info("Considering peer proxy");
+        if (!cur.toASCIIString().startsWith("rachel")) {
+            log.info("Ignoring user for now: "+cur);
+            return;
+        }
         synchronized (peerSet) {
             if (!peerSet.contains(cur)) {
                 log.info("Actually adding peer proxy: {}", cur);
