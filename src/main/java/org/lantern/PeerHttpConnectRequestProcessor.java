@@ -64,7 +64,8 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
 
     @Override
     public void processRequest(final Channel browserToProxyChannel,
-        final ChannelHandlerContext ctx, final MessageEvent me) throws IOException {
+        final ChannelHandlerContext ctx, final MessageEvent me) 
+        throws IOException {
         browserToProxyChannel.setReadable(false);
         final HttpRequest request = (HttpRequest) me.getMessage();
         
@@ -84,7 +85,8 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
             }
         }
 
-        log.info("Got an outbound channel on: {}", hashCode());
+        log.info("Got an outbound socket on request handler hash {} to {}", 
+            hashCode(), this.socket);
         final ChannelPipeline browserPipeline = ctx.getPipeline();
         browserPipeline.remove("encoder");
         browserPipeline.remove("decoder");
@@ -98,6 +100,7 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
         final OutputStream os = this.socket.getOutputStream();
         try {
             final byte[] data = LanternUtils.toByteBuffer(request, ctx);
+            log.info("Writing data on peer socket: {}", new String(data));
             os.write(data);
         } catch (final Exception e) {
             log.error("Could not encode request?", e);
