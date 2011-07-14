@@ -39,11 +39,10 @@ public class Launcher {
             }
         });
         Display.setAppName("Lantern");
-        final Display display = new Display();
+        final Display display = LanternHub.display();
         
         //final Shell shell = new Shell(display);
-        final SystemTray tray = new SystemTrayImpl(display);
-        tray.createTray();
+        final SystemTray tray = LanternHub.systemTray();
         
         if (!LanternUtils.isConfigured() || LanternUtils.newInstall()) {
             final LanternBrowser browser = new LanternBrowser(display, false);

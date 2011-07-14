@@ -81,9 +81,9 @@
         <content />
       </customScript>
       <iconImageFiles>
-        <file path="./mg_16x16.png" />
-        <file path="./mg_32x32.png" />
-        <file path="./mg_48x48.png" />
+        <file path="./16on.png" />
+        <file path="./32on.png" />
+        <file path="./64on.png" />
       </iconImageFiles>
     </launcher>
     <launcher name="lantern-windows-gui" id="224" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" swtApp="true" fileset="145">
@@ -111,9 +111,9 @@
         <content />
       </customScript>
       <iconImageFiles>
-        <file path="./common/mg_16x16.png" />
-        <file path="./common/mg_32x32.png" />
-        <file path="./common/mg_48x48.png" />
+        <file path="./common/16on.png" />
+        <file path="./common/32on.png" />
+        <file path="./common/64on.png" />
       </iconImageFiles>
     </launcher>
   </launchers>
@@ -130,23 +130,23 @@
             <object class="com.install4j.runtime.beans.applications.InstallerApplication">
               <void property="customHeaderImage">
                 <object class="com.install4j.api.beans.ExternalFile">
-                  <string>./common/mg_48x48.png</string>
+                  <string>./common/64on.png</string>
                 </object>
               </void>
               <void property="customIconImageFiles">
                 <void method="add">
                   <object class="com.install4j.api.beans.ExternalFile">
-                    <string>./common/mg_16x16.png</string>
+                    <string>./common/16on.png</string>
                   </object>
                 </void>
                 <void method="add">
                   <object class="com.install4j.api.beans.ExternalFile">
-                    <string>./common/mg_32x32.png</string>
+                    <string>./common/32on.png</string>
                   </object>
                 </void>
                 <void method="add">
                   <object class="com.install4j.api.beans.ExternalFile">
-                    <string>./common/mg_48x48.png</string>
+                    <string>./common/64on.png</string>
                   </object>
                 </void>
               </void>
@@ -838,17 +838,17 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
               <void property="customIconImageFiles">
                 <void method="add">
                   <object class="com.install4j.api.beans.ExternalFile">
-                    <string>./common/mg_16x16.png</string>
+                    <string>./common/16on.png</string>
                   </object>
                 </void>
                 <void method="add">
                   <object class="com.install4j.api.beans.ExternalFile">
-                    <string>./common/mg_32x32.png</string>
+                    <string>./common/32on.png</string>
                   </object>
                 </void>
                 <void method="add">
                   <object class="com.install4j.api.beans.ExternalFile">
-                    <string>./common/mg_48x48.png</string>
+                    <string>./common/64on.png</string>
                   </object>
                 </void>
               </void>
