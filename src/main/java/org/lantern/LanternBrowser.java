@@ -16,6 +16,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.LocationAdapter;
 import org.eclipse.swt.browser.LocationEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -47,6 +48,11 @@ public class LanternBrowser {
         this.display = display;
         this.isConfig = isConfig;
         this.shell = new Shell(display);
+        final Image small = newImage("mg_16x16.png");
+        final Image medium = newImage("mg_32x32.png");
+        final Image large = newImage("mg_48x48.png");
+        final Image[] icons = new Image[]{small, medium, large};
+        this.shell.setImages(icons);
         // this.shell = createShell(this.display);
         this.shell.setText("Lantern Installation");
         this.shell.setSize(720, 540);
@@ -66,6 +72,17 @@ public class LanternBrowser {
         this.browser.setBounds(0, 0, 700, 560);
         // browser.setBounds(5, 75, 600, 400);
 
+    }
+    private Image newImage(final String path) {
+        final String toUse;
+        final File path1 = new File(path);
+        if (path1.isFile()) {
+            toUse = path1.getAbsolutePath();
+        } else {
+            final File path2 = new File("install/common", path);
+            toUse = path2.getAbsolutePath();
+        }
+        return new Image(display, toUse);
     }
     public void install() {
         final File srv = new File("srv");
@@ -101,20 +118,21 @@ public class LanternBrowser {
             public void handleEvent(final Event event) {
                 log.info("CLOSE EVENT: {}", event);
                 if (!closed) {
-                    final int style = SWT.APPLICATION_MODAL | SWT.YES | SWT.NO;
+                    
+                    final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
                     final MessageBox messageBox = new MessageBox (shell, style);
                     messageBox.setText ("Exit?");
                     messageBox.setMessage (
                         "Are you sure you want to cancel installing Lantern?");
                     event.doit = messageBox.open () == SWT.YES;
                     if (event.doit) {
-                        display.dispose();
                         try {
                             FileUtils.deleteDirectory(tmp);
                         } catch (final IOException e) {
                             log.warn("Could not delete temp dir?", e);
                         }
                         if (!isConfig) {
+                            display.dispose();
                             System.exit(1);
                         }
                     }
@@ -243,6 +261,7 @@ public class LanternBrowser {
         });
         
         shell.open();
+        shell.forceActive();
         while (!shell.isDisposed()) {
             if (!this.display.readAndDispatch())
                 this.display.sleep();
