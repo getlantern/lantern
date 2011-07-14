@@ -13,7 +13,6 @@ import org.eclipse.swt.widgets.Display;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.KeyStoreManager;
-import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,12 +40,14 @@ public class Launcher {
         });
         Display.setAppName("Lantern");
         final Display display = new Display();
+        
         //final Shell shell = new Shell(display);
         final SystemTray tray = new SystemTrayImpl(display);
         tray.createTray();
         
         if (!LanternUtils.isConfigured() || LanternUtils.newInstall()) {
-            launchBrowser(display);
+            final LanternBrowser browser = new LanternBrowser(display, false);
+            browser.install();
             
             if (!display.isDisposed ()) {
                 LOG.info("Browser completed...launching Lantern");
@@ -101,10 +102,6 @@ public class Launcher {
         server.start();
     }
 
-    private static void launchBrowser(final Display display) {
-        final LanternBrowser browser = new LanternBrowser(display);
-        browser.install();
-    }
     
     private static void configureLogger() {
         final File logDirParent;
