@@ -26,6 +26,7 @@ public class SystemTrayImpl implements SystemTray {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Display display;
     private final Shell shell;
+    private TrayItem trayItem;
 
     /**
      * Creates a new system tray handler class.
@@ -39,21 +40,19 @@ public class SystemTrayImpl implements SystemTray {
 
     @Override
     public void createTray() {
-        final Image image = newImage();
-        
         final Tray tray = display.getSystemTray ();
         if (tray == null) {
             System.out.println ("The system tray is not available");
         } else {
-            final TrayItem trayItem = new TrayItem (tray, SWT.NONE);
-            trayItem.setToolTipText("Lantern");
-            trayItem.addListener (SWT.Show, new Listener () {
+            this.trayItem = new TrayItem (tray, SWT.NONE);
+            this.trayItem.setToolTipText("Lantern");
+            this.trayItem.addListener (SWT.Show, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
                     System.out.println("show");
                 }
             });
-            trayItem.addListener (SWT.Hide, new Listener () {
+            this.trayItem.addListener (SWT.Hide, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
                     System.out.println("hide");
@@ -104,17 +103,18 @@ public class SystemTrayImpl implements SystemTray {
                     menu.setVisible (true);
                 }
             });
+            final Image image = newImage("16off.png", 16, 16);
             trayItem.setImage (image);
         }
     }
 
-    private Image newImage() {
+    private Image newImage(final String name, int width, int height) {
         final File iconFile;
-        final File iconCandidate1 = new File("install/common/mg_16x16.png");
+        final File iconCandidate1 = new File("install/common/"+name);
         if (iconCandidate1.isFile()) {
             iconFile = iconCandidate1;
         } else {
-            iconFile = new File("mg_16x16.png");
+            iconFile = new File(name);
         }
         if (!iconFile.isFile()) {
             log.error("Still no icon file at: " + iconFile);
@@ -126,6 +126,18 @@ public class SystemTrayImpl implements SystemTray {
         } catch (final FileNotFoundException e) {
             log.error("Could not find icon file: "+iconFile, e);
         } 
-        return new Image (display, 16, 16);
+        return new Image (display, width, height);
+    }
+    
+    @Override
+    public void activate() {
+        log.info("Activating Lantern icon");
+        final Image image = newImage("16on.png", 16, 16);
+        display.asyncExec (new Runnable () {
+            @Override
+            public void run () {
+                trayItem.setImage (image);
+            }
+        });
     }
 }
