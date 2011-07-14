@@ -126,15 +126,7 @@ public class LanternBrowser {
                         "Are you sure you want to cancel installing Lantern?");
                     event.doit = messageBox.open () == SWT.YES;
                     if (event.doit) {
-                        try {
-                            FileUtils.deleteDirectory(tmp);
-                        } catch (final IOException e) {
-                            log.warn("Could not delete temp dir?", e);
-                        }
-                        if (!isConfig) {
-                            display.dispose();
-                            System.exit(1);
-                        }
+                        exit();
                     }
                 }
             }
@@ -154,7 +146,14 @@ public class LanternBrowser {
                     // infinite loop of copies.
                     log.info("Accepting copied location");
                     return;
-                } else if (location.contains("install1Censored.html")) {
+                } else if (location.contains("install1Uncensored.html")) {
+                    // The user could be re-configuring their system. Make sure
+                    // force is no longer active.
+                    if (!CensoredUtils.isCensored()) {
+                        CensoredUtils.unforceCensored();
+                    }
+                    setUrl("install1Uncensored.html");
+                }else if (location.contains("install1Censored.html")) {
                     // We use this to check if the user has selected to run
                     // in censored mode even if they don't appear to be in a
                     // censored country.
@@ -250,7 +249,41 @@ public class LanternBrowser {
                             "Error logging in. E-mail or password incorrect?");
                     }
                 } else if (location.contains("finished")) {
-                    log.info("Got finished...closing");
+                    log.info("Got finished...closing on location: {}", location);
+                    final String elements = 
+                        StringUtils.substringAfter(location, "finished");
+                    if (StringUtils.isNotBlank(elements)) {
+                        log.info("Got elements: {}", elements);
+                        try {
+                            String decoded = 
+                                URLDecoder.decode(elements, "UTF-8");
+                            if (decoded.startsWith("?")) {
+                                decoded = decoded.substring(1);
+                            }
+                            log.info("Decoded: {}", decoded);
+                            // This means the user hasn't checked the checkbox
+                            // to run Lantern now.
+                            if (StringUtils.isBlank(decoded)) {
+                                exit();
+                            }
+                            final String[] args = decoded.split("&");
+                            for (final String arg : args) {
+                                final String name = StringUtils.substringBefore(arg, "=");
+                                final String val = StringUtils.substringAfter(arg, "=");
+                                if (name.equals("runNow")) {
+                                    if ("on".equalsIgnoreCase(val) || "true".equalsIgnoreCase(val)) {
+                                        // Just pass through -- we're all good.
+                                    } else {
+                                        exit();
+                                    }
+                                }
+
+                            }
+                        } catch (final UnsupportedEncodingException e) {
+                            log.error("Encoding?", e);
+                        }
+                    }
+                    
                     LanternUtils.installed();
                     close();
                 } else {
@@ -265,6 +298,18 @@ public class LanternBrowser {
         while (!shell.isDisposed()) {
             if (!this.display.readAndDispatch())
                 this.display.sleep();
+        }
+    }
+    
+    protected void exit() {
+        try {
+            FileUtils.deleteDirectory(tmp);
+        } catch (final IOException e) {
+            log.warn("Could not delete temp dir?", e);
+        }
+        if (!isConfig) {
+            display.dispose();
+            System.exit(1);
         }
     }
     
