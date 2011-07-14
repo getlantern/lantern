@@ -112,12 +112,13 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                     log.info("XMPP: "+XmppUtils.toString(msg));
                 } else {
                     final Iterator<String> iter = servers.iterator();
-                    if (!servers.isEmpty() && ! Configurator.configured()) {
-                        Configurator.configure();
-                    }
                     while (iter.hasNext()) {
                         final String server = iter.next();
                         addProxy(server, ch);
+                    }
+                    if (!servers.isEmpty() && ! Configurator.configured()) {
+                        Configurator.configure();
+                        tray.activate();
                     }
                 }
             }
@@ -142,6 +143,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private Chat hubChat;
 
+    private final SystemTray tray;
+
     /**
      * Creates a new XMPP handler.
      * 
@@ -153,9 +156,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
      * @param statsTracker Keeps track of statistics for this Lantern instance.
      */
     public XmppHandler(final int sslProxyRandomPort, 
-        final int plainTextProxyRandomPort, final StatsTracker statsTracker) {
+        final int plainTextProxyRandomPort, final StatsTracker statsTracker,
+        final SystemTray tray) {
         this.sslProxyRandomPort = sslProxyRandomPort;
         this.statsTracker = statsTracker;
+        this.tray = tray;
         this.email = LanternUtils.getStringProperty("google.user");
         this.pwd = LanternUtils.getStringProperty("google.pwd");
         if (StringUtils.isBlank(this.email)) {
