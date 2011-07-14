@@ -127,7 +127,7 @@ public class CensoredUtils {
     public static boolean isMatch(final InetAddress address, 
         final Collection<String> countries) { 
         final Country country = lookupService.getCountry(address);
-        LOG.info("Country is: {}", country);
+        LOG.info("Country is: {}", country.getName());
         countryCode = country.getCode().trim();
         return countries.contains(country.getCode().trim());
     }
@@ -142,5 +142,9 @@ public class CensoredUtils {
 
     public static void forceCensored() {
         LanternUtils.setBooleanProperty(LanternConstants.FORCE_CENSORED, true);
+    }
+
+    public static void unforceCensored() {
+        LanternUtils.setBooleanProperty(LanternConstants.FORCE_CENSORED, false);
     }
 }
