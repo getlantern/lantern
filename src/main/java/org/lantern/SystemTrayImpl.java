@@ -63,11 +63,22 @@ public class SystemTrayImpl implements SystemTray {
             final Menu menu = new Menu (shell, SWT.POP_UP);
             
             final MenuItem configItem = new MenuItem(menu, SWT.PUSH);
-            configItem.setText("Configure Lantern");
+            configItem.setText("Configure");
             configItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
                     System.out.println("Got config call");
+                    /*
+                    FileDialog fd = new FileDialog(shell, SWT.OPEN);
+                    fd.setText("Open");
+                    //fd.setFilterPath("C:/");
+                    //String[] filterExt = { "*.txt", "*.doc", ".rtf", "*.*" };
+                    //fd.setFilterExtensions(filterExt);
+                    String selected = fd.open();
+                    shell.forceActive();
+                    System.out.println(selected);
+                    */
+                    
                     final LanternBrowser browser = 
                         new LanternBrowser(display, true);
                     browser.install();
@@ -75,7 +86,7 @@ public class SystemTrayImpl implements SystemTray {
             });
             
             final MenuItem quitItem = new MenuItem(menu, SWT.PUSH);
-            quitItem.setText("Quit Lantern");
+            quitItem.setText("Quit");
             quitItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
@@ -84,7 +95,7 @@ public class SystemTrayImpl implements SystemTray {
                     System.exit(0);
                 }
             });
-            menu.setDefaultItem(quitItem);
+            //menu.setDefaultItem(quitItem);
 
             trayItem.addListener (SWT.MenuDetect, new Listener () {
                 @Override
