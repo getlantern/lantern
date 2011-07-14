@@ -1,14 +1,21 @@
 #!/usr/bin/env bash
 
+
+mkdir ~/Library/Logs/Lantern
+
+function log() {
+  echo "$@" >> ~/Library/Logs/Lantern/installer.log
+}
+
 function die() {
-  echo "Failure: $@"
+  echo "Failure: $@" >> ~/Library/Logs/Lantern/installer_errors.log
   exit 1
 }
 
-echo "First arg is: $1"
-echo "Running as `whoami`"
-echo "USER is $USER"
-echo "User name is $userName"
+log "First arg is: $1"
+log "Running as `whoami`"
+log "USER is $USER"
+log "User name is $userName"
 
 #PLIST_DIR=/Library/LaunchAgents
 PLIST_DIR=~/Library/LaunchAgents
@@ -16,15 +23,15 @@ PLIST_FILE=org.bns.lantern.plist
 PLIST_INSTALL_FULL=$APP_PATH/Contents/Resources/app/$PLIST_FILE
 LAUNCHD_PLIST=$PLIST_DIR/$PLIST_FILE
 
-echo "Unloading launchd plist file just in case"
+log "Unloading launchd plist file just in case"
 # Attempt to unload in case an old one is there
 launchctl unload -F $LAUNCHD_PLIST 
 
-echo "Removing old trust store"
+log "Removing old trust store"
 test -f ~/.lantern/lantern_truststore.jks && rm -rf ~/.lantern/lantern_truststore.jks
-test -f ~/.lantern/lantern_truststore.jks && echo "trust store still exists!! not good."
+test -f ~/.lantern/lantern_truststore.jks && log "trust store still exists!! not good."
 
-echo "Executing perl replace on Info.plist"
+log "Executing perl replace on Info.plist"
 # The following test is due to bizarre installer behavior where it installs to 
 # /Applications/Lantern.app sometimes and /Applications/Lantern/Lantern.app in others.
 APP_PATH=/Applications/Lantern/Lantern.app
@@ -33,18 +40,18 @@ perl -pi -e "s/<dict>/<dict><key>LSUIElement<\/key><string>1<\/string>/g" $APP_P
 perl -pi -e "s:/Applications/Lantern/Lantern.app:$APP_PATH:g" $APP_PATH/Contents/Info.plist || die "Could not fix Info.plist"
 
 # We also need to change the contents of the Info.plist file to reflect the correct path.
-echo "Running in `pwd`"
+log "Running in `pwd`"
 
 
-echo "Copying launchd plist file"
+log "Copying launchd plist file"
 test -f $PLIST_INSTALL_FULL || die "plist file does not exist at $PLIST_INSTALL_FULL?"
 cp $PLIST_INSTALL_FULL $PLIST_DIR || die "Could not copy plist file from $PLIST_INSTALL_FULL to $PLIST_DIR"
 
-echo "Changing permissions on launchd plist file"
+log "Changing permissions on launchd plist file"
 chmod 644 $LAUNCHD_PLIST || die "Could not change permissions"
 
 
-echo "Loading launchd plist file"
+log "Loading launchd plist file"
 launchctl load -F $LAUNCHD_PLIST || die "Could not load plist via launchctl"
 
 exit 0
