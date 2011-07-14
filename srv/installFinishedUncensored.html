@@ -25,15 +25,23 @@
             open internet to your fellow global citizens living in authoritarian 
             countries that censor the internet. Thanks for helping!</b>
             <br/><br/>
-          </div>
-        </div>
-        <div id="buttons">
-            <div id="innerButtons">
-            <form action="finished" method="post">
-                <input type="submit" value="Finish" class="submit submitLarge"/>
-            </form>
+          <form action="finished">
+            <div style="text-align: left; margin-left: 100px; margin-top: 40px; font-size: 120%; font-weight: bold; line-height: 1;">
+                <span class="finalCheck">Run Lantern Now?</span>
+                <input type="checkbox" name="runNow" checked="checked"/><br/><br/>
+                <!-- 
+                <span class="finalCheck">Run Lantern on Startup (recommended)?</span>
+                <input type="checkbox" name="startup" checked="checked"/><br/><br/>
+                -->
+            </div>
             </div>
         </div>
+            <div id="buttons">
+                <div id="innerButtons">
+                    <input type="submit" value="Finish" class="submit submitLarge"/>
+                </div>
+            </div>
+        </form>
       </div>
     </div>
     
