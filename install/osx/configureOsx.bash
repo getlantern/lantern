@@ -7,6 +7,11 @@ function log() {
   echo "`date`: $@" >> ~/Library/Logs/Lantern/installer.log
 }
 
+function logFile() {
+  log "Full file at $@:"
+  cat "$@" >> ~/Library/Logs/Lantern/installer.log
+}
+
 function die() {
   log "FAILURE: $@"
   exit 1
@@ -53,6 +58,8 @@ chmod 644 $LAUNCHD_PLIST || die "Could not change permissions"
 
 log "Loading launchd plist file"
 launchctl load -F $LAUNCHD_PLIST || die "Could not load plist via launchctl"
+
+logFile $LAUNCHD_PLIST
 
 log "Finished configuring Lantern!"
 exit 0
