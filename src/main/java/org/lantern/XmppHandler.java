@@ -229,13 +229,13 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                             }
                             
                         }
+                    } else {
+                        log.info(packet.toXML());
+                        XmppUtils.printMessage(packet);
                     }
                     return false;
                 }
             });
-            
-            configureRoster();
-            
             final ChatManager chatManager = connection.getChatManager();
             this.hubChat = 
                 chatManager.createChat(LANTERN_JID, typedListener);
@@ -245,13 +245,35 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                     sendInfoRequest();
                 }
             }, 0L, this.updateTime);//1 * 60 * 60 *1000);
+
+            configureRoster();
             
-            final Presence presence = new Presence(Presence.Type.available);
-            //presence.setStatus("www.getlantern.org");
+            final Presence presence = new Presence(Presence.Type.unavailable);
             presence.setMode(Presence.Mode.dnd);
-            //presence.setType(Presence.Type.available, "www.getlantern.org", Presence.Mode.away);
+            presence.setProperty("online", "true");
             connection.sendPacket(presence);
             
+            /*
+            final IQ roster = new IQ() {
+                @Override
+                public String getChildElementXML() {
+                    return "<query xmlns='jabber:iq:roster' xmlns:gr='google:roster' gr:ext='2'/>";
+                }
+            };
+            roster.setType(Type.GET);
+            connection.sendPacket(roster);
+            
+            final IQ stun = new IQ() {
+                @Override
+                public String getChildElementXML() {
+                    return "<query xmlns='google:jingleinfo'/>";
+                }
+            };
+            stun.setType(Type.GET);
+            stun.setPacketID("ji-request-1");
+            connection.sendPacket(stun);
+            log.info("Sending STUN request:\n"+stun.toXML());
+            */
         } catch (final IOException e) {
             final String msg = "Could not log in!!";
             log.warn(msg, e);
@@ -318,8 +340,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private void configureRoster() throws XMPPException {
         final XMPPConnection xmpp = this.client.getXmppConnection();
-        
-        
+
         final Roster roster = xmpp.getRoster();
         // Make sure we look for Lantern packets.
         final RosterEntry lantern = roster.getEntry(LANTERN_JID);
@@ -416,6 +437,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private void addOrRemovePeer(final Presence p, final String from) {
         log.info("Processing peer: {}", from);
         
+        final String isOnline = (String) p.getProperty("online");
+        final boolean online = "true".equalsIgnoreCase(isOnline.trim());
+        
+        log.info("Got presence with property: "+p.getProperty("online"));
+        log.info("All props: "+p.getPropertyNames());
         final URI uri;
         try {
             uri = new URI(from);
@@ -426,7 +452,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final TrustedContactsManager tcm = 
             LanternHub.getTrustedContactsManager();
         final boolean trusted = tcm.isJidTrusted(from);
-        if (p.isAvailable()) {
+        if (online) {
             log.info("Adding from to peer JIDs: {}", from);
             if (trusted) {
                 addPeerProxy(uri);
