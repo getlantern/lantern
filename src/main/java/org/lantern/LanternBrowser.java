@@ -41,8 +41,11 @@ public class LanternBrowser {
 
     private boolean closed;
 
-    public LanternBrowser(final Display display) {
+    private final boolean isConfig;
+
+    public LanternBrowser(final Display display, final boolean isConfig) {
         this.display = display;
+        this.isConfig = isConfig;
         this.shell = new Shell(display);
         // this.shell = createShell(this.display);
         this.shell.setText("Lantern Installation");
@@ -56,11 +59,11 @@ public class LanternBrowser {
         final int x = bounds.x + (bounds.width - rect.width) / 2;
         final int y = bounds.y + (bounds.height - rect.height) / 2;
 
-        shell.setLocation(x, y);
+        this.shell.setLocation(x, y);
 
         this.browser = new Browser(shell, SWT.NONE);
         // browser.setSize(700, 500);
-        browser.setBounds(0, 0, 700, 560);
+        this.browser.setBounds(0, 0, 700, 560);
         // browser.setBounds(5, 75, 600, 400);
 
     }
@@ -111,7 +114,9 @@ public class LanternBrowser {
                         } catch (final IOException e) {
                             log.warn("Could not delete temp dir?", e);
                         }
-                        System.exit(1);
+                        if (!isConfig) {
+                            System.exit(1);
+                        }
                     }
                 }
             }
