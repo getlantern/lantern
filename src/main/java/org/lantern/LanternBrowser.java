@@ -48,9 +48,9 @@ public class LanternBrowser {
         this.display = display;
         this.isConfig = isConfig;
         this.shell = new Shell(display);
-        final Image small = newImage("mg_16x16.png");
-        final Image medium = newImage("mg_32x32.png");
-        final Image large = newImage("mg_48x48.png");
+        final Image small = newImage("16on.png");
+        final Image medium = newImage("32on.png");
+        final Image large = newImage("64on.png");
         final Image[] icons = new Image[]{small, medium, large};
         this.shell.setImages(icons);
         // this.shell = createShell(this.display);
