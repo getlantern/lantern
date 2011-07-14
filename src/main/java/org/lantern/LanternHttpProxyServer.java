@@ -78,7 +78,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         
         final XmppHandler xmpp = 
             new XmppHandler(sslProxyRandomPort, plainTextProxyRandomPort, 
-                statsTracker);
+                statsTracker, LanternHub.systemTray());
         
         newServerBootstrap(newHttpChannelPipelineFactory(xmpp), 
             httpLocalPort);
