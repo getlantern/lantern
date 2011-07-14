@@ -45,15 +45,15 @@ public class SystemTrayImpl implements SystemTray {
         if (tray == null) {
             System.out.println ("The system tray is not available");
         } else {
-            final TrayItem item = new TrayItem (tray, SWT.NONE);
-            item.setToolTipText("Lantern");
-            item.addListener (SWT.Show, new Listener () {
+            final TrayItem trayItem = new TrayItem (tray, SWT.NONE);
+            trayItem.setToolTipText("Lantern");
+            trayItem.addListener (SWT.Show, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
                     System.out.println("show");
                 }
             });
-            item.addListener (SWT.Hide, new Listener () {
+            trayItem.addListener (SWT.Hide, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
                     System.out.println("hide");
@@ -61,6 +61,19 @@ public class SystemTrayImpl implements SystemTray {
             });
 
             final Menu menu = new Menu (shell, SWT.POP_UP);
+            
+            final MenuItem configItem = new MenuItem(menu, SWT.PUSH);
+            configItem.setText("Configure Lantern");
+            configItem.addListener (SWT.Selection, new Listener () {
+                @Override
+                public void handleEvent (final Event event) {
+                    System.out.println("Got config call");
+                    final LanternBrowser browser = 
+                        new LanternBrowser(display, true);
+                    browser.install();
+                }
+            });
+            
             final MenuItem quitItem = new MenuItem(menu, SWT.PUSH);
             quitItem.setText("Quit Lantern");
             quitItem.addListener (SWT.Selection, new Listener () {
@@ -73,14 +86,14 @@ public class SystemTrayImpl implements SystemTray {
             });
             menu.setDefaultItem(quitItem);
 
-            item.addListener (SWT.MenuDetect, new Listener () {
+            trayItem.addListener (SWT.MenuDetect, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
                     System.out.println("Setting menu visible");
                     menu.setVisible (true);
                 }
             });
-            item.setImage (image);
+            trayItem.setImage (image);
         }
     }
 
@@ -99,9 +112,8 @@ public class SystemTrayImpl implements SystemTray {
         try {
             is = new FileInputStream(iconFile);
             return new Image (display, is);
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (final FileNotFoundException e) {
+            log.error("Could not find icon file: "+iconFile, e);
         } 
         return new Image (display, 16, 16);
     }

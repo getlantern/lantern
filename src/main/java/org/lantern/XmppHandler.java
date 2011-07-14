@@ -36,6 +36,7 @@ import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
+import org.jivesoftware.smack.packet.PacketExtension;
 import org.jivesoftware.smack.packet.Presence;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -238,6 +239,19 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             final ChatManager chatManager = connection.getChatManager();
             this.hubChat = 
                 chatManager.createChat(LANTERN_JID, typedListener);
+            this.updateTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    sendInfoRequest();
+                }
+            }, 0L, this.updateTime);//1 * 60 * 60 *1000);
+            
+            final Presence presence = new Presence(Presence.Type.available);
+            //presence.setStatus("www.getlantern.org");
+            presence.setMode(Presence.Mode.dnd);
+            //presence.setType(Presence.Type.available, "www.getlantern.org", Presence.Mode.away);
+            connection.sendPacket(presence);
+            
         } catch (final IOException e) {
             final String msg = "Could not log in!!";
             log.warn(msg, e);
@@ -339,12 +353,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         // Now we add all the existing entries to get people who are already
         // online.
         final Collection<RosterEntry> entries = roster.getEntries();
-        final TrustedContactsManager tcm = 
-            LanternHub.getTrustedContactsManager();
         for (final RosterEntry entry : entries) {
-            //if (!tcm.isTrusted(entry.getUser())) {
-            //    continue;
-            //}
             final Iterator<Presence> presences = 
                 roster.getPresences(entry.getUser());
             while (presences.hasNext()) {
@@ -352,21 +361,18 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 processPresence(p);
             }
         }
-        
-        this.updateTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                sendInfoRequest();
-            }
-        }, 0L, this.updateTime);//1 * 60 * 60 *1000);
-        
         log.info("Finished adding listeners");
     }
 
     
     private void processPresence(final Presence p) {
         final String from = p.getFrom();
-        log.info("Got presence with from: {}", from);
+        log.info("Got presence with from {} with availability {} and mode "+
+            p.getMode(), from, p.isAvailable());
+        final Collection<PacketExtension> exts = p.getExtensions();
+        for (final PacketExtension pe : exts) {
+            log.info("Extension: "+pe.getElementName()+ " XML: "+pe.toXML());
+        }
         if (isLanternHub(from)) {
             log.info("Got Lantern hub presence");
         }
@@ -590,10 +596,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private void addPeerProxy(final URI cur, final Set<URI> peerSet, 
         final Queue<URI> peerQueue) {
         log.info("Considering peer proxy");
-        if (!cur.toASCIIString().startsWith("rachel")) {
+        /*
+        if (!cur.toASCIIString().startsWith("rach")) {
             log.info("Ignoring user for now: "+cur);
             return;
         }
+        */
         synchronized (peerSet) {
             if (!peerSet.contains(cur)) {
                 log.info("Actually adding peer proxy: {}", cur);
