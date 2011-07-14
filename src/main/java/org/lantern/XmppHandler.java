@@ -247,13 +247,13 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             }, 0L, this.updateTime);//1 * 60 * 60 *1000);
 
             configureRoster();
-            
+
+            /*
             final Presence presence = new Presence(Presence.Type.unavailable);
             presence.setMode(Presence.Mode.dnd);
             presence.setProperty("online", "true");
             connection.sendPacket(presence);
             
-            /*
             final IQ roster = new IQ() {
                 @Override
                 public String getChildElementXML() {
@@ -437,10 +437,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private void addOrRemovePeer(final Presence p, final String from) {
         log.info("Processing peer: {}", from);
         
-        final String isOnline = (String) p.getProperty("online");
-        final boolean online = "true".equalsIgnoreCase(isOnline.trim());
-        
-        log.info("Got presence with property: "+p.getProperty("online"));
+        //final String isOnline = (String) p.getProperty("online");
+        //final boolean online = "true".equalsIgnoreCase(isOnline);
+        //log.info("Got presence with property: "+isOnline);
         log.info("All props: "+p.getPropertyNames());
         final URI uri;
         try {
@@ -452,7 +451,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final TrustedContactsManager tcm = 
             LanternHub.getTrustedContactsManager();
         final boolean trusted = tcm.isJidTrusted(from);
-        if (online) {
+        if (p.isAvailable()) {
             log.info("Adding from to peer JIDs: {}", from);
             if (trusted) {
                 addPeerProxy(uri);
@@ -592,6 +591,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private void addProxy(final String cur, final Chat chat) {
         log.info("Considering proxy: {}", cur);
         final String user = this.client.getXmppConnection().getUser().trim();
+        log.info("We are: {}", user);
+        log.info("Service name: {}",
+             this.client.getXmppConnection().getServiceName());
         if (user.equals(cur.trim())) {
             log.info("Not adding ourselves as a proxy!!");
             return;
