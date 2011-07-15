@@ -141,6 +141,7 @@ public class SystemTrayImpl implements SystemTray {
     public void activate() {
         log.info("Activating Lantern icon");
         if (!SystemUtils.IS_OS_MAC_OSX) {
+            log.info("Ignoring activation since we're not on OSX...");
             return;
         }
         final Image image = newImage("16on.png", 16, 16);
