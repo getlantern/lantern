@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 
+import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
@@ -103,7 +104,14 @@ public class SystemTrayImpl implements SystemTray {
                     menu.setVisible (true);
                 }
             });
-            final Image image = newImage("16off.png", 16, 16);
+            
+            final String imageName;
+            if (SystemUtils.IS_OS_MAC_OSX) {
+                imageName = "16off.png";
+            } else {
+                imageName = "16on.png";
+            }
+            final Image image = newImage(imageName, 16, 16);
             trayItem.setImage (image);
         }
     }
@@ -132,6 +140,9 @@ public class SystemTrayImpl implements SystemTray {
     @Override
     public void activate() {
         log.info("Activating Lantern icon");
+        if (!SystemUtils.IS_OS_MAC_OSX) {
+            return;
+        }
         final Image image = newImage("16on.png", 16, 16);
         display.asyncExec (new Runnable () {
             @Override
