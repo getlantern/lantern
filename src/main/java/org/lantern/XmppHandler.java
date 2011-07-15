@@ -208,12 +208,13 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 public void processPacket(final Packet pack) {
                     //log.info("Got packet: {}", pack);
                     //log.info(pack.getFrom());
-                    
+                    /*
                     final Presence packet = 
                         new Presence(Presence.Type.subscribed);
                     packet.setTo(pack.getFrom());
                     packet.setFrom(pack.getTo());
                     connection.sendPacket(packet);
+                    */
                 }
             }, new PacketFilter() {
                 
@@ -255,7 +256,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
             
             final Presence presence = new Presence(Presence.Type.unavailable);
-            presence.setMode(Presence.Mode.dnd);
+            presence.setMode(Presence.Mode.available);
             //presence.setProperty("online", "true");
             connection.sendPacket(presence);
             
