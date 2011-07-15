@@ -259,7 +259,21 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             presence.setMode(Presence.Mode.available);
             presence.setFrom(this.client.getXmppConnection().getUser());
             //presence.setProperty("online", "true");
-            connection.sendPacket(presence);
+            //connection.sendPacket(presence);
+            
+            /*
+            this.updateTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    log.info("Sending updated presence...");
+                    final Presence dnd = new Presence(Presence.Type.available);
+                    dnd.setMode(Presence.Mode.dnd);
+                    dnd.setFrom(client.getXmppConnection().getUser());
+                    //presence.setProperty("online", "true");
+                    connection.sendPacket(dnd);
+                }
+            }, 20 * 1000L,  8* 60 * 60 *1000);//1 * 60 * 60 *1000);
+            */
             
             /*
             final IQ roster = new IQ() {
