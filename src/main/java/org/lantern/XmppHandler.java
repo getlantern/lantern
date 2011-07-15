@@ -253,12 +253,13 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
             configureRoster();
 
-            /*
+            
             final Presence presence = new Presence(Presence.Type.unavailable);
             presence.setMode(Presence.Mode.dnd);
-            presence.setProperty("online", "true");
+            //presence.setProperty("online", "true");
             connection.sendPacket(presence);
             
+            /*
             final IQ roster = new IQ() {
                 @Override
                 public String getChildElementXML() {
@@ -395,6 +396,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final String from = p.getFrom();
         log.info("Got presence with from {} with availability {} and mode "+
             p.getMode(), from, p.isAvailable());
+        log.info("Presence to: {}", p.getTo());
         final Collection<PacketExtension> exts = p.getExtensions();
         for (final PacketExtension pe : exts) {
             log.info("Extension: "+pe.getElementName()+ " XML: "+pe.toXML());
@@ -445,6 +447,18 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         //final String isOnline = (String) p.getProperty("online");
         //final boolean online = "true".equalsIgnoreCase(isOnline);
         //log.info("Got presence with property: "+isOnline);
+        
+        // Send a directed presence message to the peer. 
+        final Presence presence = new Presence(Presence.Type.available);
+        presence.setMode(Presence.Mode.available);
+        presence.setFrom(this.client.getXmppConnection().getUser());
+        presence.setTo(from);
+        
+        log.info("Sending presence: {}", presence.toXML());
+        
+        //presence.setProperty("online", "true");
+        this.client.getXmppConnection().sendPacket(presence);
+        
         log.info("All props: "+p.getPropertyNames());
         final URI uri;
         try {
