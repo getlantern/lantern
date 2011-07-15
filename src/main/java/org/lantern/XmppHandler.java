@@ -257,6 +257,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             
             final Presence presence = new Presence(Presence.Type.unavailable);
             presence.setMode(Presence.Mode.available);
+            presence.setFrom(this.client.getXmppConnection().getUser());
             //presence.setProperty("online", "true");
             connection.sendPacket(presence);
             
