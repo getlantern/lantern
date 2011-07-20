@@ -50,6 +50,8 @@ import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.packet.IQ;
+import org.jivesoftware.smack.packet.IQ.Type;
 import org.json.simple.JSONArray;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
@@ -600,6 +602,20 @@ public class LanternUtils {
 
     public static String jidToUser(final String jid) {
         return StringUtils.substringBefore(jid, "/");
+    }
+    
+    public static void setGoogleTalkInvisible(final XMPPConnection conn, 
+        final String to) {
+        final IQ iq = new IQ() {
+            @Override
+            public String getChildElementXML() {
+                return "<query xmlns='google:shared-status' version='2'><invisible value='true'/></query>";
+            }
+        };
+        iq.setType(Type.SET);
+        iq.setTo(to);
+        LOG.info("Setting invisible with XML packet:\n"+iq.toXML());
+        conn.sendPacket(iq);
     }
 }
 
