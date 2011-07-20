@@ -26,6 +26,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.MessageListener;
+import org.jivesoftware.smack.PacketCollector;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
@@ -34,13 +35,16 @@ import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.filter.PacketFilter;
+import org.jivesoftware.smack.filter.PacketIDFilter;
+import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
-import org.jivesoftware.smack.packet.PacketExtension;
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.provider.ProviderManager;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import org.lantern.xmpp.GenericIQProvider;
 import org.lastbamboo.common.p2p.P2PConstants;
 import org.lastbamboo.jni.JLibTorrent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
@@ -208,18 +212,17 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 public void processPacket(final Packet pack) {
                     //log.info("Got packet: {}", pack);
                     //log.info(pack.getFrom());
-                    /*
                     final Presence packet = 
                         new Presence(Presence.Type.subscribed);
                     packet.setTo(pack.getFrom());
                     packet.setFrom(pack.getTo());
                     connection.sendPacket(packet);
-                    */
                 }
             }, new PacketFilter() {
                 
                 @Override
                 public boolean accept(final Packet packet) {
+                    //log.info("Filtering incoming packet:\n{}", packet.toXML());
                     if(packet instanceof Presence) {
                         final Presence pres = (Presence) packet;
                         if(pres.getType().equals(Presence.Type.subscribe)) {
@@ -236,12 +239,13 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                             
                         }
                     } else {
-                        log.info(packet.toXML());
+                        //log.info(packet.toXML());
                         XmppUtils.printMessage(packet);
                     }
                     return false;
                 }
             });
+            updatePresence();
             final ChatManager chatManager = connection.getChatManager();
             this.hubChat = 
                 chatManager.createChat(LANTERN_JID, typedListener);
@@ -254,48 +258,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
             configureRoster();
 
-            
-            final Presence presence = new Presence(Presence.Type.unavailable);
-            presence.setMode(Presence.Mode.available);
-            presence.setFrom(this.client.getXmppConnection().getUser());
-            //presence.setProperty("online", "true");
-            //connection.sendPacket(presence);
-            
-            /*
-            this.updateTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    log.info("Sending updated presence...");
-                    final Presence dnd = new Presence(Presence.Type.available);
-                    dnd.setMode(Presence.Mode.dnd);
-                    dnd.setFrom(client.getXmppConnection().getUser());
-                    //presence.setProperty("online", "true");
-                    connection.sendPacket(dnd);
-                }
-            }, 20 * 1000L,  8* 60 * 60 *1000);//1 * 60 * 60 *1000);
-            */
-            
-            /*
-            final IQ roster = new IQ() {
-                @Override
-                public String getChildElementXML() {
-                    return "<query xmlns='jabber:iq:roster' xmlns:gr='google:roster' gr:ext='2'/>";
-                }
-            };
-            roster.setType(Type.GET);
-            connection.sendPacket(roster);
-            
-            final IQ stun = new IQ() {
-                @Override
-                public String getChildElementXML() {
-                    return "<query xmlns='google:jingleinfo'/>";
-                }
-            };
-            stun.setType(Type.GET);
-            stun.setPacketID("ji-request-1");
-            connection.sendPacket(stun);
-            log.info("Sending STUN request:\n"+stun.toXML());
-            */
         } catch (final IOException e) {
             final String msg = "Could not log in!!";
             log.warn(msg, e);
@@ -306,59 +268,41 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             throw new Error(msg, e);
         }
     }
+
+    private void updatePresence() {
+        ProviderManager.getInstance().addIQProvider(
+            "query", "google:shared-status", new GenericIQProvider());
+        
+        // This is for Google Talk compatibility. Surprising, all we need to
+        // do is grab our Google Talk shared status, signifying support for
+        // their protocol, and then we don't interfere with GChat visibility.
+        log.info("Status:\n{}", getSharedStatus().toXML());
+        final XMPPConnection conn = this.client.getXmppConnection();
+        
+        log.info("Sending presence available");
+        conn.sendPacket(new Presence(Presence.Type.available));
+    }
     
-    /*
-    private ServerSocketFactory newTlsServerSocketFactory() {
-        log.info("Creating TLS server socket factory");
-        String algorithm = 
-            Security.getProperty("ssl.KeyManagerFactory.algorithm");
-        if (algorithm == null) {
-            algorithm = "SunX509";
-        }
-        try {
-            final KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(this.keyStoreManager.keyStoreAsInputStream(),
-                    this.keyStoreManager.getKeyStorePassword());
-
-            // Set up key manager factory to use our key store
-            final KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
-            kmf.init(ks, this.keyStoreManager.getCertificatePassword());
-
-            // Initialize the SSLContext to work with our key managers.
-            final SSLContext serverContext = SSLContext.getInstance("TLS");
-            serverContext.init(kmf.getKeyManagers(), null, null);
-            return serverContext.getServerSocketFactory();
-        } catch (final KeyStoreException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final NoSuchAlgorithmException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final CertificateException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final IOException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final UnrecoverableKeyException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final KeyManagementException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        }
+    private Packet getSharedStatus() {
+        log.info("Getting shared status...");
+        final XMPPConnection conn = this.client.getXmppConnection();
+        final IQ iq = new IQ() {
+            @Override
+            public String getChildElementXML() {
+                return "<query xmlns='google:shared-status' version='2'/>";
+            }
+        };
+        final String jid = conn.getUser();
+        iq.setTo(LanternUtils.jidToUser(jid));
+        iq.setFrom(jid);
+        final PacketCollector collector = conn.createPacketCollector(
+            new PacketIDFilter(iq.getPacketID()));
+        
+        log.info("Sending shared status packet:\n"+iq.toXML());
+        conn.sendPacket(iq);
+        final Packet response = collector.nextResult(40000);
+        return response;
     }
-
-    private SocketFactory newTlsSocketFactory() {
-        log.info("Creating TLS socket factory");
-        try {
-            final SSLContext clientContext = SSLContext.getInstance("TLS");
-            clientContext.init(null, this.keyStoreManager.getTrustManagers(), 
-                null);
-            return clientContext.getSocketFactory();
-        } catch (final NoSuchAlgorithmException e) {
-            log.error("No TLS?", e);
-            throw new Error("No TLS?", e);
-        } catch (final KeyManagementException e) {
-            log.error("Key managmement issue?", e);
-            throw new Error("Key managmement issue?", e);
-        }
-    }
-    */
 
     private void configureRoster() throws XMPPException {
         final XMPPConnection xmpp = this.client.getXmppConnection();
@@ -410,13 +354,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     private void processPresence(final Presence p) {
         final String from = p.getFrom();
-        log.info("Got presence with from {} with availability {} and mode "+
-            p.getMode(), from, p.isAvailable());
-        log.info("Presence to: {}", p.getTo());
-        final Collection<PacketExtension> exts = p.getExtensions();
-        for (final PacketExtension pe : exts) {
-            log.info("Extension: "+pe.getElementName()+ " XML: "+pe.toXML());
-        }
+        log.info("Got presence\n{}", p.toXML());
         if (isLanternHub(from)) {
             log.info("Got Lantern hub presence");
         }
@@ -459,23 +397,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private void addOrRemovePeer(final Presence p, final String from) {
         log.info("Processing peer: {}", from);
-        
-        //final String isOnline = (String) p.getProperty("online");
-        //final boolean online = "true".equalsIgnoreCase(isOnline);
-        //log.info("Got presence with property: "+isOnline);
-        
-        // Send a directed presence message to the peer. 
-        final Presence presence = new Presence(Presence.Type.available);
-        presence.setMode(Presence.Mode.available);
-        presence.setFrom(this.client.getXmppConnection().getUser());
-        presence.setTo(from);
-        
-        log.info("Sending presence: {}", presence.toXML());
-        
-        //presence.setProperty("online", "true");
-        this.client.getXmppConnection().sendPacket(presence);
-        
-        log.info("All props: "+p.getPropertyNames());
         final URI uri;
         try {
             uri = new URI(from);
@@ -807,28 +728,27 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     @Override
     public InetSocketAddress getLaeProxy() {
-        return getProxy(this.laeProxySet, this.laeProxies);
+        return getProxy(this.laeProxies);
     }
     
     @Override
     public InetSocketAddress getProxy() {
-        return getProxy(this.proxySet, this.proxies);
+        return getProxy(this.proxies);
     }
     
     @Override
     public URI getAnonymousProxy() {
         log.info("Getting Lantern proxy");
-        return getProxyUri(this.anonymousProxySet, this.anonymousProxies);
+        return getProxyUri(this.anonymousProxies);
     }
 
     @Override
     public URI getPeerProxy() {
         log.info("Getting peer proxy");
-        return getProxyUri(this.peerProxySet, this.peerProxies);
+        return getProxyUri(this.peerProxies);
     }
     
-    private URI getProxyUri(final Collection<URI> set,
-        final Queue<URI> queue) {
+    private URI getProxyUri(final Queue<URI> queue) {
         if (queue.isEmpty()) {
             log.info("No proxy URIs");
             return null;
@@ -839,8 +759,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         return proxy;
     }
 
-    private InetSocketAddress getProxy(final Collection<ProxyHolder> set,
-        final Queue<ProxyHolder> queue) {
+    private InetSocketAddress getProxy(final Queue<ProxyHolder> queue) {
         if (queue.isEmpty()) {
             log.info("No proxy addresses");
             return null;
