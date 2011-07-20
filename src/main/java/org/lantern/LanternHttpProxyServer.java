@@ -82,7 +82,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         
         newServerBootstrap(newHttpChannelPipelineFactory(xmpp), 
             httpLocalPort);
-        log.info("Build HTTP server");
+        log.info("Built HTTP server");
         
         /*
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
