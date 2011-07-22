@@ -281,6 +281,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         
         log.info("Sending presence available");
         conn.sendPacket(new Presence(Presence.Type.available));
+        
+        final Presence forHub = new Presence(Presence.Type.available);
+        forHub.setTo(LANTERN_JID);
+        conn.sendPacket(forHub);
     }
     
     private Packet getSharedStatus() {
