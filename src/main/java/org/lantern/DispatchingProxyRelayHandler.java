@@ -232,9 +232,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         messagesReceived++;
         log.info("Received {} total messages", messagesReceived);
         if (!readingChunks) {
+            log.info("Reading HTTP request (not a chunk)...");
             this.currentRequestProcessor = dispatchRequest(ctx, me);
         } 
         else {
+            log.info("Reading chunks...");
             try {
                 final HttpChunk chunk = (HttpChunk) me.getMessage();
                 
@@ -255,6 +257,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 log.info("Exception processing chunk", e);
             }
         }
+        log.info("Done processing HTTP request....");
     }
     
     private HttpRequestProcessor dispatchRequest(
