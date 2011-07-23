@@ -92,11 +92,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     }
     
     private final XmppP2PClient client;
-    
-    protected long updateTime = 10 * 60 * 1000;
+    private boolean displayedUpdateMessage = false;
     
 
     private final MessageListener typedListener = new MessageListener() {
+
         @Override
         public void processMessage(final Chat ch, final Message msg) {
             final String part = ch.getParticipant();
@@ -109,9 +109,27 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 final JSONObject json = (JSONObject) obj;
                 final JSONArray servers = 
                     (JSONArray) json.get(LanternConstants.SERVERS);
-                final Long ut = (Long) json.get(LanternConstants.UPDATE_TIME);
-                updateTime = ut;
-                log.info("Update time is: {}", ut);
+                final Long delay = 
+                    (Long) json.get(LanternConstants.UPDATE_TIME);
+                if (delay != null) {
+                    final long now = System.currentTimeMillis();
+                    final long elapsed = now - lastInfoMessageScheduled;
+                    if (elapsed < 10000) {
+                        log.info("Ignoring duplicate info request scheduling- "+
+                            "scheduled request {} milliseconds ago.", elapsed);
+                        return;
+                    }
+                    lastInfoMessageScheduled = now;
+                    updateTimer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            sendInfoRequest();
+                        }
+                    }, delay);
+                    log.info("Scheduled next info request in {} milliseconds", 
+                        delay);
+                }
+                
                 if (servers == null) {
                     log.info("XMPP: "+XmppUtils.toString(msg));
                 } else {
@@ -124,6 +142,21 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                         Configurator.configure();
                         tray.activate();
                     }
+                }
+                
+                final JSONObject update = 
+                    (JSONObject) json.get(LanternConstants.UPDATE_KEY);
+                log.info("Already displayed update? {}", displayedUpdateMessage);
+                if (update != null && !displayedUpdateMessage) {
+                    log.info("About to show update...");
+                    displayedUpdateMessage = true;
+                    LanternHub.display().asyncExec (new Runnable () {
+                        @Override
+                        public void run () {
+                            final LanternBrowser lb = new LanternBrowser(true);
+                            lb.showUpdate(update);
+                        }
+                    });
                 }
             }
             final Integer type = 
@@ -148,6 +181,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private Chat hubChat;
 
     private final SystemTray tray;
+
+    private volatile long lastInfoMessageScheduled = 0L;
 
     /**
      * Creates a new XMPP handler.
@@ -211,7 +246,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 @Override
                 public void processPacket(final Packet pack) {
                     //log.info("Got packet: {}", pack);
-                    //log.info(pack.getFrom());
+                    log.info("Responding to subscribtion request from {} and to {}", 
+                        pack.getFrom(), pack.getTo());
                     final Presence packet = 
                         new Presence(Presence.Type.subscribed);
                     packet.setTo(pack.getFrom());
@@ -239,8 +275,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                             
                         }
                     } else {
-                        //log.info(packet.toXML());
-                        XmppUtils.printMessage(packet);
+                        log.info("Filtered out packet: ", packet.toXML());
+                        //XmppUtils.printMessage(packet);
                     }
                     return false;
                 }
@@ -249,13 +285,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             final ChatManager chatManager = connection.getChatManager();
             this.hubChat = 
                 chatManager.createChat(LANTERN_JID, typedListener);
-            this.updateTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    sendInfoRequest();
-                }
-            }, 0L, this.updateTime);//1 * 60 * 60 *1000);
-
+            sendInfoRequest();
             configureRoster();
 
         } catch (final IOException e) {
@@ -386,6 +416,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             LanternUtils.toJsonArray(Whitelist.getAdditions()));
         json.put(LanternConstants.WHITELIST_REMOVALS, 
             LanternUtils.toJsonArray(Whitelist.getRemovals()));
+        json.put(LanternConstants.VERSION_KEY, LanternConstants.VERSION);
         final String str = json.toJSONString();
         log.info("Reporting data: {}", str);
         msg.setBody(str);

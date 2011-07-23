@@ -41,6 +41,15 @@ public class SystemTrayImpl implements SystemTray {
 
     @Override
     public void createTray() {
+        display.asyncExec (new Runnable () {
+            @Override
+            public void run () {
+                createTrayInternal();
+            }
+        });
+    }
+    
+    private void createTrayInternal() {
         final Tray tray = display.getSystemTray ();
         if (tray == null) {
             System.out.println ("The system tray is not available");
@@ -79,8 +88,7 @@ public class SystemTrayImpl implements SystemTray {
                     System.out.println(selected);
                     */
                     
-                    final LanternBrowser browser = 
-                        new LanternBrowser(display, true);
+                    final LanternBrowser browser = new LanternBrowser(true);
                     browser.install();
                 }
             });
