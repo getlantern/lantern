@@ -178,8 +178,13 @@ public class LanternBrowser {
                     final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
                     final MessageBox messageBox = new MessageBox (shell, style);
                     messageBox.setText ("Exit?");
-                    messageBox.setMessage (
-                        "Are you sure you want to cancel installing Lantern?");
+                    final String msg;
+                    if (isConfig) {
+                        msg = "Are you sure you want to cancel configuring Lantern?";
+                    } else {
+                        msg = "Are you sure you want to cancel installing Lantern?";
+                    }
+                    messageBox.setMessage (msg);
                     event.doit = messageBox.open () == SWT.YES;
                     if (event.doit) {
                         exit();
