@@ -168,10 +168,6 @@ public class LanternUtils {
         final P2PClient p2pClient,
         final Map<URI, AtomicInteger> peerFailureCount,
         final boolean raw) throws IOException {
-        
-        // This ensures we won't read any messages before we've successfully
-        // created the socket.
-        browserToProxyChannel.setReadable(false);
 
         // Start the connection attempt.
         try {
@@ -183,7 +179,6 @@ public class LanternUtils {
                 sock = p2pClient.newSocket(uri);
             }
             LOG.info("Got outgoing peer socket: {}", sock);
-            browserToProxyChannel.setReadable(true);
             startReading(sock, browserToProxyChannel);
             return sock;
         } catch (final NoAnswerException nae) {
