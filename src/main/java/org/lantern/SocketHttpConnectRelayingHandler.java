@@ -35,7 +35,7 @@ public class SocketHttpConnectRelayingHandler
 
     /**
      * Creates a new {@link SocketHttpConnectRelayingHandler} with the specified 
-     * connection to relay to..
+     * connection to relay to.
      * 
      * @param sock The socket to relay to.
      */

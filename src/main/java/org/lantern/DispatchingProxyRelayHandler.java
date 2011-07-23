@@ -463,7 +463,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         pipeline.addLast("encoder", new HttpRequestEncoder());
         pipeline.addLast("handler", 
             new HttpConnectRelayingHandler(this.browserToProxyChannel, null));
-        
         log.info("Connecting to relay proxy");
         final InetSocketAddress isa = this.proxyProvider.getProxy();
         final ChannelFuture cf = cb.connect(isa);
@@ -480,11 +479,13 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         // connecting ensures we won't get any incoming messages until
         // we're fully connected.
         cf.addListener(new ChannelFutureListener() {
+            @Override
             public void operationComplete(final ChannelFuture future) 
                 throws Exception {
                 if (future.isSuccess()) {
                     cf.getChannel().write(request).addListener(
                         new ChannelFutureListener() {
+                            @Override
                             public void operationComplete(
                                 final ChannelFuture channelFuture) 
                                 throws Exception {
