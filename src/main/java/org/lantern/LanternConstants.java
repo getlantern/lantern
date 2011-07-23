@@ -6,6 +6,14 @@ package org.lantern;
 public class LanternConstants {
 
     /**
+     * This is the version of Lantern we're running. This is automatically
+     * replaced when we push new releases.
+     */
+    public static final String VERSION = "lantern_version_tok";
+    
+    public static final String VERSION_KEY = "v";
+    
+    /**
      * This is the local proxy port data is relayed to on the "server" side
      * of P2P connections.
      */
@@ -36,4 +44,12 @@ public class LanternConstants {
      */
     public static final String FORCE_CENSORED = "forceCensored";
     
+    //public static final String UPDATE_MESSAGE_KEY = "upm";
+    
+    /**
+     * The key for the update JSON object.
+     */
+    public static final String UPDATE_KEY = "uk";
+    
+    //public static final String UPDATE_TITLE_KEY = "upt";
 }

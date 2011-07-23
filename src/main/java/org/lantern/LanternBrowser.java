@@ -8,6 +8,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -44,20 +48,29 @@ public class LanternBrowser {
 
     private final boolean isConfig;
 
-    public LanternBrowser(final Display display, final boolean isConfig) {
-        this.display = display;
+    public LanternBrowser(final boolean isConfig) {
+        log.info("Creating Lantern browser...");
+        this.display = LanternHub.display();
         this.isConfig = isConfig;
+        
+        log.info("Creating shell...");
         this.shell = new Shell(display);
         final Image small = newImage("16on.png");
         final Image medium = newImage("32on.png");
         final Image large = newImage("64on.png");
         final Image[] icons = new Image[]{small, medium, large};
+        log.info("Setting images...");
         this.shell.setImages(icons);
         // this.shell = createShell(this.display);
-        this.shell.setText("Lantern Installation");
+        if (isConfig) {
+            this.shell.setText("Configure Lantern");
+        } else {
+            this.shell.setText("Lantern Installation");
+        }
         this.shell.setSize(720, 540);
         // shell.setFullScreen(true);
 
+        log.info("Centering on screen...");
         final Monitor primary = this.display.getPrimaryMonitor();
         final Rectangle bounds = primary.getBounds();
         final Rectangle rect = shell.getBounds();
@@ -67,12 +80,30 @@ public class LanternBrowser {
 
         this.shell.setLocation(x, y);
 
+        log.info("Creating new browser...");
         this.browser = new Browser(shell, SWT.NONE);
         // browser.setSize(700, 500);
         this.browser.setBounds(0, 0, 700, 560);
         // browser.setBounds(5, 75, 600, 400);
 
+        log.info("About to copy html dir");
+        final File srv = new File("srv");
+        try {
+            this.tmp = createTempDirectory();
+            FileUtils.copyDirectory(srv, tmp);
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    cleanup();
+                }
+            }));
+        } catch (final IOException e) {
+            log.error("Could not copy to temp dir", e);
+            return;
+        }
+        log.info("tmp files: "+Arrays.asList(tmp.listFiles()));
     }
+    
     private Image newImage(final String path) {
         final String toUse;
         final File path1 = new File(path);
@@ -84,28 +115,55 @@ public class LanternBrowser {
         }
         return new Image(display, toUse);
     }
-    public void install() {
-        final File srv = new File("srv");
-        try {
-            this.tmp = createTempDirectory();
-            FileUtils.copyDirectory(srv, tmp);
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        FileUtils.deleteDirectory(tmp);
-                    } catch (final IOException e) {
-                        // Could have already been deleted at this point.
-                        log.warn("Could not delete temp dir?", e);
+
+    public void showUpdate(final Map<String, String> update) {
+        log.info("Attempting to show udate message");
+        final String startFile = "update.html";
+        shell.addListener (SWT.Close, new Listener () {
+            @Override
+            public void handleEvent(final Event event) {
+                log.info("CLOSE EVENT: {}", event);
+                if (!closed) {
+                    final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
+                    final MessageBox messageBox = new MessageBox (shell, style);
+                    messageBox.setText ("Exit?");
+                    messageBox.setMessage (
+                        "Are you sure you want to ignore the update?");
+                    event.doit = messageBox.open () == SWT.YES;
+                    if (event.doit) {
+                        exit();
                     }
                 }
-            }));
-        } catch (final IOException e) {
-            log.error("Could not copy to temp dir", e);
-            return;
-        }
-        log.info("tmp files: "+Arrays.asList(tmp.listFiles()));
+            }
+        });
         
+        final File file = new File(tmp, startFile).getAbsoluteFile();
+        setUrl(file, update);
+
+        browser.addLocationListener(new LocationAdapter() {
+            @Override
+            public void changing(final LocationEvent event) {
+                final String location = event.location;
+                log.info("Got location: {}", location);
+                if (location.contains("update")) {
+                    // Open a real browser to the update page.
+                    log.info("Got update url..");
+                } else if (location.contains("noUpdate")) {
+                    close();
+                } 
+                event.doit = false;
+            }
+        });
+        
+        shell.open();
+        shell.forceActive();
+        while (!shell.isDisposed()) {
+            if (!this.display.readAndDispatch())
+                this.display.sleep();
+        }
+    }
+
+    public void install() {
         final String startFile;
         if (CensoredUtils.isCensored()) {
             startFile = "install0Censored.html";
@@ -113,12 +171,10 @@ public class LanternBrowser {
             startFile = "install0Uncensored.html";
         }
         shell.addListener (SWT.Close, new Listener () {
-
             @Override
             public void handleEvent(final Event event) {
                 log.info("CLOSE EVENT: {}", event);
                 if (!closed) {
-                    
                     final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
                     final MessageBox messageBox = new MessageBox (shell, style);
                     messageBox.setText ("Exit?");
@@ -302,11 +358,7 @@ public class LanternBrowser {
     }
     
     protected void exit() {
-        try {
-            FileUtils.deleteDirectory(tmp);
-        } catch (final IOException e) {
-            log.warn("Could not delete temp dir?", e);
-        }
+        cleanup();
         if (!isConfig) {
             display.dispose();
             System.exit(1);
@@ -327,8 +379,14 @@ public class LanternBrowser {
         setUrl(file, "error_message", "");
     }
     
-    protected void setUrl(final File file, final String token, 
-        final String replacement) {
+    private void setUrl(final File file, final String key, final String val) {
+        final Map<String, String> map = new HashMap<String, String>();
+        map.put(key, val);
+        setUrl(file, map);
+    }
+    
+    protected void setUrl(final File file, final Map<String, String> map) {
+
         String copyStr;
         try {
             copyStr = IOUtils.toString(new FileInputStream(file), "UTF-8");
@@ -336,7 +394,12 @@ public class LanternBrowser {
             log.error("Could not read file to string?", e);
             return;
         }
-        copyStr = copyStr.replace(token, replacement);
+        final Set<Entry<String, String>> entries = map.entrySet();
+        for (final Entry<String, String> entry : entries) {
+            final String key = entry.getKey();
+            final String val = entry.getValue();
+            copyStr = copyStr.replace(key, val);
+        }
         
         final String name = 
             StringUtils.substringBefore(file.getName(), ".html") + "-copy.html";
@@ -376,17 +439,24 @@ public class LanternBrowser {
         display.syncExec(new Runnable() {
             @Override
             public void run() {
-                try {
-                    shell.dispose();
-                    FileUtils.deleteDirectory(tmp);
-                } catch (final IOException e) {
-                    log.error("Error deleting tmp dir", e);
-                }
-                
+                shell.dispose();
+                cleanup();
             }
         });
     }
 
+    protected void cleanup() {
+        if (tmp == null || !tmp.isDirectory()) {
+            log.info("Nothing to cleanup");
+            return;
+        }
+        try {
+            FileUtils.deleteDirectory(tmp);
+        } catch (final IOException e) {
+            log.error("Error deleting tmp dir", e);
+        }
+    }
+    
     private String contactsDiv(final String email, final String pwd, 
         final int attempts) throws IOException {
         log.info("Creating contacts with {} retries", attempts);
