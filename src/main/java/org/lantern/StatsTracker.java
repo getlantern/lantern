@@ -22,6 +22,7 @@ public class StatsTracker implements LanternData {
         bytesProxied += bp;
     }
     
+    @Override
     public long getBytesProxied() {
         return bytesProxied;
     }
@@ -30,6 +31,7 @@ public class StatsTracker implements LanternData {
         directBytes += db;
     }
 
+    @Override
     public long getDirectBytes() {
         return directBytes;
     }
@@ -42,10 +44,12 @@ public class StatsTracker implements LanternData {
         this.proxiedRequests++;
     }
 
+    @Override
     public int getProxiedRequests() {
         return proxiedRequests;
     }
 
+    @Override
     public int getDirectRequests() {
         return directRequests;
     }
