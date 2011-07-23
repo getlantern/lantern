@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.Map;
 
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
@@ -28,6 +29,9 @@ public class SystemTrayImpl implements SystemTray {
     private final Display display;
     private final Shell shell;
     private TrayItem trayItem;
+    private MenuItem updateItem;
+    private Menu menu;
+    private Map<String, String> updateData;
 
     /**
      * Creates a new system tray handler class.
@@ -69,8 +73,7 @@ public class SystemTrayImpl implements SystemTray {
                 }
             });
 
-            final Menu menu = new Menu (shell, SWT.POP_UP);
-            
+            this.menu = new Menu (shell, SWT.POP_UP);
             final MenuItem configItem = new MenuItem(menu, SWT.PUSH);
             configItem.setText("Configure");
             configItem.addListener (SWT.Selection, new Listener () {
@@ -93,8 +96,12 @@ public class SystemTrayImpl implements SystemTray {
                 }
             });
             
+            
+            new MenuItem(menu, SWT.SEPARATOR);
+            
             final MenuItem quitItem = new MenuItem(menu, SWT.PUSH);
             quitItem.setText("Quit");
+            
             quitItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
@@ -157,6 +164,31 @@ public class SystemTrayImpl implements SystemTray {
             @Override
             public void run () {
                 trayItem.setImage (image);
+            }
+        });
+    }
+    
+
+    @Override
+    public void addUpdate(final Map<String, String> data) {
+        log.info("Adding update data: {}", data);
+        this.updateData = data;
+        display.asyncExec (new Runnable () {
+            @Override
+            public void run () {
+                if (updateItem == null) {
+                    updateItem = new MenuItem(menu, SWT.PUSH, 0);
+                    updateItem.addListener (SWT.Selection, new Listener () {
+                        @Override
+                        public void handleEvent (final Event event) {
+                            log.info("Got update call");
+                            NativeUtils.openUri(updateData.get(
+                                LanternConstants.UPDATE_URL_KEY));
+                        }
+                    });
+                }
+                updateItem.setText("Update to Lantern "+
+                    data.get(LanternConstants.UPDATE_VERSION_KEY));
             }
         });
     }
