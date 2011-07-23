@@ -144,8 +144,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                     }
                 }
                 
-                final JSONObject update = 
-                    (JSONObject) json.get(LanternConstants.UPDATE_KEY);
+                // This is really a JSONObject, but that itself is a map.
+                final Map<String, String> update = 
+                    (Map<String, String>) json.get(LanternConstants.UPDATE_KEY);
                 log.info("Already displayed update? {}", displayedUpdateMessage);
                 if (update != null && !displayedUpdateMessage) {
                     log.info("About to show update...");
@@ -153,8 +154,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                     LanternHub.display().asyncExec (new Runnable () {
                         @Override
                         public void run () {
-                            final LanternBrowser lb = new LanternBrowser(true);
-                            lb.showUpdate(update);
+                            LanternHub.systemTray().addUpdate(update);
+                            //final LanternBrowser lb = new LanternBrowser(true);
+                            //lb.showUpdate(update);
                         }
                     });
                 }
