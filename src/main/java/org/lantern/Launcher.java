@@ -45,9 +45,8 @@ public class Launcher {
         final SystemTray tray = LanternHub.systemTray();
         
         if (!LanternUtils.isConfigured() || LanternUtils.newInstall()) {
-            final LanternBrowser browser = new LanternBrowser(display, false);
+            final LanternBrowser browser = new LanternBrowser(false);
             browser.install();
-            
             if (!display.isDisposed ()) {
                 LOG.info("Browser completed...launching Lantern");
                 launchLantern();
