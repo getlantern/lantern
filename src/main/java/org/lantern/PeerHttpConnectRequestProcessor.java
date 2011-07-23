@@ -29,7 +29,7 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
     private final ProxyStatusListener proxyStatusListener;
     private final P2PClient p2pClient;
     
-    private Socket socket;
+    private Socket outgoingSocket;
     
     /**
      * Map recording the number of consecutive connection failures for a
@@ -69,11 +69,11 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
         browserToProxyChannel.setReadable(false);
         final HttpRequest request = (HttpRequest) me.getMessage();
         
-        if (this.socket == null) {
+        if (this.outgoingSocket == null) {
             // We can pass raw traffic here because this is all tunneled SSL
             // using HTTP CONNECT.
             try {
-                this.socket = LanternUtils.openRawOutgoingPeerSocket(
+                this.outgoingSocket = LanternUtils.openRawOutgoingPeerSocket(
                     browserToProxyChannel, this.peerUri, ctx, 
                     this.proxyStatusListener, this.p2pClient, peerFailureCount);
             } catch (final IOException e) {
@@ -86,18 +86,20 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
         }
 
         log.info("Got an outbound socket on request handler hash {} to {}", 
-            hashCode(), this.socket);
-        final ChannelPipeline browserPipeline = ctx.getPipeline();
+            hashCode(), this.outgoingSocket);
+        
+        final ChannelPipeline browserPipeline = 
+            browserToProxyChannel.getPipeline();
         browserPipeline.remove("encoder");
         browserPipeline.remove("decoder");
         browserPipeline.remove("handler");
         browserPipeline.addLast("handler", 
-            new SocketHttpConnectRelayingHandler(this.socket));
+            new SocketHttpConnectRelayingHandler(this.outgoingSocket));
             //new HttpConnectRelayingHandler(cf.getChannel(), null));
         
-        
-        browserToProxyChannel.setReadable(true);
-        final OutputStream os = this.socket.getOutputStream();
+        // Lantern's a transparent proxy here, so we forward the HTTP CONNECT
+        // message to the remote peer.
+        final OutputStream os = this.outgoingSocket.getOutputStream();
         try {
             final byte[] data = LanternUtils.toByteBuffer(request, ctx);
             log.info("Writing data on peer socket: {}", new String(data));
@@ -105,11 +107,12 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
         } catch (final Exception e) {
             log.error("Could not encode request?", e);
         }
+        browserToProxyChannel.setReadable(true);
     }
 
     @Override
     public void close() {
-        IOUtils.closeQuietly(this.socket);
+        IOUtils.closeQuietly(this.outgoingSocket);
     }
 
     @Override
