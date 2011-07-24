@@ -40,8 +40,6 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     private final int httpsLocalPort;
     
-    private final StatsTracker statsTracker = new StatsTracker();
-    
     /**
      * Creates a new proxy server.
      * 
@@ -78,7 +76,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         
         final XmppHandler xmpp = 
             new XmppHandler(sslProxyRandomPort, plainTextProxyRandomPort, 
-                statsTracker, LanternHub.systemTray());
+                LanternHub.systemTray());
         
         newServerBootstrap(newHttpChannelPipelineFactory(xmpp), 
             httpLocalPort);
@@ -145,8 +143,10 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                     new DispatchingProxyRelayHandler(xmpp, xmpp, 
                         xmpp.getP2PClient(), keyStoreManager);
                 final ChannelPipeline pipeline = pipeline();
-                pipeline.addLast("decoder", new HttpRequestDecoder(8192, 8192*2, 8192*2));
-                pipeline.addLast("encoder", new LanternHttpResponseEncoder(statsTracker));
+                pipeline.addLast("decoder", 
+                    new HttpRequestDecoder(8192, 8192*2, 8192*2));
+                pipeline.addLast("encoder", 
+                    new LanternHttpResponseEncoder(LanternHub.statsTracker()));
                 pipeline.addLast("handler", handler);
                 return pipeline;
             }
