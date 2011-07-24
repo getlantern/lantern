@@ -8,6 +8,8 @@ public class LanternHub {
     private volatile static Display display;
     private volatile static SystemTray systemTray;
     
+    private volatile static StatsTracker statsTracker;
+    
     public synchronized static TrustedContactsManager getTrustedContactsManager() {
         if (trustedContactsManager == null) {
             trustedContactsManager = new DefaultTrustedContactsManager();
@@ -28,6 +30,13 @@ public class LanternHub {
             systemTray.createTray();
         }
         return systemTray;
+    }
+
+    public synchronized static StatsTracker statsTracker() {
+        if (statsTracker == null) {
+            statsTracker = new StatsTracker();
+        }
+        return statsTracker;
     }
 
 }
