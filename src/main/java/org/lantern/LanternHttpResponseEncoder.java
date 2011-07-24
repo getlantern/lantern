@@ -32,16 +32,15 @@ public class LanternHttpResponseEncoder extends ProxyHttpResponseEncoder {
             return null;
         }
         final int bytes = cb.readableBytes();
-        log.info("Bytes: " + bytes);
         if (msg instanceof ProxyHttpResponse) {
+            // This is called when we just pass unproxied requests over to
+            // LittleProxy.
             this.statsTracker.addDirectBytes(bytes);
-            this.statsTracker.incrementDirectRequests();
         } else {
             // If it's *not* a ProxyHttpResponse, that means it's something
             // we didn't simply pass to LittleProxy and instead proxied
             // ourselves.
             this.statsTracker.addBytesProxied(bytes);
-            this.statsTracker.incrementProxiedRequests();
         }
         return cb;
     }
