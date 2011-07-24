@@ -143,31 +143,32 @@ public class LanternUtils {
     
     public static Socket openRawOutgoingPeerSocket(
         final Channel browserToProxyChannel,
-        final URI uri, final ChannelHandlerContext ctx,
-        final ProxyStatusListener proxyStatusListener,
+        final URI uri, final ProxyStatusListener proxyStatusListener,
         final P2PClient p2pClient,
-        final Map<URI, AtomicInteger> peerFailureCount) throws IOException {
-        return openOutgoingPeerSocket(browserToProxyChannel, uri, ctx, 
-            proxyStatusListener, p2pClient, peerFailureCount, true);
+        final Map<URI, AtomicInteger> peerFailureCount, 
+        final boolean recordStats) throws IOException {
+        return openOutgoingPeerSocket(browserToProxyChannel, uri, 
+            proxyStatusListener, p2pClient, peerFailureCount, true, 
+            recordStats);
     }
     
     public static Socket openOutgoingPeerSocket(
         final Channel browserToProxyChannel,
-        final URI uri, final ChannelHandlerContext ctx,
-        final ProxyStatusListener proxyStatusListener,
+        final URI uri, final ProxyStatusListener proxyStatusListener,
         final P2PClient p2pClient,
-        final Map<URI, AtomicInteger> peerFailureCount) throws IOException {
-        return openOutgoingPeerSocket(browserToProxyChannel, uri, ctx, 
-            proxyStatusListener, p2pClient, peerFailureCount, false);
+        final Map<URI, AtomicInteger> peerFailureCount,
+        final boolean recordStats) throws IOException {
+        return openOutgoingPeerSocket(browserToProxyChannel, uri, 
+            proxyStatusListener, p2pClient, peerFailureCount, false, 
+            recordStats);
     }
     
     private static Socket openOutgoingPeerSocket(
         final Channel browserToProxyChannel,
-        final URI uri, final ChannelHandlerContext ctx,
-        final ProxyStatusListener proxyStatusListener,
+        final URI uri, final ProxyStatusListener proxyStatusListener,
         final P2PClient p2pClient,
         final Map<URI, AtomicInteger> peerFailureCount,
-        final boolean raw) throws IOException {
+        final boolean raw, final boolean recordStats) throws IOException {
 
         // Start the connection attempt.
         try {
@@ -179,7 +180,7 @@ public class LanternUtils {
                 sock = p2pClient.newSocket(uri);
             }
             LOG.info("Got outgoing peer socket: {}", sock);
-            startReading(sock, browserToProxyChannel);
+            startReading(sock, browserToProxyChannel, recordStats);
             return sock;
         } catch (final NoAnswerException nae) {
             // This is tricky, as it can mean two things. First, it can mean
@@ -211,10 +212,9 @@ public class LanternUtils {
         }
     }
     
-    private static void startReading(final Socket sock, final Channel channel) {
-        final StatsTracker stats = LanternHub.statsTracker();
+    private static void startReading(final Socket sock, final Channel channel, 
+        final boolean recordStats) {
         final Runnable runner = new Runnable() {
-
             @Override
             public void run() {
                 final byte[] buffer = new byte[4096];
@@ -230,7 +230,9 @@ public class LanternUtils {
                         final ChannelBuffer buf =
                             ChannelBuffers.copiedBuffer(buffer, 0, n);
                         channel.write(buf);
-                        stats.addBytesProxied(n);
+                        if (recordStats) {
+                            LanternHub.statsTracker().addBytesProxied(n);
+                        }
                         count += n;
                         
                     }
