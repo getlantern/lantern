@@ -304,9 +304,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             }
             */
             
+            LanternHub.statsTracker().incrementProxiedRequests();
             return dispatchProxyRequest(ctx, me);
         } else {
             log.info("Not proxying!");
+            LanternHub.statsTracker().incrementDirectRequests();
             try {
                 this.unproxiedRequestProcessor.processRequest(
                     browserToProxyChannel, ctx, me);
@@ -462,13 +464,20 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         pipeline.addLast("ssl", new SslHandler(engine));
         pipeline.addLast("encoder", new HttpRequestEncoder());
         pipeline.addLast("handler", 
-            new HttpConnectRelayingHandler(this.browserToProxyChannel, null));
+            new StatsTrackingHttpConnectRelayingHandler(
+                this.browserToProxyChannel, new BytesTracker() {
+                    @Override
+                    public void addBytes(final int bytes) {
+                        LanternHub.statsTracker().addBytesProxied(bytes);
+                    }
+                }));
         log.info("Connecting to relay proxy");
         final InetSocketAddress isa = this.proxyProvider.getProxy();
         final ChannelFuture cf = cb.connect(isa);
-
         log.info("Got an outbound channel on: {}", hashCode());
-        final ChannelPipeline browserPipeline = ctx.getPipeline();
+        
+        final ChannelPipeline browserPipeline = 
+            browserToProxyChannel.getPipeline();
         browserPipeline.remove("encoder");
         browserPipeline.remove("decoder");
         browserPipeline.remove("handler");
