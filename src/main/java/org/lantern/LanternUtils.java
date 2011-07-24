@@ -212,6 +212,7 @@ public class LanternUtils {
     }
     
     private static void startReading(final Socket sock, final Channel channel) {
+        final StatsTracker stats = LanternHub.statsTracker();
         final Runnable runner = new Runnable() {
 
             @Override
@@ -229,7 +230,9 @@ public class LanternUtils {
                         final ChannelBuffer buf =
                             ChannelBuffers.copiedBuffer(buffer, 0, n);
                         channel.write(buf);
+                        stats.addBytesProxied(n);
                         count += n;
+                        
                     }
                     ProxyUtils.closeOnFlush(channel);
 
