@@ -39,7 +39,10 @@ public class LanternHttpResponseEncoder extends ProxyHttpResponseEncoder {
         } else {
             // If it's *not* a ProxyHttpResponse, that means it's something
             // we didn't simply pass to LittleProxy and instead proxied
-            // ourselves.
+            // ourselves. This could be a straight ChannelBuffer from a p2p
+            // socket, relayed non-HTTP CONNECT data from one of our proxies.
+            // HTTP CONNECT data has to be accounted for differently, as it
+            // bypassed any encoder.
             this.statsTracker.addBytesProxied(bytes);
         }
         return cb;

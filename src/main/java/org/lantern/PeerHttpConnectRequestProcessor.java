@@ -73,9 +73,13 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
             // We can pass raw traffic here because this is all tunneled SSL
             // using HTTP CONNECT.
             try {
+                // NOTE: THIS SHOULD NEVER BE USING OUR CIPHERS
+                // We tell the socket to record stats in this case because
+                // we've stripped our encoder that would otherwise track 'em.
                 this.outgoingSocket = LanternUtils.openRawOutgoingPeerSocket(
-                    browserToProxyChannel, this.peerUri, ctx, 
-                    this.proxyStatusListener, this.p2pClient, peerFailureCount);
+                    browserToProxyChannel, this.peerUri, 
+                    this.proxyStatusListener, this.p2pClient, peerFailureCount,
+                    true);
             } catch (final IOException e) {
                 // Notify the requester an outgoing connection has failed.
                 // We notify the listener in this case because it's a CONNECT
