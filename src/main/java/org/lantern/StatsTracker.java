@@ -10,6 +10,8 @@ public class StatsTracker implements LanternData {
 
     private volatile int directRequests;
     
+    
+    public StatsTracker() {}
 
     public void clear() {
         bytesProxied = 0L;
