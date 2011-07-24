@@ -174,7 +174,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private final int sslProxyRandomPort;
 
-    private final StatsTracker statsTracker;
 
     //private String hubAddress = "";
     
@@ -194,13 +193,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
      * will relay to.
      * @param plainTextProxyRandomPort The port of the HTTP proxy running
      * only locally and accepting plain-text sockets.
-     * @param statsTracker Keeps track of statistics for this Lantern instance.
      */
     public XmppHandler(final int sslProxyRandomPort, 
-        final int plainTextProxyRandomPort, final StatsTracker statsTracker,
-        final SystemTray tray) {
+        final int plainTextProxyRandomPort, final SystemTray tray) {
         this.sslProxyRandomPort = sslProxyRandomPort;
-        this.statsTracker = statsTracker;
         this.tray = tray;
         this.email = LanternUtils.getStringProperty("google.user");
         this.pwd = LanternUtils.getStringProperty("google.pwd");
@@ -403,17 +399,18 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         // Send an "info" message to gather proxy data.
         final Message msg = new Message();
         final JSONObject json = new JSONObject();
+        final StatsTracker statsTracker = LanternHub.statsTracker();
         json.put(LanternConstants.COUNTRY_CODE, CensoredUtils.countryCode());
         //json.put(LanternConstants.USER_NAME, this.user);
         //json.put(LanternConstants.PASSWORD, this.pwd);
         json.put(LanternConstants.BYTES_PROXIED, 
-            this.statsTracker.getBytesProxied());
+            statsTracker.getBytesProxied());
         json.put(LanternConstants.DIRECT_BYTES, 
-            this.statsTracker.getDirectBytes());
+            statsTracker.getDirectBytes());
         json.put(LanternConstants.REQUESTS_PROXIED, 
-            this.statsTracker.getProxiedRequests());
+            statsTracker.getProxiedRequests());
         json.put(LanternConstants.DIRECT_REQUESTS, 
-            this.statsTracker.getDirectRequests());
+            statsTracker.getDirectRequests());
         json.put(LanternConstants.WHITELIST_ADDITIONS, 
             LanternUtils.toJsonArray(Whitelist.getAdditions()));
         json.put(LanternConstants.WHITELIST_REMOVALS, 
@@ -426,7 +423,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             log.info("Sending info message to Lantern Hub");
             this.hubChat.sendMessage(msg);
             Whitelist.whitelistReported();
-            this.statsTracker.clear();
+            statsTracker.clear();
         } catch (final XMPPException e) {
             log.error("Could not send INFO message", e);
         }
