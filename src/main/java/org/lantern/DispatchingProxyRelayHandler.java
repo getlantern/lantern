@@ -338,7 +338,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     // This will happen whenever the server's giving us bad
                     // anonymous proxies, which could happen quite often.
                     // We should fall back to central.
-                    return centralConnect(ctx, request);
+                    centralConnect(request);
+                    return null;
                 }
             } else {
                 // We need to forward the CONNECT request from this proxy to an
@@ -346,7 +347,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 // relay all traffic in this case without doing anything on 
                 // our own other than direct the CONNECT request to the correct 
                 // proxy.
-                return centralConnect(ctx, request);
+                centralConnect(request);
+                return null;
             }
         }
         
@@ -386,16 +388,17 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         return null;
     }
 
-    private HttpRequestProcessor centralConnect(final ChannelHandlerContext ctx,
-        final HttpRequest request) {
+    private void centralConnect(final HttpRequest request) {
         if (this.httpConnectChannelFuture == null) {
             log.info("Opening HTTP CONNECT tunnel");
-            this.httpConnectChannelFuture = 
-                openOutgoingRelayChannel(ctx, request);
-            return null;
+            try {
+                this.httpConnectChannelFuture = 
+                    openOutgoingRelayChannel(request);
+            } catch (final IOException e) {
+                log.error("Could not open CONNECT channel", e);
+            }
         } else {
             log.error("Outbound channel already assigned?");
-            return null;
         }
     }
 
@@ -441,8 +444,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         this.browserToProxyChannel = e.getChannel();
     }
     
-    private ChannelFuture openOutgoingRelayChannel(
-        final ChannelHandlerContext ctx, final HttpRequest request) {
+    private ChannelFuture openOutgoingRelayChannel(final HttpRequest request) 
+        throws IOException {
         this.browserToProxyChannel.setReadable(false);
 
         // Start the connection attempt.
@@ -473,6 +476,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 }));
         log.info("Connecting to relay proxy");
         final InetSocketAddress isa = this.proxyProvider.getProxy();
+        if (isa == null) {
+            log.error("NO PROXY AVAILABLE?");
+            ProxyUtils.closeOnFlush(browserToProxyChannel);
+            throw new IOException("No proxy to use for CONNECT?");
+        }
         final ChannelFuture cf = cb.connect(isa);
         log.info("Got an outbound channel on: {}", hashCode());
         
