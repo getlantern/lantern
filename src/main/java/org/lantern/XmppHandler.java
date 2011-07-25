@@ -704,15 +704,27 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     @Override
     public void onCouldNotConnect(final InetSocketAddress proxyAddress) {
-        log.info("COULD NOT CONNECT!! Proxy address: {}", proxyAddress);
-        onCouldNotConnect(new ProxyHolder(proxyAddress.getHostName(), proxyAddress), 
-            this.proxySet, this.proxies);
+        // This can happen in several scenarios. First, it can happen if you've
+        // actually disconnected from the internet. Second, it can happen if
+        // the proxy is blocked. Third, it can happen when the proxy is simply
+        // down for some reason.
+        log.info("COULD NOT CONNECT TO STANDARD PROXY!! Proxy address: {}", 
+            proxyAddress);
+        
+        // For now we assume this is because we've lost our connection.
+        //onCouldNotConnect(new ProxyHolder(proxyAddress.getHostName(), proxyAddress), 
+        //    this.proxySet, this.proxies);
     }
     
     @Override
     public void onCouldNotConnectToLae(final InetSocketAddress proxyAddress) {
-        onCouldNotConnect(new ProxyHolder(proxyAddress.getHostName(), proxyAddress), 
-            this.laeProxySet, this.laeProxies);
+        log.info("COULD NOT CONNECT TO LAE PROXY!! Proxy address: {}", 
+            proxyAddress);
+        
+        // For now we assume this is because we've lost our connection.
+        
+        //onCouldNotConnect(new ProxyHolder(proxyAddress.getHostName(), proxyAddress), 
+        //    this.laeProxySet, this.laeProxies);
     }
     
     private void onCouldNotConnect(final ProxyHolder proxyAddress,
