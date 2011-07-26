@@ -100,7 +100,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         @Override
         public void processMessage(final Chat ch, final Message msg) {
             final String part = ch.getParticipant();
-            log.info("Got chat participant: {}", part);
+            log.info("Got chat participant: {} with message:\n {}", part, 
+                msg.toXML());
             if (part.startsWith(LANTERN_JID)) {
                 log.info("Lantern controlling agent response");
                 final String body = msg.getBody();
