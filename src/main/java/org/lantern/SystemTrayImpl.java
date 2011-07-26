@@ -122,13 +122,22 @@ public class SystemTrayImpl implements SystemTray {
             
             final String imageName;
             if (SystemUtils.IS_OS_MAC_OSX) {
-                imageName = "16off.png";
+                imageName = "20off.png";
             } else {
-                imageName = "16on.png";
+                imageName = "20on.png";
             }
-            final Image image = newImage(imageName, 16, 16);
-            trayItem.setImage (image);
+            final Image image = newImage(imageName, 20, 20);
+            setImage(image);
         }
+    }
+
+    private void setImage(final Image image) {
+        display.asyncExec (new Runnable () {
+            @Override
+            public void run () {
+                trayItem.setImage (image);
+            }
+        });
     }
 
     private Image newImage(final String name, int width, int height) {
@@ -159,13 +168,8 @@ public class SystemTrayImpl implements SystemTray {
             log.info("Ignoring activation since we're not on OSX...");
             return;
         }
-        final Image image = newImage("16on.png", 16, 16);
-        display.asyncExec (new Runnable () {
-            @Override
-            public void run () {
-                trayItem.setImage (image);
-            }
-        });
+        final Image image = newImage("20on.png", 20, 20);
+        setImage(image);
     }
     
 
