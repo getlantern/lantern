@@ -560,7 +560,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private void addProxy(final String cur, final Chat chat) {
         log.info("Considering proxy: {}", cur);
         final String jid = this.client.getXmppConnection().getUser().trim();
-        final String email = LanternUtils.jidToUser(jid);
+        final String emailId = LanternUtils.jidToUser(jid);
         log.info("We are: {}", jid);
         log.info("Service name: {}",
              this.client.getXmppConnection().getServiceName());
@@ -570,7 +570,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
         if (cur.contains("appspot")) {
             addLaeProxy(cur, chat);
-        } else if (cur.startsWith(email+"/") || cur.startsWith("jabronson")) {
+        } else if (cur.startsWith(emailId+"/")) {
             try {
                 addTrustedProxy(new URI(cur));
             } catch (final URISyntaxException e) {
