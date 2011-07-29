@@ -46,12 +46,15 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
+import org.jivesoftware.smack.PacketCollector;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.filter.PacketIDFilter;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.IQ.Type;
+import org.jivesoftware.smack.packet.Packet;
 import org.json.simple.JSONArray;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
@@ -402,7 +405,8 @@ public class LanternUtils {
     }
     
     private static XMPPConnection persistentXmppConnection(final String username, 
-        final String password, final String id, final int attempts) throws IOException {
+        final String password, final String id, final int attempts) 
+        throws IOException {
         final String key = username+password;
         if (xmppConnections.containsKey(key)) {
             final XMPPConnection conn = xmppConnections.get(key);
@@ -420,6 +424,9 @@ public class LanternUtils {
                 LOG.info("Attempting XMPP connection...");
                 final XMPPConnection conn = 
                     singleXmppConnection(username, password, id);
+                
+                // Make sure we signify gchat support.
+                LanternUtils.getSharedStatus(conn);
                 LOG.info("Created offerer");
                 xmppConnections.put(key, conn);
                 return conn;
@@ -616,6 +623,26 @@ public class LanternUtils {
         iq.setTo(to);
         LOG.info("Setting invisible with XML packet:\n"+iq.toXML());
         conn.sendPacket(iq);
+    }
+    
+    public static Packet getSharedStatus(final XMPPConnection conn) {
+        LOG.info("Getting shared status...");
+        final IQ iq = new IQ() {
+            @Override
+            public String getChildElementXML() {
+                return "<query xmlns='google:shared-status' version='2'/>";
+            }
+        };
+        final String jid = conn.getUser();
+        iq.setTo(LanternUtils.jidToUser(jid));
+        iq.setFrom(jid);
+        final PacketCollector collector = conn.createPacketCollector(
+            new PacketIDFilter(iq.getPacketID()));
+        
+        LOG.info("Sending shared status packet:\n"+iq.toXML());
+        conn.sendPacket(iq);
+        final Packet response = collector.nextResult(40000);
+        return response;
     }
 }
 
