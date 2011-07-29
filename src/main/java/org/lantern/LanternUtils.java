@@ -55,7 +55,9 @@ import org.jivesoftware.smack.filter.PacketIDFilter;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.IQ.Type;
 import org.jivesoftware.smack.packet.Packet;
+import org.jivesoftware.smack.provider.ProviderManager;
 import org.json.simple.JSONArray;
+import org.lantern.xmpp.GenericIQProvider;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.littleshoot.proxy.ProxyUtils;
@@ -628,6 +630,8 @@ public class LanternUtils {
     
     public static Packet getSharedStatus(final XMPPConnection conn) {
         LOG.info("Getting shared status...");
+        ProviderManager.getInstance().addIQProvider(
+            "query", "google:shared-status", new GenericIQProvider());
         final IQ iq = new IQ() {
             @Override
             public String getChildElementXML() {

@@ -296,9 +296,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     }
 
     private void updatePresence() {
-        ProviderManager.getInstance().addIQProvider(
-            "query", "google:shared-status", new GenericIQProvider());
-        
         // This is for Google Talk compatibility. Surprising, all we need to
         // do is grab our Google Talk shared status, signifying support for
         // their protocol, and then we don't interfere with GChat visibility.
