@@ -26,7 +26,6 @@ import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.MessageListener;
-import org.jivesoftware.smack.PacketCollector;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
@@ -35,8 +34,6 @@ import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.filter.PacketFilter;
-import org.jivesoftware.smack.filter.PacketIDFilter;
-import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
@@ -305,7 +302,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         // This is for Google Talk compatibility. Surprising, all we need to
         // do is grab our Google Talk shared status, signifying support for
         // their protocol, and then we don't interfere with GChat visibility.
-        log.info("Status:\n{}", getSharedStatus().toXML());
+        final Packet status = LanternUtils.getSharedStatus(
+                this.client.getXmppConnection());
+        log.info("Status:\n{}", status.toXML());
         final XMPPConnection conn = this.client.getXmppConnection();
         
         log.info("Sending presence available");
@@ -314,27 +313,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final Presence forHub = new Presence(Presence.Type.available);
         forHub.setTo(LANTERN_JID);
         conn.sendPacket(forHub);
-    }
-    
-    private Packet getSharedStatus() {
-        log.info("Getting shared status...");
-        final XMPPConnection conn = this.client.getXmppConnection();
-        final IQ iq = new IQ() {
-            @Override
-            public String getChildElementXML() {
-                return "<query xmlns='google:shared-status' version='2'/>";
-            }
-        };
-        final String jid = conn.getUser();
-        iq.setTo(LanternUtils.jidToUser(jid));
-        iq.setFrom(jid);
-        final PacketCollector collector = conn.createPacketCollector(
-            new PacketIDFilter(iq.getPacketID()));
-        
-        log.info("Sending shared status packet:\n"+iq.toXML());
-        conn.sendPacket(iq);
-        final Packet response = collector.nextResult(40000);
-        return response;
     }
 
     private void configureRoster() throws XMPPException {
@@ -387,7 +365,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     private void processPresence(final Presence p) {
         final String from = p.getFrom();
-        log.info("Got presence\n{}", p.toXML());
+        log.info("Got presence: {}", p.toXML());
         if (isLanternHub(from)) {
             log.info("Got Lantern hub presence");
         }
@@ -581,27 +559,39 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private void addProxy(final String cur, final Chat chat) {
         log.info("Considering proxy: {}", cur);
-        final String user = this.client.getXmppConnection().getUser().trim();
-        log.info("We are: {}", user);
+        final String jid = this.client.getXmppConnection().getUser().trim();
+        final String email = LanternUtils.jidToUser(jid);
+        log.info("We are: {}", jid);
         log.info("Service name: {}",
              this.client.getXmppConnection().getServiceName());
-        if (user.equals(cur.trim())) {
+        if (jid.equals(cur.trim())) {
             log.info("Not adding ourselves as a proxy!!");
             return;
         }
         if (cur.contains("appspot")) {
             addLaeProxy(cur, chat);
+        } else if (cur.startsWith(email+"/") || cur.startsWith("jabronson")) {
+            try {
+                addTrustedProxy(new URI(cur));
+            } catch (final URISyntaxException e) {
+                log.error("Error with proxy URI", e);
+            }
         } else if (cur.contains("@")) {
             try {
                 addAnonymousProxy(new URI(cur));
             } catch (final URISyntaxException e) {
-                log.info("Error with proxy URI", e);
+                log.error("Error with proxy URI", e);
             }
         } else {
             addGeneralProxy(cur, chat);
         }
     }
 
+    private void addTrustedProxy(final URI cur) {
+        log.info("Considering trusted peer proxy: {}", cur);
+        addPeerProxy(cur, this.peerProxySet, this.peerProxies);
+    }
+    
     private void addAnonymousProxy(final URI cur) {
         log.info("Considering Lantern proxy");
         addPeerProxy(cur, this.anonymousProxySet, this.anonymousProxies);
@@ -785,14 +775,19 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     @Override
     public URI getAnonymousProxy() {
-        log.info("Getting Lantern proxy");
+        log.info("Getting anonymous proxy");
         return getProxyUri(this.anonymousProxies);
     }
 
     @Override
     public URI getPeerProxy() {
         log.info("Getting peer proxy");
-        return getProxyUri(this.peerProxies);
+        final URI proxy = getProxyUri(this.peerProxies);
+        if (proxy == null) {
+            log.info("Peer proxies {} and anonymous proxies {}", 
+                this.peerProxies, this.anonymousProxies);
+        }
+        return proxy;
     }
     
     private URI getProxyUri(final Queue<URI> queue) {
