@@ -556,6 +556,7 @@ public class LanternUtils {
     }
     
     public static void writeCredentials(final String email, final String pwd) {
+        LOG.info("Writing credentials...");
         PROPS.setProperty("google.user", email);
         PROPS.setProperty("google.pwd", pwd);
         persistProps();
