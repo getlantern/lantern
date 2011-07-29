@@ -84,6 +84,8 @@ public class LanternUtils {
     private static final Properties PROPS = new Properties();
     
     static {
+        ProviderManager.getInstance().addIQProvider(
+                "query", "google:shared-status", new GenericIQProvider());
         if (!CONFIG_DIR.isDirectory()) {
             if (!CONFIG_DIR.mkdirs()) {
                 LOG.error("Could not make config directory at: "+CONFIG_DIR);
@@ -459,8 +461,12 @@ public class LanternUtils {
             new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
             //new ConnectionConfiguration(this.host, this.port, this.serviceName);
         config.setCompressionEnabled(true);
-        config.setRosterLoadedAtLogin(true);
+        config.setRosterLoadedAtLogin(false);
         config.setReconnectionAllowed(false);
+        
+        config.setExpiredCertificatesCheckEnabled(true);
+        config.setNotMatchingDomainCheckEnabled(true);
+        config.setSendPresence(false);
         
         // TODO: This should probably be an SSLSocketFactory no??
         config.setSocketFactory(new SocketFactory() {
@@ -630,8 +636,6 @@ public class LanternUtils {
     
     public static Packet getSharedStatus(final XMPPConnection conn) {
         LOG.info("Getting shared status...");
-        ProviderManager.getInstance().addIQProvider(
-            "query", "google:shared-status", new GenericIQProvider());
         final IQ iq = new IQ() {
             @Override
             public String getChildElementXML() {
