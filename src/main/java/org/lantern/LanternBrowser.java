@@ -187,6 +187,7 @@ public class LanternBrowser {
                     messageBox.setMessage (msg);
                     event.doit = messageBox.open () == SWT.YES;
                     if (event.doit) {
+                        LanternUtils.clearCredentials();
                         exit();
                     }
                 }
