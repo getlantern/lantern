@@ -38,9 +38,9 @@
             <div class="baseTop">
               <div class="baseTop" style="color: red; font-size:100%;">error_message</div>
               <form id="gmailForm">
-                  <input id="email" type="text" name="email" />
-                  <input id="pwd" type="password" name="pwd" />
-                  <input type="submit" value="Submit" class="submit">
+                  <input id="email" type="text" name="email" placeholder="Gmail E-mail Address"/>
+                  <input id="pwd" type="password" name="pwd" placeholder="Gmail Password"/>
+                  <input type="submit" value="Submit" class="submit"/>
               </form>
             </div>
             <div style="clear:both"></div>
@@ -52,6 +52,7 @@
     <script>
         $(function() {
             $( ".submit").button();
+            /*
             var etext = "(Enter GMail Address)";
             $("#email").attr("value", etext);
             $("#email").focus(function() {
@@ -62,6 +63,7 @@
                 $(this).removeClass("active");
                 if($(this).attr("value") == "") $(this).attr("value", etext);
             });
+            */
             
             $("#gmailForm").submit(function() {
                 var email = $("#email").val();
