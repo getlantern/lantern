@@ -1,27 +1,11 @@
 /**
- * The MIT License
- *
- * Copyright (c) 2010 Adam Abrons and Misko Hevery http://getangular.com
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * @license AngularJS v0.9.18
+ * (c) 2010-2011 AngularJS http://angularjs.org
+ * License: MIT
  */
+'use strict';
 (function(window, document, undefined){
+
 ////////////////////////////////////
 
 if (typeof document.getAttribute == $undefined)
@@ -91,7 +75,6 @@ var _undefined        = undefined,
     $function         = 'function',
     $length           = 'length',
     $name             = 'name',
-    $none             = 'none',
     $noop             = 'noop',
     $null             = 'null',
     $number           = 'number',
@@ -139,7 +122,7 @@ var _undefined        = undefined,
     angularCallbacks  = extensionMap(angular, 'callbacks'),
     nodeName_,
     rngScript         = /^(|.*\/)angular(-.*?)?(\.min)?.js(\?[^#]*)?(#(.*))?$/,
-    uid               = ['0', '0', '0'];
+    uid               = ['0', '0', '0'],
     DATE_ISOSTRING_LN = 24;
 
 /**
@@ -968,7 +951,7 @@ function angularInit(config, document){
     if (config.css)
       $browser.addCss(config.base_url + config.css);
     else if(msie<8)
-      $browser.addJs(config.base_url + config.ie_compat, config.ie_compat_id);
+      $browser.addJs(config.ie_compat, config.ie_compat_id);
   }
 }
 
@@ -1026,6 +1009,29 @@ function assertArg(arg, name, reason) {
 function assertArgFn(arg, name) {
   assertArg(isFunction(arg, name, 'not a function'));
 }
+
+
+/**
+ * @ngdoc property
+ * @name angular.version
+ * @description
+ * Object which contains information about the current AngularJS version. The object has following
+ * properties:
+ *
+ * - `full` – `{string}` – full version string, e.g. "0.9.18"
+ * - `major` – `{number}` – major version number, e.g. 0
+ * - `minor` – `{number}` – minor version number, e.g. 9
+ * - `dot` – `{number}` – dot version number, e.g. 18
+ * - `codeName` – `{string}` – code name of the release, e.g. "jiggling-armfat"
+ */
+var version = {
+  full: '0.9.18',    // all of these placeholder strings will be replaced by rake's
+  major: 0,    // compile task
+  minor: 9,
+  dot: 18,
+  codeName: 'jiggling-armfat'
+};
+
 var array = [].constructor;
 
 /**
@@ -1177,6 +1183,7 @@ function toJsonArray(buf, obj, pretty, stack) {
     stack.pop();
   }
 }
+
 /**
  * Template provides directions an how to bind to a given element.
  * It contains a list of init functions which need to be called to
@@ -1274,16 +1281,16 @@ Template.prototype = {
  * that is a DOM clone of the original template.
  *
    <pre>
-    //copile the entire window.document and give me the scope bound to this template.
-    var rootSscope = angular.compile(window.document)();
+    // compile the entire window.document and give me the scope bound to this template.
+    var rootScope = angular.compile(window.document)();
 
-    //compile a piece of html
-    var rootScope2 = angular.compile(''<div ng:click="clicked = true">click me</div>')();
+    // compile a piece of html
+    var rootScope2 = angular.compile('<div ng:click="clicked = true">click me</div>')();
 
-    //compile a piece of html and retain reference to both the dom and scope
+    // compile a piece of html and retain reference to both the dom and scope
     var template = angular.element('<div ng:click="clicked = true">click me</div>'),
-        scoope = angular.compile(view)();
-    //at this point template was transformed into a view
+        scope = angular.compile(template)();
+    // at this point template was transformed into a view
    </pre>
  *
  *
@@ -1354,7 +1361,7 @@ Template.prototype = {
  *  directives processing state. The compiler will process directives only when directives set to
  *  true.
  *
- * For information on how the compiler works, see the 
+ * For information on how the compiler works, see the
  * {@link guide/dev_guide.compiler Angular HTML Compiler} section of the Developer Guide.
  */
 function Compiler(markup, attrMarkup, directives, widgets){
@@ -2105,6 +2112,7 @@ function createScope(parent, providers, instanceCache) {
 
   return instance;
 }
+
 /**
  * @ngdoc function
  * @name angular.injector
@@ -2136,7 +2144,7 @@ function createScope(parent, providers, instanceCache) {
  *     * `self` -  "`this`" to be used when invoking the function.
  *     * `fn` - the function to be invoked. The function may have the `$inject` property which
  *        lists the set of arguments which should be auto injected
- *        (see {@link guide.di dependency injection}).
+ *        (see {@link guide/dev_guide.di dependency injection}).
  *     * `curryArgs(array)` - optional array of arguments to pass to function invocation after the
  *        injection arguments (also known as curry arguments or currying).
  *   * an `eager` property which is used to initialize the eager services.
@@ -2167,7 +2175,7 @@ function createInjector(factoryScope, factories, instanceCache) {
       instanceCache[value] = invoke(factoryScope, factory);
     }
     return instanceCache[value];
-  };
+  }
 
   function invoke(self, fn, args){
     args = args || [];
@@ -2180,8 +2188,9 @@ function createInjector(factoryScope, factories, instanceCache) {
   }
 }
 
-/*NOT_PUBLIC_YET
- * @ngdoc function
+/**
+ * THIS IS NOT PUBLIC DOC YET!
+ *
  * @name angular.annotate
  * @function
  *
@@ -2232,7 +2241,7 @@ function angularServiceInject(name, fn, inject, eager) {
  * extracting all arguments which and assuming that they are the
  * injection names.
  */
-var FN_ARGS = /^function\s*[^\(]*\(([^\)]*)\)/;
+var FN_ARGS = /^function\s*[^\(]*\(([^\)]*)\)/m;
 var FN_ARG_SPLIT = /,/;
 var FN_ARG = /^\s*(.+?)\s*$/;
 var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
@@ -2250,6 +2259,7 @@ function injectionArgs(fn) {
   }
   return fn.$inject;
 }
+
 var OPERATORS = {
     'null':function(self){return null;},
     'true':function(self){return true;},
@@ -2542,11 +2552,9 @@ function parser(text, json){
     var token = peek(e1, e2, e3, e4);
     if (token) {
       if (json && !token.json) {
-        index = token.index;
         throwError("is not valid json", token);
       }
       tokens.shift();
-      this.currentToken = token;
       return token;
     }
     return false;
@@ -2911,10 +2919,6 @@ function parser(text, json){
   }
 }
 
-
-
-
-
 function Route(template, defaults) {
   this.template = template = template + '#';
   this.defaults = defaults || {};
@@ -2980,29 +2984,36 @@ ResourceFactory.prototype = {
 
     forEach(actions, function(action, name){
       var isPostOrPut = action.method == 'POST' || action.method == 'PUT';
-      Resource[name] = function (a1, a2, a3) {
+      Resource[name] = function (a1, a2, a3, a4) {
         var params = {};
         var data;
-        var callback = noop;
+        var success = noop;
+        var error = null;
         switch(arguments.length) {
-        case 3: callback = a3;
+        case 4:
+          error = a4;
+          success = a3;
+        case 3:
         case 2:
           if (isFunction(a2)) {
-            callback = a2;
+            success = a2;
+            error = a3;
             //fallthrough
           } else {
             params = a1;
             data = a2;
+            success = a3;
             break;
           }
         case 1:
-          if (isFunction(a1)) callback = a1;
+          if (isFunction(a1)) success = a1;
           else if (isPostOrPut) data = a1;
           else params = a1;
           break;
         case 0: break;
         default:
-          throw "Expected between 0-3 arguments [params, data, callback], got " + arguments.length + " arguments.";
+          throw "Expected between 0-4 arguments [params, data, success, error], got " +
+            arguments.length + " arguments.";
         }
 
         var value = this instanceof Resource ? this : (action.isArray ? [] : new Resource(data));
@@ -3010,23 +3021,20 @@ ResourceFactory.prototype = {
           action.method,
           route.url(extend({}, action.params || {}, extractParams(data), params)),
           data,
-          function(status, response, clear) {
-            if (200 <= status && status < 300) {
-              if (response) {
-                if (action.isArray) {
-                  value.length = 0;
-                  forEach(response, function(item){
-                    value.push(new Resource(item));
-                  });
-                } else {
-                  copy(response, value);
-                }
+          function(status, response) {
+            if (response) {
+              if (action.isArray) {
+                value.length = 0;
+                forEach(response, function(item) {
+                  value.push(new Resource(item));
+                });
+              } else {
+                copy(response, value);
               }
-              (callback||noop)(value);
-            } else {
-              throw {status: status, response:response, message: status + ": " + response};
             }
+            (success||noop)(value);
           },
+          error || action.verifyCache,
           action.verifyCache);
         return value;
       };
@@ -3035,23 +3043,35 @@ ResourceFactory.prototype = {
         return self.route(url, extend({}, paramDefaults, additionalParamDefaults), actions);
       };
 
-      Resource.prototype['$' + name] = function(a1, a2){
-        var params = extractParams(this);
-        var callback = noop;
+      Resource.prototype['$' + name] = function(a1, a2, a3) {
+        var params = extractParams(this),
+            success = noop,
+            error;
+
         switch(arguments.length) {
-        case 2: params = a1; callback = a2;
-        case 1: if (typeof a1 == $function) callback = a1; else params = a1;
+        case 3: params = a1; success = a2; error = a3; break;
+        case 2:
+        case 1:
+          if (isFunction(a1)) {
+            success = a1;
+            error = a2;
+          } else {
+            params = a1;
+            success = a2 || noop;
+          }
         case 0: break;
         default:
-          throw "Expected between 1-2 arguments [params, callback], got " + arguments.length + " arguments.";
+          throw "Expected between 1-3 arguments [params, success, error], got " +
+            arguments.length + " arguments.";
         }
         var data = isPostOrPut ? this : undefined;
-        Resource[name].call(this, params, data, callback);
+        Resource[name].call(this, params, data, success, error);
       };
     });
     return Resource;
   }
 };
+
 //////////////////////////////
 // Browser
 //////////////////////////////
@@ -3064,8 +3084,9 @@ var XHR = window.XMLHttpRequest || function () {
 
 
 /**
- * @private
- * @name Browser
+ * @ngdoc service
+ * @name angular.service.$browser
+ * @requires $log
  *
  * @description
  * Constructor for the object exposed as $browser service.
@@ -3075,6 +3096,11 @@ var XHR = window.XMLHttpRequest || function () {
  * - hide all the global state in the browser caused by the window object
  * - abstract away all the browser specific features and inconsistencies
  *
+ * For tests we provide {@link angular.mock.service.$browser mock implementation} of the `$browser`
+ * service, which can be used for convenient testing of the application without the interaction with
+ * the real browser apis.
+ */
+/**
  * @param {object} window The global window object.
  * @param {object} document jQuery wrapped document.
  * @param {object} body jQuery wrapped document.body.
@@ -3085,7 +3111,10 @@ function Browser(window, document, body, XHR, $log) {
   var self = this,
       rawDocument = document[0],
       location = window.location,
-      setTimeout = window.setTimeout;
+      setTimeout = window.setTimeout,
+      clearTimeout = window.clearTimeout,
+      pendingDeferIds = {},
+      lastLocationUrl;
 
   self.isMock = false;
 
@@ -3143,14 +3172,12 @@ function Browser(window, document, body, XHR, $log) {
     outstandingRequestCount ++;
     if (lowercase(method) == 'json') {
       var callbackId = ("angular_" + Math.random() + '_' + (idCounter++)).replace(/\d\./, '');
-      var script = jqLite(rawDocument.createElement('script'))
-          .attr({type: 'text/javascript', src: url.replace('JSON_CALLBACK', callbackId)});
+      var script = self.addJs(url.replace('JSON_CALLBACK', callbackId));
       window[callbackId] = function(data){
-        window[callbackId] = undefined;
-        script.remove();
+        delete window[callbackId];
+        body[0].removeChild(script);
         completeOutstandingRequest(callback, 200, data);
       };
-      body.append(script);
     } else {
       var xhr = new XHR();
       xhr.open(method, url, true);
@@ -3177,6 +3204,11 @@ function Browser(window, document, body, XHR, $log) {
    * @param {function()} callback Function that will be called when no outstanding request
    */
   self.notifyWhenNoOutstandingRequests = function(callback) {
+    // force browser to execute all pollFns - this is needed so that cookies and other pollers fire
+    // at some deterministic time in respect to the test runner's actions. Leaving things up to the
+    // regular poller would result in flaky tests.
+    forEach(pollFns, function(pollFn){ pollFn(); });
+
     if (outstandingRequestCount === 0) {
       callback();
     } else {
@@ -3193,16 +3225,6 @@ function Browser(window, document, body, XHR, $log) {
   /**
    * @workInProgress
    * @ngdoc method
-   * @name angular.service.$browser#poll
-   * @methodOf angular.service.$browser
-   */
-  self.poll = function() {
-    forEach(pollFns, function(pollFn){ pollFn(); });
-  };
-
-  /**
-   * @workInProgress
-   * @ngdoc method
    * @name angular.service.$browser#addPollFn
    * @methodOf angular.service.$browser
    *
@@ -3215,17 +3237,12 @@ function Browser(window, document, body, XHR, $log) {
    * @returns {function()} the added function
    */
   self.addPollFn = function(fn) {
-    if (!pollTimeout) self.startPoller(100, setTimeout);
+    if (isUndefined(pollTimeout)) startPoller(100, setTimeout);
     pollFns.push(fn);
     return fn;
   };
 
   /**
-   * @workInProgress
-   * @ngdoc method
-   * @name angular.service.$browser#startPoller
-   * @methodOf angular.service.$browser
-   *
    * @param {number} interval How often should browser call poll functions (ms)
    * @param {function()} setTimeout Reference to a real or fake `setTimeout` function.
    *
@@ -3233,9 +3250,9 @@ function Browser(window, document, body, XHR, $log) {
    * Configures the poller to run in the specified intervals, using the specified
    * setTimeout fn and kicks it off.
    */
-  self.startPoller = function(interval, setTimeout) {
-    (function check(){
-      self.poll();
+  function startPoller(interval, setTimeout) {
+    (function check() {
+      forEach(pollFns, function(pollFn){ pollFn(); });
       pollTimeout = setTimeout(check, interval);
     })();
   };
@@ -3256,10 +3273,13 @@ function Browser(window, document, body, XHR, $log) {
    * Sets browser's url
    */
   self.setUrl = function(url) {
-    var existingURL = location.href;
+
+    var existingURL = lastLocationUrl;
     if (!existingURL.match(/#/)) existingURL += '#';
     if (!url.match(/#/)) url += '#';
-    location.href = url;
+    if (existingURL != url) {
+      location.href = url;
+    }
    };
 
   /**
@@ -3274,7 +3294,7 @@ function Browser(window, document, body, XHR, $log) {
    * @returns {string} Browser's url
    */
   self.getUrl = function() {
-    return location.href;
+    return lastLocationUrl = location.href;
   };
 
 
@@ -3390,19 +3410,48 @@ function Browser(window, document, body, XHR, $log) {
    * @methodOf angular.service.$browser
    * @param {function()} fn A function, who's execution should be defered.
    * @param {number=} [delay=0] of milliseconds to defer the function execution.
+   * @returns {*} DeferId that can be used to cancel the task via `$browser.defer.cancel()`.
    *
    * @description
    * Executes a fn asynchroniously via `setTimeout(fn, delay)`.
    *
    * Unlike when calling `setTimeout` directly, in test this function is mocked and instead of using
-   * `setTimeout` in tests, the fns are queued in an array, which can be programmatically flushed via
-   * `$browser.defer.flush()`.
+   * `setTimeout` in tests, the fns are queued in an array, which can be programmatically flushed
+   * via `$browser.defer.flush()`.
    *
    */
   self.defer = function(fn, delay) {
+    var timeoutId;
     outstandingRequestCount++;
-    setTimeout(function() { completeOutstandingRequest(fn); }, delay || 0);
+    timeoutId = setTimeout(function() {
+      delete pendingDeferIds[timeoutId];
+      completeOutstandingRequest(fn);
+    }, delay || 0);
+    pendingDeferIds[timeoutId] = true;
+    return timeoutId;
   };
+
+
+  /**
+   * THIS DOC IS NOT VISIBLE because ngdocs can't process docs for foo#method.method
+   *
+   * @name angular.service.$browser#defer.cancel
+   * @methodOf angular.service.$browser.defer
+   * @returns {boolean} Returns `true` if the task hasn't executed yet and was successfuly canceled.
+   *
+   * @description
+   * Cancels a defered task identified with `deferId`.
+   */
+
+  self.defer.cancel = function(deferId) {
+    if (pendingDeferIds[deferId]) {
+      delete pendingDeferIds[deferId];
+      clearTimeout(deferId);
+      completeOutstandingRequest(noop);
+      return true;
+    }
+  };
+
 
   //////////////////////////////////////////////////////////////
   // Misc API
@@ -3470,19 +3519,30 @@ function Browser(window, document, body, XHR, $log) {
    * @methodOf angular.service.$browser
    *
    * @param {string} url Url to js file
-   * @param {string=} dom_id Optional id for the script tag
+   * @param {string=} domId Optional id for the script tag
    *
    * @description
    * Adds a script tag to the head.
    */
-  self.addJs = function(url, dom_id) {
-    var script = jqLite(rawDocument.createElement('script'));
-    script.attr('type', 'text/javascript');
-    script.attr('src', url);
-    if (dom_id) script.attr('id', dom_id);
-    body.append(script);
+  self.addJs = function(url, domId) {
+    // we can't use jQuery/jqLite here because jQuery does crazy shit with script elements, e.g.:
+    // - fetches local scripts via XHR and evals them
+    // - adds and immediately removes script elements from the document
+    //
+    // We need addJs to be able to add angular-ie-compat.js which is very special and must remain
+    // part of the DOM so that the embedded images can reference it. jQuery's append implementation
+    // (v1.4.2) fubars it.
+    var script = rawDocument.createElement('script');
+
+    script.type = 'text/javascript';
+    script.src = url;
+    if (domId) script.id = domId;
+    body[0].appendChild(script);
+
+    return script;
   };
 }
+
 /*
  * HTML Parser By Misko Hevery (misko@hevery.com)
  * based on:  HTML Parser By John Resig (ejohn.org)
@@ -3752,6 +3812,7 @@ function htmlSanitizeWriter(buf){
       }
   };
 }
+
 //////////////////////////////////
 //JQLite
 //////////////////////////////////
@@ -3798,6 +3859,9 @@ function htmlSanitizeWriter(buf){
  * - [replaceWith()](http://api.jquery.com/replaceWith/)
  * - [text()](http://api.jquery.com/text/)
  * - [trigger()](http://api.jquery.com/trigger/)
+ * - [eq()](http://api.jquery.com/eq/)
+ * - [show()](http://api.jquery.com/show/)
+ * - [hide()](http://api.jquery.com/hide/)
  *
  * ## Additionally these methods extend the jQuery and  are available in both jQuery and jQuery lite
  * version:
@@ -3836,23 +3900,6 @@ function getStyle(element) {
     }
   }
   return current;
-}
-
-//TODO: delete me! dead code?
-if (msie) {
-  extend(JQLite.prototype, {
-    text: function(value) {
-      var e = this[0];
-      // NodeType == 3 is text node
-      if (e.nodeType == 3) {
-        if (isDefined(value)) e.nodeValue = value;
-        return e.nodeValue;
-      } else {
-        if (isDefined(value)) e.innerText = value;
-        return e.innerText;
-      }
-    }
-  });
 }
 
 /////////////////////////////////////////////
@@ -3965,11 +4012,16 @@ var JQLitePrototype = JQLite.prototype = {
     // we can not use jqLite since we are not done loading and jQuery could be loaded later.
     jqLiteWrap(window).bind('load', trigger); // fallback to window.onload for others
   },
-  toString: function(){
+  toString: function() {
     var value = [];
     forEach(this, function(e){ value.push('' + e);});
     return '[' + value.join(', ') + ']';
   },
+
+  eq: function(index) {
+      return (index >= 0) ? jqLite(this[index]) : jqLite(this[this.length + index]);
+  },
+
   length: 0,
   push: push,
   sort: [].sort,
@@ -4020,7 +4072,9 @@ forEach({
     } else if (element.getAttribute) {
       // the extra argument "2" is to get the right thing for a.href in IE, see jQuery code
       // some elements (e.g. Document) don't have get attribute, so return undefined
-      return element.getAttribute(name, 2);
+      var ret = element.getAttribute(name, 2);
+      // normalize non-existing attributes to undefined (as jQuery)
+      return ret === null ? undefined : ret;
     }
   },
 
@@ -4105,11 +4159,10 @@ forEach({
   dealoc: JQLiteDealoc,
 
   bind: function(element, type, fn){
-    var bind = JQLiteData(element, 'bind'),
-        eventHandler;
+    var bind = JQLiteData(element, 'bind');
     if (!bind) JQLiteData(element, 'bind', bind = {});
     forEach(type.split(' '), function(type){
-      eventHandler = bind[type];
+      var eventHandler = bind[type];
       if (!eventHandler) {
         bind[type] = eventHandler = function(event) {
           if (!event.preventDefault) {
@@ -4121,6 +4174,9 @@ forEach({
             event.stopPropagation = function() {
               event.cancelBubble = true; //ie
             };
+          }
+          if (!event.target) {
+            event.target = event.srcElement || document;
           }
           forEach(eventHandler.fns, function(fn){
             fn.call(element, event);
@@ -4213,6 +4269,32 @@ forEach({
     return element.getElementsByTagName(selector);
   },
 
+  hide: function(element) {
+    if (element.style) {
+      if(element.style.display !=="none" && !JQLiteData(element,"olddisplay")) {
+        JQLiteData( element, "olddisplay", element.style.display);
+      }
+      element.style.display = "none";
+    }
+  },
+
+  show: function(element) {
+   if(element.style) {
+     var display = element.style.display;
+     if ( display === "" || display === "none" ) {
+
+       // restore the original value overwritten by hide if present or default to nothing (which
+       // will let browser correctly choose between 'inline' or 'block')
+       element.style.display = JQLiteData(element, "olddisplay") || "";
+
+       // if the previous didn't make the element visible then there are some cascading rules that
+       // are still hiding it, so let's default to 'block', which might be incorrect in case of
+       // elmenents that should be 'inline' by default, but oh well :-)
+       if (!isVisible([element])) element.style.display = "block";
+     }
+   }
+  },
+
   clone: JQLiteClone
 }, function(fn, name){
   /**
@@ -4234,6 +4316,7 @@ forEach({
     return value == undefined ? this : value;
   };
 });
+
 var angularGlobal = {
   'typeOf':function(obj){
     if (obj === null) return $null;
@@ -5119,6 +5202,7 @@ defineApi('Date', [angularGlobal, angularDate]);
 //IE bug
 angular.Date.toString = angularDate.toString;
 defineApi('Function', [angularGlobal, angularCollection, angularFunction]);
+
 /**
  * @workInProgress
  * @ngdoc overview
@@ -5154,9 +5238,11 @@ defineApi('Function', [angularGlobal, angularCollection, angularFunction]);
  * @function
  *
  * @description
- *   Formats a number as a currency (ie $1,234.56).
+ * Formats a number as a currency (ie $1,234.56). When no currency symbol is provided, default
+ * symbol for current locale is used.
  *
  * @param {number} amount Input to filter.
+ * @param {string=} symbol Currency symbol or identifier to be displayed.
  * @returns {string} Formated number.
  *
  * @css ng-format-negative
@@ -5166,24 +5252,28 @@ defineApi('Function', [angularGlobal, angularCollection, angularFunction]);
    <doc:example>
      <doc:source>
        <input type="text" name="amount" value="1234.56"/> <br/>
-       {{amount | currency}}
+       default currency symbol ($): {{amount | currency}}<br/>
+       custom currency identifier (USD$): {{amount | currency:"USD$"}}
      </doc:source>
      <doc:scenario>
        it('should init with 1234.56', function(){
          expect(binding('amount | currency')).toBe('$1,234.56');
+         expect(binding('amount | currency:"USD$"')).toBe('USD$1,234.56');
        });
        it('should update', function(){
          input('amount').enter('-1234');
-         expect(binding('amount | currency')).toBe('$-1,234.00');
+         expect(binding('amount | currency')).toBe('($1,234.00)');
+         expect(binding('amount | currency:"USD$"')).toBe('(USD$1,234.00)');
          expect(element('.doc-example-live .ng-binding').attr('className')).
            toMatch(/ng-format-negative/);
        });
      </doc:scenario>
    </doc:example>
  */
-angularFilter.currency = function(amount){
+angularFilter.currency = function(amount, currencySymbol){
   this.$element.toggleClass('ng-format-negative', amount < 0);
-  return '$' + angularFilter.number.apply(this, [amount, 2]);
+  if (isUndefined(currencySymbol)) currencySymbol = NUMBER_FORMATS.CURRENCY_SYM;
+  return formatNumber(amount, 2, 1).replace(/\u00A4/g, currencySymbol);
 };
 
 /**
@@ -5193,9 +5283,9 @@ angularFilter.currency = function(amount){
  * @function
  *
  * @description
- *   Formats a number as text.
+ * Formats a number as text.
  *
- *   If the input is not a number empty string is returned.
+ * If the input is not a number empty string is returned.
  *
  * @param {number|string} number Number to format.
  * @param {(number|string)=} [fractionSize=2] Number of decimal places to round the number to.
@@ -5211,59 +5301,104 @@ angularFilter.currency = function(amount){
      </doc:source>
      <doc:scenario>
        it('should format numbers', function(){
-         expect(binding('val | number')).toBe('1,234.57');
+         expect(binding('val | number')).toBe('1,234.568');
          expect(binding('val | number:0')).toBe('1,235');
          expect(binding('-val | number:4')).toBe('-1,234.5679');
        });
 
        it('should update', function(){
          input('val').enter('3374.333');
-         expect(binding('val | number')).toBe('3,374.33');
+         expect(binding('val | number')).toBe('3,374.333');
          expect(binding('val | number:0')).toBe('3,374');
          expect(binding('-val | number:4')).toBe('-3,374.3330');
        });
      </doc:scenario>
    </doc:example>
  */
-angularFilter.number = function(number, fractionSize){
-  if (isNaN(number) || !isFinite(number)) {
-    return '';
-  }
-  fractionSize = isUndefined(fractionSize)? 2 : fractionSize;
 
+// PATTERNS[0] is an array for Decimal Pattern, PATTERNS[1] is an array Currency Pattern
+// Following is the order in each pattern array:
+// 0: minInteger,
+// 1: minFraction,
+// 2: maxFraction,
+// 3: positivePrefix,
+// 4: positiveSuffix,
+// 5: negativePrefix,
+// 6: negativeSuffix,
+// 7: groupSize,
+// 8: lastGroupSize
+var NUMBER_FORMATS = {
+      DECIMAL_SEP: '.',
+      GROUP_SEP: ',',
+      PATTERNS: [[1, 0, 3, '', '', '-', '', 3, 3],[1, 2, 2, '\u00A4', '', '(\u00A4', ')', 3, 3]],
+      CURRENCY_SYM: '$'
+};
+var DECIMAL_SEP = '.';
+
+angularFilter.number = function(number, fractionSize) {
+  if (isNaN(number) || !isFinite(number)) return '';
+  return formatNumber(number, fractionSize, 0);
+};
+
+function formatNumber(number, fractionSize, type) {
   var isNegative = number < 0,
-      pow = Math.pow(10, fractionSize),
-      whole = '' + number,
+      type = type || 0, // 0 is decimal pattern, 1 is currency pattern
+      pattern = NUMBER_FORMATS.PATTERNS[type];
+
+  number = Math.abs(number);
+  var numStr =  number + '',
       formatedText = '',
-      i;
+      parts = [];
 
-  if (whole.indexOf('e') > -1) return whole;
+  if (numStr.indexOf('e') !== -1) {
+    var formatedText = numStr;
+  } else {
+    var fractionLen = (numStr.split(DECIMAL_SEP)[1] || '').length;
 
-  number = Math.round(number * pow) / pow;
-  fraction = ('' + number).split('.');
-  whole = fraction[0];
-  fraction = fraction[1] || '';
-  if (isNegative) {
-    formatedText = '-';
-    whole = whole.substring(1);
-  }
-
-
-  for (i = 0; i < whole.length; i++) {
-    if ((whole.length - i)%3 === 0 && i !== 0) {
-      formatedText += ',';
+    //determine fractionSize if it is not specified
+    if (isUndefined(fractionSize)) {
+      fractionSize = Math.min(Math.max(pattern[1], fractionLen), pattern[2]);
     }
-    formatedText += whole.charAt(i);
-  }
-  if (fractionSize) {
+
+    var pow = Math.pow(10, fractionSize);
+    number = Math.round(number * pow) / pow;
+    var fraction = ('' + number).split(DECIMAL_SEP);
+    var whole = fraction[0];
+    fraction = fraction[1] || '';
+
+    var pos = 0,
+        lgroup = pattern[8],
+        group = pattern[7];
+
+    if (whole.length >= (lgroup + group)) {
+      pos = whole.length - lgroup;
+      for (var i = 0; i < pos; i++) {
+        if ((pos - i)%group === 0 && i !== 0) {
+          formatedText += NUMBER_FORMATS.GROUP_SEP;
+        }
+        formatedText += whole.charAt(i);
+      }
+    }
+
+    for (i = pos; i < whole.length; i++) {
+      if ((whole.length - i)%lgroup === 0 && i !== 0) {
+        formatedText += NUMBER_FORMATS.GROUP_SEP;
+      }
+      formatedText += whole.charAt(i);
+    }
+
+    // format fraction part.
     while(fraction.length < fractionSize) {
       fraction += '0';
     }
-    formatedText += '.' + fraction.substring(0, fractionSize);
+    if (fractionSize) formatedText += NUMBER_FORMATS.DECIMAL_SEP + fraction.substr(0, fractionSize);
   }
-  return formatedText;
-};
 
+  parts.push(isNegative ? pattern[5] : pattern[3]);
+  parts.push(formatedText);
+  parts.push(isNegative ? pattern[6] : pattern[4]);
+  return parts.join('');
+}
 
 function padNumber(num, digits, trim) {
   var neg = '';
@@ -5303,6 +5438,17 @@ function dateStrGetter(name, shortForm) {
   };
 }
 
+function timeZoneGetter(numFormat) {
+  return function(date) {
+    var timeZone;
+    if (numFormat || !(timeZone = GET_TIME_ZONE.exec(date.toString()))) {
+      var offset = date.getTimezoneOffset();
+      return padNumber(offset / 60, 2) + padNumber(Math.abs(offset % 60), 2);
+    }
+    return timeZone[0];
+  };
+}
+
 var DAY = 'Sunday,Monday,Tuesday,Wednesday,Thursday,Friday,Saturday'.split(',');
 
 var MONTH = 'January,February,March,April,May,June,July,August,September,October,November,December'.
@@ -5311,7 +5457,8 @@ var MONTH = 'January,February,March,April,May,June,July,August,September,October
 var DATE_FORMATS = {
   yyyy: dateGetter('FullYear', 4),
     yy: dateGetter('FullYear', 2, 0, true),
- MMMMM: dateStrGetter('Month'),
+     y: dateGetter('FullYear', 1),
+  MMMM: dateStrGetter('Month'),
    MMM: dateStrGetter('Month', true),
     MM: dateGetter('Month', 2, 1),
      M: dateGetter('Month', 1, 1),
@@ -5328,14 +5475,26 @@ var DATE_FORMATS = {
   EEEE: dateStrGetter('Day'),
    EEE: dateStrGetter('Day', true),
      a: function(date){return date.getHours() < 12 ? 'am' : 'pm';},
-     Z: function(date){
-          var offset = date.getTimezoneOffset();
-          return padNumber(offset / 60, 2) + padNumber(Math.abs(offset % 60), 2);
-        }
+     z: timeZoneGetter(false),
+     Z: timeZoneGetter(true)
 };
 
+var DEFAULT_DATETIME_FORMATS = {
+         long: 'MMMM d, y h:mm:ss a z',
+       medium: 'MMM d, y h:mm:ss a',
+        short: 'M/d/yy h:mm a',
+    fullDate: 'EEEE, MMMM d, y',
+    longDate: 'MMMM d, y',
+  mediumDate: 'MMM d, y',
+   shortDate: 'M/d/yy',
+    longTime: 'h:mm:ss a z',
+  mediumTime: 'h:mm:ss a',
+   shortTime: 'h:mm a'
+};
 
-var DATE_FORMATS_SPLIT = /([^yMdHhmsaZE]*)(E+|y+|M+|d+|H+|h+|m+|s+|a|Z)(.*)/;
+var GET_TIME_ZONE = /[A-Z]{3}(?![+\-])/;
+var DATE_FORMATS_SPLIT = /([^yMdHhmsazZE]*)(E+|y+|M+|d+|H+|h+|m+|s+|a|Z|z)(.*)/;
+var OPERA_TOSTRING_PATTERN = /^[\d].*Z$/;
 var NUMBER_STRING = /^\d+$/;
 
 
@@ -5350,35 +5509,57 @@ var NUMBER_STRING = /^\d+$/;
  *
  *   `format` string can be composed of the following elements:
  *
- *   * `'yyyy'`: 4 digit representation of year e.g. 2010
- *   * `'yy'`: 2 digit representation of year, padded (00-99)
- *   * `'MMMMM'`: Month in year (January‒December)
- *   * `'MMM'`: Month in year (Jan - Dec)
- *   * `'MM'`: Month in year, padded (01‒12)
- *   * `'M'`: Month in year (1‒12)
- *   * `'dd'`: Day in month, padded (01‒31)
+ *   * `'yyyy'`: 4 digit representation of year (e.g. AD 1 => 0001, AD 2010 => 2010)
+ *   * `'yy'`: 2 digit representation of year, padded (00-99). (e.g. AD 2001 => 01, AD 2010 => 10)
+ *   * `'y'`: 1 digit representation of year, e.g. (AD 1 => 1, AD 199 => 199)
+ *   * `'MMMM'`: Month in year (January-December)
+ *   * `'MMM'`: Month in year (Jan-Dec)
+ *   * `'MM'`: Month in year, padded (01-12)
+ *   * `'M'`: Month in year (1-12)
+ *   * `'dd'`: Day in month, padded (01-31)
  *   * `'d'`: Day in month (1-31)
- *   * `'EEEE'`: Day in Week,(Sunday‒Saturday)
+ *   * `'EEEE'`: Day in Week,(Sunday-Saturday)
  *   * `'EEE'`: Day in Week, (Sun-Sat)
- *   * `'HH'`: Hour in day, padded (00‒23)
+ *   * `'HH'`: Hour in day, padded (00-23)
  *   * `'H'`: Hour in day (0-23)
- *   * `'hh'`: Hour in am/pm, padded (01‒12)
+ *   * `'hh'`: Hour in am/pm, padded (01-12)
  *   * `'h'`: Hour in am/pm, (1-12)
- *   * `'mm'`: Minute in hour, padded (00‒59)
+ *   * `'mm'`: Minute in hour, padded (00-59)
  *   * `'m'`: Minute in hour (0-59)
- *   * `'ss'`: Second in minute, padded (00‒59)
- *   * `'s'`: Second in minute (0‒59)
+ *   * `'ss'`: Second in minute, padded (00-59)
+ *   * `'s'`: Second in minute (0-59)
  *   * `'a'`: am/pm marker
- *   * `'Z'`: 4 digit (+sign) representation of the timezone offset (-1200‒1200)
+ *   * `'Z'`: 4 digit (+sign) representation of the timezone offset (-1200-1200)
+ *   * `'z'`: short form of current timezone name (e.g. PDT)
+ *
+ *   `format` string can also be the following default formats for `en_US` locale (support for other
+ *    locales will be added in the future versions):
+ *
+ *   * `'long'`: equivalent to `'MMMM d, y h:mm:ss a z'` for en_US  locale
+ *     (e.g. September 3, 2010 12:05:08 pm PDT)
+ *   * `'medium'`: equivalent to `'MMM d, y h:mm:ss a'` for en_US locale
+ *     (e.g. Sep 3, 2010 12:05:08 pm)
+ *   * `'short'`: equivalent to `'M/d/yy h:mm a'` for en_US  locale (e.g. 9/3/10 12:05 pm)
+ *   * `'fullDate'`: equivalent to `'EEEE, MMMM d,y'` for en_US  locale
+ *     (e.g. Friday, September 3, 2010)
+ *   * `'longDate'`: equivalent to `'MMMM d, y'` for en_US  locale (e.g. September 3, 2010
+ *   * `'mediumDate'`: equivalent to `'MMM d, y'` for en_US  locale (e.g. Sep 3, 2010)
+ *   * `'shortDate'`: equivalent to `'M/d/yy'` for en_US locale (e.g. 9/3/10)
+ *   * `'longTime'`: equivalent to `'h:mm:ss a z'` for en_US locale (e.g. 12:05:08 pm PDT)
+ *   * `'mediumTime'`: equivalent to `'h:mm:ss a'` for en_US locale (e.g. 12:05:08 pm)
+ *   * `'shortTime'`: equivalent to `'h:mm a'` for en_US locale (e.g. 12:05 pm)
  *
  * @param {(Date|number|string)} date Date to format either as Date object, milliseconds (string or
  *    number) or ISO 8601 extended datetime string (yyyy-MM-ddTHH:mm:ss.SSSZ).
- * @param {string=} format Formatting rules. If not specified, Date#toLocaleDateString is used.
+ * @param {string=} format Formatting rules (see Description). If not specified,
+ *    Date#toLocaleDateString is used.
  * @returns {string} Formatted string or the input if input is not recognized as date/millis.
  *
  * @example
    <doc:example>
      <doc:source>
+       <span ng:non-bindable>{{1288323623006 | date:'medium'}}</span>:
+           {{1288323623006 | date:'medium'}}<br/>
        <span ng:non-bindable>{{1288323623006 | date:'yyyy-MM-dd HH:mm:ss Z'}}</span>:
           {{1288323623006 | date:'yyyy-MM-dd HH:mm:ss Z'}}<br/>
        <span ng:non-bindable>{{1288323623006 | date:'MM/dd/yyyy @ h:mma'}}</span>:
@@ -5386,6 +5567,8 @@ var NUMBER_STRING = /^\d+$/;
      </doc:source>
      <doc:scenario>
        it('should format date', function(){
+         expect(binding("1288323623006 | date:'medium'")).
+            toMatch(/Oct 2\d, 2010 \d{1,2}:\d{2}:\d{2} (am|pm)/);
          expect(binding("1288323623006 | date:'yyyy-MM-dd HH:mm:ss Z'")).
             toMatch(/2010\-10\-2\d \d{2}:\d{2}:\d{2} \-?\d{4}/);
          expect(binding("'1288323623006' | date:'MM/dd/yyyy @ h:mma'")).
@@ -5395,6 +5578,7 @@ var NUMBER_STRING = /^\d+$/;
    </doc:example>
  */
 angularFilter.date = function(date, format) {
+  format = DEFAULT_DATETIME_FORMATS[format] || format;
   if (isString(date)) {
     if (NUMBER_STRING.test(date)) {
       date = parseInt(date, 10);
@@ -5689,6 +5873,7 @@ angularFilter.linky = function(text){
   writer.chars(raw);
   return new HTML(html.join(''));
 };
+
 /**
  * @workInProgress
  * @ngdoc overview
@@ -5701,11 +5886,10 @@ angularFilter.linky = function(text){
  * Following is the list of built-in angular formatters:
  *
  * * {@link angular.formatter.boolean boolean} - Formats user input in boolean format
- * * {@link angular.formatter.index index} - Manages indexing into an HTML select widget
  * * {@link angular.formatter.json json} - Formats user input in JSON format
  * * {@link angular.formatter.list list} - Formats user input string as an array
- * * {@link angular.formatter.number} - Formats user input strings as a number
- * * {@link angular.formatter.trim} - Trims extras spaces from end of user input
+ * * {@link angular.formatter.number number} - Formats user input strings as a number
+ * * {@link angular.formatter.trim trim} - Trims extras spaces from end of user input
  *
  * For more information about how angular formatters work, and how to create your own formatters,
  * see {@link guide/dev_guide.templates.formatters Understanding Angular Formatters} in the angular
@@ -5890,6 +6074,7 @@ angularFormatter.list = formatter(
 angularFormatter.trim = formatter(
   function(obj) { return obj ? trim("" + obj) : ""; }
 );
+
 /**
  * @workInProgress
  * @ngdoc overview
@@ -6326,7 +6511,8 @@ extend(angularValidator, {
    *        response: server response,
    *        error: validation error
    *     },
-   *   current: 'current input'
+   *     current: 'current input'
+   *   }
    * }
    *
    */
@@ -6369,6 +6555,7 @@ extend(angularValidator, {
   }
 
 });
+
 /**
  * @workInProgress
  * @ngdoc service
@@ -6433,6 +6620,7 @@ angularServiceInject('$cookieStore', function($store) {
   };
 
 }, ['$cookies']);
+
 /**
  * @workInProgress
  * @ngdoc service
@@ -6525,6 +6713,7 @@ angularServiceInject('$cookies', function($browser) {
     }
   }
 }, ['$browser']);
+
 /**
  * @workInProgress
  * @ngdoc service
@@ -6556,6 +6745,7 @@ angularServiceInject('$defer', function($browser, $exceptionHandler, $updateView
     }, delay);
   };
 }, ['$browser', '$exceptionHandler', '$updateView']);
+
 /**
  * @workInProgress
  * @ngdoc service
@@ -6569,6 +6759,7 @@ angularServiceInject('$defer', function($browser, $exceptionHandler, $updateView
 angularServiceInject("$document", function(window){
   return jqLite(window.document);
 }, ['$window']);
+
 /**
  * @workInProgress
  * @ngdoc service
@@ -6591,6 +6782,7 @@ angularServiceInject('$exceptionHandler', $exceptionHandlerFactory = function($l
     $log.error(e);
   };
 }, ['$log']);
+
 /**
  * @workInProgress
  * @ngdoc service
@@ -6647,6 +6839,7 @@ angularServiceInject("$hover", function(browser, document) {
     }
   });
 }, ['$browser', '$document'], true);
+
 /**
  * @workInProgress
  * @ngdoc service
@@ -6714,6 +6907,7 @@ angularServiceInject("$invalidWidgets", function(){
 
   return invalidWidgets;
 });
+
 var URL_MATCH = /^(file|ftp|http|https):\/\/(\w+:{0,1}\w*@)?([\w\.-]*)(:([0-9]+))?(\/[^\?#]*)?(\?([^#]*))?(#(.*))?$/,
     HASH_MATCH = /^([^\?]*)?(\?([^\?]*))?$/,
     DEFAULT_PORTS = {'http': 80, 'https': 443, 'ftp':21};
@@ -7000,6 +7194,7 @@ angularServiceInject("$location", function($browser) {
     return h;
   }
 }, ['$browser']);
+
 /**
  * @workInProgress
  * @ngdoc service
@@ -7092,6 +7287,7 @@ angularServiceInject("$log", $logFactory = function($window){
     }
   }
 }, ['$window']);
+
 /**
  * @workInProgress
  * @ngdoc service
@@ -7174,9 +7370,9 @@ angularServiceInject("$log", $logFactory = function($window){
  *   The action methods on the class object or instance object can be invoked with the following
  *   parameters:
  *
- *   - HTTP GET "class" actions: `Resource.action([parameters], [callback])`
- *   - non-GET "class" actions: `Resource.action(postData, [parameters], [callback])`
- *   - non-GET instance actions:  `instance.$action([parameters], [callback])`
+ *   - HTTP GET "class" actions: `Resource.action([parameters], [success], [error])`
+ *   - non-GET "class" actions: `Resource.action(postData, [parameters], [success], [error])`
+ *   - non-GET instance actions:  `instance.$action([parameters], [success], [error])`
  *
  *
  * @example
@@ -7234,8 +7430,8 @@ angularServiceInject("$log", $logFactory = function($window){
      });
    </pre>
  *
- *     It's worth noting that the callback for `get`, `query` and other method gets passed in the
- *     response that came from the server, so one could rewrite the above example as:
+ *     It's worth noting that the success callback for `get`, `query` and other method gets passed
+ *     in the response that came from the server, so one could rewrite the above example as:
  *
    <pre>
      var User = $resource('/user/:userId', {userId:'@id'});
@@ -7296,6 +7492,7 @@ angularServiceInject('$resource', function($xhr){
   var resource = new ResourceFactory($xhr);
   return bind(resource, resource.route);
 }, ['$xhr.cache']);
+
 /**
  * @workInProgress
  * @ngdoc service
@@ -7320,13 +7517,16 @@ angularServiceInject('$resource', function($xhr){
     <doc:example>
       <doc:source>
         <script>
-          angular.service('myApp', function($route) {
-            $route.when('/Book/:bookId', {template:'rsrc/book.html', controller:BookCntl});
-            $route.when('/Book/:bookId/ch/:chapterId', {template:'rsrc/chapter.html', controller:ChapterCntl});
+          function MainCntl($route, $location) {
+            this.$route = $route;
+            this.$location = $location;
+
+            $route.when('/Book/:bookId', {template: 'examples/book.html', controller: BookCntl});
+            $route.when('/Book/:bookId/ch/:chapterId', {template: 'examples/chapter.html', controller: ChapterCntl});
             $route.onChange(function() {
               $route.current.scope.params = $route.current.params;
             });
-          }, {$inject: ['$route']});
+          }
 
           function BookCntl() {
             this.name = "BookCntl";
@@ -7337,18 +7537,19 @@ angularServiceInject('$resource', function($xhr){
           }
         </script>
 
-        Chose:
-        <a href="#/Book/Moby">Moby</a> |
-        <a href="#/Book/Moby/ch/1">Moby: Ch1</a> |
-        <a href="#/Book/Gatsby">Gatsby</a> |
-        <a href="#/Book/Gatsby/ch/4?key=value">Gatsby: Ch4</a><br/>
-        <input type="text" name="$location.hashPath" size="80" />
-        <pre>$location={{$location}}</pre>
-        <pre>$route.current.template={{$route.current.template}}</pre>
-        <pre>$route.current.params={{$route.current.params}}</pre>
-        <pre>$route.current.scope.name={{$route.current.scope.name}}</pre>
-        <hr/>
-        <ng:include src="$route.current.template" scope="$route.current.scope"/>
+        <div ng:controller="MainCntl">
+          Choose:
+          <a href="#/Book/Moby">Moby</a> |
+          <a href="#/Book/Moby/ch/1">Moby: Ch1</a> |
+          <a href="#/Book/Gatsby">Gatsby</a> |
+          <a href="#/Book/Gatsby/ch/4?key=value">Gatsby: Ch4</a><br/>
+          $location.hashPath: <input type="text" name="$location.hashPath" size="80" />
+          <pre>$route.current.template = {{$route.current.template}}</pre>
+          <pre>$route.current.params = {{$route.current.params}}</pre>
+          <pre>$route.current.scope.name = {{$route.current.scope.name}}</pre>
+          <hr />
+          <ng:view></ng:view>
+        </div>
       </doc:source>
       <doc:scenario>
       </doc:scenario>
@@ -7562,6 +7763,7 @@ angularServiceInject('$route', function(location, $updateView) {
 
   return $route;
 }, ['$location', '$updateView']);
+
 /**
  * @workInProgress
  * @ngdoc service
@@ -7621,6 +7823,7 @@ function serviceUpdateViewFactory($browser){
 serviceUpdateViewFactory.delay = 25;
 
 angularServiceInject('$updateView', serviceUpdateViewFactory, ['$browser']);
+
 /**
  * @workInProgress
  * @ngdoc service
@@ -7646,6 +7849,7 @@ angularServiceInject('$updateView', serviceUpdateViewFactory, ['$browser']);
    </doc:example>
  */
 angularServiceInject("$window", bind(window, identity, window));
+
 /**
  * @workInProgress
  * @ngdoc service
@@ -7661,9 +7865,10 @@ angularServiceInject("$window", bind(window, identity, window));
 angularServiceInject('$xhr.bulk', function($xhr, $error, $log){
   var requests = [],
       scope = this;
-  function bulkXHR(method, url, post, callback) {
+  function bulkXHR(method, url, post, success, error) {
     if (isFunction(post)) {
-      callback = post;
+      error = success;
+      success = post;
       post = null;
     }
     var currentQueue;
@@ -7674,32 +7879,55 @@ angularServiceInject('$xhr.bulk', function($xhr, $error, $log){
     });
     if (currentQueue) {
       if (!currentQueue.requests) currentQueue.requests = [];
-      currentQueue.requests.push({method: method, url: url, data:post, callback:callback});
+      var request = {
+          method: method,
+          url: url,
+          data: post,
+          success: success};
+      if (error) request.error = error;
+      currentQueue.requests.push(request);
     } else {
-      $xhr(method, url, post, callback);
+      $xhr(method, url, post, success, error);
     }
   }
   bulkXHR.urls = {};
-  bulkXHR.flush = function(callback){
-    forEach(bulkXHR.urls, function(queue, url){
+  bulkXHR.flush = function(success, error) {
+    forEach(bulkXHR.urls, function(queue, url) {
       var currentRequests = queue.requests;
       if (currentRequests && currentRequests.length) {
         queue.requests = [];
         queue.callbacks = [];
-        $xhr('POST', url, {requests:currentRequests}, function(code, response){
-          forEach(response, function(response, i){
-            try {
-              if (response.status == 200) {
-                (currentRequests[i].callback || noop)(response.status, response.response);
-              } else {
-                $error(currentRequests[i], response);
+        $xhr('POST', url, {requests: currentRequests},
+          function(code, response) {
+            forEach(response, function(response, i) {
+              try {
+                if (response.status == 200) {
+                  (currentRequests[i].success || noop)(response.status, response.response);
+                } else if (isFunction(currentRequests[i].error)) {
+                    currentRequests[i].error(response.status, response.response);
+                } else {
+                  $error(currentRequests[i], response);
+                }
+              } catch(e) {
+                $log.error(e);
               }
-            } catch(e) {
-              $log.error(e);
-            }
+            });
+            (success || noop)();
+          },
+          function(code, response) {
+            forEach(currentRequests, function(request, i) {
+              try {
+                if (isFunction(request.error)) {
+                  request.error(code, response);
+                } else {
+                  $error(request, response);
+                }
+              } catch(e) {
+                $log.error(e);
+              }
+            });
+            (error || noop)();
           });
-          (callback || noop)();
-        });
         scope.$eval();
       }
     });
@@ -7707,12 +7935,17 @@ angularServiceInject('$xhr.bulk', function($xhr, $error, $log){
   this.$onEval(PRIORITY_LAST, bulkXHR.flush);
   return bulkXHR;
 }, ['$xhr', '$xhr.error', '$log']);
+
 /**
  * @workInProgress
  * @ngdoc service
  * @name angular.service.$xhr.cache
  * @function
- * @requires $xhr
+ *
+ * @requires $xhr.bulk
+ * @requires $defer
+ * @requires $xhr.error
+ * @requires $log
  *
  * @description
  * Acts just like the {@link angular.service.$xhr $xhr} service but caches responses for `GET`
@@ -7725,27 +7958,42 @@ angularServiceInject('$xhr.bulk', function($xhr, $error, $log){
  * @param {string} method HTTP method.
  * @param {string} url Destination URL.
  * @param {(string|Object)=} post Request body.
- * @param {function(number, (string|Object))} callback Response callback.
+ * @param {function(number, (string|Object))} success Response success callback.
+ * @param {function(number, (string|Object))=} error Response error callback.
  * @param {boolean=} [verifyCache=false] If `true` then a result is immediately returned from cache
  *   (if present) while a request is sent to the server for a fresh response that will update the
- *   cached entry. The `callback` function will be called when the response is received.
- * @param {boolean=} [sync=false] in case of cache hit execute `callback` synchronously.
+ *   cached entry. The `success` function will be called when the response is received.
+ * @param {boolean=} [sync=false] in case of cache hit execute `success` synchronously.
  */
-angularServiceInject('$xhr.cache', function($xhr, $defer, $log){
+angularServiceInject('$xhr.cache', function($xhr, $defer, $error, $log) {
   var inflight = {}, self = this;
-  function cache(method, url, post, callback, verifyCache, sync){
+  function cache(method, url, post, success, error, verifyCache, sync) {
     if (isFunction(post)) {
-      callback = post;
+      if (!isFunction(success)) {
+        verifyCache = success;
+        sync = error;
+        error = null;
+      } else {
+        sync = verifyCache;
+        verifyCache = error;
+        error = success;
+      }
+      success = post;
       post = null;
+    } else if (!isFunction(error)) {
+      sync = verifyCache;
+      verifyCache = error;
+      error = null;
     }
+
     if (method == 'GET') {
       var data, dataCached;
       if (dataCached = cache.data[url]) {
 
         if (sync) {
-          callback(200, copy(dataCached.value));
+          success(200, copy(dataCached.value));
         } else {
-          $defer(function() { callback(200, copy(dataCached.value)); });
+          $defer(function() { success(200, copy(dataCached.value)); });
         }
 
         if (!verifyCache)
@@ -7753,33 +8001,55 @@ angularServiceInject('$xhr.cache', function($xhr, $defer, $log){
       }
 
       if (data = inflight[url]) {
-        data.callbacks.push(callback);
+        data.successes.push(success);
+        data.errors.push(error);
       } else {
-        inflight[url] = {callbacks: [callback]};
-        cache.delegate(method, url, post, function(status, response){
-          if (status == 200)
-            cache.data[url] = { value: response };
-          var callbacks = inflight[url].callbacks;
-          delete inflight[url];
-          forEach(callbacks, function(callback){
-            try {
-              (callback||noop)(status, copy(response));
-            } catch(e) {
-              $log.error(e);
-            }
+        inflight[url] = {successes: [success], errors: [error]};
+        cache.delegate(method, url, post,
+          function(status, response) {
+            if (status == 200)
+              cache.data[url] = {value: response};
+            var successes = inflight[url].successes;
+            delete inflight[url];
+            forEach(successes, function(success) {
+              try {
+                (success||noop)(status, copy(response));
+              } catch(e) {
+                $log.error(e);
+              }
+            });
+          },
+          function(status, response) {
+            var errors = inflight[url].errors,
+                successes = inflight[url].successes;
+            delete inflight[url];
+
+            forEach(errors, function(error, i) {
+              try {
+                if (isFunction(error)) {
+                  error(status, copy(response));
+                } else {
+                  $error(
+                    {method: method, url: url, data: post, success: successes[i]},
+                    {status: status, body: response});
+                }
+              } catch(e) {
+                $log.error(e);
+              }
+            });
           });
-        });
       }
 
     } else {
       cache.data = {};
-      cache.delegate(method, url, post, callback);
+      cache.delegate(method, url, post, success, error);
     }
   }
   cache.data = {};
   cache.delegate = $xhr;
   return cache;
-}, ['$xhr.bulk', '$defer', '$log']);
+}, ['$xhr.bulk', '$defer', '$xhr.error', '$log']);
+
 /**
  * @workInProgress
  * @ngdoc service
@@ -7821,6 +8091,7 @@ angularServiceInject('$xhr.error', function($log){
     $log.error('ERROR: XHR: ' + request.url, request, response);
   };
 }, ['$log']);
+
 /**
  * @workInProgress
  * @ngdoc service
@@ -7842,10 +8113,10 @@ angularServiceInject('$xhr.error', function($log){
  * {@link angular.service.$resource $resource} service.
  *
  * # Error handling
- * All XHR responses with response codes other then `2xx` are delegated to
- * {@link angular.service.$xhr.error $xhr.error}. The `$xhr.error` can intercept the request
- * and process it in application specific way, or resume normal execution by calling the
- * request callback method.
+ * If no `error callback` is specified, XHR response with response code other then `2xx` will be
+ * delegated to {@link angular.service.$xhr.error $xhr.error}. The `$xhr.error` can intercept the
+ * request and process it in application specific way, or resume normal execution by calling the
+ * request `success` method.
  *
  * # HTTP Headers
  * The $xhr service will automatically add certain http headers to all requests. These defaults can
@@ -7917,14 +8188,16 @@ angularServiceInject('$xhr.error', function($log){
  *   angular generated callback function.
  * @param {(string|Object)=} post Request content as either a string or an object to be stringified
  *   as JSON before sent to the server.
- * @param {function(number, (string|Object))} callback A function to be called when the response is
- *   received. The callback will be called with:
+ * @param {function(number, (string|Object))} success A function to be called when the response is
+ *   received. The success function will be called with:
  *
  *   - {number} code [HTTP status code](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes) of
  *     the response. This will currently always be 200, since all non-200 responses are routed to
- *     {@link angular.service.$xhr.error} service.
+ *     {@link angular.service.$xhr.error} service (or custom error callback).
  *   - {string|Object} response Response object as string or an Object if the response was in JSON
  *     format.
+ * @param {function(number, (string|Object))} error A function to be called if the response code is
+ *   not 2xx.. Accepts the same arguments as success, above.
  *
  * @example
    <doc:example>
@@ -7979,9 +8252,10 @@ angularServiceInject('$xhr', function($browser, $error, $log, $updateView){
     patch: {}
   };
 
-  function xhr(method, url, post, callback){
+  function xhr(method, url, post, success, error) {
     if (isFunction(post)) {
-      callback = post;
+      error = success;
+      success = post;
       post = null;
     }
     if (post && isObject(post)) {
@@ -7997,11 +8271,13 @@ angularServiceInject('$xhr', function($browser, $error, $log, $updateView){
           }
         }
         if (200 <= code && code < 300) {
-          callback(code, response);
+          success(code, response);
+        } else if (isFunction(error)) {
+          error(code, response);
         } else {
           $error(
-            {method: method, url:url, data:post, callback:callback},
-            {status: code, body:response});
+            {method: method, url: url, data: post, success: success},
+            {status: code, body: response});
         }
       } catch (e) {
         $log.error(e);
@@ -8017,6 +8293,7 @@ angularServiceInject('$xhr', function($browser, $error, $log, $updateView){
 
   return xhr;
 }, ['$browser', '$xhr.error', '$log', '$updateView']);
+
 /**
  * @workInProgress
  * @ngdoc overview
@@ -8358,7 +8635,7 @@ function compileBindTemplate(template){
  * text should be replaced with the template in ng:bind-template.
  * Unlike ng:bind the ng:bind-template can contain multiple `{{` `}}`
  * expressions. (This is required since some HTML elements
- * can not have SPAN elements such as TITLE, or OPTION to name a few.
+ * can not have SPAN elements such as TITLE, or OPTION to name a few.)
  *
  * @element ANY
  * @param {string} template of form
@@ -8558,19 +8835,14 @@ angularDirective("ng:click", function(expression, element){
       <form ng:submit="list.push(text);text='';" ng:init="list=[]">
         Enter text and hit enter:
         <input type="text" name="text" value="hello"/>
+        <input type="submit" id="submit" value="Submit" />
       </form>
       <pre>list={{list}}</pre>
      </doc:source>
      <doc:scenario>
        it('should check ng:submit', function(){
          expect(binding('list')).toBe('list=[]');
-         element('.doc-example-live form input').click();
-         this.addFutureAction('submit from', function($window, $document, done) {
-           $window.angular.element(
-             $document.elements('.doc-example-live form')).
-               trigger('submit');
-           done();
-         });
+         element('.doc-example-live #submit').click();
          expect(binding('list')).toBe('list=["hello"]');
        });
      </doc:scenario>
@@ -8755,7 +9027,7 @@ angularDirective("ng:class-even", ngClass(function(i){return i % 2 === 1;}));
 angularDirective("ng:show", function(expression, element){
   return function(element){
     this.$onEval(function(){
-      element.css($display, toBoolean(this.$eval(expression)) ? '' : $none);
+      toBoolean(this.$eval(expression)) ? element.show() : element.hide();
     }, element);
   };
 });
@@ -8796,7 +9068,7 @@ angularDirective("ng:show", function(expression, element){
 angularDirective("ng:hide", function(expression, element){
   return function(element){
     this.$onEval(function(){
-      element.css($display, toBoolean(this.$eval(expression)) ? $none : '');
+      toBoolean(this.$eval(expression)) ? element.hide() : element.show();
     }, element);
   };
 });
@@ -9172,7 +9444,7 @@ angularTextMarkup('option', function(text, textNode, parentElement){
          <select id="select" ng:multiple="{{checked}}">
            <option>Misko</option>
            <option>Igor</option>
-           <option>Vojita</option>
+           <option>Vojta</option>
            <option>Di</option>
          </select>
        </doc:source>
@@ -9271,14 +9543,18 @@ angularAttrMarkup('{{}}', function(value, name, element){
     element.attr(NG_BIND_ATTR, toJson(bindAttr));
   }
 });
+
 /**
  * @workInProgress
  * @ngdoc overview
  * @name angular.widget
  * @description
  *
- * Widgets are custom DOM elements.  An angular widget can be either a custom
- * attribute that modifies an existing DOM elements or an entirely new DOM element.
+ * An angular widget can be either a custom attribute that modifies an existing DOM elements or an
+ * entirely new DOM element.
+ *
+ * During html compilation, widgets are processed after {@link angular.markup markup}, but before
+ * {@link angular.directive directives}.
  *
  * Following is the list of built-in angular widgets:
  *
@@ -9289,7 +9565,8 @@ angularAttrMarkup('{{}}', function(value, name, element){
  *   elements.
  * * {@link angular.widget.@ng:required ng:required} - Verifies presence of user input.
  * * {@link angular.widget.@ng:validate ng:validate} - Validates content of user input.
- * * {@link angular.widget.HTML HTML} - Standard HTML processed by angular.
+ * * {@link angular.widget.HTML HTML input elements} - Standard HTML input elements data-bound by
+ *   angular.
  * * {@link angular.widget.ng:view ng:view} - Works with $route to "include" partial templates
  * * {@link angular.widget.ng:switch ng:switch} - Conditionally changes DOM structure
  * * {@link angular.widget.ng:include ng:include} - Includes an external HTML fragment
@@ -9842,11 +10119,12 @@ angularWidget('button', inputWidgetSelector);
  * @name angular.directive.ng:options
  *
  * @description
- * Dynamically generate a list of `<option>` elements for a `<select>` element using the array
- * obtained by evaluating the `ng:options` expression.
+ * Dynamically generate a list of `<option>` elements for a `<select>` element using an array or
+ * an object obtained by evaluating the `ng:options` expression.
  *
- * When an item in the select menu is select, the array element represented by the selected option
- * will be bound to the model identified by the `name` attribute of the parent select element.
+ * When an item in the select menu is select, the value of array element or object property
+ * represented by the selected option will be bound to the model identified by the `name` attribute
+ * of the parent select element.
  *
  * Optionally, a single hard-coded `<option>` element, with the value set to an empty string, can
  * be nested into the `<select>` element. This element will then represent `null` or "not selected"
@@ -9864,12 +10142,32 @@ angularWidget('button', inputWidgetSelector);
  *   * binding to a value not in list confuses most browsers.
  *
  * @element select
- * @param {comprehension_expression} comprehension _expresion_ `for` _item_ `in` _array_.
+ * @param {comprehension_expression} comprehension in one of the following forms:
  *
- *   * _array_: an expression which evaluates to an array of objects to bind.
- *   * _item_: local variable which will reffer to the item in the _array_ during the itteration
- *   * _expression_: The result of this expression will is `option` label. The
- *        `expression` most likely reffers to the _item_ varibale.
+ *   * for array data sources:
+ *     * `label` **`for`** `value` **`in`** `array`
+ *     * `select` **`as`** `label` **`for`** `value` **`in`** `array`
+ *     * `label`  **`group by`** `group` **`for`** `value` **`in`** `array`
+ *     * `select` **`as`** `label` **`group by`** `group` **`for`** `value` **`in`** `array`
+ *   * for object data sources:
+ *     * `label` **`for (`**`key` **`,`** `value`**`) in`** `object`
+ *     * `select` **`as`** `label` **`for (`**`key` **`,`** `value`**`) in`** `object`
+ *     * `label` **`group by`** `group` **`for (`**`key`**`,`** `value`**`) in`** `object`
+ *     * `select` **`as`** `label` **`group by`** `group`
+ *         **`for` `(`**`key`**`,`** `value`**`) in`** `object`
+ *
+ * Where:
+ *
+ *   * `array` / `object`: an expression which evaluates to an array / object to iterate over.
+ *   * `value`: local variable which will refer to each item in the `array` or each property value
+ *      of `object` during iteration.
+ *   * `key`: local variable which will refer to a property name in `object` during iteration.
+ *   * `label`: The result of this expression will be the label for `<option>` element. The
+ *     `expression` will most likely refer to the `value` variable (e.g. `value.propertyName`).
+ *   * `select`: The result of this expression will be bound to the model of the parent `<select>`
+ *      element. If not specified, `select` expression will default to `value`.
+ *   * `group`: The result of this expression will be used to group options using the `<optgroup>`
+ *      DOM element.
  *
  * @example
     <doc:example>
@@ -9877,11 +10175,11 @@ angularWidget('button', inputWidgetSelector);
         <script>
         function MyCntrl(){
           this.colors = [
-            {name:'black'},
-            {name:'white'},
-            {name:'red'},
-            {name:'blue'},
-            {name:'green'}
+            {name:'black', shade:'dark'},
+            {name:'white', shade:'light'},
+            {name:'red', shade:'dark'},
+            {name:'blue', shade:'dark'},
+            {name:'yellow', shade:'light'}
           ];
           this.color = this.colors[2]; // red
         }
@@ -9889,7 +10187,8 @@ angularWidget('button', inputWidgetSelector);
         <div ng:controller="MyCntrl">
           <ul>
             <li ng:repeat="color in colors">
-              Name: <input name="color.name"/> [<a href ng:click="colors.$remove(color)">X</a>]
+              Name: <input name="color.name">
+              [<a href ng:click="colors.$remove(color)">X</a>]
             </li>
             <li>
               [<a href ng:click="colors.push({})">add</a>]
@@ -9897,19 +10196,25 @@ angularWidget('button', inputWidgetSelector);
           </ul>
           <hr/>
           Color (null not allowed):
-          <select name="color" ng:options="c.name for c in colors"></select><br/>
+          <select name="color" ng:options="c.name for c in colors"></select><br>
 
           Color (null allowed):
-          <select name="color" ng:options="c.name for c in colors">
-            <option value="">-- chose color --</option>
+          <div  class="nullable">
+            <select name="color" ng:options="c.name for c in colors">
+              <option value="">-- chose color --</option>
+            </select>
+          </div><br/>
+
+          Color grouped by shade:
+          <select name="color" ng:options="c.name group by c.shade for c in colors">
           </select><br/>
 
-          Select <a href ng:click="color={name:'not in list'}">bogus</a>. <br/>
+
+          Select <a href ng:click="color={name:'not in list'}">bogus</a>.<br>
           <hr/>
           Currently selected: {{ {selected_color:color}  }}
-          <div style="border:solid 1px black;"
+          <div style="border:solid 1px black; height:20px"
                ng:style="{'background-color':color.name}">
-             &nbsp;
           </div>
         </div>
       </doc:source>
@@ -9918,160 +10223,267 @@ angularWidget('button', inputWidgetSelector);
            expect(binding('color')).toMatch('red');
            select('color').option('0');
            expect(binding('color')).toMatch('black');
-           select('color').option('');
+           using('.nullable').select('color').option('');
            expect(binding('color')).toMatch('null');
          });
       </doc:scenario>
     </doc:example>
  */
-
-var NG_OPTIONS_REGEXP = /^(.*)\s+for\s+([\$\w][\$\w\d]*)\s+in\s+(.*)$/;
+//                       00001111100000000000222200000000000000000000003333000000000000044444444444444444000000000555555555555555550000000666666666666666660000000000000007777
+var NG_OPTIONS_REGEXP = /^\s*(.*?)(?:\s+as\s+(.*?))?(?:\s+group\s+by\s+(.*))?\s+for\s+(?:([\$\w][\$\w\d]*)|(?:\(\s*([\$\w][\$\w\d]*)\s*,\s*([\$\w][\$\w\d]*)\s*\)))\s+in\s+(.*)$/;
 angularWidget('select', function(element){
   this.descend(true);
   this.directives(true);
-  var isMultiselect = element.attr('multiple');
-  var expression = element.attr('ng:options');
-  var match;
+
+  var isMultiselect = element.attr('multiple'),
+      expression = element.attr('ng:options'),
+      onChange = expressionCompile(element.attr('ng:change') || "").fnSelf,
+      match;
+
   if (!expression) {
     return inputWidgetSelector.call(this, element);
   }
   if (! (match = expression.match(NG_OPTIONS_REGEXP))) {
     throw Error(
-        "Expected ng:options in form of '_expresion_ for _item_ in _collection_' but got '" +
-        expression + "'.");
+      "Expected ng:options in form of '_select_ (as _label_)? for (_key_,)?_value_ in _collection_'" +
+      " but got '" + expression + "'.");
   }
-  var displayFn = expressionCompile(match[1]).fnSelf;
-  var itemName = match[2];
-  var collectionFn = expressionCompile(match[3]).fnSelf;
-  // we can't just jqLite('<option>') since jqLite is not smart enough
-  // to create it in <select> and IE barfs otherwise.
-  var option = jqLite(document.createElement('option'));
-  return function(select){
-    var scope = this;
-    var optionElements = [];
-    var optionTexts = [];
-    var lastSelectValue = isMultiselect ? {} : false;
-    var nullOption = option.clone().val('');
-    var missingOption = option.clone().val('?');
-    var model = modelAccessor(scope, element);
+
+  var displayFn = expressionCompile(match[2] || match[1]).fnSelf,
+      valueName = match[4] || match[6],
+      keyName = match[5],
+      groupByFn = expressionCompile(match[3] || '').fnSelf,
+      valueFn = expressionCompile(match[2] ? match[1] : valueName).fnSelf,
+      valuesFn = expressionCompile(match[7]).fnSelf,
+      // we can't just jqLite('<option>') since jqLite is not smart enough
+      // to create it in <select> and IE barfs otherwise.
+      optionTemplate = jqLite(document.createElement('option')),
+      optGroupTemplate = jqLite(document.createElement('optgroup')),
+      nullOption = false; // if false then user will not be able to select it
+
+  return function(selectElement){
+
+    // This is an array of array of existing option groups in DOM. We try to reuse these if possible
+    // optionGroupsCache[0] is the options with no option group
+    // optionGroupsCache[?][0] is the parent: either the SELECT or OPTGROUP element
+    var optionGroupsCache = [[{element: selectElement, label:''}]],
+        scope = this,
+        model = modelAccessor(scope, element);
 
     // find existing special options
-    forEach(select.children(), function(option){
-      if (option.value == '') nullOption = false;
+    forEach(selectElement.children(), function(option){
+      if (option.value == '')
+        // User is allowed to select the null.
+        nullOption = {label:jqLite(option).text(), id:''};
     });
+    selectElement.html(''); // clear contents
 
-    select.bind('change', function(){
-      var collection = collectionFn(scope) || [];
-      var value = select.val();
-      var index, length;
-      if (isMultiselect) {
-        value = [];
-        for (index = 0, length = optionElements.length; index < length; index++) {
-          if (optionElements[index][0].selected) {
-            value.push(collection[index]);
+    selectElement.bind('change', function(){
+      var optionGroup,
+          collection = valuesFn(scope) || [],
+          key = selectElement.val(),
+          tempScope = scope.$new(),
+          value, optionElement, index, groupIndex, length, groupLength;
+
+      try {
+        if (isMultiselect) {
+          value = [];
+          for (groupIndex = 0, groupLength = optionGroupsCache.length;
+               groupIndex < groupLength;
+               groupIndex++) {
+            // list of options for that group. (first item has the parent)
+            optionGroup = optionGroupsCache[groupIndex];
+
+            for(index = 1, length = optionGroup.length; index < length; index++) {
+              if ((optionElement = optionGroup[index].element)[0].selected) {
+                if (keyName) tempScope[keyName] = key;
+                tempScope[valueName] = collection[optionElement.val()];
+                value.push(valueFn(tempScope));
+              }
+            }
+          }
+        } else {
+          if (key == '?') {
+            value = undefined;
+          } else if (key == ''){
+            value = null;
+          } else {
+            tempScope[valueName] = collection[key];
+            if (keyName) tempScope[keyName] = key;
+            value = valueFn(tempScope);
           }
         }
-      } else {
-        if (value == '?') {
-          value = undefined;
-        } else {
-          value = (value == '' ? null : collection[value]);
+        if (isDefined(value) && model.get() !== value) {
+          onChange(scope);
+          model.set(value);
         }
+        scope.$tryEval(function(){
+          scope.$root.$eval();
+        });
+      } finally {
+        tempScope = null; // TODO(misko): needs to be $destroy
       }
-      if (!isUndefined(value)) model.set(value);
-      scope.$tryEval(function(){
-        scope.$root.$eval();
-      });
     });
 
     scope.$onEval(function(){
-      var scope = this;
-      var collection = collectionFn(scope) || [];
-      var value;
-      var length;
-      var fragment;
-      var index;
-      var optionText;
-      var optionElement;
-      var optionScope = scope.$new();
-      var modelValue = model.get();
-      var currentItem;
-      var selectValue = '';
-      var isMulti = isMultiselect;
+      var scope = this,
+          optionGroups = {'':[]}, // Temporary location for the option groups before we render them
+          optionGroupNames = [''],
+          optionGroupName,
+          optionGroup,
+          option,
+          existingParent, existingOptions, existingOption,
+          values = valuesFn(scope) || [],
+          keys = values,
+          key,
+          groupLength, length,
+          fragment,
+          groupIndex, index,
+          optionElement,
+          optionScope = scope.$new(),
+          modelValue = model.get(),
+          selected,
+          selectedSet = false, // nothing is selected yet
+          isMulti = isMultiselect,
+          lastElement,
+          element;
 
-      if (isMulti) {
-        selectValue = new HashMap();
-        if (modelValue && isNumber(length = modelValue.length)) {
-          for (index = 0; index < length; index++) {
-            selectValue.put(modelValue[index], true);
-          }
-        }
-      }
       try {
-        for (index = 0, length = collection.length; index < length; index++) {
-          currentItem = optionScope[itemName] = collection[index];
-          optionText = displayFn(optionScope);
-          if (optionTexts.length > index) {
-            // reuse
-            optionElement = optionElements[index];
-            if (optionText != optionTexts[index]) {
-              (optionElement).text(optionTexts[index] = optionText);
+        if (isMulti) {
+          selectedSet = new HashMap();
+          if (modelValue && isNumber(length = modelValue.length)) {
+            for (index = 0; index < length; index++) {
+              selectedSet.put(modelValue[index], true);
             }
-          } else {
-            // grow
-            if (!fragment) {
-              fragment = document.createDocumentFragment();
-            }
-            optionTexts.push(optionText);
-            optionElements.push(optionElement = option.clone());
-            optionElement.attr('value', index).text(optionText);
-            fragment.appendChild(optionElement[0]);
+          }
+        } else if (modelValue === null || nullOption) {
+          // if we are not multiselect, and we are null then we have to add the nullOption
+          optionGroups[''].push(extend({selected:modelValue === null, id:'', label:''}, nullOption));
+          selectedSet = true;
+        }
+
+        // If we have a keyName then we are iterating over on object. Grab the keys and sort them.
+        if(keyName) {
+          keys = [];
+          for (key in values) {
+            if (values.hasOwnProperty(key))
+              keys.push(key);
+          }
+          keys.sort();
+        }
+
+        // We now build up the list of options we need (we merge later)
+        for (index = 0; length = keys.length, index < length; index++) {
+          optionScope[valueName] = values[keyName ? optionScope[keyName]=keys[index]:index];
+          optionGroupName = groupByFn(optionScope) || '';
+          if (!(optionGroup = optionGroups[optionGroupName])) {
+            optionGroup = optionGroups[optionGroupName] = [];
+            optionGroupNames.push(optionGroupName);
           }
           if (isMulti) {
-            if (lastSelectValue[index] != (value = selectValue.remove(currentItem))) {
-              optionElement[0].selected = !!(lastSelectValue[index] = value);
-            }
+            selected = !!selectedSet.remove(valueFn(optionScope));
           } else {
-            if (modelValue == currentItem) {
-              selectValue = index;
-            }
+            selected = modelValue === valueFn(optionScope);
+            selectedSet = selectedSet || selected; // see if at least one item is selected
           }
+          optionGroup.push({
+              id: keyName ? keys[index] : index,   // either the index into array or key from object
+              label: displayFn(optionScope) || '', // what will be seen by the user
+              selected: selected                   // determine if we should be selected
+            });
         }
-        if (fragment) select.append(jqLite(fragment));
-        // shrink children
-        while(optionElements.length > index) {
-          optionElements.pop().remove();
-          delete lastSelectValue[optionElements.length];
-        }
-
-        if (!isMulti) {
-          if (selectValue === '' && modelValue) {
-            // We could not find a match
-            selectValue = '?';
-          }
-
-          // update the selected item
-          if (lastSelectValue !== selectValue) {
-            if (nullOption) {
-              if (lastSelectValue == '') nullOption.remove();
-              if (selectValue === '') select.prepend(nullOption);
-            }
-
-            if (missingOption) {
-              if (lastSelectValue == '?') missingOption.remove();
-              if (selectValue === '?') select.prepend(missingOption);
-            }
-
-            select.val(lastSelectValue = selectValue);
-          }
+        optionGroupNames.sort();
+        if (!isMulti && !selectedSet) {
+          // nothing was selected, we have to insert the undefined item
+          optionGroups[''].unshift({id:'?', label:'', selected:true});
         }
 
+        // Now we need to update the list of DOM nodes to match the optionGroups we computed above
+        for (groupIndex = 0, groupLength = optionGroupNames.length;
+             groupIndex < groupLength;
+             groupIndex++) {
+          // current option group name or '' if no group
+          optionGroupName = optionGroupNames[groupIndex];
+
+          // list of options for that group. (first item has the parent)
+          optionGroup = optionGroups[optionGroupName];
+
+          if (optionGroupsCache.length <= groupIndex) {
+            // we need to grow the optionGroups
+            optionGroupsCache.push(
+                existingOptions = [
+                  existingParent = {
+                      element: optGroupTemplate.clone().attr('label', optionGroupName),
+                      label: optionGroup.label
+                    }
+                ]
+            );
+            selectElement.append(existingParent.element);
+          } else {
+            existingOptions = optionGroupsCache[groupIndex];
+            existingParent = existingOptions[0];  // either SELECT (no group) or OPTGROUP element
+
+            // update the OPTGROUP label if not the same.
+            if (existingParent.label != optionGroupName) {
+              existingParent.element.attr('label', existingParent.label = optionGroupName);
+            }
+          }
+
+          lastElement = null;  // start at the begining
+          for(index = 0, length = optionGroup.length; index < length; index++) {
+            option = optionGroup[index];
+            if (existingOption = existingOptions[index+1]) {
+              // reuse elements
+              lastElement = existingOption.element;
+              if (existingOption.label !== option.label) {
+                lastElement.text(existingOption.label = option.label);
+              }
+              if (existingOption.id !== option.id) {
+                lastElement.val(existingOption.id = option.id);
+              }
+              if (existingOption.selected !== option.selected) {
+                lastElement.attr('selected', option.selected);
+              }
+            } else {
+              // grow elements
+              // jQuery(v1.4.2) Bug: We should be able to chain the method calls, but
+              // in this version of jQuery on some browser the .text() returns a string
+              // rather then the element.
+              (element = optionTemplate.clone())
+                .val(option.id)
+                .attr('selected', option.selected)
+                .text(option.label);
+              existingOptions.push(existingOption = {
+                element: element,
+                label: option.label,
+                id: option.id,
+                checked: option.selected
+              });
+              if (lastElement) {
+                lastElement.after(element);
+              } else {
+                existingParent.element.append(element);
+              }
+              lastElement = element;
+            }
+          }
+          // remove any excessive OPTIONs in a group
+          index++; // increment since the existingOptions[0] is parent element not OPTION
+          while(existingOptions.length > index) {
+            existingOptions.pop().element.remove();
+          }
+        }
+        // remove any excessive OPTGROUPs from select
+        while(optionGroupsCache.length > groupIndex) {
+          optionGroupsCache.pop()[0].element.remove();
+        }
       } finally {
-        optionScope = null;
+        optionScope = null; // TODO(misko): needs to be $destroy()
       }
     });
   };
 });
+
 
 /**
  * @workInProgress
@@ -10079,12 +10491,13 @@ angularWidget('select', function(element){
  * @name angular.widget.ng:include
  *
  * @description
- * Include external HTML fragment.
+ * Fetches, compiles and includes an external HTML fragment.
  *
  * Keep in mind that Same Origin Policy applies to included resources
  * (e.g. ng:include won't work for file:// access).
  *
- * @param {string} src expression evaluating to URL.
+ * @param {string} src angular expression evaluating to URL. If the source is a string constant,
+ *                 make sure you wrap it in quotes, e.g. `src="'myPartialTemplate.html'"`.
  * @param {Scope=} [scope=new_child_scope] optional expression which evaluates to an
  *                 instance of angular.scope to set the HTML fragment to.
  * @param {string=} onload Expression to evaluate when a new partial is loaded.
@@ -10093,21 +10506,23 @@ angularWidget('select', function(element){
     <doc:example>
       <doc:source>
        <select name="url">
-        <option value="api/angular.filter.date.html">date filter</option>
-        <option value="api/angular.filter.html.html">html filter</option>
+        <option value="examples/ng-include/template1.html">template1.html</option>
+        <option value="examples/ng-include/template2.html">template2.html</option>
         <option value="">(blank)</option>
        </select>
-       <tt>url = <a href="{{url}}">{{url}}</a></tt>
+       url of the template: <tt><a href="{{url}}">{{url}}</a></tt>
        <hr/>
        <ng:include src="url"></ng:include>
       </doc:source>
       <doc:scenario>
-        it('should load date filter', function(){
-         expect(element('.doc-example-live ng\\:include').text()).toMatch(/angular\.filter\.date/);
+        it('should load template1.html', function(){
+         expect(element('.doc-example-live ng\\:include').text()).
+           toBe('Content of template1.html\n');
         });
-        it('should change to html filter', function(){
-         select('url').option('api/angular.filter.html.html');
-         expect(element('.doc-example-live ng\\:include').text()).toMatch(/angular\.filter\.html/);
+        it('should load template2.html', function(){
+         select('url').option('examples/ng-include/template2.html');
+         expect(element('.doc-example-live ng\\:include').text()).
+           toBe('Content of template2.html\n');
         });
         it('should change to blank', function(){
          select('url').option('');
@@ -10526,9 +10941,12 @@ angularWidget("@ng:non-bindable", noop);
       <doc:source>
          <script>
            function MyCtrl($route) {
-             $route.when('/overview', {controller: OverviewCtrl, template: 'guide.overview.html'});
-             $route.when('/bootstrap', {controller: BootstrapCtrl, template: 'guide.bootstrap.html'});
-             console.log(window.$route = $route);
+             $route.when('/overview',
+               { controller: OverviewCtrl,
+                 template: 'guide/dev_guide.overview.html'});
+             $route.when('/bootstrap',
+               { controller: BootstrapCtrl,
+                 template: 'guide/dev_guide.bootstrap.auto_bootstrap.html'});
            };
            MyCtrl.$inject = ['$route'];
 
@@ -10536,13 +10954,25 @@ angularWidget("@ng:non-bindable", noop);
            function OverviewCtrl(){}
          </script>
          <div ng:controller="MyCtrl">
-           <a href="#/overview">overview</a> | <a href="#/bootstrap">bootstrap</a> | <a href="#/undefined">undefined</a><br/>
+           <a href="#/overview">overview</a> |
+           <a href="#/bootstrap">bootstrap</a> |
+           <a href="#/undefined">undefined</a>
+
+           <br/>
+
            The view is included below:
            <hr/>
            <ng:view></ng:view>
          </div>
       </doc:source>
       <doc:scenario>
+        it('should load templates', function(){
+          element('.doc-example-live a:contains(overview)').click();
+          expect(element('.doc-example-live ng\\:view').text()).toMatch(/Developer Guide: Overview/);
+
+          element('.doc-example-live a:contains(bootstrap)').click();
+          expect(element('.doc-example-live ng\\:view').text()).toMatch(/Developer Guide: Initializing Angular: Automatic Initiialization/);
+        });
       </doc:scenario>
     </doc:example>
  */
@@ -10588,6 +11018,7 @@ angularWidget('ng:view', function(element) {
     this.directives(true);
   }
 });
+
 var browserSingleton;
 /**
  * @workInProgress
@@ -10606,6 +11037,7 @@ angularService('$browser', function($log){
   }
   return browserSingleton;
 }, {$inject:['$log']});
+
 
 extend(angular, {
   // disabled for now until we agree on public name
@@ -10629,7 +11061,8 @@ extend(angular, {
   'isFunction': isFunction,
   'isObject': isObject,
   'isNumber': isNumber,
-  'isArray': isArray
+  'isArray': isArray,
+  'version': version
 });
 
 //try to bind to jquery now so that one can write angular.element().read()

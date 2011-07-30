@@ -1,25 +1,9 @@
+'use strict';
+
 /**
- * The MIT License
- *
- * Copyright (c) 2010 Adam Abrons and Misko Hevery http://getangular.com
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * @license AngularJS v"NG_VERSION_FULL"
+ * (c) 2010-2011 AngularJS http://angularjs.org
+ * License: MIT
  */
 
 
@@ -69,8 +53,8 @@
  * Built-in mocks:
  *
  * * {@link angular.mock.service.$browser $browser } - A mock implementation of the browser.
- * * {@link angular.mock.service.$exceptionHandler $exceptionHandler } - A mock implementation of the
- * angular service exception handler.
+ * * {@link angular.mock.service.$exceptionHandler $exceptionHandler } - A mock implementation of
+ *   the angular service exception handler.
  * * {@link angular.mock.service.$log $log } - A mock implementation of the angular service log.
  */
 angular.mock = {};
@@ -80,6 +64,24 @@ angular.mock = {};
  * @workInProgress
  * @ngdoc service
  * @name angular.mock.service.$browser
+ *
+ * @description
+ * This service is a mock implementation of {@link angular.service.$browser}. It provides fake
+ * implementation for commonly used browser apis that are hard to test, e.g. setTimeout, xhr,
+ * cookies.
+ *
+ * This implementation is automatically available and replaces regular `$browser` service in tests
+ * when `angular-mocks.js` is loaded.
+ *
+ * The api of this service is the same as the real {@link angular.service.$browser $browser}, except
+ * that there are several helper methods available which can be used in tests.
+ *
+ * The following apis can be used in tests:
+ *
+ * - {@link angular.mock.service.$browser.xhr $browser.xhr} — enables testing of code that uses
+ *   the {@link angular.service.$xhr $xhr service} to make XmlHttpRequests.
+ * - $browser.defer — enables testing of code that uses
+ *   {@link angular.service.$defer $defer service} for executing functions via the `setTimeout` api.
  */
 function MockBrowser() {
   var self = this,
@@ -108,6 +110,33 @@ function MockBrowser() {
   };
 
 
+  /**
+    * @ngdoc function
+    * @name angular.mock.service.$browser.xhr
+    *
+    * @description
+    * Generic method for training browser to expect a request in a test and respond to it.
+    *
+    * See also convenience methods for browser training:
+    *
+    * - {@link angular.mock.service.$browser.xhr.expectGET $browser.xhr.expectGET}
+    * - {@link angular.mock.service.$browser.xhr.expectPOST $browser.xhr.expectPOST}
+    * - {@link angular.mock.service.$browser.xhr.expectPUT $browser.xhr.expectPUT}
+    * - {@link angular.mock.service.$browser.xhr.expectDELETE $browser.xhr.expectDELETE}
+    * - {@link angular.mock.service.$browser.xhr.expectJSON $browser.xhr.expectJSON}
+    *
+    * To flush pending requests in tests use
+    * {@link angular.mock.service.$browser.xhr.flush $browser.xhr.flush}.
+    *
+    * @param {string} method Expected HTTP method.
+    * @param {string} url Url path for which a request is expected.
+    * @param {(object|string)=} data Expected body of the (POST) HTTP request.
+    * @param {function(number, *)} callback Callback to call when response is flushed.
+    * @param {object} headers Key-value pairs of expected headers.
+    * @returns {object} Response configuration object. You can call its `respond()` method to
+    *   configure what should the browser mock return when the response is
+    *   {@link angular.mock.service.$browser.xhr.flush flushed}.
+    */
   self.xhr = function(method, url, data, callback, headers) {
     headers = headers || {};
     if (data && angular.isObject(data)) data = angular.toJson(data);
@@ -142,11 +171,85 @@ function MockBrowser() {
       }
     };
   };
+
+  /**
+    * @ngdoc function
+    * @name angular.mock.service.$browser.xhr.expectGET
+    *
+    * @description
+    * Trains browser to expect a `GET` request and respond to it.
+    *
+    * @param {string} url Url path for which a request is expected.
+    * @returns {object} Response configuration object. You can call its `respond()` method to
+    *   configure what should the browser mock return when the response is
+    *   {@link angular.mock.service.$browser.xhr.flush flushed}.
+    */
   self.xhr.expectGET    = angular.bind(self, self.xhr.expect, 'GET');
+
+  /**
+    * @ngdoc function
+    * @name angular.mock.service.$browser.xhr.expectPOST
+    *
+    * @description
+    * Trains browser to expect a `POST` request and respond to it.
+    *
+    * @param {string} url Url path for which a request is expected.
+    * @returns {object} Response configuration object. You can call its `respond()` method to
+    *   configure what should the browser mock return when the response is
+    *   {@link angular.mock.service.$browser.xhr.flush flushed}.
+    */
   self.xhr.expectPOST   = angular.bind(self, self.xhr.expect, 'POST');
+
+  /**
+    * @ngdoc function
+    * @name angular.mock.service.$browser.xhr.expectDELETE
+    *
+    * @description
+    * Trains browser to expect a `DELETE` request and respond to it.
+    *
+    * @param {string} url Url path for which a request is expected.
+    * @returns {object} Response configuration object. You can call its `respond()` method to
+    *   configure what should the browser mock return when the response is
+    *   {@link angular.mock.service.$browser.xhr.flush flushed}.
+    */
   self.xhr.expectDELETE = angular.bind(self, self.xhr.expect, 'DELETE');
+
+  /**
+    * @ngdoc function
+    * @name angular.mock.service.$browser.xhr.expectPUT
+    *
+    * @description
+    * Trains browser to expect a `PUT` request and respond to it.
+    *
+    * @param {string} url Url path for which a request is expected.
+    * @returns {object} Response configuration object. You can call its `respond()` method to
+    *   configure what should the browser mock return when the response is
+    *   {@link angular.mock.service.$browser.xhr.flush flushed}.
+    */
   self.xhr.expectPUT    = angular.bind(self, self.xhr.expect, 'PUT');
+
+  /**
+    * @ngdoc function
+    * @name angular.mock.service.$browser.xhr.expectJSON
+    *
+    * @description
+    * Trains browser to expect a `JSON` request and respond to it.
+    *
+    * @param {string} url Url path for which a request is expected.
+    * @returns {object} Response configuration object. You can call its `respond()` method to
+    *   configure what should the browser mock return when the response is
+    *   {@link angular.mock.service.$browser.xhr.flush flushed}.
+    */
   self.xhr.expectJSON   = angular.bind(self, self.xhr.expect, 'JSON');
+
+  /**
+    * @ngdoc function
+    * @name angular.mock.service.$browser.xhr.flush
+    *
+    * @description
+    * Flushes all pending requests and executes xhr callbacks with the trained response as the
+    * argument.
+    */
   self.xhr.flush = function() {
     if (requests.length == 0) {
       throw new Error("No xhr requests to be flushed!");
@@ -160,17 +263,41 @@ function MockBrowser() {
   self.cookieHash = {};
   self.lastCookieHash = {};
   self.deferredFns = [];
+  self.deferredNextId = 0;
 
   self.defer = function(fn, delay) {
     delay = delay || 0;
-    self.deferredFns.push({time:(self.defer.now + delay), fn:fn});
+    self.deferredFns.push({time:(self.defer.now + delay), fn:fn, id: self.deferredNextId});
     self.deferredFns.sort(function(a,b){ return a.time - b.time;});
+    return self.deferredNextId++;
   };
+
 
   self.defer.now = 0;
 
-  self.defer.flush = function(time) {
-    self.defer.now += (time || 0);
+
+  self.defer.cancel = function(deferId) {
+    var fnIndex;
+
+    forEach(self.deferredFns, function(fn, index) {
+      if (fn.id === deferId) fnIndex = index;
+    });
+
+    if (fnIndex) {
+      self.deferredFns.splice(fnIndex, 1);
+    }
+  };
+
+
+  self.defer.flush = function(delay) {
+    if (angular.isDefined(delay)) {
+      self.defer.now += delay;
+    } else {
+      if (self.deferredFns.length) {
+        self.defer.now = self.deferredFns[self.deferredFns.length-1].time;
+      }
+    }
+
     while (self.deferredFns.length && self.deferredFns[0].time <= self.defer.now) {
       self.deferredFns.shift().fn();
     }
@@ -178,6 +305,13 @@ function MockBrowser() {
 }
 MockBrowser.prototype = {
 
+/**
+  * @name angular.mock.service.$browser#poll
+  * @methodOf angular.mock.service.$browser
+  *
+  * @description
+  * run all fns in pollFns
+  */
   poll: function poll(){
     angular.forEach(this.pollFns, function(pollFn){
       pollFn();
@@ -239,8 +373,8 @@ angular.service('$browser', function(){
  *
  * See {@link angular.mock} for more info on angular mocks.
  */
-angular.service('$exceptionHandler', function(e) {
-  return function(e) {throw e;};
+angular.service('$exceptionHandler', function() {
+  return function(e) { throw e;};
 });
 
 
@@ -305,7 +439,7 @@ function MockLogFactory() {
  * </pre>
  *
  */
-function TzDate(offset, timestamp) {
+function TzDate(offset, timestamp, toStringVal) {
   if (angular.isString(timestamp)) {
     var tsStr = timestamp;
 
@@ -327,6 +461,10 @@ function TzDate(offset, timestamp) {
 
   this.getTime = function() {
     return this.date.getTime() - this.offsetDiff;
+  };
+
+  this.toString = function() {
+   return toStringVal;
   };
 
   this.toLocaleDateString = function() {
@@ -390,7 +528,8 @@ function TzDate(offset, timestamp) {
   };
 
   //hide all methods not implemented in this mock that the Date prototype exposes
-  var unimplementedMethods = ['getMilliseconds', 'getTime', 'getUTCDay',
+  var self = this,
+      unimplementedMethods = ['getMilliseconds', 'getUTCDay',
       'getUTCMilliseconds', 'getYear', 'setDate', 'setFullYear', 'setHours', 'setMilliseconds',
       'setMinutes', 'setMonth', 'setSeconds', 'setTime', 'setUTCDate', 'setUTCFullYear',
       'setUTCHours', 'setUTCMilliseconds', 'setUTCMinutes', 'setUTCMonth', 'setUTCSeconds',
@@ -398,7 +537,9 @@ function TzDate(offset, timestamp) {
       'toLocaleTimeString', 'toSource', 'toString', 'toTimeString', 'toUTCString', 'valueOf'];
 
   angular.forEach(unimplementedMethods, function(methodName) {
-    this[methodName] = function() {
+    if (methodName == 'toString' && toStringVal) return;
+
+    self[methodName] = function() {
       throw {
         name: "MethodNotImplemented",
         message: "Method '" + methodName + "' is not implemented in the TzDate mock"

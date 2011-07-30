@@ -19,10 +19,13 @@ R0lGODlhEAAQAPQAAP///wAAAPDw8IqKiuDg4EZGRnp6egAAAFhYWCQkJKysrL6+vhQUFJycnAQEBDY2
 --_--
 */
 (function(){ 
-  var jsUri = document.location.href.replace(/\/[^/]+(#.*)?$/, '/') +               document.getElementById('ng-ie-compat').src; 
-  var css = '#ng-callout .ng-arrow-left{*background-image:url("mhtml:' + jsUri + '!img0")}#ng-callout .ng-arrow-right{*background-image:url("mhtml:' + jsUri + '!img1")}.ng-input-indicator-wait {*background-image:url("mhtml:' + jsUri + '!img2")}' 
-  var s = document.createElement('style'); 
+  var jsUri = document.location.href.replace(/\/[^\/]+(#.*)?$/, '/') + 
+              document.getElementById('ng-ie-compat').src,
+      css = '#ng-callout .ng-arrow-left{*background-image:url("mhtml:' + jsUri + '!img0")}#ng-callout .ng-arrow-right{*background-image:url("mhtml:' + jsUri + '!img1")}.ng-input-indicator-wait {*background-image:url("mhtml:' + jsUri + '!img2")}',
+      s = document.createElement('style'); 
+
   s.setAttribute('type', 'text/css'); 
+
   if (s.styleSheet) { 
     s.styleSheet.cssText = css; 
   } else { 
