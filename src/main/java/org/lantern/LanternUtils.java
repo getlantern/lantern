@@ -569,6 +569,14 @@ public class LanternUtils {
         PROPS.setProperty("google.pwd", pwd);
         persistProps();
     }
+    
+
+    public static void clearCredentials() {
+        LOG.info("Clearing credentials...");
+        PROPS.remove("google.user");
+        PROPS.remove("google.pwd");
+        persistProps();
+    }
 
     public static String getStringProperty(final String key) {
         return PROPS.getProperty(key);
