@@ -54,7 +54,8 @@ public class CensoredUtils {
         Sets.newHashSet(
             "SY");
     
-    private static final File UNZIPPED = new File("GeoIP.dat");
+    private static final File UNZIPPED = 
+        new File(LanternUtils.dataDir(), "GeoIP.dat");
     
     private static LookupService lookupService;
 
@@ -70,7 +71,7 @@ public class CensoredUtils {
                 os = new FileOutputStream(UNZIPPED);
                 IOUtils.copy(is, os);
             } catch (final IOException e) {
-                LOG.warn("Error expanding file?", e);
+                LOG.error("Error expanding file?", e);
             } finally {
                 IOUtils.closeQuietly(is);
                 IOUtils.closeQuietly(os);
@@ -80,6 +81,7 @@ public class CensoredUtils {
             lookupService = new LookupService(UNZIPPED, 
                     LookupService.GEOIP_MEMORY_CACHE);
         } catch (final IOException e) {
+            LOG.error("Could not create LOOKUP service?");
             lookupService = null;
         }
     }
@@ -129,7 +131,7 @@ public class CensoredUtils {
         final Country country = lookupService.getCountry(address);
         LOG.info("Country is: {}", country.getName());
         countryCode = country.getCode().trim();
-        return countries.contains(country.getCode().trim());
+        return countries.contains(countryCode.trim());
     }
     
 
