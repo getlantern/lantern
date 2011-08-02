@@ -32,6 +32,7 @@ import net.sf.ehcache.store.chm.ConcurrentHashMap;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -78,6 +79,10 @@ public class LanternUtils {
     private static final File CONFIG_DIR = 
         new File(System.getProperty("user.home"), ".lantern");
     
+    private static final File DATA_DIR;
+    
+    private static final File LOG_DIR;
+    
     private static final File PROPS_FILE =
         new File(CONFIG_DIR, "lantern.properties");
     
@@ -86,6 +91,32 @@ public class LanternUtils {
     static {
         ProviderManager.getInstance().addIQProvider(
                 "query", "google:shared-status", new GenericIQProvider());
+        
+        if (SystemUtils.IS_OS_WINDOWS) {
+            //logDirParent = CommonUtils.getDataDir();
+            DATA_DIR = new File(System.getenv("APPDATA"), "Lantern");
+            LOG_DIR = new File(DATA_DIR, "logs");
+        } else if (SystemUtils.IS_OS_MAC_OSX) {
+            final File homeLibrary = 
+                new File(System.getProperty("user.home"), "Library");
+            DATA_DIR = new File(homeLibrary, "Logs");
+            LOG_DIR = new File(DATA_DIR, "Lantern");
+        } else {
+            DATA_DIR = new File(SystemUtils.getUserHome(), ".lantern");
+            LOG_DIR = new File(DATA_DIR, "logs");
+        }
+
+        if (!DATA_DIR.isDirectory()) {
+            if (!DATA_DIR.mkdirs()) {
+                System.err.println("Could not create parent at: "
+                        + DATA_DIR);
+            }
+        }
+        if (!LOG_DIR.isDirectory()) {
+            if (!LOG_DIR.mkdirs()) {
+                System.err.println("Could not create dir at: " + LOG_DIR);
+            }
+        }
         if (!CONFIG_DIR.isDirectory()) {
             if (!CONFIG_DIR.mkdirs()) {
                 LOG.error("Could not make config directory at: "+CONFIG_DIR);
@@ -306,6 +337,15 @@ public class LanternUtils {
 
     public static File configDir() {
         return CONFIG_DIR;
+    }
+    
+
+    public static File dataDir() {
+        return DATA_DIR;
+    }
+    
+    public static File logDir() {
+        return LOG_DIR;
     }
     
     public static File propsFile() {
