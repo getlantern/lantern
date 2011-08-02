@@ -6,7 +6,6 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.HashMap;
 import java.util.Properties;
 
-import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.eclipse.swt.widgets.Display;
@@ -102,36 +101,6 @@ public class Launcher {
 
     
     private static void configureLogger() {
-        final File logDirParent;
-        final File logDir;
-        if (SystemUtils.IS_OS_WINDOWS) {
-            //logDirParent = CommonUtils.getDataDir();
-            logDirParent = new File(System.getenv("APPDATA"), "Lantern");
-            logDir = new File(logDirParent, "logs");
-        } else if (SystemUtils.IS_OS_MAC_OSX) {
-            final File homeLibrary = 
-                new File(System.getProperty("user.home"), "Library");
-            logDirParent = new File(homeLibrary, "Logs");
-            logDir = new File(logDirParent, "Lantern");
-        } else {
-            logDirParent = new File(SystemUtils.getUserHome(), ".lantern");
-            logDir = new File(logDirParent, "logs");
-        }
-
-        if (!logDirParent.isDirectory()) {
-            if (!logDirParent.mkdirs()) {
-                System.err.println("Could not create parent at: "
-                        + logDirParent);
-                return;
-            }
-        }
-        if (!logDir.isDirectory()) {
-            if (!logDir.mkdirs()) {
-                System.err.println("Could not create dir at: " + logDir);
-                return;
-            }
-        }
-
         final String propsPath = "src/main/resources/log4j.properties";
         final File props = new File(propsPath);
         if (props.isFile()) {
@@ -139,6 +108,7 @@ public class Launcher {
             PropertyConfigurator.configure(propsPath);
         } else {
             System.out.println("Not on main line...");
+            final File logDir = LanternUtils.logDir();
             final File logFile = new File(logDir, "java.log");
             setLoggerProps(logFile);
         }
