@@ -215,7 +215,7 @@ public class LanternBrowser {
                         CensoredUtils.unforceCensored();
                     }
                     setUrl("install1Uncensored.html");
-                }else if (location.contains("install1Censored.html")) {
+                } else if (location.contains("install1Censored.html")) {
                     // We use this to check if the user has selected to run
                     // in censored mode even if they don't appear to be in a
                     // censored country.
@@ -314,6 +314,10 @@ public class LanternBrowser {
                     log.info("Got finished...closing on location: {}", location);
                     final String elements = 
                         StringUtils.substringAfter(location, "finished");
+                    if (isConfig) {
+                        Configurator.reconfigure();
+                    }
+                    LanternUtils.installed();
                     if (StringUtils.isNotBlank(elements)) {
                         log.info("Got elements: {}", elements);
                         try {
@@ -339,14 +343,11 @@ public class LanternBrowser {
                                         exit();
                                     }
                                 }
-
                             }
                         } catch (final UnsupportedEncodingException e) {
                             log.error("Encoding?", e);
                         }
                     }
-                    
-                    LanternUtils.installed();
                     close();
                 } else {
                     defaultPage(location);
