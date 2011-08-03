@@ -33,6 +33,12 @@ public class Configurator {
             return;
         }
         configured = true;
+        reconfigure();
+        
+    }
+    
+
+    public static void reconfigure() {
         if (!LanternUtils.propsFile().isFile()) {
             System.out.println("PLEASE ENTER YOUR GOOGLE ACCOUNT DATA IN " + 
                 LanternUtils.propsFile() + " in the following form:" +
@@ -61,7 +67,7 @@ public class Configurator {
             LOG.info("Not auto-configuring proxy in an uncensored country");
         }
     }
-    
+
 
     public static void main(final String... args) throws SocketException {
         final Collection<String> services = mpm.getNetworkServices();
@@ -77,7 +83,7 @@ public class Configurator {
         }
     }
 
-    static void displaySubInterfaces(final NetworkInterface netIf) throws SocketException {
+    static void displaySubInterfaces(final NetworkInterface netIf) {
         Enumeration<NetworkInterface> subIfs = netIf.getSubInterfaces();
         
         for (NetworkInterface subIf : Collections.list(subIfs)) {
