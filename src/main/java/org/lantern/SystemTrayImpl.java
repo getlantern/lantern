@@ -100,7 +100,7 @@ public class SystemTrayImpl implements SystemTray {
             new MenuItem(menu, SWT.SEPARATOR);
             
             final MenuItem quitItem = new MenuItem(menu, SWT.PUSH);
-            quitItem.setText("Quit");
+            quitItem.setText("Quit Lantern");
             
             quitItem.addListener (SWT.Selection, new Listener () {
                 @Override

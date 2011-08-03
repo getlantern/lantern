@@ -3,6 +3,7 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.net.ServerSocket;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -142,6 +143,14 @@ public class Launcher {
     }
 
     private static int randomPort() {
-        return 1024 + (RandomUtils.nextInt() % 60000);
+        try {
+            final ServerSocket sock = new ServerSocket();
+            sock.bind(null);
+            final int port = sock.getLocalPort();
+            sock.close();
+            return port;
+        } catch (final IOException e) {
+            return 1024 + (RandomUtils.nextInt() % 60000);
+        }
     }
 }
