@@ -131,7 +131,7 @@ public class CensoredUtils {
         final Country country = lookupService.getCountry(address);
         LOG.info("Country is: {}", country.getName());
         countryCode = country.getCode().trim();
-        return countries.contains(countryCode.trim());
+        return countries.contains(countryCode);
     }
     
 
