@@ -199,7 +199,7 @@ public class Configurator {
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
         final String proxyEnableUs = "1";
 
-        LOG.info("Setting registry to use MG as a proxy...");
+        LOG.info("Setting registry to use Lantern as a proxy...");
         final int enableResult = 
             WindowsRegistry.writeREG_SZ(key, ps, proxyServerUs);
         final int serverResult = 
