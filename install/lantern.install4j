@@ -428,14 +428,6 @@ Lantern requires your Google Account credentials to access the Internet. What yo
             <preActivation />
             <postActivation />
             <actions>
-              <action name="" id="340" customizedId="" beanClass="com.install4j.runtime.beans.actions.UninstallPreviousAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.UninstallPreviousAction" />
-                  </java>
-                </serializedBean>
-                <condition />
-              </action>
               <action name="" id="261" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="We apologize, but we were unable to stop the existing Lantern installation running on this computer. Please manually close it in Task Manager and run the installer again.">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
@@ -447,6 +439,14 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                         <int>25000</int>
                       </void>
                     </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="" id="340" customizedId="" beanClass="com.install4j.runtime.beans.actions.UninstallPreviousAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.UninstallPreviousAction" />
                   </java>
                 </serializedBean>
                 <condition />
