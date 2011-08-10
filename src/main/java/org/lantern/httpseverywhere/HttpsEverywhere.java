@@ -27,8 +27,8 @@ public class HttpsEverywhere {
     private static final Logger LOG = 
         LoggerFactory.getLogger(HttpsEverywhere.class);
     
-    private static final Map<String, Collection<HttpsRule>> httpsRules =
-        new ConcurrentHashMap<String, Collection<HttpsRule>>();
+    private static final Map<String, HttpsRuleSet> httpsRules =
+        new ConcurrentHashMap<String, HttpsRuleSet>();
     
     static {
         final File httpsDir = new File("https");
@@ -55,6 +55,9 @@ public class HttpsEverywhere {
         final Collection<String> targets = 
             utils.getStrings("/ruleset/target/@host");
         
+        final Collection<String> exclusions = 
+            utils.getStrings("/ruleset/exclusion/@pattern");
+        
         //final Collection<String> froms = utils.getStrings("/ruleset/rule/@from");
         //final String from = "^http://(images|www|encrypted)\\.google\\.com/(.*)";
         //final Collection<String> tos = utils.getStrings("/ruleset/rule/@to");
@@ -63,10 +66,9 @@ public class HttpsEverywhere {
         final int length = nodes.getLength();
         
         for (final String cur : targets) {
-            final Collection<HttpsRule> rules;
             LOG.info("Checking target: {}", cur);
             if (cur.endsWith(".*")) {
-                LOG.info("Not yet supporting wildcard targets such as {}", cur);
+                LOG.info("Not yet supporting wildcard target endings {}", cur);
                 continue;
             }
             final String target;
@@ -76,11 +78,12 @@ public class HttpsEverywhere {
             } else {
                 target = cur;
             }
+            final HttpsRuleSet ruleSet;
             if (httpsRules.containsKey(target)) {
-                rules = httpsRules.get(target);
+                ruleSet = httpsRules.get(target);
             } else {
-                rules = new ArrayList<HttpsRule>(length);
-                httpsRules.put(target, rules);
+                ruleSet = new HttpsRuleSet(new ArrayList<HttpsRule>(length), exclusions);
+                httpsRules.put(target, ruleSet);
             }
             for (int i = 0; i < length; i++) {
                 final Node node = nodes.item(i);
@@ -90,7 +93,7 @@ public class HttpsEverywhere {
                 final String to = 
                     attributes.getNamedItem("to").getTextContent();
                 final HttpsRule rule = new HttpsRule(from, to);
-                rules.add(rule);
+                ruleSet.rules.add(rule);
             }
         }
     }
@@ -125,9 +128,8 @@ public class HttpsEverywhere {
         final String raw = LanternUtils.stripSubdomains(toMatch);
 
         LOG.info("URI: {}", toMatch);
-        final Collection<HttpsRule> rules = getRules(toMatch, raw);
-        if (rules == null) {
-            
+        final HttpsRuleSet ruleSet = getRules(toMatch, raw);
+        if (ruleSet == null) {
             LOG.info("NO RULES FOR {}", toMatch);
             return uri;
         } else {
@@ -135,11 +137,18 @@ public class HttpsEverywhere {
             //LOG.info("Got rules in: {}", httpsRules);
             //LOG.info("RULES: {}", rules);
             
-            for (final HttpsRule rule : rules) {
+            if (excluded(uri, ruleSet.exclusions)) {
+                LOG.info("Excluding ignored URI: {}", uri);
+                return uri;
+            }
+            
+            for (final HttpsRule rule : ruleSet.rules) {
                 //LOG.info("Applying rule: {}", rule);
                 final String modified = rule.apply(uri);
                 if (!modified.equals(uri)) {
-                    return modified;
+                    if (!excluded(modified, ruleSet.exclusions)) {
+                        return modified;
+                    }
                 }
             }
             //return rule.apply(uri);
@@ -147,12 +156,35 @@ public class HttpsEverywhere {
         }
     }
 
-    private static Collection<HttpsRule> getRules(final String toMatch, 
+    private static boolean excluded(final String uri,
+        final Collection<String> exclusions) {
+        for (final String exclusion : exclusions) {
+            if (uri.matches(exclusion)) {
+                LOG.info("URI {} matches exclusion {}", uri, exclusion);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static HttpsRuleSet getRules(final String toMatch, 
         final String raw) {
-        final Collection<HttpsRule> rules = httpsRules.get(toMatch);
-        if (rules != null) {
-            return rules;
+        final HttpsRuleSet ruleSet = httpsRules.get(toMatch);
+        if (ruleSet != null) {
+            return ruleSet;
         }
         return httpsRules.get(raw);
+    }
+    
+    
+    private static final class HttpsRuleSet {
+        private final Collection<HttpsRule> rules;
+        private final Collection<String> exclusions;
+
+        private HttpsRuleSet(final Collection<HttpsRule> rules, 
+            final Collection<String> exclusions) {
+            this.rules = rules;
+            this.exclusions = exclusions;
+        }
     }
 }
