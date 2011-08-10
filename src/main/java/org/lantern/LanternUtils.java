@@ -701,6 +701,46 @@ public class LanternUtils {
         final Packet response = collector.nextResult(40000);
         return response;
     }
+
+    public static String toHost(final String uri) {
+        LOG.info("Parsing full URI: {}", uri);
+        final String afterHttp = StringUtils.substringAfter(uri, "://");
+        final String base;
+        if (afterHttp.contains("/")) {
+            base = StringUtils.substringBefore(afterHttp, "/");
+        } else {
+            base = afterHttp;
+        }
+
+        final String tld = extractTld(base);
+        final String toMatchBase = StringUtils.substringBeforeLast(base, ".");
+        return toMatchBase + "." + tld;
+    }
+
+    public static String stripSubdomains(final String fullHost) {
+        final String tld = extractTld(fullHost);
+
+        final String domain = StringUtils.substringBeforeLast(fullHost, ".");
+        final String toMatchBase;
+        if (domain.contains(".")) {
+            toMatchBase = StringUtils.substringAfterLast(domain, ".");
+        } else {
+            toMatchBase = domain;
+        }
+        final String toMatch = toMatchBase + "." + tld;
+        LOG.info("Matching against: {}", toMatch);
+        return toMatch;
+    }
+
+    private static String extractTld(String fullHost) {
+        String domainExtension = StringUtils.substringAfterLast(fullHost, ".");
+        
+        // Make sure we strip alternative ports, like 443.
+        if (domainExtension.contains(":")) {
+            domainExtension = StringUtils.substringBefore(domainExtension, ":");
+        }
+        return domainExtension;
+    }
 }
 
 
