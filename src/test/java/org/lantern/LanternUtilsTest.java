@@ -1,5 +1,6 @@
 package org.lantern;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -10,6 +11,14 @@ import org.junit.Test;
  */
 public class LanternUtilsTest {
 
+    @Test public void testToHost() throws Exception {
+        String host = LanternUtils.toHost("http://www.facebook.com");
+        assertEquals("www.facebook.com", host);
+        
+        host = LanternUtils.toHost("http://facebook.com");
+        assertEquals("facebook.com", host);
+    }
+    
     @Test public void testCensored() throws Exception {
         final boolean censored = CensoredUtils.isCensored();
         assertFalse("Censored?", censored);
