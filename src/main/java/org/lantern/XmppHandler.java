@@ -166,7 +166,19 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
     };
     
-    private static final String ID = "-la-";
+    private static final String ID;
+    
+    private static final String UNCENSORED_ID = "-lan-";
+    
+    private static final String CENSORED_ID = "-lac-";
+    
+    static {
+        if (CensoredUtils.isCensored()) {
+            ID = CENSORED_ID;
+        } else {
+            ID = UNCENSORED_ID;
+        }
+    }
 
     private final int sslProxyRandomPort;
 
@@ -680,7 +692,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     protected boolean isLanternJid(final String from) {
         // Here's the format we're looking for: "-la-"
-        if (from.contains("/"+ID)) {
+        if (from.contains("/"+UNCENSORED_ID)) {
             log.info("Returning Lantern TRUE for from: {}", from);
             return true;
         }
