@@ -22,12 +22,17 @@ import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
+import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpChunk;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
+import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.ssl.SslHandler;
+import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.proxy.DefaultRelayPipelineFactoryFactory;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
@@ -289,11 +294,14 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         
         if (proxying) {
             // If it's an HTTP request, see if we can redirect it to HTTPS.
-            /*
-            final HttpResponse httpsRedirectResponse = 
-                HttpsEverywhere.toHttps(request);
-            if (httpsRedirectResponse != null) {
-                
+            final String https = HttpsEverywhere.toHttps(uri);
+            if (!https.equals(uri)) {
+                final HttpResponse response = 
+                    new DefaultHttpResponse(request.getProtocolVersion(), 
+                        HttpResponseStatus.TEMPORARY_REDIRECT);
+                response.setHeader(HttpHeaders.Names.LOCATION, https);
+                log.info("Sending redirect response!!");
+                ctx.getChannel().write(response);
                 // Note this redirect should result in a new HTTPS request 
                 // coming in on this connection or a new connection -- in face
                 // this redirect should always result in an HTTP CONNECT 
@@ -302,7 +310,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 // not an issue to return null here.
                 return null;
             }
-            */
             
             LanternHub.statsTracker().incrementProxiedRequests();
             return dispatchProxyRequest(ctx, me);
