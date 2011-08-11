@@ -4,7 +4,6 @@ bittorrent.com
 balatarin.com
 flickr.com
 google.com
-last.fm
 livejournal.com
 linkedin.com
 tumblr.com
@@ -12,7 +11,6 @@ myspace.com
 orkut.com
 twitter.com
 facebook.com
-friendster.com
 wordpress.org
 wordpress.com
 littleshoot.org
