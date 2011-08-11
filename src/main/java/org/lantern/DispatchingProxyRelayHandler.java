@@ -31,6 +31,7 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
+import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
@@ -298,10 +299,13 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             if (!https.equals(uri)) {
                 final HttpResponse response = 
                     new DefaultHttpResponse(request.getProtocolVersion(), 
-                        HttpResponseStatus.TEMPORARY_REDIRECT);
+                        HttpResponseStatus.MOVED_PERMANENTLY);
+                response.setProtocolVersion(HttpVersion.HTTP_1_0);
                 response.setHeader(HttpHeaders.Names.LOCATION, https);
+                response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, "0");
                 log.info("Sending redirect response!!");
-                ctx.getChannel().write(response);
+                browserToProxyChannel.write(response);
+                ProxyUtils.closeOnFlush(browserToProxyChannel);
                 // Note this redirect should result in a new HTTPS request 
                 // coming in on this connection or a new connection -- in face
                 // this redirect should always result in an HTTP CONNECT 
