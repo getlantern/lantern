@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="5.0.9" transformSequenceNumber="3">
-  <directoryPresets config="./common" />
+  <directoryPresets config=".." />
   <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Brave New Software Project, Inc" publisherWeb="http://www.getlantern.org" version="0.2" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -36,6 +36,9 @@
       </dirEntry>
       <fileEntry mountPoint="25" file="../GeoIP.dat.gz" overwriteMode="2" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="true" overrideUninstallMode="false" />
       <dirEntry mountPoint="25" file="../srv" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="srv" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+        <exclude />
+      </dirEntry>
+      <dirEntry mountPoint="25" file="../https" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="https" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude />
       </dirEntry>
       <dirEntry mountPoint="149" file="./win" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="win" excludeSuffixes="" dirMode="755" overrideDirMode="false">
@@ -740,18 +743,15 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
 </preActivation>
             <postActivation />
             <actions>
-              <action name="" id="578" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="">
+              <action name="" id="619" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.DeleteRegistryItemAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction">
+                    <object class="com.install4j.runtime.beans.actions.registry.DeleteRegistryItemAction">
                       <void property="keyName">
                         <string>Software\Microsoft\Windows\CurrentVersion\Internet Settings</string>
                       </void>
                       <void property="registryRoot">
                         <object class="com.install4j.api.windows.RegistryRoot" field="HKEY_CURRENT_USER" />
-                      </void>
-                      <void property="value">
-                        <string>0</string>
                       </void>
                       <void property="valueName">
                         <string>ProxyEnable</string>
