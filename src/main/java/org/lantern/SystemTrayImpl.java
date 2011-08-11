@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
@@ -59,7 +60,7 @@ public class SystemTrayImpl implements SystemTray {
             System.out.println ("The system tray is not available");
         } else {
             this.trayItem = new TrayItem (tray, SWT.NONE);
-            this.trayItem.setToolTipText("Lantern");
+            this.trayItem.setToolTipText("Lantern "+LanternConstants.VERSION);
             this.trayItem.addListener (SWT.Show, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
@@ -74,8 +75,27 @@ public class SystemTrayImpl implements SystemTray {
             });
 
             this.menu = new Menu (shell, SWT.POP_UP);
+            /*
+            final MenuItem aboutItem = new MenuItem(menu, SWT.PUSH);
+            aboutItem.setText("About");
+            aboutItem.addListener (SWT.Selection, new Listener () {
+                @Override
+                public void handleEvent (final Event event) {
+                    System.out.println("Got about call");
+                    final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.OK;
+                    final MessageBox messageBox = new MessageBox (shell, style);
+                    messageBox.setText ("Lantern");
+                    messageBox.setMessage (
+                        "Running Lantern "+LanternConstants.VERSION);
+                    shell.forceActive();
+                    event.doit = messageBox.open () == SWT.YES;
+                    shell.forceActive();
+                }
+            });
+            */
+            
             final MenuItem configItem = new MenuItem(menu, SWT.PUSH);
-            configItem.setText("Configure");
+            configItem.setText("Configure Lantern "+LanternConstants.VERSION);
             configItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
@@ -100,7 +120,7 @@ public class SystemTrayImpl implements SystemTray {
             new MenuItem(menu, SWT.SEPARATOR);
             
             final MenuItem quitItem = new MenuItem(menu, SWT.PUSH);
-            quitItem.setText("Quit Lantern");
+            quitItem.setText("Quit");
             
             quitItem.addListener (SWT.Selection, new Listener () {
                 @Override
