@@ -1,0 +1,6 @@
+<ruleset name="Balatarin">
+  <target host="balatarin.com" />
+  <target host="www.balatarin.com" />
+
+  <rule from="^http://(www\.)?balatarin\.com/" to="https://balatarin.com/" />
+</ruleset>
