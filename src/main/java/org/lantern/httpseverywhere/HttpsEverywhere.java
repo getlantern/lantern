@@ -142,16 +142,16 @@ public class HttpsEverywhere {
                 return uri;
             }
             
+            LOG.info("Applying rules...");
             for (final HttpsRule rule : ruleSet.rules) {
                 //LOG.info("Applying rule: {}", rule);
                 final String modified = rule.apply(uri);
                 if (!modified.equals(uri)) {
-                    if (!excluded(modified, ruleSet.exclusions)) {
-                        return modified;
-                    }
+                    LOG.info("Returning modified URL: {}", modified);
+                    return modified;
                 }
             }
-            //return rule.apply(uri);
+            LOG.info("Unchanged!");
             return uri;
         }
     }
