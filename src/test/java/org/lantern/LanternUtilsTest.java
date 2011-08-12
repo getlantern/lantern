@@ -4,19 +4,35 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.util.Collection;
+
 import org.junit.Test;
 
 /**
  * Test for Lantern utilities.
  */
 public class LanternUtilsTest {
-
-    @Test public void testToHost() throws Exception {
-        String host = LanternUtils.toHost("http://www.facebook.com");
-        assertEquals("www.facebook.com", host);
+    
+    @Test public void testToHttpsCandidates() throws Exception {
+        Collection<String> candidates = 
+            LanternUtils.toHttpsCandidates("http://www.google.com");
+        assertTrue(candidates.contains("www.google.com"));
+        assertTrue(candidates.contains("*.google.com"));
+        assertTrue(candidates.contains("www.*.com"));
+        assertTrue(candidates.contains("www.google.*"));
+        assertEquals(4, candidates.size());
         
-        host = LanternUtils.toHost("http://facebook.com");
-        assertEquals("facebook.com", host);
+        candidates = 
+            LanternUtils.toHttpsCandidates("http://test.www.google.com");
+        assertTrue(candidates.contains("test.www.google.com"));
+        assertTrue(candidates.contains("*.www.google.com"));
+        assertTrue(candidates.contains("*.google.com"));
+        assertTrue(candidates.contains("test.*.google.com"));
+        assertTrue(candidates.contains("test.www.*.com"));
+        assertTrue(candidates.contains("test.www.google.*"));
+        assertEquals(6, candidates.size());
+        //assertTrue(candidates.contains("*.com"));
+        //assertTrue(candidates.contains("*"));
     }
     
     @Test public void testCensored() throws Exception {
