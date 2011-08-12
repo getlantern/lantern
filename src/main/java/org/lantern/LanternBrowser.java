@@ -199,7 +199,7 @@ public class LanternBrowser {
 
         browser.addLocationListener(new LocationAdapter() {
             @Override
-            public void changing(final LocationEvent event) {
+            public void changed(final LocationEvent event) {
                 final String location = event.location;
                 log.info("Got location: {}", location);
                 if (location.endsWith("-copy.html")) {
@@ -223,7 +223,8 @@ public class LanternBrowser {
                         CensoredUtils.forceCensored();
                     }
                     setUrl("install1Censored.html");
-                } else if (location.contains("trustForm")) {
+                } else if (location.contains("trustedContacts")) {
+                    log.info("Got trust form");
                     final String elements = 
                         StringUtils.substringAfter(location, "trustForm");
                     if (StringUtils.isNotBlank(elements)) {
