@@ -45,6 +45,9 @@ public class Launcher {
         final SystemTray tray = LanternHub.systemTray();
         
         if (!LanternUtils.isConfigured() || LanternUtils.newInstall()) {
+            // Make sure the installer screens themselves don't run through a
+            // defunct Lantern proxy that likely has just been uninstalled.
+            Configurator.unproxy();
             final LanternBrowser browser = new LanternBrowser(false);
             browser.install();
             if (!display.isDisposed ()) {
