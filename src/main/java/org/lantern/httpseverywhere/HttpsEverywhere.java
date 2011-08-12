@@ -93,7 +93,7 @@ public class HttpsEverywhere {
         }
         final Collection<String> candidates = 
             LanternUtils.toHttpsCandidates(uri);
-        LOG.info("Candidats: {}", candidates);
+        //LOG.info("Candidats: {}", candidates);
         final Collection<HttpsRuleSet> ruleSets = getRules(candidates);
         if (ruleSets == null || ruleSets.isEmpty()) {
             LOG.info("NO RULES");
@@ -108,7 +108,7 @@ public class HttpsEverywhere {
                 continue;
             }
             
-            LOG.info("Applying rules: {}", ruleSet.rules);
+            //LOG.info("Applying rules: {}", ruleSet.rules);
             for (final HttpsRule rule : ruleSet.rules) {
                 //LOG.info("Applying rule: {}", rule);
                 final String modified = rule.apply(uri);
@@ -136,7 +136,7 @@ public class HttpsEverywhere {
 
     private static Collection<HttpsRuleSet> getRules(
         final Collection<String> candidates) {
-        LOG.info("Searching for rules in: {}", httpsRules);
+        //LOG.info("Searching for rules in: {}", httpsRules);
         final Collection<HttpsRuleSet> rules = new HashSet<HttpsRuleSet>();
         for (final String candidate : candidates) {
             final HttpsRuleSet ruleSet = httpsRules.get(candidate);
