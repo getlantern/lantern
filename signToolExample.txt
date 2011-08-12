@@ -1,0 +1,1 @@
+signtool sign /f cert_path /p "" /v /t http://timestamp.comodoca.com/authenticode lantern-0.82.exe
