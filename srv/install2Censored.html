@@ -13,7 +13,7 @@
   <body>
       <div id="main">
         <div id="logo">
-        <img src="img/logo.png"/>
+            <img src="img/logo.png"/>
         </div>
         <div id="body">
           <div id="content">
@@ -31,16 +31,16 @@
             </div>
              
             <div class="bottomFormContainer" style="height: 200px;">
-            <div class="bottomForm">
-                <form id="trustForm" action="trustForm">
-                    <div style="border-style:solid; border-color: #EFEFEF; border-width:2px; height: 160px; width: 100%; overflow: auto;">
-                        contacts_div
-                    </div>
-                    <div style="clear:both;"></div>
-                    <input type="submit" value="Approve these Contacts" style="float:right; margin-top: 8px" class="submit">
-                </form>
-                <div style="clear:both; margin-top: 8px"></div>
-            </div>
+                <div class="bottomForm">
+                    <form id="trustForm" action="trustedContacts">
+                        <div style="border-style:solid; border-color: #EFEFEF; border-width:2px; height: 160px; width: 100%; overflow: auto;">
+                            contacts_div
+                        </div>
+                        <div style="clear:both;"></div>
+                        <input type="submit" value="Approve these Contacts" style="float:right; margin-top: 8px" class="submitButton"/>
+                    </form>
+                    <div style="clear:both; margin-top: 8px"></div>
+                </div>
             </div>
           </div>
         </div>
@@ -48,7 +48,7 @@
     
     <script>
         $(function() {
-            $(".submit").button();
+            $(".submitButton").button();
             $("#selectAll").click(function(evt) {
                 evt.preventDefault();
                 evt.stopPropagation();
@@ -59,21 +59,14 @@
                 evt.stopPropagation();
                 $(':input', '#trustForm').removeAttr('checked');
             });
-        });
-        /*
-        function selectAll() {
-            $(function() {
-                $(':input', '#trustForm').attr('checked', true);
-            });
-        }
-        
-        function unselectAll() {
-            $(function() {
-                $(':input', '#trustForm').removeAttr('checked');
-            });
-        }
-        */
             
+            $('#trustForm').submit(function() {
+                // We don't do anything here, but this functionality is funky
+                // across browsers, so we're keeping this here in case we
+                // need to fiddle in the future.
+                return true;
+            });
+        });
     </script>
   </body>
 </html>
