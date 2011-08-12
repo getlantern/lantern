@@ -13,9 +13,11 @@ import java.net.SocketException;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -30,6 +32,7 @@ import javax.net.SocketFactory;
 import net.sf.ehcache.store.chm.ConcurrentHashMap;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.httpclient.URIException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
@@ -353,7 +356,8 @@ public class LanternUtils {
     }
     
     public static boolean isTransferEncodingChunked(final HttpMessage m) {
-        List<String> chunked = m.getHeaders(HttpHeaders.Names.TRANSFER_ENCODING);
+        final List<String> chunked = 
+            m.getHeaders(HttpHeaders.Names.TRANSFER_ENCODING);
         if (chunked.isEmpty()) {
             return false;
         }
@@ -702,44 +706,35 @@ public class LanternUtils {
         return response;
     }
 
-    public static String toHost(final String uri) {
-        LOG.info("Parsing full URI: {}", uri);
-        final String afterHttp = StringUtils.substringAfter(uri, "://");
-        final String base;
-        if (afterHttp.contains("/")) {
-            base = StringUtils.substringBefore(afterHttp, "/");
-        } else {
-            base = afterHttp;
+    public static Collection<String> toHttpsCandidates(final String uriStr) {
+        final Collection<String> segments = new LinkedHashSet<String>();
+        try {
+            final org.apache.commons.httpclient.URI uri = 
+                new org.apache.commons.httpclient.URI(uriStr, false);
+            final String host = uri.getHost();
+            LOG.info("Using host: {}", host);
+            segments.add(host);
+            final String[] segmented = host.split("\\.");
+            LOG.info("Testing segments: {}", Arrays.asList(segmented));
+            for (int i = 0; i < segmented.length; i++) {
+                final String tmp = segmented[i];
+                segmented[i] = "*";
+                final String segment = StringUtils.join(segmented, '.');
+                LOG.info("Adding segment: {}", segment);
+                segments.add(segment);
+                segmented[i] = tmp;
+            }
+            
+            for (int i = 1; i < segmented.length - 1; i++) {
+                final String segment = 
+                    "*." + StringUtils.join(segmented, '.', i, segmented.length);//segmented.slice(i,segmented.length).join(".");
+                LOG.info("Checking segment: {}", segment);
+                segments.add(segment);
+            }
+        } catch (final URIException e) {
+            LOG.error("Could not create URI?", e);
         }
-
-        final String tld = extractTld(base);
-        final String toMatchBase = StringUtils.substringBeforeLast(base, ".");
-        return toMatchBase + "." + tld;
-    }
-
-    public static String stripSubdomains(final String fullHost) {
-        final String tld = extractTld(fullHost);
-
-        final String domain = StringUtils.substringBeforeLast(fullHost, ".");
-        final String toMatchBase;
-        if (domain.contains(".")) {
-            toMatchBase = StringUtils.substringAfterLast(domain, ".");
-        } else {
-            toMatchBase = domain;
-        }
-        final String toMatch = toMatchBase + "." + tld;
-        LOG.info("Matching against: {}", toMatch);
-        return toMatch;
-    }
-
-    private static String extractTld(String fullHost) {
-        String domainExtension = StringUtils.substringAfterLast(fullHost, ".");
-        
-        // Make sure we strip alternative ports, like 443.
-        if (domainExtension.contains(":")) {
-            domainExtension = StringUtils.substringBefore(domainExtension, ":");
-        }
-        return domainExtension;
+        return segments;
     }
 }
 
