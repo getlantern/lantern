@@ -743,24 +743,6 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
 </preActivation>
             <postActivation />
             <actions>
-              <action name="" id="619" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.DeleteRegistryItemAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.registry.DeleteRegistryItemAction">
-                      <void property="keyName">
-                        <string>Software\Microsoft\Windows\CurrentVersion\Internet Settings</string>
-                      </void>
-                      <void property="registryRoot">
-                        <object class="com.install4j.api.windows.RegistryRoot" field="HKEY_CURRENT_USER" />
-                      </void>
-                      <void property="valueName">
-                        <string>ProxyEnable</string>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition />
-              </action>
               <action name="" id="472" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="There was a problem starting Lantern">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
