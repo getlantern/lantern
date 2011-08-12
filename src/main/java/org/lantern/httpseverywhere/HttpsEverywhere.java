@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,6 +23,9 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+/**
+ * Class for converting requests to HTTPS when we can.
+ */
 public class HttpsEverywhere {
     
     private static final Logger LOG = 
@@ -51,33 +55,17 @@ public class HttpsEverywhere {
         final InputStream is = new FileInputStream(ruleFile);
         final Document doc = XmlUtils.toDoc(is);
         final XPathUtils utils = XPathUtils.newXPath(doc);
-        //final NodeList nodes = utils.getNodes("/ruleset/target/@host");
         final Collection<String> targets = 
             utils.getStrings("/ruleset/target/@host");
         
         final Collection<String> exclusions = 
             utils.getStrings("/ruleset/exclusion/@pattern");
         
-        //final Collection<String> froms = utils.getStrings("/ruleset/rule/@from");
-        //final String from = "^http://(images|www|encrypted)\\.google\\.com/(.*)";
-        //final Collection<String> tos = utils.getStrings("/ruleset/rule/@to");
-        
         final NodeList nodes = utils.getNodes("/ruleset/rule");
         final int length = nodes.getLength();
         
-        for (final String cur : targets) {
-            LOG.info("Checking target: {}", cur);
-            if (cur.endsWith(".*")) {
-                LOG.info("Not yet supporting wildcard target endings {}", cur);
-                continue;
-            }
-            final String target;
-            if (cur.startsWith("*.")) {
-                target = cur.substring(2);
-                LOG.info("Adding wildcard target: {}", target);
-            } else {
-                target = cur;
-            }
+        for (final String target : targets) {
+            LOG.info("Checking target: {}", target);
             final HttpsRuleSet ruleSet;
             if (httpsRules.containsKey(target)) {
                 ruleSet = httpsRules.get(target);
@@ -97,52 +85,30 @@ public class HttpsEverywhere {
             }
         }
     }
-
-    /*
-    public static HttpResponse toHttps(final HttpRequest request) {
-        final String uri = request.getUri();
-        final String toMatch = Whitelist.toBaseUri(uri);
-        final HttpsRule rule = httpsRules.get(toMatch);
-        if (rule == null) {
-            LOG.info("No HTTPS match for base URI: {}", toMatch);
-            return null;
-        } else {
-            LOG.info("Rewriting to HTTPS for base URI: {}", toMatch);
-            final String redirect = rule.apply(request);
-            final HttpResponse response = 
-                new DefaultHttpResponse(request.getProtocolVersion(), 
-                    HttpResponseStatus.TEMPORARY_REDIRECT);
-            response.setHeader(HttpHeaders.Names.LOCATION, redirect);
-            return response;
-        }
-    }
-    */
     
     public static String toHttps(final String uri) {
-        //final String toMatch = Whitelist.toBaseUri(uri);
         if (!uri.startsWith("http://")) {
             LOG.info("Not modifying non-http request: {}", uri);
             return uri;
         }
-        final String toMatch = LanternUtils.toHost(uri);
-        final String raw = LanternUtils.stripSubdomains(toMatch);
-
-        LOG.info("URI: {}", toMatch);
-        final HttpsRuleSet ruleSet = getRules(toMatch, raw);
-        if (ruleSet == null) {
-            LOG.info("NO RULES FOR {}", toMatch);
+        final Collection<String> candidates = 
+            LanternUtils.toHttpsCandidates(uri);
+        LOG.info("Candidats: {}", candidates);
+        final Collection<HttpsRuleSet> ruleSets = getRules(candidates);
+        if (ruleSets == null || ruleSets.isEmpty()) {
+            LOG.info("NO RULES");
             return uri;
-        } else {
+        } 
+        for (final HttpsRuleSet ruleSet : ruleSets) {
             //LOG.info("Rewriting to HTTPS for base URI: {}", toMatch);
             //LOG.info("Got rules in: {}", httpsRules);
             //LOG.info("RULES: {}", rules);
-            
             if (excluded(uri, ruleSet.exclusions)) {
                 LOG.info("Excluding ignored URI: {}", uri);
-                return uri;
+                continue;
             }
             
-            LOG.info("Applying rules...");
+            LOG.info("Applying rules: {}", ruleSet.rules);
             for (final HttpsRule rule : ruleSet.rules) {
                 //LOG.info("Applying rule: {}", rule);
                 final String modified = rule.apply(uri);
@@ -151,9 +117,10 @@ public class HttpsEverywhere {
                     return modified;
                 }
             }
-            LOG.info("Unchanged!");
-            return uri;
         }
+        
+        LOG.info("Unchanged!");
+        return uri;
     }
 
     private static boolean excluded(final String uri,
@@ -167,13 +134,17 @@ public class HttpsEverywhere {
         return false;
     }
 
-    private static HttpsRuleSet getRules(final String toMatch, 
-        final String raw) {
-        final HttpsRuleSet ruleSet = httpsRules.get(toMatch);
-        if (ruleSet != null) {
-            return ruleSet;
+    private static Collection<HttpsRuleSet> getRules(
+        final Collection<String> candidates) {
+        LOG.info("Searching for rules in: {}", httpsRules);
+        final Collection<HttpsRuleSet> rules = new HashSet<HttpsRuleSet>();
+        for (final String candidate : candidates) {
+            final HttpsRuleSet ruleSet = httpsRules.get(candidate);
+            if (ruleSet != null) {
+                rules.add(ruleSet);
+            }
         }
-        return httpsRules.get(raw);
+        return rules;
     }
     
     
@@ -185,6 +156,11 @@ public class HttpsEverywhere {
             final Collection<String> exclusions) {
             this.rules = rules;
             this.exclusions = exclusions;
+        }
+        
+        @Override
+        public String toString() {
+            return "HttpsRuleSet [rules=" + rules + "]";
         }
     }
 }
