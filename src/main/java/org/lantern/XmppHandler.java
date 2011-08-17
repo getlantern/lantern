@@ -55,10 +55,10 @@ import org.slf4j.LoggerFactory;
  */
 public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
-    //private static final String LANTERN_JID = "lanternxmpp@appspot.com";
     private static final String LANTERN_JID = "lantern-controller@appspot.com";
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger LOG = 
+        LoggerFactory.getLogger(XmppHandler.class);
     
     private final String email;
 
@@ -82,25 +82,48 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private final Queue<ProxyHolder> laeProxies = 
         new ConcurrentLinkedQueue<ProxyHolder>();
 
-    static {
-        SmackConfiguration.setPacketReplyTimeout(30 * 1000);
-    }
-    
     private final XmppP2PClient client;
     private boolean displayedUpdateMessage = false;
     
+    private static final String ID;
+    
+    private static final String UNCENSORED_ID = "-lan-";
+    
+    private static final String CENSORED_ID = "-lac-";
+    
+    static {
+        LOG.info("Waiting for internet connection...");
+        LanternUtils.waitForInternet();
+        LOG.info("Got internet...");
+        if (CensoredUtils.isCensored()) {
+            ID = CENSORED_ID;
+        } else {
+            ID = UNCENSORED_ID;
+        }
+        SmackConfiguration.setPacketReplyTimeout(30 * 1000);
+    }
 
+    private final int sslProxyRandomPort;
+
+    private final Timer updateTimer = new Timer(true);
+
+    private Chat hubChat;
+
+    private final SystemTray tray;
+
+    private volatile long lastInfoMessageScheduled = 0L;
+    
     private final MessageListener typedListener = new MessageListener() {
 
         @Override
         public void processMessage(final Chat ch, final Message msg) {
             final String part = ch.getParticipant();
-            log.info("Got chat participant: {} with message:\n {}", part, 
+            LOG.info("Got chat participant: {} with message:\n {}", part, 
                 msg.toXML());
             if (part.startsWith(LANTERN_JID)) {
-                log.info("Lantern controlling agent response");
+                LOG.info("Lantern controlling agent response");
                 final String body = msg.getBody();
-                log.info("Body: {}", body);
+                LOG.info("Body: {}", body);
                 final Object obj = JSONValue.parse(body);
                 final JSONObject json = (JSONObject) obj;
                 final JSONArray servers = 
@@ -111,7 +134,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                     final long now = System.currentTimeMillis();
                     final long elapsed = now - lastInfoMessageScheduled;
                     if (elapsed < 10000) {
-                        log.info("Ignoring duplicate info request scheduling- "+
+                        LOG.info("Ignoring duplicate info request scheduling- "+
                             "scheduled request {} milliseconds ago.", elapsed);
                         return;
                     }
@@ -122,12 +145,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                             sendInfoRequest();
                         }
                     }, delay);
-                    log.info("Scheduled next info request in {} milliseconds", 
+                    LOG.info("Scheduled next info request in {} milliseconds", 
                         delay);
                 }
                 
                 if (servers == null) {
-                    log.info("XMPP: "+XmppUtils.toString(msg));
+                    LOG.info("XMPP: "+XmppUtils.toString(msg));
                 } else {
                     final Iterator<String> iter = servers.iterator();
                     while (iter.hasNext()) {
@@ -143,9 +166,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 // This is really a JSONObject, but that itself is a map.
                 final Map<String, String> update = 
                     (Map<String, String>) json.get(LanternConstants.UPDATE_KEY);
-                log.info("Already displayed update? {}", displayedUpdateMessage);
+                LOG.info("Already displayed update? {}", displayedUpdateMessage);
                 if (update != null && !displayedUpdateMessage) {
-                    log.info("About to show update...");
+                    LOG.info("About to show update...");
                     displayedUpdateMessage = true;
                     LanternHub.display().asyncExec (new Runnable () {
                         @Override
@@ -160,39 +183,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             final Integer type = 
                 (Integer) msg.getProperty(P2PConstants.MESSAGE_TYPE);
             if (type != null) {
-                log.info("Not processing typed message");
+                LOG.info("Not processing typed message");
                 //processTypedMessage(msg, type, ch);
             } 
         }
     };
     
-    private static final String ID;
-    
-    private static final String UNCENSORED_ID = "-lan-";
-    
-    private static final String CENSORED_ID = "-lac-";
-    
-    static {
-        if (CensoredUtils.isCensored()) {
-            ID = CENSORED_ID;
-        } else {
-            ID = UNCENSORED_ID;
-        }
-    }
-
-    private final int sslProxyRandomPort;
-
-
-    //private String hubAddress = "";
-    
-    private final Timer updateTimer = new Timer(true);
-
-    private Chat hubChat;
-
-    private final SystemTray tray;
-
-    private volatile long lastInfoMessageScheduled = 0L;
-
     /**
      * Creates a new XMPP handler.
      * 
@@ -209,12 +205,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         this.email = LanternUtils.getStringProperty("google.user");
         this.pwd = LanternUtils.getStringProperty("google.pwd");
         if (StringUtils.isBlank(this.email)) {
-            log.error("No user name");
+            LOG.error("No user name");
             throw new IllegalStateException("No user name");
         }
         
         if (StringUtils.isBlank(this.pwd)) {
-            log.error("No password.");
+            LOG.error("No password.");
             throw new IllegalStateException("No password");
         }
         
@@ -240,11 +236,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             // get notifications of messages twice in some cases, but that's
             // better than the alternative of sometimes not being notified
             // at all.
-            log.info("Adding message listener...");
+            LOG.info("Adding message listener...");
             this.client.addMessageListener(typedListener);
             this.client.login(this.email, this.pwd, ID);
             final XMPPConnection connection = this.client.getXmppConnection();
-            log.info("Connection ID: {}", connection.getConnectionID());
+            LOG.info("Connection ID: {}", connection.getConnectionID());
             
             // Here we handle allowing the server to subscribe to our presence.
             connection.addPacketListener(new PacketListener() {
@@ -252,7 +248,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 @Override
                 public void processPacket(final Packet pack) {
                     //log.info("Got packet: {}", pack);
-                    log.info("Responding to subscribtion request from {} and to {}", 
+                    LOG.info("Responding to subscribtion request from {} and to {}", 
                         pack.getFrom(), pack.getTo());
                     final Presence packet = 
                         new Presence(Presence.Type.subscribed);
@@ -268,20 +264,20 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                     if(packet instanceof Presence) {
                         final Presence pres = (Presence) packet;
                         if(pres.getType().equals(Presence.Type.subscribe)) {
-                            log.info("Got subscribe packet!!");
+                            LOG.info("Got subscribe packet!!");
                             final String from = pres.getFrom();
                             if (from.startsWith("lantern-controller@") &&
                                 from.endsWith("lantern-controller.appspotchat.com")) {
-                                log.info("Got lantern subscription request!!");
+                                LOG.info("Got lantern subscription request!!");
                                 return true;
                             } else {
-                                log.info("Ignoring subscription request from: {}",
+                                LOG.info("Ignoring subscription request from: {}",
                                     from);
                             }
                             
                         }
                     } else {
-                        log.info("Filtered out packet: ", packet.toXML());
+                        LOG.info("Filtered out packet: ", packet.toXML());
                         //XmppUtils.printMessage(packet);
                     }
                     return false;
@@ -296,11 +292,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
         } catch (final IOException e) {
             final String msg = "Could not log in!!";
-            log.warn(msg, e);
+            LOG.warn(msg, e);
             throw new Error(msg, e);
         } catch (final XMPPException e) {
             final String msg = "Could not configure roster!!";
-            log.warn(msg, e);
+            LOG.warn(msg, e);
             throw new Error(msg, e);
         }
     }
@@ -311,10 +307,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         // their protocol, and then we don't interfere with GChat visibility.
         final Packet status = LanternUtils.getSharedStatus(
                 this.client.getXmppConnection());
-        log.info("Status:\n{}", status.toXML());
+        LOG.info("Status:\n{}", status.toXML());
         final XMPPConnection conn = this.client.getXmppConnection();
         
-        log.info("Sending presence available");
+        LOG.info("Sending presence available");
         conn.sendPacket(new Presence(Presence.Type.available));
         
         final Presence forHub = new Presence(Presence.Type.available);
@@ -329,7 +325,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         // Make sure we look for Lantern packets.
         final RosterEntry lantern = roster.getEntry(LANTERN_JID);
         if (lantern == null) {
-            log.info("Creating roster entry for Lantern...");
+            LOG.info("Creating roster entry for Lantern...");
             roster.createEntry(LANTERN_JID, "Lantern", null);
         }
         
@@ -338,11 +334,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         roster.addRosterListener(new RosterListener() {
             @Override
             public void entriesDeleted(final Collection<String> addresses) {
-                log.info("Entries deleted");
+                LOG.info("Entries deleted");
             }
             @Override
             public void entriesUpdated(final Collection<String> addresses) {
-                log.info("Entries updated: {}", addresses);
+                LOG.info("Entries updated: {}", addresses);
             }
             @Override
             public void presenceChanged(final Presence presence) {
@@ -351,7 +347,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             }
             @Override
             public void entriesAdded(final Collection<String> addresses) {
-                log.info("Entries added: "+addresses);
+                LOG.info("Entries added: "+addresses);
             }
         });
         
@@ -366,15 +362,15 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 processPresence(p);
             }
         }
-        log.info("Finished adding listeners");
+        LOG.info("Finished adding listeners");
     }
 
     
     private void processPresence(final Presence p) {
         final String from = p.getFrom();
-        log.info("Got presence: {}", p.toXML());
+        LOG.info("Got presence: {}", p.toXML());
         if (isLanternHub(from)) {
-            log.info("Got Lantern hub presence");
+            LOG.info("Got Lantern hub presence");
         }
         else if (isLanternJid(from)) {
             addOrRemovePeer(p, from);
@@ -403,32 +399,32 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             LanternUtils.toJsonArray(Whitelist.getRemovals()));
         json.put(LanternConstants.VERSION_KEY, LanternConstants.VERSION);
         final String str = json.toJSONString();
-        log.info("Reporting data: {}", str);
+        LOG.info("Reporting data: {}", str);
         msg.setBody(str);
         try {
-            log.info("Sending info message to Lantern Hub");
+            LOG.info("Sending info message to Lantern Hub");
             this.hubChat.sendMessage(msg);
             Whitelist.whitelistReported();
             statsTracker.clear();
         } catch (final XMPPException e) {
-            log.error("Could not send INFO message", e);
+            LOG.error("Could not send INFO message", e);
         }
     }
 
     private void addOrRemovePeer(final Presence p, final String from) {
-        log.info("Processing peer: {}", from);
+        LOG.info("Processing peer: {}", from);
         final URI uri;
         try {
             uri = new URI(from);
         } catch (final URISyntaxException e) {
-            log.error("Could not create URI from: {}", from);
+            LOG.error("Could not create URI from: {}", from);
             return;
         }
         final TrustedContactsManager tcm = 
             LanternHub.getTrustedContactsManager();
         final boolean trusted = tcm.isJidTrusted(from);
         if (p.isAvailable()) {
-            log.info("Adding from to peer JIDs: {}", from);
+            LOG.info("Adding from to peer JIDs: {}", from);
             if (trusted) {
                 addPeerProxy(uri);
             } else {
@@ -436,7 +432,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             }
         }
         else {
-            log.info("Removing JID for peer '"+from+"' with presence: {}", p);
+            LOG.info("Removing JID for peer '"+from+"' with presence: {}", p);
             removePeer(uri);
         }
     }
@@ -456,7 +452,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         try {
             chat.sendMessage(msg);
         } catch (final XMPPException e) {
-            log.error("Error sending message", e);
+            LOG.error("Error sending message", e);
         }
     }
     
@@ -495,11 +491,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     */
     
     private void processInfoData(final Message msg, final Chat chat) {
-        log.info("Processing INFO data from request or response.");
+        LOG.info("Processing INFO data from request or response.");
         final String proxyString = 
             (String) msg.getProperty(XmppMessageConstants.PROXIES);
         if (StringUtils.isNotBlank(proxyString)) {
-            log.info("Got proxies: {}", proxyString);
+            LOG.info("Got proxies: {}", proxyString);
             final Scanner scan = new Scanner(proxyString);
             while (scan.hasNext()) {
                 final String cur = scan.next();
@@ -511,17 +507,17 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         //    (String) msg.getProperty(P2PConstants.MAC);
         final String base64Cert =
             (String) msg.getProperty(P2PConstants.CERT);
-        log.info("Base 64 cert: {}", base64Cert);
+        LOG.info("Base 64 cert: {}", base64Cert);
         
         final String secret =
             (String) msg.getProperty(P2PConstants.SECRET_KEY);
-        log.info("Secret key: {}", secret);
+        LOG.info("Secret key: {}", secret);
         if (StringUtils.isNotBlank(secret)) {
             final URI uri;
             try {
                 uri = new URI(chat.getParticipant());
             } catch (final URISyntaxException e) {
-                log.error("Could not create URI from: {}", 
+                LOG.error("Could not create URI from: {}", 
                     chat.getParticipant());
                 return;
             }
@@ -565,14 +561,14 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     }
 
     private void addProxy(final String cur, final Chat chat) {
-        log.info("Considering proxy: {}", cur);
+        LOG.info("Considering proxy: {}", cur);
         final String jid = this.client.getXmppConnection().getUser().trim();
         final String emailId = LanternUtils.jidToUser(jid);
-        log.info("We are: {}", jid);
-        log.info("Service name: {}",
+        LOG.info("We are: {}", jid);
+        LOG.info("Service name: {}",
              this.client.getXmppConnection().getServiceName());
         if (jid.equals(cur.trim())) {
-            log.info("Not adding ourselves as a proxy!!");
+            LOG.info("Not adding ourselves as a proxy!!");
             return;
         }
         if (cur.contains("appspot")) {
@@ -581,13 +577,13 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             try {
                 addTrustedProxy(new URI(cur));
             } catch (final URISyntaxException e) {
-                log.error("Error with proxy URI", e);
+                LOG.error("Error with proxy URI", e);
             }
         } else if (cur.contains("@")) {
             try {
                 addAnonymousProxy(new URI(cur));
             } catch (final URISyntaxException e) {
-                log.error("Error with proxy URI", e);
+                LOG.error("Error with proxy URI", e);
             }
         } else {
             addGeneralProxy(cur, chat);
@@ -595,23 +591,23 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     }
 
     private void addTrustedProxy(final URI cur) {
-        log.info("Considering trusted peer proxy: {}", cur);
+        LOG.info("Considering trusted peer proxy: {}", cur);
         addPeerProxy(cur, this.peerProxySet, this.peerProxies);
     }
     
     private void addAnonymousProxy(final URI cur) {
-        log.info("Considering Lantern proxy");
+        LOG.info("Considering Lantern proxy");
         addPeerProxy(cur, this.anonymousProxySet, this.anonymousProxies);
     }
     
     private void addPeerProxy(final URI cur) {
-        log.info("Considering Lantern peer proxy");
+        LOG.info("Considering Lantern peer proxy");
         addPeerProxy(cur, this.peerProxySet, this.peerProxies);
     }
     
     private void addPeerProxy(final URI cur, final Set<URI> peerSet, 
         final Queue<URI> peerQueue) {
-        log.info("Considering peer proxy");
+        LOG.info("Considering peer proxy");
         /*
         if (!cur.toASCIIString().startsWith("rach")) {
             log.info("Ignoring user for now: "+cur);
@@ -620,17 +616,17 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         */
         synchronized (peerSet) {
             if (!peerSet.contains(cur)) {
-                log.info("Actually adding peer proxy: {}", cur);
+                LOG.info("Actually adding peer proxy: {}", cur);
                 peerSet.add(cur);
                 peerQueue.add(cur);
             } else {
-                log.info("We already know about the peer proxy");
+                LOG.info("We already know about the peer proxy");
             }
         }
     }
 
     private void addLaeProxy(final String cur, final Chat chat) {
-        log.info("Adding LAE proxy");
+        LOG.info("Adding LAE proxy");
         addProxyWithChecks(this.laeProxySet, this.laeProxies, 
             new ProxyHolder(cur, new InetSocketAddress(cur, 443)), chat);
     }
@@ -649,7 +645,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final Queue<ProxyHolder> queue, final ProxyHolder ph, 
         final Chat chat) {
         if (set.contains(ph)) {
-            log.info("We already know about proxy "+ph+" in {}", set);
+            LOG.info("We already know about proxy "+ph+" in {}", set);
             return;
         }
         
@@ -660,18 +656,18 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 if (!set.contains(ph)) {
                     set.add(ph);
                     queue.add(ph);
-                    log.info("Queue is now: {}", queue);
+                    LOG.info("Queue is now: {}", queue);
                 }
             }
         } catch (final IOException e) {
-            log.error("Could not connect to: {}", ph);
+            LOG.error("Could not connect to: {}", ph);
             sendErrorMessage(chat, ph.isa, e.getMessage());
             onCouldNotConnect(ph.isa);
         } finally {
             try {
                 sock.close();
             } catch (final IOException e) {
-                log.info("Exception closing", e);
+                LOG.info("Exception closing", e);
             }
         }
     }
@@ -693,7 +689,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     protected boolean isLanternJid(final String from) {
         // Here's the format we're looking for: "-la-"
         if (from.contains("/"+UNCENSORED_ID)) {
-            log.info("Returning Lantern TRUE for from: {}", from);
+            LOG.info("Returning Lantern TRUE for from: {}", from);
             return true;
         }
         return false;
@@ -706,7 +702,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         // actually disconnected from the internet. Second, it can happen if
         // the proxy is blocked. Third, it can happen when the proxy is simply
         // down for some reason.
-        log.info("COULD NOT CONNECT TO STANDARD PROXY!! Proxy address: {}", 
+        LOG.info("COULD NOT CONNECT TO STANDARD PROXY!! Proxy address: {}", 
             proxyAddress);
         
         // For now we assume this is because we've lost our connection.
@@ -716,7 +712,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     @Override
     public void onCouldNotConnectToLae(final InetSocketAddress proxyAddress) {
-        log.info("COULD NOT CONNECT TO LAE PROXY!! Proxy address: {}", 
+        LOG.info("COULD NOT CONNECT TO LAE PROXY!! Proxy address: {}", 
             proxyAddress);
         
         // For now we assume this is because we've lost our connection.
@@ -727,7 +723,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     private void onCouldNotConnect(final ProxyHolder proxyAddress,
         final Set<ProxyHolder> set, final Queue<ProxyHolder> queue){
-        log.info("COULD NOT CONNECT!! Proxy address: {}", proxyAddress);
+        LOG.info("COULD NOT CONNECT!! Proxy address: {}", proxyAddress);
         synchronized (this.proxySet) {
             set.remove(proxyAddress);
             queue.remove(proxyAddress);
@@ -752,18 +748,18 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     }
     
     private void removePeerUri(final URI peerUri) {
-        log.info("Removing peer with URI: {}", peerUri);
+        LOG.info("Removing peer with URI: {}", peerUri);
         remove(peerUri, this.peerProxySet, this.peerProxies);
     }
 
     private void removeAnonymousPeerUri(final URI peerUri) {
-        log.info("Removing anonymous peer with URI: {}", peerUri);
+        LOG.info("Removing anonymous peer with URI: {}", peerUri);
         remove(peerUri, this.anonymousProxySet, this.anonymousProxies);
     }
     
     private void remove(final URI peerUri, final Set<URI> set, 
         final Queue<URI> queue) {
-        log.info("Removing peer with URI: {}", peerUri);
+        LOG.info("Removing peer with URI: {}", peerUri);
         synchronized (set) {
             set.remove(peerUri);
             queue.remove(peerUri);
@@ -782,16 +778,16 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     @Override
     public URI getAnonymousProxy() {
-        log.info("Getting anonymous proxy");
+        LOG.info("Getting anonymous proxy");
         return getProxyUri(this.anonymousProxies);
     }
 
     @Override
     public URI getPeerProxy() {
-        log.info("Getting peer proxy");
+        LOG.info("Getting peer proxy");
         final URI proxy = getProxyUri(this.peerProxies);
         if (proxy == null) {
-            log.info("Peer proxies {} and anonymous proxies {}", 
+            LOG.info("Peer proxies {} and anonymous proxies {}", 
                 this.peerProxies, this.anonymousProxies);
         }
         return proxy;
@@ -799,23 +795,23 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     private URI getProxyUri(final Queue<URI> queue) {
         if (queue.isEmpty()) {
-            log.info("No proxy URIs");
+            LOG.info("No proxy URIs");
             return null;
         }
         final URI proxy = queue.remove();
         queue.add(proxy);
-        log.info("FIFO queue is now: {}", queue);
+        LOG.info("FIFO queue is now: {}", queue);
         return proxy;
     }
 
     private InetSocketAddress getProxy(final Queue<ProxyHolder> queue) {
         if (queue.isEmpty()) {
-            log.info("No proxy addresses");
+            LOG.info("No proxy addresses");
             return null;
         }
         final ProxyHolder proxy = queue.remove();
         queue.add(proxy);
-        log.info("FIFO queue is now: {}", queue);
+        LOG.info("FIFO queue is now: {}", queue);
         return proxy.isa;
     }
 
