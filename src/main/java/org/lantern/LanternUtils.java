@@ -5,14 +5,18 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.Socket;
+import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.URI;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.nio.channels.DatagramChannel;
+import java.nio.channels.UnresolvedAddressException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
@@ -736,6 +740,27 @@ public class LanternUtils {
             LOG.error("Could not create URI?", e);
         }
         return segments;
+    }
+
+    public static void waitForInternet() {
+        while (true) {
+            try {
+                final DatagramChannel channel = DatagramChannel.open();
+                final SocketAddress server = 
+                    new InetSocketAddress("time-a.nist.gov", 37);
+                channel.connect(server);
+                return;
+            } catch (final IOException e) {
+                LOG.error("Could not create channel!", e);
+            } catch (final UnresolvedAddressException e) {
+                LOG.error("Could not resolve address", e);
+            }
+            try {
+                Thread.sleep(1000);
+            } catch (final InterruptedException e) {
+                LOG.error("Interrupted?", e);
+            }
+        }
     }
 }
 
