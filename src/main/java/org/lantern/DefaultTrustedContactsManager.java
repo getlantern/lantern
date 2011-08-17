@@ -2,11 +2,11 @@ package org.lantern;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.channels.FileLock;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -40,36 +40,15 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
     
     private final Set<String> trustedContacts;
     
-    private FileLock lock;
-
     public DefaultTrustedContactsManager() {
-        FileOutputStream in = null;
-        try {
-            in = new FileOutputStream(CONTACTS_FILE);
-            this.lock = in.getChannel().lock();
-        } catch (final IOException e) {
-            log.error("Could not get lock?", e);
-        } finally {
-            IOUtils.closeQuietly(in);
-        }
         this.trustedContacts = loadTrustedContacts();
+        log.info("Loaded contacts: {}", this.trustedContacts);
     }
     
     @Override
     public void addTrustedContact(final String email) {
         log.info("Adding trusted contact: {}", email);
-        trustedContacts.add(email);
-        synchronized (CONTACTS_FILE) {
-            FileWriter fw = null;
-            try {
-                fw = new FileWriter(CONTACTS_FILE);
-                fw.append(email+"\n");
-            } catch (final IOException e) {
-                log.error("Could not write to contacts file?");
-            } finally {
-                IOUtils.closeQuietly(fw);
-            }
-        }
+        addTrustedContacts(Arrays.asList(email));
     }
 
     @Override
@@ -80,17 +59,21 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
 
     private Set<String> loadTrustedContacts() {
         if (!CONTACTS_FILE.isFile()) {
+            log.warn("No file to read!!");
             return Collections.emptySet();
         }
+        log.info("Reading contacts...file size is: {}", CONTACTS_FILE.length());
         final Set<String> trusted = new HashSet<String>();
         BufferedReader br = null;
         try {
             br = new BufferedReader(new FileReader(CONTACTS_FILE));
             String line = br.readLine();
             while (line != null) {
+                log.info("Reading line: {}", line);
                 if (StringUtils.isNotBlank(line)) {
                     trusted.add(line.trim());
                 }
+                line = br.readLine();
             }
             return trusted;
         } catch (final IOException e) {
@@ -105,5 +88,26 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
     public boolean isJidTrusted(final String jid) {
         final String email = LanternUtils.jidToUser(jid);
         return isTrusted(email);
+    }
+
+    @Override
+    public void addTrustedContacts(final Collection<String> trusted) {
+        trustedContacts.addAll(trusted);
+        synchronized (CONTACTS_FILE) {
+            FileWriter fw = null;
+            try {
+                fw = new FileWriter(CONTACTS_FILE);
+                for (final String email : trusted) {
+                    final String newLine = email+"\n";
+                    log.info("Adding contact line: {}", newLine);
+                    fw.append(newLine);
+                }
+            } catch (final IOException e) {
+                log.error("Could not write to contacts file?");
+            } finally {
+                IOUtils.closeQuietly(fw);
+            }
+        }
+        log.info("File size after writing: {}", CONTACTS_FILE.length());
     }
 }
