@@ -390,6 +390,7 @@ public class LanternUtils {
     public static void setBooleanProperty(final String key, 
         final boolean value) {
         PROPS.setProperty(key, String.valueOf(value));
+        persistProps();
     }
 
     public static boolean getBooleanProperty(final String key) {
