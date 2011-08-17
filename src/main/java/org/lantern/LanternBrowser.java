@@ -9,6 +9,7 @@ import java.net.URLDecoder;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -47,6 +48,8 @@ public class LanternBrowser {
     private boolean closed;
 
     private final boolean isConfig;
+    
+    private String lastEventLocation = "";
 
     public LanternBrowser(final boolean isConfig) {
         log.info("Creating Lantern browser...");
@@ -201,7 +204,24 @@ public class LanternBrowser {
             @Override
             public void changed(final LocationEvent event) {
                 final String location = event.location;
-                log.info("Got location: {}", location);
+                log.info("Got location CHANGED: {}", location);
+                if (lastEventLocation.equals(location)) {
+                    return;
+                }
+                processEvent(event);
+            }
+            @Override
+            public void changing(final LocationEvent event) {
+                final String location = event.location;
+                lastEventLocation = location;
+                log.info("Got location CHANGING: {}", location);
+                processEvent(event);
+            }
+            
+            private void processEvent(final LocationEvent event) {
+                final String location = event.location;
+                lastEventLocation = location;
+                log.info("Got location CHANGING: {}", location);
                 if (location.endsWith("-copy.html")) {
                     // This just means it's a request we've already prepared
                     // for serving. If we don't do this check, we'll get an
@@ -226,7 +246,7 @@ public class LanternBrowser {
                 } else if (location.contains("trustedContacts")) {
                     log.info("Got trust form");
                     final String elements = 
-                        StringUtils.substringAfter(location, "trustForm");
+                        StringUtils.substringAfter(location, "trustedContacts");
                     if (StringUtils.isNotBlank(elements)) {
                         log.info("Got elements: {}", elements);
                         try {
@@ -239,14 +259,17 @@ public class LanternBrowser {
                             final String[] contacts = decoded.split("&");
                             final TrustedContactsManager tcm =
                                 LanternHub.getTrustedContactsManager();
+                            final Collection<String> trusted = 
+                                new HashSet<String>();
                             for (final String contact : contacts) {
                                 final String email = StringUtils.substringBefore(contact, "=");
                                 final String val = StringUtils.substringAfter(contact, "=");
                                 if ("on".equalsIgnoreCase(val) || "true".equalsIgnoreCase(val)) {
                                     log.info("Adding contact: {}", email);
-                                    tcm.addTrustedContact(email);
+                                    trusted.add(email);
                                 }
                             }
+                            tcm.addTrustedContacts(trusted);
                         } catch (final UnsupportedEncodingException e) {
                             log.error("Encoding?", e);
                         }
@@ -484,6 +507,8 @@ public class LanternBrowser {
             throw e;
         }
 
+        final TrustedContactsManager trustManager = 
+            LanternHub.getTrustedContactsManager();
         final StringBuilder sb = new StringBuilder();
         sb.append("<div id='contacts'>\n");
         int index = 0;
@@ -493,6 +518,7 @@ public class LanternBrowser {
                 continue;
             }
             final String user = entry.getUser();
+            final boolean trusted = trustManager.isTrusted(user.trim());
             final String evenOrOdd;
             if (index % 2 == 0) {
                 evenOrOdd = "even";
@@ -506,7 +532,12 @@ public class LanternBrowser {
             sb.append(name);
             sb.append("</span><input type='checkbox' name='");
             sb.append(user);
-            sb.append("' class='contactCheck'/></div>\n");
+            sb.append("' class='contactCheck' ");
+            if (trusted) {
+                sb.append(" checked='true'");
+            }
+            sb.append("/>");
+            sb.append("</div>\n");
             sb.append("<div style='clear: both'></div>\n");
             index++;
         }
