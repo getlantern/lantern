@@ -294,7 +294,6 @@ public class LanternBrowser {
                         // TODO: We should just do a simple login instead
                         // of this persistent lookup here.
                         final String contactsDiv = contactsDiv(email, pwd, 1);
-                        LanternUtils.writeCredentials(email, pwd);
                         final File finish = 
                             new File(tmp, "installFinishedUncensored.html").getAbsoluteFile();
                         setUrl(finish);
@@ -320,9 +319,9 @@ public class LanternBrowser {
                     
                     try {
                         final String contactsDiv = contactsDiv(email, pwd, 5);
+                        
                         final File contacts = 
                             new File(tmp, "install2Censored.html").getAbsoluteFile();
-                        LanternUtils.writeCredentials(email, pwd);
                         setUrl(contacts, "contacts_div", contactsDiv);
                         //browser.setUrl(finish.toURI().toASCIIString());
                         
@@ -488,14 +487,20 @@ public class LanternBrowser {
         }
     }
     
-    private String contactsDiv(final String email, final String pwd, 
+    private String contactsDiv(final String rawEmail, final String pwd, 
         final int attempts) throws IOException {
         log.info("Creating contacts with {} retries", attempts);
-        if (StringUtils.isBlank(email)) {
+        if (StringUtils.isBlank(rawEmail)) {
             throw new IOException("Please enter an e-mail address.");
         }
         if (StringUtils.isBlank(pwd)) {
             throw new IOException("Please enter a password.");
+        }
+        final String email;
+        if (!rawEmail.contains("@")) {
+            email = rawEmail + "@gmail.com";
+        } else {
+            email = rawEmail;
         }
         final Collection<RosterEntry> entries;
         try {
@@ -507,6 +512,7 @@ public class LanternBrowser {
             throw e;
         }
 
+        LanternUtils.writeCredentials(email, pwd);
         final TrustedContactsManager trustManager = 
             LanternHub.getTrustedContactsManager();
         final StringBuilder sb = new StringBuilder();
