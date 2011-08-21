@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v0.9.18
+ * @license AngularJS v0.9.19
  * (c) 2010-2011 AngularJS http://angularjs.org
  * License: MIT
  */
@@ -70,7 +70,6 @@ var _undefined        = undefined,
     $boolean          = 'boolean',
     $console          = 'console',
     $date             = 'date',
-    $display          = 'display',
     $element          = 'element',
     $function         = 'function',
     $length           = 'length',
@@ -151,7 +150,7 @@ var _undefined        = undefined,
  * @param {Object|Array} obj Object to iterate over.
  * @param {function()} iterator Iterator function.
  * @param {Object} context Object to become context (`this`) for the iterator function.
- * @returns {Objet|Array} Reference to `obj`.
+ * @returns {Object|Array} Reference to `obj`.
  */
 function forEach(obj, iterator, context) {
   var key;
@@ -881,7 +880,7 @@ function toKeyValue(obj) {
 
 
 /**
- * we need our custom mehtod because encodeURIComponent is too agressive and doesn't follow
+ * We need our custom mehtod because encodeURIComponent is too agressive and doesn't follow
  * http://www.ietf.org/rfc/rfc3986.txt with regards to the character set (pchar) allowed in path
  * segments:
  *    segment       = *pchar
@@ -1025,11 +1024,11 @@ function assertArgFn(arg, name) {
  * - `codeName` – `{string}` – code name of the release, e.g. "jiggling-armfat"
  */
 var version = {
-  full: '0.9.18',    // all of these placeholder strings will be replaced by rake's
+  full: '0.9.19',    // all of these placeholder strings will be replaced by rake's
   major: 0,    // compile task
   minor: 9,
-  dot: 18,
-  codeName: 'jiggling-armfat'
+  dot: 19,
+  codeName: 'canine-psychokinesis'
 };
 
 var array = [].constructor;
@@ -1273,7 +1272,7 @@ Template.prototype = {
  * The compilation is a process of walking the DOM tree and trying to match DOM elements to
  * {@link angular.markup markup}, {@link angular.attrMarkup attrMarkup},
  * {@link angular.widget widgets}, and {@link angular.directive directives}. For each match it
- * executes coresponding markup, attrMarkup, widget or directive template function and collects the
+ * executes corresponding markup, attrMarkup, widget or directive template function and collects the
  * instance functions into a single template function which is then returned.
  *
  * The template function can then be used once to produce the view or as it is the case with
@@ -1302,7 +1301,7 @@ Template.prototype = {
  *               root scope is created.
  *  * `cloneAttachFn` - If `cloneAttachFn` is provided, then the link function will clone the
  *               `template` and call the `cloneAttachFn` function allowing the caller to attach the
- *               cloned elements to the DOM document at the approriate place. The `cloneAttachFn` is
+ *               cloned elements to the DOM document at the appropriate place. The `cloneAttachFn` is
  *               called as: <br/> `cloneAttachFn(clonedElement, scope)` where:
  *
  *      * `clonedElement` - is a clone of the original `element` passed into the compiler.
@@ -1418,7 +1417,7 @@ Compiler.prototype = {
    * not a problem, but under some circumstances the values for data
    * is not available until after the full view is computed. If such
    * values are needed before they are computed the order of
-   * evaluation can be change using ng:eval-order
+   * evaluation can be changed using ng:eval-order
    *
    * @element ANY
    * @param {integer|string=} [priority=0] priority integer, or FIRST, LAST constant
@@ -1586,7 +1585,7 @@ function getter(instance, path, unboundFn) {
   for ( var i = 0; i < len; i++) {
     key = element[i];
     if (!key.match(/^[\$\w][\$\w\d]*$/))
-        throw "Expression '" + path + "' is not a valid expression for accesing variables.";
+        throw "Expression '" + path + "' is not a valid expression for accessing variables.";
     if (instance) {
       lastInstance = instance;
       instance = instance[key];
@@ -1779,7 +1778,7 @@ function createScope(parent, providers, instanceCache) {
      * @description
      * Assigns a value to a property of the current scope specified via `property_chain`. Unlike in
      * JavaScript, if there are any `undefined` intermediary properties, empty objects are created
-     * and assigned in to them instead of throwing an exception.
+     * and assigned to them instead of throwing an exception.
      *
        <pre>
          var scope = angular.scope();
@@ -1945,7 +1944,7 @@ function createScope(parent, providers, instanceCache) {
      *    parameters, `newValue` and `oldValue`.
      * @param {(function()|DOMElement)=} [exceptionHanlder=angular.service.$exceptionHandler] Handler
      *    that gets called when `watchExp` or `listener` throws an exception. If a DOMElement is
-     *    specified as handler, the element gets decorated by angular with the information about the
+     *    specified as a handler, the element gets decorated by angular with the information about the
      *    exception.
      * @param {boolean=} [initRun=true] Flag that prevents the first execution of the listener upon
      *    registration.
@@ -2993,9 +2992,16 @@ ResourceFactory.prototype = {
         case 4:
           error = a4;
           success = a3;
+          //fallthrough
         case 3:
         case 2:
           if (isFunction(a2)) {
+            if (isFunction(a1)) {
+              success = a1;
+              error = a2;
+              break;
+            }
+
             success = a2;
             error = a3;
             //fallthrough
@@ -3021,7 +3027,7 @@ ResourceFactory.prototype = {
           action.method,
           route.url(extend({}, action.params || {}, extractParams(data), params)),
           data,
-          function(status, response) {
+          function(status, response, responseHeaders) {
             if (response) {
               if (action.isArray) {
                 value.length = 0;
@@ -3032,7 +3038,7 @@ ResourceFactory.prototype = {
                 copy(response, value);
               }
             }
-            (success||noop)(value);
+            (success||noop)(value, responseHeaders);
           },
           error || action.verifyCache,
           action.verifyCache);
@@ -3156,7 +3162,9 @@ function Browser(window, document, body, XHR, $log) {
    * @param {string} method Requested method (get|post|put|delete|head|json)
    * @param {string} url Requested url
    * @param {?string} post Post data to send (null if nothing to post)
-   * @param {function(number, string)} callback Function that will be called on response
+   * @param {function(number, string, function([string]))} callback Function that will be called on
+   *   response. The third argument is a function that can be called to return a specified response
+   *   header or an Object containing all headers (when called with no arguments).
    * @param {object=} header additional HTTP headers to send with XHR.
    *   Standard headers are:
    *   <ul>
@@ -3169,15 +3177,24 @@ function Browser(window, document, body, XHR, $log) {
    * Send ajax request
    */
   self.xhr = function(method, url, post, callback, headers) {
+    var parsedHeaders;
+
     outstandingRequestCount ++;
     if (lowercase(method) == 'json') {
       var callbackId = ("angular_" + Math.random() + '_' + (idCounter++)).replace(/\d\./, '');
-      var script = self.addJs(url.replace('JSON_CALLBACK', callbackId));
-      window[callbackId] = function(data){
+      window[callbackId] = function(data) {
+        window[callbackId].data = data;
+      };
+
+      var script = self.addJs(url.replace('JSON_CALLBACK', callbackId), null, function() {
+        if (window[callbackId].data) {
+          completeOutstandingRequest(callback, 200, window[callbackId].data);
+        } else {
+          completeOutstandingRequest(callback);
+        }
         delete window[callbackId];
         body[0].removeChild(script);
-        completeOutstandingRequest(callback, 200, data);
-      };
+      });
     } else {
       var xhr = new XHR();
       xhr.open(method, url, true);
@@ -3188,7 +3205,34 @@ function Browser(window, document, body, XHR, $log) {
         if (xhr.readyState == 4) {
           // normalize IE bug (http://bugs.jquery.com/ticket/1450)
           var status = xhr.status == 1223 ? 204 : xhr.status || 200;
-          completeOutstandingRequest(callback, status, xhr.responseText);
+          completeOutstandingRequest(callback, status, xhr.responseText, function(header) {
+            header = lowercase(header);
+
+            if (header) {
+              return parsedHeaders
+                ? parsedHeaders[header] || null
+                : xhr.getResponseHeader(header);
+            } else {
+              // Return an object containing each response header
+              parsedHeaders = {};
+
+              forEach(xhr.getAllResponseHeaders().split('\n'), function(line) {
+                var i = line.indexOf(':'),
+                    key = lowercase(trim(line.substr(0, i))),
+                    value = trim(line.substr(i + 1));
+
+                if (parsedHeaders[key]) {
+                  // Combine repeated headers
+                  // http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
+                  parsedHeaders[key] += ', ' + value;
+                } else {
+                  parsedHeaders[key] = value;
+                }
+              });
+
+              return parsedHeaders;
+            }
+          });
         }
       };
       xhr.send(post || '');
@@ -3196,11 +3240,9 @@ function Browser(window, document, body, XHR, $log) {
   };
 
   /**
-   * @workInProgress
-   * @ngdoc method
-   * @name angular.service.$browser#notifyWhenNoOutstandingRequests
-   * @methodOf angular.service.$browser
-   *
+   * @private
+   * Note: this method is used only by scenario runner
+   * TODO(vojta): prefix this method with $$ ?
    * @param {function()} callback Function that will be called when no outstanding request
    */
   self.notifyWhenNoOutstandingRequests = function(callback) {
@@ -3311,7 +3353,7 @@ function Browser(window, document, body, XHR, $log) {
    * The listener gets called with either HashChangeEvent object or simple object that also contains
    * `oldURL` and `newURL` properties.
    *
-   * NOTE: this api is intended for use only by the $location service. Please use the
+   * Note: this api is intended for use only by the $location service. Please use the
    * {@link angular.service.$location $location service} to monitor hash changes in angular apps.
    *
    * @param {function(event)} listener Listener function to be called when url hash changes.
@@ -3524,7 +3566,7 @@ function Browser(window, document, body, XHR, $log) {
    * @description
    * Adds a script tag to the head.
    */
-  self.addJs = function(url, domId) {
+  self.addJs = function(url, domId, done) {
     // we can't use jQuery/jqLite here because jQuery does crazy shit with script elements, e.g.:
     // - fetches local scripts via XHR and evals them
     // - adds and immediately removes script elements from the document
@@ -3537,6 +3579,15 @@ function Browser(window, document, body, XHR, $log) {
     script.type = 'text/javascript';
     script.src = url;
     if (domId) script.id = domId;
+
+    if (msie) {
+      script.onreadystatechange = function() {
+        /loaded|complete/.test(script.readyState) && done && done();
+      };
+    } else {
+      if (done) script.onload = script.onerror = done;
+    }
+
     body[0].appendChild(script);
 
     return script;
@@ -3836,7 +3887,7 @@ function htmlSanitizeWriter(buf){
  * focus on the most commonly needed functionality and minimal footprint. For this reason only a
  * limited number of jQuery methods, arguments and invocation styles are supported.
  *
- * NOTE: All element references in angular are always wrapped with jQuery (lite) and are never
+ * Note: All element references in angular are always wrapped with jQuery (lite) and are never
  * raw DOM references.
  *
  * ## Angular's jQuery lite implements these functions:
@@ -3860,8 +3911,6 @@ function htmlSanitizeWriter(buf){
  * - [text()](http://api.jquery.com/text/)
  * - [trigger()](http://api.jquery.com/trigger/)
  * - [eq()](http://api.jquery.com/eq/)
- * - [show()](http://api.jquery.com/show/)
- * - [hide()](http://api.jquery.com/hide/)
  *
  * ## Additionally these methods extend the jQuery and  are available in both jQuery and jQuery lite
  * version:
@@ -3965,7 +4014,7 @@ function JQLiteData(element, key, value) {
 
 function JQLiteHasClass(element, selector, _) {
   // the argument '_' is important, since it makes the function have 3 arguments, which
-  // is neede for delegate function to realize the this is a getter.
+  // is needed for delegate function to realize the this is a getter.
   var className = " " + selector + " ";
   return ((" " + element.className + " ").replace(/[\n\t]/g, " ").indexOf( className ) > -1);
 }
@@ -4267,32 +4316,6 @@ forEach({
 
   find: function(element, selector) {
     return element.getElementsByTagName(selector);
-  },
-
-  hide: function(element) {
-    if (element.style) {
-      if(element.style.display !=="none" && !JQLiteData(element,"olddisplay")) {
-        JQLiteData( element, "olddisplay", element.style.display);
-      }
-      element.style.display = "none";
-    }
-  },
-
-  show: function(element) {
-   if(element.style) {
-     var display = element.style.display;
-     if ( display === "" || display === "none" ) {
-
-       // restore the original value overwritten by hide if present or default to nothing (which
-       // will let browser correctly choose between 'inline' or 'block')
-       element.style.display = JQLiteData(element, "olddisplay") || "";
-
-       // if the previous didn't make the element visible then there are some cascading rules that
-       // are still hiding it, so let's default to 'block', which might be incorrect in case of
-       // elmenents that should be 'inline' by default, but oh well :-)
-       if (!isVisible([element])) element.style.display = "block";
-     }
-   }
   },
 
   clone: JQLiteClone
@@ -5243,10 +5266,10 @@ defineApi('Function', [angularGlobal, angularCollection, angularFunction]);
  *
  * @param {number} amount Input to filter.
  * @param {string=} symbol Currency symbol or identifier to be displayed.
- * @returns {string} Formated number.
+ * @returns {string} Formatted number.
  *
  * @css ng-format-negative
- *   When the value is negative, this css class is applied to the binding making it by default red.
+ *   When the value is negative, this css class is applied to the binding making it (by default) red.
  *
  * @example
    <doc:example>
@@ -5285,7 +5308,7 @@ angularFilter.currency = function(amount, currencySymbol){
  * @description
  * Formats a number as text.
  *
- * If the input is not a number empty string is returned.
+ * If the input is not a number an empty string is returned.
  *
  * @param {number|string} number Number to format.
  * @param {(number|string)=} [fractionSize=2] Number of decimal places to round the number to.
@@ -5695,7 +5718,7 @@ angularFilter.uppercase = uppercase;
  *
  *   The input is sanitized by parsing the html into tokens. All safe tokens (from a whitelist) are
  *   then serialized back to properly escaped html string. This means that no unsafe input can make
- *   it into the returned string, however since our parser is more strict than a typical browser
+ *   it into the returned string, however, since our parser is more strict than a typical browser
  *   parser, it's possible that some obscure input, which would be recognized as valid HTML by a
  *   browser, won't make it through the sanitizer.
  *
@@ -5784,7 +5807,7 @@ angularFilter.html =  function(html, option){
  *
  * @description
  *   Finds links in text input and turns them into html links. Supports http/https/ftp/mailto and
- *   plane email address links.
+ *   plain email address links.
  *
  * @param {string} text Input text.
  * @returns {string} Html-linkified text.
@@ -5880,7 +5903,7 @@ angularFilter.linky = function(text){
  * @name angular.formatter
  * @description
  *
- * Formatters are used for translating data formats between those used in for display and those used
+ * Formatters are used for translating data formats between those used for display and those used
  * for storage.
  *
  * Following is the list of built-in angular formatters:
@@ -6362,7 +6385,8 @@ extend(angularValidator, {
     if (value.match(/^\+\d{2,3} (\(\d{1,5}\))?[\d ]+\d$/)) {
       return null;
     }
-    return "Phone number needs to be in 1(987)654-3210 format in North America or +999 (123) 45678 906 internationaly.";
+    return "Phone number needs to be in 1(987)654-3210 format in North America " +
+           "or +999 (123) 45678 906 internationally.";
   },
 
   /**
@@ -7435,9 +7459,15 @@ angularServiceInject("$log", $logFactory = function($window){
  *
    <pre>
      var User = $resource('/user/:userId', {userId:'@id'});
-     User.get({userId:123}, function(u){
+     User.get({userId:123}, function(u, responseHeaders){
        u.abc = true;
-       u.$save();
+       u.$save(function(u, responseHeaders) {
+         // Get an Object containing all response headers
+         var allHeaders = responseHeaders();
+
+         // Get a specific response header
+         u.newId = responseHeaders('Location');
+       });
      });
    </pre>
 
@@ -7445,7 +7475,7 @@ angularServiceInject("$log", $logFactory = function($window){
 
    Let's look at what a buzz client created with the `$resource` service looks like:
     <doc:example>
-      <doc:source>
+      <doc:source jsfiddle="false">
        <script>
          function BuzzController($resource) {
            this.Activity = $resource(
@@ -7515,7 +7545,7 @@ angularServiceInject('$resource', function($xhr){
    Try changing the URL in the input box to see changes.
 
     <doc:example>
-      <doc:source>
+      <doc:source jsfiddle="false">
         <script>
           function MainCntl($route, $location) {
             this.$route = $route;
@@ -7561,6 +7591,8 @@ angularServiceInject('$route', function(location, $updateView) {
       matcher = switchRouteMatcher,
       parentScope = this,
       dirty = 0,
+      lastHashPath,
+      lastRouteParams,
       $route = {
         routes: routes,
 
@@ -7629,6 +7661,18 @@ angularServiceInject('$route', function(location, $updateView) {
          *      The custom `redirectTo` function is expected to return a string which will be used
          *      to update `$location.hash`.
          *
+         *    - `[reloadOnSearch=true]` - {boolean=} - reload route when $location.hashSearch
+         *      changes. If this option is disabled, you should set up a $watch to be notified of
+         *      param (hashSearch) changes as follows:
+         *
+         *            function MyCtrl($route) {
+         *              this.$watch(function() {
+         *                return $route.current.params.myHashSearchParam;
+         *              }, function(params) {
+         *                //do stuff with params
+         *              });
+         *            }
+         *
          * @returns {Object} route object
          *
          * @description
@@ -7637,8 +7681,8 @@ angularServiceInject('$route', function(location, $updateView) {
         when:function (path, params) {
           if (isUndefined(path)) return routes; //TODO(im): remove - not needed!
           var route = routes[path];
-          if (!route) route = routes[path] = {};
-          if (params) extend(route, params);
+          if (!route) route = routes[path] = {reloadOnSearch: true};
+          if (params) extend(route, params); //TODO(im): what the heck? merge two route definitions?
           dirty++;
           return route;
         },
@@ -7702,6 +7746,14 @@ angularServiceInject('$route', function(location, $updateView) {
   function updateRoute(){
     var childScope, routeParams, pathParams, segmentMatch, key, redir;
 
+    if ($route.current) {
+      if (!$route.current.reloadOnSearch && (lastHashPath == location.hashPath)) {
+        $route.current.params = extend({}, location.hashSearch, lastRouteParams);
+        return;
+      }
+    }
+
+    lastHashPath = location.hashPath;
     $route.current = null;
     forEach(routes, function(rParams, rPath) {
       if (!pathParams) {
@@ -7748,6 +7800,7 @@ angularServiceInject('$route', function(location, $updateView) {
         scope: childScope,
         params: extend({}, location.hashSearch, pathParams)
       });
+      lastRouteParams = pathParams;
     }
 
     //fire onChange callbacks
@@ -7759,7 +7812,7 @@ angularServiceInject('$route', function(location, $updateView) {
   }
 
 
-  this.$watch(function(){return dirty + location.hash;}, updateRoute);
+  this.$watch(function(){ return dirty + location.hash; }, updateRoute);
 
   return $route;
 }, ['$location', '$updateView']);
@@ -7798,7 +7851,7 @@ angularServiceInject('$route', function(location, $updateView) {
  *      or 'XHR' (instead of {@link angular.service.$xhr}) then you may be changing the model
  *      without angular knowledge and you may need to call '$updateView()' directly.
  *
- * NOTE: if you wish to update the view immediately (without delay), you can do so by calling
+ * Note: if you wish to update the view immediately (without delay), you can do so by calling
  * {@link angular.scope.$eval} at any time from your code:
  * <pre>scope.$root.$eval()</pre>
  *
@@ -7898,13 +7951,14 @@ angularServiceInject('$xhr.bulk', function($xhr, $error, $log){
         queue.requests = [];
         queue.callbacks = [];
         $xhr('POST', url, {requests: currentRequests},
-          function(code, response) {
+          function(code, response, responseHeaders) {
             forEach(response, function(response, i) {
               try {
                 if (response.status == 200) {
-                  (currentRequests[i].success || noop)(response.status, response.response);
+                  (currentRequests[i].success || noop)
+                      (response.status, response.response, responseHeaders);
                 } else if (isFunction(currentRequests[i].error)) {
-                    currentRequests[i].error(response.status, response.response);
+                    currentRequests[i].error(response.status, response.response, responseHeaders);
                 } else {
                   $error(currentRequests[i], response);
                 }
@@ -7914,11 +7968,11 @@ angularServiceInject('$xhr.bulk', function($xhr, $error, $log){
             });
             (success || noop)();
           },
-          function(code, response) {
+          function(code, response, responseHeaders) {
             forEach(currentRequests, function(request, i) {
               try {
                 if (isFunction(request.error)) {
-                  request.error(code, response);
+                  request.error(code, response, responseHeaders);
                 } else {
                   $error(request, response);
                 }
@@ -7958,8 +8012,8 @@ angularServiceInject('$xhr.bulk', function($xhr, $error, $log){
  * @param {string} method HTTP method.
  * @param {string} url Destination URL.
  * @param {(string|Object)=} post Request body.
- * @param {function(number, (string|Object))} success Response success callback.
- * @param {function(number, (string|Object))=} error Response error callback.
+ * @param {function(number, (string|Object), Function)} success Response success callback.
+ * @param {function(number, (string|Object), Function)} error Response error callback.
  * @param {boolean=} [verifyCache=false] If `true` then a result is immediately returned from cache
  *   (if present) while a request is sent to the server for a fresh response that will update the
  *   cached entry. The `success` function will be called when the response is received.
@@ -7991,9 +8045,9 @@ angularServiceInject('$xhr.cache', function($xhr, $defer, $error, $log) {
       if (dataCached = cache.data[url]) {
 
         if (sync) {
-          success(200, copy(dataCached.value));
+          success(200, copy(dataCached.value), copy(dataCached.headers));
         } else {
-          $defer(function() { success(200, copy(dataCached.value)); });
+          $defer(function() { success(200, copy(dataCached.value), copy(dataCached.headers)); });
         }
 
         if (!verifyCache)
@@ -8006,20 +8060,20 @@ angularServiceInject('$xhr.cache', function($xhr, $defer, $error, $log) {
       } else {
         inflight[url] = {successes: [success], errors: [error]};
         cache.delegate(method, url, post,
-          function(status, response) {
+          function(status, response, responseHeaders) {
             if (status == 200)
-              cache.data[url] = {value: response};
+              cache.data[url] = {value: response, headers: responseHeaders};
             var successes = inflight[url].successes;
             delete inflight[url];
             forEach(successes, function(success) {
               try {
-                (success||noop)(status, copy(response));
+                (success||noop)(status, copy(response), responseHeaders);
               } catch(e) {
                 $log.error(e);
               }
             });
           },
-          function(status, response) {
+          function(status, response, responseHeaders) {
             var errors = inflight[url].errors,
                 successes = inflight[url].successes;
             delete inflight[url];
@@ -8027,7 +8081,7 @@ angularServiceInject('$xhr.cache', function($xhr, $defer, $error, $log) {
             forEach(errors, function(error, i) {
               try {
                 if (isFunction(error)) {
-                  error(status, copy(response));
+                  error(status, copy(response), copy(responseHeaders));
                 } else {
                   $error(
                     {method: method, url: url, data: post, success: successes[i]},
@@ -8069,7 +8123,7 @@ angularServiceInject('$xhr.cache', function($xhr, $defer, $error, $log) {
  *   - `method` – `{string}` – The http request method.
  *   - `url` – `{string}` – The request destination.
  *   - `data` – `{(string|Object)=} – An optional request body.
- *   - `callback` – `{function()}` – The callback function
+ *   - `success` – `{function()}` – The success callback function
  *
  * @param {Object} response Response object.
  *
@@ -8098,7 +8152,7 @@ angularServiceInject('$xhr.error', function($log){
  * @name angular.service.$xhr
  * @function
  * @requires $browser $xhr delegates all XHR requests to the `$browser.xhr()`. A mock version
- *                    of the $browser exists which allows setting expectaitions on XHR requests
+ *                    of the $browser exists which allows setting expectations on XHR requests
  *                    in your tests
  * @requires $xhr.error $xhr delegates all non `2xx` response code to this service.
  * @requires $log $xhr delegates all exceptions to `$log.error()`.
@@ -8175,7 +8229,7 @@ angularServiceInject('$xhr.error', function($log){
  * cookie called `XSRF-TOKEN` on first HTTP GET request. On subsequent non-GET requests the server
  * can verify that the cookie matches `X-XSRF-TOKEN` HTTP header, and therefore be sure that only
  * JavaScript running on your domain could have read the token. The token must be unique for each
- * user and must be verifiable by  the server (to prevent the JavaScript making up its own tokens).
+ * user and must be verifiable by the server (to prevent the JavaScript making up its own tokens).
  * We recommend that the token is a digest of your site's authentication cookie with
  * {@link http://en.wikipedia.org/wiki/Rainbow_table salt for added security}.
  *
@@ -8188,7 +8242,7 @@ angularServiceInject('$xhr.error', function($log){
  *   angular generated callback function.
  * @param {(string|Object)=} post Request content as either a string or an object to be stringified
  *   as JSON before sent to the server.
- * @param {function(number, (string|Object))} success A function to be called when the response is
+ * @param {function(number, (string|Object), Function)} success A function to be called when the response is
  *   received. The success function will be called with:
  *
  *   - {number} code [HTTP status code](http://en.wikipedia.org/wiki/List_of_HTTP_status_codes) of
@@ -8196,27 +8250,35 @@ angularServiceInject('$xhr.error', function($log){
  *     {@link angular.service.$xhr.error} service (or custom error callback).
  *   - {string|Object} response Response object as string or an Object if the response was in JSON
  *     format.
+ *   - {function(string=)} responseHeaders A function that when called with a {string} header name,
+ *     returns the value of that header or null if it does not exist; when called without
+ *     arguments, returns an object containing every response header
  * @param {function(number, (string|Object))} error A function to be called if the response code is
  *   not 2xx.. Accepts the same arguments as success, above.
  *
  * @example
    <doc:example>
-     <doc:source>
+     <doc:source jsfiddle="false">
        <script>
          function FetchCntl($xhr) {
            var self = this;
 
            this.fetch = function() {
-             self.clear();
+             self.code = null;
+             self.response = null;
+
              $xhr(self.method, self.url, function(code, response) {
                self.code = code;
                self.response = response;
+             }, function(code, response) {
+               self.code = code;
+               self.response = response || "Request failed";
              });
            };
 
-           this.clear = function() {
-             self.code = null;
-             self.response = null;
+           this.updateModel = function(method, url) {
+             self.method = method;
+             self.url = url;
            };
          }
          FetchCntl.$inject = ['$xhr'];
@@ -8226,15 +8288,38 @@ angularServiceInject('$xhr.error', function($log){
            <option>GET</option>
            <option>JSON</option>
          </select>
-         <input type="text" name="url" value="index.html" size="80"/><br/>
-         <button ng:click="fetch()">fetch</button>
-         <button ng:click="clear()">clear</button>
-         <a href="" ng:click="method='GET'; url='index.html'">sample</a>
-         <a href="" ng:click="method='JSON'; url='https://www.googleapis.com/buzz/v1/activities/googlebuzz/@self?alt=json&callback=JSON_CALLBACK'">buzz</a>
+         <input type="text" name="url" value="index.html" size="80"/>
+         <button ng:click="fetch()">fetch</button><br>
+         <button ng:click="updateModel('GET', 'index.html')">Sample GET</button>
+         <button ng:click="updateModel('JSON', 'https://www.googleapis.com/buzz/v1/activities/googlebuzz/@self?alt=json&callback=JSON_CALLBACK')">Sample JSONP (Buzz API)</button>
+         <button ng:click="updateModel('JSON', 'https://www.invalid_JSONP_request.com&callback=JSON_CALLBACK')">Invalid JSONP</button>
          <pre>code={{code}}</pre>
          <pre>response={{response}}</pre>
        </div>
      </doc:source>
+     <doc:scenario>
+       it('should make xhr GET request', function() {
+         element(':button:contains("Sample GET")').click();
+         element(':button:contains("fetch")').click();
+         expect(binding('code')).toBe('code=200');
+         expect(binding('response')).toMatch(/angularjs.org/);
+       });
+
+       it('should make JSONP request to the Buzz API', function() {
+         element(':button:contains("Buzz API")').click();
+         element(':button:contains("fetch")').click();
+         expect(binding('code')).toBe('code=200');
+         expect(binding('response')).toMatch(/buzz-feed/);
+       });
+
+       it('should make JSONP request to invalid URL and invoke the error handler',
+           function() {
+         element(':button:contains("Invalid JSONP")').click();
+         element(':button:contains("fetch")').click();
+         expect(binding('code')).toBe('code=');
+         expect(binding('response')).toBe('response=Request failed');
+       });
+     </doc:scenario>
    </doc:example>
  */
 angularServiceInject('$xhr', function($browser, $error, $log, $updateView){
@@ -8262,7 +8347,7 @@ angularServiceInject('$xhr', function($browser, $error, $log, $updateView){
       post = toJson(post);
     }
 
-    $browser.xhr(method, url, post, function(code, response){
+    $browser.xhr(method, url, post, function(code, response, responseHeaders){
       try {
         if (isString(response)) {
           if (response.match(/^\)\]\}',\n/)) response=response.substr(6);
@@ -8271,9 +8356,9 @@ angularServiceInject('$xhr', function($browser, $error, $log, $updateView){
           }
         }
         if (200 <= code && code < 300) {
-          success(code, response);
+          success(code, response, responseHeaders);
         } else if (isFunction(error)) {
-          error(code, response);
+          error(code, response, responseHeaders);
         } else {
           $error(
             {method: method, url: url, data: post, success: success},
@@ -8559,7 +8644,7 @@ angularDirective("ng:bind", function(expression, element){
         error = formatError(e);
       });
       this.$element = oldElement;
-      // If we are HTML than save the raw HTML data so that we don't
+      // If we are HTML then save the raw HTML data so that we don't
       // recompute sanitization since it is expensive.
       // TODO: turn this into a more generic way to compute this
       if (isHtml = (value instanceof HTML))
@@ -8865,9 +8950,14 @@ function ngClass(selector) {
     var existing = element[0].className + ' ';
     return function(element){
       this.$onEval(function(){
-        if (selector(this.$index)) {
-          var value = this.$eval(expression);
+        var scope = this;
+
+        if (selector(scope.$index)) {
+          var ngClassVal = scope.$eval(element.attr('ng:class') || '');
+          if (isArray(ngClassVal)) ngClassVal = ngClassVal.join(' ');
+          var value = scope.$eval(expression);
           if (isArray(value)) value = value.join(' ');
+          if (ngClassVal && ngClassVal !== value) value = value + ' ' + ngClassVal;
           element[0].className = trim(existing + value);
         }
       }, element);
@@ -9027,7 +9117,7 @@ angularDirective("ng:class-even", ngClass(function(i){return i % 2 === 1;}));
 angularDirective("ng:show", function(expression, element){
   return function(element){
     this.$onEval(function(){
-      toBoolean(this.$eval(expression)) ? element.show() : element.hide();
+      element.css('display', toBoolean(this.$eval(expression)) ? '' : 'none');
     }, element);
   };
 });
@@ -9068,7 +9158,7 @@ angularDirective("ng:show", function(expression, element){
 angularDirective("ng:hide", function(expression, element){
   return function(element){
     this.$onEval(function(){
-      toBoolean(this.$eval(expression)) ? element.hide() : element.show();
+      element.css('display', toBoolean(this.$eval(expression)) ? 'none' : '');
     }, element);
   };
 });
@@ -9135,8 +9225,8 @@ angularDirective("ng:style", function(expression, element){
  * Markup extensions do not themselves produce linking functions. Think of markup as a way to
  * produce shorthand for a {@link angular.widget widget} or a {@link angular.directive directive}.
  *
- * The most prominent example of an markup in angular is the built-in double curly markup
- * `{{expression}}`, which is a shorthand for `<span ng:bind="expression"></span>`.
+ * The most prominent example of a markup in angular is the built-in double curly markup
+ * `{{expression}}`, which is shorthand for `<span ng:bind="expression"></span>`.
  *
  * Create custom markup like this:
  *
@@ -9157,7 +9247,7 @@ angularDirective("ng:style", function(expression, element){
  * @description
  *
  * Attribute markup extends the angular compiler in a very similar way as {@link angular.markup}
- * except that it allows you to modify the state of the attribute text rather then the content of a
+ * except that it allows you to modify the state of the attribute text rather than the content of a
  * node.
  *
  * Create custom attribute markup like this:
@@ -9261,7 +9351,7 @@ angularTextMarkup('option', function(text, textNode, parentElement){
  *
  * @description
  * Using <angular/> markup like {{hash}} in an href attribute makes
- * the page open to a wrong URL, ff the user clicks that link before
+ * the page open to a wrong URL, if the user clicks that link before
  * angular has a chance to replace the {{hash}} with actual URL, the
  * link will be broken and will most likely return a 404 error.
  * The `ng:href` solves this problem by placing the `href` in the
@@ -9374,7 +9464,8 @@ angularTextMarkup('option', function(text, textNode, parentElement){
  * </div>
  * </pre>
  *
- * the HTML specs do not require browsers preserve the special attributes such as disabled.(The presense of them means true and absense means false)
+ * The HTML specs do not require browsers to preserve the special attributes such as disabled.
+ * (The presence of them means true and absence means false)
  * This prevents the angular compiler from correctly retrieving the binding expression.
  * To solve this problem, we introduce ng:disabled.
  *
@@ -9404,7 +9495,8 @@ angularTextMarkup('option', function(text, textNode, parentElement){
  * @name angular.directive.ng:checked
  *
  * @description
- * the HTML specs do not require browsers preserve the special attributes such as checked.(The presense of them means true and absense means false)
+ * The HTML specs do not require browsers to preserve the special attributes such as checked.
+ * (The presence of them means true and absence means false)
  * This prevents the angular compiler from correctly retrieving the binding expression.
  * To solve this problem, we introduce ng:checked.
  * @example
@@ -9433,7 +9525,8 @@ angularTextMarkup('option', function(text, textNode, parentElement){
  * @name angular.directive.ng:multiple
  *
  * @description
- * the HTML specs do not require browsers preserve the special attributes such as multiple.(The presense of them means true and absense means false)
+ * The HTML specs do not require browsers to preserve the special attributes such as multiple.
+ * (The presence of them means true and absence means false)
  * This prevents the angular compiler from correctly retrieving the binding expression.
  * To solve this problem, we introduce ng:multiple.
  *
@@ -9468,7 +9561,8 @@ angularTextMarkup('option', function(text, textNode, parentElement){
  * @name angular.directive.ng:readonly
  *
  * @description
- * the HTML specs do not require browsers preserve the special attributes such as readonly.(The presense of them means true and absense means false)
+ * The HTML specs do not require browsers to preserve the special attributes such as readonly.
+ * (The presence of them means true and absence means false)
  * This prevents the angular compiler from correctly retrieving the binding expression.
  * To solve this problem, we introduce ng:readonly.
  * @example
@@ -9497,7 +9591,8 @@ angularTextMarkup('option', function(text, textNode, parentElement){
 * @name angular.directive.ng:selected
 *
 * @description
-* the HTML specs do not require browsers preserve the special attributes such as selected.(The presense of them means true and absense means false)
+* The HTML specs do not require browsers to preserve the special attributes such as selected.
+* (The presence of them means true and absence means false)
 * This prevents the angular compiler from correctly retrieving the binding expression.
 * To solve this problem, we introduce ng:selected.
 * @example
@@ -9550,7 +9645,7 @@ angularAttrMarkup('{{}}', function(value, name, element){
  * @name angular.widget
  * @description
  *
- * An angular widget can be either a custom attribute that modifies an existing DOM elements or an
+ * An angular widget can be either a custom attribute that modifies an existing DOM element or an
  * entirely new DOM element.
  *
  * During html compilation, widgets are processed after {@link angular.markup markup}, but before
@@ -9583,7 +9678,7 @@ angularAttrMarkup('{{}}', function(value, name, element){
  * @description
  * The most common widgets you will use will be in the form of the
  * standard HTML set. These widgets are bound using the `name` attribute
- * to an expression. In addition they can have `ng:validate`, `ng:required`,
+ * to an expression. In addition, they can have `ng:validate`, `ng:required`,
  * `ng:format`, `ng:change` attribute to further control their behavior.
  *
  * @usageContent
@@ -9836,7 +9931,7 @@ function compileFormatter(expr) {
  *
  * @description
  * The `ng:format` attribute widget formats stored data to user-readable text and parses the text
- * back to the stored form. You might find this useful for example if you collect user input in a
+ * back to the stored form. You might find this useful, for example, if you collect user input in a
  * text field but need to store the data in the model as a list. Check out
  * {@link angular.formatter formatters} to learn more.
  *
@@ -9981,7 +10076,7 @@ function noopAccessor() { return { get: noop, set: noop }; }
 /*
  * TODO: refactor
  *
- * The table bellow is not quite right. In some cases the formatter is on the model side
+ * The table below is not quite right. In some cases the formatter is on the model side
  * and in some cases it is on the view side. This is a historical artifact
  *
  * The concept of model/view accessor is useful for anyone who is trying to develop UI, and
@@ -9991,16 +10086,11 @@ function noopAccessor() { return { get: noop, set: noop }; }
  *
  */
 var textWidget = inputWidget('keydown change', modelAccessor, valueAccessor, initWidgetValue(), true),
-    buttonWidget = inputWidget('click', noopAccessor, noopAccessor, noop),
     INPUT_TYPE = {
       'text':            textWidget,
       'textarea':        textWidget,
       'hidden':          textWidget,
       'password':        textWidget,
-      'button':          buttonWidget,
-      'submit':          buttonWidget,
-      'reset':           buttonWidget,
-      'image':           buttonWidget,
       'checkbox':        inputWidget('click', modelFormattedAccessor, checkedAccessor, initWidgetValue(false)),
       'radio':           inputWidget('click', modelFormattedAccessor, radioAccessor, radioInit),
       'select-one':      inputWidget('change', modelAccessor, valueAccessor, initWidgetValue(null)),
@@ -10111,7 +10201,7 @@ function inputWidgetSelector(element){
 
 angularWidget('input', inputWidgetSelector);
 angularWidget('textarea', inputWidgetSelector);
-angularWidget('button', inputWidgetSelector);
+
 
 /**
  * @workInProgress
@@ -10282,7 +10372,7 @@ angularWidget('select', function(element){
       var optionGroup,
           collection = valuesFn(scope) || [],
           key = selectElement.val(),
-          tempScope = scope.$new(),
+          tempScope = inherit(scope),
           value, optionElement, index, groupIndex, length, groupLength;
 
       try {
@@ -10340,7 +10430,7 @@ angularWidget('select', function(element){
           fragment,
           groupIndex, index,
           optionElement,
-          optionScope = scope.$new(),
+          optionScope = inherit(scope),
           modelValue = model.get(),
           selected,
           selectedSet = false, // nothing is selected yet
@@ -10504,7 +10594,7 @@ angularWidget('select', function(element){
  *
  * @example
     <doc:example>
-      <doc:source>
+      <doc:source jsfiddle="false">
        <select name="url">
         <option value="examples/ng-include/template1.html">template1.html</option>
         <option value="examples/ng-include/template2.html">template2.html</option>
@@ -10885,12 +10975,12 @@ angularWidget('@ng:repeat', function(expression, element){
  * Sometimes it is necessary to write code which looks like bindings but which should be left alone
  * by angular. Use `ng:non-bindable` to make angular ignore a chunk of HTML.
  *
- * NOTE: `ng:non-bindable` looks like a directive, but is actually an attribute widget.
+ * Note: `ng:non-bindable` looks like a directive, but is actually an attribute widget.
  *
  * @element ANY
  *
  * @example
- * In this example there are two location where a siple binding (`{{}}`) is present, but the one
+ * In this example there are two location where a simple binding (`{{}}`) is present, but the one
  * wrapped in `ng:non-bindable` is left alone.
  *
  * @example
@@ -10938,7 +11028,7 @@ angularWidget("@ng:non-bindable", noop);
  *
  * @example
     <doc:example>
-      <doc:source>
+      <doc:source jsfiddle="false">
          <script>
            function MyCtrl($route) {
              $route.when('/overview',
@@ -11020,15 +11110,7 @@ angularWidget('ng:view', function(element) {
 });
 
 var browserSingleton;
-/**
- * @workInProgress
- * @ngdoc service
- * @name angular.service.$browser
- * @requires $log
- *
- * @description
- * Represents the browser.
- */
+
 angularService('$browser', function($log){
   if (!browserSingleton) {
     browserSingleton = new Browser(window, jqLite(window.document), jqLite(window.document.body),
