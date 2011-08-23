@@ -67,7 +67,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         log.info("Starting proxy on HTTP port "+httpLocalPort+
             " and HTTPS port "+httpsLocalPort);
         
-        newServerBootstrap(newHttpChannelPipelineFactory(this.xmpp), 
+        newServerBootstrap(newHttpChannelPipelineFactory(), 
             httpLocalPort);
         log.info("Built HTTP server");
         
@@ -122,8 +122,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
     }
 
 
-    private ChannelPipelineFactory newHttpChannelPipelineFactory(
-        final XmppHandler xmpp) {
+    private ChannelPipelineFactory newHttpChannelPipelineFactory() {
         return new ChannelPipelineFactory() {
             @Override
             public ChannelPipeline getPipeline() throws Exception {
