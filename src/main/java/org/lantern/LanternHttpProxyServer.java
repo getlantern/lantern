@@ -34,11 +34,9 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     private final KeyStoreManager keyStoreManager;
 
-    private final int sslProxyRandomPort;
-
-    private final int plainTextProxyRandomPort;
-
     private final int httpsLocalPort;
+
+    private final XmppHandler xmpp;
     
     /**
      * Creates a new proxy server.
@@ -46,20 +44,15 @@ public class LanternHttpProxyServer implements HttpProxyServer {
      * @param httpLocalPort The port the HTTP server should run on.
      * @param httpsLocalPort The port the HTTPS server should run on.
      * @param filters HTTP filters to apply.
-     * @param sslProxyRandomPort The port of the HTTP proxy that other peers  
-     * will relay to.
-     * @param plainTextProxyRandomPort The port of the HTTP proxy running
-     * only locally and accepting plain-text sockets.
+     * @param xmpp The class dealing with all XMPP interaction with the server.
      */
     public LanternHttpProxyServer(final int httpLocalPort, 
         final int httpsLocalPort, final KeyStoreManager keyStoreManager, 
-        final int sslProxyRandomPort, 
-        final int plainTextProxyRandomPort) {
+        final XmppHandler xmpp) {
         this.httpLocalPort = httpLocalPort;
         this.httpsLocalPort = httpsLocalPort;
         this.keyStoreManager = keyStoreManager;
-        this.sslProxyRandomPort = sslProxyRandomPort;
-        this.plainTextProxyRandomPort = plainTextProxyRandomPort;
+        this.xmpp = xmpp;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
@@ -74,11 +67,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         log.info("Starting proxy on HTTP port "+httpLocalPort+
             " and HTTPS port "+httpsLocalPort);
         
-        final XmppHandler xmpp = 
-            new XmppHandler(sslProxyRandomPort, plainTextProxyRandomPort, 
-                LanternHub.systemTray());
-        
-        newServerBootstrap(newHttpChannelPipelineFactory(xmpp), 
+        newServerBootstrap(newHttpChannelPipelineFactory(this.xmpp), 
             httpLocalPort);
         log.info("Built HTTP server");
         
