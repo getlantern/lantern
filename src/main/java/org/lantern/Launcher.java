@@ -93,13 +93,17 @@ public class Launcher {
         
         LOG.info("About to start Lantern server on port: "+
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
+        
+        final XmppHandler xmpp = 
+            new XmppHandler(sslRandomPort, 
+                LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT, 
+                LanternHub.systemTray());
         final HttpProxyServer server = 
             new LanternHttpProxyServer(
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
                 LanternConstants.LANTERN_LOCALHOST_HTTPS_PORT, 
                 //null, sslRandomPort,
-                proxyKeyStore, sslRandomPort,
-                LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
+                proxyKeyStore, xmpp);
         server.start();
     }
 
