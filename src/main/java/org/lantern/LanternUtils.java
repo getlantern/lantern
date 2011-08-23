@@ -5,10 +5,10 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
@@ -40,6 +40,7 @@ import org.apache.commons.httpclient.URIException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -760,6 +761,18 @@ public class LanternUtils {
             } catch (final InterruptedException e) {
                 LOG.error("Interrupted?", e);
             }
+        }
+    }
+    
+    public static int randomPort() {
+        try {
+            final ServerSocket sock = new ServerSocket();
+            sock.bind(null);
+            final int port = sock.getLocalPort();
+            sock.close();
+            return port;
+        } catch (final IOException e) {
+            return 1024 + (RandomUtils.nextInt() % 60000);
         }
     }
 }
