@@ -68,8 +68,8 @@ public class Launcher {
     public static void launchLantern() {
         final KeyStoreManager proxyKeyStore = 
             new LanternKeyStoreManager(true);
-        final int sslRandomPort = randomPort();
-        LOG.info("Running straight HTTP proxy on port: "+sslRandomPort);
+        final int sslRandomPort = LanternUtils.randomPort();
+        LOG.info("Running SSL HTTP proxy on port: "+sslRandomPort);
         /*
         final org.littleshoot.proxy.HttpProxyServer sslProxy = 
             new DefaultHttpProxyServer(sslRandomPort,
@@ -77,8 +77,7 @@ public class Launcher {
          */ 
         
         final org.littleshoot.proxy.HttpProxyServer sslProxy = 
-            new DefaultHttpProxyServer(sslRandomPort,
-                new HashMap<String, HttpFilter>(), null, null, null);
+            new DefaultHttpProxyServer(sslRandomPort);
         sslProxy.start(false, false);
          
         
@@ -146,18 +145,6 @@ public class Launcher {
             System.out.println("Exception setting log4j props with file: "
                     + logFile);
             e.printStackTrace();
-        }
-    }
-
-    private static int randomPort() {
-        try {
-            final ServerSocket sock = new ServerSocket();
-            sock.bind(null);
-            final int port = sock.getLocalPort();
-            sock.close();
-            return port;
-        } catch (final IOException e) {
-            return 1024 + (RandomUtils.nextInt() % 60000);
         }
     }
 }
