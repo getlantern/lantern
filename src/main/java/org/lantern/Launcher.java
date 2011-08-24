@@ -85,7 +85,7 @@ public class Launcher {
         // The reason this exists is complicated. It's for the case when the
         // offerer gets an incoming connection from the answerer, and then
         // only on the answerer side. The answerer "client" socket relays
-        // it's data to the local proxy.
+        // its data to the local proxy.
         // See http://cdn.bravenewsoftware.org/IMAG0210.jpg
         final org.littleshoot.proxy.HttpProxyServer plainTextProxy = 
             new DefaultHttpProxyServer(
