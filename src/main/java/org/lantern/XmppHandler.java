@@ -230,7 +230,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             this.client = P2P.newXmppP2PHttpClient("shoot", libTorrent, 
                 libTorrent, new InetSocketAddress(this.sslProxyRandomPort), 
                 SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
-                plainTextProxyRelayAddress);
+                plainTextProxyRelayAddress, false);
 
             // This is a global, backup listener added to the client. We might
             // get notifications of messages twice in some cases, but that's
