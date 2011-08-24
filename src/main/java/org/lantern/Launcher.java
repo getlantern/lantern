@@ -3,15 +3,11 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.net.ServerSocket;
-import java.util.HashMap;
 import java.util.Properties;
 
-import org.apache.commons.lang.math.RandomUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.eclipse.swt.widgets.Display;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
-import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,6 +81,12 @@ public class Launcher {
         // there's no reason to randomize it since it's not public.
         // If testing two instances on the same machine, just change it on
         // one of them.
+        
+        // The reason this exists is complicated. It's for the case when the
+        // offerer gets an incoming connection from the answerer, and then
+        // only on the answerer side. The answerer "client" socket relays
+        // it's data to the local proxy.
+        // See http://cdn.bravenewsoftware.org/IMAG0210.jpg
         final org.littleshoot.proxy.HttpProxyServer plainTextProxy = 
             new DefaultHttpProxyServer(
                 LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
