@@ -519,9 +519,12 @@ public class LanternBrowser {
         sb.append("<div id='contacts'>\n");
         int index = 0;
         for (final RosterEntry entry : entries) {
-            final String name = entry.getName();
-            if (StringUtils.isBlank(name)) {
-                continue;
+            final String name;
+            final String entryName  = entry.getName();
+            if (StringUtils.isBlank(entryName)) {
+                name = entry.getUser();
+            } else {
+                name = entryName;
             }
             final String user = entry.getUser();
             final boolean trusted = trustManager.isTrusted(user.trim());
