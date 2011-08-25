@@ -91,7 +91,7 @@ public class CensoredUtils {
             return countryCode;
         }
         
-        countryCode = countryCode(PublicIpAddress.getPublicIpAddress());
+        countryCode = countryCode(new PublicIpAddress().getPublicIpAddress());
         return countryCode;
     }
     
@@ -102,7 +102,7 @@ public class CensoredUtils {
     }
     
     public static boolean isCensored() {
-        return isCensored(PublicIpAddress.getPublicIpAddress());
+        return isCensored(new PublicIpAddress().getPublicIpAddress());
     }
     
     public static boolean isCensored(final InetAddress address) {
@@ -114,7 +114,7 @@ public class CensoredUtils {
     }
     
     public static boolean isExportRestricted() {
-        return isExportRestricted(PublicIpAddress.getPublicIpAddress());
+        return isExportRestricted(new PublicIpAddress().getPublicIpAddress());
     }
     
     public static boolean isExportRestricted(final InetAddress address) { 
