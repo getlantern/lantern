@@ -37,6 +37,7 @@ import net.sf.ehcache.store.chm.ConcurrentHashMap;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.URIException;
+import org.apache.commons.io.IOExceptionWithCause;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
@@ -250,7 +251,7 @@ public class LanternUtils {
                 peerFailureCount.put(uri, new AtomicInteger(0));
                 proxyStatusListener.onCouldNotConnectToPeer(uri);
             } 
-            throw nae;
+            throw new IOExceptionWithCause(nae);
         } catch (final IOException ioe) {
             proxyStatusListener.onCouldNotConnectToPeer(uri);
             LOG.warn("Could not connect to peer", ioe);
