@@ -47,7 +47,9 @@ public class SocketHttpConnectRelayingHandler
     public void messageReceived(final ChannelHandlerContext ctx, 
         final MessageEvent e) throws Exception {
         final ChannelBuffer msg = (ChannelBuffer) e.getMessage();
-        sock.getOutputStream().write(LanternUtils.toRawBytes(msg));
+        final byte[] data = LanternUtils.toRawBytes(msg);
+        //LOG.info("Writing on CONNECT socket: "+new String(data));
+        sock.getOutputStream().write(data);
     }
     
     @Override
