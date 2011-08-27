@@ -115,7 +115,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
                 // returning to the browser still goes through our encoder 
                 // here (i.e. we haven't stripped the encoder to support 
                 // CONNECT traffic).
-                this.socket = LanternUtils.openRawOutgoingPeerSocket(
+                this.socket = LanternUtils.openOutgoingPeerSocket(
                     browserToProxyChannel, this.peerInfo,  
                     this.proxyStatusListener, this.p2pClient, peerFailureCount,
                     false);
