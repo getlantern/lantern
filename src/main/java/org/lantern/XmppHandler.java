@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Queue;
-import java.util.Scanner;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -22,6 +21,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.ChatManager;
@@ -117,7 +117,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
         @Override
         public void processMessage(final Chat ch, final Message msg) {
-            final String part = msg.getFrom();//ch.getParticipant();
+            // Note the Chat will always be null here. We try to avoid using
+            // actual Chat instances due to Smack's strange and inconsistent
+            // behavior with message listeners on chats.
+            final String part = msg.getFrom();
             LOG.info("Got chat participant: {} with message:\n {}", part, 
                 msg.toXML());
             if (part.startsWith(LANTERN_JID)) {
@@ -162,7 +165,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                         tray.activate();
                     }
                 }
-                
+
                 // This is really a JSONObject, but that itself is a map.
                 final Map<String, String> update = 
                     (Map<String, String>) json.get(LanternConstants.UPDATE_KEY);
@@ -180,11 +183,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                     });
                 }
             }
+
             final Integer type = 
                 (Integer) msg.getProperty(P2PConstants.MESSAGE_TYPE);
             if (type != null) {
                 LOG.info("Not processing typed message");
-                //processTypedMessage(msg, type, ch);
+                processTypedMessage(msg, type);
             } 
         }
     };
@@ -247,7 +251,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 
                 @Override
                 public void processPacket(final Packet pack) {
-                    //log.info("Got packet: {}", pack);
                     LOG.info("Responding to subscribtion request from {} and to {}", 
                         pack.getFrom(), pack.getTo());
                     final Presence packet = 
@@ -456,108 +459,69 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
     }
     
-    /*
-    private void processTypedMessage(final Message msg, final Integer type, 
-        final Chat chat) {
-        final String from = chat.getParticipant();
+    private void processTypedMessage(final Message msg, final Integer type) {
+        final String from = msg.getFrom();
         final URI uri;
         try {
             uri = new URI(from);
         } catch (final URISyntaxException e) {
-            log.error("Could not create URI from: {}", from);
+            LOG.error("Could not create URI from: {}", from);
             return;
         }
-        log.info("Processing typed message from {}", from);
+        LOG.info("Processing typed message from {}", from);
         if (!this.peerProxySet.contains(uri)) {
-            log.warn("Ignoring message from untrusted peer: {}", from);
-            log.warn("Peer not in: {}", this.peerProxySet);
+            LOG.warn("Ignoring message from untrusted peer: {}", from);
+            LOG.warn("Peer not in: {}", this.peerProxySet);
             return;
         }
         switch (type) {
             case (XmppMessageConstants.INFO_REQUEST_TYPE):
-                log.info("Handling INFO request from {}", from);
-                processInfoData(msg, chat);
-                sendInfoResponse(chat);
+                LOG.info("Handling INFO request from {}", from);
+                processInfoData(msg);
+                sendInfoResponse(from);
                 break;
             case (XmppMessageConstants.INFO_RESPONSE_TYPE):
-                log.info("Handling INFO response from {}", from);
-                processInfoData(msg, chat);
+                LOG.info("Handling INFO response from {}", from);
+                processInfoData(msg);
                 break;
             default:
-                log.warn("Did not understand type: "+type);
+                LOG.warn("Did not understand type: "+type);
                 break;
         }
     }
-    */
     
+    private void sendInfoResponse(final String from) {
+        final Message msg = new Message();
+        // The from becomes the to when we're responding.
+        msg.setTo(from);
+        msg.setProperty(P2PConstants.MESSAGE_TYPE, 
+            XmppMessageConstants.INFO_RESPONSE_TYPE);
+        msg.setProperty(P2PConstants.MAC, LanternUtils.getMacAddress());
+        msg.setProperty(P2PConstants.CERT, 
+            LanternHub.getKeyStoreManager().getBase64Cert());
+        this.client.getXmppConnection().sendPacket(msg);
+    }
+
     private void processInfoData(final Message msg) {
         LOG.info("Processing INFO data from request or response.");
-        final String proxyString = 
-            (String) msg.getProperty(XmppMessageConstants.PROXIES);
-        if (StringUtils.isNotBlank(proxyString)) {
-            LOG.info("Got proxies: {}", proxyString);
-            final Scanner scan = new Scanner(proxyString);
-            while (scan.hasNext()) {
-                final String cur = scan.next();
-                addProxy(cur);
-            }
-        }
-        
-        //final String mac =
-        //    (String) msg.getProperty(P2PConstants.MAC);
+        final String mac =
+            (String) msg.getProperty(P2PConstants.MAC);
         final String base64Cert =
             (String) msg.getProperty(P2PConstants.CERT);
         LOG.info("Base 64 cert: {}", base64Cert);
         
-        final String secret =
-            (String) msg.getProperty(P2PConstants.SECRET_KEY);
-        LOG.info("Secret key: {}", secret);
-        if (StringUtils.isNotBlank(secret)) {
-            final URI uri;
-            try {
-                uri = new URI(msg.getFrom());
-            } catch (final URISyntaxException e) {
-                LOG.error("Could not create URI from: {}", 
-                    msg.getFrom());
-                return;
-            }
-            synchronized (peerProxySet) {
-                if (!peerProxySet.contains(uri)) {
-                    peerProxies.add(uri);
-                    peerProxySet.add(uri);
-                }
-            }
-        }
-        
-        /*
         if (StringUtils.isNotBlank(base64Cert)) {
-            log.info("Got certificate:\n"+
+            LOG.info("Got certificate:\n"+
                 new String(Base64.decodeBase64(base64Cert)));
-            // First we need to add this certificate to the trusted 
-            // certificates on the proxy. Then we can add it to our list of
-            // peers.
-            final URI uri;
-            try {
-                uri = new URI(chat.getParticipant());
-            } catch (final URISyntaxException e) {
-                log.error("Could not create URI from: {}", 
-                    chat.getParticipant());
-                return;
-            }
             try {
                 // Add the peer if we're able to add the cert.
-                this.keyStoreManager.addBase64Cert(mac, base64Cert);
-                synchronized (peerProxySet) {
-                    if (!peerProxySet.contains(uri)) {
-                        peerProxies.add(uri);
-                        peerProxySet.add(uri);
-                    }
-                }
+                LanternHub.getKeyStoreManager().addBase64Cert(mac, base64Cert);
             } catch (final IOException e) {
-                log.error("Could not add cert??", e);
+                LOG.error("Could not add cert??", e);
             }
+        } else {
+            LOG.error("No cert for peer?");
         }
-        */
     }
 
     private void addProxy(final String cur) {
@@ -608,10 +572,26 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 LOG.info("Actually adding peer proxy: {}", cur);
                 peerSet.add(cur);
                 peerQueue.add(cur);
+                sendAndRequestCert(cur);
             } else {
                 LOG.info("We already know about the peer proxy");
             }
         }
+    }
+
+    private void sendAndRequestCert(final URI cur) {
+        LOG.info("Requesting cert from {}", cur);
+        final Message msg = new Message();
+        msg.setProperty(P2PConstants.MESSAGE_TYPE, 
+            XmppMessageConstants.INFO_REQUEST_TYPE);
+        
+        msg.setTo(cur.toASCIIString());
+        // Set our certificate in the request as well -- we want to make
+        // extra sure these get through!
+        msg.setProperty(P2PConstants.MAC, LanternUtils.getMacAddress());
+        msg.setProperty(P2PConstants.CERT, 
+            LanternHub.getKeyStoreManager().getBase64Cert());
+        this.client.getXmppConnection().sendPacket(msg);
     }
 
     private void addLaeProxy(final String cur) {
