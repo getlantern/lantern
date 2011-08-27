@@ -62,8 +62,7 @@ public class Launcher {
     }
 
     public static void launchLantern() {
-        final KeyStoreManager proxyKeyStore = 
-            new LanternKeyStoreManager(true);
+        final KeyStoreManager proxyKeyStore = LanternHub.getKeyStoreManager();
         final int sslRandomPort = LanternUtils.randomPort();
         LOG.info("Running SSL HTTP proxy on port: "+sslRandomPort);
         /*
