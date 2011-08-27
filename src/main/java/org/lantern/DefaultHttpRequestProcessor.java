@@ -87,8 +87,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         final ChannelHandlerContext ctx, final MessageEvent me) {
         
         if (cf == null) {
-            cf = openOutgoingChannel(
-                browserToProxyChannel, proxyAddress, isLae);
+            cf = openOutgoingChannel(browserToProxyChannel);
         }
         final HttpRequest request = (HttpRequest) me.getMessage();
         this.transformer.transform(request, proxyAddress);
@@ -110,8 +109,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
     }
 
     private ChannelFuture openOutgoingChannel(
-        final Channel browserToProxyChannel, 
-        final InetSocketAddress proxyAddress, final boolean lae) {
+        final Channel browserToProxyChannel) {
         
         browserToProxyChannel.setReadable(false);
 
@@ -121,7 +119,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         
         final ChannelPipeline pipeline = cb.getPipeline();
         final SSLEngine engine;
-        if (lae) {
+        if (this.isLae) {
             log.info("Creating standard SSL engine");
             try {
                 engine = SSLContext.getDefault().createSSLEngine();
@@ -147,12 +145,13 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         
         log.info("Connecting to proxy at: {}", proxyAddress);
         
-        final ChannelFuture cf = cb.connect(proxyAddress);
+        final ChannelFuture connectFuture = cb.connect(proxyAddress);
 
         // This is handy, as set readable to false while the channel is 
         // connecting ensures we won't get any incoming messages until
         // we're fully connected.
-        cf.addListener(new ChannelFutureListener() {
+        connectFuture.addListener(new ChannelFutureListener() {
+            @Override
             public void operationComplete(final ChannelFuture future) 
                 throws Exception {
                 if (future.isSuccess()) {
@@ -162,7 +161,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
                 } else {
                     // Close the connection if the connection attempt has failed.
                     browserToProxyChannel.close();
-                    if (lae) {
+                    if (isLae) {
                         proxyStatusListener.onCouldNotConnectToLae(proxyAddress);
                     } else {
                         proxyStatusListener.onCouldNotConnect(proxyAddress);
@@ -170,6 +169,6 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
                 }
             }
         });
-        return cf;
+        return connectFuture;
     }
 }
