@@ -9,6 +9,7 @@ public class LanternHub {
     private volatile static SystemTray systemTray;
     
     private volatile static StatsTracker statsTracker;
+    private volatile static LanternKeyStoreManager proxyKeyStore;
     
     public synchronized static TrustedContactsManager getTrustedContactsManager() {
         if (trustedContactsManager == null) {
@@ -37,6 +38,13 @@ public class LanternHub {
             statsTracker = new StatsTracker();
         }
         return statsTracker;
+    }
+
+    public synchronized static LanternKeyStoreManager getKeyStoreManager() {
+        if (proxyKeyStore == null) {
+            proxyKeyStore = new LanternKeyStoreManager(true);
+        }
+        return proxyKeyStore;
     }
 
 }
