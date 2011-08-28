@@ -29,6 +29,7 @@ import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocketFactory;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -236,11 +237,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             final InetSocketAddress plainTextProxyRelayAddress = 
                 new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
             
-            
             this.client = P2P.newXmppP2PHttpClient("shoot", libTorrent, 
                 libTorrent, new InetSocketAddress(this.sslProxyRandomPort), 
-                //newTlsSocketFactory(), newTlsServerSocketFactory(),
-                SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
+                newTlsSocketFactory(), SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
+                //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
                 plainTextProxyRelayAddress, false);
 
             // This is a global, backup listener added to the client. We might
