@@ -55,8 +55,8 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         final File littleProxyCert = new File("lantern_littleproxy_cert");
         if (littleProxyCert.isFile()) {
             log.info("Importing cert");
-            final String result = runKeytool("-import", "-noprompt", "-file", 
-                littleProxyCert.getName(), 
+            final String result = LanternUtils.runKeytool("-import", 
+                "-noprompt", "-file", littleProxyCert.getName(), 
                 "-alias", "littleproxy", "-keystore", 
                 TRUSTSTORE_FILE.getAbsolutePath(), "-storepass",  PASS);
             
@@ -73,41 +73,14 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         };
     }
     
-    /** 
-     * Execute keytool, returning the output.
-     */
-    private String runKeytool(final String... args) {
-        final CommandLine command = new CommandLine(findKeytoolPath(), args);
-        command.execute();
-        final String output = command.getStdOut();
-        if (!command.isSuccessful()) {
-            log.warn("Command failed!! -- {}", args);
-        }
-        return output;
-    }
-    
-
-    private String findKeytoolPath() {
-        File defaultLocation = new File("/usr/bin/keytool");
-        if (defaultLocation.exists()) {
-            return defaultLocation.getAbsolutePath();
-        }
-        String networkSetupBin = CommandLine.findExecutable("keytool");
-        if (networkSetupBin != null) {
-            return networkSetupBin;
-        }
-        log.error("Could not fine keytool?!?!?!?");
-        return null;
-    }
-
     private void createTrustStore() {
         if (TRUSTSTORE_FILE.isFile()) {
             log.info("Trust store already exists");
             return;
         }
-        final String result = runKeytool("-genkey", "-alias", "foo", "-keysize", 
-            "1024", "-validity", "36500", "-keyalg", "DSA", "-dname", 
-            "CN="+LanternUtils.getMacAddress(), "-keystore", 
+        final String result = LanternUtils.runKeytool("-genkey", "-alias", 
+            "foo", "-keysize", "1024", "-validity", "36500", "-keyalg", "DSA", 
+            "-dname", "CN="+LanternUtils.getMacAddress(), "-keystore", 
             TRUSTSTORE_FILE.getAbsolutePath(), "-keypass", PASS, 
             "-storepass", PASS);
         log.info("Got result of creating trust store: {}", result);
@@ -129,7 +102,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
         // Note we use DSA instead of RSA because apparently only the JDK 
         // has RSA available.
-        final String genKeyResult = runKeytool("-genkey", "-alias", macAddress, 
+        final String genKeyResult = LanternUtils.runKeytool("-genkey", "-alias", macAddress, 
             "-keysize", "1024", "-validity", "36500", "-keyalg", "DSA", 
             "-dname", "CN="+macAddress, "-keypass", PASS, "-storepass", 
             PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
@@ -140,7 +113,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         
         // Now grab our newly-generated cert. All of our trusted peers will
         // use this to connect.
-        final String exportCertResult = runKeytool("-exportcert", "-alias", 
+        final String exportCertResult = LanternUtils.runKeytool("-exportcert", "-alias", 
             macAddress, "-keystore", KEYSTORE_FILE.getAbsolutePath(), 
             "-storepass", PASS, "-file", CERT_FILE.getAbsolutePath());
         log.info("Result of keytool -exportcert call: {}", exportCertResult);

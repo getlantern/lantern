@@ -15,6 +15,7 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.lastbamboo.common.p2p.P2PClient;
+import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,6 +41,7 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
         new ConcurrentHashMap<URI, AtomicInteger>();
 
     private final Proxy proxy;
+
 
     public PeerHttpConnectRequestProcessor(final Proxy proxy, 
         final ProxyStatusListener proxyStatusListener,
