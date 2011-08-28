@@ -24,6 +24,7 @@ import org.jboss.netty.handler.codec.http.HttpChunkTrailer;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.util.CharsetUtil;
 import org.lastbamboo.common.p2p.P2PClient;
+import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.ByteBufferUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,12 +85,15 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
 
     private boolean chunked;
 
+    private final KeyStoreManager keyStoreManager;
+
     public PeerHttpRequestProcessor(final Proxy proxy, 
         final ProxyStatusListener proxyStatusListener,
-        final P2PClient p2pClient){
+        final P2PClient p2pClient, final KeyStoreManager keyStoreManager) {
         this.proxy = proxy;
         this.proxyStatusListener = proxyStatusListener;
         this.p2pClient = p2pClient;
+        this.keyStoreManager = keyStoreManager;
     }
 
     @Override
