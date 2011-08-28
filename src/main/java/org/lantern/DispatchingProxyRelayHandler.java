@@ -194,7 +194,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 public URI getPeerProxy() {
                     return proxyProvider.getPeerProxy();
                 }
-            },  proxyStatusListener, encryptingP2pClient);
+            },  proxyStatusListener, encryptingP2pClient, this.keyStoreManager);
         
         this.proxyRequestProcessor =
             new DefaultHttpRequestProcessor(proxyStatusListener,
