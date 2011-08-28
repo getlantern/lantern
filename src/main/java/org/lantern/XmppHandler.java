@@ -6,6 +6,13 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.KeyManagementException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.Security;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -20,6 +27,8 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
@@ -231,9 +240,14 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             final InetSocketAddress plainTextProxyRelayAddress = 
                 new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
             
+            final SocketFactory socketFactory = newTlsSocketFactory();
+            final ServerSocketFactory serverSocketFactory =
+                newTlsServerSocketFactory();
+            
             this.client = P2P.newXmppP2PHttpClient("shoot", libTorrent, 
                 libTorrent, new InetSocketAddress(this.sslProxyRandomPort), 
-                SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
+                socketFactory, serverSocketFactory,
+                //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
                 plainTextProxyRelayAddress, false);
 
             // This is a global, backup listener added to the client. We might
@@ -263,7 +277,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 
                 @Override
                 public boolean accept(final Packet packet) {
-                    //log.info("Filtering incoming packet:\n{}", packet.toXML());
+                    //LOG.info("Filtering incoming packet:\n{}", packet.toXML());
                     if(packet instanceof Presence) {
                         final Presence pres = (Presence) packet;
                         if(pres.getType().equals(Presence.Type.subscribe)) {
@@ -345,7 +359,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             }
             @Override
             public void presenceChanged(final Presence presence) {
-                //log.info("Processing presence changed: {}", presence);
+                //LOG.info("Processing presence changed: {}", presence);
                 processPresence(presence);
             }
             @Override
@@ -461,6 +475,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     private void processTypedMessage(final Message msg, final Integer type) {
         final String from = msg.getFrom();
+        LOG.info("Processing typed message from {}", from);
+        /*
         final URI uri;
         try {
             uri = new URI(from);
@@ -468,12 +484,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             LOG.error("Could not create URI from: {}", from);
             return;
         }
-        LOG.info("Processing typed message from {}", from);
         if (!this.peerProxySet.contains(uri)) {
             LOG.warn("Ignoring message from untrusted peer: {}", from);
             LOG.warn("Peer not in: {}", this.peerProxySet);
             return;
         }
+        */
         switch (type) {
             case (XmppMessageConstants.INFO_REQUEST_TYPE):
                 LOG.info("Handling INFO request from {}", from);
@@ -831,6 +847,57 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             } else if (!isa.equals(other.isa))
                 return false;
             return true;
+        }
+    }
+    
+    private ServerSocketFactory newTlsServerSocketFactory() {
+        LOG.info("Creating TLS server socket factory");
+        String algorithm = 
+            Security.getProperty("ssl.KeyManagerFactory.algorithm");
+        if (algorithm == null) {
+            algorithm = "SunX509";
+        }
+        try {
+            final KeyStore ks = KeyStore.getInstance("JKS");
+            ks.load(LanternHub.getKeyStoreManager().keyStoreAsInputStream(),
+                    LanternHub.getKeyStoreManager().getKeyStorePassword());
+
+            // Set up key manager factory to use our key store
+            final KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
+            kmf.init(ks, LanternHub.getKeyStoreManager().getCertificatePassword());
+
+            // Initialize the SSLContext to work with our key managers.
+            final SSLContext serverContext = SSLContext.getInstance("TLS");
+            serverContext.init(kmf.getKeyManagers(), null, null);
+            return serverContext.getServerSocketFactory();
+        } catch (final KeyStoreException e) {
+            throw new Error("Could not create SSL server socket factory.", e);
+        } catch (final NoSuchAlgorithmException e) {
+            throw new Error("Could not create SSL server socket factory.", e);
+        } catch (final CertificateException e) {
+            throw new Error("Could not create SSL server socket factory.", e);
+        } catch (final IOException e) {
+            throw new Error("Could not create SSL server socket factory.", e);
+        } catch (final UnrecoverableKeyException e) {
+            throw new Error("Could not create SSL server socket factory.", e);
+        } catch (final KeyManagementException e) {
+            throw new Error("Could not create SSL server socket factory.", e);
+        }
+    }
+
+    private SocketFactory newTlsSocketFactory() {
+        LOG.info("Creating TLS socket factory");
+        try {
+            final SSLContext clientContext = SSLContext.getInstance("TLS");
+            clientContext.init(null, 
+                LanternHub.getKeyStoreManager().getTrustManagers(), null);
+            return clientContext.getSocketFactory();
+        } catch (final NoSuchAlgorithmException e) {
+            LOG.error("No TLS?", e);
+            throw new Error("No TLS?", e);
+        } catch (final KeyManagementException e) {
+            LOG.error("Key managmement issue?", e);
+            throw new Error("Key managmement issue?", e);
         }
     }
 }
