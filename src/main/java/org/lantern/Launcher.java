@@ -68,12 +68,12 @@ public class Launcher {
         final int sslRandomPort = LanternUtils.randomPort();
         LOG.info("Running SSL HTTP proxy on port: "+sslRandomPort);
         
-        final org.littleshoot.proxy.HttpProxyServer sslProxy = 
-            new DefaultHttpProxyServer(sslRandomPort,
-                new HashMap<String, HttpFilter>(), null, proxyKeyStore, null);
+        //final DefaultHttpProxyServer sslProxy = 
+        //    new DefaultHttpProxyServer(sslRandomPort,
+        //        new HashMap<String, HttpFilter>(), null, proxyKeyStore, null);
         
-        //final org.littleshoot.proxy.HttpProxyServer sslProxy = 
-        //    new DefaultHttpProxyServer(sslRandomPort);
+        final org.littleshoot.proxy.HttpProxyServer sslProxy = 
+            new DefaultHttpProxyServer(sslRandomPort);
         sslProxy.start(false, false);
          
         
