@@ -519,7 +519,6 @@ public class LanternUtils {
         config.setNotMatchingDomainCheckEnabled(true);
         config.setSendPresence(false);
         
-        // TODO: This should probably be an SSLSocketFactory no??
         config.setSocketFactory(new SocketFactory() {
             
             @Override
@@ -775,6 +774,32 @@ public class LanternUtils {
         } catch (final IOException e) {
             return 1024 + (RandomUtils.nextInt() % 60000);
         }
+    }
+    
+    /** 
+     * Execute keytool, returning the output.
+     */
+    public static String runKeytool(final String... args) {
+        final CommandLine command = new CommandLine(findKeytoolPath(), args);
+        command.execute();
+        final String output = command.getStdOut();
+        if (!command.isSuccessful()) {
+            LOG.warn("Command failed!! -- {}", args);
+        }
+        return output;
+    }
+
+    private static String findKeytoolPath() {
+        final File defaultLocation = new File("/usr/bin/keytool");
+        if (defaultLocation.exists()) {
+            return defaultLocation.getAbsolutePath();
+        }
+        final String networkSetupBin = CommandLine.findExecutable("keytool");
+        if (networkSetupBin != null) {
+            return networkSetupBin;
+        }
+        LOG.error("Could not fine keytool?!?!?!?");
+        return null;
     }
 }
 

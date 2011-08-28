@@ -18,7 +18,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.littleshoot.proxy.KeyStoreManager;
-import org.littleshoot.util.CommonUtils;
 import org.littleshoot.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,7 +41,6 @@ public class LanternTrustManager implements X509TrustManager {
         this.password = password;
         this.keyStore = getKs();
     }
-    
     
     private KeyStore getKs() {
         try {
@@ -100,14 +98,17 @@ public class LanternTrustManager implements X509TrustManager {
     
          */
         // Make sure we delete the old one.
-        CommonUtils.nativeCall("keytool", "-delete", "-alias", fileName, 
-            "-keystore", trustStoreFile.getAbsolutePath(), "-storepass", 
-            this.password);
+        final String deleteResult = LanternUtils.runKeytool("-delete", 
+            "-alias", fileName, "-keystore", trustStoreFile.getAbsolutePath(), 
+            "-storepass", this.password);
+        log.info("Result of deleting old cert: {}", deleteResult);
         
-        CommonUtils.nativeCall("keytool", "-importcert", "-noprompt", "-alias", 
-            fileName, "-keystore", trustStoreFile.getAbsolutePath(), 
+        final String importResult = LanternUtils.runKeytool("-importcert", 
+            "-noprompt", "-alias", fileName, "-keystore", 
+            trustStoreFile.getAbsolutePath(), 
             "-file", certFile.getAbsolutePath(), 
             "-keypass", this.password, "-storepass", this.password);
+        log.info("Result of importing new cert: {}", importResult);
         
         // We need to reload the keystore with the latest data.
         this.keyStore = getKs();
