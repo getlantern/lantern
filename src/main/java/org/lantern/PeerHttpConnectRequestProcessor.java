@@ -77,7 +77,7 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
                 // NOTE: THIS SHOULD NEVER BE USING OUR CIPHERS
                 // We tell the socket to record stats in this case because
                 // we've stripped our encoder that would otherwise track 'em.
-                this.outgoingSocket = LanternUtils.openRawOutgoingPeerSocket(
+                this.outgoingSocket = LanternUtils.openOutgoingPeerSocket(
                     browserToProxyChannel, this.peerUri, 
                     this.proxyStatusListener, this.p2pClient, peerFailureCount,
                     true);
