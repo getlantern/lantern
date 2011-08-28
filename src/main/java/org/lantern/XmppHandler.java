@@ -239,7 +239,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             
             this.client = P2P.newXmppP2PHttpClient("shoot", libTorrent, 
                 libTorrent, new InetSocketAddress(this.sslProxyRandomPort), 
-                newTlsSocketFactory(), SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
+                //newTlsSocketFactory(), SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
+                newTlsSocketFactory(), newTlsServerSocketFactory(),
                 //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
                 plainTextProxyRelayAddress, false);
 
