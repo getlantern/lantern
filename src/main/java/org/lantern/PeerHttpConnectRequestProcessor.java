@@ -15,7 +15,6 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.lastbamboo.common.p2p.P2PClient;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +77,7 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
                 // NOTE: THIS SHOULD NEVER BE USING OUR CIPHERS
                 // We tell the socket to record stats in this case because
                 // we've stripped our encoder that would otherwise track 'em.
-                this.outgoingSocket = LanternUtils.openRawOutgoingPeerSocket(
+                this.outgoingSocket = LanternUtils.openOutgoingPeerSocket(
                     browserToProxyChannel, this.peerUri, 
                     this.proxyStatusListener, this.p2pClient, peerFailureCount,
                     true);
