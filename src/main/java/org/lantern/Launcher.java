@@ -3,11 +3,13 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.HashMap;
 import java.util.Properties;
 
 import org.apache.log4j.PropertyConfigurator;
 import org.eclipse.swt.widgets.Display;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
+import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,14 +67,13 @@ public class Launcher {
         final KeyStoreManager proxyKeyStore = LanternHub.getKeyStoreManager();
         final int sslRandomPort = LanternUtils.randomPort();
         LOG.info("Running SSL HTTP proxy on port: "+sslRandomPort);
-        /*
+        
         final org.littleshoot.proxy.HttpProxyServer sslProxy = 
             new DefaultHttpProxyServer(sslRandomPort,
                 new HashMap<String, HttpFilter>(), null, proxyKeyStore, null);
-         */ 
         
-        final org.littleshoot.proxy.HttpProxyServer sslProxy = 
-            new DefaultHttpProxyServer(sslRandomPort);
+        //final org.littleshoot.proxy.HttpProxyServer sslProxy = 
+        //    new DefaultHttpProxyServer(sslRandomPort);
         sslProxy.start(false, false);
          
         
