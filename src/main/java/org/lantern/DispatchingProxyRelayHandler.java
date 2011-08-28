@@ -68,13 +68,13 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private static final long REQUEST_SIZE_LIMIT = 1024 * 1024 * 10 - 4096;
 
-    private static final boolean PROXIES_ACTIVE = true;
+    private static final boolean PROXIES_ACTIVE = false;
 
     private static final boolean ANONYMOUS_ACTIVE = true;
 
-    private static final boolean TRUSTED_ACTIVE = true;
+    private static final boolean TRUSTED_ACTIVE = false;
 
-    private static final boolean LAE_ACTIVE = true;
+    private static final boolean LAE_ACTIVE = false;
     
     private static final ClientSocketChannelFactory clientSocketChannelFactory =
         new NioClientSocketChannelFactory(
@@ -291,7 +291,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             readingChunks = false;
         }
         
-        this.proxying = Whitelist.isWhitelisted(uriToCheck);
+        this.proxying = true;//Whitelist.isWhitelisted(uriToCheck);
         
         if (proxying) {
             // If it's an HTTP request, see if we can redirect it to HTTPS.
