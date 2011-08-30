@@ -311,7 +311,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 // not an issue to return null here.
                 return null;
             }
-            
+            log.info("Not converting to HTTPS");
             LanternHub.statsTracker().incrementProxiedRequests();
             return dispatchProxyRequest(ctx, me);
         } else {
