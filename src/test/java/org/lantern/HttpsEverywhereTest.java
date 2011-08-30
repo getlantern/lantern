@@ -20,6 +20,7 @@ public class HttpsEverywhereTest {
             "http://www.facebook.com/testing?query=test",
             "http://www.flickr.com/newPicture.jpg",
             "http://www.google.com/",
+            "http://www.twitter.com/",
             "http://platform.linkedin.com/",
         };
         
@@ -33,6 +34,7 @@ public class HttpsEverywhereTest {
             "https://www.facebook.com/testing?query=test",
             "https://secure.flickr.com/newPicture.jpg",
             "https://encrypted.google.com/",
+            "https://twitter.com/",
             "https://platform.linkedin.com/",
         };
         for (int i = 0; i < urls.length; i++) {
