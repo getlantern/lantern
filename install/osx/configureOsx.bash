@@ -60,6 +60,20 @@ chmod 644 $LAUNCHD_PLIST || die "Could not change permissions"
 log "Loading launchd plist file"
 launchctl load -F $LAUNCHD_PLIST || die "Could not load plist via launchctl"
 
+log "Copying default proxy off pac file"
+cp $APP_PATH/Contents/Resources/app/proxy_off.pac ~/.lantern/proxy.pac || die "Could not copy default pac file?"
+log "Copied pac file!!"
+
+log "Configuring network services"
+while read s; 
+do
+    echo "Configuring network: $s"
+    sudo networksetup -setautoproxyurl "$s" file://localhost$HOME/.lantern/proxy.pac || log "Could not set auto proxy URL for $s"
+    sudo networksetup -setautoproxystate "$s" "on" || log "Could not turn auto proxy on for $s"
+    echo "Configured network: $s"
+done < <(networksetup -listallnetworkservices | tail +2)
+log "Done configuring network services!!"
+
 logFile $LAUNCHD_PLIST
 
 log "Finished configuring Lantern!"
