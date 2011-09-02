@@ -1,0 +1,1 @@
+java -jar c:/cygwin/usr/local/aws-0.3/s3.jar -putp lantern lantern-0.87.exe
