@@ -18,7 +18,7 @@ function main(argv) {
 function escapeHtml(value) {
   return value.toString().
     replace('<', '&lt;').
-    replace('>', '&gt').
+    replace('>', '&gt;').
     replace('"', '&quot;');
 }
 
@@ -160,7 +160,7 @@ StaticServlet.prototype.sendRedirect_ = function(req, res, redirectUrl) {
     '">here</a>.</p>'
   );
   res.end();
-  sys.puts('401 Moved Permanently: ' + redirectUrl);
+  sys.puts('301 Moved Permanently: ' + redirectUrl);
 };
 
 StaticServlet.prototype.sendFile_ = function(req, res, path) {
