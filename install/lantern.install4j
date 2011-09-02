@@ -628,7 +628,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                         </object>
                       </void>
                       <void property="executionType">
-                        <object class="com.install4j.runtime.beans.actions.misc.ExecutionType" field="ORIGINAL_USER" />
+                        <object class="com.install4j.runtime.beans.actions.misc.ExecutionType" field="ADMIN" />
                       </void>
                       <void property="logArguments">
                         <boolean>true</boolean>
