@@ -627,9 +627,6 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                           <string>configureOsx.bash</string>
                         </object>
                       </void>
-                      <void property="executionType">
-                        <object class="com.install4j.runtime.beans.actions.misc.ExecutionType" field="ADMIN" />
-                      </void>
                       <void property="logArguments">
                         <boolean>true</boolean>
                       </void>
