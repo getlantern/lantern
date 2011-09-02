@@ -1,8 +1,10 @@
 package org.lantern;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,12 @@ public class Configurator {
     
     private static final String LANTERN_PROXY_ADDRESS = "127.0.0.1:"+
         LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
+    
+    private static final File PROXY_ON = new File("proxy_on.pac");
+    private static final File PROXY_OFF = new File("proxy_off.pac");
+    
+    private static final File ACTIVE_PAC = 
+        new File(LanternUtils.configDir(), "proxy.pac");
     
     public static void configure() {
         if (configured) {
@@ -69,8 +77,24 @@ public class Configurator {
             LOG.info("Not auto-configuring proxy in an uncensored country");
         }
     }
-
+    
     private static void configureOsxProxy() {
+        configureOsxProxyPacFile();
+    }
+
+    /**
+     * Uses a pack file to manipulate browser's use of Lantern.
+     */
+    private static void configureOsxProxyPacFile() {
+        try {
+            FileUtils.copyFile(PROXY_ON, ACTIVE_PAC);
+        } catch (final IOException e) {
+            LOG.error("Could not copy pac file?", e);
+        }
+    }
+
+
+    private static void configureOsxProxyNetworkSetup() {
         final Collection<String> services = mpm.getNetworkServices();
         for (final String service : services) {
             LOG.info("Setting web proxy for {}", service);
@@ -106,8 +130,10 @@ public class Configurator {
         
         // We first want to read the start values so we can return the
         // registry to the original state when we shut down.
-        final String proxyServerOriginal = WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
-        final String proxyEnableOriginal = WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, pe);
+        final String proxyServerOriginal = 
+            WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
+        final String proxyEnableOriginal = 
+            WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, pe);
         
         final String proxyServerUs = "127.0.0.1:"+
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
@@ -188,8 +214,19 @@ public class Configurator {
         LOG.info("Done resetting the Windows registry");
     }
 
-
-    protected static void unproxyOsx() {
+    private static void unproxyOsx() {
+        unproxyOsxPacFile();
+    }
+    
+    private static void unproxyOsxPacFile() {
+        try {
+            FileUtils.copyFile(PROXY_OFF, ACTIVE_PAC);
+        } catch (final IOException e) {
+            LOG.error("Could not copy pac file?", e);
+        }
+    }
+    
+    private static void unproxyOsxNetworkServices() {
         final Collection<String> services = mpm.getNetworkServices();
         for (final String service : services) {
             
