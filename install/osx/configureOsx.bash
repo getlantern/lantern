@@ -68,8 +68,8 @@ log "Configuring network services"
 while read s; 
 do
     log "Configuring network: $s"
-    sudo networksetup -setautoproxyurl "$s" file://localhost$HOME/.lantern/proxy.pac || log "Could not set auto proxy URL for $s"
-    sudo networksetup -setautoproxystate "$s" "on" || log "Could not turn auto proxy on for $s"
+    networksetup -setautoproxyurl "$s" file://localhost$HOME/.lantern/proxy.pac || log "Could not set auto proxy URL for $s"
+    networksetup -setautoproxystate "$s" "on" || log "Could not turn auto proxy on for $s"
     log "Configured network: $s"
 done < <(networksetup -listallnetworkservices | tail +2)
 log "Done configuring network services!!"
