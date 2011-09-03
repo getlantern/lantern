@@ -26,8 +26,11 @@ cp target/lantern-*-jar-with-dependencies.jar install/common/lantern.jar || die 
 
 /Applications/install4j\ 5/bin/install4jc -m macos -r $VERSION ./install/lantern.install4j
 
-mv install/Lantern.dmg lantern-$VERSION.dmg
-echo "Uploading to http://cdn.bravenewsoftware.org/lantern-$VERSION.dmg..."
-aws -putp lantern lantern-$VERSION.dmg
-echo "Uploaded lantern to http://cdn.bravenewsoftware.org/lantern-$VERSION.dmg"
+name=lantern-$VERSION.dmg
+mv install/Lantern.dmg $name
+echo "Uploading to http://cdn.bravenewsoftware.org/$name..."
+aws -putp lantern $name
+echo "Uploaded lantern to http://cdn.bravenewsoftware.org/$name"
+echo "Also available at http://lantern.s3.amazonaws.com/$name"
+
 
