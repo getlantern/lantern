@@ -220,7 +220,9 @@ public class Configurator {
     
     private static void unproxyOsxPacFile() {
         try {
+            LOG.info("Unproxying!!");
             FileUtils.copyFile(PROXY_OFF, ACTIVE_PAC);
+            LOG.info("Done unproxying!!");
         } catch (final IOException e) {
             LOG.error("Could not copy pac file?", e);
         }
