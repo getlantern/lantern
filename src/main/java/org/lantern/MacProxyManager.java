@@ -27,7 +27,6 @@ import java.util.prefs.Preferences;
 import java.util.regex.Pattern;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -343,6 +342,17 @@ public class MacProxyManager {
         String output = command.getStdOut();
         if (!command.isSuccessful()) {
             throw new RuntimeException("exec return code " + command.getExitCode() + ": " + output);
+        }
+        return output;
+    }
+    
+    public String runScript(final String script, final String... args) {
+        final CommandLine command = new CommandLine(script, args);
+        command.execute();
+        final String output = command.getStdOut();
+        if (!command.isSuccessful()) {
+            //throw new RuntimeException("exec return code " + command.getStdOut() + ": " + output);
+            log.warn("Command failed!! -- {}", args);
         }
         return output;
     }
