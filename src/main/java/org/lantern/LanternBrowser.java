@@ -32,6 +32,8 @@ import org.eclipse.swt.widgets.Shell;
 import org.jivesoftware.smack.RosterEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xnap.commons.i18n.I18n;
+import org.xnap.commons.i18n.I18nFactory;
 
 public class LanternBrowser {
 
@@ -50,6 +52,8 @@ public class LanternBrowser {
     private final boolean isConfig;
     
     private String lastEventLocation = "";
+    
+    private final I18n i18n = I18nFactory.getI18n(getClass());
 
     public LanternBrowser(final boolean isConfig) {
         log.info("Creating Lantern browser...");
@@ -66,9 +70,9 @@ public class LanternBrowser {
         this.shell.setImages(icons);
         // this.shell = createShell(this.display);
         if (isConfig) {
-            this.shell.setText("Configure Lantern");
+            this.shell.setText(i18n.tr("Configure Lantern"));
         } else {
-            this.shell.setText("Lantern Installation");
+            this.shell.setText(i18n.tr("Lantern Installation"));
         }
         this.shell.setSize(720, 540);
         // shell.setFullScreen(true);
@@ -129,9 +133,9 @@ public class LanternBrowser {
                 if (!closed) {
                     final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
                     final MessageBox messageBox = new MessageBox (shell, style);
-                    messageBox.setText ("Exit?");
+                    messageBox.setText (i18n.tr("Exit?"));
                     messageBox.setMessage (
-                        "Are you sure you want to ignore the update?");
+                        i18n.tr("Are you sure you want to ignore the update?"));
                     event.doit = messageBox.open () == SWT.YES;
                     if (event.doit) {
                         exit();
@@ -183,9 +187,9 @@ public class LanternBrowser {
                     messageBox.setText ("Exit?");
                     final String msg;
                     if (isConfig) {
-                        msg = "Are you sure you want to cancel configuring Lantern?";
+                        msg = i18n.tr("Are you sure you want to cancel configuring Lantern?");
                     } else {
-                        msg = "Are you sure you want to cancel installing Lantern?";
+                        msg = i18n.tr("Are you sure you want to cancel installing Lantern?");
                     }
                     messageBox.setMessage (msg);
                     event.doit = messageBox.open () == SWT.YES;
@@ -303,7 +307,7 @@ public class LanternBrowser {
                             new File(tmp, "install1Uncensored.html");
                         
                         setUrl(error, "error_message", 
-                            "Error logging in. E-mail or password incorrect?");
+                            i18n.tr("Error logging in. E-mail or password incorrect?"));
                     }
                 } else if (location.contains("loginCensored")) {
                     final String args = 
@@ -331,7 +335,7 @@ public class LanternBrowser {
                             new File(tmp, "install1Censored.html");
                         
                         setUrl(error, "error_message", 
-                            "Error logging in. E-mail or password incorrect?");
+                            i18n.tr("Error logging in. E-mail or password incorrect?"));
                     }
                 } else if (location.contains("finished")) {
                     log.info("Got finished...closing on location: {}", location);
@@ -521,6 +525,7 @@ public class LanternBrowser {
         for (final RosterEntry entry : entries) {
             final String name;
             final String entryName  = entry.getName();
+            log.info("Got entry name: '{}'", entryName);
             if (StringUtils.isBlank(entryName)) {
                 name = entry.getUser();
             } else {
