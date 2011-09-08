@@ -79,7 +79,7 @@ public class Configurator {
     }
     
     private static void configureOsxProxy() {
-        //configureOsxProxyPacFile();
+        configureOsxProxyPacFile();
         configureOsxScript();
     }
 
@@ -228,7 +228,7 @@ public class Configurator {
     }
 
     private static void unproxyOsx() {
-        //unproxyOsxPacFile();
+        unproxyOsxPacFile();
         unproxyOsxScript();
     }
     
