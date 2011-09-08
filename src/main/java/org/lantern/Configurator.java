@@ -79,8 +79,21 @@ public class Configurator {
     }
     
     private static void configureOsxProxy() {
-        configureOsxProxyPacFile();
+        //configureOsxProxyPacFile();
+        configureOsxScript();
     }
+
+    private static void configureOsxScript() {
+        final String result = mpm.runScript(getScriptPath(), "on");
+        LOG.info("Result of script is: {}", result);
+    }
+    
+    private static String getScriptPath() {
+        final String name = "./configureNetworkServices.bash";
+        final File script = new File(name);
+        return script.getAbsolutePath();
+    }
+
 
     /**
      * Uses a pack file to manipulate browser's use of Lantern.
@@ -215,7 +228,13 @@ public class Configurator {
     }
 
     private static void unproxyOsx() {
-        unproxyOsxPacFile();
+        //unproxyOsxPacFile();
+        unproxyOsxScript();
+    }
+    
+    private static void unproxyOsxScript() {
+        final String result = mpm.runScript(getScriptPath(), "off");
+        LOG.info("Result of script is: {}", result);
     }
     
     private static void unproxyOsxPacFile() {
