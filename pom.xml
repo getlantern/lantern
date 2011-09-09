@@ -196,7 +196,6 @@
     <defaultGoal>install</defaultGoal>
 
     <plugins>
-      <!-- Compiling with java 1.5 -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -236,6 +235,7 @@
           </execution>
         </executions>
       </plugin>
+
     </plugins>
   </build>
 
@@ -293,6 +293,11 @@
   </profiles>
 
   <repositories>
+    <repository>
+      <id>gettext2-commons-site</id>
+      <url>http://gettext-commons.googlecode.com/svn/maven-repository</url>
+    </repository>
+
     <!-- TODO: Would be really nice to remove this ASAP -->
     <repository>
       <id>gettext-commons-site</id>
