@@ -1,0 +1,47 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2011-09-08 23:12+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: lantern/src/main/java/org/lantern/LanternBrowser.java:73
+msgid "Configure Lantern"
+msgstr ""
+
+#: lantern/src/main/java/org/lantern/LanternBrowser.java:75
+msgid "Lantern Installation"
+msgstr ""
+
+#: lantern/src/main/java/org/lantern/LanternBrowser.java:136
+msgid "Exit?"
+msgstr ""
+
+#: lantern/src/main/java/org/lantern/LanternBrowser.java:138
+msgid "Are you sure you want to ignore the update?"
+msgstr ""
+
+#: lantern/src/main/java/org/lantern/LanternBrowser.java:190
+msgid "Are you sure you want to cancel configuring Lantern?"
+msgstr ""
+
+#: lantern/src/main/java/org/lantern/LanternBrowser.java:192
+msgid "Are you sure you want to cancel installing Lantern?"
+msgstr ""
+
+#: lantern/src/main/java/org/lantern/LanternBrowser.java:310
+#: lantern/src/main/java/org/lantern/LanternBrowser.java:338
+msgid "Error logging in. E-mail or password incorrect?"
+msgstr ""
+
