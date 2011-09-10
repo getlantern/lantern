@@ -176,11 +176,17 @@ public class LanternBrowser {
     }
 
     public void install() {
+        final Map<String, String> startVals = new HashMap<String, String>();
+        startVals.put("lead_string", 
+            i18n.tr("Welcome to Lantern! You're almost done."));
+        startVals.put("title_string", i18n.tr("Complete Your Installation"));
         final String startFile;
         if (CensoredUtils.isCensored()) {
             startFile = "install0Censored.html";
+            startVals.put("body_string", i18n.tr("You appear to be running Lantern to gain access to blocked web sites from a censored country. Is that correct?"));
         } else {
             startFile = "install0Uncensored.html";
+            startVals.put("body_string", i18n.tr("You appear to be running Lantern from a country that does not employ censorship. Is that correct?"));
         }
         shell.addListener (SWT.Close, new Listener () {
             @Override
@@ -207,7 +213,8 @@ public class LanternBrowser {
         });
         
         final File file = new File(tmp, startFile).getAbsoluteFile();
-        setUrl(file);
+
+        setUrl(file, startVals);
 
         browser.addLocationListener(new LocationAdapter() {
             @Override
@@ -243,7 +250,12 @@ public class LanternBrowser {
                     if (!CensoredUtils.isCensored()) {
                         CensoredUtils.unforceCensored();
                     }
-                    setUrl("install1Uncensored.html");
+                    final Map<String, String> replace = 
+                        new HashMap<String, String>();
+                    replace.put("lead_string", 
+                            i18n.tr("Welcome to Lantern! You're almost done."));
+                    replace.put("title_string", i18n.tr("Complete Your Installation"));
+                    setUrl("install1Uncensored.html", replace);
                 } else if (location.contains("install1Censored.html")) {
                     // We use this to check if the user has selected to run
                     // in censored mode even if they don't appear to be in a
@@ -251,7 +263,12 @@ public class LanternBrowser {
                     if (!CensoredUtils.isCensored()) {
                         CensoredUtils.forceCensored();
                     }
-                    setUrl("install1Censored.html");
+                    final Map<String, String> replace = 
+                        new HashMap<String, String>();
+                    replace.put("lead_string", 
+                        i18n.tr("Welcome to Lantern! You're almost done."));
+                    replace.put("title_string", i18n.tr("Complete Your Installation"));
+                    setUrl("install1Censored.html", replace);
                 } else if (location.contains("trustedContacts")) {
                     log.info("Got trust form");
                     final String elements = 
@@ -286,7 +303,12 @@ public class LanternBrowser {
 
                     final File finish = 
                         new File(tmp, "installFinishedCensored.html").getAbsoluteFile();
-                    setUrl(finish);
+                    final Map<String, String> replace = 
+                        new HashMap<String, String>();
+                    replace.put("lead_string", 
+                        i18n.tr("Welcome to Lantern! You're almost done."));
+                    replace.put("title_string", i18n.tr("Complete Your Installation"));
+                    setUrl(finish, replace);
                 } else if (location.contains("loginUncensored")) {
                     final String args = 
                         StringUtils.substringAfter(location, "&");
@@ -305,14 +327,25 @@ public class LanternBrowser {
                         final String contactsDiv = contactsDiv(email, pwd, 1);
                         final File finish = 
                             new File(tmp, "installFinishedUncensored.html").getAbsoluteFile();
-                        setUrl(finish);
+                        final Map<String, String> replace = 
+                            new HashMap<String, String>();
+                        replace.put("lead_string", 
+                            i18n.tr("Welcome to Lantern! You're almost done."));
+                        replace.put("title_string", i18n.tr("Complete Your Installation"));
+                        setUrl(finish, replace);
                     } catch (final IOException e) {
                         log.warn("Error accessing contacts", e);
                         final File error = 
                             new File(tmp, "install1Uncensored.html");
                         
-                        setUrl(error, "error_message", 
+                        final Map<String, String> replace = 
+                            new HashMap<String, String>();
+                        replace.put("lead_string", 
+                            i18n.tr("Welcome to Lantern! You're almost done."));
+                        replace.put("title_string", i18n.tr("Complete Your Installation"));
+                        replace.put("error_message", 
                             i18n.tr("Error logging in. E-mail or password incorrect?"));
+                        setUrl(error, replace);
                     }
                 } else if (location.contains("loginCensored")) {
                     final String args = 
@@ -331,16 +364,28 @@ public class LanternBrowser {
                         
                         final File contacts = 
                             new File(tmp, "install2Censored.html").getAbsoluteFile();
-                        setUrl(contacts, "contacts_div", contactsDiv);
+                        final Map<String, String> replace = 
+                            new HashMap<String, String>();
+                        replace.put("lead_string", 
+                            i18n.tr("Welcome to Lantern! You're almost done."));
+                        replace.put("title_string", i18n.tr("Complete Your Installation"));
+                        replace.put("contacts_div", contactsDiv);
+                        setUrl(contacts, replace);
+                        //setUrl(contacts, "contacts_div", contactsDiv);
                         //browser.setUrl(finish.toURI().toASCIIString());
                         
                     } catch (final IOException e) {
                         log.warn("Error accessing contacts", e);
                         final File error = 
                             new File(tmp, "install1Censored.html");
-                        
-                        setUrl(error, "error_message", 
+                        final Map<String, String> replace = 
+                            new HashMap<String, String>();
+                        replace.put("lead_string", 
+                            i18n.tr("Welcome to Lantern! You're almost done."));
+                        replace.put("title_string", i18n.tr("Complete Your Installation"));
+                        replace.put("error_message", 
                             i18n.tr("Error logging in. E-mail or password incorrect?"));
+                        setUrl(error, replace);
                     }
                 } else if (location.contains("finished")) {
                     log.info("Got finished...closing on location: {}", location);
@@ -406,9 +451,14 @@ public class LanternBrowser {
     
     protected void defaultPage(final String location) {
         final String page = StringUtils.substringAfterLast(location, "/");
-        setUrl(page);
+        final Map<String, String> replace = new HashMap<String, String>();
+        replace.put("lead_string", 
+            i18n.tr("Welcome to Lantern! You're almost done."));
+        replace.put("title_string", i18n.tr("Complete Your Installation"));
+        setUrl(page, replace);
     }
 
+    /*
     protected void setUrl(final String page) {
         final File defaultFile = new File(tmp, page);
         setUrl(defaultFile);
@@ -422,6 +472,14 @@ public class LanternBrowser {
         final Map<String, String> map = new HashMap<String, String>();
         map.put(key, val);
         setUrl(file, map);
+    }
+    */
+    protected void setUrl(final String fileName, final Map<String, String> map) {
+        if (!map.containsKey("error_message")) {
+            map.put("error_message", "");
+        }
+        final File defaultFile = new File(tmp, fileName);
+        setUrl(defaultFile, map);
     }
     
     protected void setUrl(final File file, final Map<String, String> map) {
