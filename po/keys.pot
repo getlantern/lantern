@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-10 23:26+0000\n"
+"POT-Creation-Date: 2011-09-10 23:43+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,31 +16,67 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/main/java/org/lantern/LanternBrowser.java:73
+#: src/main/java/org/lantern/LanternBrowser.java:78
 msgid "Configure Lantern"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:75
+#: src/main/java/org/lantern/LanternBrowser.java:80
 msgid "Lantern Installation"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:136
+#: src/main/java/org/lantern/LanternBrowser.java:141
 msgid "Exit?"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:138
+#: src/main/java/org/lantern/LanternBrowser.java:143
 msgid "Are you sure you want to ignore the update?"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:190
+#: src/main/java/org/lantern/LanternBrowser.java:181
+#: src/main/java/org/lantern/LanternBrowser.java:256
+#: src/main/java/org/lantern/LanternBrowser.java:269
+#: src/main/java/org/lantern/LanternBrowser.java:309
+#: src/main/java/org/lantern/LanternBrowser.java:333
+#: src/main/java/org/lantern/LanternBrowser.java:344
+#: src/main/java/org/lantern/LanternBrowser.java:370
+#: src/main/java/org/lantern/LanternBrowser.java:384
+#: src/main/java/org/lantern/LanternBrowser.java:456
+msgid "Welcome to Lantern! You're almost done."
+msgstr ""
+
+#: src/main/java/org/lantern/LanternBrowser.java:182
+#: src/main/java/org/lantern/LanternBrowser.java:257
+#: src/main/java/org/lantern/LanternBrowser.java:270
+#: src/main/java/org/lantern/LanternBrowser.java:310
+#: src/main/java/org/lantern/LanternBrowser.java:334
+#: src/main/java/org/lantern/LanternBrowser.java:345
+#: src/main/java/org/lantern/LanternBrowser.java:371
+#: src/main/java/org/lantern/LanternBrowser.java:385
+#: src/main/java/org/lantern/LanternBrowser.java:457
+msgid "Complete Your Installation"
+msgstr ""
+
+#: src/main/java/org/lantern/LanternBrowser.java:186
+msgid ""
+"You appear to be running Lantern to gain access to blocked web sites from a "
+"censored country. Is that correct?"
+msgstr ""
+
+#: src/main/java/org/lantern/LanternBrowser.java:189
+msgid ""
+"You appear to be running Lantern from a country that does not employ "
+"censorship. Is that correct?"
+msgstr ""
+
+#: src/main/java/org/lantern/LanternBrowser.java:201
 msgid "Are you sure you want to cancel configuring Lantern?"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:192
+#: src/main/java/org/lantern/LanternBrowser.java:203
 msgid "Are you sure you want to cancel installing Lantern?"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:310
-#: src/main/java/org/lantern/LanternBrowser.java:338
+#: src/main/java/org/lantern/LanternBrowser.java:347
+#: src/main/java/org/lantern/LanternBrowser.java:387
 msgid "Error logging in. E-mail or password incorrect?"
 msgstr ""
