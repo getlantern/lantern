@@ -10,6 +10,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -35,12 +36,15 @@ import org.slf4j.LoggerFactory;
 import org.xnap.commons.i18n.I18n;
 import org.xnap.commons.i18n.I18nFactory;
 
+/**
+ * Class for the embedded browser allowing the user to interface with Lantern.
+ */
 public class LanternBrowser {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private Shell shell;
-    // private Display display;
+
     private Browser browser;
 
     private Display display;
@@ -53,7 +57,8 @@ public class LanternBrowser {
     
     private String lastEventLocation = "";
     
-    private final I18n i18n = I18nFactory.getI18n(getClass());
+    private final I18n i18n = I18nFactory.getI18n(LanternBrowser.class, 
+        "app.i18n.Messages", Locale.getDefault());
 
     public LanternBrowser(final boolean isConfig) {
         log.info("Creating Lantern browser...");
