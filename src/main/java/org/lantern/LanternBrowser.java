@@ -336,7 +336,6 @@ public class LanternBrowser {
                         "with those who need it. Thanks for contributing to the global fight against censorship!"));
                         replace.put("run_now", i18n.tr("Run Lantern Now?"));
                         replace.put("finish_string", i18n.tr("Finish"));
-                        replace.put("", i18n.tr(""));
                         setUrl("installFinishedUncensored.html", replace);
                     } catch (final IOException e) {
                         log.warn("Error accessing contacts", e);
