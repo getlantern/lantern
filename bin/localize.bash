@@ -11,7 +11,7 @@ rm -rf src/main/resources/app
 git pull origin master
 xgettext -ktrc -ktr -kmarktr -ktrn:1,2 -o po/keys.pot $(find . -name "*.java")
 
-locales=("en" "zh_CN")
+locales=("en" "zh" "zh_CN")
 for l in ${locales[@]}
 do
   echo "Processing locale: $l"
