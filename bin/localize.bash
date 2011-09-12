@@ -8,6 +8,10 @@ function die() {
 cd /home/lantern/lantern
 rm po/*
 rm -rf src/main/resources/app
+
+# We tend to be modifying this file if we're running this script a lot, so kill
+# it on the server to avoid git conflicts.
+rm bin/localize.bash
 git pull origin master
 xgettext -ktrc -ktr -kmarktr -ktrn:1,2 -o po/keys.pot $(find . -name "*.java")
 
