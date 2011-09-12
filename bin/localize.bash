@@ -6,6 +6,9 @@ function die() {
 
 
 cd /home/lantern/lantern
+rm po/*
+rm -rf src/main/resources/app
+git pull origin master
 xgettext -ktrc -ktr -kmarktr -ktrn:1,2 -o po/keys.pot $(find . -name "*.java")
 
 locales=("en" "zh_CN")
