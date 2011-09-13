@@ -35,6 +35,23 @@ public class Configurator {
     private static final File PROXY_ON = new File("proxy_on.pac");
     private static final File PROXY_OFF = new File("proxy_off.pac");
     
+    static {
+        if (!PROXY_ON.isFile()) {
+            final String msg = 
+                "No pac at: "+PROXY_ON.getAbsolutePath() +"\nfrom: " +
+                new File(".").getAbsolutePath();
+            LOG.error(msg);
+            throw new IllegalStateException(msg);
+        }
+        if (!PROXY_OFF.isFile()) {
+            final String msg = 
+                "No pac at: "+PROXY_OFF.getAbsolutePath() +"\nfrom: " +
+                new File(".").getAbsolutePath();
+            LOG.error(msg);
+            throw new IllegalStateException(msg);
+        }
+    }
+    
     private static final File ACTIVE_PAC = 
         new File(LanternUtils.configDir(), "proxy.pac");
     
@@ -100,8 +117,14 @@ public class Configurator {
     }
     
     private static String getScriptPath() {
-        final String name = "./configureNetworkServices.bash";
+        final String name = "configureNetworkServices.bash";
         final File script = new File(name);
+        if (!script.isFile()) {
+            final String msg = "No file: "+script.getAbsolutePath()+"\nfrom "+
+                new File(".").getAbsolutePath();
+            LOG.error(msg);
+            throw new IllegalStateException(msg);
+        }
         return script.getAbsolutePath();
     }
 
