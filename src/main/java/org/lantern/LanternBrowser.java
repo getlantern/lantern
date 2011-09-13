@@ -2,8 +2,9 @@ package org.lantern;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.util.Arrays;
@@ -537,16 +538,16 @@ public class LanternBrowser {
         final String name = 
             StringUtils.substringBefore(file.getName(), ".html") + "-copy.html";
         final File copy = new File(file.getParentFile(), name);
-        FileWriter fw = null;
+        OutputStream os = null;
         try {
-            fw = new FileWriter(copy);
-            fw.write(copyStr);
+            os = new FileOutputStream(copy);
+            os.write(copyStr.getBytes("UTF-8"));
         } catch (final IOException e) {
             log.error("Could not write new file?", e);
         } finally {
-            IOUtils.closeQuietly(fw);
+            IOUtils.closeQuietly(os);
         }
-        //FileUtils.copyFile(file, copy);
+
         final String url = copy.toURI().toASCIIString();
         final String parsed = url.replace("file:/", "file:///");
         log.info("Setting url to: {}", parsed);
