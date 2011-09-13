@@ -1,0 +1,8 @@
+<ruleset name="Avaaz">
+  <target host="avaaz.org" />
+  <target host="www.avaaz.org" />
+  <target host="secure.avaaz.org" />
+
+  <rule from="^http://(secure\.|www\.)?avaaz\.org/"
+	  to="https://secure.avaaz.org/" />
+</ruleset>
