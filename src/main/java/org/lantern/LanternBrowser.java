@@ -217,8 +217,7 @@ public class LanternBrowser {
             startVals.put("yes_provide_access", i18n.tr("Yes - I want to provide access to the open internet."));
             startVals.put("no_need_access", i18n.tr("No - I need to access the open internet myself."));
         }
-        final File file = new File(tmp, startFile).getAbsoluteFile();
-        setUrl(file, startVals);
+        setUrl(startFile, startVals);
 
         browser.addLocationListener(new LocationAdapter() {
             @Override
