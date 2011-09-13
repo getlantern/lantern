@@ -167,9 +167,6 @@
               <void property="frameWidth">
                 <int>220</int>
               </void>
-              <void property="splashMessage">
-                <string>Installing Lantern...</string>
-              </void>
               <void property="useCustomIcon">
                 <boolean>true</boolean>
               </void>
