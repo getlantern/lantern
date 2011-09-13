@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-09-12 20:27+0000\n"
+"POT-Creation-Date: 2011-09-13 03:48+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,126 +16,126 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/main/java/org/lantern/LanternBrowser.java:78
+#: src/main/java/org/lantern/LanternBrowser.java:79
 msgid "Configure Lantern"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:80
-#: src/main/java/org/lantern/LanternBrowser.java:516
+#: src/main/java/org/lantern/LanternBrowser.java:81
+#: src/main/java/org/lantern/LanternBrowser.java:517
 msgid "Lantern Installation"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:141
+#: src/main/java/org/lantern/LanternBrowser.java:142
 msgid "Exit?"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:143
+#: src/main/java/org/lantern/LanternBrowser.java:144
 msgid "Are you sure you want to ignore the update?"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:189
+#: src/main/java/org/lantern/LanternBrowser.java:190
 msgid "Are you sure you want to cancel configuring Lantern?"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:191
+#: src/main/java/org/lantern/LanternBrowser.java:192
 msgid "Are you sure you want to cancel installing Lantern?"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:205
-#: src/main/java/org/lantern/LanternBrowser.java:302
-#: src/main/java/org/lantern/LanternBrowser.java:332
-#: src/main/java/org/lantern/LanternBrowser.java:364
-#: src/main/java/org/lantern/LanternBrowser.java:441
-#: src/main/java/org/lantern/LanternBrowser.java:464
-#: src/main/java/org/lantern/LanternBrowser.java:491
-msgid "Welcome to Lantern! You're almost done."
-msgstr ""
-
 #: src/main/java/org/lantern/LanternBrowser.java:206
-#: src/main/java/org/lantern/LanternBrowser.java:304
-#: src/main/java/org/lantern/LanternBrowser.java:334
+#: src/main/java/org/lantern/LanternBrowser.java:303
+#: src/main/java/org/lantern/LanternBrowser.java:333
 #: src/main/java/org/lantern/LanternBrowser.java:365
 #: src/main/java/org/lantern/LanternBrowser.java:442
 #: src/main/java/org/lantern/LanternBrowser.java:465
 #: src/main/java/org/lantern/LanternBrowser.java:492
+msgid "Welcome to Lantern! You're almost done."
+msgstr ""
+
+#: src/main/java/org/lantern/LanternBrowser.java:207
+#: src/main/java/org/lantern/LanternBrowser.java:305
+#: src/main/java/org/lantern/LanternBrowser.java:335
+#: src/main/java/org/lantern/LanternBrowser.java:366
+#: src/main/java/org/lantern/LanternBrowser.java:443
+#: src/main/java/org/lantern/LanternBrowser.java:466
+#: src/main/java/org/lantern/LanternBrowser.java:493
 msgid "Complete Your Installation"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:210
+#: src/main/java/org/lantern/LanternBrowser.java:211
 msgid ""
 "You appear to be running Lantern to gain access to blocked web sites from a "
 "censored country. Is that correct?"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:211
+#: src/main/java/org/lantern/LanternBrowser.java:212
 msgid "Yes - I need access to the blocked internet."
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:212
+#: src/main/java/org/lantern/LanternBrowser.java:213
 msgid "No - I want to provide access instead."
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:215
+#: src/main/java/org/lantern/LanternBrowser.java:216
 msgid ""
 "You appear to be running Lantern from a country that does not employ "
 "censorship. Is that correct?"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:216
+#: src/main/java/org/lantern/LanternBrowser.java:217
 msgid "Yes - I want to provide access to the open internet."
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:217
+#: src/main/java/org/lantern/LanternBrowser.java:218
 msgid "No - I need to access the open internet myself."
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:306
+#: src/main/java/org/lantern/LanternBrowser.java:307
 msgid ""
 "That's it! Lantern is now configured to automatically give you access to the "
 "open internet."
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:309
-#: src/main/java/org/lantern/LanternBrowser.java:337
+#: src/main/java/org/lantern/LanternBrowser.java:310
+#: src/main/java/org/lantern/LanternBrowser.java:338
 msgid "Run Lantern Now?"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:310
-#: src/main/java/org/lantern/LanternBrowser.java:338
+#: src/main/java/org/lantern/LanternBrowser.java:311
+#: src/main/java/org/lantern/LanternBrowser.java:339
 msgid "Finish"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:335
+#: src/main/java/org/lantern/LanternBrowser.java:336
 msgid ""
 "That's it! You're now set up to share your uncensored connection with those "
 "who need it. Thanks for contributing to the global fight against censorship!"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:344
-#: src/main/java/org/lantern/LanternBrowser.java:380
+#: src/main/java/org/lantern/LanternBrowser.java:345
+#: src/main/java/org/lantern/LanternBrowser.java:381
 msgid "Error logging in. E-mail or password incorrect?"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:368
+#: src/main/java/org/lantern/LanternBrowser.java:369
 msgid ""
 "Please select your <b>trusted</b> friends below to send them a request to "
 "join your Lantern network. These friends will serve as especially trusted "
 "access points to the open internet."
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:372
+#: src/main/java/org/lantern/LanternBrowser.java:373
 msgid "Select All"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:373
+#: src/main/java/org/lantern/LanternBrowser.java:374
 msgid "Clear"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:374
+#: src/main/java/org/lantern/LanternBrowser.java:375
 msgid "Approve these Contacts"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:444
+#: src/main/java/org/lantern/LanternBrowser.java:445
 msgid ""
 "Lantern uses your friends as your personal access points to the open "
 "internet. The more access points you have, the better your experience will "
@@ -146,21 +146,21 @@ msgid ""
 "your own computer, and you log in securely over SSL</b>."
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:454
-#: src/main/java/org/lantern/LanternBrowser.java:474
+#: src/main/java/org/lantern/LanternBrowser.java:455
+#: src/main/java/org/lantern/LanternBrowser.java:475
 msgid "Gmail E-mail Address"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:455
-#: src/main/java/org/lantern/LanternBrowser.java:475
+#: src/main/java/org/lantern/LanternBrowser.java:456
+#: src/main/java/org/lantern/LanternBrowser.java:476
 msgid "Gmail Password"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:456
+#: src/main/java/org/lantern/LanternBrowser.java:457
 msgid "Show My Contacts"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:467
+#: src/main/java/org/lantern/LanternBrowser.java:468
 msgid ""
 "Lantern allows Lantern users living in censored to access the open internet "
 "through your computer when you're not using it, creating a cooperative "
@@ -171,6 +171,6 @@ msgid ""
 "your e-mail to any third party, and your login happens securely over SSL.</b>"
 msgstr ""
 
-#: src/main/java/org/lantern/LanternBrowser.java:473
+#: src/main/java/org/lantern/LanternBrowser.java:474
 msgid "<b>Please enter your user name and password from</b>"
 msgstr ""
