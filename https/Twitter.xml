@@ -15,13 +15,20 @@
   <target host="*.twitter.com" />
   <target host="twitter.com" />
   <target host="*.twimg.com" />
+  <target host="t.co" />
 
   <securecookie host="^(.*\.)?twitter\.com$" name=".*" />
 
   <rule from="^http://(www\.)?twitter\.com/"
 	  to="https://twitter.com/"/>
   <rule from="^http://(api|business|dev|mobile|search|static|support)\.twitter\.com/"
-   	  to="https://$1.twitter.com/"/>
-  <rule from="^http://[a-z0-9][^@:/]?\.twimg\.com/"
+   	  to="https://$1.twitter.com/" />
+  <rule from="^http://(p|si\d)\.twimg\.com/"
+	  to="https://$1.twimg.com/" />
+  <rule from="^http://widgets\.twimg\.com/"
+	  to="https://s3.amazonaws.com/twitter-widgets/" />
+  <rule from="^http://(a\d|s)\.twimg\.com/"
 	  to="https://s3.amazonaws.com/twitter_production/"/>
+  <rule from="^http://t\.co/"
+	  to="https://t.co/" />
 </ruleset>
