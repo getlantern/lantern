@@ -81,6 +81,17 @@ public class Configurator {
     private static void configureOsxProxy() {
         configureOsxProxyPacFile();
         configureOsxScript();
+        // Note that non-daemon hooks can exit prematurely with CTL-C,
+        // but not if System.exit is used as it should be in deployed
+        // versions.
+        final Thread hook = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                LOG.info("Unproxying...");
+                unproxyOsx();
+            }
+        }, "Unset-Web-Proxy-OSX");
+        Runtime.getRuntime().addShutdownHook(hook);
     }
 
     private static void configureOsxScript() {
@@ -121,17 +132,6 @@ public class Configurator {
                 "127.0.0.1", String.valueOf(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT));
             LOG.info("Got return val:\n"+val2);
         }
-        
-        // Note that non-daemon hooks can exit prematurely with CTL-C,
-        // but not if System.exit is used as it should be in deployed
-        // versions.
-        final Thread hook = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                unproxyOsx();
-            }
-        }, "Unset-Web-Proxy-OSX");
-        Runtime.getRuntime().addShutdownHook(hook);
     }
 
 
