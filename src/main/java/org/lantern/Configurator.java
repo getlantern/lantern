@@ -50,6 +50,7 @@ public class Configurator {
             LOG.error(msg);
             throw new IllegalStateException(msg);
         }
+        LOG.info("Both pac files are in their expected locations");
     }
     
     private static final File ACTIVE_PAC = 
@@ -125,7 +126,9 @@ public class Configurator {
             LOG.error(msg);
             throw new IllegalStateException(msg);
         }
-        return script.getAbsolutePath();
+        final String path = script.getAbsolutePath();
+        LOG.info("Returning script path: {}", path);
+        return path;
     }
 
 
