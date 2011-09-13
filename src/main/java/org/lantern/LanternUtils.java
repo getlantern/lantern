@@ -437,16 +437,20 @@ public class LanternUtils {
         final Comparator<RosterEntry> comparator = new Comparator<RosterEntry>() {
             @Override
             public int compare(final RosterEntry re1, final RosterEntry re2) {
-                return re1.getName().compareToIgnoreCase(re2.getName());
+                final String name1 = re1.getName();
+                final String name2 = re2.getName();
+                if (name1 == null) {
+                    return 1;
+                } else if (name2 == null) {
+                    return -1;
+                }
+                return name1.compareToIgnoreCase(name2);
             }
         };
         final Collection<RosterEntry> entries = 
             new TreeSet<RosterEntry>(comparator);
         for (final RosterEntry entry : unordered) {
-            final String name = entry.getName();
-            if (StringUtils.isNotBlank(name)) {
-                entries.add(entry);
-            }
+            entries.add(entry);
         }
         return entries;
     }
@@ -459,7 +463,7 @@ public class LanternUtils {
         return persistentXmppConnection(username, password, id, 4);
     }
     
-    private static XMPPConnection persistentXmppConnection(final String username, 
+    public static XMPPConnection persistentXmppConnection(final String username, 
         final String password, final String id, final int attempts) 
         throws IOException {
         final String key = username+password;
