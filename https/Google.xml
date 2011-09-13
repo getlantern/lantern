@@ -56,10 +56,10 @@
 
   <!-- There are two distinct cases for these firefox searches -->
 
-  <rule from="^http://(www\.)?google\.com/firefox/?$"
+  <rule from="^http://(www\.)?google(\.com?)?\.[a-z][a-z]/firefox/?$"
           to="https://encrypted.google.com/"/>
 
-  <rule from="^http://(www\.)?google\.com/firefox"
+  <rule from="^http://(www\.)?google(\.com?)?\.[a-z][a-z]/firefox"
           to="https://encrypted.google.com/search"/>
 
   <rule from="^http://(www\.)?google\.com/webhp"
@@ -83,14 +83,14 @@
   <!-- most google international sites look like "google.fr" -->
 
   <rule
-    from="^http://(www\.)?google\.[^/@:][^/@:]/(search\?|firefox|#)"
-      to="https://encrypted.google.com/#" />
+    from="^http://(www\.)?google\.[^/@:][^/@:]/(search\?|#)"
+      to="https://encrypted.google.com/search?" />
 
   <!-- some look like "google.co.jp" -->
   <!-- and some crazy ones like "google.com.au" -->
   <rule
-    from="^http://(www\.)?google\.com?\.[^/@:][^/@:]/(search\?|firefox|#)"
-      to="https://encrypted.google.com/#" />
+    from="^http://(www\.)?google\.com?\.[^/@:][^/@:]/(search\?|#)"
+      to="https://encrypted.google.com/search?" />
   <!-- Completion urls look like this:
 
 http://clients2.google.co.jp/complete/search?hl=ja&client=hp&expIds=17259,24660,24729,24745&q=m&cp=1 HTTP/1.1\r\n

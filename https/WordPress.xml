@@ -8,6 +8,7 @@
   <target host="*.files.wordpress.com" />
   <target host="*.wp.com" />
 
+  <exclusion pattern="^http://(([^/:@\.]+)\.)?wordpress\.com/latex\.php(\?.*)?$"/>
   <exclusion pattern="^http://([^/:@\.]+)\.blog\.wordpress\.com/"/>
   <exclusion pattern="^http://([^/:@\.]+)\.blog\.files\.wordpress\.com/"/>
   <exclusion pattern="^http://([^/:@\.]+)\.forums\.wordpress\.com/"/>
