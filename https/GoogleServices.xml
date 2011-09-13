@@ -26,42 +26,40 @@
   <exclusion pattern="^http://(news\.)?google\.com/newspapers" />
   <exclusion pattern="^http://(news\.)?google\.com/archivesearch" />
 
-  <rule from="^http://(adwords|appengine|calendar|code|docs\d?|feedburner|groups|mail|pack|picasaweb|plus|plusone|sites|spreadsheets\d?|tools)\.google\.com/"
+  <rule from="^http://(adwords|appengine|calendar|code|docs\d?|feedburner|groups|investor|mail|pack|picasaweb|plus|plusone|sites|spreadsheets\d?|tools)\.google\.com/"
           to="https://$1.google.com/"/>
   <rule from="^http://groups\.google\.de/"
           to="https://groups.google.de/"/>
-  <rule from="^http://(www\.)?gmail\.com/"
+  <rule from="^http://(?:www\.)?gmail\.com/"
           to="https://mail.google.com/"/>
-  <rule from="^http://(www\.)?google\.com/webfonts"
-          to="https://www.google.com/webfonts"/>
 
   <!-- This worked for a while but seems to be unstable
   <rule from="^http://(www\.)?google((\.com?)?(\.[^/@:][^/@:])?)/products"
           to="https://www.google$2/products" />
    -->
 
-  <rule from="^http://(www\.)?google((\.com?)?(\.[^/@:][^/@:])?)/profiles"
-          to="https://www.google$2/profiles" />
+  <rule from="^http://(?:www\.)?google((\.com?)?(\.[^/@:][^/@:])?)/profiles"
+          to="https://www.google$1/profiles" />
 
-  <rule from="^http://news\.google((\.com?)?(\.[^/@:][^/@:])?)/news"
+  <rule from="^http://news\.google(?:\.com?)?(?:\.[^/@:][^/@:])?/news"
           to="https://www.google.com/news" />
 
-  <rule from="^http://news\.google((\.com?)?(\.[^/@:][^/@:])?)/newshp"
+  <rule from="^http://news\.google(?:\.com?)?(?:\.[^/@:][^/@:])?/newshp"
           to="https://www.google.com/news" />
 
-  <rule from="^http://news\.google((\.com?)?(\.[^/@:][^/@:])?)/$"
+  <rule from="^http://news\.google(?:\.com?)?(?:\.[^/@:][^/@:])?/$"
           to="https://www.google.com/news" />
 
-  <rule from="^http://(www\.)?googlecode\.com/$"
+  <rule from="^http://(?:www\.)?googlecode\.com/$"
           to="https://code.google.com/" />
   <rule from="^http://([^/:@]+)\.googlecode\.com/$"
           to="https://code.google.com/p/$1/" />
   <rule from="^http://([^/:@]+)\.googlecode\.com/(.+)"
           to="https://$1.googlecode.com/$2" />
 
-  <rule from="^http://(www\.)?google\.com/finance"
+  <rule from="^http://(?:www\.)?google\.com/finance"
           to="https://www.google.com/finance"/>
-  <rule from="^http://(www\.)?google\.co\.uk/finance"
+  <rule from="^http://(?:www\.)?google\.co\.uk/finance"
           to="https://www.google.co.uk/finance"/>
   <rule from="^https?://finance\.google\.com/"
           to="https://www.google.com/finance/"/>
@@ -79,21 +77,21 @@
           to="https://www.googleusercontent.com/"/>
   <rule from="^http://([^@:\./]+)\.googleusercontent\.com/"
           to="https://$1.googleusercontent.com/"/>
-  <rule from="^http://(www\.)?google\.com/buzz"
-          to="https://www.google.com/buzz"/>
-  <rule from="^http://(www\.)?google\.com/contacts"
+  <rule from="^http://(?:www\.)?google\.com/contacts"
           to="https://www.google.com/contacts"/>
-  <rule from="^http://(www\.)?google\.co\.uk/contacts"
+  <rule from="^http://(?:www\.)?google\.co\.uk/contacts"
           to="https://www.google.co.uk/contacts"/>
-  <rule from="^http://(www\.)?google\.co\.in/contacts"
+  <rule from="^http://(?:www\.)?google\.co\.in/contacts"
           to="https://www.google.co.in/contacts"/>
 
-  <rule from="^http://(www\.)?google(\.com?)?(\.[^/@:][^/@:])?/(adplanner|ads|css|images|intl|js|logos|tools|googleblogs|s2|support|transparencyreport)/"
-          to="https://www.google.com/$4/"/>
-  <rule from="^http://(www\.)?google(\.com?)?(\.[^/@:][^/@:])?/(calendar|dictionary|trends|url)"
-          to="https://www.google.com/$4"/>
-  <rule from="^http://(www\.)?google(\.com?)?(\.[^/@:][^/@:])?/(cse|custom)"
+  <rule from="^http://(?:www\.)?google(?:\.com?)?(?:\.[^/@:][^/@:])?/(adplanner|ads|css|images|intl|js|logos|tools|googleblogs|s2|support|transparencyreport)/"
+          to="https://www.google.com/$1/"/>
+  <rule from="^http://(?:www\.)?google(?:\.com?)?(?:\.[^/@:][^/@:])?/(calendar|dictionary|trends|url)"
+          to="https://www.google.com/$1"/>
+  <rule from="^http://(?:www\.)?google(?:\.com?)?(?:\.[^/@:][^/@:])?/(?:cse|custom)"
           to="https://www.google.com/cse" />
-  <rule from="^http://(www\.)?google\.com/(\+|accounts|extern_js|moderator|newproducts|phone|reader)/"
-          to="https://www.google.com/$2/"/>
+  <rule from="^http://(?:www\.)?google\.com/(\+|accounts|extern_js|moderator|newproducts|phone|reader)/"
+          to="https://www.google.com/$1/"/>
+  <rule from="^http://(?:www\.)?google\.com/(buzz|news|webfonts)"
+          to="https://www.google.com/$1"/>
 </ruleset>
