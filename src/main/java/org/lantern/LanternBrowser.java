@@ -59,7 +59,7 @@ public class LanternBrowser {
     private String lastEventLocation = "";
     
     private final I18n i18n = I18nFactory.getI18n(LanternBrowser.class, 
-        "app.i18n.Messages", Locale.getDefault());
+        "app.i18n.Messages", Locale.getDefault(), I18nFactory.FALLBACK);
 
     public LanternBrowser(final boolean isConfig) {
         log.info("Creating Lantern browser...");
