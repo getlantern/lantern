@@ -93,7 +93,7 @@ public class HttpsEverywhere {
         }
         final Collection<String> candidates = 
             LanternUtils.toHttpsCandidates(uri);
-        //LOG.info("Candidats: {}", candidates);
+        //LOG.info("Candidates: {}", candidates);
         final Collection<HttpsRuleSet> ruleSets = getRules(candidates);
         if (ruleSets == null || ruleSets.isEmpty()) {
             LOG.info("NO RULES");
