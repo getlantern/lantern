@@ -1,0 +1,13 @@
+Lantern provides access to web sites that are blocked through a network of P2P proxies. To run Lantern on Linux desktop (with a UI for configuring it), you may need to run:
+
+apt-get install libxtst6
+yum install xorg-x11-deprecated-libs
+
+In that case, you'll also need to add the following to your ~/.lantern/lantern.properties file:
+
+linuxui=true
+
+To simply run a command line version to proxy traffic (such as on a server you're willing to donate to the cause), you can run ./run.bash from the command line as long as you have maven and java installed.
+
+For more information about Lantern, please visit http://www.getlantern.org.
+
