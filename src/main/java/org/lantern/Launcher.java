@@ -6,6 +6,7 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.HashMap;
 import java.util.Properties;
 
+import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.eclipse.swt.widgets.Display;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
@@ -36,6 +37,11 @@ public class Launcher {
                 LOG.error("Uncaught exception", e);
             }
         });
+        if (SystemUtils.IS_OS_LINUX) {
+            // We only run headless on Linux for now.
+            launchLantern();
+            return;
+        }
         Display.setAppName("Lantern");
         final Display display = LanternHub.display();
         
