@@ -266,6 +266,19 @@
     </profile>
     
     <profile>
+      <id>linux</id>
+      <activation>
+        <os>
+          <family>linux</family>
+        </os>
+      </activation>
+      <properties>
+        <swt.groupId>org.eclipse.swt.gtk.linux</swt.groupId>
+        <swt.artifactId>x86</swt.artifactId>
+      </properties>
+    </profile>
+    
+    <profile>
       <id>32bit</id>
       <activation>
         <property>
