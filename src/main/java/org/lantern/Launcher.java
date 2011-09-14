@@ -37,8 +37,9 @@ public class Launcher {
                 LOG.error("Uncaught exception", e);
             }
         });
-        if (SystemUtils.IS_OS_LINUX) {
+        if (SystemUtils.IS_OS_LINUX && !LanternUtils.getBooleanProperty("linuxui")) {
             // We only run headless on Linux for now.
+            LOG.info("Running Lantern on Linux...");
             launchLantern();
             return;
         }
