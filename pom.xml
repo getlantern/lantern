@@ -274,7 +274,6 @@
       </activation>
       <properties>
         <swt.groupId>org.eclipse.swt.gtk.linux</swt.groupId>
-        <swt.artifactId>x86</swt.artifactId>
       </properties>
     </profile>
     
