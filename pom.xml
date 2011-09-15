@@ -30,6 +30,12 @@
 
   <dependencies>
 
+    <dependency>
+      <groupId>bouncycastle</groupId>
+      <artifactId>bcprov-jdk16</artifactId>
+      <version>140</version>
+    </dependency>
+
 <!--
     <dependency>
       <groupId>com.google.api.client</groupId>
@@ -155,6 +161,12 @@
       <groupId>org.littleshoot</groupId>
       <artifactId>littleproxy</artifactId>
       <version>0.5-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.littleshoot</groupId>
+      <artifactId>nat-pmp</artifactId>
+      <version>0.1-SNAPSHOT</version>
     </dependency>
 
     <dependency>
