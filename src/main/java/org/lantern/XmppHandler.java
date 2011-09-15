@@ -50,6 +50,10 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lastbamboo.common.p2p.P2PConstants;
+import org.lastbamboo.common.portmapping.NatPmpService;
+import org.lastbamboo.common.portmapping.PortMapListener;
+import org.lastbamboo.common.portmapping.PortMappingProtocol;
+import org.lastbamboo.common.portmapping.UpnpService;
 import org.lastbamboo.jni.JLibTorrent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
@@ -57,6 +61,9 @@ import org.littleshoot.p2p.P2P;
 import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.hoodcomputing.natpmp.NatPmpDevice;
+import com.hoodcomputing.natpmp.NatPmpException;
 
 /**
  * Handles logging in to the XMPP server and processing trusted users through
@@ -228,16 +235,38 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
         
         try {
+            /*
             final String libName = System.mapLibraryName("jnltorrent");
             final JLibTorrent libTorrent = 
                 new JLibTorrent(Arrays.asList(new File (new File(".."), 
                     libName), new File (libName), new File ("lib", libName)), true);
+                    */
             
             final InetSocketAddress plainTextProxyRelayAddress = 
                 new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
             
-            this.client = P2P.newXmppP2PHttpClient("shoot", libTorrent, 
-                libTorrent, new InetSocketAddress(this.sslProxyRandomPort), 
+            NatPmpService natPmpService = null;
+            try {
+                natPmpService = new NatPmp();
+            } catch (final NatPmpException e) {
+                LOG.error("Could not map", e);
+                // We just use a dummy one in this case.
+                natPmpService = new NatPmpService() {
+                    @Override
+                    public void removeNatPmpMapping(int arg0) {
+                    }
+                    @Override
+                    public int addNatPmpMapping(
+                        final PortMappingProtocol arg0, int arg1, int arg2,
+                        PortMapListener arg3) {
+                        return -1;
+                    }
+                };
+            }
+            
+            UpnpService upnpService = null;
+            this.client = P2P.newXmppP2PHttpClient("shoot", natPmpService, 
+                upnpService, new InetSocketAddress(this.sslProxyRandomPort), 
                 //newTlsSocketFactory(), SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
                 newTlsSocketFactory(), newTlsServerSocketFactory(),
                 //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
