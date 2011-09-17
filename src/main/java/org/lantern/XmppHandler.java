@@ -1,6 +1,5 @@
 package org.lantern;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -13,7 +12,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -54,7 +52,6 @@ import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
-import org.lastbamboo.jni.JLibTorrent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.littleshoot.p2p.P2P;
@@ -62,7 +59,6 @@ import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.hoodcomputing.natpmp.NatPmpDevice;
 import com.hoodcomputing.natpmp.NatPmpException;
 
 /**
@@ -264,7 +260,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 };
             }
             
-            UpnpService upnpService = null;
+            final UpnpService upnpService = new Upnp();
             this.client = P2P.newXmppP2PHttpClient("shoot", natPmpService, 
                 upnpService, new InetSocketAddress(this.sslProxyRandomPort), 
                 //newTlsSocketFactory(), SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
