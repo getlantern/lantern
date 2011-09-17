@@ -25,7 +25,6 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
     public int addUpnpMapping(final PortMappingProtocol prot, 
         final int localPort, final int externalPortRequested,
         final PortMapListener portMapListener) {
-        
         final String lh;
         try {
             lh = NetworkUtils.getLocalHost().getHostAddress();
@@ -33,6 +32,29 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
             log.error("Could not find host?", e);
             return -1;
         }
+        
+        // This call will block unless we thread it here.
+        final Runnable upnpRunner = new Runnable() {
+            @Override
+            public void run() {
+                addMapping(prot, externalPortRequested, 
+                    portMapListener, lh);
+            }
+        };
+        final Thread mapper = new Thread(upnpRunner, "UPnP-Mapping-Thread");
+        mapper.start();
+        
+        // The mapping index isn't relevant in this case because the underlying
+        // UPnP implementation handles removing mappings automatically. We
+        // return a positive number to indicate the mapping hasn't failed at
+        // this point.
+        return 1;
+    }
+
+    protected void addMapping(final PortMappingProtocol prot, 
+        final int externalPortRequested, 
+        final PortMapListener portMapListener, final String lh) {
+
         final PortMapping desiredMapping = new PortMapping(
             externalPortRequested,
             lh,
@@ -52,12 +74,6 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
         });
         
         upnpService.getControlPoint().search();
-        
-        // The mapping index isn't relevant in this case because the underlying
-        // UPnP implementation handles removing mappings automatically. We
-        // return a positive number to indicate the mapping hasn't failed at
-        // this point.
-        return 1;
     }
 
 }
