@@ -1,5 +1,7 @@
 package org.lantern;
 
+import static org.junit.Assert.*;
+
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
@@ -18,6 +20,9 @@ public class UpnpTest {
             @Override
             public void onPortMapError() {
                 System.out.println("ERROR!!");
+                synchronized (mapped) {
+                    mapped.notifyAll();
+                }
             }
             
             @Override
@@ -29,11 +34,12 @@ public class UpnpTest {
                 }
             }
         };
-        up.addUpnpMapping(PortMappingProtocol.TCP, 7877, 7877, pml);
+        up.addUpnpMapping(PortMappingProtocol.TCP, 65522, 65522, pml);
         synchronized (mapped) {
             if (!mapped.get()) {
-                mapped.wait(6000);
+                mapped.wait(4000);
             }
         }
+        assertTrue(mapped.get());
     }
 }

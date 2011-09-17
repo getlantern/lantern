@@ -67,11 +67,35 @@ public class NatPmp implements NatPmpService {
     }
     
     @Override
-    public int addNatPmpMapping(final PortMappingProtocol tcpOrUdp, 
+    public int addNatPmpMapping(final PortMappingProtocol prot, 
         final int localPort, final int externalPortRequested,
         final PortMapListener portMapListener) {
+        if (portMapListener == null) {
+            log.error("No listener?");
+            throw new NullPointerException("Null listener");
+        }
+        // This call will block unless we thread it here.
+        final Runnable upnpRunner = new Runnable() {
+            @Override
+            public void run() {
+                addMapping(prot, localPort, externalPortRequested, 
+                    portMapListener);
+            }
+        };
+        final Thread mapper = new Thread(upnpRunner, "NAT-PMP-Mapping-Thread");
+        
+        final int index = requests.size();
+        mapper.start();
+        
+        return index;
+    }
+
+    protected void addMapping(final PortMappingProtocol prot,
+        final int localPort, final int externalPortRequested, 
+        final PortMapListener portMapListener) {
+
         final boolean tcp;
-        if (tcpOrUdp == PortMappingProtocol.TCP) {
+        if (prot == PortMappingProtocol.TCP) {
             tcp = true;
         } else {
             tcp = false;
@@ -81,17 +105,21 @@ public class NatPmp implements NatPmpService {
         final int lifeTimeSeconds = 60 * 60;
         final MapRequestMessage map = 
             new MapRequestMessage(tcp, localPort, 0, lifeTimeSeconds, null);
+        log.info("Map before enqueu is: {}", map);
         pmpDevice.enqueueMessage(map);
         pmpDevice.waitUntilQueueEmpty();
+        log.info("Map before external port call is: {}", map);
         try {
             final int extPort = map.getExternalPort();
+            log.info("Got external port");
             portMapListener.onPortMap(extPort);
-            requests.add(map);
-            return requests.size() - 1;
+
         } catch (final NatPmpException e) {
             portMapListener.onPortMapError();
-            return -1;
         }
+        // We have to add it whether it succeeded or not to keep the indeces 
+        // in sync.
+        requests.add(map);
     }
 
 }
