@@ -78,8 +78,9 @@ public class NatPmp implements NatPmpService {
         final Runnable upnpRunner = new Runnable() {
             @Override
             public void run() {
-                addMapping(prot, localPort, externalPortRequested, 
-                    portMapListener);
+                // Note we don't pass the requested external port -- with
+                // NAT-PMP we just use whatever the router gives us.
+                addMapping(prot, localPort, portMapListener);
             }
         };
         final Thread mapper = new Thread(upnpRunner, "NAT-PMP-Mapping-Thread");
@@ -91,8 +92,7 @@ public class NatPmp implements NatPmpService {
     }
 
     protected void addMapping(final PortMappingProtocol prot,
-        final int localPort, final int externalPortRequested, 
-        final PortMapListener portMapListener) {
+        final int localPort, final PortMapListener portMapListener) {
 
         final boolean tcp;
         if (prot == PortMappingProtocol.TCP) {
@@ -111,7 +111,7 @@ public class NatPmp implements NatPmpService {
         log.info("Map before external port call is: {}", map);
         try {
             final int extPort = map.getExternalPort();
-            log.info("Got external port");
+            log.info("Got external port!! "+extPort);
             portMapListener.onPortMap(extPort);
 
         } catch (final NatPmpException e) {
