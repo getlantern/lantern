@@ -188,6 +188,24 @@
     </dependency>
 
     <dependency>
+      <groupId>org.teleal</groupId>
+      <artifactId>teleal-common</artifactId>
+      <version>1.0.13</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.teleal.cling</groupId>
+      <artifactId>cling-core</artifactId>
+      <version>1.0.3</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.teleal.cling</groupId>
+      <artifactId>cling-support</artifactId>
+      <version>1.0.3</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.xnap.commons</groupId>
       <artifactId>gettext-commons</artifactId>
       <version>0.9.6</version>
@@ -319,8 +337,19 @@
   <repositories>
     <!-- TODO: Would be really nice to remove this ASAP -->
     <repository>
+      <id>teleal.org-repo</id>
+      <url>http://teleal.org/m2</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+
+    <repository>
       <id>gettext-commons-site</id>
       <url>http://gettext-commons.googlecode.com/svn/maven-repository/</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
     </repository>
 
     <repository>
