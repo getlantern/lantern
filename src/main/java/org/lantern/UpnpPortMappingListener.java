@@ -180,11 +180,13 @@ public class UpnpPortMappingListener extends DefaultRegistryListener {
             return null;
         }
 
-        Device connectionDevice = connectionDevices[0];
+        final Device connectionDevice = connectionDevices[0];
         log.debug("Using first discovered WAN connection device: " + connectionDevice);
 
-        Service ipConnectionService = connectionDevice.findService(IP_SERVICE_TYPE);
-        Service pppConnectionService = connectionDevice.findService(PPP_SERVICE_TYPE);
+        final Service ipConnectionService = 
+            connectionDevice.findService(IP_SERVICE_TYPE);
+        final Service pppConnectionService = 
+            connectionDevice.findService(PPP_SERVICE_TYPE);
 
         if (ipConnectionService == null && pppConnectionService == null) {
             log.debug("IGD doesn't support IP or PPP WAN connection service: " + device);
@@ -193,7 +195,7 @@ public class UpnpPortMappingListener extends DefaultRegistryListener {
         return ipConnectionService != null ? ipConnectionService : pppConnectionService;
     }
 
-    protected void handleFailureMessage(String s) {
+    protected void handleFailureMessage(final String s) {
         log.warn(s);
     }
 
