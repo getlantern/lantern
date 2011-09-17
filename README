@@ -1,4 +1,4 @@
-Lantern provides access to web sites that are blocked through a network of P2P proxies. To run Lantern on Linux desktop (with a UI for configuring it), you may need to run:
+Lantern provides access to web sites that are blocked through a network of P2P proxies. To run Lantern on Linux desktop (with a UI for configuring it), you may need to run one of the following, depending on your Linux variety:
 
 apt-get install libxtst6
 yum install xorg-x11-deprecated-libs
