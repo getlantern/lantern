@@ -14,6 +14,13 @@ import org.teleal.cling.support.model.PortMapping;
 public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
+    
+    public Upnp() {
+        final String HACK_STREAM_HANDLER_SYSTEM_PROPERTY = 
+            "hackStreamHandlerProperty";
+        System.setProperty(HACK_STREAM_HANDLER_SYSTEM_PROPERTY, 
+            "alreadyWorkedAroundTheEvilJDK");
+    }
 
     @Override
     public void removeUpnpMapping(final int mappingIndex) {
