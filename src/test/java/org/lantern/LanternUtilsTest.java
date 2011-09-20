@@ -6,12 +6,20 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
 
+import org.apache.commons.lang.SystemUtils;
 import org.junit.Test;
 
 /**
  * Test for Lantern utilities.
  */
 public class LanternUtilsTest {
+    
+    @Test public void testOsFamily() throws Exception {
+        System.out.println("OS NAME: "+SystemUtils.OS_NAME);
+        System.out.println("OS ARCH: "+SystemUtils.OS_ARCH);
+        System.out.println("ARCH: "+System.getProperty("sun.arch.data.model"));
+        //System.out.println("ARCH: "+System.getProperty("sun.arch.data.model"));
+    }
     
     @Test public void testToHttpsCandidates() throws Exception {
         Collection<String> candidates = 
