@@ -760,7 +760,7 @@ public class LanternUtils {
                 LOG.error("Could not resolve address", e);
             }
             try {
-                Thread.sleep(1000);
+                Thread.sleep(250);
             } catch (final InterruptedException e) {
                 LOG.error("Interrupted?", e);
             }
