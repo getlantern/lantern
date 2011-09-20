@@ -104,9 +104,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private static final String CENSORED_ID = "-lac-";
     
     static {
-        LOG.info("Waiting for internet connection...");
-        LanternUtils.waitForInternet();
-        LOG.info("Got internet...");
         if (CensoredUtils.isCensored()) {
             ID = CENSORED_ID;
         } else {
