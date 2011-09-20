@@ -309,6 +309,18 @@
     </profile>
     
     <profile>
+      <id>linux2</id>
+      <activation>
+        <os>
+          <family>unix</family>
+        </os>
+      </activation>
+      <properties>
+        <swt.groupId>org.eclipse.swt.gtk.linux</swt.groupId>
+      </properties>
+    </profile>
+    
+    <profile>
       <id>32bit</id>
       <activation>
         <property>
