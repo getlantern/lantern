@@ -1,6 +1,8 @@
 package org.lantern;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
@@ -72,9 +74,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private static final Logger LOG = 
         LoggerFactory.getLogger(XmppHandler.class);
     
-    private final String email;
+    private String email;
 
-    private final String pwd;
+    private String pwd;
     
     private final Set<ProxyHolder> proxySet =
         new HashSet<ProxyHolder>();
@@ -218,13 +220,21 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         this.email = LanternUtils.getStringProperty("google.user");
         this.pwd = LanternUtils.getStringProperty("google.pwd");
         if (StringUtils.isBlank(this.email)) {
-            LOG.error("No user name");
-            throw new IllegalStateException("No user name");
+            if (!LanternUtils.runWithUi()) {
+                this.email = askForEmail();
+            } else {
+                LOG.error("No user name");
+                throw new IllegalStateException("No user name");
+            }
         }
         
         if (StringUtils.isBlank(this.pwd)) {
-            LOG.error("No password.");
-            throw new IllegalStateException("No password");
+            if (!LanternUtils.runWithUi()) {
+                this.pwd = askForPassword();
+            } else {
+                LOG.error("No password.");
+                throw new IllegalStateException("No password");
+            }
         }
         
         try {
@@ -331,6 +341,29 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             LOG.warn(msg, e);
             throw new Error(msg, e);
         }
+    }
+
+    private String askForEmail() {
+        System.out.print("Please enter your gmail e-mail, as in johndoe@gmail.com: ");
+        return readLine();
+    }
+    
+    private String askForPassword() {
+        System.out.print("Please enter your gmail password: ");
+        return readLine();
+    }
+
+    private String readLine() {
+        //  open up standard input
+        final BufferedReader br = 
+            new BufferedReader(new InputStreamReader(System.in));
+
+        try {
+           return br.readLine();
+        } catch (final IOException ioe) {
+           System.out.println("IO error trying to read your name!");
+        }
+        return "";
     }
 
     private void updatePresence() {
