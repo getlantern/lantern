@@ -74,10 +74,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private static final Logger LOG = 
         LoggerFactory.getLogger(XmppHandler.class);
     
-    private String email;
-
-    private String pwd;
-    
     private final Set<ProxyHolder> proxySet =
         new HashSet<ProxyHolder>();
     private final Queue<ProxyHolder> proxies = 
@@ -217,20 +213,20 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final int plainTextProxyRandomPort, final SystemTray tray) {
         this.sslProxyRandomPort = sslProxyRandomPort;
         this.tray = tray;
-        this.email = LanternUtils.getStringProperty("google.user");
-        this.pwd = LanternUtils.getStringProperty("google.pwd");
-        if (StringUtils.isBlank(this.email)) {
+        String email = LanternUtils.getStringProperty("google.user");
+        String pwd = LanternUtils.getStringProperty("google.pwd");
+        if (StringUtils.isBlank(email)) {
             if (!LanternUtils.runWithUi()) {
-                this.email = askForEmail();
+                email = askForEmail();
             } else {
                 LOG.error("No user name");
                 throw new IllegalStateException("No user name");
             }
         }
         
-        if (StringUtils.isBlank(this.pwd)) {
+        if (StringUtils.isBlank(pwd)) {
             if (!LanternUtils.runWithUi()) {
-                this.pwd = askForPassword();
+                pwd = askForPassword();
             } else {
                 LOG.error("No password.");
                 throw new IllegalStateException("No password");
@@ -281,7 +277,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             // at all.
             LOG.info("Adding message listener...");
             this.client.addMessageListener(typedListener);
-            this.client.login(this.email, this.pwd, ID);
+            this.client.login(email, pwd, ID);
             final XMPPConnection connection = this.client.getXmppConnection();
             LOG.info("Connection ID: {}", connection.getConnectionID());
             
