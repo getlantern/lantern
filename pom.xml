@@ -307,7 +307,7 @@
         <swt.groupId>org.eclipse.swt.gtk.linux</swt.groupId>
       </properties>
     </profile>
-    
+   <!-- 
     <profile>
       <id>linux2</id>
       <activation>
@@ -319,7 +319,8 @@
         <swt.groupId>org.eclipse.swt.gtk.linux</swt.groupId>
       </properties>
     </profile>
-    
+-->    
+
     <profile>
       <id>32bit</id>
       <activation>
