@@ -1,5 +1,7 @@
 package org.lantern;
 
+import java.util.Map;
+
 import org.eclipse.swt.widgets.Display;
 
 public class LanternHub {
@@ -27,8 +29,19 @@ public class LanternHub {
 
     public synchronized static SystemTray systemTray() {
         if (systemTray == null) {
-            systemTray = new SystemTrayImpl(display());
-            systemTray.createTray();
+            if (LanternUtils.runWithUi()) {
+                systemTray = new SystemTrayImpl(display());
+                systemTray.createTray();
+            } else {
+                return new SystemTray() {
+                    @Override
+                    public void createTray() {}
+                    @Override
+                    public void activate() {}
+                    @Override
+                    public void addUpdate(Map<String, String> updateData) {}
+                };
+            }
         }
         return systemTray;
     }
