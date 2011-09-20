@@ -37,6 +37,9 @@ public class Launcher {
                 LOG.error("Uncaught exception", e);
             }
         });
+        LOG.info("Waiting for internet connection...");
+        LanternUtils.waitForInternet();
+        LOG.info("Got internet...");
         if (SystemUtils.IS_OS_LINUX && !LanternUtils.getBooleanProperty("linuxui")) {
             // We only run headless on Linux for now.
             LOG.info("Running Lantern on Linux...");
