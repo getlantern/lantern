@@ -804,6 +804,13 @@ public class LanternUtils {
         LOG.error("Could not fine keytool?!?!?!?");
         return null;
     }
+
+    private static final boolean RUN_WITH_UI =
+        LanternUtils.getBooleanProperty("linuxui");
+    
+    public static boolean runWithUi() {
+        return RUN_WITH_UI;
+    }
 }
 
 
