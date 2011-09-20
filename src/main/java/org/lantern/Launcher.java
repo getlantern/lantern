@@ -6,7 +6,6 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.HashMap;
 import java.util.Properties;
 
-import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.PropertyConfigurator;
 import org.eclipse.swt.widgets.Display;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
@@ -22,6 +21,7 @@ import org.slf4j.LoggerFactory;
 public class Launcher {
 
     private static Logger LOG;
+    
     
     /**
      * Starts the proxy from the command line.
@@ -40,9 +40,9 @@ public class Launcher {
         LOG.info("Waiting for internet connection...");
         LanternUtils.waitForInternet();
         LOG.info("Got internet...");
-        if (SystemUtils.IS_OS_LINUX && !LanternUtils.getBooleanProperty("linuxui")) {
+        if (!LanternUtils.runWithUi()) {
             // We only run headless on Linux for now.
-            LOG.info("Running Lantern on Linux...");
+            LOG.info("Running Lantern with no display...");
             launchLantern();
             return;
         }
