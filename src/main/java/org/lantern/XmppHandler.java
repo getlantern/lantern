@@ -114,7 +114,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private final Timer updateTimer = new Timer(true);
 
-    private Chat hubChat;
+    //private Chat hubChat;
 
     private final SystemTray tray;
 
@@ -127,6 +127,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             // Note the Chat will always be null here. We try to avoid using
             // actual Chat instances due to Smack's strange and inconsistent
             // behavior with message listeners on chats.
+            //final String part = msg.getFrom();
             final String part = msg.getFrom();
             LOG.info("Got chat participant: {} with message:\n {}", part, 
                 msg.toXML());
@@ -323,8 +324,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             });
             updatePresence();
             final ChatManager chatManager = connection.getChatManager();
-            this.hubChat = 
-                chatManager.createChat(LANTERN_JID, typedListener);
+            //this.hubChat = 
+            //    chatManager.createChat(LANTERN_JID, typedListener);
             sendInfoRequest();
             configureRoster();
 
@@ -440,7 +441,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private void sendInfoRequest() {
         // Send an "info" message to gather proxy data.
+        LOG.info("Sending INFO request");
         final Message msg = new Message();
+        msg.setTo(LANTERN_JID);
+        msg.setFrom(this.client.getXmppConnection().getUser());
         final JSONObject json = new JSONObject();
         final StatsTracker statsTracker = LanternHub.statsTracker();
         json.put(LanternConstants.COUNTRY_CODE, CensoredUtils.countryCode());
@@ -462,6 +466,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final String str = json.toJSONString();
         LOG.info("Reporting data: {}", str);
         msg.setBody(str);
+        this.client.getXmppConnection().sendPacket(msg);
+        Whitelist.whitelistReported();
+        statsTracker.clear();
+        /*
         try {
             LOG.info("Sending info message to Lantern Hub");
             this.hubChat.sendMessage(msg);
@@ -470,6 +478,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         } catch (final XMPPException e) {
             LOG.error("Could not send INFO message", e);
         }
+        */
     }
 
     private void addOrRemovePeer(final Presence p, final String from) {
@@ -510,11 +519,14 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             XmppMessageConstants.ERROR_TYPE);
         final String errorMessage = "Error: "+message+" with host: "+isa;
         msg.setProperty(XmppMessageConstants.MESSAGE, errorMessage);
+        this.client.getXmppConnection().sendPacket(msg);
+        /*
         try {
             this.hubChat.sendMessage(msg);
         } catch (final XMPPException e) {
             LOG.error("Error sending message", e);
         }
+        */
     }
     
     private void processTypedMessage(final Message msg, final Integer type) {
