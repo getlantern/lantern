@@ -809,7 +809,14 @@ public class LanternUtils {
         LanternUtils.getBooleanProperty("linuxui");
     
     public static boolean runWithUi() {
+        if (!settingExists("linuxui")) {
+            return true;
+        }
         return RUN_WITH_UI;
+    }
+
+    private static boolean settingExists(final String key) {
+        return PROPS.containsKey(key);
     }
 }
 
