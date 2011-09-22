@@ -97,8 +97,7 @@ msgid "Error logging in. E-mail or password incorrect?"
 msgstr "登录失败，邮箱或者密码是正确的吗？"
 
 #: src/main/java/org/lantern/LanternBrowser.java:369
-msgid "Please select your <b>trusted</b> friends below to send them a
-request to "
+msgid "Please select your <b>trusted</b> friends below to send them a request to "
 "join your Lantern network. These friends will serve as especially trusted "
 "access points to the open internet."
 msgstr "请选择下列的你<b>信任的</b>朋友，向他们发送请求。加入你的Lantern网络。这些朋友将被"
