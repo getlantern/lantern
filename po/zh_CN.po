@@ -44,8 +44,7 @@ msgid "Complete Your Installation"
 msgstr "完成你的安装"
 
 #: src/main/java/org/lantern/LanternBrowser.java:211
-msgid "You appear to be running Lantern to gain access to blocked web
-sites from a "
+msgid "You appear to be running Lantern to gain access to blocked web sites from a "
 "censored country. Is that correct?"
 msgstr "你似乎正在一个有信息审核的国家里运行Lantern以访问被封锁的网站，是吗？"
 
