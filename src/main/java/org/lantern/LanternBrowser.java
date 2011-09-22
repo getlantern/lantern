@@ -58,11 +58,19 @@ public class LanternBrowser {
     
     private String lastEventLocation = "";
     
-    private final I18n i18n = I18nFactory.getI18n(LanternBrowser.class, 
-        "app.i18n.Messages", Locale.getDefault(), I18nFactory.FALLBACK);
+    private final I18n i18n;
 
     public LanternBrowser(final boolean isConfig) {
         log.info("Creating Lantern browser...");
+        Locale locale = Locale.getDefault();
+        //if (locale.getISO3Language().equalsIgnoreCase("zh")) {
+        if (true) {
+            //locale = Locale.SIMPLIFIED_CHINESE;
+            locale = Locale.CHINESE;
+        }
+        log.info("Locale: {}", locale);
+        this.i18n = I18nFactory.getI18n(LanternBrowser.class, 
+                "app.i18n.Messages", locale, I18nFactory.FALLBACK);
         this.display = LanternHub.display();
         this.isConfig = isConfig;
         
