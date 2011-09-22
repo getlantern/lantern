@@ -110,10 +110,15 @@ public class NatPmp implements NatPmpService {
         pmpDevice.waitUntilQueueEmpty();
         log.info("Map before external port call is: {}", map);
         try {
-            final int extPort = map.getExternalPort();
-            log.info("Got external port!! "+extPort);
-            portMapListener.onPortMap(extPort);
-
+            // Auto-boxing can cause a null pointer here, so make sure to
+            // use Integer.
+            final Integer extPort = map.getExternalPort();
+            if (extPort != null) { 
+                log.info("Got external port!! "+extPort);
+                portMapListener.onPortMap(extPort);
+            } else {
+                portMapListener.onPortMapError();
+            }
         } catch (final NatPmpException e) {
             portMapListener.onPortMapError();
         }
