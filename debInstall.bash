@@ -10,9 +10,9 @@ then
     die "$0: Received $# args... version required"
 fi
 VERSION=$1
-#./installerBuild.bash $VERSION "-Dsun.arch.data.model=32 -Plinux" || die "Could not build!!"
+./installerBuild.bash $VERSION "-Dsun.arch.data.model=32 -Plinux" || die "Could not build!!"
 
-#/Applications/install4j\ 5/bin/install4jc -m linuxDeb -r $VERSION ./install/lantern.install4j
+/Applications/install4j\ 5/bin/install4jc -m linuxDeb -r $VERSION ./install/lantern.install4j
 
 name=lantern-$VERSION.deb
 mv install/lantern_linux_*.deb $name
