@@ -22,7 +22,6 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.net.ServerSocketFactory;
@@ -33,7 +32,6 @@ import javax.net.ssl.SSLContext;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.Chat;
-import org.jivesoftware.smack.ChatManager;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.Roster;
@@ -41,9 +39,9 @@ import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.Message.Type;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.json.simple.JSONArray;
@@ -57,7 +55,6 @@ import org.lastbamboo.common.portmapping.UpnpService;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.littleshoot.p2p.P2P;
-import org.littleshoot.util.CommonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,8 +110,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private final int sslProxyRandomPort;
 
     private final Timer updateTimer = new Timer(true);
-
-    //private Chat hubChat;
 
     private final SystemTray tray;
 
@@ -235,13 +230,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
         
         try {
-            /*
-            final String libName = System.mapLibraryName("jnltorrent");
-            final JLibTorrent libTorrent = 
-                new JLibTorrent(Arrays.asList(new File (new File(".."), 
-                    libName), new File (libName), new File ("lib", libName)), true);
-                    */
-            
             final InetSocketAddress plainTextProxyRelayAddress = 
                 new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
             
@@ -323,18 +311,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 }
             });
             updatePresence();
-            final ChatManager chatManager = connection.getChatManager();
-            //this.hubChat = 
-            //    chatManager.createChat(LANTERN_JID, typedListener);
             sendInfoRequest();
             configureRoster();
 
         } catch (final IOException e) {
             final String msg = "Could not log in!!";
-            LOG.warn(msg, e);
-            throw new Error(msg, e);
-        } catch (final XMPPException e) {
-            final String msg = "Could not configure roster!!";
             LOG.warn(msg, e);
             throw new Error(msg, e);
         }
@@ -373,22 +354,24 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final XMPPConnection conn = this.client.getXmppConnection();
         
         LOG.info("Sending presence available");
-        conn.sendPacket(new Presence(Presence.Type.available));
+        final Presence pres = new Presence(Presence.Type.available);
+        pres.setProperty("test", "test");
+        conn.sendPacket(pres);
         
         final Presence forHub = new Presence(Presence.Type.available);
         forHub.setTo(LANTERN_JID);
         conn.sendPacket(forHub);
     }
 
-    private void configureRoster() throws XMPPException {
+    private void configureRoster() {
         final XMPPConnection xmpp = this.client.getXmppConnection();
 
         final Roster roster = xmpp.getRoster();
-        // Make sure we look for Lantern packets.
+
         final RosterEntry lantern = roster.getEntry(LANTERN_JID);
         if (lantern == null) {
             LOG.info("Creating roster entry for Lantern...");
-            roster.createEntry(LANTERN_JID, "Lantern", null);
+            //roster.createEntry(LANTERN_JID, "Lantern", null);
         }
         
         roster.setSubscriptionMode(Roster.SubscriptionMode.manual);
@@ -443,13 +426,13 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         // Send an "info" message to gather proxy data.
         LOG.info("Sending INFO request");
         final Message msg = new Message();
+        msg.setType(Type.chat);
+        //msg.setType(Type.normal);
         msg.setTo(LANTERN_JID);
         msg.setFrom(this.client.getXmppConnection().getUser());
         final JSONObject json = new JSONObject();
         final StatsTracker statsTracker = LanternHub.statsTracker();
         json.put(LanternConstants.COUNTRY_CODE, CensoredUtils.countryCode());
-        //json.put(LanternConstants.USER_NAME, this.user);
-        //json.put(LanternConstants.PASSWORD, this.pwd);
         json.put(LanternConstants.BYTES_PROXIED, 
             statsTracker.getBytesProxied());
         json.put(LanternConstants.DIRECT_BYTES, 
@@ -466,19 +449,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final String str = json.toJSONString();
         LOG.info("Reporting data: {}", str);
         msg.setBody(str);
+        
         this.client.getXmppConnection().sendPacket(msg);
         Whitelist.whitelistReported();
         statsTracker.clear();
-        /*
-        try {
-            LOG.info("Sending info message to Lantern Hub");
-            this.hubChat.sendMessage(msg);
-            Whitelist.whitelistReported();
-            statsTracker.clear();
-        } catch (final XMPPException e) {
-            LOG.error("Could not send INFO message", e);
-        }
-        */
     }
 
     private void addOrRemovePeer(final Presence p, final String from) {
@@ -520,13 +494,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final String errorMessage = "Error: "+message+" with host: "+isa;
         msg.setProperty(XmppMessageConstants.MESSAGE, errorMessage);
         this.client.getXmppConnection().sendPacket(msg);
-        /*
-        try {
-            this.hubChat.sendMessage(msg);
-        } catch (final XMPPException e) {
-            LOG.error("Error sending message", e);
-        }
-        */
     }
     
     private void processTypedMessage(final Message msg, final Integer type) {
@@ -709,20 +676,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             } catch (final IOException e) {
                 LOG.info("Exception closing", e);
             }
-        }
-    }
-    
-    private final Map<String, String> secretKeys = 
-        new ConcurrentHashMap<String, String>();
-
-    private String getSecretKey(final String jid) {
-        synchronized (secretKeys) {
-            if (secretKeys.containsKey(jid)) {
-                return secretKeys.get(jid);
-            }
-            final String key = CommonUtils.generateBase64Key();
-            secretKeys.put(jid, key);
-            return key;
         }
     }
 
