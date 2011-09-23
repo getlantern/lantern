@@ -13,8 +13,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
-import java.util.ResourceBundle;
 import java.util.Map.Entry;
+import java.util.ResourceBundle;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -35,8 +35,6 @@ import org.eclipse.swt.widgets.Shell;
 import org.jivesoftware.smack.RosterEntry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.xnap.commons.i18n.I18n;
-import org.xnap.commons.i18n.I18nFactory;
 
 /**
  * Class for the embedded browser allowing the user to interface with Lantern.
@@ -67,7 +65,8 @@ public class LanternBrowser {
     
     private static final class I18n {
         private static final ResourceBundle rb = 
-            Utf8ResourceBundle.getBundle("LanternResourceBundle", Locale.CHINESE);
+            Utf8ResourceBundle.getBundle("LanternResourceBundle", 
+                Locale.getDefault());
         
         public String tr(final String toTrans) {
             final int len = Math.min(toTrans.length(), 40);
@@ -79,13 +78,6 @@ public class LanternBrowser {
     
     public LanternBrowser(final boolean isConfig) {
         log.info("Creating Lantern browser...");
-        Locale locale = Locale.getDefault();
-        //if (locale.getISO3Language().equalsIgnoreCase("zh")) {
-        if (true) {
-            //locale = Locale.SIMPLIFIED_CHINESE;
-            locale = Locale.CHINESE;
-        }
-        log.info("Locale: {}", locale);
         this.i18n = new I18n();
         //this.i18n = I18nFactory.getI18n(LanternBrowser.class, 
         //        "app.i18n.Messages", locale, I18nFactory.FALLBACK);
