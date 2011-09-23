@@ -5,7 +5,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.junit.Test;
 
@@ -15,12 +18,16 @@ import org.junit.Test;
 public class LanternUtilsTest {
     
     @Test public void testOsFamily() throws Exception {
-        System.out.println("OS NAME: "+SystemUtils.OS_NAME);
-        System.out.println("OS ARCH: "+SystemUtils.OS_ARCH);
-        System.out.println("ARCH: "+System.getProperty("sun.arch.data.model"));
-        //System.out.println("ARCH: "+System.getProperty("sun.arch.data.model"));
+        final ResourceBundle rb = 
+            Utf8ResourceBundle.getBundle("LanternResourceBundle", Locale.CHINESE);
+        
+        final String val =
+            rb.getString("Are_you_sure_you_want_to_ignore_the_update?");
+        System.out.println(val);
+        //System.out.println(rb.getString("userComment"));
+        assertTrue(StringUtils.isNotBlank(val));
     }
-    
+/*
     @Test public void testToHttpsCandidates() throws Exception {
         Collection<String> candidates = 
             LanternUtils.toHttpsCandidates("http://www.google.com");
@@ -55,4 +62,5 @@ public class LanternUtilsTest {
         assertFalse(CensoredUtils.isCensored("200.21.225.82")); // Columbia
         assertTrue(CensoredUtils.isCensored("212.95.136.18")); // Iran
     }
+*/
 }
