@@ -89,13 +89,13 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     private void reset(final String macAddress) {
         log.info("RESETTING KEYSTORE AND TRUSTSTORE!!");
         if (KEYSTORE_FILE.isFile()) {
-            System.out.println("Deleting existing keystore file at: " +
+            log.info("Deleting existing keystore file at: " +
                 KEYSTORE_FILE.getAbsolutePath());
             KEYSTORE_FILE.delete();
         }
         
         if (TRUSTSTORE_FILE.isFile()) {
-            System.out.println("Deleting existing truststore file at: " +
+            log.info("Deleting existing truststore file at: " +
                 TRUSTSTORE_FILE.getAbsolutePath());
             TRUSTSTORE_FILE.delete();
         }
