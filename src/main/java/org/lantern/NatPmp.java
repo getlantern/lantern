@@ -105,10 +105,8 @@ public class NatPmp implements NatPmpService {
         final int lifeTimeSeconds = 60 * 60;
         final MapRequestMessage map = 
             new MapRequestMessage(tcp, localPort, 0, lifeTimeSeconds, null);
-        log.info("Map before enqueu is: {}", map);
         pmpDevice.enqueueMessage(map);
         pmpDevice.waitUntilQueueEmpty();
-        log.info("Map before external port call is: {}", map);
         try {
             // Auto-boxing can cause a null pointer here, so make sure to
             // use Integer.
