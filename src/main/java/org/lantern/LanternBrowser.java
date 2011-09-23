@@ -13,6 +13,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -59,7 +60,23 @@ public class LanternBrowser {
     private String lastEventLocation = "";
     
     private final I18n i18n;
-
+    
+    //private final ResourceBundle rb = 
+    //    Utf8ResourceBundle.getBundle("LanternResourceBundle", Locale.CHINESE);
+    
+    
+    private static final class I18n {
+        private static final ResourceBundle rb = 
+            Utf8ResourceBundle.getBundle("LanternResourceBundle", Locale.CHINESE);
+        
+        public String tr(final String toTrans) {
+            final int len = Math.min(toTrans.length(), 40);
+            final String normalized = 
+                toTrans.replaceAll(" ", "_").substring(0, len);
+            return rb.getString(normalized);
+        }
+    }
+    
     public LanternBrowser(final boolean isConfig) {
         log.info("Creating Lantern browser...");
         Locale locale = Locale.getDefault();
@@ -69,8 +86,9 @@ public class LanternBrowser {
             locale = Locale.CHINESE;
         }
         log.info("Locale: {}", locale);
-        this.i18n = I18nFactory.getI18n(LanternBrowser.class, 
-                "app.i18n.Messages", locale, I18nFactory.FALLBACK);
+        this.i18n = new I18n();
+        //this.i18n = I18nFactory.getI18n(LanternBrowser.class, 
+        //        "app.i18n.Messages", locale, I18nFactory.FALLBACK);
         this.display = LanternHub.display();
         this.isConfig = isConfig;
         
@@ -84,9 +102,9 @@ public class LanternBrowser {
         this.shell.setImages(icons);
         // this.shell = createShell(this.display);
         if (isConfig) {
-            this.shell.setText(i18n.tr("Configure Lantern"));
+            this.shell.setText(this.i18n.tr("Configure_Lantern"));
         } else {
-            this.shell.setText(i18n.tr("Lantern Installation"));
+            this.shell.setText(this.i18n.tr("Lantern_Installation"));
         }
         this.shell.setSize(720, 540);
         // shell.setFullScreen(true);
@@ -192,7 +210,7 @@ public class LanternBrowser {
                 if (!closed) {
                     final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
                     final MessageBox messageBox = new MessageBox (shell, style);
-                    messageBox.setText ("Exit?");
+                    messageBox.setText (i18n.tr("Exit?"));
                     final String msg;
                     if (isConfig) {
                         msg = i18n.tr("Are you sure you want to cancel configuring Lantern?");
