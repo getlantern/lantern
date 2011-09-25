@@ -2,6 +2,7 @@ package org.lantern;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -28,8 +29,9 @@ public class Whitelist {
         new File(LanternUtils.configDir(), REPORTED_WHITELIST_NAME);
 
     static {
-        if (!WHITELIST_FILE.isFile()) {
-            final File original = new File(WHITELIST_NAME);
+        final File original = new File(WHITELIST_NAME);
+        if (!WHITELIST_FILE.isFile() || 
+            FileUtils.isFileNewer(original, WHITELIST_FILE)) {
             try {
                 FileUtils.copyFile(original, WHITELIST_FILE);
             } catch (final IOException e) {
@@ -147,6 +149,7 @@ public class Whitelist {
     }
     
     private static Collection<String> buildWhitelist(final File file) {
+        LOG.info("Processing whitelist file: {}", file);
         final Collection<String> wl = new HashSet<String>();
         BufferedReader br = null;
         try {
@@ -154,14 +157,12 @@ public class Whitelist {
             String site = br.readLine();
             while (site != null) {
                 site = site.trim();
+                LOG.info("Processing whitelist line: {}", site);
                 if (StringUtils.isNotBlank(site)) {
                     // Ignore commented-out sites.
                     if (!site.startsWith("#")) {
                         wl.add(site);
                     }
-                }
-                else {
-                    break;
                 }
                 site = br.readLine();
             }

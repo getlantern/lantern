@@ -1104,6 +1104,6 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
   <buildIds buildAll="false">
     <mediaSet refId="579" />
   </buildIds>
-  <buildOptions verbose="true" faster="true" debug="true" />
+  <buildOptions verbose="true" faster="false" debug="true" />
 </install4j>
 
