@@ -4,6 +4,8 @@ function die() {
   exit 1
 }
 
+mvn --version || echo "Please install maven from http://maven.apache.org" && exit 1 
+
 #pushd ..
 test -d target || mvn install:install-file -DgroupId=org.eclipse.swt.cocoa -DartifactId=x86 -Dversion=3.7 -Dpackaging=jar -Dfile=lib/swt-3.7-cocoa-macosx.jar
 test -d target || mvn install:install-file -DgroupId=org.eclipse.swt.cocoa -DartifactId=x86_64 -Dversion=3.7 -Dpackaging=jar -Dfile=lib/swt-3.7-cocoa-macosx-x86_64.jar
