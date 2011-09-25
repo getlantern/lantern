@@ -783,7 +783,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                     </object>
                   </java>
                 </serializedBean>
-                <condition>return Util.isWindows();</condition>
+                <condition>return Util.isWindows() || Util.isLinux();</condition>
               </action>
               <action name="" id="41" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="false" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
