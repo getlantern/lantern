@@ -41,4 +41,9 @@ public class WhitelistTest {
         assertTrue("Should be whitelisted", whitelisted);
             
     }
+    
+    @Test public void testWhitelistFile() throws Exception {
+        final boolean wl = Whitelist.isWhitelisted("http://www.whatismyip.com");
+        assertTrue(wl);
+    }
 }
