@@ -13,6 +13,7 @@ import java.util.Set;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,7 +87,7 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
 
     @Override
     public boolean isJidTrusted(final String jid) {
-        final String email = LanternUtils.jidToUser(jid);
+        final String email = XmppUtils.jidToUser(jid);
         return isTrusted(email);
     }
 
