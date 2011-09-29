@@ -12,6 +12,8 @@ public class LanternConstants {
     public static final String VERSION = "lantern_version_tok";
     //public static final String VERSION = "0.6";
     
+    public static final String LANTERN_JID = "lantern-controller@appspot.com";
+    
     public static final String VERSION_KEY = "v";
     
     /**

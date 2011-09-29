@@ -66,8 +66,6 @@ import com.hoodcomputing.natpmp.NatPmpException;
  */
 public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
-    private static final String LANTERN_JID = "lantern-controller@appspot.com";
-
     private static final Logger LOG = 
         LoggerFactory.getLogger(XmppHandler.class);
     
@@ -126,7 +124,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             final String part = msg.getFrom();
             LOG.info("Got chat participant: {} with message:\n {}", part, 
                 msg.toXML());
-            if (part.startsWith(LANTERN_JID)) {
+            if (part.startsWith(LanternConstants.LANTERN_JID)) {
                 LOG.info("Lantern controlling agent response");
                 final String body = msg.getBody();
                 LOG.info("Body: {}", body);
@@ -268,6 +266,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             this.client.addMessageListener(typedListener);
             this.client.login(email, pwd, ID);
             final XMPPConnection connection = this.client.getXmppConnection();
+            
+            // Make sure all connections between us and the server are stored
+            // OTR.
+            LanternUtils.activateOtr(connection);
+            //LanternUtils.deactivateOtr(connection);
+            
             LOG.info("Connection ID: {}", connection.getConnectionID());
             
             // Here we handle allowing the server to subscribe to our presence.
@@ -359,7 +363,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         conn.sendPacket(pres);
         
         final Presence forHub = new Presence(Presence.Type.available);
-        forHub.setTo(LANTERN_JID);
+        forHub.setTo(LanternConstants.LANTERN_JID);
         conn.sendPacket(forHub);
     }
 
@@ -368,7 +372,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
         final Roster roster = xmpp.getRoster();
 
-        final RosterEntry lantern = roster.getEntry(LANTERN_JID);
+        final RosterEntry lantern = roster.getEntry(LanternConstants.LANTERN_JID);
         if (lantern == null) {
             LOG.info("Creating roster entry for Lantern...");
             //roster.createEntry(LANTERN_JID, "Lantern", null);
@@ -428,7 +432,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final Message msg = new Message();
         msg.setType(Type.chat);
         //msg.setType(Type.normal);
-        msg.setTo(LANTERN_JID);
+        msg.setTo(LanternConstants.LANTERN_JID);
         msg.setFrom(this.client.getXmppConnection().getUser());
         final JSONObject json = new JSONObject();
         final StatsTracker statsTracker = LanternHub.statsTracker();
