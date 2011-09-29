@@ -69,7 +69,8 @@ public class LanternBrowser {
                 Locale.getDefault());
         
         public String tr(final String toTrans) {
-            final int len = Math.min(toTrans.length(), 40);
+            final int len = Math.min(toTrans.length(), 
+                LanternConstants.I18N_KEY_LENGTH);
             final String normalized = 
                 toTrans.replaceAll(" ", "_").substring(0, len);
             return rb.getString(normalized);
