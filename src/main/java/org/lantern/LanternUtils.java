@@ -31,10 +31,6 @@ import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.net.SocketFactory;
-
-import net.sf.ehcache.store.chm.ConcurrentHashMap;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.io.IOExceptionWithCause;
@@ -54,20 +50,11 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMessage;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
-import org.jivesoftware.smack.ConnectionConfiguration;
-import org.jivesoftware.smack.ConnectionListener;
-import org.jivesoftware.smack.PacketCollector;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.XMPPException;
-import org.jivesoftware.smack.filter.PacketIDFilter;
-import org.jivesoftware.smack.packet.IQ;
-import org.jivesoftware.smack.packet.IQ.Type;
 import org.jivesoftware.smack.packet.Packet;
-import org.jivesoftware.smack.provider.ProviderManager;
 import org.json.simple.JSONArray;
-import org.lantern.xmpp.GenericIQProvider;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
@@ -99,8 +86,6 @@ public class LanternUtils {
     private static final Properties PROPS = new Properties();
     
     static {
-        ProviderManager.getInstance().addIQProvider(
-                "query", "google:shared-status", new GenericIQProvider());
         
         if (SystemUtils.IS_OS_WINDOWS) {
             //logDirParent = CommonUtils.getDataDir();
@@ -431,7 +416,7 @@ public class LanternUtils {
     public static Collection<RosterEntry> getRosterEntries(final String email,
         final String pwd, final int attempts) throws IOException {
         final XMPPConnection conn = 
-            persistentXmppConnection(email, pwd, "lantern", attempts);
+            XmppUtils.persistentXmppConnection(email, pwd, "lantern", attempts);
         final Roster roster = conn.getRoster();
         final Collection<RosterEntry> unordered = roster.getEntries();
         final Comparator<RosterEntry> comparator = new Comparator<RosterEntry>() {
@@ -455,167 +440,6 @@ public class LanternUtils {
         return entries;
     }
     
-    private static final Map<String, XMPPConnection> xmppConnections = 
-        new ConcurrentHashMap<String, XMPPConnection>();
-
-    private static XMPPConnection persistentXmppConnection(final String username, 
-            final String password, final String id) throws IOException {
-        return persistentXmppConnection(username, password, id, 4);
-    }
-    
-    public static XMPPConnection persistentXmppConnection(final String username, 
-        final String password, final String id, final int attempts) 
-        throws IOException {
-        final String key = username+password;
-        if (xmppConnections.containsKey(key)) {
-            final XMPPConnection conn = xmppConnections.get(key);
-            if (conn.isAuthenticated() && conn.isConnected()) {
-                LOG.info("Returning existing xmpp connection");
-                return conn;
-            } else {
-                LOG.info("Removing stale connection");
-                xmppConnections.remove(key);
-            }
-        }
-        XMPPException exc = null;
-        for (int i = 0; i < attempts; i++) {
-            try {
-                LOG.info("Attempting XMPP connection...");
-                final XMPPConnection conn = 
-                    singleXmppConnection(username, password, id);
-                
-                // Make sure we signify gchat support.
-                XmppUtils.getSharedStatus(conn);
-                LOG.info("Created offerer");
-                xmppConnections.put(key, conn);
-                return conn;
-            } catch (final XMPPException e) {
-                final String msg = "Error creating XMPP connection";
-                LOG.error(msg, e);
-                exc = e;    
-            }
-            
-            // Gradual backoff.
-            try {
-                Thread.sleep(i * 600);
-            } catch (final InterruptedException e) {
-                LOG.info("Interrupted?", e);
-            }
-        }
-        if (exc != null) {
-            throw new IOException("Could not log in!!", exc);
-        }
-        else {
-            throw new IOException("Could not log in?");
-        }
-    }
-    
-    private static XMPPConnection singleXmppConnection(final String username, 
-        final String password, final String id) throws XMPPException {
-        final ConnectionConfiguration config = 
-            new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
-            //new ConnectionConfiguration(this.host, this.port, this.serviceName);
-        config.setCompressionEnabled(true);
-        config.setRosterLoadedAtLogin(false);
-        config.setReconnectionAllowed(false);
-        
-        config.setExpiredCertificatesCheckEnabled(true);
-        config.setNotMatchingDomainCheckEnabled(true);
-        config.setSendPresence(false);
-        
-        config.setSocketFactory(new SocketFactory() {
-            
-            @Override
-            public Socket createSocket(final InetAddress host, final int port, 
-                final InetAddress localHost, final int localPort) 
-                throws IOException {
-                // We ignore the local port binding.
-                return createSocket(host, port);
-            }
-            
-            @Override
-            public Socket createSocket(final String host, final int port, 
-                final InetAddress localHost, final int localPort)
-                throws IOException, UnknownHostException {
-                // We ignore the local port binding.
-                return createSocket(host, port);
-            }
-            
-            @Override
-            public Socket createSocket(final InetAddress host, final int port) 
-                throws IOException {
-                LOG.info("Creating socket");
-                final Socket sock = new Socket();
-                sock.connect(new InetSocketAddress(host, port), 40000);
-                LOG.info("Socket connected");
-                return sock;
-            }
-            
-            @Override
-            public Socket createSocket(final String host, final int port) 
-                throws IOException, UnknownHostException {
-                LOG.info("Creating socket");
-                return createSocket(InetAddress.getByName(host), port);
-            }
-        });
-        
-        return newConnection(username, password, config, id);
-    }
-
-    private static XMPPConnection newConnection(final String username, 
-        final String password, final ConnectionConfiguration config,
-        final String id) throws XMPPException {
-        final XMPPConnection conn = new XMPPConnection(config);
-        conn.connect();
-        
-        LOG.info("Connection is Secure: {}", conn.isSecureConnection());
-        LOG.info("Connection is TLS: {}", conn.isUsingTLS());
-        conn.login(username, password, id);
-        
-        while (!conn.isAuthenticated()) {
-            LOG.info("Waiting for authentication");
-            try {
-                Thread.sleep(400);
-            } catch (final InterruptedException e1) {
-                LOG.error("Exception during sleep?", e1);
-            }
-        }
-        
-        conn.addConnectionListener(new ConnectionListener() {
-            
-            public void reconnectionSuccessful() {
-                LOG.info("Reconnection successful...");
-            }
-            
-            public void reconnectionFailed(final Exception e) {
-                LOG.info("Reconnection failed", e);
-            }
-            
-            public void reconnectingIn(final int time) {
-                LOG.info("Reconnecting to XMPP server in "+time);
-            }
-            
-            public void connectionClosedOnError(final Exception e) {
-                LOG.info("XMPP connection closed on error", e);
-                try {
-                    persistentXmppConnection(username, password, id);
-                } catch (final IOException e1) {
-                    LOG.error("Could not re-establish connection?", e1);
-                }
-            }
-            
-            public void connectionClosed() {
-                LOG.info("XMPP connection closed. Creating new connection.");
-                try {
-                    persistentXmppConnection(username, password, id);
-                } catch (final IOException e1) {
-                    LOG.error("Could not re-establish connection?", e1);
-                }
-            }
-        });
-        
-        return conn;
-    }
     
     public static void writeCredentials(final String email, final String pwd) {
         LOG.info("Writing credentials...");
