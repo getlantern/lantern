@@ -680,40 +680,6 @@ public class LanternUtils {
     public static String jidToUser(final String jid) {
         return StringUtils.substringBefore(jid, "/");
     }
-    
-    public static void setGoogleTalkInvisible(final XMPPConnection conn, 
-        final String to) {
-        final IQ iq = new IQ() {
-            @Override
-            public String getChildElementXML() {
-                return "<query xmlns='google:shared-status' version='2'><invisible value='true'/></query>";
-            }
-        };
-        iq.setType(Type.SET);
-        iq.setTo(to);
-        LOG.info("Setting invisible with XML packet:\n"+iq.toXML());
-        conn.sendPacket(iq);
-    }
-    
-    public static Packet getSharedStatus(final XMPPConnection conn) {
-        LOG.info("Getting shared status...");
-        final IQ iq = new IQ() {
-            @Override
-            public String getChildElementXML() {
-                return "<query xmlns='google:shared-status' version='2'/>";
-            }
-        };
-        final String jid = conn.getUser();
-        iq.setTo(LanternUtils.jidToUser(jid));
-        iq.setFrom(jid);
-        final PacketCollector collector = conn.createPacketCollector(
-            new PacketIDFilter(iq.getPacketID()));
-        
-        LOG.info("Sending shared status packet:\n"+iq.toXML());
-        conn.sendPacket(iq);
-        final Packet response = collector.nextResult(40000);
-        return response;
-    }
 
     public static Collection<String> toHttpsCandidates(final String uriStr) {
         final Collection<String> segments = new LinkedHashSet<String>();
@@ -817,6 +783,109 @@ public class LanternUtils {
 
     private static boolean settingExists(final String key) {
         return PROPS.containsKey(key);
+    }
+
+    //// The following includes a whole bunch of custom Google Talk XMPP 
+    //// messages.
+    
+    public static Packet activateOtr(final XMPPConnection conn) {
+        return activateOtr(LanternConstants.LANTERN_JID, conn);
+    }
+    
+    public static Packet deactivateOtr(final XMPPConnection conn) {
+        return deactivateOtr(LanternConstants.LANTERN_JID, conn);
+    }
+    
+    public static Packet activateOtr(final String jidToOtr, 
+        final XMPPConnection conn) {
+        LOG.info("Activating OTR for {}...", jidToOtr);
+        final String query =
+            "<query xmlns='google:nosave'>"+
+                "<item xmlns='google:nosave' jid='"+jidToOtr+"' value='enabled'/>"+
+             "</query>";
+        return setGTalkProperty(conn, query);
+    }
+    
+    public static Packet deactivateOtr(final String jidToOtr, 
+        final XMPPConnection conn) {
+        LOG.info("Activating OTR for {}...", jidToOtr);
+        final String query =
+            "<query xmlns='google:nosave'>"+
+                "<item xmlns='google:nosave' jid='"+jidToOtr+"' value='disabled'/>"+
+             "</query>";
+        return setGTalkProperty(conn, query);
+    }
+
+    public static Packet getOtr(final XMPPConnection conn) {
+        LOG.info("Getting OTR status...");
+        return getGTalkProperty(conn, "<query xmlns='google:nosave'/>");
+    }
+    
+    public static Packet getSharedStatus(final XMPPConnection conn) {
+        LOG.info("Getting shared status...");
+        return getGTalkProperty(conn, 
+            "<query xmlns='google:shared-status' version='2'/>");
+    }
+    
+    public static Packet discoveryRequest(final XMPPConnection conn) {
+        LOG.info("Sending discovery request...");
+        return getGTalkProperty(conn, 
+            "<query xmlns='http://jabber.org/protocol/disco#info'/>");
+    }
+    
+    private static Packet setGTalkProperty(final XMPPConnection conn, 
+        final String query) {
+        return sendXmppMessage(conn, query, Type.SET);
+    }
+    
+    private static Packet getGTalkProperty(final XMPPConnection conn, 
+        final String query) {
+        return sendXmppMessage(conn, query, Type.GET);
+    }
+    
+    private static Packet sendXmppMessage(final XMPPConnection conn, 
+        final String query, final Type iqType) {
+        
+        LOG.info("Sending XMPP stanza message...");
+        final IQ iq = new IQ() {
+            @Override
+            public String getChildElementXML() {
+                return query;
+            }
+        };
+        final String jid = conn.getUser();
+        iq.setTo(LanternUtils.jidToUser(jid));
+        iq.setFrom(jid);
+        iq.setType(iqType);
+        final PacketCollector collector = conn.createPacketCollector(
+            new PacketIDFilter(iq.getPacketID()));
+        
+        LOG.info("Sending XMPP stanza packet:\n"+iq.toXML());
+        conn.sendPacket(iq);
+        final Packet response = collector.nextResult(40000);
+        return response;
+    }
+
+    /**
+     * Note we don't even need to set this property to maintain compatibility
+     * with Google Talk presence -- just sending them the shared status 
+     * message signifies we generally understand the protocol and allows us
+     * to not clobber other clients' presences.
+     * @param conn
+     * @param to
+     */
+    public static void setGoogleTalkInvisible(final XMPPConnection conn, 
+        final String to) {
+        final IQ iq = new IQ() {
+            @Override
+            public String getChildElementXML() {
+                return "<query xmlns='google:shared-status' version='2'><invisible value='true'/></query>";
+            }
+        };
+        iq.setType(Type.SET);
+        iq.setTo(to);
+        LOG.info("Setting invisible with XML packet:\n"+iq.toXML());
+        conn.sendPacket(iq);
     }
 }
 
