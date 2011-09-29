@@ -4,15 +4,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.provider.ProviderManager;
 import org.junit.Test;
-import org.lantern.xmpp.GenericIQProvider;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,17 +23,24 @@ public class LanternUtilsTest {
     
     private static Logger LOG = LoggerFactory.getLogger(LanternUtilsTest.class);
     
-    @Test public void testOtrMode() throws Exception {
-        ProviderManager.getInstance().addIQProvider(
-                "query", "google:shared-status", new GenericIQProvider());
-        ProviderManager.getInstance().addIQProvider(
-                "query", "google:nosave", new GenericIQProvider());
-        ProviderManager.getInstance().addIQProvider(
-                "query", "http://jabber.org/protocol/disco#info", new GenericIQProvider());
+    @Test 
+    public void testGoogleStunServers() throws Exception {
+        String email = LanternUtils.getStringProperty("google.user");
+        String pwd = LanternUtils.getStringProperty("google.pwd");
+        final XMPPConnection conn = XmppUtils.persistentXmppConnection(
+            email, pwd, "dfalj;", 2);
+        
+        final Collection<InetSocketAddress> servers = XmppUtils.googleStunServers(conn);
+        LOG.info("Retrieved {} STUN servers", servers.size());
+        assertTrue(!servers.isEmpty());
+    }
+    
+    @Test 
+    public void testOtrMode() throws Exception {
 
         String email = LanternUtils.getStringProperty("google.user");
         String pwd = LanternUtils.getStringProperty("google.pwd");
-        final XMPPConnection conn = LanternUtils.persistentXmppConnection(
+        final XMPPConnection conn = XmppUtils.persistentXmppConnection(
             email, pwd, "jqiq", 2);
         final String activateResponse = LanternUtils.activateOtr(conn).toXML();
         LOG.info("Got response: {}", activateResponse);
