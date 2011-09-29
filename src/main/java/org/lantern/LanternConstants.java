@@ -53,5 +53,10 @@ public class LanternConstants {
     public static final String UPDATE_VERSION_KEY = "uv";
 
     public static final String UPDATE_URL_KEY = "uuk";
+
+    /**
+     * The length of keys in translation property files.
+     */
+    public static final int I18N_KEY_LENGTH = 40;
     
 }
