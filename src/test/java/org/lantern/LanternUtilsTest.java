@@ -13,6 +13,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.provider.ProviderManager;
 import org.junit.Test;
 import org.lantern.xmpp.GenericIQProvider;
+import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,7 +39,7 @@ public class LanternUtilsTest {
         final String activateResponse = LanternUtils.activateOtr(conn).toXML();
         LOG.info("Got response: {}", activateResponse);
         
-        final String allOtr = LanternUtils.getOtr(conn).toXML();
+        final String allOtr = XmppUtils.getOtr(conn).toXML();
         LOG.info("All OTR: {}", allOtr);
         
         assertTrue(
