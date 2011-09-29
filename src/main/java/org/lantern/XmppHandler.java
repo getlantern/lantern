@@ -352,7 +352,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         // This is for Google Talk compatibility. Surprising, all we need to
         // do is grab our Google Talk shared status, signifying support for
         // their protocol, and then we don't interfere with GChat visibility.
-        final Packet status = LanternUtils.getSharedStatus(
+        final Packet status = XmppUtils.getSharedStatus(
                 this.client.getXmppConnection());
         LOG.info("Status:\n{}", status.toXML());
         final XMPPConnection conn = this.client.getXmppConnection();
@@ -570,7 +570,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private void addProxy(final String cur) {
         LOG.info("Considering proxy: {}", cur);
         final String jid = this.client.getXmppConnection().getUser().trim();
-        final String emailId = LanternUtils.jidToUser(jid);
+        final String emailId = XmppUtils.jidToUser(jid);
         LOG.info("We are: {}", jid);
         LOG.info("Service name: {}",
              this.client.getXmppConnection().getServiceName());
