@@ -608,11 +608,11 @@ public class LanternUtils {
 
     
     public static Packet activateOtr(final XMPPConnection conn) {
-        return XmppUtils.activateOtr(LanternConstants.LANTERN_JID, conn);
+        return XmppUtils.goOffTheRecord(LanternConstants.LANTERN_JID, conn);
     }
     
     public static Packet deactivateOtr(final XMPPConnection conn) {
-        return XmppUtils.deactivateOtr(LanternConstants.LANTERN_JID, conn);
+        return XmppUtils.goOnTheRecord(LanternConstants.LANTERN_JID, conn);
     }
 }
 
