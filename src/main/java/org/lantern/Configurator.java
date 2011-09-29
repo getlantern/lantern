@@ -90,12 +90,26 @@ public class Configurator {
                 // The firewall config is actually handled in a bat file from the
                 // installer.
                 //configureWindowsFirewall();
+            } else if (SystemUtils.IS_OS_LINUX) {
+                configureLinuxProxy();
             }
         } else {
             LOG.info("Not auto-configuring proxy in an uncensored country");
         }
     }
     
+    private static void configureLinuxProxy() {
+        final Thread hook = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                LOG.info("Unproxying...");
+                //unproxyLinux();
+            }
+        }, "Unset-Web-Proxy-OSX");
+        Runtime.getRuntime().addShutdownHook(hook);
+    }
+
+
     private static void configureOsxProxy() {
         configureOsxProxyPacFile();
         configureOsxScript();
