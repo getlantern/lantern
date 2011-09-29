@@ -22,12 +22,13 @@ public class LanternUtilsTest {
             Utf8ResourceBundle.getBundle("LanternResourceBundle", Locale.CHINESE);
         
         final String val =
-            rb.getString("Are_you_sure_you_want_to_ignore_the_update?");
+            rb.getString("Are_you_sure_you_want_to_ignore_the_update?".substring(
+                0, LanternConstants.I18N_KEY_LENGTH));
         System.out.println(val);
         //System.out.println(rb.getString("userComment"));
         assertTrue(StringUtils.isNotBlank(val));
     }
-/*
+
     @Test public void testToHttpsCandidates() throws Exception {
         Collection<String> candidates = 
             LanternUtils.toHttpsCandidates("http://www.google.com");
@@ -62,5 +63,5 @@ public class LanternUtilsTest {
         assertFalse(CensoredUtils.isCensored("200.21.225.82")); // Columbia
         assertTrue(CensoredUtils.isCensored("212.95.136.18")); // Iran
     }
-*/
+
 }
