@@ -59,7 +59,7 @@ public class SystemTrayImpl implements SystemTray {
             System.out.println ("The system tray is not available");
         } else {
             this.trayItem = new TrayItem (tray, SWT.NONE);
-            this.trayItem.setToolTipText("Lantern "+LanternConstants.VERSION);
+            this.trayItem.setToolTipText(I18n.tr("Lantern ")+LanternConstants.VERSION);
             this.trayItem.addListener (SWT.Show, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
@@ -76,14 +76,14 @@ public class SystemTrayImpl implements SystemTray {
             this.menu = new Menu (shell, SWT.POP_UP);
             /*
             final MenuItem aboutItem = new MenuItem(menu, SWT.PUSH);
-            aboutItem.setText("About");
+            aboutItem.setText(I18n.tr("About"));
             aboutItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
                     System.out.println("Got about call");
                     final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.OK;
                     final MessageBox messageBox = new MessageBox (shell, style);
-                    messageBox.setText ("Lantern");
+                    messageBox.setText (I18n.tr("Lantern"));
                     messageBox.setMessage (
                         "Running Lantern "+LanternConstants.VERSION);
                     shell.forceActive();
@@ -94,7 +94,7 @@ public class SystemTrayImpl implements SystemTray {
             */
             
             final MenuItem configItem = new MenuItem(menu, SWT.PUSH);
-            configItem.setText("Configure Lantern "+LanternConstants.VERSION);
+            configItem.setText(I18n.tr("Configure Lantern ")+LanternConstants.VERSION);
             configItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
@@ -119,7 +119,7 @@ public class SystemTrayImpl implements SystemTray {
             new MenuItem(menu, SWT.SEPARATOR);
             
             final MenuItem quitItem = new MenuItem(menu, SWT.PUSH);
-            quitItem.setText("Quit");
+            quitItem.setText(I18n.tr("Quit"));
             
             quitItem.addListener (SWT.Selection, new Listener () {
                 @Override
@@ -210,7 +210,7 @@ public class SystemTrayImpl implements SystemTray {
                         }
                     });
                 }
-                updateItem.setText("Update to Lantern "+
+                updateItem.setText(I18n.tr("Update to Lantern ")+
                     data.get(LanternConstants.UPDATE_VERSION_KEY));
             }
         });
