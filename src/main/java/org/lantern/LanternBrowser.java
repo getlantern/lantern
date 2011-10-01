@@ -73,9 +73,9 @@ public class LanternBrowser {
         this.shell.setImages(icons);
         // this.shell = createShell(this.display);
         if (isConfig) {
-            this.shell.setText(I18n.tr("Configure_Lantern"));
+            this.shell.setText(I18n.tr("Configure Lantern"));
         } else {
-            this.shell.setText(I18n.tr("Lantern_Installation"));
+            this.shell.setText(I18n.tr("Lantern Installation"));
         }
         this.shell.setSize(720, 540);
         // shell.setFullScreen(true);
