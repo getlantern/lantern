@@ -161,6 +161,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                     while (iter.hasNext()) {
                         final String server = iter.next();
                         addProxy(server);
+                        LanternUtils.addProxy(server);
                     }
                     if (!servers.isEmpty() && ! Configurator.configured()) {
                         Configurator.configure();

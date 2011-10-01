@@ -19,6 +19,7 @@ import java.nio.channels.DatagramChannel;
 import java.nio.channels.UnresolvedAddressException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.LinkedHashSet;
@@ -370,29 +371,6 @@ public class LanternUtils {
         return json;
     }
     
-    public static boolean newInstall() {
-        return getBooleanProperty("newInstall");
-    }
-    
-    public static void installed() {
-        setBooleanProperty("newInstall", false);
-    }
-
-    public static void setBooleanProperty(final String key, 
-        final boolean value) {
-        PROPS.setProperty(key, String.valueOf(value));
-        persistProps();
-    }
-
-    public static boolean getBooleanProperty(final String key) {
-        final String val = PROPS.getProperty(key);
-        if (StringUtils.isBlank(val)) {
-            return false;
-        }
-        LOG.info("Checking property: {}", val);
-        return "true".equalsIgnoreCase(val.trim());
-    }
-    
     public static boolean isConfigured() {
         if (!PROPS_FILE.isFile()) {
             return false;
@@ -440,6 +418,26 @@ public class LanternUtils {
         return entries;
     }
     
+    public static Collection<String> getProxies() {
+        final String proxies = getStringProperty("proxies");
+        if (StringUtils.isBlank(proxies)) {
+            return Collections.emptySet();
+        } else {
+            final String[] all = proxies.split(",");
+            return Arrays.asList(all);
+        }
+    }
+
+    public static void addProxy(final String server) {
+        String proxies = getStringProperty("proxies");
+        if (proxies == null) {
+            proxies = server;
+        } else {
+            proxies += ",";
+            proxies += server;
+        }
+        setStringProperty("proxies", proxies);
+    }
     
     public static void writeCredentials(final String email, final String pwd) {
         LOG.info("Writing credentials...");
@@ -453,6 +451,34 @@ public class LanternUtils {
         LOG.info("Clearing credentials...");
         PROPS.remove("google.user");
         PROPS.remove("google.pwd");
+        persistProps();
+    }
+
+    public static boolean newInstall() {
+        return getBooleanProperty("newInstall");
+    }
+    
+    public static void installed() {
+        setBooleanProperty("newInstall", false);
+    }
+
+    public static void setBooleanProperty(final String key, 
+        final boolean value) {
+        PROPS.setProperty(key, String.valueOf(value));
+        persistProps();
+    }
+
+    public static boolean getBooleanProperty(final String key) {
+        final String val = PROPS.getProperty(key);
+        if (StringUtils.isBlank(val)) {
+            return false;
+        }
+        LOG.info("Checking property: {}", val);
+        return "true".equalsIgnoreCase(val.trim());
+    }
+    
+    public static void setStringProperty(final String key, final String value) {
+        PROPS.setProperty(key, value);
         persistProps();
     }
 
