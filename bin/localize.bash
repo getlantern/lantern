@@ -11,7 +11,7 @@ rm po/*
 
 # We tend to be modifying this file if we're running this script a lot, so kill
 # it on the server to avoid git conflicts.
-rm bin/localize.bash
+#rm bin/localize.bash
 git pull origin master
 
 echo "Updated to latest git"
