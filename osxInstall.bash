@@ -17,7 +17,7 @@ VERSION=$1
 name=lantern-$VERSION.dmg
 mv install/Lantern.dmg $name
 echo "Uploading to http://cdn.bravenewsoftware.org/$name..."
-#aws -putp lantern $name
+aws -putp lantern $name
 echo "Uploaded lantern to http://cdn.bravenewsoftware.org/$name"
 echo "Also available at http://lantern.s3.amazonaws.com/$name"
 
