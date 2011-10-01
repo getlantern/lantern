@@ -22,7 +22,7 @@ do
   touch po/$l.po
   msgmerge -U po/$l.po po/keys.pot || die "Could not merge $l"
   echo "Done merging $l"
-  msgfmt --java2 -d src/main/resources -r app.i18n.Messages -l $l po/$l.po || die "Could not format $l"
-  echo "Done processing $l"
+  #msgfmt --java2 -d src/main/resources -r app.i18n.Messages -l $l po/$l.po || die "Could not format $l"
+  #echo "Done processing $l"
 done
 
