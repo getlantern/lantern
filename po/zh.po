@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-01 23:12+0000\n"
+"POT-Creation-Date: 2011-10-01 22:57+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -15,124 +15,151 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/main/java/org/lantern/LanternBrowser.java:79
-msgid "Configure Lantern"
-msgstr "设定Lantern的首选项"
-
-#: src/main/java/org/lantern/LanternBrowser.java:81
-#: src/main/java/org/lantern/LanternBrowser.java:517
-msgid "Lantern Installation"
-msgstr "安装Lantern"
-
-#: src/main/java/org/lantern/LanternBrowser.java:142
-msgid "Exit?"
-msgstr "退出？"
-
-#: src/main/java/org/lantern/LanternBrowser.java:144
+#: src/test/java/org/lantern/LanternUtilsTest.java:62
+#: src/main/java/org/lantern/LanternBrowser.java:141
 msgid "Are you sure you want to ignore the update?"
 msgstr "你确实要忽略更新吗？"
 
-#: src/main/java/org/lantern/LanternBrowser.java:190
+#: src/main/java/org/lantern/SystemTrayImpl.java:62
+#, fuzzy
+msgid "Lantern "
+msgstr "现在开始运行Lantern吗？"
+
+#: src/main/java/org/lantern/SystemTrayImpl.java:97
+#, fuzzy
+msgid "Configure Lantern "
+msgstr "设定Lantern的首选项"
+
+#: src/main/java/org/lantern/SystemTrayImpl.java:122
+msgid "Quit"
+msgstr ""
+
+#: src/main/java/org/lantern/SystemTrayImpl.java:213
+msgid "Update to Lantern "
+msgstr ""
+
+#: src/main/java/org/lantern/LanternBrowser.java:76
+#, fuzzy
+msgid "Configure_Lantern"
+msgstr "设定Lantern的首选项"
+
+#: src/main/java/org/lantern/LanternBrowser.java:78
+#, fuzzy
+msgid "Lantern_Installation"
+msgstr "安装Lantern"
+
+#: src/main/java/org/lantern/LanternBrowser.java:139
+#: src/main/java/org/lantern/LanternBrowser.java:184
+msgid "Exit?"
+msgstr "退出？"
+
+#: src/main/java/org/lantern/LanternBrowser.java:187
 msgid "Are you sure you want to cancel configuring Lantern?"
 msgstr "你确实要放弃设置Lantern的首选项吗？"
 
-#: src/main/java/org/lantern/LanternBrowser.java:192
+#: src/main/java/org/lantern/LanternBrowser.java:189
 msgid "Are you sure you want to cancel installing Lantern?"
 msgstr "你确实要放弃安装Lantern吗？"
 
-#: src/main/java/org/lantern/LanternBrowser.java:206
-#: src/main/java/org/lantern/LanternBrowser.java:303
-#: src/main/java/org/lantern/LanternBrowser.java:333
-#: src/main/java/org/lantern/LanternBrowser.java:365
-#: src/main/java/org/lantern/LanternBrowser.java:442
-#: src/main/java/org/lantern/LanternBrowser.java:465
-#: src/main/java/org/lantern/LanternBrowser.java:492
+#: src/main/java/org/lantern/LanternBrowser.java:203
+#: src/main/java/org/lantern/LanternBrowser.java:299
+#: src/main/java/org/lantern/LanternBrowser.java:329
+#: src/main/java/org/lantern/LanternBrowser.java:361
+#: src/main/java/org/lantern/LanternBrowser.java:438
+#: src/main/java/org/lantern/LanternBrowser.java:461
+#: src/main/java/org/lantern/LanternBrowser.java:488
 msgid "Welcome to Lantern! You're almost done."
 msgstr "欢迎来到Lantern，你已经接近完成了！"
 
-#: src/main/java/org/lantern/LanternBrowser.java:207
-#: src/main/java/org/lantern/LanternBrowser.java:305
-#: src/main/java/org/lantern/LanternBrowser.java:335
-#: src/main/java/org/lantern/LanternBrowser.java:366
-#: src/main/java/org/lantern/LanternBrowser.java:443
-#: src/main/java/org/lantern/LanternBrowser.java:466
-#: src/main/java/org/lantern/LanternBrowser.java:493
+#: src/main/java/org/lantern/LanternBrowser.java:204
+#: src/main/java/org/lantern/LanternBrowser.java:301
+#: src/main/java/org/lantern/LanternBrowser.java:331
+#: src/main/java/org/lantern/LanternBrowser.java:362
+#: src/main/java/org/lantern/LanternBrowser.java:439
+#: src/main/java/org/lantern/LanternBrowser.java:462
+#: src/main/java/org/lantern/LanternBrowser.java:489
 msgid "Complete Your Installation"
 msgstr "完成你的安装"
 
-#: src/main/java/org/lantern/LanternBrowser.java:211
-msgid "You appear to be running Lantern to gain access to blocked web sites from a "
+#: src/main/java/org/lantern/LanternBrowser.java:208
+msgid ""
+"You appear to be running Lantern to gain access to blocked web sites from a "
 "censored country. Is that correct?"
 msgstr "你似乎正在一个有信息审核的国家里运行Lantern以访问被封锁的网站，是吗？"
 
-#: src/main/java/org/lantern/LanternBrowser.java:212
+#: src/main/java/org/lantern/LanternBrowser.java:209
 msgid "Yes - I need access to the blocked internet."
 msgstr "是的，我需要访问这些被封锁的互联网。"
 
-#: src/main/java/org/lantern/LanternBrowser.java:213
+#: src/main/java/org/lantern/LanternBrowser.java:210
 msgid "No - I want to provide access instead."
 msgstr "不是，我只想提供替代访问通道。"
 
-#: src/main/java/org/lantern/LanternBrowser.java:216
-msgid "You appear to be running Lantern from a country that does not employ "
+#: src/main/java/org/lantern/LanternBrowser.java:213
+msgid ""
+"You appear to be running Lantern from a country that does not employ "
 "censorship. Is that correct?"
 msgstr "你似乎正在一个没有信息审核机制的国家里运行Lantern，是吗？"
 
-#: src/main/java/org/lantern/LanternBrowser.java:217
+#: src/main/java/org/lantern/LanternBrowser.java:214
 msgid "Yes - I want to provide access to the open internet."
 msgstr "是的，我是想为开放的互联网提供访问通道。"
 
-#: src/main/java/org/lantern/LanternBrowser.java:218
+#: src/main/java/org/lantern/LanternBrowser.java:215
 msgid "No - I need to access the open internet myself."
 msgstr "不是，我自己需要访问开放的互联网。"
 
-#: src/main/java/org/lantern/LanternBrowser.java:307
+#: src/main/java/org/lantern/LanternBrowser.java:303
 msgid ""
 "That's it! Lantern is now configured to automatically give you access to the "
 "open internet."
 msgstr "好了，Lantern现在已经设置到自动为你访问开放互联网了。"
 
-#: src/main/java/org/lantern/LanternBrowser.java:310
-#: src/main/java/org/lantern/LanternBrowser.java:338
+#: src/main/java/org/lantern/LanternBrowser.java:306
+#: src/main/java/org/lantern/LanternBrowser.java:334
 msgid "Run Lantern Now?"
 msgstr "现在开始运行Lantern吗？"
 
-#: src/main/java/org/lantern/LanternBrowser.java:311
-#: src/main/java/org/lantern/LanternBrowser.java:339
+#: src/main/java/org/lantern/LanternBrowser.java:307
+#: src/main/java/org/lantern/LanternBrowser.java:335
 msgid "Finish"
 msgstr "完成"
 
-#: src/main/java/org/lantern/LanternBrowser.java:336
+#: src/main/java/org/lantern/LanternBrowser.java:332
 msgid ""
 "That's it! You're now set up to share your uncensored connection with those "
 "who need it. Thanks for contributing to the global fight against censorship!"
-msgstr "好了，你已经被设置为将你的不受审核的连接分享给那些需要它的人了。感谢你为全球化的对抗审查制度的战斗出力！"
+msgstr ""
+"好了，你已经被设置为将你的不受审核的连接分享给那些需要它的人了。感谢你为全球"
+"化的对抗审查制度的战斗出力！"
 
-#: src/main/java/org/lantern/LanternBrowser.java:345
-#: src/main/java/org/lantern/LanternBrowser.java:381
+#: src/main/java/org/lantern/LanternBrowser.java:341
+#: src/main/java/org/lantern/LanternBrowser.java:377
 msgid "Error logging in. E-mail or password incorrect?"
 msgstr "登录失败，邮箱或者密码是正确的吗？"
 
-#: src/main/java/org/lantern/LanternBrowser.java:369
-msgid "Please select your <b>trusted</b> friends below to send them a request to "
+#: src/main/java/org/lantern/LanternBrowser.java:365
+msgid ""
+"Please select your <b>trusted</b> friends below to send them a request to "
 "join your Lantern network. These friends will serve as especially trusted "
 "access points to the open internet."
-msgstr "请选择下列的你<b>信任的</b>朋友，向他们发送请求。加入你的Lantern网络。这些朋友将被"
-"视为通向开放互联网的特别值得依赖的访问点。"
+msgstr ""
+"请选择下列的你<b>信任的</b>朋友，向他们发送请求。加入你的Lantern网络。这些朋"
+"友将被视为通向开放互联网的特别值得依赖的访问点。"
 
-#: src/main/java/org/lantern/LanternBrowser.java:373
+#: src/main/java/org/lantern/LanternBrowser.java:369
 msgid "Select All"
 msgstr "全选"
 
-#: src/main/java/org/lantern/LanternBrowser.java:374
+#: src/main/java/org/lantern/LanternBrowser.java:370
 msgid "Clear"
 msgstr "清除"
 
-#: src/main/java/org/lantern/LanternBrowser.java:375
+#: src/main/java/org/lantern/LanternBrowser.java:371
 msgid "Approve these Contacts"
 msgstr "批准这些联系人"
 
-#: src/main/java/org/lantern/LanternBrowser.java:445
+#: src/main/java/org/lantern/LanternBrowser.java:441
 msgid ""
 "Lantern uses your friends as your personal access points to the open "
 "internet. The more access points you have, the better your experience will "
@@ -141,26 +168,28 @@ msgid ""
 "Gmail contacts. We need this because Lantern uses Gmail to build its trust "
 "network. We don't store any of this information - <b>it's stored only on "
 "your own computer, and you log in securely over SSL</b>."
-msgstr "Lantern使用你的朋友作为你个人通向开放互联网的访问点。你的访问点越多，你的体验越棒。"
-"所以，我们鼓励你邀请你<b>最值得信赖的朋友</b>来使用Lantern。<br /><br />请先登录你的Gmail邮"
-"箱，再选择你信任的Gmail联系人。我们必须这样，因为Lantern使用Gmail来建立可信任网络。我们不存"
-"储这些信息。<b>它只被保存在你自己的电脑上，而且你会以安全的SSL方式登录</b>。"
+msgstr ""
+"Lantern使用你的朋友作为你个人通向开放互联网的访问点。你的访问点越多，你的体验"
+"越棒。所以，我们鼓励你邀请你<b>最值得信赖的朋友</b>来使用Lantern。<br /><br /"
+">请先登录你的Gmail邮箱，再选择你信任的Gmail联系人。我们必须这样，因为Lantern"
+"使用Gmail来建立可信任网络。我们不存储这些信息。<b>它只被保存在你自己的电脑"
+"上，而且你会以安全的SSL方式登录</b>。"
 
-#: src/main/java/org/lantern/LanternBrowser.java:455
-#: src/main/java/org/lantern/LanternBrowser.java:475
+#: src/main/java/org/lantern/LanternBrowser.java:451
+#: src/main/java/org/lantern/LanternBrowser.java:471
 msgid "Gmail E-mail Address"
 msgstr "Gmail邮箱地址"
 
-#: src/main/java/org/lantern/LanternBrowser.java:456
-#: src/main/java/org/lantern/LanternBrowser.java:476
+#: src/main/java/org/lantern/LanternBrowser.java:452
+#: src/main/java/org/lantern/LanternBrowser.java:472
 msgid "Gmail Password"
 msgstr "Gmail密码"
 
-#: src/main/java/org/lantern/LanternBrowser.java:457
+#: src/main/java/org/lantern/LanternBrowser.java:453
 msgid "Show My Contacts"
 msgstr "显示我的联系人"
 
-#: src/main/java/org/lantern/LanternBrowser.java:468
+#: src/main/java/org/lantern/LanternBrowser.java:464
 msgid ""
 "Lantern allows Lantern users living in censored to access the open internet "
 "through your computer when you're not using it, creating a cooperative "
@@ -169,12 +198,17 @@ msgid ""
 "password on our servers, although we do store your e-mail because we need it "
 "to connect you to other users. <b>We will never send you e-mail or provide "
 "your e-mail to any third party, and your login happens securely over SSL.</b>"
-msgstr "Lantern允许生活在信息审查制度下的Lantern用户在你不用电脑的时候通过"
-"你的电脑访问开放互联网，创建了一个合作的全球网络来对抗信息审查。我们使这些"
-"连接使用你的Gmail联系人，这是我们辨认你的方法。我们不在我们的服务器上存储你"
-"的Gmail密码，但是我们存储了你的邮箱，因为我们需要用它来连接你和别的用户。<b>"
-"我们从给你不发送邮件，或者将你的邮箱地址发送给第三方。而且你会以安全的SSL方式登录。</b>"
+msgstr ""
+"Lantern允许生活在信息审查制度下的Lantern用户在你不用电脑的时候通过你的电脑访"
+"问开放互联网，创建了一个合作的全球网络来对抗信息审查。我们使这些连接使用你的"
+"Gmail联系人，这是我们辨认你的方法。我们不在我们的服务器上存储你的Gmail密码，"
+"但是我们存储了你的邮箱，因为我们需要用它来连接你和别的用户。<b>我们从给你不发"
+"送邮件，或者将你的邮箱地址发送给第三方。而且你会以安全的SSL方式登录。</b>"
 
-#: src/main/java/org/lantern/LanternBrowser.java:474
+#: src/main/java/org/lantern/LanternBrowser.java:470
 msgid "<b>Please enter your user name and password from</b>"
 msgstr "<b>请输入你的用户名和密码</b>"
+
+#: src/main/java/org/lantern/LanternBrowser.java:513
+msgid "Lantern Installation"
+msgstr "安装Lantern"
