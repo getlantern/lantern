@@ -11,10 +11,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.ResourceBundle;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
@@ -57,30 +55,10 @@ public class LanternBrowser {
     
     private String lastEventLocation = "";
     
-    private final I18n i18n;
-    
-    //private final ResourceBundle rb = 
-    //    Utf8ResourceBundle.getBundle("LanternResourceBundle", Locale.CHINESE);
-    
-    
-    private static final class I18n {
-        private static final ResourceBundle rb = 
-            Utf8ResourceBundle.getBundle("LanternResourceBundle", 
-                Locale.getDefault());
-        
-        public String tr(final String toTrans) {
-            final int len = Math.min(toTrans.length(), 
-                LanternConstants.I18N_KEY_LENGTH);
-            final String normalized = 
-                toTrans.replaceAll(" ", "_").substring(0, len);
-            return rb.getString(normalized);
-        }
-    }
     
     public LanternBrowser(final boolean isConfig) {
         log.info("Creating Lantern browser...");
-        this.i18n = new I18n();
-        //this.i18n = I18nFactory.getI18n(LanternBrowser.class, 
+        //I18n = I18nFactory.getI18n(LanternBrowser.class, 
         //        "app.i18n.Messages", locale, I18nFactory.FALLBACK);
         this.display = LanternHub.display();
         this.isConfig = isConfig;
@@ -95,9 +73,9 @@ public class LanternBrowser {
         this.shell.setImages(icons);
         // this.shell = createShell(this.display);
         if (isConfig) {
-            this.shell.setText(this.i18n.tr("Configure_Lantern"));
+            this.shell.setText(I18n.tr("Configure_Lantern"));
         } else {
-            this.shell.setText(this.i18n.tr("Lantern_Installation"));
+            this.shell.setText(I18n.tr("Lantern_Installation"));
         }
         this.shell.setSize(720, 540);
         // shell.setFullScreen(true);
@@ -158,9 +136,9 @@ public class LanternBrowser {
                 if (!closed) {
                     final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
                     final MessageBox messageBox = new MessageBox (shell, style);
-                    messageBox.setText (i18n.tr("Exit?"));
+                    messageBox.setText (I18n.tr("Exit?"));
                     messageBox.setMessage (
-                        i18n.tr("Are you sure you want to ignore the update?"));
+                        I18n.tr("Are you sure you want to ignore the update?"));
                     event.doit = messageBox.open () == SWT.YES;
                     if (event.doit) {
                         exit();
@@ -203,12 +181,12 @@ public class LanternBrowser {
                 if (!closed) {
                     final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
                     final MessageBox messageBox = new MessageBox (shell, style);
-                    messageBox.setText (i18n.tr("Exit?"));
+                    messageBox.setText (I18n.tr("Exit?"));
                     final String msg;
                     if (isConfig) {
-                        msg = i18n.tr("Are you sure you want to cancel configuring Lantern?");
+                        msg = I18n.tr("Are you sure you want to cancel configuring Lantern?");
                     } else {
-                        msg = i18n.tr("Are you sure you want to cancel installing Lantern?");
+                        msg = I18n.tr("Are you sure you want to cancel installing Lantern?");
                     }
                     messageBox.setMessage (msg);
                     event.doit = messageBox.open () == SWT.YES;
@@ -222,19 +200,19 @@ public class LanternBrowser {
         
         final Map<String, String> startVals = new HashMap<String, String>();
         startVals.put("lead_string", 
-            i18n.tr("Welcome to Lantern! You're almost done."));
-        startVals.put("title_string", i18n.tr("Complete Your Installation"));
+            I18n.tr("Welcome to Lantern! You're almost done."));
+        startVals.put("title_string", I18n.tr("Complete Your Installation"));
         final String startFile;
         if (CensoredUtils.isCensored()) {
             startFile = "install0Censored.html";
-            startVals.put("body_string", i18n.tr("You appear to be running Lantern to gain access to blocked web sites from a censored country. Is that correct?"));
-            startVals.put("yes_need_access", i18n.tr("Yes - I need access to the blocked internet."));
-            startVals.put("no_provide_access", i18n.tr("No - I want to provide access instead."));
+            startVals.put("body_string", I18n.tr("You appear to be running Lantern to gain access to blocked web sites from a censored country. Is that correct?"));
+            startVals.put("yes_need_access", I18n.tr("Yes - I need access to the blocked internet."));
+            startVals.put("no_provide_access", I18n.tr("No - I want to provide access instead."));
         } else {
             startFile = "install0Uncensored.html";
-            startVals.put("body_string", i18n.tr("You appear to be running Lantern from a country that does not employ censorship. Is that correct?"));
-            startVals.put("yes_provide_access", i18n.tr("Yes - I want to provide access to the open internet."));
-            startVals.put("no_need_access", i18n.tr("No - I need to access the open internet myself."));
+            startVals.put("body_string", I18n.tr("You appear to be running Lantern from a country that does not employ censorship. Is that correct?"));
+            startVals.put("yes_provide_access", I18n.tr("Yes - I want to provide access to the open internet."));
+            startVals.put("no_need_access", I18n.tr("No - I need to access the open internet myself."));
         }
         setUrl(startFile, startVals);
 
@@ -318,15 +296,15 @@ public class LanternBrowser {
                     final Map<String, String> replace = 
                         new HashMap<String, String>();
                     replace.put("lead_string", 
-                        i18n.tr("Welcome to Lantern! You're almost done."));
+                        I18n.tr("Welcome to Lantern! You're almost done."));
                     replace.put("title_string", 
-                        i18n.tr("Complete Your Installation"));
+                        I18n.tr("Complete Your Installation"));
                     replace.put("text_body", 
-                        i18n.tr("That's it! Lantern is now configured to automatically " +
+                        I18n.tr("That's it! Lantern is now configured to automatically " +
                         "give you access to the open internet."));
                     
-                    replace.put("run_now", i18n.tr("Run Lantern Now?"));
-                    replace.put("finish_string", i18n.tr("Finish"));
+                    replace.put("run_now", I18n.tr("Run Lantern Now?"));
+                    replace.put("finish_string", I18n.tr("Finish"));
                     
                     setUrl("installFinishedCensored.html", replace);
                 } else if (location.contains("loginUncensored")) {
@@ -348,19 +326,19 @@ public class LanternBrowser {
                         final Map<String, String> replace = 
                             new HashMap<String, String>();
                         replace.put("lead_string", 
-                            i18n.tr("Welcome to Lantern! You're almost done."));
+                            I18n.tr("Welcome to Lantern! You're almost done."));
                         replace.put("title_string", 
-                            i18n.tr("Complete Your Installation"));
-                        replace.put("body_string", i18n.tr("That's it! You're now set up to share your uncensored connection "+ 
+                            I18n.tr("Complete Your Installation"));
+                        replace.put("body_string", I18n.tr("That's it! You're now set up to share your uncensored connection "+ 
                         "with those who need it. Thanks for contributing to the global fight against censorship!"));
-                        replace.put("run_now", i18n.tr("Run Lantern Now?"));
-                        replace.put("finish_string", i18n.tr("Finish"));
+                        replace.put("run_now", I18n.tr("Run Lantern Now?"));
+                        replace.put("finish_string", I18n.tr("Finish"));
                         setUrl("installFinishedUncensored.html", replace);
                     } catch (final IOException e) {
                         log.warn("Error accessing contacts", e);
                         final Map<String, String> replace = install1Uncensored();
                         replace.put("error_message", 
-                            i18n.tr("Error logging in. E-mail or password incorrect?"));
+                            I18n.tr("Error logging in. E-mail or password incorrect?"));
                         setUrl("install1Uncensored.html", replace);
                     }
                 } else if (location.contains("loginCensored")) {
@@ -380,23 +358,23 @@ public class LanternBrowser {
                         final Map<String, String> replace = 
                             new HashMap<String, String>();
                         replace.put("lead_string", 
-                            i18n.tr("Welcome to Lantern! You're almost done."));
-                        replace.put("title_string", i18n.tr("Complete Your Installation"));
+                            I18n.tr("Welcome to Lantern! You're almost done."));
+                        replace.put("title_string", I18n.tr("Complete Your Installation"));
                         replace.put("contacts_div", contactsDiv);
-                        replace.put("text_body", i18n.tr(
+                        replace.put("text_body", I18n.tr(
                             "Please select your <b>trusted</b> friends below to " +
                             "send them a request to join your Lantern network. " +
                             "These friends will serve as especially trusted " +
                             "access points to the open internet."));
-                        replace.put("select_all", i18n.tr("Select All"));
-                        replace.put("clear_all", i18n.tr("Clear"));
-                        replace.put("approve", i18n.tr("Approve these Contacts"));
+                        replace.put("select_all", I18n.tr("Select All"));
+                        replace.put("clear_all", I18n.tr("Clear"));
+                        replace.put("approve", I18n.tr("Approve these Contacts"));
                         setUrl("install2Censored.html", replace);
                     } catch (final IOException e) {
                         log.warn("Error accessing contacts", e);
                         final Map<String, String> replace = install1Censored();
                         replace.put("error_message", 
-                            i18n.tr("Error logging in. E-mail or password incorrect?"));
+                            I18n.tr("Error logging in. E-mail or password incorrect?"));
                         setUrl("install1Censored.html", replace);
                     }
                 } else if (location.contains("finished")) {
@@ -457,9 +435,9 @@ public class LanternBrowser {
         final Map<String, String> replace = 
             new HashMap<String, String>();
         replace.put("lead_string", 
-            i18n.tr("Welcome to Lantern! You're almost done."));
-        replace.put("title_string", i18n.tr("Complete Your Installation"));
-        replace.put("body_string", i18n.tr(
+            I18n.tr("Welcome to Lantern! You're almost done."));
+        replace.put("title_string", I18n.tr("Complete Your Installation"));
+        replace.put("body_string", I18n.tr(
             "Lantern uses your friends as your personal access points to the open internet. "+
             "The more access points you have, the better your experience will be, so we encourage you to "+
             "invite your <b>most trusted friends</b> to use Lantern. "+
@@ -470,9 +448,9 @@ public class LanternBrowser {
             "of this information - <b>it's stored only on your own computer, and you log in securely over SSL</b>."));
         
         replace.put("user_name_password", "<b>Please enter your user name and password from</b>");
-        replace.put("gmail_user_name", i18n.tr("Gmail E-mail Address"));
-        replace.put("gmail_password", i18n.tr("Gmail Password"));
-        replace.put("show_contacts", i18n.tr("Show My Contacts"));
+        replace.put("gmail_user_name", I18n.tr("Gmail E-mail Address"));
+        replace.put("gmail_password", I18n.tr("Gmail Password"));
+        replace.put("show_contacts", I18n.tr("Show My Contacts"));
         return replace;
     }
 
@@ -480,18 +458,18 @@ public class LanternBrowser {
         final Map<String, String> replace = 
             new HashMap<String, String>();
         replace.put("lead_string", 
-            i18n.tr("Welcome to Lantern! You're almost done."));
-        replace.put("title_string", i18n.tr("Complete Your Installation"));
-        replace.put("body_string", i18n.tr(
+            I18n.tr("Welcome to Lantern! You're almost done."));
+        replace.put("title_string", I18n.tr("Complete Your Installation"));
+        replace.put("body_string", I18n.tr(
             "Lantern allows Lantern users living in censored to access the open internet through your computer "+
             "when you're not using it, creating a cooperative global network to combat censorship. "+
             "We make these connections using your GMail contacts, and this is how we know it's you. "+
             "We do not store your password on our servers, although we do store your e-mail "+
             "because we need it to connect you to other users. <b>We will never send you e-mail or "+
             "provide your e-mail to any third party, and your login happens securely over SSL.</b>"));
-        replace.put("user_name_password", i18n.tr("<b>Please enter your user name and password from</b>"));
-        replace.put("gmail_user_name", i18n.tr("Gmail E-mail Address"));
-        replace.put("gmail_password", i18n.tr("Gmail Password"));
+        replace.put("user_name_password", I18n.tr("<b>Please enter your user name and password from</b>"));
+        replace.put("gmail_user_name", I18n.tr("Gmail E-mail Address"));
+        replace.put("gmail_password", I18n.tr("Gmail Password"));
         return replace;
     }
 
@@ -507,8 +485,8 @@ public class LanternBrowser {
         final String page = StringUtils.substringAfterLast(location, "/");
         final Map<String, String> replace = new HashMap<String, String>();
         replace.put("lead_string", 
-            i18n.tr("Welcome to Lantern! You're almost done."));
-        replace.put("title_string", i18n.tr("Complete Your Installation"));
+            I18n.tr("Welcome to Lantern! You're almost done."));
+        replace.put("title_string", I18n.tr("Complete Your Installation"));
         setUrl(page, replace);
     }
 
@@ -532,13 +510,12 @@ public class LanternBrowser {
         if (!map.containsKey("error_message")) {
             map.put("error_message", "");
         }
-        map.put("installation_title", i18n.tr("Lantern Installation"));
+        map.put("installation_title", I18n.tr("Lantern Installation"));
         final File defaultFile = new File(tmp, fileName);
         setUrl(defaultFile, map);
     }
     
     protected void setUrl(final File file, final Map<String, String> map) {
-
         String copyStr;
         try {
             copyStr = IOUtils.toString(new FileInputStream(file), "UTF-8");
