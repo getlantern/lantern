@@ -59,7 +59,7 @@ public class LanternUtilsTest {
             Utf8ResourceBundle.getBundle("LanternResourceBundle", Locale.CHINESE);
         
         final String val =
-            rb.getString("Are_you_sure_you_want_to_ignore_the_update?".substring(
+            rb.getString("Are you sure you want to ignore the update?".substring(
                 0, LanternConstants.I18N_KEY_LENGTH));
         System.out.println(val);
         //System.out.println(rb.getString("userComment"));
