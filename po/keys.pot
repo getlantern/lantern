@@ -8,16 +8,17 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-01 22:33+0000\n"
+"POT-Creation-Date: 2011-10-01 22:41+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
-"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
 #: src/test/java/org/lantern/LanternUtilsTest.java:62
-msgid "Are_you_sure_you_want_to_ignore_the_update?"
+#: src/main/java/org/lantern/LanternBrowser.java:141
+msgid "Are you sure you want to ignore the update?"
 msgstr ""
 
 #: src/main/java/org/lantern/SystemTrayImpl.java:62
@@ -47,10 +48,6 @@ msgstr ""
 #: src/main/java/org/lantern/LanternBrowser.java:139
 #: src/main/java/org/lantern/LanternBrowser.java:184
 msgid "Exit?"
-msgstr ""
-
-#: src/main/java/org/lantern/LanternBrowser.java:141
-msgid "Are you sure you want to ignore the update?"
 msgstr ""
 
 #: src/main/java/org/lantern/LanternBrowser.java:187
