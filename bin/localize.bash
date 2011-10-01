@@ -7,13 +7,17 @@ function die() {
 
 cd /home/lantern/lantern
 rm po/*
-rm -rf src/main/resources/app
+#rm -rf src/main/resources/app
 
 # We tend to be modifying this file if we're running this script a lot, so kill
 # it on the server to avoid git conflicts.
 rm bin/localize.bash
 git pull origin master
+
+echo "Updated to latest git"
+
 xgettext -ktrc -ktr -kmarktr -ktrn:1,2 -o po/keys.pot $(find . -name "*.java")
+perl -pi -e "s/CHARSET/UTF-8/g" po/keys.pot
 
 locales=("en" "zh")
 for l in ${locales[@]}
