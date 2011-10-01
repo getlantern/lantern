@@ -52,6 +52,7 @@ import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
+import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.littleshoot.p2p.P2P;
@@ -266,11 +267,13 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             this.client.addMessageListener(typedListener);
             this.client.login(email, pwd, ID);
             final XMPPConnection connection = this.client.getXmppConnection();
+            final Collection<InetSocketAddress> googleStunServers = 
+                XmppUtils.googleStunServers(connection);
+            StunServerRepository.setStunServers(googleStunServers);
             
             // Make sure all connections between us and the server are stored
             // OTR.
             LanternUtils.activateOtr(connection);
-            //LanternUtils.deactivateOtr(connection);
             
             LOG.info("Connection ID: {}", connection.getConnectionID());
             
