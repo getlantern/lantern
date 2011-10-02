@@ -213,11 +213,16 @@ public class SystemTrayImpl implements SystemTray {
             log.info("Ignoring activation since we're not on OSX...");
             return;
         }
-        final Image image = newImage("16on.png", 16, 16);
-        setImage(image);
-        if (LanternUtils.shouldProxy()) {
-            stopItem.setEnabled(true);
-        }
+        display.asyncExec (new Runnable () {
+            @Override
+            public void run () {
+                final Image image = newImage("16on.png", 16, 16);
+                setImage(image);
+                if (LanternUtils.shouldProxy()) {
+                    stopItem.setEnabled(true);
+                }
+            }
+        });
     }
     
 
