@@ -6,7 +6,7 @@ function die() {
 
 
 cd /home/lantern/lantern
-rm po/*
+rm -v po/*
 #rm -rf src/main/resources/app
 
 # We tend to be modifying this file if we're running this script a lot, so kill
