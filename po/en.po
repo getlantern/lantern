@@ -3,28 +3,37 @@
 msgid "Are you sure you want to ignore the update?"
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:62
+#: src/main/java/org/lantern/SystemTrayImpl.java:64
 msgid "Lantern "
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:97
+#: src/main/java/org/lantern/SystemTrayImpl.java:99
+msgid "Stop Lantern "
+msgstr ""
+
+#: src/main/java/org/lantern/SystemTrayImpl.java:111
+msgid "Start Lantern "
+msgstr ""
+
+#: src/main/java/org/lantern/SystemTrayImpl.java:123
 msgid "Configure Lantern "
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:122
+#: src/main/java/org/lantern/SystemTrayImpl.java:148
 msgid "Quit"
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:213
+#: src/main/java/org/lantern/SystemTrayImpl.java:242
 msgid "Update to Lantern "
 msgstr ""
 
 #: src/main/java/org/lantern/LanternBrowser.java:76
-msgid "Configure_Lantern"
+msgid "Configure Lantern"
 msgstr ""
 
 #: src/main/java/org/lantern/LanternBrowser.java:78
-msgid "Lantern_Installation"
+#: src/main/java/org/lantern/LanternBrowser.java:513
+msgid "Lantern Installation"
 msgstr ""
 
 #: src/main/java/org/lantern/LanternBrowser.java:139
@@ -172,8 +181,4 @@ msgstr ""
 
 #: src/main/java/org/lantern/LanternBrowser.java:470
 msgid "<b>Please enter your user name and password from</b>"
-msgstr ""
-
-#: src/main/java/org/lantern/LanternBrowser.java:513
-msgid "Lantern Installation"
 msgstr ""
