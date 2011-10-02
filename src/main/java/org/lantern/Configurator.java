@@ -19,6 +19,8 @@ public class Configurator {
     private static final Logger LOG = 
         LoggerFactory.getLogger(Configurator.class);
     private volatile static boolean configured = false;
+    private static String proxyServerOriginal;
+    private static String proxyEnableOriginal;
     
     private static final MacProxyManager mpm = 
         new MacProxyManager("testId", 4291);
@@ -79,7 +81,7 @@ public class Configurator {
             return;
         }
         
-        if (CensoredUtils.isCensored() || CensoredUtils.isForceCensored()) {
+        if (LanternUtils.shouldProxy()) {
             LOG.info("Auto-configuring proxy...");
             
             // We only want to configure the proxy if the user is in censored mode.
@@ -98,6 +100,37 @@ public class Configurator {
         }
     }
     
+    public static void startProxying() {
+        if (LanternUtils.shouldProxy()) {
+            LOG.info("Auto-configuring proxy...");
+            
+            // We only want to configure the proxy if the user is in censored mode.
+            if (SystemUtils.IS_OS_MAC_OSX) {
+                proxyOsx();
+            } else if (SystemUtils.IS_OS_WINDOWS) {
+                proxyWindows();
+            } else if (SystemUtils.IS_OS_LINUX) {
+                // TODO: proxyLinux();
+            }
+        } else {
+            LOG.info("Not configuring proxy in an uncensored country");
+        }
+    }
+
+    public static void stopProxying() {
+        if (LanternUtils.shouldProxy()) {
+            if (SystemUtils.IS_OS_MAC_OSX) {
+                unproxyOsx();
+            } else if (SystemUtils.IS_OS_WINDOWS) {
+                unproxyWindows(proxyServerOriginal, "0");
+            } else if (SystemUtils.IS_OS_LINUX) {
+                // TODO: unproxyLinux();
+            }
+        } else {
+            LOG.info("Not configuring proxy in an uncensored country");
+        }
+    }
+    
     private static void configureLinuxProxy() {
         final Thread hook = new Thread(new Runnable() {
             @Override
@@ -111,8 +144,7 @@ public class Configurator {
 
 
     private static void configureOsxProxy() {
-        configureOsxProxyPacFile();
-        configureOsxScript();
+        proxyOsx();
         // Note that non-daemon hooks can exit prematurely with CTL-C,
         // but not if System.exit is used as it should be in deployed
         // versions.
@@ -124,6 +156,11 @@ public class Configurator {
             }
         }, "Unset-Web-Proxy-OSX");
         Runtime.getRuntime().addShutdownHook(hook);
+    }
+    
+    private static void proxyOsx() {
+        configureOsxProxyPacFile();
+        configureOsxScript();
     }
 
     private static void configureOsxScript() {
@@ -176,6 +213,21 @@ public class Configurator {
 
 
     private static void configureWindowsProxy() {
+        proxyWindows();
+        
+        final Runnable runner = new Runnable() {
+            @Override
+            public void run() {
+                unproxyWindows(proxyServerOriginal, proxyEnableOriginal);
+            }
+        };
+        
+        // We don't make this a daemon thread because we want to make sure it
+        // executes before shutdown.
+        Runtime.getRuntime().addShutdownHook(new Thread (runner));
+    }
+
+    private static void proxyWindows() {
         if (!SystemUtils.IS_OS_WINDOWS) {
             LOG.info("Not running on Windows");
             return;
@@ -183,9 +235,9 @@ public class Configurator {
         
         // We first want to read the start values so we can return the
         // registry to the original state when we shut down.
-        final String proxyServerOriginal = 
+        proxyServerOriginal = 
             WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
-        final String proxyEnableOriginal = 
+        proxyEnableOriginal = 
             WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, pe);
         
         final String proxyServerUs = "127.0.0.1:"+
@@ -205,24 +257,14 @@ public class Configurator {
         if (serverResult != 0) {
             LOG.error("Error setting proxy server? Result: "+serverResult);
         }
-        
-        final Runnable runner = new Runnable() {
-            @Override
-            public void run() {
-                unproxyWindows(proxyServerOriginal, proxyEnableOriginal);
-            }
-        };
-        
-        // We don't make this a daemon thread because we want to make sure it
-        // executes before shutdown.
-        Runtime.getRuntime().addShutdownHook(new Thread (runner));
     }
+
 
     public static void unproxy() {
         if (SystemUtils.IS_OS_WINDOWS) {
             // We first want to read the start values so we can return the
             // registry to the original state when we shut down.
-            final String proxyServerOriginal = 
+            proxyServerOriginal = 
                 WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
             if (proxyServerOriginal.equals(LANTERN_PROXY_ADDRESS)) {
                 unproxyWindows(proxyServerOriginal, "0");
