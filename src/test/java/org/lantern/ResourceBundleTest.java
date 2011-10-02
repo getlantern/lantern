@@ -6,22 +6,14 @@ import java.io.File;
 import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.util.Enumeration;
-import java.util.ResourceBundle;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 
 
 public class ResourceBundleTest {
-
-    @Test
-    public void testWeirdCharacters() throws Exception {
-        final File rb = 
-            new File("src/main/resources/LanternResourceBundle.properties");
-    }
     
-    //@Test 
+    @Test 
     public void convertBasePo() throws Exception {
         final File po = new File("po/en.po");
         final File rb = 
@@ -68,7 +60,7 @@ public class ResourceBundleTest {
         br.close();
     }
     
-    //@Test 
+    @Test 
     public void convertPos() throws Exception {
         final File[] pos = new File("po").listFiles(new FileFilter() {
             
