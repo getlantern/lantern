@@ -31,8 +31,8 @@ public class ResourceBundleTest {
     }
     
     @Test public void convertBasePo() throws Exception {
-        final File po = new File("po/en.po.copy");
-        final File rb = new File("resoucebundle_en");
+        final File po = new File("po/en.po");
+        final File rb = new File("resourcebundle_en");
         
         final BufferedWriter bw = new BufferedWriter(new FileWriter(rb));
         final BufferedReader br = new BufferedReader(new FileReader(po));
@@ -71,8 +71,8 @@ public class ResourceBundleTest {
     }
     
     @Test public void convertPo() throws Exception {
-        final File po = new File("po/zh.po.copy");
-        final File rb = new File("resoucebundle");
+        final File po = new File("po/zh.po");
+        final File rb = new File("resourcebundle_zh");
         
         final BufferedWriter bw = new BufferedWriter(new FileWriter(rb));
         final BufferedReader br = new BufferedReader(new FileReader(po));
