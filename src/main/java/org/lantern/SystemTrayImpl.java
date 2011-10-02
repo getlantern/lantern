@@ -195,7 +195,8 @@ public class SystemTrayImpl implements SystemTray {
     
     private void showRestartBrowserMessage() {
         if (SystemUtils.IS_OS_MAC_OSX) {
-            //return;
+            log.info("Restart doesn't seem to be necessary on OSX");
+            return;
         }
         final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.OK;
         final MessageBox messageBox = new MessageBox (shell, style);
