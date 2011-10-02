@@ -447,7 +447,7 @@ public class LanternBrowser {
             "We need this because Lantern uses Gmail to build its trust network. We don't store any "+ 
             "of this information - <b>it's stored only on your own computer, and you log in securely over SSL</b>."));
         
-        replace.put("user_name_password", "<b>Please enter your user name and password from</b>");
+        replace.put("user_name_password", I18n.tr("<b>Please enter your user name and password from</b>"));
         replace.put("gmail_user_name", I18n.tr("Gmail E-mail Address"));
         replace.put("gmail_password", I18n.tr("Gmail Password"));
         replace.put("show_contacts", I18n.tr("Show My Contacts"));
