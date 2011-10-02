@@ -75,15 +75,12 @@ public class Launcher {
 
     public static void launchLantern() {
         final KeyStoreManager proxyKeyStore = LanternHub.getKeyStoreManager();
-        final int sslRandomPort = LanternUtils.randomPort();
-        LOG.info("Running SSL HTTP proxy on port: "+sslRandomPort);
-        
         final DefaultHttpProxyServer sslProxy = 
-            new DefaultHttpProxyServer(sslRandomPort,
+            new DefaultHttpProxyServer(LanternHub.randomSslPort(),
                 new HashMap<String, HttpFilter>(), null, proxyKeyStore, null);
         
         //final org.littleshoot.proxy.HttpProxyServer sslProxy = 
-        //    new DefaultHttpProxyServer(sslRandomPort);
+        //    new DefaultHttpProxyServer(LanternHub.randomSslPort());
         sslProxy.start(false, false);
          
         
@@ -105,10 +102,8 @@ public class Launcher {
         LOG.info("About to start Lantern server on port: "+
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
         
-        final XmppHandler xmpp = 
-            new XmppHandler(sslRandomPort, 
-                LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT, 
-                LanternHub.systemTray());
+        final XmppHandler xmpp = LanternHub.xmppHandler();
+
         final HttpProxyServer server = 
             new LanternHttpProxyServer(
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
