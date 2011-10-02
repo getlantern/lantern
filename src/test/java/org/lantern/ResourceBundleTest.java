@@ -3,6 +3,7 @@ package org.lantern;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.Enumeration;
@@ -32,7 +33,8 @@ public class ResourceBundleTest {
     
     @Test public void convertBasePo() throws Exception {
         final File po = new File("po/en.po");
-        final File rb = new File("resourcebundle_en");
+        final File rb = 
+            new File("src/main/resources/LanternResourceBundle.properties");
         
         final BufferedWriter bw = new BufferedWriter(new FileWriter(rb));
         final BufferedReader br = new BufferedReader(new FileReader(po));
@@ -69,10 +71,26 @@ public class ResourceBundleTest {
         bw.close();
         br.close();
     }
+    @Test public void convertPos() throws Exception {
+        final File[] pos = new File("po").listFiles(new FileFilter() {
+            
+            @Override
+            public boolean accept(final File pathname) {
+                final String name = pathname.getName();
+                return name.endsWith("po") && !name.equals("en.po");
+            }
+        });
+        for (final File po : pos) {
+            final String name = po.getName();
+            final String localName = 
+                StringUtils.substringBeforeLast(name, ".po");
+            final File dir = new File("src/main/resources");
+            final File rb = new File(dir, "LanternResourceBundle_"+localName+".properties");
+            convertPo(po, rb);
+        }
+    }
     
-    @Test public void convertPo() throws Exception {
-        final File po = new File("po/zh.po");
-        final File rb = new File("resourcebundle_zh");
+    private void convertPo(final File po, final File rb) throws Exception {
         
         final BufferedWriter bw = new BufferedWriter(new FileWriter(rb));
         final BufferedReader br = new BufferedReader(new FileReader(po));
