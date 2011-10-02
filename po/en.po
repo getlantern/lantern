@@ -24,7 +24,7 @@ msgid "Quit"
 msgstr ""
 
 #: src/main/java/org/lantern/SystemTrayImpl.java:202
-msgid "Restart?"
+msgid "Browser Restart"
 msgstr ""
 
 #: src/main/java/org/lantern/SystemTrayImpl.java:204
