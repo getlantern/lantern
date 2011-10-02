@@ -102,9 +102,7 @@ public class Configurator {
     
     public static void startProxying() {
         if (LanternUtils.shouldProxy()) {
-            LOG.info("Auto-configuring proxy...");
-            
-            // We only want to configure the proxy if the user is in censored mode.
+            LOG.info("Starting to proxy Lantern");
             if (SystemUtils.IS_OS_MAC_OSX) {
                 proxyOsx();
             } else if (SystemUtils.IS_OS_WINDOWS) {
@@ -119,6 +117,7 @@ public class Configurator {
 
     public static void stopProxying() {
         if (LanternUtils.shouldProxy()) {
+            LOG.info("Unproxying Lantern");
             if (SystemUtils.IS_OS_MAC_OSX) {
                 unproxyOsx();
             } else if (SystemUtils.IS_OS_WINDOWS) {
