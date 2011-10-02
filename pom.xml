@@ -202,7 +202,7 @@
     <dependency>
       <groupId>org.teleal.cling</groupId>
       <artifactId>cling-support</artifactId>
-      <version>1.0.3</version>
+      <version>1.0.5</version>
     </dependency>
 
     <dependency>
