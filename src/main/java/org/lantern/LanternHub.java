@@ -14,7 +14,7 @@ public class LanternHub {
     private volatile static LanternKeyStoreManager proxyKeyStore;
     
     private volatile static XmppHandler xmppHandler;
-    private volatile static int randomSslPort;
+    private volatile static int randomSslPort = -1;
     
     public synchronized static TrustedContactsManager getTrustedContactsManager() {
         if (trustedContactsManager == null) {
