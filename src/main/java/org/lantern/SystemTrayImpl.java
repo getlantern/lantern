@@ -199,7 +199,7 @@ public class SystemTrayImpl implements SystemTray {
         }
         final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.OK;
         final MessageBox messageBox = new MessageBox (shell, style);
-        messageBox.setText (I18n.tr("Restart?"));
+        messageBox.setText (I18n.tr("Browser Restart"));
         messageBox.setMessage (
             I18n.tr("You may have to restart your browser for these changes to take effect."));
         messageBox.open ();
