@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-01 22:57+0000\n"
+"POT-Creation-Date: 2011-10-02 02:45+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -20,32 +20,50 @@ msgstr ""
 msgid "Are you sure you want to ignore the update?"
 msgstr "你确实要忽略更新吗？"
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:62
+#: src/main/java/org/lantern/SystemTrayImpl.java:65
 #, fuzzy
 msgid "Lantern "
 msgstr "现在开始运行Lantern吗？"
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:97
+#: src/main/java/org/lantern/SystemTrayImpl.java:100
+#, fuzzy
+msgid "Stop Lantern "
+msgstr "现在开始运行Lantern吗？"
+
+#: src/main/java/org/lantern/SystemTrayImpl.java:120
+#, fuzzy
+msgid "Start Lantern "
+msgstr "现在开始运行Lantern吗？"
+
+#: src/main/java/org/lantern/SystemTrayImpl.java:140
 #, fuzzy
 msgid "Configure Lantern "
 msgstr "设定Lantern的首选项"
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:122
+#: src/main/java/org/lantern/SystemTrayImpl.java:165
 msgid "Quit"
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:213
+#: src/main/java/org/lantern/SystemTrayImpl.java:202
+msgid "Restart?"
+msgstr ""
+
+#: src/main/java/org/lantern/SystemTrayImpl.java:204
+msgid "You may have to restart your browser for these changes to take effect."
+msgstr ""
+
+#: src/main/java/org/lantern/SystemTrayImpl.java:276
 msgid "Update to Lantern "
 msgstr ""
 
 #: src/main/java/org/lantern/LanternBrowser.java:76
 #, fuzzy
-msgid "Configure_Lantern"
+msgid "Configure Lantern"
 msgstr "设定Lantern的首选项"
 
 #: src/main/java/org/lantern/LanternBrowser.java:78
-#, fuzzy
-msgid "Lantern_Installation"
+#: src/main/java/org/lantern/LanternBrowser.java:513
+msgid "Lantern Installation"
 msgstr "安装Lantern"
 
 #: src/main/java/org/lantern/LanternBrowser.java:139
@@ -175,6 +193,11 @@ msgstr ""
 "使用Gmail来建立可信任网络。我们不存储这些信息。<b>它只被保存在你自己的电脑"
 "上，而且你会以安全的SSL方式登录</b>。"
 
+#: src/main/java/org/lantern/LanternBrowser.java:450
+#: src/main/java/org/lantern/LanternBrowser.java:470
+msgid "<b>Please enter your user name and password from</b>"
+msgstr "<b>请输入你的用户名和密码</b>"
+
 #: src/main/java/org/lantern/LanternBrowser.java:451
 #: src/main/java/org/lantern/LanternBrowser.java:471
 msgid "Gmail E-mail Address"
@@ -205,10 +228,10 @@ msgstr ""
 "但是我们存储了你的邮箱，因为我们需要用它来连接你和别的用户。<b>我们从给你不发"
 "送邮件，或者将你的邮箱地址发送给第三方。而且你会以安全的SSL方式登录。</b>"
 
-#: src/main/java/org/lantern/LanternBrowser.java:470
-msgid "<b>Please enter your user name and password from</b>"
-msgstr "<b>请输入你的用户名和密码</b>"
+#, fuzzy
+#~ msgid "Configure_Lantern"
+#~ msgstr "设定Lantern的首选项"
 
-#: src/main/java/org/lantern/LanternBrowser.java:513
-msgid "Lantern Installation"
-msgstr "安装Lantern"
+#, fuzzy
+#~ msgid "Lantern_Installation"
+#~ msgstr "安装Lantern"
