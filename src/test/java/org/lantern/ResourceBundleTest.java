@@ -15,23 +15,14 @@ import org.junit.Test;
 
 public class ResourceBundleTest {
 
-    public class PoFileResourceBundle extends ResourceBundle {
-
-        @Override
-        protected Object handleGetObject(final String key) {
-            // TODO Auto-generated method stub
-            return null;
-        }
-
-        @Override
-        public Enumeration<String> getKeys() {
-            // TODO Auto-generated method stub
-            return null;
-        }
-        
+    @Test
+    public void testWeirdCharacters() throws Exception {
+        final File rb = 
+            new File("src/main/resources/LanternResourceBundle.properties");
     }
     
-    @Test public void convertBasePo() throws Exception {
+    //@Test 
+    public void convertBasePo() throws Exception {
         final File po = new File("po/en.po");
         final File rb = 
             new File("src/main/resources/LanternResourceBundle.properties");
@@ -46,7 +37,8 @@ public class ResourceBundleTest {
             if (StringUtils.isBlank(line)) {
             }
             if (line.startsWith("msgid")) {
-                line = StringUtils.substringBetween(line, "\"", "\"");
+                final String startLine = StringUtils.substringBetween(line, "\"", "\"");
+                line = startLine;
                 String valLine = br.readLine();
                 while (!valLine.startsWith("msgstr")) {
                     //line += "\n";
@@ -64,14 +56,20 @@ public class ResourceBundleTest {
                 //final String value = StringUtils.substringBetween(valLine, "\"", "\"");
                 final int length = Math.min(key.length(), LanternConstants.I18N_KEY_LENGTH);
                 final String full = key.substring(0, length) + "=" + line+"\n";
-                bw.write(full);
+                
+                // Ignore it if it's the initial configuration line.
+                if (!startLine.isEmpty()) {
+                    bw.write(full);
+                }
             }
             line = br.readLine();
         }
         bw.close();
         br.close();
     }
-    @Test public void convertPos() throws Exception {
+    
+    //@Test 
+    public void convertPos() throws Exception {
         final File[] pos = new File("po").listFiles(new FileFilter() {
             
             @Override
@@ -102,7 +100,8 @@ public class ResourceBundleTest {
             if (StringUtils.isBlank(line)) {
             }
             if (line.startsWith("msgid")) {
-                line = StringUtils.substringBetween(line, "\"", "\"");
+                final String startLine = StringUtils.substringBetween(line, "\"", "\"");
+                line = startLine;
                 String valLine = br.readLine();
                 while (!valLine.startsWith("msgstr")) {
                     //line += "\n";
@@ -121,7 +120,11 @@ public class ResourceBundleTest {
                 //final String value = StringUtils.substringBetween(valLine, "\"", "\"");
                 final int length = Math.min(key.length(), LanternConstants.I18N_KEY_LENGTH);
                 final String full = key.substring(0, length) + "=" + trans+"\n";
-                bw.write(full);
+                
+                // Ignore it if it's the initial configuration line.
+                if (!startLine.isEmpty()) {
+                    bw.write(full);
+                }
             }
             line = br.readLine();
         }
