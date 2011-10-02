@@ -14,6 +14,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
@@ -101,8 +102,16 @@ public class SystemTrayImpl implements SystemTray {
             stopItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
-                    stopItem.setEnabled(false);
-                    startItem.setEnabled(true);
+                    log.info("Stopping Lantern!!");
+                    display.asyncExec (new Runnable () {
+                        @Override
+                        public void run () {
+                            log.info("Setting start stop button state.");
+                            stopItem.setEnabled(false);
+                            startItem.setEnabled(true);
+                            showRestartBrowserMessage();
+                        }
+                    });
                     Configurator.stopProxying();
                 }
             });
@@ -110,11 +119,19 @@ public class SystemTrayImpl implements SystemTray {
             startItem = new MenuItem(menu, SWT.PUSH);
             startItem.setText(I18n.tr("Start Lantern "));
             startItem.setEnabled(false);
-            stopItem.addListener (SWT.Selection, new Listener () {
+            startItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
-                    stopItem.setEnabled(true);
-                    startItem.setEnabled(false);
+                    log.info("Starting Lantern!!");
+                    display.asyncExec (new Runnable () {
+                        @Override
+                        public void run () {
+                            log.info("Setting start stop button state.");
+                            stopItem.setEnabled(true);
+                            startItem.setEnabled(false);
+                            showRestartBrowserMessage();
+                        }
+                    });
                     Configurator.startProxying();
                 }
             });
@@ -174,6 +191,18 @@ public class SystemTrayImpl implements SystemTray {
             final Image image = newImage(imageName, 16, 16);
             setImage(image);
         }
+    }
+    
+    private void showRestartBrowserMessage() {
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            //return;
+        }
+        final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.OK;
+        final MessageBox messageBox = new MessageBox (shell, style);
+        messageBox.setText (I18n.tr("Restart?"));
+        messageBox.setMessage (
+            I18n.tr("You may have to restart your browser for these changes to take effect."));
+        messageBox.open ();
     }
 
     private void setImage(final Image image) {
