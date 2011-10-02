@@ -32,6 +32,8 @@ public class SystemTrayImpl implements SystemTray {
     private MenuItem updateItem;
     private Menu menu;
     private Map<String, String> updateData;
+    private MenuItem stopItem;
+    private MenuItem startItem;
 
     /**
      * Creates a new system tray handler class.
@@ -92,6 +94,30 @@ public class SystemTrayImpl implements SystemTray {
                 }
             });
             */
+            
+            stopItem = new MenuItem(menu, SWT.PUSH);
+            stopItem.setText(I18n.tr("Stop Lantern "));
+            stopItem.setEnabled(false);
+            stopItem.addListener (SWT.Selection, new Listener () {
+                @Override
+                public void handleEvent (final Event event) {
+                    stopItem.setEnabled(false);
+                    startItem.setEnabled(true);
+                    Configurator.stopProxying();
+                }
+            });
+            
+            startItem = new MenuItem(menu, SWT.PUSH);
+            startItem.setText(I18n.tr("Start Lantern "));
+            startItem.setEnabled(false);
+            stopItem.addListener (SWT.Selection, new Listener () {
+                @Override
+                public void handleEvent (final Event event) {
+                    stopItem.setEnabled(true);
+                    startItem.setEnabled(false);
+                    Configurator.startProxying();
+                }
+            });
             
             final MenuItem configItem = new MenuItem(menu, SWT.PUSH);
             configItem.setText(I18n.tr("Configure Lantern ")+LanternConstants.VERSION);
@@ -189,6 +215,9 @@ public class SystemTrayImpl implements SystemTray {
         }
         final Image image = newImage("16on.png", 16, 16);
         setImage(image);
+        if (LanternUtils.shouldProxy()) {
+            stopItem.setEnabled(true);
+        }
     }
     
 
