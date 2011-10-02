@@ -110,8 +110,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private final Timer updateTimer = new Timer(true);
 
-    private final SystemTray tray;
-
     private volatile long lastInfoMessageScheduled = 0L;
     
     private final MessageListener typedListener = new MessageListener() {
@@ -165,7 +163,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                     }
                     if (!servers.isEmpty() && ! Configurator.configured()) {
                         Configurator.configure();
-                        tray.activate();
+                        LanternHub.systemTray().activate();
                     }
                 }
 
@@ -206,9 +204,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
      * only locally and accepting plain-text sockets.
      */
     public XmppHandler(final int sslProxyRandomPort, 
-        final int plainTextProxyRandomPort, final SystemTray tray) {
+        final int plainTextProxyRandomPort) {
         this.sslProxyRandomPort = sslProxyRandomPort;
-        this.tray = tray;
         String email = LanternUtils.getStringProperty("google.user");
         String pwd = LanternUtils.getStringProperty("google.pwd");
         if (StringUtils.isBlank(email)) {
