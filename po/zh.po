@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-02 02:45+0000\n"
+"POT-Creation-Date: 2011-10-02 02:51+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -45,7 +45,7 @@ msgid "Quit"
 msgstr ""
 
 #: src/main/java/org/lantern/SystemTrayImpl.java:202
-msgid "Restart?"
+msgid "Browser Restart"
 msgstr ""
 
 #: src/main/java/org/lantern/SystemTrayImpl.java:204
