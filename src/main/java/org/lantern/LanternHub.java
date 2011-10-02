@@ -13,6 +13,9 @@ public class LanternHub {
     private volatile static StatsTracker statsTracker;
     private volatile static LanternKeyStoreManager proxyKeyStore;
     
+    private volatile static XmppHandler xmppHandler;
+    private volatile static int randomSslPort;
+    
     public synchronized static TrustedContactsManager getTrustedContactsManager() {
         if (trustedContactsManager == null) {
             trustedContactsManager = new DefaultTrustedContactsManager();
@@ -58,6 +61,21 @@ public class LanternHub {
             proxyKeyStore = new LanternKeyStoreManager(true);
         }
         return proxyKeyStore;
+    }
+
+    public synchronized static XmppHandler xmppHandler() {
+        if (xmppHandler == null) {
+            xmppHandler = new XmppHandler(randomSslPort(), 
+                LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
+        }
+        return xmppHandler;
+    }
+
+    public synchronized static int randomSslPort() {
+        if (randomSslPort == -1) {
+            randomSslPort = LanternUtils.randomPort();
+        }
+        return randomSslPort;
     }
 
 }

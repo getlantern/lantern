@@ -640,6 +640,10 @@ public class LanternUtils {
     public static Packet deactivateOtr(final XMPPConnection conn) {
         return XmppUtils.goOnTheRecord(LanternConstants.LANTERN_JID, conn);
     }
+    
+    public static boolean shouldProxy() {
+        return CensoredUtils.isCensored() || CensoredUtils.isForceCensored();
+    }
 }
 
 
