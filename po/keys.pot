@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-02 01:04+0000\n"
+"POT-Creation-Date: 2011-10-02 02:45+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -21,27 +21,35 @@ msgstr ""
 msgid "Are you sure you want to ignore the update?"
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:64
+#: src/main/java/org/lantern/SystemTrayImpl.java:65
 msgid "Lantern "
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:99
+#: src/main/java/org/lantern/SystemTrayImpl.java:100
 msgid "Stop Lantern "
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:111
+#: src/main/java/org/lantern/SystemTrayImpl.java:120
 msgid "Start Lantern "
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:123
+#: src/main/java/org/lantern/SystemTrayImpl.java:140
 msgid "Configure Lantern "
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:148
+#: src/main/java/org/lantern/SystemTrayImpl.java:165
 msgid "Quit"
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:242
+#: src/main/java/org/lantern/SystemTrayImpl.java:202
+msgid "Restart?"
+msgstr ""
+
+#: src/main/java/org/lantern/SystemTrayImpl.java:204
+msgid "You may have to restart your browser for these changes to take effect."
+msgstr ""
+
+#: src/main/java/org/lantern/SystemTrayImpl.java:276
 msgid "Update to Lantern "
 msgstr ""
 
@@ -172,6 +180,11 @@ msgid ""
 "your own computer, and you log in securely over SSL</b>."
 msgstr ""
 
+#: src/main/java/org/lantern/LanternBrowser.java:450
+#: src/main/java/org/lantern/LanternBrowser.java:470
+msgid "<b>Please enter your user name and password from</b>"
+msgstr ""
+
 #: src/main/java/org/lantern/LanternBrowser.java:451
 #: src/main/java/org/lantern/LanternBrowser.java:471
 msgid "Gmail E-mail Address"
@@ -195,8 +208,4 @@ msgid ""
 "password on our servers, although we do store your e-mail because we need it "
 "to connect you to other users. <b>We will never send you e-mail or provide "
 "your e-mail to any third party, and your login happens securely over SSL.</b>"
-msgstr ""
-
-#: src/main/java/org/lantern/LanternBrowser.java:470
-msgid "<b>Please enter your user name and password from</b>"
 msgstr ""
