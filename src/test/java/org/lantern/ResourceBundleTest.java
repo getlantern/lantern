@@ -1,5 +1,7 @@
 package org.lantern;
 
+import static org.junit.Assert.*;
+
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -7,6 +9,7 @@ import java.io.FileFilter;
 import java.io.FileReader;
 import java.io.FileWriter;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 
@@ -47,10 +50,11 @@ public class ResourceBundleTest {
                 }
                 //final String value = StringUtils.substringBetween(valLine, "\"", "\"");
                 final int length = Math.min(key.length(), LanternConstants.I18N_KEY_LENGTH);
-                final String full = key.substring(0, length) + "=" + line+"\n";
+                final String normalizedKey = key.substring(0, length);
+                final String full = normalizedKey + "=" + line+"\n";
                 
                 // Ignore it if it's the initial configuration line.
-                if (!startLine.isEmpty()) {
+                if (!normalizedKey.isEmpty()) {
                     bw.write(full);
                 }
             }
@@ -58,6 +62,8 @@ public class ResourceBundleTest {
         }
         bw.close();
         br.close();
+        final String text = IOUtils.toString(new FileReader(rb));
+        assertTrue(text.contains("You_appear_to_be_r"));
     }
     
     @Test 
@@ -77,6 +83,8 @@ public class ResourceBundleTest {
             final File dir = new File("src/main/resources");
             final File rb = new File(dir, "LanternResourceBundle_"+localName+".properties");
             convertPo(po, rb);
+            final String text = IOUtils.toString(new FileReader(rb));
+            assertTrue(text.contains("You_appear_to_be_r"));
         }
     }
     
@@ -111,7 +119,8 @@ public class ResourceBundleTest {
                 }
                 //final String value = StringUtils.substringBetween(valLine, "\"", "\"");
                 final int length = Math.min(key.length(), LanternConstants.I18N_KEY_LENGTH);
-                final String full = key.substring(0, length) + "=" + trans+"\n";
+                final String normalizedKey = key.substring(0, length);
+                final String full = normalizedKey + "=" + trans+"\n";
                 
                 // Ignore it if it's the initial configuration line.
                 if (!startLine.isEmpty()) {
