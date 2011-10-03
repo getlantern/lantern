@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-10-02 02:51+0000\n"
+"POT-Creation-Date: 2011-10-03 19:48+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -44,15 +44,15 @@ msgstr "设定Lantern的首选项"
 msgid "Quit"
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:202
+#: src/main/java/org/lantern/SystemTrayImpl.java:203
 msgid "Browser Restart"
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:204
+#: src/main/java/org/lantern/SystemTrayImpl.java:205
 msgid "You may have to restart your browser for these changes to take effect."
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:276
+#: src/main/java/org/lantern/SystemTrayImpl.java:277
 msgid "Update to Lantern "
 msgstr ""
 
