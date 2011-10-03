@@ -35,6 +35,11 @@ public class Launcher {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
                 LOG.error("Uncaught exception", e);
+                if (e.getMessage().contains("SWTError")) {
+                    System.out.println(
+                        "To run without a UI, put linuxui=false in " +
+                        "~/.lantern/lantern.properties");
+                }
             }
         });
         LOG.info("Waiting for internet connection...");
