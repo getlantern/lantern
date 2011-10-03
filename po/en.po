@@ -23,15 +23,15 @@ msgstr ""
 msgid "Quit"
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:202
+#: src/main/java/org/lantern/SystemTrayImpl.java:203
 msgid "Browser Restart"
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:204
+#: src/main/java/org/lantern/SystemTrayImpl.java:205
 msgid "You may have to restart your browser for these changes to take effect."
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:276
+#: src/main/java/org/lantern/SystemTrayImpl.java:277
 msgid "Update to Lantern "
 msgstr ""
 
