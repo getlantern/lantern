@@ -3,4 +3,4 @@
 ./remoteLocalize.bash
 pushd ..
 mvn -Dtest=ResourceBundleTest test
-popd -
+popd 
