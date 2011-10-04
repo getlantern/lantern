@@ -19,7 +19,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.UnresolvedAddressException;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -64,6 +63,7 @@ import org.lastbamboo.common.p2p.P2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.littleshoot.proxy.ProxyUtils;
 import org.littleshoot.util.ByteBufferUtils;
+import org.littleshoot.util.Sha1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -295,6 +295,7 @@ public class LanternUtils {
     
     public static String getMacAddress() {
         if (MAC_ADDRESS != null) {
+            LOG.info("Returning MAC: "+MAC_ADDRESS);
             return MAC_ADDRESS;
         }
         final Enumeration<NetworkInterface> nis;
@@ -314,8 +315,7 @@ public class LanternUtils {
                 final byte[] mac = ni.getHardwareAddress();
                 if (mac != null && mac.length > 0) {
                     LOG.info("Returning 'normal' MAC address");
-                    MAC_ADDRESS = macMe(mac);
-                    return MAC_ADDRESS;
+                    return macMe(mac);
                 }
             } catch (final SocketException e) {
                 LOG.warn("Could not get MAC address?");
@@ -323,9 +323,8 @@ public class LanternUtils {
         }
         try {
             LOG.warn("Returning custom MAC address");
-            MAC_ADDRESS = macMe(InetAddress.getLocalHost().getHostAddress() + 
+            return macMe(InetAddress.getLocalHost().getHostAddress() + 
                     System.currentTimeMillis());
-            return MAC_ADDRESS;
         } catch (final UnknownHostException e) {
             final byte[] bytes = new byte[24];
             new Random().nextBytes(bytes);
@@ -347,14 +346,11 @@ public class LanternUtils {
     }
 
     private static String macMe(final byte[] mac) {
-        try {
-            final MessageDigest md = MessageDigest.getInstance("MD5");
-            md.update(mac);
-            final byte[] raw = md.digest(mac);
-            return Base64.encodeBase64URLSafeString(raw);
-        } catch (final NoSuchAlgorithmException e) {
-            throw new RuntimeException("No MD5?");
-        }
+        final MessageDigest md = new Sha1();
+        md.update(mac);
+        final byte[] raw = md.digest();
+        MAC_ADDRESS = Base64.encodeBase64URLSafeString(raw);
+        return MAC_ADDRESS;
     }
 
     public static File configDir() {
