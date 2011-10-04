@@ -137,7 +137,7 @@ public class Configurator {
                 LOG.info("Unproxying...");
                 //unproxyLinux();
             }
-        }, "Unset-Web-Proxy-OSX");
+        }, "Unset-Web-Proxy-Linux");
         Runtime.getRuntime().addShutdownHook(hook);
     }
 
