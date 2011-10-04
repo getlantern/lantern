@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
@@ -17,6 +18,8 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.UnresolvedAddressException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -311,7 +314,7 @@ public class LanternUtils {
                 final byte[] mac = ni.getHardwareAddress();
                 if (mac != null && mac.length > 0) {
                     LOG.info("Returning 'normal' MAC address");
-                    MAC_ADDRESS = Base64.encodeBase64String(mac).trim();
+                    MAC_ADDRESS = macMe(mac);
                     return MAC_ADDRESS;
                 }
             } catch (final SocketException e) {
@@ -320,14 +323,37 @@ public class LanternUtils {
         }
         try {
             LOG.warn("Returning custom MAC address");
-            MAC_ADDRESS = Base64.encodeBase64String(
-                InetAddress.getLocalHost().getAddress()) + 
-                System.currentTimeMillis();
+            MAC_ADDRESS = macMe(InetAddress.getLocalHost().getHostAddress() + 
+                    System.currentTimeMillis());
             return MAC_ADDRESS;
         } catch (final UnknownHostException e) {
             final byte[] bytes = new byte[24];
             new Random().nextBytes(bytes);
-            return Base64.encodeBase64String(bytes);
+            return macMe(bytes);
+        }
+    }
+
+    private static String macMe(final String mac) {
+        return macMe(utf8Bytes(mac));
+    }
+
+    public static byte[] utf8Bytes(final String str) {
+        try {
+            return str.getBytes("UTF-8");
+        } catch (final UnsupportedEncodingException e) {
+            LOG.error("No UTF-8?", e);
+            throw new RuntimeException("No UTF-8?", e);
+        }
+    }
+
+    private static String macMe(final byte[] mac) {
+        try {
+            final MessageDigest md = MessageDigest.getInstance("MD5");
+            md.update(mac);
+            final byte[] raw = md.digest(mac);
+            return Base64.encodeBase64URLSafeString(raw);
+        } catch (final NoSuchAlgorithmException e) {
+            throw new RuntimeException("No MD5?");
         }
     }
 
