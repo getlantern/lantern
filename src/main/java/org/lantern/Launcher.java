@@ -3,14 +3,21 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Properties;
 
+import org.apache.commons.httpclient.NameValuePair;
+import org.apache.log4j.Appender;
+import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.eclipse.swt.widgets.Display;
+import org.lantern.getexceptional.GetExceptionalAppender;
+import org.lantern.getexceptional.GetExceptionalAppenderCallback;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.KeyStoreManager;
+import org.littleshoot.util.ShootConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,6 +138,15 @@ public class Launcher {
             final File logFile = new File(logDir, "java.log");
             setLoggerProps(logFile);
         }
+        final GetExceptionalAppenderCallback callback = 
+            new GetExceptionalAppenderCallback() {
+            @Override
+            public void addData(final Collection<NameValuePair> dataList) {
+                dataList.add(new NameValuePair("version", LanternConstants.VERSION));
+            }
+        };
+        final Appender bugAppender = new GetExceptionalAppender(callback);
+        BasicConfigurator.configure(bugAppender);
     }
     
     private static void setLoggerProps(final File logFile) {
