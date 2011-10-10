@@ -214,6 +214,7 @@ public class Configurator {
     private static void configureWindowsProxy() {
         proxyWindows();
         
+        copyFirefoxConfig();
         final Runnable runner = new Runnable() {
             @Override
             public void run() {
@@ -348,6 +349,39 @@ public class Configurator {
         return configured;
     }
 
+    /**
+     * Installs the FireFox config file on startup. 
+     */
+    private static void copyFirefoxConfig() {
+        final File ff;
+        if (SystemUtils.IS_OS_WINDOWS) {
+            ff = new File(System.getenv("ProgramFiles"), "Mozilla Firefox");
+        } else if (SystemUtils.IS_OS_MAC_OSX) {
+            ff = new File("/Applications/Firefox.app//Contents/MacOS");
+        } else {
+            LOG.info("Not sure where to copy FireFox config on Linux");
+            return;
+        }
+        final File pref = new File(new File(ff, "defaults"), "pref");
+        LOG.info("Prefs dir: {}", pref);
+        if (ff.isDirectory() && !pref.isDirectory()) {
+            LOG.error("No directory at: {}", pref);
+        }
+        final File config = new File("all-bravenewsoftware.js");
+        
+        if (!config.isFile()) {
+            LOG.error("NO CONFIG FILE AT {}", config);
+        }
+        else {
+            try {
+                FileUtils.copyFileToDirectory(config, pref);
+                final File installedConfig = new File(pref, config.getName());
+                installedConfig.deleteOnExit();
+            } catch (final IOException e) {
+                LOG.error("Could not copy config file?", e);
+            }
+        }
+    }
 
     /*
      * This is done in the installer.

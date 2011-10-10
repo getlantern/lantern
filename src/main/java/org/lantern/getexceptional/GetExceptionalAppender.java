@@ -6,7 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.ArrayList;
+import java.io.UnsupportedEncodingException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashSet;
@@ -16,8 +16,9 @@ import java.util.concurrent.Executors;
 import org.apache.commons.httpclient.Header;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpException;
-import org.apache.commons.httpclient.NameValuePair;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.methods.StringRequestEntity;
 import org.apache.commons.io.FileSystemUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
@@ -27,6 +28,9 @@ import org.apache.log4j.Level;
 import org.apache.log4j.spi.LocationInfo;
 import org.apache.log4j.spi.LoggingEvent;
 import org.apache.log4j.spi.ThrowableInformation;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.littleshoot.util.DateUtils;
 
 import com.google.common.io.NullOutputStream;
 
@@ -44,15 +48,44 @@ public class GetExceptionalAppender extends AppenderSkeleton {
     
     private final GetExceptionalAppenderCallback callback;
 
+    private final boolean threaded;
+
+    private final String apiKey;
+
     /**
      * Creates a new appender.
      */
-    public GetExceptionalAppender() {
-        this(new GetExceptionalAppenderCallback() {
+    public GetExceptionalAppender(final String apiKey) {
+        this(apiKey, new GetExceptionalAppenderCallback() {
             @Override
-            public void addData(final Collection<NameValuePair> dataList) {
+            public void addData(final JSONObject json) {
             }
-        });
+        }, true);
+    }
+    
+    /**
+     * Creates a new appender with callback.
+     * 
+     * @param callback The class to call for modifications prior to submitting
+     * the bug.
+     */
+    public GetExceptionalAppender(final String apiKey, 
+        final GetExceptionalAppenderCallback callback) {
+        this(apiKey, callback, true);
+    }
+    
+    /**
+     * Creates a new appender with a flag for whether or not to thread 
+     * submissions. Not threading can be useful for testing in particular.
+     * 
+     * @param threaded Whether or not to thread submissions to GetExceptional.
+     */
+    public GetExceptionalAppender(final String apiKey, final boolean threaded) {
+        this(apiKey, new GetExceptionalAppenderCallback() {
+            @Override
+            public void addData(final JSONObject json) {
+            }
+        }, threaded);
     }
     
     /**
@@ -61,18 +94,25 @@ public class GetExceptionalAppender extends AppenderSkeleton {
      * @param callback The class to call for modificatios prior to submitting
      * the bug.
      */
-    public GetExceptionalAppender(final GetExceptionalAppenderCallback callback) {
+    public GetExceptionalAppender(final String apiKey, 
+        final GetExceptionalAppenderCallback callback,
+        final boolean threaded) {
+        this.apiKey = apiKey;
         this.callback = callback;
+        this.threaded = threaded;
     }
-    
+
     @Override
     public void append(final LoggingEvent le) {
         // Only submit the bug under certain conditions.
         if (submitBug(le)) {
             // Just submit it to the thread pool to avoid holding up the calling
             // thread.
-            // System.out.println("Submitting bug to pool...");
-            this.pool.submit(new BugRunner(le));
+            if (threaded) {
+                this.pool.submit(new BugRunner(le));
+            } else {
+                new BugRunner(le).run();
+            }
         } 
     }
 
@@ -129,75 +169,33 @@ public class GetExceptionalAppender extends AppenderSkeleton {
 
         private void submitBug(final LoggingEvent le) {
             System.err.println("Starting to submit bug...");
-            final LocationInfo li = le.getLocationInformation();
 
-            final String className = li.getClassName();
-            final String methodName = li.getMethodName();
-            final int lineNumber;
-            final String ln = li.getLineNumber();
-            if (NumberUtils.isNumber(ln)) {
-                lineNumber = Integer.parseInt(ln);
-            } else {
-                lineNumber = -1;
-            }
-
-            final String threadName = le.getThreadName();
-
-            final String throwableString = getThrowableString(le);
-
-            final String osRoot = SystemUtils.IS_OS_WINDOWS ? "c:" : "/";
-            long free = Long.MAX_VALUE;
-            try {
-                free = FileSystemUtils.freeSpaceKb(osRoot);
-                // Convert to megabytes for easy reading.
-                free = free / 1024L;
-            } catch (final IOException e) {
-            }
-
-            final Collection<NameValuePair> dataList = 
-                new ArrayList<NameValuePair>();
-
-            dataList.add(new NameValuePair("message", le.getMessage()
-                    .toString()));
-            dataList.add(new NameValuePair("logLevel", le.getLevel().toString()));
-            dataList.add(new NameValuePair("className", className));
-            dataList.add(new NameValuePair("methodName", methodName));
-            dataList.add(new NameValuePair("lineNumber", String
-                    .valueOf(lineNumber)));
-            dataList.add(new NameValuePair("threadName", threadName));
-            // dataList.add(new NameValuePair("startTime", startTime));
-            // dataList.add(new NameValuePair("timeStamp", timestamp));
-            dataList.add(new NameValuePair("javaVersion",
-                    SystemUtils.JAVA_VERSION));
-            dataList.add(new NameValuePair("osName", SystemUtils.OS_NAME));
-            dataList.add(new NameValuePair("osArch", SystemUtils.OS_ARCH));
-            dataList.add(new NameValuePair("osVersion", SystemUtils.OS_VERSION));
-            dataList.add(new NameValuePair("language",
-                    SystemUtils.USER_LANGUAGE));
-            dataList.add(new NameValuePair("country", SystemUtils.USER_COUNTRY));
-            dataList.add(new NameValuePair("timeZone",
-                    SystemUtils.USER_TIMEZONE));
-            dataList.add(new NameValuePair("userName", SystemUtils.USER_NAME));
-            dataList.add(new NameValuePair("throwable", throwableString));
-            dataList.add(new NameValuePair("disk_space", String.valueOf(free)));
-            dataList.add(new NameValuePair("count", "1"));
-            callback.addData(dataList);
-
-            submitData(dataList);
+            final JSONObject json = new JSONObject();
+            json.put("request", requestData(le));
+            json.put("application_environment", appData(le));
+            json.put("exception", exceptionData(le));
+            json.put("client", clientData(le));
+            final String jsonStr = json.toJSONString();
+            System.out.println("JSON:\n"+jsonStr);
+            submitData(jsonStr);
         }
-
     }
     
-    private void submitData(final Collection<NameValuePair> dataList) {
+    private void submitData(final String requestBody) {
         System.out.println("Submitting data...");
 
-        // TODO: Gotta add the URL here...
-        final PostMethod method = new PostMethod();
+        final PostMethod method = 
+            new PostMethod("http://api.getexceptional.com/api/errors?" +
+                "api_key="+this.apiKey+"&protocol_version=6");
 
-        final NameValuePair[] data = dataList.toArray(new NameValuePair[0]);
-        System.out.println("Sending " + data.length + " fields...");
-
-        method.setRequestBody(data);
+        final RequestEntity re;
+        try {
+            re = new StringRequestEntity(requestBody, "application/json", "UTF-8");
+        } catch (final UnsupportedEncodingException e) {
+            System.err.println("Bad encoding - should never happen: "+e);
+            return;
+        }
+        method.setRequestEntity(re);
         InputStream is = null;
         try {
             System.err.println("Sending data to server...");
@@ -242,23 +240,91 @@ public class GetExceptionalAppender extends AppenderSkeleton {
         }
     }
 
-    private String getThrowableString(final LoggingEvent le) {
+    private JSONObject requestData(final LoggingEvent le) {
+        final JSONObject json = new JSONObject();
+        return json;
+    }
+    
+    private JSONObject appData(final LoggingEvent le) {
+        final JSONObject json = new JSONObject();
+        json.put("application_root_directory", "/");
+        json.put("env", getEnv(le));
+        return json;
+    }
+    private JSONObject getEnv(final LoggingEvent le) {
+        final JSONObject json = new JSONObject();
+        final LocationInfo li = le.getLocationInformation();
+        final int lineNumber;
+        final String ln = li.getLineNumber();
+        if (NumberUtils.isNumber(ln)) {
+            lineNumber = Integer.parseInt(ln);
+        } else {
+            lineNumber = -1;
+        }
+        json.put("message", le.getMessage().toString());
+        json.put("logLevel", le.getLevel().toString());
+        json.put("methodName", li.getMethodName());
+        json.put("lineNumber", lineNumber);
+        json.put("threadName", le.getThreadName());
+        json.put("javaVersion", SystemUtils.JAVA_VERSION);
+        json.put("osName", SystemUtils.OS_NAME);
+        json.put("osArch", SystemUtils.OS_ARCH);
+        json.put("osVersion", SystemUtils.OS_VERSION);
+        json.put("language", SystemUtils.USER_LANGUAGE);
+        json.put("country", SystemUtils.USER_COUNTRY);
+        json.put("timeZone", SystemUtils.USER_TIMEZONE);
+        json.put("userName", SystemUtils.USER_NAME);
+        
+        final String osRoot = SystemUtils.IS_OS_WINDOWS ? "c:" : "/";
+        long free = Long.MAX_VALUE;
+        try {
+            free = FileSystemUtils.freeSpaceKb(osRoot);
+            // Convert to megabytes for easy reading.
+            free = free / 1024L;
+        } catch (final IOException e) {
+        }
+        json.put("disk_space", String.valueOf(free));
+        
+        this.callback.addData(json);
+        return json;
+    }
+    
+    private JSONObject exceptionData(final LoggingEvent le) {
+        final JSONObject json = new JSONObject();
+        json.put("message", le.getMessage().toString());
+        json.put("backtrace", getThrowableArray(le));
+        final LocationInfo li = le.getLocationInformation();
+        final String exceptionClass;
+        if (li == null) {
+            exceptionClass = "unknown";
+        } else {
+            exceptionClass = li.getClassName();
+        }
+        json.put("exception_class", exceptionClass);
+        json.put("occurred_at", DateUtils.iso8601());
+        return json;
+    }
+    
+    private JSONObject clientData(final LoggingEvent le) {
+        final JSONObject json = new JSONObject();
+        json.put("client", "getexceptional-java-plugin");
+        json.put("version", "0.1");
+        json.put("protocol_version", "6");
+        return json;
+    }
+    
+    private JSONArray getThrowableArray(final LoggingEvent le) {
+        final JSONArray array = new JSONArray();
         final ThrowableInformation ti = le.getThrowableInformation();
-        final String throwableString;
         if (ti != null) {
             final StringBuilder sb = new StringBuilder();
             final String[] throwableStr = ti.getThrowableStrRep();
             for (final String str : throwableStr) {
-                sb.append(str);
-                sb.append("\n");
+                array.add(str.trim());
             }
-            throwableString = sb.toString();
-        } else {
-            throwableString = "No throwable.";
-        }
-        return throwableString;
+        } 
+        return array;
     }
-
 
     private static final class Bug {
 
