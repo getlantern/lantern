@@ -1,3 +1,4 @@
+paypal.com
 avaaz.org
 getlantern.org
 stumbleupon.com
