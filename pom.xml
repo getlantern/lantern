@@ -359,14 +359,6 @@
     </repository>
 
     <repository>
-      <id>gettext-commons-site</id>
-      <url>http://gettext-commons.googlecode.com/svn/maven-repository/</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-
-    <repository>
       <id>sonatype-nexus-snapshots</id>
       <name>Sonatype Nexus Snapshots</name>
       <url>https://oss.sonatype.org/content/repositories/snapshots</url>
