@@ -128,6 +128,12 @@
 
     <dependency>
       <groupId>org.littleshoot</groupId>
+      <artifactId>getexceptional4j</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.littleshoot</groupId>
       <artifactId>littleshoot-smack-xmpp</artifactId>
       <version>3.2.0-SNAPSHOT</version>
     </dependency>
