@@ -170,7 +170,7 @@ public class Launcher {
                     }
             };
             final Appender bugAppender = new GetExceptionalAppender(
-               "", callback);
+               LanternConstants.GET_EXCEPTIONAL_API_KEY, callback);
             BasicConfigurator.configure(bugAppender);
         } catch (final IOException e) {
             System.out.println("Exception setting log4j props with file: "
