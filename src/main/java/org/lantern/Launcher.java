@@ -9,6 +9,7 @@ import java.util.Properties;
 import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
+import org.apache.log4j.spi.LoggingEvent;
 import org.bns.getexceptional4j.GetExceptionalAppender;
 import org.bns.getexceptional4j.GetExceptionalAppenderCallback;
 import org.eclipse.swt.widgets.Display;
@@ -160,8 +161,10 @@ public class Launcher {
             System.out.println("Set logger file to: " + logPath);
             final GetExceptionalAppenderCallback callback = 
                 new GetExceptionalAppenderCallback() {
+
                     @Override
-                    public boolean addData(final JSONObject json) {
+                    public boolean addData(final JSONObject json, 
+                        final LoggingEvent le) {
                         json.put("version", LanternConstants.VERSION);
                         return true;
                     }
