@@ -12,11 +12,15 @@ import java.io.FileWriter;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class ResourceBundleTest {
     
-    @Test 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
+    @Test
     public void convertBasePo() throws Exception {
         final File po = new File("po/en.po");
         final File rb = 
@@ -73,7 +77,7 @@ public class ResourceBundleTest {
             @Override
             public boolean accept(final File pathname) {
                 final String name = pathname.getName();
-                return name.endsWith("po") && !name.equals("en.po");
+                return name.endsWith("po") && !name.equals("en.po") && !name.equals("zh.po");
             }
         });
         for (final File po : pos) {
@@ -84,7 +88,7 @@ public class ResourceBundleTest {
             final File rb = new File(dir, "LanternResourceBundle_"+localName+".properties");
             convertPo(po, rb);
             final String text = IOUtils.toString(new FileReader(rb));
-            assertTrue(text.contains("You_appear_to_be_r"));
+            assertTrue("Expected text not in: "+rb, text.contains("You_appear_to_be_r"));
         }
     }
     
@@ -120,10 +124,11 @@ public class ResourceBundleTest {
                 //final String value = StringUtils.substringBetween(valLine, "\"", "\"");
                 final int length = Math.min(key.length(), LanternConstants.I18N_KEY_LENGTH);
                 final String normalizedKey = key.substring(0, length);
+                log.info("KEY: "+normalizedKey);
                 final String full = normalizedKey + "=" + trans+"\n";
                 
                 // Ignore it if it's the initial configuration line.
-                if (!startLine.isEmpty()) {
+                if (!normalizedKey.isEmpty()) {
                     bw.write(full);
                 }
             }
