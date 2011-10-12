@@ -212,12 +212,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.xnap.commons</groupId>
-      <artifactId>gettext-commons</artifactId>
-      <version>0.9.6</version>
-    </dependency>
-
-    <dependency>
       <groupId>${swt.groupId}</groupId>
       <artifactId>${swt.artifactId}</artifactId>
       <version>3.7</version>
