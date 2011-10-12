@@ -9,10 +9,10 @@ import java.util.Properties;
 import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
+import org.bns.getexceptional4j.GetExceptionalAppender;
+import org.bns.getexceptional4j.GetExceptionalAppenderCallback;
 import org.eclipse.swt.widgets.Display;
 import org.json.simple.JSONObject;
-import org.lantern.getexceptional.GetExceptionalAppender;
-import org.lantern.getexceptional.GetExceptionalAppenderCallback;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.KeyStoreManager;
@@ -132,23 +132,13 @@ public class Launcher {
             PropertyConfigurator.configure(propsPath);
         } else {
             System.out.println("Not on main line...");
-            final File logDir = LanternUtils.logDir();
-            final File logFile = new File(logDir, "java.log");
-            setLoggerProps(logFile);
+            configureProductionLogger();
         }
-        final GetExceptionalAppenderCallback callback = 
-            new GetExceptionalAppenderCallback() {
-                @Override
-                public void addData(final JSONObject json) {
-                    json.put("version", LanternConstants.VERSION);
-                }
-        };
-        final Appender bugAppender = new GetExceptionalAppender(
-           "", callback);
-        BasicConfigurator.configure(bugAppender);
     }
     
-    private static void setLoggerProps(final File logFile) {
+    private static void configureProductionLogger() {
+        final File logDir = LanternUtils.logDir();
+        final File logFile = new File(logDir, "java.log");
         final Properties props = new Properties();
         try {
             final String logPath = logFile.getCanonicalPath();
@@ -168,6 +158,17 @@ public class Launcher {
             // doesn't matter. Just weird.
             PropertyConfigurator.configure(props);
             System.out.println("Set logger file to: " + logPath);
+            final GetExceptionalAppenderCallback callback = 
+                new GetExceptionalAppenderCallback() {
+                    @Override
+                    public boolean addData(final JSONObject json) {
+                        json.put("version", LanternConstants.VERSION);
+                        return true;
+                    }
+            };
+            final Appender bugAppender = new GetExceptionalAppender(
+               "", callback);
+            BasicConfigurator.configure(bugAppender);
         } catch (final IOException e) {
             System.out.println("Exception setting log4j props with file: "
                     + logFile);
