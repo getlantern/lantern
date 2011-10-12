@@ -1,5 +1,7 @@
 package org.lantern;
 
+import org.bns.getexceptional4j.GetExceptionalUtils;
+
 /**
  * Constants for Lantern.
  */
@@ -10,7 +12,9 @@ public class LanternConstants {
      * replaced when we push new releases.
      */
     public static final String VERSION = "lantern_version_tok";
-    //public static final String VERSION = "0.6";
+    
+    public static final String GET_EXCEPTIONAL_API_KEY = 
+        GetExceptionalUtils.NO_OP_KEY;
     
     public static final String LANTERN_JID = "lantern-controller@appspot.com";
     
@@ -60,5 +64,6 @@ public class LanternConstants {
      * The length of keys in translation property files.
      */
     public static final int I18N_KEY_LENGTH = 40;
+
     
 }
