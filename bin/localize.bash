@@ -20,7 +20,7 @@ echo "Updated to latest git"
 xgettext -ktrc -ktr -kmarktr -ktrn:1,2 -o po/keys.pot $(find . -name "*.java")
 perl -pi -e "s/CHARSET/UTF-8/g" po/keys.pot
 
-locales=("en" "zh")
+locales=("en" "zh" "fa")
 for l in ${locales[@]}
 do
   echo "Processing locale: $l"
