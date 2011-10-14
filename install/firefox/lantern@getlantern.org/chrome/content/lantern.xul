@@ -4,15 +4,15 @@
 <overlay id="lantern-overlay"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
- <script type="application/javascript"
-   src="chrome://lantern/content/lantern.js"/>
+    <script type="application/javascript" src="chrome://lantern/content/io.js"/>
+    <script type="application/javascript" src="chrome://lantern/content/lantern.js"/>
 
 <!-- Firefox -->
 <statusbar id="status-bar">
-	<statusbarpanel id="lantern"
-		label="Lantern"
-		tooltiptext="Lantern Using System Proxy Settings"
-	/>
+    <statusbarpanel id="lantern" 
+        label="Lantern"
+        tooltiptext="Lantern Using System Proxy Settings"
+    />
 </statusbar>
 
 </overlay>
