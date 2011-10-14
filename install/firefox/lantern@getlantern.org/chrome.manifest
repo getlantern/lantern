@@ -1,0 +1,4 @@
+content lantern chrome/content/
+
+# Firefox
+overlay	chrome://browser/content/browser.xul chrome://lantern/content/lantern.xul
