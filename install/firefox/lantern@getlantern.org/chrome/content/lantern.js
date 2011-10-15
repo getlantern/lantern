@@ -3,10 +3,13 @@ var Lantern = {
 
     prefs: null,
 
+    originalProxyType: 5,
+
+    setProxy: false,
+
     lanternRunning: function() {
         var home = DirIO.get('Home');
         dump("Home: "+DirIO.path(home)+"\n");
-        //var fileIn = FileIO.open('/test.txt');
         var fullPath = DirIO.path(home)+'/.lantern/lanternRunning';
         dump("Full path: "+fullPath+"\n");
         var normalized = fullPath.substring(7);
@@ -19,12 +22,22 @@ var Lantern = {
     checkForLantern: function() {
         dump("Checking for Lantern\n");
         if (!this.lanternRunning()) {
-            dump("Lantern not running...\n");            
-            this.prefs.setIntPref("type", 1);
+            dump("Lantern not running...\n");
+            if (this.setProxy) { 
+                this.setProxy = false;
+		dump("Setting back to type: "+this.originalProxyType+"\n");           
+                this.prefs.setIntPref("type", this.originalProxyType);
+            }
         } else {
             dump("Lantern running!!\n");            
             // Set FireFox to use the system proxy settings.
-            this.prefs.setIntPref("type", 5);
+            var pref = this.prefs.getIntPref("type");
+            dump("Pref: "+pref+"\n");
+            if (pref != 5) {
+                this.originalProxyType = pref;
+                this.prefs.setIntPref("type", 5);
+                this.setProxy = true;
+            }
         }
     },
 
@@ -34,7 +47,6 @@ var Lantern = {
         this.prefs = Components.classes["@mozilla.org/preferences-service;1"]
             .getService(Components.interfaces.nsIPrefService)
             .getBranch("network.proxy.");
-
         
         dump("Checking for Lantern...\n");                      
         this.checkForLantern();
