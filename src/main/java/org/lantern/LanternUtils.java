@@ -138,13 +138,14 @@ public class LanternUtils {
                     LOG.warn("Could not create Lantern running file at: "+
                         LANTERN_RUNNING);
                 } else {
-                    Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            LANTERN_RUNNING.delete();
-                        }
-                        
-                    }, "Kill-Lantern-Running-File-Thread"));
+                    Runtime.getRuntime().addShutdownHook(new Thread(
+                        new Runnable() {
+                            @Override
+                            public void run() {
+                                LANTERN_RUNNING.delete();
+                            }
+                            
+                        }, "Kill-Lantern-Running-File-Thread"));
                 }
             } catch (final IOException e) {
                 LOG.warn("Could not create Lantern running file at: "+
