@@ -53,6 +53,8 @@ public class Configurator {
             throw new IllegalStateException(msg);
         }
         LOG.info("Both pac files are in their expected locations");
+        
+        copyFireFoxExtension();
     }
     
     private static final File ACTIVE_PAC = 
@@ -67,6 +69,33 @@ public class Configurator {
         reconfigure();
     }
     
+
+    private static void copyFireFoxExtension() {
+        final File dir = getExtensionDir();
+        final File ffDir = new File("firefox/lantern@getlantern.org");
+        if (!ffDir.isDirectory()) {
+            LOG.error("No extension directory found at {}", ffDir);
+            return;
+        }
+        try {
+            FileUtils.copyDirectory(ffDir, dir);
+        } catch (final IOException e) {
+            LOG.error("Could not copy directory", e);
+        }
+    }
+
+    private static File getExtensionDir() {
+        final File userHome = SystemUtils.getUserHome();
+        if (SystemUtils.IS_OS_WINDOWS) {
+            final File ffDir = new File(System.getenv("APPDATA"), "Mozilla");
+            return new File(ffDir, "Extensions");
+        } else if (SystemUtils.IS_OS_MAC_OSX) {
+            return new File(userHome, "Library/Application\\ Support/Mozilla/Extensions");
+        } else {
+            return new File(userHome, "Mozilla/extensions");
+        }
+    }
+
 
     public static void reconfigure() {
         if (!LanternUtils.propsFile().isFile()) {
