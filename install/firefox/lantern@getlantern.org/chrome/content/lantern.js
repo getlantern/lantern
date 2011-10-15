@@ -16,13 +16,8 @@ var Lantern = {
         return fileIn.exists();
     },
 
-    startup: function() {
-        dump("Starting Lantern extension...\n");
-
-        this.prefs = Components.classes["@mozilla.org/preferences-service;1"]
-            .getService(Components.interfaces.nsIPrefService)
-            .getBranch("network.proxy.");
-
+    checkForLantern: function() {
+        dump("Checking for Lantern\n");
         if (!this.lanternRunning()) {
             dump("Lantern not running...\n");            
             this.prefs.setIntPref("type", 1);
@@ -31,6 +26,21 @@ var Lantern = {
             // Set FireFox to use the system proxy settings.
             this.prefs.setIntPref("type", 5);
         }
+    },
+
+    startup: function() {
+        dump("Starting Lantern extension...\n");
+
+        this.prefs = Components.classes["@mozilla.org/preferences-service;1"]
+            .getService(Components.interfaces.nsIPrefService)
+            .getBranch("network.proxy.");
+
+        
+        dump("Checking for Lantern...\n");                      
+        this.checkForLantern();
+        dump("Setting interval...\n");              
+        window.setInterval(function() {Lantern.checkForLantern();}, 2000);
+        dump("Set interval\n");              
     },
 }
 
