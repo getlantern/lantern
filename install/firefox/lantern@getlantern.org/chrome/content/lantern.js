@@ -9,13 +9,13 @@ var Lantern = {
 
     lanternRunning: function() {
         var home = DirIO.get('Home');
-        dump("Home: "+DirIO.path(home)+"\n");
+        //dump("Home: "+DirIO.path(home)+"\n");
         var fullPath = DirIO.path(home)+'/.lantern/lanternRunning';
-        dump("Full path: "+fullPath+"\n");
+        //dump("Full path: "+fullPath+"\n");
         var normalized = fullPath.substring(7);
-        dump("Normalized: "+normalized+"\n");
+        //dump("Normalized: "+normalized+"\n");
         var fileIn = FileIO.open(normalized);
-        dump("Opened file..."+fileIn+"\n");
+        //dump("Opened file..."+fileIn+"\n");
         return fileIn.exists();
     },
 
