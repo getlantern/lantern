@@ -80,13 +80,6 @@ public class LanternUtils {
     private static final File CONFIG_DIR = 
         new File(System.getProperty("user.home"), ".lantern");
     
-    /**
-     * File external processes can use to determine if Lantern is running,
-     * such as FireFox extensions.
-     */
-    private static final File LANTERN_RUNNING =
-        new File(CONFIG_DIR, "lanternRunning");
-    
     private static final File DATA_DIR;
     
     private static final File LOG_DIR;
@@ -128,30 +121,6 @@ public class LanternUtils {
                 LOG.error("Could not make config directory at: "+CONFIG_DIR);
             }
         } 
-        
-        LANTERN_RUNNING.deleteOnExit();
-        if (LANTERN_RUNNING.isFile()) {
-            LOG.warn("Lantern already running at "+LANTERN_RUNNING);
-        } else {
-            try {
-                if (!LANTERN_RUNNING.createNewFile()) {
-                    LOG.warn("Could not create Lantern running file at: "+
-                        LANTERN_RUNNING);
-                } else {
-                    Runtime.getRuntime().addShutdownHook(new Thread(
-                        new Runnable() {
-                            @Override
-                            public void run() {
-                                LANTERN_RUNNING.delete();
-                            }
-                            
-                        }, "Kill-Lantern-Running-File-Thread"));
-                }
-            } catch (final IOException e) {
-                LOG.warn("Could not create Lantern running file at: "+
-                        LANTERN_RUNNING);
-            }
-        }
         
         if (!PROPS_FILE.isFile()) {
             try {

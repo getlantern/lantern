@@ -18,9 +18,17 @@ public class Configurator {
     
     private static final Logger LOG = 
         LoggerFactory.getLogger(Configurator.class);
+    
+    /**
+     * File external processes can use to determine if Lantern is currently
+     * proxying traffic. Useful for things like the FireFox extensions.
+     */
+    private static final File LANTERN_PROXYING_FILE =
+        new File(LanternUtils.configDir(), "lanternProxying");
+    
     private volatile static boolean configured = false;
     private static String proxyServerOriginal;
-    private static String proxyEnableOriginal;
+    private static String proxyEnableOriginal = "0";
     
     private static final MacProxyManager mpm = 
         new MacProxyManager("testId", 4291);
@@ -38,6 +46,8 @@ public class Configurator {
     private static final File PROXY_OFF = new File("proxy_off.pac");
     
     static {
+        LANTERN_PROXYING_FILE.delete();
+        LANTERN_PROXYING_FILE.deleteOnExit();
         if (!PROXY_ON.isFile()) {
             final String msg = 
                 "No pac at: "+PROXY_ON.getAbsolutePath() +"\nfrom: " +
@@ -71,14 +81,22 @@ public class Configurator {
     
 
     private static void copyFireFoxExtension() {
+        LOG.info("Copying file extension");
         final File dir = getExtensionDir();
+        if (!dir.isDirectory()) {
+            LOG.info("Making FireFox extension directory...");
+            if (!dir.mkdirs()) {
+                LOG.error("Could not create directory!"+dir);
+            }
+        }
         final File ffDir = new File("firefox/lantern@getlantern.org");
         if (!ffDir.isDirectory()) {
             LOG.error("No extension directory found at {}", ffDir);
             return;
         }
         try {
-            FileUtils.copyDirectory(ffDir, dir);
+            FileUtils.copyDirectoryToDirectory(ffDir, dir);
+            LOG.info("Successfully copied directory from {} to {}", ffDir, dir);
         } catch (final IOException e) {
             LOG.error("Could not copy directory", e);
         }
@@ -90,12 +108,12 @@ public class Configurator {
             final File ffDir = new File(System.getenv("APPDATA"), "Mozilla");
             return new File(ffDir, "Extensions");
         } else if (SystemUtils.IS_OS_MAC_OSX) {
-            return new File(userHome, "Library/Application\\ Support/Mozilla/Extensions");
+            return new File(userHome, 
+                "Library/Application\\ Support/Mozilla/Extensions");
         } else {
             return new File(userHome, "Mozilla/extensions");
         }
     }
-
 
     public static void reconfigure() {
         if (!LanternUtils.propsFile().isFile()) {
@@ -113,17 +131,16 @@ public class Configurator {
         if (LanternUtils.shouldProxy()) {
             LOG.info("Auto-configuring proxy...");
             
-            // We only want to configure the proxy if the user is in censored mode.
-            if (SystemUtils.IS_OS_MAC_OSX) {
-                configureOsxProxy();
-            } else if (SystemUtils.IS_OS_WINDOWS) {
-                configureWindowsProxy();
-                // The firewall config is actually handled in a bat file from the
-                // installer.
-                //configureWindowsFirewall();
-            } else if (SystemUtils.IS_OS_LINUX) {
-                configureLinuxProxy();
-            }
+            startProxying();
+            
+            final Thread hook = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    LOG.info("Unproxying...");
+                    stopProxying();
+                }
+            }, "Unset-Web-Proxy-Thread");
+            Runtime.getRuntime().addShutdownHook(hook);
         } else {
             LOG.info("Not auto-configuring proxy in an uncensored country");
         }
@@ -131,6 +148,13 @@ public class Configurator {
     
     public static void startProxying() {
         if (LanternUtils.shouldProxy()) {
+            try {
+                if (!LANTERN_PROXYING_FILE.createNewFile()) {
+                    LOG.error("Could not create proxy file?");
+                }
+            } catch (IOException e) {
+                LOG.error("Could not create proxy file?", e);
+            }
             LOG.info("Starting to proxy Lantern");
             if (SystemUtils.IS_OS_MAC_OSX) {
                 proxyOsx();
@@ -147,43 +171,17 @@ public class Configurator {
     public static void stopProxying() {
         if (LanternUtils.shouldProxy()) {
             LOG.info("Unproxying Lantern");
+            LANTERN_PROXYING_FILE.delete();
             if (SystemUtils.IS_OS_MAC_OSX) {
                 unproxyOsx();
             } else if (SystemUtils.IS_OS_WINDOWS) {
-                unproxyWindows(proxyServerOriginal, "0");
+                unproxyWindows();
             } else if (SystemUtils.IS_OS_LINUX) {
                 // TODO: unproxyLinux();
             }
         } else {
             LOG.info("Not configuring proxy in an uncensored country");
         }
-    }
-    
-    private static void configureLinuxProxy() {
-        final Thread hook = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                LOG.info("Unproxying...");
-                //unproxyLinux();
-            }
-        }, "Unset-Web-Proxy-Linux");
-        Runtime.getRuntime().addShutdownHook(hook);
-    }
-
-
-    private static void configureOsxProxy() {
-        proxyOsx();
-        // Note that non-daemon hooks can exit prematurely with CTL-C,
-        // but not if System.exit is used as it should be in deployed
-        // versions.
-        final Thread hook = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                LOG.info("Unproxying...");
-                unproxyOsx();
-            }
-        }, "Unset-Web-Proxy-OSX");
-        Runtime.getRuntime().addShutdownHook(hook);
     }
     
     private static void proxyOsx() {
@@ -239,23 +237,6 @@ public class Configurator {
         }
     }
 
-
-    private static void configureWindowsProxy() {
-        proxyWindows();
-        
-        copyFirefoxConfig();
-        final Runnable runner = new Runnable() {
-            @Override
-            public void run() {
-                unproxyWindows(proxyServerOriginal, proxyEnableOriginal);
-            }
-        };
-        
-        // We don't make this a daemon thread because we want to make sure it
-        // executes before shutdown.
-        Runtime.getRuntime().addShutdownHook(new Thread (runner));
-    }
-
     private static void proxyWindows() {
         if (!SystemUtils.IS_OS_WINDOWS) {
             LOG.info("Not running on Windows");
@@ -296,7 +277,7 @@ public class Configurator {
             proxyServerOriginal = 
                 WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
             if (proxyServerOriginal.equals(LANTERN_PROXY_ADDRESS)) {
-                unproxyWindows(proxyServerOriginal, "0");
+                unproxyWindows();
             }
         } else if (SystemUtils.IS_OS_MAC_OSX) {
             unproxyOsx();
@@ -305,8 +286,7 @@ public class Configurator {
         }
     }
     
-    protected static void unproxyWindows(final String proxyServerOriginal, 
-        final String proxyEnableOriginal) {
+    protected static void unproxyWindows() {
         LOG.info("Resetting Windows registry settings to original values.");
         final String proxyEnableUs = "1";
         
