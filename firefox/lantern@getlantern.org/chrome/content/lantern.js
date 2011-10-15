@@ -7,10 +7,10 @@ var Lantern = {
 
     setProxy: false,
 
-    lanternRunning: function() {
+    lanternProxying: function() {
         var home = DirIO.get('Home');
         //dump("Home: "+DirIO.path(home)+"\n");
-        var fullPath = DirIO.path(home)+'/.lantern/lanternRunning';
+        var fullPath = DirIO.path(home)+'/.lantern/lanternProxying';
         //dump("Full path: "+fullPath+"\n");
         var normalized = fullPath.substring(7);
         //dump("Normalized: "+normalized+"\n");
@@ -21,15 +21,15 @@ var Lantern = {
 
     checkForLantern: function() {
         dump("Checking for Lantern\n");
-        if (!this.lanternRunning()) {
-            dump("Lantern not running...\n");
+        if (!this.lanternProxying()) {
+            dump("Lantern not proxying...\n");
             if (this.setProxy) { 
                 this.setProxy = false;
 		dump("Setting back to type: "+this.originalProxyType+"\n");           
                 this.prefs.setIntPref("type", this.originalProxyType);
             }
         } else {
-            dump("Lantern running!!\n");            
+            dump("Lantern proxying!!\n");            
             // Set FireFox to use the system proxy settings.
             var pref = this.prefs.getIntPref("type");
             dump("Pref: "+pref+"\n");
