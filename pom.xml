@@ -43,6 +43,7 @@
       <version>1.4.1-beta</version>
     </dependency>
 
+
     <dependency>
       <groupId>com.google.gdata</groupId>
       <artifactId>gdata</artifactId>
@@ -53,7 +54,7 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version><version>10.0.1</version></version>
+      <version>10.0.1</version>
     </dependency>
 
     <dependency>
