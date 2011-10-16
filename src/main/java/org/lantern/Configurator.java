@@ -96,6 +96,9 @@ public class Configurator {
         final File dir = getExtensionDir();
         if (!dir.isDirectory()) {
             LOG.info("Making FireFox extension directory...");
+            // NOTE: This likely means the user does not have FireFox. We copy
+            // the extension here anyway in case the user ever installs 
+            // FireFox in the future.
             if (!dir.mkdirs()) {
                 LOG.error("Could not create directory!"+dir);
             }
