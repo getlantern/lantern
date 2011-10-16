@@ -301,7 +301,8 @@ public class LanternBrowser {
                         I18n.tr("Complete Your Installation"));
                     replace.put("text_body", 
                         I18n.tr("That's it! Lantern is now configured to automatically " +
-                        "give you access to the open internet."));
+                        "give you access to the open internet.<br><br>" +
+                        "You may need to restart your browser."));
                     
                     replace.put("run_now", I18n.tr("Run Lantern Now?"));
                     replace.put("finish_string", I18n.tr("Finish"));
