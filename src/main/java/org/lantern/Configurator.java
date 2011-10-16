@@ -84,6 +84,13 @@ public class Configurator {
     }
     
 
+    /**
+     * Copies our FireFox extension to the appropriate place.
+     * 
+     * @return The {@link File} for the final destination directory of the
+     * extension.
+     * @throws IOException If there's an error copying the extension.
+     */
     public static File copyFireFoxExtension() throws IOException {
         LOG.info("Copying file extension");
         final File dir = getExtensionDir();
@@ -94,7 +101,6 @@ public class Configurator {
             }
         }
         final File ffDir = new File("firefox/lantern@getlantern.org");
-        //final File ffDir = new File("./firefox/test");
         if (!ffDir.isDirectory()) {
             LOG.error("No extension directory found at {}", ffDir);
             throw new IOException("Could not find extension?");
