@@ -64,7 +64,11 @@ public class Configurator {
         }
         LOG.info("Both pac files are in their expected locations");
         
-        copyFireFoxExtension();
+        try {
+            copyFireFoxExtension();
+        } catch (final IOException e) {
+            LOG.error("Could not copy extension", e);
+        }
     }
     
     private static final File ACTIVE_PAC = 
@@ -80,7 +84,7 @@ public class Configurator {
     }
     
 
-    private static void copyFireFoxExtension() {
+    public static File copyFireFoxExtension() throws IOException {
         LOG.info("Copying file extension");
         final File dir = getExtensionDir();
         if (!dir.isDirectory()) {
@@ -90,16 +94,14 @@ public class Configurator {
             }
         }
         final File ffDir = new File("firefox/lantern@getlantern.org");
+        //final File ffDir = new File("./firefox/test");
         if (!ffDir.isDirectory()) {
             LOG.error("No extension directory found at {}", ffDir);
-            return;
+            throw new IOException("Could not find extension?");
         }
-        try {
-            FileUtils.copyDirectoryToDirectory(ffDir, dir);
-            LOG.info("Successfully copied directory from {} to {}", ffDir, dir);
-        } catch (final IOException e) {
-            LOG.error("Could not copy directory", e);
-        }
+        FileUtils.copyDirectoryToDirectory(ffDir, dir);
+        LOG.info("Successfully copied directory from {} to {}", ffDir, dir);
+        return new File(dir, ffDir.getName());
     }
 
     private static File getExtensionDir() {
@@ -109,7 +111,7 @@ public class Configurator {
             return new File(ffDir, "Extensions");
         } else if (SystemUtils.IS_OS_MAC_OSX) {
             return new File(userHome, 
-                "Library/Application\\ Support/Mozilla/Extensions");
+                "Library/Application Support/Mozilla/Extensions");
         } else {
             return new File(userHome, "Mozilla/extensions");
         }
