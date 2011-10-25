@@ -70,17 +70,31 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private static final Logger LOG = 
         LoggerFactory.getLogger(XmppHandler.class);
     
+    /**
+     * These are the centralized proxies this Lantern instance is using.
+     */
     private final Set<ProxyHolder> proxySet =
         new HashSet<ProxyHolder>();
     private final Queue<ProxyHolder> proxies = 
         new ConcurrentLinkedQueue<ProxyHolder>();
     
+    /**
+     * This is the set of all peer proxies we know about. We may have 
+     * established connections with some of them. The main purpose of this is
+     * to avoid exchanging keys multiple times.
+     */
     private final Set<URI> peerProxySet = new HashSet<URI>();
-    private final Queue<URI> peerProxies = 
+    
+    /**
+     * These are anonymous proxies we have exchanged keys with. 
+     */
+    private final Queue<URI> establishedAnonymousProxies = 
         new ConcurrentLinkedQueue<URI>();
     
-    private final Set<URI> anonymousProxySet = new HashSet<URI>();
-    private final Queue<URI> anonymousProxies = 
+    /**
+     * These are trusted peer proxies we have exchanged keys with.
+     */
+    private final Queue<URI> establishedPeerProxies = 
         new ConcurrentLinkedQueue<URI>();
     
     private final Set<ProxyHolder> laeProxySet =
@@ -414,7 +428,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
         LOG.info("Finished adding listeners");
     }
-
     
     private void processPresence(final Presence p) {
         final String from = p.getFrom();
@@ -471,13 +484,13 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
         final TrustedContactsManager tcm = 
             LanternHub.getTrustedContactsManager();
-        final boolean trusted = tcm.isJidTrusted(from);
+        final boolean trusted = tcm.isTrusted(p);
         if (p.isAvailable()) {
             LOG.info("Adding from to peer JIDs: {}", from);
             if (trusted) {
-                addTrustedProxy(uri);
+                this.establishedPeerProxies.add(uri);
             } else {
-                addAnonymousProxy(uri);
+                this.establishedAnonymousProxies.add(uri);
             }
         }
         else {
@@ -504,20 +517,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private void processTypedMessage(final Message msg, final Integer type) {
         final String from = msg.getFrom();
         LOG.info("Processing typed message from {}", from);
-        /*
-        final URI uri;
-        try {
-            uri = new URI(from);
-        } catch (final URISyntaxException e) {
-            LOG.error("Could not create URI from: {}", from);
-            return;
-        }
-        if (!this.peerProxySet.contains(uri)) {
-            LOG.warn("Ignoring message from untrusted peer: {}", from);
-            LOG.warn("Peer not in: {}", this.peerProxySet);
-            return;
-        }
-        */
+        
         switch (type) {
             case (XmppMessageConstants.INFO_REQUEST_TYPE):
                 LOG.info("Handling INFO request from {}", from);
@@ -548,6 +548,14 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private void processInfoData(final Message msg) {
         LOG.info("Processing INFO data from request or response.");
+        final URI uri;
+        try {
+            uri = new URI(msg.getFrom());
+        } catch (final URISyntaxException e) {
+            LOG.error("Could not create URI from: {}", msg.getFrom());
+            return;
+        }
+
         final String mac =
             (String) msg.getProperty(P2PConstants.MAC);
         final String base64Cert =
@@ -560,6 +568,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             try {
                 // Add the peer if we're able to add the cert.
                 LanternHub.getKeyStoreManager().addBase64Cert(mac, base64Cert);
+                if (LanternHub.getTrustedContactsManager().isTrusted(msg)) {
+                    this.establishedPeerProxies.add(uri);
+                } else {
+                    this.establishedAnonymousProxies.add(uri);
+                }
             } catch (final IOException e) {
                 LOG.error("Could not add cert??", e);
             }
@@ -583,13 +596,13 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             addLaeProxy(cur);
         } else if (cur.startsWith(emailId+"/")) {
             try {
-                addTrustedProxy(new URI(cur));
+                addPeerProxy(new URI(cur));
             } catch (final URISyntaxException e) {
                 LOG.error("Error with proxy URI", e);
             }
         } else if (cur.contains("@")) {
             try {
-                addAnonymousProxy(new URI(cur));
+                addPeerProxy(new URI(cur));
             } catch (final URISyntaxException e) {
                 LOG.error("Error with proxy URI", e);
             }
@@ -598,31 +611,26 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
     }
 
-    private void addTrustedProxy(final URI cur) {
-        LOG.info("Considering trusted peer proxy: {}", cur);
-        addPeerProxy(cur, this.peerProxySet, this.peerProxies);
-    }
     
-    private void addAnonymousProxy(final URI cur) {
-        LOG.info("Considering anonymous proxy");
-        addPeerProxy(cur, this.anonymousProxySet, this.anonymousProxies);
-    }
-    
-    private void addPeerProxy(final URI cur, final Set<URI> peerSet, 
-        final Queue<URI> peerQueue) {
+    private void addPeerProxy(final URI peerUri) {
         LOG.info("Considering peer proxy");
-        synchronized (peerSet) {
-            if (!peerSet.contains(cur)) {
-                LOG.info("Actually adding peer proxy: {}", cur);
-                peerSet.add(cur);
-                peerQueue.add(cur);
-                sendAndRequestCert(cur);
+        synchronized (peerProxySet) {
+            // We purely do this to keep track of which peers we've attempted
+            // to establish connections to.
+            
+            // TODO: I believe this excludes exchanging keys with peers who
+            // are on multiple machines when the peer URI is a general JID and
+            // not an instance JID.
+            if (!peerProxySet.contains(peerUri)) {
+                LOG.info("Actually adding peer proxy: {}", peerUri);
+                peerProxySet.add(peerUri);
+                sendAndRequestCert(peerUri);
             } else {
                 LOG.info("We already know about the peer proxy");
             }
         }
     }
-
+    
     private void sendAndRequestCert(final URI cur) {
         LOG.info("Requesting cert from {}", cur);
         final Message msg = new Message();
@@ -747,21 +755,17 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     private void removePeerUri(final URI peerUri) {
         LOG.info("Removing peer with URI: {}", peerUri);
-        remove(peerUri, this.peerProxySet, this.peerProxies);
+        remove(peerUri, this.establishedPeerProxies);
     }
 
     private void removeAnonymousPeerUri(final URI peerUri) {
         LOG.info("Removing anonymous peer with URI: {}", peerUri);
-        remove(peerUri, this.anonymousProxySet, this.anonymousProxies);
+        remove(peerUri, this.establishedAnonymousProxies);
     }
     
-    private void remove(final URI peerUri, final Set<URI> set, 
-        final Queue<URI> queue) {
+    private void remove(final URI peerUri, final Queue<URI> queue) {
         LOG.info("Removing peer with URI: {}", peerUri);
-        synchronized (set) {
-            set.remove(peerUri);
-            queue.remove(peerUri);
-        }
+        queue.remove(peerUri);
     }
     
     @Override
@@ -777,16 +781,16 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     @Override
     public URI getAnonymousProxy() {
         LOG.info("Getting anonymous proxy");
-        return getProxyUri(this.anonymousProxies);
+        return getProxyUri(this.establishedAnonymousProxies);
     }
 
     @Override
     public URI getPeerProxy() {
         LOG.info("Getting peer proxy");
-        final URI proxy = getProxyUri(this.peerProxies);
+        final URI proxy = getProxyUri(this.establishedPeerProxies);
         if (proxy == null) {
             LOG.info("Peer proxies {} and anonymous proxies {}", 
-                this.peerProxies, this.anonymousProxies);
+                this.establishedPeerProxies, this.establishedAnonymousProxies);
         }
         return proxy;
     }

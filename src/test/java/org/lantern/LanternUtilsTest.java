@@ -30,7 +30,8 @@ public class LanternUtilsTest {
         final XMPPConnection conn = XmppUtils.persistentXmppConnection(
             email, pwd, "dfalj;", 2);
         
-        final Collection<InetSocketAddress> servers = XmppUtils.googleStunServers(conn);
+        final Collection<InetSocketAddress> servers = 
+            XmppUtils.googleStunServers(conn);
         LOG.info("Retrieved {} STUN servers", servers.size());
         assertTrue(!servers.isEmpty());
     }
