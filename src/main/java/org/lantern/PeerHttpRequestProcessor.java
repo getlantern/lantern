@@ -12,6 +12,7 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.io.IOUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -67,11 +68,9 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
     private static final ChannelBuffer LAST_CHUNK =
         copiedBuffer("0\r\n\r\n", CharsetUtil.US_ASCII);
     
-    private URI peerInfo;
+    private URI peerUri;
     private final ProxyStatusListener proxyStatusListener;
     private final P2PClient p2pClient;
-    
-    private Socket socket;
     
     /**
      * Map recording the number of consecutive connection failures for a
@@ -85,7 +84,12 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
 
     private boolean chunked;
 
+    private final AtomicReference<Socket> socketRef =
+        new AtomicReference<Socket>();
+    
     private final KeyStoreManager keyStoreManager;
+
+    private volatile boolean startedCopying;
 
     public PeerHttpRequestProcessor(final Proxy proxy, 
         final ProxyStatusListener proxyStatusListener,
@@ -98,36 +102,50 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
 
     @Override
     public boolean hasProxy() {
-        if (this.peerInfo != null) {
+        if (this.socketRef.get() != null) {
             return true;
         }
-        this.peerInfo = this.proxy.getPeerProxy();
-        if (this.peerInfo != null) {
-            return true;
+        this.peerUri = this.proxy.getPeerProxy();
+        if (this.peerUri != null) {
+            threadedPeerSocket(this.peerUri);
+        } else {
+            log.info("No peer proxies!");
         }
-        log.info("No peer proxies!");
         return false;
     }
     
+    private void threadedPeerSocket(final URI peer) {
+        final Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    final Socket sock = LanternUtils.openOutgoingPeerSocket(
+                        peer, proxyStatusListener, p2pClient, 
+                        peerFailureCount);
+                    socketRef.set(sock);
+                } catch (final IOException e) {
+                    log.info("Could not create peer socket");
+                }                
+            }
+            
+        }, "Peer-Socket-Connection-Thread");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
     @Override
     public void processRequest(final Channel browserToProxyChannel,
         final ChannelHandlerContext ctx, final MessageEvent me) 
         throws IOException {
-        if (this.socket == null) {
-            try {
-                // We tell the socket not to record stats here because traffic
-                // returning to the browser still goes through our encoder 
-                // here (i.e. we haven't stripped the encoder to support 
-                // CONNECT traffic).
-                this.socket = LanternUtils.openOutgoingPeerSocket(
-                    browserToProxyChannel, this.peerInfo,  
-                    this.proxyStatusListener, this.p2pClient, peerFailureCount,
-                    false);
-            } catch (final IOException e) {
-                // Notify the requester an outgoing connection has failed.
-                this.proxyStatusListener.onCouldNotConnectToPeer(this.peerInfo);
-                throw e;
-            }
+        if (!startedCopying) {
+            // We tell the socket not to record stats here because traffic
+            // returning to the browser still goes through our encoder 
+            // here (i.e. we haven't stripped the encoder to support 
+            // CONNECT traffic).
+            LanternUtils.startReading(this.socketRef.get(), 
+                browserToProxyChannel, false);
+            startedCopying = true;
         }
 
         final HttpRequest request = (HttpRequest) me.getMessage();
@@ -142,7 +160,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         }
         try {
             log.info("Writing {}", new String(data));
-            final OutputStream os = this.socket.getOutputStream();
+            final OutputStream os = this.socketRef.get().getOutputStream();
             os.write(data);
         } catch (final IOException e) {
             // They probably just closed the connection, as they will in
@@ -169,7 +187,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         final ByteBuffer buf = cb.toByteBuffer();
         final byte[] data = ByteBufferUtils.toRawBytes(buf);
         log.info("Writing chunk {}", new String(data));
-        final OutputStream os = this.socket.getOutputStream();
+        final OutputStream os = this.socketRef.get().getOutputStream();
         os.write(data);
     }
     
@@ -235,6 +253,6 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
 
     @Override
     public void close() {
-        IOUtils.closeQuietly(this.socket);
+        IOUtils.closeQuietly(this.socketRef.get());
     }
 }
