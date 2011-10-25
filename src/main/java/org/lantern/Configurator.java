@@ -117,12 +117,12 @@ public class Configurator {
         final File userHome = SystemUtils.getUserHome();
         if (SystemUtils.IS_OS_WINDOWS) {
             final File ffDir = new File(System.getenv("APPDATA"), "Mozilla");
-            return new File(ffDir, "Extensions");
+            return new File(ffDir, "Extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
         } else if (SystemUtils.IS_OS_MAC_OSX) {
             return new File(userHome, 
-                "Library/Application Support/Mozilla/Extensions");
+                "Library/Application Support/Mozilla/Extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
         } else {
-            return new File(userHome, "Mozilla/extensions");
+            return new File(userHome, "Mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
         }
     }
 
