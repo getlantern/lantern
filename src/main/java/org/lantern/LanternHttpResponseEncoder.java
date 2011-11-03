@@ -43,7 +43,7 @@ public class LanternHttpResponseEncoder extends ProxyHttpResponseEncoder {
             // socket, relayed non-HTTP CONNECT data from one of our proxies.
             // HTTP CONNECT data has to be accounted for differently, as it
             // bypassed any encoder.
-            this.statsTracker.addBytesProxied(bytes);
+            this.statsTracker.addBytesProxied(bytes, channel);
         }
         return cb;
     }
