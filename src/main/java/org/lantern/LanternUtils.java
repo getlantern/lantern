@@ -262,7 +262,7 @@ public class LanternUtils {
                             ChannelBuffers.copiedBuffer(buffer, 0, n);
                         channel.write(buf);
                         if (recordStats) {
-                            LanternHub.statsTracker().addBytesProxied(n);
+                            LanternHub.statsTracker().addBytesProxied(n, sock);
                         }
                         count += n;
                         
