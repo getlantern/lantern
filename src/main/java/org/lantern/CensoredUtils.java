@@ -53,38 +53,8 @@ public class CensoredUtils {
     private static final Collection<String> EXPORT_RESTRICTED =
         Sets.newHashSet(
             "SY");
-    
-    private static final File UNZIPPED = 
-        new File(LanternUtils.dataDir(), "GeoIP.dat");
-    
-    private static LookupService lookupService;
 
     private static String countryCode;
-
-    static {
-        if (!UNZIPPED.isFile())  {
-            final File file = new File("GeoIP.dat.gz");
-            GZIPInputStream is = null;
-            OutputStream os = null;
-            try {
-                is = new GZIPInputStream(new FileInputStream(file));
-                os = new FileOutputStream(UNZIPPED);
-                IOUtils.copy(is, os);
-            } catch (final IOException e) {
-                LOG.error("Error expanding file?", e);
-            } finally {
-                IOUtils.closeQuietly(is);
-                IOUtils.closeQuietly(os);
-            }
-        }
-        try {
-            lookupService = new LookupService(UNZIPPED, 
-                    LookupService.GEOIP_MEMORY_CACHE);
-        } catch (final IOException e) {
-            LOG.error("Could not create LOOKUP service?");
-            lookupService = null;
-        }
-    }
     
     public static String countryCode() {
         if (StringUtils.isNotBlank(countryCode)) {
@@ -96,7 +66,7 @@ public class CensoredUtils {
     }
     
     public static String countryCode(final InetAddress address) {
-        final Country country = lookupService.getCountry(address);
+        final Country country = LanternHub.getGeoIpLookup().getCountry(address);
         LOG.info("Country is: {}", country.getName());
         return country.getCode().trim();
     }
@@ -128,7 +98,7 @@ public class CensoredUtils {
     
     public static boolean isMatch(final InetAddress address, 
         final Collection<String> countries) { 
-        final Country country = lookupService.getCountry(address);
+        final Country country = LanternHub.getGeoIpLookup().getCountry(address);
         LOG.info("Country is: {}", country.getName());
         countryCode = country.getCode().trim();
         return countries.contains(countryCode);
