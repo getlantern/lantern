@@ -141,8 +141,8 @@ public class StatsTracker implements LanternData {
                 data.put("name", cd.country.getName());
                 data.put("code", cd.country.getCode());
                 data.put("users", cd.addresses.size());
-                data.put("proxied_bytes", bytesProxied);
-                data.put("proxied_requests", proxiedRequests);
+                data.put("proxied_bytes", cd.bytes);
+                data.put("proxied_requests", cd.requests);
                 
                 countryData.add(data);
             }
