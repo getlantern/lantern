@@ -77,11 +77,18 @@ public class Launcher {
             launchLantern();
         }
         
+        serveStats();
+        
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
         while (!display.isDisposed ()) {
             if (!display.readAndDispatch ()) display.sleep ();
         }
+    }
+
+    private static void serveStats() {
+        final StatsServer stats = new StatsServer();
+        stats.serve();
     }
 
     public static void launchLantern() {
