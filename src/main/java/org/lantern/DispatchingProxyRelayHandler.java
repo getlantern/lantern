@@ -476,12 +476,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         pipeline.addLast("encoder", new HttpRequestEncoder());
         pipeline.addLast("handler", 
             new StatsTrackingHttpConnectRelayingHandler(
-                this.browserToProxyChannel, new BytesTracker() {
-                    @Override
-                    public void addBytes(final int bytes) {
-                        LanternHub.statsTracker().addBytesProxied(bytes);
-                    }
-                }));
+                this.browserToProxyChannel));
         log.info("Connecting to relay proxy");
         final InetSocketAddress isa = this.proxyProvider.getProxy();
         if (isa == null) {
