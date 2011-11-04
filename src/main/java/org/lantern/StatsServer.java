@@ -120,10 +120,12 @@ public class StatsServer {
     }
 
     
-    protected String wrapInCallback(final String requestLine, final String json) {
-        if (!requestLine.contains("callback=")) {
+    protected String wrapInCallback(final String rl, final String json) {
+        if (!rl.contains("callback=")) {
             return json;
         }
+        final String requestLine = 
+            StringUtils.substringBefore(rl, "HTTP").trim();
         final String callback;
         final String cb = 
             StringUtils.substringAfter(requestLine, "callback=");
