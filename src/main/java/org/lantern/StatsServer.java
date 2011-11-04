@@ -84,21 +84,30 @@ public class StatsServer {
                         IOUtils.closeQuietly(sock);
                         return;
                     }
+                    final String requestLine = cur;
+                    
                     while (StringUtils.isNotBlank(cur)) {
                         log.info(cur);
                         cur = br.readLine();
                     }
                     log.info("Read all headers...");
                     
-                    final String body = LanternHub.statsTracker().toJson();
+                    final String json = LanternHub.statsTracker().toJson();
+                    final String wrapped = wrapInCallback(requestLine, json);
+                    final String ct;
+                    if (json.equals(wrapped)) {
+                        ct = "application/json";
+                    } else {
+                        ct = "text/javascript";
+                    }
                     OutputStream os = sock.getOutputStream();
                     final String response = 
                         "HTTP/1.1 200 OK\r\n"+
-                        "Content-Type: application/json\r\n"+
+                        "Content-Type: "+ct+"\r\n"+
                         "Connection: close\r\n"+
-                        "Content-Length: "+body.length()+"\r\n"+
+                        "Content-Length: "+wrapped.length()+"\r\n"+
                         "\r\n"+
-                        body;
+                        wrapped;
                     os.write(response.getBytes("UTF-8"));
                 } catch (final IOException e) {
                     log.info("Exception serving stats!", e);
@@ -111,6 +120,25 @@ public class StatsServer {
     }
 
     
+    protected String wrapInCallback(final String requestLine, final String json) {
+        if (!requestLine.contains("callback=")) {
+            return json;
+        }
+        final String callback;
+        final String cb = 
+            StringUtils.substringAfter(requestLine, "callback=");
+        if (StringUtils.isBlank(cb)) {
+            return json;
+        }
+        if (cb.contains("&")) {
+            callback = StringUtils.substringBefore(cb, "&");
+        } else {
+            callback = cb;
+        }
+        return callback + "("+json+")";
+    }
+
+
     private static class ChannelAdapter implements Channel {
 
         private final InetSocketAddress remoteAddress;
