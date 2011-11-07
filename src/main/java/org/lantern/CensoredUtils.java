@@ -1,15 +1,9 @@
 package org.lantern;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.util.Collection;
-import java.util.zip.GZIPInputStream;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.slf4j.Logger;
@@ -17,7 +11,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
 import com.maxmind.geoip.Country;
-import com.maxmind.geoip.LookupService;
 
 public class CensoredUtils {
 
@@ -35,16 +28,16 @@ public class CensoredUtils {
             "MM",
             //Mideast: 
             "IR", 
-            "BH", 
-            "YE", 
-            "SA", 
+            "BH", // Bahrain
+            "YE", // Yemen
+            "SA", // Saudi Arabia
             "SY",
             //Eurasia: 
-            "UZ", 
-            "TM",
+            "UZ", // Uzbekistan
+            "TM", // Turkmenistan
             //Africa: 
-            "ET", 
-            "ER",
+            "ET", // Ethiopia
+            "ER", // Eritrea
             // LAC: 
             "CU");
 
