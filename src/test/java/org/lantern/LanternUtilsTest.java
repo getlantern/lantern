@@ -6,10 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.net.InetSocketAddress;
 import java.util.Collection;
-import java.util.Locale;
-import java.util.ResourceBundle;
 
-import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.XMPPConnection;
 import org.junit.Test;
 import org.littleshoot.commom.xmpp.XmppUtils;
@@ -53,19 +50,6 @@ public class LanternUtilsTest {
             allOtr.contains("lantern-controller@appspot.com\" value=\"enabled"));
     }
     
-    
-    @Test 
-    public void testI18n() throws Exception {
-        final ResourceBundle rb = 
-            Utf8ResourceBundle.getBundle("LanternResourceBundle", Locale.CHINESE);
-        
-        final String val =
-            rb.getString("Are you sure you want to ignore the update?".substring(
-                0, LanternConstants.I18N_KEY_LENGTH));
-        System.out.println(val);
-        //System.out.println(rb.getString("userComment"));
-        assertTrue(StringUtils.isNotBlank(val));
-    }
 
     @Test 
     public void testToHttpsCandidates() throws Exception {
@@ -101,6 +85,20 @@ public class LanternUtilsTest {
         assertFalse(CensoredUtils.isCensored("12.25.205.51")); // USA
         assertFalse(CensoredUtils.isCensored("200.21.225.82")); // Columbia
         assertTrue(CensoredUtils.isCensored("212.95.136.18")); // Iran
+        
+        assertTrue(CensoredUtils.isCensored("58.14.0.1")); // China.
+        
+        assertTrue(CensoredUtils.isCensored("190.6.64.1")); // Cuba" 
+        assertTrue(CensoredUtils.isCensored("58.186.0.1")); // Vietnam
+        assertTrue(CensoredUtils.isCensored("82.114.160.1")); // Yemen
+        assertTrue(CensoredUtils.isCensored("196.200.96.1")); // Eritrea
+        assertTrue(CensoredUtils.isCensored("213.55.64.1")); // Ethiopia
+        assertTrue(CensoredUtils.isCensored("203.81.64.1")); // Myanmar
+        assertTrue(CensoredUtils.isCensored("77.69.128.1")); // Bahrain
+        assertTrue(CensoredUtils.isCensored("62.3.0.1")); // Saudi Arabia
+        assertTrue(CensoredUtils.isCensored("62.209.128.0")); // Uzbekistan
+        assertTrue(CensoredUtils.isCensored("94.102.176.1")); // Turkmenistan
+
     }
 
 }
