@@ -6,6 +6,8 @@ import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.jboss.netty.channel.Channel;
 import org.json.simple.JSONArray;
@@ -19,69 +21,72 @@ import com.maxmind.geoip.LookupService;
  */
 public class StatsTracker implements LanternData {
     
-    private volatile long bytesProxied;
+    private final AtomicLong bytesProxied = new AtomicLong(0L);
     
-    private volatile long directBytes;
+    private final AtomicLong directBytes = new AtomicLong(0L);
+    
+    private final AtomicInteger proxiedRequests = new AtomicInteger(0);
+    
+    private final AtomicInteger directRequests = new AtomicInteger(0);
 
-    private volatile int proxiedRequests;
-
-    private volatile int directRequests;
     
     private final ConcurrentHashMap<String, CountryData> countries = 
         new ConcurrentHashMap<String, StatsTracker.CountryData>();
     
     public StatsTracker() {}
 
+    /*
     public void clear() {
-        bytesProxied = 0L;
-        directBytes = 0L;
-        proxiedRequests = 0;
-        directRequests = 0;
+        bytesProxied.set(0L);
+        directBytes.set(0L);
+        proxiedRequests.set(0);
+        directRequests.set(0);
     }
+    */
 
     public void addBytesProxied(final long bp, final Channel channel) {
-        bytesProxied += bp;
+        bytesProxied.addAndGet(bp);
         final CountryData cd = toCountryData(channel);
         cd.bytes += bp;
     }
     
 
     public void addBytesProxied(final long bp, final Socket sock) {
-        bytesProxied += bp;
+        bytesProxied.addAndGet(bp);
         final CountryData cd = toCountryData(sock);
         cd.bytes += bp;
     }
 
     @Override
     public long getTotalBytesProxied() {
-        return bytesProxied;
+        return bytesProxied.get();
     }
 
     public void addDirectBytes(final int db) {
-        directBytes += db;
+        directBytes.addAndGet(db);
     }
 
     @Override
     public long getDirectBytes() {
-        return directBytes;
+        return directBytes.get();
     }
 
     public void incrementDirectRequests() {
-        this.directRequests++;
+        this.directRequests.incrementAndGet();
     }
 
     public void incrementProxiedRequests() {
-        this.proxiedRequests++;
+        this.proxiedRequests.incrementAndGet();
     }
 
     @Override
     public int getTotalProxiedRequests() {
-        return proxiedRequests;
+        return proxiedRequests.get();
     }
 
     @Override
     public int getDirectRequests() {
-        return directRequests;
+        return directRequests.get();
     }
 
     private CountryData toCountryData(final Channel channel) {
@@ -147,7 +152,6 @@ public class StatsTracker implements LanternData {
                 countryData.add(data);
             }
         }
-        
         return json.toJSONString();
     }
 }
