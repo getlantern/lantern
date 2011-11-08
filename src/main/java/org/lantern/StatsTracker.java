@@ -3,6 +3,7 @@ package org.lantern;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -12,6 +13,9 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.jboss.netty.channel.Channel;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
+import org.littleshoot.util.NetworkUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.maxmind.geoip.Country;
 import com.maxmind.geoip.LookupService;
@@ -20,6 +24,8 @@ import com.maxmind.geoip.LookupService;
  * Class for tracking all Lantern data.
  */
 public class StatsTracker implements LanternData {
+    
+    private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final AtomicLong bytesProxied = new AtomicLong(0L);
     
@@ -137,6 +143,15 @@ public class StatsTracker implements LanternData {
         json.put("direct_requests", directRequests);
         json.put("proxied_bytes", bytesProxied);
         json.put("proxied_requests", proxiedRequests);
+        
+        final LookupService ls = LanternHub.getGeoIpLookup();
+        try {
+            final InetAddress ia = NetworkUtils.getLocalHost();
+            final String homeland = ls.getCountry(ia).getCode();
+            json.put("my_country", homeland);
+        } catch (final UnknownHostException e) {
+            log.error("Could not lookup localhost?", e);
+        }
         
         final JSONArray countryData = new JSONArray();
         json.put("countries", countryData);
