@@ -3,7 +3,6 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
-import java.util.HashMap;
 import java.util.Properties;
 
 import org.apache.log4j.Appender;
@@ -16,6 +15,7 @@ import org.eclipse.swt.widgets.Display;
 import org.json.simple.JSONObject;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
+import org.littleshoot.proxy.HttpResponseFilters;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,7 +96,12 @@ public class Launcher {
         final KeyStoreManager proxyKeyStore = LanternHub.getKeyStoreManager();
         final DefaultHttpProxyServer sslProxy = 
             new DefaultHttpProxyServer(LanternHub.randomSslPort(),
-                new HashMap<String, HttpFilter>(), null, proxyKeyStore, null);
+            new HttpResponseFilters() {
+                @Override
+                public HttpFilter getFilter(String arg0) {
+                    return null;
+                }
+            }, null, proxyKeyStore, null);
         
         //final org.littleshoot.proxy.HttpProxyServer sslProxy = 
         //    new DefaultHttpProxyServer(LanternHub.randomSslPort());
