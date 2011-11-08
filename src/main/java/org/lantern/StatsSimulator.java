@@ -2,6 +2,7 @@ package org.lantern;
 
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
+import java.util.ArrayList;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelConfig;
@@ -16,76 +17,35 @@ public class StatsSimulator {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private final String[] IPS = {
-            "78.110.96.6",  // Syria
-            
-            "78.110.96.7",  // Syria
-            "78.110.96.8",  // Syria
-            "78.110.96.9",  // Syria
-            "78.110.96.10",  // Syria
-            "78.110.96.11",  // Syria
-            "78.110.96.12",  // Syria
-            "78.110.96.13",  // Syria
-            "212.95.136.18",  // Iran
-            "212.95.136.19",  // Iran
-            "212.95.136.20",  // Iran
-            "212.95.136.21",  // Iran
-            "212.95.136.22",  // Iran
-            
-            "58.14.0.1",  // China
-            "58.14.0.2",  // China
-            "58.14.0.3",  // China
-            "58.14.0.4",  // China
-            "58.14.0.5",  // China
-            "58.14.0.6",  // China
-            "58.14.0.7",  // China
-            "58.14.0.8",  // China
-            "58.14.0.9",  // China
-            
-            "190.6.64.1",  // Cuba"
-            "190.6.64.2",  // Cuba"
-            "190.6.64.3",  // Cuba"
-            "190.6.64.4",  // Cuba"
-            "58.186.0.1",  // Vietnam
-            "58.186.0.2",  // Vietnam
-            "58.186.0.3",  // Vietnam
-            "82.114.160.1",  // Yemen
-            "82.114.160.2",  // Yemen
-            "82.114.160.3",  // Yemen
-            "196.200.96.1",  // Eritrea
-            "196.200.96.2",  // Eritrea
-            "213.55.64.1",  // Ethiopia
-            "213.55.64.2",  // Ethiopia
-            "213.55.64.3",  // Ethiopia
-            "213.55.64.4",  // Ethiopia
-            "213.55.64.5",  // Ethiopia
-            "213.55.64.6",  // Ethiopia
-            "203.81.64.1",  // Myanmar
-            "203.81.64.2",  // Myanmar
-            "203.81.64.3",  // Myanmar
-            "77.69.128.1",  // Bahrain
-            "77.69.128.2",  // Bahrain
-            "62.3.0.1",  // Saudi Arabia
-            "62.3.0.2",  // Saudi Arabia
-            "62.3.0.3",  // Saudi Arabia
-            "62.3.0.4",  // Saudi Arabia
-            "62.3.0.5",  // Saudi Arabia
-            "62.3.0.6",  // Saudi Arabia
-            "62.3.0.7",  // Saudi Arabia
-            "62.209.128.0",  // Uzbekistan
-            "62.209.128.1",  // Uzbekistan
-            "62.209.128.2",  // Uzbekistan
-            "94.102.176.1",  // Turkmenistan
-            "94.102.176.2",  // Turkmenistan
-            "94.102.176.3",  // Turkmenistan
-            "94.102.176.4",  // Turkmenistan
-            "94.102.176.5",  // Turkmenistan
-        };
+    private final ArrayList<String> IPS = new ArrayList<String>();
     
     public StatsSimulator() {
-        
+        populateIps();
     }
     
+    private void populateIps() {
+        addIps("78.110.96.", 45); // Syria
+        addIps("212.95.136.", 100); // Iran
+        addIps("58.14.0.", 200); // China
+        addIps("190.6.64.", 60); // Cuba
+        addIps("58.186.0.", 70); // Vietnam
+        addIps("82.114.160.", 100); // Yemen
+        addIps("196.200.96.", 100); // Eritrea
+        addIps("213.55.64.", 50); // Ethiopia
+        addIps("203.81.64.", 100); // Myanmar
+        addIps("77.69.128.", 10); // Bahrain
+        
+        addIps("62.3.0.", 80); // Saudi Arabia
+        addIps("62.209.128.", 60); // Uzbekistan
+        addIps("94.102.176.", 80); // Turkmenistan
+    }
+
+    private void addIps(final String base, final int num) {
+        for (int i = 0; i < num; i++) {
+            IPS.add(base+i);
+        }
+    }
+
     public void start() {
         final Thread sim = new Thread(new Runnable() {
             
@@ -94,9 +54,9 @@ public class StatsSimulator {
                 while (true) {
                     addData();
                     final double rand = Math.random();
-                    final long millis = (long) (rand * 8000);
+                    final long millis = (long) (rand * 1200);
                     try {
-                        Thread.sleep(millis);
+                        Thread.sleep(800 + millis);
                     } catch (final InterruptedException e) {
                         log.error("Sleep interrupted?", e);
                     }
@@ -120,8 +80,8 @@ public class StatsSimulator {
     }
     
     private String randomIp() {
-        final int index = (int) (Math.random() * (IPS.length - 1));
-        return IPS[index];
+        final int index = (int) (Math.random() * (IPS.size() - 1));
+        return IPS.get(index);
     }
 
 
