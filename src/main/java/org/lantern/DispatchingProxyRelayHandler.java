@@ -3,7 +3,6 @@ package org.lantern;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.HashMap;
 import java.util.concurrent.Executors;
 
 import javax.net.ssl.SSLEngine;
@@ -39,6 +38,7 @@ import org.littleshoot.proxy.DefaultRelayPipelineFactoryFactory;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestHandler;
+import org.littleshoot.proxy.HttpResponseFilters;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.ProxyUtils;
 import org.littleshoot.proxy.RelayPipelineFactoryFactory;
@@ -91,8 +91,13 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         new HttpRequestProcessor() {
             final RelayPipelineFactoryFactory pf = 
                 new DefaultRelayPipelineFactoryFactory(null, 
-                    new HashMap<String, HttpFilter>(), null, 
-                        new DefaultChannelGroup("HTTP-Proxy-Server"));
+                    new HttpResponseFilters() {
+                        @Override
+                        public HttpFilter getFilter(String arg0) {
+                            return null;
+                        }
+                    }, null, 
+                    new DefaultChannelGroup("HTTP-Proxy-Server"));
             private final HttpRequestHandler requestHandler =
                 new HttpRequestHandler(clientSocketChannelFactory, pf);
             @Override
