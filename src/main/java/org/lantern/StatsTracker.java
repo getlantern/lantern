@@ -8,6 +8,7 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -44,6 +45,9 @@ public class StatsTracker implements LanternData {
 
     private static final JSONObject oniJson = new JSONObject();
     
+    private static final JSONObject googleRemoveProductAndReasonJson = new JSONObject();
+    private static final JSONObject googleRemovalJson = new JSONObject();
+    
     
     private static final ConcurrentHashMap<String, CountryData> countries = 
         new ConcurrentHashMap<String, StatsTracker.CountryData>();
@@ -59,35 +63,81 @@ public class StatsTracker implements LanternData {
         // seem to clearly censor.
         CENSORED.add("CU");
         CENSORED.add("KP");
+        final String[] columnNames0 = {
+            "Period Ending", 
+            "Country", 
+            "Country Code", 
+            "Content Removal Requests", 
+            "Percentage of removal requests fully or partially complied with", 
+            "Items Requested To Be Removed"
+        };
+        addGoogleData(columnNames0, 
+            "google-content-removal-requests.csv", 2, 1, 
+            googleRemovalJson);
+        
+        final String[] columnNames1 = {
+            "Period Ending",
+            "Country",
+            "Country Code",
+            "Product",
+            "Reason",
+            "Court Orders",
+            "Executive, Police, etc.", 
+            "Items Requested To Be Removed",
+        };
+        parseCsv(columnNames1, 
+            "google-content-removal-requests-by-product-and-reason.csv", 2, 1, 
+            googleRemoveProductAndReasonJson);
         addOniData();
     }
-/*
-    Sets.newHashSet(
-            // Asia 
-            "CN",
-            "VN",
-            "MM",
-            //Mideast: 
-            "IR", 
-            "BH", // Bahrain
-            "YE", // Yemen
-            "SA", // Saudi Arabia
-            "SY",
-            //Eurasia: 
-            "UZ", // Uzbekistan
-            "TM", // Turkmenistan
-            //Africa: 
-            "ET", // Ethiopia
-            "ER", // Eritrea
-            // LAC: 
-            "CU");
-            */
 
     public StatsTracker() {
     }
 
+    private static void parseCsv(final String[] columnNames, 
+        final String fileName, final int countryCodeIndex, 
+        final int countryNameIndex, final JSONObject json) {
+        final File file = new File("data/"+fileName);
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(
+                new InputStreamReader(new FileInputStream(file)));
+            String line = br.readLine();
+            line = br.readLine();
+            while (line != null) {
+                addCountrySubCsvData(columnNames, line, fileName, countryCodeIndex, countryNameIndex, json);
+                line = br.readLine();
+            }
+        } catch (final IOException e) {
+            log.error("No file?", e);
+        } finally {
+            IOUtils.closeQuietly(br);
+        }
+    }
+    
+    private static void addGoogleData(final String[] columnNames, 
+        final String fileName, final int countryCodeIndex, 
+        final int countryNameIndex, final JSONObject json) {
+        final File file = new File("data/"+fileName);
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(
+                new InputStreamReader(new FileInputStream(file)));
+            String line = br.readLine();
+            line = br.readLine();
+            while (line != null) {
+                addGenericCsvData(columnNames, line, fileName, countryCodeIndex, countryNameIndex, json);
+                line = br.readLine();
+            }
+        } catch (final IOException e) {
+            log.error("No file?", e);
+        } finally {
+            IOUtils.closeQuietly(br);
+        }
+    }
+
     private static void addOniData() {
-        final File file = new File("oni/oni_country_data_2011-11-08.csv");
+        final File file = new File("data/oni_country_data_2011-11-08.csv");
         BufferedReader br = null;
         try {
             br = new BufferedReader(
@@ -103,6 +153,108 @@ public class StatsTracker implements LanternData {
         } finally {
             IOUtils.closeQuietly(br);
         }
+    }
+    
+    private static void addCountrySubCsvData(final String[] columnNames, 
+        final String lineParam, final String name, final int countryCodeIndex,
+        final int countryNameIndex, final JSONObject global) {
+        final String line;
+        if (lineParam.endsWith(",")) {
+            line = lineParam +"0";
+        } else {
+            line = lineParam;
+        }
+        final String[] data = line.split(",");
+        final String cc = data[countryCodeIndex];
+        final String countryName = data[countryNameIndex];
+
+        
+        final JSONObject json = new JSONObject();
+        
+        for (int i = 5; i < columnNames.length; i++) {
+            json.put(columnNames[i], data[i]);
+        }
+        
+        //google.put(name, json);
+        final JSONObject countryObject;
+        if (!global.containsKey(cc)) {
+            countryObject = new JSONObject();
+            global.put(cc, countryObject);
+        } else {
+            countryObject = (JSONObject) global.get(cc);
+        }
+        final CountryData cd = newCountryData(cc, countryName);
+        /*
+        final CountryData countryData;
+        if (countries.containsKey(cc)) {
+            countryData = countries.get(cc);
+        } else {
+            final Country co = new Country(cc, countryName);
+            countryData = new CountryData(co);
+            countries.put(cc, countryData);
+        }
+        
+        if (cc.equals("NO")) {
+            System.out.println("Adding Google country object to "+cc+ " with name: "+name+" to "+countryData.hashCode());
+        }
+        */
+        cd.data.put(name, countryObject);
+        
+        final JSONObject productObject;
+        if (!countryObject.containsKey(name)) {
+            productObject = new JSONObject();
+            if (cc.equals("NO")) {
+                System.out.println("Adding "+data[3]+" to country object");
+            }
+            countryObject.put(data[3], productObject);
+        } else {
+            productObject = (JSONObject) countryObject.get(data[3]);
+        }
+        
+        productObject.put(data[4], json);
+        
+        //countries.put(cc, cd);
+    }
+
+    private static void addGenericCsvData(final String[] columnNames, 
+        final String lineParam, final String name, final int countryCodeIndex,
+        final int countryNameIndex, final JSONObject global) {
+        final String line;
+        if (lineParam.endsWith(",")) {
+            line = lineParam +"0";
+        } else {
+            line = lineParam;
+        }
+        final String[] data = line.split(",");
+        final String cc = data[countryCodeIndex];
+        /*
+        final String countryName = data[countryNameIndex];
+        CountryData cd = countries.get(cc);
+        if (cd == null) {
+            final Country co = new Country(cc, countryName);
+            cd = new CountryData(co);
+            countries.put(cc, cd);
+        }
+        */
+        /*
+        final JSONObject google;
+        if (!cd.data.containsKey("google")) {
+            google = new JSONObject();
+            cd.data.put("google", google);
+        } else {
+            google = (JSONObject) cd.data.get("google");
+        }
+        */
+        
+        final JSONObject json = new JSONObject();
+        
+        for (int i = 0; i < columnNames.length; i++) {
+            json.put(columnNames[i], data[i]);
+        }
+        
+        //google.put(name, json);
+        global.put(cc, json);
+        //countries.put(cc, cd);
     }
 
     /*
@@ -143,8 +295,6 @@ public class StatsTracker implements LanternData {
             System.out.println("CENSORED: "+name+ " CC: "+cc);
             CENSORED.add(cc);
         }
-        final Country co = new Country(cc, name);
-        final CountryData cd = new CountryData(co, censored);
         
         final JSONObject json = new JSONObject();
         json.put("political", data[political_description]);
@@ -155,9 +305,29 @@ public class StatsTracker implements LanternData {
         json.put("consistency", data[consistency]);
         json.put("testing_date", data[testing_date]);
         json.put("url", data[url]);
-        cd.data.put("oni", json);
+        
         oniJson.put(cc, json);
+        
+        final CountryData cd = newCountryData(cc, name);
+
+        if (cc.equals("NO")) {
+            System.out.println("Adding ONI data to: "+cd.hashCode());
+        }
+        cd.data.put("oni", json);
+    }
+
+    private static CountryData newCountryData(final String cc, 
+        final String name) {
+        if (countries.containsKey(cc)) {
+            return countries.get(cc);
+        } 
+        if (cc.equals("NO")) {
+            System.out.println("Adding new country data for Norway!!");
+        }
+        final Country co = new Country(cc, name);
+        final CountryData cd = new CountryData(co);
         countries.put(cc, cd);
+        return cd;
     }
 
     public void addBytesProxied(final long bp, final Channel channel) {
@@ -244,11 +414,7 @@ public class StatsTracker implements LanternData {
         final JSONObject data = new JSONObject();
         
         private CountryData(final Country country) {
-            this(country, CensoredUtils.isCensored(country));
-        }
-        
-        private CountryData(final Country country, final boolean censored) {
-            data.put("censored", censored);
+            data.put("censored", CensoredUtils.isCensored(country));
             data.put("name", country.getName());
             data.put("code", country.getCode());
             data.put("lantern", lanternData);
@@ -286,11 +452,19 @@ public class StatsTracker implements LanternData {
     }
 
     public String oniJson() {
-        return this.oniJson.toJSONString();
+        return oniJson.toJSONString();
     }
 
     public String countryData(final String countryCode) {
         final CountryData data = countries.get(countryCode);
         return data.toJson().toJSONString();
+    }
+
+    public String googleContentRemovalProductReason() {
+        return googleRemoveProductAndReasonJson.toJSONString();
+    }
+
+    public String googleContentRemovalRequests() {
+        return googleRemovalJson.toJSONString();
     }
 }
