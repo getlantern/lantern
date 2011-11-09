@@ -14,7 +14,7 @@ import org.junit.Test;
 
 public class StatsTrackerTest {
 
-    //@Test 
+    @Test 
     public void testGoogleContentRemovalRequests() throws Exception {
         final StatsTracker st = new StatsTracker();
         //final String goog = st.googleContentRemovalProductReason();
@@ -26,7 +26,7 @@ public class StatsTrackerTest {
         assertEquals("100", trans);
     }
     
-    //@Test 
+    @Test 
     public void testGoogleContentRemovalProductReason() throws Exception {
         final StatsTracker st = new StatsTracker();
         final String goog = st.googleContentRemovalProductReason();
@@ -57,8 +57,8 @@ public class StatsTrackerTest {
         assertTrue("No JSON in ", noJson.containsKey("google-content-removal-requests-by-product-and-reason.csv"));
     }
     
-    //@Test 
-    public void testOni() throws Exception {
+    @Test 
+    public void testAll() throws Exception {
         final StatsTracker st = new StatsTracker();
         
         final String jsonString = st.toJson();
@@ -83,9 +83,6 @@ public class StatsTrackerTest {
                 assertTrue("no oni??", oniTest != null);
                 final JSONObject goog1 = (JSONObject) obj.get("google-content-removal-requests-by-product-and-reason.csv");
                 assertTrue("no google in "+obj.toJSONString(), goog1 != null);
-                //final JSONObject goog2 =
-                //    (JSONObject) goog1.get("google-content-removal-requests-by-product-and-reason.csv");
-                //assertTrue("no google subdata?", goog2 != null);
             }
         }
         assertTrue(foundNorway);
