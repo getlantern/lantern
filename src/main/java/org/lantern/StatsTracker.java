@@ -47,6 +47,7 @@ public class StatsTracker implements LanternData {
     private static final JSONObject googleRemoveProductAndReasonJson = new JSONObject();
     private static final JSONObject googleRemovalJson = new JSONObject();
     private static final JSONObject googleRemovalByProductJson = new JSONObject();
+    private static final JSONObject googleUserDataJson = new JSONObject();
     
     
     private static final ConcurrentHashMap<String, CountryData> countries = 
@@ -55,14 +56,14 @@ public class StatsTracker implements LanternData {
     /**
      * Censored country codes, in order of population.
      */
-    public static final Collection<String> CENSORED =
-        new HashSet<String>();
+    public static final Collection<String> CENSORED = new HashSet<String>();
     
     static {
         // Adding Cuba and North Korea since ONI has no data for them but they
         // seem to clearly censor.
         CENSORED.add("CU");
         CENSORED.add("KP");
+        addOniData();
         final String[] columnNames0 = {
             "Period Ending", 
             "Country", 
@@ -97,7 +98,16 @@ public class StatsTracker implements LanternData {
         addGoogleData(columnNames3, 
             "google-content-removal-requests-by-product.csv", 2, 1, 
             googleRemovalByProductJson);
-        addOniData();
+        
+        final String[] columnNames4 = {
+            "Period Ending", "Country", "Country Code", "Data Requests", 
+            "Percentage of data requests fully or partially complied with", 
+            "Users/Accounts Specified"
+        };
+        addGoogleData(columnNames4, 
+            "google-user-data-requests.csv", 2, 1, 
+            googleUserDataJson);
+        
     }
 
     public StatsTracker() {
@@ -114,7 +124,8 @@ public class StatsTracker implements LanternData {
             String line = br.readLine();
             line = br.readLine();
             while (line != null) {
-                addCountrySubCsvData(columnNames, line, fileName, countryCodeIndex, countryNameIndex, json);
+                addCountrySubCsvData(columnNames, line, fileName, 
+                    countryCodeIndex, countryNameIndex, json);
                 line = br.readLine();
             }
         } catch (final IOException e) {
@@ -135,7 +146,8 @@ public class StatsTracker implements LanternData {
             String line = br.readLine();
             line = br.readLine();
             while (line != null) {
-                addGenericCsvData(columnNames, line, fileName, countryCodeIndex, countryNameIndex, json);
+                addGenericCsvData(columnNames, line, fileName, 
+                   countryCodeIndex, countryNameIndex, json);
                 line = br.readLine();
             }
         } catch (final IOException e) {
@@ -209,6 +221,35 @@ public class StatsTracker implements LanternData {
         productObject.put(data[4], json);
     }
 
+    private static void addUserCsvData(final String[] columnNames, 
+        final String lineParam, final String name, final int countryCodeIndex,
+        final int countryNameIndex, final JSONObject global) {
+        final String line;
+        if (lineParam.endsWith(",")) {
+            line = lineParam +"0";
+        } else {
+            line = lineParam;
+        }
+        final String[] data = line.split(",");
+        final String cc = data[countryCodeIndex];
+        
+        final String countryName = data[countryNameIndex];
+        
+        final JSONObject json = new JSONObject();
+        
+        for (int i = 0; i < columnNames.length; i++) {
+            json.put(columnNames[i], data[i]);
+        }
+        
+        //google.put(name, json);
+        global.put(cc, json);
+
+        final CountryData cd = newCountryData(cc, countryName);
+        final JSONObject country;
+        cd.data.put(name, json);
+        //countries.put(cc, cd);
+    }
+    
     private static void addGenericCsvData(final String[] columnNames, 
         final String lineParam, final String name, final int countryCodeIndex,
         final int countryNameIndex, final JSONObject global) {
@@ -262,7 +303,6 @@ public class StatsTracker implements LanternData {
     private static final int url = 13;
     
     private static void addCountryData(final String line) {
-        //final boolean censored = line.contains("pervasive");
         final boolean censored = 
             line.contains("pervasive") || 
             line.contains("substantial");
