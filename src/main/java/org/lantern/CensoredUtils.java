@@ -20,6 +20,7 @@ public class CensoredUtils {
     /**
      * Censored country codes, in order of population.
      */
+    /*
     private static final Collection<String> CENSORED =
         Sets.newHashSet(
             // Asia 
@@ -40,6 +41,7 @@ public class CensoredUtils {
             "ER", // Eritrea
             // LAC: 
             "CU");
+            */
 
     // These country codes have US export restrictions, and therefore cannot
     // access App Engine sites.
@@ -69,7 +71,7 @@ public class CensoredUtils {
     }
     
     public static boolean isCensored(final InetAddress address) {
-        return isMatch(address, CENSORED);
+        return isMatch(address, StatsTracker.CENSORED);
     }
 
     public static boolean isCensored(final String address) throws IOException {
@@ -95,6 +97,11 @@ public class CensoredUtils {
         LOG.info("Country is: {}", country.getName());
         countryCode = country.getCode().trim();
         return countries.contains(countryCode);
+    }
+    
+    public static boolean isCensored(final Country country) { 
+        countryCode = country.getCode().trim();
+        return StatsTracker.CENSORED.contains(countryCode);
     }
     
 
