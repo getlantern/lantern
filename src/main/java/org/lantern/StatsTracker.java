@@ -46,6 +46,7 @@ public class StatsTracker implements LanternData {
     
     private static final JSONObject googleRemoveProductAndReasonJson = new JSONObject();
     private static final JSONObject googleRemovalJson = new JSONObject();
+    private static final JSONObject googleRemovalByProductJson = new JSONObject();
     
     
     private static final ConcurrentHashMap<String, CountryData> countries = 
@@ -87,6 +88,15 @@ public class StatsTracker implements LanternData {
         parseCsv(columnNames1, 
             "google-content-removal-requests-by-product-and-reason.csv", 2, 1, 
             googleRemoveProductAndReasonJson);
+        
+        final String[] columnNames3 = {
+            "Period Ending","Country","Country Code","Product",
+            "Court Orders","Executive, Police, etc.",
+            "Items Requested To Be Removed",
+        };
+        addGoogleData(columnNames3, 
+            "google-content-removal-requests-by-product.csv", 2, 1, 
+            googleRemovalByProductJson);
         addOniData();
     }
 
@@ -215,7 +225,7 @@ public class StatsTracker implements LanternData {
         
         final JSONObject json = new JSONObject();
         
-        for (int i = 4; i < columnNames.length; i++) {
+        for (int i = 3; i < columnNames.length; i++) {
             json.put(columnNames[i], data[i]);
         }
         
