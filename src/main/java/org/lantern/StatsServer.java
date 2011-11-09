@@ -81,6 +81,10 @@ public class StatsServer {
                         final String country = 
                             StringUtils.substringBetween("/country/", "?");
                         json = LanternHub.statsTracker().countryData(country);
+                    } else if (requestLine.startsWith("GET /googleContentRemovalProductReason")) {
+                        json = LanternHub.statsTracker().googleContentRemovalProductReason();
+                    } else if (requestLine.startsWith("GET /googleContentRemovalRequests")) {
+                        json = LanternHub.statsTracker().googleContentRemovalRequests();
                     } else {
                         json = "";
                     }
