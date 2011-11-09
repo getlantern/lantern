@@ -31,7 +31,8 @@ import com.maxmind.geoip.LookupService;
  */
 public class StatsTracker implements LanternData {
     
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final static Logger log = 
+        LoggerFactory.getLogger(StatsTracker.class);
     
     private final AtomicLong bytesProxied = new AtomicLong(0L);
     
@@ -41,11 +42,25 @@ public class StatsTracker implements LanternData {
     
     private final AtomicInteger directRequests = new AtomicInteger(0);
 
+    private static final JSONObject oniJson = new JSONObject();
+    
+    
+    private static final ConcurrentHashMap<String, CountryData> countries = 
+        new ConcurrentHashMap<String, StatsTracker.CountryData>();
+    
     /**
      * Censored country codes, in order of population.
      */
     public static final Collection<String> CENSORED =
         new HashSet<String>();
+    
+    static {
+        // Adding Cuba and North Korea since ONI has no data for them but they
+        // seem to clearly censor.
+        CENSORED.add("CU");
+        CENSORED.add("KP");
+        addOniData();
+    }
 /*
     Sets.newHashSet(
             // Asia 
@@ -67,16 +82,11 @@ public class StatsTracker implements LanternData {
             // LAC: 
             "CU");
             */
-    
-    private final ConcurrentHashMap<String, CountryData> countries = 
-        new ConcurrentHashMap<String, StatsTracker.CountryData>();
-    
+
     public StatsTracker() {
-        CENSORED.add("CU");
-        addOniData();
     }
 
-    private void addOniData() {
+    private static void addOniData() {
         final File file = new File("oni/oni_country_data_2011-11-08.csv");
         BufferedReader br = null;
         try {
@@ -104,32 +114,36 @@ public class StatsTracker implements LanternData {
     }
     */
 
-    private final int country_code = 0;
-    private final int country_index = 1;
-    private final int political_score = 2;
-    private final int political_description = 3;
-    private final int social_score = 4;
-    private final int social_description = 5;
-    private final int tools_score = 6;
-    private final int tools_description = 7;
-    private final int conflict_security_score = 8;
-    private final int conflict_security_description = 9;
-    private final int transparency = 10;
-    private final int consistency = 11;
-    private final int testing_date = 12;
-    private final int url = 13;
+    private static final int country_code = 0;
+    private static final int country_index = 1;
+    private static final int political_score = 2;
+    private static final int political_description = 3;
+    private static final int social_score = 4;
+    private static final int social_description = 5;
+    private static final int tools_score = 6;
+    private static final int tools_description = 7;
+    private static final int conflict_security_score = 8;
+    private static final int conflict_security_description = 9;
+    private static final int transparency = 10;
+    private static final int consistency = 11;
+    private static final int testing_date = 12;
+    private static final int url = 13;
     
-    private final JSONObject oniJson = new JSONObject();
-    
-    private void addCountryData(final String line) {
-        final boolean censored = line.contains("pervasive");
+    private static void addCountryData(final String line) {
+        //final boolean censored = line.contains("pervasive");
+        final boolean censored = 
+            line.contains("pervasive") || 
+            line.contains("substantial");
         final String[] data = line.split(",");
         final String cc = data[country_code];
+        final String name = data[country_index];
+        //System.out.println("Adding line: "+line);
+        //System.out.println("CC: "+cc);
         if (censored) {
+            System.out.println("CENSORED: "+name+ " CC: "+cc);
             CENSORED.add(cc);
         }
-        final Country co = 
-            new Country(cc, data[country_index]);
+        final Country co = new Country(cc, name);
         final CountryData cd = new CountryData(co, censored);
         
         final JSONObject json = new JSONObject();
@@ -141,9 +155,9 @@ public class StatsTracker implements LanternData {
         json.put("consistency", data[consistency]);
         json.put("testing_date", data[testing_date]);
         json.put("url", data[url]);
-        cd.data.put("oni", oniJson);
-        oniJson.put(data[country_code], json);
-        countries.put(data[country_code], cd);
+        cd.data.put("oni", json);
+        oniJson.put(cc, json);
+        countries.put(cc, cd);
     }
 
     public void addBytesProxied(final long bp, final Channel channel) {
