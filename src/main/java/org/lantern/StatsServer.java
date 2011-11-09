@@ -58,26 +58,32 @@ public class StatsServer {
                     final BufferedReader br = 
                         new BufferedReader(new InputStreamReader(is, "UTF-8"));
                     String cur = br.readLine();
+                    final String requestLine = cur;
                     if (StringUtils.isBlank(cur)) {
                         log.info("Closing blank request socket");
                         IOUtils.closeQuietly(sock);
                         return;
                     } 
                     
-                    if (!cur.startsWith("GET /stats")) {
-                        log.info("Ignoring request with line: "+cur);
-                        IOUtils.closeQuietly(sock);
-                        return;
-                    }
-                    final String requestLine = cur;
                     
                     while (StringUtils.isNotBlank(cur)) {
                         log.info(cur);
                         cur = br.readLine();
                     }
                     log.info("Read all headers...");
-                    
-                    final String json = LanternHub.statsTracker().toJson();
+
+                    final String json;
+                    if (requestLine.startsWith("GET /stats")) {
+                        json = LanternHub.statsTracker().toJson();
+                    } else if (requestLine.startsWith("GET /oni")) {
+                        json = LanternHub.statsTracker().oniJson();
+                    } else if (requestLine.startsWith("GET /country/")) {
+                        final String country = 
+                            StringUtils.substringBetween("/country/", "?");
+                        json = LanternHub.statsTracker().countryData(country);
+                    } else {
+                        json = "";
+                    }
                     final String wrapped = wrapInCallback(requestLine, json);
                     final String ct;
                     if (json.equals(wrapped)) {
