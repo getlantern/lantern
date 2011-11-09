@@ -78,8 +78,13 @@ public class StatsServer {
                     } else if (requestLine.startsWith("GET /oni")) {
                         json = LanternHub.statsTracker().oniJson();
                     } else if (requestLine.startsWith("GET /country/")) {
-                        final String country = 
-                            StringUtils.substringBetween("/country/", "?");
+                        final String country;
+                        if (requestLine.contains("?")) {
+                            country = StringUtils.substringBetween(requestLine, "/country/", "?");
+                        } else {
+                            country = StringUtils.substringBetween(requestLine, "/country/", "HTTP");
+                        }
+                            
                         json = LanternHub.statsTracker().countryData(country);
                     } else if (requestLine.startsWith("GET /googleContentRemovalProductReason")) {
                         json = LanternHub.statsTracker().googleContentRemovalProductReason();
