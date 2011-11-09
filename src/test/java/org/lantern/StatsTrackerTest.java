@@ -45,6 +45,7 @@ public class StatsTrackerTest {
         
         assertTrue(chinaJson2.containsKey("lantern"));
         assertTrue(chinaJson2.containsKey("oni"));
+        assertTrue(chinaJson2.containsKey("google-content-removal-requests.csv"));
         
         final String norway = st.countryData("NO");
         final JSONObject noJson = (JSONObject) JSONValue.parse(norway);
@@ -54,8 +55,12 @@ public class StatsTrackerTest {
         if (!noJson.containsKey("google-content-removal-requests-by-product-and-reason.csv")) {
             System.out.println("No JSON in "+noJson.toJSONString());
         }
-        assertTrue("No JSON in ", 
+        assertTrue("No JSON in "+noJson.toJSONString(), 
             noJson.containsKey("google-content-removal-requests-by-product-and-reason.csv"));
+        //assertTrue("No Google user JSON in "+noJson.toJSONString(), 
+        //    noJson.containsKey("google-user-data-requests.csv"));
+        //assertTrue("No JSON in "+noJson.toJSONString(), 
+        //    noJson.containsKey("google-content-removal-requests-by-product-and-reason.csv"));
     }
     
     @Test 
