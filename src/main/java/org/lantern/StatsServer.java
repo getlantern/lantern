@@ -85,6 +85,10 @@ public class StatsServer {
                         json = LanternHub.statsTracker().googleContentRemovalProductReason();
                     } else if (requestLine.startsWith("GET /googleContentRemovalRequests")) {
                         json = LanternHub.statsTracker().googleContentRemovalRequests();
+                    } else if (requestLine.startsWith("GET /googleUserRequests")) {
+                        json = LanternHub.statsTracker().googleUserRequests();
+                    } else if (requestLine.startsWith("GET /googleRemovalByProductRequests")) {
+                        json = LanternHub.statsTracker().googleRemovalByProductRequests();
                     } else {
                         json = "";
                     }
