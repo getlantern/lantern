@@ -54,7 +54,8 @@ public class StatsTrackerTest {
         if (!noJson.containsKey("google-content-removal-requests-by-product-and-reason.csv")) {
             System.out.println("No JSON in "+noJson.toJSONString());
         }
-        assertTrue("No JSON in ", noJson.containsKey("google-content-removal-requests-by-product-and-reason.csv"));
+        assertTrue("No JSON in ", 
+            noJson.containsKey("google-content-removal-requests-by-product-and-reason.csv"));
     }
     
     @Test 
@@ -81,7 +82,8 @@ public class StatsTrackerTest {
                 foundNorway = true;
                 final JSONObject oniTest = (JSONObject) obj.get("oni");
                 assertTrue("no oni??", oniTest != null);
-                final JSONObject goog1 = (JSONObject) obj.get("google-content-removal-requests-by-product-and-reason.csv");
+                final JSONObject goog1 = 
+                    (JSONObject) obj.get("google-content-removal-requests-by-product-and-reason.csv");
                 assertTrue("no google in "+obj.toJSONString(), goog1 != null);
             }
         }

@@ -506,7 +506,8 @@ public class StatsTracker implements LanternData {
     }
 
     public String countryData(final String countryCode) {
-        final CountryData data = countries.get(countryCode);
+        log.info("Accessing data for country: '{}'", countryCode);
+        final CountryData data = countries.get(countryCode.trim());
         return data.toJson().toJSONString();
     }
 
