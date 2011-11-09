@@ -104,7 +104,7 @@ public class StatsTracker implements LanternData {
             "Percentage of data requests fully or partially complied with", 
             "Users/Accounts Specified"
         };
-        addGoogleData(columnNames4, 
+        addGoogleUserData(columnNames4, 
             "google-user-data-requests.csv", 2, 1, 
             googleUserDataJson);
         
@@ -135,6 +135,28 @@ public class StatsTracker implements LanternData {
         }
     }
     
+    private static void addGoogleUserData(final String[] columnNames, 
+        final String fileName, final int countryCodeIndex, 
+        final int countryNameIndex, final JSONObject json) {
+        final File file = new File("data/"+fileName);
+        BufferedReader br = null;
+        try {
+            br = new BufferedReader(
+                new InputStreamReader(new FileInputStream(file)));
+            String line = br.readLine();
+            line = br.readLine();
+            while (line != null) {
+                addUserCsvData(columnNames, line, fileName, 
+                   countryCodeIndex, countryNameIndex, json);
+                line = br.readLine();
+            }
+        } catch (final IOException e) {
+            log.error("No file?", e);
+        } finally {
+            IOUtils.closeQuietly(br);
+        }
+    }
+
     private static void addGoogleData(final String[] columnNames, 
         final String fileName, final int countryCodeIndex, 
         final int countryNameIndex, final JSONObject json) {
@@ -245,8 +267,16 @@ public class StatsTracker implements LanternData {
         global.put(cc, json);
 
         final CountryData cd = newCountryData(cc, countryName);
-        final JSONObject country;
-        cd.data.put(name, json);
+        final String key = "user-requests";
+        final JSONArray userRequests;
+        if (cd.data.containsKey(key)) {
+            userRequests = (JSONArray) cd.data.get(key);
+        } else {
+            userRequests = new JSONArray();
+            cd.data.put(key, userRequests);
+        }
+        userRequests.add(json);
+        //cd.data.put(name, json);
         //countries.put(cc, cd);
     }
     
