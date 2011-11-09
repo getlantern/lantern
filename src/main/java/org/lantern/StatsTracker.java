@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -184,20 +183,6 @@ public class StatsTracker implements LanternData {
             countryObject = (JSONObject) global.get(cc);
         }
         final CountryData cd = newCountryData(cc, countryName);
-        /*
-        final CountryData countryData;
-        if (countries.containsKey(cc)) {
-            countryData = countries.get(cc);
-        } else {
-            final Country co = new Country(cc, countryName);
-            countryData = new CountryData(co);
-            countries.put(cc, countryData);
-        }
-        
-        if (cc.equals("NO")) {
-            System.out.println("Adding Google country object to "+cc+ " with name: "+name+" to "+countryData.hashCode());
-        }
-        */
         cd.data.put(name, countryObject);
         
         final JSONObject productObject;
@@ -212,8 +197,6 @@ public class StatsTracker implements LanternData {
         }
         
         productObject.put(data[4], json);
-        
-        //countries.put(cc, cd);
     }
 
     private static void addGenericCsvData(final String[] columnNames, 
@@ -227,33 +210,20 @@ public class StatsTracker implements LanternData {
         }
         final String[] data = line.split(",");
         final String cc = data[countryCodeIndex];
-        /*
+        
         final String countryName = data[countryNameIndex];
-        CountryData cd = countries.get(cc);
-        if (cd == null) {
-            final Country co = new Country(cc, countryName);
-            cd = new CountryData(co);
-            countries.put(cc, cd);
-        }
-        */
-        /*
-        final JSONObject google;
-        if (!cd.data.containsKey("google")) {
-            google = new JSONObject();
-            cd.data.put("google", google);
-        } else {
-            google = (JSONObject) cd.data.get("google");
-        }
-        */
         
         final JSONObject json = new JSONObject();
         
-        for (int i = 0; i < columnNames.length; i++) {
+        for (int i = 4; i < columnNames.length; i++) {
             json.put(columnNames[i], data[i]);
         }
         
         //google.put(name, json);
         global.put(cc, json);
+
+        final CountryData cd = newCountryData(cc, countryName);
+        cd.data.put(name, json);
         //countries.put(cc, cd);
     }
 
