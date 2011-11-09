@@ -8,7 +8,7 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,7 +19,7 @@ import org.apache.commons.io.IOUtils;
 import org.jboss.netty.channel.Channel;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.littleshoot.util.NetworkUtils;
+import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,11 +41,38 @@ public class StatsTracker implements LanternData {
     
     private final AtomicInteger directRequests = new AtomicInteger(0);
 
+    /**
+     * Censored country codes, in order of population.
+     */
+    public static final Collection<String> CENSORED =
+        new HashSet<String>();
+/*
+    Sets.newHashSet(
+            // Asia 
+            "CN",
+            "VN",
+            "MM",
+            //Mideast: 
+            "IR", 
+            "BH", // Bahrain
+            "YE", // Yemen
+            "SA", // Saudi Arabia
+            "SY",
+            //Eurasia: 
+            "UZ", // Uzbekistan
+            "TM", // Turkmenistan
+            //Africa: 
+            "ET", // Ethiopia
+            "ER", // Eritrea
+            // LAC: 
+            "CU");
+            */
     
     private final ConcurrentHashMap<String, CountryData> countries = 
         new ConcurrentHashMap<String, StatsTracker.CountryData>();
     
     public StatsTracker() {
+        CENSORED.add("CU");
         addOniData();
     }
 
@@ -92,12 +119,18 @@ public class StatsTracker implements LanternData {
     private final int testing_date = 12;
     private final int url = 13;
     
-    final JSONObject oniJson = new JSONObject();
+    private final JSONObject oniJson = new JSONObject();
     
     private void addCountryData(final String line) {
+        final boolean censored = line.contains("pervasive");
         final String[] data = line.split(",");
-        final CountryData cd = 
-            new CountryData(new Country(data[country_code], data[country_index]));
+        final String cc = data[country_code];
+        if (censored) {
+            CENSORED.add(cc);
+        }
+        final Country co = 
+            new Country(cc, data[country_index]);
+        final CountryData cd = new CountryData(co, censored);
         
         final JSONObject json = new JSONObject();
         json.put("political", data[political_description]);
@@ -108,7 +141,7 @@ public class StatsTracker implements LanternData {
         json.put("consistency", data[consistency]);
         json.put("testing_date", data[testing_date]);
         json.put("url", data[url]);
-        cd.oniJson = json;
+        cd.data.put("oni", oniJson);
         oniJson.put(data[country_code], json);
         countries.put(data[country_code], cd);
     }
@@ -192,24 +225,26 @@ public class StatsTracker implements LanternData {
         private final Set<InetAddress> addresses = new HashSet<InetAddress>();
         private volatile int requests;
         private volatile long bytes;
-        private final Country country;
-        private JSONObject oniJson;
         
         private final JSONObject lanternData = new JSONObject();
+        final JSONObject data = new JSONObject();
         
         private CountryData(final Country country) {
-            this.country = country;
-            lanternData.put("name", country.getName());
-            lanternData.put("code", country.getCode());
+            this(country, CensoredUtils.isCensored(country));
+        }
+        
+        private CountryData(final Country country, final boolean censored) {
+            data.put("censored", censored);
+            data.put("name", country.getName());
+            data.put("code", country.getCode());
+            data.put("lantern", lanternData);
         }
 
         private JSONObject toJson() {
-            final JSONObject data = new JSONObject();
             lanternData.put("users", addresses.size());
             lanternData.put("proxied_bytes", bytes);
             lanternData.put("proxied_requests", requests);
-            data.put("oni", oniJson);
-            data.put("lantern", lanternData);
+
             return data;
         }
     }
@@ -222,13 +257,9 @@ public class StatsTracker implements LanternData {
         json.put("proxied_requests", proxiedRequests);
         
         final LookupService ls = LanternHub.getGeoIpLookup();
-        try {
-            final InetAddress ia = NetworkUtils.getLocalHost();
-            final String homeland = ls.getCountry(ia).getCode();
-            json.put("my_country", homeland);
-        } catch (final UnknownHostException e) {
-            log.error("Could not lookup localhost?", e);
-        }
+        final InetAddress ia = new PublicIpAddress().getPublicIpAddress();
+        final String homeland = ls.getCountry(ia).getCode();
+        json.put("my_country", homeland);
         
         final JSONArray countryData = new JSONArray();
         json.put("countries", countryData);
