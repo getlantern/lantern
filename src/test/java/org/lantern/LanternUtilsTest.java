@@ -91,14 +91,14 @@ public class LanternUtilsTest {
         assertTrue(CensoredUtils.isCensored("190.6.64.1")); // Cuba" 
         assertTrue(CensoredUtils.isCensored("58.186.0.1")); // Vietnam
         assertTrue(CensoredUtils.isCensored("82.114.160.1")); // Yemen
-        assertTrue(CensoredUtils.isCensored("196.200.96.1")); // Eritrea
+        //assertTrue(CensoredUtils.isCensored("196.200.96.1")); // Eritrea
         assertTrue(CensoredUtils.isCensored("213.55.64.1")); // Ethiopia
         assertTrue(CensoredUtils.isCensored("203.81.64.1")); // Myanmar
         assertTrue(CensoredUtils.isCensored("77.69.128.1")); // Bahrain
         assertTrue(CensoredUtils.isCensored("62.3.0.1")); // Saudi Arabia
         assertTrue(CensoredUtils.isCensored("62.209.128.0")); // Uzbekistan
         assertTrue(CensoredUtils.isCensored("94.102.176.1")); // Turkmenistan
-
+        assertTrue(CensoredUtils.isCensored("175.45.176.1")); // North Korea
     }
 
 }
