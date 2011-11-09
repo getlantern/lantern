@@ -517,4 +517,12 @@ public class StatsTracker implements LanternData {
     public String googleContentRemovalRequests() {
         return googleRemovalJson.toJSONString();
     }
+
+    public String googleUserRequests() {
+        return googleUserDataJson.toJSONString();
+    }
+    
+    public String googleRemovalByProductRequests() {
+        return googleRemovalByProductJson.toJSONString();
+    }
 }
