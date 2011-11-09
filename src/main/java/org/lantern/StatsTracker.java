@@ -210,7 +210,6 @@ public class StatsTracker implements LanternData {
         final String[] data = line.split(",");
         final String cc = data[countryCodeIndex];
         final String countryName = data[countryNameIndex];
-
         
         final JSONObject json = new JSONObject();
         
@@ -489,7 +488,8 @@ public class StatsTracker implements LanternData {
         final LookupService ls = LanternHub.getGeoIpLookup();
         final InetAddress ia = new PublicIpAddress().getPublicIpAddress();
         final String homeland = ls.getCountry(ia).getCode();
-        json.put("my_country", homeland);
+        //json.put("my_country", homeland);
+        json.put("my_country", "BE");
         
         final JSONArray countryData = new JSONArray();
         json.put("countries", countryData);
