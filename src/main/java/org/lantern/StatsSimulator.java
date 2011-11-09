@@ -24,20 +24,29 @@ public class StatsSimulator {
     }
     
     private void populateIps() {
-        addIps("78.110.96.", 45); // Syria
-        addIps("212.95.136.", 100); // Iran
+        addIps("77.69.128.", 10); // Bahrain
         addIps("58.14.0.", 200); // China
         addIps("190.6.64.", 60); // Cuba
-        addIps("58.186.0.", 70); // Vietnam
-        addIps("82.114.160.", 100); // Yemen
-        addIps("196.200.96.", 100); // Eritrea
+        //addIps("196.200.96.", 100); // Eritrea
         addIps("213.55.64.", 50); // Ethiopia
+        addIps("46.36.195.", 100); // Indonesia
+        addIps("212.95.136.", 100); // Iran
+        addIps("49.1.0.", 120); // South Korea
         addIps("203.81.64.", 100); // Myanmar
-        addIps("77.69.128.", 10); // Bahrain
+        addIps("175.45.176.", 100); // North Korea
+        
+        addIps("46.36.195.", 80); // Oman
+        addIps("46.36.195.", 80); // Qatar
+        addIps("39.32.0.", 80); // Pakistan
         
         addIps("62.3.0.", 80); // Saudi Arabia
-        addIps("62.209.128.", 60); // Uzbekistan
+        addIps("31.201.1.", 60); // Sudan
+        addIps("78.110.96.", 45); // Syria
         addIps("94.102.176.", 80); // Turkmenistan
+        addIps("85.115.64.", 40); // United Arab Emirates
+        addIps("62.209.128.", 60); // Uzbekistan
+        addIps("58.186.0.", 70); // Vietnam
+        addIps("82.114.160.", 100); // Yemen
     }
 
     private void addIps(final String base, final int num) {
