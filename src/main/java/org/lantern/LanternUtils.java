@@ -98,8 +98,9 @@ public class LanternUtils {
         } else if (SystemUtils.IS_OS_MAC_OSX) {
             final File homeLibrary = 
                 new File(System.getProperty("user.home"), "Library");
-            DATA_DIR = new File(homeLibrary, "Logs");
-            LOG_DIR = new File(DATA_DIR, "Lantern");
+            DATA_DIR = CONFIG_DIR;//new File(homeLibrary, "Logs");
+            final File allLogsDir = new File(homeLibrary, "Logs");
+            LOG_DIR = new File(allLogsDir, "Lantern");
         } else {
             DATA_DIR = new File(SystemUtils.getUserHome(), ".lantern");
             LOG_DIR = new File(DATA_DIR, "logs");
