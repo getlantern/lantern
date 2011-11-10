@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.io.IOUtils;
@@ -32,6 +33,9 @@ public class LanternHub {
     private volatile static int randomSslPort = -1;
     
     private volatile static LookupService lookupService;
+    
+    private static AtomicReference<JettyLauncher> jettyLauncher =
+        new AtomicReference<JettyLauncher>();
     
     private static final File UNZIPPED = 
         new File(LanternUtils.dataDir(), "GeoIP.dat");
@@ -129,6 +133,13 @@ public class LanternHub {
             randomSslPort = LanternUtils.randomPort();
         }
         return randomSslPort;
+    }
+
+    public static JettyLauncher jettyLauncher() {
+        if (jettyLauncher.get() == null) {
+            jettyLauncher.set(new JettyLauncher());
+        }
+        return jettyLauncher.get();
     }
 
 }
