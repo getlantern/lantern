@@ -452,11 +452,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final StatsTracker statsTracker = LanternHub.statsTracker();
         json.put(LanternConstants.COUNTRY_CODE, CensoredUtils.countryCode());
         json.put(LanternConstants.BYTES_PROXIED, 
-            statsTracker.getBytesProxied());
+            statsTracker.getTotalBytesProxied());
         json.put(LanternConstants.DIRECT_BYTES, 
             statsTracker.getDirectBytes());
         json.put(LanternConstants.REQUESTS_PROXIED, 
-            statsTracker.getProxiedRequests());
+            statsTracker.getTotalProxiedRequests());
         json.put(LanternConstants.DIRECT_REQUESTS, 
             statsTracker.getDirectRequests());
         json.put(LanternConstants.WHITELIST_ADDITIONS, 
@@ -470,7 +470,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         
         this.client.getXmppConnection().sendPacket(msg);
         Whitelist.whitelistReported();
-        statsTracker.clear();
+        //statsTracker.clear();
     }
 
     private void addOrRemovePeer(final Presence p, final String from) {
