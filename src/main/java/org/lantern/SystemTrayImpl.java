@@ -77,6 +77,21 @@ public class SystemTrayImpl implements SystemTray {
             });
 
             this.menu = new Menu (shell, SWT.POP_UP);
+            final MenuItem dashboardItem = new MenuItem(menu, SWT.PUSH);
+            dashboardItem.setText(I18n.tr("Stop Lantern "));
+            dashboardItem.addListener (SWT.Selection, new Listener () {
+                @Override
+                public void handleEvent (final Event event) {
+                    log.info("Stopping Lantern!!");
+                    display.asyncExec (new Runnable () {
+                        @Override
+                        public void run () {
+                            log.info("Setting start stop button state.");
+                            LanternUtils.openDashboard();
+                        }
+                    });
+                }
+            });
             /*
             final MenuItem aboutItem = new MenuItem(menu, SWT.PUSH);
             aboutItem.setText(I18n.tr("About"));

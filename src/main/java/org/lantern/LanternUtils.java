@@ -1,5 +1,6 @@
 package org.lantern;
 
+import java.awt.Desktop;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileWriter;
@@ -14,11 +15,13 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.UnresolvedAddressException;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -658,6 +661,37 @@ public class LanternUtils {
     
     public static boolean shouldProxy() {
         return CensoredUtils.isCensored() || CensoredUtils.isForceCensored();
+    }
+    
+    public static void browseUrl(final String uri) {
+        if( !Desktop.isDesktopSupported() ) {
+            LOG.error("Desktop not supported?");
+        }
+        final Desktop desktop = Desktop.getDesktop();
+        if( !desktop.isSupported(Desktop.Action.BROWSE )) {
+            LOG.error("Browse not supported?");
+        }
+
+        try {
+            desktop.browse(new URI(uri));
+        } catch (final IOException e) {
+            LOG.warn("Error opening browser", e);
+        } catch (final URISyntaxException e) {
+            LOG.warn("Could not load URI", e);
+        }
+    }
+    
+    private static SecureRandom sr;
+    private static String randomUrlBase;
+
+    public static void openDashboard() {
+        if (sr == null) {
+            sr = new SecureRandom();
+            sr.nextLong();
+            final JettyLauncher jl = LanternHub.jettyLauncher();
+            jl.start();
+        }
+        LanternHub.jettyLauncher().openBrowserWhenReady(randomUrlBase);
     }
 }
 
