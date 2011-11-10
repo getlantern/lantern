@@ -5,11 +5,11 @@ import javax.management.MXBean;
 @MXBean(true)
 public interface LanternData {
 
-    long getBytesProxied();
+    long getTotalBytesProxied();
     
     long getDirectBytes();
     
-    int getProxiedRequests();
+    int getTotalProxiedRequests();
     
     int getDirectRequests();
 }
