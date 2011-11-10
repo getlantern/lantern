@@ -585,9 +585,7 @@ public class LanternUtils {
                 channel.connect(server);
                 return;
             } catch (final IOException e) {
-                LOG.error("Could not create channel!", e);
             } catch (final UnresolvedAddressException e) {
-                LOG.error("Could not resolve address", e);
             }
             try {
                 Thread.sleep(250);
