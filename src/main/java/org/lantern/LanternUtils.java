@@ -98,8 +98,9 @@ public class LanternUtils {
         } else if (SystemUtils.IS_OS_MAC_OSX) {
             final File homeLibrary = 
                 new File(System.getProperty("user.home"), "Library");
-            DATA_DIR = new File(homeLibrary, "Logs");
-            LOG_DIR = new File(DATA_DIR, "Lantern");
+            DATA_DIR = CONFIG_DIR;//new File(homeLibrary, "Logs");
+            final File allLogsDir = new File(homeLibrary, "Logs");
+            LOG_DIR = new File(allLogsDir, "Lantern");
         } else {
             DATA_DIR = new File(SystemUtils.getUserHome(), ".lantern");
             LOG_DIR = new File(DATA_DIR, "logs");
@@ -262,7 +263,7 @@ public class LanternUtils {
                             ChannelBuffers.copiedBuffer(buffer, 0, n);
                         channel.write(buf);
                         if (recordStats) {
-                            LanternHub.statsTracker().addBytesProxied(n);
+                            LanternHub.statsTracker().addBytesProxied(n, sock);
                         }
                         count += n;
                         
@@ -584,9 +585,7 @@ public class LanternUtils {
                 channel.connect(server);
                 return;
             } catch (final IOException e) {
-                LOG.error("Could not create channel!", e);
             } catch (final UnresolvedAddressException e) {
-                LOG.error("Could not resolve address", e);
             }
             try {
                 Thread.sleep(250);

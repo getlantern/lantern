@@ -1,11 +1,26 @@
 package org.lantern;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.eclipse.swt.widgets.Display;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.maxmind.geoip.LookupService;
+
+/**
+ * Class for accessing all of the core modules used in Lantern.
+ */
 public class LanternHub {
 
+    private static final Logger LOG = LoggerFactory.getLogger(LanternHub.class);
     private volatile static TrustedContactsManager trustedContactsManager;
     private volatile static Display display;
     private volatile static SystemTray systemTray;
@@ -16,6 +31,44 @@ public class LanternHub {
     private volatile static XmppHandler xmppHandler;
     private volatile static int randomSslPort = -1;
     
+    private volatile static LookupService lookupService;
+    
+    private static final File UNZIPPED = 
+        new File(LanternUtils.dataDir(), "GeoIP.dat");
+    
+    public synchronized static LookupService getGeoIpLookup() {
+        if (lookupService == null) {
+            lookupService = buildLookupService();
+        }
+        return lookupService;
+    }
+    
+    private static LookupService buildLookupService() {
+        if (!UNZIPPED.isFile())  {
+            final File file = new File("GeoIP.dat.gz");
+            GZIPInputStream is = null;
+            OutputStream os = null;
+            try {
+                is = new GZIPInputStream(new FileInputStream(file));
+                os = new FileOutputStream(UNZIPPED);
+                IOUtils.copy(is, os);
+            } catch (final IOException e) {
+                LOG.error("Error expanding file?", e);
+            } finally {
+                IOUtils.closeQuietly(is);
+                IOUtils.closeQuietly(os);
+            }
+        }
+        try {
+            lookupService = new LookupService(UNZIPPED, 
+                    LookupService.GEOIP_MEMORY_CACHE);
+        } catch (final IOException e) {
+            LOG.error("Could not create LOOKUP service?");
+            lookupService = null;
+        }
+        return lookupService;
+    }
+
     public synchronized static TrustedContactsManager getTrustedContactsManager() {
         if (trustedContactsManager == null) {
             trustedContactsManager = new DefaultTrustedContactsManager();

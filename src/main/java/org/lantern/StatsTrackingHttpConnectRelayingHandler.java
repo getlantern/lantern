@@ -33,19 +33,14 @@ public class StatsTrackingHttpConnectRelayingHandler
      */
     private final Channel relayChannel;
 
-    private final BytesTracker bytesTracker;
-
     /**
      * Creates a new {@link HttpConnectRelayingHandler} with the specified 
      * connection to relay to..
      * 
      * @param relayChannel The channel to relay messages to.
-     * @param bytesTracker Class for tracking bytes transferred.
      */
-    public StatsTrackingHttpConnectRelayingHandler(final Channel relayChannel, 
-        final BytesTracker bytesTracker) {
+    public StatsTrackingHttpConnectRelayingHandler(final Channel relayChannel) {
         this.relayChannel = relayChannel;
-        this.bytesTracker = bytesTracker;
     }
 
     @Override
@@ -65,9 +60,7 @@ public class StatsTrackingHttpConnectRelayingHandler
             
             LOG.info("Recording proxied bytes through HTTP CONNECT: {}", bytes);
             
-            if (this.bytesTracker != null) {
-                this.bytesTracker.addBytes(bytes);
-            }
+            LanternHub.statsTracker().addBytesProxied(bytes, relayChannel);
             relayChannel.write(msg).addListener(logListener);
         }
         else {
