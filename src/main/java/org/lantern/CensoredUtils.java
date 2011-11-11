@@ -53,10 +53,13 @@ public class CensoredUtils {
     
     public static String countryCode() {
         if (StringUtils.isNotBlank(countryCode)) {
+            LOG.info("Returning cached country code: {}", countryCode);
             return countryCode;
         }
         
+        LOG.info("Returning country code: {}", countryCode);
         countryCode = countryCode(new PublicIpAddress().getPublicIpAddress());
+        
         return countryCode;
     }
     
@@ -95,13 +98,13 @@ public class CensoredUtils {
         final Collection<String> countries) { 
         final Country country = LanternHub.getGeoIpLookup().getCountry(address);
         LOG.info("Country is: {}", country.getName());
-        countryCode = country.getCode().trim();
-        return countries.contains(countryCode);
+        final String cc = country.getCode().trim();
+        return countries.contains(cc);
     }
     
     public static boolean isCensored(final Country country) { 
-        countryCode = country.getCode().trim();
-        return StatsTracker.CENSORED.contains(countryCode);
+        final String cc = country.getCode().trim();
+        return StatsTracker.CENSORED.contains(cc);
     }
     
 
