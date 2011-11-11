@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Population Density</title>
+    <script type="text/javascript" src="../../polymaps.js"></script>
+    <style type="text/css">
+
+@import url("../example.css");
+@import url("population.css");
+
+body {
+  background: #E6E6E6;
+}
+
+.layer path {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+#county path {
+  stroke: rgb(192, 192, 192);
+  stroke-opacity: .25;
+  shape-rendering: crispEdges;
+}
+
+#state path {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
+#copy {
+  color: #000;
+  opacity: .5;
+}
+
+#copy a {
+  color: #000;
+}
+
+    </style>
+  </head>
+  <body id="map">
+    <script type="text/javascript" src="population.js"></script>
+    <span id="copy">
+      &copy; 2010
+      <a href="http://www.cloudmade.com/">CloudMade</a>,
+      <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors,
+      <a href="http://creativecommons.org/licenses/by-sa/2.0/">CCBYSA</a>.
+      Colors by <a href="http://colorbrewer.org/">Cynthia Brewer</a>.
+    </span>
+  </body>
+</html>

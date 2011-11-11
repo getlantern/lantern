@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="../../polymaps.js"></script>
+    <style type="text/css">
+
+@import url("../example.css");
+
+.layer path {
+  fill: lightsteelblue;
+  fill-opacity: .5;
+  stroke: steelblue;
+}
+
+.layer circle {
+  fill: lightcoral;
+  fill-opacity: .5;
+  stroke: brown;
+}
+
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript">
+
+var po = org.polymaps;
+
+var map = po.map()
+    .container(document.body.appendChild(po.svg("svg")))
+    .center({lat: 37.787, lon: -122.228})
+    .zoom(12)
+    .add(po.interact());
+
+map.add(po.image()
+    .url(po.url("http://{S}tile.cloudmade.com"
+    + "/1a1b06b230af4efdbb989ea99e9841af" // http://cloudmade.com/register
+    + "/998/256/{Z}/{X}/{Y}.png")
+    .hosts(["a.", "b.", "c.", ""])));
+
+map.add(po.geoJson()
+    .features([
+{
+  "geometry": {
+    "coordinates": [[[
+      [-122.289365, 37.816873],
+      [-122.273176, 37.812709],
+      [-122.278686, 37.807282],
+      [-122.291530, 37.810804],
+      [-122.289365, 37.816873],
+      [-122.289365, 37.816873]
+    ]]],
+    "type": "MultiPolygon"
+  },
+  "type": "Feature",
+  "id": "beat:05X",
+  "properties": {"name": "05X"}
+},
+{
+  "geometry": {
+    "coordinates": [-122.289365, 37.816873],
+    "type": "Point"
+  }
+}
+    ]));
+
+map.add(po.compass()
+    .pan("none"));
+
+    </script>
+    <span id="copy">
+      &copy; 2010
+      <a href="http://www.cloudmade.com/">CloudMade</a>,
+      <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors,
+      <a href="http://creativecommons.org/licenses/by-sa/2.0/">CCBYSA</a>.
+    </span>
+  </body>
+</html>

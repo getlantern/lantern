@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="../../polymaps.js"></script>
+    <style type="text/css">
+
+@import url("../example.css");
+
+#copy {
+  color: #000;
+  opacity: .5;
+}
+
+#copy a {
+  color: #000;
+}
+
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript">
+
+var po = org.polymaps;
+
+var map = po.map()
+    .container(document.body.appendChild(po.svg("svg")))
+    .center({lat: 37.787, lon: -122.228})
+    .zoom(13)
+    .add(po.interact());
+
+map.add(po.image()
+    .url(po.url("http://{S}tile.cloudmade.com"
+    + "/1a1b06b230af4efdbb989ea99e9841af" // http://cloudmade.com/register
+    + "/999/256/{Z}/{X}/{Y}.png")
+    .hosts(["a.", "b.", "c.", ""]))
+    .on("load", load));
+
+map.add(po.compass()
+    .pan("none"));
+
+/* Create an invert filter. */
+var filter = map.container().appendChild(po.svg("filter")),
+    invert = filter.appendChild(po.svg("feComponentTransfer")),
+    invertR = invert.appendChild(po.svg("feFuncR")),
+    invertG = invert.appendChild(po.svg("feFuncG")),
+    invertB = invert.appendChild(po.svg("feFuncB"));
+filter.setAttribute("id", "invert");
+invert.setAttribute("in", "SourceGraphic");
+invertR.setAttribute("type", "linear");
+invertR.setAttribute("slope", -1);
+invertR.setAttribute("intercept", 1);
+invertG.setAttribute("type", "linear");
+invertG.setAttribute("slope", -1);
+invertG.setAttribute("intercept", 1);
+invertB.setAttribute("type", "linear");
+invertB.setAttribute("slope", -1);
+invertB.setAttribute("intercept", 1);
+
+function load(e) {
+  e.tile.element.setAttribute("filter", "url(#invert)");
+}
+
+    </script>
+    <span id="copy">
+      &copy; 2010
+      <a href="http://www.cloudmade.com/">CloudMade</a>,
+      <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors,
+      <a href="http://creativecommons.org/licenses/by-sa/2.0/">CCBYSA</a>.
+    </span>
+  </body>
+</html>
