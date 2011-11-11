@@ -16,6 +16,12 @@
  */
 package org.lantern;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,12 +38,6 @@ import org.teleal.cling.registry.Registry;
 import org.teleal.cling.support.igd.callback.PortMappingAdd;
 import org.teleal.cling.support.igd.callback.PortMappingDelete;
 import org.teleal.cling.support.model.PortMapping;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
 
 /**
  * Maintains UPnP port mappings on an InternetGatewayDevice automatically.
