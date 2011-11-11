@@ -82,14 +82,8 @@ public class SystemTrayImpl implements SystemTray {
             dashboardItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
-                    log.info("Stopping Lantern!!");
-                    display.asyncExec (new Runnable () {
-                        @Override
-                        public void run () {
-                            log.info("Setting start stop button state.");
-                            LanternHub.jettyLauncher().openBrowserWhenReady();
-                        }
-                    });
+                    log.info("Opening browser!!");
+                    LanternHub.jettyLauncher().openBrowserWhenReady();
                 }
             });
             /*
