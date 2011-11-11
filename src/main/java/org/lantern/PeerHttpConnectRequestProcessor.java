@@ -16,7 +16,6 @@ import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.lastbamboo.common.p2p.P2PClient;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
