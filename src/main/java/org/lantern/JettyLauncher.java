@@ -86,7 +86,7 @@ public class JettyLauncher {
                 log.info("Got request without secure base!!");
                 final String referer = request.getHeader("Referer");
                 if (referer == null || !referer.startsWith(fullBasePath)) {
-                    log.error("Got request with bad referer: {} with target {}", 
+                    log.info("Got request with bad referer: {} with target {}", 
                         referer, target);
                     response.getOutputStream().close();
                     return;
