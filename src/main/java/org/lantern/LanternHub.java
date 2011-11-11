@@ -137,7 +137,9 @@ public class LanternHub {
 
     public static JettyLauncher jettyLauncher() {
         if (jettyLauncher.get() == null) {
-            jettyLauncher.set(new JettyLauncher());
+            final JettyLauncher jl = new JettyLauncher();
+            jl.start();
+            jettyLauncher.set(jl);
         }
         return jettyLauncher.get();
     }

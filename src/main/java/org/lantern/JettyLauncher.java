@@ -119,6 +119,7 @@ public class JettyLauncher {
                 log.info("Interrupted?");
             }
         }
+        log.info("Server is running!");
         final String url = fullBasePath + "/lanternmap.html";
         LanternUtils.browseUrl(url);
     }
