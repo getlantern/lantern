@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="../../polymaps.js"></script>
+    <script type="text/javascript" src="ease.js"></script>
+    <style type="text/css">
+
+@import url("../example.css");
+
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript">
+
+var po = org.polymaps;
+
+var svg = document.body.appendChild(po.svg("svg")),
+    g = svg.appendChild(po.svg("g"));
+
+var map = po.map()
+    .container(g);
+
+map.add(po.image()
+    .url(po.url("http://{S}tile.cloudmade.com"
+    + "/1a1b06b230af4efdbb989ea99e9841af" // http://cloudmade.com/register
+    + "/998/256/{Z}/{X}/{Y}.png")
+    .hosts(["a.", "b.", "c.", ""])));
+
+var timer,
+    duration = 500,
+    x,
+    y,
+    ease = reflect(poly(3)); // cubic-in-out
+
+window.addEventListener("mousedown", function(e) {
+  if (timer) clearInterval(timer);
+  var start = Date.now(),
+      end = start + duration;
+
+  x = e.clientX;
+  y = e.clientY;
+
+  timer = setInterval(function() {
+    var t = (Date.now() - start) / (end - start);
+
+    if (t >= 1) {
+      t = 1;
+      clearInterval(timer);
+      timer = null;
+    }
+
+    g.setAttribute("transform",
+        "translate(" + x + "," + y + ")"
+        + "scale(" + (3 * ease(t) + 1) + ")"
+        + "translate(" + -x + "," + -y + ")");
+
+  }, 24);
+}, false);
+
+window.addEventListener("mouseup", function(e) {
+  if (timer) clearInterval(timer);
+  var start = Date.now(),
+      end = start + duration,
+      g = document.getElementsByTagName("g")[0];
+
+  timer = setInterval(function() {
+    var t = (Date.now() - start) / (end - start);
+
+    if (t >= 1) {
+      t = 1;
+      clearInterval(timer);
+      timer = null;
+    }
+
+    t = 1 - ease(t);
+    g.setAttribute("transform",
+        "translate(" + x + "," + y + ")"
+        + "scale(" + (3 * t + 1) + ")"
+        + "translate(" + -x + "," + -y + ")");
+
+  }, 24);
+}, false);
+
+    </script>
+    <div id="copy">
+      &copy; 2010
+      <a href="http://www.cloudmade.com/">CloudMade</a>,
+      <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors,
+      <a href="http://creativecommons.org/licenses/by-sa/2.0/">CCBYSA</a>.
+    </div>
+  </body>
+</html>

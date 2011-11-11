@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Internet Users</title>
+    <script type="text/javascript" src="../../lib/nns/nns.js"></script>
+    <script type="text/javascript" src="../../polymaps.js"></script>
+    <script type="text/javascript" src="tsv.js"></script>
+    <style type="text/css">
+
+@import url("../../lib/colorbrewer/colorbrewer.css");
+@import url("../example.css");
+
+#map {
+  background: #012;
+}
+
+.compass .fore, .compass .chevron {
+  stroke: #666;
+}
+
+.layer path {
+  fill: #ccc;
+  fill-opacity: .85;
+  stroke: #012;
+}
+
+#copy, #copy a {
+  color: #aaa;
+}
+
+    </style>
+  </head>
+  <body id="map">
+    <script type="text/javascript" src="world.js"></script>
+    <span id="copy">
+      Courtesy <a href="http://earthobservatory.nasa.gov/">NASA Earth
+      Observatory</a>. &copy;
+      2009 <a href="http://thematicmapping.org/downloads/world_borders.php"
+      >thematicmapping.org</a>. Colors by <a href="http://colorbrewer.org/"
+      >Cynthia Brewer</a>.
+    </span>
+  </body>
+</html>

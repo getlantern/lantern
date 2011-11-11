@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>KML</title>
+    <script type="text/javascript" src="../../polymaps.js"></script>
+    <script type="text/javascript" src="kml.js"></script>
+    <style type="text/css">
+
+@import url("../example.css");
+
+.layer circle {
+  fill: #fff;
+  fill-opacity: .5;
+  stroke: #1f77b4;
+  stroke-width: 1.5px;
+}
+
+.layer path {
+  fill: none;
+  stroke: #1f77b4;
+  stroke-width: 2px;
+}
+
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript">
+
+var po = org.polymaps;
+
+var map = po.map()
+    .container(document.body.appendChild(po.svg("svg")))
+    .center({lon: -73.9519, lat: 40.6849})
+    .zoom(12)
+    .add(po.interact());
+
+map.add(po.image()
+    .url(po.url("http://{S}tile.cloudmade.com"
+    + "/1a1b06b230af4efdbb989ea99e9841af" // http://cloudmade.com/register
+    + "/998/256/{Z}/{X}/{Y}.png")
+    .hosts(["a.", "b.", "c.", ""])));
+
+map.add(po.kml()
+    .url("sample.kml")
+    .tile(false)
+    .on("load", load));
+
+map.add(po.compass()
+    .pan("none"));
+
+function load(e) {
+  for (var i = 0; i < e.features.length; i++) {
+    var f = e.features[i], p = f.data.properties;
+    f.element.appendChild(po.svg("title").appendChild(
+        document.createTextNode(p.name + ": " + p.description))
+        .parentNode);
+  }
+}
+
+    </script>
+    <span id="copy">
+      &copy; 2010
+      <a href="http://www.cloudmade.com/">CloudMade</a>,
+      <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors,
+      <a href="http://creativecommons.org/licenses/by-sa/2.0/">CCBYSA</a>.
+    </span>
+  </body>
+</html>

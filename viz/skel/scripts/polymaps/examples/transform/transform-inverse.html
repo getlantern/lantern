@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" src="../../polymaps.js"></script>
+    <script type="text/javascript" src="nypl.js"></script>
+    <style type="text/css">
+
+@import url("../example.css");
+
+#nypl {
+  opacity: .5;
+  -webkit-transition: opacity 250ms linear;
+}
+
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript">
+
+var po = org.polymaps;
+
+var transform = derive(
+  // broadway & kent
+  {column: 0.2945320, row: 0.3759881, zoom: 0},
+  {column: 2.7943515, row: 7.5530137, zoom: 4},
+  // havemeyer & north 6th
+  {column: 0.2945710, row: 0.3759732, zoom: 0},
+  {column: 12.818008, row: 5.0867895, zoom: 4},
+  // river & north 1st
+  {column: 0.2945396, row: 0.3759645, zoom: 0},
+  {column: 5.3814725, row: 1.9752101, zoom: 4}
+);
+
+var map = po.map()
+    .container(document.body.appendChild(po.svg("svg")))
+    .center({lat: 33.27202928142199, lon: 2.234375})
+    .zoomRange([1, 4])
+    .zoom(1)
+    .add(po.interact());
+
+map.add(po.image()
+    .url(po.url("http://{S}tile.cloudmade.com"
+    + "/1a1b06b230af4efdbb989ea99e9841af" // http://cloudmade.com/register
+    + "/998/256/{Z}/{X}/{Y}.png")
+    .hosts(["a.", "b.", "c.", ""]))
+    .transform(transform));
+
+map.add(nypl.image()
+    .id("nypl")
+    .scan("8021"));
+
+map.add(po.compass()
+    .pan("none"));
+
+function key(e) {
+  var nypl = document.getElementById("nypl");
+  switch (e.keyCode) {
+    case 49: nypl.style.opacity = e.type == "keydown" ? 1 : .5; break;
+    case 50: nypl.style.opacity = e.type == "keydown" ? 0 : .5; break;
+  }
+}
+
+window.addEventListener("keydown", key, false);
+window.addEventListener("keyup", key, false);
+
+    </script>
+    <span id="copy">
+      &copy; 2010
+      <a href="http://www.cloudmade.com/">CloudMade</a>,
+      <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors,
+      <a href="http://creativecommons.org/licenses/by-sa/2.0/">CCBYSA</a>.
+    </span>
+  </body>
+</html>

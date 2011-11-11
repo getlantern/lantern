@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>U.S. Statehood by Date</title>
+    <script type="text/javascript" src="../../lib/protovis/protodata.js"></script>
+    <script type="text/javascript" src="../../polymaps.js"></script>
+    <script type="text/javascript" src="fips.js"></script>
+    <style type="text/css">
+
+@import url("../../lib/colorbrewer/colorbrewer.css");
+@import url("../example.css");
+
+body {
+  background: #E6E6E6;
+}
+
+.layer path {
+  stroke: #fff;
+  stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+
+#copy {
+  color: #000;
+  opacity: .5;
+}
+
+#copy a {
+  color: #000;
+}
+
+    </style>
+  </head>
+  <body id="map">
+    <script type="text/javascript" src="statehood.js"></script>
+    <span id="copy">
+      &copy; 2010
+      <a href="http://www.cloudmade.com/">CloudMade</a>,
+      <a href="http://www.openstreetmap.org/">OpenStreetMap</a> contributors,
+      <a href="http://creativecommons.org/licenses/by-sa/2.0/">CCBYSA</a>.
+      Colors by <a href="http://colorbrewer.org/">Cynthia Brewer</a>.
+    </span>
+  </body>
+</html>
