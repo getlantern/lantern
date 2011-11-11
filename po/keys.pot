@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-03 02:38+0000\n"
+"POT-Creation-Date: 2011-11-11 06:35+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,7 +16,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/test/java/org/lantern/LanternUtilsTest.java:63
+#: src/test/java/org/lantern/I18Test.java:14
 #: src/main/java/org/lantern/LanternBrowser.java:141
 msgid "Are you sure you want to ignore the update?"
 msgstr ""
@@ -25,31 +25,35 @@ msgstr ""
 msgid "Lantern "
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:100
+#: src/main/java/org/lantern/SystemTrayImpl.java:81
+msgid "Open Internet Dashboard"
+msgstr ""
+
+#: src/main/java/org/lantern/SystemTrayImpl.java:115
 msgid "Stop Lantern "
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:120
+#: src/main/java/org/lantern/SystemTrayImpl.java:135
 msgid "Start Lantern "
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:140
+#: src/main/java/org/lantern/SystemTrayImpl.java:155
 msgid "Configure Lantern "
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:165
+#: src/main/java/org/lantern/SystemTrayImpl.java:180
 msgid "Quit"
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:203
+#: src/main/java/org/lantern/SystemTrayImpl.java:218
 msgid "Browser Restart"
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:205
+#: src/main/java/org/lantern/SystemTrayImpl.java:220
 msgid "You may have to restart your browser for these changes to take effect."
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:277
+#: src/main/java/org/lantern/SystemTrayImpl.java:292
 msgid "Update to Lantern "
 msgstr ""
 
