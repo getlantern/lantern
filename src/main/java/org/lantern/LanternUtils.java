@@ -21,7 +21,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.UnresolvedAddressException;
 import java.security.MessageDigest;
-import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -671,7 +670,6 @@ public class LanternUtils {
         if( !desktop.isSupported(Desktop.Action.BROWSE )) {
             LOG.error("Browse not supported?");
         }
-
         try {
             desktop.browse(new URI(uri));
         } catch (final IOException e) {
@@ -680,19 +678,6 @@ public class LanternUtils {
             LOG.warn("Could not load URI", e);
         }
     }
-    
-    private static SecureRandom sr;
-    private static String randomUrlBase;
-
-    public static void openDashboard() {
-        if (sr == null) {
-            sr = new SecureRandom();
-            sr.nextLong();
-            final JettyLauncher jl = LanternHub.jettyLauncher();
-            jl.start();
-        }
-        LanternHub.jettyLauncher().openBrowserWhenReady(randomUrlBase);
-    }
-}
+}    
 
 
