@@ -31,11 +31,17 @@ public class JettyLauncher {
 
     private final String secureBase = "/"+String.valueOf(sr.nextLong());
 
-    private Server server = new Server();
+    private final int randomPort = LanternUtils.randomPort();
     
+    private final String fullBasePath = 
+        "http://localhost:"+randomPort+secureBase;
+    
+    private Server server = new Server();
+
     public void start() {
         final SelectChannelConnector connector = new SelectChannelConnector();
-        connector.setPort(8080);
+        connector.setHost("127.0.0.1");
+        connector.setPort(randomPort);
         server.addConnector(connector);
  
         final ResourceHandler rh = new FileServingResourceHandler();
@@ -73,8 +79,17 @@ public class JettyLauncher {
             final HttpServletResponse response) 
             throws IOException, ServletException {
             if (!target.startsWith(secureBase)) {
-                response.getOutputStream().close();
-                return;
+                // This can happen quite often, as the pages we serve 
+                // themselves don't know about the secure base. As long as
+                // they get referred by the secure base, however, we're all 
+                // good.
+                log.info("Got request without secure base!!");
+                final String referer = request.getHeader("Referer");
+                if (referer == null || !referer.startsWith(fullBasePath)) {
+                    log.error("Got request with bad referer: {}", referer);
+                    response.getOutputStream().close();
+                    return;
+                }
             }
             
             super.handle(target, baseRequest, request, response);
@@ -83,8 +98,13 @@ public class JettyLauncher {
         @Override
         public Resource getResource(final String path) 
             throws MalformedURLException {
+            if (!path.startsWith(secureBase)) {
+                log.info("Requesting unstripped: {}", path);
+                return super.getResource(path);
+            }
             final String stripped = 
                 StringUtils.substringAfter(path, secureBase);
+            log.info("Requesting stripped: {}", stripped);
             return super.getResource(stripped);
         }
     }
@@ -98,7 +118,7 @@ public class JettyLauncher {
                 log.info("Interrupted?");
             }
         }
-        final String url = "http://localhost:8080"+secureBase+"/lanternmap.html";
+        final String url = fullBasePath + "/lanternmap.html";
         LanternUtils.browseUrl(url);
     }
     
@@ -111,8 +131,6 @@ public class JettyLauncher {
         try {
             Thread.sleep(200000);
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
         }
     }
 
