@@ -206,6 +206,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             } 
         }
     };
+
+    private String lastJson = "";
     
     /**
      * Creates a new XMPP handler.
@@ -407,7 +409,13 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         json.put(LanternConstants.VERSION_KEY, LanternConstants.VERSION);
         final String str = json.toJSONString();
         LOG.info("Reporting data: {}", str);
-        forHub.setProperty("stats", str);
+        if (!this.lastJson.equals(str)) {
+            this.lastJson = str;
+            forHub.setProperty("stats", str);
+        } else {
+            LOG.info("No new stats to report");
+        }
+        
         conn.sendPacket(forHub);
     }
 
