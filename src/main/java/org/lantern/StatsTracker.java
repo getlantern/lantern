@@ -117,8 +117,7 @@ public class StatsTracker implements LanternData {
         
     }
 
-    public StatsTracker() {
-    }
+    public StatsTracker() {}
 
     private static void addGoogleProductAndReason(final String[] columnNames, 
         final String fileName, final int countryCodeIndex, 
