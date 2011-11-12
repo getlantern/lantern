@@ -104,46 +104,47 @@ public class SystemTrayImpl implements SystemTray {
                 }
             });
             */
-            
-            stopItem = new MenuItem(menu, SWT.PUSH);
-            stopItem.setText(I18n.tr("Stop Lantern "));
-            stopItem.setEnabled(false);
-            stopItem.addListener (SWT.Selection, new Listener () {
-                @Override
-                public void handleEvent (final Event event) {
-                    log.info("Stopping Lantern!!");
-                    display.asyncExec (new Runnable () {
-                        @Override
-                        public void run () {
-                            log.info("Setting start stop button state.");
-                            stopItem.setEnabled(false);
-                            startItem.setEnabled(true);
-                            showRestartBrowserMessage();
-                        }
-                    });
-                    Configurator.stopProxying();
-                }
-            });
-            
-            startItem = new MenuItem(menu, SWT.PUSH);
-            startItem.setText(I18n.tr("Start Lantern "));
-            startItem.setEnabled(false);
-            startItem.addListener (SWT.Selection, new Listener () {
-                @Override
-                public void handleEvent (final Event event) {
-                    log.info("Starting Lantern!!");
-                    display.asyncExec (new Runnable () {
-                        @Override
-                        public void run () {
-                            log.info("Setting start stop button state.");
-                            stopItem.setEnabled(true);
-                            startItem.setEnabled(false);
-                            showRestartBrowserMessage();
-                        }
-                    });
-                    Configurator.startProxying();
-                }
-            });
+            if (LanternUtils.shouldProxy()) {
+                stopItem = new MenuItem(menu, SWT.PUSH);
+                stopItem.setText(I18n.tr("Stop Lantern "));
+                stopItem.setEnabled(false);
+                stopItem.addListener (SWT.Selection, new Listener () {
+                    @Override
+                    public void handleEvent (final Event event) {
+                        log.info("Stopping Lantern!!");
+                        display.asyncExec (new Runnable () {
+                            @Override
+                            public void run () {
+                                log.info("Setting start stop button state.");
+                                stopItem.setEnabled(false);
+                                startItem.setEnabled(true);
+                                showRestartBrowserMessage();
+                            }
+                        });
+                        Configurator.stopProxying();
+                    }
+                });
+                
+                startItem = new MenuItem(menu, SWT.PUSH);
+                startItem.setText(I18n.tr("Start Lantern "));
+                startItem.setEnabled(false);
+                startItem.addListener (SWT.Selection, new Listener () {
+                    @Override
+                    public void handleEvent (final Event event) {
+                        log.info("Starting Lantern!!");
+                        display.asyncExec (new Runnable () {
+                            @Override
+                            public void run () {
+                                log.info("Setting start stop button state.");
+                                stopItem.setEnabled(true);
+                                startItem.setEnabled(false);
+                                showRestartBrowserMessage();
+                            }
+                        });
+                        Configurator.startProxying();
+                    }
+                });
+            }
             
             final MenuItem configItem = new MenuItem(menu, SWT.PUSH);
             configItem.setText(I18n.tr("Configure Lantern ")+LanternConstants.VERSION);
