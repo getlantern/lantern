@@ -41,7 +41,6 @@ import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Message;
-import org.jivesoftware.smack.packet.Message.Type;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.json.simple.JSONArray;
@@ -159,7 +158,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                     updateTimer.schedule(new TimerTask() {
                         @Override
                         public void run() {
-                            sendInfoRequest();
+                            updatePresence();
                         }
                     }, delay);
                     LOG.info("Scheduled next info request in {} milliseconds", 
@@ -329,8 +328,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                     return false;
                 }
             });
+            
+            gTalkSharedStatus();
             updatePresence();
-            sendInfoRequest();
+            //sendInfoRequest();
             configureRoster();
 
         } catch (final IOException e) {
@@ -338,6 +339,15 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             LOG.warn(msg, e);
             throw new Error(msg, e);
         }
+    }
+
+    private void gTalkSharedStatus() {
+     // This is for Google Talk compatibility. Surprising, all we need to
+        // do is grab our Google Talk shared status, signifying support for
+        // their protocol, and then we don't interfere with GChat visibility.
+        final Packet status = XmppUtils.getSharedStatus(
+                this.client.getXmppConnection());
+        LOG.info("Status:\n{}", status.toXML());
     }
 
     private String askForEmail() {
@@ -363,22 +373,41 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         return "";
     }
 
+    /**
+     * Updates the user's presence. We also include any stats updates in this 
+     * message. Note that periodic presence updates are also used on the server
+     * side to verify which clients are actually available.
+     * 
+     * We in part send presence updates instead of typical chat messages to 
+     * get around these messages showing up in the user's gchat window.
+     */
     private void updatePresence() {
-        // This is for Google Talk compatibility. Surprising, all we need to
-        // do is grab our Google Talk shared status, signifying support for
-        // their protocol, and then we don't interfere with GChat visibility.
-        final Packet status = XmppUtils.getSharedStatus(
-                this.client.getXmppConnection());
-        LOG.info("Status:\n{}", status.toXML());
         final XMPPConnection conn = this.client.getXmppConnection();
         
         LOG.info("Sending presence available");
-        final Presence pres = new Presence(Presence.Type.available);
-        pres.setProperty("test", "test");
-        conn.sendPacket(pres);
         
         final Presence forHub = new Presence(Presence.Type.available);
         forHub.setTo(LanternConstants.LANTERN_JID);
+        
+        final JSONObject json = new JSONObject();
+        final StatsTracker statsTracker = LanternHub.statsTracker();
+        json.put(LanternConstants.COUNTRY_CODE, CensoredUtils.countryCode());
+        json.put(LanternConstants.BYTES_PROXIED, 
+            statsTracker.getTotalBytesProxied());
+        json.put(LanternConstants.DIRECT_BYTES, 
+            statsTracker.getDirectBytes());
+        json.put(LanternConstants.REQUESTS_PROXIED, 
+            statsTracker.getTotalProxiedRequests());
+        json.put(LanternConstants.DIRECT_REQUESTS, 
+            statsTracker.getDirectRequests());
+        json.put(LanternConstants.WHITELIST_ADDITIONS, 
+            LanternUtils.toJsonArray(Whitelist.getAdditions()));
+        json.put(LanternConstants.WHITELIST_REMOVALS, 
+            LanternUtils.toJsonArray(Whitelist.getRemovals()));
+        json.put(LanternConstants.VERSION_KEY, LanternConstants.VERSION);
+        final String str = json.toJSONString();
+        LOG.info("Reporting data: {}", str);
+        forHub.setProperty("stats", str);
         conn.sendPacket(forHub);
     }
 
@@ -440,6 +469,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
     }
 
+    /*
     private void sendInfoRequest() {
         // Send an "info" message to gather proxy data.
         LOG.info("Sending INFO request");
@@ -472,6 +502,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         Whitelist.whitelistReported();
         //statsTracker.clear();
     }
+    */
 
     private void addOrRemovePeer(final Presence p, final String from) {
         LOG.info("Processing peer: {}", from);

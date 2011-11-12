@@ -6,7 +6,7 @@ import org.bns.getexceptional4j.GetExceptionalUtils;
  * Constants for Lantern.
  */
 public class LanternConstants {
-
+    
     /**
      * This is the version of Lantern we're running. This is automatically
      * replaced when we push new releases.
