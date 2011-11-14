@@ -100,8 +100,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         this.keyStoreManager = keyStoreManager;
     }
 
-    @Override
-    public boolean hasProxy() {
+    private boolean hasProxy() {
         if (this.socketRef.get() != null) {
             return true;
         }
@@ -135,9 +134,12 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
     }
 
     @Override
-    public void processRequest(final Channel browserToProxyChannel,
+    public boolean processRequest(final Channel browserToProxyChannel,
         final ChannelHandlerContext ctx, final MessageEvent me) 
         throws IOException {
+        if (!hasProxy()) {
+            return false;
+        }
         if (!startedCopying) {
             // We tell the socket not to record stats here because traffic
             // returning to the browser still goes through our encoder 
@@ -156,12 +158,13 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
             data = LanternUtils.toByteBuffer(request, ctx);
         } catch (final Exception e) {
             log.error("Could not encode request?", e);
-            return;
+            return true;
         }
         try {
             log.info("Writing {}", new String(data));
             final OutputStream os = this.socketRef.get().getOutputStream();
             os.write(data);
+            return true;
         } catch (final IOException e) {
             // They probably just closed the connection, as they will in
             // many cases.
@@ -171,17 +174,23 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
             // peer proxy list if we can't connect to them in addition to
             // removing them when we detect they're unavailable through XMPP.
         }
+        
+        // We return true in all these case to preserve the behavior before
+        // the change to return a boolean. The point of returning a boolean
+        // was more to consolidate the check for the existence of a proxy with
+        // the request processing.
+        return true;
     }
 
     @Override
-    public void processChunk(final ChannelHandlerContext ctx, 
+    public boolean processChunk(final ChannelHandlerContext ctx, 
         final MessageEvent me) throws IOException {
         // We need to convert the Netty message to raw bytes for sending over
         // the socket.
         final HttpChunk chunk = (HttpChunk) me.getMessage();
         final ChannelBuffer cb = encodeChunk(chunk);
         if (cb == null) {
-            return;
+            return true;
         }
         
         final ByteBuffer buf = cb.toByteBuffer();
@@ -189,6 +198,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         log.info("Writing chunk {}", new String(data));
         final OutputStream os = this.socketRef.get().getOutputStream();
         os.write(data);
+        return true;
     }
     
     private ChannelBuffer encodeChunk(final HttpChunk chunk) {

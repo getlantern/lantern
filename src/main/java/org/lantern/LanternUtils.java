@@ -617,7 +617,7 @@ public class LanternUtils {
         command.execute();
         final String output = command.getStdOut();
         if (!command.isSuccessful()) {
-            LOG.warn("Command failed!! -- {}", args);
+            LOG.info("Command failed!! -- {}", args);
         }
         return output;
     }

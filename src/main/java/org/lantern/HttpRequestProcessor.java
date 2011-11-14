@@ -12,12 +12,10 @@ import org.jboss.netty.channel.MessageEvent;
  */
 public interface HttpRequestProcessor {
 
-    boolean hasProxy();
-    
-    void processRequest(Channel browserToProxyChannel,
+    boolean processRequest(Channel browserToProxyChannel,
         ChannelHandlerContext ctx, MessageEvent me) throws IOException;
 
-    void processChunk(ChannelHandlerContext ctx, MessageEvent me) 
+    boolean processChunk(ChannelHandlerContext ctx, MessageEvent me) 
         throws IOException;
 
     void close();

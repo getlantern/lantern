@@ -70,8 +70,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         this.keyStoreManager = keyStoreManager;
     }
     
-    @Override
-    public boolean hasProxy() {
+    private boolean hasProxy() {
         if (this.proxyAddress != null) {
             return true;
         }
@@ -83,21 +82,25 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
     }
 
     @Override
-    public void processRequest(final Channel browserToProxyChannel,
+    public boolean processRequest(final Channel browserToProxyChannel,
         final ChannelHandlerContext ctx, final MessageEvent me) {
-        
+        if (!hasProxy()) {
+            return false;
+        }
         if (cf == null) {
             cf = openOutgoingChannel(browserToProxyChannel);
         }
         final HttpRequest request = (HttpRequest) me.getMessage();
         this.transformer.transform(request, proxyAddress);
         LanternUtils.writeRequest(this.httpRequests, request, cf);
+        return true;
     }
 
     @Override
-    public void processChunk(final ChannelHandlerContext ctx, 
+    public boolean processChunk(final ChannelHandlerContext ctx, 
         final MessageEvent me) throws IOException {
         cf.getChannel().write(me.getMessage());
+        return true;
     }
 
     @Override

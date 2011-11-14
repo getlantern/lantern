@@ -78,7 +78,7 @@ public class Launcher {
         }
         
         serveStats();
-        new StatsSimulator().start();
+        //new StatsSimulator().start();
         //startJetty();
         
         // This is necessary to keep the tray/menu item up in the case
