@@ -100,22 +100,20 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     new DefaultChannelGroup("HTTP-Proxy-Server"));
             private final HttpRequestHandler requestHandler =
                 new HttpRequestHandler(clientSocketChannelFactory, pf);
+            
             @Override
-            public void processRequest(final Channel browserChannel,
+            public boolean processRequest(final Channel browserChannel,
                 final ChannelHandlerContext ctx, final MessageEvent me) 
                 throws IOException {
                 requestHandler.messageReceived(ctx, me);
-            }
-            
-            @Override
-            public boolean hasProxy() {
-                return false;
+                return true;
             }
 
             @Override
-            public void processChunk(final ChannelHandlerContext ctx, 
+            public boolean processChunk(final ChannelHandlerContext ctx, 
                 final MessageEvent me) throws IOException {
                 requestHandler.messageReceived(ctx, me);
+                return true;
             }
             @Override
             public void close() {
@@ -309,7 +307,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 browserToProxyChannel.write(response);
                 ProxyUtils.closeOnFlush(browserToProxyChannel);
                 // Note this redirect should result in a new HTTPS request 
-                // coming in on this connection or a new connection -- in face
+                // coming in on this connection or a new connection -- in fact
                 // this redirect should always result in an HTTP CONNECT 
                 // request as a result of the redirect. That new request
                 // will not attempt to use the existing processor, so it's 
@@ -340,63 +338,61 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final HttpRequest request = (HttpRequest) me.getMessage();
         log.info("Dispatching request");
         if (request.getMethod() == HttpMethod.CONNECT) {
-            if (ANONYMOUS_ACTIVE && this.anonymousPeerRequestProcessor.hasProxy()) {
-                try {
+            try {
+                if (ANONYMOUS_ACTIVE && 
                     this.anonymousPeerRequestProcessor.processRequest(
-                        browserToProxyChannel, ctx, me);
+                    browserToProxyChannel, ctx, me)) {
                     log.info("Processed CONNECT on peer...returning");
                     return null;
-                } catch (final IOException e) {
-                    log.warn("Could not send CONNECT to anonymous proxy", e);
-                    // This will happen whenever the server's giving us bad
-                    // anonymous proxies, which could happen quite often.
-                    // We should fall back to central.
+                } else {
+                    // We need to forward the CONNECT request from this proxy to an
+                    // external proxy that can handle it. We effectively want to 
+                    // relay all traffic in this case without doing anything on 
+                    // our own other than direct the CONNECT request to the correct 
+                    // proxy.
                     centralConnect(request);
                     return null;
                 }
-            } else {
-                // We need to forward the CONNECT request from this proxy to an
-                // external proxy that can handle it. We effectively want to 
-                // relay all traffic in this case without doing anything on 
-                // our own other than direct the CONNECT request to the correct 
-                // proxy.
+            } catch (final IOException e) {
+                log.warn("Could not send CONNECT to anonymous proxy", e);
+                // This will happen whenever the server's giving us bad
+                // anonymous proxies, which could happen quite often.
+                // We should fall back to central.
                 centralConnect(request);
                 return null;
             }
+
         }
         
-        if (LAE_ACTIVE && isLae(request) && this.laeRequestProcessor.hasProxy()) {
-            try {
+        try {
+            if (LAE_ACTIVE && isLae(request) && 
                 this.laeRequestProcessor.processRequest(browserToProxyChannel, 
-                    ctx, me);
+                    ctx, me)) {
                 return this.laeRequestProcessor;
-            } catch (final IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-        } 
-        if (TRUSTED_ACTIVE && this.trustedPeerRequestProcessor.hasProxy())  {
-            try {
+            } 
+        } catch (final IOException e) {
+            log.info("Caught exception processing request", e);
+        }
+        try {
+            if (TRUSTED_ACTIVE && 
                 this.trustedPeerRequestProcessor.processRequest(
-                    browserToProxyChannel, ctx, me);
+                    browserToProxyChannel, ctx, me)) {
                 return this.trustedPeerRequestProcessor;
-            } catch (final IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
             }
-        } 
-        if (PROXIES_ACTIVE && this.proxyRequestProcessor.hasProxy()) {
-            log.info("Using standard proxy");
-            try {
-                this.proxyRequestProcessor.processRequest(
-                    browserToProxyChannel, ctx, me);
+        } catch (final IOException e) {
+            log.info("Caught exception processing request", e);
+        }
+        try {
+            if (PROXIES_ACTIVE && this.proxyRequestProcessor.processRequest(
+                    browserToProxyChannel, ctx, me)) {
+                log.info("Used standard proxy");
                 return this.proxyRequestProcessor;
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
             }
+        } catch (final IOException e) {
+            log.info("Caught exception processing request", e);
         }
         
+        log.warn("No proxy could process the request {}", me.getMessage());
         // Not much we can do if no proxy can handle it.
         return null;
     }

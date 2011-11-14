@@ -55,43 +55,12 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
     }
 
     @Override
-    public boolean hasProxy() {
-        if (this.socketRef.get() != null) {
-            return true;
-        }
-        this.peerUri = this.proxy.getPeerProxy();
-        if (this.peerUri != null) {
-            threadedPeerSocket(this.peerUri);
-        } else {
-            log.info("No peer proxies!");
-        }
-        return false;
-    }
-    
-    private void threadedPeerSocket(final URI peer) {
-        final Thread thread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    final Socket sock = LanternUtils.openOutgoingPeerSocket(
-                        peer, proxyStatusListener, p2pClient, 
-                        peerFailureCount, true);
-                    socketRef.set(sock);
-                } catch (final IOException e) {
-                    log.info("Could not create peer socket");
-                }                
-            }
-            
-        }, "Peer-Socket-Connection-Thread");
-        thread.setDaemon(true);
-        thread.start();
-    }
-
-    @Override
-    public void processRequest(final Channel browserToProxyChannel,
+    public boolean processRequest(final Channel browserToProxyChannel,
         final ChannelHandlerContext ctx, final MessageEvent me) 
         throws IOException {
+        if (!hasProxy()) {
+            return false;
+        }
         browserToProxyChannel.setReadable(false);
         if (!startedCopying) {
             // We tell the socket not to record stats here because traffic
@@ -127,7 +96,45 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
             log.error("Could not encode request?", e);
         }
         browserToProxyChannel.setReadable(true);
+        return true;
     }
+    
+
+    private boolean hasProxy() {
+        if (this.socketRef.get() != null) {
+            log.info("Returning true -- we have a socket.");
+            return true;
+        }
+        this.peerUri = this.proxy.getPeerProxy();
+        if (this.peerUri != null) {
+            log.info("Threading new peer socket...");
+            threadedPeerSocket(this.peerUri);
+        } else {
+            log.info("No peer proxies!");
+        }
+        return false;
+    }
+    
+    private void threadedPeerSocket(final URI peer) {
+        final Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    final Socket sock = LanternUtils.openOutgoingPeerSocket(
+                        peer, proxyStatusListener, p2pClient, 
+                        peerFailureCount, true);
+                    socketRef.set(sock);
+                } catch (final IOException e) {
+                    log.info("Could not create peer socket");
+                }                
+            }
+            
+        }, "Peer-Socket-Connection-Thread");
+        thread.setDaemon(true);
+        thread.start();
+    }
+
 
     @Override
     public void close() {
@@ -135,8 +142,9 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
     }
 
     @Override
-    public void processChunk(final ChannelHandlerContext ctx, 
+    public boolean processChunk(final ChannelHandlerContext ctx, 
         final MessageEvent me) throws IOException {
+        log.error("Processing chunks on HTTP CONNECT relay?");
         throw new IllegalStateException(
             "Processing chunks on HTTP CONNECT relay?");
     }
