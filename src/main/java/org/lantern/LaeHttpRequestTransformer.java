@@ -6,10 +6,14 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Modified HTTP requests to work with Google App Engine as a proxy.
+ */
 public class LaeHttpRequestTransformer implements HttpRequestTransformer {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
+    @Override
     public void transform(final HttpRequest request,
         final InetSocketAddress proxyAddress) {
         final String uri = request.getUri();
