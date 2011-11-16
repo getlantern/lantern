@@ -98,7 +98,7 @@ public class NatPmp implements NatPmpService {
 
     protected void addMapping(final PortMappingProtocol prot,
         final int localPort, final PortMapListener portMapListener) {
-
+        log.info("Adding NAT-PMP mapping");
         final boolean tcp;
         if (prot == PortMappingProtocol.TCP) {
             tcp = true;
@@ -111,7 +111,7 @@ public class NatPmp implements NatPmpService {
         final MapRequestMessage map = 
             new MapRequestMessage(tcp, localPort, 0, lifeTimeSeconds, null);
         pmpDevice.enqueueMessage(map);
-        pmpDevice.waitUntilQueueEmpty();
+        //pmpDevice.waitUntilQueueEmpty();
         try {
             // Auto-boxing can cause a null pointer here, so make sure to
             // use Integer.
