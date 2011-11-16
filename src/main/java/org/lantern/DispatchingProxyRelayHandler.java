@@ -123,9 +123,9 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     
     private final HttpRequestProcessor proxyRequestProcessor;
     
-    private final HttpRequestProcessor anonymousPeerRequestProcessor;
+    //private final HttpRequestProcessor anonymousPeerRequestProcessor;
     
-    private final HttpRequestProcessor trustedPeerRequestProcessor;
+    //private final HttpRequestProcessor trustedPeerRequestProcessor;
     
     private final HttpRequestProcessor laeRequestProcessor;
     
@@ -164,6 +164,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         
         // This uses the raw p2p client because all traffic sent over these
         // connections already uses end-to-end encryption.
+        /*
         this.anonymousPeerRequestProcessor =
             new PeerHttpConnectRequestProcessor(new Proxy() {
                 @Override
@@ -195,7 +196,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     return proxyProvider.getPeerProxy();
                 }
             },  proxyStatusListener, encryptingP2pClient, this.keyStoreManager);
-        
+        */
         this.proxyRequestProcessor =
             new DefaultHttpRequestProcessor(proxyStatusListener,
                 new HttpRequestTransformer() {
@@ -339,9 +340,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         log.info("Dispatching request");
         if (request.getMethod() == HttpMethod.CONNECT) {
             try {
-                if (ANONYMOUS_ACTIVE && 
-                    this.anonymousPeerRequestProcessor.processRequest(
-                    browserToProxyChannel, ctx, me)) {
+                if (ANONYMOUS_ACTIVE && LanternHub.anonymousPeerProxyManager().processRequest(
+                        browserToProxyChannel, ctx, me) != null) {
                     log.info("Processed CONNECT on peer...returning");
                     return null;
                 } else {
@@ -374,10 +374,13 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             log.info("Caught exception processing request", e);
         }
         try {
-            if (TRUSTED_ACTIVE && 
-                this.trustedPeerRequestProcessor.processRequest(
-                    browserToProxyChannel, ctx, me)) {
-                return this.trustedPeerRequestProcessor;
+            if (TRUSTED_ACTIVE) {
+                final HttpRequestProcessor rp = 
+                    LanternHub.trustedPeerProxyManager().processRequest(
+                            browserToProxyChannel, ctx, me);
+                if (rp != null) {
+                    return rp;
+                }
             }
         } catch (final IOException e) {
             log.info("Caught exception processing request", e);
@@ -537,8 +540,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     public void channelClosed(final ChannelHandlerContext ctx, 
         final ChannelStateEvent e) {
         log.info("Got inbound channel closed. Closing outbound.");
-        this.trustedPeerRequestProcessor.close();
-        this.anonymousPeerRequestProcessor.close();
+        //this.trustedPeerRequestProcessor.close();
+        //this.anonymousPeerRequestProcessor.close();
+        if (this.currentRequestProcessor != null) {
+            this.currentRequestProcessor.close();
+        }
         this.proxyRequestProcessor.close();
         this.laeRequestProcessor.close();
     }
