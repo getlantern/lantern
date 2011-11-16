@@ -4,6 +4,7 @@ import static org.jboss.netty.channel.Channels.pipeline;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
@@ -36,7 +37,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     private final int httpsLocalPort;
 
-    private final XmppHandler xmpp;
+    //private final XmppHandler xmpp;
     
     /**
      * Creates a new proxy server.
@@ -52,7 +53,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         this.httpLocalPort = httpLocalPort;
         this.httpsLocalPort = httpsLocalPort;
         this.keyStoreManager = keyStoreManager;
-        this.xmpp = xmpp;
+        //this.xmpp = xmpp;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
@@ -123,6 +124,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
 
     private ChannelPipelineFactory newHttpChannelPipelineFactory() {
+        final XmppHandler xmpp = LanternHub.xmppHandler();
         return new ChannelPipelineFactory() {
             @Override
             public ChannelPipeline getPipeline() throws Exception {

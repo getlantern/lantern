@@ -87,14 +87,14 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     /**
      * These are anonymous proxies we have exchanged keys with. 
      */
-    private final Queue<URI> establishedAnonymousProxies = 
-        new ConcurrentLinkedQueue<URI>();
+    //private final Queue<URI> establishedAnonymousProxies = 
+    //    new ConcurrentLinkedQueue<URI>();
     
     /**
      * These are trusted peer proxies we have exchanged keys with.
      */
-    private final Queue<URI> establishedPeerProxies = 
-        new ConcurrentLinkedQueue<URI>();
+    //private final Queue<URI> establishedPeerProxies = 
+    //    new ConcurrentLinkedQueue<URI>();
     
     private final Set<ProxyHolder> laeProxySet =
         new HashSet<ProxyHolder>();
@@ -521,16 +521,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             LOG.error("Could not create URI from: {}", from);
             return;
         }
-        final TrustedContactsManager tcm = 
-            LanternHub.getTrustedContactsManager();
-        final boolean trusted = tcm.isTrusted(p);
         if (p.isAvailable()) {
-            LOG.info("Adding from to peer JIDs: {}", from);
-            if (trusted) {
-                this.establishedPeerProxies.add(uri);
-            } else {
-                this.establishedAnonymousProxies.add(uri);
-            }
+            LOG.info("Processing available peer");
+            // OK, we just request a certificate every time we get a present 
+            // peer. If we get a response, this peer will be added to active
+            // peer URIs.
+            sendAndRequestCert(uri);
         }
         else {
             LOG.info("Removing JID for peer '"+from+"' with presence: {}", p);
@@ -595,10 +591,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             return;
         }
 
-        final String mac =
-            (String) msg.getProperty(P2PConstants.MAC);
-        final String base64Cert =
-            (String) msg.getProperty(P2PConstants.CERT);
+        final String mac = (String) msg.getProperty(P2PConstants.MAC);
+        final String base64Cert = (String) msg.getProperty(P2PConstants.CERT);
         LOG.info("Base 64 cert: {}", base64Cert);
         
         if (StringUtils.isNotBlank(base64Cert)) {
@@ -608,10 +602,18 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 // Add the peer if we're able to add the cert.
                 LanternHub.getKeyStoreManager().addBase64Cert(mac, base64Cert);
                 if (LanternHub.getTrustedContactsManager().isTrusted(msg)) {
+                    LanternHub.trustedPeerProxyManager().onPeer(uri);
+                } else {
+                    LanternHub.anonymousPeerProxyManager().onPeer(uri);
+                }
+
+                /*
+                if (LanternHub.getTrustedContactsManager().isTrusted(msg)) {
                     this.establishedPeerProxies.add(uri);
                 } else {
                     this.establishedAnonymousProxies.add(uri);
                 }
+                */
             } catch (final IOException e) {
                 LOG.error("Could not add cert??", e);
             }
@@ -794,12 +796,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
     private void removePeerUri(final URI peerUri) {
         LOG.info("Removing peer with URI: {}", peerUri);
-        remove(peerUri, this.establishedPeerProxies);
+        //remove(peerUri, this.establishedPeerProxies);
     }
 
     private void removeAnonymousPeerUri(final URI peerUri) {
         LOG.info("Removing anonymous peer with URI: {}", peerUri);
-        remove(peerUri, this.establishedAnonymousProxies);
+        //remove(peerUri, this.establishedAnonymousProxies);
     }
     
     private void remove(final URI peerUri, final Queue<URI> queue) {
@@ -817,6 +819,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         return getProxy(this.proxies);
     }
     
+    /*
     @Override
     public URI getAnonymousProxy() {
         LOG.info("Getting anonymous proxy");
@@ -844,6 +847,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         LOG.info("FIFO queue is now: {}", queue);
         return proxy;
     }
+    */
 
     private InetSocketAddress getProxy(final Queue<ProxyHolder> queue) {
         if (queue.isEmpty()) {
