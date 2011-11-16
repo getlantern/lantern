@@ -42,11 +42,13 @@ public class NatPmp implements NatPmpService {
             @Override
             public void run() {
                 // Remove all the mappings and shutdown.
+                log.info("Shutting down NAT-PMP");
                 final int num = requests.size();
                 for (int i = 0; i < num; i++) {
                     removeNatPmpMapping(i);
                 }
-                pmpDevice.shutdown();
+                //pmpDevice.shutdown();
+                log.info("Finished shutdown for NAT-PMP");
             }
             
         }, "NAT-PMP-Shutdown-Thread"));
@@ -54,6 +56,7 @@ public class NatPmp implements NatPmpService {
     
     @Override
     public void removeNatPmpMapping(final int mappingIndex) {
+        log.info("Removing mapping...");
         final MapRequestMessage request = requests.get(mappingIndex);
         
         final boolean tcp = request.getMessageType() == MessageType.MapTCP;
@@ -63,7 +66,9 @@ public class NatPmp implements NatPmpService {
             new MapRequestMessage(tcp, request.getInternalPort(), 
                 request.getRequestedExternalPort(), 0, null);
         pmpDevice.enqueueMessage(remove);
+        log.info("About to wait on queue");
         pmpDevice.waitUntilQueueEmpty();
+        log.info("Finished waiting on queue");
     }
     
     @Override
@@ -75,7 +80,7 @@ public class NatPmp implements NatPmpService {
             throw new NullPointerException("Null listener");
         }
         // This call will block unless we thread it here.
-        final Runnable upnpRunner = new Runnable() {
+        final Runnable natPmpRunner = new Runnable() {
             @Override
             public void run() {
                 // Note we don't pass the requested external port -- with
@@ -83,8 +88,8 @@ public class NatPmp implements NatPmpService {
                 addMapping(prot, localPort, portMapListener);
             }
         };
-        final Thread mapper = new Thread(upnpRunner, "NAT-PMP-Mapping-Thread");
-        
+        final Thread mapper = new Thread(natPmpRunner, "NAT-PMP-Mapping-Thread");
+        mapper.setDaemon(true);
         final int index = requests.size();
         mapper.start();
         

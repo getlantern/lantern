@@ -12,7 +12,6 @@ import java.nio.ByteBuffer;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.io.IOUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
@@ -24,8 +23,6 @@ import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpChunkTrailer;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.util.CharsetUtil;
-import org.lastbamboo.common.p2p.P2PClient;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.ByteBufferUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,8 +66,8 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         copiedBuffer("0\r\n\r\n", CharsetUtil.US_ASCII);
     
     private URI peerUri;
-    private final ProxyStatusListener proxyStatusListener;
-    private final P2PClient p2pClient;
+    //private final ProxyStatusListener proxyStatusListener;
+    //private final P2PClient p2pClient;
     
     /**
      * Map recording the number of consecutive connection failures for a
@@ -80,17 +77,20 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
     private static Map<URI, AtomicInteger> peerFailureCount =
         new ConcurrentHashMap<URI, AtomicInteger>();
 
-    private final Proxy proxy;
+    //private final Proxy proxy;
 
     private boolean chunked;
 
-    private final AtomicReference<Socket> socketRef =
-        new AtomicReference<Socket>();
+    //private final AtomicReference<Socket> socketRef =
+    //    new AtomicReference<Socket>();
     
-    private final KeyStoreManager keyStoreManager;
+    //private final KeyStoreManager keyStoreManager;
 
     private volatile boolean startedCopying;
 
+    private final Socket sock;
+
+    /*
     public PeerHttpRequestProcessor(final Proxy proxy, 
         final ProxyStatusListener proxyStatusListener,
         final P2PClient p2pClient, final KeyStoreManager keyStoreManager) {
@@ -99,54 +99,22 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         this.p2pClient = p2pClient;
         this.keyStoreManager = keyStoreManager;
     }
-
-    private boolean hasProxy() {
-        if (this.socketRef.get() != null) {
-            return true;
-        }
-        this.peerUri = this.proxy.getPeerProxy();
-        if (this.peerUri != null) {
-            threadedPeerSocket(this.peerUri);
-        } else {
-            log.info("No peer proxies!");
-        }
-        return false;
-    }
+    */
     
-    private void threadedPeerSocket(final URI peer) {
-        final Thread thread = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    final Socket sock = LanternUtils.openOutgoingPeerSocket(
-                        peer, proxyStatusListener, p2pClient, 
-                        peerFailureCount);
-                    socketRef.set(sock);
-                } catch (final IOException e) {
-                    log.info("Could not create peer socket");
-                }                
-            }
-            
-        }, "Peer-Socket-Connection-Thread");
-        thread.setDaemon(true);
-        thread.start();
+    public PeerHttpRequestProcessor(final Socket sock) {
+        this.sock = sock;
     }
 
     @Override
     public boolean processRequest(final Channel browserToProxyChannel,
         final ChannelHandlerContext ctx, final MessageEvent me) 
         throws IOException {
-        if (!hasProxy()) {
-            return false;
-        }
         if (!startedCopying) {
             // We tell the socket not to record stats here because traffic
             // returning to the browser still goes through our encoder 
             // here (i.e. we haven't stripped the encoder to support 
             // CONNECT traffic).
-            LanternUtils.startReading(this.socketRef.get(), 
-                browserToProxyChannel, false);
+            LanternUtils.startReading(this.sock, browserToProxyChannel, false);
             startedCopying = true;
         }
 
@@ -162,7 +130,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         }
         try {
             log.info("Writing {}", new String(data));
-            final OutputStream os = this.socketRef.get().getOutputStream();
+            final OutputStream os = this.sock.getOutputStream();
             os.write(data);
             return true;
         } catch (final IOException e) {
@@ -196,7 +164,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         final ByteBuffer buf = cb.toByteBuffer();
         final byte[] data = ByteBufferUtils.toRawBytes(buf);
         log.info("Writing chunk {}", new String(data));
-        final OutputStream os = this.socketRef.get().getOutputStream();
+        final OutputStream os = this.sock.getOutputStream();
         os.write(data);
         return true;
     }
@@ -263,6 +231,6 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
 
     @Override
     public void close() {
-        IOUtils.closeQuietly(this.socketRef.get());
+        IOUtils.closeQuietly(this.sock);
     }
 }
