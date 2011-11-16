@@ -10,13 +10,12 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * Class that serves JSON stats over REST.
@@ -26,8 +25,15 @@ public class StatsServer {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final ExecutorService service = 
-        Executors.newCachedThreadPool(
-            new ThreadFactoryBuilder().setDaemon(true).build());
+        Executors.newCachedThreadPool(new ThreadFactory() {
+            
+            @Override
+            public Thread newThread(final Runnable r) {
+                final Thread t = new Thread(r, "Stats-Client-Thread");
+                t.setDaemon(true);
+                return t;
+            }
+        });
     
     public void serve() {
         service.execute(new Runnable() {

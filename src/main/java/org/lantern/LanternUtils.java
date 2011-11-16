@@ -183,24 +183,19 @@ public class LanternUtils {
     }
     
     public static Socket openRawOutgoingPeerSocket(
-        final URI uri, final ProxyStatusListener proxyStatusListener,
-        final P2PClient p2pClient,
+        final URI uri, final P2PClient p2pClient,
         final Map<URI, AtomicInteger> peerFailureCount) throws IOException {
-        return openOutgoingPeerSocket(uri, proxyStatusListener, p2pClient, 
-            peerFailureCount, true);
+        return openOutgoingPeerSocket(uri, p2pClient, peerFailureCount, true);
     }
     
     public static Socket openOutgoingPeerSocket(
-        final URI uri, final ProxyStatusListener proxyStatusListener,
-        final P2PClient p2pClient,
+        final URI uri, final P2PClient p2pClient,
         final Map<URI, AtomicInteger> peerFailureCount) throws IOException {
-        return openOutgoingPeerSocket(uri, proxyStatusListener, p2pClient, 
-            peerFailureCount, false);
+        return openOutgoingPeerSocket(uri, p2pClient, peerFailureCount, false);
     }
     
     public static Socket openOutgoingPeerSocket(
-        final URI uri, final ProxyStatusListener proxyStatusListener,
-        final P2PClient p2pClient,
+        final URI uri, final P2PClient p2pClient,
         final Map<URI, AtomicInteger> peerFailureCount,
         final boolean raw) throws IOException {
 
@@ -236,11 +231,11 @@ public class LanternUtils {
                 // XMPP presence alerts to determine if peers are still valid
                 // or not.
                 peerFailureCount.put(uri, new AtomicInteger(0));
-                proxyStatusListener.onCouldNotConnectToPeer(uri);
+                //proxyStatusListener.onCouldNotConnectToPeer(uri);
             } 
             throw new IOExceptionWithCause(nae);
         } catch (final IOException ioe) {
-            proxyStatusListener.onCouldNotConnectToPeer(uri);
+            //proxyStatusListener.onCouldNotConnectToPeer(uri);
             LOG.warn("Could not connect to peer", ioe);
             throw ioe;
         }
