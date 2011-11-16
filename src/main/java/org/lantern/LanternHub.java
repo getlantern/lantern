@@ -37,6 +37,13 @@ public class LanternHub {
     private static AtomicReference<JettyLauncher> jettyLauncher =
         new AtomicReference<JettyLauncher>();
     
+    
+    private static AtomicReference<PeerProxyManager> trustedPeerProxyManager =
+        new AtomicReference<PeerProxyManager>();
+    
+    private static AtomicReference<PeerProxyManager> anonymousPeerProxyManager =
+        new AtomicReference<PeerProxyManager>();
+    
     private static final File UNZIPPED = 
         new File(LanternUtils.dataDir(), "GeoIP.dat");
     
@@ -142,6 +149,24 @@ public class LanternHub {
             jettyLauncher.set(jl);
         }
         return jettyLauncher.get();
+    }
+
+    public static PeerProxyManager trustedPeerProxyManager() {
+        if (trustedPeerProxyManager.get() == null) {
+            final PeerProxyManager eppl =
+                new DefaultPeerProxyManager(false);
+            trustedPeerProxyManager.set(eppl);
+        }
+        return trustedPeerProxyManager.get();
+    }
+    
+    public static PeerProxyManager anonymousPeerProxyManager() {
+        if (anonymousPeerProxyManager.get() == null) {
+            final PeerProxyManager eppl =
+                new DefaultPeerProxyManager(true);
+            anonymousPeerProxyManager.set(eppl);
+        }
+        return anonymousPeerProxyManager.get();
     }
 
 }
