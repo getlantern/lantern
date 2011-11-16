@@ -2,7 +2,6 @@ package org.lantern;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.security.SecureRandom;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -27,9 +26,8 @@ public class JettyLauncher {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private final SecureRandom sr = new SecureRandom();
-
-    private final String secureBase = "/"+String.valueOf(sr.nextLong());
+    private final String secureBase = 
+        "/"+String.valueOf(LanternHub.secureRandom().nextLong());
 
     private final int randomPort = LanternUtils.randomPort();
     
@@ -47,7 +45,6 @@ public class JettyLauncher {
         final ResourceHandler rh = new FileServingResourceHandler();
         rh.setDirectoriesListed(false);
         rh.setAliases(false);
-        //rh.setWelcomeFiles(new String[]{ "lanternmap.html" });
         rh.setResourceBase("viz/skel");
  
         final HandlerList handlers = new HandlerList();
@@ -123,17 +120,4 @@ public class JettyLauncher {
         final String url = fullBasePath + "/lanternmap.html";
         LanternUtils.browseUrl(url);
     }
-    
-    public static void main (final String[] args) {
-        final JettyLauncher jl = LanternHub.jettyLauncher();
-        System.out.println("Starting!!");
-        jl.start();
-        System.out.println("Opening browser!!");
-        jl.openBrowserWhenReady();
-        try {
-            Thread.sleep(200000);
-        } catch (InterruptedException e) {
-        }
-    }
-
 }

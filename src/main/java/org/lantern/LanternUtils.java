@@ -21,6 +21,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.UnresolvedAddressException;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,7 +43,6 @@ import org.apache.commons.io.IOExceptionWithCause;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
-import org.apache.commons.lang.math.RandomUtils;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -593,6 +593,22 @@ public class LanternUtils {
     }
     
     public static int randomPort() {
+        final SecureRandom sr = LanternHub.secureRandom();
+        for (int i = 0; i < 10; i++) {
+            final int randomPort = 1024 + (sr.nextInt() % 60000);
+            try {
+                final ServerSocket sock = new ServerSocket();
+                sock.bind(new InetSocketAddress("127.0.0.1", randomPort));
+                final int port = sock.getLocalPort();
+                sock.close();
+                return port;
+            } catch (final IOException e) {
+                LOG.info("Could not bind to port: {}", randomPort);
+            }
+        }
+        
+        // If we can't grab one of our securely chosen random ports, use
+        // whatever port the OS assigns.
         try {
             final ServerSocket sock = new ServerSocket();
             sock.bind(null);
@@ -600,7 +616,8 @@ public class LanternUtils {
             sock.close();
             return port;
         } catch (final IOException e) {
-            return 1024 + (RandomUtils.nextInt() % 60000);
+            LOG.info("Still could not bind?");
+            return 1024 + (sr.nextInt() % 60000);
         }
     }
     

@@ -79,7 +79,7 @@ public class Launcher {
         
         serveStats();
         //new StatsSimulator().start();
-        //startJetty();
+        startJetty();
         
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
