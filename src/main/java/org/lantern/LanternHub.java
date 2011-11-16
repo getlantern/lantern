@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.SecureRandom;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
@@ -34,15 +35,18 @@ public class LanternHub {
     
     private volatile static LookupService lookupService;
     
-    private static AtomicReference<JettyLauncher> jettyLauncher =
+    private static final AtomicReference<JettyLauncher> jettyLauncher =
         new AtomicReference<JettyLauncher>();
     
     
-    private static AtomicReference<PeerProxyManager> trustedPeerProxyManager =
+    private static final AtomicReference<PeerProxyManager> trustedPeerProxyManager =
         new AtomicReference<PeerProxyManager>();
     
-    private static AtomicReference<PeerProxyManager> anonymousPeerProxyManager =
+    private static final AtomicReference<PeerProxyManager> anonymousPeerProxyManager =
         new AtomicReference<PeerProxyManager>();
+    
+    private static final AtomicReference<SecureRandom> secureRandom =
+        new AtomicReference<SecureRandom>();
     
     private static final File UNZIPPED = 
         new File(LanternUtils.dataDir(), "GeoIP.dat");
@@ -167,6 +171,13 @@ public class LanternHub {
             anonymousPeerProxyManager.set(eppl);
         }
         return anonymousPeerProxyManager.get();
+    }
+
+    public static SecureRandom secureRandom() {
+        if (secureRandom.get() == null) {
+            secureRandom.set(new SecureRandom());
+        }
+        return secureRandom.get();
     }
 
 }
