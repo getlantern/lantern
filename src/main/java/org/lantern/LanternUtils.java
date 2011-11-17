@@ -595,7 +595,7 @@ public class LanternUtils {
     public static int randomPort() {
         final SecureRandom sr = LanternHub.secureRandom();
         for (int i = 0; i < 10; i++) {
-            final int randomPort = 1024 + (sr.nextInt() % 60000);
+            final int randomPort = 1024 + (Math.abs(sr.nextInt()) % 60000);
             try {
                 final ServerSocket sock = new ServerSocket();
                 sock.bind(new InetSocketAddress("127.0.0.1", randomPort));
@@ -617,7 +617,7 @@ public class LanternUtils {
             return port;
         } catch (final IOException e) {
             LOG.info("Still could not bind?");
-            return 1024 + (sr.nextInt() % 60000);
+            return 1024 + (Math.abs(sr.nextInt()) % 60000);
         }
     }
     
