@@ -78,7 +78,7 @@ public class SystemTrayImpl implements SystemTray {
 
             this.menu = new Menu (shell, SWT.POP_UP);
             final MenuItem dashboardItem = new MenuItem(menu, SWT.PUSH);
-            dashboardItem.setText(I18n.tr("Open Internet Dashboard"));
+            dashboardItem.setText(I18n.tr("Open Lantern Dashboard"));
             dashboardItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
