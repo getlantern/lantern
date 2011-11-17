@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2011-11-11 06:35+0000\n"
+"POT-Creation-Date: 2011-11-17 02:21+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -26,37 +26,37 @@ msgid "Lantern "
 msgstr "现在开始运行Lantern吗？"
 
 #: src/main/java/org/lantern/SystemTrayImpl.java:81
-msgid "Open Internet Dashboard"
+msgid "Open Lantern Dashboard"
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:115
+#: src/main/java/org/lantern/SystemTrayImpl.java:109
 #, fuzzy
 msgid "Stop Lantern "
 msgstr "现在开始运行Lantern吗？"
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:135
+#: src/main/java/org/lantern/SystemTrayImpl.java:129
 #, fuzzy
 msgid "Start Lantern "
 msgstr "现在开始运行Lantern吗？"
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:155
+#: src/main/java/org/lantern/SystemTrayImpl.java:150
 #, fuzzy
 msgid "Configure Lantern "
 msgstr "设定Lantern的首选项"
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:180
+#: src/main/java/org/lantern/SystemTrayImpl.java:175
 msgid "Quit"
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:218
+#: src/main/java/org/lantern/SystemTrayImpl.java:213
 msgid "Browser Restart"
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:220
+#: src/main/java/org/lantern/SystemTrayImpl.java:215
 msgid "You may have to restart your browser for these changes to take effect."
 msgstr ""
 
-#: src/main/java/org/lantern/SystemTrayImpl.java:292
+#: src/main/java/org/lantern/SystemTrayImpl.java:287
 msgid "Update to Lantern "
 msgstr ""
 
