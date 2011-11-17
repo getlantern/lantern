@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.Queue;
 import java.util.Random;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -444,11 +445,23 @@ public class LanternUtils {
 
     public static void addProxy(final String server) {
         String proxies = getStringProperty("proxies");
+        
         if (proxies == null) {
             proxies = server;
         } else {
-            proxies += ",";
-            proxies += server;
+            final Set<String> unique = 
+                new LinkedHashSet<String>(Arrays.asList(proxies.split(",")));
+            if (unique.contains(server)) {
+                return;
+            } else {
+                unique.add(server);
+            }
+            final StringBuilder sb = new StringBuilder();
+            for (final String proxy : unique) {
+                sb.append(proxy.trim());
+                sb.append(",");
+            }
+            proxies = sb.toString();
         }
         setStringProperty("proxies", proxies);
     }

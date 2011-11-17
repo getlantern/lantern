@@ -3,6 +3,7 @@ package org.lantern;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.util.Collection;
+import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
@@ -42,6 +43,11 @@ public class CensoredUtils {
             // LAC: 
             "CU");
             */
+    
+    /**
+     * Censored country codes.
+     */
+    public static final Collection<String> CENSORED = new TreeSet<String>();
 
     // These country codes have US export restrictions, and therefore cannot
     // access App Engine sites.
@@ -74,7 +80,7 @@ public class CensoredUtils {
     }
     
     public static boolean isCensored(final InetAddress address) {
-        return isMatch(address, StatsTracker.CENSORED);
+        return isMatch(address, CENSORED);
     }
 
     public static boolean isCensored(final String address) throws IOException {
@@ -104,7 +110,7 @@ public class CensoredUtils {
     
     public static boolean isCensored(final Country country) { 
         final String cc = country.getCode().trim();
-        return StatsTracker.CENSORED.contains(cc);
+        return CENSORED.contains(cc);
     }
     
 

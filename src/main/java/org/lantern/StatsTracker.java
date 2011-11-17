@@ -58,16 +58,11 @@ public class StatsTracker implements LanternData {
     private static final ConcurrentHashMap<String, CountryData> countries = 
         new ConcurrentHashMap<String, StatsTracker.CountryData>();
     
-    /**
-     * Censored country codes, in order of population.
-     */
-    public static final Collection<String> CENSORED = new HashSet<String>();
-    
     static {
         // Adding Cuba and North Korea since ONI has no data for them but they
         // seem to clearly censor.
-        CENSORED.add("CU");
-        CENSORED.add("KP");
+        CensoredUtils.CENSORED.add("CU");
+        CensoredUtils.CENSORED.add("KP");
         addOniData();
         final String[] columnNames0 = {
             "Period Ending", 
@@ -197,6 +192,7 @@ public class StatsTracker implements LanternData {
                 addOniCountryData(line);
                 line = br.readLine();
             }
+            log.info("CENSORED COUNTRIES:\n{}",CensoredUtils.CENSORED);
         } catch (final IOException e) {
             log.error("No file?", e);
         } finally {
@@ -342,7 +338,7 @@ public class StatsTracker implements LanternData {
         final String cc = data[country_code];
         final String name = data[country_index];
         if (censored) {
-            CENSORED.add(cc);
+            CensoredUtils.CENSORED.add(cc);
         }
         
         final JSONObject json = new JSONObject();
