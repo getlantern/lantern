@@ -77,6 +77,7 @@ public class SystemTrayImpl implements SystemTray {
             });
 
             this.menu = new Menu (shell, SWT.POP_UP);
+            /*
             final MenuItem dashboardItem = new MenuItem(menu, SWT.PUSH);
             dashboardItem.setText(I18n.tr("Open Lantern Dashboard"));
             dashboardItem.addListener (SWT.Selection, new Listener () {
@@ -86,6 +87,7 @@ public class SystemTrayImpl implements SystemTray {
                     LanternHub.jettyLauncher().openBrowserWhenReady();
                 }
             });
+            */
             /*
             final MenuItem aboutItem = new MenuItem(menu, SWT.PUSH);
             aboutItem.setText(I18n.tr("About"));
