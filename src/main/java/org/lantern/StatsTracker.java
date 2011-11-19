@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -63,6 +62,7 @@ public class StatsTracker implements LanternData {
         // seem to clearly censor.
         CensoredUtils.CENSORED.add("CU");
         CensoredUtils.CENSORED.add("KP");
+        /*
         addOniData();
         final String[] columnNames0 = {
             "Period Ending", 
@@ -109,6 +109,7 @@ public class StatsTracker implements LanternData {
         addGoogleUserData(columnNames4, 
             "google-user-data-requests.csv", 2, 1, 
             googleUserDataJson);
+            */
         
     }
 
