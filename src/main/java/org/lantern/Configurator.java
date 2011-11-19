@@ -109,7 +109,7 @@ public class Configurator {
             throw new IOException("Could not find extension?");
         }
         FileUtils.copyDirectoryToDirectory(ffDir, dir);
-        LOG.info("Successfully copied directory from {} to {}", ffDir, dir);
+        LOG.info("Copied FireFox extension from {} to {}", ffDir, dir);
         return new File(dir, ffDir.getName());
     }
 

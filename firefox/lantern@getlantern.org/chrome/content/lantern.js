@@ -9,13 +9,16 @@ var Lantern = {
 
     lanternProxying: function() {
         var home = DirIO.get('Home');
-        //dump("Home: "+DirIO.path(home)+"\n");
         var fullPath = DirIO.path(home)+'/.lantern/lanternProxying';
-        //dump("Full path: "+fullPath+"\n");
-        var normalized = fullPath.substring(7);
-        //dump("Normalized: "+normalized+"\n");
+        var osString = Components.classes["@mozilla.org/xre/app-info;1"]  
+                   .getService(Components.interfaces.nsIXULRuntime).OS;
+        if (osString == "WINNT") {
+            var normalized = fullPath.substring(8);
+            normalized = normalized.replace(/\//g, '\\');
+        } else {
+            var normalized = fullPath.substring(7);
+        }
         var fileIn = FileIO.open(normalized);
-        //dump("Opened file..."+fileIn+"\n");
         return fileIn.exists();
     },
 
