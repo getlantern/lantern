@@ -146,6 +146,7 @@ public class SystemTrayImpl implements SystemTray {
                         Configurator.startProxying();
                     }
                 });
+                log.info("Added start and stop items");
             }
             
             final MenuItem configItem = new MenuItem(menu, SWT.PUSH);
@@ -251,15 +252,14 @@ public class SystemTrayImpl implements SystemTray {
     @Override
     public void activate() {
         log.info("Activating Lantern icon");
-        if (!SystemUtils.IS_OS_MAC_OSX) {
-            log.info("Ignoring activation since we're not on OSX...");
-            return;
-        }
         display.asyncExec (new Runnable () {
             @Override
             public void run () {
-                final Image image = newImage("16on.png", 16, 16);
-                setImage(image);
+                if (SystemUtils.IS_OS_MAC_OSX) {
+                    log.info("Customizing image on OSX...");
+                    final Image image = newImage("16on.png", 16, 16);
+                    setImage(image);
+                }
                 if (LanternUtils.shouldProxy()) {
                     stopItem.setEnabled(true);
                 }
