@@ -77,7 +77,6 @@ public class Launcher {
             launchLantern();
         }
         
-        serveStats();
         //new StatsSimulator().start();
         
         // This is necessary to keep the tray/menu item up in the case
@@ -85,11 +84,6 @@ public class Launcher {
         while (!display.isDisposed ()) {
             if (!display.readAndDispatch ()) display.sleep ();
         }
-    }
-
-    private static void serveStats() {
-        final StatsServer stats = new StatsServer();
-        stats.serve();
     }
 
     public static void launchLantern() {

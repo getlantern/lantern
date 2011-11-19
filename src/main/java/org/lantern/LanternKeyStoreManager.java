@@ -19,9 +19,9 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private final File CONFIG_DIR = LanternUtils.configDir();
+    private static final File CONFIG_DIR = LanternUtils.configDir();
     
-    private final File KEYSTORE_FILE = 
+    public static final File KEYSTORE_FILE = 
         new File(CONFIG_DIR, "lantern_keystore.jks");
     
     private final File TRUSTSTORE_FILE = 
@@ -30,7 +30,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     private final File CERT_FILE = 
         new File(CONFIG_DIR, "local_lantern_cert");
     
-    private static final String PASS = "Be Your Own Lantern";
+    public static final String PASS = "Be Your Own Lantern";
 
     private String localCert;
     
