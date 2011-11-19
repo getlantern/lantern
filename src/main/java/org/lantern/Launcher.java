@@ -66,6 +66,8 @@ public class Launcher {
         if (!LanternUtils.isConfigured() || LanternUtils.newInstall()) {
             // Make sure the installer screens themselves don't run through a
             // defunct Lantern proxy that likely has just been uninstalled.
+            LOG.info("Running install screen...newInstall: {}", 
+                 LanternUtils.newInstall());
             Configurator.unproxy();
             final LanternBrowser browser = new LanternBrowser(false);
             browser.install();
