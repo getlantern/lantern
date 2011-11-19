@@ -5,7 +5,7 @@ $(document).ready(function() {
     var historicData = new Array();
     var countryData = {};
     var fetchData = function() {
-        $.getJSON('http://localhost:7878/stats?callback=?', function(data) {
+        $.getJSON('/stats?callback=?', function(data) {
           var countries = data.countries;
           historicData.push(countries);
           if (historicData.length > 400) {
@@ -242,7 +242,7 @@ $(document).ready(function() {
 
     function showCountryData(countryCode) {
         //console.info("Showing country data for "+countryCode);
-        $.getJSON('http://localhost:7878/country/'+countryCode+'?callback=?', 
+        $.getJSON('/country/'+countryCode+'?callback=?', 
             function(json) {
             
             //console.dir(json);
