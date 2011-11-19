@@ -265,6 +265,16 @@ public class Configurator {
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
         final String proxyEnableUs = "1";
 
+        // OK, we do one final check here. If the original proxy settings were
+        // already configured for Lantern for whatever reason, we want to 
+        // change the original to be the system defaults so that when the user
+        // stops Lantern, the system actually goes back to its original pre-
+        // lantern state.
+        if (proxyServerOriginal.equals(LANTERN_PROXY_ADDRESS) && 
+            proxyEnableOriginal.equals(proxyEnableUs)) {
+            proxyEnableOriginal = "0";
+        }
+                
         LOG.info("Setting registry to use Lantern as a proxy...");
         final int enableResult = 
             WindowsRegistry.writeREG_SZ(WINDOWS_REGISTRY_PROXY_KEY, ps, proxyServerUs);
@@ -319,10 +329,8 @@ public class Configurator {
         }
         
         if (proxyEnable.equals(proxyEnableUs)) {
-            LOG.info("Setting proxy enable back to: {}", 
-                proxyEnableOriginal);
-            WindowsRegistry.writeREG_DWORD(WINDOWS_REGISTRY_PROXY_KEY, pe, 
-                proxyEnableOriginal);
+            LOG.info("Setting proxy enable back to 0");
+            WindowsRegistry.writeREG_DWORD(WINDOWS_REGISTRY_PROXY_KEY, pe, "0");
             LOG.info("Successfully reset proxy enable");
         }
         
