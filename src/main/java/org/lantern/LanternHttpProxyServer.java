@@ -4,7 +4,6 @@ import static org.jboss.netty.channel.Channels.pipeline;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
