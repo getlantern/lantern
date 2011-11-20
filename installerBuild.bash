@@ -21,7 +21,7 @@ GE_API_KEY=`cat ~/.lantern/lantern_getexceptional.txt`
 
 perl -pi -e "s/GetExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE
 
-#cd client
+git up || die "Could not update git"
 mvn clean || die "Could not clean?"
 mvn $MVN_ARGS install -Dmaven.test.skip=true || die "Could not build?"
 
