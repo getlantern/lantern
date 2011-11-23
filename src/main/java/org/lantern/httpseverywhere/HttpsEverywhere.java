@@ -61,20 +61,26 @@ public class HttpsEverywhere {
         final Collection<String> exclusions = 
             utils.getStrings("/ruleset/exclusion/@pattern");
         
-        final NodeList nodes = utils.getNodes("/ruleset/rule");
-        final int length = nodes.getLength();
-        
+        final NodeList ruleNodes = utils.getNodes("/ruleset/rule");
+        final int rulesLength = ruleNodes.getLength();
+
+        final NodeList secureCookieNodes = utils.getNodes("/ruleset/securecookie");
+        final int secureCookiesLength = secureCookieNodes.getLength();
+
         for (final String target : targets) {
             LOG.info("Checking target: {}", target);
             final HttpsRuleSet ruleSet;
             if (httpsRules.containsKey(target)) {
                 ruleSet = httpsRules.get(target);
             } else {
-                ruleSet = new HttpsRuleSet(new ArrayList<HttpsRule>(length), exclusions);
+                ruleSet = new HttpsRuleSet(
+					new ArrayList<HttpsRule>(rulesLength), 
+					new ArrayList<HttpsSecureCookieRule>(secureCookiesLength), 
+					exclusions);
                 httpsRules.put(target, ruleSet);
             }
-            for (int i = 0; i < length; i++) {
-                final Node node = nodes.item(i);
+            for (int i = 0; i < rulesLength; i++) {
+                final Node node = ruleNodes.item(i);
                 final NamedNodeMap attributes = node.getAttributes();
                 final String from = 
                     attributes.getNamedItem("from").getTextContent();
@@ -82,6 +88,14 @@ public class HttpsEverywhere {
                     attributes.getNamedItem("to").getTextContent();
                 final HttpsRule rule = new HttpsRule(from, to);
                 ruleSet.rules.add(rule);
+            }
+            for (int i = 0; i < secureCookiesLength; i++) {
+                final Node node = secureCookieNodes.item(i);
+                final NamedNodeMap attributes = node.getAttributes();
+                final String host = attributes.getNamedItem("host").getTextContent();
+                final String name = attributes.getNamedItem("name").getTextContent();
+                final HttpsSecureCookieRule rule = new HttpsSecureCookieRule(host, name);
+                ruleSet.secureCookieRules.add(rule);
             }
         }
     }
@@ -122,6 +136,25 @@ public class HttpsEverywhere {
         LOG.info("Unchanged!");
         return uri;
     }
+    
+    protected static Collection<HttpsRuleSet> getApplicableRuleSets(final String uri) {
+        
+        final Collection<String> candidates = 
+            LanternUtils.toHttpsCandidates(uri);
+
+        final Collection<HttpsRuleSet> ruleSets = getRules(candidates);
+        final Collection<HttpsRuleSet> applicable = new HashSet<HttpsRuleSet>();
+    
+        if (ruleSets == null || ruleSets.isEmpty()) {
+            return applicable;
+        } 
+        for (final HttpsRuleSet ruleSet : ruleSets) {
+            if (!excluded(uri, ruleSet.exclusions)) {
+                applicable.add(ruleSet);
+            }
+        }
+        return applicable;
+    }
 
     private static boolean excluded(final String uri,
         final Collection<String> exclusions) {
@@ -148,19 +181,28 @@ public class HttpsEverywhere {
     }
     
     
-    private static final class HttpsRuleSet {
+    protected static final class HttpsRuleSet {
         private final Collection<HttpsRule> rules;
+	private final Collection<HttpsSecureCookieRule> secureCookieRules;
         private final Collection<String> exclusions;
 
-        private HttpsRuleSet(final Collection<HttpsRule> rules, 
+
+        private HttpsRuleSet(final Collection<HttpsRule> rules,
+	    final Collection<HttpsSecureCookieRule> secureCookieRules,
             final Collection<String> exclusions) {
             this.rules = rules;
+			this.secureCookieRules = secureCookieRules;
             this.exclusions = exclusions;
+        }
+        
+        public Collection<HttpsSecureCookieRule> getSecureCookieRules() {
+            return secureCookieRules;
         }
         
         @Override
         public String toString() {
-            return "HttpsRuleSet [rules=" + rules + "]";
+            return "HttpsRuleSet [rules=" + rules + ", " + "secureCookieRules=" + secureCookieRules + "]";
         }
     }
+    
 }
