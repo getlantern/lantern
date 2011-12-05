@@ -22,6 +22,7 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.net.ServerSocketFactory;
@@ -208,6 +209,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     };
 
     private String lastJson = "";
+
+    private final Map<String, Presence> presences = 
+        new ConcurrentHashMap<String, Presence>();
     
     /**
      * Creates a new XMPP handler.
@@ -422,6 +426,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private void configureRoster() {
         final XMPPConnection xmpp = this.client.getXmppConnection();
 
+        //final Packet extended = XmppUtils.extendedRoster(xmpp);
+        //XmppHandler.LOG.info("EXTENDED: "+extended.toXML());
+        
         final Roster roster = xmpp.getRoster();
 
         final RosterEntry lantern = roster.getEntry(LanternConstants.LANTERN_JID);
@@ -429,7 +436,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             LOG.info("Creating roster entry for Lantern...");
             //roster.createEntry(LANTERN_JID, "Lantern", null);
         }
-        
         roster.setSubscriptionMode(Roster.SubscriptionMode.manual);
         
         roster.addRosterListener(new RosterListener() {
@@ -449,6 +455,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             @Override
             public void entriesAdded(final Collection<String> addresses) {
                 LOG.info("Entries added: "+addresses);
+                for (final String address : addresses) {
+                    presences.remove(address);
+                }
             }
         });
         
@@ -474,7 +483,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
         else if (isLanternJid(from)) {
             addOrRemovePeer(p, from);
+            this.presences.put(from, p);
+        } else {
+            this.presences.put(from, p);
         }
+        
+        
     }
 
     /*
@@ -959,6 +973,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         } catch (final KeyManagementException e) {
             LOG.error("Key managmement issue?", e);
             throw new Error("Key managmement issue?", e);
+        }
+    }
+
+    public Collection<Presence> getPresences() {
+        synchronized(presences) {
+            return presences.values();
         }
     }
 }
