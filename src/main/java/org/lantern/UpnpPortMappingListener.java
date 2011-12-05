@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.teleal.cling.model.action.ActionInvocation;
 import org.teleal.cling.model.message.UpnpResponse;
+import org.teleal.cling.model.meta.Action;
 import org.teleal.cling.model.meta.Device;
 import org.teleal.cling.model.meta.Service;
 import org.teleal.cling.model.types.DeviceType;
@@ -98,12 +99,17 @@ public class UpnpPortMappingListener extends DefaultRegistryListener {
     @Override
     synchronized public void deviceAdded(Registry registry, Device device) {
 
-        Service connectionService;
+        final Service connectionService;
         if ((connectionService = discoverConnectionService(device)) == null) return;
 
         log.debug("Activating port mappings on: " + connectionService);
 
         final List<PortMapping> activeForService = new ArrayList();
+        final Action action = connectionService.getAction("AddPortMapping");
+        if (action == null) {
+            log.info("No ACTION in UPnP mapping attempt!");
+            return;
+        }
         for (final PortMapping pm : portMappings) {
             new PortMappingAdd(connectionService, registry.getUpnpService().getControlPoint(), pm) {
 
