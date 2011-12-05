@@ -23,17 +23,25 @@ import com.maxmind.geoip.LookupService;
 public class LanternHub {
 
     private static final Logger LOG = LoggerFactory.getLogger(LanternHub.class);
-    private volatile static TrustedContactsManager trustedContactsManager;
-    private volatile static Display display;
-    private volatile static SystemTray systemTray;
+    private volatile static AtomicReference<TrustedContactsManager> trustedContactsManager =
+        new AtomicReference<TrustedContactsManager>();
+    private volatile static AtomicReference<Display> display = 
+        new AtomicReference<Display>();
+    private volatile static AtomicReference<SystemTray> systemTray = 
+        new AtomicReference<SystemTray>();
     
-    private volatile static StatsTracker statsTracker;
-    private volatile static LanternKeyStoreManager proxyKeyStore;
+    private volatile static AtomicReference<StatsTracker> statsTracker = 
+        new AtomicReference<StatsTracker>();
+    private volatile static AtomicReference<LanternKeyStoreManager> proxyKeyStore = 
+        new AtomicReference<LanternKeyStoreManager>();
     
-    private volatile static XmppHandler xmppHandler;
-    private volatile static int randomSslPort = -1;
+    private volatile static AtomicReference<XmppHandler> xmppHandler = 
+        new AtomicReference<XmppHandler>();
+    private volatile static AtomicReference<Integer> randomSslPort = 
+        new AtomicReference<Integer>(-1);
     
-    private volatile static LookupService lookupService;
+    private volatile static AtomicReference<LookupService> lookupService = 
+        new AtomicReference<LookupService>();
     
     private static final AtomicReference<JettyLauncher> jettyLauncher =
         new AtomicReference<JettyLauncher>();
@@ -48,14 +56,19 @@ public class LanternHub {
     private static final AtomicReference<SecureRandom> secureRandom =
         new AtomicReference<SecureRandom>();
     
+    private static final AtomicReference<Config> config =
+        new AtomicReference<Config>();
+    
     private static final File UNZIPPED = 
         new File(LanternUtils.dataDir(), "GeoIP.dat");
     
-    public synchronized static LookupService getGeoIpLookup() {
-        if (lookupService == null) {
-            lookupService = buildLookupService();
+    public static LookupService getGeoIpLookup() {
+        synchronized (lookupService) {
+            if (lookupService.get() == null) {
+                lookupService.set(buildLookupService());
+            }
+            return lookupService.get();
         }
-        return lookupService;
     }
     
     private static LookupService buildLookupService() {
@@ -75,109 +88,140 @@ public class LanternHub {
             }
         }
         try {
-            lookupService = new LookupService(UNZIPPED, 
+            return new LookupService(UNZIPPED, 
                     LookupService.GEOIP_MEMORY_CACHE);
         } catch (final IOException e) {
             LOG.error("Could not create LOOKUP service?");
-            lookupService = null;
         }
-        return lookupService;
+        return null;
     }
 
-    public synchronized static TrustedContactsManager getTrustedContactsManager() {
-        if (trustedContactsManager == null) {
-            trustedContactsManager = new DefaultTrustedContactsManager();
-        } 
-        return trustedContactsManager;
-    }
-
-    public synchronized static Display display() {
-        if (display == null) {
-            display = new Display();
+    public static TrustedContactsManager getTrustedContactsManager() {
+        synchronized (trustedContactsManager) {
+            if (trustedContactsManager.get() == null) {
+                trustedContactsManager.set(new DefaultTrustedContactsManager());
+            } 
+            return trustedContactsManager.get();
         }
-        return display;
     }
 
-    public synchronized static SystemTray systemTray() {
-        if (systemTray == null) {
-            if (LanternUtils.runWithUi()) {
-                systemTray = new SystemTrayImpl(display());
-                systemTray.createTray();
-            } else {
-                return new SystemTray() {
-                    @Override
-                    public void createTray() {}
-                    @Override
-                    public void activate() {}
-                    @Override
-                    public void addUpdate(Map<String, String> updateData) {}
-                };
+    public static Display display() {
+        synchronized (display) {
+            if (display.get() == null) {
+                display.set(new Display());
             }
+            return display.get();
         }
-        return systemTray;
     }
 
-    public synchronized static StatsTracker statsTracker() {
-        if (statsTracker == null) {
-            statsTracker = new StatsTracker();
+    public static SystemTray systemTray() {
+        synchronized (systemTray) {
+            if (systemTray.get() == null) {
+                if (LanternUtils.runWithUi()) {
+                    final SystemTray tray = new SystemTrayImpl(display());
+                    tray.createTray();
+                    systemTray.set(tray);
+                } else {
+                    return new SystemTray() {
+                        @Override
+                        public void createTray() {}
+                        @Override
+                        public void activate() {}
+                        @Override
+                        public void addUpdate(Map<String, String> updateData) {}
+                    };
+                }
+            }
+            return systemTray.get();
         }
-        return statsTracker;
     }
 
-    public synchronized static LanternKeyStoreManager getKeyStoreManager() {
-        if (proxyKeyStore == null) {
-            proxyKeyStore = new LanternKeyStoreManager(true);
+    public static StatsTracker statsTracker() {
+        synchronized (statsTracker) {
+            if (statsTracker.get() == null) {
+                statsTracker.set(new StatsTracker());
+            }
+            return statsTracker.get();
         }
-        return proxyKeyStore;
     }
 
-    public synchronized static XmppHandler xmppHandler() {
-        if (xmppHandler == null) {
-            xmppHandler = new XmppHandler(randomSslPort(), 
-                LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
+    public static LanternKeyStoreManager getKeyStoreManager() {
+        synchronized (proxyKeyStore) {
+            if (proxyKeyStore.get() == null) {
+                proxyKeyStore.set(new LanternKeyStoreManager(true));
+            }
+            return proxyKeyStore.get();
         }
-        return xmppHandler;
     }
 
-    public synchronized static int randomSslPort() {
-        if (randomSslPort == -1) {
-            randomSslPort = LanternUtils.randomPort();
+    public static XmppHandler xmppHandler() {
+        synchronized (xmppHandler) {
+            if (xmppHandler.get() == null) {
+                xmppHandler.set(new XmppHandler(randomSslPort(), 
+                    LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT));
+            }
+            return xmppHandler.get();
         }
-        return randomSslPort;
+    }
+
+    public static int randomSslPort() {
+        synchronized (randomSslPort) {
+            if (randomSslPort.get() == -1) {
+                randomSslPort.set(LanternUtils.randomPort());
+            }
+            return randomSslPort.get();
+        }
     }
 
     public static JettyLauncher jettyLauncher() {
-        if (jettyLauncher.get() == null) {
-            final JettyLauncher jl = new JettyLauncher();
-            jl.start();
-            jettyLauncher.set(jl);
+        synchronized (jettyLauncher) {
+            if (jettyLauncher.get() == null) {
+                final JettyLauncher jl = new JettyLauncher();
+                jl.start();
+                jettyLauncher.set(jl);
+            }
+            return jettyLauncher.get();
         }
-        return jettyLauncher.get();
     }
 
     public static PeerProxyManager trustedPeerProxyManager() {
-        if (trustedPeerProxyManager.get() == null) {
-            final PeerProxyManager eppl =
-                new DefaultPeerProxyManager(false);
-            trustedPeerProxyManager.set(eppl);
+        synchronized (trustedPeerProxyManager) {
+            if (trustedPeerProxyManager.get() == null) {
+                final PeerProxyManager eppl =
+                    new DefaultPeerProxyManager(false);
+                trustedPeerProxyManager.set(eppl);
+            }
+            return trustedPeerProxyManager.get();
         }
-        return trustedPeerProxyManager.get();
     }
     
     public static PeerProxyManager anonymousPeerProxyManager() {
-        if (anonymousPeerProxyManager.get() == null) {
-            final PeerProxyManager eppl =
-                new DefaultPeerProxyManager(true);
-            anonymousPeerProxyManager.set(eppl);
+        synchronized (anonymousPeerProxyManager) {
+            if (anonymousPeerProxyManager.get() == null) {
+                final PeerProxyManager eppl =
+                    new DefaultPeerProxyManager(true);
+                anonymousPeerProxyManager.set(eppl);
+            }
+            return anonymousPeerProxyManager.get();
         }
-        return anonymousPeerProxyManager.get();
     }
 
     public static SecureRandom secureRandom() {
-        if (secureRandom.get() == null) {
-            secureRandom.set(new SecureRandom());
+        synchronized (secureRandom) {
+            if (secureRandom.get() == null) {
+                secureRandom.set(new SecureRandom());
+            }
+            return secureRandom.get();
         }
-        return secureRandom.get();
+    }
+
+    public static Config config() {
+        synchronized (config) {
+            if (config.get() == null) {
+                config.set(new DefaultConfig());
+            } 
+            return config.get();
+        }
     }
 
 }
