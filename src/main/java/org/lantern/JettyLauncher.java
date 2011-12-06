@@ -148,7 +148,9 @@ public class JettyLauncher {
             }
             log.info("Stripped is: {}", stripped);
             final String json;
-            if (stripped.startsWith("/stats")) {
+            if (stripped.startsWith("/roster")) {
+                json = LanternHub.config().roster();
+            } else if (stripped.startsWith("/stats")) {
                 json = LanternHub.statsTracker().toJson();
             } else if (stripped.startsWith("/oni")) {
                 json = LanternHub.statsTracker().oniJson();
