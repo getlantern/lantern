@@ -54,11 +54,11 @@ import org.slf4j.LoggerFactory;
  *
  * MockConnection conn = new MockXYZConnection(); 
  * try {
- *     conn.simulateConnect();
  *     conn.runTest(rt);
+ *     ...
  * }
  * finally {
- *     conn.teardownConnection();    
+ *     conn.teardown();    
  * }
  *
  *
