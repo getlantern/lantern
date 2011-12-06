@@ -272,16 +272,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final HttpRequest request = (HttpRequest)me.getMessage();
         final String uri = request.getUri();
         log.info("URI is: {}", uri);
-
-        final String referer = request.getHeader("referer");
-        
-        final String uriToCheck;
-        log.info("Referer: "+referer);
-        if (!StringUtils.isBlank(referer)) {
-            uriToCheck = referer;
-        } else {
-            uriToCheck = uri;
-        }
         
         // We need to set this outside of proxying rules because we first
         // send incoming messages down chunked versus unchunked paths and
@@ -292,7 +282,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             readingChunks = false;
         }
         
-        this.proxying = Whitelist.isWhitelisted(uriToCheck);
+        this.proxying = Whitelist.isWhitelisted(request);
         
         if (proxying) {
             // If it's an HTTP request, see if we can redirect it to HTTPS.
@@ -340,7 +330,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         log.info("Dispatching request");
         if (request.getMethod() == HttpMethod.CONNECT) {
             try {
-                if (ANONYMOUS_ACTIVE && LanternHub.anonymousPeerProxyManager().processRequest(
+                if (ANONYMOUS_ACTIVE && proxyProvider.getAnonymousPeerProxyManager().processRequest(
                         browserToProxyChannel, ctx, me) != null) {
                     log.info("Processed CONNECT on peer...returning");
                     return null;
@@ -376,7 +366,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         try {
             if (TRUSTED_ACTIVE) {
                 final HttpRequestProcessor rp = 
-                    LanternHub.trustedPeerProxyManager().processRequest(
+                    proxyProvider.getTrustedPeerProxyManager().processRequest(
                             browserToProxyChannel, ctx, me);
                 if (rp != null) {
                     return rp;

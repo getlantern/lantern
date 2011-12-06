@@ -373,13 +373,23 @@ public class StatsTracker implements LanternData {
     public void addBytesProxied(final long bp, final Channel channel) {
         bytesProxied.addAndGet(bp);
         final CountryData cd = toCountryData(channel);
-        cd.bytes += bp;
+        if (cd != null) {
+            cd.bytes += bp;
+        }
+        else {
+            log.warn("No CountryData for {} Not adding bytes proxied.", channel);
+        }
     }
 
     public void addBytesProxied(final long bp, final Socket sock) {
         bytesProxied.addAndGet(bp);
         final CountryData cd = toCountryData(sock);
-        cd.bytes += bp;
+        if (cd != null) {
+            cd.bytes += bp;
+        }
+        else {
+            log.warn("No CountryData for {} Not adding bytes proxied.", sock);
+        }
     }
 
     @Override
@@ -428,6 +438,10 @@ public class StatsTracker implements LanternData {
     }
     
     private CountryData toCountryData(final InetSocketAddress isa) {
+        if (isa == null) {
+            return null;
+        }
+        
         final LookupService ls = LanternHub.getGeoIpLookup();
         final InetAddress addr = isa.getAddress();
         final Country country = ls.getCountry(addr);

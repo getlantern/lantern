@@ -47,6 +47,7 @@ public class SetCookieObserverHandler extends SimpleChannelHandler {
             final HttpRequest request = (HttpRequest) evt.getMessage();            
             requests.add(CookieUtils.copyHttpRequestInfo(request));
         }
+        ctx.sendUpstream(evt);
     }
 
     @Override
@@ -73,18 +74,25 @@ public class SetCookieObserverHandler extends SimpleChannelHandler {
             final List<Cookie> setCookies = new ArrayList<Cookie>();
             final CookieDecoder decoder = new CookieDecoder();
             for (String setCookieHeader: setCookieHeaders) {
-                for (Cookie c : decoder.decode(setCookieHeader)) {
-                    setCookies.add(c);
+                try {
+                    for (Cookie c : decoder.decode(setCookieHeader)) {
+                        setCookies.add(c);
+                    }
+                }
+                catch (IllegalArgumentException e) {
+                    log.warn("Ignoring response with unparsable set-cookie header {}: {}", setCookieHeader, e);
                 }
             }
-            this.observer.setCookies(setCookies, request);
+            if (!setCookies.isEmpty()) {
+                this.observer.setCookies(setCookies, request);
+            }
         }
     }
 
     @Override
     public void exceptionCaught(final ChannelHandlerContext ctx, 
         final ExceptionEvent e) throws Exception {
-        log.error("Caught exception observing Set-Cookie headers.", e.getCause());
+        log.error("Caught exception observing Set-Cookie headers: {}", e.getCause());
     }
 
 }

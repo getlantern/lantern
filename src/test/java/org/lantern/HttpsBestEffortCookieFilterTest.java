@@ -15,6 +15,7 @@ import org.lantern.cookie.InMemoryCookieTracker;
 import org.lantern.httpseverywhere.HttpsBestEffortCookieFilter;
 import org.lantern.httpseverywhere.HttpsSecureCookieFilter;
 import org.lantern.httpseverywhere.HttpsSecureCookieRule;
+import static org.lantern.TestingUtils.*;
 
 public class HttpsBestEffortCookieFilterTest {
     
@@ -59,12 +60,12 @@ public class HttpsBestEffortCookieFilterTest {
      */ 
     @Test
     public void testTrackerWhitelist() throws Exception {
-        final HttpRequest req = _makeGetRequest("http://www.example.com/");
+        final HttpRequest req = createGetRequest("http://www.example.com/");
     
         final InMemoryCookieTracker tracker = new InMemoryCookieTracker(); 
 
         final CookieFilter cf = new HttpsBestEffortCookieFilter(
-            tracker.asUpstreamCookieFilter(req, false),
+            tracker.asOutboundCookieFilter(req, false),
             new CookieFilter() {
                 @Override
                 public boolean accepts(Cookie c) {
@@ -94,14 +95,14 @@ public class HttpsBestEffortCookieFilterTest {
         testRules.add(new HttpsSecureCookieRule("", "bar.*")); // starts with bar
         final CookieFilter secureCookieFilter = new HttpsSecureCookieFilter(testRules);
 
-        final HttpRequest req = _makeGetRequest("http://www.example.com/");
+        final HttpRequest req = createGetRequest("http://www.example.com/");
 
         final InMemoryCookieTracker tracker = new InMemoryCookieTracker(); 
 
         // this filter will reject anything starting with "bar" 
         // unless it has been whitelisted in the tracker.
         final CookieFilter cf = new HttpsBestEffortCookieFilter(
-            tracker.asUpstreamCookieFilter(req, false),
+            tracker.asOutboundCookieFilter(req, false),
             secureCookieFilter
         );
         
@@ -138,11 +139,11 @@ public class HttpsBestEffortCookieFilterTest {
 
         final String filteredUris[] = {"http://twitter.com/", "http://foo.twitter.com/"};    
         for (final String uri : filteredUris) {
-            final HttpRequest req = _makeGetRequest(uri);
+            final HttpRequest req = createGetRequest(uri);
             final CookieFilter secureCookieFilter = new HttpsSecureCookieFilter(req);
 
             final CookieFilter cf = new HttpsBestEffortCookieFilter(
-                tracker.asUpstreamCookieFilter(req, false),
+                tracker.asOutboundCookieFilter(req, false),
                 secureCookieFilter
             );
             
@@ -156,11 +157,11 @@ public class HttpsBestEffortCookieFilterTest {
 
         final String unfilteredUris[] = {"http://www.example.org/", };
         for (final String uri : unfilteredUris) {
-            final HttpRequest req = _makeGetRequest(uri);
+            final HttpRequest req = createGetRequest(uri);
             
             final CookieFilter secureCookieFilter = new HttpsSecureCookieFilter(req);
             final CookieFilter cf = new HttpsBestEffortCookieFilter(
-                tracker.asUpstreamCookieFilter(req, false),
+                tracker.asOutboundCookieFilter(req, false),
                 secureCookieFilter
             );
             
@@ -173,8 +174,5 @@ public class HttpsBestEffortCookieFilterTest {
 
     }
     
-    private HttpRequest _makeGetRequest(final String uri) {
-        return new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, uri);
-    }
     
 }

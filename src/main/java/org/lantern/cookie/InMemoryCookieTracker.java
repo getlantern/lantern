@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
  * program exits.
  *
  */
-public class InMemoryCookieTracker implements SetCookieObserver {
+public class InMemoryCookieTracker implements CookieTracker {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -209,7 +209,7 @@ public class InMemoryCookieTracker implements SetCookieObserver {
      * cookie storage policy in certain ways.
      *
      */
-    public CookieFilter asUpstreamCookieFilter(final HttpRequest request, final boolean requireValueMatch) throws URISyntaxException {
+    public CookieFilter asOutboundCookieFilter(final HttpRequest request, final boolean requireValueMatch) throws URISyntaxException {
         final URI requestUri = CookieUtils.makeSafeURI(request.getUri());
         return new CookieFilter() {
             @Override

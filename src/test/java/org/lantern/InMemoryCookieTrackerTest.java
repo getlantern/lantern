@@ -14,6 +14,7 @@ import org.jboss.netty.handler.codec.http.HttpVersion;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.lantern.cookie.InMemoryCookieTracker;
+import static org.lantern.TestingUtils.*;
 
 public class InMemoryCookieTrackerTest {
     
@@ -26,13 +27,13 @@ public class InMemoryCookieTrackerTest {
         // no specification of domain or path (use defaults)
         // this should have a default path of /baz
         final String url = "http://example.com/baz/quux";
-        final Cookie setCookie = _makeDefaultCookie("foo=bar");
-        final HttpRequest req = _makeGetRequest(url);
+        final Cookie setCookie = createDefaultCookie("foo=bar");
+        final HttpRequest req = createGetRequest(url);
         tracker.setCookie(setCookie, req);
         
         // create an cookie that would potentially be sent by the browser
         // with the same name and value.
-        final Cookie outCookie = _makeDefaultCookie("foo=bar");
+        final Cookie outCookie = createDefaultCookie("foo=bar");
 
         // should be sent to the identical domain it came from only
         assertTrue(tracker.wouldSendCookie(outCookie, new URI(url)));
@@ -61,15 +62,15 @@ public class InMemoryCookieTrackerTest {
         // no specification of domain or path (use defaults)
         // this should have a default path of /baz
         final String url = "http://example.com/baz/quux";
-        final Cookie setCookie = _makeDefaultCookie("foo=bar");
-        final HttpRequest req = _makeGetRequest(url);
+        final Cookie setCookie = createDefaultCookie("foo=bar");
+        final HttpRequest req = createGetRequest(url);
         tracker.setCookie(setCookie, req);
         
         // create an cookie that would potentially be sent by the browser
         // with the same name and value. 
-        final Cookie sameValCookie = _makeDefaultCookie("foo=bar");
+        final Cookie sameValCookie = createDefaultCookie("foo=bar");
         // create another with the same name but a different value 
-        final Cookie diffValCookie = _makeDefaultCookie("foo=quux");
+        final Cookie diffValCookie = createDefaultCookie("foo=quux");
 
         // the one with the same value should still be sendable when value checking is enabled
         assertTrue(tracker.wouldSendCookie(sameValCookie, new URI("http://example.com/baz/"), true));
@@ -99,21 +100,21 @@ public class InMemoryCookieTrackerTest {
 
         // create and set 4 similar cookies.  They should all wind up in the 
         // store and behave differently.
-        Cookie setCookie1 = _makeDefaultCookie("foo=1; domain=example.com");
-        Cookie setCookie2 = _makeDefaultCookie("foo=2; domain=example.com; path=/foo;");
-        Cookie setCookie3 = _makeDefaultCookie("foo=3; domain=foo.example.com");
-        Cookie setCookie4 = _makeDefaultCookie("foo=4; domain=bar.example.com");
+        Cookie setCookie1 = createDefaultCookie("foo=1; domain=example.com");
+        Cookie setCookie2 = createDefaultCookie("foo=2; domain=example.com; path=/foo;");
+        Cookie setCookie3 = createDefaultCookie("foo=3; domain=foo.example.com");
+        Cookie setCookie4 = createDefaultCookie("foo=4; domain=bar.example.com");
         
-        tracker.setCookie(setCookie1, _makeGetRequest("http://example.com/"));
-        tracker.setCookie(setCookie2, _makeGetRequest("http://example.com/foo"));
-        tracker.setCookie(setCookie3, _makeGetRequest("http://foo.example.com/"));
-        tracker.setCookie(setCookie4, _makeGetRequest("http://bar.example.com/"));
+        tracker.setCookie(setCookie1, createGetRequest("http://example.com/"));
+        tracker.setCookie(setCookie2, createGetRequest("http://example.com/foo"));
+        tracker.setCookie(setCookie3, createGetRequest("http://foo.example.com/"));
+        tracker.setCookie(setCookie4, createGetRequest("http://bar.example.com/"));
         
 
-        Cookie cookie1 = _makeDefaultCookie("foo=1");
-        Cookie cookie2 = _makeDefaultCookie("foo=2");
-        Cookie cookie3 = _makeDefaultCookie("foo=3");
-        Cookie cookie4 = _makeDefaultCookie("foo=4");
+        Cookie cookie1 = createDefaultCookie("foo=1");
+        Cookie cookie2 = createDefaultCookie("foo=2");
+        Cookie cookie3 = createDefaultCookie("foo=3");
+        Cookie cookie4 = createDefaultCookie("foo=4");
 
         // check that the appropriate cookies are present and go 
         // to the expected locaations only.  In all cases, value 
@@ -181,23 +182,23 @@ public class InMemoryCookieTrackerTest {
     @Test
     public void testCookieOverwrite() throws Exception {
         // these should overwrite each other when set on http://www.example.com/foo/
-        Cookie setCookie0 = _makeDefaultCookie("foo=0");
-        Cookie setCookie1 = _makeDefaultCookie("foo=1; domain=www.example.com;");
-        Cookie setCookie2 = _makeDefaultCookie("foo=2; domain=www.example.com; path=/foo;");
+        Cookie setCookie0 = createDefaultCookie("foo=0");
+        Cookie setCookie1 = createDefaultCookie("foo=1; domain=www.example.com;");
+        Cookie setCookie2 = createDefaultCookie("foo=2; domain=www.example.com; path=/foo;");
         // these should not
-        Cookie setCookie3 = _makeDefaultCookie("foo=3; domain=www.example.com; path=/;");
-        Cookie setCookie4 = _makeDefaultCookie("foo=4; domain=example.com;");
+        Cookie setCookie3 = createDefaultCookie("foo=3; domain=www.example.com; path=/;");
+        Cookie setCookie4 = createDefaultCookie("foo=4; domain=example.com;");
 
-        Cookie cookie0 = _makeDefaultCookie("foo=0");
-        Cookie cookie1 = _makeDefaultCookie("foo=1");
-        Cookie cookie2 = _makeDefaultCookie("foo=2");
-        Cookie cookie3 = _makeDefaultCookie("foo=3");
-        Cookie cookie4 = _makeDefaultCookie("foo=4");
+        Cookie cookie0 = createDefaultCookie("foo=0");
+        Cookie cookie1 = createDefaultCookie("foo=1");
+        Cookie cookie2 = createDefaultCookie("foo=2");
+        Cookie cookie3 = createDefaultCookie("foo=3");
+        Cookie cookie4 = createDefaultCookie("foo=4");
         
         final InMemoryCookieTracker tracker = new InMemoryCookieTracker();
         
         URI uri = new URI("http://www.example.com/foo/");
-        HttpRequest req = _makeGetRequest("http://www.example.com/foo/");
+        HttpRequest req = createGetRequest("http://www.example.com/foo/");
         
         // initially none of the cookies should be sendable
         assertFalse(tracker.wouldSendCookie(cookie0, uri, true));
@@ -284,7 +285,7 @@ public class InMemoryCookieTrackerTest {
                 try {
                     for (int i = 0; i < 25; i++) {
                         Cookie myCookie = makeCookie();
-                        HttpRequest req = _makeGetRequest(requestUri);
+                        HttpRequest req = createGetRequest(requestUri);
                         tracker.setCookie(myCookie, req);
                     }
                     success = true;
@@ -299,7 +300,7 @@ public class InMemoryCookieTrackerTest {
             }
             
             public Cookie makeCookie() throws Exception {
-                return _makeDefaultCookie("foo=" + getId());
+                return createDefaultCookie("foo=" + getId());
             }
         }
         
@@ -364,7 +365,7 @@ public class InMemoryCookieTrackerTest {
                     final String requestUri = requestUriBase + getId() + '/';
                     for (int i = 0; i < 100; i++) {
                         Cookie myCookie = makeCookie(i);
-                        HttpRequest req = _makeGetRequest(requestUri);
+                        HttpRequest req = createGetRequest(requestUri);
                         tracker.setCookie(myCookie, req);
                         assertTrue(tracker.wouldSendCookie(myCookie, new URI(requestUri), true));
                         assertTrue(tracker.wouldSendCookie(myCookie, new URI(requestUri + "baz/blurn")));
@@ -384,7 +385,7 @@ public class InMemoryCookieTrackerTest {
             }
 
             public Cookie makeCookie(int value) throws Exception {
-                return _makeDefaultCookie("cookie" + getId() + "=" + value);
+                return createDefaultCookie("cookie" + getId() + "=" + value);
             }
         }
         
@@ -411,23 +412,6 @@ public class InMemoryCookieTrackerTest {
             assertTrue(ci.succeeded());
         }
     }
-
-    /**
-     * helper to whip up a fake HttpRequest to the 
-     * url given.
-     */
-    private HttpRequest _makeGetRequest(final String uri) {
-        return new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, uri);
-    }
     
-    /**
-     * return the default decoding of the http cookie / set-cookie header given 
-     * as if it was 
-     */ 
-    private Cookie _makeDefaultCookie(final String headerValue) throws Exception {
-        Set<Cookie> cookies = new CookieDecoder().decode(headerValue);
-        assertTrue(cookies.size() == 1);
-        return cookies.iterator().next();
-    }
     
 }

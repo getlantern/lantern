@@ -134,7 +134,8 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                     new PeerHttpConnectRequestProcessor(sock);
             } else {
                 this.requestProcessor = 
-                    new PeerHttpRequestProcessor(sock);
+                    new PeerChannelHttpRequestProcessor(sock);
+                    //new PeerHttpRequestProcessor(sock);
             }
         }
     }

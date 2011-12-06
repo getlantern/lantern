@@ -12,6 +12,7 @@ import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.httpseverywhere.HttpsSecureCookieFilter;
 import org.lantern.httpseverywhere.HttpsSecureCookieRule;
+import static org.lantern.TestingUtils.*;
 
 public class HttpsSecureCookieFilterTest {
     
@@ -54,19 +55,15 @@ public class HttpsSecureCookieFilterTest {
         final String nofilterUri[] = {"http://example.com", };
         
         for (final String uri : filterUri) {
-            CookieFilter f = new HttpsSecureCookieFilter(_makeGetRequest(uri));
+            CookieFilter f = new HttpsSecureCookieFilter(createGetRequest(uri));
             assertFalse(f.accepts(new DefaultCookie("foo", "0")));
         }
 
         for (final String uri : nofilterUri) {
-            CookieFilter f = new HttpsSecureCookieFilter(_makeGetRequest(uri));
+            CookieFilter f = new HttpsSecureCookieFilter(createGetRequest(uri));
             assertTrue(f.accepts(new DefaultCookie("foo", "0")));
         }
         
-    }
-
-    private HttpRequest _makeGetRequest(final String uri) {
-        return new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, uri);
     }
 
 }
