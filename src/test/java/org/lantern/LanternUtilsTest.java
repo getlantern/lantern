@@ -7,7 +7,11 @@ import static org.junit.Assert.assertTrue;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 
+import org.apache.commons.lang.StringUtils;
+import org.jivesoftware.smack.Roster;
+import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.packet.Presence;
 import org.junit.Test;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -24,6 +28,10 @@ public class LanternUtilsTest {
     public void testGoogleStunServers() throws Exception {
         String email = LanternUtils.getStringProperty("google.user");
         String pwd = LanternUtils.getStringProperty("google.pwd");
+        if (StringUtils.isBlank(email) || StringUtils.isBlank(pwd)) {
+            LOG.info("user name and password not configured");
+            return;
+        }
         final XMPPConnection conn = XmppUtils.persistentXmppConnection(
             email, pwd, "dfalj;", 2);
         
@@ -31,6 +39,32 @@ public class LanternUtilsTest {
             XmppUtils.googleStunServers(conn);
         LOG.info("Retrieved {} STUN servers", servers.size());
         assertTrue(!servers.isEmpty());
+        
+        final Roster roster = conn.getRoster();
+        roster.addRosterListener(new RosterListener() {
+            
+            @Override
+            public void entriesDeleted(final Collection<String> addresses) {
+                LOG.info("Entries deleted");
+            }
+            @Override
+            public void entriesUpdated(final Collection<String> addresses) {
+                LOG.info("Entries updated: {}", addresses);
+            }
+            @Override
+            public void presenceChanged(final Presence presence) {
+                LOG.info("Processing presence changed: {}", presence);
+            }
+            @Override
+            public void entriesAdded(final Collection<String> addresses) {
+                LOG.info("Entries added: "+addresses);
+                for (final String address : addresses) {
+                    //presences.add(address);
+                }
+            }
+        });
+        
+        //Thread.sleep(40000);
     }
     
     @Test 
