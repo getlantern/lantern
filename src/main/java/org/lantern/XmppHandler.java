@@ -133,70 +133,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             // Note the Chat will always be null here. We try to avoid using
             // actual Chat instances due to Smack's strange and inconsistent
             // behavior with message listeners on chats.
-            //final String part = msg.getFrom();
             final String part = msg.getFrom();
             LOG.info("Got chat participant: {} with message:\n {}", part, 
                 msg.toXML());
             if (part.startsWith(LanternConstants.LANTERN_JID)) {
-                LOG.info("Lantern controlling agent response");
-                final String body = msg.getBody();
-                LOG.info("Body: {}", body);
-                final Object obj = JSONValue.parse(body);
-                final JSONObject json = (JSONObject) obj;
-                final JSONArray servers = 
-                    (JSONArray) json.get(LanternConstants.SERVERS);
-                final Long delay = 
-                    (Long) json.get(LanternConstants.UPDATE_TIME);
-                if (delay != null) {
-                    final long now = System.currentTimeMillis();
-                    final long elapsed = now - lastInfoMessageScheduled;
-                    if (elapsed < 10000) {
-                        LOG.info("Ignoring duplicate info request scheduling- "+
-                            "scheduled request {} milliseconds ago.", elapsed);
-                        return;
-                    }
-                    lastInfoMessageScheduled = now;
-                    updateTimer.schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            updatePresence();
-                        }
-                    }, delay);
-                    LOG.info("Scheduled next info request in {} milliseconds", 
-                        delay);
-                }
-                
-                if (servers == null) {
-                    LOG.info("XMPP: "+XmppUtils.toString(msg));
-                } else {
-                    final Iterator<String> iter = servers.iterator();
-                    while (iter.hasNext()) {
-                        final String server = iter.next();
-                        addProxy(server);
-                        LanternUtils.addProxy(server);
-                    }
-                    if (!servers.isEmpty() && ! Configurator.configured()) {
-                        Configurator.configure();
-                        LanternHub.systemTray().activate();
-                    }
-                }
-
-                // This is really a JSONObject, but that itself is a map.
-                final Map<String, String> update = 
-                    (Map<String, String>) json.get(LanternConstants.UPDATE_KEY);
-                LOG.info("Already displayed update? {}", displayedUpdateMessage);
-                if (update != null && !displayedUpdateMessage) {
-                    LOG.info("About to show update...");
-                    displayedUpdateMessage = true;
-                    LanternHub.display().asyncExec (new Runnable () {
-                        @Override
-                        public void run () {
-                            LanternHub.systemTray().addUpdate(update);
-                            //final LanternBrowser lb = new LanternBrowser(true);
-                            //lb.showUpdate(update);
-                        }
-                    });
-                }
+                processLanternHubMessage(msg);
             }
 
             final Integer type = 
@@ -206,6 +147,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 processTypedMessage(msg, type);
             } 
         }
+
     };
 
     private String lastJson = "";
@@ -346,9 +288,73 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             throw new Error(msg, e);
         }
     }
+    
+
+    private void processLanternHubMessage(final Message msg) {
+
+        LOG.info("Lantern controlling agent response");
+        final String body = msg.getBody();
+        LOG.info("Body: {}", body);
+        final Object obj = JSONValue.parse(body);
+        final JSONObject json = (JSONObject) obj;
+        final JSONArray servers = 
+            (JSONArray) json.get(LanternConstants.SERVERS);
+        final Long delay = 
+            (Long) json.get(LanternConstants.UPDATE_TIME);
+        if (delay != null) {
+            final long now = System.currentTimeMillis();
+            final long elapsed = now - lastInfoMessageScheduled;
+            if (elapsed < 10000) {
+                LOG.info("Ignoring duplicate info request scheduling- "+
+                    "scheduled request {} milliseconds ago.", elapsed);
+                return;
+            }
+            lastInfoMessageScheduled = now;
+            updateTimer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    updatePresence();
+                }
+            }, delay);
+            LOG.info("Scheduled next info request in {} milliseconds", 
+                delay);
+        }
+        
+        if (servers == null) {
+            LOG.info("XMPP: "+XmppUtils.toString(msg));
+        } else {
+            final Iterator<String> iter = servers.iterator();
+            while (iter.hasNext()) {
+                final String server = iter.next();
+                addProxy(server);
+                LanternUtils.addProxy(server);
+            }
+            if (!servers.isEmpty() && ! Configurator.configured()) {
+                Configurator.configure();
+                LanternHub.systemTray().activate();
+            }
+        }
+
+        // This is really a JSONObject, but that itself is a map.
+        final Map<String, String> update = 
+            (Map<String, String>) json.get(LanternConstants.UPDATE_KEY);
+        LOG.info("Already displayed update? {}", displayedUpdateMessage);
+        if (update != null && !displayedUpdateMessage) {
+            LOG.info("About to show update...");
+            displayedUpdateMessage = true;
+            LanternHub.display().asyncExec (new Runnable () {
+                @Override
+                public void run () {
+                    LanternHub.systemTray().addUpdate(update);
+                    //final LanternBrowser lb = new LanternBrowser(true);
+                    //lb.showUpdate(update);
+                }
+            });
+        }
+    }
 
     private void gTalkSharedStatus() {
-     // This is for Google Talk compatibility. Surprising, all we need to
+        // This is for Google Talk compatibility. Surprising, all we need to
         // do is grab our Google Talk shared status, signifying support for
         // their protocol, and then we don't interfere with GChat visibility.
         final Packet status = XmppUtils.getSharedStatus(
@@ -442,6 +448,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             @Override
             public void entriesDeleted(final Collection<String> addresses) {
                 LOG.info("Entries deleted");
+                for (final String address : addresses) {
+                    presences.remove(address);
+                }
             }
             @Override
             public void entriesUpdated(final Collection<String> addresses) {
@@ -456,7 +465,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             public void entriesAdded(final Collection<String> addresses) {
                 LOG.info("Entries added: "+addresses);
                 for (final String address : addresses) {
-                    presences.remove(address);
+                    //presences.add(address);
                 }
             }
         });
@@ -465,6 +474,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         // online.
         final Collection<RosterEntry> entries = roster.getEntries();
         for (final RosterEntry entry : entries) {
+            //xmpp.sendPacket(packet)
             final Iterator<Presence> presences = 
                 roster.getPresences(entry.getUser());
             while (presences.hasNext()) {
