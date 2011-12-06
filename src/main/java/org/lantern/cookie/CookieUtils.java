@@ -1,6 +1,5 @@
 package org.lantern.cookie; 
 
-import com.google.common.net.HostSpecifier;
 import com.google.common.net.InetAddresses;
 import com.google.common.net.InternetDomainName;
 import java.net.IDN;
@@ -9,7 +8,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import org.jboss.netty.handler.codec.http.Cookie; 
-import org.jboss.netty.handler.codec.http.DefaultCookie;
 import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpVersion;
@@ -161,7 +159,10 @@ public class CookieUtils {
         // the following conditions holds:
 
         // o  The cookie-path and the request-path are identical.
-        if (cookiePath.equals(requestPath)) {
+        // 
+        // [ also considering empty requestPath to be equal to "/" -- it is required to be treated as such 
+        //   elswhere in standards, but our pipeline does not enforce this literally ]
+        if (cookiePath.equals(requestPath) || (cookiePath.equals("/") && requestPath.equals(""))) {
             return true; 
         }
 

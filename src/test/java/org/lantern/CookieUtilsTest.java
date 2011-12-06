@@ -13,6 +13,7 @@ import org.junit.Test;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.cookie.CookieUtils;
 import org.lantern.cookie.StoredCookie;
+import static org.lantern.TestingUtils.*;
 
 public class CookieUtilsTest {
 
@@ -37,7 +38,7 @@ public class CookieUtilsTest {
             {"name=value; domain=127.0.0.1", "http://127.0.0.1/"}
         };
         for (String []test : acceptTrue) {
-            final Cookie cookie = _makeSetCookie(test[0], test[1]);
+            final Cookie cookie = createSetCookie(test[0], test[1]);
             final HttpRequest req = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, test[1]);
             final CookieFilter policy = new CookieUtils.RFC6265SetCookieFilter(req);
             assertTrue(test[0] + ',' + test[1], policy.accepts(cookie));
@@ -53,20 +54,13 @@ public class CookieUtilsTest {
             {"name=value; domain=.0.0.1;", "http://127.0.0.1/"},
         };
         for (String []test : acceptFalse) {
-            final Cookie cookie = _makeSetCookie(test[0], test[1]);
+            final Cookie cookie = createSetCookie(test[0], test[1]);
             final HttpRequest req = new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, test[1]);
             final CookieFilter policy = new CookieUtils.RFC6265SetCookieFilter(req);
             assertFalse(test[0] + ',' + test[1], policy.accepts(cookie));
         }
     }
     
-    private StoredCookie _makeSetCookie(final String headerValue, final String uri) throws Exception {
-        URI originUri = new URI(uri);
-        Set<Cookie> cookies = new CookieDecoder().decode(headerValue);
-        assertTrue(cookies.size() == 1);
-        Cookie cookie = cookies.iterator().next();
-        return StoredCookie.fromSetCookie(cookie, originUri);
-    }
 
     /** 
      * tests rules for whether a cookie can/should be 

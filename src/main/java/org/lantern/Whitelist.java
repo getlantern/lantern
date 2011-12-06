@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 
+import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -99,6 +100,24 @@ public class Whitelist {
     public static boolean isWhitelisted(final String uri) {
         LOG.info("Parsing full URI: {}", uri);
         return isWhitelisted(uri, whitelist);
+    }
+    
+    public static boolean isWhitelisted(final HttpRequest request) {
+        LOG.info("Checking whitelist for request");
+        final String uri = request.getUri();
+        LOG.info("URI is: {}", uri);
+
+        final String referer = request.getHeader("referer");
+        
+        final String uriToCheck;
+        LOG.info("Referer: "+referer);
+        if (!StringUtils.isBlank(referer)) {
+            uriToCheck = referer;
+        } else {
+            uriToCheck = uri;
+        }
+
+        return isWhitelisted(uriToCheck);
     }
     
     public static void addEntry(final String entry) {

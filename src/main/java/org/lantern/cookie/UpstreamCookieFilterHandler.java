@@ -49,16 +49,28 @@ public class UpstreamCookieFilterHandler extends SimpleChannelUpstreamHandler {
      */
     public void filterCookies(final HttpRequest request) {
         if (request.containsHeader(HttpHeaders.Names.COOKIE)) {
+            final CookieFilter cookieFilter = cookieFilterFactory.createCookieFilter(request);
+            if (cookieFilter == null) {
+                return;
+            }
+            
             final String inCookieHeader = request.getHeader(HttpHeaders.Names.COOKIE);
-            final Set<Cookie> inCookies = new CookieDecoder().decode(inCookieHeader);
+            Set<Cookie> inCookies = null; 
+            try {
+                inCookies = new CookieDecoder().decode(inCookieHeader);
+            }
+            catch (IllegalArgumentException e) {
+                log.warn("Ignoring malformed cookie header {}: {}", inCookieHeader, e);
+                return; 
+            }
+
             // empty or invalid, just ignore without modification
-            if (inCookies.isEmpty()) {
+            if (inCookies == null || inCookies.isEmpty()) {
                 return;
             }
             
             CookieEncoder outCookies = new CookieEncoder(false);
             
-            final CookieFilter cookieFilter = cookieFilterFactory.createCookieFilter(request);
             for (Cookie cookie: inCookies) {
                 if (cookieFilter.accepts(cookie)) {
                     log.debug("Permitting upstream cookie {}={} in request to {}",

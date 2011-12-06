@@ -15,6 +15,9 @@ import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.lantern.cookie.InMemoryCookieTracker; 
+import org.lantern.cookie.CookieTracker; 
+
 import com.maxmind.geoip.LookupService;
 
 /**
@@ -47,6 +50,10 @@ public class LanternHub {
     
     private static final AtomicReference<SecureRandom> secureRandom =
         new AtomicReference<SecureRandom>();
+
+    private static final AtomicReference<CookieTracker> cookieTracker =
+        new AtomicReference<CookieTracker>();
+
     
     private static final File UNZIPPED = 
         new File(LanternUtils.dataDir(), "GeoIP.dat");
@@ -178,6 +185,13 @@ public class LanternHub {
             secureRandom.set(new SecureRandom());
         }
         return secureRandom.get();
+    }
+    
+    public static CookieTracker cookieTracker() {
+        if (cookieTracker.get() == null) {
+            cookieTracker.set(new InMemoryCookieTracker());
+        }
+        return cookieTracker.get();
     }
 
 }

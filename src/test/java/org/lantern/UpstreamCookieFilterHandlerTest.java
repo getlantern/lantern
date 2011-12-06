@@ -1,27 +1,24 @@
 package org.lantern; 
 
-import java.net.SocketAddress;
-import java.util.HashSet;
 import java.util.Set;
 import static org.junit.Assert.*;
 import org.junit.Test;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelEvent;
-import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.handler.codec.http.CookieEncoder;
-import org.jboss.netty.handler.codec.http.CookieDecoder;
 import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
 import org.jboss.netty.handler.codec.http.HttpHeaders; 
-import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest; 
-import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.cookie.UpstreamCookieFilterHandler; 
+import static org.lantern.TestingUtils.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 
 public class UpstreamCookieFilterHandlerTest {
     
@@ -38,11 +35,12 @@ public class UpstreamCookieFilterHandlerTest {
         // plug it into an UpstreamCookieFilterHandler
         final ChannelHandler handler = new UpstreamCookieFilterHandler(cookieFilter);
 
-        final ChannelPipeline pipeline = Channels.pipeline(); 
+        final ChannelPipeline pipeline = Channels.pipeline();
+        final Channel chan = createDummyChannel(pipeline); 
         pipeline.addLast("cookie_filter", handler);
         
         // create an HttpRequest with several cookies in it...
-        final HttpRequest req = _makeGetRequest("http://www.example.com/");
+        final HttpRequest req = createGetRequest("http://www.example.com/");
         final CookieEncoder enc = new CookieEncoder(false);
         enc.addCookie("bad", "0");
         enc.addCookie("good", "1");
@@ -51,26 +49,26 @@ public class UpstreamCookieFilterHandlerTest {
         req.setHeader(HttpHeaders.Names.COOKIE, enc.encode());
         
         // make sure everything is there when we start...
-        final Set<Cookie> startCookies = _getCookies(req);
+        final Set<Cookie> startCookies = extractCookies(req);
         assertTrue(startCookies.size() == 4);
-        assertTrue(_hasCookieNamed("good", startCookies));
-        assertTrue(_hasCookieNamed("bad", startCookies));
-        assertTrue(_hasCookieNamed("ugly", startCookies));
-        assertTrue(_hasCookieNamed("toadface", startCookies));
-        assertFalse(_hasCookieNamed("normalface", startCookies));
+        assertTrue(hasCookieNamed("good", startCookies));
+        assertTrue(hasCookieNamed("bad", startCookies));
+        assertTrue(hasCookieNamed("ugly", startCookies));
+        assertTrue(hasCookieNamed("toadface", startCookies));
+        assertFalse(hasCookieNamed("normalface", startCookies));
 
         // push the request through the pipeline
-        ChannelEvent fakeEvent = _fakeMessageEvent(req);
+        ChannelEvent fakeEvent = createDummyMessageEvent(req);
         pipeline.sendUpstream(fakeEvent);
 
         // only the "good" and "toadface" cookie should remain in the request
-        final Set<Cookie> endCookies = _getCookies(req);
+        final Set<Cookie> endCookies = extractCookies(req);
         assertTrue(endCookies.size() == 2);
-        assertTrue(_hasCookieNamed("good", endCookies));
-        assertFalse(_hasCookieNamed("bad", endCookies));
-        assertFalse(_hasCookieNamed("ugly", endCookies));
-        assertTrue(_hasCookieNamed("toadface", endCookies));
-        assertFalse(_hasCookieNamed("normalface", startCookies));
+        assertTrue(hasCookieNamed("good", endCookies));
+        assertFalse(hasCookieNamed("bad", endCookies));
+        assertFalse(hasCookieNamed("ugly", endCookies));
+        assertTrue(hasCookieNamed("toadface", endCookies));
+        assertFalse(hasCookieNamed("normalface", startCookies));
 
     }
     
@@ -82,34 +80,42 @@ public class UpstreamCookieFilterHandlerTest {
     @Test
     public void testMalformedCookie() {
         
-        // create a simple CookieFilter that 
-        // explodes if called.
-        final CookieFilter cookieFilter = new CookieFilter() {
+        class TestCookieFilter implements CookieFilter {
+            private final Logger log = LoggerFactory.getLogger(getClass());
+            
+            public boolean called = false;
+            
             @Override
             public boolean accepts(Cookie c) {
-                assertTrue(false);
+                called = true;
+                log.error("Called with cookie {}", c);
                 return false;
             }
-        };
+        }
+        
+        final TestCookieFilter cookieFilter = new TestCookieFilter();
+        
         // plug it into an UpstreamCookieFilterHandler
         final ChannelHandler handler = new UpstreamCookieFilterHandler(cookieFilter);
 
-        final ChannelPipeline pipeline = Channels.pipeline(); 
+        final ChannelPipeline pipeline = Channels.pipeline();
+        final Channel chan = createDummyChannel(pipeline);
         pipeline.addLast("cookie_filter", handler);
-        
+
         // create HttpRequests with invalid cookie headers.. 
-        final String invalid[] = {"zKLJ@!3_#", " ", "="};
+        final String invalid[] = {"+ +", " ", "="};
         for (final String val : invalid) {
-            final HttpRequest req = _makeGetRequest("http://www.example.com/");
+            final HttpRequest req = createGetRequest("http://www.example.com/");
             req.setHeader(HttpHeaders.Names.COOKIE, val);
             assertTrue(req.getHeader(HttpHeaders.Names.COOKIE).equals(val));
 
             // push the request through the pipeline
-            ChannelEvent fakeEvent = _fakeMessageEvent(req);
+            ChannelEvent fakeEvent = createDummyMessageEvent(req);
             pipeline.sendUpstream(fakeEvent);
 
             // value should be untouched
             assertTrue(req.getHeader(HttpHeaders.Names.COOKIE).equals(val));
+            assertFalse(cookieFilter.called);
         }
     }
     
@@ -130,71 +136,25 @@ public class UpstreamCookieFilterHandlerTest {
         // plug it into an UpstreamCookieFilterHandler
         final ChannelHandler handler = new UpstreamCookieFilterHandler(cookieFilter);
 
-        final ChannelPipeline pipeline = Channels.pipeline(); 
+        final ChannelPipeline pipeline = Channels.pipeline();
+        final Channel chan = createDummyChannel(pipeline); 
         pipeline.addLast("cookie_filter", handler);
-        
+
         // create an HttpRequest with no cookies in it...
-        final HttpRequest req = _makeGetRequest("http://www.example.com/");
+        final HttpRequest req = createGetRequest("http://www.example.com/");
         
         // make sure nothing is there to start with...
-        final Set<Cookie> startCookies = _getCookies(req);
+        final Set<Cookie> startCookies = extractCookies(req);
         assertTrue(startCookies.isEmpty());
 
         // push the request through the pipeline
-        ChannelEvent fakeEvent = _fakeMessageEvent(req);
+        ChannelEvent fakeEvent = createDummyMessageEvent(req);
         pipeline.sendUpstream(fakeEvent);
 
         // there should still be no cookies, and no cookie header
-        final Set<Cookie> endCookies = _getCookies(req);
+        final Set<Cookie> endCookies = extractCookies(req);
         assertTrue(endCookies.isEmpty());
         assertFalse(req.containsHeader(HttpHeaders.Names.COOKIE));
-    }
-
-    private boolean _hasCookieNamed(final String cookieName, final Set<Cookie> cookies) {
-        for (Cookie c : cookies) {
-            if (c.getName().equals(cookieName)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    
-    private Set<Cookie> _getCookies(HttpRequest req) {
-        if (req.containsHeader(HttpHeaders.Names.COOKIE)) {
-            final String header = req.getHeader(HttpHeaders.Names.COOKIE);
-            return new CookieDecoder().decode(header);
-        }
-        else {
-            return new HashSet<Cookie>();
-        }
-    }
-    
-    private HttpRequest _makeGetRequest(final String uri) {
-        return new DefaultHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.GET, uri);
-    }
-    
-    private MessageEvent _fakeMessageEvent(final Object message) {
-        return new MessageEvent() {
-            @Override
-            public Object getMessage() {
-                return message;
-            }
-            
-            @Override
-            public SocketAddress getRemoteAddress() {
-                return null;
-            }
-            
-            @Override
-            public Channel getChannel() {
-                return null;
-            }
-            
-            @Override
-            public ChannelFuture getFuture() {
-                return null;
-            }
-        };
     }
     
 }
