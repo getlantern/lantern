@@ -232,10 +232,12 @@ public class LanternHub {
     }
     
     public static CookieTracker cookieTracker() {
-        if (cookieTracker.get() == null) {
-            cookieTracker.set(new InMemoryCookieTracker());
+        synchronized (cookieTracker) {
+            if (cookieTracker.get() == null) {
+                cookieTracker.set(new InMemoryCookieTracker());
+            }
+            return cookieTracker.get();
         }
-        return cookieTracker.get();
     }
 
 }
