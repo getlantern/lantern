@@ -25,14 +25,17 @@ public class DefaultConfig implements Config {
     public String roster() {
         final XmppHandler handler = LanternHub.xmppHandler();
         final Collection<Presence> presences = handler.getPresences();
+        final TrustedContactsManager tcm = 
+            LanternHub.getTrustedContactsManager();
         final GsonBuilder gb = new GsonBuilder();
         gb.registerTypeAdapter(Presence.class, new JsonSerializer<Presence>() {
             @Override
-            public JsonElement serialize(final Presence pres, final Type typs,
+            public JsonElement serialize(final Presence pres, final Type type,
                 final JsonSerializationContext jsc) {
                 final JsonObject obj = new JsonObject();
                 obj.addProperty("user", pres.getFrom());
                 obj.addProperty("type", pres.getType().name());
+                obj.addProperty("trusted", tcm.isTrusted(pres.getFrom()));
                 return obj;
             }
         });
