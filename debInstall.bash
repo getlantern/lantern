@@ -16,9 +16,9 @@ VERSION=$1
 
 name=lantern-$VERSION.deb
 mv install/lantern_linux_*.deb $name
-echo "Uploading to http://cdn.bravenewsoftware.org/$name..."
+echo "Uploading to http://cdn.getlantern.org/$name..."
 aws -putp lantern $name
-echo "Uploaded lantern to http://cdn.bravenewsoftware.org/$name"
+echo "Uploaded lantern to http://cdn.getlantern.org/$name"
 echo "Also available at http://lantern.s3.amazonaws.com/$name"
 
 

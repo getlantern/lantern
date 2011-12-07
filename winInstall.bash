@@ -17,7 +17,7 @@ VERSION=$1
 
 name=lantern-$VERSION.exe
 mv install/Lantern.exe $name
-echo "Uploading to http://cdn.bravenewsoftware.org/$name..."
+echo "Uploading to http://cdn.getlantern.org/$name..."
 aws -putp lantern $name
-echo "Uploaded lantern to http://cdn.bravenewsoftware.org/$name"
+echo "Uploaded lantern to http://cdn.getlantern.org/$name"
 echo "Also available at http://lantern.s3.amazonaws.com/$name"

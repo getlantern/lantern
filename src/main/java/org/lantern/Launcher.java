@@ -117,7 +117,7 @@ public class Launcher {
         // offerer gets an incoming connection from the answerer, and then
         // only on the answerer side. The answerer "client" socket relays
         // its data to the local proxy.
-        // See http://cdn.bravenewsoftware.org/IMAG0210.jpg
+        // See http://cdn.getlantern.org/IMAG0210.jpg
         final org.littleshoot.proxy.HttpProxyServer plainTextProxy = 
             new DefaultHttpProxyServer(
                 LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
