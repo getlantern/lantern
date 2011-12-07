@@ -395,7 +395,7 @@ public class Configurator {
         if (ff.isDirectory() && !pref.isDirectory()) {
             LOG.error("No directory at: {}", pref);
         }
-        final File config = new File("all-bravenewsoftware.js");
+        final File config = new File("all-lantern.js");
         
         if (!config.isFile()) {
             LOG.error("NO CONFIG FILE AT {}", config);

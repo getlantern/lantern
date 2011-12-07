@@ -18,7 +18,7 @@
   </properties>
 
   <organization>
-    <name>Brave New Software Project, Inc.</name>
+    <name>Team Lantern</name>
   </organization>
 
   <inceptionYear>2010</inceptionYear>
@@ -30,13 +30,13 @@
 
   <dependencies>
 
+<!--
     <dependency>
       <groupId>bouncycastle</groupId>
       <artifactId>bcprov-jdk16</artifactId>
       <version>140</version>
     </dependency>
 
-<!--
     <dependency>
       <groupId>com.google.api.client</groupId>
       <artifactId>google-api-client</artifactId>
