@@ -9,6 +9,7 @@ import java.util.concurrent.ThreadFactory;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
@@ -16,6 +17,11 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
+import org.lantern.cookie.CookieFilter;
+import org.lantern.cookie.SetCookieObserver;
+import org.lantern.cookie.SetCookieObserverHandler;
+import org.lantern.cookie.UpstreamCookieFilterHandler;
+import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,10 +40,16 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     private final KeyStoreManager keyStoreManager;
 
+    private final SetCookieObserver setCookieObserver;
+    private final CookieFilter.Factory cookieFilterFactory;
+
     private final int httpsLocalPort;
 
-    //private final XmppHandler xmpp;
-    
+    private final ProxyProvider proxyProvider;
+    private final ProxyStatusListener proxyStatusListener;
+    private final XmppP2PClient p2pClient;
+
+
     /**
      * Creates a new proxy server.
      * 
@@ -48,19 +60,38 @@ public class LanternHttpProxyServer implements HttpProxyServer {
      */
     public LanternHttpProxyServer(final int httpLocalPort, 
         final int httpsLocalPort, final KeyStoreManager keyStoreManager, 
-        final XmppHandler xmpp) {
+        final XmppHandler xmpp, SetCookieObserver setCookieObserver,
+        CookieFilter.Factory cookieFilterFactory) {
+        
+        this(httpLocalPort, httpsLocalPort, keyStoreManager, xmpp, xmpp, xmpp.getP2PClient(),
+             setCookieObserver, cookieFilterFactory);
+    }
+
+    public LanternHttpProxyServer(final int httpLocalPort, 
+        final int httpsLocalPort, final KeyStoreManager keyStoreManager, 
+        final ProxyProvider proxyProvider,
+        final ProxyStatusListener proxyStatusListener, 
+        final XmppP2PClient p2pClient, 
+        SetCookieObserver setCookieObserver, 
+        CookieFilter.Factory cookieFilterFactory) {
+            
         this.httpLocalPort = httpLocalPort;
         this.httpsLocalPort = httpsLocalPort;
+        this.proxyProvider = proxyProvider;
+        this.proxyStatusListener = proxyStatusListener;
+        this.p2pClient = p2pClient;
         this.keyStoreManager = keyStoreManager;
-        //this.xmpp = xmpp;
+        this.setCookieObserver = setCookieObserver;
+        this.cookieFilterFactory = cookieFilterFactory;
+
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
                 log.error("Uncaught exception", e);
             }
-        });
+        });    
     }
-    
+
 
     @Override
     public void start() {
@@ -121,24 +152,41 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         return bootstrap;
     }
 
-
     private ChannelPipelineFactory newHttpChannelPipelineFactory() {
-        final XmppHandler xmpp = LanternHub.xmppHandler();
         return new ChannelPipelineFactory() {
             @Override
             public ChannelPipeline getPipeline() throws Exception {
-                log.info("Building pipeline...");
-                final SimpleChannelUpstreamHandler handler = 
-                    new DispatchingProxyRelayHandler(xmpp, xmpp, 
-                        xmpp.getP2PClient(), keyStoreManager);
+                
+                final SimpleChannelUpstreamHandler dispatcher = 
+                    new DispatchingProxyRelayHandler(proxyProvider, 
+                                                     proxyStatusListener, 
+                                                     p2pClient, 
+                                                     keyStoreManager);
+                                                     
+                
                 final ChannelPipeline pipeline = pipeline();
                 pipeline.addLast("decoder", 
                     new HttpRequestDecoder(8192, 8192*2, 8192*2));
                 pipeline.addLast("encoder", 
                     new LanternHttpResponseEncoder(LanternHub.statsTracker()));
-                pipeline.addLast("handler", handler);
+                
+                if (setCookieObserver != null) {
+                    final ChannelHandler watchCookies = new SetCookieObserverHandler(setCookieObserver);
+                    pipeline.addLast("setCookieObserver", watchCookies);
+                }
+                
+                if (cookieFilterFactory != null) {
+                    final ChannelHandler filterCookies = new UpstreamCookieFilterHandler(cookieFilterFactory);
+                    pipeline.addLast("cookieFilter", filterCookies);
+                }
+
+                pipeline.addLast("handler", dispatcher);
+
                 return pipeline;
             }
         };
+
     }
+
+
 }

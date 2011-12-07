@@ -13,6 +13,9 @@ import org.bns.getexceptional4j.GetExceptionalAppender;
 import org.bns.getexceptional4j.GetExceptionalAppenderCallback;
 import org.eclipse.swt.widgets.Display;
 import org.json.simple.JSONObject;
+import org.lantern.cookie.CookieFilter;
+import org.lantern.cookie.CookieTracker;
+import org.lantern.cookie.SetCookieObserver;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
@@ -124,13 +127,16 @@ public class Launcher {
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
         
         final XmppHandler xmpp = LanternHub.xmppHandler();
+        final CookieTracker cookieTracker = LanternHub.cookieTracker();
+        final SetCookieObserver cookieObserver = new WhitelistSetCookieObserver(cookieTracker);
+        final CookieFilter.Factory cookieFilterFactory = new DefaultCookieFilterFactory(cookieTracker);
 
         final HttpProxyServer server = 
             new LanternHttpProxyServer(
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
                 LanternConstants.LANTERN_LOCALHOST_HTTPS_PORT, 
                 //null, sslRandomPort,
-                proxyKeyStore, xmpp);
+                proxyKeyStore, xmpp, cookieTracker, cookieFilterFactory);
         server.start();
     }
 
