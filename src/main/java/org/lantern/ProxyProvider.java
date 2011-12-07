@@ -8,9 +8,11 @@ import java.net.InetSocketAddress;
 public interface ProxyProvider {
 
     InetSocketAddress getLaeProxy();
-    
-    //URI getAnonymousProxy();
-    
+
+    PeerProxyManager getAnonymousPeerProxyManager();
+    PeerProxyManager getTrustedPeerProxyManager();
+
+    //URI getAnonymousProxy();    
     //URI getPeerProxy();
 
     InetSocketAddress getProxy();

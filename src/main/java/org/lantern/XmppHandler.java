@@ -843,6 +843,17 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         return getProxy(this.proxies);
     }
     
+    @Override
+    public PeerProxyManager getAnonymousPeerProxyManager() {
+        return LanternHub.anonymousPeerProxyManager();
+    }
+    
+    @Override
+    public PeerProxyManager getTrustedPeerProxyManager() {
+        return LanternHub.trustedPeerProxyManager();
+    }
+    
+    
     /*
     @Override
     public URI getAnonymousProxy() {

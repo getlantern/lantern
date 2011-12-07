@@ -19,16 +19,13 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private static final File CONFIG_DIR = LanternUtils.configDir();
+    private final File CONFIG_DIR;
     
-    public static final File KEYSTORE_FILE = 
-        new File(CONFIG_DIR, "lantern_keystore.jks");
+    public final File KEYSTORE_FILE;
     
-    private final File TRUSTSTORE_FILE = 
-        new File(CONFIG_DIR, "lantern_truststore.jks");
+    private final File TRUSTSTORE_FILE;
     
-    private final File CERT_FILE = 
-        new File(CONFIG_DIR, "local_lantern_cert");
+    private final File CERT_FILE;
     
     public static final String PASS = "Be Your Own Lantern";
 
@@ -43,6 +40,20 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     }
     
     public LanternKeyStoreManager(final boolean regenerate) {
+        this(regenerate, null);
+    }
+    
+    public LanternKeyStoreManager(final boolean regenerate, final File rootDir) {
+        CONFIG_DIR = rootDir != null ? rootDir : LanternUtils.configDir();
+        KEYSTORE_FILE = 
+            new File(CONFIG_DIR, "lantern_keystore.jks");
+
+        TRUSTSTORE_FILE = 
+            new File(CONFIG_DIR, "lantern_truststore.jks");
+
+        CERT_FILE = 
+            new File(CONFIG_DIR, "local_lantern_cert");
+
         if (!CONFIG_DIR.isDirectory()) {
             if (!CONFIG_DIR.mkdir()) {
                 log.error("Could not create config dir!! "+CONFIG_DIR);
