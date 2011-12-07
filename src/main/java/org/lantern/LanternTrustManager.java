@@ -112,6 +112,9 @@ public class LanternTrustManager implements X509TrustManager {
         
         // We need to reload the keystore with the latest data.
         this.keyStore = getKs();
+        
+        // get rid of our imported file
+        certFile.delete();
     }
 
     public X509Certificate[] getAcceptedIssuers() {
