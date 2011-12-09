@@ -82,7 +82,7 @@ public class Launcher {
             launchLantern();
         }
         
-        //LanternHub.jettyLauncher().openBrowserWhenReady();
+        LanternHub.jettyLauncher().openBrowserWhenReady();
         //new StatsSimulator().start();
         
         // This is necessary to keep the tray/menu item up in the case
