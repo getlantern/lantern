@@ -5,13 +5,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 
-import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -202,6 +203,19 @@ public class Whitelist {
         } catch (final IOException e) {
             LOG.error("Could not copy whitelist file?");
         }
+    }
+    
+    public static Collection<String> getWhitelist() {
+        synchronized (whitelist) {
+            return new HashSet<String>(whitelist);
+        }
+    }
+
+    private static final Collection<String> REQUIRED = 
+        Arrays.asList("getlantern.org", "getexceptional.com");
+    
+    public static boolean required(final String site) {
+        return REQUIRED.contains(site);
     }
 
 }
