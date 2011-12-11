@@ -1,12 +1,11 @@
 package org.lantern.httpseverywhere;
 
-import java.util.regex.Pattern;
 
 /* Class representing a parsed HTTPS Everywhere securecookie rule */
 public class HttpsSecureCookieRule {
 
-    public final String host;
-    public final String name;
+    private final String host;
+    private final String name;
 
     public HttpsSecureCookieRule(final String host, final String name) {
         this.host = host;
@@ -18,9 +17,19 @@ public class HttpsSecureCookieRule {
         // mostly should work, but no actual guarantee until run
         return cookieName.matches(name);
     }
+    
+    public String getHost() {
+        return host;
+    }
+    
+    public String getName() {
+        return name;
+    }
 
     @Override
     public String toString() {
         return "HttpsSecureCookieRule [host=" + host + ", name=" + name + "]";
     }
+
+
 }
