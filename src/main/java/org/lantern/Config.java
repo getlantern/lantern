@@ -6,4 +6,6 @@ public interface Config {
     
     String whitelist();
 
+    String httpsEverywhere();
+
 }

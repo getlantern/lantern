@@ -150,6 +150,8 @@ public class JettyLauncher {
             final String json;
             if (stripped.startsWith("/whitelist")) {
                 json = LanternHub.config().whitelist();
+            } else if (stripped.startsWith("/httpseverywhere")) {
+                json = LanternHub.config().httpsEverywhere();
             } else if (stripped.startsWith("/roster")) {
                 json = LanternHub.config().roster();
             } else if (stripped.startsWith("/stats")) {
