@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.TreeSet;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -176,7 +177,7 @@ public class Whitelist {
             String site = br.readLine();
             while (site != null) {
                 site = site.trim();
-                LOG.info("Processing whitelist line: {}", site);
+                //LOG.info("Processing whitelist line: {}", site);
                 if (StringUtils.isNotBlank(site)) {
                     // Ignore commented-out sites.
                     if (!site.startsWith("#")) {
@@ -207,7 +208,7 @@ public class Whitelist {
     
     public static Collection<String> getWhitelist() {
         synchronized (whitelist) {
-            return new HashSet<String>(whitelist);
+            return new TreeSet<String>(whitelist);
         }
     }
 

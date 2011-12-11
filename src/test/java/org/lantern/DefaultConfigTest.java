@@ -2,30 +2,31 @@ package org.lantern;
 
 import static org.junit.Assert.assertTrue;
 
+import org.codehaus.jackson.JsonNode;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.Test;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 
 public class DefaultConfigTest {
 
     @Test public void testWhitelist() throws Exception {
         final Config conf = new DefaultConfig();
         final String wl = conf.whitelist();
-        final JsonParser parser = new JsonParser();
-        final JsonArray json = parser.parse(wl).getAsJsonArray();
-        boolean hasTwitter = false;
-        for (int i = 0; i < json.size(); i++) {
-            final JsonElement je = json.get(i);
-            final JsonObject obj = je.getAsJsonObject();
-            final String site = obj.get("base").getAsString();
-            if (site.contains("twitter.com")) {
-                hasTwitter = true;
-            }
-        }
-        assertTrue(hasTwitter);
-        
+        final ObjectMapper mapper = new ObjectMapper();
+        final JsonNode read = mapper.readTree(wl);
+        final JsonNode avaaz = read.get("avaaz.org");
+        assertTrue(avaaz != null);
+        final JsonNode rules = avaaz.get("httpsRules");
+        assertTrue(rules != null);
+    }
+    
+    @Test public void testHttpsEverywhere() throws Exception {
+        final Config conf = new DefaultConfig();
+        final String json = conf.httpsEverywhere();
+        final ObjectMapper mapper = new ObjectMapper();
+        final JsonNode read = mapper.readTree(json);
+        final JsonNode avaaz = read.get("avaaz.org");
+        assertTrue(avaaz != null);
+        final JsonNode rules = avaaz.get("rules");
+        assertTrue(rules != null);
     }
 }
