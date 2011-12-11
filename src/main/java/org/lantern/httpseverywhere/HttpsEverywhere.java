@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import javax.xml.xpath.XPathExpressionException;
 
+import org.apache.commons.io.IOUtils;
 import org.lantern.LanternUtils;
 import org.littleshoot.util.xml.XPathUtils;
 import org.littleshoot.util.xml.XmlUtils;
@@ -52,8 +53,14 @@ public class HttpsEverywhere {
 
     private static void addRuleFile(final File ruleFile) throws IOException, 
         SAXException, XPathExpressionException {
-        final InputStream is = new FileInputStream(ruleFile);
-        final Document doc = XmlUtils.toDoc(is);
+        InputStream is = null;
+        final Document doc;
+        try {
+            is = new FileInputStream(ruleFile);
+            doc = XmlUtils.toDoc(is);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
         final XPathUtils utils = XPathUtils.newXPath(doc);
         final Collection<String> targets = 
             utils.getStrings("/ruleset/target/@host");
@@ -74,9 +81,9 @@ public class HttpsEverywhere {
                 ruleSet = httpsRules.get(target);
             } else {
                 ruleSet = new HttpsRuleSet(
-					new ArrayList<HttpsRule>(rulesLength), 
-					new ArrayList<HttpsSecureCookieRule>(secureCookiesLength), 
-					exclusions);
+                    new ArrayList<HttpsRule>(rulesLength), 
+                    new ArrayList<HttpsSecureCookieRule>(secureCookiesLength), 
+                    exclusions);
                 httpsRules.put(target, ruleSet);
             }
             for (int i = 0; i < rulesLength; i++) {
@@ -183,15 +190,15 @@ public class HttpsEverywhere {
     
     protected static final class HttpsRuleSet {
         private final Collection<HttpsRule> rules;
-	private final Collection<HttpsSecureCookieRule> secureCookieRules;
+    private final Collection<HttpsSecureCookieRule> secureCookieRules;
         private final Collection<String> exclusions;
 
 
         private HttpsRuleSet(final Collection<HttpsRule> rules,
-	    final Collection<HttpsSecureCookieRule> secureCookieRules,
+        final Collection<HttpsSecureCookieRule> secureCookieRules,
             final Collection<String> exclusions) {
             this.rules = rules;
-			this.secureCookieRules = secureCookieRules;
+            this.secureCookieRules = secureCookieRules;
             this.exclusions = exclusions;
         }
         
