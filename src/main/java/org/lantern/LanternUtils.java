@@ -44,6 +44,9 @@ import org.apache.commons.io.IOExceptionWithCause;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -702,6 +705,21 @@ public class LanternUtils {
         } catch (final URISyntaxException e) {
             LOG.warn("Could not load URI", e);
         }
+    }
+    
+
+    public static String jsonify(final Object all) {
+        final ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.writeValueAsString(all);
+        } catch (final JsonGenerationException e) {
+            LOG.warn("Error generating JSON", e);
+        } catch (final JsonMappingException e) {
+            LOG.warn("Error generating JSON", e);
+        } catch (final IOException e) {
+            LOG.warn("Error generating JSON", e);
+        }
+        return "";
     }
 }    
 

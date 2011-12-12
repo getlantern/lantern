@@ -1,5 +1,6 @@
 package org.lantern;
 
+
 public interface Config {
 
     String roster();
@@ -7,5 +8,9 @@ public interface Config {
     String whitelist();
 
     String httpsEverywhere();
+
+    String whitelist(String body);
+
+    String roster(String body);
 
 }
