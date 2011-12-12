@@ -1,6 +1,7 @@
 package org.lantern;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
@@ -8,11 +9,13 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.packet.Presence;
 import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.httpseverywhere.HttpsEverywhere.HttpsRuleSet;
+import org.littleshoot.util.IoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,37 +63,50 @@ public class DefaultConfig implements Config {
     @Override
     public String whitelist() {
         log.info("Accessing whitelist");
-        final Collection<String> wl = Whitelist.getWhitelist();
-        final Map<String, Map<String,Object>> all = 
-            new LinkedHashMap<String, Map<String,Object>>();
-        for (final String cur : wl) {
+        final Collection<WhitelistEntry> wl = Whitelist.getWhitelist();
+        final Map<WhitelistEntry, Map<String,Object>> all = 
+            new LinkedHashMap<WhitelistEntry, Map<String,Object>>();
+        for (final WhitelistEntry cur : wl) {
             final Map<String,Object> site = new HashMap<String,Object>();
             site.put("required", Whitelist.required(cur));
-            site.put("httpsRules", 
-                HttpsEverywhere.getApplicableRuleSets("http://"+cur));
+            //site.put("httpsRules", 
+            //    HttpsEverywhere.getApplicableRuleSets("http://"+cur));
             all.put(cur, site);
         }
         
-        return jsonify(all);
+        return LanternUtils.jsonify(all);
     }
     
     @Override
     public String httpsEverywhere() {
         final Map<String, HttpsRuleSet> rules = HttpsEverywhere.getRules();
-        return jsonify(rules);
+        return LanternUtils.jsonify(rules);
     }
 
-    private String jsonify(final Object all) {
+    @Override
+    public String whitelist(final String body) {
         final ObjectMapper mapper = new ObjectMapper();
+        
         try {
-            return mapper.writeValueAsString(all);
-        } catch (final JsonGenerationException e) {
+            final Map<String, Object> wl = mapper.readValue(body, Map.class);
+            for (final Map.Entry<String, Object> entry : wl.entrySet()) {
+                final String url = entry.getKey();
+                if (!Whitelist.isWhitelisted(url)) {
+                    Whitelist.addEntry(url);
+                }
+            }
+        } catch (final JsonParseException e) {
             log.warn("Error generating JSON", e);
         } catch (final JsonMappingException e) {
             log.warn("Error generating JSON", e);
         } catch (final IOException e) {
             log.warn("Error generating JSON", e);
         }
+        return whitelist();
+    }
+
+    @Override
+    public String roster(final String body) {
         return "";
     }
 

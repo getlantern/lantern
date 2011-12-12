@@ -1,13 +1,16 @@
 package org.lantern;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.TreeSet;
 
 import org.apache.commons.io.FileUtils;
@@ -31,6 +34,20 @@ public class Whitelist {
         new File(LanternUtils.configDir(), REPORTED_WHITELIST_NAME);
 
     static {
+        buildWhitelists();
+    }    
+    
+    private static Collection<WhitelistEntry> whitelist;
+    private static Collection<WhitelistEntry> lastReportedWhitelist;
+    
+
+    public static void reset() {
+        WHITELIST_FILE.delete();
+        REPORTED_WHITELIST_FILE.delete();
+        buildWhitelists();
+    }
+    
+    private static void buildWhitelists() {
         final File original = new File(WHITELIST_NAME);
         if (!WHITELIST_FILE.isFile() || 
             FileUtils.isFileNewer(original, WHITELIST_FILE)) {
@@ -42,22 +59,23 @@ public class Whitelist {
         }
         if (!REPORTED_WHITELIST_FILE.isFile()) {
             try {
-                REPORTED_WHITELIST_FILE.createNewFile();
+                FileUtils.copyFile(original, REPORTED_WHITELIST_FILE);
             } catch (final IOException e) {
                 LOG.error("Could not create reported whitelist file?", e);
             }
         }
-    }    
-    
-    private static final Collection<String> whitelist = 
-        buildWhitelist(WHITELIST_FILE);
-    private static Collection<String> lastReportedWhitelist =
-        buildWhitelist(REPORTED_WHITELIST_FILE);
-    
+        refreshFromFiles();
+    }
+
+    private static void refreshFromFiles() {
+        whitelist = buildWhitelist(WHITELIST_FILE);
+        lastReportedWhitelist = buildWhitelist(REPORTED_WHITELIST_FILE);
+    }
+
     public static boolean isWhitelisted(final String uri,
-        final Collection<String> wl) {
+        final Collection<WhitelistEntry> wl) {
         final String toMatch = toBaseUri(uri);
-        return wl.contains(toMatch);
+        return wl.contains(new WhitelistEntry(toMatch));
     }
     
     public static String toBaseUri(final String uri) {
@@ -123,28 +141,37 @@ public class Whitelist {
     }
     
     public static void addEntry(final String entry) {
-        whitelist.add(entry);
+        whitelist.add(new WhitelistEntry(entry));
         write(whitelist, WHITELIST_FILE);
     }
     
-    private static void write(final Collection<String> list, final File file) {
+    private static void write(final Collection<WhitelistEntry> entries, 
+        final File file) {
+        BufferedWriter bw = null;
         try {
-            FileUtils.writeLines(file, "UTF-8", list, "UTF-8");
+            bw = new BufferedWriter(new FileWriter(file));
+            for (final WhitelistEntry entry: entries) {
+                bw.write(entry.getSite());
+                bw.write("\n");
+            }
         } catch (final IOException e) {
-            LOG.error("Could not write to file?", e);
+            LOG.error("Could not read file");
+        } finally {
+            IOUtils.closeQuietly(bw);
         }
     }
 
     public static void removeEntry(final String entry) {
-        whitelist.remove(entry);
+        whitelist.remove(new WhitelistEntry(entry));
         write(whitelist, WHITELIST_FILE);
     }
     
-    public static Collection<String> getAdditions() {
-        final Collection<String> additions = new HashSet<String>();
+    public static Collection<WhitelistEntry> getAdditions() {
+        final Collection<WhitelistEntry> additions = 
+            new LinkedHashSet<WhitelistEntry>();
         synchronized (whitelist) {
             synchronized (lastReportedWhitelist) {
-                for (final String entry : whitelist) {
+                for (final WhitelistEntry entry : whitelist) {
                     if (!lastReportedWhitelist.contains(entry)) {
                         additions.add(entry);
                     }
@@ -154,11 +181,12 @@ public class Whitelist {
         return additions;
     }
     
-    public static Collection<String> getRemovals() {
-        final Collection<String> removals = new HashSet<String>();
+    public static Collection<WhitelistEntry> getRemovals() {
+        final Collection<WhitelistEntry> removals = 
+            new LinkedHashSet<WhitelistEntry>();
         synchronized (whitelist) {
             synchronized (lastReportedWhitelist) {
-                for (final String entry : lastReportedWhitelist) {
+                for (final WhitelistEntry entry : lastReportedWhitelist) {
                     if (!whitelist.contains(entry)) {
                         removals.add(entry);
                     }
@@ -168,9 +196,17 @@ public class Whitelist {
         return removals;
     }
     
-    private static Collection<String> buildWhitelist(final File file) {
+    public static String getAdditionsAsJson() {
+        return LanternUtils.jsonify(getAdditions());
+    }
+
+    public static String getRemovalsAsJson() {
+        return LanternUtils.jsonify(getRemovals());
+    }
+    
+    private static Collection<WhitelistEntry> buildWhitelist(final File file) {
         LOG.info("Processing whitelist file: {}", file);
-        final Collection<String> wl = new HashSet<String>();
+        final Collection<WhitelistEntry> wl = new HashSet<WhitelistEntry>();
         BufferedReader br = null;
         try {
             br = new BufferedReader(new FileReader(file));
@@ -181,7 +217,7 @@ public class Whitelist {
                 if (StringUtils.isNotBlank(site)) {
                     // Ignore commented-out sites.
                     if (!site.startsWith("#")) {
-                        wl.add(site);
+                        wl.add(new WhitelistEntry(site));
                     }
                 }
                 site = br.readLine();
@@ -204,19 +240,19 @@ public class Whitelist {
         } catch (final IOException e) {
             LOG.error("Could not copy whitelist file?");
         }
+        refreshFromFiles();
     }
     
-    public static Collection<String> getWhitelist() {
+    public static Collection<WhitelistEntry> getWhitelist() {
         synchronized (whitelist) {
-            return new TreeSet<String>(whitelist);
+            return new TreeSet<WhitelistEntry>(whitelist);
         }
     }
 
     private static final Collection<String> REQUIRED = 
         Arrays.asList("getlantern.org", "getexceptional.com");
     
-    public static boolean required(final String site) {
+    public static boolean required(final WhitelistEntry site) {
         return REQUIRED.contains(site);
     }
-
 }
