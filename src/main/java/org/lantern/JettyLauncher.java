@@ -1,6 +1,7 @@
 package org.lantern;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
 
@@ -15,6 +16,7 @@ import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.util.resource.Resource;
+import org.littleshoot.util.IoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,13 +149,25 @@ public class JettyLauncher {
                 stripped = target;
             }
             log.info("Stripped is: {}", stripped);
+            final boolean isGet = request.getMethod().equalsIgnoreCase("GET");
+            final boolean isPost = request.getMethod().equalsIgnoreCase("POST");
             final String json;
             if (stripped.startsWith("/whitelist")) {
-                json = LanternHub.config().whitelist();
+                if (isGet) {
+                    json = LanternHub.config().whitelist();
+                } else if (isPost) {
+                    json = LanternHub.config().whitelist(bodyToString(request));;
+                } else { close(baseRequest, response); return;}
+            } else if (stripped.startsWith("/roster")) {
+                if (isGet) {
+                    json = LanternHub.config().roster();
+                } else if (isPost) {
+                    json = LanternHub.config().roster(bodyToString(request));
+                } else { close(baseRequest, response); return;}
+            } else if (!isGet) {
+                close(baseRequest, response); return;
             } else if (stripped.startsWith("/httpseverywhere")) {
                 json = LanternHub.config().httpsEverywhere();
-            } else if (stripped.startsWith("/roster")) {
-                json = LanternHub.config().roster();
             } else if (stripped.startsWith("/stats")) {
                 json = LanternHub.statsTracker().toJson();
             } else if (stripped.startsWith("/oni")) {
@@ -199,8 +213,17 @@ public class JettyLauncher {
             os.flush();
             baseRequest.setHandled(true);
         }
+
     }
-    
+
+    private String bodyToString(final HttpServletRequest request) 
+        throws IOException {
+        final InputStream is = request.getInputStream();
+        final int cl = request.getContentLength();
+        final byte[] body = IoUtils.toByteArray(is, cl);
+        final String content = new String(body, "UTF-8");
+        return content;
+    }
 
     public void openBrowserWhenReady() {
         while(!server.isRunning()) {
@@ -213,6 +236,16 @@ public class JettyLauncher {
         log.info("Server is running!");
         final String url = fullBasePath + "/lanternmap.html";
         LanternUtils.browseUrl(url);
+    }
+
+    public void close(Request baseRequest, HttpServletResponse response) {
+        baseRequest.setHandled(true);
+        try {
+            final OutputStream os = response.getOutputStream();
+            os.close();
+        } catch (final IOException e) {
+            log.info("Could not close", e);
+        }
     }
 }
 
