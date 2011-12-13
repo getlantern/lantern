@@ -66,7 +66,7 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
     
     @Override
     String getAlgorithm() {
-        return "PBEWithMD5AndTripleDES";
+        return "PBEWithSHA1AndDESede";
     }
     
     @Override
