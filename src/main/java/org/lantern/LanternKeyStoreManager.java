@@ -27,7 +27,8 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
     private final File CERT_FILE;
     
-    public static final String PASS = "Be Your Own Lantern";
+    private static final String PASS = 
+        String.valueOf(LanternHub.secureRandom().nextLong());
 
     private String localCert;
     
@@ -36,32 +37,27 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     private final LanternTrustManager lanternTrustManager;
 
     public LanternKeyStoreManager() {
-        this(true);
+        this(null);
     }
     
-    public LanternKeyStoreManager(final boolean regenerate) {
-        this(regenerate, null);
-    }
-    
-    public LanternKeyStoreManager(final boolean regenerate, final File rootDir) {
+    public LanternKeyStoreManager(final File rootDir) {
         CONFIG_DIR = rootDir != null ? rootDir : LanternUtils.configDir();
         KEYSTORE_FILE = 
             new File(CONFIG_DIR, "lantern_keystore.jks");
-
         TRUSTSTORE_FILE = 
             new File(CONFIG_DIR, "lantern_truststore.jks");
-
         CERT_FILE = 
             new File(CONFIG_DIR, "local_lantern_cert");
+        
+        fullDelete(KEYSTORE_FILE);
+        fullDelete(TRUSTSTORE_FILE);
 
         if (!CONFIG_DIR.isDirectory()) {
             if (!CONFIG_DIR.mkdir()) {
                 log.error("Could not create config dir!! "+CONFIG_DIR);
             }
         }
-        if(regenerate) {
-            reset(LanternUtils.getMacAddress());
-        }
+        reset(LanternUtils.getMacAddress());
         createTrustStore();
         final File littleProxyCert = new File("lantern_littleproxy_cert");
         if (littleProxyCert.isFile()) {
@@ -84,6 +80,13 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         };
     }
     
+    private void fullDelete(final File file) {
+        file.deleteOnExit();
+        if (file.isFile() && !file.delete()) {
+            log.error("Could not delete file {}!!", file);
+        }
+    }
+
     private void createTrustStore() {
         if (TRUSTSTORE_FILE.isFile()) {
             log.info("Trust store already exists");
