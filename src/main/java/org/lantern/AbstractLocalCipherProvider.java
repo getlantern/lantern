@@ -68,14 +68,6 @@ abstract class AbstractLocalCipherProvider implements LocalCipherProvider {
         cipher.init(opmode, key);
     }
 
-    /**
-     * @return File used to save and load cipher parameters
-     */
-    File getParametersFile() {
-        return DEFAULT_CIPHER_PARAMS_FILE;
-    }
-
-
     @Override
     public synchronized Cipher newLocalCipher(int opmode) throws IOException, GeneralSecurityException {
         final boolean init = !paramsFile.isFile();
