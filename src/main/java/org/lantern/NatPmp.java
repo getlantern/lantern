@@ -6,6 +6,7 @@ import java.util.List;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
+import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +23,7 @@ public class NatPmp implements NatPmpService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private final NatPmpDevice pmpDevice;
+    private NatPmpDevice pmpDevice;
     
     private final List<MapRequestMessage> requests =
         new ArrayList<MapRequestMessage>();
@@ -33,6 +34,9 @@ public class NatPmp implements NatPmpService {
      * @throws NatPmpException If we could not start NAT-PMP for any reason.
      */
     public NatPmp() throws NatPmpException {
+        if (NetworkUtils.isPublicAddress()) {
+            return;
+        }
         pmpDevice = new NatPmpDevice(false);
         
         // We implement the shutdown hook ourselves so we can explicitly 
@@ -57,6 +61,9 @@ public class NatPmp implements NatPmpService {
     @Override
     public void removeNatPmpMapping(final int mappingIndex) {
         log.info("Removing mapping...");
+        if (NetworkUtils.isPublicAddress()) {
+            return;
+        }
         final MapRequestMessage request = requests.get(mappingIndex);
         
         final boolean tcp = request.getMessageType() == MessageType.MapTCP;
@@ -75,6 +82,9 @@ public class NatPmp implements NatPmpService {
     public int addNatPmpMapping(final PortMappingProtocol prot, 
         final int localPort, final int externalPortRequested,
         final PortMapListener portMapListener) {
+        if (NetworkUtils.isPublicAddress()) {
+            return 1;
+        }
         if (portMapListener == null) {
             log.error("No listener?");
             throw new NullPointerException("Null listener");
