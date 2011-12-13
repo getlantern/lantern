@@ -410,9 +410,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         json.put(LanternConstants.DIRECT_REQUESTS, 
             statsTracker.getDirectRequests());
         json.put(LanternConstants.WHITELIST_ADDITIONS, 
-            LanternUtils.toJsonArray(Whitelist.getAdditions()));
+            Whitelist.getAdditionsAsJson());
+            //LanternUtils.toJsonArray(Whitelist.getAdditions()));
         json.put(LanternConstants.WHITELIST_REMOVALS, 
-            LanternUtils.toJsonArray(Whitelist.getRemovals()));
+            Whitelist.getRemovalsAsJson());
         json.put(LanternConstants.VERSION_KEY, LanternConstants.VERSION);
         final String str = json.toJSONString();
         LOG.info("Reporting data: {}", str);
