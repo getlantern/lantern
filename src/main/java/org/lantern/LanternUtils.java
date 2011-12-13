@@ -52,6 +52,9 @@ import org.apache.commons.io.IOExceptionWithCause;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -588,15 +591,15 @@ public class LanternUtils {
             final org.apache.commons.httpclient.URI uri = 
                 new org.apache.commons.httpclient.URI(uriStr, false);
             final String host = uri.getHost();
-            LOG.info("Using host: {}", host);
+            //LOG.info("Using host: {}", host);
             segments.add(host);
             final String[] segmented = host.split("\\.");
-            LOG.info("Testing segments: {}", Arrays.asList(segmented));
+            //LOG.info("Testing segments: {}", Arrays.asList(segmented));
             for (int i = 0; i < segmented.length; i++) {
                 final String tmp = segmented[i];
                 segmented[i] = "*";
                 final String segment = StringUtils.join(segmented, '.');
-                LOG.info("Adding segment: {}", segment);
+                //LOG.info("Adding segment: {}", segment);
                 segments.add(segment);
                 segmented[i] = tmp;
             }
@@ -604,7 +607,7 @@ public class LanternUtils {
             for (int i = 1; i < segmented.length - 1; i++) {
                 final String segment = 
                     "*." + StringUtils.join(segmented, '.', i, segmented.length);//segmented.slice(i,segmented.length).join(".");
-                LOG.info("Checking segment: {}", segment);
+                //LOG.info("Checking segment: {}", segment);
                 segments.add(segment);
             }
         } catch (final URIException e) {
@@ -774,7 +777,20 @@ public class LanternUtils {
     public static OutputStream localEncryptOutputStream(File file) throws IOException, GeneralSecurityException {
         return localEncryptOutputStream(new FileOutputStream(file));
     }
-    
-}    
+
+    public static String jsonify(final Object all) {
+        final ObjectMapper mapper = new ObjectMapper();
+        try {
+            return mapper.writeValueAsString(all);
+        } catch (final JsonGenerationException e) {
+            LOG.warn("Error generating JSON", e);
+        } catch (final JsonMappingException e) {
+            LOG.warn("Error generating JSON", e);
+        } catch (final IOException e) {
+            LOG.warn("Error generating JSON", e);
+        }
+        return "";
+    }
+}
 
 
