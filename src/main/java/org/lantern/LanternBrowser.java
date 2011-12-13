@@ -200,13 +200,13 @@ public class LanternBrowser {
                 // }
                 else if (location.contains("setLocalPassword1")) {
                     final String args = 
-                        StringUtils.substringAfter(location, "?");
+                        StringUtils.substringAfter(location, "&");
                     if (StringUtils.isBlank(args)) {
                         log.error("Weird location: {}", location);
                         return;
                     }
                     final String password1 = 
-                        StringUtils.substringBetween(location, "?password1=", "&");
+                        StringUtils.substringBetween(location, "&password1=", "&");
                     final String password2 = 
                         StringUtils.substringAfter(location, "&password2=");
                     if (StringUtils.isBlank(password1)) {
@@ -312,13 +312,13 @@ public class LanternBrowser {
                 // }
                 else if (location.contains("getLocalPassword1")) {
                     final String args = 
-                        StringUtils.substringAfter(location, "?");
+                        StringUtils.substringAfter(location, "&");
                     if (StringUtils.isBlank(args)) {
                         log.error("Weird location: {}", location);
                         return;
                     }
                     final String password1 = 
-                        StringUtils.substringAfter(location, "?password1=");
+                        StringUtils.substringAfter(location, "&password1=");
                     if (StringUtils.isBlank(password1)) {
                         startVals.put("error_message", "Password cannot be blank");
                         // XXX i18n
