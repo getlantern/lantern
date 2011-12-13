@@ -27,8 +27,8 @@ import org.lantern.cookie.CookieFilter;
  */ 
 public class HttpsBestEffortCookieFilter implements CookieFilter {
     
-    final CookieFilter whitelist;
-    final CookieFilter blacklist;
+    private final CookieFilter whitelist;
+    private final CookieFilter blacklist;
     
     /**
      * constructs a new HttpBestEffortCookieFilter with
