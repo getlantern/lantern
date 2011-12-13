@@ -1,11 +1,14 @@
 package org.lantern;
 
 import java.awt.Desktop;
+import java.io.Console;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
+import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -20,6 +23,7 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.UnresolvedAddressException;
+import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -37,6 +41,10 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import javax.crypto.Cipher;
+import javax.crypto.CipherInputStream;
+import javax.crypto.CipherOutputStream;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.URIException;
@@ -91,7 +99,7 @@ public class LanternUtils {
         new File(CONFIG_DIR, "lantern.properties");
     
     private static final Properties PROPS = new Properties();
-    
+        
     static {
         
         if (SystemUtils.IS_OS_WINDOWS) {
@@ -134,16 +142,6 @@ public class LanternUtils {
             } catch (final IOException e) {
                 LOG.error("Could not create props file!!", e);
             }
-        }
-        
-        InputStream is = null;
-        try {
-            is = new FileInputStream(PROPS_FILE);
-            PROPS.load(is);
-        } catch (final IOException e) {
-            LOG.error("Error loading props file: "+PROPS_FILE, e);
-        } finally {
-            IOUtils.closeQuietly(is);
         }
     }
     
@@ -390,20 +388,9 @@ public class LanternUtils {
         if (!PROPS_FILE.isFile()) {
             return false;
         }
-        final Properties props = new Properties();
-        InputStream is = null;
-        try {
-            is = new FileInputStream(PROPS_FILE);
-            props.load(is);
-            final String un = props.getProperty("google.user");
-            final String pwd = props.getProperty("google.pwd");
-            return (StringUtils.isNotBlank(un) && StringUtils.isNotBlank(pwd));
-        } catch (final IOException e) {
-            LOG.error("Error loading props file: "+PROPS_FILE, e);
-        } finally {
-            IOUtils.closeQuietly(is);
-        }
-        return false;
+        final String un = getStringProperty("google.user");
+        final String pwd = getStringProperty("google.pwd");
+        return (StringUtils.isNotBlank(un) && StringUtils.isNotBlank(pwd));
     }
     
     public static Collection<RosterEntry> getRosterEntries(final String email,
@@ -491,11 +478,13 @@ public class LanternUtils {
 
     public static void setBooleanProperty(final String key, 
         final boolean value) {
+        initProps();
         PROPS.setProperty(key, String.valueOf(value));
         persistProps();
     }
 
     public static boolean getBooleanProperty(final String key) {
+        initProps();
         final String val = PROPS.getProperty(key);
         if (StringUtils.isBlank(val)) {
             return false;
@@ -505,28 +494,66 @@ public class LanternUtils {
     }
     
     public static void setStringProperty(final String key, final String value) {
+        initProps();
         PROPS.setProperty(key, value);
         persistProps();
     }
 
     public static String getStringProperty(final String key) {
+        initProps();
         return PROPS.getProperty(key);
     }
 
     public static void clear(final String key) {
+        initProps();
         PROPS.remove(key);
         persistProps();
     }
 
+    /**
+     * properties are lazily initialized to give the 
+     * main function a chance to affect certain things
+     * first -- ie as loading the settings may require
+     * user interaction for decryption, we must know
+     * whether or not to use a UI.
+     */
+    private static boolean PROPERTIES_INITIALIZED = false;
+    public static boolean initProps() {
+        if (PROPERTIES_INITIALIZED == true) {
+            return true;
+        }
+        synchronized(PROPS) {   
+            InputStream is = null;
+            try {
+                is = localDecryptInputStream(PROPS_FILE);
+                PROPS.load(is);
+                PROPERTIES_INITIALIZED = true;
+                return true;
+            } catch (final IOException e) {
+                LOG.error("Error loading props file: "+PROPS_FILE, e);
+                return false;
+            } catch (final GeneralSecurityException e) {
+                LOG.error("Error loading props file: "+PROPS_FILE, e);
+                return false;
+            } finally {
+                IOUtils.closeQuietly(is);
+            }
+        }
+    }
+
     private static void persistProps() {
-        FileWriter fw = null;
+        OutputStream os = null;
         try {
-            fw = new FileWriter(PROPS_FILE);
-            PROPS.store(fw, "");
+            os = localEncryptOutputStream(PROPS_FILE);
+            PROPS.store(os, "");
         } catch (final IOException e) {
-            LOG.error("Could not store props?");
+            LOG.error("Could not store props?", e);
+        } catch (final GeneralSecurityException e) {
+            LOG.error("Could not store props?", e);
         } finally {
-            IOUtils.closeQuietly(fw);
+            if (os != null) {
+                IOUtils.closeQuietly(os);
+            }
         }
     }
     
@@ -660,17 +687,17 @@ public class LanternUtils {
         return null;
     }
 
-    private static final boolean RUN_WITH_UI =
-        LanternUtils.getBooleanProperty("linuxui");
+    private static boolean RUN_WITH_UI = true;
+    public static void setUiEnabled(boolean uiIsEnabled) {
+        RUN_WITH_UI = uiIsEnabled;
+    }
     
     public static boolean runWithUi() {
-        if (!settingExists("linuxui")) {
-            return true;
-        }
         return RUN_WITH_UI;
     }
 
     private static boolean settingExists(final String key) {
+        initProps();
         return PROPS.containsKey(key);
     }
 
@@ -703,6 +730,51 @@ public class LanternUtils {
             LOG.warn("Could not load URI", e);
         }
     }
+    
+    public static char[] readPasswordCLI() throws IOException {
+        Console console = System.console();
+        if (console == null) {
+            LOG.error("Request to read password in non-interactive context.");
+            throw new IOException("No console available.");
+        }
+        try {
+            return console.readPassword();
+        } catch (IOError e) {
+            throw new IOException(e);
+        }
+    }
+    
+    public static String readLineCLI() throws IOException {
+        Console console = System.console();
+        if (console == null) {
+            LOG.error("Request to read line in non-interactive context.");
+            throw new IOException("No console available.");
+        }
+        try {
+            return console.readLine();
+        } catch (IOError e) {
+            throw new IOException(e);
+        }
+    }
+        
+    public static InputStream localDecryptInputStream(InputStream in) throws IOException, GeneralSecurityException {
+        Cipher cipher = LanternHub.localCipherProvider().newLocalCipher(Cipher.DECRYPT_MODE);
+        return new CipherInputStream(in, cipher);
+    }
+    
+    public static InputStream localDecryptInputStream(File file) throws IOException, GeneralSecurityException {
+        return localDecryptInputStream(new FileInputStream(file));
+    }
+    
+    public static OutputStream localEncryptOutputStream(OutputStream os) throws IOException, GeneralSecurityException {
+        Cipher cipher = LanternHub.localCipherProvider().newLocalCipher(Cipher.ENCRYPT_MODE);
+        return new CipherOutputStream(os, cipher);
+    }
+    
+    public static OutputStream localEncryptOutputStream(File file) throws IOException, GeneralSecurityException {
+        return localEncryptOutputStream(new FileOutputStream(file));
+    }
+    
 }    
 
 

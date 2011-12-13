@@ -5,6 +5,13 @@ import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Properties;
 
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.PosixParser;
+import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
@@ -46,11 +53,43 @@ public class Launcher {
                 LOG.error("Uncaught exception", e);
                 if (e.getMessage().contains("SWTError")) {
                     System.out.println(
-                        "To run without a UI, put linuxui=false in " +
-                        "~/.lantern/lantern.properties");
+                        "To run without a UI, run lantern with the --" + 
+                        LanternConstants.OPTION_DISABLE_UI +
+                        " command line argument");
                 }
             }
         });
+        
+        final Options options = new Options();
+        options.addOption(null, LanternConstants.OPTION_DISABLE_UI, false,
+                          "run without a graphical user interface.");
+        options.addOption(null, LanternConstants.OPTION_HELP, false,
+                          "display command line help");
+        final CommandLineParser parser = new PosixParser();
+        final CommandLine cmd;
+        try {
+            cmd = parser.parse(options, args);
+            if (cmd.getArgs().length > 0) {
+                throw new UnrecognizedOptionException("Extra arguments were provided");
+            }
+        }
+        catch (ParseException e) {
+            printHelp(options, e.getMessage());
+            return;
+        }
+        if (cmd.hasOption(LanternConstants.OPTION_HELP)) {
+            printHelp(options, null);
+            return;
+        }
+        
+        if (cmd.hasOption(LanternConstants.OPTION_DISABLE_UI)) {
+            LanternUtils.setUiEnabled(false);
+        }
+        else {
+            LanternUtils.setUiEnabled(true);
+        }
+        
+        
         LOG.info("Waiting for internet connection...");
         LanternUtils.waitForInternet();
         LOG.info("Got internet...");
@@ -62,6 +101,13 @@ public class Launcher {
         }
         Display.setAppName("Lantern");
         final Display display = LanternHub.display();
+        
+        // initialize properties, local ciphers etc on this thread 
+        // before proceeding with more complicated stuffs.
+        if (!LanternUtils.initProps()) {
+            LOG.error("Unable to initialize local properties, exiting.");
+            return;
+        }
         
         //final Shell shell = new Shell(display);
         final SystemTray tray = LanternHub.systemTray();
@@ -140,6 +186,17 @@ public class Launcher {
         server.start();
     }
 
+    
+    private static void printHelp(Options options, String errorMessage) {
+        if (errorMessage != null) {
+            LOG.error(errorMessage);
+            System.err.println(errorMessage);
+        }
+    
+        final HelpFormatter formatter = new HelpFormatter();
+        formatter.printHelp("lantern", options);
+        return;
+    }
     
     private static void configureLogger() {
         final String propsPath = "src/main/resources/log4j.properties";
