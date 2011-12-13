@@ -62,6 +62,8 @@ public class LanternHub {
     private static final AtomicReference<CookieTracker> cookieTracker =
         new AtomicReference<CookieTracker>();
 
+    private static final AtomicReference<LocalCipherProvider> localCipherProvider =
+        new AtomicReference<LocalCipherProvider>();
     
     private static final AtomicReference<Config> config =
         new AtomicReference<Config>();
@@ -237,6 +239,15 @@ public class LanternHub {
                 cookieTracker.set(new InMemoryCookieTracker());
             }
             return cookieTracker.get();
+        }
+    }
+    
+    public static LocalCipherProvider localCipherProvider() {
+        synchronized(localCipherProvider) {
+            if (localCipherProvider.get() == null) {
+                localCipherProvider.set(new DefaultLocalCipherProvider());
+            }
+            return localCipherProvider.get();
         }
     }
 

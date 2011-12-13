@@ -126,6 +126,249 @@ public class LanternBrowser {
         return new Image(display, toUse);
     }
 
+    public char[] setLocalPassword() {
+        shell.addListener (SWT.Close, new Listener () {
+            @Override
+            public void handleEvent(final Event event) {
+                log.info("CLOSE EVENT: {}", event);
+                if (!closed) {
+                    final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
+                    final MessageBox messageBox = new MessageBox (shell, style);
+                    messageBox.setText (I18n.tr("Exit?"));
+                    final String msg;
+                    if (isConfig) {
+                        msg = I18n.tr("Are you sure you want to cancel configuring Lantern?");
+                    } else {
+                        msg = I18n.tr("Are you sure you want to cancel installing Lantern?");
+                    }
+                    messageBox.setMessage (msg);
+                    event.doit = messageBox.open () == SWT.YES;
+                    if (event.doit) {
+                        exit();
+                    }
+                }
+            }
+        });
+
+        final String startFile = "setLocalPassword0.html";        
+        final StringBuffer passwordBuf = new StringBuffer();
+        
+        final Map<String, String> startVals = new HashMap<String, String>();
+        startVals.put("set_password_title", "Set Password");
+        startVals.put("title_string", "Choose Password");
+        startVals.put("body_string", "Please choose a password to protect your local lantern data.");
+        startVals.put("password1_label", "Password");
+        startVals.put("password2_label", "Confirm Password");
+        startVals.put("confirm_password", "Set Password");
+        // startVals.put("set_password_title", I18n.tr("Set Password"));
+        // startVals.put("title_string", "Choose Password");
+        // startVals.put("body_string", I18n.tr("Please choose a password to protect your local information."));
+        // startVals.put("password1_label", I18n.tr("Password"));
+        // startVals.put("password2_label", I18n.tr("Confirm Password"));
+        // startVals.put("confirm_password", I18n.tr("Set Password"));
+
+        browser.addLocationListener(new LocationAdapter() {
+            @Override
+            public void changed(final LocationEvent event) {
+                final String location = event.location;
+                log.info("Got location CHANGED: {}", location);
+                if (lastEventLocation.equals(location)) {
+                    return;
+                }
+                processEvent(event);
+            }
+            @Override
+            public void changing(final LocationEvent event) {
+                final String location = event.location;
+                lastEventLocation = location;
+                log.info("Got location CHANGING: {}", location);
+                processEvent(event);
+            }
+
+            private void processEvent(final LocationEvent event) {
+                final String location = event.location;
+                log.info("Got location: {}", location);
+
+                if (location.endsWith("-copy.html")) {
+                    // This just means it's a request we've already prepared
+                    // for serving. If we don't do this check, we'll get an
+                    // infinite loop of copies.
+                    log.info("Accepting copied location");
+                    return;
+                }
+                // else if (location.contains("setLocalPassword0")) {
+                // }
+                else if (location.contains("setLocalPassword1")) {
+                    final String args = 
+                        StringUtils.substringAfter(location, "?");
+                    if (StringUtils.isBlank(args)) {
+                        log.error("Weird location: {}", location);
+                        return;
+                    }
+                    final String password1 = 
+                        StringUtils.substringBetween(location, "?password1=", "&");
+                    final String password2 = 
+                        StringUtils.substringAfter(location, "&password2=");
+                    if (StringUtils.isBlank(password1)) {
+                        startVals.put("error_message", "Password cannot be blank");
+                        // startVals.put("error_message", I18n.tr("Password cannot be blank"));
+                        setUrl(startFile, startVals);
+                    }
+                    else if (!password1.equals(password2)) {
+                        startVals.put("error_message", "Passwords did not match");
+                        // startVals.put("error_message", I18n.tr("Passwords did not match"));
+                        setUrl(startFile, startVals);
+                    }
+                    else {
+                        passwordBuf.append(password1);
+                        close();
+                    }
+                }
+                event.doit = false;
+            }
+        });
+
+        setUrl(startFile, startVals);
+
+        shell.open();
+        shell.forceActive();
+        while (!shell.isDisposed()) {
+            if (!this.display.readAndDispatch())
+                this.display.sleep();
+        }
+
+        char[] passwordChars = new char[passwordBuf.length()];
+        passwordBuf.getChars(0, passwordBuf.length(), passwordChars, 0);
+        return passwordChars;
+    }
+    
+    public interface PasswordValidator {
+        public boolean passwordIsValid(char [] password) throws Exception;
+    }
+    
+    public char[] getLocalPassword(final PasswordValidator validator) {
+        shell.addListener (SWT.Close, new Listener () {
+            @Override
+            public void handleEvent(final Event event) {
+                log.info("CLOSE EVENT: {}", event);
+                if (!closed) {
+                    final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
+                    final MessageBox messageBox = new MessageBox (shell, style);
+                    messageBox.setText (I18n.tr("Exit?"));
+                    final String msg;
+                    msg = "Are you sure you want to cancel starting Lantern?";
+                    // XXX i18n
+                    // msg = I18n.tr("Are you sure you want to cancel starting Lantern?");
+                    messageBox.setMessage (msg);
+                    event.doit = messageBox.open () == SWT.YES;
+                    if (event.doit) {
+                        exit();
+                    }
+                }
+            }
+        });
+
+        final String startFile = "getLocalPassword0.html";        
+        final StringBuffer passwordBuf = new StringBuffer();
+        
+        final Map<String, String> startVals = new HashMap<String, String>();
+        // XXX i18n
+        startVals.put("get_password_title", "Enter Password");
+        startVals.put("title_string", "Enter Password");
+        startVals.put("body_string", "Please enter your lantern password.");
+        startVals.put("password1_label", "Password");
+        startVals.put("confirm_password", "Start Lantern");
+
+        browser.addLocationListener(new LocationAdapter() {
+            @Override
+            public void changed(final LocationEvent event) {
+                final String location = event.location;
+                log.info("Got location CHANGED: {}", location);
+                if (lastEventLocation.equals(location)) {
+                    return;
+                }
+                processEvent(event);
+            }
+            @Override
+            public void changing(final LocationEvent event) {
+                final String location = event.location;
+                lastEventLocation = location;
+                log.info("Got location CHANGING: {}", location);
+                processEvent(event);
+            }
+
+            private void processEvent(final LocationEvent event) {
+                final String location = event.location;
+                log.info("Got location: {}", location);
+
+                if (location.endsWith("-copy.html")) {
+                    // This just means it's a request we've already prepared
+                    // for serving. If we don't do this check, we'll get an
+                    // infinite loop of copies.
+                    log.info("Accepting copied location");
+                    return;
+                }
+                // else if (location.contains("getLocalPassword0")) {
+                // }
+                else if (location.contains("getLocalPassword1")) {
+                    final String args = 
+                        StringUtils.substringAfter(location, "?");
+                    if (StringUtils.isBlank(args)) {
+                        log.error("Weird location: {}", location);
+                        return;
+                    }
+                    final String password1 = 
+                        StringUtils.substringAfter(location, "?password1=");
+                    if (StringUtils.isBlank(password1)) {
+                        startVals.put("error_message", "Password cannot be blank");
+                        // XXX i18n
+                        // startVals.put("error_message", I18n.tr("Password cannot be blank"));
+                        setUrl(startFile, startVals);
+                    }
+                    else {
+                        char[] passwordChars = new char[password1.length()];
+                        password1.getChars(0, password1.length(), passwordChars, 0);
+                        try {
+                            if (!validator.passwordIsValid(passwordChars)) {
+                                startVals.put("error_message", "The password was incorrect, please try again");
+                                // XXX i18n
+                                // startVals.put("error_message", I18n.tr("The password was incorrect, please try again"));
+                                setUrl(startFile, startVals);
+                            }
+                            else {
+                                passwordBuf.append(password1);
+                                close();
+                            }
+                        } catch (Exception e) {
+                            log.error("Error checking user password: {}", e);
+                            startVals.put("error_message", "An error occured checking your password.");
+                            // XXX i18n
+                            // startVals.put("error_message", I18n.tr("An error occurred checking your password"));
+                            setUrl(startFile, startVals);                     
+                        }
+                        finally {
+                            Arrays.fill(passwordChars, '\0');
+                        }
+                    }
+                }
+                event.doit = false;
+            }
+        });
+
+        setUrl(startFile, startVals);
+
+        shell.open();
+        shell.forceActive();
+        while (!shell.isDisposed()) {
+            if (!this.display.readAndDispatch())
+                this.display.sleep();
+        }
+
+        char[] passwordChars = new char[passwordBuf.length()];
+        passwordBuf.getChars(0, passwordBuf.length(), passwordChars, 0);
+        return passwordChars;
+    }
+
     public void showUpdate(final Map<String, String> update) {
         log.info("Attempting to show udate message");
         final String startFile = "update.html";

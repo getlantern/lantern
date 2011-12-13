@@ -64,6 +64,10 @@ public class LanternConstants {
      * The length of keys in translation property files.
      */
     public static final int I18N_KEY_LENGTH = 40;
+    
+    /* the following are command line options */
+    public static final String OPTION_DISABLE_UI = "disable-ui";
+    public static final String OPTION_HELP = "help";
 
     
 }
