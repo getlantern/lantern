@@ -1,21 +1,18 @@
 package org.lantern;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.packet.Presence;
 import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.httpseverywhere.HttpsEverywhere.HttpsRuleSet;
-import org.littleshoot.util.IoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,6 +73,34 @@ public class DefaultConfig implements Config {
         
         return LanternUtils.jsonify(all);
     }
+
+    @Override
+    public String addToWhitelist(final String body) {
+        Whitelist.addEntry(body.trim());
+        return whitelist();
+    }
+
+    @Override
+    public String removeFromWhitelist(final String body) {
+        Whitelist.removeEntry(body.trim());
+        return whitelist();
+    }
+
+    @Override
+    public String addToTrusted(final String body) {
+        final TrustedContactsManager tcm = 
+            LanternHub.getTrustedContactsManager();
+        tcm.addTrustedContact(body.trim());
+        return roster();
+    }
+
+    @Override
+    public String removeFromTrusted(final String body) {
+        final TrustedContactsManager tcm = 
+            LanternHub.getTrustedContactsManager();
+        tcm.removeTrustedContact(body.trim());
+        return roster();
+    }
     
     @Override
     public String httpsEverywhere() {
@@ -104,10 +129,4 @@ public class DefaultConfig implements Config {
         }
         return whitelist();
     }
-
-    @Override
-    public String roster(final String body) {
-        return "";
-    }
-
 }

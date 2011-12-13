@@ -16,5 +16,12 @@ public class DefaultTrustedContactsManagerTest {
         final DefaultTrustedContactsManager tcm2 = 
             new DefaultTrustedContactsManager();
         assertTrue(tcm2.isTrusted("test@test.com"));
+        
+        tcm.removeTrustedContact("test@test.com");
+        
+        final DefaultTrustedContactsManager tcm3 = 
+            new DefaultTrustedContactsManager();
+        assertTrue(!tcm3.isTrusted("test@test.com"));
     }
+    
 }
