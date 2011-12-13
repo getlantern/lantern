@@ -1,6 +1,8 @@
 package org.lantern;
 
-
+/**
+ * Interface for classes handling the configuration API.
+ */
 public interface Config {
 
     String roster();
@@ -11,6 +13,12 @@ public interface Config {
 
     String whitelist(String body);
 
-    String roster(String body);
+    String addToWhitelist(String body);
+
+    String removeFromWhitelist(String body);
+
+    String addToTrusted(String body);
+
+    String removeFromTrusted(String body);
 
 }

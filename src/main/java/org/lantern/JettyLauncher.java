@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.HandlerList;
@@ -161,9 +162,35 @@ public class JettyLauncher {
             } else if (stripped.startsWith("/roster")) {
                 if (isGet) {
                     json = LanternHub.config().roster();
-                } else if (isPost) {
-                    json = LanternHub.config().roster(bodyToString(request));
                 } else { close(baseRequest, response); return;}
+            } else if (stripped.startsWith("/addToWhitelist")) {
+                final String site = request.getParameter("site");
+                if (StringUtils.isBlank(site)) {
+                    error("contact param required", baseRequest, response); 
+                    return;
+                }
+                json = LanternHub.config().addToWhitelist(site);
+            } else if (stripped.startsWith("/removeFromWhitelist")) {
+                final String site = request.getParameter("site");
+                if (StringUtils.isBlank(site)) {
+                    error("contact param required", baseRequest, response);
+                    return;
+                }
+                json = LanternHub.config().removeFromWhitelist(site);
+            } else if (stripped.startsWith("/addToTrusted")) {
+                final String contact = request.getParameter("contact");
+                if (StringUtils.isBlank(contact)) {
+                    error("contact param required", baseRequest, response);
+                    return;
+                }
+                json = LanternHub.config().addToTrusted(contact);
+            } else if (stripped.startsWith("/removeFromTrusted")) {
+                final String contact = request.getParameter("contact");
+                if (StringUtils.isBlank(contact)) {
+                    error("contact param required", baseRequest, response);
+                    return;
+                }
+                json = LanternHub.config().removeFromTrusted(contact);
             } else if (!isGet) {
                 close(baseRequest, response); return;
             } else if (stripped.startsWith("/httpseverywhere")) {
@@ -238,7 +265,8 @@ public class JettyLauncher {
         LanternUtils.browseUrl(url);
     }
 
-    public void close(Request baseRequest, HttpServletResponse response) {
+    private void close(final Request baseRequest, 
+        final HttpServletResponse response) {
         baseRequest.setHandled(true);
         try {
             final OutputStream os = response.getOutputStream();
@@ -246,6 +274,12 @@ public class JettyLauncher {
         } catch (final IOException e) {
             log.info("Could not close", e);
         }
+    }
+    
+    private void error(final String msg, final Request baseRequest,
+        final HttpServletResponse response) throws IOException {
+        response.sendError(HttpStatus.BAD_REQUEST_400, msg);
+        close(baseRequest, response);
     }
 }
 
