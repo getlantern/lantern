@@ -1,6 +1,10 @@
 package org.lantern;
 
-public class WhitelistEntry {
+/**
+ * Class representing a single whitelisted site along with any higher level 
+ *  attributes of that site, such as whether or not it's required.
+ */
+public class WhitelistEntry implements Comparable<WhitelistEntry> {
 
     private final String site;
     private final boolean required;
@@ -21,12 +25,16 @@ public class WhitelistEntry {
     public boolean isRequired() {
         return required;
     }
+
+    @Override
+    public int compareTo(final WhitelistEntry o) {
+        return site.compareTo(o.getSite());
+    }
     
     @Override 
     public String toString() {
         return site;
     }
-    
 
     @Override
     public int hashCode() {
