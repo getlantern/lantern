@@ -363,26 +363,23 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     }
 
     private String askForEmail() {
-        System.out.print("Please enter your gmail e-mail, as in johndoe@gmail.com: ");
-        return readLine();
+        try {
+            System.out.print("Please enter your gmail e-mail, as in johndoe@gmail.com: ");
+            return LanternUtils.readLineCLI();
+        } catch (IOException e) {
+            System.out.println("IO error trying to read your email address!");
+            return "";
+        }
     }
     
     private String askForPassword() {
-        System.out.print("Please enter your gmail password: ");
-        return readLine();
-    }
-
-    private String readLine() {
-        //  open up standard input
-        final BufferedReader br = 
-            new BufferedReader(new InputStreamReader(System.in));
-
         try {
-           return br.readLine();
-        } catch (final IOException ioe) {
-           System.out.println("IO error trying to read your name!");
+            System.out.print("Please enter your gmail password: ");
+            return new String(LanternUtils.readPasswordCLI());
+        } catch (IOException e) {
+            System.out.println("IO error trying to read your password!");
+            return "";
         }
-        return "";
     }
 
     /**
