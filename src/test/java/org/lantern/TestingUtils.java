@@ -207,7 +207,7 @@ class TestingUtils {
 
     public static LanternKeyStoreManager createTempKeyStore() {
         File keyStoreRoot = Files.createTempDir(); 
-        return new LanternKeyStoreManager(true, keyStoreRoot);
+        return new LanternKeyStoreManager(keyStoreRoot);
     }
 
     public static SocketFactory newTlsSocketFactory(KeyStoreManager mgr) throws Exception{

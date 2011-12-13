@@ -157,7 +157,7 @@ public class LanternHub {
     public static LanternKeyStoreManager getKeyStoreManager() {
         synchronized (proxyKeyStore) {
             if (proxyKeyStore.get() == null) {
-                proxyKeyStore.set(new LanternKeyStoreManager(true));
+                proxyKeyStore.set(new LanternKeyStoreManager());
             }
             return proxyKeyStore.get();
         }
