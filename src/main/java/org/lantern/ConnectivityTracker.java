@@ -7,5 +7,7 @@ public interface ConnectivityTracker {
 
     void addListener(ConnectivityListener cl);
     
-    void setStatus(ConnectivityStatus ct);
+    void setConnectivityStatus(ConnectivityStatus ct);
+    
+    ConnectivityStatus getConnectivityStatus();
 }

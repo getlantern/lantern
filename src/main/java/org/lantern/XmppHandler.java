@@ -317,7 +317,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             }
             if (!servers.isEmpty() && ! Configurator.configured()) {
                 Configurator.configure();
-                LanternHub.connectivityTracker().setStatus(
+                LanternHub.connectivityTracker().setConnectivityStatus(
                     ConnectivityStatus.CONNECTED);
             }
         }
