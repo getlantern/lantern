@@ -122,10 +122,7 @@ public class DefaultConfigApi implements ConfigApi, UpdateListener {
             LanternHub.connectivityTracker().getConnectivityStatus());
         data.put("port", LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
         data.put("version", LanternConstants.VERSION);
-        data.put("latestVersion", 
-            updateData.get(LanternConstants.UPDATE_VERSION_KEY));
-        data.put("latestVersionLink", 
-            updateData.get(LanternConstants.UPDATE_URL_KEY));
+        data.put("updateData", this.updateData); 
         return LanternUtils.jsonify(data);
     }
 
