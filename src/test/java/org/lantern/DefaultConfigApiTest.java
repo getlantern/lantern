@@ -1,5 +1,6 @@
 package org.lantern;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import org.apache.commons.lang.StringUtils;
@@ -21,6 +22,9 @@ public class DefaultConfigApiTest {
         System.out.println(read);
         final JsonElement elem = read.get("connectivity");
         assertTrue(StringUtils.isNotBlank(elem.getAsString()));
+        
+        final JsonElement port = read.get("port");
+        assertEquals(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, port.getAsInt());
     }
     
     @Test 
