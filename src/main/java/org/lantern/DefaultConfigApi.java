@@ -26,16 +26,20 @@ import com.google.gson.JsonSerializer;
 /**
  * Default class containing configuration settings and data.
  */
-public class DefaultConfigApi implements ConfigApi {
+public class DefaultConfigApi implements ConfigApi, UpdateListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final GsonBuilder gb = new GsonBuilder();
+
+    private Map<String, String> updateData = new HashMap<String, String>();
     
     /**
      * Creates a new instance of the API. There should only be one.
      */
     public DefaultConfigApi() {
+        updateData.put(LanternConstants.UPDATE_VERSION_KEY, 
+            LanternConstants.VERSION);
         final TrustedContactsManager tcm = 
             LanternHub.getTrustedContactsManager();
         gb.registerTypeAdapter(Presence.class, new JsonSerializer<Presence>() {
@@ -117,6 +121,11 @@ public class DefaultConfigApi implements ConfigApi {
         data.put("connectivity", 
             LanternHub.connectivityTracker().getConnectivityStatus());
         data.put("port", LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
+        data.put("version", LanternConstants.VERSION);
+        data.put("latestVersion", 
+            updateData.get(LanternConstants.UPDATE_VERSION_KEY));
+        data.put("latestVersionLink", 
+            updateData.get(LanternConstants.UPDATE_URL_KEY));
         return LanternUtils.jsonify(data);
     }
 
@@ -139,5 +148,10 @@ public class DefaultConfigApi implements ConfigApi {
             log.warn("Error generating JSON", e);
         }
         return whitelist();
+    }
+
+    @Override
+    public void onUpdate(final Map<String, String> updateData) {
+        this.updateData = updateData;
     }
 }
