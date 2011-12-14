@@ -153,7 +153,11 @@ public class JettyLauncher {
             final boolean isGet = request.getMethod().equalsIgnoreCase("GET");
             final boolean isPost = request.getMethod().equalsIgnoreCase("POST");
             final String json;
-            if (stripped.startsWith("/whitelist")) {
+            if (stripped.startsWith("/config")) {
+                if (isGet) {
+                    json = LanternHub.config().config();
+                } else { close(baseRequest, response); return;}
+            } else if (stripped.startsWith("/whitelist")) {
                 if (isGet) {
                     json = LanternHub.config().whitelist();
                 } else if (isPost) {
