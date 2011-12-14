@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.MalformedURLException;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
@@ -153,7 +154,10 @@ public class JettyLauncher {
             final boolean isGet = request.getMethod().equalsIgnoreCase("GET");
             final boolean isPost = request.getMethod().equalsIgnoreCase("POST");
             final String json;
-            if (stripped.startsWith("/config")) {
+            if (stripped.startsWith("/setConfig")) {
+                final Map<String, String> args = LanternUtils.toParamMap(request);
+                json = LanternHub.config().setConfig(args);
+            } else if (stripped.startsWith("/config")) {
                 if (isGet) {
                     json = LanternHub.config().config();
                 } else { close(baseRequest, response); return;}
