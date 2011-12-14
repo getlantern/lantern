@@ -8,13 +8,15 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
+import java.security.Key;
 import java.security.MessageDigest;
 import java.security.GeneralSecurityException;
 import java.security.spec.KeySpec;
 import java.security.SecureRandom;
 import java.util.Arrays;
 import javax.crypto.Cipher;
-import javax.crypto.SecretKey; 
+import javax.crypto.SecretKey;
+import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 import org.apache.commons.io.FileUtils;
@@ -58,14 +60,14 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
     }
     
     @Override
-    void initializeCipher(Cipher cipher, int opmode, SecretKey key) throws GeneralSecurityException {
+    void initializeCipher(Cipher cipher, int opmode, Key key) throws GeneralSecurityException {
         byte [] salt = new byte[8]; 
         LanternHub.secureRandom().nextBytes(salt);
         cipher.init(opmode, key, new PBEParameterSpec(salt, 100));
     }
     
     @Override
-    KeySpec getLocalKeySpec(boolean init) throws IOException, GeneralSecurityException {
+    Key getLocalKey(boolean init) throws IOException, GeneralSecurityException {
         
         char[] password = null;
         boolean passwordValid = false;
@@ -94,8 +96,10 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
                 }
                 tries += 1;
             }
-            KeySpec keySpec = new PBEKeySpec(password);
-            return keySpec;
+            final KeySpec keySpec = new PBEKeySpec(password);
+            final SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(getAlgorithm());
+            final SecretKey key = keyFactory.generateSecret(keySpec);
+            return key;
         } catch (IOError e) {
             throw new IOException(e.getMessage());
         }
