@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -122,11 +123,23 @@ public class DefaultConfigApi implements ConfigApi, UpdateListener {
             LanternHub.connectivityTracker().getConnectivityStatus());
         data.put("port", LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
         data.put("version", LanternConstants.VERSION);
-        data.put("latestVersion", 
-            updateData.get(LanternConstants.UPDATE_VERSION_KEY));
-        data.put("latestVersionLink", 
-            updateData.get(LanternConstants.UPDATE_URL_KEY));
+        data.put("systemProxy", Configurator.isProxying());
+        data.put("updateData", this.updateData); 
         return LanternUtils.jsonify(data);
+    }
+    
+
+    @Override
+    public String setConfig(final Map<String, String> args) {
+        final String sys = args.get("systemProxy");
+        if (StringUtils.isNotBlank(sys)) {
+            if (LanternUtils.isTrue(sys)) {
+                Configurator.startProxying();
+            } else if (LanternUtils.isFalse(sys)) {
+                Configurator.stopProxying();
+            }
+        }
+        return config();
     }
 
     @Override
