@@ -125,7 +125,7 @@ public class Launcher {
             launchLantern();
         }
         
-        //LanternHub.jettyLauncher().openBrowserWhenReady();
+        LanternHub.jettyLauncher().openBrowserWhenReady();
         //new StatsSimulator().start();
         
         // This is necessary to keep the tray/menu item up in the case
@@ -178,7 +178,6 @@ public class Launcher {
         final HttpProxyServer server = 
             new LanternHttpProxyServer(
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
-                LanternConstants.LANTERN_LOCALHOST_HTTPS_PORT, 
                 //null, sslRandomPort,
                 proxyKeyStore, xmpp, cookieTracker, cookieFilterFactory);
         server.start();

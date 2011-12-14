@@ -32,6 +32,9 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
     public int addUpnpMapping(final PortMappingProtocol prot, 
         final int localPort, final int externalPortRequested,
         final PortMapListener portMapListener) {
+        if (NetworkUtils.isPublicAddress()) {
+            return 1;
+        }
         final String lh;
         try {
             lh = NetworkUtils.getLocalHost().getHostAddress();
