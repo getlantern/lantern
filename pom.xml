@@ -256,6 +256,12 @@
       <version>1.0.1</version>
     </dependency>
 
+    <dependency>
+      <groupId>com.mcdermottroe.apple</groupId>
+      <artifactId>osx-keychain</artifactId>
+      <version>0.1</version>
+    </dependency>
+
   </dependencies>
 
   <prerequisites>
