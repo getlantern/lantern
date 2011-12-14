@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.AlgorithmParameters;
 import java.security.GeneralSecurityException;
+import java.security.Key;
 import java.security.spec.KeySpec;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -26,7 +27,7 @@ abstract class AbstractLocalCipherProvider implements LocalCipherProvider {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final File paramsFile;
-    private KeySpec keySpec = null;
+    private Key localKey = null;
     
     AbstractLocalCipherProvider() {
         this(DEFAULT_CIPHER_PARAMS_FILE);
@@ -42,14 +43,14 @@ abstract class AbstractLocalCipherProvider implements LocalCipherProvider {
     abstract String getAlgorithm();
     
     /**
-     * return a KeySpec representing the user's secret value. 
+     * return a Key representing the user's secret value. 
      * if init is true, a new key should be generated or 
      * collected from the user. 
      *
      * @param init called if a new key should be generated/requested
      *        otherwise it should be expected that the key exists.
      */
-    abstract KeySpec getLocalKeySpec(boolean init) throws IOException, GeneralSecurityException;
+    abstract Key getLocalKey(boolean init) throws IOException, GeneralSecurityException;
 
     /**
      * optional cipher initialization. This is only called when no 
@@ -63,31 +64,33 @@ abstract class AbstractLocalCipherProvider implements LocalCipherProvider {
      * @param key
      * @throws GeneralSecurityException
      */
-    void initializeCipher(Cipher cipher, int opmode, SecretKey key) throws GeneralSecurityException {
+    void initializeCipher(Cipher cipher, int opmode, Key key) throws GeneralSecurityException {
         // default init
         cipher.init(opmode, key);
+    }
+
+    Cipher getCipher() throws GeneralSecurityException {
+        return Cipher.getInstance(getAlgorithm());
     }
 
     @Override
     public synchronized Cipher newLocalCipher(int opmode) throws IOException, GeneralSecurityException {
         final boolean init = !paramsFile.isFile();
         
-        if (keySpec == null) {
+        if (localKey == null) {
             log.info("Retrieving local cipher key...");
-            keySpec = getLocalKeySpec(init);
+            localKey = getLocalKey(init);
         }
 
-        final SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(getAlgorithm());
-        final SecretKey key = keyFactory.generateSecret(keySpec);
-        final Cipher cipher = Cipher.getInstance(getAlgorithm());
+        final Cipher cipher = getCipher();
 
         if (init) {
-            initializeCipher(cipher, opmode, key);
+            initializeCipher(cipher, opmode, localKey);
             saveParameters(cipher);
         }
         else {
            final AlgorithmParameters params = loadParameters();
-           cipher.init(opmode, key, params);
+           cipher.init(opmode, localKey, params);
         }
         return cipher;
     }

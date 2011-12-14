@@ -11,6 +11,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.widgets.Display;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -245,7 +246,12 @@ public class LanternHub {
     public static LocalCipherProvider localCipherProvider() {
         synchronized(localCipherProvider) {
             if (localCipherProvider.get() == null) {
-                localCipherProvider.set(new DefaultLocalCipherProvider());
+                if (SystemUtils.IS_OS_WINDOWS) {
+                    localCipherProvider.set(new WindowsLocalCipherProvider());   
+                }
+                else {
+                    localCipherProvider.set(new DefaultLocalCipherProvider());
+                }
             }
             return localCipherProvider.get();
         }
