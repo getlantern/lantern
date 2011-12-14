@@ -11,7 +11,7 @@ import org.junit.Test;
 public class DefaultConfigTest {
 
     @Test public void testWhitelist() throws Exception {
-        final Config conf = new DefaultConfig();
+        final ConfigApi conf = new DefaultConfigApi();
         final String wl = conf.whitelist();
         final ObjectMapper mapper = new ObjectMapper();
         final Map<String,Object> data = mapper.readValue(wl, Map.class);
@@ -27,7 +27,7 @@ public class DefaultConfigTest {
     }
     
     @Test public void testHttpsEverywhere() throws Exception {
-        final Config conf = new DefaultConfig();
+        final ConfigApi conf = new DefaultConfigApi();
         final String json = conf.httpsEverywhere();
         final ObjectMapper mapper = new ObjectMapper();
         final JsonNode read = mapper.readTree(json);

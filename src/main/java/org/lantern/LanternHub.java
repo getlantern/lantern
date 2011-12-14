@@ -65,8 +65,11 @@ public class LanternHub {
     private static final AtomicReference<LocalCipherProvider> localCipherProvider =
         new AtomicReference<LocalCipherProvider>();
     
-    private static final AtomicReference<Config> config =
-        new AtomicReference<Config>();
+    private static final AtomicReference<ConnectivityTracker> connectivityTracker =
+        new AtomicReference<ConnectivityTracker>();
+    
+    private static final AtomicReference<ConfigApi> config =
+        new AtomicReference<ConfigApi>();
     
     private static final File UNZIPPED = 
         new File(LanternUtils.dataDir(), "GeoIP.dat");
@@ -134,8 +137,6 @@ public class LanternHub {
                     return new SystemTray() {
                         @Override
                         public void createTray() {}
-                        @Override
-                        public void activate() {}
                         @Override
                         public void addUpdate(Map<String, String> updateData) {}
                     };
@@ -224,10 +225,10 @@ public class LanternHub {
         }
     }
 
-    public static Config config() {
+    public static ConfigApi config() {
         synchronized (config) {
             if (config.get() == null) {
-                config.set(new DefaultConfig());
+                config.set(new DefaultConfigApi());
             } 
             return config.get();
         }
@@ -248,6 +249,15 @@ public class LanternHub {
                 localCipherProvider.set(new DefaultLocalCipherProvider());
             }
             return localCipherProvider.get();
+        }
+    }
+
+    public static ConnectivityTracker connectivityTracker() {
+        synchronized (connectivityTracker) {
+            if (connectivityTracker.get() == null) {
+                connectivityTracker.set(new DefaultConnectivityTracker());
+            }
+            return connectivityTracker.get();
         }
     }
 

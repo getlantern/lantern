@@ -26,13 +26,16 @@ import com.google.gson.JsonSerializer;
 /**
  * Default class containing configuration settings and data.
  */
-public class DefaultConfig implements Config {
+public class DefaultConfigApi implements ConfigApi {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final GsonBuilder gb = new GsonBuilder();
     
-    public DefaultConfig() {
+    /**
+     * Creates a new instance of the API. There should only be one.
+     */
+    public DefaultConfigApi() {
         final TrustedContactsManager tcm = 
             LanternHub.getTrustedContactsManager();
         gb.registerTypeAdapter(Presence.class, new JsonSerializer<Presence>() {
@@ -106,6 +109,13 @@ public class DefaultConfig implements Config {
     public String httpsEverywhere() {
         final Map<String, HttpsRuleSet> rules = HttpsEverywhere.getRules();
         return LanternUtils.jsonify(rules);
+    }
+    
+
+    @Override
+    public String config() {
+        final ObjectMapper mapper = new ObjectMapper();
+        return "";
     }
 
     @Override
