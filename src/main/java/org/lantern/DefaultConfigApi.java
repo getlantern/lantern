@@ -110,18 +110,18 @@ public class DefaultConfigApi implements ConfigApi {
         final Map<String, HttpsRuleSet> rules = HttpsEverywhere.getRules();
         return LanternUtils.jsonify(rules);
     }
-    
 
     @Override
     public String config() {
-        final ObjectMapper mapper = new ObjectMapper();
-        return "";
+        final Map<String, Object> data = new LinkedHashMap<String, Object>();
+        data.put("connectivity", 
+            LanternHub.connectivityTracker().getConnectivityStatus());
+        return LanternUtils.jsonify(data);
     }
 
     @Override
     public String whitelist(final String body) {
         final ObjectMapper mapper = new ObjectMapper();
-        
         try {
             final Map<String, Object> wl = mapper.readValue(body, Map.class);
             for (final Map.Entry<String, Object> entry : wl.entrySet()) {
