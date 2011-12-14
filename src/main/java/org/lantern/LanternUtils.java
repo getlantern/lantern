@@ -81,6 +81,8 @@ import org.littleshoot.util.Sha1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
+
 /**
  * Utility methods for use with Lantern.
  */
@@ -779,6 +781,9 @@ public class LanternUtils {
     }
 
     public static String jsonify(final Object all) {
+        final Gson gson = new Gson();
+        return gson.toJson(all);
+        /*
         final ObjectMapper mapper = new ObjectMapper();
         try {
             return mapper.writeValueAsString(all);
@@ -790,6 +795,7 @@ public class LanternUtils {
             LOG.warn("Error generating JSON", e);
         }
         return "";
+        */
     }
 }
 

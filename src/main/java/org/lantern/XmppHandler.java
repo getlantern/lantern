@@ -1,8 +1,6 @@
 package org.lantern;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
@@ -84,18 +82,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
      * to avoid exchanging keys multiple times.
      */
     private final Set<URI> peerProxySet = new HashSet<URI>();
-    
-    /**
-     * These are anonymous proxies we have exchanged keys with. 
-     */
-    //private final Queue<URI> establishedAnonymousProxies = 
-    //    new ConcurrentLinkedQueue<URI>();
-    
-    /**
-     * These are trusted peer proxies we have exchanged keys with.
-     */
-    //private final Queue<URI> establishedPeerProxies = 
-    //    new ConcurrentLinkedQueue<URI>();
     
     private final Set<ProxyHolder> laeProxySet =
         new HashSet<ProxyHolder>();
@@ -331,7 +317,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             }
             if (!servers.isEmpty() && ! Configurator.configured()) {
                 Configurator.configure();
-                LanternHub.systemTray().activate();
+                LanternHub.connectivityTracker().setConnectivityStatus(
+                    ConnectivityStatus.CONNECTED);
             }
         }
 

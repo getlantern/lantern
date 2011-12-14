@@ -43,7 +43,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
     private final SetCookieObserver setCookieObserver;
     private final CookieFilter.Factory cookieFilterFactory;
 
-    private final int httpsLocalPort;
+    //private final int httpsLocalPort;
 
     private final ProxyProvider proxyProvider;
     private final ProxyStatusListener proxyStatusListener;
@@ -54,21 +54,20 @@ public class LanternHttpProxyServer implements HttpProxyServer {
      * Creates a new proxy server.
      * 
      * @param httpLocalPort The port the HTTP server should run on.
-     * @param httpsLocalPort The port the HTTPS server should run on.
      * @param filters HTTP filters to apply.
      * @param xmpp The class dealing with all XMPP interaction with the server.
      */
     public LanternHttpProxyServer(final int httpLocalPort, 
-        final int httpsLocalPort, final KeyStoreManager keyStoreManager, 
+        final KeyStoreManager keyStoreManager, 
         final XmppHandler xmpp, SetCookieObserver setCookieObserver,
         CookieFilter.Factory cookieFilterFactory) {
         
-        this(httpLocalPort, httpsLocalPort, keyStoreManager, xmpp, xmpp, xmpp.getP2PClient(),
+        this(httpLocalPort, keyStoreManager, xmpp, xmpp, xmpp.getP2PClient(),
              setCookieObserver, cookieFilterFactory);
     }
 
     public LanternHttpProxyServer(final int httpLocalPort, 
-        final int httpsLocalPort, final KeyStoreManager keyStoreManager, 
+        final KeyStoreManager keyStoreManager, 
         final ProxyProvider proxyProvider,
         final ProxyStatusListener proxyStatusListener, 
         final XmppP2PClient p2pClient, 
@@ -76,7 +75,6 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         CookieFilter.Factory cookieFilterFactory) {
             
         this.httpLocalPort = httpLocalPort;
-        this.httpsLocalPort = httpsLocalPort;
         this.proxyProvider = proxyProvider;
         this.proxyStatusListener = proxyStatusListener;
         this.p2pClient = p2pClient;
@@ -95,8 +93,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     @Override
     public void start() {
-        log.info("Starting proxy on HTTP port "+httpLocalPort+
-            " and HTTPS port "+httpsLocalPort);
+        log.info("Starting proxy on HTTP port "+httpLocalPort);
         
         newServerBootstrap(newHttpChannelPipelineFactory(), 
             httpLocalPort);
