@@ -38,6 +38,7 @@ import java.util.Properties;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -45,6 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.URIException;
@@ -779,6 +781,26 @@ public class LanternUtils {
     public static OutputStream localEncryptOutputStream(File file) throws IOException, GeneralSecurityException {
         return localEncryptOutputStream(new FileOutputStream(file));
     }
+    
+    /**
+     * Converts the request arguments to a map of parameter keys to single
+     * values, ignoring multiple values.
+     * 
+     * @param request The request.
+     * @return The mapped argument names and values.
+     */
+    public static Map<String, String> toParamMap(
+            final HttpServletRequest request) {
+        final Map<String, String> map = new TreeMap<String, String>(
+                String.CASE_INSENSITIVE_ORDER);
+        final Map<String, String[]> paramMap = request.getParameterMap();
+        final Set<String> keys = paramMap.keySet();
+        for (final String key : keys) {
+            final String[] values = paramMap.get(key);
+            map.put(key, values[0]);
+        }
+        return map;
+    }
 
     public static String jsonify(final Object all) {
         final Gson gson = new Gson();
@@ -796,6 +818,37 @@ public class LanternUtils {
         }
         return "";
         */
+    }
+
+    /**
+     * Returns <code>true</code> if the specified string is either "true" or
+     * "on" ignoring case.
+     * 
+     * @param val The string in question.
+     * @return <code>true</code> if the specified string is either "true" or
+     * "on" ignoring case, otherwise <code>false</code>.
+     */
+    public static boolean isTrue(final String val) {
+        return checkTrueOrFalse(val, "true", "on");
+    }
+
+    /**
+     * Returns <code>true</code> if the specified string is either "false" or
+     * "off" ignoring case.
+     * 
+     * @param val The string in question.
+     * @return <code>true</code> if the specified string is either "false" or
+     * "off" ignoring case, otherwise <code>false</code>.
+     */
+    public static boolean isFalse(final String val) {
+        return checkTrueOrFalse(val, "false", "off");
+    }
+
+    private static boolean checkTrueOrFalse(final String val, 
+        final String str1, final String str2) {
+        final String str = val.trim();
+        return StringUtils.isNotBlank(str) && 
+            (str.equalsIgnoreCase(str1) || str.equalsIgnoreCase(str2));
     }
 }
 
