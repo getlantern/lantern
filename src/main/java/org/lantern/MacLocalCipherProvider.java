@@ -51,6 +51,10 @@ public class MacLocalCipherProvider extends AbstractAESLocalCipherProvider {
         byte [] encodedKey = base64.encode(key);
         try {
             OSXKeychain keychain = OSXKeychain.getInstance();
+            try {
+                keychain.deleteGenericPassword(SERVICE_NAME, ACCOUNT_NAME);
+                log.debug("Removing old lantern keychain entry...");
+            } catch (OSXKeychainException e) { /* expected result */ }
             keychain.addGenericPassword(SERVICE_NAME, ACCOUNT_NAME, new String(encodedKey));
         } catch (OSXKeychainException e) {
             throw new GeneralSecurityException(e);
