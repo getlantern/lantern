@@ -24,7 +24,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Class for handling all system tray interactions.
  */
-public class SystemTrayImpl implements SystemTray, ConnectivityListener {
+public class SystemTrayImpl implements SystemTray, ConnectivityListener, 
+    ProxyListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Display display;
@@ -59,6 +60,7 @@ public class SystemTrayImpl implements SystemTray, ConnectivityListener {
     
     private void createTrayInternal() {
         final Tray tray = display.getSystemTray ();
+        Configurator.addProxyListener(this);
         if (tray == null) {
             System.out.println ("The system tray is not available");
         } else {
@@ -115,15 +117,6 @@ public class SystemTrayImpl implements SystemTray, ConnectivityListener {
                     @Override
                     public void handleEvent (final Event event) {
                         log.info("Stopping Lantern!!");
-                        display.asyncExec (new Runnable () {
-                            @Override
-                            public void run () {
-                                log.info("Setting start stop button state.");
-                                stopItem.setEnabled(false);
-                                startItem.setEnabled(true);
-                                showRestartBrowserMessage();
-                            }
-                        });
                         Configurator.stopProxying();
                     }
                 });
@@ -135,15 +128,6 @@ public class SystemTrayImpl implements SystemTray, ConnectivityListener {
                     @Override
                     public void handleEvent (final Event event) {
                         log.info("Starting Lantern!!");
-                        display.asyncExec (new Runnable () {
-                            @Override
-                            public void run () {
-                                log.info("Setting start stop button state.");
-                                stopItem.setEnabled(true);
-                                startItem.setEnabled(false);
-                                showRestartBrowserMessage();
-                            }
-                        });
                         Configurator.startProxying();
                     }
                 });
@@ -306,6 +290,23 @@ public class SystemTrayImpl implements SystemTray, ConnectivityListener {
                     final Image image = newImage(fileName, 16, 16);
                     setImage(image);
                 }
+            }
+        });
+    }
+
+    @Override
+    public void onProxying(final boolean proxying) {
+        if (stopItem == null || startItem == null) {
+            log.info("NOT IN PROXY MODE");
+            return;
+        }
+        display.asyncExec (new Runnable () {
+            @Override
+            public void run () {
+                log.info("Setting start stop button state.");
+                stopItem.setEnabled(proxying);
+                startItem.setEnabled(!proxying);
+                showRestartBrowserMessage();
             }
         });
     }

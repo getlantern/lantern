@@ -1,5 +1,7 @@
 package org.lantern;
 
+import java.util.Map;
+
 /**
  * Interface for classes handling the configuration API.
  */
@@ -22,5 +24,7 @@ public interface ConfigApi {
     String removeFromTrusted(String body);
 
     String config();
+
+    String setConfig(Map<String, String> args);
 
 }
