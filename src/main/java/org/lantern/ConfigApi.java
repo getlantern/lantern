@@ -3,7 +3,7 @@ package org.lantern;
 /**
  * Interface for classes handling the configuration API.
  */
-public interface Config {
+public interface ConfigApi {
 
     String roster();
     
@@ -20,5 +20,7 @@ public interface Config {
     String addToTrusted(String body);
 
     String removeFromTrusted(String body);
+
+    String config();
 
 }
