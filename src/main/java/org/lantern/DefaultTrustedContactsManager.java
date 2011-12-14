@@ -18,6 +18,9 @@ import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Default class for keeping track of which contacts are trusted.
+ */
 public class DefaultTrustedContactsManager implements TrustedContactsManager {
 
     private final static Logger log = 
@@ -45,12 +48,6 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
     public DefaultTrustedContactsManager() {
         this.trustedContacts = loadTrustedContacts();
         log.info("Loaded contacts: {}", this.trustedContacts);
-    }
-    
-    @Override
-    public void addTrustedContact(final String email) {
-        log.info("Adding trusted contact: {}", email);
-        addTrustedContacts(Arrays.asList(email));
     }
 
     @Override
@@ -96,14 +93,39 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
         return isTrusted(email);
     }
 
+    
+    @Override
+    public void addTrustedContact(final String email) {
+        log.info("Adding trusted contact: {}", email);
+        addTrustedContacts(Arrays.asList(email));
+    }
+    
+    @Override
+    public void removeTrustedContact(final String email) {
+        log.info("Removing trusted contact: {}", email);
+        removeTrustedContacts(Arrays.asList(email));
+    }
+    
     @Override
     public void addTrustedContacts(final Collection<String> trusted) {
         trustedContacts.addAll(trusted);
+        writeContacts();
+    }
+
+    @Override
+    public void removeTrustedContacts(final Collection<String> trusted) {
+        trustedContacts.removeAll(trusted);
+        writeContacts();
+    }
+
+    private void writeContacts() {
         synchronized (CONTACTS_FILE) {
+            // We just write the whole thing again from scratch.
+            CONTACTS_FILE.delete();
             FileWriter fw = null;
             try {
                 fw = new FileWriter(CONTACTS_FILE);
-                for (final String email : trusted) {
+                for (final String email : trustedContacts) {
                     final String newLine = email+"\n";
                     log.info("Adding contact line: {}", newLine);
                     fw.append(newLine);
