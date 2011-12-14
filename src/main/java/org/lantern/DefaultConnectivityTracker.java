@@ -8,7 +8,8 @@ import java.util.Collection;
  */
 public class DefaultConnectivityTracker implements ConnectivityTracker {
     
-    private ConnectivityStatus status = ConnectivityStatus.DISCONNECTED;
+    private ConnectivityStatus connectivityStatus = 
+        ConnectivityStatus.DISCONNECTED;
     
     private final Collection<ConnectivityListener> listeners =
         new ArrayList<ConnectivityListener>();
@@ -21,15 +22,20 @@ public class DefaultConnectivityTracker implements ConnectivityTracker {
     }
 
     @Override
-    public void setStatus(final ConnectivityStatus ct) {
-        if (this.status == ct) {
+    public void setConnectivityStatus(final ConnectivityStatus ct) {
+        if (this.connectivityStatus == ct) {
             return;
         }
-        this.status = ct;
+        this.connectivityStatus = ct;
         synchronized (listeners) {
             for (final ConnectivityListener cl : listeners) {
                 cl.onConnectivityStateChanged(ct);
             }
         }
+    }
+
+    @Override
+    public ConnectivityStatus getConnectivityStatus() {
+        return this.connectivityStatus;
     }
 }
