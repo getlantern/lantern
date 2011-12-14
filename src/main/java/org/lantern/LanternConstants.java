@@ -27,8 +27,6 @@ public class LanternConstants {
     public static final int PLAINTEXT_LOCALHOST_PROXY_PORT = 7777;
     public static final int LANTERN_LOCALHOST_HTTP_PORT = 8787;
     
-    public static final int LANTERN_LOCALHOST_HTTPS_PORT = 8788;
-    
     public static final String USER_NAME = "un";
     public static final String PASSWORD = "pwd";
     
