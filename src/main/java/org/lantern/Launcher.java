@@ -178,7 +178,6 @@ public class Launcher {
         final HttpProxyServer server = 
             new LanternHttpProxyServer(
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
-                LanternConstants.LANTERN_LOCALHOST_HTTPS_PORT, 
                 //null, sslRandomPort,
                 proxyKeyStore, xmpp, cookieTracker, cookieFilterFactory);
         server.start();

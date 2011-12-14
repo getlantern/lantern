@@ -116,6 +116,7 @@ public class DefaultConfigApi implements ConfigApi {
         final Map<String, Object> data = new LinkedHashMap<String, Object>();
         data.put("connectivity", 
             LanternHub.connectivityTracker().getConnectivityStatus());
+        data.put("port", LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
         return LanternUtils.jsonify(data);
     }
 
