@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Class for handling all system tray interactions.
  */
-public class SystemTrayImpl implements SystemTray {
+public class SystemTrayImpl implements SystemTray, ConnectivityListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Display display;
@@ -42,6 +42,7 @@ public class SystemTrayImpl implements SystemTray {
      * @param display The SWT display. 
      */
     public SystemTrayImpl(final Display display) {
+        LanternHub.connectivityTracker().addListener(this);
         this.display = display;
         this.shell = new Shell(display);
     }
@@ -248,25 +249,6 @@ public class SystemTrayImpl implements SystemTray {
         } 
         return new Image (display, width, height);
     }
-    
-    @Override
-    public void activate() {
-        log.info("Activating Lantern icon");
-        display.asyncExec (new Runnable () {
-            @Override
-            public void run () {
-                if (SystemUtils.IS_OS_MAC_OSX) {
-                    log.info("Customizing image on OSX...");
-                    final Image image = newImage("16on.png", 16, 16);
-                    setImage(image);
-                }
-                if (LanternUtils.shouldProxy()) {
-                    stopItem.setEnabled(true);
-                }
-            }
-        });
-    }
-    
 
     @Override
     public void addUpdate(final Map<String, String> data) {
@@ -288,6 +270,42 @@ public class SystemTrayImpl implements SystemTray {
                 }
                 updateItem.setText(I18n.tr("Update to Lantern ")+
                     data.get(LanternConstants.UPDATE_VERSION_KEY));
+            }
+        });
+    }
+
+    @Override
+    public void onConnectivityStateChanged(final ConnectivityStatus ct) {
+        log.info("Got connectivity state changed {}", ct);
+        switch (ct) {
+            case DISCONNECTED: {
+                // This could be changed to a red icon.
+                changeIcon(false, "16off.png");
+            }
+            case CONNECTING: {
+                // This could be changed to yellow.
+                changeIcon(false, "16off.png");
+            }
+            case CONNECTED: {
+                changeIcon(true, "16on.png");
+            }
+        }
+
+    }
+
+    private void changeIcon(final boolean connected, final String fileName) {
+        display.asyncExec (new Runnable () {
+            @Override
+            public void run () {
+                if (LanternUtils.shouldProxy()) {
+                    stopItem.setEnabled(connected);
+                    startItem.setEnabled(!connected);
+                }
+                if (SystemUtils.IS_OS_MAC_OSX) {
+                    log.info("Customizing image on OSX...");
+                    final Image image = newImage(fileName, 16, 16);
+                    setImage(image);
+                }
             }
         });
     }

@@ -1,21 +1,18 @@
 package org.lantern;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.packet.Presence;
 import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.httpseverywhere.HttpsEverywhere.HttpsRuleSet;
-import org.littleshoot.util.IoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,13 +26,20 @@ import com.google.gson.JsonSerializer;
 /**
  * Default class containing configuration settings and data.
  */
-public class DefaultConfig implements Config {
+public class DefaultConfigApi implements ConfigApi, UpdateListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private final GsonBuilder gb = new GsonBuilder();
+
+    private Map<String, String> updateData = new HashMap<String, String>();
     
-    public DefaultConfig() {
+    /**
+     * Creates a new instance of the API. There should only be one.
+     */
+    public DefaultConfigApi() {
+        updateData.put(LanternConstants.UPDATE_VERSION_KEY, 
+            LanternConstants.VERSION);
         final TrustedContactsManager tcm = 
             LanternHub.getTrustedContactsManager();
         gb.registerTypeAdapter(Presence.class, new JsonSerializer<Presence>() {
@@ -76,6 +80,34 @@ public class DefaultConfig implements Config {
         
         return LanternUtils.jsonify(all);
     }
+
+    @Override
+    public String addToWhitelist(final String body) {
+        Whitelist.addEntry(body.trim());
+        return whitelist();
+    }
+
+    @Override
+    public String removeFromWhitelist(final String body) {
+        Whitelist.removeEntry(body.trim());
+        return whitelist();
+    }
+
+    @Override
+    public String addToTrusted(final String body) {
+        final TrustedContactsManager tcm = 
+            LanternHub.getTrustedContactsManager();
+        tcm.addTrustedContact(body.trim());
+        return roster();
+    }
+
+    @Override
+    public String removeFromTrusted(final String body) {
+        final TrustedContactsManager tcm = 
+            LanternHub.getTrustedContactsManager();
+        tcm.removeTrustedContact(body.trim());
+        return roster();
+    }
     
     @Override
     public String httpsEverywhere() {
@@ -84,9 +116,22 @@ public class DefaultConfig implements Config {
     }
 
     @Override
+    public String config() {
+        final Map<String, Object> data = new LinkedHashMap<String, Object>();
+        data.put("connectivity", 
+            LanternHub.connectivityTracker().getConnectivityStatus());
+        data.put("port", LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
+        data.put("version", LanternConstants.VERSION);
+        data.put("latestVersion", 
+            updateData.get(LanternConstants.UPDATE_VERSION_KEY));
+        data.put("latestVersionLink", 
+            updateData.get(LanternConstants.UPDATE_URL_KEY));
+        return LanternUtils.jsonify(data);
+    }
+
+    @Override
     public String whitelist(final String body) {
         final ObjectMapper mapper = new ObjectMapper();
-        
         try {
             final Map<String, Object> wl = mapper.readValue(body, Map.class);
             for (final Map.Entry<String, Object> entry : wl.entrySet()) {
@@ -106,8 +151,7 @@ public class DefaultConfig implements Config {
     }
 
     @Override
-    public String roster(final String body) {
-        return "";
+    public void onUpdate(final Map<String, String> updateData) {
+        this.updateData = updateData;
     }
-
 }

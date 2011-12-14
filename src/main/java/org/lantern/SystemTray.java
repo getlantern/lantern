@@ -9,8 +9,6 @@ public interface SystemTray {
 
     void createTray();
 
-    void activate();
-
     void addUpdate(Map<String, String> updateData);
 
 }
