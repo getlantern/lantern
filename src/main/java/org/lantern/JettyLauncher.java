@@ -164,8 +164,6 @@ public class JettyLauncher {
             } else if (stripped.startsWith("/whitelist")) {
                 if (isGet) {
                     json = LanternHub.config().whitelist();
-                } else if (isPost) {
-                    json = LanternHub.config().whitelist(bodyToString(request));;
                 } else { close(baseRequest, response); return;}
             } else if (stripped.startsWith("/roster")) {
                 if (isGet) {
