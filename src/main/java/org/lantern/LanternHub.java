@@ -69,6 +69,15 @@ public class LanternHub {
     private static final AtomicReference<ConnectivityTracker> connectivityTracker =
         new AtomicReference<ConnectivityTracker>();
     
+    private static final AtomicReference<Notifier> notifier =
+        new AtomicReference<Notifier>();
+    
+    private static final AtomicReference<Whitelist> whitelist =
+        new AtomicReference<Whitelist>();
+        
+    private static final AtomicReference<Censored> censored =
+        new AtomicReference<Censored>();
+    
     private static final AtomicReference<ConfigApi> config =
         new AtomicReference<ConfigApi>();
     
@@ -267,6 +276,33 @@ public class LanternHub {
                 connectivityTracker.set(new DefaultConnectivityTracker());
             }
             return connectivityTracker.get();
+        }
+    }
+
+    public static Notifier notifier() {
+        synchronized (notifier) {
+            if (notifier.get() == null) {
+                notifier.set(new DefaultNotifier());
+            }
+            return notifier.get();
+        }
+    }
+
+    public static Whitelist whitelist() {
+        synchronized (whitelist) {
+            if (whitelist.get() == null) {
+                whitelist.set(new DefaultWhitelist());
+            }
+            return whitelist.get();
+        }
+    }
+    
+    public static Censored censored() {
+        synchronized (censored) {
+            if (censored.get() == null) {
+                censored.set(new DefaultCensored());
+            }
+            return censored.get();
         }
     }
 

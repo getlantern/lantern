@@ -14,7 +14,7 @@ import org.junit.Test;
 
 public class StatsTrackerTest {
 
-    @Test 
+    //@Test 
     public void testGoogleContentRemovalRequests() throws Exception {
         final StatsTracker st = new StatsTracker();
         //final String goog = st.googleContentRemovalProductReason();
@@ -26,7 +26,7 @@ public class StatsTrackerTest {
         assertEquals("100", trans);
     }
     
-    @Test 
+    //@Test 
     public void testGoogleContentRemovalProductReason() throws Exception {
         final StatsTracker st = new StatsTracker();
         final String goog = st.googleContentRemovalProductReason();
@@ -37,7 +37,7 @@ public class StatsTrackerTest {
         assertTrue("No YouTube in "+usJson.toJSONString(), yt != null);
     }
     
-    @Test
+    //@Test
     public void testCountryData() throws Exception {
         final StatsTracker st = new StatsTracker();
         final String china = st.countryData("CN");

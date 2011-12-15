@@ -446,7 +446,7 @@ public class LanternBrowser {
             I18n.tr("Welcome to Lantern! You're almost done."));
         startVals.put("title_string", I18n.tr("Complete Your Installation"));
         final String startFile;
-        if (CensoredUtils.isCensored()) {
+        if (LanternHub.censored().isCensored()) {
             startFile = "install0Censored.html";
             startVals.put("body_string", I18n.tr("You appear to be running Lantern to gain access to blocked web sites from a censored country. Is that correct?"));
             startVals.put("yes_need_access", I18n.tr("Yes - I need access to the blocked internet."));
@@ -490,8 +490,8 @@ public class LanternBrowser {
                 } else if (location.contains("install1Uncensored.html")) {
                     // The user could be re-configuring their system. Make sure
                     // force is no longer active.
-                    if (!CensoredUtils.isCensored()) {
-                        CensoredUtils.unforceCensored();
+                    if (!LanternHub.censored().isCensored()) {
+                        LanternHub.censored().unforceCensored();
                     }
                     final Map<String, String> replace = install1Uncensored();
                     setUrl("install1Uncensored.html", replace);
@@ -499,8 +499,8 @@ public class LanternBrowser {
                     // We use this to check if the user has selected to run
                     // in censored mode even if they don't appear to be in a
                     // censored country.
-                    if (!CensoredUtils.isCensored()) {
-                        CensoredUtils.forceCensored();
+                    if (!LanternHub.censored().isCensored()) {
+                        LanternHub.censored().forceCensored();
                     }
                     final Map<String, String> replace = install1Censored();
                     setUrl("install1Censored.html", replace);

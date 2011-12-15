@@ -194,7 +194,7 @@ public class StatsTracker implements LanternData {
                 addOniCountryData(line);
                 line = br.readLine();
             }
-            log.info("CENSORED COUNTRIES:\n{}",CensoredUtils.getCensored());
+            //log.info("CENSORED COUNTRIES:\n{}",LanternHub.censored().getCensored());
         } catch (final IOException e) {
             log.error("No file?", e);
         } finally {
@@ -340,7 +340,8 @@ public class StatsTracker implements LanternData {
         final String cc = data[country_code];
         final String name = data[country_index];
         if (censored) {
-            CensoredUtils.getCensored().add(cc);
+            //LanternHub.censored().getCensored().add(cc);
+            
         }
         
         final JSONObject json = new JSONObject();
@@ -469,7 +470,7 @@ public class StatsTracker implements LanternData {
         final JSONObject data = new JSONObject();
         
         private CountryData(final Country country) {
-            data.put("censored", CensoredUtils.isCensored(country));
+            data.put("censored", LanternHub.censored().isCensored(country));
             data.put("name", country.getName());
             data.put("code", country.getCode());
             data.put("lantern", lanternData);

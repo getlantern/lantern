@@ -282,7 +282,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             readingChunks = false;
         }
         
-        this.proxying = Whitelist.isWhitelisted(request);
+        this.proxying = LanternHub.whitelist().isWhitelisted(request);
         
         if (proxying) {
             // If it's an HTTP request, see if we can redirect it to HTTPS.

@@ -19,7 +19,7 @@ class WhitelistSetCookieObserver implements SetCookieObserver {
 
     @Override
     public void setCookies(final Collection<Cookie> cookies, final HttpRequest context) {
-        if (Whitelist.isWhitelisted(context)) {
+        if (LanternHub.whitelist().isWhitelisted(context)) {
             observer.setCookies(cookies, context);
         }
     }
