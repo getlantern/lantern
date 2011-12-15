@@ -132,20 +132,6 @@
       <version>4.0.2</version>
     </dependency>
 
-<!--
-    <dependency>
-      <groupId>org.codehaus.jackson</groupId>
-      <artifactId>jackson-core-asl</artifactId>
-      <version>1.5.4</version>
-    </dependency>
--->
-
-    <dependency>
-	<groupId>org.codehaus.jackson</groupId>
-	<artifactId>jackson-jaxrs</artifactId>
-	<version>1.9.2</version>
-    </dependency>
-
     <dependency>
       <groupId>org.jboss.netty</groupId>
       <artifactId>netty</artifactId>

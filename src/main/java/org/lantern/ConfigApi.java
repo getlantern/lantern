@@ -13,8 +13,6 @@ public interface ConfigApi {
 
     String httpsEverywhere();
 
-    String whitelist(String body);
-
     String addToWhitelist(String body);
 
     String removeFromWhitelist(String body);

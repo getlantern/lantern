@@ -4,7 +4,7 @@
 	<plist version="1.0">
 	<dict>
 		<key>Label</key>
-		<string>org.bns.lantern</string>
+		<string>org.lantern</string>
 		<key>ProgramArguments</key>
 		<array>
 			<string>/Applications/Lantern/Lantern.app/Contents/MacOS/JavaApplicationStub</string>

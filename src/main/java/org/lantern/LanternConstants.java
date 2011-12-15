@@ -1,5 +1,7 @@
 package org.lantern;
 
+import java.io.File;
+
 import org.bns.getexceptional4j.GetExceptionalUtils;
 
 /**
@@ -67,5 +69,9 @@ public class LanternConstants {
     public static final String OPTION_DISABLE_UI = "disable-ui";
     public static final String OPTION_HELP = "help";
 
-    
+    /**
+     * Plist file for launchd on OSX.
+     */
+    public static final File LAUNCHD_PLIST =
+        new File(System.getProperty("user.home"), "Library/LaunchAgents/org.lantern.plist");
 }
