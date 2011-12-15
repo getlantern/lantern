@@ -1,61 +1,42 @@
 package org.lantern;
 
-import java.lang.reflect.Type;
+import java.net.UnknownHostException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.packet.Presence;
 import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.httpseverywhere.HttpsEverywhere.HttpsRuleSet;
+import org.lastbamboo.common.stun.client.PublicIpAddress;
+import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Maps;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
 
 /**
  * Default class containing configuration settings and data.
  */
-public class DefaultConfigApi implements ConfigApi, UpdateListener {
+public class DefaultConfigApi implements ConfigApi, LanternUpdateListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final GsonBuilder gb = new GsonBuilder();
-
-    private Map<String, String> updateData = new HashMap<String, String>();
-    
     private final Map<String, Function<String, String>> configFuncs =
         Maps.newConcurrentMap();
+
+    private LanternUpdate lanternUpdate = 
+        new LanternUpdate(new HashMap<String, String>());
     
     /**
      * Creates a new instance of the API. There should only be one.
      */
     public DefaultConfigApi() {
-        updateData.put(LanternConstants.UPDATE_VERSION_KEY, 
-            LanternConstants.VERSION);
-        final TrustedContactsManager tcm = 
-            LanternHub.getTrustedContactsManager();
-        gb.registerTypeAdapter(Presence.class, new JsonSerializer<Presence>() {
-            @Override
-            public JsonElement serialize(final Presence pres, final Type type,
-                final JsonSerializationContext jsc) {
-                final JsonObject obj = new JsonObject();
-                obj.addProperty("user", pres.getFrom());
-                obj.addProperty("type", pres.getType().name());
-                obj.addProperty("trusted", tcm.isTrusted(pres.getFrom()));
-                return obj;
-            }
-        });
         configFuncs.put("systemProxy", new Function<String, String>() {
             @Override
             public String apply(final String input) {
@@ -78,42 +59,33 @@ public class DefaultConfigApi implements ConfigApi, UpdateListener {
                 return "";
             }
         });
+        LanternHub.notifier().addUpdateListener(this);
     }
     
     @Override
     public String roster() {
         final XmppHandler handler = LanternHub.xmppHandler();
         final Collection<Presence> presences = handler.getPresences();
-        final Gson gson = gb.create();
-        return gson.toJson(presences);
+        return LanternUtils.jsonify(presences);
     }
 
     @Override
     public String whitelist() {
         log.info("Accessing whitelist");
-        final Collection<WhitelistEntry> wl = Whitelist.getWhitelist();
-        final Map<WhitelistEntry, Map<String,Object>> all = 
-            new LinkedHashMap<WhitelistEntry, Map<String,Object>>();
-        for (final WhitelistEntry cur : wl) {
-            final Map<String,Object> site = new HashMap<String,Object>();
-            site.put("required", Whitelist.required(cur));
-            //site.put("httpsRules", 
-            //    HttpsEverywhere.getApplicableRuleSets("http://"+cur));
-            all.put(cur, site);
-        }
-        
-        return LanternUtils.jsonify(all);
+        final Collection<WhitelistEntry> wl = 
+            LanternHub.whitelist().getWhitelist();
+        return LanternUtils.jsonify(wl);
     }
 
     @Override
     public String addToWhitelist(final String body) {
-        Whitelist.addEntry(body.trim());
+        LanternHub.whitelist().addEntry(body.trim());
         return whitelist();
     }
 
     @Override
     public String removeFromWhitelist(final String body) {
-        Whitelist.removeEntry(body.trim());
+        LanternHub.whitelist().removeEntry(body.trim());
         return whitelist();
     }
 
@@ -142,16 +114,50 @@ public class DefaultConfigApi implements ConfigApi, UpdateListener {
     @Override
     public String config() {
         final Map<String, Object> data = new LinkedHashMap<String, Object>();
-        data.put("connectivity", 
-            LanternHub.connectivityTracker().getConnectivityStatus());
-        data.put("port", LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
-        data.put("version", LanternConstants.VERSION);
-        data.put("systemProxy", Configurator.isProxying());
-        data.put("updateData", this.updateData); 
-        data.put("startAtLogin", Configurator.isStartAtLogin()); 
+        data.put("internet", getInternet());
+        data.put("whitelist", LanternHub.whitelist());
+        data.put("roster", LanternHub.xmppHandler().getPresences());
+        data.put("censored", LanternHub.censored().getCensored());
+        data.put("system", getSystem());
+        //data.put("connectivity", 
+        //    LanternHub.connectivityTracker().getConnectivityStatus());
+        //data.put("port", LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
+        //data.put("version", LanternConstants.VERSION);
+        //data.put("systemProxy", Configurator.isProxying());
+        
+        //data.put("startAtLogin", Configurator.isStartAtLogin()); 
         return LanternUtils.jsonify(data);
     }
     
+    private Map<String, Object> getInternet() {
+        final Map<String, Object> internet = 
+            new LinkedHashMap<String, Object>();
+        final Map<String, Object> ip = new TreeMap<String, Object>();
+        ip.put("public", new PublicIpAddress().getPublicIpAddress());
+        try {
+            ip.put("private", NetworkUtils.getLocalHost());
+        } catch (final UnknownHostException e) {
+            log.info("Could not look up private IP", e);
+        }
+        internet.put("ip", ip);
+        return internet;
+    }
+
+    private Map<String, Object> getSystem() {
+        final Map<String, Object> system = new LinkedHashMap<String, Object>();
+        system.put("location", LanternHub.censored().countryCode());
+        system.put("systemProxy", Configurator.isProxying());
+        system.put("startAtLogin", Configurator.isStartAtLogin());
+        system.put("port", LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
+        system.put("version", LanternConstants.VERSION);
+        system.put("connectivity", 
+                LanternHub.connectivityTracker().getConnectivityStatus());
+        system.put("updateData", this.lanternUpdate); 
+        system.put("properties", System.getProperties());
+        
+        return system;
+    }
+
     @Override
     public String setConfig(final Map<String, String> args) {
         final Set<String> keys = args.keySet();
@@ -169,7 +175,7 @@ public class DefaultConfigApi implements ConfigApi, UpdateListener {
     }
 
     @Override
-    public void onUpdate(final Map<String, String> updateData) {
-        this.updateData = updateData;
+    public void onUpdate(final LanternUpdate lu) {
+        this.lanternUpdate = lu;
     }
 }
