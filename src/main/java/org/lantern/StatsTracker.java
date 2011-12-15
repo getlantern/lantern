@@ -60,8 +60,9 @@ public class StatsTracker implements LanternData {
     static {
         // Adding Cuba and North Korea since ONI has no data for them but they
         // seem to clearly censor.
-        CensoredUtils.CENSORED.add("CU");
-        CensoredUtils.CENSORED.add("KP");
+        //CensoredUtils.CENSORED.add("CU");
+        //CensoredUtils.CENSORED.add("KP");
+        
         /*
         addOniData();
         final String[] columnNames0 = {
@@ -181,7 +182,7 @@ public class StatsTracker implements LanternData {
         }
     }
 
-    private static void addOniData() {
+    static void addOniData() {
         final File file = new File("data/oni_country_data_2011-11-08.csv");
         BufferedReader br = null;
         try {
@@ -193,7 +194,7 @@ public class StatsTracker implements LanternData {
                 addOniCountryData(line);
                 line = br.readLine();
             }
-            log.info("CENSORED COUNTRIES:\n{}",CensoredUtils.CENSORED);
+            log.info("CENSORED COUNTRIES:\n{}",CensoredUtils.getCensored());
         } catch (final IOException e) {
             log.error("No file?", e);
         } finally {
@@ -339,7 +340,7 @@ public class StatsTracker implements LanternData {
         final String cc = data[country_code];
         final String name = data[country_index];
         if (censored) {
-            CensoredUtils.CENSORED.add(cc);
+            CensoredUtils.getCensored().add(cc);
         }
         
         final JSONObject json = new JSONObject();
