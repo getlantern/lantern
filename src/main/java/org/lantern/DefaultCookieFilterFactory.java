@@ -1,7 +1,5 @@
 package org.lantern; 
 
-import java.net.URISyntaxException;
-import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.cookie.CookieTracker;
@@ -42,6 +40,6 @@ class DefaultCookieFilterFactory implements CookieFilter.Factory {
      */
     boolean shouldFilter(HttpRequest request) {
         // this is true only for proxied sites currently, not across the board. 
-        return Whitelist.isWhitelisted(request);
+        return LanternHub.whitelist().isWhitelisted(request);
    }
 }

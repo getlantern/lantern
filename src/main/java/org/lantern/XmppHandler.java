@@ -98,7 +98,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private static final String CENSORED_ID = "-lac-";
     
     static {
-        if (CensoredUtils.isCensored()) {
+        if (LanternHub.censored().isCensored()) {
             ID = CENSORED_ID;
         } else {
             ID = UNCENSORED_ID;
@@ -332,7 +332,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             LanternHub.display().asyncExec (new Runnable () {
                 @Override
                 public void run () {
-                    LanternHub.systemTray().addUpdate(update);
+                    LanternHub.notifier().addUpdate(new LanternUpdate(update));
+                    //LanternHub.systemTray().addUpdate(new LanternUpdate(update));
                     //final LanternBrowser lb = new LanternBrowser(true);
                     //lb.showUpdate(update);
                 }
@@ -387,7 +388,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         
         final JSONObject json = new JSONObject();
         final StatsTracker statsTracker = LanternHub.statsTracker();
-        json.put(LanternConstants.COUNTRY_CODE, CensoredUtils.countryCode());
+        json.put(LanternConstants.COUNTRY_CODE, LanternHub.censored().countryCode());
         json.put(LanternConstants.BYTES_PROXIED, 
             statsTracker.getTotalBytesProxied());
         json.put(LanternConstants.DIRECT_BYTES, 
@@ -397,10 +398,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         json.put(LanternConstants.DIRECT_REQUESTS, 
             statsTracker.getDirectRequests());
         json.put(LanternConstants.WHITELIST_ADDITIONS, 
-            Whitelist.getAdditionsAsJson());
+            LanternHub.whitelist().getAdditionsAsJson());
             //LanternUtils.toJsonArray(Whitelist.getAdditions()));
         json.put(LanternConstants.WHITELIST_REMOVALS, 
-            Whitelist.getRemovalsAsJson());
+            LanternHub.whitelist().getRemovalsAsJson());
         json.put(LanternConstants.VERSION_KEY, LanternConstants.VERSION);
         final String str = json.toJSONString();
         LOG.info("Reporting data: {}", str);
