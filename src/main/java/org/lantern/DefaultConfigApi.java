@@ -7,6 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.packet.Presence;
@@ -23,7 +24,8 @@ import com.google.common.collect.Maps;
 /**
  * Default class containing configuration settings and data.
  */
-public class DefaultConfigApi implements ConfigApi, LanternUpdateListener {
+public class DefaultConfigApi implements ConfigApi, LanternUpdateListener,
+    PresenceListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -32,6 +34,9 @@ public class DefaultConfigApi implements ConfigApi, LanternUpdateListener {
 
     private LanternUpdate lanternUpdate = 
         new LanternUpdate(new HashMap<String, String>());
+    
+    private final Map<String, Presence> presences = 
+        new ConcurrentHashMap<String, Presence>();
     
     /**
      * Creates a new instance of the API. There should only be one.
@@ -60,13 +65,12 @@ public class DefaultConfigApi implements ConfigApi, LanternUpdateListener {
             }
         });
         LanternHub.notifier().addUpdateListener(this);
+        LanternHub.notifier().addPresenceListener(this);
     }
     
     @Override
     public String roster() {
-        final XmppHandler handler = LanternHub.xmppHandler();
-        final Collection<Presence> presences = handler.getPresences();
-        return LanternUtils.jsonify(presences);
+        return LanternUtils.jsonify(this.presences);
     }
 
     @Override
@@ -116,7 +120,8 @@ public class DefaultConfigApi implements ConfigApi, LanternUpdateListener {
         final Map<String, Object> data = new LinkedHashMap<String, Object>();
         data.put("internet", getInternet());
         data.put("whitelist", LanternHub.whitelist());
-        data.put("roster", LanternHub.xmppHandler().getPresences());
+        data.put("roster", presences);
+        data.put("httpsEverywhere", HttpsEverywhere.getRules());
         data.put("censored", LanternHub.censored().getCensored());
         data.put("system", getSystem());
         //data.put("connectivity", 
@@ -177,5 +182,15 @@ public class DefaultConfigApi implements ConfigApi, LanternUpdateListener {
     @Override
     public void onUpdate(final LanternUpdate lu) {
         this.lanternUpdate = lu;
+    }
+
+    @Override
+    public void onPresence(final String address, final Presence presence) {
+        this.presences.put(address, presence);
+    }
+
+    @Override
+    public void removePresence(final String address) {
+        this.presences.remove(address);
     }
 }

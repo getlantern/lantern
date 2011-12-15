@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -19,11 +20,10 @@ public class DefaultConfigApiTest {
         final JsonParser parser = new JsonParser();
         final JsonElement parsed = parser.parse(json);
         final JsonObject read = parsed.getAsJsonObject();
-        System.out.println(read);
-        final JsonElement elem = read.get("connectivity");
-        assertTrue(StringUtils.isNotBlank(elem.getAsString()));
+        final JsonObject system = (JsonObject) read.get("system");
+        assertTrue(StringUtils.isNotBlank(system.toString()));
         
-        final JsonElement port = read.get("port");
+        final JsonElement port = system.get("port");
         assertEquals(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, port.getAsInt());
     }
     
@@ -34,9 +34,17 @@ public class DefaultConfigApiTest {
         
         final JsonParser parser = new JsonParser();
         final JsonElement parsed = parser.parse(wl);
-        final JsonObject read = parsed.getAsJsonObject();
-        final JsonElement avaaz = read.get("avaaz.org");
-        assertTrue(avaaz != null);
+        final JsonArray read = parsed.getAsJsonArray();
+        boolean foundAvaaz = false;
+        for (int i =0; i < read.size(); i++) {
+            final JsonElement cur = read.get(i);
+            if (cur.toString().contains("avaaz.org")) {
+                foundAvaaz = true;
+            }
+        }
+        
+        //final JsonElement avaaz = read.get("avaaz.org");
+        assertTrue(foundAvaaz);
     }
     
     @Test 
