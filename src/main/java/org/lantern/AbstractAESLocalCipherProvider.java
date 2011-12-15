@@ -59,6 +59,9 @@ public abstract class AbstractAESLocalCipherProvider extends AbstractLocalCipher
         cipher.init(opmode, key, params);
     }
 
+    int getKeyLength() {
+        return 128; // XXX policy files
+    }
         
     @Override
     Key getLocalKey(boolean init) throws IOException, GeneralSecurityException {
@@ -68,7 +71,7 @@ public abstract class AbstractAESLocalCipherProvider extends AbstractLocalCipher
             if (init) {
                 // generate a new key
                 final KeyGenerator kgen = KeyGenerator.getInstance(getAlgorithm());
-                kgen.init(128); // XXX policy files
+                kgen.init(getKeyLength());
                 final SecretKey key = kgen.generateKey();
                 rawKey = key.getEncoded();
                 storeKeyData(rawKey);
