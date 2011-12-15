@@ -9,9 +9,10 @@ import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import org.junit.Ignore;
 import org.junit.Test;
 
-
+@Ignore
 public class StatsTrackerTest {
 
     //@Test 
