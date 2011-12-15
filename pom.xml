@@ -146,6 +146,12 @@
     </dependency>
 
     <dependency>
+	<groupId>org.codehaus.jackson</groupId>
+	<artifactId>jackson-jaxrs</artifactId>
+	<version>1.9.2</version>
+    </dependency>
+
+    <dependency>
       <groupId>org.littleshoot</groupId>
       <artifactId>getexceptional4j</artifactId>
       <version>0.1-SNAPSHOT</version>

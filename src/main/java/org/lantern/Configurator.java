@@ -140,7 +140,7 @@ public class Configurator {
             return;
         }
         final File git = new File(".git");
-        if (git.isDirectory() && !CensoredUtils.isForceCensored()) {
+        if (git.isDirectory() && !LanternHub.censored().isForceCensored()) {
             LOG.info("Running from repository...not auto-configuring proxy.");
             return;
         }
@@ -302,7 +302,6 @@ public class Configurator {
             LOG.error("Error setting proxy server? Result: "+serverResult);
         }
     }
-
 
     public static void unproxy() {
         if (SystemUtils.IS_OS_WINDOWS) {

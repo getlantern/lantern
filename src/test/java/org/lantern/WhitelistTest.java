@@ -13,33 +13,33 @@ import org.junit.Test;
 public class WhitelistTest {
 
     @Test public void testRemovals() throws Exception {
-        Whitelist.reset();
-        Whitelist.removeEntry("twitter.com");
-        assertEquals(1, Whitelist.getRemovals().size());
-        final String json = Whitelist.getRemovalsAsJson();
+        LanternHub.whitelist().reset();
+        LanternHub.whitelist().removeEntry("twitter.com");
+        assertEquals(1, LanternHub.whitelist().getRemovals().size());
+        final String json = LanternHub.whitelist().getRemovalsAsJson();
         assertTrue(json.contains("twitter.com"));
         JSONArray array = (JSONArray) new JSONParser().parse(json);
         assertEquals(1, array.size());
-        Whitelist.whitelistReported();
-        assertEquals(0, Whitelist.getRemovals().size());
+        LanternHub.whitelist().whitelistReported();
+        assertEquals(0, LanternHub.whitelist().getRemovals().size());
         
-        array = (JSONArray) new JSONParser().parse(Whitelist.getRemovalsAsJson());
+        array = (JSONArray) new JSONParser().parse(LanternHub.whitelist().getRemovalsAsJson());
         assertEquals(0, array.size());
     }
     
     @Test public void testAdditions() throws Exception {
-        Whitelist.reset();
-        Whitelist.addEntry("different.com");
+        LanternHub.whitelist().reset();
+        LanternHub.whitelist().addEntry("different.com");
         //Whitelist.removeEntry("twitter.com");
-        assertEquals(1, Whitelist.getAdditions().size());
-        final String json = Whitelist.getAdditionsAsJson();
+        assertEquals(1, LanternHub.whitelist().getAdditions().size());
+        final String json = LanternHub.whitelist().getAdditionsAsJson();
         assertTrue(json.contains("different.com"));
         JSONArray array = (JSONArray) new JSONParser().parse(json);
         assertEquals(1, array.size());
-        Whitelist.whitelistReported();
-        assertEquals(0, Whitelist.getAdditions().size());
+        LanternHub.whitelist().whitelistReported();
+        assertEquals(0, LanternHub.whitelist().getAdditions().size());
         
-        array = (JSONArray) new JSONParser().parse(Whitelist.getAdditionsAsJson());
+        array = (JSONArray) new JSONParser().parse(LanternHub.whitelist().getAdditionsAsJson());
         assertEquals(0, array.size());
     }
     
@@ -49,28 +49,28 @@ public class WhitelistTest {
                 new WhitelistEntry("facebook.com"), 
                 new WhitelistEntry("google.com"));
         boolean whitelisted = 
-            Whitelist.isWhitelisted(
+            LanternHub.whitelist().isWhitelisted(
                 "http://graphics8.nytimes.com/adx/images/ADS/25/67/ad.256707/MJ_NYT_Text-Right.jpg", 
                 whitelist);
         
         assertTrue("Should be whitelisted", whitelisted);
         
         whitelisted = 
-            Whitelist.isWhitelisted(
+            LanternHub.whitelist().isWhitelisted(
                 "http://www.nytimes.com/", 
                 whitelist);
         
         assertTrue("Should be whitelisted", whitelisted);
         
         whitelisted = 
-            Whitelist.isWhitelisted(
+            LanternHub.whitelist().isWhitelisted(
                 "www.facebook.com:443", 
                 whitelist);
         
         assertTrue("Should be whitelisted", whitelisted);
         
         whitelisted = 
-            Whitelist.isWhitelisted(
+            LanternHub.whitelist().isWhitelisted(
                 "https://s-static.ak.facebook.com", 
                 whitelist);
         
@@ -79,7 +79,8 @@ public class WhitelistTest {
     }
     
     @Test public void testWhitelistFile() throws Exception {
-        final boolean wl = Whitelist.isWhitelisted("http://www.whatismyip.com");
+        final boolean wl = LanternHub.whitelist().isWhitelisted(
+            "http://www.whatismyip.com");
         assertTrue(wl);
     }
 }
