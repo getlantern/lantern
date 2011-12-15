@@ -4,9 +4,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.File;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
@@ -23,6 +25,17 @@ import org.slf4j.LoggerFactory;
 public class LanternUtilsTest {
     
     private static Logger LOG = LoggerFactory.getLogger(LanternUtilsTest.class);
+    
+    @Test
+    public void testReplaceInFile() throws Exception {
+        final File temp = File.createTempFile(String.valueOf(hashCode()), "test");
+        temp.deleteOnExit();
+        final String data = "blah blah blah <true/> blah blah";
+        FileUtils.write(temp, data, "UTF-8");
+        LanternUtils.replaceInFile(temp, "<true/>", "<false/>");
+        final String newFile = FileUtils.readFileToString(temp, "UTF-8");
+        assertEquals("blah blah blah <false/> blah blah", newFile);
+    }
     
     @Test 
     public void testGoogleStunServers() throws Exception {

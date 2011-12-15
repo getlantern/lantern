@@ -30,6 +30,8 @@ public class Configurator {
     private volatile static boolean configured = false;
     private static String proxyServerOriginal;
     private static String proxyEnableOriginal = "0";
+
+    private static boolean startAtLogin;
     
     private static final MacProxyManager mpm = 
         new MacProxyManager("testId", 4291);
@@ -435,6 +437,23 @@ public class Configurator {
                 pl.onProxying(proxying);
             }
         }
+    }
+    
+    public static void startAtLogin(final boolean startAtLogin) {
+        startAtLogin(LanternConstants.LAUNCHD_PLIST, startAtLogin);
+    }
+
+    public static void startAtLogin(final File file, final boolean start) {
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            LanternUtils.replaceInFile(file, "<"+!start+"/>", "<"+start+"/>");
+            Configurator.startAtLogin = start;
+        } else if (SystemUtils.IS_OS_WINDOWS) {
+            Configurator.startAtLogin = start;
+        }
+    }
+
+    public static boolean isStartAtLogin() {
+        return Configurator.startAtLogin;
     }
 
     /*

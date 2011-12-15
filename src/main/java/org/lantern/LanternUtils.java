@@ -50,13 +50,11 @@ import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.URIException;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOExceptionWithCause;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -849,6 +847,26 @@ public class LanternUtils {
         final String str = val.trim();
         return StringUtils.isNotBlank(str) && 
             (str.equalsIgnoreCase(str1) || str.equalsIgnoreCase(str2));
+    }
+
+    /**
+     * Replaces the first instance of the specified regex in the given file
+     * with the replacement string and writes out the new complete file.
+     * 
+     * @param file The file to modify.
+     * @param regex The regular expression to search for.
+     * @param replacement The replacement string.
+     */
+    public static void replaceInFile(final File file, 
+        final String regex, final String replacement) {
+        LOG.info("Replacing "+regex+" with "+replacement+" in "+file);
+        try {
+            final String cur = FileUtils.readFileToString(file, "UTF-8");
+            final String noStart = cur.replaceFirst(regex, replacement);
+            FileUtils.writeStringToFile(file, noStart, "UTF-8");
+        } catch (final IOException e) {
+            LOG.warn("Could not replace string in file", e);
+        }
     }
 }
 

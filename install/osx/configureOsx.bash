@@ -26,7 +26,7 @@ APP_PATH=/Applications/Lantern/Lantern.app
 test -d $APP_PATH || APP_PATH=/Applications/Lantern.app
 #PLIST_DIR=/Library/LaunchAgents
 PLIST_DIR=~/Library/LaunchAgents
-PLIST_FILE=org.bns.lantern.plist
+PLIST_FILE=org.lantern.plist
 PLIST_INSTALL_FULL=$APP_PATH/Contents/Resources/app/$PLIST_FILE
 LAUNCHD_PLIST=$PLIST_DIR/$PLIST_FILE
 

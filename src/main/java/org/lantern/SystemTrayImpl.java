@@ -300,6 +300,10 @@ public class SystemTrayImpl implements SystemTray, ConnectivityListener,
             log.info("NOT IN PROXY MODE");
             return;
         }
+        if (display.isDisposed()) {
+            log.info("Display is disposed. Already shut down?");
+            return;
+        }
         display.asyncExec (new Runnable () {
             @Override
             public void run () {
