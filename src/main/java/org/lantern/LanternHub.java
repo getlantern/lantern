@@ -250,6 +250,9 @@ public class LanternHub {
                 if (SystemUtils.IS_OS_WINDOWS) {
                     localCipherProvider.set(new WindowsLocalCipherProvider());   
                 }
+                else if (SystemUtils.IS_OS_MAC_OSX) {
+                    localCipherProvider.set(new MacLocalCipherProvider());
+                }
                 else {
                     localCipherProvider.set(new DefaultLocalCipherProvider());
                 }
