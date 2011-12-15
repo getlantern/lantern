@@ -47,7 +47,13 @@ public class CensoredUtils {
     /**
      * Censored country codes.
      */
-    public static final Collection<String> CENSORED = new TreeSet<String>();
+    private static final Collection<String> CENSORED = new TreeSet<String>();
+    
+    static {
+        CENSORED.add("CU");
+        CENSORED.add("KP");
+        StatsTracker.addOniData();
+    }
 
     // These country codes have US export restrictions, and therefore cannot
     // access App Engine sites.
@@ -127,5 +133,9 @@ public class CensoredUtils {
 
     public static void unforceCensored() {
         LanternUtils.setBooleanProperty(LanternConstants.FORCE_CENSORED, false);
+    }
+
+    public static Collection<String> getCensored() {
+        return CENSORED;
     }
 }
