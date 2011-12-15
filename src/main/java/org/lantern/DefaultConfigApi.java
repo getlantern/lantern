@@ -1,22 +1,21 @@
 package org.lantern;
 
-import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.packet.Presence;
 import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.httpseverywhere.HttpsEverywhere.HttpsRuleSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Maps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
@@ -34,6 +33,9 @@ public class DefaultConfigApi implements ConfigApi, UpdateListener {
     private final GsonBuilder gb = new GsonBuilder();
 
     private Map<String, String> updateData = new HashMap<String, String>();
+    
+    private final Map<String, Function<String, String>> configFuncs =
+        Maps.newConcurrentMap();
     
     /**
      * Creates a new instance of the API. There should only be one.
@@ -54,7 +56,28 @@ public class DefaultConfigApi implements ConfigApi, UpdateListener {
                 return obj;
             }
         });
-        
+        configFuncs.put("systemProxy", new Function<String, String>() {
+            @Override
+            public String apply(final String input) {
+                if (LanternUtils.isTrue(input)) {
+                    Configurator.startProxying();
+                } else if (LanternUtils.isFalse(input)) {
+                    Configurator.stopProxying();
+                }
+                return "";
+            }
+        });
+        configFuncs.put("startAtLogin", new Function<String, String>() {
+            @Override
+            public String apply(final String input) {
+                if (LanternUtils.isTrue(input)) {
+                    Configurator.startAtLogin(true);
+                } else if (LanternUtils.isFalse(input)) {
+                    Configurator.startAtLogin(false);
+                }
+                return "";
+            }
+        });
     }
     
     @Override
@@ -125,42 +148,24 @@ public class DefaultConfigApi implements ConfigApi, UpdateListener {
         data.put("version", LanternConstants.VERSION);
         data.put("systemProxy", Configurator.isProxying());
         data.put("updateData", this.updateData); 
+        data.put("startAtLogin", Configurator.isStartAtLogin()); 
         return LanternUtils.jsonify(data);
     }
     
-
     @Override
     public String setConfig(final Map<String, String> args) {
-        final String sys = args.get("systemProxy");
-        if (StringUtils.isNotBlank(sys)) {
-            if (LanternUtils.isTrue(sys)) {
-                Configurator.startProxying();
-            } else if (LanternUtils.isFalse(sys)) {
-                Configurator.stopProxying();
+        final Set<String> keys = args.keySet();
+        for (final String key : keys) {
+            log.info("Processing config key: {}", key);
+            final Function<String, String> func = configFuncs.get(key);
+            if (func != null) {
+                final String val = args.get(key);
+                if (StringUtils.isNotBlank(val)) {
+                    func.apply(val.trim());
+                }
             }
         }
         return config();
-    }
-
-    @Override
-    public String whitelist(final String body) {
-        final ObjectMapper mapper = new ObjectMapper();
-        try {
-            final Map<String, Object> wl = mapper.readValue(body, Map.class);
-            for (final Map.Entry<String, Object> entry : wl.entrySet()) {
-                final String url = entry.getKey();
-                if (!Whitelist.isWhitelisted(url)) {
-                    Whitelist.addEntry(url);
-                }
-            }
-        } catch (final JsonParseException e) {
-            log.warn("Error generating JSON", e);
-        } catch (final JsonMappingException e) {
-            log.warn("Error generating JSON", e);
-        } catch (final IOException e) {
-            log.warn("Error generating JSON", e);
-        }
-        return whitelist();
     }
 
     @Override
