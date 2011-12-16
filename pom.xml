@@ -43,6 +43,11 @@
         </dependency>
         <dependency>
             <groupId>org.cometd.java</groupId>
+            <artifactId>cometd-java-annotations</artifactId>
+            <version>2.4.0.RC2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.cometd.java</groupId>
             <artifactId>cometd-java-server</artifactId>
             <version>2.4.0.RC2</version>
         </dependency>

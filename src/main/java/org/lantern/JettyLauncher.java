@@ -29,6 +29,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.resource.Resource;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.littleshoot.util.IoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +52,11 @@ public class JettyLauncher {
     private Server server = new Server();
 
     public void start() {
-        final String apiName = "API";
+        final QueuedThreadPool qtp = new QueuedThreadPool();
+        qtp.setMinThreads(5);
+        qtp.setMaxThreads(200);
+        server.setThreadPool(qtp);
+        final String apiName = "Lantern-API";
         final ContextHandlerCollection contexts = 
             new ContextHandlerCollection();
         
@@ -64,15 +69,19 @@ public class JettyLauncher {
         server.setHandler(contexts);
         server.setStopAtShutdown(true);
         
-        final SelectChannelConnector apiConnector = 
+        final SelectChannelConnector connector = 
             new SelectChannelConnector();
-        apiConnector.setPort(randomPort);
+        connector.setPort(randomPort);
+        connector.setMaxIdleTime(120000);
+        connector.setLowResourcesMaxIdleTime(60000);
+        connector.setLowResourcesConnections(20000);
+        connector.setAcceptQueueSize(5000);
         
         // TODO: Make sure this works on Linux!!
-        apiConnector.setHost("127.0.0.1");
-        apiConnector.setName(apiName);
+        connector.setHost("127.0.0.1");
+        connector.setName(apiName);
         
-        this.server.setConnectors(new Connector[]{apiConnector});
+        this.server.setConnectors(new Connector[]{connector});
 
         final CometdServlet cometdServlet = new CometdServlet();
         //final ServletConfig config = new ServletConfig
