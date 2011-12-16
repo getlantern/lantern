@@ -6,7 +6,6 @@ import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.bayeux.server.ServerSession;
 import org.cometd.server.AbstractService;
-import org.eclipse.jetty.util.ajax.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,12 +28,9 @@ public class SyncService extends AbstractService {
 
     public void processSync(final ServerSession remote, final Message message) {
         final Map<String, Object> input = message.getDataAsMap();
-        //final String name = (String) input.get("name");
-
         log.info("Pushing updated config to browser...");
         final String output = LanternHub.config().configAsJson();
         log.info("Config is: {}", output);
-        remote.deliver(getServerSession(), "/sync", new JSON.Literal(output), null);
-        
+        remote.deliver(getServerSession(), "/sync", LanternHub.config().config(), null);
     }
 }
