@@ -16,7 +16,8 @@ public class DefaultConfigApiTest {
     @Test 
     public void testGlobalConfig() throws Exception {
         final ConfigApi conf = new DefaultConfigApi();
-        final String json = conf.config();
+        final String json = conf.configAsJson();
+        System.out.println(json);
         final JsonParser parser = new JsonParser();
         final JsonElement parsed = parser.parse(json);
         final JsonObject read = parsed.getAsJsonObject();
