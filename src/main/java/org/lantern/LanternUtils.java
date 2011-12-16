@@ -828,6 +828,56 @@ public class LanternUtils {
         return localEncryptOutputStream(new FileOutputStream(file));
     }
     
+    /** 
+     * output an encrypted copy of the plaintext file given in the 
+     * dest file given. 
+     * 
+     * @param plainSrc a plaintext source File to copy
+     * @param encryptedDest a destination file to write an encrypted copy of plainSrc to
+     */
+    public static void localEncryptedCopy(final File plainSrc, final File encryptedDest)
+        throws GeneralSecurityException, IOException {
+        if (plainSrc.equals(encryptedDest)) {
+            throw new IOException("Source and dest cannot be the same file.");
+        }
+        
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+            in = new FileInputStream(plainSrc);
+            out = localEncryptOutputStream(encryptedDest);
+            IOUtils.copy(in, out);
+        } finally {
+            IOUtils.closeQuietly(in);
+            IOUtils.closeQuietly(out);
+        }
+    }
+
+    /**
+     * output a decrypted copy of the encrypted file given in the 
+     * dest file given. 
+     * 
+     * @param encryptedSrc an encrypted source file to copy
+     * @param plainDest a destination file to write a decrypted copy of encryptedSrc to
+     * 
+     */
+    public static void localDecryptedCopy(final File encryptedSrc, final File plainDest)
+        throws GeneralSecurityException, IOException {
+        if (encryptedSrc.equals(plainDest)) {
+            throw new IOException("Source and dest cannot be the same file.");
+        }
+        InputStream in = null;
+        OutputStream out = null;
+        try {
+            in = localDecryptInputStream(encryptedSrc);
+            out = new FileOutputStream(plainDest);
+            IOUtils.copy(in, out);
+        } finally {
+            IOUtils.closeQuietly(in);
+            IOUtils.closeQuietly(out);
+        }    
+    }
+
     /**
      * Converts the request arguments to a map of parameter keys to single
      * values, ignoring multiple values.
