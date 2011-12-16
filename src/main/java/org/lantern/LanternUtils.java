@@ -1,5 +1,6 @@
 package org.lantern;
 
+import com.google.common.io.Files;
 import java.awt.Desktop;
 import java.io.Console;
 import java.io.File;
@@ -928,6 +929,21 @@ public class LanternUtils {
             FileUtils.writeStringToFile(file, noStart, "UTF-8");
         } catch (final IOException e) {
             LOG.warn("Could not replace string in file", e);
+        }
+    }
+
+    public static void loadJarLibrary(final Class<?> jarRepresentative, final String fileName) throws IOException {
+        File tempDir = null;
+        InputStream is = null; 
+        try {
+            tempDir = Files.createTempDir();
+            final File tempLib = new File(tempDir, fileName); 
+            is = jarRepresentative.getResourceAsStream("/" + fileName);
+            FileUtils.copyInputStreamToFile(is, tempLib);
+            System.load(tempLib.getAbsolutePath());
+        } finally {
+            FileUtils.deleteQuietly(tempDir);
+            IOUtils.closeQuietly(is);
         }
     }
 }
