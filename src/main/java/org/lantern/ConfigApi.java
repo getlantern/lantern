@@ -21,8 +21,10 @@ public interface ConfigApi {
 
     String removeFromTrusted(String body);
 
-    String config();
+    Map<String, Object> config();
 
     String setConfig(Map<String, String> args);
+
+    String configAsJson();
 
 }

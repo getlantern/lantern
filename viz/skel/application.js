@@ -52,7 +52,10 @@
                 {
                     cometd.subscribe('/sync', function(message)
                     {
-                        $('#body').append('<div>Server Says: ' + message.data.greeting + '</div>');
+                    	//console.dir(message);
+                    	//$('#content').append(message);
+                        //$('#body').append('<div>Server Says: ' + message.data.greeting + '</div>');
+                        $('#body').append('<div>Server Says: ' + JSON.stringify(message) + '</div>');
                     });
                     // Publish on a service channel since the message is for the server only
                     cometd.publish('/service/sync', { name: 'Josh' });
