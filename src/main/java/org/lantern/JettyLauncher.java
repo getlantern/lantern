@@ -6,7 +6,10 @@ import java.io.OutputStream;
 import java.net.MalformedURLException;
 import java.util.Map;
 
+import javax.servlet.GenericServlet;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -70,12 +73,37 @@ public class JettyLauncher {
         apiConnector.setName(apiName);
         
         this.server.setConnectors(new Connector[]{apiConnector});
- 
-        final ServletHolder cometd = new ServletHolder(new CometdServlet());
+
+        final CometdServlet cometdServlet = new CometdServlet();
+        //final ServletConfig config = new ServletConfig
+        //cometdServlet.init(config);
+        final ServletHolder cometd = new ServletHolder(cometdServlet);
+        cometd.setInitParameter("jsonContext", "org.cometd.server.JacksonJSONContextServer");
         cometd.setInitOrder(1);
         api.addServlet(cometd, "/cometd/*");
         
+        final class ConfigServlet extends GenericServlet {
+
+            private static final long serialVersionUID = -2633162671596490471L;
+
+            @Override
+            public void service(final ServletRequest req, 
+                final ServletResponse res)
+                throws ServletException, IOException {
+                final String json = LanternHub.config().configAsJson();
+                final byte[] raw = json.getBytes("UTF-8");
+                res.setContentLength(raw.length);
+                res.setContentType("application/json");
+                res.getOutputStream().write(raw);
+            }
+            
+        }
+        final ServletHolder config = new ServletHolder(new ConfigServlet());
+        config.setInitOrder(3);
+        api.addServlet(config, "/config");
+        
         final ServletHolder bayeux = new ServletHolder(BayeuxInitializer.class);
+        bayeux.setInitParameter("jsonContext", "org.cometd.server.JacksonJSONContextServer");
         bayeux.setInitOrder(2);
         api.getServletHandler().addServlet(bayeux);
         
@@ -111,7 +139,7 @@ public class JettyLauncher {
         params.put("org.eclipse.jetty.servlet.Default.welcomeServlets", "false");
         params.put("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
         params.put("org.eclipse.jetty.servlet.Default.aliases", "false");
-        //params.put("javax.servlet.include.request_uri", "true");
+        params.put("jsonContext", "org.cometd.server.JacksonJSONContextServer");
         context.setContextPath(path);
         context.setConnectorNames(new String[] {name});
         return context;

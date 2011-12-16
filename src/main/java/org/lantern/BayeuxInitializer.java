@@ -11,6 +11,8 @@ import org.cometd.bayeux.server.BayeuxServer;
 
 public class BayeuxInitializer extends GenericServlet {
     
+    private static final long serialVersionUID = -6884888598201660314L;
+
     @Override
     public void init() throws ServletException {
         final BayeuxServer bayeux = (BayeuxServer) getServletContext()
