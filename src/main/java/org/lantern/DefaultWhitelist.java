@@ -4,9 +4,12 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.security.GeneralSecurityException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -51,16 +54,20 @@ public class DefaultWhitelist implements Whitelist {
         if (!WHITELIST_FILE.isFile() || 
             FileUtils.isFileNewer(original, WHITELIST_FILE)) {
             try {
-                FileUtils.copyFile(original, WHITELIST_FILE);
+                LanternUtils.localEncryptedCopy(original, WHITELIST_FILE);
             } catch (final IOException e) {
                 LOG.error("Could not copy original whitelist?", e);
+            } catch (final GeneralSecurityException e) {
+                LOG.error("Could not encrypt original whitelist", e);
             }
         }
         if (!REPORTED_WHITELIST_FILE.isFile()) {
             try {
-                FileUtils.copyFile(original, REPORTED_WHITELIST_FILE);
+                LanternUtils.localEncryptedCopy(original, REPORTED_WHITELIST_FILE);
             } catch (final IOException e) {
                 LOG.error("Could not create reported whitelist file?", e);
+            } catch (final GeneralSecurityException e) {
+                LOG.error("Could not encrypt copy of reported whitelist", e);
             }
         }
         refreshFromFiles();
@@ -150,13 +157,16 @@ public class DefaultWhitelist implements Whitelist {
         final File file) {
         BufferedWriter bw = null;
         try {
-            bw = new BufferedWriter(new FileWriter(file));
+            final OutputStream eos = LanternUtils.localEncryptOutputStream(file);
+            bw = new BufferedWriter(new OutputStreamWriter(eos));
             for (final WhitelistEntry entry: entries) {
                 bw.write(entry.getSite());
                 bw.write("\n");
             }
         } catch (final IOException e) {
             LOG.error("Could not read file");
+        } catch (final GeneralSecurityException e) {
+            LOG.error("Could not encrypt file", e);
         } finally {
             IOUtils.closeQuietly(bw);
         }
@@ -210,7 +220,9 @@ public class DefaultWhitelist implements Whitelist {
         final Collection<WhitelistEntry> wl = new HashSet<WhitelistEntry>();
         BufferedReader br = null;
         try {
-            br = new BufferedReader(new FileReader(file));
+            final InputStream ein = 
+                LanternUtils.localDecryptInputStream(file);
+            br = new BufferedReader(new InputStreamReader(ein));
             String site = br.readLine();
             while (site != null) {
                 site = site.trim();
@@ -227,6 +239,8 @@ public class DefaultWhitelist implements Whitelist {
             LOG.error("Could not find whitelist file!!", e);
         } catch (final IOException e) {
             LOG.error("Could not read whitelist file", e);
+        } catch (final GeneralSecurityException e) {
+            LOG.error("Could not decrypt whitelist file", e);
         } finally {
             IOUtils.closeQuietly(br);
         }
@@ -237,6 +251,7 @@ public class DefaultWhitelist implements Whitelist {
         // We basically need to copy the current whitelist to be the last
         // reported whitelist.
         try {
+            // these are already encrypted, so nothing special here...
             FileUtils.copyFile(WHITELIST_FILE, REPORTED_WHITELIST_FILE);
         } catch (final IOException e) {
             LOG.error("Could not copy whitelist file?");
