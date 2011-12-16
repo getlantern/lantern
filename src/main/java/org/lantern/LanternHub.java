@@ -256,11 +256,16 @@ public class LanternHub {
     public static LocalCipherProvider localCipherProvider() {
         synchronized(localCipherProvider) {
             if (localCipherProvider.get() == null) {
+
                 if (SystemUtils.IS_OS_WINDOWS) {
                     localCipherProvider.set(new WindowsLocalCipherProvider());   
                 }
                 else if (SystemUtils.IS_OS_MAC_OSX) {
                     localCipherProvider.set(new MacLocalCipherProvider());
+                }
+                else if (SystemUtils.IS_OS_LINUX && 
+                         SecretServiceLocalCipherProvider.secretServiceAvailable()) {
+                    localCipherProvider.set(new SecretServiceLocalCipherProvider());                
                 }
                 else {
                     localCipherProvider.set(new DefaultLocalCipherProvider());

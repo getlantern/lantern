@@ -1,6 +1,5 @@
 package org.lantern; 
 
-import com.google.common.io.Files;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -51,22 +50,9 @@ public class WindowsLocalCipherProvider extends AbstractAESLocalCipherProvider {
         synchronized(DPAPI_INITIALIZED) {
             Boolean initialized = DPAPI_INITIALIZED.get();
             if (initialized == null || initialized.booleanValue() == false) {
-                // ldump jdpapi DLL in a temporary folder
-                // then load it.
-                File tempDir = null;
-                InputStream is = null; 
-                try {
-                    tempDir = Files.createTempDir();
-                    final File tempDLL = new File(tempDir, "jdpapi.dll"); 
-                    is = DataProtector.class.getResourceAsStream("/jdpapi.dll");
-                    FileUtils.copyInputStreamToFile(is, tempDLL);
-                    System.load(tempDLL.getAbsolutePath());
-                    DPAPI_INITIALIZED.set(Boolean.TRUE);
-                }
-                finally {
-                    FileUtils.deleteQuietly(tempDir);
-                    IOUtils.closeQuietly(is);
-                }
+                // dump jdpapi DLL in a temporary folder then load it.
+                LanternUtils.loadJarLibrary(DataProtector.class, "jdpapi.dll");
+                DPAPI_INITIALIZED.set(Boolean.TRUE);
             }
         }
     }
