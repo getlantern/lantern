@@ -11,12 +11,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.StringUtils;
+import org.cometd.server.CometdServlet;
 import org.eclipse.jetty.http.HttpStatus;
+import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.FilterMapping;
+import org.eclipse.jetty.servlet.ServletContextHandler;
+import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.resource.Resource;
 import org.littleshoot.util.IoUtils;
 import org.slf4j.Logger;
@@ -29,8 +37,8 @@ public class JettyLauncher {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private final String secureBase = 
-        "/"+String.valueOf(LanternHub.secureRandom().nextLong());
+    private final String secureBase = "";
+        //"/"+String.valueOf(LanternHub.secureRandom().nextLong());
 
     private final int randomPort = LanternUtils.randomPort();
     
@@ -40,6 +48,76 @@ public class JettyLauncher {
     private Server server = new Server();
 
     public void start() {
+        final String apiName = "API";
+        final ContextHandlerCollection contexts = 
+            new ContextHandlerCollection();
+        
+        final ServletContextHandler api = newContext("/", apiName);
+        //final ServletContextHandler api = newContext(secureBase, apiName);
+        contexts.addHandler(api);
+
+        api.setResourceBase("viz/skel");
+        
+        server.setHandler(contexts);
+        server.setStopAtShutdown(true);
+        
+        final SelectChannelConnector apiConnector = 
+            new SelectChannelConnector();
+        apiConnector.setPort(randomPort);
+        
+        // TODO: Make sure this works on Linux!!
+        apiConnector.setHost("127.0.0.1");
+        apiConnector.setName(apiName);
+        
+        this.server.setConnectors(new Connector[]{apiConnector});
+ 
+        final ServletHolder cometd = new ServletHolder(new CometdServlet());
+        cometd.setInitOrder(2);
+        api.addServlet(cometd, "/cometd/*");
+        
+        final ServletHolder bayeux = new ServletHolder(BayeuxInitializer.class);
+        bayeux.setInitOrder(2);
+        api.getServletHandler().addServlet(bayeux);
+        
+        api.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
+        
+        api.addFilter(new FilterHolder(CrossOriginFilter.class), "/cometd/*", 
+            FilterMapping.REQUEST);
+        
+        final Thread serve = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    server.start();
+                    server.join();
+                } catch (final Exception e) {
+                    log.error("Exception on HTTP server");
+                }
+            }
+            
+        }, "HTTP-Server-Thread");
+        serve.setDaemon(true);
+        serve.start();
+    }
+    
+    private ServletContextHandler newContext(final String path,
+        final String name) {
+        final ServletContextHandler context = 
+            new ServletContextHandler(ServletContextHandler.SESSIONS);
+        
+        final Map<String, String> params = context.getInitParams();
+        params.put("org.eclipse.jetty.servlet.Default.gzip", "false");
+        params.put("org.eclipse.jetty.servlet.Default.welcomeServlets", "false");
+        params.put("org.eclipse.jetty.servlet.Default.dirAllowed", "false");
+        params.put("org.eclipse.jetty.servlet.Default.aliases", "false");
+        //params.put("javax.servlet.include.request_uri", "true");
+        context.setContextPath(path);
+        context.setConnectorNames(new String[] {name});
+        return context;
+    }
+    
+    public void setup() {
         final SelectChannelConnector connector = new SelectChannelConnector();
         connector.setHost("127.0.0.1");
         connector.setPort(randomPort);
