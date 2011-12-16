@@ -4,7 +4,12 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -69,7 +74,8 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
         final Set<String> trusted = new HashSet<String>();
         BufferedReader br = null;
         try {
-            br = new BufferedReader(new FileReader(CONTACTS_FILE));
+            final InputStream in = LanternUtils.localDecryptInputStream(CONTACTS_FILE);
+            br = new BufferedReader(new InputStreamReader(in));
             String line = br.readLine();
             while (line != null) {
                 log.info("Reading line: {}", line);
@@ -81,6 +87,8 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
             return trusted;
         } catch (final IOException e) {
             log.error("Reading error?", e);
+        } catch (final GeneralSecurityException e) {
+            log.error("Failed to decrypt: {}", e);
         } finally {
             IOUtils.closeQuietly(br);
         }
@@ -122,9 +130,11 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
         synchronized (CONTACTS_FILE) {
             // We just write the whole thing again from scratch.
             CONTACTS_FILE.delete();
-            FileWriter fw = null;
+            OutputStreamWriter fw = null;
             try {
-                fw = new FileWriter(CONTACTS_FILE);
+                OutputStream out =
+                    LanternUtils.localEncryptOutputStream(CONTACTS_FILE);
+                fw = new OutputStreamWriter(out);
                 for (final String email : trustedContacts) {
                     final String newLine = email+"\n";
                     log.info("Adding contact line: {}", newLine);
@@ -132,6 +142,8 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
                 }
             } catch (final IOException e) {
                 log.error("Could not write to contacts file?");
+            } catch (final GeneralSecurityException e) {
+                log.error("Failed to encrypt contacts file: {}", e);
             } finally {
                 IOUtils.closeQuietly(fw);
             }
