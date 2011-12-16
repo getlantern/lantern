@@ -72,7 +72,7 @@ public class JettyLauncher {
         this.server.setConnectors(new Connector[]{apiConnector});
  
         final ServletHolder cometd = new ServletHolder(new CometdServlet());
-        cometd.setInitOrder(2);
+        cometd.setInitOrder(1);
         api.addServlet(cometd, "/cometd/*");
         
         final ServletHolder bayeux = new ServletHolder(BayeuxInitializer.class);
@@ -237,7 +237,7 @@ public class JettyLauncher {
                 json = LanternHub.config().setConfig(args);
             } else if (stripped.startsWith("/config")) {
                 if (isGet) {
-                    json = LanternHub.config().config();
+                    json = LanternHub.config().configAsJson();
                 } else { close(baseRequest, response); return;}
             } else if (stripped.startsWith("/whitelist")) {
                 if (isGet) {

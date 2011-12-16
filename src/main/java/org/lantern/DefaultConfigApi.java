@@ -116,7 +116,7 @@ public class DefaultConfigApi implements ConfigApi, LanternUpdateListener,
     }
 
     @Override
-    public String config() {
+    public String configAsJson() {
         final Map<String, Object> data = new LinkedHashMap<String, Object>();
         data.put("internet", getInternet());
         data.put("whitelist", LanternHub.whitelist());
@@ -132,6 +132,25 @@ public class DefaultConfigApi implements ConfigApi, LanternUpdateListener,
         
         //data.put("startAtLogin", Configurator.isStartAtLogin()); 
         return LanternUtils.jsonify(data);
+    }
+    
+    @Override
+    public Map<String, Object> config() {
+        final Map<String, Object> data = new LinkedHashMap<String, Object>();
+        data.put("internet", getInternet());
+        data.put("whitelist", LanternHub.whitelist());
+        data.put("roster", presences);
+        data.put("httpsEverywhere", HttpsEverywhere.getRules());
+        data.put("censored", LanternHub.censored().getCensored());
+        data.put("system", getSystem());
+        //data.put("connectivity", 
+        //    LanternHub.connectivityTracker().getConnectivityStatus());
+        //data.put("port", LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
+        //data.put("version", LanternConstants.VERSION);
+        //data.put("systemProxy", Configurator.isProxying());
+        
+        //data.put("startAtLogin", Configurator.isStartAtLogin());
+        return data;
     }
     
     private Map<String, Object> getInternet() {
@@ -176,7 +195,7 @@ public class DefaultConfigApi implements ConfigApi, LanternUpdateListener,
                 }
             }
         }
-        return config();
+        return configAsJson();
     }
 
     @Override
