@@ -304,6 +304,29 @@
       <version>0.1</version>
     </dependency>
 
+    <dependency>
+      <groupId>cx.ath.matthew</groupId>
+      <artifactId>debug</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
+      <groupId>cx.ath.matthew</groupId>
+      <artifactId>hexdump</artifactId>
+      <version>0.2</version>
+    </dependency>
+
+    <dependency>
+      <groupId>cx.ath.matthew</groupId>
+      <artifactId>${unix.artifactId}</artifactId>
+      <version>0.5</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.freedesktop.dbus</groupId>
+      <artifactId>dbus-java</artifactId>
+      <version>2.7</version>
+    </dependency>
+
   </dependencies>
 
   <prerequisites>
@@ -381,7 +404,8 @@
       <properties>
         <swt.groupId>org.eclipse.swt.win32.win32</swt.groupId>
         <swt.artifactId>x86</swt.artifactId>
-      </properties>
+        <unix.artifactId>unix-java-x86</unix.artifactId> 
+     </properties>
     </profile>
     
     <profile>
@@ -419,6 +443,7 @@
       </activation>
       <properties>
         <swt.artifactId>x86</swt.artifactId>
+        <unix.artifactId>unix-java-x86</unix.artifactId>
       </properties>
     </profile>
     
@@ -432,6 +457,7 @@
       </activation>
       <properties>
         <swt.artifactId>x86_64</swt.artifactId>
+        <unix.artifactId>unix-java-x86_64</unix.artifactId>
       </properties>
     </profile>
   </profiles>
