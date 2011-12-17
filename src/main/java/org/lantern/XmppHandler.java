@@ -377,6 +377,12 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final XMPPConnection conn = this.client.getXmppConnection();
         LOG.info("Sending presence available");
         
+        // OK, this is bizarre. For whatever reason, we **have** to send the
+        // following packet in order to get presence events from our peers.
+        // DO NOT REMOVE THIS MESSAGE!!
+        final Presence pres = new Presence(Presence.Type.available);
+        conn.sendPacket(pres);
+        
         final Presence forHub = new Presence(Presence.Type.available);
         forHub.setTo(LanternConstants.LANTERN_JID);
         
@@ -412,9 +418,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private void configureRoster() {
         final XMPPConnection xmpp = this.client.getXmppConnection();
 
-        //final Packet extended = XmppUtils.extendedRoster(xmpp);
-        //XmppHandler.LOG.info("EXTENDED: "+extended.toXML());
-        
         final Roster roster = xmpp.getRoster();
 
         final RosterEntry lantern = roster.getEntry(LanternConstants.LANTERN_JID);
