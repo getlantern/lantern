@@ -212,4 +212,9 @@ public class DefaultConfigApi implements ConfigApi, LanternUpdateListener,
     public void removePresence(final String address) {
         this.presences.remove(address);
     }
+
+    @Override
+    public void presencesUpdated() {
+        // Nothing to do.
+    }
 }

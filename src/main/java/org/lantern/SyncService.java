@@ -1,9 +1,7 @@
 package org.lantern;
 
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.client.ClientSessionChannel;
@@ -19,14 +17,15 @@ import org.slf4j.LoggerFactory;
  * Service for pushing updated Lantern state to the client.
  */
 @Service("sync")
-public class SyncService implements PresenceListener, LanternUpdateListener {
+public class SyncService implements PresenceListener, LanternUpdateListener,
+    ConnectivityListener {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private final AtomicBoolean updated = new AtomicBoolean(false);
-    
     @Session
     private ServerSession session;
+    
+    private volatile long lastUpdateTime = System.currentTimeMillis();
     
     /**
      * Creates a new sync service.
@@ -49,11 +48,9 @@ public class SyncService implements PresenceListener, LanternUpdateListener {
 
     @Listener("/service/sync")
     public void processSync(final ServerSession remote, final Message message) {
+        // TODO: Process data from the client.
         //final Map<String, Object> input = message.getDataAsMap();
         log.info("Pushing updated config to browser...");
-        //final String output = LanternHub.config().configAsJson();
-        //log.info("Config is: {}", output);
-        //remote.deliver(session, "/sync", LanternHub.config().config(), null);
         sync();
     }
 
@@ -71,7 +68,19 @@ public class SyncService implements PresenceListener, LanternUpdateListener {
 
     @Override
     public void removePresence(final String address) {
-        this.updated.set(true);
+        log.info("Presence removed...");
+        sync();
+    }
+
+    @Override
+    public void presencesUpdated() {
+        log.info("Got presences updated");
+        sync();
+    }
+    
+    @Override
+    public void onConnectivityStateChanged(final ConnectivityStatus ct) {
+        log.info("Got connectivity change");
         sync();
     }
     
@@ -81,8 +90,15 @@ public class SyncService implements PresenceListener, LanternUpdateListener {
             log.info("No session...not syncing");
             return;
         }
+        final long elapsed = System.currentTimeMillis() - lastUpdateTime;
+        if (elapsed < 100) {
+            log.info("Not pushing more than 10 times a second...{} ms elapsed", 
+                elapsed);
+            return;
+        }
         final ClientSessionChannel channel = 
             session.getLocalSession().getChannel("/sync");
         channel.publish(LanternHub.config().config());
+        lastUpdateTime = System.currentTimeMillis();
     }
 }
