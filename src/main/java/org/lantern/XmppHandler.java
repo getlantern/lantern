@@ -41,6 +41,8 @@ import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.packet.Presence.Mode;
+import org.jivesoftware.smack.packet.Presence.Type;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -263,7 +265,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             updatePresence();
             //sendInfoRequest();
             configureRoster();
-
         } catch (final IOException e) {
             final String msg = "Could not log in!!";
             LOG.warn(msg, e);
