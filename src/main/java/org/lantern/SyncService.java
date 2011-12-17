@@ -1,9 +1,12 @@
 package org.lantern;
 
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.cometd.bayeux.Message;
+import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.bayeux.server.ServerSession;
 import org.cometd.java.annotation.Listener;
 import org.cometd.java.annotation.Service;
@@ -33,30 +36,53 @@ public class SyncService implements PresenceListener, LanternUpdateListener {
         LanternHub.config();
         LanternHub.notifier().addPresenceListener(this);
         LanternHub.notifier().addUpdateListener(this);
+        
+        final Timer timer = LanternHub.timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                log.info("Updating");
+                sync();
+            }
+        }, 3000, 4000);
     }
 
     @Listener("/service/sync")
     public void processSync(final ServerSession remote, final Message message) {
-        final Map<String, Object> input = message.getDataAsMap();
+        //final Map<String, Object> input = message.getDataAsMap();
         log.info("Pushing updated config to browser...");
-        final String output = LanternHub.config().configAsJson();
-        log.info("Config is: {}", output);
-        remote.deliver(session, "/sync", LanternHub.config().config(), null);
+        //final String output = LanternHub.config().configAsJson();
+        //log.info("Config is: {}", output);
+        //remote.deliver(session, "/sync", LanternHub.config().config(), null);
+        sync();
     }
 
     @Override
     public void onUpdate(final LanternUpdate lanternUpdate) {
-        //session.getLocalSession().
-        //this.updated.set(true);
+        log.info("Got update");
+        sync();
     }
 
     @Override
-    public void onPresence(final String address, Presence presence) {
-        this.updated.set(true);
+    public void onPresence(final String address, final Presence presence) {
+        log.info("Got presence");
+        sync();
     }
 
     @Override
     public void removePresence(final String address) {
         this.updated.set(true);
+        sync();
+    }
+    
+    private void sync() {
+        log.info("Syncing with channel...");
+        if (session == null) {
+            log.info("No session...not syncing");
+            return;
+        }
+        final ClientSessionChannel channel = 
+            session.getLocalSession().getChannel("/sync");
+        channel.publish(LanternHub.config().config());
     }
 }
