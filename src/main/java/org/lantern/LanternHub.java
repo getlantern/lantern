@@ -70,8 +70,8 @@ public class LanternHub {
     private static final AtomicReference<ConnectivityTracker> connectivityTracker =
         new AtomicReference<ConnectivityTracker>();
     
-    private static final AtomicReference<Notifier> notifier =
-        new AtomicReference<Notifier>();
+    private static final AtomicReference<PubSub> notifier =
+        new AtomicReference<PubSub>();
     
     private static final AtomicReference<Whitelist> whitelist =
         new AtomicReference<Whitelist>();
@@ -288,10 +288,10 @@ public class LanternHub {
         }
     }
 
-    public static Notifier notifier() {
+    public static PubSub notifier() {
         synchronized (notifier) {
             if (notifier.get() == null) {
-                notifier.set(new DefaultNotifier());
+                notifier.set(new DefaultPubSub());
             }
             return notifier.get();
         }
