@@ -10,8 +10,6 @@ import javax.servlet.UnavailableException;
 
 import org.cometd.bayeux.server.BayeuxServer;
 import org.cometd.java.annotation.ServerAnnotationProcessor;
-import org.cometd.server.ext.AcknowledgedMessagesExtension;
-import org.cometd.server.ext.TimesyncExtension;
 
 public class BayeuxInitializer extends GenericServlet {
     
@@ -26,8 +24,8 @@ public class BayeuxInitializer extends GenericServlet {
             throw new UnavailableException("No BayeuxServer!");
 
         // Create extensions
-        bayeux.addExtension(new TimesyncExtension());
-        bayeux.addExtension(new AcknowledgedMessagesExtension());
+        //bayeux.addExtension(new TimesyncExtension());
+        //bayeux.addExtension(new AcknowledgedMessagesExtension());
         final ServerAnnotationProcessor processor = 
             new ServerAnnotationProcessor(bayeux);
         processor.process(new SyncService());
