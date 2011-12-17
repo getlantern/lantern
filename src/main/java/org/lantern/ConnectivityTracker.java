@@ -5,9 +5,5 @@ package org.lantern;
  */
 public interface ConnectivityTracker {
 
-    void addListener(ConnectivityListener cl);
-    
-    void setConnectivityStatus(ConnectivityStatus ct);
-    
     ConnectivityStatus getConnectivityStatus();
 }

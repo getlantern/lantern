@@ -43,7 +43,7 @@ public class SystemTrayImpl implements SystemTray, ConnectivityListener,
      * @param display The SWT display. 
      */
     public SystemTrayImpl(final Display display) {
-        LanternHub.connectivityTracker().addListener(this);
+        LanternHub.notifier().addConnectivityListener(this);
         this.display = display;
         this.shell = new Shell(display);
     }
@@ -65,7 +65,8 @@ public class SystemTrayImpl implements SystemTray, ConnectivityListener,
             System.out.println ("The system tray is not available");
         } else {
             this.trayItem = new TrayItem (tray, SWT.NONE);
-            this.trayItem.setToolTipText(I18n.tr("Lantern ")+LanternConstants.VERSION);
+            this.trayItem.setToolTipText(
+                I18n.tr("Lantern ")+LanternConstants.VERSION);
             this.trayItem.addListener (SWT.Show, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
