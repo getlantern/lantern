@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.security.SecureRandom;
 import java.util.Map;
+import java.util.Timer;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
 
@@ -77,6 +78,9 @@ public class LanternHub {
         
     private static final AtomicReference<Censored> censored =
         new AtomicReference<Censored>();
+    
+    private static final AtomicReference<Timer> timer =
+        new AtomicReference<Timer>();
     
     private static final AtomicReference<ConfigApi> config =
         new AtomicReference<ConfigApi>();
@@ -308,6 +312,15 @@ public class LanternHub {
                 censored.set(new DefaultCensored());
             }
             return censored.get();
+        }
+    }
+
+    public static Timer timer() {
+        synchronized (timer) {
+            if (timer.get() == null) {
+                timer.set(new Timer());
+            }
+            return timer.get();
         }
     }
 

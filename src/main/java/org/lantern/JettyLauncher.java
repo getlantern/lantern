@@ -23,11 +23,9 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
-import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.FilterMapping;
+import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.littleshoot.util.IoUtils;
@@ -107,6 +105,10 @@ public class JettyLauncher {
             }
             
         }
+        final ServletHolder ds = new ServletHolder(new DefaultServlet());
+        ds.setInitOrder(3);
+        api.addServlet(ds, "/*");
+        
         final ServletHolder config = new ServletHolder(new ConfigServlet());
         config.setInitOrder(3);
         api.addServlet(config, "/config");
@@ -116,10 +118,10 @@ public class JettyLauncher {
         bayeux.setInitOrder(2);
         api.getServletHandler().addServlet(bayeux);
         
-        api.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
+        //api.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
         
-        api.addFilter(new FilterHolder(CrossOriginFilter.class), "/cometd/*", 
-            FilterMapping.REQUEST);
+        //api.addFilter(new FilterHolder(CrossOriginFilter.class), "/cometd/*", 
+        //    FilterMapping.REQUEST);
         
         final Thread serve = new Thread(new Runnable() {
 
@@ -374,7 +376,7 @@ public class JettyLauncher {
     }
 
     public void openBrowserWhenReady() {
-        while(!server.isRunning()) {
+        while(!server.isStarted()) {
             try {
                 Thread.sleep(200);
             } catch (final InterruptedException e) {
