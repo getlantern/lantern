@@ -23,7 +23,6 @@ public class DefaultPubSub implements PubSub {
     private ConnectivityStatus connectivityStatus = 
         ConnectivityStatus.DISCONNECTED;
     
-    
     @Override
     public void addConnectivityListener(final ConnectivityListener cl) {
         synchronized (connectivityListeners) {

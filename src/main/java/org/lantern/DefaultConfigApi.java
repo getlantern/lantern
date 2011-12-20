@@ -14,8 +14,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Default class containing configuration settings and data.
  */
-public class DefaultConfigApi implements ConfigApi,
-    PresenceListener {
+public class DefaultConfigApi implements ConfigApi, PresenceListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -84,7 +83,6 @@ public class DefaultConfigApi implements ConfigApi,
     @Override
     public Map<String, Object> config() {
         final Map<String, Object> data = new LinkedHashMap<String, Object>();
-        
         data.put("system", LanternHub.systemInfo());
         data.put("user", LanternHub.userInfo());
         data.put("whitelist", LanternHub.whitelist());
@@ -160,7 +158,6 @@ public class DefaultConfigApi implements ConfigApi,
 
     @Override
     public String setConfig(Map<String, String> args) {
-        // TODO Auto-generated method stub
-        return null;
+        return "";
     }
 }
