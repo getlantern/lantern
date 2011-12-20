@@ -149,8 +149,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     public XmppHandler(final int sslProxyRandomPort, 
         final int plainTextProxyRandomPort) {
         this.sslProxyRandomPort = sslProxyRandomPort;
-        String email = LanternUtils.getStringProperty("google.user");
-        String pwd = LanternUtils.getStringProperty("google.pwd");
+        String email = LanternUtils.getEmail();
+        String pwd = LanternUtils.getPassword();
         if (StringUtils.isBlank(email)) {
             if (!LanternUtils.runWithUi()) {
                 email = askForEmail();
@@ -206,7 +206,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             // at all.
             LOG.info("Adding message listener...");
             this.client.addMessageListener(typedListener);
+            LanternHub.userInfo().setAuthenticationStatus(
+                AuthenticationStatus.LOGGING_IN);
             this.client.login(email, pwd, ID);
+            LanternHub.userInfo().setAuthenticationStatus(
+                AuthenticationStatus.LOGGED_IN);
             final XMPPConnection connection = this.client.getXmppConnection();
             final Collection<InetSocketAddress> googleStunServers = 
                 XmppUtils.googleStunServers(connection);
@@ -313,7 +317,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             if (!servers.isEmpty() && ! Configurator.configured()) {
                 Configurator.configure();
                 
-                LanternHub.notifier().setConnectivityStatus(
+                LanternHub.pubSub().setConnectivityStatus(
                     ConnectivityStatus.CONNECTED);
             }
         }
@@ -328,7 +332,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             LanternHub.display().asyncExec (new Runnable () {
                 @Override
                 public void run () {
-                    LanternHub.notifier().addUpdate(new LanternUpdate(update));
+                    LanternHub.pubSub().addUpdate(new UpdateData(update));
                     //LanternHub.systemTray().addUpdate(new LanternUpdate(update));
                     //final LanternBrowser lb = new LanternBrowser(true);
                     //lb.showUpdate(update);
@@ -433,7 +437,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             public void entriesDeleted(final Collection<String> addresses) {
                 LOG.info("Entries deleted");
                 for (final String address : addresses) {
-                    LanternHub.notifier().removePresence(address);
+                    LanternHub.pubSub().removePresence(address);
                 }
             }
             @Override
@@ -477,9 +481,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
         else if (isLanternJid(from)) {
             addOrRemovePeer(presence, from);
-            LanternHub.notifier().addPresence(from, presence);
+            LanternHub.pubSub().addPresence(from, presence);
         } else {
-            LanternHub.notifier().addPresence(from, presence);
+            LanternHub.pubSub().addPresence(from, presence);
         }
     }
 

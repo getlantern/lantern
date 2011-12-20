@@ -14,7 +14,7 @@ public class DefaultConnectivityTracker implements ConnectivityTracker,
      * Creates a new tracker of connectivity.
      */
     public DefaultConnectivityTracker() {
-        LanternHub.notifier().addConnectivityListener(this);
+        LanternHub.pubSub().addConnectivityListener(this);
     }
 
     @Override

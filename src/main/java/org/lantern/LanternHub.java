@@ -70,7 +70,7 @@ public class LanternHub {
     private static final AtomicReference<ConnectivityTracker> connectivityTracker =
         new AtomicReference<ConnectivityTracker>();
     
-    private static final AtomicReference<PubSub> notifier =
+    private static final AtomicReference<PubSub> pubSub =
         new AtomicReference<PubSub>();
     
     private static final AtomicReference<Whitelist> whitelist =
@@ -82,8 +82,20 @@ public class LanternHub {
     private static final AtomicReference<Timer> timer =
         new AtomicReference<Timer>();
     
+    private static final AtomicReference<UserInfo> userInfo =
+        new AtomicReference<UserInfo>();
+    
+    private static final AtomicReference<SystemInfo> systemInfo =
+        new AtomicReference<SystemInfo>();
+    
     private static final AtomicReference<ConfigApi> config =
         new AtomicReference<ConfigApi>();
+    
+    private static final AtomicReference<Platform> platform =
+        new AtomicReference<Platform>();
+    
+    private static final AtomicReference<Internet> internet =
+        new AtomicReference<Internet>();
     
     private static final File UNZIPPED = 
         new File(LanternUtils.dataDir(), "GeoIP.dat");
@@ -288,12 +300,12 @@ public class LanternHub {
         }
     }
 
-    public static PubSub notifier() {
-        synchronized (notifier) {
-            if (notifier.get() == null) {
-                notifier.set(new DefaultPubSub());
+    public static PubSub pubSub() {
+        synchronized (pubSub) {
+            if (pubSub.get() == null) {
+                pubSub.set(new DefaultPubSub());
             }
-            return notifier.get();
+            return pubSub.get();
         }
     }
 
@@ -323,5 +335,40 @@ public class LanternHub {
             return timer.get();
         }
     }
+    
+    public static UserInfo userInfo() {
+        synchronized (userInfo) {
+            if (userInfo.get() == null) {
+                userInfo.set(new UserInfo());
+            }
+            return userInfo.get();
+        }
+    }
+    
+    public static SystemInfo systemInfo() {
+        synchronized (systemInfo) {
+            if (systemInfo.get() == null) {
+                systemInfo.set(new SystemInfo());
+            }
+            return systemInfo.get();
+        }
+    }
 
+    public static Platform platform() {
+        synchronized (platform) {
+            if (platform.get() == null) {
+                platform.set(new Platform());
+            }
+            return platform.get();
+        }
+    }
+    
+    public static Internet internet() {
+        synchronized (internet) {
+            if (internet.get() == null) {
+                internet.set(new Internet());
+            }
+            return internet.get();
+        }
+    }
 }

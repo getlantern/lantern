@@ -31,12 +31,12 @@ public class ConfiguratorTest {
         assertTrue(cur.contains("<true/>") || cur.contains("<false/>"));
         if (cur.contains("<true/>")) {
             assertFalse(cur.contains("<false/>"));
-            Configurator.startAtLogin(temp, false);
+            Configurator.setStartAtLogin(temp, false);
             final String newFile = FileUtils.readFileToString(temp, "UTF-8");
             assertTrue(newFile.contains("<false/>"));
         } else if (cur.contains("<false/>")) {
             assertFalse(cur.contains("<true/>"));
-            Configurator.startAtLogin(temp, true);
+            Configurator.setStartAtLogin(temp, true);
             final String newFile = FileUtils.readFileToString(temp, "UTF-8");
             assertTrue(newFile.contains("<true/>"));
         }

@@ -1,40 +1,24 @@
 package org.lantern;
 
-import java.net.UnknownHostException;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.packet.Presence;
 import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.httpseverywhere.HttpsEverywhere.HttpsRuleSet;
-import org.lastbamboo.common.stun.client.PublicIpAddress;
-import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Function;
-import com.google.common.collect.Maps;
 
 /**
  * Default class containing configuration settings and data.
  */
-public class DefaultConfigApi implements ConfigApi, LanternUpdateListener,
+public class DefaultConfigApi implements ConfigApi,
     PresenceListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private final Map<String, Function<String, String>> configFuncs =
-        Maps.newConcurrentMap();
-
-    private LanternUpdate lanternUpdate = 
-        new LanternUpdate(new HashMap<String, String>());
-    
     private final Map<String, Presence> presences = 
         new ConcurrentHashMap<String, Presence>();
     
@@ -42,30 +26,7 @@ public class DefaultConfigApi implements ConfigApi, LanternUpdateListener,
      * Creates a new instance of the API. There should only be one.
      */
     public DefaultConfigApi() {
-        configFuncs.put("systemProxy", new Function<String, String>() {
-            @Override
-            public String apply(final String input) {
-                if (LanternUtils.isTrue(input)) {
-                    Configurator.startProxying();
-                } else if (LanternUtils.isFalse(input)) {
-                    Configurator.stopProxying();
-                }
-                return "";
-            }
-        });
-        configFuncs.put("startAtLogin", new Function<String, String>() {
-            @Override
-            public String apply(final String input) {
-                if (LanternUtils.isTrue(input)) {
-                    Configurator.startAtLogin(true);
-                } else if (LanternUtils.isFalse(input)) {
-                    Configurator.startAtLogin(false);
-                }
-                return "";
-            }
-        });
-        LanternHub.notifier().addUpdateListener(this);
-        LanternHub.notifier().addPresenceListener(this);
+        LanternHub.pubSub().addPresenceListener(this);
     }
     
     @Override
@@ -117,42 +78,22 @@ public class DefaultConfigApi implements ConfigApi, LanternUpdateListener,
 
     @Override
     public String configAsJson() {
-        final Map<String, Object> data = new LinkedHashMap<String, Object>();
-        data.put("internet", getInternet());
-        data.put("whitelist", LanternHub.whitelist());
-        data.put("roster", presences);
-        data.put("httpsEverywhere", HttpsEverywhere.getRules());
-        data.put("censored", LanternHub.censored().getCensored());
-        data.put("system", getSystem());
-        //data.put("connectivity", 
-        //    LanternHub.connectivityTracker().getConnectivityStatus());
-        //data.put("port", LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
-        //data.put("version", LanternConstants.VERSION);
-        //data.put("systemProxy", Configurator.isProxying());
-        
-        //data.put("startAtLogin", Configurator.isStartAtLogin()); 
-        return LanternUtils.jsonify(data);
+        return LanternUtils.jsonify(config());
     }
     
     @Override
     public Map<String, Object> config() {
         final Map<String, Object> data = new LinkedHashMap<String, Object>();
-        data.put("internet", getInternet());
+        
+        data.put("system", LanternHub.systemInfo());
+        data.put("user", LanternHub.userInfo());
         data.put("whitelist", LanternHub.whitelist());
         data.put("roster", presences);
         data.put("httpsEverywhere", HttpsEverywhere.getRules());
-        data.put("censored", LanternHub.censored().getCensored());
-        data.put("system", getSystem());
-        //data.put("connectivity", 
-        //    LanternHub.connectivityTracker().getConnectivityStatus());
-        //data.put("port", LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
-        //data.put("version", LanternConstants.VERSION);
-        //data.put("systemProxy", Configurator.isProxying());
-        
-        //data.put("startAtLogin", Configurator.isStartAtLogin());
         return data;
     }
     
+    /*
     private Map<String, Object> getInternet() {
         final Map<String, Object> internet = 
             new LinkedHashMap<String, Object>();
@@ -178,10 +119,13 @@ public class DefaultConfigApi implements ConfigApi, LanternUpdateListener,
                 LanternHub.connectivityTracker().getConnectivityStatus());
         system.put("updateData", this.lanternUpdate); 
         system.put("properties", System.getProperties());
-        
+        system.put("internet", getInternet());
+        system.put("platform", getPlatform());
         return system;
     }
+    */
 
+    /*
     @Override
     public String setConfig(final Map<String, String> args) {
         final Set<String> keys = args.keySet();
@@ -197,11 +141,7 @@ public class DefaultConfigApi implements ConfigApi, LanternUpdateListener,
         }
         return configAsJson();
     }
-
-    @Override
-    public void onUpdate(final LanternUpdate lu) {
-        this.lanternUpdate = lu;
-    }
+    */
 
     @Override
     public void onPresence(final String address, final Presence presence) {
@@ -216,5 +156,11 @@ public class DefaultConfigApi implements ConfigApi, LanternUpdateListener,
     @Override
     public void presencesUpdated() {
         // Nothing to do.
+    }
+
+    @Override
+    public String setConfig(Map<String, String> args) {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
