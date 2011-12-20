@@ -1,6 +1,5 @@
 package org.lantern;
 
-import com.google.common.io.Files;
 import java.awt.Desktop;
 import java.io.Console;
 import java.io.File;
@@ -87,9 +86,9 @@ import org.littleshoot.util.Sha1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.io.Files;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -906,7 +905,7 @@ public class LanternUtils {
         //final Gson gson = GSON_BUILDER.setPrettyPrinting().create();
         //return gson.toJson(all);
         final ObjectMapper mapper = new ObjectMapper();
-        
+
         /*
         final SimpleModule testModule = 
             new SimpleModule("Lantern", new Version(1, 0, 0, null));
