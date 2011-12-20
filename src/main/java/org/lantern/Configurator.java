@@ -438,11 +438,11 @@ public class Configurator {
         }
     }
     
-    public static void startAtLogin(final boolean startAtLogin) {
-        startAtLogin(LanternConstants.LAUNCHD_PLIST, startAtLogin);
+    public static void setStartAtLogin(final boolean startAtLogin) {
+        setStartAtLogin(LanternConstants.LAUNCHD_PLIST, startAtLogin);
     }
 
-    public static void startAtLogin(final File file, final boolean start) {
+    public static void setStartAtLogin(final File file, final boolean start) {
         if (SystemUtils.IS_OS_MAC_OSX) {
             LanternUtils.replaceInFile(file, "<"+!start+"/>", "<"+start+"/>");
             Configurator.startAtLogin = start;

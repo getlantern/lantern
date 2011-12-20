@@ -43,7 +43,7 @@ public class SystemTrayImpl implements SystemTray, ConnectivityListener,
      * @param display The SWT display. 
      */
     public SystemTrayImpl(final Display display) {
-        LanternHub.notifier().addConnectivityListener(this);
+        LanternHub.pubSub().addConnectivityListener(this);
         this.display = display;
         this.shell = new Shell(display);
     }

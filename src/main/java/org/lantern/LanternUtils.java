@@ -57,6 +57,9 @@ import org.apache.commons.io.IOExceptionWithCause;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -900,10 +903,11 @@ public class LanternUtils {
 
     public static String jsonify(final Object all) {
         
-        final Gson gson = GSON_BUILDER.setPrettyPrinting().create();
-        return gson.toJson(all);
-        /*
+        //final Gson gson = GSON_BUILDER.setPrettyPrinting().create();
+        //return gson.toJson(all);
         final ObjectMapper mapper = new ObjectMapper();
+        
+        /*
         final SimpleModule testModule = 
             new SimpleModule("Lantern", new Version(1, 0, 0, null));
         testModule.addSerializer(new JsonSerializer<Presence>() {
@@ -918,6 +922,7 @@ public class LanternUtils {
             
         }); // assuming serializer declares correct class to bind to
         mapper.registerModule(testModule);
+        */
         try {
             return mapper.writeValueAsString(all);
         } catch (final JsonGenerationException e) {
@@ -928,7 +933,6 @@ public class LanternUtils {
             LOG.warn("Error generating JSON", e);
         }
         return "";
-        */
     }
 
     /**
@@ -995,6 +999,14 @@ public class LanternUtils {
             FileUtils.deleteQuietly(tempDir);
             IOUtils.closeQuietly(is);
         }
+    }
+
+    public static String getEmail() {
+        return LanternUtils.getStringProperty("google.user");
+    }
+
+    public static String getPassword() {
+        return LanternUtils.getStringProperty("google.pwd");
     }
 }
 
