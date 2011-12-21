@@ -10,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
@@ -59,6 +58,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig.Feature;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -75,7 +75,6 @@ import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
-import org.jivesoftware.smack.packet.Presence;
 import org.json.simple.JSONArray;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
@@ -87,13 +86,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.io.Files;
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
 
 /**
  * Utility methods for use with Lantern.
@@ -117,8 +109,6 @@ public class LanternUtils {
     
     private static final Properties PROPS = new Properties();
         
-    private static final GsonBuilder GSON_BUILDER = new GsonBuilder();
-    
     static {
         
         if (SystemUtils.IS_OS_WINDOWS) {
@@ -162,41 +152,6 @@ public class LanternUtils {
                 LOG.error("Could not create props file!!", e);
             }
         }
-        
-        GSON_BUILDER.addSerializationExclusionStrategy(new ExclusionStrategy() {
-            
-            @Override
-            public boolean shouldSkipField(final FieldAttributes fa) {
-                final String name = fa.getName();
-                if (name.equalsIgnoreCase("log")) {
-                    return true;
-                }
-                if (name.contains("WHITELIST")) {
-                    return true;
-                }
-                return false;
-            }
-            
-            @Override
-            public boolean shouldSkipClass(final Class<?> clazz) {
-                return false;
-            }
-        });
-        
-        GSON_BUILDER.registerTypeAdapter(Presence.class, new JsonSerializer<Presence>() {
-            @Override
-            public JsonElement serialize(final Presence pres, final Type type,
-                final JsonSerializationContext jsc) {
-                final JsonObject obj = new JsonObject();
-                obj.addProperty("user", pres.getFrom());
-                obj.addProperty("type", pres.getType().name());
-                obj.addProperty("available", pres.isAvailable());
-                obj.addProperty("away", pres.isAway());
-                obj.addProperty("trusted", 
-                    LanternHub.getTrustedContactsManager().isTrusted(pres.getFrom()));
-                return obj;
-            }
-        });
     }
     
     public static final ClientSocketChannelFactory clientSocketChannelFactory =
@@ -905,7 +860,7 @@ public class LanternUtils {
         //final Gson gson = GSON_BUILDER.setPrettyPrinting().create();
         //return gson.toJson(all);
         final ObjectMapper mapper = new ObjectMapper();
-
+        mapper.configure(Feature.INDENT_OUTPUT, true);
         /*
         final SimpleModule testModule = 
             new SimpleModule("Lantern", new Version(1, 0, 0, null));
