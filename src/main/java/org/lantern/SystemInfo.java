@@ -8,8 +8,6 @@ public class SystemInfo implements LanternUpdateListener, ConnectivityListener {
     private ConnectivityStatus connectivity; 
     private UpdateData updateData = new UpdateData();
     
-    private boolean connectOnLaunch;
-
     public boolean isSystemProxy() {
         return Configurator.isProxying();
     }
@@ -49,9 +47,11 @@ public class SystemInfo implements LanternUpdateListener, ConnectivityListener {
         this.connectivity = ct;
     }
     public void setConnectOnLaunch(final boolean connectOnLaunch) {
-        this.connectOnLaunch = connectOnLaunch;
+        LanternUtils.setBooleanProperty(LanternConstants.CONNECT_ON_LAUNCH, 
+                connectOnLaunch);
     }
     public boolean isConnectOnLaunch() {
-        return connectOnLaunch;
+        return LanternUtils.getBooleanProperty(
+            LanternConstants.CONNECT_ON_LAUNCH);
     }
 }
