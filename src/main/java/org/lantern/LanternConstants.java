@@ -74,4 +74,6 @@ public class LanternConstants {
      */
     public static final File LAUNCHD_PLIST =
         new File(System.getProperty("user.home"), "Library/LaunchAgents/org.lantern.plist");
+
+    public static final String CONNECT_ON_LAUNCH = "connectOnLaunch";
 }
