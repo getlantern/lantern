@@ -9,12 +9,18 @@ public class SystemInfo implements LanternUpdateListener, ConnectivityListener {
     private UpdateData updateData = new UpdateData();
     
     public boolean isSystemProxy() {
-        return Configurator.isProxying();
+        return LanternUtils.shouldProxy();
     }
+    
+    // TODO: Add setSystemProxy.
+    
     public boolean isStartAtLogin() {
-        return Configurator.isStartAtLogin();
+        return LanternUtils.getBooleanProperty(LanternConstants.START_AT_LOGIN, 
+            true);
     }
     public void setStartAtLogin(final boolean startAtLogin) {
+        LanternUtils.setBooleanProperty(LanternConstants.START_AT_LOGIN, 
+            startAtLogin);
         Configurator.setStartAtLogin(startAtLogin);
     }
     public int getPort() {
@@ -52,6 +58,6 @@ public class SystemInfo implements LanternUpdateListener, ConnectivityListener {
     }
     public boolean isConnectOnLaunch() {
         return LanternUtils.getBooleanProperty(
-            LanternConstants.CONNECT_ON_LAUNCH);
+            LanternConstants.CONNECT_ON_LAUNCH, true);
     }
 }

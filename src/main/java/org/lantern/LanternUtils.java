@@ -498,8 +498,27 @@ public class LanternUtils {
         if (StringUtils.isBlank(val)) {
             return false;
         }
-        LOG.info("Checking property: {}", val);
-        return "true".equalsIgnoreCase(val.trim());
+        return LanternUtils.isTrue(val);
+    }
+    
+
+    /**
+     * Accesses a boolean property using the specified default value if it's
+     * not found.
+     * 
+     * @param key The key.
+     * @param def The default value.
+     * @return <code>true</code> if the property is true, otherwise 
+     * <code>false</code>.
+     */
+    public static boolean getBooleanProperty(final String key, 
+        final boolean def) {
+        initProps();
+        final String val = PROPS.getProperty(key, String.valueOf(def));
+        if (StringUtils.isBlank(val)) {
+            return false;
+        }
+        return LanternUtils.isTrue(val);
     }
     
     public static void setStringProperty(final String key, final String value) {
