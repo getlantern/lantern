@@ -648,7 +648,7 @@ public class LanternBrowser {
                                 final String name = StringUtils.substringBefore(arg, "=");
                                 final String val = StringUtils.substringAfter(arg, "=");
                                 if (name.equals("runNow")) {
-                                    if ("on".equalsIgnoreCase(val) || "true".equalsIgnoreCase(val)) {
+                                    if (LanternUtils.isTrue(val)) {
                                         // Just pass through -- we're all good.
                                     } else {
                                         exit();
