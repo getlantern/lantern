@@ -7,6 +7,8 @@ public class SystemInfo implements LanternUpdateListener, ConnectivityListener {
 
     private ConnectivityStatus connectivity; 
     private UpdateData updateData = new UpdateData();
+    
+    private boolean connectOnLaunch;
 
     public boolean isSystemProxy() {
         return Configurator.isProxying();
@@ -45,5 +47,11 @@ public class SystemInfo implements LanternUpdateListener, ConnectivityListener {
     @Override
     public void onConnectivityStateChanged(final ConnectivityStatus ct) {
         this.connectivity = ct;
+    }
+    public void setConnectOnLaunch(final boolean connectOnLaunch) {
+        this.connectOnLaunch = connectOnLaunch;
+    }
+    public boolean isConnectOnLaunch() {
+        return connectOnLaunch;
     }
 }
