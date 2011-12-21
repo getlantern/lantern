@@ -22,6 +22,9 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Keeps track of which domains are whitelisted and persists them to disk.
+ */
 public class DefaultWhitelist implements Whitelist {
 
     private final Logger LOG = LoggerFactory.getLogger(DefaultWhitelist.class);
@@ -43,6 +46,7 @@ public class DefaultWhitelist implements Whitelist {
     private Collection<WhitelistEntry> lastReportedWhitelist;
     
 
+    @Override
     public void reset() {
         WHITELIST_FILE.delete();
         REPORTED_WHITELIST_FILE.delete();
@@ -80,13 +84,14 @@ public class DefaultWhitelist implements Whitelist {
         lastReportedWhitelist = buildWhitelist(REPORTED_WHITELIST_FILE);
     }
 
+    @Override
     public boolean isWhitelisted(final String uri,
         final Collection<WhitelistEntry> wl) {
         final String toMatch = toBaseUri(uri);
         return wl.contains(new WhitelistEntry(toMatch));
     }
     
-    public String toBaseUri(final String uri) {
+    private String toBaseUri(final String uri) {
         LOG.info("Parsing full URI: {}", uri);
         final String afterHttp;
         if (!uri.startsWith("http")) {
@@ -125,11 +130,13 @@ public class DefaultWhitelist implements Whitelist {
      * @return <code>true</code> if the specified domain matches domains for
      * our whitelist, otherwise false.
      */
+    @Override
     public boolean isWhitelisted(final String uri) {
         LOG.info("Parsing full URI: {}", uri);
         return isWhitelisted(uri, whitelist);
     }
     
+    @Override
     public boolean isWhitelisted(final HttpRequest request) {
         LOG.info("Checking whitelist for request");
         final String uri = request.getUri();
@@ -148,6 +155,7 @@ public class DefaultWhitelist implements Whitelist {
         return isWhitelisted(uriToCheck);
     }
     
+    @Override
     public void addEntry(final String entry) {
         whitelist.add(new WhitelistEntry(entry));
         write(whitelist, WHITELIST_FILE);
@@ -172,11 +180,13 @@ public class DefaultWhitelist implements Whitelist {
         }
     }
 
+    @Override
     public void removeEntry(final String entry) {
         whitelist.remove(new WhitelistEntry(entry));
         write(whitelist, WHITELIST_FILE);
     }
     
+    @Override
     public Collection<WhitelistEntry> getAdditions() {
         final Collection<WhitelistEntry> additions = 
             new LinkedHashSet<WhitelistEntry>();
@@ -192,6 +202,7 @@ public class DefaultWhitelist implements Whitelist {
         return additions;
     }
     
+    @Override
     public Collection<WhitelistEntry> getRemovals() {
         final Collection<WhitelistEntry> removals = 
             new LinkedHashSet<WhitelistEntry>();
@@ -207,10 +218,12 @@ public class DefaultWhitelist implements Whitelist {
         return removals;
     }
     
+    @Override
     public String getAdditionsAsJson() {
         return LanternUtils.jsonify(getAdditions());
     }
 
+    @Override
     public String getRemovalsAsJson() {
         return LanternUtils.jsonify(getRemovals());
     }
@@ -247,6 +260,7 @@ public class DefaultWhitelist implements Whitelist {
         return wl;
     }
 
+    @Override
     public void whitelistReported() {
         // We basically need to copy the current whitelist to be the last
         // reported whitelist.
@@ -259,6 +273,7 @@ public class DefaultWhitelist implements Whitelist {
         refreshFromFiles();
     }
     
+    @Override
     public Collection<WhitelistEntry> getWhitelist() {
         synchronized (whitelist) {
             return new TreeSet<WhitelistEntry>(whitelist);
