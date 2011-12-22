@@ -436,17 +436,6 @@ public class Configurator {
         }
     }
     
-    public static void setStartAtLogin(final boolean startAtLogin) {
-        setStartAtLogin(LanternConstants.LAUNCHD_PLIST, startAtLogin);
-    }
-
-    public static void setStartAtLogin(final File file, final boolean start) {
-        if (SystemUtils.IS_OS_MAC_OSX) {
-            LanternUtils.replaceInFile(file, "<"+!start+"/>", "<"+start+"/>");
-        } else if (SystemUtils.IS_OS_WINDOWS) {
-        }
-    }
-
     /*
      * This is done in the installer.
     private void configureWindowsFirewall() {

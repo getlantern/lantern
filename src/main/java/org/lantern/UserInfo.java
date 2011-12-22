@@ -5,25 +5,47 @@ import org.apache.commons.lang.StringUtils;
 /**
  * Data about the user.
  */
-public class UserInfo {
+public class UserInfo implements ConnectivityListener {
     
     private AuthenticationStatus authenticationStatus = 
         AuthenticationStatus.LOGGED_OUT;
+    
+    private ConnectivityStatus connectivityStatus = 
+        LanternHub.pubSub().getConnectivityStatus();
+
+    private String mode = LanternUtils.shouldProxy() ? "get" : "give";
+    
+    public UserInfo() {
+        LanternHub.pubSub().addConnectivityListener(this);
+    }
 
     public ConnectivityStatus getConnectionState() {
-        return LanternHub.connectivityTracker().getConnectivityStatus();
+        return connectivityStatus;
+    }
+    
+    public void setConnectionState(final ConnectivityStatus connectivityStatus) {
     }
     
     public String getEmail() {
         return LanternUtils.getEmail();
+    }
+
+    public void setEmail(final String email) {
     }
     
     public boolean isPasswordSaved() {
         return StringUtils.isNotBlank(LanternUtils.getPassword());
     }
     
+    public void setPasswordSaved(final boolean saved) {
+    }
+    
     public String getMode() {
-        return LanternUtils.shouldProxy() ? "get" : "give";
+        return this.mode;
+    }
+    
+    public void setMode(final String mode) {
+        this.mode = mode;
     }
 
     public void setAuthenticationStatus(
@@ -33,6 +55,11 @@ public class UserInfo {
 
     public AuthenticationStatus getAuthenticationStatus() {
         return authenticationStatus;
+    }
+
+    @Override
+    public void onConnectivityStateChanged(final ConnectivityStatus cs) {
+        this.connectivityStatus = cs;
     }
 
 }

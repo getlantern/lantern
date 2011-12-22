@@ -32,7 +32,6 @@ public class SyncService implements PresenceListener, LanternUpdateListener,
      */
     public SyncService() {
         // Make sure the config class is added as a listener before this class.
-        LanternHub.config();
         LanternHub.pubSub().addPresenceListener(this);
         LanternHub.pubSub().addUpdateListener(this);
         
@@ -98,7 +97,7 @@ public class SyncService implements PresenceListener, LanternUpdateListener,
         }
         final ClientSessionChannel channel = 
             session.getLocalSession().getChannel("/sync");
-        channel.publish(LanternHub.config().config());
+        channel.publish(LanternHub.settings());
         lastUpdateTime = System.currentTimeMillis();
     }
 }

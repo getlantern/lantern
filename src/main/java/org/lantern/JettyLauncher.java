@@ -1,34 +1,22 @@
 package org.lantern;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.MalformedURLException;
 import java.util.Map;
 
 import javax.servlet.GenericServlet;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
-import org.apache.commons.lang.StringUtils;
 import org.cometd.server.CometdServlet;
-import org.eclipse.jetty.http.HttpStatus;
 import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.util.resource.Resource;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.littleshoot.util.IoUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +85,8 @@ public class JettyLauncher {
             public void service(final ServletRequest req, 
                 final ServletResponse res)
                 throws ServletException, IOException {
-                final String json = LanternHub.config().configAsJson();
+                final Settings settings = LanternHub.settings();
+                final String json = LanternUtils.jsonify(settings);
                 final byte[] raw = json.getBytes("UTF-8");
                 res.setContentLength(raw.length);
                 res.setContentType("application/json");
@@ -156,6 +145,7 @@ public class JettyLauncher {
         return context;
     }
     
+    /*
     public void setup() {
         final SelectChannelConnector connector = new SelectChannelConnector();
         connector.setHost("127.0.0.1");
@@ -189,22 +179,13 @@ public class JettyLauncher {
         serve.setDaemon(true);
         serve.start();
     }
+
     
     public boolean isSecureRequest(final String target, 
         final Request baseRequest, final HttpServletRequest request, 
         final HttpServletResponse response) 
         throws IOException {
         log.info("Processing request: {}", target);
-        /*
-        final String code = LanternUtils.getStringProperty("google_oath");
-        if (StringUtils.isBlank(code)) {
-            final String oauth = OAuth.getAuthUrl(fullBasePath);
-            log.info("Redirecting to OAuth: "+oauth);
-            response.sendRedirect(oauth);
-            baseRequest.setHandled(true);
-            return false;
-        }
-        */
         if (!target.startsWith(secureBase)) {
             // This can happen quite often, as the pages we serve 
             // themselves don't know about the secure base. As long as
@@ -375,19 +356,6 @@ public class JettyLauncher {
         return content;
     }
 
-    public void openBrowserWhenReady() {
-        while(!server.isStarted()) {
-            try {
-                Thread.sleep(200);
-            } catch (final InterruptedException e) {
-                log.info("Interrupted?");
-            }
-        }
-        log.info("Server is running!");
-        final String url = fullBasePath + "/lanternmap.html";
-        LanternUtils.browseUrl(url);
-    }
-
     private void close(final Request baseRequest, 
         final HttpServletResponse response) {
         baseRequest.setHandled(true);
@@ -403,6 +371,20 @@ public class JettyLauncher {
         final HttpServletResponse response) throws IOException {
         response.sendError(HttpStatus.BAD_REQUEST_400, msg);
         close(baseRequest, response);
+    }
+    */
+
+    public void openBrowserWhenReady() {
+        while(!server.isStarted()) {
+            try {
+                Thread.sleep(200);
+            } catch (final InterruptedException e) {
+                log.info("Interrupted?");
+            }
+        }
+        log.info("Server is running!");
+        final String url = fullBasePath + "/lanternmap.html";
+        LanternUtils.browseUrl(url);
     }
 }
 

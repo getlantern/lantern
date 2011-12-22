@@ -876,26 +876,10 @@ public class LanternUtils {
 
     public static String jsonify(final Object all) {
         
-        //final Gson gson = GSON_BUILDER.setPrettyPrinting().create();
-        //return gson.toJson(all);
         final ObjectMapper mapper = new ObjectMapper();
         mapper.configure(Feature.INDENT_OUTPUT, true);
-        /*
-        final SimpleModule testModule = 
-            new SimpleModule("Lantern", new Version(1, 0, 0, null));
-        testModule.addSerializer(new JsonSerializer<Presence>() {
+        //mapper.configure(Feature.SORT_PROPERTIES_ALPHABETICALLY, false);
 
-            @Override
-            public void serialize(final Presence value, final JsonGenerator jgen,
-                final SerializerProvider provider) 
-                throws IOException, JsonProcessingException {
-                // TODO Auto-generated method stub
-                
-            }
-            
-        }); // assuming serializer declares correct class to bind to
-        mapper.registerModule(testModule);
-        */
         try {
             return mapper.writeValueAsString(all);
         } catch (final JsonGenerationException e) {

@@ -84,4 +84,9 @@ public class DefaultPubSub implements PubSub {
         }
     }
 
+    @Override
+    public ConnectivityStatus getConnectivityStatus() {
+        return this.connectivityStatus;
+    }
+
 }

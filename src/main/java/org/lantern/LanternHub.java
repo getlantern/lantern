@@ -28,6 +28,11 @@ import com.maxmind.geoip.LookupService;
 public class LanternHub {
 
     private static final Logger LOG = LoggerFactory.getLogger(LanternHub.class);
+    
+    
+    private static final File UNZIPPED = 
+        new File(LanternUtils.dataDir(), "GeoIP.dat");
+    
     private volatile static AtomicReference<TrustedContactsManager> trustedContactsManager =
         new AtomicReference<TrustedContactsManager>();
     private volatile static AtomicReference<Display> display = 
@@ -67,9 +72,6 @@ public class LanternHub {
     private static final AtomicReference<LocalCipherProvider> localCipherProvider =
         new AtomicReference<LocalCipherProvider>();
     
-    private static final AtomicReference<ConnectivityTracker> connectivityTracker =
-        new AtomicReference<ConnectivityTracker>();
-    
     private static final AtomicReference<PubSub> pubSub =
         new AtomicReference<PubSub>();
     
@@ -83,22 +85,22 @@ public class LanternHub {
         new AtomicReference<Timer>();
     
     private static final AtomicReference<UserInfo> userInfo =
-        new AtomicReference<UserInfo>();
+        new AtomicReference<UserInfo>(new UserInfo());
     
     private static final AtomicReference<SystemInfo> systemInfo =
         new AtomicReference<SystemInfo>();
-    
-    private static final AtomicReference<ConfigApi> config =
-        new AtomicReference<ConfigApi>();
     
     private static final AtomicReference<Platform> platform =
         new AtomicReference<Platform>();
     
     private static final AtomicReference<Internet> internet =
         new AtomicReference<Internet>();
-    
-    private static final File UNZIPPED = 
-        new File(LanternUtils.dataDir(), "GeoIP.dat");
+
+    private static final AtomicReference<Roster> roster =
+        new AtomicReference<Roster>(new Roster());
+        
+    private static final AtomicReference<Settings> settings =
+        new AtomicReference<Settings>();
     
     public static LookupService getGeoIpLookup() {
         synchronized (lookupService) {
@@ -251,15 +253,6 @@ public class LanternHub {
         }
     }
 
-    public static ConfigApi config() {
-        synchronized (config) {
-            if (config.get() == null) {
-                config.set(new DefaultConfigApi());
-            } 
-            return config.get();
-        }
-    }
-    
     public static CookieTracker cookieTracker() {
         synchronized (cookieTracker) {
             if (cookieTracker.get() == null) {
@@ -291,15 +284,6 @@ public class LanternHub {
         }
     }
 
-    public static ConnectivityTracker connectivityTracker() {
-        synchronized (connectivityTracker) {
-            if (connectivityTracker.get() == null) {
-                connectivityTracker.set(new DefaultConnectivityTracker());
-            }
-            return connectivityTracker.get();
-        }
-    }
-
     public static PubSub pubSub() {
         synchronized (pubSub) {
             if (pubSub.get() == null) {
@@ -312,7 +296,7 @@ public class LanternHub {
     public static Whitelist whitelist() {
         synchronized (whitelist) {
             if (whitelist.get() == null) {
-                whitelist.set(new DefaultWhitelist());
+                whitelist.set(new Whitelist());
             }
             return whitelist.get();
         }
@@ -369,6 +353,26 @@ public class LanternHub {
                 internet.set(new Internet());
             }
             return internet.get();
+        }
+    }
+    
+    public static Roster roster() {
+        synchronized (roster) {
+            if (roster.get() == null) {
+                roster.set(new Roster());
+            }
+            return roster.get();
+        }
+    }
+    
+    public static Settings settings() {
+        synchronized (settings) {
+            if (settings.get() == null) {
+                final SettingsIo io = new SettingsIo();
+                final Settings set = io.read();
+                settings.set(set);
+            }
+            return settings.get();
         }
     }
 }
