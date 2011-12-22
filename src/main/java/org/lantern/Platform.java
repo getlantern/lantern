@@ -7,14 +7,26 @@ import org.apache.commons.lang.SystemUtils;
  */
 public class Platform {
 
+    private String osName = SystemUtils.OS_NAME;
+    private String osArch = SystemUtils.OS_ARCH;
+    private String osVersion = SystemUtils.OS_VERSION;
+    
     public String getOsName() {
-        return SystemUtils.OS_NAME;
+        return osName;
     }
-    public String getOsversion() {
-        return SystemUtils.OS_VERSION;
+    public void setOsName(String osName) {
+        this.osName = osName;
     }
     public String getOsArch() {
-        return SystemUtils.OS_ARCH;
+        return osArch;
     }
-    
+    public void setOsArch(String osArch) {
+        this.osArch = osArch;
+    }
+    public String getOsVersion() {
+        return osVersion;
+    }
+    public void setOsVersion(String osVersion) {
+        this.osVersion = osVersion;
+    }
 }

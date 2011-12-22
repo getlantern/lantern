@@ -402,11 +402,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             statsTracker.getTotalProxiedRequests());
         json.put(LanternConstants.DIRECT_REQUESTS, 
             statsTracker.getDirectRequests());
-        json.put(LanternConstants.WHITELIST_ADDITIONS, 
-            LanternHub.whitelist().getAdditionsAsJson());
+        //json.put(LanternConstants.WHITELIST_ADDITIONS, 
+        //    LanternHub.whitelist().getAdditionsAsJson());
             //LanternUtils.toJsonArray(Whitelist.getAdditions()));
-        json.put(LanternConstants.WHITELIST_REMOVALS, 
-            LanternHub.whitelist().getRemovalsAsJson());
+        //json.put(LanternConstants.WHITELIST_REMOVALS, 
+        //    LanternHub.whitelist().getRemovalsAsJson());
         json.put(LanternConstants.VERSION_KEY, LanternConstants.VERSION);
         final String str = json.toJSONString();
         LOG.info("Reporting data: {}", str);

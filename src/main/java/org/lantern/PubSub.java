@@ -22,4 +22,6 @@ public interface PubSub {
 
     void setConnectivityStatus(ConnectivityStatus ct);
 
+    ConnectivityStatus getConnectivityStatus();
+
 }

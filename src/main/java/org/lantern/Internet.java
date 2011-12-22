@@ -10,15 +10,32 @@ import org.littleshoot.util.NetworkUtils;
  */
 public class Internet {
 
+    private String privateAddress;
+    private String publicAddress;
+    
+    public Internet() {
+        try {
+            this.privateAddress = 
+                NetworkUtils.getLocalHost().getCanonicalHostName();
+        } catch (final UnknownHostException e) {
+            this.privateAddress = "";
+        }
+        this.publicAddress =
+            new PublicIpAddress().getPublicIpAddress().getHostAddress();
+    }
+
     public String getPublic() {
-        return new PublicIpAddress().getPublicIpAddress().getHostAddress();
+        return this.publicAddress;
     }
     
     public String getPrivate() {
-        try {
-            return NetworkUtils.getLocalHost().getCanonicalHostName();
-        } catch (final UnknownHostException e) {
-            return "";
-        }
+        return this.privateAddress;
+    }
+    
+    public void setPrivate(final String privateAddress) {
+        this.privateAddress = privateAddress;
+    }
+    public void setPublic(final String publicAddress) {
+        this.publicAddress = publicAddress;
     }
 }
