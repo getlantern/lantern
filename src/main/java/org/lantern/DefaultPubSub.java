@@ -17,7 +17,7 @@ public class DefaultPubSub implements PubSub {
         new ArrayList<PresenceListener>();
     
     
-    private final Collection<ConnectivityListener> listeners =
+    private final Collection<ConnectivityListener> connectivityListeners =
         new ArrayList<ConnectivityListener>();
 
     private ConnectivityStatus connectivityStatus = 
@@ -25,8 +25,8 @@ public class DefaultPubSub implements PubSub {
     
     @Override
     public void addConnectivityListener(final ConnectivityListener cl) {
-        synchronized (listeners) {
-            listeners.add(cl);
+        synchronized (connectivityListeners) {
+            connectivityListeners.add(cl);
         }
     }
     
@@ -36,15 +36,15 @@ public class DefaultPubSub implements PubSub {
             return;
         }
         this.connectivityStatus = ct;
-        synchronized (listeners) {
-            for (final ConnectivityListener cl : listeners) {
+        synchronized (connectivityListeners) {
+            for (final ConnectivityListener cl : connectivityListeners) {
                 cl.onConnectivityStateChanged(ct);
             }
         }
     }
     
     @Override
-    public void addUpdate(final LanternUpdate lanternUpdate) {
+    public void addUpdate(final UpdateData lanternUpdate) {
         synchronized (updateListeners) {
             for (final LanternUpdateListener lul : updateListeners) {
                 lul.onUpdate(lanternUpdate);
@@ -82,6 +82,11 @@ public class DefaultPubSub implements PubSub {
         synchronized (presenceListeners) {
             presenceListeners.add(presenceListener);
         }
+    }
+
+    @Override
+    public ConnectivityStatus getConnectivityStatus() {
+        return this.connectivityStatus;
     }
 
 }

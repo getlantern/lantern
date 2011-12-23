@@ -6,16 +6,26 @@ package org.lantern;
  */
 public class WhitelistEntry implements Comparable<WhitelistEntry> {
 
-    private final String site;
-    private final boolean required;
+    private String site;
+    private boolean required = false;
+    private boolean defaultSetting;
+    
+    public WhitelistEntry() {
+    }
 
     public WhitelistEntry(final String site) {
         this(site, false);
     }
 
     public WhitelistEntry(final String site, final boolean required) {
+        this(site, required, false);
+    }
+    
+    public WhitelistEntry(final String site, final boolean required,
+        final boolean defaultSetting) {
         this.site = site;
         this.required = required;
+        this.defaultSetting = defaultSetting;
     }
 
     public String getSite() {
@@ -25,22 +35,38 @@ public class WhitelistEntry implements Comparable<WhitelistEntry> {
     public boolean isRequired() {
         return required;
     }
+    
+    public void setSite(final String site) {
+        this.site = site;
+    }
+
+    public void setRequired(final boolean required) {
+        this.required = required;
+    }
+
+    public void setDefault(boolean defaultSetting) {
+        this.defaultSetting = defaultSetting;
+    }
+
+    public boolean isDefault() {
+        return defaultSetting;
+    }
 
     @Override
     public int compareTo(final WhitelistEntry o) {
-        return site.compareTo(o.getSite());
+        return this.site.compareTo(o.site);
     }
     
     @Override 
     public String toString() {
-        return site;
+        return this.site;
     }
 
     @Override
     public int hashCode() {
         final int prime = 31;
         int result = 1;
-        result = prime * result + ((site == null) ? 0 : site.hashCode());
+        result = prime * result + ((this.site == null) ? 0 : this.site.hashCode());
         return result;
     }
 
@@ -53,10 +79,10 @@ public class WhitelistEntry implements Comparable<WhitelistEntry> {
         if (getClass() != obj.getClass())
             return false;
         WhitelistEntry other = (WhitelistEntry) obj;
-        if (site == null) {
+        if (this.site == null) {
             if (other.site != null)
                 return false;
-        } else if (!site.equals(other.site))
+        } else if (!this.site.equals(other.site))
             return false;
         return true;
     }

@@ -8,7 +8,7 @@ import org.jivesoftware.smack.packet.Presence;
  */
 public interface PubSub {
 
-    void addUpdate(LanternUpdate lanternUpdate);
+    void addUpdate(UpdateData lanternUpdate);
     
     void addUpdateListener(LanternUpdateListener updateListener);
 
@@ -21,5 +21,7 @@ public interface PubSub {
     void addConnectivityListener(ConnectivityListener cl);
 
     void setConnectivityStatus(ConnectivityStatus ct);
+
+    ConnectivityStatus getConnectivityStatus();
 
 }
