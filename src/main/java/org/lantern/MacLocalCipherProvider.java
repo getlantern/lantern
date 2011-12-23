@@ -1,11 +1,12 @@
 package org.lantern; 
 
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+
 import com.mcdermottroe.apple.OSXKeychain;
 import com.mcdermottroe.apple.OSXKeychainException;
 import java.io.File;
 import java.io.IOException;
-import java.math.BigInteger;
-import java.util.Arrays;
 import java.security.GeneralSecurityException;
 import org.apache.commons.codec.binary.Base64;
 
@@ -28,38 +29,44 @@ public class MacLocalCipherProvider extends AbstractAESLocalCipherProvider {
     private final Logger log = LoggerFactory.getLogger(getClass());    
 
     MacLocalCipherProvider() {
-        this(DEFAULT_CIPHER_PARAMS_FILE);
+        super();
     }
     
-    MacLocalCipherProvider(final File cipherParamsFile) {
-        super(cipherParamsFile);
+    MacLocalCipherProvider(final File validatorFile, final File cipherParamsFile) {
+        super(validatorFile, cipherParamsFile);
     }
 
+    @Override
     byte[] loadKeyData() throws IOException, GeneralSecurityException {
         try {
             OSXKeychain keychain = OSXKeychain.getInstance();
-            Base64 base64 = new Base64();
-            String encodedKey = keychain.findGenericPassword(SERVICE_NAME, ACCOUNT_NAME);
+            final Base64 base64 = new Base64();
+            final String encodedKey = keychain.findGenericPassword(SERVICE_NAME, ACCOUNT_NAME);
             return base64.decode(encodedKey.getBytes());
         } catch (OSXKeychainException e) {
             throw new GeneralSecurityException(e);
         }
     }
 
+    @Override
     void storeKeyData(byte[] key) throws IOException, GeneralSecurityException {
-        Base64 base64 = new Base64();
-        byte [] encodedKey = base64.encode(key);
+        final Base64 base64 = new Base64();
+        final byte [] encodedKey = base64.encode(key);
         try {
             OSXKeychain keychain = OSXKeychain.getInstance();
+            String keyString = new String(encodedKey);
             try {
-                keychain.deleteGenericPassword(SERVICE_NAME, ACCOUNT_NAME);
-                log.debug("Removing old lantern keychain entry...");
-            } catch (OSXKeychainException e) { /* expected result */ }
-            keychain.addGenericPassword(SERVICE_NAME, ACCOUNT_NAME, new String(encodedKey));
+                keychain.modifyGenericPassword(SERVICE_NAME, ACCOUNT_NAME, keyString);
+                log.debug("Replaced old lantern keychain entry.");
+            } catch (OSXKeychainException e) {
+                /* not found, add */
+                keychain.addGenericPassword(SERVICE_NAME, ACCOUNT_NAME, keyString);
+                log.debug("Created new lantern keychain entry.");
+            }
         } catch (OSXKeychainException e) {
             throw new GeneralSecurityException(e);
         } finally {
-            Arrays.fill(encodedKey, (byte) 0);
+            zeroFill(encodedKey);
         }
     }
 }

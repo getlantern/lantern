@@ -1,8 +1,5 @@
 package org.lantern;
 
-import com.mcdermottroe.apple.OSXKeychain;
-import com.mcdermottroe.apple.OSXKeychainException;
-
 import cx.ath.matthew.unix.UnixIOException;
 import java.io.File;
 import java.io.IOException;
@@ -20,7 +17,6 @@ import org.apache.commons.codec.binary.Base64;
 
 import org.freedesktop.dbus.DBusConnection;
 import org.freedesktop.dbus.exceptions.DBusException; 
-import org.freedesktop.dbus.DBusInterface;
 import org.freedesktop.dbus.DBusSigHandler;
 import org.freedesktop.dbus.DBusSignal;
 import org.freedesktop.dbus.Path;
@@ -65,11 +61,11 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
     private static final Logger LOG = LoggerFactory.getLogger(SecretServiceLocalCipherProvider.class);
     
     SecretServiceLocalCipherProvider() {
-        this(DEFAULT_CIPHER_PARAMS_FILE);
+        super();
     }
 
-    SecretServiceLocalCipherProvider(final File cipherParamsFile) {
-        super(cipherParamsFile);
+    SecretServiceLocalCipherProvider(final File validatorFile, final File cipherParamsFile) {
+        super(validatorFile, cipherParamsFile);
     }
 
     private static void initDBUS() throws IOException {
@@ -134,7 +130,7 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
 
             // negotiate a "plain" session (no encryption)
             final Pair<Variant, Path> result = secretService.OpenSession(ALGORITHM_PLAIN, new Variant(""));
-            if (NO_OBJECT.equals(result.b)) {
+            if (NO_OBJECT.equals(result.b.getPath())) {
                 throw new IOException("Unable to negotiate DBus session!");
             }
             final Path sessionPath = result.b;
@@ -148,8 +144,8 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
             LOG.debug("Got {} unlocked / {} locked secret items.", items.a.size(), items.b.size());
 
             Item secretItem = null;
-            if (items.a.size() == 0) {
-                if (items.b.size() == 0) {
+            if (items.a.isEmpty()) {
+                if (items.b.isEmpty()) {
                     LOG.debug("Secret item is missing!");
                     throw new GeneralSecurityException("Unable to locate secret in keychain!");
                 }
@@ -217,7 +213,7 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
 
             // negotiate a "plain" session (no encryption)
             final Pair<Variant, Path> result = secretService.OpenSession(ALGORITHM_PLAIN, new Variant(""));
-            if (NO_OBJECT.equals(result.b)) {
+            if (NO_OBJECT.equals(result.b.getPath())) {
                 throw new IOException("Unable to negotiate DBus session!");
             }
             final Path sessionPath = result.b;
@@ -296,7 +292,7 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
             return true;
         }
         // if there is a prompt 
-        else if (!NO_OBJECT.equals(unlockResult.b)) {
+        else if (!NO_OBJECT.equals(unlockResult.b.getPath())) {
             LOG.debug("Prompting user to unlock....");
             Prompt.Completed sig = prompt(unlockResult.b, conn);
             LOG.debug("Prompt completed with dismissed={} result={}", sig.dismissed, sig.result);
