@@ -8,7 +8,7 @@ public interface LanternUpdateListener {
     /**
      * Notifies the listener of a new update.
      * 
-     * @param lanternUpdate The update.
+     * @param updateData The update.
      */
-    void onUpdate(LanternUpdate lanternUpdate);
+    void onUpdate(UpdateData updateData);
 }

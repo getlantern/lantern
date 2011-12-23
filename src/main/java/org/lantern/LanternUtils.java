@@ -1,6 +1,5 @@
 package org.lantern;
 
-import com.google.common.io.Files;
 import java.awt.Desktop;
 import java.io.Console;
 import java.io.File;
@@ -11,7 +10,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
@@ -57,6 +55,10 @@ import org.apache.commons.io.IOExceptionWithCause;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig.Feature;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -73,7 +75,6 @@ import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
-import org.jivesoftware.smack.packet.Presence;
 import org.json.simple.JSONArray;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
@@ -84,14 +85,7 @@ import org.littleshoot.util.Sha1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.ExclusionStrategy;
-import com.google.gson.FieldAttributes;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonSerializationContext;
-import com.google.gson.JsonSerializer;
+import com.google.common.io.Files;
 
 /**
  * Utility methods for use with Lantern.
@@ -115,8 +109,6 @@ public class LanternUtils {
     
     private static final Properties PROPS = new Properties();
         
-    private static final GsonBuilder GSON_BUILDER = new GsonBuilder();
-    
     static {
         
         if (SystemUtils.IS_OS_WINDOWS) {
@@ -160,41 +152,6 @@ public class LanternUtils {
                 LOG.error("Could not create props file!!", e);
             }
         }
-        
-        GSON_BUILDER.addSerializationExclusionStrategy(new ExclusionStrategy() {
-            
-            @Override
-            public boolean shouldSkipField(final FieldAttributes fa) {
-                final String name = fa.getName();
-                if (name.equalsIgnoreCase("log")) {
-                    return true;
-                }
-                if (name.contains("WHITELIST")) {
-                    return true;
-                }
-                return false;
-            }
-            
-            @Override
-            public boolean shouldSkipClass(final Class<?> clazz) {
-                return false;
-            }
-        });
-        
-        GSON_BUILDER.registerTypeAdapter(Presence.class, new JsonSerializer<Presence>() {
-            @Override
-            public JsonElement serialize(final Presence pres, final Type type,
-                final JsonSerializationContext jsc) {
-                final JsonObject obj = new JsonObject();
-                obj.addProperty("user", pres.getFrom());
-                obj.addProperty("type", pres.getType().name());
-                obj.addProperty("available", pres.isAvailable());
-                obj.addProperty("away", pres.isAway());
-                obj.addProperty("trusted", 
-                    LanternHub.getTrustedContactsManager().isTrusted(pres.getFrom()));
-                return obj;
-            }
-        });
     }
     
     public static final ClientSocketChannelFactory clientSocketChannelFactory =
@@ -541,8 +498,27 @@ public class LanternUtils {
         if (StringUtils.isBlank(val)) {
             return false;
         }
-        LOG.info("Checking property: {}", val);
-        return "true".equalsIgnoreCase(val.trim());
+        return LanternUtils.isTrue(val);
+    }
+    
+
+    /**
+     * Accesses a boolean property using the specified default value if it's
+     * not found.
+     * 
+     * @param key The key.
+     * @param def The default value.
+     * @return <code>true</code> if the property is true, otherwise 
+     * <code>false</code>.
+     */
+    public static boolean getBooleanProperty(final String key, 
+        final boolean def) {
+        initProps();
+        final String val = PROPS.getProperty(key, String.valueOf(def));
+        if (StringUtils.isBlank(val)) {
+            return false;
+        }
+        return LanternUtils.isTrue(val);
     }
     
     public static void setStringProperty(final String key, final String value) {
@@ -900,24 +876,10 @@ public class LanternUtils {
 
     public static String jsonify(final Object all) {
         
-        final Gson gson = GSON_BUILDER.setPrettyPrinting().create();
-        return gson.toJson(all);
-        /*
         final ObjectMapper mapper = new ObjectMapper();
-        final SimpleModule testModule = 
-            new SimpleModule("Lantern", new Version(1, 0, 0, null));
-        testModule.addSerializer(new JsonSerializer<Presence>() {
+        mapper.configure(Feature.INDENT_OUTPUT, true);
+        //mapper.configure(Feature.SORT_PROPERTIES_ALPHABETICALLY, false);
 
-            @Override
-            public void serialize(final Presence value, final JsonGenerator jgen,
-                final SerializerProvider provider) 
-                throws IOException, JsonProcessingException {
-                // TODO Auto-generated method stub
-                
-            }
-            
-        }); // assuming serializer declares correct class to bind to
-        mapper.registerModule(testModule);
         try {
             return mapper.writeValueAsString(all);
         } catch (final JsonGenerationException e) {
@@ -928,7 +890,6 @@ public class LanternUtils {
             LOG.warn("Error generating JSON", e);
         }
         return "";
-        */
     }
 
     /**
@@ -995,6 +956,14 @@ public class LanternUtils {
             FileUtils.deleteQuietly(tempDir);
             IOUtils.closeQuietly(is);
         }
+    }
+
+    public static String getEmail() {
+        return LanternUtils.getStringProperty("google.user");
+    }
+
+    public static String getPassword() {
+        return LanternUtils.getStringProperty("google.pwd");
     }
 }
 
