@@ -77,7 +77,7 @@ public class JettyLauncher {
         cometd.setInitOrder(1);
         api.addServlet(cometd, "/cometd/*");
         
-        final class ConfigServlet extends GenericServlet {
+        final class SettingsServlet extends GenericServlet {
 
             private static final long serialVersionUID = -2633162671596490471L;
 
@@ -98,7 +98,7 @@ public class JettyLauncher {
         ds.setInitOrder(3);
         api.addServlet(ds, "/*");
         
-        final ServletHolder config = new ServletHolder(new ConfigServlet());
+        final ServletHolder config = new ServletHolder(new SettingsServlet());
         config.setInitOrder(3);
         api.addServlet(config, "/config");
         

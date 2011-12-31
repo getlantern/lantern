@@ -5,6 +5,8 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.math.RandomUtils;
@@ -18,6 +20,22 @@ public class SettingsTest {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     @Test
+    public void testSettingsUpdate() throws Exception {
+        final File plist = plist();
+        final File settingsFile = settingsFile();
+        
+        final SettingsIo io = new SettingsIo(plist, settingsFile);
+        final Settings settings = io.read();
+        
+        final Map<String, Object> update = new HashMap<String, Object>();
+        update.put("system", "{'systemProxy' : false}}");
+        
+        io.apply(update);
+        
+        
+    }
+    
+    //@Test
     public void testSettings() throws Exception {
         final File plist = plist();
         final File settingsFile = settingsFile();
