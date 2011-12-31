@@ -3,23 +3,15 @@ package org.lantern;
 import java.io.File;
 import java.io.IOError;
 import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetEncoder;
-import java.nio.charset.CoderResult;
 import java.security.Key;
-import java.security.MessageDigest;
 import java.security.GeneralSecurityException;
 import java.security.spec.KeySpec;
-import java.security.SecureRandom;
 import java.util.Arrays;
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
-import org.apache.commons.io.FileUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,20 +30,14 @@ import org.slf4j.LoggerFactory;
  */
 public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
     
-    public static final File DEFAULT_VALIDATOR_FILE = 
-        new File(LanternUtils.configDir(), "cipher.validator");
-    private static final int VALIDATOR_SALT_BYTES = 8;
-    
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final File validatorFile;
     
     public DefaultLocalCipherProvider() {
-        this(DEFAULT_VALIDATOR_FILE, DEFAULT_CIPHER_PARAMS_FILE);
+        super();
     }
     
     public DefaultLocalCipherProvider(final File validatorFile, final File cipherParamsFile) {
-        super(cipherParamsFile);
-        this.validatorFile = validatorFile;
+        super(validatorFile, cipherParamsFile);
     }
     
     @Override
@@ -70,15 +56,17 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
     Key getLocalKey(boolean init) throws IOException, GeneralSecurityException {
         
         char[] password = null;
-        boolean passwordValid = false;
+        byte[] rawKey = null;
+        byte[] validator = null;
         int tries = 0;
         
         try {
-            while (!passwordValid) {
+            while (true) {
                 if (tries > 0) {
                     log.info("Incorrect password.");
                 }
                 zeroFill(password);
+                zeroFill(rawKey);
 
                 if (LanternUtils.runWithUi()) {
                     password = getPasswordGUI(init, tries);
@@ -86,93 +74,36 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
                 else {
                     password = getPasswordCLI(init, tries);
                 }
+                
+                final KeySpec keySpec = new PBEKeySpec(password);
+                final SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(getAlgorithm());
+                final SecretKey key = keyFactory.generateSecret(keySpec);
+                rawKey = key.getEncoded();
 
                 if (init) {
-                    passwordValid = true;
-                    storeValidatorFor(password);
+                    validator = createValidator(rawKey);
+                    storeValidator(validator);
+                    return key;
                 }
                 else {
-                    passwordValid = checkPasswordValid(password);
+                    if (validator == null) {
+                        validator = loadValidator();
+                    }
+                    if (checkKeyValid(rawKey, validator)) {
+                        return key;
+                    }
                 }
                 tries += 1;
             }
-            final KeySpec keySpec = new PBEKeySpec(password);
-            final SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(getAlgorithm());
-            final SecretKey key = keyFactory.generateSecret(keySpec);
-            return key;
         } catch (IOError e) {
             throw new IOException(e.getMessage());
         }
         finally {
             zeroFill(password);
-        }
-    }
-    
-    boolean checkPasswordValid(char[] password) throws IOException, GeneralSecurityException {
-        if (!validatorFile.isFile()) {
-            return false;
-        }
-        final byte[] validator = loadValidator();
-        final byte[] salt = Arrays.copyOf(validator, VALIDATOR_SALT_BYTES);
-        return Arrays.equals(validator, createValidator(password, salt));
-    }
-    
-    byte[] createValidator(char [] password, byte[] salt) throws IOException, GeneralSecurityException {
-        // the validator is the concatenation of the salt value 
-        // and the sha256 digest of the salt and the utf-8 encoded password.
-        final byte[] passwordBytes = new byte[password.length*2];
-        try {
-            // encode password in utf-8
-            final Charset charset = Charset.forName("UTF-8");
-            final CharsetEncoder encoder = charset.newEncoder();
-            CoderResult cr = encoder.encode(CharBuffer.wrap(password), ByteBuffer.wrap(passwordBytes), true);
-            if (cr.isError()) {
-                throw new IOException("Unable to encode password.");
-            }
-
-            // create digest        
-            final MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(salt);
-            md.update(passwordBytes);
-            final byte[] hash = md.digest();
-            final byte[] validator = new byte[salt.length + hash.length];
-            System.arraycopy(salt, 0, validator, 0, salt.length);
-            System.arraycopy(hash, 0, validator, salt.length, hash.length);
-            return validator; 
-        }
-        finally {
-            zeroFill(passwordBytes);
-        }
-    }
-    
-    byte[] loadValidator() throws IOException {
-        return FileUtils.readFileToByteArray(validatorFile);
-    }
-    
-    /** 
-     * create and store a new validator for the password given.
-     */
-    void storeValidatorFor(char []password) throws IOException, GeneralSecurityException {
-        // generate new salt bytes
-        final byte[] salt = new byte[VALIDATOR_SALT_BYTES];
-        final SecureRandom secureRandom = LanternHub.secureRandom();
-        secureRandom.nextBytes(salt);
-        final byte[] validator = createValidator(password, salt);
-        FileUtils.writeByteArrayToFile(validatorFile, validator);
-    }
-    
-    void zeroFill(char[] array) {
-        if (array != null) {
-            Arrays.fill(array, '\0');
+            zeroFill(rawKey);
         }
     }
 
-    void zeroFill(byte[] array) {
-        if (array != null) {
-            Arrays.fill(array, (byte) 0);
-        }
-    }
-    
     char[] getPasswordGUI(boolean init, int tries) {
         if (init) {
             LanternBrowser browser = new LanternBrowser(false);
@@ -181,6 +112,7 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
         else {
             LanternBrowser browser = new LanternBrowser(false);
             return browser.getLocalPassword(new LanternBrowser.PasswordValidator() {
+                @Override
                 public boolean passwordIsValid(char [] password) throws Exception {
                     return checkPasswordValid(password);
                 }
@@ -188,6 +120,19 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
        }
     }
     
+    boolean checkPasswordValid(char [] password) throws IOException, GeneralSecurityException {
+        byte [] rawKey = null;
+        try {
+            final KeySpec keySpec = new PBEKeySpec(password);
+            final SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(getAlgorithm());
+            final SecretKey key = keyFactory.generateSecret(keySpec);
+            rawKey = key.getEncoded();
+            return checkKeyValid(rawKey, loadValidator());
+        } finally {
+            zeroFill(rawKey);
+        }
+    }
+
     char[] getPasswordCLI(boolean init, int tries) throws IOException {
         if (init) {
             while (true) {

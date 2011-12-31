@@ -31,18 +31,18 @@ public class WindowsLocalCipherProvider extends AbstractAESLocalCipherProvider {
     public static final File DEFAULT_KEY_FILE = 
         new File(LanternUtils.configDir(), "cipher.dpk");
 
-    private static AtomicReference<Boolean> DPAPI_INITIALIZED = 
+    private static final AtomicReference<Boolean> DPAPI_INITIALIZED =
         new AtomicReference<Boolean>();
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final File keyFile;
 
     public WindowsLocalCipherProvider() {
-        this(DEFAULT_KEY_FILE, DEFAULT_CIPHER_PARAMS_FILE);
+        this(DEFAULT_KEY_FILE, DEFAULT_VALIDATOR_FILE, DEFAULT_CIPHER_PARAMS_FILE);
     }
     
-    public WindowsLocalCipherProvider(final File keyFile, final File cipherParamsFile) {
-        super(cipherParamsFile);
+    public WindowsLocalCipherProvider(final File keyFile, final File validatorFile, final File cipherParamsFile) {
+        super(validatorFile, cipherParamsFile);
         this.keyFile = keyFile;
     }
 
@@ -57,6 +57,7 @@ public class WindowsLocalCipherProvider extends AbstractAESLocalCipherProvider {
         }
     }
 
+    @Override
     byte[] loadKeyData() throws IOException, GeneralSecurityException {
         initDPAPI();
         try {
@@ -70,6 +71,7 @@ public class WindowsLocalCipherProvider extends AbstractAESLocalCipherProvider {
         }
     }
 
+    @Override
     void storeKeyData(byte [] key) throws IOException, GeneralSecurityException {
         initDPAPI();
         try {
