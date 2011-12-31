@@ -59,8 +59,37 @@
                         $('#body').html('<div>Server Says: ' + JSON.stringify(message) + '</div>');
                         $('#body').fadeIn(1000);
                     });
+                    /*
+                    var update = {"system" : {
+                        "connectivity" : null,
+                        "updateData" : {
+                          "url" : null,
+                          "version" : null
+                        },
+                        "location" : "US",
+                        "internet" : {
+                          "public" : "216.3.159.66",
+                          "private" : "10.0.2.97"
+                        },
+                        "platform" : {
+                          "osName" : "Mac OS X",
+                          "osArch" : "x86_64",
+                          "osVersion" : "10.6.8"
+                        },
+                        "startAtLogin" : true,
+                        "port" : 8787,
+                        "version" : "lantern_version_tok",
+                        "connectOnLaunch" : true,
+                        "systemProxy" : true
+                    }};
+                    */
+                    var update = {
+                        "system" : {
+                            "startAtLogin" : false
+                        }
+                    };
                     // Publish on a service channel since the message is for the server only
-                    cometd.publish('/service/sync', { name: 'Josh' });
+                    cometd.publish('/service/sync', update);//{ name: 'Josh' });
                 });
             }
         }

@@ -26,7 +26,6 @@ public class SystemInfo implements LanternUpdateListener, ConnectivityListener {
         this.isSystemProxy = isSystemProxy;
     }
     
-    
     public boolean isStartAtLogin() {
         return this.startAtLogin;
     }

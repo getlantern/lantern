@@ -121,7 +121,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             final String part = msg.getFrom();
             LOG.info("Got chat participant: {} with message:\n {}", part, 
                 msg.toXML());
-            if (part.startsWith(LanternConstants.LANTERN_JID)) {
+            if (StringUtils.isNotBlank(part) && 
+                part.startsWith(LanternConstants.LANTERN_JID)) {
                 processLanternHubMessage(msg);
             }
 

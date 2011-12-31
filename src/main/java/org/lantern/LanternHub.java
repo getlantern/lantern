@@ -99,6 +99,9 @@ public class LanternHub {
     private static final AtomicReference<Roster> roster =
         new AtomicReference<Roster>(new Roster());
         
+    private static final AtomicReference<SettingsIo> settingsIo =
+        new AtomicReference<SettingsIo>();
+    
     private static final AtomicReference<Settings> settings =
         new AtomicReference<Settings>();
     
@@ -365,10 +368,20 @@ public class LanternHub {
         }
     }
     
+    public static SettingsIo settingsIo() {
+        synchronized (settingsIo) {
+            if (settingsIo.get() == null) {
+                final SettingsIo io = new SettingsIo();
+                settingsIo.set(io);
+            }
+            return settingsIo.get();
+        }
+    }
+    
     public static Settings settings() {
         synchronized (settings) {
             if (settings.get() == null) {
-                final SettingsIo io = new SettingsIo();
+                final SettingsIo io = LanternHub.settingsIo();
                 final Settings set = io.read();
                 settings.set(set);
             }
