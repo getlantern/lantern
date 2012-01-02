@@ -17,6 +17,8 @@ public class UserInfo {
 
     private String mode;
     
+    private boolean proxyAllSites;
+    
     public UserInfo() {
         LanternHub.eventBus().register(this);
     }
@@ -67,6 +69,14 @@ public class UserInfo {
     public void onConnectivityStateChanged(
         final ConnectivityStatusChangeEvent csce) {
         this.connectivityStatus = csce.getConnectivityStatus();
+    }
+
+    public void setProxyAllSites(final boolean proxyAllSites) {
+        this.proxyAllSites = proxyAllSites;
+    }
+
+    public boolean isProxyAllSites() {
+        return proxyAllSites;
     }
 
 }
