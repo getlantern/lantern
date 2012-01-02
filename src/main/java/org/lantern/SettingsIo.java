@@ -4,14 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
 import java.security.GeneralSecurityException;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.SystemUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,9 +26,11 @@ import com.google.common.base.Function;
 public class SettingsIo {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final File launchdPlist;
     
-    public final File settingsFile;
+    private final File settingsFile;
+    
+    private final SettingsChangeImplementor implementor =
+        new SettingsChangeImplementor();
     
     /**
      * Creates a new instance with all the default operations.
@@ -46,7 +49,6 @@ public class SettingsIo {
      * @param settingsFile The file where settings are stored.
      */
     public SettingsIo(final File launchdPlist, final File settingsFile) {
-        this.launchdPlist = launchdPlist;
         this.settingsFile = settingsFile;
     }
 
@@ -57,8 +59,14 @@ public class SettingsIo {
      */
     public Settings read() {
         if (!settingsFile.isFile()) {
-            final Settings settings = new Settings();
-            //write(settings);
+            final Internet internet = new Internet();
+            final Platform platform = new Platform();
+            final SystemInfo sys = new SystemInfo(internet, platform);
+            final UserInfo user = new UserInfo();
+            final Whitelist whitelist = new Whitelist();
+            final Roster roster = new Roster();
+            final Settings settings = new Settings(sys, user, whitelist, roster);
+            write(settings);
             return settings;
         }
         final ObjectMapper mapper = new ObjectMapper();
@@ -88,9 +96,6 @@ public class SettingsIo {
      * @param settings The settings to apply.
      */
     public void write(final Settings settings) {
-        final SystemInfo si = settings.getSystem();
-        setStartAtLogin(si.isStartAtLogin());
-
         final String json = LanternUtils.jsonify(settings);
         //log.info("Writing:\n{}", json);
         OutputStream os = null;
@@ -107,19 +112,6 @@ public class SettingsIo {
         
     }
     
-    private void setStartAtLogin(final boolean start) {
-        if (SystemUtils.IS_OS_MAC_OSX && this.launchdPlist.isFile()) {
-            log.info("Setting start at login to "+start);
-            LanternUtils.replaceInFile(this.launchdPlist, 
-                "<"+!start+"/>", "<"+start+"/>");
-        } else if (SystemUtils.IS_OS_WINDOWS) {
-            // TODO: Make this work on Windows and Linux!! Tricky on Windows
-            // because it's not clear we have permissions to modify the
-            // registry in all cases.
-        }
-    }
-
-
     private final Map<String, Function<Object, String>> applyFuncs =
         new ConcurrentHashMap<String, Function<Object,String>>();
     
@@ -127,37 +119,14 @@ public class SettingsIo {
         applyFuncs.put("system", new Function<Object, String>() {
             @Override
             public String apply(final Object obj) {
-                final Map<String, Object> sys = (Map<String, Object>) obj;
-                final Set<Entry<String, Object>> entries = sys.entrySet();
-                for (final Entry<String, Object> entry : entries) {
-                    final String key = entry.getKey();
-                    if ("startAtLogin".equalsIgnoreCase(key)) {
-                        setStartAtLogin(toBooleanValue(entry));
-                    } else if ("systemProxy".equalsIgnoreCase(key)) {
-                    } else if ("connectOnLaunch".equalsIgnoreCase(key)) {
-                    } else if ("port".equalsIgnoreCase(key)) {
-                    } else if ("location".equalsIgnoreCase(key)) {
-                    } else {
-                        log.error("No match for key: {}", key);
-                    }
-                }
-                return "";
+                return applyChanges(obj, "system", LanternHub.settings().getSystem());
             }
         });
         
         applyFuncs.put("user", new Function<Object, String>() {
             @Override
             public String apply(final Object obj) {
-                final Map<String, Object> sys = (Map<String, Object>) obj;
-                final Set<Entry<String, Object>> entries = sys.entrySet();
-                for (final Entry<String, Object> entry : entries) {
-                    final String key = entry.getKey();
-                    if ("mode".equalsIgnoreCase(key)) {
-                    } else {
-                        log.error("No match for key: {}", key);
-                    }
-                }
-                return "";
+                return applyChanges(obj, "user", LanternHub.settings().getUser());
             }
         });
         
@@ -166,18 +135,37 @@ public class SettingsIo {
             public String apply(final Object obj) {
                 // TODO: How should we handle arrays? Tempting to force the
                 // client to submit complete objects!!
+                
+                // MAYBE HAVE THE CLIENT SIDE SUBMIT THE FULL WHITELIST EACH TIME?
+                //return applyChanges(obj, "whitelist", LanternHub.settings().getWhitelist());
                 return "";
             }
         });
     }
-
-    private boolean toBooleanValue(final Entry<String, Object> entry) {
-        final Object obj = entry.getValue();
-        log.info("Object: {}", obj);
-        log.info("Class: {}", obj.getClass());
-        return ((Boolean)obj).booleanValue();
-    }
     
+    protected String applyChanges(final Object obj, final String category, 
+        final Object propertiesBean) {
+        final Map<String, Object> settings = (Map<String, Object>) obj;
+        final Set<Entry<String, Object>> entries = settings.entrySet();
+        for (final Entry<String, Object> entry : entries) {
+            
+            final String key = entry.getKey();
+            final Object val = entry.getValue();
+            try {
+                PropertyUtils.setSimpleProperty(propertiesBean, key, val);
+                PropertyUtils.setSimpleProperty(implementor, key, val);
+            } catch (final IllegalAccessException e) {
+                log.error("Could not set property", e);
+            } catch (final InvocationTargetException e) {
+                log.error("Could not set property", e);
+            } catch (final NoSuchMethodException e) {
+                log.error("Could not set property", e);
+            }
+        }
+        return "";
+    }
+
+
     public void apply(final Map<String, Object> update) {
         final Set<Entry<String, Object>> entries = update.entrySet();
         for (final Entry<String, Object> entry : entries) {

@@ -5,14 +5,14 @@ import com.google.common.eventbus.Subscribe;
 /**
  * Class that stores general system info.
  */
-public class SystemInfo {
+public class SystemInfo implements MutableSystemSettings {
 
     private ConnectivityStatus connectivity; 
     private UpdateEvent updateData = new UpdateEvent();
     
     private String location = LanternHub.censored().countryCode();
-    private Internet internet = LanternHub.internet();
-    private Platform platform = LanternHub.platform();
+    private Internet internet;// = LanternHub.internet();
+    private Platform platform;// = LanternHub.platform();
     private boolean startAtLogin = true;
     private boolean isSystemProxy = true;
     private int port = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
@@ -23,10 +23,20 @@ public class SystemInfo {
         LanternHub.eventBus().register(this);
     }
     
+    public SystemInfo() {
+        
+    }
+    
+    public SystemInfo(final Internet internet, final Platform platform) {
+        this.internet = internet;
+        this.platform = platform;
+    }
+
     public boolean isSystemProxy() {
         return this.isSystemProxy;
     }
     
+    @Override
     public void setSystemProxy(final boolean isSystemProxy) {
         this.isSystemProxy = isSystemProxy;
     }
@@ -34,6 +44,7 @@ public class SystemInfo {
     public boolean isStartAtLogin() {
         return this.startAtLogin;
     }
+    @Override
     public void setStartAtLogin(final boolean startAtLogin) {
         this.startAtLogin = startAtLogin;
     }
@@ -42,6 +53,7 @@ public class SystemInfo {
         return this.port;
     }
     
+    @Override
     public void setPort(final int port) {
         this.port = port;
     }
@@ -53,6 +65,7 @@ public class SystemInfo {
         return location;
     }
     
+    @Override
     public void setLocation(final String location) {
         this.location = location;
     }
@@ -78,6 +91,7 @@ public class SystemInfo {
     public void setPlatform(final Platform platform) {
         this.platform = platform;
     }
+    @Override
     public void setConnectOnLaunch(final boolean connectOnLaunch) {
         this.connectOnLaunch = connectOnLaunch;
     }

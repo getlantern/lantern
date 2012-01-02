@@ -15,11 +15,22 @@ public class Settings {
     private Whitelist whitelist;
     
     private Roster roster;
+    
+    public Settings() {
+    }
+    
+    public Settings(final SystemInfo system, final UserInfo user, 
+        final Whitelist whitelist, final Roster roster) {
+        this.systemInfo = system;
+        this.userInfo = user;
+        this.whitelist = whitelist;
+        this.roster = roster;
+    }
 
     public SystemInfo getSystem() {
-        if (this.systemInfo == null) {
-            systemInfo = LanternHub.systemInfo();
-        }
+        //if (this.systemInfo == null) {
+        //    systemInfo = LanternHub.systemInfo();
+        //}
         return systemInfo;
     }
     
@@ -32,16 +43,16 @@ public class Settings {
     }
 
     public UserInfo getUser() {
-        if (this.userInfo == null) {
-            this.userInfo = LanternHub.userInfo();
-        }
+        //if (this.userInfo == null) {
+        //    this.userInfo = LanternHub.userInfo();
+        //}
         return userInfo;
     }
     
     public Whitelist getWhitelist() {
-        if (this.whitelist == null) {
-            this.whitelist = LanternHub.whitelist();
-        }
+        //if (this.whitelist == null) {
+        //    this.whitelist = LanternHub.whitelist();
+       // }
         return whitelist;
     }
 
@@ -54,9 +65,9 @@ public class Settings {
     }
 
     public Roster getRoster() {
-        if (this.roster == null) {
-            this.roster = LanternHub.roster();
-        }
+        //if (this.roster == null) {
+        //    this.roster = LanternHub.roster();
+        //}
         return roster;
     }
 }

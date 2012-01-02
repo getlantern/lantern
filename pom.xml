@@ -111,21 +111,15 @@
     </dependency>
 
     <dependency>
-	<groupId>com.google.code.gson</groupId>
-	<artifactId>gson</artifactId>
-	<version>2.0</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.dnsjava</groupId>
       <artifactId>dnsjava</artifactId>
       <version>2.0.6</version>
     </dependency>
 
     <dependency>
-      <groupId>com.googlecode.json-simple</groupId>
-      <artifactId>json-simple</artifactId>
-      <version>1.1</version>
+	<groupId>commons-beanutils</groupId>
+	<artifactId>commons-beanutils-core</artifactId>
+	<version>1.8.3</version>
     </dependency>
 
     <dependency>
