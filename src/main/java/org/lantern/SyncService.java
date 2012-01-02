@@ -1,34 +1,26 @@
 package org.lantern;
 
-import java.io.IOException;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.bayeux.server.ServerSession;
 import org.cometd.java.annotation.Listener;
 import org.cometd.java.annotation.Service;
 import org.cometd.java.annotation.Session;
-import org.jivesoftware.smack.packet.Presence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.base.Function;
+import com.google.common.eventbus.Subscribe;
 
 /**
  * Service for pushing updated Lantern state to the client.
  */
 @Service("sync")
-public class SyncService implements PresenceListener, LanternUpdateListener,
-    ConnectivityListener {
+public class SyncService {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -42,8 +34,10 @@ public class SyncService implements PresenceListener, LanternUpdateListener,
      */
     public SyncService() {
         // Make sure the config class is added as a listener before this class.
-        LanternHub.pubSub().addPresenceListener(this);
-        LanternHub.pubSub().addUpdateListener(this);
+        LanternHub.eventBus().register(this);
+        
+        //LanternHub.pubSub().addPresenceListener(this);
+        //LanternHub.pubSub().addUpdateListener(this);
         
         final Timer timer = LanternHub.timer();
         timer.schedule(new TimerTask() {
@@ -71,33 +65,34 @@ public class SyncService implements PresenceListener, LanternUpdateListener,
         log.info("Pushing updated config to browser...");
         sync();
     }
-
-    @Override
-    public void onUpdate(final UpdateData lanternUpdate) {
+    
+    @Subscribe
+    public void onUpdate(final UpdateEvent updateEvent) {
         log.info("Got update");
         sync();
     }
-
-    @Override
-    public void onPresence(final String address, final Presence presence) {
+    
+    @Subscribe
+    public void onPresence(final AddPresenceEvent event) {
         log.info("Got presence");
         sync();
     }
 
-    @Override
-    public void removePresence(final String address) {
+    @Subscribe
+    public void removePresence(final RemovePresenceEvent event) {
         log.info("Presence removed...");
         sync();
     }
-
-    @Override
-    public void presencesUpdated() {
-        log.info("Got presences updated");
+    
+    @Subscribe 
+    public void onRosterStateChanged(final RosterStateChangedEvent rsce) {
+        log.info("Roster changed...");
         sync();
     }
     
-    @Override
-    public void onConnectivityStateChanged(final ConnectivityStatus ct) {
+    @Subscribe 
+    public void onConnectivityStateChanged(
+        final ConnectivityStatusChangeEvent csce) {
         log.info("Got connectivity change");
         sync();
     }

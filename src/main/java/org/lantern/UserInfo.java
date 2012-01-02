@@ -2,21 +2,23 @@ package org.lantern;
 
 import org.apache.commons.lang.StringUtils;
 
+import com.google.common.eventbus.Subscribe;
+
 /**
  * Data about the user.
  */
-public class UserInfo implements ConnectivityListener {
+public class UserInfo {
     
     private AuthenticationStatus authenticationStatus = 
         AuthenticationStatus.LOGGED_OUT;
     
     private ConnectivityStatus connectivityStatus = 
-        LanternHub.pubSub().getConnectivityStatus();
+        ConnectivityStatus.DISCONNECTED;
 
-    private String mode = LanternUtils.shouldProxy() ? "get" : "give";
+    private String mode;
     
     public UserInfo() {
-        LanternHub.pubSub().addConnectivityListener(this);
+        LanternHub.eventBus().register(this);
     }
 
     public ConnectivityStatus getConnectionState() {
@@ -41,6 +43,10 @@ public class UserInfo implements ConnectivityListener {
     }
     
     public String getMode() {
+        // Lazy-initialize mode to the default
+        if (StringUtils.isBlank(mode)) {
+            this.mode = LanternUtils.shouldProxy() ? "get" : "give";
+        }
         return this.mode;
     }
     
@@ -57,9 +63,10 @@ public class UserInfo implements ConnectivityListener {
         return authenticationStatus;
     }
 
-    @Override
-    public void onConnectivityStateChanged(final ConnectivityStatus cs) {
-        this.connectivityStatus = cs;
+    @Subscribe
+    public void onConnectivityStateChanged(
+        final ConnectivityStatusChangeEvent csce) {
+        this.connectivityStatus = csce.getConnectivityStatus();
     }
 
 }

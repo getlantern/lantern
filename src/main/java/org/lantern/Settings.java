@@ -8,15 +8,18 @@ import org.codehaus.jackson.annotate.JsonPropertyOrder;
 @JsonPropertyOrder({"user", "system", "whitelist", "roster"})
 public class Settings {
 
-    private SystemInfo systemInfo = LanternHub.systemInfo();
+    private SystemInfo systemInfo;
     
-    private UserInfo userInfo = LanternHub.userInfo();
+    private UserInfo userInfo;
     
-    private Whitelist whitelist = LanternHub.whitelist();
+    private Whitelist whitelist;
     
-    private Roster roster = LanternHub.roster();
+    private Roster roster;
 
     public SystemInfo getSystem() {
+        if (this.systemInfo == null) {
+            systemInfo = LanternHub.systemInfo();
+        }
         return systemInfo;
     }
     
@@ -29,10 +32,16 @@ public class Settings {
     }
 
     public UserInfo getUser() {
+        if (this.userInfo == null) {
+            this.userInfo = LanternHub.userInfo();
+        }
         return userInfo;
     }
     
     public Whitelist getWhitelist() {
+        if (this.whitelist == null) {
+            this.whitelist = LanternHub.whitelist();
+        }
         return whitelist;
     }
 
@@ -45,6 +54,9 @@ public class Settings {
     }
 
     public Roster getRoster() {
+        if (this.roster == null) {
+            this.roster = LanternHub.roster();
+        }
         return roster;
     }
 }

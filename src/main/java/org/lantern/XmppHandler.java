@@ -318,8 +318,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             if (!servers.isEmpty() && ! Configurator.configured()) {
                 Configurator.configure();
                 
-                LanternHub.pubSub().setConnectivityStatus(
-                    ConnectivityStatus.CONNECTED);
+                LanternHub.eventBus().post(new ConnectivityStatusChangeEvent(
+                    ConnectivityStatus.CONNECTED));
+                //LanternHub.pubSub().setConnectivityStatus(
+                //    ConnectivityStatus.CONNECTED);
             }
         }
 
@@ -333,7 +335,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             LanternHub.display().asyncExec (new Runnable () {
                 @Override
                 public void run () {
-                    LanternHub.pubSub().addUpdate(new UpdateData(update));
+                    LanternHub.eventBus().post(new UpdateEvent(update));
+                    //LanternHub.pubSub().addUpdate(new UpdateData(update));
                     //LanternHub.systemTray().addUpdate(new LanternUpdate(update));
                     //final LanternBrowser lb = new LanternBrowser(true);
                     //lb.showUpdate(update);
@@ -438,7 +441,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             public void entriesDeleted(final Collection<String> addresses) {
                 LOG.info("Entries deleted");
                 for (final String address : addresses) {
-                    LanternHub.pubSub().removePresence(address);
+                    LanternHub.eventBus().post(new RemovePresenceEvent(address));
                 }
             }
             @Override
@@ -482,9 +485,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
         else if (isLanternJid(from)) {
             addOrRemovePeer(presence, from);
-            LanternHub.pubSub().addPresence(from, presence);
+            LanternHub.eventBus().post(new AddPresenceEvent(from, presence));
         } else {
-            LanternHub.pubSub().addPresence(from, presence);
+            LanternHub.eventBus().post(new AddPresenceEvent(from, presence));
         }
     }
 

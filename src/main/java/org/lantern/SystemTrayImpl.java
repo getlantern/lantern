@@ -21,10 +21,12 @@ import org.eclipse.swt.widgets.TrayItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
+
 /**
  * Class for handling all system tray interactions.
  */
-public class SystemTrayImpl implements SystemTray, ConnectivityListener, 
+public class SystemTrayImpl implements SystemTray, 
     ProxyListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -43,7 +45,8 @@ public class SystemTrayImpl implements SystemTray, ConnectivityListener,
      * @param display The SWT display. 
      */
     public SystemTrayImpl(final Display display) {
-        LanternHub.pubSub().addConnectivityListener(this);
+        //LanternHub.pubSub().addConnectivityListener(this);
+        LanternHub.eventBus().register(this);
         this.display = display;
         this.shell = new Shell(display);
     }
@@ -259,10 +262,13 @@ public class SystemTrayImpl implements SystemTray, ConnectivityListener,
         });
     }
 
-    @Override
-    public void onConnectivityStateChanged(final ConnectivityStatus ct) {
-        log.info("Got connectivity state changed {}", ct);
-        switch (ct) {
+    //@Override
+    @Subscribe
+    public void onConnectivityStateChanged(
+        final ConnectivityStatusChangeEvent csce) {
+        final ConnectivityStatus cs = csce.getConnectivityStatus();
+        log.info("Got connectivity state changed {}", cs);
+        switch (cs) {
             case DISCONNECTED: {
                 // This could be changed to a red icon.
                 changeIcon(false, "16off.png");
