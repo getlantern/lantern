@@ -87,7 +87,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private final Queue<ProxyHolder> laeProxies = 
         new ConcurrentLinkedQueue<ProxyHolder>();
 
-    private final XmppP2PClient client;
+    private XmppP2PClient client;
     private boolean displayedUpdateMessage = false;
     
     private static final String ID;
@@ -138,6 +138,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private String lastJson = "";
 
+    private final int plainTextProxyRandomPort;
+
     /**
      * Creates a new XMPP handler.
      * 
@@ -150,6 +152,13 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     public XmppHandler(final int sslProxyRandomPort, 
         final int plainTextProxyRandomPort) {
         this.sslProxyRandomPort = sslProxyRandomPort;
+        this.plainTextProxyRandomPort = plainTextProxyRandomPort;
+        if (LanternHub.settings().getSystem().isConnectOnLaunch()) {
+            connect();
+        }
+    }
+    
+    public void connect() {
         String email = LanternUtils.getEmail();
         String pwd = LanternUtils.getPassword();
         if (StringUtils.isBlank(email)) {
@@ -207,10 +216,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             // at all.
             LOG.info("Adding message listener...");
             this.client.addMessageListener(typedListener);
-            LanternHub.userInfo().setAuthenticationStatus(
+            LanternHub.settings().getUser().setAuthenticationStatus(
                 AuthenticationStatus.LOGGING_IN);
             this.client.login(email, pwd, ID);
-            LanternHub.userInfo().setAuthenticationStatus(
+            LanternHub.settings().getUser().setAuthenticationStatus(
                 AuthenticationStatus.LOGGED_IN);
             final XMPPConnection connection = this.client.getXmppConnection();
             final Collection<InetSocketAddress> googleStunServers = 

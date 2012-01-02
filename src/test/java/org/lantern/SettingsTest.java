@@ -30,12 +30,12 @@ public class SettingsTest {
         final Map<String, Object> update = new HashMap<String, Object>();
         update.put("system", "{'systemProxy' : false}}");
         
-        io.apply(update);
+        //io.apply(update);
         
         
     }
     
-    //@Test
+    @Test
     public void testSettings() throws Exception {
         final File plist = plist();
         final File settingsFile = settingsFile();
@@ -80,7 +80,7 @@ public class SettingsTest {
     }
     
 
-    //@Test
+    @Test
     public void testStartAtLogin() throws Exception {
         if (!LanternConstants.LAUNCHD_PLIST.isFile()) {
             log.info("No plist file - not installed or on different OS?");
@@ -94,10 +94,13 @@ public class SettingsTest {
         
         assertTrue(cur.contains("<true/>") || cur.contains("<false/>"));
         final SettingsIo ss = new SettingsIo(temp, settingsFile);
+        final SettingsChangeImplementor implementor = 
+            new SettingsChangeImplementor(temp);
         if (cur.contains("<true/>")) {
             assertFalse(cur.contains("<false/>"));
             //Configurator.setStartAtLogin(temp, false);
             settings.getSystem().setStartAtLogin(false);
+            implementor.setStartAtLogin(false);
             ss.write(settings);
             final String newFile = FileUtils.readFileToString(temp, "UTF-8");
             assertTrue(newFile.contains("<false/>"));
@@ -105,6 +108,7 @@ public class SettingsTest {
             assertFalse(cur.contains("<true/>"));
             //Configurator.setStartAtLogin(temp, true);
             settings.getSystem().setStartAtLogin(true);
+            implementor.setStartAtLogin(true);
             ss.write(settings);
             final String newFile = FileUtils.readFileToString(temp, "UTF-8");
             assertTrue(newFile.contains("<true/>"));

@@ -30,7 +30,7 @@ public class LanternHub {
     private static final Logger LOG = LoggerFactory.getLogger(LanternHub.class);
     
     private static final AtomicReference<EventBus> eventBus =
-        new AtomicReference<EventBus>();
+        new AtomicReference<EventBus>(new EventBus());
     
     private static final File UNZIPPED = 
         new File(LanternUtils.dataDir(), "GeoIP.dat");
@@ -80,33 +80,21 @@ public class LanternHub {
     private static final AtomicReference<LocalCipherProvider> localCipherProvider =
         new AtomicReference<LocalCipherProvider>();
     
-    private static final AtomicReference<Whitelist> whitelist =
-        new AtomicReference<Whitelist>();
-        
     private static final AtomicReference<Censored> censored =
         new AtomicReference<Censored>();
     
     private static final AtomicReference<Timer> timer =
         new AtomicReference<Timer>();
-    
-    private static final AtomicReference<UserInfo> userInfo =
-        new AtomicReference<UserInfo>(new UserInfo());
-    
-    private static final AtomicReference<SystemInfo> systemInfo =
-        new AtomicReference<SystemInfo>(new SystemInfo());
-    
-    /**
-     * We initialize the roster immediately because it needs to listen for
-     * roster entries as soon as we're logged in.
-     */
-    private static final AtomicReference<Roster> roster =
-        new AtomicReference<Roster>(new Roster());
         
     private static final AtomicReference<SettingsIo> settingsIo =
         new AtomicReference<SettingsIo>();
     
-    private static final AtomicReference<Settings> settings =
-        new AtomicReference<Settings>();
+    private static final Settings settings;
+    
+    static {
+        final SettingsIo io = LanternHub.settingsIo();
+        settings = io.read();
+    }
     
     public static LookupService getGeoIpLookup() {
         synchronized (lookupService) {
@@ -289,15 +277,6 @@ public class LanternHub {
             return localCipherProvider.get();
         }
     }
-
-    public static Whitelist whitelist() {
-        synchronized (whitelist) {
-            if (whitelist.get() == null) {
-                whitelist.set(new Whitelist());
-            }
-            return whitelist.get();
-        }
-    }
     
     public static Censored censored() {
         synchronized (censored) {
@@ -316,50 +295,30 @@ public class LanternHub {
             return timer.get();
         }
     }
+
+   
+    public static Whitelist whitelist() {
+        return settings().getWhitelist();
+    }
     
     public static UserInfo userInfo() {
-        synchronized (userInfo) {
-            if (userInfo.get() == null) {
-                userInfo.set(new UserInfo());
-            }
-            return userInfo.get();
-        }
+        return settings().getUser();
     }
     
     public static SystemInfo systemInfo() {
-        synchronized (systemInfo) {
-            if (systemInfo.get() == null) {
-                systemInfo.set(new SystemInfo());
-            }
-            return systemInfo.get();
-        }
+        return settings().getSystem();
     }
 
     public static Platform platform() {
-        synchronized (platform) {
-            if (platform.get() == null) {
-                platform.set(new Platform());
-            }
-            return platform.get();
-        }
+        return settings().getSystem().getPlatform();
     }
     
     public static Internet internet() {
-        synchronized (internet) {
-            if (internet.get() == null) {
-                internet.set(new Internet());
-            }
-            return internet.get();
-        }
+        return settings().getSystem().getInternet();
     }
     
     public static Roster roster() {
-        synchronized (roster) {
-            if (roster.get() == null) {
-                roster.set(new Roster());
-            }
-            return roster.get();
-        }
+        return settings().getRoster();
     }
     
     public static SettingsIo settingsIo() {
@@ -373,24 +332,10 @@ public class LanternHub {
     }
     
     public static Settings settings() {
-        synchronized (settings) {
-            if (settings.get() == null) {
-                final SettingsIo io = LanternHub.settingsIo();
-                final Settings set = io.read();
-                settings.set(set);
-            }
-            return settings.get();
-        }
+        return settings;
     }
     
     public static EventBus eventBus() {
-        synchronized (eventBus) {
-            if (eventBus.get() == null) {
-                final EventBus eb = new EventBus();
-                    //new AsyncEventBus(Executors.newCachedThreadPool());
-                eventBus.set(eb);
-            }
-            return eventBus.get();
-        }
+        return eventBus.get();
     }
 }

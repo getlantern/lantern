@@ -55,38 +55,6 @@ public class Whitelist {
         return wl.contains(new WhitelistEntry(toMatch));
     }
     
-    private String toBaseUri(final String uri) {
-        log.info("Parsing full URI: {}", uri);
-        final String afterHttp;
-        if (!uri.startsWith("http")) {
-            afterHttp = uri;
-        } else {
-            afterHttp = StringUtils.substringAfter(uri, "://");
-        }
-        final String base;
-        if (afterHttp.contains("/")) {
-            base = StringUtils.substringBefore(afterHttp, "/");
-        } else {
-            base = afterHttp;
-        }
-        String domainExtension = StringUtils.substringAfterLast(base, ".");
-        
-        // Make sure we strip alternative ports, like 443.
-        if (domainExtension.contains(":")) {
-            domainExtension = StringUtils.substringBefore(domainExtension, ":");
-        }
-        final String domain = StringUtils.substringBeforeLast(base, ".");
-        final String toMatchBase;
-        if (domain.contains(".")) {
-            toMatchBase = StringUtils.substringAfterLast(domain, ".");
-        } else {
-            toMatchBase = domain;
-        }
-        final String toMatch = toMatchBase + "." + domainExtension;
-        log.info("Matching against: {}", toMatch);
-        return toMatch;
-    }
-    
     /**
      * Decides whether or not the specified full URI matches domains for our
      * whitelist.
@@ -148,5 +116,38 @@ public class Whitelist {
         synchronized (whitelist) {
             this.whitelist = entries; 
         }
+    }
+    
+
+    private String toBaseUri(final String uri) {
+        log.info("Parsing full URI: {}", uri);
+        final String afterHttp;
+        if (!uri.startsWith("http")) {
+            afterHttp = uri;
+        } else {
+            afterHttp = StringUtils.substringAfter(uri, "://");
+        }
+        final String base;
+        if (afterHttp.contains("/")) {
+            base = StringUtils.substringBefore(afterHttp, "/");
+        } else {
+            base = afterHttp;
+        }
+        String domainExtension = StringUtils.substringAfterLast(base, ".");
+        
+        // Make sure we strip alternative ports, like 443.
+        if (domainExtension.contains(":")) {
+            domainExtension = StringUtils.substringBefore(domainExtension, ":");
+        }
+        final String domain = StringUtils.substringBeforeLast(base, ".");
+        final String toMatchBase;
+        if (domain.contains(".")) {
+            toMatchBase = StringUtils.substringAfterLast(domain, ".");
+        } else {
+            toMatchBase = domain;
+        }
+        final String toMatch = toMatchBase + "." + domainExtension;
+        log.info("Matching against: {}", toMatch);
+        return toMatch;
     }
 }
