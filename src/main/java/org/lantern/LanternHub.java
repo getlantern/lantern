@@ -14,12 +14,12 @@ import java.util.zip.GZIPInputStream;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.widgets.Display;
+import org.lantern.cookie.CookieTracker;
+import org.lantern.cookie.InMemoryCookieTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.lantern.cookie.InMemoryCookieTracker; 
-import org.lantern.cookie.CookieTracker; 
-
+import com.google.common.eventbus.EventBus;
 import com.maxmind.geoip.LookupService;
 
 /**
@@ -29,9 +29,17 @@ public class LanternHub {
 
     private static final Logger LOG = LoggerFactory.getLogger(LanternHub.class);
     
+    private static final AtomicReference<EventBus> eventBus =
+        new AtomicReference<EventBus>();
     
     private static final File UNZIPPED = 
         new File(LanternUtils.dataDir(), "GeoIP.dat");
+    
+    private static final AtomicReference<Internet> internet =
+        new AtomicReference<Internet>();
+    
+    private static final AtomicReference<Platform> platform =
+        new AtomicReference<Platform>();
     
     private volatile static AtomicReference<TrustedContactsManager> trustedContactsManager =
         new AtomicReference<TrustedContactsManager>();
@@ -72,9 +80,6 @@ public class LanternHub {
     private static final AtomicReference<LocalCipherProvider> localCipherProvider =
         new AtomicReference<LocalCipherProvider>();
     
-    private static final AtomicReference<PubSub> pubSub =
-        new AtomicReference<PubSub>();
-    
     private static final AtomicReference<Whitelist> whitelist =
         new AtomicReference<Whitelist>();
         
@@ -88,14 +93,12 @@ public class LanternHub {
         new AtomicReference<UserInfo>(new UserInfo());
     
     private static final AtomicReference<SystemInfo> systemInfo =
-        new AtomicReference<SystemInfo>();
+        new AtomicReference<SystemInfo>(new SystemInfo());
     
-    private static final AtomicReference<Platform> platform =
-        new AtomicReference<Platform>();
-    
-    private static final AtomicReference<Internet> internet =
-        new AtomicReference<Internet>();
-
+    /**
+     * We initialize the roster immediately because it needs to listen for
+     * roster entries as soon as we're logged in.
+     */
     private static final AtomicReference<Roster> roster =
         new AtomicReference<Roster>(new Roster());
         
@@ -287,15 +290,6 @@ public class LanternHub {
         }
     }
 
-    public static PubSub pubSub() {
-        synchronized (pubSub) {
-            if (pubSub.get() == null) {
-                pubSub.set(new DefaultPubSub());
-            }
-            return pubSub.get();
-        }
-    }
-
     public static Whitelist whitelist() {
         synchronized (whitelist) {
             if (whitelist.get() == null) {
@@ -386,6 +380,17 @@ public class LanternHub {
                 settings.set(set);
             }
             return settings.get();
+        }
+    }
+    
+    public static EventBus eventBus() {
+        synchronized (eventBus) {
+            if (eventBus.get() == null) {
+                final EventBus eb = new EventBus();
+                    //new AsyncEventBus(Executors.newCachedThreadPool());
+                eventBus.set(eb);
+            }
+            return eventBus.get();
         }
     }
 }

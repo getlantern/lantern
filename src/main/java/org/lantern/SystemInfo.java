@@ -1,13 +1,14 @@
 package org.lantern;
 
+import com.google.common.eventbus.Subscribe;
 
 /**
  * Class that stores general system info.
  */
-public class SystemInfo implements LanternUpdateListener, ConnectivityListener {
+public class SystemInfo {
 
     private ConnectivityStatus connectivity; 
-    private UpdateData updateData = new UpdateData();
+    private UpdateEvent updateData = new UpdateEvent();
     
     private String location = LanternHub.censored().countryCode();
     private Internet internet = LanternHub.internet();
@@ -17,6 +18,10 @@ public class SystemInfo implements LanternUpdateListener, ConnectivityListener {
     private int port = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
     private String version = LanternConstants.VERSION;
     private boolean connectOnLaunch = true;
+    
+    {
+        LanternHub.eventBus().register(this);
+    }
     
     public boolean isSystemProxy() {
         return this.isSystemProxy;
@@ -57,7 +62,7 @@ public class SystemInfo implements LanternUpdateListener, ConnectivityListener {
     public void setVersion(final String version) {
         this.version = version;
     }
-    public UpdateData getUpdateData() {
+    public UpdateEvent getUpdateData() {
         return updateData;
     }
     public Internet getInternet() {
@@ -79,12 +84,16 @@ public class SystemInfo implements LanternUpdateListener, ConnectivityListener {
     public boolean isConnectOnLaunch() {
         return this.connectOnLaunch;
     }
-    @Override
-    public void onUpdate(final UpdateData updateData) {
-        this.updateData = updateData;
+    
+    
+    @Subscribe
+    public void onUpdate(final UpdateEvent ue) {
+        this.updateData = ue;
     }
-    @Override
-    public void onConnectivityStateChanged(final ConnectivityStatus ct) {
-        this.connectivity = ct;
+    
+    @Subscribe
+    public void onConnectivityStateChanged(
+        final ConnectivityStatusChangeEvent csce) {
+        this.connectivity = csce.getConnectivityStatus();
     }
 }
