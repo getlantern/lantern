@@ -3,8 +3,6 @@ package org.lantern;
 import java.io.IOException;
 import java.util.Collection;
 
-import com.maxmind.geoip.Country;
-
 /**
  * Interface for classes that keep track of censored countries.
  */
@@ -27,5 +25,7 @@ public interface Censored {
     String countryCode();
 
     boolean isForceCensored();
+
+    Country country();
 
 }

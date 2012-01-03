@@ -24,7 +24,7 @@ public class SettingsTest {
         final File plist = plist();
         final File settingsFile = settingsFile();
         
-        final SettingsIo io = new SettingsIo(plist, settingsFile);
+        final SettingsIo io = new SettingsIo(settingsFile);
         final Settings settings = io.read();
         
         final Map<String, Object> update = new HashMap<String, Object>();
@@ -40,7 +40,7 @@ public class SettingsTest {
         final File plist = plist();
         final File settingsFile = settingsFile();
         
-        final SettingsIo io = new SettingsIo(plist, settingsFile);
+        final SettingsIo io = new SettingsIo(settingsFile);
         final Settings settings = io.read();
         assertEquals(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
             settings.getSystem().getPort());
@@ -93,7 +93,7 @@ public class SettingsTest {
         final String cur = FileUtils.readFileToString(temp, "UTF-8");
         
         assertTrue(cur.contains("<true/>") || cur.contains("<false/>"));
-        final SettingsIo ss = new SettingsIo(temp, settingsFile);
+        final SettingsIo ss = new SettingsIo(settingsFile);
         final SettingsChangeImplementor implementor = 
             new SettingsChangeImplementor(temp);
         if (cur.contains("<true/>")) {

@@ -35,12 +35,6 @@ public class LanternHub {
     private static final File UNZIPPED = 
         new File(LanternUtils.dataDir(), "GeoIP.dat");
     
-    private static final AtomicReference<Internet> internet =
-        new AtomicReference<Internet>();
-    
-    private static final AtomicReference<Platform> platform =
-        new AtomicReference<Platform>();
-    
     private volatile static AtomicReference<TrustedContactsManager> trustedContactsManager =
         new AtomicReference<TrustedContactsManager>();
     private volatile static AtomicReference<Display> display = 
@@ -89,11 +83,27 @@ public class LanternHub {
     private static final AtomicReference<SettingsIo> settingsIo =
         new AtomicReference<SettingsIo>();
     
-    private static final Settings settings;
+    private static  Settings settings;
     
     static {
         final SettingsIo io = LanternHub.settingsIo();
-        settings = io.read();
+        LOG.info("Setting settings...");
+        try {
+            settings = io.read();
+        } catch (final Throwable t) {
+            LOG.error("Caught throwable: {}", t);
+        }
+        
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                LOG.info("Writing settings");
+                io.write(settings);
+                LOG.info("Finished writing settings...");
+            }
+            
+        }, "Write-Settings-Thread"));
     }
     
     public static LookupService getGeoIpLookup() {
@@ -298,27 +308,27 @@ public class LanternHub {
 
    
     public static Whitelist whitelist() {
-        return settings().getWhitelist();
+        return settings.getWhitelist();
     }
     
     public static UserInfo userInfo() {
-        return settings().getUser();
+        return settings.getUser();
     }
     
     public static SystemInfo systemInfo() {
-        return settings().getSystem();
+        return settings.getSystem();
     }
 
     public static Platform platform() {
-        return settings().getSystem().getPlatform();
+        return settings.getSystem().getPlatform();
     }
     
     public static Internet internet() {
-        return settings().getSystem().getInternet();
+        return settings.getSystem().getInternet();
     }
     
     public static Roster roster() {
-        return settings().getRoster();
+        return settings.getRoster();
     }
     
     public static SettingsIo settingsIo() {

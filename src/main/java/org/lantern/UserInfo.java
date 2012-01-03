@@ -7,7 +7,7 @@ import com.google.common.eventbus.Subscribe;
 /**
  * Data about the user.
  */
-public class UserInfo {
+public class UserInfo implements MutableUserSettings {
     
     private AuthenticationStatus authenticationStatus = 
         AuthenticationStatus.LOGGED_OUT;
@@ -18,6 +18,12 @@ public class UserInfo {
     private String mode;
     
     private boolean proxyAllSites;
+    
+    private Country country = LanternHub.censored().country();
+    
+    private Country detectedCountry = LanternHub.censored().country();
+    
+    private boolean manualCountry;
     
     public UserInfo() {
         LanternHub.eventBus().register(this);
@@ -77,6 +83,31 @@ public class UserInfo {
 
     public boolean isProxyAllSites() {
         return proxyAllSites;
+    }
+
+    public Country getCountry() {
+        return this.country;
+    }
+    
+    @Override
+    public void setCountry(final Country country) {
+        this.country = country;
+    }
+
+    public void setManualCountry(final boolean manualCountry) {
+        this.manualCountry = manualCountry;
+    }
+
+    public boolean isManualCountry() {
+        return manualCountry;
+    }
+
+    public void setDetectedCountry(final Country detectedCountry) {
+        this.detectedCountry = detectedCountry;
+    }
+
+    public Country getDetectedCountry() {
+        return detectedCountry;
     }
 
 }

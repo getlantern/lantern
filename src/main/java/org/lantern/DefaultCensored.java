@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
-import com.maxmind.geoip.Country;
 
 /**
  * Class that keeps track of which countries are considered censored.
@@ -56,15 +55,9 @@ public class DefaultCensored implements Censored {
 
         );
     
-    /**
-     * Censored country codes.
-     */
-    //private final Collection<String> CENSORED = new TreeSet<String>();
-    
     public DefaultCensored() {
         CENSORED.add("CU");
         CENSORED.add("KP");
-        //StatsTracker.addOniData();
     }
 
     // These country codes have US export restrictions, and therefore cannot
@@ -83,13 +76,21 @@ public class DefaultCensored implements Censored {
         }
         
         LOG.info("Returning country code: {}", countryCode);
-        countryCode = countryCode(new PublicIpAddress().getPublicIpAddress());
-        
+        countryCode = country().getCode().trim();
         return countryCode;
     }
     
     @Override
+    public Country country() {
+        final InetAddress address = new PublicIpAddress().getPublicIpAddress();
+        return new Country(LanternHub.getGeoIpLookup().getCountry(address));
+    }
+    
+    @Override
     public boolean isCensored() {
+        if (LanternHub.userInfo().isManualCountry()) {
+            return isCensored(LanternHub.userInfo().getCountry());
+        }
         return isCensored(new PublicIpAddress().getPublicIpAddress());
     }
     
@@ -151,7 +152,8 @@ public class DefaultCensored implements Censored {
     }
     
     private String countryCode(final InetAddress address) {
-        final Country country = LanternHub.getGeoIpLookup().getCountry(address);
+        final com.maxmind.geoip.Country country = 
+            LanternHub.getGeoIpLookup().getCountry(address);
         LOG.info("Country is: {}", country.getName());
         return country.getCode().trim();
     }
