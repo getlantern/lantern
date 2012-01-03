@@ -10,14 +10,15 @@ public class SystemInfo implements MutableSystemSettings {
     private ConnectivityStatus connectivity; 
     private UpdateEvent updateData = new UpdateEvent();
     
-    private String location = LanternHub.censored().countryCode();
-    private Internet internet;// = LanternHub.internet();
-    private Platform platform;// = LanternHub.platform();
+    private Internet internet = new Internet();
+    private Platform platform = new Platform();
     private boolean startAtLogin = true;
     private boolean isSystemProxy = true;
     private int port = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
     private String version = LanternConstants.VERSION;
     private boolean connectOnLaunch = true;
+    
+    private String email;
     
     {
         LanternHub.eventBus().register(this);
@@ -61,14 +62,7 @@ public class SystemInfo implements MutableSystemSettings {
     public ConnectivityStatus getConnectivity() {
         return connectivity;
     }
-    public String getLocation() {
-        return location;
-    }
-    
-    @Override
-    public void setLocation(final String location) {
-        this.location = location;
-    }
+
     public String getVersion() {
         return this.version;
     }
@@ -83,13 +77,17 @@ public class SystemInfo implements MutableSystemSettings {
     }
     
     public void setInternet(final Internet internet) {
-        this.internet = internet;
+        // Ignored since these are read-only and may change between writes to
+        // disk -- so we don't want data to from disk to override dynamic
+        // runtime data.
     }
     public Platform getPlatform() {
         return this.platform;
     }
     public void setPlatform(final Platform platform) {
-        this.platform = platform;
+        // Ignored since these are read-only and may change between writes to
+        // disk -- so we don't want data to from disk to override dynamic
+        // runtime data.
     }
     @Override
     public void setConnectOnLaunch(final boolean connectOnLaunch) {
@@ -109,5 +107,13 @@ public class SystemInfo implements MutableSystemSettings {
     public void onConnectivityStateChanged(
         final ConnectivityStatusChangeEvent csce) {
         this.connectivity = csce.getConnectivityStatus();
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getEmail() {
+        return email;
     }
 }

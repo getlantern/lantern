@@ -22,7 +22,6 @@ import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.maxmind.geoip.Country;
 import com.maxmind.geoip.LookupService;
 
 /**
@@ -446,7 +445,7 @@ public class StatsTracker implements LanternData {
         
         final LookupService ls = LanternHub.getGeoIpLookup();
         final InetAddress addr = isa.getAddress();
-        final Country country = ls.getCountry(addr);
+        final Country country = new Country(ls.getCountry(addr));
         final CountryData cd;
         final CountryData temp = new CountryData(country);
         final CountryData existing = 

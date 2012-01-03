@@ -10,7 +10,8 @@ import org.slf4j.LoggerFactory;
  * Class that does the dirty work of executing changes to the various settings 
  * users can configure.
  */
-public class SettingsChangeImplementor implements MutableSystemSettings {
+public class SettingsChangeImplementor implements MutableSystemSettings,
+    MutableUserSettings {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -49,8 +50,11 @@ public class SettingsChangeImplementor implements MutableSystemSettings {
     }
 
     @Override
-    public void setLocation(final String location) {
-        
+    public void setCountry(final Country country) {
+        if (country.equals(LanternHub.userInfo().getCountry())) {
+            return;
+        }
+        LanternHub.userInfo().setManualCountry(true);
     }
 
     @Override

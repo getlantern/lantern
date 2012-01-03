@@ -36,8 +36,7 @@ public class SettingsIo {
      * Creates a new instance with all the default operations.
      */
     public SettingsIo() {
-        this(LanternConstants.LAUNCHD_PLIST, 
-            new File(LanternUtils.configDir(), "settings.json"));
+        this(new File(LanternUtils.configDir(), "settings.json"));
     }
     
     
@@ -45,10 +44,9 @@ public class SettingsIo {
      * Creates a new instance with custom settings typically used only in 
      * testing.
      * 
-     * @param launchdPlist The plist file to use for launchd.
      * @param settingsFile The file where settings are stored.
      */
-    public SettingsIo(final File launchdPlist, final File settingsFile) {
+    public SettingsIo(final File settingsFile) {
         this.settingsFile = settingsFile;
     }
 
@@ -66,7 +64,11 @@ public class SettingsIo {
             final Whitelist whitelist = new Whitelist();
             final Roster roster = new Roster();
             final Settings settings = new Settings(sys, user, whitelist, roster);
-            write(settings);
+            
+            // Don't write here because this takes place super early in the 
+            // init sequence, and writing itself can request things that 
+            // don't exist yet.
+            //write(settings);
             return settings;
         }
         final ObjectMapper mapper = new ObjectMapper();
@@ -74,8 +76,9 @@ public class SettingsIo {
         try {
             is = LanternUtils.localDecryptInputStream(settingsFile);
             final String json = IOUtils.toString(is);
-            //log.info("Reading:\n{}", json);
+            log.info("Reading:\n{}", json);
             final Settings read = mapper.readValue(json, Settings.class);
+            log.info("Built settings from disk: {}", read);
             return read;
         } catch (final IOException e) {
             log.error("Could not read settings", e);

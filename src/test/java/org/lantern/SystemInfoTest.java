@@ -12,7 +12,6 @@ public class SystemInfoTest {
     public void testSystemInfo() throws Exception {
         final SystemInfo si = new SystemInfo();
         final String json = LanternUtils.jsonify(si);
-        System.out.println(json);
         assertTrue("Not found in\n"+json,
             json.contains(NetworkUtils.getLocalHost().getCanonicalHostName()));
     }

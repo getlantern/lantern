@@ -1,7 +1,6 @@
 package org.lantern;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -85,6 +84,10 @@ public class LanternUtilsTest {
 
         String email = LanternUtils.getStringProperty("google.user");
         String pwd = LanternUtils.getStringProperty("google.pwd");
+        if (StringUtils.isBlank(email) || StringUtils.isBlank(pwd)) {
+            LOG.info("Not testing with no credentials");
+            return;
+        }
         final XMPPConnection conn = XmppUtils.persistentXmppConnection(
             email, pwd, "jqiq", 2);
         final String activateResponse = LanternUtils.activateOtr(conn).toXML();
@@ -121,31 +124,4 @@ public class LanternUtilsTest {
         //assertTrue(candidates.contains("*"));
     }
     
-    @Test 
-    public void testCensored() throws Exception {
-        final boolean censored = LanternHub.censored().isCensored();
-        assertFalse("Censored?", censored);
-        assertTrue(LanternHub.censored().isExportRestricted("78.110.96.7")); // Syria
-        
-        assertTrue(LanternHub.censored().isCensored("78.110.96.7")); // Syria
-        assertFalse(LanternHub.censored().isCensored("151.38.39.114")); // Italy
-        assertFalse(LanternHub.censored().isCensored("12.25.205.51")); // USA
-        assertFalse(LanternHub.censored().isCensored("200.21.225.82")); // Columbia
-        assertTrue(LanternHub.censored().isCensored("212.95.136.18")); // Iran
-        
-        assertTrue(LanternHub.censored().isCensored("58.14.0.1")); // China.
-        
-        assertTrue(LanternHub.censored().isCensored("190.6.64.1")); // Cuba" 
-        assertTrue(LanternHub.censored().isCensored("58.186.0.1")); // Vietnam
-        assertTrue(LanternHub.censored().isCensored("82.114.160.1")); // Yemen
-        //assertTrue(CensoredUtils.isCensored("196.200.96.1")); // Eritrea
-        assertTrue(LanternHub.censored().isCensored("213.55.64.1")); // Ethiopia
-        assertTrue(LanternHub.censored().isCensored("203.81.64.1")); // Myanmar
-        assertTrue(LanternHub.censored().isCensored("77.69.128.1")); // Bahrain
-        assertTrue(LanternHub.censored().isCensored("62.3.0.1")); // Saudi Arabia
-        assertTrue(LanternHub.censored().isCensored("62.209.128.0")); // Uzbekistan
-        assertTrue(LanternHub.censored().isCensored("94.102.176.1")); // Turkmenistan
-        assertTrue(LanternHub.censored().isCensored("175.45.176.1")); // North Korea
-    }
-
 }
