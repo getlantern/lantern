@@ -11,7 +11,7 @@ if (len(sys.argv) != 3):
 start = sys.argv[1]
 end = sys.argv[2]
 
-hist = commands.getoutput("git log --shortstat --reverse --pretty=oneline --after=\""+start+"\" --before=\""+end+"\" --no-merges")
+hist = commands.getoutput("git log --shortstat --reverse --pretty=oneline --after=\""+start+"\" --before=\""+end+"\" --no-merges ../src/")
 hist = hist.split("\n")
 totalins = 0
 
@@ -19,6 +19,5 @@ for line in hist:
     if line.startswith(' '):
         ins =  line.split(",")[1]
         totalins = totalins + int(ins.split(" ")[1])
-
 
 print "Between " + start + " and " + end + " the Lantern team wrote " + str(totalins) + " lines of code!"
