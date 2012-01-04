@@ -116,8 +116,8 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
         // Note we use DSA instead of RSA because apparently only the JDK 
         // has RSA available.
-        final String genKeyResult = LanternUtils.runKeytool("-genkey", "-alias", macAddress, 
-            "-keysize", "1024", "-validity", "36500", "-keyalg", "DSA", 
+        final String genKeyResult = LanternUtils.runKeytool("-genkey", "-alias", 
+            macAddress, "-keysize", "1024", "-validity", "365", "-keyalg", "DSA", 
             "-dname", "CN="+macAddress, "-keypass", PASS, "-storepass", 
             PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
         
