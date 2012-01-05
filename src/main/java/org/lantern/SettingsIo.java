@@ -122,14 +122,14 @@ public class SettingsIo {
         applyFuncs.put("system", new Function<Object, String>() {
             @Override
             public String apply(final Object obj) {
-                return applyChanges(obj, "system", LanternHub.settings().getSystem());
+                return applyChanges(obj, LanternHub.settings().getSystem());
             }
         });
         
         applyFuncs.put("user", new Function<Object, String>() {
             @Override
             public String apply(final Object obj) {
-                return applyChanges(obj, "user", LanternHub.settings().getUser());
+                return applyChanges(obj, LanternHub.settings().getUser());
             }
         });
         
@@ -146,26 +146,33 @@ public class SettingsIo {
         });
     }
     
-    protected String applyChanges(final Object obj, final String category, 
+    protected String applyChanges(final Object obj, 
         final Object propertiesBean) {
         final Map<String, Object> settings = (Map<String, Object>) obj;
         final Set<Entry<String, Object>> entries = settings.entrySet();
         for (final Entry<String, Object> entry : entries) {
-            
-            final String key = entry.getKey();
-            final Object val = entry.getValue();
-            try {
-                PropertyUtils.setSimpleProperty(propertiesBean, key, val);
-                PropertyUtils.setSimpleProperty(implementor, key, val);
-            } catch (final IllegalAccessException e) {
-                log.error("Could not set property", e);
-            } catch (final InvocationTargetException e) {
-                log.error("Could not set property", e);
-            } catch (final NoSuchMethodException e) {
-                log.error("Could not set property", e);
-            }
+            // We do the implementor first because it often checks to make sure
+            // the value has actually changed before implementing any changes.
+            setProperty(implementor, entry);
+            setProperty(propertiesBean, entry);
         }
         return "";
+    }
+
+
+    private void setProperty(final Object bean, 
+        final Entry<String, Object> entry) {
+        final String key = entry.getKey();
+        final Object val = entry.getValue();
+        try {
+            PropertyUtils.setSimpleProperty(bean, key, val);
+        } catch (final IllegalAccessException e) {
+            log.error("Could not set property", e);
+        } catch (final InvocationTargetException e) {
+            log.error("Could not set property", e);
+        } catch (final NoSuchMethodException e) {
+            log.error("Could not set property", e);
+        }
     }
 
 

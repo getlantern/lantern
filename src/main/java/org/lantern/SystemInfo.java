@@ -18,8 +18,6 @@ public class SystemInfo implements MutableSystemSettings {
     private String version = LanternConstants.VERSION;
     private boolean connectOnLaunch = true;
     
-    private String email;
-    
     {
         LanternHub.eventBus().register(this);
     }
@@ -107,13 +105,5 @@ public class SystemInfo implements MutableSystemSettings {
     public void onConnectivityStateChanged(
         final ConnectivityStatusChangeEvent csce) {
         this.connectivity = csce.getConnectivityStatus();
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getEmail() {
-        return email;
     }
 }

@@ -20,31 +20,6 @@ public class DefaultCensored implements Censored {
     private final Logger LOG = 
         LoggerFactory.getLogger(DefaultCensored.class);
 
-    /**
-     * Censored country codes, in order of population.
-     */
-    /*
-    private final Collection<String> CENSORED =
-        Sets.newHashSet(
-            // Asia 
-            "CN",
-            "VN",
-            "MM",
-            //Mideast: 
-            "IR", 
-            "BH", // Bahrain
-            "YE", // Yemen
-            "SA", // Saudi Arabia
-            "SY",
-            //Eurasia: 
-            "UZ", // Uzbekistan
-            "TM", // Turkmenistan
-            //Africa: 
-            "ET", // Ethiopia
-            "ER", // Eritrea
-            // LAC: 
-            "CU");
-            */
     private static final Collection<String> CENSORED =
         new TreeSet<String>(Sets.newHashSet(
             // These are taken from ONI data -- 11/16 - any country containing
@@ -88,9 +63,6 @@ public class DefaultCensored implements Censored {
     
     @Override
     public boolean isCensored() {
-        if (LanternHub.userInfo().isManualCountry()) {
-            return isCensored(LanternHub.userInfo().getCountry());
-        }
         return isCensored(new PublicIpAddress().getPublicIpAddress());
     }
     
@@ -98,25 +70,6 @@ public class DefaultCensored implements Censored {
     public boolean isCensored(final Country country) { 
         final String cc = country.getCode().trim();
         return CENSORED.contains(cc);
-    }
-    
-
-    @Override
-    public boolean isForceCensored() {
-        final boolean force = 
-            LanternUtils.getBooleanProperty(LanternConstants.FORCE_CENSORED);
-        LOG.info("Forcing proxy: "+force);
-        return force;
-    }
-
-    @Override
-    public void forceCensored() {
-        LanternUtils.setBooleanProperty(LanternConstants.FORCE_CENSORED, true);
-    }
-
-    @Override
-    public void unforceCensored() {
-        LanternUtils.setBooleanProperty(LanternConstants.FORCE_CENSORED, false);
     }
 
     @Override
