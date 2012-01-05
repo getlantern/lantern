@@ -15,7 +15,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.jivesoftware.smack.packet.Presence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -108,12 +107,12 @@ public class SettingsIo {
      * @param settings The settings to apply.
      */
     public void write(final Settings settings) {
-        final Map<String, Presence> entries = settings.getRoster().getEntries();
+        final Map<String, LanternPresence> entries = settings.getRoster().getEntries();
         //log.info("Writing:\n{}", json);
         OutputStream os = null;
         try {
             
-            settings.getRoster().setEntries(new HashMap<String, Presence>());
+            settings.getRoster().setEntries(new HashMap<String, LanternPresence>());
             final String json = LanternUtils.jsonify(settings);
             os = LanternUtils.localEncryptOutputStream(settingsFile);
             os.write(json.getBytes("UTF-8"));

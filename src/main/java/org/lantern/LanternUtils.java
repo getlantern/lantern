@@ -956,6 +956,13 @@ public class LanternUtils {
             IOUtils.closeQuietly(is);
         }
     }
+
+    public static String jidToEmail(final String jid) {
+        if (jid.contains("/")) {
+            return StringUtils.substringBefore(jid, "/");
+        }
+        return jid;
+    }
 }
 
 

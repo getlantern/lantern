@@ -1,16 +1,14 @@
 package org.lantern;
 
-import org.jivesoftware.smack.packet.Presence;
-
 /**
  * Event propagated when there's a new user presence detected.
  */
 public class AddPresenceEvent {
 
     private final String jid;
-    private final Presence presence;
+    private final LanternPresence presence;
 
-    public AddPresenceEvent(final String jid, final Presence presence) {
+    public AddPresenceEvent(final String jid, final LanternPresence presence) {
         this.jid = jid;
         this.presence = presence;
     }
@@ -19,7 +17,7 @@ public class AddPresenceEvent {
         return jid;
     }
 
-    public Presence getPresence() {
+    public LanternPresence getPresence() {
         return presence;
     }
 

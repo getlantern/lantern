@@ -9,6 +9,7 @@ import org.junit.Test;
 
 public class DefaultCensoredTest {
 
+    /*
     @Test 
     public void testCountryOverride() throws Exception {
         LanternHub.userInfo().setManuallyOverrideCountry(true);
@@ -20,8 +21,9 @@ public class DefaultCensoredTest {
         assertFalse("Censored?", cen.isCensored());
         
         assertEquals("United States", 
-                LanternHub.userInfo().getDetectedCountry().getName());
+            LanternHub.userInfo().getDetectedCountry().getName());
     }
+    */
     
     @Test 
     public void testCensored() throws Exception {

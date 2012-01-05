@@ -511,9 +511,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
         else if (isLanternJid(from)) {
             addOrRemovePeer(presence, from);
-            LanternHub.eventBus().post(new AddPresenceEvent(from, presence));
+            LanternHub.eventBus().post(
+                new AddPresenceEvent(from, new LanternPresence(presence)));
         } else {
-            LanternHub.eventBus().post(new AddPresenceEvent(from, presence));
+            LanternHub.eventBus().post(
+                new AddPresenceEvent(from, new LanternPresence(presence)));
         }
     }
 

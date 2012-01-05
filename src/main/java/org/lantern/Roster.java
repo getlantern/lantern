@@ -3,8 +3,6 @@ package org.lantern;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.jivesoftware.smack.packet.Presence;
-
 import com.google.common.eventbus.Subscribe;
 
 /**
@@ -12,8 +10,8 @@ import com.google.common.eventbus.Subscribe;
  */
 public class Roster {
 
-    private Map<String, Presence> entries = 
-        new ConcurrentHashMap<String, Presence>();
+    private Map<String, LanternPresence> entries = 
+        new ConcurrentHashMap<String, LanternPresence>();
     
     /**
      * Creates a new roster.
@@ -32,11 +30,11 @@ public class Roster {
         this.entries.remove(event.getJid());
     }
 
-    public void setEntries(final Map<String, Presence> entries) {
+    public void setEntries(final Map<String, LanternPresence> entries) {
         this.entries = entries;
     }
 
-    public Map<String, Presence> getEntries() {
+    public Map<String, LanternPresence> getEntries() {
         return entries;
     }
 }
