@@ -168,8 +168,7 @@ public class LanternHub {
         synchronized (systemTray) {
             if (systemTray.get() == null) {
                 if (LanternUtils.runWithUi()) {
-                    final SystemTray tray = new SystemTrayImpl(display());
-                    tray.createTray();
+                    final SystemTray tray = new SystemTrayImpl();
                     systemTray.set(tray);
                 } else {
                     return new SystemTray() {

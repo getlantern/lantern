@@ -136,7 +136,8 @@ public class Launcher {
     }
 
     public static void launchLantern() {
-        LanternHub.systemTray();
+        final SystemTray tray = LanternHub.systemTray();
+        tray.createTray();
         final KeyStoreManager proxyKeyStore = LanternHub.getKeyStoreManager();
         final DefaultHttpProxyServer sslProxy = 
             new DefaultHttpProxyServer(LanternHub.randomSslPort(),

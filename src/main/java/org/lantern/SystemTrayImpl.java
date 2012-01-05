@@ -29,8 +29,8 @@ import com.google.common.eventbus.Subscribe;
 public class SystemTrayImpl implements SystemTray {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final Display display;
-    private final Shell shell;
+    private Display display;
+    private Shell shell;
     private TrayItem trayItem;
     private MenuItem updateItem;
     private Menu menu;
@@ -44,14 +44,15 @@ public class SystemTrayImpl implements SystemTray {
      * 
      * @param display The SWT display. 
      */
-    public SystemTrayImpl(final Display display) {
+    public SystemTrayImpl() {
         LanternHub.eventBus().register(this);
-        this.display = display;
-        this.shell = new Shell(display);
     }
 
     @Override
     public void createTray() {
+        this.display = LanternHub.display();
+        this.shell = new Shell(display);
+        
         display.asyncExec (new Runnable () {
             @Override
             public void run () {
