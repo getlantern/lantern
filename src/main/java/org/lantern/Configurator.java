@@ -2,7 +2,6 @@ package org.lantern;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 
 import org.apache.commons.io.FileUtils;
@@ -45,9 +44,6 @@ public class Configurator {
     
     private static final File PROXY_ON = new File("proxy_on.pac");
     private static final File PROXY_OFF = new File("proxy_off.pac");
-    
-    private static final Collection<ProxyListener> proxyListeners =
-        new ArrayList<ProxyListener>();
     
     static {
         LANTERN_PROXYING_FILE.delete();
@@ -177,7 +173,7 @@ public class Configurator {
             } else if (SystemUtils.IS_OS_LINUX) {
                 // TODO: proxyLinux();
             }
-            notifyProxyListeners(true);
+            LanternHub.eventBus().post(new ProxyingEvent(true));
         } else {
             LOG.info("Not configuring proxy in an uncensored country");
         }
@@ -194,7 +190,7 @@ public class Configurator {
             } else if (SystemUtils.IS_OS_LINUX) {
                 // TODO: unproxyLinux();
             }
-            notifyProxyListeners(false);
+            LanternHub.eventBus().post(new ProxyingEvent(false));
         } else {
             LOG.info("Not configuring proxy in an uncensored country");
         }
@@ -418,21 +414,7 @@ public class Configurator {
             }
         }
     }
-    
-    public static void addProxyListener(final ProxyListener proxyListener) {
-        synchronized (proxyListeners) {
-            proxyListeners.add(proxyListener);
-        }
-    }
-    
 
-    private static void notifyProxyListeners(final boolean proxying) {
-        synchronized (proxyListeners) {
-            for (final ProxyListener pl : proxyListeners) {
-                pl.onProxying(proxying);
-            }
-        }
-    }
     
     /*
      * This is done in the installer.
