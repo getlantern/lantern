@@ -5,7 +5,8 @@ package org.lantern;
  */
 public enum AuthenticationStatus {
 
-    LOGGED_OUT(),
-    LOGGING_IN(),
-    LOGGED_IN();
+    LOGGED_OUT,
+    LOGGING_OUT,
+    LOGGING_IN,
+    LOGGED_IN;
 }
