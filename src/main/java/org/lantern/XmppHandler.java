@@ -208,6 +208,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             LOG.info("Adding message listener...");
             this.client.addMessageListener(typedListener);
             LanternHub.eventBus().post(
+                new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTING));
+            LanternHub.eventBus().post(
                 new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_IN));
             final String id;
             if (LanternHub.userInfo().getMode() == Mode.GET) {
@@ -218,6 +220,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             this.client.login(email, pwd, id);
             LanternHub.eventBus().post(
                 new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_IN));
+            LanternHub.eventBus().post(
+                new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTED));
             final XMPPConnection connection = this.client.getXmppConnection();
             final Collection<InetSocketAddress> googleStunServers = 
                 XmppUtils.googleStunServers(connection);
@@ -285,6 +289,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     public void disconnect() {
         LOG.info("Disconnecting!!");
+        LanternHub.eventBus().post(
+            new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTING));
+        LanternHub.eventBus().post(
+            new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_OUT));
         this.client.getXmppConnection().disconnect();
         LanternHub.eventBus().post(
             new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));

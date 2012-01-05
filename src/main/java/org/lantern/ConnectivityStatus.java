@@ -5,7 +5,8 @@ package org.lantern;
  */
 public enum ConnectivityStatus {
 
-    DISCONNECTED(),
-    CONNECTING(),
-    CONNECTED();
+    DISCONNECTED,
+    DISCONNECTING,
+    CONNECTING,
+    CONNECTED;
 }
