@@ -26,8 +26,7 @@ import com.google.common.eventbus.Subscribe;
 /**
  * Class for handling all system tray interactions.
  */
-public class SystemTrayImpl implements SystemTray, 
-    ProxyListener {
+public class SystemTrayImpl implements SystemTray {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Display display;
@@ -38,6 +37,7 @@ public class SystemTrayImpl implements SystemTray,
     private Map<String, String> updateData;
     private MenuItem stopItem;
     private MenuItem startItem;
+    private boolean proxying;
 
     /**
      * Creates a new system tray handler class.
@@ -45,7 +45,6 @@ public class SystemTrayImpl implements SystemTray,
      * @param display The SWT display. 
      */
     public SystemTrayImpl(final Display display) {
-        //LanternHub.pubSub().addConnectivityListener(this);
         LanternHub.eventBus().register(this);
         this.display = display;
         this.shell = new Shell(display);
@@ -63,7 +62,6 @@ public class SystemTrayImpl implements SystemTray,
     
     private void createTrayInternal() {
         final Tray tray = display.getSystemTray ();
-        Configurator.addProxyListener(this);
         if (tray == null) {
             System.out.println ("The system tray is not available");
         } else {
@@ -122,6 +120,7 @@ public class SystemTrayImpl implements SystemTray,
                     public void handleEvent (final Event event) {
                         log.info("Stopping Lantern!!");
                         Configurator.stopProxying();
+                        LanternHub.xmppHandler().disconnect();
                     }
                 });
                 
@@ -133,6 +132,7 @@ public class SystemTrayImpl implements SystemTray,
                     public void handleEvent (final Event event) {
                         log.info("Starting Lantern!!");
                         Configurator.startProxying();
+                        LanternHub.xmppHandler().connect();
                     }
                 });
                 log.info("Added start and stop items");
@@ -262,24 +262,30 @@ public class SystemTrayImpl implements SystemTray,
         });
     }
 
-    //@Override
     @Subscribe
     public void onConnectivityStateChanged(
         final ConnectivityStatusChangeEvent csce) {
         final ConnectivityStatus cs = csce.getConnectivityStatus();
         log.info("Got connectivity state changed {}", cs);
         switch (cs) {
-            case DISCONNECTED: {
-                // This could be changed to a red icon.
-                changeIcon(false, "16off.png");
-            }
-            case CONNECTING: {
-                // This could be changed to yellow.
-                changeIcon(false, "16off.png");
-            }
-            case CONNECTED: {
-                changeIcon(true, "16on.png");
-            }
+        case DISCONNECTED: {
+            // This could be changed to a red icon.
+            changeIcon(false, "16off.png");
+            break;
+        }
+        case CONNECTING: {
+            // This could be changed to yellow.
+            changeIcon(false, "16off.png");
+            break;
+        }
+        case CONNECTED: {
+            changeIcon(true, "16on.png");
+            break;
+        }
+        case DISCONNECTING:
+            // This could be changed to yellow?
+            changeIcon(false, "16off.png");
+            break;
         }
 
     }
@@ -301,8 +307,9 @@ public class SystemTrayImpl implements SystemTray,
         });
     }
 
-    @Override
-    public void onProxying(final boolean proxying) {
+    @Subscribe
+    public void onProxyEvent(final ProxyingEvent event) {
+        this.proxying = event.isProxying();
         if (stopItem == null || startItem == null) {
             log.info("NOT IN PROXY MODE");
             return;

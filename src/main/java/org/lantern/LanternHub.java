@@ -107,6 +107,9 @@ public class LanternHub {
             }
             
         }, "Write-Settings-Thread"));
+        
+        // We need the system tray to listen for events early on.
+        systemTray();
     }
     
     public static LookupService getGeoIpLookup() {
