@@ -90,18 +90,9 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     private XmppP2PClient client;
     private boolean displayedUpdateMessage = false;
     
-    private static final String ID;
-    
     private static final String UNCENSORED_ID = "-lan-";
     
-    private static final String CENSORED_ID = "-lac-";
-    
     static {
-        if (LanternHub.censored().isCensored()) {
-            ID = CENSORED_ID;
-        } else {
-            ID = UNCENSORED_ID;
-        }
         SmackConfiguration.setPacketReplyTimeout(30 * 1000);
     }
 
@@ -216,11 +207,17 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             // at all.
             LOG.info("Adding message listener...");
             this.client.addMessageListener(typedListener);
-            LanternHub.settings().getUser().setAuthenticationStatus(
-                AuthenticationStatus.LOGGING_IN);
-            this.client.login(email, pwd, ID);
-            LanternHub.settings().getUser().setAuthenticationStatus(
-                AuthenticationStatus.LOGGED_IN);
+            LanternHub.eventBus().post(
+                new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_IN));
+            final String id;
+            if (LanternHub.userInfo().getMode() == Mode.GET) {
+                id = "gmail.";
+            } else {
+                id = UNCENSORED_ID;
+            }
+            this.client.login(email, pwd, id);
+            LanternHub.eventBus().post(
+                new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_IN));
             final XMPPConnection connection = this.client.getXmppConnection();
             final Collection<InetSocketAddress> googleStunServers = 
                 XmppUtils.googleStunServers(connection);
@@ -231,6 +228,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             LanternUtils.activateOtr(connection);
             
             LOG.info("Connection ID: {}", connection.getConnectionID());
+            LOG.info("User: {}", connection.getUser());
             
             // Here we handle allowing the server to subscribe to our presence.
             connection.addPacketListener(new PacketListener() {
@@ -284,6 +282,20 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         }
     }
     
+
+    public void disconnect() {
+        LOG.info("Disconnecting!!");
+        this.client.getXmppConnection().disconnect();
+        LanternHub.eventBus().post(
+            new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
+        LanternHub.eventBus().post(
+            new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_OUT));
+        proxySet.clear();
+        proxies.clear();
+        peerProxySet.clear();
+        laeProxySet.clear();
+        laeProxies.clear();
+    }
 
     private void processLanternHubMessage(final Message msg) {
 

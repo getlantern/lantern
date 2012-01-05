@@ -491,7 +491,8 @@ public class LanternBrowser {
                     // The user could be re-configuring their system. Make sure
                     // force is no longer active.
                     if (!LanternHub.censored().isCensored()) {
-                        LanternHub.censored().unforceCensored();
+                        //LanternHub.censored().unforceCensored();
+                        LanternHub.userInfo().setMode(Mode.GIVE);
                     }
                     final Map<String, String> replace = install1Uncensored();
                     setUrl("install1Uncensored.html", replace);
@@ -500,7 +501,7 @@ public class LanternBrowser {
                     // in censored mode even if they don't appear to be in a
                     // censored country.
                     if (!LanternHub.censored().isCensored()) {
-                        LanternHub.censored().forceCensored();
+                        LanternHub.userInfo().setMode(Mode.GET);
                     }
                     final Map<String, String> replace = install1Censored();
                     setUrl("install1Censored.html", replace);

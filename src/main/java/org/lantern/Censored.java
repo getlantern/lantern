@@ -18,13 +18,7 @@ public interface Censored {
 
     boolean isCensored(Country country);
 
-    void unforceCensored();
-
-    void forceCensored();
-
     String countryCode();
-
-    boolean isForceCensored();
 
     Country country();
 

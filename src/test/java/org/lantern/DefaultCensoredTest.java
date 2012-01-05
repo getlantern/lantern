@@ -11,12 +11,12 @@ public class DefaultCensoredTest {
 
     @Test 
     public void testCountryOverride() throws Exception {
-        LanternHub.userInfo().setManualCountry(true);
+        LanternHub.userInfo().setManuallyOverrideCountry(true);
         LanternHub.userInfo().setCountry(new Country("CN", "China"));
         final Censored cen = LanternHub.censored();
         assertTrue("Censored?", cen.isCensored());
         
-        LanternHub.userInfo().setManualCountry(false);
+        LanternHub.userInfo().setManuallyOverrideCountry(false);
         assertFalse("Censored?", cen.isCensored());
         
         assertEquals("United States", 

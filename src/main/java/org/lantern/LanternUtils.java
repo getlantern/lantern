@@ -739,8 +739,7 @@ public class LanternUtils {
     }
     
     public static boolean shouldProxy() {
-        return LanternHub.censored().isCensored() || 
-            LanternHub.censored().isForceCensored();
+        return LanternHub.userInfo().getMode() == Mode.GET;
     }
     
     public static void browseUrl(final String uri) {

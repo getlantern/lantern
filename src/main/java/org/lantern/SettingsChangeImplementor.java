@@ -54,11 +54,30 @@ public class SettingsChangeImplementor implements MutableSystemSettings,
         if (country.equals(LanternHub.userInfo().getCountry())) {
             return;
         }
-        LanternHub.userInfo().setManualCountry(true);
+        LanternHub.userInfo().setManuallyOverrideCountry(true);
     }
 
     @Override
     public void setConnectOnLaunch(final boolean connectOnLaunch) {
+        // TODO: When would we not want to connect on launch?
+    }
+
+    @Override
+    public void setMode(final Mode mode) {
+        // When we move to give mode, we want to start advertising our 
+        // ID and to start accepting incoming connections.
         
+        // We we move to get mode, we want to stop advertising our ID and to
+        // stop accepting incoming connections.
+
+        if (mode == LanternHub.userInfo().getMode()) {
+            log.info("Mode is unchanged.");
+            return;
+        }
+        
+        // We disconnect and reconnect to create a new Jabber ID that will 
+        // not advertise us as a connection point.
+        LanternHub.xmppHandler().disconnect();
+        LanternHub.xmppHandler().connect();
     }
 }

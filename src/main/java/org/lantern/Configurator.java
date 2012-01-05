@@ -138,7 +138,7 @@ public class Configurator {
             return;
         }
         final File git = new File(".git");
-        if (git.isDirectory() && !LanternHub.censored().isForceCensored()) {
+        if (git.isDirectory()) {
             LOG.info("Running from repository...not auto-configuring proxy.");
             return;
         }

@@ -15,7 +15,8 @@ public class UserInfo implements MutableUserSettings {
     private ConnectivityStatus connectivityStatus = 
         ConnectivityStatus.DISCONNECTED;
 
-    private String mode;
+    private Mode mode = 
+        LanternHub.censored().isCensored() ? Mode.GET : Mode.GIVE;
     
     private boolean proxyAllSites;
     
@@ -23,7 +24,7 @@ public class UserInfo implements MutableUserSettings {
     
     private Country detectedCountry = LanternHub.censored().country();
     
-    private boolean manualCountry;
+    private boolean manuallyOverrideCountry;
     
     public UserInfo() {
         LanternHub.eventBus().register(this);
@@ -50,25 +51,31 @@ public class UserInfo implements MutableUserSettings {
     public void setPasswordSaved(final boolean saved) {
     }
     
-    public String getMode() {
+    public Mode getMode() {
         // Lazy-initialize mode to the default
-        if (StringUtils.isBlank(mode)) {
-            this.mode = LanternUtils.shouldProxy() ? "get" : "give";
+        if (mode == null) {
+            this.mode = LanternHub.censored().isCensored() ? Mode.GET : Mode.GIVE;
         }
         return this.mode;
     }
     
-    public void setMode(final String mode) {
+    @Override
+    public void setMode(final Mode mode) {
         this.mode = mode;
     }
 
     public void setAuthenticationStatus(
         final AuthenticationStatus authenticationStatus) {
-        this.authenticationStatus = authenticationStatus;
     }
 
     public AuthenticationStatus getAuthenticationStatus() {
         return authenticationStatus;
+    }
+    
+    @Subscribe
+    public void onAuthenticationStateChanged(
+        final AuthenticationStatusEvent ase) {
+        this.authenticationStatus = ase.getStatus();
     }
 
     @Subscribe
@@ -94,20 +101,20 @@ public class UserInfo implements MutableUserSettings {
         this.country = country;
     }
 
-    public void setManualCountry(final boolean manualCountry) {
-        this.manualCountry = manualCountry;
-    }
-
-    public boolean isManualCountry() {
-        return manualCountry;
-    }
-
     public void setDetectedCountry(final Country detectedCountry) {
         this.detectedCountry = detectedCountry;
     }
 
     public Country getDetectedCountry() {
         return detectedCountry;
+    }
+
+    public void setManuallyOverrideCountry(boolean manuallyOverrideCountry) {
+        this.manuallyOverrideCountry = manuallyOverrideCountry;
+    }
+
+    public boolean isManuallyOverrideCountry() {
+        return manuallyOverrideCountry;
     }
 
 }

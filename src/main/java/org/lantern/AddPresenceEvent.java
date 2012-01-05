@@ -10,7 +10,7 @@ public class AddPresenceEvent {
     private final String jid;
     private final Presence presence;
 
-    public AddPresenceEvent(String jid, Presence presence) {
+    public AddPresenceEvent(final String jid, final Presence presence) {
         this.jid = jid;
         this.presence = presence;
     }

@@ -6,4 +6,6 @@ package org.lantern;
 public interface MutableUserSettings {
 
     void setCountry(Country country);
+
+    void setMode(Mode mode);
 }
