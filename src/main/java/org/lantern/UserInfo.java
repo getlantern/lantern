@@ -1,6 +1,6 @@
 package org.lantern;
 
-import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -26,6 +26,14 @@ public class UserInfo implements MutableUserSettings {
     
     private boolean manuallyOverrideCountry;
     
+    private String email;
+    
+    private String password;
+    
+    private String storedPassword;
+    
+    private boolean savePassword = true;
+    
     public UserInfo() {
         LanternHub.eventBus().register(this);
     }
@@ -35,20 +43,16 @@ public class UserInfo implements MutableUserSettings {
     }
     
     public void setConnectionState(final ConnectivityStatus connectivityStatus) {
+        // We ignore the value from disk and rely on the event dispatch system.
     }
     
     public String getEmail() {
-        return LanternUtils.getEmail();
+        //return LanternUtils.getEmail();
+        return email;
     }
 
     public void setEmail(final String email) {
-    }
-    
-    public boolean isPasswordSaved() {
-        return StringUtils.isNotBlank(LanternUtils.getPassword());
-    }
-    
-    public void setPasswordSaved(final boolean saved) {
+        this.email = email;
     }
     
     public Mode getMode() {
@@ -66,6 +70,7 @@ public class UserInfo implements MutableUserSettings {
 
     public void setAuthenticationStatus(
         final AuthenticationStatus authenticationStatus) {
+        // We ignore the value from disk and rely on the event dispatch system.
     }
 
     public AuthenticationStatus getAuthenticationStatus() {
@@ -109,12 +114,47 @@ public class UserInfo implements MutableUserSettings {
         return detectedCountry;
     }
 
-    public void setManuallyOverrideCountry(boolean manuallyOverrideCountry) {
+    public void setManuallyOverrideCountry(
+        final boolean manuallyOverrideCountry) {
         this.manuallyOverrideCountry = manuallyOverrideCountry;
     }
 
     public boolean isManuallyOverrideCountry() {
         return manuallyOverrideCountry;
+    }
+
+    public void setSavePassword(final boolean savePassword) {
+        this.savePassword = savePassword;
+        if (!this.savePassword) {
+            setStoredPassword("");
+        }
+    }
+
+    public boolean isSavePassword() {
+        return savePassword;
+    }
+
+    @JsonIgnore
+    public void setPassword(final String password) {
+        if (this.isSavePassword()) {
+            setStoredPassword(password);
+        } else {
+            this.password = password;
+        }
+    }
+
+    @JsonIgnore
+    public String getPassword() {
+        return password;
+    }
+
+    public void setStoredPassword(final String storedPassword) {
+        this.storedPassword = storedPassword;
+        this.password = storedPassword;
+    }
+
+    public String getStoredPassword() {
+        return storedPassword;
     }
 
 }

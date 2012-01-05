@@ -83,6 +83,9 @@ public class LanternHub {
     private static final AtomicReference<SettingsIo> settingsIo =
         new AtomicReference<SettingsIo>();
     
+    private static final AtomicReference<LanternApi> lanternApi =
+        new AtomicReference<LanternApi>();
+    
     private static  Settings settings;
     
     static {
@@ -347,5 +350,14 @@ public class LanternHub {
     
     public static EventBus eventBus() {
         return eventBus.get();
+    }
+
+    public static LanternApi api() {
+        synchronized (lanternApi) {
+            if (lanternApi.get() == null) {
+                lanternApi.set(new DefaultLanternApi());
+            }
+            return lanternApi.get();
+        }
     }
 }

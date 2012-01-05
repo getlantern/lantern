@@ -150,8 +150,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     }
     
     public void connect() {
-        String email = LanternUtils.getEmail();
-        String pwd = LanternUtils.getPassword();
+        String email = LanternHub.userInfo().getEmail();
+        String pwd = LanternHub.userInfo().getPassword();
         if (StringUtils.isBlank(email)) {
             if (!LanternUtils.runWithUi()) {
                 email = askForEmail();
@@ -220,8 +220,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             this.client.login(email, pwd, id);
             LanternHub.eventBus().post(
                 new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_IN));
-            LanternHub.eventBus().post(
-                new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTED));
+            
+            // We don't consider ourselves connected until we actually get
+            // proxies to work with.
+            //LanternHub.eventBus().post(
+            //    new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTED));
             final XMPPConnection connection = this.client.getXmppConnection();
             final Collection<InetSocketAddress> googleStunServers = 
                 XmppUtils.googleStunServers(connection);
@@ -344,13 +347,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 addProxy(server);
                 LanternUtils.addProxy(server);
             }
-            if (!servers.isEmpty() && ! Configurator.configured()) {
+            if (!servers.isEmpty() && !Configurator.configured()) {
                 Configurator.configure();
                 
                 LanternHub.eventBus().post(new ConnectivityStatusChangeEvent(
                     ConnectivityStatus.CONNECTED));
-                //LanternHub.pubSub().setConnectivityStatus(
-                //    ConnectivityStatus.CONNECTED);
             }
         }
 
@@ -365,10 +366,6 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 @Override
                 public void run () {
                     LanternHub.eventBus().post(new UpdateEvent(update));
-                    //LanternHub.pubSub().addUpdate(new UpdateData(update));
-                    //LanternHub.systemTray().addUpdate(new LanternUpdate(update));
-                    //final LanternBrowser lb = new LanternBrowser(true);
-                    //lb.showUpdate(update);
                 }
             });
         }

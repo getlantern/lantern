@@ -397,8 +397,8 @@ public class LanternUtils {
         if (!PROPS_FILE.isFile()) {
             return false;
         }
-        final String un = getStringProperty("google.user");
-        final String pwd = getStringProperty("google.pwd");
+        final String un = LanternHub.userInfo().getEmail();
+        final String pwd = LanternHub.userInfo().getPassword();
         return (StringUtils.isNotBlank(un) && StringUtils.isNotBlank(pwd));
     }
     
@@ -464,17 +464,17 @@ public class LanternUtils {
     
     public static void writeCredentials(final String email, final String pwd) {
         LOG.info("Writing credentials...");
-        PROPS.setProperty("google.user", email);
-        PROPS.setProperty("google.pwd", pwd);
-        persistProps();
+        LanternHub.userInfo().setEmail(email);
+        LanternHub.userInfo().setPassword(pwd);
+        LanternHub.settingsIo().write();
     }
     
 
     public static void clearCredentials() {
         LOG.info("Clearing credentials...");
-        PROPS.remove("google.user");
-        PROPS.remove("google.pwd");
-        persistProps();
+        LanternHub.userInfo().setEmail("");
+        LanternHub.userInfo().setPassword("");
+        LanternHub.settingsIo().write();
     }
 
     public static boolean newInstall() {
@@ -955,14 +955,6 @@ public class LanternUtils {
             FileUtils.deleteQuietly(tempDir);
             IOUtils.closeQuietly(is);
         }
-    }
-
-    public static String getEmail() {
-        return LanternUtils.getStringProperty("google.user");
-    }
-
-    public static String getPassword() {
-        return LanternUtils.getStringProperty("google.pwd");
     }
 }
 

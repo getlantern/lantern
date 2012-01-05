@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.security.GeneralSecurityException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -14,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jivesoftware.smack.packet.Presence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -94,15 +96,25 @@ public class SettingsIo {
     }
     
     /**
+     * Writes the default settings object.
+     */
+    public void write() {
+        write(LanternHub.settings());
+    }
+    
+    /**
      * Applies the given settings, including serializing them.
      * 
      * @param settings The settings to apply.
      */
     public void write(final Settings settings) {
-        final String json = LanternUtils.jsonify(settings);
+        final Map<String, Presence> entries = settings.getRoster().getEntries();
         //log.info("Writing:\n{}", json);
         OutputStream os = null;
         try {
+            
+            settings.getRoster().setEntries(new HashMap<String, Presence>());
+            final String json = LanternUtils.jsonify(settings);
             os = LanternUtils.localEncryptOutputStream(settingsFile);
             os.write(json.getBytes("UTF-8"));
         } catch (final IOException e) {
@@ -111,6 +123,7 @@ public class SettingsIo {
             log.error("Error encrypting stream", e);
         } finally {
             IOUtils.closeQuietly(os);
+            settings.getRoster().setEntries(entries);
         }
         
     }
@@ -119,6 +132,13 @@ public class SettingsIo {
         new ConcurrentHashMap<String, Function<Object,String>>();
     
     {
+        applyFuncs.put("api", new Function<Object, String>() {
+            @Override
+            public String apply(final Object obj) {
+                LanternHub.api().processCall((Map<String, String>)obj);
+                return "";
+            }
+        });
         applyFuncs.put("system", new Function<Object, String>() {
             @Override
             public String apply(final Object obj) {
@@ -188,5 +208,6 @@ public class SettingsIo {
                     func);
             }
         }
+        write();
     }
 }
