@@ -131,14 +131,12 @@ public class Configurator {
     }
 
     public static void reconfigure() {
-        if (!LanternUtils.propsFile().isFile()) {
-            System.out.println("PLEASE ENTER YOUR GOOGLE ACCOUNT DATA IN " + 
-                LanternUtils.propsFile() + " in the following form:" +
-                "\ngoogle.user=your_name@gmail.com\ngoogle.pwd=your_password");
+        if (!LanternUtils.isConfigured()) {
+            System.out.println("GOOGLE ACCOUNT NOT CONFIGURED");
             return;
         }
         final File git = new File(".git");
-        if (git.isDirectory()) {
+        if (git.isDirectory() || !LanternUtils.shouldProxy()) {
             LOG.info("Running from repository...not auto-configuring proxy.");
             return;
         }

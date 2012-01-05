@@ -38,8 +38,8 @@ public class LanternUtilsTest {
     
     @Test 
     public void testGoogleStunServers() throws Exception {
-        String email = LanternUtils.getStringProperty("google.user");
-        String pwd = LanternUtils.getStringProperty("google.pwd");
+        final String email = LanternHub.userInfo().getEmail();
+        final String pwd = LanternHub.userInfo().getPassword();
         if (StringUtils.isBlank(email) || StringUtils.isBlank(pwd)) {
             LOG.info("user name and password not configured");
             return;
@@ -81,9 +81,8 @@ public class LanternUtilsTest {
     
     @Test 
     public void testOtrMode() throws Exception {
-
-        String email = LanternUtils.getStringProperty("google.user");
-        String pwd = LanternUtils.getStringProperty("google.pwd");
+        final String email = LanternHub.userInfo().getEmail();
+        final String pwd = LanternHub.userInfo().getPassword();
         if (StringUtils.isBlank(email) || StringUtils.isBlank(pwd)) {
             LOG.info("Not testing with no credentials");
             return;

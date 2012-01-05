@@ -33,7 +33,7 @@ public class Roster {
     }
 
     public void setEntries(final Map<String, Presence> entries) {
-        // We ignore stored entries on disk.
+        this.entries = entries;
     }
 
     public Map<String, Presence> getEntries() {
