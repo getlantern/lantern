@@ -4,27 +4,17 @@ import org.jivesoftware.smack.packet.Presence;
 
 public class LanternPresence {
 
-    private String jid;
     private boolean available;
     private boolean away;
     private String status;
     private boolean trusted;
 
     public LanternPresence(final Presence presence) {
-        this.jid = presence.getFrom();
         this.available = presence.isAvailable();
         this.away = presence.isAway();
         this.status = presence.getStatus();
         this.setTrusted(LanternHub.getTrustedContactsManager().isTrusted(
-            LanternUtils.jidToEmail(this.jid)));
-    }
-
-    public String getJid() {
-        return jid;
-    }
-
-    public void setJid(String jid) {
-        this.jid = jid;
+            LanternUtils.jidToEmail(presence.getFrom())));
     }
 
     public boolean isAvailable() {
