@@ -32,7 +32,16 @@ public class UserInfo implements MutableUserSettings {
     
     private String storedPassword;
     
+    /**
+     * Whether or not to save the user's Google account password on disk.
+     */
     private boolean savePassword = true;
+    
+    /**
+     * Whether or not Lantern should use our cloud proxies. Users may not want
+     * to use Lantern cloud proxies at all if they want more privacy.
+     */
+    private boolean useCloudProxies = true;
     
     public UserInfo() {
         LanternHub.eventBus().register(this);
@@ -127,6 +136,8 @@ public class UserInfo implements MutableUserSettings {
         this.savePassword = savePassword;
         if (!this.savePassword) {
             setStoredPassword("");
+        } else {
+            setStoredPassword(password);
         }
     }
 
@@ -155,6 +166,14 @@ public class UserInfo implements MutableUserSettings {
 
     public String getStoredPassword() {
         return storedPassword;
+    }
+
+    public void setUseCloudProxies(boolean useCloudProxies) {
+        this.useCloudProxies = useCloudProxies;
+    }
+
+    public boolean isUseCloudProxies() {
+        return useCloudProxies;
     }
 
 }
