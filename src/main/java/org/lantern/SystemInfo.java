@@ -71,7 +71,7 @@ public class SystemInfo implements MutableSystemSettings {
     public void setVersion(final String version) {
         this.version = version;
     }
-    public UpdateEvent getUpdateData() {
+    public UpdateEvent getUpdate() {
         return updateData;
     }
     public Internet getInternet() {
@@ -83,22 +83,25 @@ public class SystemInfo implements MutableSystemSettings {
         // disk -- so we don't want data to from disk to override dynamic
         // runtime data.
     }
+    
     public Platform getPlatform() {
         return this.platform;
     }
+    
     public void setPlatform(final Platform platform) {
         // Ignored since these are read-only and may change between writes to
         // disk -- so we don't want data to from disk to override dynamic
         // runtime data.
     }
+    
     @Override
     public void setConnectOnLaunch(final boolean connectOnLaunch) {
         this.connectOnLaunch = connectOnLaunch;
     }
+    
     public boolean isConnectOnLaunch() {
         return this.connectOnLaunch;
     }
-    
     
     @Subscribe
     public void onUpdate(final UpdateEvent ue) {

@@ -337,7 +337,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         log.info("Dispatching request");
         if (request.getMethod() == HttpMethod.CONNECT) {
             try {
-                if (ANONYMOUS_ACTIVE && proxyProvider.getAnonymousPeerProxyManager().processRequest(
+                if (ANONYMOUS_ACTIVE && 
+                    proxyProvider.getAnonymousPeerProxyManager().processRequest(
                         browserToProxyChannel, ctx, me) != null) {
                     log.info("Processed CONNECT on peer...returning");
                     return null;
@@ -362,7 +363,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         }
         
         try {
-            if (LAE_ACTIVE && isLae(request) && 
+            if (useLae() && isLae(request) && 
                 this.laeRequestProcessor.processRequest(browserToProxyChannel, 
                     ctx, me)) {
                 return this.laeRequestProcessor;
@@ -383,8 +384,9 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             log.info("Caught exception processing request", e);
         }
         try {
-            if (PROXIES_ACTIVE && this.proxyRequestProcessor.processRequest(
-                    browserToProxyChannel, ctx, me)) {
+            if (useStandardProxies() && 
+                this.proxyRequestProcessor.processRequest(
+                        browserToProxyChannel, ctx, me)) {
                 log.info("Used standard proxy");
                 return this.proxyRequestProcessor;
             }
@@ -395,6 +397,14 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         log.warn("No proxy could process the request {}", me.getMessage());
         // Not much we can do if no proxy can handle it.
         return null;
+    }
+
+    private boolean useStandardProxies() {
+        return PROXIES_ACTIVE && LanternHub.userInfo().isUseCloudProxies();
+    }
+
+    private boolean useLae() {
+        return LAE_ACTIVE && LanternHub.userInfo().isUseCloudProxies();
     }
 
     private void centralConnect(final HttpRequest request) {
