@@ -58,11 +58,6 @@ public class SettingsChangeImplementor implements MutableSystemSettings,
     }
 
     @Override
-    public void setConnectOnLaunch(final boolean connectOnLaunch) {
-        // TODO: When would we not want to connect on launch?
-    }
-
-    @Override
     public void setMode(final Mode mode) {
         // When we move to give mode, we want to start advertising our 
         // ID and to start accepting incoming connections.

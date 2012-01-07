@@ -11,5 +11,4 @@ public interface MutableSystemSettings {
     
     void setPort(int port);
     
-    void setConnectOnLaunch(boolean connectOnLaunch);
 }
