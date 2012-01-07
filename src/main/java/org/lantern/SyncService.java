@@ -57,8 +57,8 @@ public class SyncService {
         final Map<String, Object> update = message.getDataAsMap();
         log.info("MAP: {}", update);
 
-        final SettingsIo io = LanternHub.settingsIo();
-        io.apply(update);
+        //final SettingsIo io = LanternHub.settingsIo();
+        //io.apply(update);
         log.info("Pushing updated config to browser...");
         sync();
     }

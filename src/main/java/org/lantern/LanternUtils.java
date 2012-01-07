@@ -46,7 +46,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.ServletRequest;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.URIException;
@@ -76,6 +76,7 @@ import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 import org.json.simple.JSONArray;
+import org.lantern.SettingsState.State;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
@@ -394,7 +395,7 @@ public class LanternUtils {
     }
     
     public static boolean isConfigured() {
-        if (!PROPS_FILE.isFile()) {
+        if (!LanternConstants.DEFAULT_SETTINGS_FILE.isFile()) {
             return false;
         }
         final String un = LanternHub.userInfo().getEmail();
@@ -477,12 +478,9 @@ public class LanternUtils {
         LanternHub.settingsIo().write();
     }
 
-    public static boolean newInstall() {
-        return getBooleanProperty("newInstall");
-    }
-    
-    public static void installed() {
-        setBooleanProperty("newInstall", false);
+    public static boolean isNewInstall() {
+        return LanternHub.systemInfo().getSettings().getState() == 
+            State.UNSET;
     }
 
     public static void setBooleanProperty(final String key, 
@@ -857,14 +855,13 @@ public class LanternUtils {
      * Converts the request arguments to a map of parameter keys to single
      * values, ignoring multiple values.
      * 
-     * @param request The request.
+     * @param req The request.
      * @return The mapped argument names and values.
      */
-    public static Map<String, String> toParamMap(
-            final HttpServletRequest request) {
+    public static Map<String, String> toParamMap(final ServletRequest req) {
         final Map<String, String> map = new TreeMap<String, String>(
                 String.CASE_INSENSITIVE_ORDER);
-        final Map<String, String[]> paramMap = request.getParameterMap();
+        final Map<String, String[]> paramMap = req.getParameterMap();
         final Set<String> keys = paramMap.keySet();
         for (final String key : keys) {
             final String[] values = paramMap.get(key);

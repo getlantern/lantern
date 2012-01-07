@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 import org.jivesoftware.smack.RosterEntry;
+import org.lantern.SettingsState.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -526,7 +527,7 @@ public class LanternBrowser {
                             for (final String contact : contacts) {
                                 final String email = StringUtils.substringBefore(contact, "=");
                                 final String val = StringUtils.substringAfter(contact, "=");
-                                if ("on".equalsIgnoreCase(val) || "true".equalsIgnoreCase(val)) {
+                                if (LanternUtils.isTrue(val)) {
                                     log.info("Adding contact: {}", email);
                                     trusted.add(email);
                                 }
@@ -629,7 +630,8 @@ public class LanternBrowser {
                     if (isConfig) {
                         Configurator.reconfigure();
                     }
-                    LanternUtils.installed();
+                    LanternHub.systemInfo().getSettings().setState(State.SET);
+                    LanternHub.settingsIo().write();
                     if (StringUtils.isNotBlank(elements)) {
                         log.info("Got elements: {}", elements);
                         try {

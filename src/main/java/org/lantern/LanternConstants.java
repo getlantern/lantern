@@ -78,4 +78,7 @@ public class LanternConstants {
     public static final String CONNECT_ON_LAUNCH = "connectOnLaunch";
 
     public static final String START_AT_LOGIN = "startAtLogin";
+
+    public static final File DEFAULT_SETTINGS_FILE = 
+        new File(LanternUtils.configDir(), "settings.json");
 }
