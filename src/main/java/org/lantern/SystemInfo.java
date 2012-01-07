@@ -10,7 +10,7 @@ import com.google.common.eventbus.Subscribe;
 public class SystemInfo implements MutableSystemSettings {
 
     private ConnectivityStatus connectivity; 
-    private UpdateEvent updateData = new UpdateEvent();
+    private UpdateEvent update = new UpdateEvent();
     
     private Internet internet = new Internet();
     private Platform platform = new Platform();
@@ -19,8 +19,10 @@ public class SystemInfo implements MutableSystemSettings {
     private int port = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
     private String version = LanternConstants.VERSION;
     private boolean connectOnLaunch = true;
-    
     private String language = Locale.getDefault().getLanguage();
+    
+    private SettingsState settings = new SettingsState();
+    
     
     {
         LanternHub.eventBus().register(this);
@@ -68,12 +70,11 @@ public class SystemInfo implements MutableSystemSettings {
     public String getVersion() {
         return this.version;
     }
+    
     public void setVersion(final String version) {
         this.version = version;
     }
-    public UpdateEvent getUpdate() {
-        return updateData;
-    }
+    
     public Internet getInternet() {
         return internet;
     }
@@ -105,7 +106,7 @@ public class SystemInfo implements MutableSystemSettings {
     
     @Subscribe
     public void onUpdate(final UpdateEvent ue) {
-        this.updateData = ue;
+        this.update = ue;
     }
     
     @Subscribe
@@ -120,5 +121,21 @@ public class SystemInfo implements MutableSystemSettings {
 
     public String getLanguage() {
         return language;
+    }
+
+    public void setUpdate(UpdateEvent update) {
+        this.update = update;
+    }
+
+    public UpdateEvent getUpdate() {
+        return update;
+    }
+
+    public void setSettings(SettingsState settings) {
+        this.settings = settings;
+    }
+
+    public SettingsState getSettings() {
+        return settings;
     }
 }

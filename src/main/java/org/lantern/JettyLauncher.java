@@ -7,6 +7,9 @@ import javax.servlet.GenericServlet;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.cometd.server.CometdServlet;
 import org.eclipse.jetty.server.Connector;
@@ -46,11 +49,11 @@ public class JettyLauncher {
         final ContextHandlerCollection contexts = 
             new ContextHandlerCollection();
         
-        final ServletContextHandler api = newContext("/", apiName);
+        final ServletContextHandler contextHandler = newContext("/", apiName);
         //final ServletContextHandler api = newContext(secureBase, apiName);
-        contexts.addHandler(api);
+        contexts.addHandler(contextHandler);
 
-        api.setResourceBase("viz/skel");
+        contextHandler.setResourceBase("viz/skel");
         
         server.setHandler(contexts);
         server.setStopAtShutdown(true);
@@ -73,14 +76,13 @@ public class JettyLauncher {
         //final ServletConfig config = new ServletConfig
         //cometdServlet.init(config);
         final ServletHolder cometd = new ServletHolder(cometdServlet);
-        cometd.setInitParameter("jsonContext", "org.cometd.server.JacksonJSONContextServer");
+        cometd.setInitParameter("jsonContext", 
+            "org.cometd.server.JacksonJSONContextServer");
         cometd.setInitOrder(1);
-        api.addServlet(cometd, "/cometd/*");
+        contextHandler.addServlet(cometd, "/cometd/*");
         
-        final class SettingsServlet extends GenericServlet {
-
+        final class ConfigServlet extends GenericServlet {
             private static final long serialVersionUID = -2633162671596490471L;
-
             @Override
             public void service(final ServletRequest req, 
                 final ServletResponse res)
@@ -92,20 +94,74 @@ public class JettyLauncher {
                 res.setContentType("application/json");
                 res.getOutputStream().write(raw);
             }
+        }
+        
+        final class SettingsServlet extends HttpServlet {
+
+            private static final long serialVersionUID = -2647134475684088881L;
+
+            @Override
+            protected void doGet(final HttpServletRequest req, 
+                final HttpServletResponse resp) throws ServletException, 
+                IOException {
+                processRequest(req, resp);
+            }
+            @Override
+            protected void doPost(final HttpServletRequest req, 
+                final HttpServletResponse resp) throws ServletException, 
+                IOException {
+                processRequest(req, resp);
+            }
             
+            protected void processRequest(final HttpServletRequest req, 
+                final HttpServletResponse resp) {
+                LanternHub.api().changeSetting(req, resp);
+            }
+        }
+        
+        final class ApiServlet extends HttpServlet {
+
+            private static final long serialVersionUID = -4199110396383838768L;
+
+            @Override
+            protected void doGet(final HttpServletRequest req, 
+                final HttpServletResponse resp) throws ServletException, 
+                IOException {
+                processRequest(req, resp);
+            }
+            @Override
+            protected void doPost(final HttpServletRequest req, 
+                final HttpServletResponse resp) throws ServletException, 
+                IOException {
+                processRequest(req, resp);
+            }
+            
+            protected void processRequest(final HttpServletRequest req, 
+                final HttpServletResponse resp) {
+                LanternHub.api().processCall(req, resp);
+            }
         }
         final ServletHolder ds = new ServletHolder(new DefaultServlet());
         ds.setInitOrder(3);
-        api.addServlet(ds, "/*");
+        contextHandler.addServlet(ds, "/*");
         
-        final ServletHolder config = new ServletHolder(new SettingsServlet());
+        final ServletHolder settings = new ServletHolder(new SettingsServlet());
+        settings.setInitOrder(3);
+        contextHandler.addServlet(settings, "/settings/*");
+        
+        final ServletHolder apiServlet = new ServletHolder(new ApiServlet());
+        settings.setInitOrder(3);
+        contextHandler.addServlet(apiServlet, "/api/*");
+        
+        final ServletHolder config = new ServletHolder(new ConfigServlet());
         config.setInitOrder(3);
-        api.addServlet(config, "/config");
+        contextHandler.addServlet(config, "/config");
         
         final ServletHolder bayeux = new ServletHolder(BayeuxInitializer.class);
-        bayeux.setInitParameter("jsonContext", "org.cometd.server.JacksonJSONContextServer");
+        bayeux.setInitParameter("jsonContext", 
+            "org.cometd.server.JacksonJSONContextServer");
         bayeux.setInitOrder(2);
-        api.getServletHandler().addServlet(bayeux);
+        contextHandler.getServletHandler().addServlet(bayeux);
         
         //api.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
         

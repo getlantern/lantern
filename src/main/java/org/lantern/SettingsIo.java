@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.io.IOUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.lantern.SettingsState.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +38,7 @@ public class SettingsIo {
      * Creates a new instance with all the default operations.
      */
     public SettingsIo() {
-        this(new File(LanternUtils.configDir(), "settings.json"));
+        this(LanternConstants.DEFAULT_SETTINGS_FILE);
     }
     
     
@@ -58,19 +59,7 @@ public class SettingsIo {
      */
     public Settings read() {
         if (!settingsFile.isFile()) {
-            final Internet internet = new Internet();
-            final Platform platform = new Platform();
-            final SystemInfo sys = new SystemInfo(internet, platform);
-            final UserInfo user = new UserInfo();
-            final Whitelist whitelist = new Whitelist();
-            final Roster roster = new Roster();
-            final Settings settings = new Settings(sys, user, whitelist, roster);
-            
-            // Don't write here because this takes place super early in the 
-            // init sequence, and writing itself can request things that 
-            // don't exist yet.
-            //write(settings);
-            return settings;
+            return newSettings();
         }
         final ObjectMapper mapper = new ObjectMapper();
         InputStream is = null;
@@ -89,11 +78,33 @@ public class SettingsIo {
             IOUtils.closeQuietly(is);
         }
         settingsFile.delete();
-        final Settings settings = new Settings();
+        final Settings settings = newSettings();
+        final SettingsState ss = new SettingsState();
+        ss.setState(State.CORRUPTED);
+        ss.setMessage("Could not read settings file.");
+        //settings.getSystem().setS
         //write(settings);
         return settings;
     }
     
+    private Settings newSettings() {
+        final Internet internet = new Internet();
+        final Platform platform = new Platform();
+        final SystemInfo sys = new SystemInfo(internet, platform);
+        
+        final UserInfo user = new UserInfo();
+        final Whitelist whitelist = new Whitelist();
+        final Roster roster = new Roster();
+        final Settings settings = new Settings(sys, user, whitelist, roster);
+        
+        // Don't write here because this takes place super early in the 
+        // init sequence, and writing itself can request things that 
+        // don't exist yet.
+        //write(settings);
+        return settings;
+    }
+
+
     /**
      * Writes the default settings object.
      */
@@ -131,6 +142,7 @@ public class SettingsIo {
         new ConcurrentHashMap<String, Function<Object,String>>();
     
     {
+        /*
         applyFuncs.put("api", new Function<Object, String>() {
             @Override
             public String apply(final Object obj) {
@@ -138,6 +150,7 @@ public class SettingsIo {
                 return "";
             }
         });
+        */
         applyFuncs.put("system", new Function<Object, String>() {
             @Override
             public String apply(final Object obj) {
