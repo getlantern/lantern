@@ -49,6 +49,7 @@ public class SyncService {
 
             @Override
             public void run() {
+                log.info("Notifying frontend backend is no longer running");
                 LanternHub.systemInfo().setBackendRunning(false);
                 sync();
             }

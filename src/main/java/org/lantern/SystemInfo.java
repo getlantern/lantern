@@ -97,7 +97,6 @@ public class SystemInfo implements MutableSystemSettings {
         // runtime data.
     }
     
-    @Override
     public void setConnectOnLaunch(final boolean connectOnLaunch) {
         this.connectOnLaunch = connectOnLaunch;
     }
