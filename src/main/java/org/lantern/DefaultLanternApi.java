@@ -32,8 +32,8 @@ public class DefaultLanternApi implements LanternApi {
 
         SIGNIN,
         SIGNOUT,
-        ADD_TO_WHITELIST,
-        REMOVE_FROM_WHITELIST,
+        ADDTOWHITELIST,
+        REMOVEFROMWHITELIST,
     }
 
     @Override
@@ -54,10 +54,10 @@ public class DefaultLanternApi implements LanternApi {
         case SIGNOUT:
             LanternHub.xmppHandler().disconnect();
             break;
-        case ADD_TO_WHITELIST:
+        case ADDTOWHITELIST:
             LanternHub.whitelist().addEntry(req.getParameter("site"));
             break;
-        case REMOVE_FROM_WHITELIST:
+        case REMOVEFROMWHITELIST:
             LanternHub.whitelist().removeEntry(req.getParameter("site"));
             break;
         }
