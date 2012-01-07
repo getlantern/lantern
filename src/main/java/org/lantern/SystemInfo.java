@@ -23,6 +23,8 @@ public class SystemInfo implements MutableSystemSettings {
     
     private SettingsState settings = new SettingsState();
     
+    private boolean isBackendRunning = true;
+    
     
     {
         LanternHub.eventBus().register(this);
@@ -137,5 +139,13 @@ public class SystemInfo implements MutableSystemSettings {
 
     public SettingsState getSettings() {
         return settings;
+    }
+
+    public void setBackendRunning(final boolean isBackendRunning) {
+        this.isBackendRunning = isBackendRunning;
+    }
+
+    public boolean isBackendRunning() {
+        return isBackendRunning;
     }
 }

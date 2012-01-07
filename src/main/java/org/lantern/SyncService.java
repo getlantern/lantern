@@ -44,6 +44,16 @@ public class SyncService {
                 sync();
             }
         }, 3000, 4000);
+        
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                LanternHub.systemInfo().setBackendRunning(false);
+                sync();
+            }
+            
+        }, "Backend-Not-Running-Thread"));
     }
 
     @Listener("/service/sync")
