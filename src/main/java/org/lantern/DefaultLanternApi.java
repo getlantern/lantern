@@ -24,6 +24,17 @@ public class DefaultLanternApi implements LanternApi {
     
     private final SettingsChangeImplementor implementor =
         new SettingsChangeImplementor();
+    
+    /**
+     * Enumeration of calls to the Lantern API.
+     */
+    private enum LanternApiCall {
+
+        SIGNIN,
+        SIGNOUT,
+        ADD_TO_WHITELIST,
+        REMOVE_FROM_WHITELIST,
+    }
 
     @Override
     public void processCall(final HttpServletRequest req, 
@@ -42,6 +53,12 @@ public class DefaultLanternApi implements LanternApi {
             break;
         case SIGNOUT:
             LanternHub.xmppHandler().disconnect();
+            break;
+        case ADD_TO_WHITELIST:
+            LanternHub.whitelist().addEntry(req.getParameter("site"));
+            break;
+        case REMOVE_FROM_WHITELIST:
+            LanternHub.whitelist().removeEntry(req.getParameter("site"));
             break;
         }
     }
