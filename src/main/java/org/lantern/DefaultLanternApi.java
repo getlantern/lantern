@@ -34,6 +34,8 @@ public class DefaultLanternApi implements LanternApi {
         SIGNOUT,
         ADDTOWHITELIST,
         REMOVEFROMWHITELIST,
+        ADDTRUSTEDPEER,
+        REMOVETRUSTEDPEER,
     }
 
     @Override
@@ -59,6 +61,16 @@ public class DefaultLanternApi implements LanternApi {
             break;
         case REMOVEFROMWHITELIST:
             LanternHub.whitelist().removeEntry(req.getParameter("site"));
+            break;
+        case ADDTRUSTEDPEER:
+            // TODO: Add data validation.
+            LanternHub.getTrustedContactsManager().addTrustedContact(
+                req.getParameter("email"));
+            break;
+        case REMOVETRUSTEDPEER:
+            // TODO: Add data validation.
+            LanternHub.getTrustedContactsManager().removeTrustedContact(
+                req.getParameter("email"));
             break;
         }
     }
