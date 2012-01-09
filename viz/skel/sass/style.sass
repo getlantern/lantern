@@ -1,0 +1,392 @@
+$blueprint-background-color: #fff
+$background-color-alt: #e9edf2
+$background-color-alt2: #bbcee9
+$background-color-alt3: #ebebeb
+$blueprint-font-family: Helvetica, Arial, sans-serif
+$font-fixedwidth: Monaco, monospace
+$blueprint-font-size: 14px
+$font-size-smaller: .85 * $blueprint-font-size
+
+$font-color: #333
+$font-color-input: #666
+$font-color-disabled: #c6c9ce
+$font-color-important: #c00
+$font-color-error: #c00
+$header-color: #000
+$header-color-alt: #53637d
+$header-color-alt-darker: $header-color-alt * .75
+$link-color: #3f6ec6
+$link-visited-color: $link-color
+$link-hover-color: $link-color
+$link-active-color: $link-color - #333
+$edge-color: #c6c9ce
+$edge-color-alt: #8faad9
+$spacer-color: #eee
+
+$blueprint-grid-width: 21px
+$blueprint-grid-margin: 10px
+$blueprint-grid-columns: 30
+
+@import compass
+@import compass/css3
+@import blueprint
+
++global-reset
++blueprint-typography
+
+body.welcome
+  background-color: #111
+  #ld-container
+    background-image: image-url('bg.jpg')
+    -webkit-mask-box-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)))
+    //-moz-mask-box-image: -moz-linear-gradient(top, rgba(0,0,0,1), rgba(0,0,0,0))
+
+$welcome-wdth: 500px
+$welcome-hght: 300px
+$welcome-controls-wdth: 300px
+#welcome-container
+  width: $welcome-wdth
+  height: $welcome-hght
+  position: relative
+  top: 150px
+  left: 50%
+  margin-left: -$welcome-wdth / 2
+  color: $header-color-alt-darker
+  +text-shadow(#fff 1px 1px 0)
+  border: 1px solid $edge-color
+  background-color: $background-color-alt3
+  padding: 40px
+  text-align: center
+  +border-radius(5px)
+  +box-shadow(#000 0 0 25px)
+  h4
+    font-size: 11pt
+    color: $header-color-alt-darker
+  .controls
+    width: $welcome-controls-wdth
+    margin-left: -$welcome-controls-wdth / 2
+    line-height: 17pt
+    position: absolute
+    left: 50%
+    bottom: 50px
+    a, div.next
+      text-decoration: none
+      font-size: 30pt
+      font-family: GungSeo
+      color: $header-color-alt-darker
+    div
+      font-size: 9pt
+
+.slide
+  display: none
+
+.slide.selected
+  display: block
+
+#firstsignin
+  input[type=email], input[type=password]
+    border: 1px solid $edge-color
+    margin-bottom: 5px
+    text-align: center
+    width: 250px
+    padding: 4px
+    font-size: 18pt
+    +border-radius(5px)
+  input[type=submit]
+    position: absolute
+    bottom: 15px
+    right: 20px
+
+.smallnote
+  font-size: 8pt
+
+form.signin .error
+  opacity: 0
+
+.badcredentials
+  input[type=email], input[type=password]
+    border: 1px solid $font-color-error !important
+  .error
+    opacity: 1 !important
+
+.error
+  color: $font-color-error
+
+html, body, #sidebar, .panel.selected
+  height: 100%
+
+body
+  display: table
+  width: 100%
+  // XXX add to body instead of this div?
+  & > div.ember-view, #ld-container, #dashboard
+    width: 100%
+    height: 100%
+    display: table
+
+#sidebar, .panel.selected
+  display: table-cell
+
+h1
+  font-size: 19pt
+  font-weight: 300
+  color: $header-color-alt
+
+p
+  margin-bottom: 1em
+
+$topbar-hght: 24px
+$gap-size: 24px
+#sidebar, .panel
+  padding: ($topbar-hght + $gap-size) 0 0 0
+
+#sidebar
+  background-color: $background-color-alt
+  text-align: right
+  & > *
+    margin-right: $gap-size
+  & > nav
+    margin-right: 0
+    width: 200px
+
+#sidebar-update-link
+  color: $font-color-important !important
+
+#search
+  margin-top: 1em
+
+ul
+  +no-bullets
+  padding-left: inherit
+  margin: 0
+
+li
+  padding-top: 1px
+  padding-bottom: 1px
+
+#panel-list
+  margin-right: 0
+  padding: $gap-size 0
+  li
+    padding: 0
+  a
+    text-decoration: none
+    display: block
+    padding-right: $gap-size
+    line-height: 30px
+    color: #000
+    font-weight: 100
+    border: 1px solid rgba($edge-color, 0)
+    border-left: 0
+    border-right: 0
+  a.selected, a:active
+    border: 1px solid $edge-color-alt
+    border-left: 0
+    border-right: 0
+  a.selected
+    background-color: $background-color-alt2
+
+.panel
+  display: none
+
+.panel.selected
+  width: 100%
+  border-left: 1px solid $edge-color
+  +box-shadow($edge-color 0 0 10px)
+  & > *
+    margin-left: $gap-size
+
+.selected
+  display: block
+
+nav, a
+  cursor: pointer
+
+dl
+  float: left
+  margin-bottom: 0
+
+dt
+  font-size: $blueprint-font-size
+  clear: left
+
+dt, dd
+  float: left
+  margin-left: 0
+
+.panel > dl > dt
+  width: 100px
+
+.panel > dl > dd
+  margin: 0 0 1.5em 0
+
+.panel > dl > dd > dl > dt
+  width: 90px
+  font-weight: normal
+
+input[type=text], input[type=email], input[type=password], input[type=number], textarea
+  color: $font-color-input
+  cursor: text
+  font-size: $blueprint-font-size
+  font-family: $blueprint-font-family
+  &:not([disabled]):hover
+    color: #000
+
+input[type=number]
+  border: 0
+
+textarea
+  border: 1px solid $edge-color
+  +box-shadow($edge-color 0 0 5px)
+  +border-radius(3px)
+  padding: 5px
+
+#pm-textarea
+  height: 200px
+  margin-bottom: 1em
+  display: block
+  width: 500px
+
+#pm-controls
+  width: 500px
+  input[type=email]
+    border: 1px solid rgba($edge-color, 0)
+    &:not([disabled]):hover
+      color: #000
+      border-color: $edge-color
+
+#pm-send
+  float: right
+
+#topbar
+  position: absolute
+  top: 0
+  background: $background-color-alt
+  border: 0
+  border-bottom: 1px solid $edge-color
+  +box-shadow($edge-color 0 0 5px)
+  color: $header-color-alt
+  +text-shadow(#fff 1px 1px 0)
+  margin: 0
+  height: $topbar-hght
+  width: 100%
+
+.iconlabel, .iconlabel > *
+  display: inline-block
+  vertical-align: middle
+
+.iconlabel-label
+  padding-left: 3px
+
+.iconlabel .actionlink
+  padding-left: 8px
+
+.iconlabel-icon
+  background-repeat: no-repeat
+  background-position: center
+  min-height: $blueprint-font-size
+
+.connlight
+  width: 12px
+  .connected.get &, .connected.give &
+    background-image: image-url('connlight-green.png')
+  .connecting &, .disconnecting &, .paused &
+    background-image: image-url('connlight-yellow.png')
+  .notconnected &
+    background-image: image-url('connlight-red.png')
+
+#topbar-conn
+  position: absolute
+  left: 8px
+
+.topbar-stat
+  position: absolute
+  top: 4px
+  font-size: $font-size-smaller
+
+#topbar-peers
+  left: 133px
+
+#topbar-rate-up
+  left: 189px
+  &:before
+    content: '⬆'
+
+#topbar-rate-dn
+  left: 251px
+  &:before
+    content: '⬇'
+
+.rate:after
+  content: '/s'
+
+#userlink
+  position: absolute
+  top: 3px
+  right: 8px
+  text-align: right
+
+#userlink, #usermenu a
+  text-decoration: none
+  font-weight: 300
+
+#usermenu
+  display: none
+  position: fixed
+  top: $topbar-hght + 1px
+  right: 0
+  width: 90px
+  height: 45px
+  background-color: $background-color-alt
+  text-align: right
+  padding: 3px 20px 0 0
+  font-size: $font-size-smaller
+  border: 1px solid $edge-color
+  border-top-color: #eee
+  +text-shadow(#fff 1px 1px 0)
+  +box-shadow($edge-color 0 0 3px)
+
+#userlink:after
+  content: ' ▾'
+
+#userlink.collapsed:after
+  content: ' ▿'
+
+.actionlink
+  padding-left: 5px
+  font-size: $font-size-smaller
+
+#peertable
+  margin-bottom: 0
+  th,td
+    padding: 0 10px 0 0
+
+.extra
+  color: $font-color-input
+  font-size: $font-size-smaller
+
+.hidden
+  opacity: 0
+
+.disabled
+  color: $font-color-disabled
+
+#port
+  width: 50px
+
+#give-mode-peers input[type=checkbox]
+  margin-left: 15px
+
+#limitnpeers
+  width: 24px
+
+#reset-button
+  display: block
+  margin-top: 1em
+  color: $font-color-important
+
+#sysprofcol, #contactcol
+  float: left
+  margin: 0 1em 1.5em 0
+  & > div
+    padding-left: 20px

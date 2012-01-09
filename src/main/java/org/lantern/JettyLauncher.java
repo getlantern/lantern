@@ -439,7 +439,7 @@ public class JettyLauncher {
             }
         }
         log.info("Server is running!");
-        final String url = fullBasePath + "/lanternmap.html";
+        final String url = fullBasePath + "/dashboard.html";
         LanternUtils.browseUrl(url);
     }
 }
