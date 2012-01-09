@@ -2,6 +2,7 @@ $blueprint-background-color: #fff
 $background-color-alt: #e9edf2
 $background-color-alt2: #bbcee9
 $background-color-alt3: #ebebeb
+$background-color-alt4: #e6ecf5
 $blueprint-font-family: Helvetica, Arial, sans-serif
 $font-fixedwidth: Monaco, monospace
 $blueprint-font-size: 14px
@@ -186,7 +187,7 @@ li
   a.selected
     background-color: $background-color-alt2
 
-.panel
+.panel, .overlay
   display: none
 
 .panel.selected
@@ -198,6 +199,55 @@ li
 
 .selected
   display: block
+
+#sitestablecontainer
+  overflow-y: auto
+  height: 90%
+
+#manageproxiedsites
+  width: 250px
+  height: 100%
+  margin-top: 1em
+  padding: 2em 0
+  max-height: 70%
+  background-color: #fff
+  +box-shadow($edge-color 0 0 10px)
+  +border-radius(5px)
+  input[type=text]
+    width: 178px
+    +border-radius(3px)
+    border: 1px solid rgba($edge-color, 0)
+    &:hover
+      border: 1px solid $edge-color
+  tr:last-child input[type=text]
+    border: 1px solid $edge-color
+  td.x
+    text-align: right
+  tr td.x a
+    text-decoration: none
+    color: rgba($font-color-input, 0)
+  tr:hover
+    td.x a
+      color: rgba($font-color-input, 1)
+    background-color: $background-color-alt4
+  h1, td:first-child
+    padding-left: 20px
+  table
+    margin: 0 20px 0 0
+  .close
+    position: absolute
+    right: -14px
+    top: 6px
+    cursor: pointer
+    height: 35px
+    width: 35px
+    text-decoration: none
+
+a.close
+  color: #ddd
+  &:hover
+    color: $font-color-input
+
 
 nav, a
   cursor: pointer
@@ -288,11 +338,11 @@ textarea
 
 .connlight
   width: 12px
-  .connected.get &, .connected.give &
+  .CONNECTED.GET &, .CONNECTED.GIVE &
     background-image: image-url('connlight-green.png')
-  .connecting &, .disconnecting &, .paused &
+  .CONNECTING &, .DISCONNECTING &, .PAUSED &
     background-image: image-url('connlight-yellow.png')
-  .notconnected &
+  .DISCONNECTED &
     background-image: image-url('connlight-red.png')
 
 #topbar-conn
