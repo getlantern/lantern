@@ -49,8 +49,8 @@ public class DefaultLanternApi implements LanternApi {
             LanternHub.xmppHandler().disconnect();
             final String email = req.getParameter("email");
             final String pass = req.getParameter("password");
-            LanternHub.userInfo().setEmail(email);
-            LanternHub.userInfo().setPassword(pass);
+            LanternHub.settings().setEmail(email);
+            LanternHub.settings().setPassword(pass);
             LanternHub.xmppHandler().connect();
             break;
         case SIGNOUT:
@@ -74,47 +74,29 @@ public class DefaultLanternApi implements LanternApi {
             break;
         }
         LanternHub.asyncEventBus().post(new SyncEvent());
-    }
-    
-    private enum Category {
-        SYSTEM,
-        USER,
-        WHITELIST,
-        ROSTER,
+        LanternHub.settingsIo().write();
     }
 
     @Override
     public void changeSetting(final HttpServletRequest req, 
         final HttpServletResponse resp) {
-        final String uri = req.getRequestURI();
-        final String path = StringUtils.substringAfter(uri, "/settings/");
-        log.info("Got path: {}", path);
-        final String category = StringUtils.substringBefore(path, "/");
-        log.info("Got category: {}", category);
+        //final String uri = req.getRequestURI();
+        //final String path = StringUtils.substringAfter(uri, "/settings");
+        //log.info("Got path: {}", path);
+        //final String category = StringUtils.substringBefore(path, "/");
+        //log.info("Got category: {}", category);
         
         final Map<String, String> params = LanternUtils.toParamMap(req);
         final Entry<String, String> keyVal = params.entrySet().iterator().next();
         log.info("Got keyval: {}", keyVal);
         final String key = keyVal.getKey();
         final String val = keyVal.getValue();
-        final Category cat = Category.valueOf(category.toUpperCase());
-        switch (cat) {
-        case SYSTEM:
-            setProperty(LanternHub.systemInfo(), key, val, true, resp);
-            break;
-        case USER:
-            setProperty(LanternHub.userInfo(), key, val, true, resp);
-            break;
-        case WHITELIST:
-            setProperty(LanternHub.whitelist(), key, val, true, resp);
-            break;
-        case ROSTER:
-            setProperty(LanternHub.roster(), key, val, true, resp);
-            break;
-        }
+        
+        setProperty(LanternHub.settings(), key, val, true, resp);
         setProperty(implementor, key, val, false, resp);
         resp.setStatus(HttpStatus.SC_OK);
         LanternHub.asyncEventBus().post(new SyncEvent());
+        LanternHub.settingsIo().write();
     }
     
     private void setProperty(final Object bean, 

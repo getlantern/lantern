@@ -320,20 +320,12 @@ public class LanternHub {
         return settings.getWhitelist();
     }
     
-    public static UserInfo userInfo() {
-        return settings.getUser();
-    }
-    
-    public static SystemInfo systemInfo() {
-        return settings.getSystem();
-    }
-
     public static Platform platform() {
-        return settings.getSystem().getPlatform();
+        return settings.getPlatform();
     }
     
     public static Internet internet() {
-        return settings.getSystem().getInternet();
+        return settings.getInternet();
     }
     
     public static Roster roster() {

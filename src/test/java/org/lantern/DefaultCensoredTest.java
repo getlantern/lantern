@@ -1,6 +1,5 @@
 package org.lantern;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -12,16 +11,16 @@ public class DefaultCensoredTest {
     /*
     @Test 
     public void testCountryOverride() throws Exception {
-        LanternHub.userInfo().setManuallyOverrideCountry(true);
-        LanternHub.userInfo().setCountry(new Country("CN", "China"));
-        final Censored cen = LanternHub.censored();
+        LanternHub.settings().setManuallyOverrideCountry(true);
+        LanternHub.settings().setCountry(new Country("CN", "China"));
+        final Censored cen = LanternHub.settings().censored();
         assertTrue("Censored?", cen.isCensored());
         
-        LanternHub.userInfo().setManuallyOverrideCountry(false);
+        LanternHub.settings().setManuallyOverrideCountry(false);
         assertFalse("Censored?", cen.isCensored());
         
         assertEquals("United States", 
-            LanternHub.userInfo().getDetectedCountry().getName());
+            LanternHub.settings().getDetectedCountry().getName());
     }
     */
     

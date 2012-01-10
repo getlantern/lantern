@@ -132,12 +132,12 @@ public class Configurator {
             return;
         }
         final File git = new File(".git");
-        if (git.isDirectory() || !LanternHub.userInfo().isGetMode()) {
+        if (git.isDirectory() || !LanternHub.settings().isGetMode()) {
             LOG.info("Running from repository...not auto-configuring proxy.");
             return;
         }
         
-        if (LanternHub.userInfo().isGetMode()) {
+        if (LanternHub.settings().isGetMode()) {
             LOG.info("Auto-configuring proxy...");
             
             startProxying();
