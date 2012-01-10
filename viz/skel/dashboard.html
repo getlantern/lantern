@@ -409,6 +409,7 @@ $(document).ready(function(){
     if (handshake.successful === true){
       cometd.batch(function(){
         cometd.subscribe('/sync', syncHandler);
+        $.ajax('/api/init');
       });
     }
   }
