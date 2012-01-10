@@ -7,7 +7,11 @@ import java.util.TimerTask;
 import org.apache.commons.lang.StringUtils;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.client.ClientSessionChannel;
+import org.cometd.bayeux.server.ConfigurableServerChannel;
+import org.cometd.bayeux.server.ServerChannel.ServerChannelListener;
 import org.cometd.bayeux.server.ServerSession;
+import org.cometd.bayeux.server.ServerSession.ServerSessionListener;
+import org.cometd.java.annotation.Configure;
 import org.cometd.java.annotation.Listener;
 import org.cometd.java.annotation.Service;
 import org.cometd.java.annotation.Session;
@@ -40,7 +44,6 @@ public class SyncService {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                log.info("Updating");
                 sync();
             }
         }, 3000, 4000);
@@ -55,6 +58,12 @@ public class SyncService {
             }
             
         }, "Backend-Not-Running-Thread"));
+    }
+    
+    @SuppressWarnings("unused")
+    @Configure("/service/sync")
+    private void configureSync(final ConfigurableServerChannel channel) {
+        channel.setPersistent(true);
     }
 
     @Listener("/service/sync")
