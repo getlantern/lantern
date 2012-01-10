@@ -212,7 +212,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             LanternHub.eventBus().post(
                 new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_IN));
             final String id;
-            if (LanternHub.userInfo().getMode() == Mode.GET) {
+            if (LanternHub.userInfo().isGetMode()) {
                 id = "gmail.";
             } else {
                 id = UNCENSORED_ID;

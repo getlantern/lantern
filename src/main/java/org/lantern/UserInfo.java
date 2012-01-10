@@ -15,9 +15,6 @@ public class UserInfo implements MutableUserSettings {
     private ConnectivityStatus connectivityStatus = 
         ConnectivityStatus.DISCONNECTED;
 
-    private Mode mode = 
-        LanternHub.censored().isCensored() ? Mode.GET : Mode.GIVE;
-    
     private boolean proxyAllSites;
     
     private Country country = LanternHub.censored().country();
@@ -43,6 +40,10 @@ public class UserInfo implements MutableUserSettings {
      */
     private boolean useCloudProxies = true;
     
+    private boolean getMode;
+    
+    private boolean getAccessed = false;
+    
     public UserInfo() {
         LanternHub.eventBus().register(this);
     }
@@ -62,19 +63,6 @@ public class UserInfo implements MutableUserSettings {
 
     public void setEmail(final String email) {
         this.email = email;
-    }
-    
-    public Mode getMode() {
-        // Lazy-initialize mode to the default
-        if (mode == null) {
-            this.mode = LanternHub.censored().isCensored() ? Mode.GET : Mode.GIVE;
-        }
-        return this.mode;
-    }
-    
-    @Override
-    public void setMode(final Mode mode) {
-        this.mode = mode;
     }
 
     public void setAuthenticationStatus(
@@ -168,12 +156,25 @@ public class UserInfo implements MutableUserSettings {
         return storedPassword;
     }
 
-    public void setUseCloudProxies(boolean useCloudProxies) {
+    public void setUseCloudProxies(final boolean useCloudProxies) {
         this.useCloudProxies = useCloudProxies;
     }
 
     public boolean isUseCloudProxies() {
         return useCloudProxies;
+    }
+
+    public void setGetMode(final boolean getMode) {
+        this.getAccessed = true;
+        this.getMode = getMode;
+    }
+
+    public boolean isGetMode() {
+        if (!getAccessed) {
+            this.getMode = LanternHub.censored().isCensored();
+            this.getAccessed = true;
+        }
+        return getMode;
     }
 
 }

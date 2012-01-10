@@ -58,14 +58,14 @@ public class SettingsChangeImplementor implements MutableSystemSettings,
     }
 
     @Override
-    public void setMode(final Mode mode) {
+    public void setGetMode(final boolean getMode) {
         // When we move to give mode, we want to start advertising our 
         // ID and to start accepting incoming connections.
         
         // We we move to get mode, we want to stop advertising our ID and to
         // stop accepting incoming connections.
 
-        if (mode == LanternHub.userInfo().getMode()) {
+        if (getMode == LanternHub.userInfo().isGetMode()) {
             log.info("Mode is unchanged.");
             return;
         }
