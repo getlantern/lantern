@@ -398,8 +398,8 @@ public class LanternUtils {
         if (!LanternConstants.DEFAULT_SETTINGS_FILE.isFile()) {
             return false;
         }
-        final String un = LanternHub.userInfo().getEmail();
-        final String pwd = LanternHub.userInfo().getPassword();
+        final String un = LanternHub.settings().getEmail();
+        final String pwd = LanternHub.settings().getPassword();
         return (StringUtils.isNotBlank(un) && StringUtils.isNotBlank(pwd));
     }
     
@@ -465,21 +465,21 @@ public class LanternUtils {
     
     public static void writeCredentials(final String email, final String pwd) {
         LOG.info("Writing credentials...");
-        LanternHub.userInfo().setEmail(email);
-        LanternHub.userInfo().setPassword(pwd);
+        LanternHub.settings().setEmail(email);
+        LanternHub.settings().setPassword(pwd);
         LanternHub.settingsIo().write();
     }
     
 
     public static void clearCredentials() {
         LOG.info("Clearing credentials...");
-        LanternHub.userInfo().setEmail("");
-        LanternHub.userInfo().setPassword("");
+        LanternHub.settings().setEmail("");
+        LanternHub.settings().setPassword("");
         LanternHub.settingsIo().write();
     }
 
     public static boolean isNewInstall() {
-        return LanternHub.systemInfo().getSettings().getState() == 
+        return LanternHub.settings().getSettings().getState() == 
             State.UNSET;
     }
 
