@@ -101,7 +101,7 @@ public class Launcher {
         }
         Display.setAppName("Lantern");
         final Display display = LanternHub.display();
-        
+
         // initialize properties, local ciphers etc on this thread 
         // before proceeding with more complicated stuffs.
         if (!LanternUtils.initProps()) {

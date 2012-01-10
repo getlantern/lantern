@@ -193,7 +193,7 @@ public class StatsTracker implements LanternData {
                 addOniCountryData(line);
                 line = br.readLine();
             }
-            //log.info("CENSORED COUNTRIES:\n{}",LanternHub.censored().getCensored());
+            //log.info("CENSORED COUNTRIES:\n{}",LanternHub.settings().censored().getCensored());
         } catch (final IOException e) {
             log.error("No file?", e);
         } finally {
@@ -339,7 +339,7 @@ public class StatsTracker implements LanternData {
         final String cc = data[country_code];
         final String name = data[country_index];
         if (censored) {
-            //LanternHub.censored().getCensored().add(cc);
+            //LanternHub.settings().censored().getCensored().add(cc);
             
         }
         
