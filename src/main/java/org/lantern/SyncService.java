@@ -81,6 +81,12 @@ public class SyncService {
     }
     
     @Subscribe
+    public void onSync(final SyncEvent syncEvent) {
+        log.info("Got sync event");
+        sync();
+    }
+    
+    @Subscribe
     public void onPresence(final AddPresenceEvent event) {
         log.info("Got presence");
         sync();
