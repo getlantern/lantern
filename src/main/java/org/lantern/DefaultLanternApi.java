@@ -73,6 +73,7 @@ public class DefaultLanternApi implements LanternApi {
                 req.getParameter("email"));
             break;
         }
+        LanternHub.eventBus().post(new SyncEvent());
     }
     
     private enum Category {
