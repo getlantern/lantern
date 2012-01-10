@@ -29,7 +29,8 @@ public class DefaultLanternApi implements LanternApi {
      * Enumeration of calls to the Lantern API.
      */
     private enum LanternApiCall {
-
+        INIT, // call dashboard makes on connect to get pushed initial state
+              // XXX can we use some cometd onConnect hook for this instead?
         SIGNIN,
         SIGNOUT,
         ADDTOWHITELIST,
@@ -44,6 +45,7 @@ public class DefaultLanternApi implements LanternApi {
         final String uri = req.getRequestURI();
         final String id = StringUtils.substringAfter(uri, "/api/");
         final LanternApiCall call = LanternApiCall.valueOf(id.toUpperCase());
+        log.debug("Got API call {}", call);
         switch (call) {
         case SIGNIN:
             LanternHub.xmppHandler().disconnect();
