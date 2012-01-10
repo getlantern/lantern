@@ -736,10 +736,6 @@ public class LanternUtils {
         return XmppUtils.goOnTheRecord(LanternConstants.LANTERN_JID, conn);
     }
     
-    public static boolean shouldProxy() {
-        return LanternHub.userInfo().getMode() == Mode.GET;
-    }
-    
     public static void browseUrl(final String uri) {
         if( !Desktop.isDesktopSupported() ) {
             LOG.error("Desktop not supported?");
