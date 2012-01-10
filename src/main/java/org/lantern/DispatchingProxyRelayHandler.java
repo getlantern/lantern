@@ -488,6 +488,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         pipeline.addLast("handler", 
             new StatsTrackingHttpConnectRelayingHandler(
                 this.browserToProxyChannel));
+        pipeline.addLast("writestats", new StatsTrackingUpstreamHandler());
         log.info("Connecting to relay proxy");
         final InetSocketAddress isa = this.proxyProvider.getProxy();
         if (isa == null) {

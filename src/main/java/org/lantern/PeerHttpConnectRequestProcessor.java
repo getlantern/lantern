@@ -66,6 +66,8 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
             final byte[] data = LanternUtils.toByteBuffer(request, ctx);
             log.info("Writing data on peer socket: {}", new String(data));
             os.write(data);
+            // shady, hard to know if it's really been done
+            LanternHub.statsTracker().addUpBytesViaOthers(data.length, this.sock);
         } catch (final Exception e) {
             log.error("Could not encode request?", e);
         }

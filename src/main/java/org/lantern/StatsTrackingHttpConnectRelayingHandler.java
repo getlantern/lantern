@@ -60,7 +60,10 @@ public class StatsTrackingHttpConnectRelayingHandler
             
             LOG.info("Recording proxied bytes through HTTP CONNECT: {}", bytes);
             
+            // global bytes proxied statistic
             LanternHub.statsTracker().addBytesProxied(bytes, relayChannel);
+            // contributes to local download rate
+            LanternHub.statsTracker().addDownBytesViaOthers(bytes, relayChannel);
             relayChannel.write(msg).addListener(logListener);
         }
         else {
