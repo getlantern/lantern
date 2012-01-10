@@ -88,7 +88,11 @@ public class JettyLauncher {
                 final ServletResponse res)
                 throws ServletException, IOException {
                 final Settings settings = LanternHub.settings();
+                final String pass = settings.getPassword();
+                settings.setPassword("");
                 final String json = LanternUtils.jsonify(settings);
+                settings.setPassword(pass);
+                
                 final byte[] raw = json.getBytes("UTF-8");
                 res.setContentLength(raw.length);
                 res.setContentType("application/json");
