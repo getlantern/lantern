@@ -325,7 +325,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     }
     
     private boolean shouldProxy(final HttpRequest request) {
-        if (LanternHub.userInfo().isProxyAllSites()) {
+        if (LanternHub.settings().isProxyAllSites()) {
             return true;
         }
         return LanternHub.whitelist().isWhitelisted(request);
@@ -400,11 +400,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     }
 
     private boolean useStandardProxies() {
-        return PROXIES_ACTIVE && LanternHub.userInfo().isUseCloudProxies();
+        return PROXIES_ACTIVE && LanternHub.settings().isUseCloudProxies();
     }
 
     private boolean useLae() {
-        return LAE_ACTIVE && LanternHub.userInfo().isUseCloudProxies();
+        return LAE_ACTIVE && LanternHub.settings().isUseCloudProxies();
     }
 
     private void centralConnect(final HttpRequest request) {

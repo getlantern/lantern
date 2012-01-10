@@ -43,14 +43,14 @@ public class SettingsTest {
         final SettingsIo io = new SettingsIo(settingsFile);
         final Settings settings = io.read();
         assertEquals(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
-            settings.getSystem().getPort());
+            settings.getPort());
         
         final int port = 2830;
-        settings.getSystem().setPort(port);
+        settings.setPort(port);
         io.write(settings);
         
         final Settings read = io.read();
-        assertEquals(port, read.getSystem().getPort());
+        assertEquals(port, read.getPort());
         
         final Whitelist whitelist = read.getWhitelist();
         
@@ -99,7 +99,7 @@ public class SettingsTest {
         if (cur.contains("<true/>")) {
             assertFalse(cur.contains("<false/>"));
             //Configurator.setStartAtLogin(temp, false);
-            settings.getSystem().setStartAtLogin(false);
+            settings.setStartAtLogin(false);
             implementor.setStartAtLogin(false);
             ss.write(settings);
             final String newFile = FileUtils.readFileToString(temp, "UTF-8");
@@ -107,7 +107,7 @@ public class SettingsTest {
         } else if (cur.contains("<false/>")) {
             assertFalse(cur.contains("<true/>"));
             //Configurator.setStartAtLogin(temp, true);
-            settings.getSystem().setStartAtLogin(true);
+            settings.setStartAtLogin(true);
             implementor.setStartAtLogin(true);
             ss.write(settings);
             final String newFile = FileUtils.readFileToString(temp, "UTF-8");
