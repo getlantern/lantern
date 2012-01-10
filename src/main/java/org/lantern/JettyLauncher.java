@@ -119,6 +119,24 @@ public class JettyLauncher {
             }
         }
         
+        final class DashboardServlet extends DefaultServlet {
+            private static final long serialVersionUID = 1251837196225992880L;
+            @Override
+            protected void doGet(final HttpServletRequest req, 
+                final HttpServletResponse resp) throws ServletException, 
+                IOException {
+                System.out.println("GOT DASHBOARD REQUEST");
+                super.doGet(req, resp);
+                LanternHub.eventBus().post(new SyncEvent());
+            }
+        }
+        
+        final ServletHolder dashboard = 
+            new ServletHolder(new DashboardServlet());
+        dashboard.setInitOrder(3);
+        contextHandler.addServlet(dashboard, "/dashboard.html");
+        
+        
         final class ApiServlet extends HttpServlet {
 
             private static final long serialVersionUID = -4199110396383838768L;
@@ -150,7 +168,7 @@ public class JettyLauncher {
         contextHandler.addServlet(settings, "/settings/*");
         
         final ServletHolder apiServlet = new ServletHolder(new ApiServlet());
-        settings.setInitOrder(3);
+        apiServlet.setInitOrder(3);
         contextHandler.addServlet(apiServlet, "/api/*");
         
         final ServletHolder config = new ServletHolder(new ConfigServlet());
