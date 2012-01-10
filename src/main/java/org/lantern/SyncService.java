@@ -39,6 +39,7 @@ public class SyncService {
     public SyncService() {
         // Make sure the config class is added as a listener before this class.
         LanternHub.eventBus().register(this);
+        LanternHub.asyncEventBus().register(this);
         
         final Timer timer = LanternHub.timer();
         timer.schedule(new TimerTask() {
@@ -72,13 +73,13 @@ public class SyncService {
         log.info("DATA: {}", message.getData());
         log.info("DATA CLASS: {}", message.getData().getClass());
         
+        /*
         final String fullJson = message.getJSON();
         final String json = StringUtils.substringBetween(fullJson, "\"data\":", ",\"channel\":");
         final Map<String, Object> update = message.getDataAsMap();
         log.info("MAP: {}", update);
+        */
 
-        //final SettingsIo io = LanternHub.settingsIo();
-        //io.apply(update);
         log.info("Pushing updated config to browser...");
         sync();
     }
