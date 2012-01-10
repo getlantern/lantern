@@ -73,6 +73,7 @@ public class DefaultLanternApi implements LanternApi {
                 req.getParameter("email"));
             break;
         }
+        LanternHub.asyncEventBus().post(new SyncEvent());
     }
     
     private enum Category {
@@ -91,7 +92,6 @@ public class DefaultLanternApi implements LanternApi {
         final String category = StringUtils.substringBefore(path, "/");
         log.info("Got category: {}", category);
         
-        //final String query = req.getQueryString();
         final Map<String, String> params = LanternUtils.toParamMap(req);
         final Entry<String, String> keyVal = params.entrySet().iterator().next();
         log.info("Got keyval: {}", keyVal);
@@ -114,6 +114,7 @@ public class DefaultLanternApi implements LanternApi {
         }
         setProperty(implementor, key, val, false, resp);
         resp.setStatus(HttpStatus.SC_OK);
+        LanternHub.asyncEventBus().post(new SyncEvent());
     }
     
     private void setProperty(final Object bean, 

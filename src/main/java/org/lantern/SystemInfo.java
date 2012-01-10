@@ -74,7 +74,6 @@ public class SystemInfo implements MutableSystemSettings {
     }
     
     public void setVersion(final String version) {
-        this.version = version;
     }
     
     public Internet getInternet() {
