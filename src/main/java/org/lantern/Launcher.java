@@ -63,6 +63,11 @@ public class Launcher {
         final Options options = new Options();
         options.addOption(null, LanternConstants.OPTION_DISABLE_UI, false,
                           "run without a graphical user interface.");
+        
+        options.addOption(null, LanternConstants.OPTION_API_PORT, true,
+            "the port to run the API server on.");
+        options.addOption(null, LanternConstants.OPTION_PUBLIC_API, false,
+            "make the API server publicly accessible on non-localhost.");
         options.addOption(null, LanternConstants.OPTION_HELP, false,
                           "display command line help");
         final CommandLineParser parser = new PosixParser();
@@ -83,12 +88,27 @@ public class Launcher {
         }
         
         if (cmd.hasOption(LanternConstants.OPTION_DISABLE_UI)) {
+            LOG.info("Disabling UI");
             LanternUtils.setUiEnabled(false);
         }
         else {
             LanternUtils.setUiEnabled(true);
         }
         
+        if (cmd.hasOption(LanternConstants.OPTION_PUBLIC_API)) {
+            LanternHub.settings().setBindToLocalhost(false);
+        }
+        if (cmd.hasOption(LanternConstants.OPTION_API_PORT)) {
+            final String portStr = 
+                cmd.getOptionValue(LanternConstants.OPTION_API_PORT);
+            LOG.info("Using command-line port: "+portStr);
+            final int port = Integer.parseInt(portStr);
+            LanternHub.settings().setApiPort(port);
+        } else {
+            LOG.info("Using random port...");
+            LanternHub.settings().setApiPort(LanternUtils.randomPort());
+        }
+        LOG.info("Running API on port: {}", LanternHub.settings().getApiPort());
         
         LOG.info("Waiting for internet connection...");
         LanternUtils.waitForInternet();

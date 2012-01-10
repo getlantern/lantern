@@ -67,6 +67,10 @@ public class Settings implements MutableSettings {
     
     private boolean getAccessed = false;
     
+    private boolean bindToLocalhost = true;
+    
+    private int apiPort;
+    
     
     {
         LanternHub.eventBus().register(this);
@@ -313,6 +317,7 @@ public class Settings implements MutableSettings {
         return useCloudProxies;
     }
 
+    @Override
     public void setGetMode(final boolean getMode) {
         this.getAccessed = true;
         this.getMode = getMode;
@@ -324,6 +329,22 @@ public class Settings implements MutableSettings {
             this.getAccessed = true;
         }
         return getMode;
+    }
+
+    public void setBindToLocalhost(boolean bindToLocalhost) {
+        this.bindToLocalhost = bindToLocalhost;
+    }
+
+    public boolean isBindToLocalhost() {
+        return bindToLocalhost;
+    }
+
+    public void setApiPort(final int apiPort) {
+        this.apiPort = apiPort;
+    }
+
+    public int getApiPort() {
+        return apiPort;
     }
 
 }

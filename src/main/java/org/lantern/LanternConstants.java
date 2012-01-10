@@ -68,6 +68,10 @@ public class LanternConstants {
     /* the following are command line options */
     public static final String OPTION_DISABLE_UI = "disable-ui";
     public static final String OPTION_HELP = "help";
+    
+    public static final String OPTION_PUBLIC_API = "public-api";
+    
+    public static final String OPTION_API_PORT = "api-port";
 
     /**
      * Plist file for launchd on OSX.
@@ -81,4 +85,5 @@ public class LanternConstants {
 
     public static final File DEFAULT_SETTINGS_FILE = 
         new File(LanternUtils.configDir(), "settings.json");
+
 }
