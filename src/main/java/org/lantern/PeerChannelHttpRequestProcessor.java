@@ -56,6 +56,7 @@ public class PeerChannelHttpRequestProcessor implements HttpRequestProcessor {
             pipeline.addLast("decoder", new HttpResponseDecoder());
             pipeline.addLast("encoder", new HttpRequestEncoder());
             pipeline.addLast("relay", new RelayToBrowserHandler(browserToProxyChannel));
+            pipeline.addLast("writestats", new StatsTrackingUpstreamHandler());
 
             peerChannel = new PeerSocketChannel(pipeline, peerSink, sock);
             peerChannel.simulateConnect();
