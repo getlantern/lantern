@@ -66,7 +66,7 @@ public class SettingsIo {
         try {
             is = LanternUtils.localDecryptInputStream(settingsFile);
             final String json = IOUtils.toString(is);
-            log.info("Reading:\n{}", json);
+            log.info("Building setting from json string...");
             final Settings read = mapper.readValue(json, Settings.class);
             log.info("Built settings from disk: {}", read);
             return read;
@@ -82,28 +82,12 @@ public class SettingsIo {
         final SettingsState ss = new SettingsState();
         ss.setState(State.CORRUPTED);
         ss.setMessage("Could not read settings file.");
-        //settings.getSystem().setS
-        //write(settings);
         return settings;
     }
     
     private Settings newSettings() {
-        final Internet internet = new Internet();
-        final Platform platform = new Platform();
-        final SystemInfo sys = new SystemInfo(internet, platform);
-        
-        final UserInfo user = new UserInfo();
-        final Whitelist whitelist = new Whitelist();
-        final Roster roster = new Roster();
-        final Settings settings = new Settings(sys, user, whitelist, roster);
-        
-        // Don't write here because this takes place super early in the 
-        // init sequence, and writing itself can request things that 
-        // don't exist yet.
-        //write(settings);
-        return settings;
+        return new Settings(new Whitelist(), new Roster());
     }
-
 
     /**
      * Writes the default settings object.
@@ -136,90 +120,5 @@ public class SettingsIo {
             settings.getRoster().setEntries(entries);
         }
         
-    }
-    
-    private final Map<String, Function<Object, String>> applyFuncs =
-        new ConcurrentHashMap<String, Function<Object,String>>();
-    
-    {
-        /*
-        applyFuncs.put("api", new Function<Object, String>() {
-            @Override
-            public String apply(final Object obj) {
-                LanternHub.api().processCall((Map<String, String>)obj);
-                return "";
-            }
-        });
-        */
-        applyFuncs.put("system", new Function<Object, String>() {
-            @Override
-            public String apply(final Object obj) {
-                return applyChanges(obj, LanternHub.settings().getSystem());
-            }
-        });
-        
-        applyFuncs.put("user", new Function<Object, String>() {
-            @Override
-            public String apply(final Object obj) {
-                return applyChanges(obj, LanternHub.settings().getUser());
-            }
-        });
-        
-        applyFuncs.put("whitelist", new Function<Object, String>() {
-            @Override
-            public String apply(final Object obj) {
-                // TODO: How should we handle arrays? Tempting to force the
-                // client to submit complete objects!!
-                
-                // MAYBE HAVE THE CLIENT SIDE SUBMIT THE FULL WHITELIST EACH TIME?
-                //return applyChanges(obj, "whitelist", LanternHub.settings().getWhitelist());
-                return "";
-            }
-        });
-    }
-    
-    protected String applyChanges(final Object obj, 
-        final Object propertiesBean) {
-        final Map<String, Object> settings = (Map<String, Object>) obj;
-        final Set<Entry<String, Object>> entries = settings.entrySet();
-        for (final Entry<String, Object> entry : entries) {
-            // We do the implementor first because it often checks to make sure
-            // the value has actually changed before implementing any changes.
-            setProperty(implementor, entry);
-            setProperty(propertiesBean, entry);
-        }
-        return "";
-    }
-
-
-    private void setProperty(final Object bean, 
-        final Entry<String, Object> entry) {
-        final String key = entry.getKey();
-        final Object val = entry.getValue();
-        try {
-            PropertyUtils.setSimpleProperty(bean, key, val);
-        } catch (final IllegalAccessException e) {
-            log.error("Could not set property", e);
-        } catch (final InvocationTargetException e) {
-            log.error("Could not set property", e);
-        } catch (final NoSuchMethodException e) {
-            log.error("Could not set property", e);
-        }
-    }
-
-
-    public void apply(final Map<String, Object> update) {
-        final Set<Entry<String, Object>> entries = update.entrySet();
-        for (final Entry<String, Object> entry : entries) {
-            final Function<Object, String> func = 
-                applyFuncs.get(entry.getKey());
-            if (func != null) {
-                func.apply(entry.getValue());
-            } else {
-                log.warn("Received request for unmapped func {} in "+applyFuncs, 
-                    func);
-            }
-        }
-        write();
     }
 }

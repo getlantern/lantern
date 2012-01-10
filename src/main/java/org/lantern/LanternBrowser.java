@@ -492,8 +492,7 @@ public class LanternBrowser {
                     // The user could be re-configuring their system. Make sure
                     // force is no longer active.
                     if (!LanternHub.censored().isCensored()) {
-                        //LanternHub.censored().unforceCensored();
-                        LanternHub.userInfo().setMode(Mode.GIVE);
+                        LanternHub.settings().setGetMode(false);
                     }
                     final Map<String, String> replace = install1Uncensored();
                     setUrl("install1Uncensored.html", replace);
@@ -502,7 +501,7 @@ public class LanternBrowser {
                     // in censored mode even if they don't appear to be in a
                     // censored country.
                     if (!LanternHub.censored().isCensored()) {
-                        LanternHub.userInfo().setMode(Mode.GET);
+                        LanternHub.settings().setGetMode(true);
                     }
                     final Map<String, String> replace = install1Censored();
                     setUrl("install1Censored.html", replace);
@@ -630,7 +629,7 @@ public class LanternBrowser {
                     if (isConfig) {
                         Configurator.reconfigure();
                     }
-                    LanternHub.systemInfo().getSettings().setState(State.SET);
+                    LanternHub.settings().getSettings().setState(State.SET);
                     LanternHub.settingsIo().write();
                     if (StringUtils.isNotBlank(elements)) {
                         log.info("Got elements: {}", elements);

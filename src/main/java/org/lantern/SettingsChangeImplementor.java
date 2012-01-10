@@ -10,8 +10,7 @@ import org.slf4j.LoggerFactory;
  * Class that does the dirty work of executing changes to the various settings 
  * users can configure.
  */
-public class SettingsChangeImplementor implements MutableSystemSettings,
-    MutableUserSettings {
+public class SettingsChangeImplementor implements MutableSettings {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -51,21 +50,21 @@ public class SettingsChangeImplementor implements MutableSystemSettings,
 
     @Override
     public void setCountry(final Country country) {
-        if (country.equals(LanternHub.userInfo().getCountry())) {
+        if (country.equals(LanternHub.settings().getCountry())) {
             return;
         }
-        LanternHub.userInfo().setManuallyOverrideCountry(true);
+        LanternHub.settings().setManuallyOverrideCountry(true);
     }
 
     @Override
-    public void setMode(final Mode mode) {
+    public void setGetMode(final boolean getMode) {
         // When we move to give mode, we want to start advertising our 
         // ID and to start accepting incoming connections.
         
         // We we move to get mode, we want to stop advertising our ID and to
         // stop accepting incoming connections.
 
-        if (mode == LanternHub.userInfo().getMode()) {
+        if (getMode == LanternHub.settings().isGetMode()) {
             log.info("Mode is unchanged.");
             return;
         }

@@ -112,7 +112,7 @@ public class SystemTrayImpl implements SystemTray {
                 }
             });
             */
-            if (LanternUtils.shouldProxy()) {
+            if (LanternHub.settings().isGetMode()) {
                 stopItem = new MenuItem(menu, SWT.PUSH);
                 stopItem.setText(I18n.tr("Stop Lantern "));
                 stopItem.setEnabled(false);
@@ -295,7 +295,7 @@ public class SystemTrayImpl implements SystemTray {
         display.asyncExec (new Runnable () {
             @Override
             public void run () {
-                if (LanternUtils.shouldProxy()) {
+                if (LanternHub.settings().isGetMode()) {
                     stopItem.setEnabled(connected);
                     startItem.setEnabled(!connected);
                 }

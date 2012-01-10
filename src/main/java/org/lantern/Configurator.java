@@ -132,12 +132,12 @@ public class Configurator {
             return;
         }
         final File git = new File(".git");
-        if (git.isDirectory() || !LanternUtils.shouldProxy()) {
+        if (git.isDirectory() || !LanternHub.settings().isGetMode()) {
             LOG.info("Running from repository...not auto-configuring proxy.");
             return;
         }
         
-        if (LanternUtils.shouldProxy()) {
+        if (LanternHub.settings().isGetMode()) {
             LOG.info("Auto-configuring proxy...");
             
             startProxying();
@@ -156,44 +156,36 @@ public class Configurator {
     }
     
     public static void startProxying() {
-        if (LanternUtils.shouldProxy()) {
-            try {
-                if (!LANTERN_PROXYING_FILE.isFile() &&
-                    !LANTERN_PROXYING_FILE.createNewFile()) {
-                    LOG.error("Could not create proxy file?");
-                }
-            } catch (final IOException e) {
-                LOG.error("Could not create proxy file?", e);
+        try {
+            if (!LANTERN_PROXYING_FILE.isFile() &&
+                !LANTERN_PROXYING_FILE.createNewFile()) {
+                LOG.error("Could not create proxy file?");
             }
-            LOG.info("Starting to proxy Lantern");
-            if (SystemUtils.IS_OS_MAC_OSX) {
-                proxyOsx();
-            } else if (SystemUtils.IS_OS_WINDOWS) {
-                proxyWindows();
-            } else if (SystemUtils.IS_OS_LINUX) {
-                // TODO: proxyLinux();
-            }
-            LanternHub.eventBus().post(new ProxyingEvent(true));
-        } else {
-            LOG.info("Not configuring proxy in an uncensored country");
+        } catch (final IOException e) {
+            LOG.error("Could not create proxy file?", e);
         }
+        LOG.info("Starting to proxy Lantern");
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            proxyOsx();
+        } else if (SystemUtils.IS_OS_WINDOWS) {
+            proxyWindows();
+        } else if (SystemUtils.IS_OS_LINUX) {
+            // TODO: proxyLinux();
+        }
+        LanternHub.eventBus().post(new ProxyingEvent(true));
     }
     
     public static void stopProxying() {
-        if (LanternUtils.shouldProxy()) {
-            LOG.info("Unproxying Lantern");
-            LANTERN_PROXYING_FILE.delete();
-            if (SystemUtils.IS_OS_MAC_OSX) {
-                unproxyOsx();
-            } else if (SystemUtils.IS_OS_WINDOWS) {
-                unproxyWindows();
-            } else if (SystemUtils.IS_OS_LINUX) {
-                // TODO: unproxyLinux();
-            }
-            LanternHub.eventBus().post(new ProxyingEvent(false));
-        } else {
-            LOG.info("Not configuring proxy in an uncensored country");
+        LOG.info("Unproxying Lantern");
+        LANTERN_PROXYING_FILE.delete();
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            unproxyOsx();
+        } else if (SystemUtils.IS_OS_WINDOWS) {
+            unproxyWindows();
+        } else if (SystemUtils.IS_OS_LINUX) {
+            // TODO: unproxyLinux();
         }
+        LanternHub.eventBus().post(new ProxyingEvent(false));
     }
 
     public static boolean isProxying() {

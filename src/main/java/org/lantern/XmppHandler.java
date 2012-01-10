@@ -144,14 +144,14 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final int plainTextProxyRandomPort) {
         this.sslProxyRandomPort = sslProxyRandomPort;
         this.plainTextProxyRandomPort = plainTextProxyRandomPort;
-        if (LanternHub.settings().getSystem().isConnectOnLaunch()) {
+        if (LanternHub.settings().isConnectOnLaunch()) {
             connect();
         }
     }
     
     public void connect() {
-        String email = LanternHub.userInfo().getEmail();
-        String pwd = LanternHub.userInfo().getPassword();
+        String email = LanternHub.settings().getEmail();
+        String pwd = LanternHub.settings().getPassword();
         if (StringUtils.isBlank(email)) {
             if (!LanternUtils.runWithUi()) {
                 email = askForEmail();
@@ -212,7 +212,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             LanternHub.eventBus().post(
                 new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_IN));
             final String id;
-            if (LanternHub.userInfo().getMode() == Mode.GET) {
+            if (LanternHub.settings().isGetMode()) {
                 id = "gmail.";
             } else {
                 id = UNCENSORED_ID;
@@ -650,7 +650,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 }
 
                 /*
-                if (LanternHub.getTrustedContactsManager().isTrusted(msg)) {
+                if (LanternHub..getTrustedContactsManager().isTrusted(msg)) {
                     this.establishedPeerProxies.add(uri);
                 } else {
                     this.establishedAnonymousProxies.add(uri);

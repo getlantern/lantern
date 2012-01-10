@@ -1,16 +1,13 @@
 package org.lantern;
 
-import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-import org.apache.commons.lang.StringUtils;
+import org.cometd.bayeux.Channel;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
-import org.cometd.bayeux.server.ServerChannel.ServerChannelListener;
 import org.cometd.bayeux.server.ServerSession;
-import org.cometd.bayeux.server.ServerSession.ServerSessionListener;
 import org.cometd.java.annotation.Configure;
 import org.cometd.java.annotation.Listener;
 import org.cometd.java.annotation.Service;
@@ -39,6 +36,7 @@ public class SyncService {
     public SyncService() {
         // Make sure the config class is added as a listener before this class.
         LanternHub.eventBus().register(this);
+        LanternHub.asyncEventBus().register(this);
         
         final Timer timer = LanternHub.timer();
         timer.schedule(new TimerTask() {
@@ -53,7 +51,7 @@ public class SyncService {
             @Override
             public void run() {
                 log.info("Notifying frontend backend is no longer running");
-                LanternHub.systemInfo().setBackendRunning(false);
+                LanternHub.settings().setBackendRunning(false);
                 sync();
             }
             
@@ -65,6 +63,13 @@ public class SyncService {
     private void configureSync(final ConfigurableServerChannel channel) {
         channel.setPersistent(true);
     }
+    
+    @Listener(Channel.META_CONNECT)
+    public void metaConnect(final ServerSession remote, final Message connect) {
+        // Make sure we give clients the most recent data whenever they connect.
+        log.info("Got connection from client...syncing");
+        sync();
+    }
 
     @Listener("/service/sync")
     public void processSync(final ServerSession remote, final Message message) {
@@ -72,13 +77,13 @@ public class SyncService {
         log.info("DATA: {}", message.getData());
         log.info("DATA CLASS: {}", message.getData().getClass());
         
+        /*
         final String fullJson = message.getJSON();
         final String json = StringUtils.substringBetween(fullJson, "\"data\":", ",\"channel\":");
         final Map<String, Object> update = message.getDataAsMap();
         log.info("MAP: {}", update);
+        */
 
-        //final SettingsIo io = LanternHub.settingsIo();
-        //io.apply(update);
         log.info("Pushing updated config to browser...");
         sync();
     }
@@ -132,10 +137,15 @@ public class SyncService {
                 elapsed);
             return;
         }
+        log.info("Actually syncing...");
         final ClientSessionChannel channel = 
             session.getLocalSession().getChannel("/sync");
         if (channel != null) {
-            channel.publish(LanternHub.settings());
+            final Settings settings = LanternHub.settings();
+            final String pass = settings.getPassword();
+            settings.setPassword("");
+            channel.publish(settings);
+            settings.setPassword(pass);
             lastUpdateTime = System.currentTimeMillis();
         }
     }

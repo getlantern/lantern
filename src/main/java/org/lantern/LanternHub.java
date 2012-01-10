@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.security.SecureRandom;
 import java.util.Map;
 import java.util.Timer;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
 
@@ -19,6 +20,7 @@ import org.lantern.cookie.InMemoryCookieTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.maxmind.geoip.LookupService;
 
@@ -29,8 +31,10 @@ public class LanternHub {
 
     private static final Logger LOG = LoggerFactory.getLogger(LanternHub.class);
     
-    private static final AtomicReference<EventBus> eventBus =
-        new AtomicReference<EventBus>(new EventBus());
+    private static final EventBus eventBus = new EventBus();
+    
+    private static final AsyncEventBus asyncEventBus =
+        new AsyncEventBus("Async-Event-Bus", Executors.newCachedThreadPool());
     
     private static final File UNZIPPED = 
         new File(LanternUtils.dataDir(), "GeoIP.dat");
@@ -316,20 +320,12 @@ public class LanternHub {
         return settings.getWhitelist();
     }
     
-    public static UserInfo userInfo() {
-        return settings.getUser();
-    }
-    
-    public static SystemInfo systemInfo() {
-        return settings.getSystem();
-    }
-
     public static Platform platform() {
-        return settings.getSystem().getPlatform();
+        return settings.getPlatform();
     }
     
     public static Internet internet() {
-        return settings.getSystem().getInternet();
+        return settings.getInternet();
     }
     
     public static Roster roster() {
@@ -351,7 +347,11 @@ public class LanternHub {
     }
     
     public static EventBus eventBus() {
-        return eventBus.get();
+        return eventBus;
+    }
+    
+    public static AsyncEventBus asyncEventBus() {
+        return asyncEventBus;
     }
 
     public static LanternApi api() {
