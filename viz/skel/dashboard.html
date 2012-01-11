@@ -92,7 +92,7 @@
           <dl>
             <dt>Mode</dt>
             <dd>
-              <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'GET' || 'GIVE']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}<a class="actionlink" id="switch-mode-link" ng:click=todo()>{{switchlinktext()}}</a></span></span>
+              <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'GET' || 'GIVE']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}<a class="actionlink" id="switch-mode-link" ng:click="toggle('getMode', true)">{{switchlinktext()}}</a></span></span>
             </dd>
             <dt ng:show=connected()>Peers</dt>
             <dd ng:show=connected()>
@@ -246,9 +246,11 @@ function LDCtrl(){
     $.post('/api/signout');
   };
 
-  self.toggle = function(setting){
+  self.toggle = function(setting, manual){
+    if(manual)
+      self.state[setting] = !self.state[setting];
     $.when($.post('/settings?'+setting+'='+self.state[setting]))
-     .then(function(){console.log('successfully toggled '+setting);})
+     .then(function(){console.log('successfully toggled '+setting+' to '+self.state[setting]);})
      .fail(function(){console.log('failed to toggle '+setting);});
   };
 
