@@ -33,8 +33,6 @@ public class Settings implements MutableSettings {
     
     private SettingsState settings = new SettingsState();
     
-    private boolean isBackendRunning = true;
-    
     private AuthenticationStatus authenticationStatus = 
         AuthenticationStatus.LOGGED_OUT;
     
@@ -42,7 +40,9 @@ public class Settings implements MutableSettings {
     
     private Country country = LanternHub.censored().country();
     
-    private Country detectedCountry = LanternHub.censored().country();
+    private Country countryDetected = LanternHub.censored().country();
+    
+    
     
     private boolean manuallyOverrideCountry;
     
@@ -205,16 +205,7 @@ public class Settings implements MutableSettings {
         return settings;
     }
 
-    public void setBackendRunning(final boolean isBackendRunning) {
-        this.isBackendRunning = isBackendRunning;
-    }
-
-    public boolean isBackendRunning() {
-        return isBackendRunning;
-    }
-
     public String getEmail() {
-        //return LanternUtils.getEmail();
         return email;
     }
 
@@ -252,14 +243,6 @@ public class Settings implements MutableSettings {
     @Override
     public void setCountry(final Country country) {
         this.country = country;
-    }
-
-    public void setDetectedCountry(final Country detectedCountry) {
-        this.detectedCountry = detectedCountry;
-    }
-
-    public Country getDetectedCountry() {
-        return detectedCountry;
     }
 
     public void setManuallyOverrideCountry(
@@ -338,6 +321,14 @@ public class Settings implements MutableSettings {
 
     public int getApiPort() {
         return apiPort;
+    }
+
+    public void setCountryDetected(Country countryDetected) {
+        this.countryDetected = countryDetected;
+    }
+
+    public Country getCountryDetected() {
+        return countryDetected;
     }
 
 }
