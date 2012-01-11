@@ -14,6 +14,7 @@ import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.MessageEvent;
@@ -138,13 +139,24 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
             engine = sslFactory.getClientContext().createSSLEngine();
         }
         engine.setUseClientMode(true);
-        pipeline.addLast("ssl", new SslHandler(engine));
         
+        ChannelHandler stats = new StatsTrackingHandler() {
+            @Override
+            public void addUpBytes(long bytes, Channel channel) {
+                statsTracker().addUpBytesViaProxies(bytes, channel);
+            }
+            @Override
+            public void addDownBytes(long bytes, Channel channel) {
+                statsTracker().addDownBytesViaProxies(bytes, channel);
+            }
+        };
+
+        pipeline.addLast("stats", stats);        
+        pipeline.addLast("ssl", new SslHandler(engine));
         pipeline.addLast("decoder", new HttpResponseDecoder());
         pipeline.addLast("encoder", new HttpRequestEncoder());
         pipeline.addLast("handler", 
             new OutboundHandler(browserToProxyChannel, httpRequests));
-        pipeline.addLast("writestats", new StatsTrackingUpstreamHandler());
         //this.proxyHost = proxyAddress.getHostName();
         
         log.info("Connecting to proxy at: {}", proxyAddress);
