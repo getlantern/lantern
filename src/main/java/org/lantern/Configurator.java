@@ -75,6 +75,7 @@ public class Configurator {
         new File(LanternUtils.configDir(), "proxy.pac");
     
     public static void configure() {
+        LOG.info("Configuring...");
         if (configured) {
             LOG.error("Configure called twice?");
             return;
@@ -132,7 +133,7 @@ public class Configurator {
             return;
         }
         final File git = new File(".git");
-        if (git.isDirectory() || !LanternHub.settings().isGetMode()) {
+        if (git.isDirectory() && !LanternHub.settings().isGetMode()) {
             LOG.info("Running from repository...not auto-configuring proxy.");
             return;
         }
