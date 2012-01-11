@@ -63,8 +63,8 @@
           <span id=topbar-conn ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'GET' || 'GIVE']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}</span></span>
           <span ng:show=connected()>
             <span id=topbar-peers class=topbar-stat>{{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span>
-            <span id=topbar-rate-up class="topbar-stat rate">{{up() | bytes}}</span>
-            <span id=topbar-rate-dn class="topbar-stat rate">{{down() | bytes}}</span>
+            <span id=topbar-rate-up class="topbar-stat rate">{{state.upRate | bytes}}</span>
+            <span id=topbar-rate-dn class="topbar-stat rate">{{state.downRate | bytes}}</span>
           </span>
           <a ng:show=state.email id=userlink class="collapsed">{{state.email}}</a>
         </div>
@@ -83,7 +83,7 @@
               <li><a href=#status class=selected>Status</a></li>
               <li><a href=#hood>Under the Hood</a></li>
               <li><a href=#contact>Contact</a></li>
-              <li><a href=#update ng:show="updateavailable()" id="sidebar-update-link">Update</a></li>
+              <li><a href=#update ng:show="state.update" id="sidebar-update-link">Update</a></li>
             </ul>
           </nav>
         </div>
@@ -102,12 +102,12 @@
             </dd>
             <dt ng:show=connected()>Traffic</dt>
             <dd ng:show=connected()>
-              {{up()+down()|bytes}}/s via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>
+              {{state.upRate+state.downRate|bytes}}/s via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>
             </dd>
             <dt>Version</dt>
             <dd>
               Lantern {{state.version}}
-              <a href=#update ng:show="updateavailable()" id=update-avail-link class="actionlink panellink">Update available</a>
+              <a href=#update ng:show="state.update" id=update-avail-link class="actionlink panellink">Update available</a>
             </dd>
           </dl>
         </div>
@@ -201,10 +201,7 @@ function LDCtrl(){
   };
 
   self.connected = function(){return self.state.authenticationStatus === 'LOGGED_IN';};
-  self.up = function(){return 0;}; // XXX
-  self.down = function(){return 0;}; // XXX
   self.npeers = function(){return 0;}; // XXX
-  self.updateavailable = function(){return true;}; // XXX
 
   self.conncaption = function(){
     switch(self.state.authenticationStatus){
@@ -358,6 +355,8 @@ $(document).ready(function(){
 
   function _connectionClosed(){
     console.log('CometD Connection Closed');
+    alert('CometD Connection Closed');
+    // XXX "Lantern has shut down." Close window
   }
 
   // Function that manages the connection status with the Bayeux server
