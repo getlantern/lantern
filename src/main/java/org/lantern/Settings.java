@@ -330,5 +330,15 @@ public class Settings implements MutableSettings {
     public Country getCountryDetected() {
         return countryDetected;
     }
+    
+    public long getUpRate() {
+        return LanternHub.statsTracker().getUpBytesPerSecond();
+    }
+    public void setUpRate() { /* not settable */ }
+    
+    public long getDownRate() {
+        return LanternHub.statsTracker().getDownBytesPerSecond();
+    }
+    public void setDownRate() { /* not settable */ }
 
 }
