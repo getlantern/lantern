@@ -60,6 +60,7 @@ public class JettyLauncher {
         
         final SelectChannelConnector connector = 
             new SelectChannelConnector();
+        log.info("Setting connector port for API to: {}", port);
         connector.setPort(port);
         connector.setMaxIdleTime(120000);
         connector.setLowResourcesMaxIdleTime(60000);
@@ -68,7 +69,10 @@ public class JettyLauncher {
         
         if (LanternHub.settings().isBindToLocalhost()) {
             // TODO: Make sure this works on Linux!!
+            log.info("Binding to localhost");
             connector.setHost("127.0.0.1");
+        } else {
+            log.info("Binding to any address");
         }
         connector.setName(apiName);
         
