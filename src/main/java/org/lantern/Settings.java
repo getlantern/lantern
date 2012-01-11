@@ -334,11 +334,11 @@ public class Settings implements MutableSettings {
     public long getUpRate() {
         return LanternHub.statsTracker().getUpBytesPerSecond();
     }
-    public void setUpRate() { /* not settable */ }
+    public void setUpRate(long upRate) { /* not settable */ }
     
     public long getDownRate() {
         return LanternHub.statsTracker().getDownBytesPerSecond();
     }
-    public void setDownRate() { /* not settable */ }
+    public void setDownRate(long downRate) { /* not settable */ }
 
 }
