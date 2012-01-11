@@ -36,12 +36,13 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
         
         if (!configured.getAndSet(true)) {
             browserToProxyChannel.setReadable(false);
-            // We tell the socket not to record stats here because traffic
-            // returning to the browser still goes through our encoder 
-            // in this case (i.e. we haven't stripped the encoder to support 
-            // CONNECT traffic).
-            LanternUtils.startReading(this.sock, 
-                browserToProxyChannel, false);
+            // We tell the socket to record stats here because traffic
+            // returning to the browser is just shuttled through 
+            // a SocketHttpConnectRelayingHandler and the normal 
+            // encoder that records stats is removed from the 
+            // browserToProxyChannel pipeline.
+            LanternUtils.startReading(this.sock,
+                browserToProxyChannel, true);
             
             log.info("Got an outbound socket on request handler hash {} to {}", 
                 hashCode(), this.sock);
@@ -51,6 +52,8 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
             browserPipeline.remove("encoder");
             browserPipeline.remove("decoder");
             browserPipeline.remove("handler");
+            
+            
             browserPipeline.addLast("handler", 
                 new SocketHttpConnectRelayingHandler(this.sock));
                 //new HttpConnectRelayingHandler(cf.getChannel(), null));
@@ -66,6 +69,8 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
             final byte[] data = LanternUtils.toByteBuffer(request, ctx);
             log.info("Writing data on peer socket: {}", new String(data));
             os.write(data);
+            // shady, hard to know if it's really been done
+            LanternHub.statsTracker().addUpBytesViaProxies(data.length, this.sock);
         } catch (final Exception e) {
             log.error("Could not encode request?", e);
         }
