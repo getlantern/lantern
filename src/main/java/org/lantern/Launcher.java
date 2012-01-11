@@ -160,15 +160,15 @@ public class Launcher {
         final SystemTray tray = LanternHub.systemTray();
         tray.createTray();
         final KeyStoreManager proxyKeyStore = LanternHub.getKeyStoreManager();
-        final DefaultHttpProxyServer sslProxy = 
-            new DefaultHttpProxyServer(LanternHub.randomSslPort(),
+        final StatsTrackingDefaultHttpProxyServer sslProxy =
+            new StatsTrackingDefaultHttpProxyServer(LanternHub.randomSslPort(),
             new HttpResponseFilters() {
                 @Override
                 public HttpFilter getFilter(String arg0) {
                     return null;
                 }
             }, null, proxyKeyStore, null);
-        
+        LOG.debug("SSL port is {}", LanternHub.randomSslPort());
         //final org.littleshoot.proxy.HttpProxyServer sslProxy = 
         //    new DefaultHttpProxyServer(LanternHub.randomSslPort());
         sslProxy.start(false, false);

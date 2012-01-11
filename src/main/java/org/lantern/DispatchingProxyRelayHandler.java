@@ -12,6 +12,7 @@ import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelStateEvent;
@@ -483,11 +484,29 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final SSLEngine engine =
             sslFactory.getClientContext().createSSLEngine();
         engine.setUseClientMode(true);
+        
+        ChannelHandler stats = new StatsTrackingHandler() {
+            @Override
+            public void addDownBytes(long bytes, Channel channel) {
+                // global bytes proxied statistic
+                log.info("Recording proxied bytes through HTTP CONNECT: {}", bytes);
+                statsTracker().addBytesProxied(bytes, channel);
+                
+                // contributes to local download rate
+                statsTracker().addDownBytesViaProxies(bytes, channel);
+            }
+
+            @Override
+            public void addUpBytes(long bytes, Channel channel) {
+                statsTracker().addUpBytesViaProxies(bytes, channel);
+            }
+        };        
+
+        pipeline.addLast("stats", stats);
         pipeline.addLast("ssl", new SslHandler(engine));
         pipeline.addLast("encoder", new HttpRequestEncoder());
         pipeline.addLast("handler", 
-            new StatsTrackingHttpConnectRelayingHandler(
-                this.browserToProxyChannel));
+            new HttpConnectRelayingHandler(this.browserToProxyChannel, null));
         log.info("Connecting to relay proxy");
         final InetSocketAddress isa = this.proxyProvider.getProxy();
         if (isa == null) {
