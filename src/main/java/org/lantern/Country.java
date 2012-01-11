@@ -4,14 +4,16 @@ public class Country {
 
     private String code;
     private String name;
+    private boolean censoring;
 
     public Country() {
         
     }
     
     public Country(final String code, final String name) {
-        this.setCode(code);
-        this.setName(name);
+        this.code = code;
+        this.name = name;
+        this.censoring = LanternHub.censored().isCountryCodeCensored(code);
     }
 
     public Country(final com.maxmind.geoip.Country country) {
@@ -32,6 +34,14 @@ public class Country {
 
     public String getName() {
         return name;
+    }
+
+    public void setCensoring(final boolean censoring) {
+        this.censoring = censoring;
+    }
+
+    public boolean isCensoring() {
+        return censoring;
     }
 
 }

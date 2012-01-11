@@ -22,4 +22,6 @@ public interface Censored {
 
     Country country();
 
+    boolean isCountryCodeCensored(String cc);
+
 }
