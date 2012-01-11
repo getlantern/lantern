@@ -42,7 +42,7 @@ public class Settings implements MutableSettings {
     
     private Country country = LanternHub.censored().country();
     
-    private Country detectedCountry = LanternHub.censored().country();
+    private Country countryDetected = LanternHub.censored().country();
     
     private boolean manuallyOverrideCountry;
     
@@ -254,14 +254,6 @@ public class Settings implements MutableSettings {
         this.country = country;
     }
 
-    public void setDetectedCountry(final Country detectedCountry) {
-        this.detectedCountry = detectedCountry;
-    }
-
-    public Country getDetectedCountry() {
-        return detectedCountry;
-    }
-
     public void setManuallyOverrideCountry(
         final boolean manuallyOverrideCountry) {
         this.manuallyOverrideCountry = manuallyOverrideCountry;
@@ -338,6 +330,14 @@ public class Settings implements MutableSettings {
 
     public int getApiPort() {
         return apiPort;
+    }
+
+    public void setCountryDetected(Country countryDetected) {
+        this.countryDetected = countryDetected;
+    }
+
+    public Country getCountryDetected() {
+        return countryDetected;
     }
 
 }
