@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.Channels;
@@ -52,11 +53,22 @@ public class PeerChannelHttpRequestProcessor implements HttpRequestProcessor {
         final ChannelHandlerContext ctx, final MessageEvent me) 
         throws IOException {
         if (!startedCopying) {
+            ChannelHandler stats = new StatsTrackingHandler() {
+                @Override
+                public void addUpBytes(long bytes, Channel channel) {
+                     statsTracker().addUpBytesViaProxies(bytes, channel);
+                }
+                @Override
+                public void addDownBytes(long bytes, Channel channel) {
+                    statsTracker().addDownBytesViaProxies(bytes, channel);
+                }
+            };
+            
             ChannelPipeline pipeline = Channels.pipeline();
+            pipeline.addLast("stats", stats);
             pipeline.addLast("decoder", new HttpResponseDecoder());
             pipeline.addLast("encoder", new HttpRequestEncoder());
             pipeline.addLast("relay", new RelayToBrowserHandler(browserToProxyChannel));
-            pipeline.addLast("writestats", new StatsTrackingUpstreamHandler());
 
             peerChannel = new PeerSocketChannel(pipeline, peerSink, sock);
             peerChannel.simulateConnect();

@@ -46,8 +46,6 @@ public class LanternHttpResponseEncoder extends ProxyHttpResponseEncoder {
             
             // global bytes proxied statistic
             this.statsTracker.addBytesProxied(bytes, channel);
-            // contributes to local download rate
-            this.statsTracker.addDownBytesViaOthers(bytes, channel);
         }
         return cb;
     }
