@@ -497,12 +497,7 @@ public class LanternBrowser {
                     final Map<String, String> replace = install1Uncensored();
                     setUrl("install1Uncensored.html", replace);
                 } else if (location.contains("install1Censored.html")) {
-                    // We use this to check if the user has selected to run
-                    // in censored mode even if they don't appear to be in a
-                    // censored country.
-                    if (!LanternHub.censored().isCensored()) {
-                        LanternHub.settings().setGetMode(true);
-                    }
+                    LanternHub.settings().setGetMode(true);
                     final Map<String, String> replace = install1Censored();
                     setUrl("install1Censored.html", replace);
                 } else if (location.contains("trustedContacts")) {
