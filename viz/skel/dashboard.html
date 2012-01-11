@@ -225,6 +225,7 @@ function LDCtrl(){
   };
 
   self.signin = function(){
+    /*
     // XXX
     if(!self.state.email || !self.state.savePassword){
       // XXX display signin form
@@ -237,6 +238,10 @@ function LDCtrl(){
       var storepassword = $('form.signin:visible').find('input[name=storepassword]').get(0).checked;
       data.storepassword = storepassword;
     }catch(e){}
+    */
+    var data = {email: self.state.email};
+    if(!self.state.savePassword)
+      data.password = prompt('Please enter your password:');
     $.when($.post('/api/signin', data)).then(function(data){
       $('form.signin:visible').removeClass('badcredentials');
       location.href = '#status'; // XXX
@@ -259,7 +264,7 @@ function LDCtrl(){
 
   self.switchmode = function(){
     var proceed = true;
-    if(self.state.getMode && self.state.detectedCountry.censoring)
+    if(self.state.getMode && self.state.countryDetected.censoring)
       proceed = confirm('It looks like you may be in a censoring country. ' +
         'Only run Lantern in “give access” mode if you believe your ' +
         'connection to be private and properly secured.');
