@@ -17,8 +17,11 @@ import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
+import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
+import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -173,10 +176,17 @@ public class JettyLauncher {
         bayeux.setInitOrder(2);
         contextHandler.getServletHandler().addServlet(bayeux);
         
-        //api.addServlet("org.eclipse.jetty.servlet.DefaultServlet", "/");
+        final CrossOriginFilter filter = new CrossOriginFilter();
+        final FilterHolder filterHolder = new FilterHolder(filter);
+        filterHolder.setInitParameter("allowedOrigins", "http://fiddle.jshell.net/");
+        contextHandler.addFilter(filterHolder, secureBase + "/cometd/*", 
+            FilterMapping.REQUEST);
         
-        //api.addFilter(new FilterHolder(CrossOriginFilter.class), "/cometd/*", 
-        //    FilterMapping.REQUEST);
+        contextHandler.addFilter(filterHolder, secureBase + "/api/*", 
+                FilterMapping.REQUEST);
+        
+        contextHandler.addFilter(filterHolder, secureBase + "/settings/*", 
+                FilterMapping.REQUEST);
         
         final Thread serve = new Thread(new Runnable() {
 

@@ -63,9 +63,7 @@ public class Settings implements MutableSettings {
      */
     private boolean useCloudProxies = true;
     
-    private boolean getMode;
-    
-    private boolean getAccessed = false;
+    private boolean getMode = LanternHub.censored().isCensored();
     
     private boolean bindToLocalhost = true;
     
@@ -319,15 +317,10 @@ public class Settings implements MutableSettings {
 
     @Override
     public void setGetMode(final boolean getMode) {
-        this.getAccessed = true;
         this.getMode = getMode;
     }
 
     public boolean isGetMode() {
-        if (!getAccessed) {
-            this.getMode = LanternHub.censored().isCensored();
-            this.getAccessed = true;
-        }
         return getMode;
     }
 
