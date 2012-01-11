@@ -81,7 +81,7 @@
           <nav>
             <ul id=panel-list>
               <li><a href=#status class=selected>Status</a></li>
-              <li><a href=#under-the-hood>Under the Hood</a></li>
+              <li><a href=#hood>Under the Hood</a></li>
               <li><a href=#contact>Contact</a></li>
               <li><a href=#update ng:show="updateavailable()" id="sidebar-update-link">Update</a></li>
             </ul>
@@ -92,7 +92,7 @@
           <dl>
             <dt>Mode</dt>
             <dd>
-              <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'GET' || 'GIVE']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}<a class="actionlink" id="switch-mode-link" ng:click="toggle('getMode', true)">{{switchlinktext()}}</a></span></span>
+              <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'GET' || 'GIVE']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}<a class="actionlink" id="switch-mode-link" ng:click="switchmode()">{{switchlinktext()}}</a></span></span>
             </dd>
             <dt ng:show=connected()>Peers</dt>
             <dd ng:show=connected()>
@@ -106,20 +106,20 @@
             </dd>
             <dt>Version</dt>
             <dd>
-              Lantern 1.0 beta
+              Lantern {{state.version}}
               <a href=#update ng:show="updateavailable()" id=update-avail-link class="actionlink panellink">Update available</a>
             </dd>
           </dl>
         </div>
-        <div class=panel id=under-the-hood data-cls=panel>
+        <div class=panel id=hood data-cls=panel>
           <h1>Under the Hood</h1>
           <dl>
             <dt>Port</dt>
             <dd>
               <input type=number value={{state.port}} id=port min=1024 max=65535 disabled />
             </dd>
-            <dt ng:show="state.getMode">Policy</dt>
-            <dd ng:show="state.getMode">
+            <dt ng:show=state.getMode>Policy</dt>
+            <dd ng:show=state.getMode>
               <ul>
                 <li><label><input type=radio value={{true}} ng:change=toggle('proxyAllSites') ng:model=state.proxyAllSites /> Proxy all sites</label></li>
                 <li><label><input type=radio value={{false}} ng:change=toggle('proxyAllSites') ng:model=state.proxyAllSites /> Only proxy certain sites</label></li>
@@ -156,13 +156,16 @@
           <h1>Contact</h1>
           <p>
             Topics suitable for public access should be directed to the
-            <a href=https://groups.google.com/forum/#!forum/lantern-users-en
+            <a href="https://groups.google.com/forum/#!forum/lantern-users-{{state.language}}"
             target=_blank>Lantern users forum</a>.
           </p>
           <textarea ng:model=pm id=pm-textarea placeholder="Private message to Lantern developers"></textarea>
           <div id=pm-controls>
-            <label ng:class="!connected() && 'disabled'"><input type=checkbox ng:checked=true ng:disabled={{!connected()}} ng:model=requestreply /> please reply to</label><input type=email ng:disabled={{!requestreply}} placeholder=email@example.com value="{{connected() && state.email || ''}}" />
-            <input id=pm-send type=button value=Send ng:disabled={{!connected() || !pm}} />
+            <label><input type=checkbox ng:model=requestreply /> please reply to</label><input type=email ng:model=requestreplyto ng:disabled={{!requestreply}} placeholder=email@example.com value={{state.email}} />
+            <input id=pm-send type=button value=Send ng:disabled="{{!connected() || !pm}}" ng:click=todo() />
+          </div>
+          <div ng:class="['extra', !requestreply && 'disabled']">
+            Only request replies to secure email accounts.
           </div>
         </div>
         <div class=panel id=update data-cls=panel>
@@ -254,6 +257,15 @@ function LDCtrl(){
      .fail(function(){console.log('failed to toggle '+setting);});
   };
 
+  self.switchmode = function(){
+    var proceed = true;
+    if(self.state.getMode && self.state.detectedCountry.censoring)
+      proceed = confirm('It looks like you may be in a censoring country. ' +
+        'Only run Lantern in “give access” mode if you believe your ' +
+        'connection to be private and properly secured.');
+    proceed && self.toggle('getMode', true);
+  };
+
   self.reset = function(){
     var msg = 'Are you sure you want to reset Lantern? ' +
       (self.connected() ? 'You will be signed out and y' : 'Y') +
@@ -293,6 +305,10 @@ function LDCtrl(){
       $.when($.ajax(url + '?site=' + site)).then(function(){newsite && $('#sitetoadd').val('');});
     }
   };
+
+  self.pm = null;
+  self.requestreply = false;
+  self.requestreplyto = null;
 
   self.todo = function(){alert('todo');}
 }

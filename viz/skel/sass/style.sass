@@ -13,6 +13,7 @@ $font-color-input: #666
 $font-color-disabled: #c6c9ce
 $font-color-important: #c00
 $font-color-error: #c00
+$font-color-warning: #900
 $header-color: #000
 $header-color-alt: #53637d
 $header-color-alt-darker: $header-color-alt * .75
@@ -112,6 +113,9 @@ form.signin .error
 
 .error
   color: $font-color-error
+
+.warning
+  color: $font-color-warning
 
 html, body, #sidebar, .panel.selected
   height: 100%
@@ -288,8 +292,10 @@ input[type=number]
 textarea
   border: 1px solid $edge-color
   +box-shadow($edge-color 0 0 5px)
-  +border-radius(3px)
   padding: 5px
+
+textarea, input[type=text], input[type=email]
+  +border-radius(3px)
 
 #pm-textarea
   height: 200px
