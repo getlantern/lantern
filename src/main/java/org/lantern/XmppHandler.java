@@ -170,6 +170,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             }
         }
         
+        LanternHub.settingsIo().write();
+        
         try {
             final InetSocketAddress plainTextProxyRelayAddress = 
                 new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
