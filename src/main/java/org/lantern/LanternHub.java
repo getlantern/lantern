@@ -93,20 +93,14 @@ public class LanternHub {
     private static  Settings settings;
     
     static {
-        final SettingsIo io = LanternHub.settingsIo();
-        LOG.info("Setting settings...");
-        try {
-            settings = io.read();
-        } catch (final Throwable t) {
-            LOG.error("Caught throwable: {}", t);
-        }
+        resetSettings();
         
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
             public void run() {
                 LOG.info("Writing settings");
-                io.write(settings);
+                settingsIo.get().write(settings);
                 LOG.info("Finished writing settings...");
             }
             
@@ -360,6 +354,16 @@ public class LanternHub {
                 lanternApi.set(new DefaultLanternApi());
             }
             return lanternApi.get();
+        }
+    }
+
+    public static void resetSettings() {
+        final SettingsIo io = LanternHub.settingsIo();
+        LOG.info("Setting settings...");
+        try {
+            settings = io.read();
+        } catch (final Throwable t) {
+            LOG.error("Caught throwable: {}", t);
         }
     }
 }
