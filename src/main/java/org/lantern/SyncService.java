@@ -51,8 +51,7 @@ public class SyncService {
             @Override
             public void run() {
                 log.info("Notifying frontend backend is no longer running");
-                LanternHub.settings().setBackendRunning(false);
-                sync();
+                session.disconnect();
             }
             
         }, "Backend-Not-Running-Thread"));
@@ -140,6 +139,7 @@ public class SyncService {
         log.info("Actually syncing...");
         final ClientSessionChannel channel = 
             session.getLocalSession().getChannel("/sync");
+        
         if (channel != null) {
             final Settings settings = LanternHub.settings();
             final String pass = settings.getPassword();
