@@ -155,6 +155,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         if (StringUtils.isBlank(email)) {
             if (!LanternUtils.runWithUi()) {
                 email = askForEmail();
+                LanternHub.settings().setEmail(email);
             } else {
                 LOG.error("No user name");
                 throw new IllegalStateException("No user name");
@@ -164,6 +165,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         if (StringUtils.isBlank(pwd)) {
             if (!LanternUtils.runWithUi()) {
                 pwd = askForPassword();
+                LanternHub.settings().setPassword(pwd);
             } else {
                 LOG.error("No password.");
                 throw new IllegalStateException("No password");
