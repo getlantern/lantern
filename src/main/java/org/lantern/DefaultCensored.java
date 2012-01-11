@@ -58,9 +58,11 @@ public class DefaultCensored implements Censored {
     @Override
     public Country country() {
         final InetAddress address = new PublicIpAddress().getPublicIpAddress();
-        return new Country(LanternHub.getGeoIpLookup().getCountry(address));
+        final com.maxmind.geoip.Country country = 
+            LanternHub.getGeoIpLookup().getCountry(address);
+        return new Country(country.getCode(), country.getName());
     }
-    
+
     @Override
     public boolean isCensored() {
         return isCensored(new PublicIpAddress().getPublicIpAddress());
@@ -80,6 +82,12 @@ public class DefaultCensored implements Censored {
     @Override
     public boolean isCensored(final String address) throws IOException {
         return isCensored(InetAddress.getByName(address));
+    }
+    
+
+    @Override
+    public boolean isCountryCodeCensored(final String cc) {
+        return CENSORED.contains(cc);
     }
     
     public boolean isExportRestricted() {
