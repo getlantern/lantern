@@ -33,10 +33,10 @@ public class JettyLauncher {
     private final String secureBase = "";
         //"/"+String.valueOf(LanternHub.secureRandom().nextLong());
 
-    private final int randomPort = LanternUtils.randomPort();
+    private final int port = LanternHub.settings().getApiPort();
     
     private final String fullBasePath = 
-        "http://localhost:"+randomPort+secureBase;
+        "http://localhost:"+port+secureBase;
     
     private Server server = new Server();
 
@@ -60,14 +60,16 @@ public class JettyLauncher {
         
         final SelectChannelConnector connector = 
             new SelectChannelConnector();
-        connector.setPort(randomPort);
+        connector.setPort(port);
         connector.setMaxIdleTime(120000);
         connector.setLowResourcesMaxIdleTime(60000);
         connector.setLowResourcesConnections(20000);
         connector.setAcceptQueueSize(5000);
         
-        // TODO: Make sure this works on Linux!!
-        connector.setHost("127.0.0.1");
+        if (LanternHub.settings().isBindToLocalhost()) {
+            // TODO: Make sure this works on Linux!!
+            connector.setHost("127.0.0.1");
+        }
         connector.setName(apiName);
         
         this.server.setConnectors(new Connector[]{connector});
@@ -88,7 +90,11 @@ public class JettyLauncher {
                 final ServletResponse res)
                 throws ServletException, IOException {
                 final Settings settings = LanternHub.settings();
+                final String pass = settings.getPassword();
+                settings.setPassword("");
                 final String json = LanternUtils.jsonify(settings);
+                settings.setPassword(pass);
+                
                 final byte[] raw = json.getBytes("UTF-8");
                 res.setContentLength(raw.length);
                 res.setContentType("application/json");
