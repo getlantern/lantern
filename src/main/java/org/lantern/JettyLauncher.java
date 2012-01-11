@@ -178,7 +178,8 @@ public class JettyLauncher {
         
         final CrossOriginFilter filter = new CrossOriginFilter();
         final FilterHolder filterHolder = new FilterHolder(filter);
-        filterHolder.setInitParameter("allowedOrigins", "http://fiddle.jshell.net/");
+        //filterHolder.setInitParameter("allowedOrigins", "http://fiddle.jshell.net/");
+        filterHolder.setInitParameter("allowedOrigins", "*");
         contextHandler.addFilter(filterHolder, secureBase + "/cometd/*", 
             FilterMapping.REQUEST);
         
