@@ -117,6 +117,7 @@ public class Launcher {
             // We only run headless on Linux for now.
             LOG.info("Running Lantern with no display...");
             launchLantern();
+            LanternHub.jettyLauncher();
             return;
         }
         Display.setAppName("Lantern");
