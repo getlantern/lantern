@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
@@ -36,6 +37,7 @@ public class DefaultLanternApi implements LanternApi {
         REMOVEFROMWHITELIST,
         ADDTRUSTEDPEER,
         REMOVETRUSTEDPEER,
+        RESET,
     }
 
     @Override
@@ -80,12 +82,29 @@ public class DefaultLanternApi implements LanternApi {
             LanternHub.getTrustedContactsManager().removeTrustedContact(
                 req.getParameter("email"));
             break;
+        case RESET:
+            try {
+                FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
+                LanternHub.resetSettings();
+            } catch (final IOException e) {
+                sendServerError(resp, "Error resetting settings");
+            }
+            break;
         }
         LanternHub.asyncEventBus().post(new SyncEvent());
         LanternHub.settingsIo().write();
     }
 
-    private void sendError(final HttpServletResponse resp, String msg) {
+    private void sendServerError(final HttpServletResponse resp, 
+        final String msg) {
+        try {
+            resp.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR, msg);
+        } catch (final IOException e) {
+            log.info("Could not send error", e);
+        }
+    }
+    
+    private void sendError(final HttpServletResponse resp, final String msg) {
         try {
             resp.sendError(HttpStatus.SC_BAD_REQUEST, msg);
         } catch (final IOException e) {
