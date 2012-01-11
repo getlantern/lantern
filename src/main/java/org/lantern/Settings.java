@@ -33,8 +33,6 @@ public class Settings implements MutableSettings {
     
     private SettingsState settings = new SettingsState();
     
-    private boolean isBackendRunning = true;
-    
     private AuthenticationStatus authenticationStatus = 
         AuthenticationStatus.LOGGED_OUT;
     
@@ -43,6 +41,8 @@ public class Settings implements MutableSettings {
     private Country country = LanternHub.censored().country();
     
     private Country countryDetected = LanternHub.censored().country();
+    
+    
     
     private boolean manuallyOverrideCountry;
     
@@ -205,16 +205,7 @@ public class Settings implements MutableSettings {
         return settings;
     }
 
-    public void setBackendRunning(final boolean isBackendRunning) {
-        this.isBackendRunning = isBackendRunning;
-    }
-
-    public boolean isBackendRunning() {
-        return isBackendRunning;
-    }
-
     public String getEmail() {
-        //return LanternUtils.getEmail();
         return email;
     }
 
