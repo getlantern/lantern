@@ -467,6 +467,7 @@ public class LanternUtils {
         LOG.info("Writing credentials...");
         LanternHub.settings().setEmail(email);
         LanternHub.settings().setPassword(pwd);
+        LanternHub.settings().getSettings().setState(State.SET);
         LanternHub.settingsIo().write();
     }
     
