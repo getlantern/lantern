@@ -41,6 +41,7 @@ public class DefaultLanternApi implements LanternApi {
     @Override
     public void processCall(final HttpServletRequest req, 
         final HttpServletResponse resp) {
+        final Settings set = LanternHub.settings();
         final String uri = req.getRequestURI();
         final String id = StringUtils.substringAfter(uri, "/api/");
         final LanternApiCall call = LanternApiCall.valueOf(id.toUpperCase());
@@ -48,9 +49,16 @@ public class DefaultLanternApi implements LanternApi {
         case SIGNIN:
             LanternHub.xmppHandler().disconnect();
             final String email = req.getParameter("email");
-            final String pass = req.getParameter("password");
-            LanternHub.settings().setEmail(email);
-            LanternHub.settings().setPassword(pass);
+            String pass = req.getParameter("password");
+            if (StringUtils.isBlank(pass) && set.isSavePassword()) {
+                pass = set.getStoredPassword();
+                if (StringUtils.isBlank(pass)) {
+                    sendError(resp, "No password given and no password stored");
+                    return;
+                }
+            }
+            set.setEmail(email);
+            set.setPassword(pass);
             LanternHub.xmppHandler().connect();
             break;
         case SIGNOUT:
@@ -75,6 +83,14 @@ public class DefaultLanternApi implements LanternApi {
         }
         LanternHub.asyncEventBus().post(new SyncEvent());
         LanternHub.settingsIo().write();
+    }
+
+    private void sendError(final HttpServletResponse resp, String msg) {
+        try {
+            resp.sendError(HttpStatus.SC_BAD_REQUEST, msg);
+        } catch (final IOException e) {
+            log.info("Could not send error", e);
+        }
     }
 
     @Override
