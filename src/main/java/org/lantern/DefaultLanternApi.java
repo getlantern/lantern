@@ -29,8 +29,6 @@ public class DefaultLanternApi implements LanternApi {
      * Enumeration of calls to the Lantern API.
      */
     private enum LanternApiCall {
-        INIT, // call dashboard makes on connect to get pushed initial state
-              // XXX can we use some cometd onConnect hook for this instead?
         SIGNIN,
         SIGNOUT,
         ADDTOWHITELIST,

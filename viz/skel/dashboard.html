@@ -23,7 +23,7 @@
     <script src=assets/js/libs/angular-0.10.5.min.js ng:autobind></script>
   </head>
 
-  <body ng:controller=LDCtrl ng:class="showwelcome() && 'welcome'">
+  <body ng:controller=LDCtrl ng:class="showwelcome() && 'welcome'" lang="{{state.language || 'en'}}">
     <div id=ld-container>
       <div id=welcome-container ng:show=showwelcome()>
         <div id=welcome class="slide selected" data-cls=slide>
@@ -43,7 +43,7 @@
         </div>
         <div id=mode class=slide data-cls=slide>
           <p>Confirm inferred mode here.</p>
-          <p>Mode: {{mode()}}</p>
+          <p>Mode: {{state.getMode && 'get' || 'give'}}</p>
           <div class=controls>
             <a href=#firstsignin>➲</a>
             <div>Continue</div>
@@ -60,13 +60,13 @@
       </div>
       <div id=dashboard ng:show=!showwelcome()>
         <div id=topbar>
-          <span id=topbar-conn ng:class="'iconlabel '+connection()+' '+mode()"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}</span></span>
+          <span id=topbar-conn ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'GET' || 'GIVE']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}</span></span>
           <span ng:show=connected()>
-            <span id=topbar-peers class=topbar-stat>{{ntotalpeers()}} <ng:pluralize count=ntotalpeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span>
+            <span id=topbar-peers class=topbar-stat>{{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span>
             <span id=topbar-rate-up class="topbar-stat rate">{{up() | bytes}}</span>
             <span id=topbar-rate-dn class="topbar-stat rate">{{down() | bytes}}</span>
           </span>
-          <a ng:show=email() id=userlink class="collapsed">{{email()}}</a>
+          <a ng:show=state.email id=userlink class="collapsed">{{state.email}}</a>
         </div>
         <div id=usermenu>
           <ul>
@@ -92,17 +92,17 @@
           <dl>
             <dt>Mode</dt>
             <dd>
-              <span ng:class="'iconlabel '+connection()+' '+mode()"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}<a class="actionlink" id="switch-mode-link" ng:click=todo()>{{switchlinktext()}}</a></span></span>
+              <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'GET' || 'GIVE']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}<a class="actionlink" id="switch-mode-link" ng:click=todo()>{{switchlinktext()}}</a></span></span>
             </dd>
             <dt ng:show=connected()>Peers</dt>
             <dd ng:show=connected()>
               <span id=give-mode-peers>
-                {{ntotalpeers()}}
+                {{npeers()}}
               </span>
             </dd>
             <dt ng:show=connected()>Traffic</dt>
             <dd ng:show=connected()>
-              {{ntotalupdown() | bytes}}/s via {{ntotalpeers()}} <ng:pluralize count=ntotalpeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>
+              {{up()+down()|bytes}}/s via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>
             </dd>
             <dt>Version</dt>
             <dd>
@@ -116,22 +116,22 @@
           <dl>
             <dt>Port</dt>
             <dd>
-              <input type=number value={{port()}} id=port min=1024 max=65535 disabled />
+              <input type=number value={{state.port}} id=port min=1024 max=65535 disabled />
             </dd>
-            <dt ng:show="!givemode()">Policy</dt>
-            <dd ng:show="!givemode()">
+            <dt ng:show="state.getMode">Policy</dt>
+            <dd ng:show="state.getMode">
               <ul>
-                <li><label><input type=radio ng:click=toggleproxyallsites() ng:checked={{proxyallsites()}} /> Proxy all sites</label></li>
-                <li><label><input type=radio ng:click=toggleproxyallsites() ng:checked={{!proxyallsites()}} /> Only proxy certain sites</label></li>
-                <li><input type=button ng:disabled={{proxyallsites()}} ng:click=toggleproxiedsites(true) value="Manage proxied sites..." /></li>
+                <li><label><input type=radio value={{true}} ng:change=toggle('proxyAllSites') ng:model=state.proxyAllSites /> Proxy all sites</label></li>
+                <li><label><input type=radio value={{false}} ng:change=toggle('proxyAllSites') ng:model=state.proxyAllSites /> Only proxy certain sites</label></li>
+                <li><input type=button ng:disabled={{state.proxyAllSites}} ng:click=toggleproxiedsites(true) value="Manage proxied sites..." /></li>
               </ul>
             </dd>
             <dt>Application</dt>
             <dd>
               <ul>
-                <li><label><input type=checkbox ng:checked={{launchonstartup()}} ng:click=togglelaunchonstartup() /> Launch on system startup</label></li>
-                <li><label><input type=checkbox ng:checked={{connectonlaunch()}} ng:click=toggleconnectonlaunch() /> Sign in on launch</label></li>
-                <li><label><input type=checkbox ng:checked={{systemproxy()}} ng:click=togglesystemproxy() /> Set as system proxy</label></li>
+                <li><label><input type=checkbox ng:change=toggle('startAtLogin') ng:model=state.startAtLogin /> Launch on system startup</label></li>
+                <li><label><input type=checkbox ng:change=toggle('connectOnLaunch') ng:model=state.connectOnLaunch /> Sign in on launch</label></li>
+                <li><label><input type=checkbox ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Set as system proxy</label></li>
               </ul>
               <input type=button ng:click=reset() id=reset-button value="Reset Lantern" />
             </dd>
@@ -141,7 +141,7 @@
             <h1>Proxied sites</h1>
             <div id=sitestablecontainer>
             <table>
-              <tr ng:repeat="entry in whitelist()">
+              <tr ng:repeat="entry in state.whitelist.entries">
                 <td><form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input ng:model=newsite type=text required placeholder="Domain pattern" value="{{ entry.site }}" ng:disabled={{entry.required}} /></form></td>
                 <td class=x><a ng:show=!entry.required ng:click="updatewhitelist(entry.site, false)">×</a></td>
               </tr>
@@ -161,7 +161,7 @@
           </p>
           <textarea ng:model=pm id=pm-textarea placeholder="Private message to Lantern developers"></textarea>
           <div id=pm-controls>
-            <label ng:class="!connected() && 'disabled'"><input type=checkbox ng:checked=true ng:disabled={{!connected()}} ng:model=requestreply /> please reply to</label><input type=email ng:disabled={{!requestreply}} placeholder=email@example.com value="{{connected() && email() || ''}}" />
+            <label ng:class="!connected() && 'disabled'"><input type=checkbox ng:checked=true ng:disabled={{!connected()}} ng:model=requestreply /> please reply to</label><input type=email ng:disabled={{!requestreply}} placeholder=email@example.com value="{{connected() && state.email || ''}}" />
             <input id=pm-send type=button value=Send ng:disabled={{!connected() || !pm}} />
           </div>
         </div>
@@ -192,105 +192,65 @@ function LDCtrl(){
   var self = this;
   self.state = {};
   self.$watch('state');
-  self.update = function(state){self.state = state; self.$digest();};
-
-  self.user = function(){return self.state.user || {};};
-  self.connection = function(){return self.user().connectionState;};
-  self.connected = function(){return self.connection() === 'CONNECTED';};
-  self.proxyallsites = function(){return self.user().proxyAllSites;};
-  self.email = function(){return self.user().email;};
-  self.passwordstored = function(){return self.user().passwordstored;};
-  self.mode = function(){return self.user().mode;};
-  self.givemode = function(){return self.mode() === 'GIVE';};
-  self.roster = function(){return self.user().roster || {};};
-  self.peers = function(){return self.user().peers || [];};
-  self.usage = function(){return self.user().usage || {};};
-  self.current = function(){return self.usage().current || {};};
-  self.up = function(){return self.current().up;};
-  self.down = function(){return self.current().down;};
-  self.whitelist = function(){
-    return (self.state.whitelist || {entries: []}).entries;
+  self.update = function(state){
+    self.state = state;
+    self.$digest();
   };
 
-  self.system = function(){return self.state.system || {};};
-  self.port = function(){return self.system().port;};
-  self.langcode = function(){return self.system().langcode;};
-  self.platform = function(){return self.system().platform || {};};
-  self.os = function(){return self.platform().os;};
-  self.versionupdate = function(){return self.system().versionupdate || {};};
-  self.updateavailable = function(){return self.versionupdate() && !$.isEmptyObject(self.versionupdate());};
-  self.installers = function(){return self.versionupdate().installers || {};};
-  self.launchonstartup = function(){return self.system().startAtLogin;};
-  self.connectonlaunch = function(){return self.system().connectOnLaunch;};
-  self.systemproxy = function(){return self.system().systemProxy;};
+  self.connected = function(){return self.state.authenticationStatus === 'LOGGED_IN';};
+  self.up = function(){return 0;}; // XXX
+  self.down = function(){return 0;}; // XXX
+  self.npeers = function(){return 0;}; // XXX
+  self.updateavailable = function(){return true;}; // XXX
 
   self.conncaption = function(){
-    var connection = self.connection();
-    if(connection === 'DISCONNECTED')
+    switch(self.state.authenticationStatus){
+    case 'LOGGED_OUT':
       return 'Not connected';
-    if(connection === 'CONNECTING')
+    case 'LOGGING_IN':
       return 'Connecting';
-    if(connection === 'DISCONNECTING')
+    case 'LOGGING_OUT':
       return 'Disconnecting';
-    if(connection === 'CONNECTED'){
-      var mode = self.mode();
-      return mode && ((mode==='give'?'Giv':'Gett')+'ing access');
+    case 'LOGGED_IN':
+      return (self.state.getMode?'Gett':'Giv')+'ing access';
     }
   };
 
   self.switchlinktext = function(){
-    var connection = self.connection();
-    if(connection === 'CONNECTED'){
-      var mode = self.mode();
-      return mode && ('Switch to '+(mode==='get'?'giv':'gett')+'ing access');
-    }
-  };
-
-  self.ntotalpeers = function(){
-    return 0; // XXX
-  };
-
-  self.ntotalupdown = function(){
-    return self.up() + self.down() || 0;
-  };
-
-  self.installerurl = function(){
-    return self.installers()[self.os()] || '';
+    if(self.connected())
+      return 'Switch to '+(self.state.getMode?'giv':'gett')+'ing access';
   };
 
   self.signin = function(){
     // XXX
-    if(!self.email() || !self.passwordstored()){
+    if(!self.state.email || !self.state.savePassword){
       // XXX display signin form
     }
     var data = {
-      email: self.email() || $('form.signin:visible').find('input[name=email]').val(),
-      password: self.passwordstored() || $('form.signin:visible').find('input[name=password]').val()
+      email: self.state.email || $('form.signin:visible').find('input[name=email]').val(),
+      password: self.state.savePassword || $('form.signin:visible').find('input[name=password]').val()
     };
     try{
       var storepassword = $('form.signin:visible').find('input[name=storepassword]').get(0).checked;
       data.storepassword = storepassword;
     }catch(e){}
-    $.when($.post('/signin', data)).then(function(data){
+    $.when($.post('/api/signin', data)).then(function(data){
       $('form.signin:visible').removeClass('badcredentials');
-      location.href = '#status';
+      location.href = '#status'; // XXX
     }).fail(function(){
       $('form.signin:visible').addClass('badcredentials');
     });
   };
 
   self.signout = function(){
-    $.post('/signout');
+    $.post('/api/signout');
   };
 
-  /* XXX
-  for(var i in {togglelaunchonstartup:0, toggleconnectonlaunch:0, toggleproxyallsites:0, togglesystemproxy:0}){
-    self[i] = function(){
-      var j = i;
-      return function() {$.post('/'+j)};
-    }();
-  }
-  */
+  self.toggle = function(setting){
+    $.when($.post('/settings?'+setting+'='+self.state[setting]))
+     .then(function(){console.log('successfully toggled '+setting);})
+     .fail(function(){console.log('failed to toggle '+setting);});
+  };
 
   self.reset = function(){
     var msg = 'Are you sure you want to reset Lantern? ' +
@@ -303,7 +263,7 @@ function LDCtrl(){
   };
 
   self.showwelcome = function(){
-    return !self.email();
+    return !self.state.email;
   };
 
   self.proxiedsitesoverlay = null;
@@ -337,19 +297,19 @@ function LDCtrl(){
 
 $(document).ready(function(){
   var fragmentpat = /^[^#]*(#.*)$/;
-  var showid = function(id, extra){
+  function showid(id){
     var el = $(id);
     var cls = el.attr('data-cls');
     if(!el.length || el.hasClass('selected'))return;
     $('.' + cls + '.selected').toggleClass('selected');
     el.toggleClass('selected');
-    extra && extra(id);
-  }
-  $('#panel-list a, .panellink').click(function(evt){
-    showid(evt.target.href.match(fragmentpat)[1], function(id){
+    if(cls === 'panel'){
       $('#panel-list > li > a.selected').toggleClass('selected');
       $('#panel-list > li > a[href='+id+']').toggleClass('selected');
-    });
+    }
+  }
+  $('#panel-list a, .panellink').click(function(evt){
+    showid(evt.target.href.match(fragmentpat)[1]);
   });
   $('#welcome-container .controls a[href]').click(function(evt){
     showid(evt.target.href.match(fragmentpat)[1]);
@@ -362,9 +322,6 @@ $(document).ready(function(){
     $('#usermenu').slideToggle(50);
     $('#userlink').toggleClass('collapsed');
   });
-
-
-
 
 
   function _connectionEstablished(){
@@ -399,31 +356,25 @@ $(document).ready(function(){
   }
 
   function syncHandler(msg){
-    angular.element(document.body).scope().update(msg.data);
-    showid(location.hash || '#welcome');
+    $('body').scope().update(msg.data);
+    //console.log('update:', msg.data);
   }
 
-  // Function invoked when first contacting the server and
-  // when the server has lost the state of this client
   function _metaHandshake(handshake){
     if (handshake.successful === true){
       cometd.batch(function(){
         cometd.subscribe('/sync', syncHandler);
-        $.ajax('/api/init');
+        if(location.hash)
+          showid(location.hash);
       });
     }
   }
 
-  // Disconnect when the page unloads
   $(window).unload(function(){
     cometd.disconnect(true);
   });
 
-  var config = {
-    contextPath: ''
-  };
-
-  var cometURL = location.protocol + "//" + location.host + config.contextPath + "/cometd";
+  var cometURL = location.protocol + "//" + location.host + "/cometd";
   cometd.configure({
     url: cometURL,
     logLevel: 'info'
@@ -433,7 +384,6 @@ $(document).ready(function(){
   cometd.addListener('/meta/connect', _metaConnect);
 
   cometd.handshake();
-
 });
 </script>
 
