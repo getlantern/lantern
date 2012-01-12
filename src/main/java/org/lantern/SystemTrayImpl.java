@@ -112,7 +112,6 @@ public class SystemTrayImpl implements SystemTray {
                     shell.forceActive();
                 }
             });
-            */
             if (LanternHub.settings().isGetMode()) {
                 stopItem = new MenuItem(menu, SWT.PUSH);
                 stopItem.setText(I18n.tr("Stop Lantern "));
@@ -143,6 +142,7 @@ public class SystemTrayImpl implements SystemTray {
                 });
                 log.info("Added start and stop items");
             }
+            */
             
             /*
             FileDialog fd = new FileDialog(shell, SWT.OPEN);
