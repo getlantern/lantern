@@ -236,9 +236,10 @@ class TestingUtils {
         
         final SetCookieObserver co = new WhitelistSetCookieObserver(ct);
         final CookieFilter.Factory cf = new DefaultCookieFilterFactory(ct);
-        //LanternHttpProxyServer server = new LanternHttpProxyServer(port, ksm, pp,psl,null, co, cf);
+        LanternHub.setProxyProvider(pp);
+        LanternHub.setProxyStatusListener(psl);
         LanternHttpProxyServer server = new LanternHttpProxyServer(port, ksm, co, cf);
-        //server.start();
+        server.start();
         return server;
     }
 

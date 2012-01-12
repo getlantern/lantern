@@ -53,6 +53,13 @@ public class LanternHub {
     
     private volatile static AtomicReference<XmppHandler> xmppHandler = 
         new AtomicReference<XmppHandler>();
+    
+    private static final AtomicReference<ProxyProvider> proxyProvider =
+        new AtomicReference<ProxyProvider>();
+    
+    private static final AtomicReference<ProxyStatusListener> proxyStatusListener =
+        new AtomicReference<ProxyStatusListener>();
+
     private volatile static AtomicReference<Integer> randomSslPort = 
         new AtomicReference<Integer>(-1);
     
@@ -378,4 +385,31 @@ public class LanternHub {
             LOG.error("Caught throwable: {}", t);
         }
     }
+    
+    public static ProxyProvider getProxyProvider() {
+        synchronized (proxyProvider) {
+            if (proxyProvider.get() == null) {
+                proxyProvider.set(xmppHandler());
+            }
+            return proxyProvider.get();
+        }
+    }
+    
+    public static void setProxyProvider(final ProxyProvider pp) {
+        proxyProvider.set(pp);
+    }
+    
+    public static ProxyStatusListener getProxyStatusListener() {
+        synchronized (proxyStatusListener) {
+            if (proxyStatusListener.get() == null) {
+                proxyStatusListener.set(xmppHandler());
+            }
+            return proxyStatusListener.get();
+        }
+    }
+    
+    public static void setProxyStatusListener(final ProxyStatusListener pp) {
+        proxyStatusListener.set(pp);
+    }
+
 }
