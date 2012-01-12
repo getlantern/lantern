@@ -2,6 +2,7 @@ package org.lantern;
 
 import java.util.Locale;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 import com.google.common.eventbus.Subscribe;
@@ -25,8 +26,6 @@ public class Settings implements MutableSettings {
     private boolean startAtLogin = true;
     private boolean isSystemProxy = true;
     
-    private boolean proxying;
-    
     private int port = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
     private String version = LanternConstants.VERSION;
     private boolean connectOnLaunch = true;
@@ -42,8 +41,6 @@ public class Settings implements MutableSettings {
     private Country country = LanternHub.censored().country();
     
     private Country countryDetected = LanternHub.censored().country();
-    
-    
     
     private boolean manuallyOverrideCountry;
     
@@ -70,6 +67,7 @@ public class Settings implements MutableSettings {
     
     private int apiPort;
     
+    private boolean passwordSaved;
     
     {
         LanternHub.eventBus().register(this);
@@ -285,6 +283,11 @@ public class Settings implements MutableSettings {
     public void setStoredPassword(final String storedPassword) {
         this.storedPassword = storedPassword;
         this.password = storedPassword;
+        if (StringUtils.isBlank(storedPassword)) {
+            setPasswordSaved(false);
+        } else {
+            setPasswordSaved(true);
+        }
     }
 
     public String getStoredPassword() {
@@ -347,5 +350,14 @@ public class Settings implements MutableSettings {
     public boolean isProxying() {
         return Configurator.isProxying();
     }
+
+    public void setPasswordSaved(boolean passwordSaved) {
+        this.passwordSaved = passwordSaved;
+    }
+
+    public boolean isPasswordSaved() {
+        return passwordSaved;
+    }
+
 
 }
