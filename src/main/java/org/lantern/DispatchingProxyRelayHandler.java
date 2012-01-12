@@ -63,9 +63,9 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     
     private Channel browserToProxyChannel;
 
-    private final ProxyStatusListener proxyStatusListener;
+    //private final ProxyStatusListener proxyStatusListener;
     
-    private final ProxyProvider proxyProvider;
+    //private final ProxyProvider proxyProvider;
 
     private static final long REQUEST_SIZE_LIMIT = 1024 * 1024 * 10 - 4096;
 
@@ -147,20 +147,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * Creates a new handler that reads incoming HTTP requests and dispatches
      * them to proxies as appropriate.
      * 
-     * @param proxyProvider Providers for proxy addresses to connect to.
-     * @param proxyStatusListener The class to notify of changes in the proxy
-     * status.
-     * @param whitelist The list of sites to proxy.
-     * @param encryptingP2pClient The client for creating P2P connections.
      * @param keyStoreManager Keeps track of all trusted keys. 
-     * @param clientSocketChannelFactory Factory for creating client channels.
      */
-    public DispatchingProxyRelayHandler(final ProxyProvider proxyProvider,
-        final ProxyStatusListener proxyStatusListener, 
-        final XmppP2PClient encryptingP2pClient, 
-        final KeyStoreManager keyStoreManager) {
-        this.proxyProvider = proxyProvider;
-        this.proxyStatusListener = proxyStatusListener;
+    public DispatchingProxyRelayHandler(final KeyStoreManager keyStoreManager) {
+        //this.proxyProvider = proxyProvider;
+        //this.proxyStatusListener = proxyStatusListener;
         this.keyStoreManager = keyStoreManager;
         
         // This uses the raw p2p client because all traffic sent over these
@@ -199,7 +190,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             },  proxyStatusListener, encryptingP2pClient, this.keyStoreManager);
         */
         this.proxyRequestProcessor =
-            new DefaultHttpRequestProcessor(proxyStatusListener,
+            new DefaultHttpRequestProcessor(LanternHub.xmppHandler(),
                 new HttpRequestTransformer() {
                     @Override
                     public void transform(final HttpRequest request, 
@@ -215,11 +206,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     }
                     @Override
                     public InetSocketAddress getProxy() {
-                        return proxyProvider.getProxy();
+                        return LanternHub.xmppHandler().getProxy();
                     }
                 }, this.keyStoreManager);
         this.laeRequestProcessor =
-            new DefaultHttpRequestProcessor(proxyStatusListener,
+            new DefaultHttpRequestProcessor(LanternHub.xmppHandler(),
                 new LaeHttpRequestTransformer(), true,
                 new Proxy() {
                     @Override
@@ -229,7 +220,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     }
                     @Override
                     public InetSocketAddress getProxy() {
-                        return proxyProvider.getLaeProxy();
+                        return LanternHub.xmppHandler().getLaeProxy();
                     }
             }, null);
     }
@@ -339,7 +330,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         if (request.getMethod() == HttpMethod.CONNECT) {
             try {
                 if (ANONYMOUS_ACTIVE && 
-                    proxyProvider.getAnonymousPeerProxyManager().processRequest(
+                    LanternHub.xmppHandler().getAnonymousPeerProxyManager().processRequest(
                         browserToProxyChannel, ctx, me) != null) {
                     log.info("Processed CONNECT on peer...returning");
                     return null;
@@ -375,7 +366,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         try {
             if (TRUSTED_ACTIVE) {
                 final HttpRequestProcessor rp = 
-                    proxyProvider.getTrustedPeerProxyManager().processRequest(
+                    LanternHub.xmppHandler().getTrustedPeerProxyManager().processRequest(
                             browserToProxyChannel, ctx, me);
                 if (rp != null) {
                     return rp;
@@ -508,7 +499,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         pipeline.addLast("handler", 
             new HttpConnectRelayingHandler(this.browserToProxyChannel, null));
         log.info("Connecting to relay proxy");
-        final InetSocketAddress isa = this.proxyProvider.getProxy();
+        final InetSocketAddress isa = LanternHub.xmppHandler().getProxy();
         if (isa == null) {
             log.error("NO PROXY AVAILABLE?");
             ProxyUtils.closeOnFlush(browserToProxyChannel);
@@ -554,7 +545,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 } else {
                     // Close the connection if the connection attempt has failed.
                     browserToProxyChannel.close();
-                    proxyStatusListener.onCouldNotConnect(isa);
+                    LanternHub.xmppHandler().onCouldNotConnect(isa);
                 }
             }
         });
