@@ -300,7 +300,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTING));
         LanternHub.eventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_OUT));
-        this.client.getXmppConnection().disconnect();
+        this.client.logout();
+        
         LanternHub.eventBus().post(
             new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
         LanternHub.eventBus().post(
@@ -351,9 +352,11 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
                 addProxy(server);
                 LanternUtils.addProxy(server);
             }
-            if (!servers.isEmpty() && !Configurator.configured()) {
-                Configurator.configure();
-                
+            if (!servers.isEmpty()) { 
+                if (!Configurator.configured()) {
+                    Configurator.configure();
+                }
+                LOG.info("Dispatching CONNECTED event");
                 LanternHub.eventBus().post(new ConnectivityStatusChangeEvent(
                     ConnectivityStatus.CONNECTED));
             }
@@ -414,6 +417,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
      */
     private void updatePresence() {
         final XMPPConnection conn = this.client.getXmppConnection();
+        if (!conn.isConnected()) {
+            LOG.info("Not updating presence when we're not connected");
+            return;
+        }
         LOG.info("Sending presence available");
         
         // OK, this is bizarre. For whatever reason, we **have** to send the
@@ -670,6 +677,14 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
 
     private void addProxy(final String cur) {
         LOG.info("Considering proxy: {}", cur);
+        if (cur.contains("appspot")) {
+            addLaeProxy(cur);
+            return;
+        }
+        if (!this.client.getXmppConnection().isConnected()) {
+            LOG.info("Not connected -- ignoring proxy: {}", cur);
+            return;
+        }
         final String jid = this.client.getXmppConnection().getUser().trim();
         final String emailId = XmppUtils.jidToUser(jid);
         LOG.info("We are: {}", jid);
@@ -679,9 +694,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             LOG.info("Not adding ourselves as a proxy!!");
             return;
         }
-        if (cur.contains("appspot")) {
-            addLaeProxy(cur);
-        } else if (cur.startsWith(emailId+"/")) {
+        if (cur.startsWith(emailId+"/")) {
             try {
                 addPeerProxy(new URI(cur));
             } catch (final URISyntaxException e) {
