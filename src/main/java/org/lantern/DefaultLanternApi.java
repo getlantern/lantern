@@ -141,6 +141,10 @@ public class DefaultLanternApi implements LanternApi {
     
     private void changeSetting(final HttpServletResponse resp,
         final Map<String, String> params) {
+        if (params.isEmpty()) {
+            sendError(resp, "You must set at least one setting");
+            return;
+        }
         final Entry<String, String> keyVal = params.entrySet().iterator().next();
         log.debug("Got keyval: {}", keyVal);
         final String key = keyVal.getKey();
