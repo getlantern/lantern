@@ -62,9 +62,20 @@ public class DefaultLanternApi implements LanternApi {
             set.setEmail(email);
             set.setPassword(pass);
             LanternHub.xmppHandler().connect();
+            if (LanternUtils.shouldProxy()) {
+                // We automatically start proxying upon connect if the user's
+                // settings say they're in get mode and to use the system proxy.
+                Configurator.startProxying();
+            }
             break;
         case SIGNOUT:
+            log.info("Signing out");
             LanternHub.xmppHandler().disconnect();
+            
+            // We stop proxying outside of any user settings since if we're
+            // not logged in there's no sense in proxying. Could theoretically
+            // use cached proxies, but definitely no peer proxies would work.
+            Configurator.stopProxying();
             break;
         case ADDTOWHITELIST:
             LanternHub.whitelist().addEntry(req.getParameter("site"));

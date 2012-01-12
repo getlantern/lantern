@@ -69,6 +69,17 @@ public class Configurator {
         } catch (final IOException e) {
             LOG.error("Could not copy extension", e);
         }
+        
+        // We always want to stop proxying on shutdown -- doesn't hurt 
+        // anything in the case where we never proxied in the first place.
+        final Thread hook = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                LOG.info("Unproxying...");
+                stopProxying();
+            }
+        }, "Unset-Web-Proxy-Thread");
+        Runtime.getRuntime().addShutdownHook(hook);
     }
     
     private static final File ACTIVE_PAC = 
@@ -138,19 +149,9 @@ public class Configurator {
             return;
         }
         
-        if (LanternHub.settings().isGetMode()) {
+        if (LanternUtils.shouldProxy()) {
             LOG.info("Auto-configuring proxy...");
-            
             startProxying();
-            
-            final Thread hook = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    LOG.info("Unproxying...");
-                    stopProxying();
-                }
-            }, "Unset-Web-Proxy-Thread");
-            Runtime.getRuntime().addShutdownHook(hook);
         } else {
             LOG.info("Not auto-configuring proxy in an uncensored country");
         }

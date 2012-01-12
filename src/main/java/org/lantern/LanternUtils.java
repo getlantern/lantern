@@ -959,6 +959,11 @@ public class LanternUtils {
         }
         return jid;
     }
+
+    public static boolean shouldProxy() {
+        return LanternHub.settings().isGetMode() && 
+            LanternHub.settings().isSystemProxy();
+    }
 }
 
 

@@ -39,8 +39,12 @@ public class SettingsChangeImplementor implements MutableSettings {
 
     @Override
     public void setSystemProxy(final boolean isSystemProxy) {
-        // TODO Auto-generated method stub
-        
+        log.info("Setting system proxy");
+        if (isSystemProxy) {
+            Configurator.startProxying();
+        } else {
+            Configurator.stopProxying();
+        }
     }
 
     @Override
