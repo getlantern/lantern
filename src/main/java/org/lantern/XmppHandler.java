@@ -144,7 +144,8 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         final int plainTextProxyRandomPort) {
         this.sslProxyRandomPort = sslProxyRandomPort;
         this.plainTextProxyRandomPort = plainTextProxyRandomPort;
-        if (LanternHub.settings().isConnectOnLaunch()) {
+        if (LanternHub.settings().isConnectOnLaunch() && 
+            LanternUtils.isConfigured()) {
             connect();
         }
     }
@@ -300,7 +301,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTING));
         LanternHub.eventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_OUT));
-        this.client.logout();
+        
+        if (this.client != null) {
+            this.client.logout();
+        }
         
         LanternHub.eventBus().post(
             new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
