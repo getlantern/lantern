@@ -130,6 +130,7 @@ public class Launcher {
             return;
         }
         
+        /*
         if (!LanternUtils.isConfigured() || LanternUtils.isNewInstall()) {
             // Make sure the installer screens themselves don't run through a
             // defunct Lantern proxy that likely has just been uninstalled.
@@ -145,6 +146,9 @@ public class Launcher {
         } else {
             launchLantern();
         }
+        */
+        
+        launchLantern();
         
         LanternHub.jettyLauncher().openBrowserWhenReady();
         //new StatsSimulator().start();

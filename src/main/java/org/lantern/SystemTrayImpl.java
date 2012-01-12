@@ -139,25 +139,23 @@ public class SystemTrayImpl implements SystemTray {
                 log.info("Added start and stop items");
             }
             
-            final MenuItem configItem = new MenuItem(menu, SWT.PUSH);
-            configItem.setText(I18n.tr("Configure Lantern ")+LanternConstants.VERSION);
-            configItem.addListener (SWT.Selection, new Listener () {
+            /*
+            FileDialog fd = new FileDialog(shell, SWT.OPEN);
+            fd.setText("Open");
+            //fd.setFilterPath("C:/");
+            //String[] filterExt = { "*.txt", "*.doc", ".rtf", "*.*" };
+            //fd.setFilterExtensions(filterExt);
+            String selected = fd.open();
+            shell.forceActive();
+            System.out.println(selected);
+            */
+            
+            final MenuItem dashboardItem = new MenuItem(menu, SWT.PUSH);
+            dashboardItem.setText("Open Dashboard");
+            dashboardItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
-                    System.out.println("Got config call");
-                    /*
-                    FileDialog fd = new FileDialog(shell, SWT.OPEN);
-                    fd.setText("Open");
-                    //fd.setFilterPath("C:/");
-                    //String[] filterExt = { "*.txt", "*.doc", ".rtf", "*.*" };
-                    //fd.setFilterExtensions(filterExt);
-                    String selected = fd.open();
-                    shell.forceActive();
-                    System.out.println(selected);
-                    */
-                    
-                    final LanternBrowser browser = new LanternBrowser(true);
-                    browser.install();
+                    LanternHub.jettyLauncher().openBrowserWhenReady();
                 }
             });
             
