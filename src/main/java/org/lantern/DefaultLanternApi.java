@@ -59,6 +59,10 @@ public class DefaultLanternApi implements LanternApi {
                     return;
                 }
             }
+            if (req.getParameterMap().containsKey("savePassword")) {
+                final boolean savePassword = getBooleanArg(req, "savePassword");
+                set.setSavePassword(savePassword);
+            }
             set.setEmail(email);
             set.setPassword(pass);
             LanternHub.xmppHandler().connect();
@@ -104,6 +108,12 @@ public class DefaultLanternApi implements LanternApi {
         }
         LanternHub.asyncEventBus().post(new SyncEvent());
         LanternHub.settingsIo().write();
+    }
+
+    private boolean getBooleanArg(final HttpServletRequest req, 
+        final String arg) {
+        final String str = req.getParameter(arg);
+        return LanternUtils.isTrue(str); 
     }
 
     private void sendServerError(final HttpServletResponse resp, 
