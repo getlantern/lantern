@@ -207,6 +207,11 @@ public class Launcher {
                 //null, sslRandomPort,
                 proxyKeyStore, cookieTracker, cookieFilterFactory);
         server.start();
+        
+        // This won't connect in the case where the user hasn't entered 
+        // their user name and password and the user is running with a UI.
+        // Otherwise, it will connect.
+        LanternHub.xmppHandler();
     }
 
     
