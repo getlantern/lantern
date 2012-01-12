@@ -302,15 +302,17 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
     
 
     public void disconnect() {
+        if (this.client == null) {
+            LOG.info("Not disconnecting since we're not yet connected");
+            return;
+        }
         LOG.info("Disconnecting!!");
         LanternHub.eventBus().post(
             new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTING));
         LanternHub.eventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_OUT));
         
-        if (this.client != null) {
-            this.client.logout();
-        }
+        this.client.logout();
         
         LanternHub.eventBus().post(
             new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
