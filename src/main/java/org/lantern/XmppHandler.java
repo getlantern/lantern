@@ -146,11 +146,15 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         this.plainTextProxyRandomPort = plainTextProxyRandomPort;
         if (LanternHub.settings().isConnectOnLaunch() && 
             LanternUtils.isConfigured()) {
-            connect();
+            try {
+                connect();
+            } catch (final IOException e) {
+                LOG.info("Could not login", e);
+            }
         }
     }
     
-    public void connect() {
+    public void connect() throws IOException {
         String email = LanternHub.settings().getEmail();
         String pwd = LanternHub.settings().getPassword();
         if (StringUtils.isBlank(email)) {
@@ -175,123 +179,125 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         
         LanternHub.settingsIo().write();
         
+        final InetSocketAddress plainTextProxyRelayAddress = 
+            new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
+        
+        NatPmpService natPmpService = null;
         try {
-            final InetSocketAddress plainTextProxyRelayAddress = 
-                new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
-            
-            NatPmpService natPmpService = null;
-            try {
-                natPmpService = new NatPmp();
-            } catch (final NatPmpException e) {
-                LOG.error("Could not map", e);
-                // We just use a dummy one in this case.
-                natPmpService = new NatPmpService() {
-                    @Override
-                    public void removeNatPmpMapping(int arg0) {
-                    }
-                    @Override
-                    public int addNatPmpMapping(
-                        final PortMappingProtocol arg0, int arg1, int arg2,
-                        PortMapListener arg3) {
-                        return -1;
-                    }
-                };
-            }
-            
-            final UpnpService upnpService = new Upnp();
-            this.client = P2P.newXmppP2PHttpClient("shoot", natPmpService, 
-                upnpService, new InetSocketAddress(this.sslProxyRandomPort), 
-                //newTlsSocketFactory(), SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
-                newTlsSocketFactory(), newTlsServerSocketFactory(),
-                //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
-                plainTextProxyRelayAddress, false);
-
-            // This is a global, backup listener added to the client. We might
-            // get notifications of messages twice in some cases, but that's
-            // better than the alternative of sometimes not being notified
-            // at all.
-            LOG.info("Adding message listener...");
-            this.client.addMessageListener(typedListener);
-            LanternHub.eventBus().post(
-                new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTING));
-            LanternHub.eventBus().post(
-                new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_IN));
-            final String id;
-            if (LanternHub.settings().isGetMode()) {
-                id = "gmail.";
-            } else {
-                id = UNCENSORED_ID;
-            }
-            this.client.login(email, pwd, id);
-            LanternHub.eventBus().post(
-                new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_IN));
-            
-            // We don't consider ourselves connected until we actually get
-            // proxies to work with.
-            //LanternHub.eventBus().post(
-            //    new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTED));
-            final XMPPConnection connection = this.client.getXmppConnection();
-            final Collection<InetSocketAddress> googleStunServers = 
-                XmppUtils.googleStunServers(connection);
-            StunServerRepository.setStunServers(googleStunServers);
-            
-            // Make sure all connections between us and the server are stored
-            // OTR.
-            LanternUtils.activateOtr(connection);
-            
-            LOG.info("Connection ID: {}", connection.getConnectionID());
-            LOG.info("User: {}", connection.getUser());
-            
-            // Here we handle allowing the server to subscribe to our presence.
-            connection.addPacketListener(new PacketListener() {
-                
+            natPmpService = new NatPmp();
+        } catch (final NatPmpException e) {
+            LOG.error("Could not map", e);
+            // We just use a dummy one in this case.
+            natPmpService = new NatPmpService() {
                 @Override
-                public void processPacket(final Packet pack) {
-                    LOG.info("Responding to subscribtion request from {} and to {}", 
-                        pack.getFrom(), pack.getTo());
-                    final Presence packet = 
-                        new Presence(Presence.Type.subscribed);
-                    packet.setTo(pack.getFrom());
-                    packet.setFrom(pack.getTo());
-                    connection.sendPacket(packet);
+                public void removeNatPmpMapping(int arg0) {
                 }
-            }, new PacketFilter() {
-                
                 @Override
-                public boolean accept(final Packet packet) {
-                    //LOG.info("Filtering incoming packet:\n{}", packet.toXML());
-                    if(packet instanceof Presence) {
-                        final Presence pres = (Presence) packet;
-                        if(pres.getType().equals(Presence.Type.subscribe)) {
-                            LOG.info("Got subscribe packet!!");
-                            final String from = pres.getFrom();
-                            if (from.startsWith("lantern-controller@") &&
-                                from.endsWith("lantern-controller.appspotchat.com")) {
-                                LOG.info("Got lantern subscription request!!");
-                                return true;
-                            } else {
-                                LOG.info("Ignoring subscription request from: {}",
-                                    from);
-                            }
-                            
-                        }
-                    } else {
-                        LOG.info("Filtered out packet: ", packet.toXML());
-                        //XmppUtils.printMessage(packet);
-                    }
-                    return false;
+                public int addNatPmpMapping(
+                    final PortMappingProtocol arg0, int arg1, int arg2,
+                    PortMapListener arg3) {
+                    return -1;
                 }
-            });
-            
-            gTalkSharedStatus();
-            updatePresence();
-            //sendInfoRequest();
-            configureRoster();
-        } catch (final IOException e) {
-            final String msg = "Could not log in!!";
-            LOG.warn(msg, e);
-            throw new Error(msg, e);
+            };
         }
+        
+        final UpnpService upnpService = new Upnp();
+        this.client = P2P.newXmppP2PHttpClient("shoot", natPmpService, 
+            upnpService, new InetSocketAddress(this.sslProxyRandomPort), 
+            //newTlsSocketFactory(), SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
+            newTlsSocketFactory(), newTlsServerSocketFactory(),
+            //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
+            plainTextProxyRelayAddress, false);
+
+        // This is a global, backup listener added to the client. We might
+        // get notifications of messages twice in some cases, but that's
+        // better than the alternative of sometimes not being notified
+        // at all.
+        LOG.info("Adding message listener...");
+        this.client.addMessageListener(typedListener);
+        LanternHub.eventBus().post(
+            new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTING));
+        LanternHub.eventBus().post(
+            new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_IN));
+        final String id;
+        if (LanternHub.settings().isGetMode()) {
+            id = "gmail.";
+        } else {
+            id = UNCENSORED_ID;
+        }
+        try {
+            this.client.login(email, pwd, id);
+        } catch (final IOException e) {
+            LanternHub.eventBus().post(
+                new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
+            LanternHub.eventBus().post(
+                new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_OUT));
+            throw e;
+        }
+        LanternHub.eventBus().post(
+            new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_IN));
+        
+        // We don't consider ourselves connected until we actually get
+        // proxies to work with.
+        //LanternHub.eventBus().post(
+        //    new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTED));
+        final XMPPConnection connection = this.client.getXmppConnection();
+        final Collection<InetSocketAddress> googleStunServers = 
+            XmppUtils.googleStunServers(connection);
+        StunServerRepository.setStunServers(googleStunServers);
+        
+        // Make sure all connections between us and the server are stored
+        // OTR.
+        LanternUtils.activateOtr(connection);
+        
+        LOG.info("Connection ID: {}", connection.getConnectionID());
+        LOG.info("User: {}", connection.getUser());
+        
+        // Here we handle allowing the server to subscribe to our presence.
+        connection.addPacketListener(new PacketListener() {
+            
+            @Override
+            public void processPacket(final Packet pack) {
+                LOG.info("Responding to subscribtion request from {} and to {}", 
+                    pack.getFrom(), pack.getTo());
+                final Presence packet = 
+                    new Presence(Presence.Type.subscribed);
+                packet.setTo(pack.getFrom());
+                packet.setFrom(pack.getTo());
+                connection.sendPacket(packet);
+            }
+        }, new PacketFilter() {
+            
+            @Override
+            public boolean accept(final Packet packet) {
+                //LOG.info("Filtering incoming packet:\n{}", packet.toXML());
+                if(packet instanceof Presence) {
+                    final Presence pres = (Presence) packet;
+                    if(pres.getType().equals(Presence.Type.subscribe)) {
+                        LOG.info("Got subscribe packet!!");
+                        final String from = pres.getFrom();
+                        if (from.startsWith("lantern-controller@") &&
+                            from.endsWith("lantern-controller.appspotchat.com")) {
+                            LOG.info("Got lantern subscription request!!");
+                            return true;
+                        } else {
+                            LOG.info("Ignoring subscription request from: {}",
+                                from);
+                        }
+                        
+                    }
+                } else {
+                    LOG.info("Filtered out packet: ", packet.toXML());
+                    //XmppUtils.printMessage(packet);
+                }
+                return false;
+            }
+        });
+        
+        gTalkSharedStatus();
+        updatePresence();
+        //sendInfoRequest();
+        configureRoster();
     }
     
 

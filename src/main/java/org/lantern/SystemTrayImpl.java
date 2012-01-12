@@ -3,6 +3,7 @@ package org.lantern;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.Map;
 
@@ -111,7 +112,6 @@ public class SystemTrayImpl implements SystemTray {
                     shell.forceActive();
                 }
             });
-            */
             if (LanternHub.settings().isGetMode()) {
                 stopItem = new MenuItem(menu, SWT.PUSH);
                 stopItem.setText(I18n.tr("Stop Lantern "));
@@ -132,12 +132,17 @@ public class SystemTrayImpl implements SystemTray {
                     @Override
                     public void handleEvent (final Event event) {
                         log.info("Starting Lantern!!");
-                        Configurator.startProxying();
-                        LanternHub.xmppHandler().connect();
+                        try {
+                            LanternHub.xmppHandler().connect();
+                            Configurator.startProxying();
+                        } catch (final IOException e) {
+                            log.info("Could not connect", e);
+                        }
                     }
                 });
                 log.info("Added start and stop items");
             }
+            */
             
             /*
             FileDialog fd = new FileDialog(shell, SWT.OPEN);
