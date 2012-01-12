@@ -7,58 +7,60 @@
     <title>Lantern Dashboard</title>
     <link rel="shortcut icon" href=assets/img/favicon.png>
     <link rel=stylesheet href=assets/css/style.css />
-<!--<link rel=stylesheet href=assets/css/chosen.css />-->
-
-    <!-- XXX jquery tools includes jquery 1.6.4 -->
-<!--<script src=assets/js/libs/jquery.1.7.1.min.js></script>-->
-<!--<script src=http://cdn.jquerytools.org/1.2.6/jquery.tools.min.js></script>-->
-    <script src=assets/js/libs/jquery.tools.min.js></script>
-<!--<script src=assets/js/libs/chosen.jquery.min.js></script>-->
-
-    <script src="jquery/json2.js"></script>
-    <script src="org/cometd.js"></script>
-    <script src="jquery/jquery.cometd.js"></script>
-
-<!--<script src=http://code.angularjs.org/0.10.5/angular-0.9.15.min.js ng:autobind></script>-->
+    <script src=assets/js/libs/jquery.tools.min.js></script> <!-- XXX jquery tools includes jquery 1.6.4 -->
+    <script src=jquery/json2.js></script>
+    <script src=org/cometd.js></script>
+    <script src=jquery/jquery.cometd.js></script>
     <script src=assets/js/libs/angular-0.10.5.min.js ng:autobind></script>
   </head>
 
-  <body ng:controller=LDCtrl ng:class="showwelcome() && 'welcome'" lang="en">
+  <body ng:controller=LDCtrl ng:class="setupcomplete() && 'welcome'" lang=en>
     <div id=ld-container>
-      <div id=welcome-container ng:show=showwelcome()>
+      <div id=welcome-container ng:show=setupcomplete()>
         <div id=welcome class="slide selected" data-cls=slide>
           <h1>Welcome to Lantern</h1>
           <h4>Internet freedom for everyone.</h4>
           <div class=controls>
-            <a href=#agree>➲</a>
+            <a href=#terms>➲</a>
             <div>Continue</div>
           </div>
         </div>
-        <div id=agree class=slide data-cls=slide>
-          <p>Maybe you have to agree to some terms of use here.</p>
+        <div id=terms class=slide data-cls=slide>
+          <h1>Terms of use</h1>
           <div class=controls>
             <a href=#mode>➲</a>
             <div>Continue</div>
           </div>
         </div>
         <div id=mode class=slide data-cls=slide>
-          <p>Confirm inferred mode here.</p>
-          <p>Mode: {{state.getMode && 'get' || 'give'}}</p>
+          <h1>Use Lantern to</h1>
+          <ul id=modelist>
+            <li><label><input type=radio value={{true}} ng:change=switchmode() ng:model=state.getMode /> Get access through others’ connections</label></li>
+            <li><label><input type=radio value={{false}} ng:change=switchmode() ng:model=state.getMode /> Give access to others through my connection</label></li>
+          </ul>
           <div class=controls>
             <a href=#firstsignin>➲</a>
             <div>Continue</div>
           </div>
         </div>
         <div id=firstsignin class=slide data-cls=slide>
-          <p>Sign into Google to continue.</p>
-          <ng:include src="'assets/partials/signin.html'"></ng:include>
+          <h1>Sign into Google</h1>
+          <form class=signin ng:submit=signin()>
+            <ul>
+              <li><div class=error>Bad username or password.</div></li>
+              <li><input type=email placeholder=email@example.com ng:model=inputemail value={{state.email}} required autofocus /></li>
+              <li><input type=password placeholder=password ng:model=inputpassword required id=firstsignin-pass /></li>
+              <li><label><input type=checkbox ng:model=savepassword /> Save password</label></li>
+            </ul>
+            <button type=submit class=button-submit-hack></button><!-- see XXX button-submit-hack below -->
+          </form>
           <div class=controls>
             <a id=firstsignin-link>➲</a>
             <div>Continue</div>
           </div>
         </div>
       </div>
-      <div id=dashboard ng:show=!showwelcome()>
+      <div id=dashboard ng:show=!setupcomplete()>
         <div id=topbar>
           <span id=topbar-conn ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'GET' || 'GIVE']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}</span></span>
           <span ng:show=connected()>
@@ -77,7 +79,7 @@
         </div>
         <div id=sidebar>
           <h1>Dashboard</h1>
-          <!-- XXX <input id=search type=search placeholder=Search results=5 incremental autosave/> -->
+          <input id=search type=search placeholder="Search (TODO)" results=5 incremental autosave/>
           <nav>
             <ul id=panel-list>
               <li><a href=#status class=selected>Status</a></li>
@@ -92,7 +94,7 @@
           <dl>
             <dt>Mode</dt>
             <dd>
-              <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'GET' || 'GIVE']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}<a class="actionlink" id="switch-mode-link" ng:click="switchmode()">{{switchlinktext()}}</a></span></span>
+              <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'GET' || 'GIVE']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}<a class="actionlink" id="switch-mode-link" ng:click="switchmode(true)">{{switchlinktext()}}</a></span></span>
             </dd>
             <dt ng:show=connected()>Peers</dt>
             <dd ng:show=connected()>
@@ -192,6 +194,26 @@ angular.filter('bytes', function(input) {
   return nbytes + 'B';
 });
 
+FRAGMENTPAT = /^[^#]*(#.*)$/;
+function clickevt2id(evt){
+  return evt.target.href.match(FRAGMENTPAT)[1];
+}
+function showid(id){
+  location.hash = id;
+  var $el = $(id);
+  if(!$el.length || $el.hasClass('selected'))return;
+  var cls = $el.attr('data-cls');
+  $('.' + cls + '.selected').toggleClass('selected');
+  $el.toggleClass('selected');
+  if(cls === 'panel'){
+    $('#panel-list > li > a.selected').toggleClass('selected');
+    $('#panel-list > li > a[href='+id+']').toggleClass('selected');
+  }
+}
+function showidclickhandler(evt){
+  showid(clickevt2id(evt));
+}
+
 function LDCtrl(){
   var self = this;
   self.state = {};
@@ -200,6 +222,13 @@ function LDCtrl(){
     self.state = state;
     self.$digest();
   };
+
+  self.inputemail = null;
+  self.inputpassword = null;
+  self.savepassword = true;
+  self.pm = null;
+  self.requestreply = false;
+  self.requestreplyto = null;
 
   self.connected = function(){return self.state.authenticationStatus === 'LOGGED_IN';};
   self.npeers = function(){return 0;}; // XXX
@@ -223,26 +252,16 @@ function LDCtrl(){
   };
 
   self.signin = function(){
-    /*
-    // XXX
-    if(!self.state.email || !self.state.savePassword){
-      // XXX display signin form
-    }
     var data = {
-      email: self.state.email || $('form.signin:visible').find('input[name=email]').val(),
-      password: self.state.savePassword || $('form.signin:visible').find('input[name=password]').val()
+      email: self.state.email || self.inputemail,
+      savePassword: self.savepassword
     };
-    try{
-      var storepassword = $('form.signin:visible').find('input[name=storepassword]').get(0).checked;
-      data.storepassword = storepassword;
-    }catch(e){}
-    */
-    var data = {email: self.state.email};
-    if(!self.state.savePassword)
-      data.password = prompt('Please enter your password:');
+    if(!self.state.passwordSaved)
+      data.password = self.inputpassword || prompt('Please enter your password:');
     $.when($.post('/api/signin', data)).then(function(data){
       $('form.signin:visible').removeClass('badcredentials');
-      location.href = '#status'; // XXX
+      $('#firstsignin-pass').val('');
+      showid('#status');
     }).fail(function(){
       $('form.signin:visible').addClass('badcredentials');
     });
@@ -260,13 +279,13 @@ function LDCtrl(){
      .fail(function(){console.log('failed to toggle '+setting);});
   };
 
-  self.switchmode = function(){
+  self.switchmode = function(manual){
     var proceed = true;
     if(self.state.getMode && self.state.countryDetected.censoring)
       proceed = confirm('It looks like you may be in a censoring country. ' +
         'Only run Lantern in “give access” mode if you believe your ' +
         'connection to be private and properly secured.');
-    proceed && self.toggle('getMode', true);
+    proceed && self.toggle('getMode', manual);
   };
 
   self.reset = function(){
@@ -274,12 +293,13 @@ function LDCtrl(){
       (self.connected() ? 'You will be signed out and y' : 'Y') +
       'our settings will be erased.';
     if(confirm(msg)){
-      $.post('/reset');
-      location.href = '#welcome';
+      $.when($.post('/api/reset')).then(function(){
+        showid('#welcome');
+      });
     }
   };
 
-  self.showwelcome = function(){
+  self.setupcomplete = function(){
     return !self.state.email;
   };
 
@@ -309,39 +329,21 @@ function LDCtrl(){
     }
   };
 
-  self.pm = null;
-  self.requestreply = false;
-  self.requestreplyto = null;
-
   self.todo = function(){alert('todo');}
 }
 
 $(document).ready(function(){
-  var fragmentpat = /^[^#]*(#.*)$/;
-  function showid(id){
-    var $el = $(id);
-    var cls = $el.attr('data-cls');
-    if(!$el.length || $el.hasClass('selected'))return;
-    $('.' + cls + '.selected').toggleClass('selected');
-    $el.toggleClass('selected');
-    if(cls === 'panel'){
-      $('#panel-list > li > a.selected').toggleClass('selected');
-      $('#panel-list > li > a[href='+id+']').toggleClass('selected');
-    }
-  }
-  $('#panel-list a, .panellink').click(function(evt){
-    showid(evt.target.href.match(fragmentpat)[1]);
-  });
-  $('#welcome-container .controls a[href]').click(function(evt){
-    showid(evt.target.href.match(fragmentpat)[1]);
-  });
-  $('#firstsignin-link').click(function(evt){
-    $('#firstsignin button[type=submit]').click(); // XXX
-    evt.preventDefault();
-  });
+  $('#panel-list a, .panellink').click(showidclickhandler);
+  $('#welcome-container .controls a[href]').click(showidclickhandler);
   $('#userlink, #usermenu a').click(function(evt){
     $('#usermenu').slideToggle(50);
     $('#userlink').toggleClass('collapsed');
+  });
+
+  // XXX button-submit-hack
+  $('#firstsignin-link').click(function(evt){
+    $('#firstsignin button[type=submit]').click();
+    evt.preventDefault();
   });
 
 

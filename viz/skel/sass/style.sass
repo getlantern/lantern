@@ -3,6 +3,7 @@ $background-color-alt: #e9edf2
 $background-color-alt2: #bbcee9
 $background-color-alt3: #ebebeb
 $background-color-alt4: #e6ecf5
+$background-color-alt5: #2F2F2F
 $blueprint-font-family: Helvetica, Arial, sans-serif
 $font-fixedwidth: Monaco, monospace
 $blueprint-font-size: 14px
@@ -16,7 +17,6 @@ $font-color-error: #c00
 $font-color-warning: #900
 $header-color: #000
 $header-color-alt: #53637d
-$header-color-alt-darker: $header-color-alt * .75
 $link-color: #3f6ec6
 $link-visited-color: $link-color
 $link-hover-color: $link-color
@@ -39,8 +39,8 @@ $blueprint-grid-columns: 30
 body.welcome
   background-color: #111
   #ld-container
-    background-image: image-url('bg.jpg')
-    -webkit-mask-box-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)))
+    background-color: $background-color-alt5
+    //-webkit-mask-box-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)))
     //-moz-mask-box-image: -moz-linear-gradient(top, rgba(0,0,0,1), rgba(0,0,0,0))
 
 $welcome-wdth: 500px
@@ -53,17 +53,18 @@ $welcome-controls-wdth: 300px
   top: 150px
   left: 50%
   margin-left: -$welcome-wdth / 2
-  color: $header-color-alt-darker
-  +text-shadow(#fff 1px 1px 0)
+  color: $background-color-alt5
+  +text-shadow(#fff 0px 1px 0)
   border: 1px solid $edge-color
   background-color: $background-color-alt3
+  +linear-gradient(color-stops($background-color-alt3, #999))
   padding: 40px
   text-align: center
   +border-radius(5px)
   +box-shadow(#000 0 0 25px)
   h4
     font-size: 11pt
-    color: $header-color-alt-darker
+    color: $background-color-alt5
   .controls
     width: $welcome-controls-wdth
     margin-left: -$welcome-controls-wdth / 2
@@ -75,9 +76,18 @@ $welcome-controls-wdth: 300px
       text-decoration: none
       font-size: 30pt
       font-family: GungSeo
-      color: $header-color-alt-darker
+      color: $background-color-alt5
     div
       font-size: 9pt
+
+#modelist
+  text-align: left
+  position: relative
+  left: 50%
+  width: 325px
+  margin: 30px 0 0 -162.5px
+  li
+    padding: 5px 0
 
 .slide
   display: none
@@ -102,7 +112,7 @@ $welcome-controls-wdth: 300px
 .smallnote
   font-size: 8pt
 
-form.signin .error
+form.signin .error, .button-submit-hack
   opacity: 0
 
 .badcredentials
