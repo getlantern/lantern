@@ -300,7 +300,10 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
             new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTING));
         LanternHub.eventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_OUT));
-        this.client.logout();
+        
+        if (this.client != null) {
+            this.client.logout();
+        }
         
         LanternHub.eventBus().post(
             new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
