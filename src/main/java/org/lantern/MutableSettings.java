@@ -15,4 +15,6 @@ public interface MutableSettings {
     void setSystemProxy(boolean isSystemProxy);
     
     void setPort(int port);
+    
+    void setSavePassword(boolean savePassword);
 }
