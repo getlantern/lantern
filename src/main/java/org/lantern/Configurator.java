@@ -75,8 +75,10 @@ public class Configurator {
         final Thread hook = new Thread(new Runnable() {
             @Override
             public void run() {
-                LOG.info("Unproxying...");
-                stopProxying();
+                if (isProxying()) {
+                    LOG.info("Unproxying...");
+                    stopProxying();
+                }
             }
         }, "Unset-Web-Proxy-Thread");
         Runtime.getRuntime().addShutdownHook(hook);

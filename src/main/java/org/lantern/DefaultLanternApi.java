@@ -65,12 +65,17 @@ public class DefaultLanternApi implements LanternApi {
             }
             set.setEmail(email);
             set.setPassword(pass);
-            LanternHub.xmppHandler().connect();
-            if (LanternUtils.shouldProxy()) {
-                // We automatically start proxying upon connect if the user's
-                // settings say they're in get mode and to use the system proxy.
-                Configurator.startProxying();
+            try {
+                LanternHub.xmppHandler().connect();
+                if (LanternUtils.shouldProxy()) {
+                    // We automatically start proxying upon connect if the user's
+                    // settings say they're in get mode and to use the system proxy.
+                    Configurator.startProxying();
+                }
+            } catch (final IOException e) {
+                sendError(resp, "Could not login: "+e.getMessage());
             }
+
             break;
         case SIGNOUT:
             log.info("Signing out");
@@ -102,7 +107,8 @@ public class DefaultLanternApi implements LanternApi {
                 FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
                 LanternHub.resetSettings();
             } catch (final IOException e) {
-                sendServerError(resp, "Error resetting settings");
+                sendServerError(resp, "Error resetting settings: "+
+                   e.getMessage());
             }
             break;
         }
