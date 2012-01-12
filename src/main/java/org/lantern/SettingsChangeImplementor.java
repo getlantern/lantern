@@ -83,4 +83,14 @@ public class SettingsChangeImplementor implements MutableSettings {
             log.info("Could not login", e);
         }
     }
+
+    @Override
+    public void setSavePassword(final boolean savePassword) {
+        final Settings set = LanternHub.settings();
+        if (!savePassword) {
+            set.setStoredPassword("");
+        } else {
+            set.setStoredPassword(set.getPassword());
+        }
+    }
 }

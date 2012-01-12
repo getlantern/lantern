@@ -50,8 +50,9 @@ public class DefaultLanternApi implements LanternApi {
         switch (call) {
         case SIGNIN:
             LanternHub.xmppHandler().disconnect();
-            final String email = req.getParameter("email");
-            String pass = req.getParameter("password");
+            final Map<String, String> params = LanternUtils.toParamMap(req);
+            final String email = params.remove("email");
+            String pass = params.remove("password");
             if (StringUtils.isBlank(pass) && set.isSavePassword()) {
                 pass = set.getStoredPassword();
                 if (StringUtils.isBlank(pass)) {
@@ -59,12 +60,9 @@ public class DefaultLanternApi implements LanternApi {
                     return;
                 }
             }
-            if (req.getParameterMap().containsKey("savePassword")) {
-                final boolean savePassword = getBooleanArg(req, "savePassword");
-                set.setSavePassword(savePassword);
-            }
             set.setEmail(email);
             set.setPassword(pass);
+            changeSetting(resp, params);
             try {
                 LanternHub.xmppHandler().connect();
                 if (LanternUtils.shouldProxy()) {
@@ -116,12 +114,6 @@ public class DefaultLanternApi implements LanternApi {
         LanternHub.settingsIo().write();
     }
 
-    private boolean getBooleanArg(final HttpServletRequest req, 
-        final String arg) {
-        final String str = req.getParameter(arg);
-        return LanternUtils.isTrue(str); 
-    }
-
     private void sendServerError(final HttpServletResponse resp, 
         final String msg) {
         try {
@@ -142,25 +134,24 @@ public class DefaultLanternApi implements LanternApi {
     @Override
     public void changeSetting(final HttpServletRequest req, 
         final HttpServletResponse resp) {
-        //final String uri = req.getRequestURI();
-        //final String path = StringUtils.substringAfter(uri, "/settings");
-        //log.info("Got path: {}", path);
-        //final String category = StringUtils.substringBefore(path, "/");
-        //log.info("Got category: {}", category);
-        
         final Map<String, String> params = LanternUtils.toParamMap(req);
+        changeSetting(resp, params);
+
+    }
+    
+    private void changeSetting(final HttpServletResponse resp,
+        final Map<String, String> params) {
         final Entry<String, String> keyVal = params.entrySet().iterator().next();
-        log.info("Got keyval: {}", keyVal);
+        log.debug("Got keyval: {}", keyVal);
         final String key = keyVal.getKey();
         final String val = keyVal.getValue();
-        
         setProperty(LanternHub.settings(), key, val, true, resp);
         setProperty(implementor, key, val, false, resp);
         resp.setStatus(HttpStatus.SC_OK);
         LanternHub.asyncEventBus().post(new SyncEvent());
         LanternHub.settingsIo().write();
     }
-    
+
     private void setProperty(final Object bean, 
         final String key, final String val, final boolean logErrors,
         final HttpServletResponse resp) {
