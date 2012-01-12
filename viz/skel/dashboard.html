@@ -260,10 +260,10 @@ function LDCtrl(){
       savePassword: self.savepassword
     };
     if(!self.state.passwordSaved)
-      data.password = self.inputpassword || prompt('Please enter your password:');
+      data.password = self.inputpassword || prompt('Please enter your password (this prompt will be replaced):');
     $.when($.post('/api/signin', data)).then(function(data){
       $('form.signin:visible').removeClass('badcredentials');
-      $('#firstsignin-pass').val('');
+      self.inputpassword = '';
       showid('#status');
     }).fail(function(){
       $('form.signin:visible').addClass('badcredentials');
