@@ -23,7 +23,7 @@
     <script src=assets/js/libs/angular-0.10.5.min.js ng:autobind></script>
   </head>
 
-  <body ng:controller=LDCtrl ng:class="showwelcome() && 'welcome'" lang="{{state.language || 'en'}}">
+  <body ng:controller=LDCtrl ng:class="showwelcome() && 'welcome'" lang="en">
     <div id=ld-container>
       <div id=welcome-container ng:show=showwelcome()>
         <div id=welcome class="slide selected" data-cls=slide>
@@ -142,7 +142,7 @@
             <div id=sitestablecontainer>
             <table>
               <tr ng:repeat="entry in state.whitelist.entries">
-                <td><form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input ng:model=newsite type=text required placeholder="Domain pattern" value="{{ entry.site }}" ng:disabled={{entry.required}} /></form></td>
+                <td><form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input ng:model=newsite type=text required placeholder=example.com value="{{ entry.site }}" ng:disabled={{entry.required}} /></form></td>
                 <td class=x><a ng:show=!entry.required ng:click="updatewhitelist(entry.site, false)">×</a></td>
               </tr>
               <tr>
@@ -156,12 +156,13 @@
           <h1>Contact</h1>
           <p>
             Topics suitable for public access should be directed to the
-            <a href="https://groups.google.com/forum/#!forum/lantern-users-{{state.language}}"
+            <a href="https://groups.google.com/forum/#!forum/lantern-users-en"
             target=_blank>Lantern users forum</a>.
           </p>
           <textarea ng:model=pm id=pm-textarea placeholder="Private message to Lantern developers"></textarea>
           <div id=pm-controls>
-            <label><input type=checkbox ng:model=requestreply /> please reply to</label><input type=email ng:model=requestreplyto ng:disabled={{!requestreply}} placeholder=email@example.com value={{state.email}} />
+            <label><input type=checkbox ng:model=requestreply /> please reply to</label>
+            <input id=pm-replyto type=email ng:model=requestreplyto ng:disabled={{!requestreply}} placeholder=email@example.com value={{state.email}} />
             <input id=pm-send type=button value=Send ng:disabled="{{!connected() || !pm}}" ng:click=todo() />
           </div>
           <div ng:class="['extra', !requestreply && 'disabled']">
@@ -318,11 +319,11 @@ function LDCtrl(){
 $(document).ready(function(){
   var fragmentpat = /^[^#]*(#.*)$/;
   function showid(id){
-    var el = $(id);
-    var cls = el.attr('data-cls');
-    if(!el.length || el.hasClass('selected'))return;
+    var $el = $(id);
+    var cls = $el.attr('data-cls');
+    if(!$el.length || $el.hasClass('selected'))return;
     $('.' + cls + '.selected').toggleClass('selected');
-    el.toggleClass('selected');
+    $el.toggleClass('selected');
     if(cls === 'panel'){
       $('#panel-list > li > a.selected').toggleClass('selected');
       $('#panel-list > li > a[href='+id+']').toggleClass('selected');
@@ -334,11 +335,11 @@ $(document).ready(function(){
   $('#welcome-container .controls a[href]').click(function(evt){
     showid(evt.target.href.match(fragmentpat)[1]);
   });
-  $('#firstsignin-link').click(function(){
-    $('#firstsignin button[type=submit]').click();
-    return false;
+  $('#firstsignin-link').click(function(evt){
+    $('#firstsignin button[type=submit]').click(); // XXX
+    evt.preventDefault();
   });
-  $('#userlink, #usermenu a').click(function(){
+  $('#userlink, #usermenu a').click(function(evt){
     $('#usermenu').slideToggle(50);
     $('#userlink').toggleClass('collapsed');
   });
