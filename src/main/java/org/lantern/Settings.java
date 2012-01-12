@@ -12,8 +12,6 @@ import com.google.common.eventbus.Subscribe;
 //@JsonPropertyOrder({"user", "system", "whitelist", "roster"})
 public class Settings implements MutableSettings {
 
-    //private UserInfo userInfo;
-    
     private Whitelist whitelist;
     
     private Roster roster;
@@ -26,6 +24,9 @@ public class Settings implements MutableSettings {
     private Platform platform = new Platform();
     private boolean startAtLogin = true;
     private boolean isSystemProxy = true;
+    
+    private boolean proxying;
+    
     private int port = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
     private String version = LanternConstants.VERSION;
     private boolean connectOnLaunch = true;
@@ -340,5 +341,11 @@ public class Settings implements MutableSettings {
         return LanternHub.statsTracker().getDownBytesPerSecond();
     }
     public void setDownRate(long downRate) { /* not settable */ }
+    
+    public void setProxying(final boolean proxying) { /* not settable */}
+
+    public boolean isProxying() {
+        return Configurator.isProxying();
+    }
 
 }

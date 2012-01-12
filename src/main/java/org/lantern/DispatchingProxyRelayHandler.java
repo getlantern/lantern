@@ -489,7 +489,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             @Override
             public void addDownBytes(long bytes, Channel channel) {
                 // global bytes proxied statistic
-                log.info("Recording proxied bytes through HTTP CONNECT: {}", bytes);
+                //log.info("Recording proxied bytes through HTTP CONNECT: {}", bytes);
                 statsTracker().addBytesProxied(bytes, channel);
                 
                 // contributes to local download rate
