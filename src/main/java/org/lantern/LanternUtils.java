@@ -724,12 +724,6 @@ public class LanternUtils {
     public static boolean runWithUi() {
         return RUN_WITH_UI;
     }
-
-    private static boolean settingExists(final String key) {
-        initProps();
-        return PROPS.containsKey(key);
-    }
-
     
     public static Packet activateOtr(final XMPPConnection conn) {
         return XmppUtils.goOffTheRecord(LanternConstants.LANTERN_JID, conn);
@@ -742,6 +736,8 @@ public class LanternUtils {
     public static void browseUrl(final String uri) {
         if( !Desktop.isDesktopSupported() ) {
             LOG.error("Desktop not supported?");
+            LinuxBrowserLaunch.openURL(uri);
+            return;
         }
         final Desktop desktop = Desktop.getDesktop();
         if( !desktop.isSupported(Desktop.Action.BROWSE )) {
