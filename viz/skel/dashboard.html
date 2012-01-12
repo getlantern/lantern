@@ -63,7 +63,7 @@
       <div id=dashboard ng:show=!setupcomplete()>
         <div id=topbar>
           <span id=topbar-conn ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'GET' || 'GIVE']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}</span></span>
-          <span ng:show=connected()>
+          <span ng:show=loggedin()>
             <span id=topbar-peers class=topbar-stat>{{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span>
             <span id=topbar-rate-up class="topbar-stat rate">{{state.upRate | bytes}}</span>
             <span id=topbar-rate-dn class="topbar-stat rate">{{state.downRate | bytes}}</span>
@@ -73,8 +73,8 @@
         <div id=usermenu>
           <ul>
             <li><a ng:click=todo()>Switch user</a></li>
-            <li ng:show=connected()><a ng:click=signout()>Sign out</a></li>
-            <li ng:show=!connected()><a ng:click=signin()>Sign in</a></li>
+            <li ng:show=loggedin()><a ng:click=signout()>Sign out</a></li>
+            <li ng:show=!loggedin()><a ng:click=signin()>Sign in</a></li>
           </ul>
         </div>
         <div id=sidebar>
@@ -94,16 +94,18 @@
           <dl>
             <dt>Mode</dt>
             <dd>
-              <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'GET' || 'GIVE']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}<a class="actionlink" id="switch-mode-link" ng:click="switchmode(true)">{{switchlinktext()}}</a></span></span>
+              <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'GET' || 'GIVE']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}
+              <a class=actionlink ng:click=signin() ng:show=loggedout()>Sign in</a>
+              <a class=actionlink ng:click=switchmode(true) ng:show=loggedin()>{{switchlinktext()}}</a></span></span>
             </dd>
-            <dt ng:show=connected()>Peers</dt>
-            <dd ng:show=connected()>
+            <dt ng:show=loggedin()>Peers</dt>
+            <dd ng:show=loggedin()>
               <span id=give-mode-peers>
                 {{npeers()}}
               </span>
             </dd>
-            <dt ng:show=connected()>Traffic</dt>
-            <dd ng:show=connected()>
+            <dt ng:show=loggedin()>Traffic</dt>
+            <dd ng:show=loggedin()>
               {{state.upRate+state.downRate|bytes}}/s via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>
             </dd>
             <dt>Version</dt>
@@ -165,7 +167,7 @@
           <div id=pm-controls>
             <label><input type=checkbox ng:model=requestreply /> please reply to</label>
             <input id=pm-replyto type=email ng:model=requestreplyto ng:disabled={{!requestreply}} placeholder=email@example.com value={{state.email}} />
-            <input id=pm-send type=button value=Send ng:disabled="{{!connected() || !pm}}" ng:click=todo() />
+            <input id=pm-send type=button value=Send ng:disabled="{{!loggedin() || !pm}}" ng:click=todo() />
           </div>
           <div ng:class="['extra', !requestreply && 'disabled']">
             Only request replies to secure email accounts.
@@ -230,7 +232,8 @@ function LDCtrl(){
   self.requestreply = false;
   self.requestreplyto = null;
 
-  self.connected = function(){return self.state.authenticationStatus === 'LOGGED_IN';};
+  self.loggedin = function(){return self.state.authenticationStatus === 'LOGGED_IN';};
+  self.loggedout = function(){return self.state.authenticationStatus === 'LOGGED_OUT';};
   self.npeers = function(){return 0;}; // XXX
 
   self.conncaption = function(){
@@ -247,7 +250,7 @@ function LDCtrl(){
   };
 
   self.switchlinktext = function(){
-    if(self.connected())
+    if(self.loggedin())
       return 'Switch to '+(self.state.getMode?'giv':'gett')+'ing access';
   };
 
@@ -290,7 +293,7 @@ function LDCtrl(){
 
   self.reset = function(){
     var msg = 'Are you sure you want to reset Lantern? ' +
-      (self.connected() ? 'You will be signed out and y' : 'Y') +
+      (self.loggedin() ? 'You will be signed out and y' : 'Y') +
       'our settings will be erased.';
     if(confirm(msg)){
       $.when($.post('/api/reset')).then(function(){
