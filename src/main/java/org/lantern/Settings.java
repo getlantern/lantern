@@ -335,13 +335,13 @@ public class Settings implements MutableSettings {
     public long getUpRate() {
         return LanternHub.statsTracker().getUpBytesPerSecond();
     }
-    public void setUpRate(final long upRate) { /* not settable */ }
+    public void setUpRate(long upRate) { /* not settable */ }
     
     public long getDownRate() {
         return LanternHub.statsTracker().getDownBytesPerSecond();
     }
-    public void setDownRate(final long downRate) { /* not settable */ }
-
+    public void setDownRate(long downRate) { /* not settable */ }
+    
     public void setProxying(final boolean proxying) { /* not settable */}
 
     public boolean isProxying() {
