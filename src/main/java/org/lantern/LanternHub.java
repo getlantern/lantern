@@ -90,6 +90,9 @@ public class LanternHub {
     private static final AtomicReference<LanternApi> lanternApi =
         new AtomicReference<LanternApi>();
     
+    private static final AtomicReference<Dashboard> dashboard =
+        new AtomicReference<Dashboard>();
+    
     private static  Settings settings;
     
     static {
@@ -354,6 +357,15 @@ public class LanternHub {
                 lanternApi.set(new DefaultLanternApi());
             }
             return lanternApi.get();
+        }
+    }
+    
+    public static Dashboard dashboard() {
+        synchronized (dashboard) {
+            if (dashboard.get() == null) {
+                dashboard.set(new Dashboard());
+            }
+            return dashboard.get();
         }
     }
 
