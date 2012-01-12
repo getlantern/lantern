@@ -50,7 +50,7 @@ public class SyncService {
 
             @Override
             public void run() {
-                log.info("Notifying frontend backend is no longer running");
+                log.debug("Notifying frontend backend is no longer running");
                 session.disconnect();
             }
             
@@ -66,77 +66,75 @@ public class SyncService {
     @Listener(Channel.META_CONNECT)
     public void metaConnect(final ServerSession remote, final Message connect) {
         // Make sure we give clients the most recent data whenever they connect.
-        log.info("Got connection from client...syncing");
+        log.debug("Got connection from client...syncing");
         sync();
     }
 
     @Listener("/service/sync")
     public void processSync(final ServerSession remote, final Message message) {
-        log.info("JSON: {}", message.getJSON());
-        log.info("DATA: {}", message.getData());
-        log.info("DATA CLASS: {}", message.getData().getClass());
+        log.debug("JSON: {}", message.getJSON());
+        log.debug("DATA: {}", message.getData());
+        log.debug("DATA CLASS: {}", message.getData().getClass());
         
         /*
         final String fullJson = message.getJSON();
         final String json = StringUtils.substringBetween(fullJson, "\"data\":", ",\"channel\":");
         final Map<String, Object> update = message.getDataAsMap();
-        log.info("MAP: {}", update);
+        log.debug("MAP: {}", update);
         */
 
-        log.info("Pushing updated config to browser...");
+        log.debug("Pushing updated config to browser...");
         sync();
     }
     
     @Subscribe
     public void onUpdate(final UpdateEvent updateEvent) {
-        log.info("Got update");
+        log.debug("Got update");
         sync();
     }
     
     @Subscribe
     public void onSync(final SyncEvent syncEvent) {
-        log.info("Got sync event");
-        sync();
+        log.debug("Got sync event");
+        // We want to force a sync here regardless of whether or not we've 
+        // recently synced.
+        sync(true);
     }
     
     @Subscribe
     public void onPresence(final AddPresenceEvent event) {
-        log.info("Got presence");
+        log.debug("Got presence");
         sync();
     }
 
     @Subscribe
     public void removePresence(final RemovePresenceEvent event) {
-        log.info("Presence removed...");
+        log.debug("Presence removed...");
         sync();
     }
     
     @Subscribe 
     public void onRosterStateChanged(final RosterStateChangedEvent rsce) {
-        log.info("Roster changed...");
-        sync();
-    }
-    
-    @Subscribe 
-    public void onConnectivityStateChanged(
-        final ConnectivityStatusChangeEvent csce) {
-        log.info("Got connectivity change");
+        log.debug("Roster changed...");
         sync();
     }
     
     private void sync() {
-        log.info("Syncing with channel...");
+        sync(false);
+    }
+    private void sync(final boolean force) {
+        log.debug("Syncing with channel...");
         if (session == null) {
-            log.info("No session...not syncing");
+            log.debug("No session...not syncing");
             return;
         }
         final long elapsed = System.currentTimeMillis() - lastUpdateTime;
-        if (elapsed < 100) {
-            log.info("Not pushing more than 10 times a second...{} ms elapsed", 
+        if (!force && elapsed < 100) {
+            log.debug("Not pushing more than 10 times a second...{} ms elapsed", 
                 elapsed);
             return;
         }
-        log.info("Actually syncing...");
+        log.debug("Actually syncing...");
         final ClientSessionChannel channel = 
             session.getLocalSession().getChannel("/sync");
         
