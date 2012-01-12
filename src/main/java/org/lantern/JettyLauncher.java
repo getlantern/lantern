@@ -176,18 +176,20 @@ public class JettyLauncher {
         bayeux.setInitOrder(2);
         contextHandler.getServletHandler().addServlet(bayeux);
         
-        final CrossOriginFilter filter = new CrossOriginFilter();
-        final FilterHolder filterHolder = new FilterHolder(filter);
-        //filterHolder.setInitParameter("allowedOrigins", "http://fiddle.jshell.net/");
-        filterHolder.setInitParameter("allowedOrigins", "*");
-        contextHandler.addFilter(filterHolder, secureBase + "/cometd/*", 
-            FilterMapping.REQUEST);
-        
-        contextHandler.addFilter(filterHolder, secureBase + "/api/*", 
+        if (!LanternHub.settings().isBindToLocalhost()) {
+            final CrossOriginFilter filter = new CrossOriginFilter();
+            final FilterHolder filterHolder = new FilterHolder(filter);
+            //filterHolder.setInitParameter("allowedOrigins", "http://fiddle.jshell.net/");
+            filterHolder.setInitParameter("allowedOrigins", "*");
+            contextHandler.addFilter(filterHolder, secureBase + "/cometd/*", 
                 FilterMapping.REQUEST);
-        
-        contextHandler.addFilter(filterHolder, secureBase + "/settings/*", 
-                FilterMapping.REQUEST);
+            
+            contextHandler.addFilter(filterHolder, secureBase + "/api/*", 
+                    FilterMapping.REQUEST);
+            
+            contextHandler.addFilter(filterHolder, secureBase + "/settings/*", 
+                    FilterMapping.REQUEST);
+        }
         
         final Thread serve = new Thread(new Runnable() {
 
@@ -460,7 +462,7 @@ public class JettyLauncher {
             }
         }
         log.info("Server is running!");
-        final String url = fullBasePath + "/lanternmap.html";
+        final String url = fullBasePath + "/dashboard.html";
         LanternUtils.browseUrl(url);
     }
 }
