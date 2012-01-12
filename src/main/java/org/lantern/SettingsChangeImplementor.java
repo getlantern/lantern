@@ -1,6 +1,7 @@
 package org.lantern;
 
 import java.io.File;
+import java.io.IOException;
 
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
@@ -76,6 +77,10 @@ public class SettingsChangeImplementor implements MutableSettings {
         // We disconnect and reconnect to create a new Jabber ID that will 
         // not advertise us as a connection point.
         LanternHub.xmppHandler().disconnect();
-        LanternHub.xmppHandler().connect();
+        try {
+            LanternHub.xmppHandler().connect();
+        } catch (final IOException e) {
+            log.info("Could not login", e);
+        }
     }
 }
