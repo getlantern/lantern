@@ -145,7 +145,7 @@ public class XmppHandler implements ProxyStatusListener, ProxyProvider {
         this.sslProxyRandomPort = sslProxyRandomPort;
         this.plainTextProxyRandomPort = plainTextProxyRandomPort;
         if (LanternHub.settings().isConnectOnLaunch() && 
-            LanternUtils.isConfigured()) {
+            (LanternUtils.isConfigured() || !LanternUtils.runWithUi())) {
             try {
                 connect();
             } catch (final IOException e) {
