@@ -21,7 +21,6 @@ import org.lantern.cookie.CookieFilter;
 import org.lantern.cookie.SetCookieObserver;
 import org.lantern.cookie.SetCookieObserverHandler;
 import org.lantern.cookie.UpstreamCookieFilterHandler;
-import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,9 +44,9 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     //private final int httpsLocalPort;
 
-    private final ProxyProvider proxyProvider;
-    private final ProxyStatusListener proxyStatusListener;
-    private final XmppP2PClient p2pClient;
+    //private final ProxyProvider proxyProvider;
+    //private final ProxyStatusListener proxyStatusListener;
+    //private final XmppP2PClient p2pClient;
 
 
     /**
@@ -59,25 +58,10 @@ public class LanternHttpProxyServer implements HttpProxyServer {
      */
     public LanternHttpProxyServer(final int httpLocalPort, 
         final KeyStoreManager keyStoreManager, 
-        final XmppHandler xmpp, SetCookieObserver setCookieObserver,
-        CookieFilter.Factory cookieFilterFactory) {
-        
-        this(httpLocalPort, keyStoreManager, xmpp, xmpp, xmpp.getP2PClient(),
-             setCookieObserver, cookieFilterFactory);
-    }
-
-    public LanternHttpProxyServer(final int httpLocalPort, 
-        final KeyStoreManager keyStoreManager, 
-        final ProxyProvider proxyProvider,
-        final ProxyStatusListener proxyStatusListener, 
-        final XmppP2PClient p2pClient, 
         SetCookieObserver setCookieObserver, 
         CookieFilter.Factory cookieFilterFactory) {
             
         this.httpLocalPort = httpLocalPort;
-        this.proxyProvider = proxyProvider;
-        this.proxyStatusListener = proxyStatusListener;
-        this.p2pClient = p2pClient;
         this.keyStoreManager = keyStoreManager;
         this.setCookieObserver = setCookieObserver;
         this.cookieFilterFactory = cookieFilterFactory;
@@ -155,10 +139,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
             public ChannelPipeline getPipeline() throws Exception {
                 
                 final SimpleChannelUpstreamHandler dispatcher = 
-                    new DispatchingProxyRelayHandler(proxyProvider, 
-                                                     proxyStatusListener, 
-                                                     p2pClient, 
-                                                     keyStoreManager);
+                    new DispatchingProxyRelayHandler(keyStoreManager);
                                                      
                 
                 final ChannelPipeline pipeline = pipeline();

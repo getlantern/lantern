@@ -196,7 +196,7 @@ public class Launcher {
         LOG.info("About to start Lantern server on port: "+
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
         
-        final XmppHandler xmpp = LanternHub.xmppHandler();
+        //final XmppHandler xmpp = LanternHub.xmppHandler();
         final CookieTracker cookieTracker = LanternHub.cookieTracker();
         final SetCookieObserver cookieObserver = new WhitelistSetCookieObserver(cookieTracker);
         final CookieFilter.Factory cookieFilterFactory = new DefaultCookieFilterFactory(cookieTracker);
@@ -205,7 +205,7 @@ public class Launcher {
             new LanternHttpProxyServer(
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
                 //null, sslRandomPort,
-                proxyKeyStore, xmpp, cookieTracker, cookieFilterFactory);
+                proxyKeyStore, cookieTracker, cookieFilterFactory);
         server.start();
     }
 

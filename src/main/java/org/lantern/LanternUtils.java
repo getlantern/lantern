@@ -654,7 +654,7 @@ public class LanternUtils {
             } catch (final UnresolvedAddressException e) {
             }
             try {
-                Thread.sleep(250);
+                Thread.sleep(50);
             } catch (final InterruptedException e) {
                 LOG.error("Interrupted?", e);
             }
