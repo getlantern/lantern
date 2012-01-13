@@ -45,16 +45,6 @@ public class SyncService {
                 sync();
             }
         }, 3000, 4000);
-        
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                log.debug("Notifying frontend backend is no longer running");
-                session.disconnect();
-            }
-            
-        }, "Backend-Not-Running-Thread"));
     }
     
     @SuppressWarnings("unused")
