@@ -36,6 +36,10 @@ public class LanternHub {
     private static final AsyncEventBus asyncEventBus =
         new AsyncEventBus("Async-Event-Bus", Executors.newCachedThreadPool());
     
+    
+    private static final AtomicReference<SecureRandom> secureRandom =
+        new AtomicReference<SecureRandom>(new SecureRandom());
+    
     private static final File UNZIPPED = 
         new File(LanternUtils.dataDir(), "GeoIP.dat");
     
@@ -78,9 +82,6 @@ public class LanternHub {
     
     private static final AtomicReference<PeerProxyManager> anonymousPeerProxyManager =
         new AtomicReference<PeerProxyManager>();
-    
-    private static final AtomicReference<SecureRandom> secureRandom =
-        new AtomicReference<SecureRandom>();
 
     private static final AtomicReference<CookieTracker> cookieTracker =
         new AtomicReference<CookieTracker>();
@@ -269,12 +270,7 @@ public class LanternHub {
     }
 
     public static SecureRandom secureRandom() {
-        synchronized (secureRandom) {
-            if (secureRandom.get() == null) {
-                secureRandom.set(new SecureRandom());
-            }
-            return secureRandom.get();
-        }
+        return secureRandom.get();
     }
 
     public static CookieTracker cookieTracker() {
