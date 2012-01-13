@@ -55,6 +55,7 @@ import org.apache.commons.io.IOExceptionWithCause;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang.math.NumberUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -959,6 +960,24 @@ public class LanternUtils {
     public static boolean shouldProxy() {
         return LanternHub.settings().isGetMode() && 
             LanternHub.settings().isSystemProxy();
+    }
+
+    /**
+     * Creates a typed object from the specified string. If the string is a
+     * boolean, this returns a boolean, if an int, an int, etc.
+     * 
+     * @param val The string.
+     * @return A typed object.
+     */
+    public static Object toTyped(final String val) {
+        if (LanternUtils.isTrue(val)) {
+            return true;
+        } else if (LanternUtils.isFalse(val)) {
+            return false;
+        } else if (NumberUtils.isNumber(val)) {
+            return Integer.parseInt(val);
+        } 
+        return val;
     }
 }
 
