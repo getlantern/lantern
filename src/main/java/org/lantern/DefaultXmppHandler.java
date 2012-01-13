@@ -151,6 +151,9 @@ public class DefaultXmppHandler implements XmppHandler {
             } catch (final IOException e) {
                 LOG.info("Could not login", e);
             }
+        } else {
+            LOG.info("Not auto-logging in with settings:\n{}",
+                LanternHub.settings());
         }
     }
     

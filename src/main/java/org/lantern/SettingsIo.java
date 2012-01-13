@@ -4,22 +4,16 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.security.GeneralSecurityException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.SettingsState.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.base.Function;
 
 /**
  * This class is responsible for taking any actions required to serialize
@@ -30,9 +24,6 @@ public class SettingsIo {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final File settingsFile;
-    
-    private final DefaultSettingsChangeImplementor implementor =
-        new DefaultSettingsChangeImplementor();
     
     /**
      * Creates a new instance with all the default operations.
@@ -69,6 +60,9 @@ public class SettingsIo {
             log.info("Building setting from json string...");
             final Settings read = mapper.readValue(json, Settings.class);
             log.info("Built settings from disk: {}", read);
+            if (StringUtils.isBlank(read.getPassword())) {
+                read.setPassword(read.getStoredPassword());
+            }
             return read;
         } catch (final IOException e) {
             log.error("Could not read settings", e);
