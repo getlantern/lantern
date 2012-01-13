@@ -47,7 +47,6 @@ public class DefaultLanternApi implements LanternApi {
         case SIGNIN:
             LanternHub.xmppHandler().disconnect();
             final Map<String, String> params = LanternUtils.toParamMap(req);
-            final String email = params.remove("email");
             String pass = params.remove("password");
             if (StringUtils.isBlank(pass) && set.isSavePassword()) {
                 pass = set.getStoredPassword();
@@ -56,8 +55,13 @@ public class DefaultLanternApi implements LanternApi {
                     return;
                 }
             }
-            //set.setEmail(email);
-            //set.setPassword(pass);
+            final String rawEmail = params.remove("email");
+            final String email;
+            if (!rawEmail.contains("@")) {
+                email = rawEmail + "@gmail.com";
+            } else {
+                email = rawEmail;
+            }
             changeSetting(resp, "email", email, false);
             changeSetting(resp, "password", pass, false);
             changeSetting(resp, params);
