@@ -139,6 +139,11 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
                 System.out.print("Please enter a password to protect your local data:");
                 System.out.flush();
                 final char [] pw1 = LanternUtils.readPasswordCLI();
+                if (pw1.length == 0) {
+                    System.out.println("password cannot be blank, please try again.");
+                    System.out.flush();
+                    continue;
+                }
                 System.out.print("Please enter password again:");
                 System.out.flush();
                 final char [] pw2 = LanternUtils.readPasswordCLI();
