@@ -9,5 +9,4 @@ public enum AuthenticationStatus {
     LOGGING_OUT,
     LOGGING_IN,
     LOGGED_IN, 
-    BAD_CREDENTIALS;
 }
