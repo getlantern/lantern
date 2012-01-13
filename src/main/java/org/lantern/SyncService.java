@@ -92,7 +92,7 @@ public class SyncService {
     }
     
     @Subscribe
-    public void onPresence(final AddPresenceEvent event) {
+    public void onPresence(final PresenceEvent event) {
         log.debug("Got presence");
         sync();
     }

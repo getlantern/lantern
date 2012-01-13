@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.GeneralSecurityException;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
@@ -80,7 +78,7 @@ public class SettingsIo {
     }
     
     private Settings newSettings() {
-        return new Settings(new Whitelist(), new Roster());
+        return new Settings(new Whitelist());
     }
 
     /**
@@ -96,12 +94,9 @@ public class SettingsIo {
      * @param settings The settings to apply.
      */
     public void write(final Settings settings) {
-        final Map<String, LanternPresence> entries = settings.getRoster().getEntries();
-        //log.info("Writing:\n{}", json);
         OutputStream os = null;
         try {
             
-            settings.getRoster().setEntries(new HashMap<String, LanternPresence>());
             final String json = LanternUtils.jsonify(settings);
             os = LanternUtils.localEncryptOutputStream(settingsFile);
             os.write(json.getBytes("UTF-8"));
@@ -111,7 +106,6 @@ public class SettingsIo {
             log.error("Error encrypting stream", e);
         } finally {
             IOUtils.closeQuietly(os);
-            settings.getRoster().setEntries(entries);
         }
         
     }
