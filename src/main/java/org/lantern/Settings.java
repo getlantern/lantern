@@ -31,6 +31,8 @@ public class Settings implements MutableSettings {
     private String language = Locale.getDefault().getLanguage();
     
     private SettingsState settings = new SettingsState();
+    /* user has completed 'wizard' setup steps */
+    private boolean initialSetupComplete = false;
     
     private AuthenticationStatus authenticationStatus = 
         AuthenticationStatus.LOGGED_OUT;
@@ -201,6 +203,14 @@ public class Settings implements MutableSettings {
 
     public SettingsState getSettings() {
         return settings;
+    }
+
+    public boolean getInitialSetupComplete() {
+        return initialSetupComplete;
+    }
+
+    public void setInitialSetupComplete(boolean val) {
+        initialSetupComplete = val;
     }
 
     public String getEmail() {
