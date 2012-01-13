@@ -235,7 +235,7 @@ public class DefaultXmppHandler implements XmppHandler {
             LanternHub.eventBus().post(
                 new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
             LanternHub.eventBus().post(
-                new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_OUT));
+                new AuthenticationStatusEvent(AuthenticationStatus.BAD_CREDENTIALS));
             throw e;
         }
         LanternHub.eventBus().post(
