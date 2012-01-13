@@ -345,5 +345,24 @@ public class Settings implements MutableSettings {
         return passwordSaved;
     }
 
-
+    @Override
+    public String toString() {
+        return "Settings [whitelist=" + whitelist + ", roster=" + roster
+                + ", connectivity=" + connectivity + ", update=" + update
+                + ", internet=" + internet + ", platform=" + platform
+                + ", startAtLogin=" + startAtLogin + ", isSystemProxy="
+                + isSystemProxy + ", port=" + port + ", version=" + version
+                + ", connectOnLaunch=" + connectOnLaunch + ", language="
+                + language + ", settings=" + settings
+                + ", authenticationStatus=" + authenticationStatus
+                + ", proxyAllSites=" + proxyAllSites + ", country=" + country
+                + ", countryDetected=" + countryDetected
+                + ", manuallyOverrideCountry=" + manuallyOverrideCountry
+                + ", email=" + email + ", password=" + password
+                + ", storedPassword=" + storedPassword + ", savePassword="
+                + savePassword + ", useCloudProxies=" + useCloudProxies
+                + ", getMode=" + getMode + ", bindToLocalhost="
+                + bindToLocalhost + ", apiPort=" + apiPort + ", passwordSaved="
+                + passwordSaved + "]";
+    }
 }
