@@ -7,7 +7,7 @@
     <title>Lantern Dashboard</title>
     <link rel="shortcut icon" href=assets/img/favicon.png>
     <link rel=stylesheet href=assets/css/style.css />
-    <script src=assets/js/libs/jquery.tools.min.js></script> <!-- XXX jquery tools includes jquery 1.6.4 -->
+    <script src=assets/js/libs/jquery-1.7.1.min.js></script>
     <script src=jquery/json2.js></script>
     <script src=org/cometd.js></script>
     <script src=jquery/jquery.cometd.js></script>
@@ -125,9 +125,19 @@
             <dt ng:show=state.getMode>Policy</dt>
             <dd ng:show=state.getMode>
               <ul>
-                <li><label><input type=radio value={{true}} ng:change=toggle('proxyAllSites') ng:model=state.proxyAllSites /> Proxy all sites</label></li>
-                <li><label><input type=radio value={{false}} ng:change=toggle('proxyAllSites') ng:model=state.proxyAllSites /> Only proxy certain sites</label></li>
-                <li><input type=button ng:disabled={{state.proxyAllSites}} ng:click=toggleproxiedsites(true) value="Manage proxied sites..." /></li>
+                <li>
+                  <label>
+                    <input type=radio value={{true}} ng:change=toggle('proxyAllSites') ng:model=state.proxyAllSites />
+                    Proxy all sites
+                  </label>
+                </li>
+                <li>
+                  <label>
+                    <input type=radio value={{false}} ng:change=toggle('proxyAllSites') ng:model=state.proxyAllSites />
+                    Only proxy certain sites
+                  </label>
+                  <a class="overlaylink actionlink" ng:show=!state.proxyAllSites href=#proxiedsites>Manage proxied sites...</a>
+                </li>
               </ul>
             </dd>
             <dt>Application</dt>
@@ -140,21 +150,6 @@
               <input type=button ng:click=reset() id=reset-button value="Reset Lantern" />
             </dd>
           </dl>
-          <div class=overlay id=manageproxiedsites>
-            <a class=close ng:click=toggleproxiedsites(false)>×</a>
-            <h1>Proxied sites</h1>
-            <div id=sitestablecontainer>
-            <table>
-              <tr ng:repeat="entry in state.whitelist.entries">
-                <td><form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input ng:model=newsite type=text required placeholder=example.com value="{{ entry.site }}" ng:disabled={{entry.required}} /></form></td>
-                <td class=x><a ng:show=!entry.required ng:click="updatewhitelist(entry.site, false)">×</a></td>
-              </tr>
-              <tr>
-                <td colspan=2><form ng:submit="updatewhitelist(sitetoadd, true)"><input id=sitetoadd ng:model=sitetoadd type=text required placeholder="Add a new site" /></form></td>
-              </tr>
-            </table>
-            </div>
-          </div>
         </div>
         <div class=panel id=contact data-cls=panel>
           <h1>Contact</h1>
@@ -169,16 +164,30 @@
             <input id=pm-replyto type=email ng:model=requestreplyto ng:disabled={{!requestreply}} placeholder=email@example.com value={{state.email}} />
             <input id=pm-send type=button value=Send ng:disabled="{{!loggedin() || !pm}}" ng:click=todo() />
           </div>
-          <div ng:class="['extra', !requestreply && 'disabled']">
+          <div class=extra ng:show=requestreply>
             Only request replies to secure email accounts.
           </div>
         </div>
         <div class=panel id=update data-cls=panel>
           <h1>Update</h1>
         </div>
+
+        <div class=overlay id=proxiedsites data-cls=overlay>
+          <a class=close>×</a>
+          <h1>Proxied sites</h1>
+          <ul id=siteslist>
+            <!-- XXX give required entries lower sort order -->
+            <li ng:repeat="entry in state.whitelist.entries">
+              <form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input ng:model=newsite type=text required placeholder=example.com value="{{ entry.site }}" ng:disabled={{entry.required}} /></form>
+              <a class=delete ng:show=!entry.required ng:click="updatewhitelist(entry.site, false)">×</a>
+            </li>
+            <li>
+              <form ng:submit="updatewhitelist(sitetoadd, true)"><input id=sitetoadd ng:model=sitetoadd type=text required placeholder="Add a new site" /></form>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
-
 
 <script>
 cometd = $.cometd;
@@ -201,9 +210,12 @@ function clickevt2id(evt){
   return evt.target.href.match(FRAGMENTPAT)[1];
 }
 function showid(id){
-  location.hash = id;
   var $el = $(id);
-  if(!$el.length || $el.hasClass('selected'))return;
+  if(!$el.length)
+    return;
+  location.hash = id;
+  if($el.hasClass('selected'))
+    return;
   var cls = $el.attr('data-cls');
   $('.' + cls + '.selected').toggleClass('selected');
   $el.toggleClass('selected');
@@ -306,19 +318,6 @@ function LDCtrl(){
     return !self.state.email;
   };
 
-  self.proxiedsitesoverlay = null;
-  self.toggleproxiedsites = function(show){
-    if(show){
-      if(self.proxiedsitesoverlay){
-        self.proxiedsitesoverlay.fadeIn();
-      }else{
-        self.proxiedsitesoverlay = $('#manageproxiedsites').overlay({closeOnClick:true, load:true});
-      }
-    }else{
-      self.proxiedsitesoverlay.fadeOut();
-    }
-  };
-
   self.updatewhitelist = function(site, newsite){
     // XXX validation
     if(typeof newsite === 'string'){
@@ -328,7 +327,7 @@ function LDCtrl(){
       })});
     }else if(typeof newsite === 'boolean'){
       var url = '/api/' + (newsite ? 'addtowhitelist' : 'removefromwhitelist');
-      $.when($.ajax(url + '?site=' + site)).then(function(){newsite && $('#sitetoadd').val('');});
+      $.when($.ajax(url + '?site=' + site)).then(function(){if(newsite) $('#sitetoadd').val('');});
     }
   };
 
@@ -336,8 +335,17 @@ function LDCtrl(){
 }
 
 $(document).ready(function(){
-  $('#panel-list a, .panellink').click(showidclickhandler);
-  $('#welcome-container .controls a[href]').click(showidclickhandler);
+  $('#panel-list a, ' +
+    '.panellink, ' +
+    '#welcome-container .controls a[href], ' +
+    '.overlaylink'
+    ).click(showidclickhandler);
+
+  $('.overlay .close').click(function(evt){
+    $(evt.target).parent('.overlay').removeClass('selected');
+    evt.preventDefault();
+  });
+
   $('#userlink, #usermenu a').click(function(evt){
     $('#usermenu').slideToggle(50);
     $('#userlink').toggleClass('collapsed');

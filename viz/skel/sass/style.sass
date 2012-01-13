@@ -134,7 +134,7 @@ body
   display: table
   width: 100%
   // XXX add to body instead of this div?
-  & > div.ember-view, #ld-container, #dashboard
+  & > #ld-container, #dashboard
     width: 100%
     height: 100%
     display: table
@@ -155,6 +155,7 @@ $gap-size: 24px
 #sidebar, .panel
   padding: ($topbar-hght + $gap-size) 0 0 0
 
+$sidebar-wdth: 200px
 #sidebar
   background-color: $background-color-alt
   text-align: right
@@ -162,7 +163,7 @@ $gap-size: 24px
     margin-right: $gap-size
   & > nav
     margin-right: 0
-    width: 200px
+    width: $sidebar-wdth
 
 #sidebar-update-link
   color: $font-color-important !important
@@ -204,58 +205,60 @@ li
 .panel, .overlay
   display: none
 
-.panel.selected
+.panel
   width: 100%
   border-left: 1px solid $edge-color
   +box-shadow($edge-color 0 0 10px)
   & > *
     margin-left: $gap-size
 
-.selected
-  display: block
-
-#sitestablecontainer
-  overflow-y: auto
-  height: 90%
-
-#manageproxiedsites
-  width: 250px
-  height: 100%
-  margin-top: 1em
-  padding: 2em 0
-  max-height: 70%
+.overlay
+  position: absolute
+  top: 0
+  margin-top: $topbar-hght + 2px
+  left: $sidebar-wdth + $gap-size * 2
   background-color: #fff
+  padding: $gap-size
   +box-shadow($edge-color 0 0 10px)
-  +border-radius(5px)
-  input[type=text]
-    width: 178px
-    +border-radius(3px)
-    border: 1px solid rgba($edge-color, 0)
-    &:hover
-      border: 1px solid $edge-color
-  tr:last-child input[type=text]
-    border: 1px solid $edge-color
-  td.x
-    text-align: right
-  tr td.x a
-    text-decoration: none
-    color: rgba($font-color-input, 0)
-  tr:hover
-    td.x a
-      color: rgba($font-color-input, 1)
-    background-color: $background-color-alt4
-  h1, td:first-child
-    padding-left: 20px
-  table
-    margin: 0 20px 0 0
   .close
     position: absolute
     right: -14px
     top: 6px
-    cursor: pointer
     height: 35px
     width: 35px
     text-decoration: none
+
+.selected
+  display: block
+
+#siteslist
+  width: 100%
+  height: 100%
+  padding-left: 0
+  margin: 0 20px 0 0
+  overflow-y: auto
+  border: 1px solid $edge-color
+  +border-radius(3px)
+  form
+    display: inline
+  input[type=text]
+    width: 200px
+    border: 1px solid rgba($edge-color, 0)
+    &:hover
+      border: 1px solid $edge-color
+  a.delete
+    text-decoration: none
+    color: rgba($font-color-input, 0)
+    float: right
+    padding-right: 10px
+  li
+    padding: 2px 0 2px 6px
+    &:last-child input[type=text]
+      border: 1px solid $edge-color
+    &:hover
+      background-color: $background-color-alt4
+      a.delete
+        color: rgba($font-color-input, 1)
 
 a.close
   color: #ddd
