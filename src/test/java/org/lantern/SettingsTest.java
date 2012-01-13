@@ -94,8 +94,8 @@ public class SettingsTest {
         
         assertTrue(cur.contains("<true/>") || cur.contains("<false/>"));
         final SettingsIo ss = new SettingsIo(settingsFile);
-        final SettingsChangeImplementor implementor = 
-            new SettingsChangeImplementor(temp);
+        final DefaultSettingsChangeImplementor implementor = 
+            new DefaultSettingsChangeImplementor(temp);
         if (cur.contains("<true/>")) {
             assertFalse(cur.contains("<false/>"));
             //Configurator.setStartAtLogin(temp, false);

@@ -59,6 +59,9 @@ public class LanternHub {
     
     private static final AtomicReference<ProxyStatusListener> proxyStatusListener =
         new AtomicReference<ProxyStatusListener>();
+    
+    private static final AtomicReference<SettingsChangeImplementor> settingsChangeImplementor =
+        new AtomicReference<SettingsChangeImplementor>(new DefaultSettingsChangeImplementor());
 
     private volatile static AtomicReference<Integer> randomSslPort = 
         new AtomicReference<Integer>(-1);
@@ -212,11 +215,15 @@ public class LanternHub {
     public static XmppHandler xmppHandler() {
         synchronized (xmppHandler) {
             if (xmppHandler.get() == null) {
-                xmppHandler.set(new XmppHandler(randomSslPort(), 
+                xmppHandler.set(new DefaultXmppHandler(randomSslPort(), 
                     LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT));
             }
             return xmppHandler.get();
         }
+    }
+    
+    public static void setXmppHandler(final XmppHandler xmpp) {
+        xmppHandler.set(xmpp);
     }
 
     public static int randomSslPort() {
@@ -410,6 +417,15 @@ public class LanternHub {
     
     public static void setProxyStatusListener(final ProxyStatusListener pp) {
         proxyStatusListener.set(pp);
+    }
+    
+    public static SettingsChangeImplementor settingsChangeImplementor() {
+        return settingsChangeImplementor.get();
+    }
+    
+    public static void setSettingsChangeImplementor(
+        final SettingsChangeImplementor ssi) {
+        settingsChangeImplementor.set(ssi);
     }
 
 }
