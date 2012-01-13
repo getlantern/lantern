@@ -312,6 +312,7 @@ public class DefaultXmppHandler implements XmppHandler {
             return;
         }
         LOG.info("Disconnecting!!");
+        lastJson = "";
         LanternHub.eventBus().post(
             new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTING));
         LanternHub.eventBus().post(
