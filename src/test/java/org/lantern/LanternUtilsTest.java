@@ -25,6 +25,20 @@ public class LanternUtilsTest {
     
     private static Logger LOG = LoggerFactory.getLogger(LanternUtilsTest.class);
     
+    @Test 
+    public void testToTypes() throws Exception {
+        assertEquals(String.class, LanternUtils.toTyped("33fga").getClass());
+        assertEquals(Integer.class, LanternUtils.toTyped("21314").getClass());
+        assertEquals(String.class, LanternUtils.toTyped("2a3b").getClass());
+        
+        assertEquals(Boolean.class, LanternUtils.toTyped("true").getClass());
+        assertEquals(Boolean.class, LanternUtils.toTyped("false").getClass());
+        assertEquals(Boolean.class, LanternUtils.toTyped("on").getClass());
+        assertEquals(Boolean.class, LanternUtils.toTyped("off").getClass());
+        
+        assertEquals(String.class, LanternUtils.toTyped("2222a").getClass());
+    }
+    
     @Test
     public void testReplaceInFile() throws Exception {
         final File temp = File.createTempFile(String.valueOf(hashCode()), "test");

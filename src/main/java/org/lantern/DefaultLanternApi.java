@@ -12,7 +12,6 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +42,7 @@ public class DefaultLanternApi implements LanternApi {
         final String uri = req.getRequestURI();
         final String id = StringUtils.substringAfter(uri, "/api/");
         final LanternApiCall call = LanternApiCall.valueOf(id.toUpperCase());
-        log.debug("Got API call {}", call);
+        log.debug("Got API call {} for full URI: "+uri, call);
         switch (call) {
         case SIGNIN:
             LanternHub.xmppHandler().disconnect();
@@ -59,14 +58,15 @@ public class DefaultLanternApi implements LanternApi {
             }
             //set.setEmail(email);
             //set.setPassword(pass);
-            changeSetting(resp, "email", email);
-            changeSetting(resp, "password", pass);
+            changeSetting(resp, "email", email, false);
+            changeSetting(resp, "password", pass, false);
             changeSetting(resp, params);
             try {
                 LanternHub.xmppHandler().connect();
                 if (LanternUtils.shouldProxy()) {
-                    // We automatically start proxying upon connect if the user's
-                    // settings say they're in get mode and to use the system proxy.
+                    // We automatically start proxying upon connect if the 
+                    // user's settings say they're in get mode and to use the 
+                    // system proxy.
                     Configurator.startProxying();
                 }
             } catch (final IOException e) {
@@ -150,11 +150,17 @@ public class DefaultLanternApi implements LanternApi {
         final String val = keyVal.getValue();
         changeSetting(resp, key, val);
     }
+    
+    private void changeSetting(final HttpServletResponse resp, final String key, 
+            final String val) {
+        changeSetting(resp, key, val, true);
+    }
 
     private void changeSetting(final HttpServletResponse resp, final String key, 
-        final String val) {
-        setProperty(LanternHub.settings(), key, val, true, resp);
-        setProperty(LanternHub.settingsChangeImplementor(), key, val, false, resp);
+        final String val, final boolean determineType) {
+        setProperty(LanternHub.settings(), key, val, true, resp, determineType);
+        setProperty(LanternHub.settingsChangeImplementor(), key, val, false, 
+            resp, determineType);
         resp.setStatus(HttpStatus.SC_OK);
         LanternHub.asyncEventBus().post(new SyncEvent());
         LanternHub.settingsIo().write();
@@ -162,15 +168,11 @@ public class DefaultLanternApi implements LanternApi {
 
     private void setProperty(final Object bean, 
         final String key, final String val, final boolean logErrors,
-        final HttpServletResponse resp) {
+        final HttpServletResponse resp, final boolean determineType) {
         log.info("Setting property on {}", bean);
         final Object obj;
-        if (LanternUtils.isTrue(val)) {
-            obj = true;
-        } else if (LanternUtils.isFalse(val)) {
-            obj = false;
-        } else if (NumberUtils.isNumber(val)) {
-            obj = Integer.parseInt(val);
+        if (determineType) {
+            obj = LanternUtils.toTyped(val);
         } else {
             obj = val;
         }
