@@ -92,6 +92,7 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             set.setPasswordSaved(false);
         } else {
             set.setStoredPassword(set.getPassword());
+            set.setPasswordSaved(true);
         }
     }
 
@@ -100,6 +101,7 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         final Settings set = LanternHub.settings();
         if (set.isSavePassword()) {
             set.setStoredPassword(password);
+            set.setPasswordSaved(true);
         } 
     }
     
