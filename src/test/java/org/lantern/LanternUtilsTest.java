@@ -10,6 +10,7 @@ import java.util.Collection;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.Roster;
+import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
@@ -24,6 +25,18 @@ import org.slf4j.LoggerFactory;
 public class LanternUtilsTest {
     
     private static Logger LOG = LoggerFactory.getLogger(LanternUtilsTest.class);
+    
+    @Test
+    public void testRoster() throws Exception {
+        final String email = LanternHub.settings().getEmail();
+        final String pwd = LanternHub.settings().getPassword();
+        if (StringUtils.isBlank(email) || StringUtils.isBlank(pwd)) {
+            LOG.info("user name and password not configured");
+            return;
+        }
+        // Just make sure no exceptions are thrown for now.
+        LanternUtils.getRosterEntries(email, pwd, 1);
+    }
     
     @Test 
     public void testToTypes() throws Exception {

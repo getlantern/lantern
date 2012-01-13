@@ -36,26 +36,28 @@ public class LanternHub {
     private static final AsyncEventBus asyncEventBus =
         new AsyncEventBus("Async-Event-Bus", Executors.newCachedThreadPool());
     
-    
     private static final AtomicReference<SecureRandom> secureRandom =
         new AtomicReference<SecureRandom>(new SecureRandom());
     
     private static final File UNZIPPED = 
         new File(LanternUtils.dataDir(), "GeoIP.dat");
     
-    private volatile static AtomicReference<TrustedContactsManager> trustedContactsManager =
+    private static final AtomicReference<TrustedContactsManager> trustedContactsManager =
         new AtomicReference<TrustedContactsManager>();
-    private volatile static AtomicReference<Display> display = 
+    private static final AtomicReference<Display> display = 
         new AtomicReference<Display>();
-    private volatile static AtomicReference<SystemTray> systemTray = 
+    private static final AtomicReference<SystemTray> systemTray = 
         new AtomicReference<SystemTray>();
     
-    private volatile static AtomicReference<StatsTracker> statsTracker = 
+    private static final AtomicReference<Roster> roster = 
+        new AtomicReference<Roster>(new Roster());
+    
+    private static final AtomicReference<StatsTracker> statsTracker = 
         new AtomicReference<StatsTracker>();
-    private volatile static AtomicReference<LanternKeyStoreManager> proxyKeyStore = 
+    private static final AtomicReference<LanternKeyStoreManager> proxyKeyStore = 
         new AtomicReference<LanternKeyStoreManager>();
     
-    private volatile static AtomicReference<XmppHandler> xmppHandler = 
+    private static final AtomicReference<XmppHandler> xmppHandler = 
         new AtomicReference<XmppHandler>();
     
     private static final AtomicReference<ProxyProvider> proxyProvider =
@@ -67,10 +69,10 @@ public class LanternHub {
     private static final AtomicReference<SettingsChangeImplementor> settingsChangeImplementor =
         new AtomicReference<SettingsChangeImplementor>(new DefaultSettingsChangeImplementor());
 
-    private volatile static AtomicReference<Integer> randomSslPort = 
+    private static final AtomicReference<Integer> randomSslPort = 
         new AtomicReference<Integer>(-1);
     
-    private volatile static AtomicReference<LookupService> lookupService = 
+    private static final AtomicReference<LookupService> lookupService = 
         new AtomicReference<LookupService>();
     
     private static final AtomicReference<JettyLauncher> jettyLauncher =
@@ -335,10 +337,6 @@ public class LanternHub {
         return settings.getInternet();
     }
     
-    public static Roster roster() {
-        return settings.getRoster();
-    }
-    
     public static SettingsIo settingsIo() {
         synchronized (settingsIo) {
             if (settingsIo.get() == null) {
@@ -422,6 +420,19 @@ public class LanternHub {
     public static void setSettingsChangeImplementor(
         final SettingsChangeImplementor ssi) {
         settingsChangeImplementor.set(ssi);
+    }
+
+    public static void register(final Object toRegister) {
+        asyncEventBus().register(toRegister);
+        eventBus().register(toRegister);
+    }
+
+    public static Roster roster() {
+        return roster.get();
+    }
+    
+    public static void setRoster(final Roster rost) {
+        roster.set(rost);
     }
 
 }

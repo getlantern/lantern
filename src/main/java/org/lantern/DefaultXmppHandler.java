@@ -221,7 +221,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.client.addMessageListener(typedListener);
         LanternHub.eventBus().post(
             new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTING));
-        LanternHub.eventBus().post(
+        LanternHub.asyncEventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_IN));
         final String id;
         if (LanternHub.settings().isGetMode()) {
@@ -234,14 +234,14 @@ public class DefaultXmppHandler implements XmppHandler {
         } catch (final IOException e) {
             LanternHub.eventBus().post(
                 new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
-            LanternHub.eventBus().post(
+            LanternHub.asyncEventBus().post(
                 new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_OUT));
             LanternHub.settings().setPasswordSaved(false);
             LanternHub.settings().setStoredPassword("");
             LanternHub.settings().setPassword("");
             throw e;
         }
-        LanternHub.eventBus().post(
+        LanternHub.asyncEventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_IN));
         
         // We don't consider ourselves connected until we actually get
@@ -318,14 +318,14 @@ public class DefaultXmppHandler implements XmppHandler {
         lastJson = "";
         LanternHub.eventBus().post(
             new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTING));
-        LanternHub.eventBus().post(
+        LanternHub.asyncEventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_OUT));
         
         this.client.logout();
         
         LanternHub.eventBus().post(
             new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
-        LanternHub.eventBus().post(
+        LanternHub.asyncEventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_OUT));
         proxySet.clear();
         proxies.clear();
@@ -543,11 +543,11 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         else if (isLanternJid(from)) {
             addOrRemovePeer(presence, from);
-            LanternHub.eventBus().post(
-                new AddPresenceEvent(from, new LanternPresence(presence)));
+            LanternHub.asyncEventBus().post(
+                new PresenceEvent(from, presence));
         } else {
-            LanternHub.eventBus().post(
-                new AddPresenceEvent(from, new LanternPresence(presence)));
+            LanternHub.asyncEventBus().post(
+                new PresenceEvent(from, presence));
         }
     }
 
@@ -951,6 +951,7 @@ public class DefaultXmppHandler implements XmppHandler {
         return proxy.isa;
     }
 
+    @Override
     public XmppP2PClient getP2PClient() {
         return client;
     }
