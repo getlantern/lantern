@@ -31,8 +31,8 @@ public class SettingsIo {
     
     private final File settingsFile;
     
-    private final SettingsChangeImplementor implementor =
-        new SettingsChangeImplementor();
+    private final DefaultSettingsChangeImplementor implementor =
+        new DefaultSettingsChangeImplementor();
     
     /**
      * Creates a new instance with all the default operations.

@@ -23,9 +23,6 @@ public class DefaultLanternApi implements LanternApi {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private final SettingsChangeImplementor implementor =
-        new SettingsChangeImplementor();
-    
     /**
      * Enumeration of calls to the Lantern API.
      */
@@ -60,8 +57,10 @@ public class DefaultLanternApi implements LanternApi {
                     return;
                 }
             }
-            set.setEmail(email);
-            set.setPassword(pass);
+            //set.setEmail(email);
+            //set.setPassword(pass);
+            changeSetting(resp, "email", email);
+            changeSetting(resp, "password", pass);
             changeSetting(resp, params);
             try {
                 LanternHub.xmppHandler().connect();
@@ -142,15 +141,20 @@ public class DefaultLanternApi implements LanternApi {
     private void changeSetting(final HttpServletResponse resp,
         final Map<String, String> params) {
         if (params.isEmpty()) {
-            sendError(resp, "You must set at least one setting");
+            sendError(resp, "You must set a setting");
             return;
         }
         final Entry<String, String> keyVal = params.entrySet().iterator().next();
         log.debug("Got keyval: {}", keyVal);
         final String key = keyVal.getKey();
         final String val = keyVal.getValue();
+        changeSetting(resp, key, val);
+    }
+
+    private void changeSetting(final HttpServletResponse resp, final String key, 
+        final String val) {
         setProperty(LanternHub.settings(), key, val, true, resp);
-        setProperty(implementor, key, val, false, resp);
+        setProperty(LanternHub.settingsChangeImplementor(), key, val, false, resp);
         resp.setStatus(HttpStatus.SC_OK);
         LanternHub.asyncEventBus().post(new SyncEvent());
         LanternHub.settingsIo().write();

@@ -2,7 +2,6 @@ package org.lantern;
 
 import java.util.Locale;
 
-import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 
 import com.google.common.eventbus.Subscribe;
@@ -262,13 +261,10 @@ public class Settings implements MutableSettings {
         return savePassword;
     }
 
+    @Override
     @JsonIgnore
     public void setPassword(final String password) {
-        if (this.isSavePassword()) {
-            setStoredPassword(password);
-        } else {
-            this.password = password;
-        }
+        this.password = password;
     }
 
     @JsonIgnore
@@ -278,12 +274,6 @@ public class Settings implements MutableSettings {
 
     public void setStoredPassword(final String storedPassword) {
         this.storedPassword = storedPassword;
-        this.password = storedPassword;
-        if (StringUtils.isBlank(storedPassword)) {
-            setPasswordSaved(false);
-        } else {
-            setPasswordSaved(true);
-        }
     }
 
     public String getStoredPassword() {
