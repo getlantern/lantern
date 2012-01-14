@@ -14,19 +14,19 @@
     <script src=assets/js/libs/angular-0.10.5.min.js ng:autobind></script>
   </head>
 
-  <body ng:controller=LDCtrl ng:class="setupcomplete() && 'welcome'" lang=en>
+  <body ng:controller=LDCtrl ng:class="!state.initialSetupComplete && 'welcome'" lang=en>
     <div id=ld-container>
-      <div id=welcome-container ng:show=setupcomplete()>
+      <div id=welcome-container ng:show=!state.initialSetupComplete>
         <div id=welcome class="slide selected" data-cls=slide>
           <h1>Welcome to Lantern</h1>
           <h4>Internet freedom for everyone.</h4>
           <div class=controls>
-            <a href=#terms>➲</a>
+            <a href=#fineprint>➲</a>
             <div>Continue</div>
           </div>
         </div>
-        <div id=terms class=slide data-cls=slide>
-          <h1>Terms of use</h1>
+        <div id=fineprint class=slide data-cls=slide>
+          <h1>Fine Print</h1>
           <div class=controls>
             <a href=#mode>➲</a>
             <div>Continue</div>
@@ -48,21 +48,44 @@
           <form class=signin ng:submit=signin()>
             <ul>
               <li><div class=error>Bad username or password.</div></li>
-              <li><input type=email placeholder=email@example.com ng:model=inputemail value={{state.email}} required autofocus /></li>
+              <li><input type=text placeholder=email@example.com ng:model=inputemail value={{state.email}} required autofocus /></li>
               <li><input type=password placeholder=password ng:model=inputpassword required id=firstsignin-pass /></li>
               <li><label><input type=checkbox ng:model=savepassword /> Save password</label></li>
             </ul>
             <button type=submit class=button-submit-hack></button><!-- see XXX button-submit-hack below -->
+            <div class=controls>
+              <a id=firstsignin-link>➲</a>
+              <div>Continue</div>
+            </div>
           </form>
+        </div>
+        <div id=choosetrusted class=slide data-cls=slide>
+          <h1>Trusted Peers</h1>
+          <h4>Choose people you would trust to proxy any unencrypted traffic.</h4>
+          <input id=searchpeers type=search ng:model=peerfilter placeholder="Search by name or email" results=0 incremental autosave/>
+          <ul class=peerlist>
+            <li ng:repeat="peer in peers().$filter(peerfilter)">
+              <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer}}</label>
+            </li>
+          </ul>
+          <label><input type=checkbox ng:model=state.useCloudProxies ng:change=toggle('useCloudProxies') /> Use Lantern cloud proxies</label>
           <div class=controls>
-            <a id=firstsignin-link>➲</a>
+            <a href=#setupcomplete>➲</a>
             <div>Continue</div>
           </div>
         </div>
+        <div id=setupcomplete class=slide data-cls=slide>
+          <h1>Finished</h1>
+          <h4>Thank you for joining Lantern. Surf safely.</h4>
+          <div class=controls>
+            <a ng:click=finishsetup()>➲</a>
+            <div>Finish</div>
+          </div>
+        </div>
       </div>
-      <div id=dashboard ng:show=!setupcomplete()>
+      <div id=dashboard ng:show=state.initialSetupComplete>
         <div id=topbar>
-          <span id=topbar-conn ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'GET' || 'GIVE']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}</span></span>
+          <span id=topbar-conn ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}</span></span>
           <span ng:show=loggedin()>
             <span id=topbar-peers class=topbar-stat>{{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span>
             <span id=topbar-rate-up class="topbar-stat rate">{{state.upRate | bytes}}</span>
@@ -72,6 +95,7 @@
         </div>
         <div id=usermenu>
           <ul>
+            <li ng:show=loggedin()><a ng:click=switchmode(true)>{{switchlinktext()}}</a></li>
             <li><a ng:click=todo()>Switch user</a></li>
             <li ng:show=loggedin()><a ng:click=signout()>Sign out</a></li>
             <li ng:show=!loggedin()><a ng:click=signin()>Sign in</a></li>
@@ -79,7 +103,7 @@
         </div>
         <div id=sidebar>
           <h1>Dashboard</h1>
-          <input id=search type=search placeholder="Search (TODO)" results=5 incremental autosave/>
+          <input id=search type=search placeholder="Search (TODO)" results=0 incremental autosave/>
           <nav>
             <ul id=panel-list>
               <li><a href=#status class=selected>Status</a></li>
@@ -94,9 +118,9 @@
           <dl>
             <dt>Mode</dt>
             <dd>
-              <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'GET' || 'GIVE']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}
-              <a class=actionlink ng:click=signin() ng:show=loggedout()>Sign in</a>
-              <a class=actionlink ng:click=switchmode(true) ng:show=loggedin()>{{switchlinktext()}}</a></span></span>
+              <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}
+              <a class=actionlink ng:click=signin() ng:show=loggedout()>Sign in</a></span>
+              </span>
             </dd>
             <dt ng:show=loggedin()>Peers</dt>
             <dd ng:show=loggedin()>
@@ -240,6 +264,15 @@ function LDCtrl(){
   self.inputemail = null;
   self.inputpassword = null;
   self.savepassword = true;
+
+  self.peerfilter = null;
+  self.peers = function(){
+    try{
+      return Object.keys(self.state.roster.entries);
+    }catch(e){
+    }
+  };
+
   self.pm = null;
   self.requestreply = false;
   self.requestreplyto = null;
@@ -273,13 +306,33 @@ function LDCtrl(){
     };
     if(!self.state.passwordSaved)
       data.password = self.inputpassword || prompt('Please enter your password (this prompt will be replaced):');
-    $.when($.post('/api/signin', data)).then(function(data){
-      $('form.signin:visible').removeClass('badcredentials');
+    $('form.signin').addClass('loading');
+    $.post('/api/signin', data).done(function(data){
+      $('form.signin').removeClass('badcredentials');
       self.inputpassword = '';
+      showid(self.state.getMode && '#choosetrusted' || '#setupcomplete');
+    }).fail(function(){
+      $('form.signin').addClass('badcredentials');
+      console.log('signin fail: ', arguments);
+    }).always(function(){
+      $('form.signin').removeClass('loading');
+    });
+  };
+
+  self.toggleTrusted = function(peer){
+    self.todo();
+  }
+
+  self.finishsetup = function(){
+    showid('#setupcomplete');
+    $('#welcome-container').fadeOut('slow');
+    setTimeout(function(){
+    $.post('/settings?initialSetupComplete=true').done(function(){
       showid('#status');
     }).fail(function(){
-      $('form.signin:visible').addClass('badcredentials');
+      alert('Could not complete setup.'); console.log(arguments); // XXX
     });
+    }, 1000);
   };
 
   self.signout = function(){
@@ -289,9 +342,11 @@ function LDCtrl(){
   self.toggle = function(setting, manual){
     if(manual)
       self.state[setting] = !self.state[setting];
-    $.when($.post('/settings?'+setting+'='+self.state[setting]))
-     .then(function(){console.log('successfully toggled '+setting+' to '+self.state[setting]);})
-     .fail(function(){console.log('failed to toggle '+setting);});
+    $.post('/settings?'+setting+'='+self.state[setting]).done(function(){
+      console.log('successfully toggled '+setting+' to '+self.state[setting]);
+    }).fail(function(){
+      console.log('failed to toggle '+setting);
+    });
   };
 
   self.switchmode = function(manual){
@@ -308,26 +363,32 @@ function LDCtrl(){
       (self.loggedin() ? 'You will be signed out and y' : 'Y') +
       'our settings will be erased.';
     if(confirm(msg)){
-      $.when($.post('/api/reset')).then(function(){
+      $.post('/api/reset').done(function(){
         showid('#welcome');
       });
     }
   };
 
-  self.setupcomplete = function(){
-    return !self.state.email;
-  };
-
   self.updatewhitelist = function(site, newsite){
     // XXX validation
     if(typeof newsite === 'string'){
-      $.when($.ajax('/api/removefromwhitelist?site=' + site)).then(function(){
-      $.when($.ajax('/api/addtowhitelist?site=' + newsite)).then(function(){
-        $('#sitetoadd').val('');
-      })});
+      $.ajax('/api/removefromwhitelist?site=' + site).done(function(){
+        $.ajax('/api/addtowhitelist?site=' + newsite).done(function(){
+          $('#sitetoadd').val('');
+        }).fail(function(){
+          console.log('/api/addtowhitelist?site='+site+' failed');
+        });
+      }).fail(function(){
+        console.log('/api/removefromwhitelist?site='+site+' failed');
+      });
     }else if(typeof newsite === 'boolean'){
-      var url = '/api/' + (newsite ? 'addtowhitelist' : 'removefromwhitelist');
-      $.when($.ajax(url + '?site=' + site)).then(function(){if(newsite) $('#sitetoadd').val('');});
+      var url = '/api/' + (newsite ? 'addtowhitelist' : 'removefromwhitelist') + '?site=' + site;
+      $.ajax(url).done(function(){
+        if(newsite)
+          $('#sitetoadd').val('');
+      }).fail(function(){
+        console.log(url+' failed');
+      });
     }
   };
 
@@ -335,6 +396,9 @@ function LDCtrl(){
 }
 
 $(document).ready(function(){
+  $(window).bind('hashchange', function(){
+    showid(location.hash);
+  });
   $('#panel-list a, ' +
     '.panellink, ' +
     '#welcome-container .controls a[href], ' +

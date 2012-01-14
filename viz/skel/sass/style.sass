@@ -37,7 +37,6 @@ $blueprint-grid-columns: 30
 +blueprint-typography
 
 body.welcome
-  background-color: #111
   #ld-container
     background-color: $background-color-alt5
     //-webkit-mask-box-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)))
@@ -54,8 +53,7 @@ $welcome-controls-wdth: 300px
   left: 50%
   margin-left: -$welcome-wdth / 2
   color: $background-color-alt5
-  +text-shadow(#fff 0px 1px 0)
-  border: 1px solid $edge-color
+  +text-shadow(#ddd 0px 1px 0)
   background-color: $background-color-alt3
   +linear-gradient(color-stops($background-color-alt3, #999))
   padding: 40px
@@ -96,7 +94,8 @@ $welcome-controls-wdth: 300px
   display: block
 
 #firstsignin
-  input[type=email], input[type=password]
+  input[type=text], input[type=password]
+    background-color: #eee
     border: 1px solid $edge-color
     margin-bottom: 5px
     text-align: center
@@ -109,11 +108,35 @@ $welcome-controls-wdth: 300px
     bottom: 15px
     right: 20px
 
+#choosetrusted
+  .peerlist
+    height: 90px
+    overflow-x: hidden
+    overflow-y: auto
+    white-space: nowrap
+    text-align: left
+    border: 1px solid #aaa
+    +box-shadow(#ccc 0 1px 2px)
+    position: relative
+    left: 50%
+    width: 300px
+    margin: 0 0 1em -151px
+
+#searchpeers
+  width: 300px
+  margin-bottom: 3px
+
 .smallnote
   font-size: 8pt
 
 form.signin .error, .button-submit-hack
   opacity: 0
+
+form.signin.loading
+  #firstsignin-link
+    background: image-url('spinner32.gif') no-repeat center
+    color: transparent
+    text-shadow: none
 
 .badcredentials
   input[type=email], input[type=password]
@@ -192,7 +215,7 @@ li
     line-height: 30px
     color: #000
     font-weight: 100
-    border: 1px solid rgba($edge-color, 0)
+    border: 1px solid transparent
     border-left: 0
     border-right: 0
   a.selected, a:active
@@ -243,12 +266,12 @@ li
     display: inline
   input[type=text]
     width: 200px
-    border: 1px solid rgba($edge-color, 0)
+    border: 1px solid transparent
     &:hover
       border: 1px solid $edge-color
   a.delete
     text-decoration: none
-    color: rgba($font-color-input, 0)
+    color: transparent
     float: right
     padding-right: 10px
   li
@@ -258,7 +281,7 @@ li
     &:hover
       background-color: $background-color-alt4
       a.delete
-        color: rgba($font-color-input, 1)
+        color: $font-color-input
 
 a.close
   color: #ddd
@@ -298,6 +321,10 @@ input[type=text], input[type=email], input[type=password], input[type=number], t
   &:not([disabled]):hover
     color: #000
 
+input[disabled]
+  cursor: default
+  color: $font-color-disabled
+
 input[type=number]
   border: 0
 
@@ -318,7 +345,7 @@ textarea, input[type=text], input[type=email]
 #pm-controls
   width: 500px
   input[type=email]
-    border: 1px solid rgba($edge-color, 0)
+    border: 1px solid transparent
     &:not([disabled]):hover
       color: #000
       border-color: $edge-color
@@ -359,7 +386,7 @@ textarea, input[type=text], input[type=email]
 
 .connlight
   width: 12px
-  .LOGGED_IN.GET &, .LOGGED_IN.GIVE &
+  .LOGGED_IN.get &, .LOGGED_IN.give &
     background-image: image-url('connlight-green.png')
   .LOGGING_IN &, .LOGGING_OUT &, .PAUSED &
     background-image: image-url('connlight-yellow.png')
@@ -406,8 +433,8 @@ textarea, input[type=text], input[type=email]
   position: fixed
   top: $topbar-hght + 1px
   right: 0
-  width: 90px
-  height: 45px
+  width: 147px
+  height: 68px
   background-color: $background-color-alt
   text-align: right
   padding: 3px 20px 0 0
