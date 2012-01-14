@@ -114,8 +114,21 @@ public class DefaultLanternApi implements LanternApi {
             }
             break;
         case ROSTER:
+            if (!LanternHub.xmppHandler().isLoggedIn()) {
+                sendError(resp, "Not logged in!");
+                return;
+            }
             final Roster roster = LanternHub.roster();
+            if (!roster.isEntriesSet()) {
+                try {
+                    roster.populate();
+                } catch (final IOException e) {
+                    sendError(resp, "Not logged in!");
+                    return;
+                }
+            }
             final String json = LanternUtils.jsonify(roster);
+            log.info("Returning roster: {}", json);
             resp.setStatus(HttpStatus.SC_OK);
             resp.setContentLength(json.length());
             try {
