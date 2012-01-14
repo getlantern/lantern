@@ -27,6 +27,13 @@
         </div>
         <div id=fineprint class=slide data-cls=slide>
           <h1>Fine Print</h1>
+          <p>Sometimes people do bad things on the internet.
+             Sometimes they’re the very same people who are in power.
+             Lantern tries hard to keep you safe,
+             but ultimately you use it at your own risk.
+             By continuing you agree to be solely responsible
+             for your use of Lantern.
+          </p>
           <div class=controls>
             <a href=#mode>➲</a>
             <div>Continue</div>
@@ -59,13 +66,13 @@
             </div>
           </form>
         </div>
-        <div id=choosetrusted class=slide data-cls=slide>
+        <div id=trustedpeers class=slide data-cls=slide>
           <h1>Trusted Peers</h1>
           <h4>Choose people you would trust to proxy any unencrypted traffic.</h4>
-          <input id=searchpeers type=search ng:model=peerfilter placeholder="Search by name or email" results=0 incremental autosave/>
+          <input id=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
           <ul class=peerlist>
-            <li ng:repeat="peer in peers().$filter(peerfilter)">
-              <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer}}</label>
+            <li ng:repeat="peer in peers.$filter(peerfilter)">
+              <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
             </li>
           </ul>
           <label><input type=checkbox ng:model=state.useCloudProxies ng:change=toggle('useCloudProxies') /> Use Lantern cloud proxies</label>
@@ -265,13 +272,11 @@ function LDCtrl(){
   self.inputpassword = null;
   self.savepassword = true;
 
-  self.peerfilter = null;
-  self.peers = function(){
-    try{
-      return Object.keys(self.state.roster.entries);
-    }catch(e){
-    }
+  self.peerfilterinput = null;
+  self.peerfilter = function(item){
+    return true;
   };
+  self.peers = null;
 
   self.pm = null;
   self.requestreply = false;
@@ -310,7 +315,7 @@ function LDCtrl(){
     $.post('/api/signin', data).done(function(data){
       $('form.signin').removeClass('badcredentials');
       self.inputpassword = '';
-      showid(self.state.getMode && '#choosetrusted' || '#setupcomplete');
+      showid(self.state.getMode && '#trustedpeers' || '#setupcomplete');
     }).fail(function(){
       $('form.signin').addClass('badcredentials');
       console.log('signin fail: ', arguments);
@@ -320,7 +325,13 @@ function LDCtrl(){
   };
 
   self.toggleTrusted = function(peer){
-    self.todo();
+    var url = '/api/' + (peer.trusted ? 'add' : 'remove') + 'trustedpeer?email=' + peer.email;
+    $.post(url).done(function(){
+      console.log('successfully set peer.trusted to ' + peer.trusted + ' for ' + peer.email); 
+    }).fail(function(){
+      peer.trusted = !peer.trusted;
+      console.log('failed to set peer.trusted to ' + peer.trusted + ' for ' + peer.email); 
+    });
   }
 
   self.finishsetup = function(){
@@ -464,6 +475,12 @@ $(document).ready(function(){
     if (handshake.successful === true){
       cometd.batch(function(){
         cometd.subscribe('/sync', syncHandler);
+
+        // XXX
+        $.ajax({url: '/api/roster', dataType: 'json'}).done(function(r){
+          $('body').scope().peers = r.entries;
+        });
+
         if(location.hash)
           showid(location.hash);
       });
