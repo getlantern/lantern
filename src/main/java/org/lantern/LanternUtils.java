@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -39,7 +40,6 @@ import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -406,29 +406,40 @@ public class LanternUtils {
         return (StringUtils.isNotBlank(un) && StringUtils.isNotBlank(pwd));
     }
     
-    public static Collection<RosterEntry> getRosterEntries(final String email,
+    public static Collection<LanternPresence> getRosterEntries(final String email,
         final String pwd, final int attempts) throws IOException {
         final XMPPConnection conn = 
             XmppUtils.persistentXmppConnection(email, pwd, "lantern", attempts);
-        final Roster roster = conn.getRoster();
-        final Collection<RosterEntry> unordered = roster.getEntries();
-        final Comparator<RosterEntry> comparator = new Comparator<RosterEntry>() {
-            @Override
-            public int compare(final RosterEntry re1, final RosterEntry re2) {
-                final String name1 = re1.getName();
-                final String name2 = re2.getName();
-                if (name1 == null) {
-                    return 1;
-                } else if (name2 == null) {
-                    return -1;
-                }
-                return name1.compareToIgnoreCase(name2);
+        return getRosterEntries(conn).values();
+    }
+    
+    
+    public static final Comparator<LanternPresence> PRESENCE_COMPARATOR = 
+        new Comparator<LanternPresence>() {
+        @Override
+        public int compare(final LanternPresence re1, final LanternPresence re2) {
+            final String name1 = re1.getName();
+            final String name2 = re2.getName();
+            if (name1 == null) {
+                return 1;
+            } else if (name2 == null) {
+                return -1;
             }
-        };
-        final Collection<RosterEntry> entries = 
-            new TreeSet<RosterEntry>(comparator);
+            return name1.compareToIgnoreCase(name2);
+        }
+    };
+
+    public static Map<String, LanternPresence> getRosterEntries(
+        final XMPPConnection xmppConnection) {
+        final Roster roster = xmppConnection.getRoster();
+        final Collection<RosterEntry> unordered = roster.getEntries();
+
+        
+        final Map<String, LanternPresence> entries = 
+            new HashMap<String, LanternPresence>();
         for (final RosterEntry entry : unordered) {
-            entries.add(entry);
+            final LanternPresence lp = new LanternPresence(entry);
+            entries.put(entry.getUser(), lp);
         }
         return entries;
     }

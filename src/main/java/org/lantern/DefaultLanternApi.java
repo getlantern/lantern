@@ -33,6 +33,7 @@ public class DefaultLanternApi implements LanternApi {
         ADDTRUSTEDPEER,
         REMOVETRUSTEDPEER,
         RESET,
+        ROSTER,
     }
 
     @Override
@@ -111,6 +112,19 @@ public class DefaultLanternApi implements LanternApi {
                 sendServerError(resp, "Error resetting settings: "+
                    e.getMessage());
             }
+            break;
+        case ROSTER:
+            final Roster roster = LanternHub.roster();
+            final String json = LanternUtils.jsonify(roster);
+            resp.setStatus(HttpStatus.SC_OK);
+            resp.setContentLength(json.length());
+            try {
+                resp.getWriter().write(json);
+                resp.getWriter().flush();
+            } catch (final IOException e) {
+                log.info("Could not write response", e);
+            }
+            
             break;
         }
         LanternHub.asyncEventBus().post(new SyncEvent());

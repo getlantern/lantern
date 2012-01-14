@@ -2,7 +2,7 @@ package org.lantern;
 
 import java.io.IOException;
 
-import org.lastbamboo.common.p2p.P2PClient;
+import org.littleshoot.commom.xmpp.XmppP2PClient;
 
 /**
  * Interface for dealing with any XMPP interaction in Lantern.
@@ -13,6 +13,6 @@ public interface XmppHandler extends ProxyStatusListener, ProxyProvider {
 
     void connect() throws IOException;
 
-    P2PClient getP2PClient();
+    XmppP2PClient getP2PClient();
 
 }
