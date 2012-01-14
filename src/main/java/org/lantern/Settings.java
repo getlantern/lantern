@@ -14,8 +14,6 @@ public class Settings implements MutableSettings {
 
     private Whitelist whitelist;
     
-    private Roster roster;
-    
     private ConnectivityStatus connectivity = 
         ConnectivityStatus.DISCONNECTED; 
     private UpdateEvent update = new UpdateEvent();
@@ -71,15 +69,14 @@ public class Settings implements MutableSettings {
     private boolean passwordSaved;
     
     {
-        LanternHub.eventBus().register(this);
+        LanternHub.register(this);
     }
     
     public Settings() {
     }
     
-    public Settings(final Whitelist whitelist, final Roster roster) {
+    public Settings(final Whitelist whitelist) {
         this.whitelist = whitelist;
-        this.roster = roster;
     }
     
     public Whitelist getWhitelist() {
@@ -92,18 +89,6 @@ public class Settings implements MutableSettings {
     public void setWhitelist(final Whitelist whitelist) {
         this.whitelist = whitelist;
     }
-
-    public void setRoster(final Roster roster) {
-        this.roster = roster;
-    }
-
-    public Roster getRoster() {
-        //if (this.roster == null) {
-        //    this.roster = LanternHub.settings().roster();
-        //}
-        return roster;
-    }
-    
 
     public boolean isSystemProxy() {
         return this.isSystemProxy;
@@ -357,7 +342,7 @@ public class Settings implements MutableSettings {
 
     @Override
     public String toString() {
-        return "Settings [whitelist=" + whitelist + ", roster=" + roster
+        return "Settings [whitelist=" + whitelist 
                 + ", connectivity=" + connectivity + ", update=" + update
                 + ", internet=" + internet + ", platform=" + platform
                 + ", startAtLogin=" + startAtLogin + ", isSystemProxy="

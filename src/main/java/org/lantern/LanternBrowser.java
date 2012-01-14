@@ -30,7 +30,6 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
-import org.jivesoftware.smack.RosterEntry;
 import org.lantern.SettingsState.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -842,7 +841,7 @@ public class LanternBrowser {
         } else {
             email = rawEmail;
         }
-        final Collection<RosterEntry> entries;
+        final Collection<LanternPresence> entries;
         try {
             entries = LanternUtils.getRosterEntries(email, pwd, attempts);
         } catch (final IOException e) {
@@ -858,16 +857,16 @@ public class LanternBrowser {
         final StringBuilder sb = new StringBuilder();
         sb.append("<div id='contacts'>\n");
         int index = 0;
-        for (final RosterEntry entry : entries) {
+        for (final LanternPresence entry : entries) {
             final String name;
             final String entryName  = entry.getName();
             log.info("Got entry name: '{}'", entryName);
             if (StringUtils.isBlank(entryName)) {
-                name = entry.getUser();
+                name = entry.getEmail();
             } else {
                 name = entryName;
             }
-            final String user = entry.getUser();
+            final String user = entry.getEmail();
             final boolean trusted = trustManager.isTrusted(user.trim());
             final String evenOrOdd;
             if (index % 2 == 0) {
