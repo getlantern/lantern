@@ -509,7 +509,9 @@ public class DefaultXmppHandler implements XmppHandler {
             @Override
             public void presenceChanged(final Presence presence) {
                 //LOG.info("Processing presence changed: {}", presence);
+                LanternHub.eventBus().post(new PresenceEvent(presence));
                 processPresence(presence);
+                
             }
             @Override
             public void entriesAdded(final Collection<String> addresses) {

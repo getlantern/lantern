@@ -15,6 +15,10 @@ public class PresenceEvent {
         this.presence = pres;
     }
 
+    public PresenceEvent(final Presence pres) {
+        this(pres.getFrom(), pres);
+    }
+
     public String getJid() {
         return jid;
     }
