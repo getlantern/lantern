@@ -56,7 +56,7 @@ public class Dashboard {
         log.info("Creating new browser...");
         final Browser browser = new Browser(shell, SWT.NONE);
         browser.setSize(800, 600);
-        browser.setBounds(0, 0, 800, 600);
+        //browser.setBounds(0, 0, 800, 600);
         browser.setUrl("http://localhost:"+
             LanternHub.settings().getApiPort()+"/dashboard.html");
         shell.open();
