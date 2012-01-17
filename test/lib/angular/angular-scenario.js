@@ -1,4 +1,4 @@
-/*!
+/** @license
  * jQuery JavaScript Library v1.7
  * http://jquery.com/
  *
@@ -9298,7 +9298,7 @@ jQuery.each([ "Height", "Width" ], function( i, name ) {
 // Expose jQuery to the global object
 window.jQuery = window.$ = jQuery;
 })( window );/**
- * @license AngularJS v0.10.6-5cdfe45a
+ * @license AngularJS v0.10.6
  * (c) 2010-2011 AngularJS http://angularjs.org
  * License: MIT
  */
@@ -10229,6 +10229,7 @@ function bindJQuery() {
     jqLite = jQuery;
     extend(jQuery.fn, {
       scope: JQLitePrototype.scope,
+      injector: JQLitePrototype.injector,
       inheritedData: JQLitePrototype.inheritedData
     });
     JQLitePatchJQueryRemove('remove', true);
@@ -10282,40 +10283,45 @@ function setupModuleLoader(window) {
      * @name angular.module
      * @description
      *
-     * The `angular.module` is a global place for registering angular modules. All modules
-     * (angular core or 3rd party) that should be available to an application must be registered using this mechanism.
+     * The `angular.module` is a global place for creating and registering Angular modules. All
+     * modules (angular core or 3rd party) that should be available to an application must be
+     * registered using this mechanism.
+     *
      *
      * # Module
      *
-     * A module is a collocation of services, directives, filters, and configure information. Module is used to configure the,
-     * {@link angular.module.AUTO.$injector $injector}.
+     * A module is a collocation of services, directives, filters, and configure information. Module
+     * is used to configure the {@link angular.module.AUTO.$injector $injector}.
      *
      * <pre>
      * // Create a new module
      * var myModule = angular.module('myModule', []);
      *
-     * // configure a new service
+     * // register a new service
      * myModule.value('appName', 'MyCoolApp');
      *
      * // configure existing services inside initialization blocks.
-     * myModule.init(function($locationProvider) {
+     * myModule.config(function($locationProvider) {
      *   // Configure existing providers
-     *   $locationProvider.hashPrefix = '!';
+     *   $locationProvider.hashPrefix('!');
      * });
      * </pre>
      *
-     * Then you can load your module like this:
+     * Then you can create an injector and load your modules like this:
      *
      * <pre>
      * var injector = angular.injector(['ng', 'MyModule'])
      * </pre>
      *
+     * However it's more likely that you'll just use {@link angular.directive.ng:app ng:app} or
+     * {@link angular.bootstrap} to simplify this process for you.
+     *
      * @param {!string} name The name of the module to create or retrieve.
      * @param {Array.<string>=} requires If specified then new module is being created. If unspecified then the
      *        the module is being retrieved for further configuration.
-     * @param {Function} initFn Option configuration function for the module. Same as
-     *        {@link angular.Module#init Module.init()}.
-     * @return {angular.Module}
+     * @param {Function} configFn Option configuration function for the module. Same as
+     *        {@link angular.Module#config Module#config()}.
+     * @returns {module} new module with the {@link angular.Module} api.
      */
     return function module(name, requires, configFn) {
       if (requires && modules.hasOwnProperty(name)) {
@@ -10408,8 +10414,8 @@ function setupModuleLoader(window) {
            * @ngdoc method
            * @name angular.Module#config
            * @methodOf angular.Module
-           * @param {Function} initializationFn Execute this function on module load. Useful for
-           *    service configuration.
+           * @param {Function} configFn Execute this function on module load. Useful for service
+           *    configuration.
            * @description
            * Use this method to register work which needs to be performed on module loading.
            */
@@ -10422,7 +10428,8 @@ function setupModuleLoader(window) {
            * @param {Function} initializationFn Execute this function after injector creation.
            *    Useful for application initialization.
            * @description
-           * Use this method to register work which needs to be performed on module loading.
+           * Use this method to register work which needs to be performed when the injector with
+           * with the current module is finished loading.
            */
           run: function(block) {
             runBlocks.push(block);
@@ -10468,7 +10475,7 @@ function setupModuleLoader(window) {
  * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
  */
 var version = {
-  full: '0.10.6-5cdfe45a',    // all of these placeholder strings will be replaced by rake's
+  full: '0.10.6',    // all of these placeholder strings will be replaced by rake's
   major: "NG_VERSION_MAJOR",    // compile task
   minor: "NG_VERSION_MINOR",
   dot: "NG_VERSION_DOT",
@@ -10830,7 +10837,7 @@ function inferInjectionArgs(fn) {
  * <pre>
  *   var $injector = angular.injector();
  *   expect($injector.get('$injector')).toBe($injector);
- *   expect($injector.invoke(null, function($injector){
+ *   expect($injector.invoke(function($injector){
  *     return $injector;
  *   }).toBe($injector);
  * </pre>
@@ -10937,7 +10944,7 @@ function inferInjectionArgs(fn) {
  *
  *   describe('Greeter', function(){
  *
- *     beforeEach(inject(function($provide) {
+ *     beforeEach(module(function($provide) {
  *       $provide.service('greet', GreetProvider);
  *     });
  *
@@ -10945,13 +10952,13 @@ function inferInjectionArgs(fn) {
  *       expect(greet('angular')).toEqual('Hello angular!');
  *     }));
  *
- *     it('should allow configuration of salutation', inject(
- *       function(greetProvider) {
+ *     it('should allow configuration of salutation', function() {
+ *       module(function(greetProvider) {
  *         greetProvider.salutation('Ahoj');
- *       },
- *       function(greet) {
+ *       });
+ *       inject(function(greet) {
  *         expect(greet('angular')).toEqual('Ahoj angular!');
- *       }
+ *       });
  *     )};
  *
  *   });
@@ -11702,6 +11709,8 @@ function htmlSanitizeWriter(buf){
  * ## In addtion to the above, Angular privides an additional method to both jQuery and jQuery lite:
  *
  * - `scope()` - retrieves the current Angular scope of the element.
+ * - `injector()` - retrieves the Angular injector associated with application that the element is
+ *   part of.
  * - `inheritedData()` - same as `data()`, but walks up the DOM until a value is found or the top
  *   parent element is reached.
  *
@@ -11955,6 +11964,10 @@ forEach({
 
   scope: function(element) {
     return jqLite(element).inheritedData($$scope);
+  },
+
+  injector: function(element) {
+      return jqLite(element).inheritedData('$injector');
   },
 
   removeAttr: function(element,name) {
@@ -15665,13 +15678,13 @@ function $LocationProvider(){
       hashPrefix = prefix;
       return this;
     } else {
-      return html5Mode;
+      return hashPrefix;
     }
   }
 
   /**
    * @ngdoc property
-   * @name angular.module.ng.$locationProvider#hashPrefix
+   * @name angular.module.ng.$locationProvider#html5Mode
    * @methodOf angular.module.ng.$locationProvider
    * @description
    * @param {string=} mode Use HTML5 strategy if available.
@@ -15748,8 +15761,10 @@ function $LocationProvider(){
     // update $location when $browser url changes
     $browser.onUrlChange(function(newUrl) {
       if (currentUrl.absUrl() != newUrl) {
-        currentUrl.$$parse(newUrl);
-        $rootScope.$apply();
+        $rootScope.$evalAsync(function() {
+          currentUrl.$$parse(newUrl);
+        });
+        if (!$rootScope.$$phase) $rootScope.$digest();
       }
     });
 
@@ -15913,8 +15928,8 @@ function $LogProvider(){
  * @param {Object.<Object>=} actions Hash with declaration of custom action that should extend the
  *   default set of resource actions. The declaration should be created in the following format:
  *
- *       {action1: {method:?, params:?, isArray:?, verifyCache:?},
- *        action2: {method:?, params:?, isArray:?, verifyCache:?},
+ *       {action1: {method:?, params:?, isArray:?},
+ *        action2: {method:?, params:?, isArray:?},
  *        ...}
  *
  *   Where:
@@ -15926,9 +15941,6 @@ function $LogProvider(){
  *   - `params` – {object=} – Optional set of pre-bound parameters for this action.
  *   - isArray – {boolean=} – If true then the returned object for this action is an array, see
  *     `returns` section.
- *   - verifyCache – {boolean=} – If true then whenever cache hit occurs, the object is returned and
- *     an async request will be made to the server and the resources as well as the cache will be
- *     updated when the response is received.
  *
  * @returns {Object} A resource "class" object with methods for the default set of resource actions
  *   optionally extended with custom `actions`. The default set contains these actions:
@@ -17790,7 +17802,8 @@ function $RootScopeProvider(){
        *
        * # Example
          <pre>
-           var scope = angular.module.ng.$rootScope.Scope();
+           // let's assume that scope was dependency injected as the $rootScope
+           var scope = $rootScope;
            scope.name = 'misko';
            scope.counter = 0;
 
@@ -19322,7 +19335,8 @@ angularDirective("ng:init", function(expression){
            this.contacts.push({type:'email', value:'yourname@example.org'});
          },
          removeContact: function(contactToRemove) {
-           angular.module.ng.$filter.remove(this.contacts, contactToRemove);
+           var index = this.contacts.indexOf(contactToRemove);
+           this.contacts.splice(index, 1);
          },
          clearContact: function(contact) {
            contact.type = 'phone';

@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v0.10.6-5cdfe45a
+ * @license AngularJS v0.10.6
  * (c) 2010-2012 AngularJS http://angularjs.org
  * License: MIT
  */
@@ -29,40 +29,45 @@ function setupModuleLoader(window) {
      * @name angular.module
      * @description
      *
-     * The `angular.module` is a global place for registering angular modules. All modules
-     * (angular core or 3rd party) that should be available to an application must be registered using this mechanism.
+     * The `angular.module` is a global place for creating and registering Angular modules. All
+     * modules (angular core or 3rd party) that should be available to an application must be
+     * registered using this mechanism.
+     *
      *
      * # Module
      *
-     * A module is a collocation of services, directives, filters, and configure information. Module is used to configure the,
-     * {@link angular.module.AUTO.$injector $injector}.
+     * A module is a collocation of services, directives, filters, and configure information. Module
+     * is used to configure the {@link angular.module.AUTO.$injector $injector}.
      *
      * <pre>
      * // Create a new module
      * var myModule = angular.module('myModule', []);
      *
-     * // configure a new service
+     * // register a new service
      * myModule.value('appName', 'MyCoolApp');
      *
      * // configure existing services inside initialization blocks.
-     * myModule.init(function($locationProvider) {
+     * myModule.config(function($locationProvider) {
      *   // Configure existing providers
-     *   $locationProvider.hashPrefix = '!';
+     *   $locationProvider.hashPrefix('!');
      * });
      * </pre>
      *
-     * Then you can load your module like this:
+     * Then you can create an injector and load your modules like this:
      *
      * <pre>
      * var injector = angular.injector(['ng', 'MyModule'])
      * </pre>
      *
+     * However it's more likely that you'll just use {@link angular.directive.ng:app ng:app} or
+     * {@link angular.bootstrap} to simplify this process for you.
+     *
      * @param {!string} name The name of the module to create or retrieve.
      * @param {Array.<string>=} requires If specified then new module is being created. If unspecified then the
      *        the module is being retrieved for further configuration.
-     * @param {Function} initFn Option configuration function for the module. Same as
-     *        {@link angular.Module#init Module.init()}.
-     * @return {angular.Module}
+     * @param {Function} configFn Option configuration function for the module. Same as
+     *        {@link angular.Module#config Module#config()}.
+     * @returns {module} new module with the {@link angular.Module} api.
      */
     return function module(name, requires, configFn) {
       if (requires && modules.hasOwnProperty(name)) {
@@ -155,8 +160,8 @@ function setupModuleLoader(window) {
            * @ngdoc method
            * @name angular.Module#config
            * @methodOf angular.Module
-           * @param {Function} initializationFn Execute this function on module load. Useful for
-           *    service configuration.
+           * @param {Function} configFn Execute this function on module load. Useful for service
+           *    configuration.
            * @description
            * Use this method to register work which needs to be performed on module loading.
            */
@@ -169,7 +174,8 @@ function setupModuleLoader(window) {
            * @param {Function} initializationFn Execute this function after injector creation.
            *    Useful for application initialization.
            * @description
-           * Use this method to register work which needs to be performed on module loading.
+           * Use this method to register work which needs to be performed when the injector with
+           * with the current module is finished loading.
            */
           run: function(block) {
             runBlocks.push(block);

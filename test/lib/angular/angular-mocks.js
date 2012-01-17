@@ -760,15 +760,15 @@ angular.mock.$HttpBackendProvider = function() {
  *   - passing through is disabled
  *   - auto flushing is disabled
  *
- * Returns instance for e2e testing (when `$delegate` and `$defer` specified):
+ * Returns instance for e2e testing (when `$delegate` and `$browser` specified):
  *   - passing through (delegating request to real backend) is enabled
  *   - auto flushing is enabled
  *
  * @param {Object=} $delegate Real $httpBackend instance (allow passing through if specified)
- * @param {Object=} $defer Auto-flushing enabled if specified
+ * @param {Object=} $browser Auto-flushing enabled if specified
  * @return {Object} Instance of $httpBackend mock
  */
-function createHttpBackendMock($delegate, $defer) {
+function createHttpBackendMock($delegate, $browser) {
   var definitions = [],
       expectations = [],
       responses = [],
@@ -823,8 +823,8 @@ function createHttpBackendMock($delegate, $defer) {
     while ((definition = definitions[++i])) {
       if (definition.match(method, url, data, headers || {})) {
         if (definition.response) {
-          // if $defer specified, we do auto flush all requests
-          ($defer ? $defer : responsesPush)(function() {
+          // if $browser specified, we do auto flush all requests
+          ($browser ? $browser.defer : responsesPush)(function() {
             var response = definition.response(method, url, data, headers);
             xhr.$$respHeaders = response[2];
             callback(response[0], response[1], xhr.getAllResponseHeaders());
@@ -869,7 +869,7 @@ function createHttpBackendMock($delegate, $defer) {
           }
         };
 
-    if ($defer) {
+    if ($browser) {
       chain.passThrough = function() {
         definition.passThrough = true;
       };
@@ -1442,7 +1442,7 @@ angular.module('ngMockE2E', ['ng']).config(function($provide) {
  *   control how a matched request is handled.
  */
 angular.mock.e2e = {};
-angular.mock.e2e.$httpBackendDecorator = ['$delegate', '$defer', createHttpBackendMock];
+angular.mock.e2e.$httpBackendDecorator = ['$delegate', '$browser', createHttpBackendMock];
 
 
 
@@ -1476,7 +1476,7 @@ window.jasmine && (function(window) {
    * @name angular.mock.module
    * @description
    *
-   * *NOTE*: This is function is also published on window for easy access.
+   * *NOTE*: This is function is also published on window for easy access.<br>
    * *NOTE*: Only available with {@link http://pivotal.github.com/jasmine/ jasmine}.
    *
    * This function registers a module configuration code. It collects the configuration information
@@ -1511,7 +1511,7 @@ window.jasmine && (function(window) {
    * @name angular.mock.inject
    * @description
    *
-   * *NOTE*: This is function is also published on window for easy access.
+   * *NOTE*: This is function is also published on window for easy access.<br>
    * *NOTE*: Only available with {@link http://pivotal.github.com/jasmine/ jasmine}.
    *
    * The inject function wraps a function into an injectable function. The inject() creates new
