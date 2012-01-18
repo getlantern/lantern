@@ -40,7 +40,7 @@ public class HttpsEverywhereTest {
         for (int i = 0; i < urls.length; i++) {
             final String request = urls[i];
             final String expected = expecteds[i];
-            final String converted = HttpsEverywhere.toHttps(request);
+            final String converted = LanternHub.httpsEverywhere().toHttps(request);
             log.info("Got converted: "+converted);
             assertEquals(expected, converted);
         }
@@ -52,7 +52,7 @@ public class HttpsEverywhereTest {
         
         for (int i = 0; i < excluded.length; i++) {
             final String request = excluded[i];
-            final String converted = HttpsEverywhere.toHttps(request);
+            final String converted = LanternHub.httpsEverywhere().toHttps(request);
             log.info("Got converted: "+converted);
             assertEquals(request, converted);
         }

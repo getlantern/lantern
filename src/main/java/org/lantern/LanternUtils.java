@@ -659,7 +659,7 @@ public class LanternUtils {
             try {
                 final DatagramChannel channel = DatagramChannel.open();
                 final SocketAddress server = 
-                    new InetSocketAddress("time-a.nist.gov", 37);
+                    new InetSocketAddress("www.google.com", 80);
                 channel.connect(server);
                 return;
             } catch (final IOException e) {
