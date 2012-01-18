@@ -1,5 +1,6 @@
 package org.lantern;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -20,6 +21,8 @@ public class Roster {
         new HashMap<String, LanternPresence>();
     
     private boolean entriesSet = false;
+
+    private AuthenticationStatus status;
     
     /**
      * Creates a new roster.
@@ -51,7 +54,7 @@ public class Roster {
     
     @Subscribe
     public void onAuthStatus(final AuthenticationStatusEvent ase) {
-        final AuthenticationStatus status = ase.getStatus();
+        this.status = ase.getStatus();
         switch (status) {
         case LOGGED_IN:
             setEntriesMap(LanternUtils.getRosterEntries(
@@ -69,9 +72,10 @@ public class Roster {
 
     @JsonIgnore
     public void setEntriesMap(final Map<String, LanternPresence> entries) {
-        this.setEntriesSet(true);
+        this.entriesSet = true;
         synchronized (entries) {
             this.entries = entries;
+            this.entries.notifyAll();
         }
     }
 
@@ -93,11 +97,21 @@ public class Roster {
         return ordered;
     }
 
-    public void setEntriesSet(boolean entriesSet) {
-        this.entriesSet = entriesSet;
-    }
-
     public boolean isEntriesSet() {
         return entriesSet;
+    }
+
+    public void populate() throws IOException {
+        if (this.status != AuthenticationStatus.LOGGED_IN) {
+            throw new IOException("Not logged in!!");
+        }
+        synchronized (entries) {
+            while(!entriesSet) {
+                try {
+                    entries.wait(40000);
+                } catch (final InterruptedException e) {
+                }
+            }
+        }
     }
 }

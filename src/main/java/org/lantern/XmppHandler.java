@@ -15,4 +15,6 @@ public interface XmppHandler extends ProxyStatusListener, ProxyProvider {
 
     XmppP2PClient getP2PClient();
 
+    boolean isLoggedIn();
+
 }

@@ -3,10 +3,12 @@ package org.lantern.httpseverywhere;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import org.jboss.netty.handler.codec.http.Cookie; 
-import org.jboss.netty.handler.codec.http.HttpRequest; 
+
+import org.jboss.netty.handler.codec.http.Cookie;
+import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.lantern.LanternHub;
 import org.lantern.cookie.CookieFilter;
-import static org.lantern.httpseverywhere.HttpsEverywhere.HttpsRuleSet;
+import org.lantern.httpseverywhere.HttpsEverywhere.HttpsRuleSet;
 
 /**
  * filters any outbound Cookie header that 
@@ -34,7 +36,7 @@ public class HttpsSecureCookieFilter implements CookieFilter {
     
     public HttpsSecureCookieFilter(HttpRequest context) {
         rules = new ArrayList<HttpsSecureCookieRule>();
-        for (HttpsRuleSet ruleSet : HttpsEverywhere.getApplicableRuleSets(context.getUri())) {
+        for (HttpsRuleSet ruleSet : LanternHub.httpsEverywhere().getApplicableRuleSets(context.getUri())) {
             for (HttpsSecureCookieRule rule : ruleSet.getSecureCookieRules()) {
                 rules.add(rule);
             }

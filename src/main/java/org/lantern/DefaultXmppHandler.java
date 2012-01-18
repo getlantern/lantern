@@ -1055,4 +1055,16 @@ public class DefaultXmppHandler implements XmppHandler {
             throw new Error("Key managmement issue?", e);
         }
     }
+
+    @Override
+    public boolean isLoggedIn() {
+        if (this.client == null) {
+            return false;
+        }
+        final XMPPConnection conn = client.getXmppConnection();
+        if (conn == null) {
+            return false;
+        }
+        return conn.isAuthenticated();
+    }
 }

@@ -32,12 +32,12 @@ import com.google.common.collect.ImmutableMap;
  */
 public class HttpsEverywhere {
     
-    private static final Logger LOG = 
+    private final Logger LOG = 
         LoggerFactory.getLogger(HttpsEverywhere.class);
     
-    private static final Map<String, HttpsRuleSet> httpsRules;
+    private final Map<String, HttpsRuleSet> httpsRules;
     
-    static {
+    {
         final File httpsDir = new File("https");
         final File[] ruleFiles = httpsDir.listFiles();
         final Map<String, HttpsRuleSet> rules =
@@ -56,7 +56,7 @@ public class HttpsEverywhere {
         httpsRules = ImmutableMap.copyOf(rules);
     }
 
-    private static void addRuleFile(final File ruleFile, 
+    private void addRuleFile(final File ruleFile, 
         final Map<String, HttpsRuleSet> rules) throws IOException, 
         SAXException, XPathExpressionException {
         InputStream is = null;
@@ -113,7 +113,7 @@ public class HttpsEverywhere {
         }
     }
     
-    public static String toHttps(final String uri) {
+    public String toHttps(final String uri) {
         if (!uri.startsWith("http://")) {
             LOG.info("Not modifying non-http request: {}", uri);
             return uri;
@@ -150,11 +150,11 @@ public class HttpsEverywhere {
         return uri;
     }
     
-    public static Map<String, HttpsRuleSet> getRules() {
+    public Map<String, HttpsRuleSet> getRules() {
         return httpsRules;
     }
     
-    public static Collection<HttpsRuleSet> getApplicableRuleSets(
+    public Collection<HttpsRuleSet> getApplicableRuleSets(
         final String uri) {
         
         final Collection<String> candidates = 
@@ -175,7 +175,7 @@ public class HttpsEverywhere {
         return applicable;
     }
 
-    private static boolean excluded(final String uri,
+    private boolean excluded(final String uri,
         final Collection<String> exclusions) {
         for (final String exclusion : exclusions) {
             if (uri.matches(exclusion)) {
@@ -186,7 +186,7 @@ public class HttpsEverywhere {
         return false;
     }
 
-    private static Collection<HttpsRuleSet> getRules(
+    private Collection<HttpsRuleSet> getRules(
         final Collection<String> candidates) {
         //LOG.info("Searching for rules in: {}", httpsRules);
         final Collection<HttpsRuleSet> rules = new HashSet<HttpsRuleSet>();
@@ -200,7 +200,7 @@ public class HttpsEverywhere {
     }
     
     
-    public static final class HttpsRuleSet {
+    public final class HttpsRuleSet {
         private final Collection<HttpsRule> rules;
         private final Collection<HttpsSecureCookieRule> secureCookieRules;
         private final Collection<String> exclusions;

@@ -17,6 +17,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.widgets.Display;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.InMemoryCookieTracker;
+import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,6 +106,9 @@ public class LanternHub {
     
     private static final AtomicReference<Dashboard> dashboard =
         new AtomicReference<Dashboard>();
+    
+    private static final AtomicReference<HttpsEverywhere> httpsEverywhere =
+        new AtomicReference<HttpsEverywhere>();
     
     private static  Settings settings;
     
@@ -433,6 +437,15 @@ public class LanternHub {
     
     public static void setRoster(final Roster rost) {
         roster.set(rost);
+    }
+
+    public static HttpsEverywhere httpsEverywhere() {
+        synchronized (httpsEverywhere) {
+            if (httpsEverywhere.get() == null) {
+                httpsEverywhere.set(new HttpsEverywhere());
+            }
+            return httpsEverywhere.get();
+        }
     }
 
 }
