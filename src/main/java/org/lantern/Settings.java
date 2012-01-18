@@ -3,6 +3,7 @@ package org.lantern;
 import java.util.Locale;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.httpseverywhere.HttpsEverywhere;
 
 import com.google.common.eventbus.Subscribe;
@@ -12,6 +13,11 @@ import com.google.common.eventbus.Subscribe;
  */
 //@JsonPropertyOrder({"user", "system", "whitelist", "roster"})
 public class Settings implements MutableSettings {
+
+    // marker class used to indicate settings that are 
+    // saved / loaded between runs of lantern.
+    public static class PersistentSettings {}
+    public static class UIStateSettings {}
 
     private Whitelist whitelist;
     
@@ -80,6 +86,7 @@ public class Settings implements MutableSettings {
         this.whitelist = whitelist;
     }
     
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public Whitelist getWhitelist() {
         //if (this.whitelist == null) {
         //    this.whitelist = LanternHub.settings().whitelist();
@@ -91,6 +98,7 @@ public class Settings implements MutableSettings {
         this.whitelist = whitelist;
     }
 
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isSystemProxy() {
         return this.isSystemProxy;
     }
@@ -100,6 +108,7 @@ public class Settings implements MutableSettings {
         this.isSystemProxy = isSystemProxy;
     }
     
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isStartAtLogin() {
         return this.startAtLogin;
     }
@@ -108,6 +117,8 @@ public class Settings implements MutableSettings {
         this.startAtLogin = startAtLogin;
     }
     
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public int getPort() {
         return this.port;
     }
@@ -117,41 +128,31 @@ public class Settings implements MutableSettings {
         this.port = port;
     }
     
+    @JsonView(UIStateSettings.class)
     public ConnectivityStatus getConnectivity() {
         return connectivity;
     }
 
+    @JsonView(UIStateSettings.class)
     public String getVersion() {
         return this.version;
     }
     
-    public void setVersion(final String version) {
-    }
-    
+    @JsonView(UIStateSettings.class)
     public Internet getInternet() {
         return internet;
     }
-    
-    public void setInternet(final Internet internet) {
-        // Ignored since these are read-only and may change between writes to
-        // disk -- so we don't want data to from disk to override dynamic
-        // runtime data.
-    }
-    
+
+    @JsonView(UIStateSettings.class)
     public Platform getPlatform() {
         return this.platform;
-    }
-    
-    public void setPlatform(final Platform platform) {
-        // Ignored since these are read-only and may change between writes to
-        // disk -- so we don't want data to from disk to override dynamic
-        // runtime data.
     }
     
     public void setConnectOnLaunch(final boolean connectOnLaunch) {
         this.connectOnLaunch = connectOnLaunch;
     }
     
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isConnectOnLaunch() {
         return this.connectOnLaunch;
     }
@@ -171,6 +172,7 @@ public class Settings implements MutableSettings {
         this.language = language;
     }
 
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public String getLanguage() {
         return language;
     }
@@ -178,7 +180,8 @@ public class Settings implements MutableSettings {
     public void setUpdate(UpdateEvent update) {
         this.update = update;
     }
-
+    
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public UpdateEvent getUpdate() {
         return update;
     }
@@ -187,10 +190,13 @@ public class Settings implements MutableSettings {
         this.settings = settings;
     }
 
+    @JsonView(UIStateSettings.class)
     public SettingsState getSettings() {
         return settings;
     }
 
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean getInitialSetupComplete() {
         return initialSetupComplete;
     }
@@ -199,6 +205,7 @@ public class Settings implements MutableSettings {
         initialSetupComplete = val;
     }
 
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public String getEmail() {
         return email;
     }
@@ -207,11 +214,7 @@ public class Settings implements MutableSettings {
         this.email = email;
     }
 
-    public void setAuthenticationStatus(
-        final AuthenticationStatus authenticationStatus) {
-        // We ignore the value from disk and rely on the event dispatch system.
-    }
-
+    @JsonView(UIStateSettings.class)
     public AuthenticationStatus getAuthenticationStatus() {
         return authenticationStatus;
     }
@@ -226,10 +229,13 @@ public class Settings implements MutableSettings {
         this.proxyAllSites = proxyAllSites;
     }
 
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isProxyAllSites() {
         return proxyAllSites;
     }
 
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public Country getCountry() {
         return this.country;
     }
@@ -244,6 +250,7 @@ public class Settings implements MutableSettings {
         this.manuallyOverrideCountry = manuallyOverrideCountry;
     }
 
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isManuallyOverrideCountry() {
         return manuallyOverrideCountry;
     }
@@ -253,6 +260,7 @@ public class Settings implements MutableSettings {
         this.savePassword = savePassword;
     }
 
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isSavePassword() {
         return savePassword;
     }
@@ -272,6 +280,7 @@ public class Settings implements MutableSettings {
         this.storedPassword = storedPassword;
     }
 
+    @JsonView(PersistentSettings.class)
     public String getStoredPassword() {
         return storedPassword;
     }
@@ -280,6 +289,8 @@ public class Settings implements MutableSettings {
         this.useCloudProxies = useCloudProxies;
     }
 
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isUseCloudProxies() {
         return useCloudProxies;
     }
@@ -289,6 +300,8 @@ public class Settings implements MutableSettings {
         this.getMode = getMode;
     }
 
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isGetMode() {
         return getMode;
     }
@@ -297,6 +310,8 @@ public class Settings implements MutableSettings {
         this.bindToLocalhost = bindToLocalhost;
     }
 
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isBindToLocalhost() {
         return bindToLocalhost;
     }
@@ -305,6 +320,8 @@ public class Settings implements MutableSettings {
         this.apiPort = apiPort;
     }
 
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public int getApiPort() {
         return apiPort;
     }
@@ -313,22 +330,22 @@ public class Settings implements MutableSettings {
         this.countryDetected = countryDetected;
     }
 
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public Country getCountryDetected() {
         return countryDetected;
     }
     
+    @JsonView(UIStateSettings.class)
     public long getUpRate() {
         return LanternHub.statsTracker().getUpBytesPerSecond();
     }
-    public void setUpRate(long upRate) { /* not settable */ }
     
+    @JsonView(UIStateSettings.class)
     public long getDownRate() {
         return LanternHub.statsTracker().getDownBytesPerSecond();
     }
-    public void setDownRate(long downRate) { /* not settable */ }
     
-    public void setProxying(final boolean proxying) { /* not settable */}
-
+    @JsonView(UIStateSettings.class)
     public boolean isProxying() {
         return Configurator.isProxying();
     }
@@ -336,14 +353,13 @@ public class Settings implements MutableSettings {
     public void setPasswordSaved(boolean passwordSaved) {
         this.passwordSaved = passwordSaved;
     }
-
+    
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isPasswordSaved() {
         return passwordSaved;
     }
 
-    public void setHttpsEverywhere(final HttpsEverywhere httpsEverywhere) {
-    }
-
+    @JsonView(UIStateSettings.class)
     public HttpsEverywhere getHttpsEverywhere() {
         return LanternHub.httpsEverywhere();
     }
