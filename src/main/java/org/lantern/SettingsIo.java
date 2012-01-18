@@ -8,7 +8,12 @@ import java.security.GeneralSecurityException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
+import org.codehaus.jackson.map.SerializationConfig;
+import org.codehaus.jackson.map.SerializationConfig.Feature;
 import org.lantern.SettingsState.State;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,10 +101,16 @@ public class SettingsIo {
     public void write(final Settings settings) {
         OutputStream os = null;
         try {
-            
-            final String json = LanternUtils.jsonify(settings);
+            final ObjectMapper mapper = new ObjectMapper();
+            mapper.configure(Feature.INDENT_OUTPUT, true);
+            ObjectWriter writer = mapper.writerWithView(Settings.PersistentSettings.class);
+            final String json = writer.writeValueAsString(settings);
             os = LanternUtils.localEncryptOutputStream(settingsFile);
             os.write(json.getBytes("UTF-8"));
+        } catch (final JsonGenerationException e) {
+            log.warn("Error generating Settings JSON", e);
+        } catch (final JsonMappingException e) {
+            log.warn("Error generating Settings JSON", e);
         } catch (final IOException e) {
             log.error("Error encrypting stream", e);
         } catch (final GeneralSecurityException e) {
