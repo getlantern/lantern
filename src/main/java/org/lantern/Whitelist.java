@@ -22,13 +22,17 @@ public class Whitelist {
         new TreeSet<WhitelistEntry>();
     
     {
+        // these domains host required services and can't be removed
+        addDefaultEntry("getlantern.org", true);
+        addDefaultEntry("getexceptional.com", true);
+        addDefaultEntry("exceptional.io", true);
+
+        // optional
         addDefaultEntry("avaaz.org", false);
         addDefaultEntry("bittorrent.com", false);
         addDefaultEntry("balatarin.com", false);
         addDefaultEntry("facebook.com", false);
         addDefaultEntry("flickr.com", false);
-        addDefaultEntry("getexceptional.com", true);
-        addDefaultEntry("getlantern.org", true);
         addDefaultEntry("google.com", false);
         addDefaultEntry("ifconfig.me", false);
         addDefaultEntry("linkedin.com", false);
