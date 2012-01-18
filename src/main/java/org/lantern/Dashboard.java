@@ -6,6 +6,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
@@ -43,6 +44,9 @@ public class Dashboard {
         //this.shell.setSize(720, 540);
         // shell.setFullScreen(true);
 
+        final int minWidth = 970;
+        final int minHeight = 630;
+
         log.debug("Centering on screen...");
         final Monitor primary = LanternHub.display().getPrimaryMonitor();
         final Rectangle bounds = primary.getBounds();
@@ -55,10 +59,14 @@ public class Dashboard {
         
         log.info("Creating new browser...");
         final Browser browser = new Browser(shell, SWT.NONE);
-        browser.setSize(800, 600);
+        browser.setSize(minWidth, minHeight);
         //browser.setBounds(0, 0, 800, 600);
         browser.setUrl("http://localhost:"+
             LanternHub.settings().getApiPort()+"/dashboard.html");
+        shell.setLayout(new FillLayout());
+        Rectangle minSize = shell.computeTrim(0, 0, minWidth, minHeight); 
+        shell.setMinimumSize(minSize.width, minSize.height);
+        shell.pack();
         shell.open();
         shell.forceActive();
         while (!shell.isDisposed()) {
