@@ -273,7 +273,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         
         if (proxying) {
             // If it's an HTTP request, see if we can redirect it to HTTPS.
-            final String https = HttpsEverywhere.toHttps(uri);
+            final String https = LanternHub.httpsEverywhere().toHttps(uri);
             if (!https.equals(uri)) {
                 final HttpResponse response = 
                     new DefaultHttpResponse(request.getProtocolVersion(), 
