@@ -315,13 +315,14 @@ function LDCtrl(){
     if(!self.state.passwordSaved)
       data.password = self.inputpassword || prompt('Please enter your password (this prompt will be replaced):');
     $('form.signin').addClass('loading');
-    $.post('/api/signin', data).done(function(data){
+    $.post('/api/signin', data).done(function(){
+      console.log('signin succeeded');
       $('form.signin').removeClass('badcredentials');
       self.inputpassword = '';
       showid(self.state.getMode && '#trustedpeers' || '#setupcomplete');
     }).fail(function(){
       $('form.signin').addClass('badcredentials');
-      console.log('signin fail: ', arguments);
+      console.log('signin failed');
     }).always(function(){
       $('form.signin').removeClass('loading');
     });
