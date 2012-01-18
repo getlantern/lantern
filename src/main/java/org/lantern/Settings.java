@@ -3,6 +3,7 @@ package org.lantern;
 import java.util.Locale;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
+import org.lantern.httpseverywhere.HttpsEverywhere;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -338,6 +339,13 @@ public class Settings implements MutableSettings {
 
     public boolean isPasswordSaved() {
         return passwordSaved;
+    }
+
+    public void setHttpsEverywhere(final HttpsEverywhere httpsEverywhere) {
+    }
+
+    public HttpsEverywhere getHttpsEverywhere() {
+        return LanternHub.httpsEverywhere();
     }
 
     @Override
