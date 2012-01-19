@@ -57,6 +57,10 @@ public class DefaultLanternApi implements LanternApi {
                 }
             }
             final String rawEmail = params.remove("email");
+            if (StringUtils.isBlank(rawEmail)) {
+                sendError(resp, "No email address provided");
+                return;
+            }
             final String email;
             if (!rawEmail.contains("@")) {
                 email = rawEmail + "@gmail.com";

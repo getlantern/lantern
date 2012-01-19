@@ -32,7 +32,7 @@ javaArgs="-jar "$cp" $*"
 
 if [ "$RUN_LANTERN_DEBUG_PORT" ]
     then
-    javaArgs="-Xdebug -Xrunjdwp:transport=dt_socket,address=$RUN_LANTERN_DEBUG_PORT,server=y,suspend=y "+$javaArgs
+    javaArgs="-Xdebug -Xrunjdwp:transport=dt_socket,address=$RUN_LANTERN_DEBUG_PORT,server=y,suspend=y $javaArgs"
 fi
 
 uname -a | grep Darwin && extras="-XstartOnFirstThread"
