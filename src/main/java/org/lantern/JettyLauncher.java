@@ -86,7 +86,7 @@ public class JettyLauncher {
         //cometdServlet.init(config);
         final ServletHolder cometd = new ServletHolder(cometdServlet);
         cometd.setInitParameter("jsonContext", 
-            "org.cometd.server.JacksonJSONContextServer");
+            "org.lantern.SettingsJSONContextServer");
         cometd.setInitOrder(1);
         contextHandler.addServlet(cometd, "/cometd/*");
         
@@ -97,11 +97,7 @@ public class JettyLauncher {
                 final ServletResponse res)
                 throws ServletException, IOException {
                 final Settings settings = LanternHub.settings();
-                final String pass = settings.getPassword();
-                settings.setPassword("");
-                final String json = LanternUtils.jsonify(settings);
-                settings.setPassword(pass);
-                
+                final String json = LanternUtils.jsonify(settings, Settings.UIStateSettings.class);
                 final byte[] raw = json.getBytes("UTF-8");
                 res.setContentLength(raw.length);
                 res.setContentType("application/json");

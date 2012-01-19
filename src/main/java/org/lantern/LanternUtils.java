@@ -59,6 +59,7 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.ObjectWriter;
 import org.codehaus.jackson.map.SerializationConfig.Feature;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
@@ -894,7 +895,23 @@ public class LanternUtils {
         }
         return "";
     }
-
+    
+    public static String jsonify(final Object all, Class<?> view) {
+        final ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(Feature.INDENT_OUTPUT, true);
+        ObjectWriter writer = mapper.writerWithView(view);
+        try {
+            return writer.writeValueAsString(all);
+        } catch (final JsonGenerationException e) {
+            LOG.warn("Error generating JSON", e);
+        } catch (final JsonMappingException e) {
+            LOG.warn("Error generating JSON", e);
+        } catch (final IOException e) {
+            LOG.warn("Error generating JSON", e);
+        }
+        return "";
+    }
+    
     /**
      * Returns <code>true</code> if the specified string is either "true" or
      * "on" ignoring case.

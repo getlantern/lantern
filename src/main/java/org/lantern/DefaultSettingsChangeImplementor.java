@@ -40,8 +40,19 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
 
     @Override
     public void setSystemProxy(final boolean isSystemProxy) {
+        if (isSystemProxy == LanternHub.settings().isSystemProxy()) {
+            log.info("System proxy setting is unchanged.");
+            return;
+        }
+        
+        
         log.info("Setting system proxy");
-        if (isSystemProxy) {
+        // go ahead and change the setting so that it will affect
+        // shouldProxy. it will be set again by the api, but that
+        // doesn't matter.
+        LanternHub.settings().setSystemProxy(isSystemProxy);
+        
+        if (LanternUtils.shouldProxy()) {
             Configurator.startProxying();
         } else {
             Configurator.stopProxying();
@@ -74,6 +85,12 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             return;
         }
         
+        // Go ahead and set the setting although it will also be
+        // updated by the api as well.  We want to make sure the
+        // state seen by the following calls is consistent with
+        // this flag being aspirational vs. representational
+        LanternHub.settings().setGetMode(getMode);
+        
         // We disconnect and reconnect to create a new Jabber ID that will 
         // not advertise us as a connection point.
         LanternHub.xmppHandler().disconnect();
@@ -81,6 +98,13 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             LanternHub.xmppHandler().connect();
         } catch (final IOException e) {
             log.info("Could not login", e);
+        }
+
+        // may need to modify the proxying state
+        if (LanternUtils.shouldProxy()) {
+            Configurator.startProxying();
+        } else {
+            Configurator.stopProxying();
         }
     }
 
