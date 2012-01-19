@@ -412,12 +412,12 @@ textarea, input[type=text], input[type=email]
   left: 133px
 
 #topbar-rate-up
-  left: 189px
+  left: 189px - 50px // XXX subtract for topbar-peers which is hidden
   &:before
     content: '⬆'
 
 #topbar-rate-dn
-  left: 251px
+  left: 251px - 50px // XXX subtract for topbar-peers which is hidden
   &:before
     content: '⬇'
 

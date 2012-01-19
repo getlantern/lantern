@@ -94,7 +94,9 @@
         <div id=topbar>
           <span id=topbar-conn ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}</span></span>
           <span ng:show=loggedin()>
+            <!--
             <span id=topbar-peers class=topbar-stat>{{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span>
+            -->
             <span id=topbar-rate-up class="topbar-stat rate">{{state.upRate | bytes}}</span>
             <span id=topbar-rate-dn class="topbar-stat rate">{{state.downRate | bytes}}</span>
           </span>
@@ -110,7 +112,9 @@
         </div>
         <div id=sidebar>
           <h1>Dashboard</h1>
+          <!--
           <input id=search type=search placeholder="Search (TODO)" results=0 incremental autosave/>
+          -->
           <nav>
             <ul id=panel-list>
               <li><a href=#status class=selected>Status</a></li>
@@ -129,15 +133,17 @@
               <a class=actionlink ng:click=signin() ng:show=loggedout()>Sign in</a></span>
               </span>
             </dd>
+            <!--
             <dt ng:show=loggedin()>Peers</dt>
             <dd ng:show=loggedin()>
               <span id=give-mode-peers>
                 {{npeers()}}
               </span>
             </dd>
+            -->
             <dt ng:show=loggedin()>Traffic</dt>
             <dd ng:show=loggedin()>
-              {{state.upRate+state.downRate|bytes}}/s via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>
+              <span class=rate>{{state.upRate+state.downRate|bytes}}</span><!--via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>-->
             </dd>
             <dt>Version</dt>
             <dd>
@@ -191,8 +197,10 @@
           </p>
           <textarea ng:model=pm id=pm-textarea placeholder="Private message to Lantern developers"></textarea>
           <div id=pm-controls>
+            <!--
             <label><input type=checkbox ng:model=requestreply /> please reply to</label>
             <input id=pm-replyto type=email ng:model=requestreplyto ng:disabled={{!requestreply}} placeholder=email@example.com value={{state.email}} />
+            -->
             <input id=pm-send type=button value=Send ng:disabled="{{!loggedin() || !pm}}" ng:click=todo() />
           </div>
           <div class=extra ng:show=requestreply>
@@ -287,7 +295,6 @@ function LDCtrl(){
 
   self.loggedin = function(){return self.state.authenticationStatus === 'LOGGED_IN';};
   self.loggedout = function(){return self.state.authenticationStatus === 'LOGGED_OUT';};
-  self.npeers = function(){return 0;}; // XXX
 
   self.conncaption = function(){
     switch(self.state.authenticationStatus){
@@ -314,6 +321,7 @@ function LDCtrl(){
     };
     if(!self.state.passwordSaved)
       data.password = self.inputpassword || prompt('Please enter your password (this prompt will be replaced):');
+    console.log('Signing in with:', data);
     $('form.signin').addClass('loading');
     $.post('/api/signin', data).done(function(){
       console.log('signin succeeded');
