@@ -193,9 +193,9 @@ public class DefaultLanternApi implements LanternApi {
 
     private void changeSetting(final HttpServletResponse resp, final String key, 
         final String val, final boolean determineType) {
-        setProperty(LanternHub.settings(), key, val, true, resp, determineType);
         setProperty(LanternHub.settingsChangeImplementor(), key, val, false, 
             resp, determineType);
+        setProperty(LanternHub.settings(), key, val, true, resp, determineType);
         resp.setStatus(HttpStatus.SC_OK);
         LanternHub.asyncEventBus().post(new SyncEvent());
         LanternHub.settingsIo().write();

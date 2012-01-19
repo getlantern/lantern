@@ -160,6 +160,10 @@ public class Configurator {
     }
     
     public static void startProxying() {
+        if (isProxying()) {
+            return;
+        }
+        
         try {
             if (!LANTERN_PROXYING_FILE.isFile() &&
                 !LANTERN_PROXYING_FILE.createNewFile()) {
@@ -180,6 +184,10 @@ public class Configurator {
     }
     
     public static void stopProxying() {
+        if (!isProxying()) {
+            return; 
+        }
+        
         LOG.info("Unproxying Lantern");
         LANTERN_PROXYING_FILE.delete();
         if (SystemUtils.IS_OS_MAC_OSX) {

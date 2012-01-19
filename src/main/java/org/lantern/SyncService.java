@@ -130,10 +130,7 @@ public class SyncService {
         
         if (channel != null) {
             final Settings settings = LanternHub.settings();
-            final String pass = settings.getPassword();
-            settings.setPassword("");
             channel.publish(settings);
-            settings.setPassword(pass);
             lastUpdateTime = System.currentTimeMillis();
         }
     }
