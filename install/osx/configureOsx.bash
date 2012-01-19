@@ -61,7 +61,7 @@ log "Loading launchd plist file"
 launchctl load -F $LAUNCHD_PLIST || die "Could not load plist via launchctl"
 
 log "Copying default proxy off pac file"
-cp $APP_PATH/Contents/Resources/app/proxy_off.pac ~/.lantern/proxy.pac || die "Could not copy default pac file?"
+cp $APP_PATH/Contents/Resources/app/proxy_off.pac ~/.lantern/proxy.pac || die "Could not copy default pac file using APP_PATH $APP_PATH ?"
 log "Copied pac file!!"
 
 logFile $LAUNCHD_PLIST
