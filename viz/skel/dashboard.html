@@ -69,12 +69,12 @@ A. ...
         </div>
         <div id=signin class=slide data-cls=slide>
           <h1>Sign into Google</h1>
-          <form id=firstsignin-form name=fsform class=signin ng:submit=signinsubmit()>
+          <form id=firstsignin-form name=fsform class=signin ng:submit=fs_submit()>
             <ul>
               <li><div class=error>Bad username or password.</div></li>
-              <li><input type=text placeholder=email@example.com ng:model=inputemail required autofocus ng:disabled={{!loggedout()}} value="{{state.email || ''}}" id=inputemail /></li>
-              <li><input type=password placeholder=password ng:model=inputpassword required ng:disabled={{!loggedout()}} value="{{!loggedout() && '•••••••••••••' || ''}}" id=inputpass /></li>
-              <li><label><input type=checkbox ng:model=savepassword /> Save password</label></li>
+              <li><input type=text placeholder=email@example.com ng:model=inputemail ng:required={{true}} autofocus ng:disabled={{!loggedout()}} value="{{state.email || ''}}" /></li>
+              <li><input type=password placeholder=password ng:model=inputpassword ng:required={{true}} ng:disabled={{!loggedout()}} value="{{!loggedout() && '•••••••••••••' || ''}}" /></li>
+              <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
             <div class=controls>
               <figure>
@@ -101,7 +101,7 @@ A. ...
           <label><input type=checkbox ng:model=state.useCloudProxies ng:change=toggle('useCloudProxies') /> Use Lantern cloud proxies</label>
           <div class=controls>
             <figure>
-              <a href="{{state.getMode && '#trustedpeers' || '#signin'}}"><img src=assets/img/arrow-left.png alt=Back /></a>
+              <a href=#signin><img src=assets/img/arrow-left.png alt=Back /></a>
               <figcaption>Back</figcaption>
             </figure>
             <figure>
@@ -115,7 +115,7 @@ A. ...
           <h4>Thank you for joining Lantern. Surf safely.</h4>
           <div class=controls>
             <figure>
-              <a href=#signin><img src=assets/img/arrow-left.png alt=Back /></a>
+              <a href="{{state.getMode && '#trustedpeers' || '#signin'}}"><img src=assets/img/arrow-left.png alt=Back /></a>
               <figcaption>Back</figcaption>
             </figure>
             <figure>
@@ -140,9 +140,8 @@ A. ...
         <div id=usermenu class={{state.authenticationStatus}}>
           <ul>
             <li ng:show=loggedin()><a ng:click=switchmode(true)>{{switchlinktext()}}</a></li>
-            <li><a ng:click=todo()>Switch user</a></li>
+            <li><a ng:click="showsignin(true)">{{loggedin() && 'Switch user' || 'Sign in'}}</a></li>
             <li ng:show=loggedin()><a ng:click=signout()>Sign out</a></li>
-            <li ng:show=!loggedin()><a ng:click=signin()>Sign in</a></li>
           </ul>
         </div>
         <div id=sidebar>
@@ -165,7 +164,7 @@ A. ...
             <dt>Mode</dt>
             <dd>
               <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}
-              <a class=actionlink ng:click=signin() ng:show=loggedout()>Sign in</a></span>
+              <a class=actionlink ng:click="(!state.passwordSaved) && (showsignin(true)) || signin()" ng:show=loggedout()>Sign in</a></span>
               </span>
             </dd>
             <!--
@@ -219,7 +218,7 @@ A. ...
                 <li><label><input type=checkbox ng:change=toggle('connectOnLaunch') ng:model=state.connectOnLaunch /> Sign in on launch</label></li>
                 <li><label><input type=checkbox ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Set as system proxy</label></li>
               </ul>
-              <input type=button ng:click=reset() id=reset-button value="Reset Lantern" />
+              <button class=warning ng:click=reset()>Reset Lantern</button>
             </dd>
           </dl>
         </div>
@@ -246,20 +245,36 @@ A. ...
           <h1>Update</h1>
         </div>
 
+        <div id=signin-overlay ng:show=showsignin()>
+          <a class=close ng:click="showsignin(false)">×</a>
+          <form name=signinform class=signin ng:submit=signin(inputemail)>
+            <ul>
+              <li><div class=error>Bad username or password.</div></li>
+              <li><input type=text placeholder=email@example.com ng:model=inputemail autofocus value="{{state.email || ''}}" ng:required={{true}} /></li>
+              <li><input type=password placeholder="{{state.passwordSaved && 'password saved' || 'password'}}" ng:model=inputpassword required ng:disabled="{{state.passwordSaved && state.savePassword}}" ng:required="{{!state.passwordSaved && !state.savePassword}}" /></li>
+              <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
+            </ul>
+            <button ng:show=!loggingin() type=submit>{{loggedin() && 'Switch user' || 'Sign in'}}</button>
+            <img src=assets/img/spinner32.gif alt=Loading... ng:show=loggingin() />
+          </form>
+        </div>
+
         <div class=overlay id=proxiedsites data-cls=overlay>
           <a class=close>×</a>
           <h1>Proxied sites</h1>
           <ul id=siteslist>
             <!-- XXX give required entries lower sort order -->
             <li ng:repeat="entry in state.whitelist.entries">
-              <form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input ng:model=newsite type=text required placeholder=example.com value="{{ entry.site }}" ng:disabled={{entry.required}} /></form>
+              <form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input ng:model=newsite type=text ng:required={{true}} placeholder=example.com value="{{ entry.site }}" ng:disabled={{entry.required}} /></form>
               <a class=delete ng:show=!entry.required ng:click="updatewhitelist(entry.site, false)">×</a>
             </li>
             <li>
-              <form ng:submit="updatewhitelist(sitetoadd, true)"><input id=sitetoadd ng:model=sitetoadd type=text required placeholder="Add a new site" /></form>
+              <form ng:submit="updatewhitelist(sitetoadd, true)"><input id=sitetoadd ng:model=sitetoadd type=text ng:required={{true}} placeholder="Add a new site" /></form>
             </li>
           </ul>
         </div>
+
+
       </div>
     </div>
 
@@ -314,7 +329,6 @@ function LDCtrl(){
 
   self.inputemail = null;
   self.inputpassword = null;
-  self.savepassword = true;
 
   self.peerfilterinput = null;
   self.peerfilter = function(peer){
@@ -324,6 +338,18 @@ function LDCtrl(){
     return peer.email.indexOf(f) !== -1;
   };
   self.peers = null;
+
+  self.showsignin = function(val){
+    if(typeof val == 'undefined'){
+      if(typeof self._showsignin == 'undefined'){
+        self._showsignin = !self.loggedin() && self.state.connectOnLaunch && !self.state.passwordSaved;
+        console.log('set _showsignin to', self._showsignin);
+      }
+    }else{
+      self._showsignin = val;
+    }
+    return self._showsignin;
+  }
 
   self.pm = null;
   self.requestreply = false;
@@ -351,7 +377,7 @@ function LDCtrl(){
       return 'Switch to '+(self.state.getMode?'giv':'gett')+'ing access';
   };
 
-  self.signinsubmit = function(){
+  self.fs_submit = function(){
     if(self.loggedout()){
       console.log('calling signin');
       self.signin(self.inputemail);
@@ -375,8 +401,7 @@ function LDCtrl(){
 
   self.signin = function(email){
     var data = {
-      email: email || self.state.email,
-      savePassword: self.savepassword
+      email: email || self.state.email
     };
     if(!self.state.passwordSaved)
       data.password = self.inputpassword || prompt('Please enter your password (this prompt will be replaced):');

@@ -99,7 +99,7 @@ $welcome-controls-wdth: 300px
   background-color: #eee
   font-size: $font-size-smaller
 
-#signin
+form.signin
   input[type=text], input[type=password]
     background-color: #eee
     border: 1px solid $edge-color
@@ -108,10 +108,6 @@ $welcome-controls-wdth: 300px
     padding: 4px
     font-size: 18pt
     +border-radius(5px)
-  input[type=submit]
-    position: absolute
-    bottom: 15px
-    right: 20px
 
 #trustedpeers
   .peerlist
@@ -138,7 +134,7 @@ form.signin .error
   opacity: 0
 
 .badcredentials
-  input[type=email], input[type=password]
+  input[type=text], input[type=password]
     border: 1px solid $font-color-error !important
   .error
     opacity: 1 !important
@@ -147,7 +143,7 @@ form.signin .error
   color: $font-color-error
 
 .warning
-  color: $font-color-warning
+  color: $font-color-warning !important
 
 html, body, #sidebar, .panel.selected
   height: 100%
@@ -242,13 +238,16 @@ li
   background-color: #fff
   padding: $gap-size
   +box-shadow($edge-color 0 0 10px)
-  .close
-    position: absolute
+  a.close
     right: -14px
-    top: 6px
-    height: 35px
-    width: 35px
-    text-decoration: none
+
+a.close
+  position: absolute
+  right: -2px
+  top: 6px
+  height: 35px
+  width: 35px
+  text-decoration: none
 
 .selected
   display: block
@@ -433,7 +432,7 @@ textarea, input[type=text], input[type=email]
   top: $topbar-hght + 1px
   right: 0
   width: 147px
-  height: 44px
+  height: 23px
   background-color: $background-color-alt
   text-align: right
   padding: 3px 20px 0 0
@@ -480,13 +479,34 @@ textarea, input[type=text], input[type=email]
 #limitnpeers
   width: 24px
 
+button
+  font-size: 14pt
+  font-family: $blueprint-font-family
+  background-color: #eee
+  border: 1px solid $edge-color
+  +border-radius(3px)
+  margin: 10px 0
+  color: $font-color-input
+  &:hover
+    color: #333
+    border: 1px solid #999
+  &:active
+    background-color: #ccc
+
 #reset-button
   display: block
   margin-top: 1em
   color: $font-color-important
 
-#sysprofcol, #contactcol
-  float: left
-  margin: 0 1em 1.5em 0
-  & > div
-    padding-left: 20px
+#signin-overlay
+  position: absolute
+  background-color: #fff
+  padding: 20px
+  +border-radius(3px)
+  +box-shadow($edge-color 0 0 10px)
+  top: 100px
+  left: 50%
+  width: 400px
+  margin: 0 -200px
+  height: 200px
+  text-align: center
