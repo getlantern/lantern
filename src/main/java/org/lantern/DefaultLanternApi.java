@@ -34,6 +34,7 @@ public class DefaultLanternApi implements LanternApi {
         REMOVETRUSTEDPEER,
         RESET,
         ROSTER,
+        CONTACT
     }
 
     @Override
@@ -142,6 +143,8 @@ public class DefaultLanternApi implements LanternApi {
             }
             
             break;
+        case CONTACT:
+            handleContactForm(req, resp);
         }
         LanternHub.asyncEventBus().post(new SyncEvent());
         LanternHub.settingsIo().write();
@@ -161,6 +164,17 @@ public class DefaultLanternApi implements LanternApi {
             resp.sendError(HttpStatus.SC_BAD_REQUEST, msg);
         } catch (final IOException e) {
             log.info("Could not send error", e);
+        }
+    }
+
+    private void sendError(final Exception e, 
+        final HttpServletResponse resp, final boolean logErrors) {
+        if (logErrors) {
+            try {
+                resp.sendError(HttpStatus.SC_SERVICE_UNAVAILABLE, e.getMessage());
+            } catch (final IOException ioe) {
+                log.info("Could not send response", e);
+            }
         }
     }
 
@@ -222,14 +236,15 @@ public class DefaultLanternApi implements LanternApi {
         }
     }
 
-    private void sendError(final Exception e, 
-        final HttpServletResponse resp, final boolean logErrors) {
-        if (logErrors) {
-            try {
-                resp.sendError(HttpStatus.SC_SERVICE_UNAVAILABLE, e.getMessage());
-            } catch (final IOException ioe) {
-                log.info("Could not send response", e);
-            }
+    private void handleContactForm(HttpServletRequest req, HttpServletResponse resp) {
+        final Map<String, String> params = LanternUtils.toParamMap(req);
+        String message = params.get("message");
+        String email = params.get("replyto");
+        try {
+            new LanternFeedback().submit(message, email);
+        }
+        catch (Exception e) {
+            sendError(e, resp, true);
         }
     }
 
