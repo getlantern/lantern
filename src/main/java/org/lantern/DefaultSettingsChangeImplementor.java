@@ -84,6 +84,10 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             log.info("Mode is unchanged.");
             return;
         }
+        if (!LanternUtils.isConfigured()) {
+            log.info("Not implementing mode change -- not configured.");
+            return;
+        }
         
         // Go ahead and set the setting although it will also be
         // updated by the api as well.  We want to make sure the
