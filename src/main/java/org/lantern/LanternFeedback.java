@@ -87,7 +87,7 @@ class LanternFeedback {
   /**
    * quick and dirty google spreadsheet submitter
    */
-  private final static String FORM_URL = "https://docs.google.com/spreadsheet/formResponse?formkey=dDlGd3ZLX1JWQlhuT0xBWEMxdGU1Tnc6MQ&amp;ifq";
+  private final static String FORM_URL = "https://docs.google.com/a/getlantern.org/spreadsheet/formResponse?formkey=dFl3UEhZV2pNcmFELU5jbTJ6eVhBMmc6MQ&amp;ifq";
   private final String [] FORM_ORDER = {
       "message",
       "replyto",
