@@ -140,9 +140,22 @@ public class Proxifier {
             onOrOff = "off";
         }
         
-        final String applescriptCommand = 
+        boolean locked = false;
+        try {
+            locked = osxPrefPanesLocked();
+        } catch (final IOException e) {
+            locked = false;
+        }
+        
+        String applescriptCommand = 
             "do shell script \"./configureNetworkServices.bash "+
-            onOrOff+"\" with administrator privileges without altering line endings";
+            onOrOff;
+        
+        if (locked) {
+            applescriptCommand +="\" with administrator privileges without altering line endings";
+        } else {
+            applescriptCommand +="\" without altering line endings";
+        }
 
         final String result = 
             mpm.runScript("osascript", "-e", applescriptCommand);
