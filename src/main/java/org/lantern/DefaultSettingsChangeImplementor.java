@@ -53,9 +53,9 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         LanternHub.settings().setSystemProxy(isSystemProxy);
         
         if (LanternUtils.shouldProxy()) {
-            Configurator.startProxying();
+            Proxifier.startProxying();
         } else {
-            Configurator.stopProxying();
+            Proxifier.stopProxying();
         }
     }
 
@@ -102,9 +102,9 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
 
         // may need to modify the proxying state
         if (LanternUtils.shouldProxy()) {
-            Configurator.startProxying();
+            Proxifier.startProxying();
         } else {
-            Configurator.stopProxying();
+            Proxifier.stopProxying();
         }
     }
 

@@ -8,7 +8,6 @@
 		<key>ProgramArguments</key>
 		<array>
 			<string>/Applications/Lantern/Lantern.app/Contents/MacOS/JavaApplicationStub</string>
-			<string>launchd</string>
 		</array>
 
 		<key>RunAtLoad</key>

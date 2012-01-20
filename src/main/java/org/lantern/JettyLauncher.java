@@ -1,5 +1,6 @@
 package org.lantern;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
@@ -56,7 +57,12 @@ public class JettyLauncher {
         //final ServletContextHandler api = newContext(secureBase, apiName);
         contexts.addHandler(contextHandler);
 
-        contextHandler.setResourceBase("viz/skel");
+        final File vizSkel = new File("viz", "skel");
+        if (vizSkel.isDirectory()) {
+            contextHandler.setResourceBase(vizSkel.toString());
+        } else {
+            contextHandler.setResourceBase("skel");
+        }
         
         server.setHandler(contexts);
         server.setStopAtShutdown(true);

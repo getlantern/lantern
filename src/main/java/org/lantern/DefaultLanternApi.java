@@ -76,7 +76,7 @@ public class DefaultLanternApi implements LanternApi {
                     // We automatically start proxying upon connect if the 
                     // user's settings say they're in get mode and to use the 
                     // system proxy.
-                    Configurator.startProxying();
+                    Proxifier.startProxying();
                 }
             } catch (final IOException e) {
                 sendError(resp, "Could not login: "+e.getMessage());
@@ -90,7 +90,7 @@ public class DefaultLanternApi implements LanternApi {
             // We stop proxying outside of any user settings since if we're
             // not logged in there's no sense in proxying. Could theoretically
             // use cached proxies, but definitely no peer proxies would work.
-            Configurator.stopProxying();
+            Proxifier.stopProxying();
             break;
         case ADDTOWHITELIST:
             LanternHub.whitelist().addEntry(req.getParameter("site"));

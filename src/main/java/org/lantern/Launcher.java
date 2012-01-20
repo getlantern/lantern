@@ -3,6 +3,7 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.Arrays;
 import java.util.Properties;
 
 import org.apache.commons.cli.CommandLine;
@@ -79,7 +80,7 @@ public class Launcher {
             }
         }
         catch (ParseException e) {
-            printHelp(options, e.getMessage());
+            printHelp(options, e.getMessage()+" args: "+Arrays.asList(args));
             return;
         }
         if (cmd.hasOption(LanternConstants.OPTION_HELP)) {

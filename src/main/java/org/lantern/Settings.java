@@ -347,7 +347,7 @@ public class Settings implements MutableSettings {
     
     @JsonView(UIStateSettings.class)
     public boolean isProxying() {
-        return Configurator.isProxying();
+        return Proxifier.isProxying();
     }
 
     public void setPasswordSaved(boolean passwordSaved) {
