@@ -69,7 +69,6 @@ public class DefaultLanternApi implements LanternApi {
             }
             changeSetting(resp, "email", email, false);
             changeSetting(resp, "password", pass, false);
-            changeSetting(resp, params);
             try {
                 LanternHub.xmppHandler().connect();
                 if (LanternUtils.shouldProxy()) {
