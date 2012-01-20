@@ -354,7 +354,7 @@ function LDCtrl(){
   self.signinsubmit = function(){
     if(self.loggedout()){
       console.log('calling signin');
-      self.signin();
+      self.signin(self.inputemail);
     }else{
       console.log('already signed in, just skipping to next screen');
       showid(self.state.getMode && '#trustedpeers' || '#setupcomplete');
@@ -373,9 +373,9 @@ function LDCtrl(){
     }
   };
 
-  self.signin = function(){
+  self.signin = function(email){
     var data = {
-      email: self.state.email || self.inputemail,
+      email: email || self.state.email,
       savePassword: self.savepassword
     };
     if(!self.state.passwordSaved)
