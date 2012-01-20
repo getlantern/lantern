@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -264,6 +265,43 @@ public class Proxifier {
             LOG.info("Done unproxying!!");
         } catch (final IOException e) {
             LOG.error("Could not copy pac file?", e);
+        }
+    }
+    
+    /**
+     * Calls out to AppleScript to check if the user has the security setting
+     * checked to require an administrator password to unlock preferences.
+     * 
+     * @return <code>true</code> if the user has the setting checked, otherwise
+     * <code>false</code>.
+     * @throws IOException If there was a scripting error reading the 
+     * preferences setting.
+     */
+    public static boolean osxPrefPanesLocked() throws IOException {
+        final String script = 
+            "tell application \"System Events\"\n"+
+            "    tell security preferences\n"+
+            "        get require password to unlock\n"+
+            "    end tell\n"+
+            "end tell\n";
+        final String result = 
+            mpm.runScript("osascript", "-e", script);
+        LOG.info("Result of script is: {}", result);
+
+        if (StringUtils.isBlank(result)) {
+            LOG.error("No result from AppleScript");
+            return false;
+        }
+        
+        // Make sure it's 
+        if (LanternUtils.isTrue(result)) {
+            return true;
+        } else if (LanternUtils.isFalse(result)) {
+            return false;
+        } else {
+            final String msg = "Got unexpected result from AppleScript: "+result;
+            LOG.error(msg);
+            throw new IOException(msg);
         }
     }
 }
