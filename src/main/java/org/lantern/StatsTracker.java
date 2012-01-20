@@ -57,7 +57,7 @@ public class StatsTracker implements LanternData {
      * getXYZBytesPerSecond calls will be calculated using a moving 
      * window average of size DATA_RATE_SECONDS.
      */ 
-    private static final int DATA_RATE_SECONDS = 5;
+    private static final int DATA_RATE_SECONDS = 1;
     private static final int ONE_SECOND = 1000;
     /** 
      * 1-second time-buckets for i/o bytes - DATA_RATE_SECONDS+1 seconds 
