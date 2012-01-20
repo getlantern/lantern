@@ -347,6 +347,7 @@ public class MacProxyManager {
     }
     
     public String runScript(final String script, final String... args) {
+        log.info("Got args: {}", Arrays.asList(args));
         final CommandLine command = new CommandLine(script, args);
         command.execute();
         final String output = command.getStdOut();

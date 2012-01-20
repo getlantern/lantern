@@ -159,6 +159,10 @@ public class DefaultXmppHandler implements XmppHandler {
     
     @Override
     public void connect() throws IOException {
+        if (!LanternUtils.isConfigured()) {
+            LOG.info("Not connecting when not configured");
+            return;
+        }
         String email = LanternHub.settings().getEmail();
         String pwd = LanternHub.settings().getPassword();
         if (StringUtils.isBlank(email)) {

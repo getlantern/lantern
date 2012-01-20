@@ -17,7 +17,11 @@ VERSION=$1
 MVN_ARGS=$2
 echo "*******MAVEN ARGS*******: $MVN_ARGS"
 perl -pi -e "s/lantern_version_tok/$VERSION/g" $CONSTANTS_FILE
-GE_API_KEY=`cat ~/.lantern/lantern_getexceptional.txt`
+GE_API_KEY=`cat lantern_getexceptional.txt`
+if [ ! -n "$GE_API_KEY" ]
+  then
+  die "No API key!!" 
+fi
 
 perl -pi -e "s/GetExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE
 
