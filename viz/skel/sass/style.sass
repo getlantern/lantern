@@ -37,10 +37,11 @@ $blueprint-grid-columns: 30
 +blueprint-typography
 
 body.welcome
-  #ld-container
-    background-color: $background-color-alt5
-    //-webkit-mask-box-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)))
-    //-moz-mask-box-image: -moz-linear-gradient(top, rgba(0,0,0,1), rgba(0,0,0,0))
+  background-color: $background-color-alt5
+  //
+    #ld-container
+      -webkit-mask-box-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)))
+      -moz-mask-box-image: -moz-linear-gradient(top, rgba(0,0,0,1), rgba(0,0,0,0))
 
 $welcome-wdth: 500px
 $welcome-hght: 300px
@@ -69,14 +70,11 @@ $welcome-controls-wdth: 300px
     line-height: 17pt
     position: absolute
     left: 50%
-    bottom: 50px
-    a, div.next
-      text-decoration: none
-      font-size: 30pt
-      font-family: GungSeo
-      color: $background-color-alt5
-    div
+    bottom: 35px
+    figure
       font-size: 9pt
+      display: inline-block
+      margin: 0 30px
 
 #modelist
   text-align: left
@@ -93,18 +91,19 @@ $welcome-controls-wdth: 300px
 .slide.selected
   display: block
 
-#fineprint p
+#terms textarea
   text-align: left
-  position: relative
   width: 400px
-  left: 50%
-  margin: 3em 0 0 -200px
+  height: 140px
+  margin: 1em 0 0 0
+  background-color: #eee
+  font-size: $font-size-smaller
 
-#firstsignin
+#signin
   input[type=text], input[type=password]
     background-color: #eee
     border: 1px solid $edge-color
-    margin-bottom: 5px
+    margin-bottom: 8px
     width: 250px
     padding: 4px
     font-size: 18pt
@@ -135,14 +134,8 @@ $welcome-controls-wdth: 300px
 .smallnote
   font-size: 8pt
 
-form.signin .error, .button-submit-hack
+form.signin .error
   opacity: 0
-
-form.signin.loading
-  #firstsignin-link
-    background: image-url('spinner32.gif') no-repeat center
-    color: transparent
-    text-shadow: none
 
 .badcredentials
   input[type=email], input[type=password]
@@ -440,7 +433,7 @@ textarea, input[type=text], input[type=email]
   top: $topbar-hght + 1px
   right: 0
   width: 147px
-  height: 68px
+  height: 44px
   background-color: $background-color-alt
   text-align: right
   padding: 3px 20px 0 0
@@ -449,6 +442,9 @@ textarea, input[type=text], input[type=email]
   border-top-color: #eee
   +text-shadow(#fff 1px 1px 0)
   +box-shadow($edge-color 0 0 3px)
+
+#usermenu.LOGGED_IN
+  height: 68px
 
 #userlink:after
   content: ' ▾'

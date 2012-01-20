@@ -21,22 +21,33 @@
           <h1>Welcome to Lantern</h1>
           <h4>Internet freedom for everyone.</h4>
           <div class=controls>
-            <a href=#fineprint>➲</a>
-            <div>Continue</div>
+            <figure>
+              <a href=#terms><img src=assets/img/arrow-right.png alt=Continue /></a>
+              <figcaption>Continue</figcaption>
+            </figure>
           </div>
         </div>
-        <div id=fineprint class=slide data-cls=slide>
+        <div id=terms class=slide data-cls=slide>
           <h1>Fine Print</h1>
-          <p>Sometimes people do bad things on the internet.
-             Sometimes they’re the very same people who are in power.
-             Lantern tries hard to keep you safe,
-             but ultimately you use it at your own risk.
-             By continuing you agree to be solely responsible
-             for your use of Lantern.
-          </p>
+          <textarea disabled>
+English
+
+Software License Agreement for Lantern
+
+Please read this software license agreement ("license") carefully before using the software. By using the software, you are agreeing to be bound by the terms of the license. If you do not agree to the terms of this license, do not install and/or use the software, and if presented with the option to "agree" or "disagree" to the terms, click "disagree". 
+
+1. General.
+A. ...
+          </textarea>
           <div class=controls>
-            <a href=#mode>➲</a>
-            <div>Continue</div>
+            <figure>
+              <a href=#welcome><img src=assets/img/arrow-left.png alt=Disagree /></a>
+              <figcaption>Disagree</figcaption>
+            </figure>
+            <figure>
+              <a href=#mode><img src=assets/img/arrow-right.png alt=Agree /></a>
+              <figcaption>Agree</figcaption>
+            </figure>
           </div>
         </div>
         <div id=mode class=slide data-cls=slide>
@@ -46,23 +57,34 @@
             <li><label><input type=radio value={{false}} ng:change=switchmode() ng:model=state.getMode /> Give access to others through my connection</label></li>
           </ul>
           <div class=controls>
-            <a href=#firstsignin>➲</a>
-            <div>Continue</div>
+            <figure>
+              <a href=#terms><img src=assets/img/arrow-left.png alt=Back /></a>
+              <figcaption>Back</figcaption>
+            </figure>
+            <figure>
+              <a href=#signin><img src=assets/img/arrow-right.png alt=Continue /></a>
+              <figcaption>Continue</figcaption>
+            </figure>
           </div>
         </div>
-        <div id=firstsignin class=slide data-cls=slide>
+        <div id=signin class=slide data-cls=slide>
           <h1>Sign into Google</h1>
-          <form class=signin ng:submit=signin()>
+          <form id=firstsignin-form name=fsform class=signin ng:submit=signinsubmit()>
             <ul>
               <li><div class=error>Bad username or password.</div></li>
-              <li><input type=text placeholder=email@example.com ng:model=inputemail value={{state.email}} required autofocus /></li>
-              <li><input type=password placeholder=password ng:model=inputpassword required id=firstsignin-pass /></li>
+              <li><input type=text placeholder=email@example.com ng:model=inputemail required autofocus ng:disabled={{!loggedout()}} value="{{state.email || ''}}" id=inputemail /></li>
+              <li><input type=password placeholder=password ng:model=inputpassword required ng:disabled={{!loggedout()}} value="{{!loggedout() && '•••••••••••••' || ''}}" id=inputpass /></li>
               <li><label><input type=checkbox ng:model=savepassword /> Save password</label></li>
             </ul>
-            <button type=submit class=button-submit-hack></button><!-- see XXX button-submit-hack below -->
             <div class=controls>
-              <a id=firstsignin-link>➲</a>
-              <div>Continue</div>
+              <figure>
+                <a href=#mode><img src=assets/img/arrow-left.png alt=Back /></a>
+                <figcaption>Back</figcaption>
+              </figure>
+              <figure>
+                <input id=fs-submit type=image ng:src={{fs_submit_src()}} alt=Continue ng:disabled="{{loggedout() && fsform.$invalid}}" />
+                <figcaption>Continue</figcaption>
+              </figure>
             </div>
           </form>
         </div>
@@ -74,19 +96,32 @@
             <li ng:repeat="peer in peers.$filter(peerfilter)">
               <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
             </li>
+            <li ng:show="!peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
           </ul>
           <label><input type=checkbox ng:model=state.useCloudProxies ng:change=toggle('useCloudProxies') /> Use Lantern cloud proxies</label>
           <div class=controls>
-            <a href=#setupcomplete>➲</a>
-            <div>Continue</div>
+            <figure>
+              <a href="{{state.getMode && '#trustedpeers' || '#signin'}}"><img src=assets/img/arrow-left.png alt=Back /></a>
+              <figcaption>Back</figcaption>
+            </figure>
+            <figure>
+              <a href=#setupcomplete><img src=assets/img/arrow-right.png alt=Continue /></a>
+              <figcaption>Continue</figcaption>
+            </figure>
           </div>
         </div>
         <div id=setupcomplete class=slide data-cls=slide>
           <h1>Finished</h1>
           <h4>Thank you for joining Lantern. Surf safely.</h4>
           <div class=controls>
-            <a ng:click=finishsetup()>➲</a>
-            <div>Finish</div>
+            <figure>
+              <a href=#signin><img src=assets/img/arrow-left.png alt=Back /></a>
+              <figcaption>Back</figcaption>
+            </figure>
+            <figure>
+              <a ng:click=finishsetup()><img src=assets/img/arrow-right.png alt=Finish /></a>
+              <figcaption>Finish</figcaption>
+            </figure>
           </div>
         </div>
       </div>
@@ -102,7 +137,7 @@
           </span>
           <a ng:show=state.email id=userlink class="collapsed">{{state.email}}</a>
         </div>
-        <div id=usermenu>
+        <div id=usermenu class={{state.authenticationStatus}}>
           <ul>
             <li ng:show=loggedin()><a ng:click=switchmode(true)>{{switchlinktext()}}</a></li>
             <li><a ng:click=todo()>Switch user</a></li>
@@ -246,7 +281,8 @@ angular.filter('bytes', function(input) {
 
 FRAGMENTPAT = /^[^#]*(#.*)$/;
 function clickevt2id(evt){
-  return evt.target.href.match(FRAGMENTPAT)[1];
+  //console.log('evt.target:',evt.target,'evt.currentTarget:',evt.currentTarget);
+  return evt.currentTarget.href.match(FRAGMENTPAT)[1];
 }
 function showid(id){
   var $el = $(id);
@@ -295,6 +331,7 @@ function LDCtrl(){
 
   self.loggedin = function(){return self.state.authenticationStatus === 'LOGGED_IN';};
   self.loggedout = function(){return self.state.authenticationStatus === 'LOGGED_OUT';};
+  self.loggingin = function(){return self.state.authenticationStatus === 'LOGGING_IN';};
 
   self.conncaption = function(){
     switch(self.state.authenticationStatus){
@@ -314,6 +351,28 @@ function LDCtrl(){
       return 'Switch to '+(self.state.getMode?'giv':'gett')+'ing access';
   };
 
+  self.signinsubmit = function(){
+    if(self.loggedout()){
+      console.log('calling signin');
+      self.signin();
+    }else{
+      console.log('already signed in, just skipping to next screen');
+      showid(self.state.getMode && '#trustedpeers' || '#setupcomplete');
+    }
+  };
+
+  self.fetchpeers = function(){
+    console.log('fetching peers');
+    if(self.state.getMode){
+      $.ajax({url: '/api/roster', dataType: 'json'}).done(function(r){
+        self.peers = r.entries;
+        console.log('set peers:', r.entries);
+      }).fail(function(e){
+        console.log('failed to fetch peers:',e);
+      });
+    }
+  };
+
   self.signin = function(){
     var data = {
       email: self.state.email || self.inputemail,
@@ -322,7 +381,6 @@ function LDCtrl(){
     if(!self.state.passwordSaved)
       data.password = self.inputpassword || prompt('Please enter your password (this prompt will be replaced):');
     console.log('Signing in with:', data);
-    $('form.signin').addClass('loading');
     $.post('/api/signin', data).done(function(){
       console.log('signin succeeded');
       $('form.signin').removeClass('badcredentials');
@@ -331,9 +389,15 @@ function LDCtrl(){
     }).fail(function(){
       $('form.signin').addClass('badcredentials');
       console.log('signin failed');
-    }).always(function(){
-      $('form.signin').removeClass('loading');
     });
+  };
+
+  self.fs_submit_src = function(){
+    if(self.fsform.$invalid) // XXX sometimes this lies
+      return 'assets/img/arrow-right-disabled.png';
+    if(self.loggingin())
+      return 'assets/img/spinner32.gif';
+    return 'assets/img/arrow-right.png';
   };
 
   self.toggleTrusted = function(peer){
@@ -419,6 +483,8 @@ function LDCtrl(){
 }
 
 $(document).ready(function(){
+  var scope = null;
+
   $(window).bind('hashchange', function(){
     showid(location.hash);
   });
@@ -438,13 +504,6 @@ $(document).ready(function(){
     $('#userlink').toggleClass('collapsed');
   });
 
-  // XXX button-submit-hack
-  $('#firstsignin-link').click(function(evt){
-    $('#firstsignin button[type=submit]').click();
-    evt.preventDefault();
-  });
-
-
   function _connectionEstablished(){
     console.log('CometD Connection Established');
   }
@@ -454,6 +513,7 @@ $(document).ready(function(){
     // XXX "Closing window in x seconds..."?
   }
 
+  // XXX never getting called?
   function _connectionClosed(){
     console.log('CometD Connection Closed');
     alert('CometD Connection Closed');
@@ -479,20 +539,21 @@ $(document).ready(function(){
   }
 
   function syncHandler(msg){
-    $('body').scope().update(msg.data);
-    //console.log('update:', msg.data);
+    if(!scope){
+      scope = $('body').scope();
+    }
+    scope.update(msg.data);
+
+    // XXX
+    if(scope.loggedin() && scope.state.getMode && !scope.peers){
+      scope.fetchpeers();
+    }
   }
 
   function _metaHandshake(handshake){
     if (handshake.successful === true){
       cometd.batch(function(){
         cometd.subscribe('/sync', syncHandler);
-
-        // XXX
-        $.ajax({url: '/api/roster', dataType: 'json'}).done(function(r){
-          $('body').scope().peers = r.entries;
-        });
-
         if(location.hash)
           showid(location.hash);
       });
