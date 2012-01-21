@@ -119,7 +119,10 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         if (set.isSavePassword()) {
             set.setStoredPassword(password);
             set.setPasswordSaved(true);
-        } 
+        } else {
+            set.setStoredPassword("");
+            set.setPasswordSaved(false);
+        }
     }
     
 }
