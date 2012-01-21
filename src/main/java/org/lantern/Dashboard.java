@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 public class Dashboard {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
+    private Shell shell;
 
     /**
      * Opens the browser.
@@ -33,7 +34,11 @@ public class Dashboard {
     
     protected void buildBrowser() {
         log.info("Creating shell...");
-        final Shell shell = new Shell(LanternHub.display());
+        if (this.shell != null && !this.shell.isDisposed()) {
+            this.shell.forceActive();
+            return;
+        }
+        this.shell = new Shell(LanternHub.display());
         final Image small = newImage("16on.png");
         final Image medium = newImage("32on.png");
         final Image large = newImage("64on.png");
