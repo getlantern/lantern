@@ -20,7 +20,7 @@ $header-color-alt: #53637d
 $link-color: #3f6ec6
 $link-visited-color: $link-color
 $link-hover-color: $link-color
-$link-active-color: $link-color - #333
+$link-active-color: lighten($link-color, 20%)
 $edge-color: #c6c9ce
 $edge-color-alt: #8faad9
 $spacer-color: #eee
@@ -73,7 +73,7 @@ $welcome-controls-wdth: 300px
     bottom: 35px
     figure
       font-size: 9pt
-      display: inline-block
+      +inline-block
       margin: 0 30px
 
 #modelist
@@ -131,13 +131,13 @@ form.signin
   font-size: 8pt
 
 form.signin .error
-  opacity: 0
+  visibility: hidden
 
 .badcredentials
   input[type=text], input[type=password]
     border: 1px solid $font-color-error !important
   .error
-    opacity: 1 !important
+    visibility: visible !important
 
 .error
   color: $font-color-error
@@ -368,7 +368,7 @@ textarea, input[type=text], input[type=email]
   width: 100%
 
 .iconlabel, .iconlabel > *
-  display: inline-block
+  +inline-block
   vertical-align: middle
 
 .iconlabel-label
@@ -465,7 +465,7 @@ textarea, input[type=text], input[type=email]
   font-size: $font-size-smaller
 
 .hidden
-  opacity: 0
+  visibility: hidden
 
 .disabled
   color: $font-color-disabled
