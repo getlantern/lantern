@@ -164,7 +164,7 @@ A. ...
             <dt>Mode</dt>
             <dd>
               <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}
-              <a class=actionlink ng:click="(!state.passwordSaved) && (showsignin(true)) || signin()" ng:show=loggedout()>Sign in</a></span>
+              <a class=actionlink ng:click="!state.savePassword && showsignin(true) || signin()" ng:show=loggedout()>Sign in</a></span>
               </span>
             </dd>
             <!--
@@ -403,8 +403,8 @@ function LDCtrl(){
     var data = {
       email: email || self.state.email
     };
-    if(!self.state.passwordSaved)
-      data.password = self.inputpassword || prompt('Please enter your password (this prompt will be replaced):');
+    if(!self.state.savePassword || !self.state.passwordSaved)
+      data.password = self.inputpassword || prompt('Please enter your password (this prompt will be replaced):'); // XXX
     console.log('Signing in with:', data);
     $.post('/api/signin', data).done(function(){
       console.log('signin succeeded');
