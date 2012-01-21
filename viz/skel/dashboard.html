@@ -410,6 +410,7 @@ function LDCtrl(){
       console.log('signin succeeded');
       $('form.signin').removeClass('badcredentials');
       self.inputpassword = '';
+      self.showsignin(false)
       showid(self.state.getMode && '#trustedpeers' || '#setupcomplete');
     }).fail(function(){
       $('form.signin').addClass('badcredentials');
@@ -440,9 +441,10 @@ function LDCtrl(){
     $('#welcome-container').fadeOut('slow');
     setTimeout(function(){
     $.post('/settings?initialSetupComplete=true').done(function(){
+      self.showsignin(false)
       showid('#status');
-    }).fail(function(){
-      alert('Could not complete setup.'); console.log(arguments); // XXX
+    }).fail(function(e){
+      alert('Could not complete setup.'); console.log(e); // XXX
     });
     }, 1000);
   };
