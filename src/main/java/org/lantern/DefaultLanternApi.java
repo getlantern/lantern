@@ -168,8 +168,9 @@ public class DefaultLanternApi implements LanternApi {
     }
 
     private void sendError(final Exception e, 
-        final HttpServletResponse resp, final boolean logErrors) {
-        if (logErrors) {
+        final HttpServletResponse resp, final boolean sendErrors) {
+        log.info("Caught exception", e);
+        if (sendErrors) {
             try {
                 resp.sendError(HttpStatus.SC_SERVICE_UNAVAILABLE, e.getMessage());
             } catch (final IOException ioe) {
