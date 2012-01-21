@@ -235,7 +235,7 @@ A. ...
             <label><input type=checkbox ng:model=requestreply /> please reply to</label>
             <input id=pm-replyto type=email ng:model=requestreplyto ng:disabled={{!requestreply}} placeholder=email@example.com value={{state.email}} />
             -->
-            <input id=pm-send type=button value=Send ng:disabled="{{!loggedin() || !pm}}" ng:click=todo() />
+            <input id=pm-send type=button value=Send ng:disabled="{{!loggedin() || !pm}}" ng:click=sendpm() />
           </div>
           <div class=extra ng:show=requestreply>
             Only request replies to secure email accounts.
@@ -506,6 +506,22 @@ function LDCtrl(){
         console.log(url+' failed');
       });
     }
+  };
+
+  self.sendpm = function(){
+    if(!self.pm)return;
+    var data = {
+      message: self.pm
+    };
+    console.log('submitting contact form, data=', data);
+    $.post('/api/contact', data).done(function(){
+      console.log('contact form submitted successfully');
+      // XXX TODO flash success message
+      self.pm = '';
+    }).fail(function(e){
+      // XXX TODO flash failure message
+      console.log('failed to submit contact form', e);
+    });
   };
 
   self.todo = function(){alert('todo');}
