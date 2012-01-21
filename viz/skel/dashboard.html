@@ -218,7 +218,7 @@ A. ...
                 <li><label><input type=checkbox ng:change=toggle('connectOnLaunch') ng:model=state.connectOnLaunch /> Sign in on launch</label></li>
                 <li><label><input type=checkbox ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Set as system proxy</label></li>
               </ul>
-              <button class=warning ng:click=reset()>Reset Lantern</button>
+              <input type=button id=reset-button ng:click=reset() value="Reset Lantern" />
             </dd>
           </dl>
         </div>
@@ -403,8 +403,10 @@ function LDCtrl(){
     var data = {
       email: email || self.state.email
     };
-    if(!self.state.savePassword || !self.state.passwordSaved)
+    if(!self.state.savePassword || !self.state.passwordSaved){
       data.password = self.inputpassword || prompt('Please enter your password (this prompt will be replaced):'); // XXX
+      if(!data.password)return;
+    }
     console.log('Signing in with:', data);
     $.post('/api/signin', data).done(function(){
       console.log('signin succeeded');
