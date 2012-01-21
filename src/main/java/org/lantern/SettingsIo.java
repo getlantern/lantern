@@ -55,6 +55,10 @@ public class SettingsIo {
             is = LanternUtils.localDecryptInputStream(settingsFile);
             final String json = IOUtils.toString(is);
             log.info("Building setting from json string...");
+            if (StringUtils.isBlank(json)) {
+                log.info("Can't build settings from empty string");
+                return newSettings();
+            }
             final Settings read = mapper.readValue(json, Settings.class);
             log.info("Built settings from disk: {}", read);
             if (StringUtils.isBlank(read.getPassword())) {

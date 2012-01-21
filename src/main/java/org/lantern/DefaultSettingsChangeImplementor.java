@@ -113,19 +113,8 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
     }
 
     @Override
-    public void setSavePassword(final boolean savePassword) {
-        final Settings set = LanternHub.settings();
-        if (!savePassword) {
-            set.setStoredPassword("");
-            set.setPasswordSaved(false);
-        } else {
-            set.setStoredPassword(set.getPassword());
-            set.setPasswordSaved(true);
-        }
-    }
-
-    @Override
     public void setPassword(final String password) {
+        log.info("Setting password");
         final Settings set = LanternHub.settings();
         if (set.isSavePassword()) {
             set.setStoredPassword(password);

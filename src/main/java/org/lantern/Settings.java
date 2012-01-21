@@ -255,7 +255,6 @@ public class Settings implements MutableSettings {
         return manuallyOverrideCountry;
     }
 
-    @Override
     public void setSavePassword(final boolean savePassword) {
         this.savePassword = savePassword;
     }
