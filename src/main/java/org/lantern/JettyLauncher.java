@@ -106,7 +106,7 @@ public class JettyLauncher {
                 final String json = LanternUtils.jsonify(settings, Settings.UIStateSettings.class);
                 final byte[] raw = json.getBytes("UTF-8");
                 res.setContentLength(raw.length);
-                res.setContentType("application/json");
+                res.setContentType("application/json; charset=UTF-8");
                 res.getOutputStream().write(raw);
             }
         }
