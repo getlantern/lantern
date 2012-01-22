@@ -109,12 +109,12 @@ form.signin
     font-size: 18pt
     +border-radius(5px)
 
-#trustedpeers
-  .peerlist
+.peerlist
+  overflow-x: hidden
+  overflow-y: auto
+  white-space: nowrap
+  #trustedpeers &
     height: 90px
-    overflow-x: hidden
-    overflow-y: auto
-    white-space: nowrap
     text-align: left
     border: 1px solid #aaa
     +box-shadow(#ccc 0 1px 2px)
@@ -122,10 +122,29 @@ form.signin
     left: 50%
     width: 300px
     margin: 0 0 1em -151px
+  #trustedpeers-overlay &
+    border: thin solid $edge-color
+    width: 400px
+    min-height: 90px
+    padding-left: 3px
+    +border-radius(3px)
+    +box-sizing(border-box)
 
-#searchpeers
-  width: 300px
-  margin-bottom: 3px
+.searchpeers
+  #trustedpeers &
+    width: 300px
+    margin-bottom: 3px
+  #trustedpeers-overlay &
+    width: 400px
+    margin-bottom: 8px
+
+#trustedpeers-overlay
+  .usecloud
+    margin-top: 1em
+    display: block
+    font-size: $font-size-smaller
+  h1
+    margin-bottom: 25px
 
 .smallnote
   font-size: 8pt
@@ -492,6 +511,19 @@ button
     border: 1px solid #999
   &:active
     background-color: #ccc
+
+#manage-trusted-link
+  border: 1px solid #bbb
+  text-decoration: none
+  color: #333
+  padding: 0px 8px
+  margin-top: 1em
+  display: inline-block
+  +border-radius(3px)
+  +background-image(linear-gradient(#fff, #eee))
+  &:active
+    +background-image(linear-gradient(#a9b6c3, #7684a1 50%, #9ea7b8, #a9b6c3))
+    border-color: #666
 
 #reset-button
   margin-top: 1em

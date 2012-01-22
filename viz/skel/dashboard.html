@@ -90,7 +90,7 @@ A. ...
         <div id=trustedpeers class=slide data-cls=slide>
           <h1>Trusted Peers</h1>
           <h4>Choose people you would trust to proxy any unencrypted traffic.</h4>
-          <input id=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
+          <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
           <ul class=peerlist>
             <li ng:repeat="peer in peers.$filter(peerfilter)">
               <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
@@ -208,6 +208,9 @@ A. ...
                   </label>
                   <a class="overlaylink actionlink" ng:show=!state.proxyAllSites href=#proxiedsites>Manage proxied sites...</a>
                 </li>
+                <li>
+                  <a class="overlaylink actionlink" id=manage-trusted-link href=#trustedpeers-overlay>Manage trusted peers...</a>
+                </li>
               </ul>
             </dd>
             <dt>Application</dt>
@@ -273,6 +276,18 @@ A. ...
           </ul>
         </div>
 
+        <div class=overlay data-cls=overlay id=trustedpeers-overlay>
+          <a class=close>×</a>
+          <h1>Trusted peers</h1>
+          <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
+          <ul class=peerlist>
+            <li ng:repeat="peer in peers.$filter(peerfilter)">
+              <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
+            </li>
+            <li ng:show="!peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
+          </ul>
+          <label class=usecloud><input type=checkbox ng:model=state.useCloudProxies ng:change=toggle('useCloudProxies') /> Use Lantern cloud proxies</label>
+        </div>
 
       </div>
     </div>
@@ -298,7 +313,7 @@ function clickevt2id(evt){
   //console.log('evt.target:',evt.target,'evt.currentTarget:',evt.currentTarget);
   return evt.currentTarget.href.match(FRAGMENTPAT)[1];
 }
-function showid(id){
+function showid(id, ignorecls){
   var $el = $(id);
   if(!$el.length)
     return;
@@ -306,6 +321,8 @@ function showid(id){
   if($el.hasClass('selected'))
     return;
   var cls = $el.attr('data-cls');
+  if(cls === ignorecls)
+    return;
   $('.' + cls + '.selected').toggleClass('selected');
   $el.toggleClass('selected');
   if(cls === 'panel'){
@@ -316,9 +333,9 @@ function showid(id){
 function showidclickhandler(evt){
   showid(clickevt2id(evt));
   var docheight = $(document).height(), bodheight = $('body').height();
-  if(docheight > bodheight){
+  if(docheight > bodheight){ // XXX height hack
     console.log('height hack: increasing body height from', bodheight, 'to', docheight);
-    $('body').data('oldheight', bodheight).height(docheight);
+    $('body').height(docheight);
   }
 }
 
@@ -416,7 +433,8 @@ function LDCtrl(){
       console.log('signin succeeded');
       $('form.signin').removeClass('badcredentials');
       self.inputpassword = '';
-      self.showsignin(false)
+      self.showsignin(false);
+      self.fetchpeers();
       showid(self.state.getMode && '#trustedpeers' || '#setupcomplete');
     }).fail(function(){
       $('form.signin').addClass('badcredentials');
@@ -543,14 +561,17 @@ $(document).ready(function(){
     '.overlaylink'
     ).click(showidclickhandler);
 
+  // XXX height hack
+  $window = $(window), $body = $('body');
+  function _resize_body(){
+    $body.height($window.height());
+  }
+  $window.resize(_resize_body);
+
   $('.overlay .close').click(function(evt){
     $(evt.target).parent('.overlay').removeClass('selected');
-    var oldheight = $('body').data('oldheight');
-    if(oldheight){
-      console.log('height hack: decreasing body height to ' + oldheight);
-      $('body').height(oldheight).data('oldheight', null);
-    }
     evt.preventDefault();
+    _resize_body(); // XXX height hack
   });
 
   $('#userlink, #usermenu a').click(function(evt){
@@ -609,7 +630,7 @@ $(document).ready(function(){
       cometd.batch(function(){
         cometd.subscribe('/sync', syncHandler);
         if(location.hash)
-          showid(location.hash);
+          showid(location.hash, 'overlay');
       });
     }
   }
