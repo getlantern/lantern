@@ -13,7 +13,7 @@
     <script src=assets/js/libs/angular-0.10.5.min.js ng:autobind></script>
   </head>
 
-  <body ng:controller=LDCtrl ng:class="!state.initialSetupComplete && 'welcome'" lang=en>
+  <body ng:controller=LDCtrl ng:show=stateloaded() ng:class="!state.initialSetupComplete && 'welcome' || ''" lang=en>
     <div id=ld-container>
       <div id=welcome-container ng:show=!state.initialSetupComplete>
         <div id=welcome class="slide selected" data-cls=slide>
@@ -342,6 +342,9 @@ function showidclickhandler(evt){
 function LDCtrl(){
   var self = this;
   self.state = {};
+  self.stateloaded = function(){
+    return !$.isEmptyObject(self.state);
+  };
   self.$watch('state');
   self.update = function(state){
     self.state = state;
@@ -413,7 +416,7 @@ function LDCtrl(){
     if(self.state.getMode){
       $.ajax({url: '/api/roster', dataType: 'json'}).done(function(r){
         self.peers = r.entries;
-        console.log('set peers:', r.entries);
+        console.log('set peers');
       }).fail(function(e){
         console.log('failed to fetch peers:',e);
       });
