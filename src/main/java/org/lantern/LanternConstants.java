@@ -2,7 +2,7 @@ package org.lantern;
 
 import java.io.File;
 
-import org.bns.getexceptional4j.GetExceptionalUtils;
+import org.lantern.exceptional4j.ExceptionalUtils;
 
 /**
  * Constants for Lantern.
@@ -16,7 +16,7 @@ public class LanternConstants {
     public static final String VERSION = "lantern_version_tok";
     
     public static final String GET_EXCEPTIONAL_API_KEY = 
-        GetExceptionalUtils.NO_OP_KEY;
+        ExceptionalUtils.NO_OP_KEY;
     
     public static final String LANTERN_JID = "lantern-controller@appspot.com";
     
