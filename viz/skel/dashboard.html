@@ -315,6 +315,11 @@ function showid(id){
 }
 function showidclickhandler(evt){
   showid(clickevt2id(evt));
+  var docheight = $(document).height(), bodheight = $('body').height();
+  if(docheight > bodheight){
+    console.log('height hack: increasing body height from', bodheight, 'to', docheight);
+    $('body').data('oldheight', bodheight).height(docheight);
+  }
 }
 
 function LDCtrl(){
@@ -540,6 +545,11 @@ $(document).ready(function(){
 
   $('.overlay .close').click(function(evt){
     $(evt.target).parent('.overlay').removeClass('selected');
+    var oldheight = $('body').data('oldheight');
+    if(oldheight){
+      console.log('height hack: decreasing body height to ' + oldheight);
+      $('body').height(oldheight).data('oldheight', null);
+    }
     evt.preventDefault();
   });
 
