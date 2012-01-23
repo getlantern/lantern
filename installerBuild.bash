@@ -23,7 +23,7 @@ if [ ! -n "$GE_API_KEY" ]
   die "No API key!!" 
 fi
 
-perl -pi -e "s/GetExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE
+perl -pi -e "s/ExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE
 
 git up || die "Could not update git"
 mvn clean || die "Could not clean?"
