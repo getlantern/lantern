@@ -24,7 +24,6 @@ public class Whitelist {
     {
         // these domains host required services and can't be removed
         addDefaultEntry("getlantern.org", true);
-        addDefaultEntry("getexceptional.com", true);
         addDefaultEntry("exceptional.io", true);
 
         // optional

@@ -17,8 +17,8 @@ import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.spi.LoggingEvent;
-import org.bns.getexceptional4j.GetExceptionalAppender;
-import org.bns.getexceptional4j.GetExceptionalAppenderCallback;
+import org.lantern.exceptional4j.ExceptionalAppender;
+import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.eclipse.swt.widgets.Display;
 import org.json.simple.JSONObject;
 import org.lantern.cookie.CookieFilter;
@@ -261,8 +261,8 @@ public class Launcher {
             // doesn't matter. Just weird.
             PropertyConfigurator.configure(props);
             System.out.println("Set logger file to: " + logPath);
-            final GetExceptionalAppenderCallback callback = 
-                new GetExceptionalAppenderCallback() {
+            final ExceptionalAppenderCallback callback = 
+                new ExceptionalAppenderCallback() {
 
                     @Override
                     public boolean addData(final JSONObject json, 
@@ -271,7 +271,7 @@ public class Launcher {
                         return true;
                     }
             };
-            final Appender bugAppender = new GetExceptionalAppender(
+            final Appender bugAppender = new ExceptionalAppender(
                LanternConstants.GET_EXCEPTIONAL_API_KEY, callback);
             BasicConfigurator.configure(bugAppender);
         } catch (final IOException e) {
