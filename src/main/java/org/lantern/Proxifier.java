@@ -43,6 +43,17 @@ public class Proxifier {
     private static final File PROXY_OFF = new File("proxy_off.pac");
     
     static {
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            final File Lantern = new File("Lantern");
+            if (!Lantern.isFile()) {
+                LOG.info("Creating hard link to osascript...");
+                final String result = 
+                    mpm.runScript("ln", "/usr/bin/osascript", "Lantern");
+                LOG.info("Result of script is: {}", result);
+            } else {
+                LOG.info("Appears to already be a link to oasacript");
+            }
+        }
         LANTERN_PROXYING_FILE.delete();
         LANTERN_PROXYING_FILE.deleteOnExit();
         if (!PROXY_ON.isFile()) {
@@ -158,8 +169,27 @@ public class Proxifier {
         }
 
         final String result = 
-            mpm.runScript("osascript", "-e", applescriptCommand);
+            //mpm.runScript("osascript", "-e", applescriptCommand);
+            mpm.runScript("./Lantern", "-e", applescriptCommand);
         LOG.info("Result of script is: {}", result);
+        
+        if (result.contains("canceled")) {
+            // TODO: Internationalize!!
+            final String question;
+            if (proxy) {
+                question = "Are you sure you want to cancel configuring " +
+                    "Lantern to proxy your internet traffic?";
+            } else {
+                question = "Are you sure you want to cancel turning off Lantern " +
+                    "proxying of your internet traffic?";
+            }
+            LOG.info("Asking again");
+            final boolean cancel = 
+                LanternHub.dashboard().askQuestion("Proxy?", question);
+            if (!cancel) {
+                proxyOsxViaScript(proxy);
+            }
+        }
     }
 
     /**

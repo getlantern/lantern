@@ -1,12 +1,14 @@
 package org.lantern;
 
 import java.io.File;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
@@ -90,5 +92,41 @@ public class Dashboard {
             toUse = path2.getAbsolutePath();
         }
         return new Image(LanternHub.display(), toUse);
+    }
+    
+    /**
+     * Shows a dialog to the user asking a yes or no question.
+     * 
+     * @param title The title for the dialog.
+     * @param question The question to ask.
+     * @return <code>true</code> if the user answered yes, otherwise
+     * <code>false</code>
+     */
+    public boolean askQuestion(final String title, final String question) {
+        final AtomicBoolean response = new AtomicBoolean();
+        LanternHub.display().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                response.set(askQuestionOnThread(title, question));
+            }
+        });
+        log.info("Returned from sync exec");
+        return response.get();
+    }
+
+    protected boolean askQuestionOnThread(final String title, 
+        final String question) {
+        log.info("Creating display...");
+        final Shell boxShell = new Shell(LanternHub.display());
+        log.info("Created display...");
+        final int style = 
+            SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
+        final MessageBox messageBox = new MessageBox (boxShell, style);
+        //messageBox.setText (I18n.tr("Exit?"));
+        messageBox.setText(title);
+        messageBox.setMessage (question);
+            //I18n.tr("Are you sure you want to ignore the update?"));
+        //final int result = messageBox.open ();
+        return messageBox.open () == SWT.YES;
     }
 }
