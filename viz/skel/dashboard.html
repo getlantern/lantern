@@ -75,8 +75,8 @@ A. ...
           <form id=firstsignin-form name=fsform class=signin ng:submit=fs_submit()>
             <ul>
               <li><div class=error>Bad username or password.</div></li>
-              <li><input type=text placeholder=email@example.com ng:model=inputemail ng:required={{true}} autofocus ng:disabled={{!loggedout()}} value="{{state.email || ''}}" /></li>
-              <li><input type=password placeholder=password ng:model=inputpassword ng:required={{true}} ng:disabled={{!loggedout()}} value="{{!loggedout() && '•••••••••••••' || ''}}" /></li>
+              <li><input type=text placeholder=email@example.com ng:model=inputemail required autofocus ng:disabled={{!loggedout()}} value="{{state.email || ''}}" /></li>
+              <li><input type=password placeholder=password ng:model=inputpassword required ng:disabled={{!loggedout()}} value="{{!loggedout() && '•••••••••••••' || ''}}" /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
             <div class=controls>
@@ -101,7 +101,7 @@ A. ...
             </li>
             <li ng:show="!peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
           </ul>
-          <label><input type=checkbox ng:model=state.useCloudProxies ng:change=toggle('useCloudProxies') /> Use Lantern cloud proxies</label>
+          <label><input type=checkbox ng:model=state.useCloudProxies ng:change=toggle('useCloudProxies') /> Use Lantern cloud proxies when no trusted peers are available</label>
           <div class=controls>
             <figure>
               <a href=#signin><img src=assets/img/arrow-left.png alt=Back /></a>
@@ -115,7 +115,7 @@ A. ...
         </div>
         <div id=setupcomplete class=slide data-cls=slide>
           <h1>Finished</h1>
-          <h4>Thank you for joining Lantern. Surf safely.</h4>
+          <h4>Thank you for joining Lantern.</h4>
           <div class=controls>
             <figure>
               <a href="{{state.getMode && '#trustedpeers' || '#signin'}}"><img src=assets/img/arrow-left.png alt=Back /></a>
@@ -167,7 +167,7 @@ A. ...
             <dt>Mode</dt>
             <dd>
               <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}
-              <a class=actionlink ng:click="!state.savePassword && showsignin(true) || signin()" ng:show=loggedout()>Sign in</a></span>
+              <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()" ng:show=loggedout()>Sign in</a></span>
               </span>
             </dd>
             <!--
@@ -256,11 +256,11 @@ A. ...
           <form name=signinform class=signin ng:submit=signin(inputemail)>
             <ul>
               <li><div class=error>Bad username or password.</div></li>
-              <li><input type=text placeholder=email@example.com ng:model=inputemail autofocus value="{{state.email || ''}}" ng:required={{true}} /></li>
-              <li><input type=password placeholder="{{state.passwordSaved && 'password saved' || 'password'}}" ng:model=inputpassword required ng:disabled="{{state.passwordSaved && state.savePassword}}" ng:required="{{!state.passwordSaved && !state.savePassword}}" /></li>
+              <li><input type=text placeholder=email@example.com ng:model=inputemail autofocus value="{{state.email || ''}}" required /></li>
+              <li><input type=password placeholder=password ng:model=inputpassword ng:required="{{!((inputemail == state.email || inputemail + '@gmail.com' == state.email) && state.passwordSaved && state.savePassword)}}" /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
-            <button ng:show=!loggingin() type=submit>Sign in</button>
+            <button ng:show=!loggingin() type=submit ng:disabled="{{(inputemail == null || inputemail == state.email || inputemail + '@gmail.com' == state.email) && loggedin()}}" >Sign in</button>
             <img src=assets/img/spinner32.gif alt="Logging in..." ng:show=loggingin() />
           </form>
         </div>
@@ -269,13 +269,12 @@ A. ...
           <a class=close>×</a>
           <h1>Proxied sites</h1>
           <ul id=siteslist>
-            <!-- XXX give required entries lower sort order -->
-            <li ng:repeat="entry in whitelist">
-              <form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input ng:model=newsite type=text ng:required={{true}} placeholder=example.com value={{entry.site}} ng:disabled={{entry.required}} /></form>
+            <li ng:repeat="entry in whitelist.$orderBy('required')">
+              <form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input class=whitelistentry ng:model=newsite type=text placeholder=example.com value="{{entry.site + (entry.required && ' (required)' || '')}}" required ng:readonly={{entry.required}} ng:pattern=/^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/ /></form>
               <a class=delete ng:show=!entry.required ng:click="updatewhitelist(entry.site, false)">×</a>
             </li>
             <li>
-              <form ng:submit="updatewhitelist(sitetoadd, true)"><input id=sitetoadd ng:model=sitetoadd type=text ng:required={{true}} placeholder="Add a new site" /></form>
+              <form ng:submit="updatewhitelist(sitetoadd, true)"><input id=sitetoadd ng:model=sitetoadd type=text required placeholder="Add a new site" /></form>
             </li>
           </ul>
         </div>
@@ -290,7 +289,7 @@ A. ...
             </li>
             <li ng:show="!peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
           </ul>
-          <label class=usecloud><input type=checkbox ng:model=state.useCloudProxies ng:change=toggle('useCloudProxies') /> Use Lantern cloud proxies</label>
+          <label class=usecloud><input type=checkbox ng:model=state.useCloudProxies ng:change=toggle('useCloudProxies') /> Use Lantern cloud proxies when no trusted peers are available</label>
         </div>
 
       </div>
@@ -298,6 +297,9 @@ A. ...
 
 <script>
 cometd = $.cometd;
+
+// http://html5pattern.com/
+HOSTNAMEPAT = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/;
 
 BYTEDIM = {GB: 1024*1024*1024, MB: 1024*1024, KB: 1024};
 angular.filter('bytes', function(input) {
@@ -430,26 +432,35 @@ function LDCtrl(){
 
   self.fetchwhitelist = function(){
     if(self.state.getMode){
-      // XXX take out this line...
-      self.whitelist = self.state.whitelist.entries;
-      // XXX ...and uncomment these when https://github.com/getlantern/lantern/issues/116 is closed:
-      //console.log('fetching whitelist');
-      //$.ajax({url: '/api/whitelist', dataType: 'json'}).done(function(r){
-      //  self.whitelist = r.entries;
-      //  console.log('set whitelist');
-      //}).fail(function(e){
-      //  console.log('failed to fetch whitelist:',e);
-      //});
+      console.log('fetching whitelist');
+      $.ajax({url: '/api/whitelist', dataType: 'json'}).done(function(r){
+        self.whitelist = r.entries;
+        console.log('set whitelist');
+      }).fail(function(e){
+        console.log('failed to fetch whitelist:',e);
+      });
     }
   };
 
   self.signin = function(email){
+    if(self.loggedin()){
+      if(email === null || email === self.state.email || email + '@gmail.com' === self.state.email){
+        console.log('ingoring signin as', self.state.email, 'already signed in as that user');
+        self.showsignin(false);
+        self.inputpassword = '';
+        return;
+      }
+    }
     var data = {
       email: email || self.state.email
     };
     if(!self.state.savePassword || !self.state.passwordSaved){
-      data.password = self.inputpassword || prompt('Please enter your password (this prompt will be replaced):'); // XXX
-      if(!data.password)return;
+      data.password = self.inputpassword;
+      if(!data.password){
+        console.log('no password saved or supplied, bailing');
+        self.inputpassword = '';
+        return;
+      }
     }
     console.log('Signing in with:', data);
     $.post('/api/signin', data).done(function(){
@@ -458,7 +469,8 @@ function LDCtrl(){
       self.inputpassword = '';
       self.showsignin(false);
       self.fetchpeers();
-      showid(self.state.getMode && '#trustedpeers' || '#setupcomplete');
+      if(!self.state.initialSetupComplete)
+        showid(self.state.getMode && '#trustedpeers' || '#setupcomplete');
     }).fail(function(){
       $('form.signin').addClass('badcredentials');
       console.log('signin failed');
@@ -530,23 +542,39 @@ function LDCtrl(){
     }
   };
 
+  self._validatewhitelistentry = function(val){
+    // XXX ip addresses acceptable?
+    if(!HOSTNAMEPAT.test(val)){
+      console.log('not a valid hostname:', val, '(so much for html5 defenses)');
+      return false;
+    }
+    return true;
+  };
+
   self.updatewhitelist = function(site, newsite){
-    // XXX validation
     if(typeof newsite === 'string'){
+      if(!self._validatewhitelistentry(newsite))return;
+      if(newsite === site){
+        console.log('site == newsite == ', site, 'ignoring');
+        return;
+      }
       $.ajax('/api/removefromwhitelist?site=' + site).done(function(){
         $.ajax('/api/addtowhitelist?site=' + newsite).done(function(){
-          $('#sitetoadd').val('');
+          self.fetchwhitelist();
         }).fail(function(){
           console.log('/api/addtowhitelist?site='+site+' failed');
         });
+        self.fetchwhitelist();
       }).fail(function(){
         console.log('/api/removefromwhitelist?site='+site+' failed');
       });
     }else if(typeof newsite === 'boolean'){
+      if(!self._validatewhitelistentry(site))return;
       var url = '/api/' + (newsite ? 'addtowhitelist' : 'removefromwhitelist') + '?site=' + site;
       $.ajax(url).done(function(){
         if(newsite)
           $('#sitetoadd').val('');
+        self.fetchwhitelist();
       }).fail(function(){
         console.log(url+' failed');
       });
@@ -574,6 +602,7 @@ function LDCtrl(){
 
 $(document).ready(function(){
   var scope = null;
+  var $body = $('body');
 
   $(window).bind('hashchange', function(){
     showid(location.hash);
@@ -585,7 +614,7 @@ $(document).ready(function(){
     ).click(showidclickhandler);
 
   // XXX height hack
-  $window = $(window), $body = $('body');
+  $window = $(window);
   function _resize_body(){
     $body.height($window.height());
   }
@@ -600,6 +629,14 @@ $(document).ready(function(){
   $('#userlink, #usermenu a').click(function(evt){
     $('#usermenu').slideToggle(50);
     $('#userlink').toggleClass('collapsed');
+  });
+
+  // XXX
+  $('input.whitelistentry').live('blur', function(){
+    console.log('blur');
+    if(!scope)
+      scope = $body.scope();
+    scope.fetchwhitelist();
   });
 
   function _connectionEstablished(){
@@ -637,9 +674,8 @@ $(document).ready(function(){
   }
 
   function syncHandler(msg){
-    if(!scope){
-      scope = $('body').scope();
-    }
+    if(!scope)
+      scope = $body.scope();
     scope.update(msg.data);
 
     // XXX
