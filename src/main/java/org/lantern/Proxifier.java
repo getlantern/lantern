@@ -168,6 +168,9 @@ public class Proxifier {
             applescriptCommand +="\" without altering line endings";
         }
 
+        // XXX @myleshorton can we skip this when there's no need to change
+        // system proxy settings, e.g. an unproxy call after a proxy call was
+        // canceled, or vice versa?
         final String result = 
             //mpm.runScript("osascript", "-e", applescriptCommand);
             mpm.runScript("./Lantern", "-e", applescriptCommand);
@@ -175,18 +178,35 @@ public class Proxifier {
         
         if (result.contains("canceled")) {
             // TODO: Internationalize!!
+            // XXX @myleshorton can we make more user friendly, i.e.
+            // change buttons from "Yes" and "No" to
+            // "Modify System Settings" and "Cancel"?
+            // (changing the message text and default action appropriately)
             final String question;
             if (proxy) {
-                question = "Are you sure you want to cancel configuring " +
-                    "Lantern to proxy your internet traffic?";
+                question = "Lantern is running but is not set as your " +
+                    "system proxy, which means you have to configure your " +
+                    "browser to use Lantern manually. Are you sure you " +
+                    "don't want to set Lantern as your system proxy?";
             } else {
                 question = "Are you sure you want to cancel turning off Lantern " +
                     "proxying of your internet traffic?";
+                // XXX @myleshorton do we actually only want this prompt
+                // when unproxy is triggered by signout, something like:
+                //   Lantern is set as your system proxy but you
+                //   are signed out. Are you sure you want to keep Lantern
+                //   set as your system proxy? Proxying through Lantern
+                //   won't work until you sign back in.
+                // ?
             }
             LOG.info("Asking again");
             final boolean cancel = 
-                LanternHub.dashboard().askQuestion("Proxy?", question);
-            if (!cancel) {
+                LanternHub.dashboard().askQuestion("Proxy Settings", question);
+            if (cancel) {
+                // XXX @myleshorton do we need to do:
+                // setProperty(LanternHub.settings(), "isSystemProxy", proxy...);
+                // in this case?
+            } else {
                 proxyOsxViaScript(proxy);
             }
         }
