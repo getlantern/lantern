@@ -348,16 +348,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             }
 
         }
-        
-        try {
-            if (useLae() && isLae(request) && 
-                this.laeRequestProcessor.processRequest(browserToProxyChannel, 
-                    ctx, me)) {
-                return this.laeRequestProcessor;
-            } 
-        } catch (final IOException e) {
-            log.info("Caught exception processing request", e);
-        }
         try {
             if (TRUSTED_ACTIVE) {
                 final HttpRequestProcessor rp = 
@@ -367,6 +357,15 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     return rp;
                 }
             }
+        } catch (final IOException e) {
+            log.info("Caught exception processing request", e);
+        }
+        try {
+            if (useLae() && isLae(request) && 
+                this.laeRequestProcessor.processRequest(browserToProxyChannel, 
+                    ctx, me)) {
+                return this.laeRequestProcessor;
+            } 
         } catch (final IOException e) {
             log.info("Caught exception processing request", e);
         }
