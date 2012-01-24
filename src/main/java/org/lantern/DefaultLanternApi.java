@@ -34,7 +34,8 @@ public class DefaultLanternApi implements LanternApi {
         REMOVETRUSTEDPEER,
         RESET,
         ROSTER,
-        CONTACT
+        CONTACT,
+        WHITELIST,
     }
 
     @Override
@@ -118,36 +119,51 @@ public class DefaultLanternApi implements LanternApi {
             }
             break;
         case ROSTER:
-            if (!LanternHub.xmppHandler().isLoggedIn()) {
-                sendError(resp, "Not logged in!");
-                return;
-            }
-            final Roster roster = LanternHub.roster();
-            if (!roster.isEntriesSet()) {
-                try {
-                    roster.populate();
-                } catch (final IOException e) {
-                    sendError(resp, "Not logged in!");
-                    return;
-                }
-            }
-            final String json = LanternUtils.jsonify(roster);
-            log.info("Returning roster: {}", json);
-            resp.setStatus(HttpStatus.SC_OK);
-            resp.setContentLength(json.length());
-            try {
-                resp.getWriter().write(json);
-                resp.getWriter().flush();
-            } catch (final IOException e) {
-                log.info("Could not write response", e);
-            }
-            
+            handleRoster(resp);
             break;
         case CONTACT:
             handleContactForm(req, resp);
+            break;
+        case WHITELIST:
+            final Whitelist wl = LanternHub.whitelist();
+            returnJson(resp, wl);
+            break;
         }
         LanternHub.asyncEventBus().post(new SyncEvent());
         LanternHub.settingsIo().write();
+    }
+
+
+    private void handleRoster(final HttpServletResponse resp) {
+        if (!LanternHub.xmppHandler().isLoggedIn()) {
+            sendError(resp, "Not logged in!");
+            return;
+        }
+        final Roster roster = LanternHub.roster();
+        if (!roster.isEntriesSet()) {
+            try {
+                roster.populate();
+            } catch (final IOException e) {
+                sendError(resp, "Not logged in!");
+                return;
+            }
+        }
+        returnJson(resp, roster);
+    }
+
+
+    private void returnJson(final HttpServletResponse resp, final Object obj) {
+        final String json = LanternUtils.jsonify(obj);
+        log.info("Returning json: {}", json);
+        resp.setStatus(HttpStatus.SC_OK);
+        resp.setContentLength(json.length());
+        resp.setContentType("application/json; charset=UTF-8");
+        try {
+            resp.getWriter().write(json);
+            resp.getWriter().flush();
+        } catch (final IOException e) {
+            log.info("Could not write response", e);
+        }
     }
 
     private void sendServerError(final HttpServletResponse resp, 

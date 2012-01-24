@@ -37,7 +37,6 @@ public class SettingsTest {
     
     @Test
     public void testSettings() throws Exception {
-        final File plist = plist();
         final File settingsFile = settingsFile();
         
         final SettingsIo io = new SettingsIo(settingsFile);
@@ -51,32 +50,6 @@ public class SettingsTest {
         
         final Settings read = io.read();
         assertEquals(port, read.getPort());
-        
-        final Whitelist whitelist = read.getWhitelist();
-        
-        
-        assertTrue(whitelist.isWhitelisted("www.facebook.com:443"));
-        assertTrue(whitelist.isWhitelisted("avaaz.org"));
-        assertTrue(whitelist.isWhitelisted("getlantern.org"));
-        assertFalse(whitelist.isWhitelisted(
-            "http://graphics8.nytimes.com/adx/images/ADS/25/67/ad.256707/MJ_NYT_Text-Right.jpg"));
-        assertFalse(whitelist.isWhitelisted("http://www.nytimes.com/"));
-        assertTrue(whitelist.isWhitelisted("www.facebook.com:443"));
-        assertTrue(whitelist.isWhitelisted("https://s-static.ak.facebook.com"));
-        
-        whitelist.addEntry("nytimes.com");
-        whitelist.removeEntry("avaaz.org");
-        whitelist.removeEntry("getlantern.org");
-
-        io.write(read);
-        final Settings read2 = io.read();
-        final Whitelist readWhitelist = read2.getWhitelist();
-        
-        assertTrue(readWhitelist.isWhitelisted(
-            "http://graphics8.nytimes.com/adx/images/ADS/25/67/ad.256707/MJ_NYT_Text-Right.jpg"));
-        assertTrue(readWhitelist.isWhitelisted("http://www.nytimes.com/"));
-        assertFalse(whitelist.isWhitelisted("avaaz.org"));
-        assertTrue(whitelist.isWhitelisted("getlantern.org"));
     }
     
 

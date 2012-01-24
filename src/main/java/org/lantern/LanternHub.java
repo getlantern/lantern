@@ -73,6 +73,9 @@ public class LanternHub {
     private static final AtomicReference<Integer> randomSslPort = 
         new AtomicReference<Integer>(-1);
     
+    private static final AtomicReference<Timer> timer =
+        new AtomicReference<Timer>();
+    
     private static final AtomicReference<LookupService> lookupService = 
         new AtomicReference<LookupService>();
     
@@ -95,9 +98,6 @@ public class LanternHub {
     private static final AtomicReference<Censored> censored =
         new AtomicReference<Censored>();
     
-    private static final AtomicReference<Timer> timer =
-        new AtomicReference<Timer>();
-        
     private static final AtomicReference<SettingsIo> settingsIo =
         new AtomicReference<SettingsIo>();
     
@@ -109,6 +109,9 @@ public class LanternHub {
     
     private static final AtomicReference<HttpsEverywhere> httpsEverywhere =
         new AtomicReference<HttpsEverywhere>();
+    
+    private static final AtomicReference<Whitelist> whitelist =
+        new AtomicReference<Whitelist>();
     
     private static  Settings settings;
     
@@ -330,7 +333,12 @@ public class LanternHub {
 
    
     public static Whitelist whitelist() {
-        return settings.getWhitelist();
+        synchronized (whitelist) {
+            if (whitelist.get() == null) {
+                whitelist.set(new Whitelist());
+            }
+            return whitelist.get();
+        }
     }
     
     public static Platform platform() {
