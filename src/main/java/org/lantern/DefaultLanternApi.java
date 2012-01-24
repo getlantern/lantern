@@ -135,6 +135,7 @@ public class DefaultLanternApi implements LanternApi {
 
 
     private void handleRoster(final HttpServletResponse resp) {
+        log.info("Processing roster call.");
         if (!LanternHub.xmppHandler().isLoggedIn()) {
             sendError(resp, "Not logged in!");
             return;
@@ -144,7 +145,7 @@ public class DefaultLanternApi implements LanternApi {
             try {
                 roster.populate();
             } catch (final IOException e) {
-                sendError(resp, "Not logged in!");
+                sendError(resp, "Could not populate roster!");
                 return;
             }
         }

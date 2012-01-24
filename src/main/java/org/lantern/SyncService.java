@@ -35,8 +35,7 @@ public class SyncService {
      */
     public SyncService() {
         // Make sure the config class is added as a listener before this class.
-        LanternHub.eventBus().register(this);
-        LanternHub.asyncEventBus().register(this);
+        LanternHub.register(this);
         
         final Timer timer = LanternHub.timer();
         timer.schedule(new TimerTask() {
