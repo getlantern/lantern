@@ -947,14 +947,16 @@ public class DefaultXmppHandler implements XmppHandler {
     */
 
     private InetSocketAddress getProxy(final Queue<ProxyHolder> queue) {
-        if (queue.isEmpty()) {
-            LOG.info("No proxy addresses");
-            return null;
+        synchronized (queue) {
+            if (queue.isEmpty()) {
+                LOG.info("No proxy addresses");
+                return null;
+            }
+            final ProxyHolder proxy = queue.remove();
+            queue.add(proxy);
+            LOG.info("FIFO queue is now: {}", queue);
+            return proxy.isa;
         }
-        final ProxyHolder proxy = queue.remove();
-        queue.add(proxy);
-        LOG.info("FIFO queue is now: {}", queue);
-        return proxy.isa;
     }
 
     @Override
