@@ -21,14 +21,16 @@
           <h4>Internet freedom for everyone.</h4>
           <div class=controls>
             <figure>
-              <a href=#terms><img src=assets/img/arrow-right.png alt=Continue /></a>
+     <!-- XXX <a href=#terms><img src=assets/img/arrow-right.png alt=Continue /></a> -->
+              <a href=#mode><img src=assets/img/arrow-right.png alt=Continue /></a>
               <figcaption>Continue</figcaption>
             </figure>
           </div>
         </div>
+        <!--
         <div id=terms class=slide data-cls=slide>
           <h1>Fine Print</h1>
-          <textarea ng:readonly={{true}}>
+          <textarea readonly>
 English
 
 Software License Agreement for Lantern
@@ -49,6 +51,7 @@ A. ...
             </figure>
           </div>
         </div>
+        -->
         <div id=mode class=slide data-cls=slide>
           <h1>Use Lantern to</h1>
           <ul id=modelist>
@@ -57,7 +60,8 @@ A. ...
           </ul>
           <div class=controls>
             <figure>
-              <a href=#terms><img src=assets/img/arrow-left.png alt=Back /></a>
+          <!--<a href=#terms><img src=assets/img/arrow-left.png alt=Back /></a>-->
+              <a href=#welcome><img src=assets/img/arrow-left.png alt=Back /></a>
               <figcaption>Back</figcaption>
             </figure>
             <figure>
@@ -190,7 +194,7 @@ A. ...
           <dl>
             <dt>Port</dt>
             <dd>
-              <input type=number value={{state.port}} id=port min=1024 max=65535 disabled />
+              <input type=number value={{state.port}} id=port min=1024 max=65535 readonly />
             </dd>
             <dt ng:show=state.getMode>Policy</dt>
             <dd ng:show=state.getMode>
@@ -256,8 +260,8 @@ A. ...
               <li><input type=password placeholder="{{state.passwordSaved && 'password saved' || 'password'}}" ng:model=inputpassword required ng:disabled="{{state.passwordSaved && state.savePassword}}" ng:required="{{!state.passwordSaved && !state.savePassword}}" /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
-            <button ng:show=!loggingin() type=submit>{{loggedin() && 'Switch user' || 'Sign in'}}</button>
-            <img src=assets/img/spinner32.gif alt=Loading... ng:show=loggingin() />
+            <button ng:show=!loggingin() type=submit>Sign in</button>
+            <img src=assets/img/spinner32.gif alt="Logging in..." ng:show=loggingin() />
           </form>
         </div>
 
@@ -266,8 +270,8 @@ A. ...
           <h1>Proxied sites</h1>
           <ul id=siteslist>
             <!-- XXX give required entries lower sort order -->
-            <li ng:repeat="entry in state.whitelist.entries">
-              <form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input ng:model=newsite type=text ng:required={{true}} placeholder=example.com value="{{ entry.site }}" ng:disabled={{entry.required}} /></form>
+            <li ng:repeat="entry in whitelist">
+              <form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input ng:model=newsite type=text ng:required={{true}} placeholder=example.com value={{entry.site}} ng:disabled={{entry.required}} /></form>
               <a class=delete ng:show=!entry.required ng:click="updatewhitelist(entry.site, false)">×</a>
             </li>
             <li>
@@ -362,6 +366,7 @@ function LDCtrl(){
     return peer.email.indexOf(f) !== -1;
   };
   self.peers = null;
+  self.whitelist = null;
 
   self.showsignin = function(val){
     if(typeof val == 'undefined'){
@@ -412,14 +417,29 @@ function LDCtrl(){
   };
 
   self.fetchpeers = function(){
-    console.log('fetching peers');
     if(self.state.getMode){
+      console.log('fetching peers');
       $.ajax({url: '/api/roster', dataType: 'json'}).done(function(r){
         self.peers = r.entries;
         console.log('set peers');
       }).fail(function(e){
         console.log('failed to fetch peers:',e);
       });
+    }
+  };
+
+  self.fetchwhitelist = function(){
+    if(self.state.getMode){
+      // XXX take out this line...
+      self.whitelist = self.state.whitelist.entries;
+      // XXX ...and uncomment these when https://github.com/getlantern/lantern/issues/116 is closed:
+      //console.log('fetching whitelist');
+      //$.ajax({url: '/api/whitelist', dataType: 'json'}).done(function(r){
+      //  self.whitelist = r.entries;
+      //  console.log('set whitelist');
+      //}).fail(function(e){
+      //  console.log('failed to fetch whitelist:',e);
+      //});
     }
   };
 
@@ -623,8 +643,11 @@ $(document).ready(function(){
     scope.update(msg.data);
 
     // XXX
-    if(scope.loggedin() && scope.state.getMode && !scope.peers){
-      scope.fetchpeers();
+    if(scope.state.getMode){
+      if(!scope.peers && scope.loggedin())
+        scope.fetchpeers();
+      if(!scope.whitelist)
+        scope.fetchwhitelist();
     }
   }
 
