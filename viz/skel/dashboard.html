@@ -438,11 +438,13 @@ function LDCtrl(){
   self.fetchwhitelist = function(){
     if(self.state.getMode){
       console.log('fetching whitelist');
+      self.whitelist = FETCHING;
       $.ajax({url: '/api/whitelist', dataType: 'json'}).done(function(r){
         self.whitelist = r.entries;
         console.log('set whitelist');
       }).fail(function(e){
         console.log('failed to fetch whitelist:',e);
+        self.whitelist = FETCHFAILED;
       });
     }
   };
@@ -695,8 +697,13 @@ $(document).ready(function(){
           scope.fetchpeers();
         }
       }
-      if(!scope.whitelist)
+      if(scope.whitelist === null){
         scope.fetchwhitelist();
+      }else if(scope.whitelist === FETCHFAILED){
+        // XXX back-off
+        console.log('retrying fetchwhitelist in 1s');
+        setTimeout(scope.fetchwhitelist, 1000);
+      }
     }
   }
 
