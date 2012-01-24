@@ -42,82 +42,39 @@ public class DefaultLanternApi implements LanternApi {
     @Override
     public void processCall(final HttpServletRequest req, 
         final HttpServletResponse resp) {
-        final Settings set = LanternHub.settings();
         final String uri = req.getRequestURI();
         final String id = StringUtils.substringAfter(uri, "/api/");
         final LanternApiCall call = LanternApiCall.valueOf(id.toUpperCase());
         log.debug("Got API call {} for full URI: "+uri, call);
         switch (call) {
         case SIGNIN:
-            LanternHub.xmppHandler().disconnect();
-            final Map<String, String> params = LanternUtils.toParamMap(req);
-            String pass = params.remove("password");
-            if (StringUtils.isBlank(pass) && set.isSavePassword()) {
-                pass = set.getStoredPassword();
-                if (StringUtils.isBlank(pass)) {
-                    sendError(resp, "No password given and no password stored");
-                    return;
-                }
-            }
-            final String rawEmail = params.remove("email");
-            if (StringUtils.isBlank(rawEmail)) {
-                sendError(resp, "No email address provided");
-                return;
-            }
-            final String email;
-            if (!rawEmail.contains("@")) {
-                email = rawEmail + "@gmail.com";
-            } else {
-                email = rawEmail;
-            }
-            changeSetting(resp, "email", email, false);
-            changeSetting(resp, "password", pass, false);
-            try {
-                LanternHub.xmppHandler().connect();
-                if (LanternUtils.shouldProxy()) {
-                    // We automatically start proxying upon connect if the 
-                    // user's settings say they're in get mode and to use the 
-                    // system proxy.
-                    Proxifier.startProxying();
-                }
-            } catch (final IOException e) {
-                sendError(resp, "Could not login: "+e.getMessage());
-            }
-
+            handleSignin(req, resp);
             break;
         case SIGNOUT:
-            log.info("Signing out");
-            LanternHub.xmppHandler().disconnect();
-            
-            // We stop proxying outside of any user settings since if we're
-            // not logged in there's no sense in proxying. Could theoretically
-            // use cached proxies, but definitely no peer proxies would work.
-            Proxifier.stopProxying();
+            handleSignout(resp);
+            break;
+        case RESET:
+            handleReset(resp);
             break;
         case ADDTOWHITELIST:
             LanternHub.whitelist().addEntry(req.getParameter("site"));
+            handleWhitelist(resp);
             break;
         case REMOVEFROMWHITELIST:
             LanternHub.whitelist().removeEntry(req.getParameter("site"));
+            handleWhitelist(resp);
             break;
         case ADDTRUSTEDPEER:
             // TODO: Add data validation.
             LanternHub.getTrustedContactsManager().addTrustedContact(
                 req.getParameter("email"));
+            handleRoster(resp);
             break;
         case REMOVETRUSTEDPEER:
             // TODO: Add data validation.
             LanternHub.getTrustedContactsManager().removeTrustedContact(
                 req.getParameter("email"));
-            break;
-        case RESET:
-            try {
-                FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
-                LanternHub.resetSettings();
-            } catch (final IOException e) {
-                sendServerError(resp, "Error resetting settings: "+
-                   e.getMessage());
-            }
+            handleRoster(resp);
             break;
         case ROSTER:
             handleRoster(resp);
@@ -126,12 +83,82 @@ public class DefaultLanternApi implements LanternApi {
             handleContactForm(req, resp);
             break;
         case WHITELIST:
-            final Whitelist wl = LanternHub.whitelist();
-            returnJson(resp, wl);
+            handleWhitelist(resp);
             break;
         }
-        LanternHub.asyncEventBus().post(new SyncEvent());
-        LanternHub.settingsIo().write();
+    }
+
+    private void handleSignin(final HttpServletRequest req, 
+        final HttpServletResponse resp) {
+        final Settings set = LanternHub.settings();
+        LanternHub.xmppHandler().disconnect();
+        final Map<String, String> params = LanternUtils.toParamMap(req);
+        String pass = params.remove("password");
+        if (StringUtils.isBlank(pass) && set.isSavePassword()) {
+            pass = set.getStoredPassword();
+            if (StringUtils.isBlank(pass)) {
+                sendError(resp, "No password given and no password stored");
+                return;
+            }
+        }
+        final String rawEmail = params.remove("email");
+        if (StringUtils.isBlank(rawEmail)) {
+            sendError(resp, "No email address provided");
+            return;
+        }
+        final String email;
+        if (!rawEmail.contains("@")) {
+            email = rawEmail + "@gmail.com";
+        } else {
+            email = rawEmail;
+        }
+        changeSetting(resp, "email", email, false, false);
+        changeSetting(resp, "password", pass, false, false);
+        try {
+            LanternHub.xmppHandler().connect();
+            if (LanternUtils.shouldProxy()) {
+                // We automatically start proxying upon connect if the 
+                // user's settings say they're in get mode and to use the 
+                // system proxy.
+                Proxifier.startProxying();
+            }
+        } catch (final IOException e) {
+            sendError(resp, "Could not login: "+e.getMessage());
+        }
+        returnSettings(resp);
+    }
+
+
+    private void handleSignout(final HttpServletResponse resp) {
+        log.info("Signing out");
+        LanternHub.xmppHandler().disconnect();
+        
+        // We stop proxying outside of any user settings since if we're
+        // not logged in there's no sense in proxying. Could theoretically
+        // use cached proxies, but definitely no peer proxies would work.
+        Proxifier.stopProxying();
+        returnSettings(resp);
+    }
+
+
+    private void handleReset(final HttpServletResponse resp) {
+        try {
+            FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
+            LanternHub.resetSettings();
+            returnSettings(resp);
+        } catch (final IOException e) {
+            sendServerError(resp, "Error resetting settings: "+
+               e.getMessage());
+        }
+    }
+
+    private void returnSettings(final HttpServletResponse resp) {
+        returnJson(resp, LanternHub.settings());
+    }
+
+    private void handleWhitelist(final HttpServletResponse resp) {
+        final Whitelist wl = LanternHub.whitelist();
+        returnJson(resp, wl);
     }
 
 
@@ -226,18 +253,25 @@ public class DefaultLanternApi implements LanternApi {
     }
     
     private void changeSetting(final HttpServletResponse resp, final String key, 
-            final String val) {
+        final String val) {
         changeSetting(resp, key, val, true);
+    }
+    
+    private void changeSetting(final HttpServletResponse resp, final String key, 
+            final String val, final boolean determineType) {
+        changeSetting(resp, key, val, determineType, true);
     }
 
     private void changeSetting(final HttpServletResponse resp, final String key, 
-        final String val, final boolean determineType) {
+        final String val, final boolean determineType, final boolean sync) {
         setProperty(LanternHub.settingsChangeImplementor(), key, val, false, 
             resp, determineType);
         setProperty(LanternHub.settings(), key, val, true, resp, determineType);
         resp.setStatus(HttpStatus.SC_OK);
-        LanternHub.asyncEventBus().post(new SyncEvent());
-        LanternHub.settingsIo().write();
+        if (sync) {
+            LanternHub.asyncEventBus().post(new SyncEvent());
+            LanternHub.settingsIo().write();
+        }
     }
 
     private void setProperty(final Object bean, 
