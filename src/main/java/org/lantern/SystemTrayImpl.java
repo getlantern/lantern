@@ -41,7 +41,7 @@ public class SystemTrayImpl implements SystemTray {
      * @param display The SWT display. 
      */
     public SystemTrayImpl() {
-        LanternHub.eventBus().register(this);
+        LanternHub.register(this);
     }
 
     @Override

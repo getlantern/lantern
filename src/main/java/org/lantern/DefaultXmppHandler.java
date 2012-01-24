@@ -236,7 +236,7 @@ public class DefaultXmppHandler implements XmppHandler {
         try {
             this.client.login(email, pwd, id);
         } catch (final IOException e) {
-            LanternHub.eventBus().post(
+            LanternHub.asyncEventBus().post(
                 new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
             LanternHub.asyncEventBus().post(
                 new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_OUT));
@@ -382,7 +382,7 @@ public class DefaultXmppHandler implements XmppHandler {
                     Configurator.configure();
                 }
                 LOG.info("Dispatching CONNECTED event");
-                LanternHub.eventBus().post(new ConnectivityStatusChangeEvent(
+                LanternHub.asyncEventBus().post(new ConnectivityStatusChangeEvent(
                     ConnectivityStatus.CONNECTED));
             }
         }
