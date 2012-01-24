@@ -225,7 +225,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.client.addMessageListener(typedListener);
         LanternHub.eventBus().post(
             new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTING));
-        LanternHub.asyncEventBus().post(
+        LanternHub.eventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_IN));
         final String id;
         if (LanternHub.settings().isGetMode()) {
@@ -236,16 +236,16 @@ public class DefaultXmppHandler implements XmppHandler {
         try {
             this.client.login(email, pwd, id);
         } catch (final IOException e) {
-            LanternHub.asyncEventBus().post(
+            LanternHub.eventBus().post(
                 new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
-            LanternHub.asyncEventBus().post(
+            LanternHub.eventBus().post(
                 new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_OUT));
             LanternHub.settings().setPasswordSaved(false);
             LanternHub.settings().setStoredPassword("");
             LanternHub.settings().setPassword("");
             throw e;
         }
-        LanternHub.asyncEventBus().post(
+        LanternHub.eventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_IN));
         
         // We don't consider ourselves connected until we actually get
