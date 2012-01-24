@@ -405,7 +405,6 @@ public class LanternUtils {
         }
         final String un = LanternHub.settings().getEmail();
         final String pwd = LanternHub.settings().getPassword();
-        LOG.info("User name {} and password {}", un, pwd);
         return (StringUtils.isNotBlank(un) && StringUtils.isNotBlank(pwd));
     }
     

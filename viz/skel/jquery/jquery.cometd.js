@@ -49,6 +49,11 @@
                 type: 'POST',
                 contentType: 'application/json;charset=UTF-8',
                 data: packet.body,
+                xhrFields: {
+                    // Has no effect if the request is not cross domain
+                    // but if it is, allows cookies to be sent to the server
+                    withCredentials: true
+                },
                 beforeSend: function(xhr)
                 {
                     _setHeaders(xhr, packet.headers);
@@ -104,9 +109,11 @@
     {
         var cometd = new org.cometd.Cometd(name);
 
-        if (window.WebSocket)
+        // Registration order is important
+        if (org.cometd.WebSocket)
         {
             cometd.registerTransport('websocket', new org.cometd.WebSocketTransport());
+            cometd.websocketEnabled = true;
         }
         cometd.registerTransport('long-polling', new LongPollingTransport());
         cometd.registerTransport('callback-polling', new CallbackPollingTransport());

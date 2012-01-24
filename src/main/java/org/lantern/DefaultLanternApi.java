@@ -114,6 +114,10 @@ public class DefaultLanternApi implements LanternApi {
         }
         changeSetting(resp, "email", email, false, false);
         changeSetting(resp, "password", pass, false, false);
+        
+        // We write to disk to make sure Lantern's considered configured for
+        // the subsequent connect call.
+        LanternHub.settingsIo().write();
         try {
             LanternHub.xmppHandler().connect();
             if (LanternUtils.shouldProxy()) {
@@ -190,7 +194,7 @@ public class DefaultLanternApi implements LanternApi {
             log.error("We need UTF-8");
             return;
         }
-        log.info("Returning json: {}", json);
+        log.info("Returning json...");
         resp.setStatus(HttpStatus.SC_OK);
         resp.setContentLength(body.length);
         resp.setContentType("application/json; charset=UTF-8");
