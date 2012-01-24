@@ -100,14 +100,18 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         LanternHub.xmppHandler().disconnect();
         try {
             LanternHub.xmppHandler().connect();
+
+            // may need to modify the proxying state
+            if (LanternUtils.shouldProxy()) {
+                Proxifier.startProxying();
+            } else {
+                Proxifier.stopProxying();
+            }
+            
         } catch (final IOException e) {
             log.info("Could not login", e);
-        }
 
-        // may need to modify the proxying state
-        if (LanternUtils.shouldProxy()) {
-            Proxifier.startProxying();
-        } else {
+            // Don't proxy if there's some error connecting.
             Proxifier.stopProxying();
         }
     }

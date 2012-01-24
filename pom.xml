@@ -201,7 +201,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.lantern</groupId>
+      <groupId>org.littleshoot</groupId>
       <artifactId>exceptional4j</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>

@@ -173,6 +173,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 LOG.error("No user name");
                 throw new IllegalStateException("No user name");
             }
+            LanternHub.settingsIo().write();
         }
         
         if (StringUtils.isBlank(pwd)) {
@@ -183,9 +184,8 @@ public class DefaultXmppHandler implements XmppHandler {
                 LOG.error("No password.");
                 throw new IllegalStateException("No password");
             }
+            LanternHub.settingsIo().write();
         }
-        
-        LanternHub.settingsIo().write();
         
         final InetSocketAddress plainTextProxyRelayAddress = 
             new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
