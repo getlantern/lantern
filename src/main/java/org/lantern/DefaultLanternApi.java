@@ -1,6 +1,7 @@
 package org.lantern;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -155,13 +156,20 @@ public class DefaultLanternApi implements LanternApi {
 
     private void returnJson(final HttpServletResponse resp, final Object obj) {
         final String json = LanternUtils.jsonify(obj);
+        final byte[] body;
+        try {
+            body = json.getBytes("UTF-8");
+        } catch (final UnsupportedEncodingException e) {
+            log.error("We need UTF-8");
+            return;
+        }
         log.info("Returning json: {}", json);
         resp.setStatus(HttpStatus.SC_OK);
-        resp.setContentLength(json.length());
+        resp.setContentLength(body.length);
         resp.setContentType("application/json; charset=UTF-8");
         try {
-            resp.getWriter().write(json);
-            resp.getWriter().flush();
+            resp.getOutputStream().write(body);
+            resp.getOutputStream().flush();
         } catch (final IOException e) {
             log.info("Could not write response", e);
         }
