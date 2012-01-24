@@ -161,6 +161,9 @@ form.signin .error
 .error
   color: $font-color-error
 
+input.ng-invalid:not(.ng-pristine)
+  outline-color: $font-color-error
+
 .warning
   color: $font-color-warning !important
 
@@ -335,10 +338,10 @@ input[type=text], input[type=email], input[type=password], input[type=number], t
   cursor: text
   font-size: $blueprint-font-size
   font-family: $blueprint-font-family
-  &:not([disabled]):hover
+  &:not([disabled]):not([readonly]):hover
     color: #000
 
-input[disabled]
+input[disabled], input[type=text][readonly]
   cursor: default
   color: $font-color-disabled
 
@@ -506,7 +509,9 @@ button
   +border-radius(3px)
   margin: 10px 0
   color: $font-color-input
-  &:hover
+  &[disabled]
+    color: $font-color-disabled
+  &:hover:not([disabled])
     color: #333
     border: 1px solid #999
   &:active

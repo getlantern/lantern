@@ -24,6 +24,7 @@ public class Whitelist {
     {
         // these domains host required services and can't be removed
         addDefaultEntry("getlantern.org", true);
+        addDefaultEntry("google.com", true);
         addDefaultEntry("exceptional.io", true);
 
         // optional
@@ -32,7 +33,6 @@ public class Whitelist {
         addDefaultEntry("balatarin.com", false);
         addDefaultEntry("facebook.com", false);
         addDefaultEntry("flickr.com", false);
-        addDefaultEntry("google.com", false);
         addDefaultEntry("ifconfig.me", false);
         addDefaultEntry("linkedin.com", false);
         addDefaultEntry("littleshoot.org", false);
