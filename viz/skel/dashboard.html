@@ -441,6 +441,7 @@ function LDCtrl(){
       self.whitelist = FETCHING;
       $.ajax({url: '/api/whitelist', dataType: 'json'}).done(function(r){
         self.whitelist = r.entries;
+        self.$digest();
         console.log('set whitelist');
       }).fail(function(e){
         console.log('failed to fetch whitelist:',e);
@@ -470,11 +471,12 @@ function LDCtrl(){
       }
     }
     console.log('Signing in with:', data);
-    $.post('/api/signin', data).done(function(){
+    $.post('/api/signin', data).done(function(state){
       console.log('signin succeeded');
       $('form.signin').removeClass('badcredentials');
       self.inputpassword = '';
       self.showsignin(false);
+      self.update(state);
       self.fetchpeers();
       if(!self.state.initialSetupComplete)
         showid(self.state.getMode && '#trustedpeers' || '#setupcomplete');
@@ -516,7 +518,12 @@ function LDCtrl(){
   };
 
   self.signout = function(){
-    $.post('/api/signout');
+    $.post('/api/signout').done(function(state){
+      console.log('signout succeeded');
+      self.update(state);
+    }).fail(function(){
+      console.log('signout failed');
+    });
   };
 
   self.toggle = function(setting, manual){
@@ -543,7 +550,8 @@ function LDCtrl(){
       (self.loggedin() ? 'You will be signed out and y' : 'Y') +
       'our settings will be erased.';
     if(confirm(msg)){
-      $.post('/api/reset').done(function(){
+      $.post('/api/reset').done(function(state){
+        self.update(state);
         showid('#welcome');
       });
     }
@@ -560,28 +568,34 @@ function LDCtrl(){
 
   self.updatewhitelist = function(site, newsite){
     if(typeof newsite === 'string'){
-      if(!self._validatewhitelistentry(newsite))return;
       if(newsite === site){
         console.log('site == newsite == ', site, 'ignoring');
         return;
       }
-      $.ajax('/api/removefromwhitelist?site=' + site).done(function(){
-        $.ajax('/api/addtowhitelist?site=' + newsite).done(function(){
-          self.fetchwhitelist();
+      if(!self._validatewhitelistentry(newsite))return;
+      $.post('/api/removefromwhitelist?site=' + site).done(function(r1){
+        $.post('/api/addtowhitelist?site=' + newsite).done(function(r2){
+          self.whitelist = r2.entries;
+          self.$digest();
+          console.log('/api/addtowhitelist?site='+site+' succeeded');
         }).fail(function(){
           console.log('/api/addtowhitelist?site='+site+' failed');
         });
-        self.fetchwhitelist();
+        self.whitelist = r1.entries;
+        self.$digest();
+        console.log('/api/removefromwhitelist?site='+site+' succeeded');
       }).fail(function(){
         console.log('/api/removefromwhitelist?site='+site+' failed');
       });
     }else if(typeof newsite === 'boolean'){
-      if(!self._validatewhitelistentry(site))return;
+      if(newsite && !self._validatewhitelistentry(site))return;
       var url = '/api/' + (newsite ? 'addtowhitelist' : 'removefromwhitelist') + '?site=' + site;
-      $.ajax(url).done(function(){
+      $.post(url).done(function(r){
         if(newsite)
           $('#sitetoadd').val('');
-        self.fetchwhitelist();
+        self.whitelist = r.entries;
+        self.$digest();
+        console.log(url+' succeeded');
       }).fail(function(){
         console.log(url+' failed');
       });
@@ -643,7 +657,7 @@ $(document).ready(function(){
     console.log('blur');
     if(!scope)
       scope = $body.scope();
-    scope.fetchwhitelist();
+    setTimeout(scope.fetchwhitelist, 200);
   });
 
   function _connectionEstablished(){
