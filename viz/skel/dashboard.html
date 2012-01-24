@@ -298,6 +298,9 @@ A. ...
 <script>
 cometd = $.cometd;
 
+FETCHING = 'fetching...'; // poor-man's promise
+FETCHFAILED = 'fetch failed';
+
 // http://html5pattern.com/
 HOSTNAMEPAT = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/;
 
@@ -421,11 +424,13 @@ function LDCtrl(){
   self.fetchpeers = function(){
     if(self.state.getMode){
       console.log('fetching peers');
+      self.peers = FETCHING;
       $.ajax({url: '/api/roster', dataType: 'json'}).done(function(r){
         self.peers = r.entries;
         console.log('set peers');
       }).fail(function(e){
         console.log('failed to fetch peers:',e);
+        self.peers = FETCHFAILED;
       });
     }
   };
@@ -680,8 +685,16 @@ $(document).ready(function(){
 
     // XXX
     if(scope.state.getMode){
-      if(!scope.peers && scope.loggedin())
-        scope.fetchpeers();
+      if(scope.loggedin()){
+        if(scope.peers === FETCHFAILED){
+          // XXX back-off
+          console.log('retrying fetchpeers in 1s');
+          setTimeout(scope.fetchpeers, 1000);
+        }else if(scope.peers === null){
+          console.log('calling fetch peers for the first time');
+          scope.fetchpeers();
+        }
+      }
       if(!scope.whitelist)
         scope.fetchwhitelist();
     }
