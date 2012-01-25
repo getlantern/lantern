@@ -47,7 +47,7 @@ public class SettingsIo {
      */
     public Settings read() {
         if (!settingsFile.isFile()) {
-            return new Settings();
+            return newSettings();
         }
         final ObjectMapper mapper = new ObjectMapper();
         InputStream is = null;
@@ -57,7 +57,7 @@ public class SettingsIo {
             log.info("Building setting from json string...");
             if (StringUtils.isBlank(json)) {
                 log.info("Can't build settings from empty string");
-                return new Settings();
+                return newSettings();
             }
             final Settings read = mapper.readValue(json, Settings.class);
             log.info("Built settings from disk: {}", read);
@@ -73,13 +73,18 @@ public class SettingsIo {
             IOUtils.closeQuietly(is);
         }
         settingsFile.delete();
-        final Settings settings = new Settings();
+        final Settings settings = newSettings();
         final SettingsState ss = new SettingsState();
         ss.setState(State.CORRUPTED);
         ss.setMessage("Could not read settings file.");
         return settings;
     }
     
+
+    private Settings newSettings() {
+        return new Settings(new Whitelist());
+    }
+
 
     /**
      * Writes the default settings object.
