@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.eclipse.swt.SWT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,6 +14,9 @@ import org.slf4j.LoggerFactory;
  * Class that handles turning proxying on and off for all platforms.
  */
 public class Proxifier {
+    
+    public static class ProxyConfigurationError extends Exception {}
+    public static class ProxyConfigurationCancelled extends ProxyConfigurationError {};
     
     private static final Logger LOG = 
         LoggerFactory.getLogger(Proxifier.class);
@@ -71,29 +75,42 @@ public class Proxifier {
             throw new IllegalStateException(msg);
         }
         LOG.info("Both pac files are in their expected locations");
-        
+
         // We always want to stop proxying on shutdown -- doesn't hurt 
         // anything in the case where we never proxied in the first place.
-        final Thread hook = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                if (isProxying()) {
-                    LOG.info("Unproxying...");
-                    stopProxying();
+        // if there is a Ui we let the Ui handle it. 
+        if (!LanternUtils.runWithUi()) {
+            final Thread hook = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        stopProxying();
+                    } catch (final Proxifier.ProxyConfigurationError e) {
+                        LOG.error("Failed to unconfigure proxy: {}", e);
+                    }
                 }
-            }
-        }, "Unset-Web-Proxy-Thread");
-        Runtime.getRuntime().addShutdownHook(hook);
+            }, "Unset-Web-Proxy-Thread");
+            Runtime.getRuntime().addShutdownHook(hook);
+        }
     }
     
     private static final File ACTIVE_PAC = 
         new File(LanternUtils.configDir(), "proxy.pac");
     
-    public static void startProxying() {
+    public static void startProxying() throws ProxyConfigurationError {
         if (isProxying()) {
             return;
         }
-        
+
+        LOG.info("Autoconfiguring local to proxy Lantern");
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            proxyOsx();
+        } else if (SystemUtils.IS_OS_WINDOWS) {
+            proxyWindows();
+        } else if (SystemUtils.IS_OS_LINUX) {
+            // TODO: proxyLinux();
+        }
+        // success
         try {
             if (!LANTERN_PROXYING_FILE.isFile() &&
                 !LANTERN_PROXYING_FILE.createNewFile()) {
@@ -102,24 +119,15 @@ public class Proxifier {
         } catch (final IOException e) {
             LOG.error("Could not create proxy file?", e);
         }
-        LOG.info("Starting to proxy Lantern");
-        if (SystemUtils.IS_OS_MAC_OSX) {
-            proxyOsx();
-        } else if (SystemUtils.IS_OS_WINDOWS) {
-            proxyWindows();
-        } else if (SystemUtils.IS_OS_LINUX) {
-            // TODO: proxyLinux();
-        }
         LanternHub.eventBus().post(new ProxyingEvent(true));
     }
     
-    public static void stopProxying() {
+    public static void stopProxying() throws ProxyConfigurationError {
         if (!isProxying()) {
             return; 
         }
-        
+
         LOG.info("Unproxying Lantern");
-        LANTERN_PROXYING_FILE.delete();
         if (SystemUtils.IS_OS_MAC_OSX) {
             unproxyOsx();
         } else if (SystemUtils.IS_OS_WINDOWS) {
@@ -127,6 +135,7 @@ public class Proxifier {
         } else if (SystemUtils.IS_OS_LINUX) {
             // TODO: unproxyLinux();
         }
+        LANTERN_PROXYING_FILE.delete();
         LanternHub.eventBus().post(new ProxyingEvent(false));
     }
 
@@ -134,16 +143,16 @@ public class Proxifier {
         return LANTERN_PROXYING_FILE.isFile();
     }
     
-    private static void proxyOsx() {
+    private static void proxyOsx() throws ProxyConfigurationError {
         configureOsxProxyPacFile();
         proxyOsxViaScript();
     }
 
-    public static void proxyOsxViaScript() {
+    public static void proxyOsxViaScript() throws ProxyConfigurationError {
         proxyOsxViaScript(true);
     }
     
-    private static void proxyOsxViaScript(final boolean proxy) {
+    private static void proxyOsxViaScript(final boolean proxy) throws ProxyConfigurationError {
         final String onOrOff;
         if (proxy) {
             onOrOff = "on";
@@ -177,38 +186,7 @@ public class Proxifier {
         LOG.info("Result of script is: {}", result);
         
         if (result.contains("canceled")) {
-            // TODO: Internationalize!!
-            // XXX @myleshorton can we make more user friendly, i.e.
-            // change buttons from "Yes" and "No" to
-            // "Modify System Settings" and "Cancel"?
-            // (changing the message text and default action appropriately)
-            final String question;
-            if (proxy) {
-                question = "Lantern is running but is not set as your " +
-                    "system proxy, which means you have to configure your " +
-                    "browser to use Lantern manually. Are you sure you " +
-                    "don't want to set Lantern as your system proxy?";
-            } else {
-                question = "Are you sure you want to cancel turning off Lantern " +
-                    "proxying of your internet traffic?";
-                // XXX @myleshorton do we actually only want this prompt
-                // when unproxy is triggered by signout, something like:
-                //   Lantern is set as your system proxy but you
-                //   are signed out. Are you sure you want to keep Lantern
-                //   set as your system proxy? Proxying through Lantern
-                //   won't work until you sign back in.
-                // ?
-            }
-            LOG.info("Asking again");
-            final boolean cancel = 
-                LanternHub.dashboard().askQuestion("Proxy Settings", question);
-            if (cancel) {
-                // XXX @myleshorton do we need to do:
-                // setProperty(LanternHub.settings(), "isSystemProxy", proxy...);
-                // in this case?
-            } else {
-                proxyOsxViaScript(proxy);
-            }
+            throw new ProxyConfigurationCancelled();
         }
     }
 
@@ -266,7 +244,7 @@ public class Proxifier {
         }
     }
 
-    public static void unproxy() {
+    public static void unproxy() throws ProxyConfigurationError {
         if (SystemUtils.IS_OS_WINDOWS) {
             // We first want to read the start values so we can return the
             // registry to the original state when we shut down.
@@ -312,12 +290,12 @@ public class Proxifier {
         LOG.info("Done resetting the Windows registry");
     }
 
-    private static void unproxyOsx() {
+    private static void unproxyOsx() throws ProxyConfigurationError {
         unproxyOsxPacFile();
         unproxyOsxViaScript();
     }
     
-    static void unproxyOsxViaScript() {
+    static void unproxyOsxViaScript() throws ProxyConfigurationError {
         proxyOsxViaScript(false);
     }
     

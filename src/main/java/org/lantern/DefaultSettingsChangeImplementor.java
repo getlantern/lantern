@@ -45,20 +45,25 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             return;
         }
         
-        
         log.info("Setting system proxy");
+        
         // go ahead and change the setting so that it will affect
         // shouldProxy. it will be set again by the api, but that
         // doesn't matter.
         LanternHub.settings().setSystemProxy(isSystemProxy);
-        
-        if (LanternUtils.shouldProxy()) {
-            Proxifier.startProxying();
-        } else {
-            Proxifier.stopProxying();
+        try {
+            if (LanternHub.settings().isInitialSetupComplete()) {
+                if (LanternUtils.shouldProxy() ) {
+                    Proxifier.startProxying();
+                } else {
+                    Proxifier.stopProxying();
+                }
+            }
+        } catch (Proxifier.ProxyConfigurationError e) {
+            log.error("Proxy reconfiguration failed: {}", e);
         }
     }
-
+    
     @Override
     public void setPort(final int port) {
         // Not yet supported.
@@ -99,20 +104,25 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         // not advertise us as a connection point.
         LanternHub.xmppHandler().disconnect();
         try {
-            LanternHub.xmppHandler().connect();
-
-            // may need to modify the proxying state
-            if (LanternUtils.shouldProxy()) {
-                Proxifier.startProxying();
-            } else {
-                Proxifier.stopProxying();
+            try {
+                LanternHub.xmppHandler().connect();
+                if (LanternHub.settings().isInitialSetupComplete()) {
+                    // may need to modify the proxying state
+                    if (LanternUtils.shouldProxy()) {
+                        Proxifier.startProxying();
+                    } else {
+                        Proxifier.stopProxying();
+                    }
+                }
+            } catch (final IOException e) {
+                log.info("Could not login", e);
+                // Don't proxy if there's some error connecting.
+                if (LanternHub.settings().isInitialSetupComplete()) {
+                    Proxifier.stopProxying();
+                }
             }
-            
-        } catch (final IOException e) {
-            log.info("Could not login", e);
-
-            // Don't proxy if there's some error connecting.
-            Proxifier.stopProxying();
+        } catch (final Proxifier.ProxyConfigurationError e) {
+            log.info("Proxy auto-configuration failed: {}", e);
         }
     }
 

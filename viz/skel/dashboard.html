@@ -117,6 +117,7 @@ A. ...
         <div id=systemproxy class=slide data-cls=slide>
           <h1>System Proxy</h1>
           <ul class=welcome-optionlist>
+            <li><div class=error>Proxy configuration failed.</div></li>  
             <li><label><input type=radio value={{true}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Automatically configure Lantern as my system proxy</label></li>
             <li><label><input type=radio value={{false}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> I will manually configure my browser to use Lantern</label></li>
           </ul>
@@ -126,7 +127,7 @@ A. ...
               <figcaption>Back</figcaption>
             </figure>
             <figure>
-              <a href=#setupcomplete><img src=assets/img/arrow-right.png alt=Continue /></a>
+              <a ng:click=init_applyautoproxy()><img src=assets/img/arrow-right.png alt=Continue /></a>
               <figcaption>Continue</figcaption>
             </figure>
           </div>
@@ -542,6 +543,17 @@ function LDCtrl(){
     });
   }
 
+  self.init_applyautoproxy = function() {
+      $.post('/api/applyautoproxy').done(function(state){
+          $('#systemproxy').removeClass('autoproxyfailed');
+          showid('#setupcomplete');
+      }).fail(function(){
+        $('#systemproxy').addClass('autoproxyfailed');
+        console.log('autoproxy failed');
+      });
+    
+  }
+
   self.finishsetup = function(){
     showid('#setupcomplete');
     $('#welcome-container').fadeOut('slow');
@@ -549,6 +561,7 @@ function LDCtrl(){
     $.post('/settings?initialSetupComplete=true').done(function(){
       self.showsignin(false)
       showid('#status');
+      console.log('finished setup.');
     }).fail(function(e){
       alert('Could not complete setup.'); console.log(e); // XXX
     });
