@@ -64,6 +64,7 @@ $welcome-controls-wdth: 300px
   h4
     font-size: 11pt
     color: $background-color-alt5
+    margin-bottom: 10px
   .controls
     width: $welcome-controls-wdth
     margin-left: -$welcome-controls-wdth / 2
@@ -76,14 +77,18 @@ $welcome-controls-wdth: 300px
       +inline-block
       margin: 0 30px
 
-#modelist
+.welcome-optionlist
   text-align: left
   position: relative
   left: 50%
-  width: 325px
-  margin: 30px 0 0 -162.5px
   li
     padding: 5px 0
+  #mode &
+    width: 325px
+    margin: 30px 0 0 -162.5px
+  #systemproxy &
+    width: 350px
+    margin: 30px 0 0 -175px
 
 .slide
   display: none
@@ -104,9 +109,9 @@ form.signin
     background-color: #eee
     border: 1px solid $edge-color
     margin-bottom: 8px
-    width: 250px
+    width: 275px
     padding: 4px
-    font-size: 18pt
+    font-size: 16pt
     +border-radius(5px)
 
 .peerlist
@@ -114,14 +119,15 @@ form.signin
   overflow-y: auto
   white-space: nowrap
   #trustedpeers &
+    font-size: $font-size-smaller
     height: 90px
     text-align: left
     border: 1px solid #aaa
     +box-shadow(#ccc 0 1px 2px)
     position: relative
     left: 50%
-    width: 300px
-    margin: 0 0 1em -151px
+    width: 350px
+    margin: 0 0 1em -176px
   #trustedpeers-overlay &
     border: thin solid $edge-color
     width: 400px
@@ -132,8 +138,8 @@ form.signin
 
 .searchpeers
   #trustedpeers &
-    width: 300px
-    margin-bottom: 3px
+    width: 350px
+    margin-bottom: 5px
   #trustedpeers-overlay &
     width: 400px
     margin-bottom: 8px
@@ -147,7 +153,7 @@ form.signin
     margin-bottom: 25px
 
 .smallnote
-  font-size: 8pt
+  font-size: 9pt
 
 form.signin .error
   visibility: hidden
