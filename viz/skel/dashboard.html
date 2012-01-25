@@ -10,6 +10,7 @@
     <script src=jquery/json2.js></script>
     <script src=org/cometd.js></script>
     <script src=jquery/jquery.cometd.js></script>
+<!--<script src=http://code.angularjs.org/angular-0.10.5.js ng:autobind></script>-->
     <script src=assets/js/libs/angular-0.10.5.min.js ng:autobind></script>
   </head>
 
@@ -54,7 +55,7 @@ A. ...
         -->
         <div id=mode class=slide data-cls=slide>
           <h1>Use Lantern to</h1>
-          <ul id=modelist>
+          <ul class=welcome-optionlist>
             <li><label><input type=radio value={{true}} ng:change=switchmode() ng:model=state.getMode /> Get access through others’ connections</label></li>
             <li><label><input type=radio value={{false}} ng:change=switchmode() ng:model=state.getMode /> Give access to others through my connection</label></li>
           </ul>
@@ -75,8 +76,8 @@ A. ...
           <form id=firstsignin-form name=fsform class=signin ng:submit=fs_submit()>
             <ul>
               <li><div class=error>Bad username or password.</div></li>
-              <li><input type=text placeholder=email@example.com ng:model=inputemail required autofocus ng:disabled={{!loggedout()}} value="{{state.email || ''}}" /></li>
-              <li><input type=password placeholder=password ng:model=inputpassword required ng:disabled={{!loggedout()}} value="{{!loggedout() && '•••••••••••••' || ''}}" /></li>
+              <li><input type=text placeholder=email@example.com ng:model=inputemail value="{{state.email || ''}}" required autofocus /></li>
+              <li><input type=password placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
             <div class=controls>
@@ -101,10 +102,27 @@ A. ...
             </li>
             <li ng:show="!peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
           </ul>
-          <label><input type=checkbox ng:model=state.useCloudProxies ng:change=toggle('useCloudProxies') /> Use Lantern cloud proxies when no trusted peers are available</label>
+          <span class=smallnote>Lantern cloud proxies will be used when no trusted peers are available</span>
           <div class=controls>
             <figure>
               <a href=#signin><img src=assets/img/arrow-left.png alt=Back /></a>
+              <figcaption>Back</figcaption>
+            </figure>
+            <figure>
+              <a href=#systemproxy><img src=assets/img/arrow-right.png alt=Continue /></a>
+              <figcaption>Continue</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div id=systemproxy class=slide data-cls=slide>
+          <h1>System Proxy</h1>
+          <ul class=welcome-optionlist>
+            <li><label><input type=radio value={{true}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Automatically configure Lantern as my system proxy</label></li>
+            <li><label><input type=radio value={{false}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> I will manually configure my browser to use Lantern</label></li>
+          </ul>
+          <div class=controls>
+            <figure>
+              <a href=#trustedpeers><img src=assets/img/arrow-left.png alt=Back /></a>
               <figcaption>Back</figcaption>
             </figure>
             <figure>
@@ -118,7 +136,7 @@ A. ...
           <h4>Thank you for joining Lantern.</h4>
           <div class=controls>
             <figure>
-              <a href="{{state.getMode && '#trustedpeers' || '#signin'}}"><img src=assets/img/arrow-left.png alt=Back /></a>
+              <a href="{{state.getMode && '#systemproxy' || '#signin'}}"><img src=assets/img/arrow-left.png alt=Back /></a>
               <figcaption>Back</figcaption>
             </figure>
             <figure>
@@ -256,11 +274,11 @@ A. ...
           <form name=signinform class=signin ng:submit=signin(inputemail)>
             <ul>
               <li><div class=error>Bad username or password.</div></li>
-              <li><input type=text placeholder=email@example.com ng:model=inputemail autofocus value="{{state.email || ''}}" required /></li>
-              <li><input type=password placeholder=password ng:model=inputpassword ng:required="{{!((inputemail == state.email || inputemail + '@gmail.com' == state.email) && state.passwordSaved && state.savePassword)}}" /></li>
+              <li><input type=text placeholder=email@example.com ng:model=inputemail value="{{state.email || ''}}" required /></li>
+              <li><input type=password placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
-            <button ng:show=!loggingin() type=submit ng:disabled="{{(inputemail == null || inputemail == state.email || inputemail + '@gmail.com' == state.email) && loggedin()}}" >Sign in</button>
+            <button ng:show=!loggingin() type=submit ng:disabled="{{loggedin() && sameuser()}}" >Sign in</button>
             <img src=assets/img/spinner32.gif alt="Logging in..." ng:show=loggingin() />
           </form>
         </div>
@@ -284,12 +302,12 @@ A. ...
           <h1>Trusted peers</h1>
           <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
           <ul class=peerlist>
-            <li ng:repeat="peer in peers.$filter(peerfilter)">
+            <li ng:repeat="peer in peers.filter(peerfilter)">
               <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
             </li>
             <li ng:show="!peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
           </ul>
-          <label class=usecloud><input type=checkbox ng:model=state.useCloudProxies ng:change=toggle('useCloudProxies') /> Use Lantern cloud proxies when no trusted peers are available</label>
+          <span class=smallnote>Lantern cloud proxies will be used when no trusted peers are available</span>
         </div>
 
       </div>
@@ -373,6 +391,21 @@ function LDCtrl(){
   self.peers = null;
   self.whitelist = null;
 
+  self.sameuser = function(){
+    var inputemail = self.inputemail, stateemail = self.state.email;
+    return inputemail === null || inputemail === stateemail || inputemail + '@gmail.com' === stateemail;
+  };
+
+  self.passrequired = function(){
+    return !(self.sameuser() && self.state.passwordSaved && self.state.savePassword);
+  };
+
+  self.passplaceholder = function(){
+    if(!self.passrequired())
+      return '••••••••••••••••';
+    return 'password';
+  };
+
   self.showsignin = function(val){
     if(typeof val == 'undefined'){
       if(typeof self._showsignin == 'undefined'){
@@ -412,11 +445,16 @@ function LDCtrl(){
   };
 
   self.fs_submit = function(){
-    if(self.loggedout()){
+    if(self.loggedout() || !self.sameuser()){
+      if(self.fsform.$invalid){
+        console.log('form invalid, doing nothing');
+        return;
+      }
       console.log('calling signin');
       self.signin(self.inputemail);
     }else{
       console.log('already signed in, just skipping to next screen');
+      self.inputpassword = '';
       showid(self.state.getMode && '#trustedpeers' || '#setupcomplete');
     }
   };
@@ -487,7 +525,7 @@ function LDCtrl(){
   };
 
   self.fs_submit_src = function(){
-    if(self.fsform.$invalid) // XXX sometimes this lies
+    if(self.fsform.$invalid && !(self.loggedin() && self.sameuser()))
       return 'assets/img/arrow-right-disabled.png';
     if(self.loggingin())
       return 'assets/img/spinner32.gif';
@@ -659,6 +697,9 @@ $(document).ready(function(){
       scope = $body.scope();
     setTimeout(scope.fetchwhitelist, 200);
   });
+  $('#sitetoadd').live('blur', function(){
+    $(this).val('');
+  });
 
   function _connectionEstablished(){
     console.log('CometD Connection Established');
@@ -672,8 +713,8 @@ $(document).ready(function(){
   // XXX never getting called?
   function _connectionClosed(){
     console.log('CometD Connection Closed');
-    alert('CometD Connection Closed');
     // XXX "Lantern has shut down." Close window
+    //alert('CometD Connection Closed');
   }
 
   // Function that manages the connection status with the Bayeux server
