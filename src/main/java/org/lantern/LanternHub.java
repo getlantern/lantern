@@ -110,9 +110,6 @@ public class LanternHub {
     private static final AtomicReference<HttpsEverywhere> httpsEverywhere =
         new AtomicReference<HttpsEverywhere>();
     
-    private static final AtomicReference<Whitelist> whitelist =
-        new AtomicReference<Whitelist>();
-    
     private static  Settings settings;
     
     static {
@@ -333,12 +330,7 @@ public class LanternHub {
 
    
     public static Whitelist whitelist() {
-        synchronized (whitelist) {
-            if (whitelist.get() == null) {
-                whitelist.set(new Whitelist());
-            }
-            return whitelist.get();
-        }
+        return settings.getWhitelist();
     }
     
     public static Platform platform() {

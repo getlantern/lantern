@@ -63,10 +63,12 @@ public class DefaultLanternApi implements LanternApi {
         case ADDTOWHITELIST:
             LanternHub.whitelist().addEntry(req.getParameter("site"));
             handleWhitelist(resp);
+            LanternHub.settingsIo().write();
             break;
         case REMOVEFROMWHITELIST:
             LanternHub.whitelist().removeEntry(req.getParameter("site"));
             handleWhitelist(resp);
+            LanternHub.settingsIo().write();
             break;
         case ADDTRUSTEDPEER:
             // TODO: Add data validation.
