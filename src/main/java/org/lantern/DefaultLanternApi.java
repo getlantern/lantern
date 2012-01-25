@@ -29,6 +29,7 @@ public class DefaultLanternApi implements LanternApi {
     private enum LanternApiCall {
         SIGNIN,
         SIGNOUT,
+        APPLYAUTOPROXY,
         ADDTOWHITELIST,
         REMOVEFROMWHITELIST,
         ADDTRUSTEDPEER,
@@ -52,6 +53,9 @@ public class DefaultLanternApi implements LanternApi {
             break;
         case SIGNOUT:
             handleSignout(resp);
+            break;
+        case APPLYAUTOPROXY:
+            handleAutoproxy(resp);
             break;
         case RESET:
             handleReset(resp);
@@ -120,7 +124,7 @@ public class DefaultLanternApi implements LanternApi {
         LanternHub.settingsIo().write();
         try {
             LanternHub.xmppHandler().connect();
-            if (LanternUtils.shouldProxy()) {
+            if (LanternUtils.shouldProxy() && LanternHub.settings().isInitialSetupComplete()) {
                 // We automatically start proxying upon connect if the 
                 // user's settings say they're in get mode and to use the 
                 // system proxy.
@@ -128,6 +132,8 @@ public class DefaultLanternApi implements LanternApi {
             }
         } catch (final IOException e) {
             sendError(resp, "Could not login: "+e.getMessage());
+        } catch (final Proxifier.ProxyConfigurationError e) {
+            log.error("Proxy configuration failed: {}", e);
         }
         returnSettings(resp);
     }
@@ -140,10 +146,30 @@ public class DefaultLanternApi implements LanternApi {
         // We stop proxying outside of any user settings since if we're
         // not logged in there's no sense in proxying. Could theoretically
         // use cached proxies, but definitely no peer proxies would work.
-        Proxifier.stopProxying();
+        try {
+            Proxifier.stopProxying();
+        } catch (Proxifier.ProxyConfigurationError e) {
+            log.error("failed to stop proxying: {}", e);
+        }
         returnSettings(resp);
     }
 
+    private void handleAutoproxy(final HttpServletResponse resp) {
+        try {
+            if (LanternUtils.shouldProxy()) {
+                Proxifier.startProxying();
+            }
+            else {
+                Proxifier.stopProxying();
+            }
+        }
+        catch (final Proxifier.ProxyConfigurationCancelled e) {
+            sendServerError(resp, "Automatic proxy configuration cancelled.");
+        }
+        catch (final Proxifier.ProxyConfigurationError e) {
+            sendServerError(resp, "Failed to configure system proxy.");
+        }
+    }
 
     private void handleReset(final HttpServletResponse resp) {
         try {

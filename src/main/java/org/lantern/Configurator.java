@@ -7,6 +7,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.eclipse.swt.SWT;
 
 /**
  * Configures Lantern. This can be either on the first run of the application
@@ -92,11 +93,36 @@ public class Configurator {
             return;
         }
         
-        if (LanternUtils.shouldProxy()) {
+        if (LanternUtils.shouldProxy() &&
+            (!LanternUtils.runWithUi() || LanternHub.settings().isInitialSetupComplete())) {
             LOG.info("Auto-configuring proxy...");
-            Proxifier.startProxying();
+            boolean finished = false;
+            while (!finished) {
+                try {
+                    Proxifier.startProxying();
+                    finished = true;
+                } catch (Proxifier.ProxyConfigurationError e) {
+                    if (LanternUtils.runWithUi()) {
+                         // XXX I18n / copy 
+                         final String question = "Failed to set Lantern as the system proxy.\n\n" +
+                            "If you cancel, Lantern will not be used to handle " +
+                            "your web traffic unless you manually configure your proxy settings.\n\n" +
+                            "Try again?";
+                        final int response = 
+                            LanternHub.dashboard().askQuestion("Proxy Settings", question,
+                                SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.RETRY | SWT.CANCEL);
+                        if (response == SWT.CANCEL) {
+                            finished = true;
+                        }
+                    }
+                    else {
+                        LOG.error("Failed to set lantern as the system proxy: {}", e);
+                        finished = true;
+                    }
+                }
+            }
         } else {
-            LOG.info("Not auto-configuring proxy in an uncensored country");
+            LOG.info("Not auto-configuring proxy.");
         }
     }
     

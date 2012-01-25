@@ -178,9 +178,8 @@ public class Settings implements MutableSettings {
         return settings;
     }
 
-
     @JsonView({UIStateSettings.class, PersistentSettings.class})
-    public boolean getInitialSetupComplete() {
+    public boolean isInitialSetupComplete() {
         return initialSetupComplete;
     }
 

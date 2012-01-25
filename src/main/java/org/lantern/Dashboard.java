@@ -1,7 +1,7 @@
 package org.lantern;
 
 import java.io.File;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -23,6 +23,10 @@ public class Dashboard {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     private Shell shell;
+
+    public Dashboard() {
+        configureShutdownHook();
+    }
 
     /**
      * Opens the browser.
@@ -104,6 +108,8 @@ public class Dashboard {
         return new Image(LanternHub.display(), toUse);
     }
     
+    
+    static final int DEFAULT_QUESTION_FLAGS = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
     /**
      * Shows a dialog to the user asking a yes or no question.
      * 
@@ -113,30 +119,60 @@ public class Dashboard {
      * <code>false</code>
      */
     public boolean askQuestion(final String title, final String question) {
-        final AtomicBoolean response = new AtomicBoolean();
+        return askQuestion(title, question, DEFAULT_QUESTION_FLAGS) == SWT.YES;
+    }
+    
+    public int askQuestion(final String title, final String question, final int style) {
+        final AtomicInteger response = new AtomicInteger();
         LanternHub.display().syncExec(new Runnable() {
             @Override
             public void run() {
-                response.set(askQuestionOnThread(title, question));
+                response.set(askQuestionOnThread(title, question, style));
             }
         });
         log.info("Returned from sync exec");
         return response.get();
     }
-
-    protected boolean askQuestionOnThread(final String title, 
-        final String question) {
+    
+    protected int askQuestionOnThread(final String title, 
+        final String question, final int style) {
         log.info("Creating display...");
         final Shell boxShell = new Shell(LanternHub.display());
         log.info("Created display...");
-        final int style = 
-            SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
         final MessageBox messageBox = new MessageBox (boxShell, style);
-        //messageBox.setText (I18n.tr("Exit?"));
         messageBox.setText(title);
-        messageBox.setMessage (question);
-            //I18n.tr("Are you sure you want to ignore the update?"));
-        //final int result = messageBox.open ();
-        return messageBox.open () == SWT.YES;
+        messageBox.setMessage(question);
+        return messageBox.open();
+    }
+    
+    public void configureShutdownHook() {
+        final Thread hook = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                boolean finished = false;
+                while (!finished) {
+                    try {
+                        Proxifier.stopProxying();
+                        finished = true;
+                    } catch (final Proxifier.ProxyConfigurationError e) {
+                        log.error("Failed to unconfigure proxy.");
+                        // XXX i18n
+                        final String question = "Failed to change the system proxy settings.\n\n" + 
+                        "If Lantern remains as the system proxy after being shut down, " + 
+                        "you will need to manually change the system's network proxy settings " + 
+                        "in order to access the web.\n\nTry again?";
+                        final int response = askQuestion("Proxy Settings", question,
+                            SWT.APPLICATION_MODAL | SWT.ICON_WARNING | SWT.RETRY | SWT.CANCEL);
+                        if (response == SWT.CANCEL) {
+                            finished = true;
+                        }
+                        else {
+                            log.info("Trying again");
+                        }
+                    }
+                }
+            }
+        }, "Unset-Web-Proxy-Thread");
+        LanternHub.display().disposeExec(hook);
     }
 }
