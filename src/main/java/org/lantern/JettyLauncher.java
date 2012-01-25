@@ -157,6 +157,7 @@ public class JettyLauncher {
             }
         }
         final ServletHolder ds = new ServletHolder(new DefaultServlet());
+        ds.setInitParameter("cacheControl", "no-cache");
         ds.setInitOrder(3);
         contextHandler.addServlet(ds, "/*");
         
