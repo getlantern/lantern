@@ -19,10 +19,9 @@ public class Settings implements MutableSettings {
     public static class PersistentSettings {}
     public static class UIStateSettings {}
 
-    //private Whitelist whitelist;
+    private Whitelist whitelist;
     
-    private ConnectivityStatus connectivity = 
-        ConnectivityStatus.DISCONNECTED; 
+    private ConnectivityStatus connectivity = ConnectivityStatus.DISCONNECTED; 
     private UpdateEvent update = new UpdateEvent();
     
     private Internet internet = new Internet();
@@ -80,6 +79,10 @@ public class Settings implements MutableSettings {
     }
     
     public Settings() {}
+    
+    public Settings(final Whitelist whitelist) {
+        this.whitelist = whitelist;
+    }
 
     @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isSystemProxy() {
@@ -343,6 +346,15 @@ public class Settings implements MutableSettings {
     @JsonView(UIStateSettings.class)
     public HttpsEverywhere getHttpsEverywhere() {
         return LanternHub.httpsEverywhere();
+    }
+    
+    public void setWhitelist(Whitelist whitelist) {
+        this.whitelist = whitelist;
+    }
+
+    @JsonView(PersistentSettings.class)
+    public Whitelist getWhitelist() {
+        return whitelist;
     }
 
     @Override

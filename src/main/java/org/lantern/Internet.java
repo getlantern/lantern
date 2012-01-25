@@ -1,5 +1,7 @@
 package org.lantern;
 
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.net.UnknownHostException;
 
 import org.lastbamboo.common.stun.client.PublicIpAddress;
@@ -20,8 +22,12 @@ public class Internet {
         } catch (final UnknownHostException e) {
             this.privateAddress = "";
         }
-        this.publicAddress =
-            new PublicIpAddress().getPublicIpAddress().getHostAddress();
+        final InetAddress pip = new PublicIpAddress().getPublicIpAddress();
+        if (pip == null) {
+            this.publicAddress = null;
+        } else {
+            this.publicAddress = pip.getHostAddress();
+        }
     }
 
     public String getPublic() {

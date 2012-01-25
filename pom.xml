@@ -25,7 +25,7 @@
 
   <issueManagement>
     <system>JIRA</system>
-    <url>http://issues.littleshoot.org:8080/browse/MG</url>
+    <url>https://github.com/getlantern/lantern/issues</url>
   </issueManagement>
 
   <dependencies>
@@ -201,7 +201,7 @@
     </dependency>
 
     <dependency>
-      <groupId>org.littleshoot</groupId>
+      <groupId>org.getlantern</groupId>
       <artifactId>exceptional4j</artifactId>
       <version>0.1-SNAPSHOT</version>
     </dependency>
