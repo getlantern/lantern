@@ -8,6 +8,8 @@ import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
@@ -70,6 +72,14 @@ public class Dashboard {
         //browser.setBounds(0, 0, 800, 600);
         browser.setUrl("http://localhost:"+
             LanternHub.settings().getApiPort()+"/dashboard.html");
+            
+        shell.addListener (SWT.Close, new Listener () {
+            @Override
+            public void handleEvent(final Event event) {
+                browser.stop();
+                browser.setUrl("about:blank");
+            }
+        });
         shell.setLayout(new FillLayout());
         Rectangle minSize = shell.computeTrim(0, 0, minWidth, minHeight); 
         shell.setMinimumSize(minSize.width, minSize.height);
