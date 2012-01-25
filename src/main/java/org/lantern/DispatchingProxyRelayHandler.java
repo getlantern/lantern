@@ -62,7 +62,9 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     
     private Channel browserToProxyChannel;
 
-    private static final long REQUEST_SIZE_LIMIT = 1024 * 1024 * 10 - 4096;
+    // http://code.google.com/appengine/docs/quotas.html:
+    // "Each incoming HTTP request can be no larger than 32MB"
+    private static final long REQUEST_SIZE_LIMIT = 1024 * 1024 * 32 - 4096;
 
     private static final boolean PROXIES_ACTIVE = true;
     private static final boolean ANONYMOUS_ACTIVE = true;
@@ -423,8 +425,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         if (LanternUtils.isTransferEncodingChunked(request)) {
             return false;
         }
-        // From http://code.google.com/appengine/docs/quotas.html, we cannot
-        // send requests larger than 10MB. 
         if (method == HttpMethod.POST) {
             final String contentLength = 
                 request.getHeader(Names.CONTENT_LENGTH);
