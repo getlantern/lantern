@@ -86,7 +86,7 @@ A. ...
                 <figcaption>Back</figcaption>
               </figure>
               <figure>
-                <input id=fs-submit type=image ng:src={{fs_submit_src()}} alt=Continue ng:disabled="{{loggedout() && fsform.$invalid}}" />
+                <input id=fs-submit type=image ng:class="['togglespinner', state.authenticationStatus]" ng:src={{fs_submit_src()}} alt=Continue ng:disabled="{{loggedout() && fsform.$invalid}}" />
                 <figcaption>Continue</figcaption>
               </figure>
             </div>
@@ -127,7 +127,7 @@ A. ...
               <figcaption>Back</figcaption>
             </figure>
             <figure>
-              <a ng:click=init_applyautoproxy()><img ng:src={{autoproxy_continue_src()}} alt=Continue /></a>
+              <a ng:click=init_applyautoproxy()><img ng:class="['togglespinner', state.authenticationStatus]" ng:src={{autoproxy_continue_src()}} alt=Continue /></a>
               <figcaption>Continue</figcaption>
             </figure>
           </div>
@@ -279,8 +279,8 @@ A. ...
               <li><input type=password placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
-            <button ng:show=!loggingin() type=submit ng:disabled="{{loggedin() && sameuser()}}" >Sign in</button>
-            <img src=assets/img/spinner32.gif alt="Logging in..." ng:show=loggingin() />
+            <button ng:show=!loggingin() type=submit ng:disabled="{{(loggedin() && sameuser()) || (passrequired() && !inputpassword)}}" >Sign in</button>
+            <img class=spinner src=assets/img/spinner-big.gif alt="Signing in..." ng:show=loggingin() />
           </form>
         </div>
 

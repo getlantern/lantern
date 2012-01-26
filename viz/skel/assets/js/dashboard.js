@@ -185,13 +185,16 @@ function LDCtrl(){
     var data = {
       email: email || self.state.email
     };
-    if(!self.state.savePassword || !self.state.passwordSaved || self.inputpassword){
+    if(self.passrequired()){
       if(!self.inputpassword){
         console.log('no password saved or supplied, bailing');
         return;
       }
       data.password = self.inputpassword;
     }
+    // XXX force this for smoother looking login
+    self.state.authenticationStatus = 'LOGGING_IN';
+    self.$digest();
     console.log('Signing in with:', data);
     $.post('/api/signin', data).done(function(state){
       console.log('signin succeeded');
@@ -212,13 +215,13 @@ function LDCtrl(){
     if(self.fsform.$invalid && !(self.loggedin() && self.sameuser()))
       return 'assets/img/arrow-right-disabled.png';
     if(self.loggingin())
-      return 'assets/img/spinner32.gif';
+      return 'assets/img/spinner-big.gif';
     return 'assets/img/arrow-right.png';
   };
 
   self.autoproxy_continue_src = function(){
     if(self._autoproxyresp === FETCHING)
-      return 'assets/img/arrow-right-disabled.png';
+      return 'assets/img/spinner-big.gif';
     return 'assets/img/arrow-right.png';
   };
 
@@ -239,15 +242,18 @@ function LDCtrl(){
       return;
     }
     self._autoproxyresp = FETCHING;
-    $.post('/api/applyautoproxy').done(function(state){
+    self.$digest();
+    $.post('/api/applyautoproxy').done(function(){
       $('#systemproxy').removeClass('autoproxyfailed');
       self._autoproxyresp = FETCHSUCCESS;
-      console.log('autoproxy request succeeded', state);
+      self.$digest();
+      console.log('autoproxy request succeeded');
       showid('#setupcomplete');
     }).fail(function(e){
       $('#systemproxy').addClass('autoproxyfailed');
       self._autoproxyresp = FETCHFAILED;
-      console.log('autoproxy request failed',e);
+      self.$digest();
+      console.log('autoproxy request failed');
     });
   };
 
