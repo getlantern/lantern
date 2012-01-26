@@ -15,6 +15,8 @@ public interface MutableSettings {
     void setSystemProxy(boolean isSystemProxy);
     
     void setPort(int port);
+
+    void setEmail(String email);
     
     void setPassword(String password);
 }
