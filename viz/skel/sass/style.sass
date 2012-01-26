@@ -14,6 +14,7 @@ $font-color-input: #666
 $font-color-disabled: #c6c9ce
 $font-color-important: #c00
 $font-color-error: #c00
+$font-color-success: #26df50
 $font-color-warning: #900
 $header-color: #000
 $header-color-alt: #53637d
@@ -175,7 +176,7 @@ form.signin .error, #systemproxy .error
     visibility: visible !important
 
 .error
-  color: $font-color-error
+  color: $font-color-error !important
 
 input.ng-invalid:not(.ng-pristine)
   outline-color: $font-color-error
@@ -385,6 +386,10 @@ textarea, input[type=text], input[type=email]
     &:not([disabled]):hover
       color: #000
       border-color: $edge-color
+
+#pm-result
+  display: none
+  color: $font-color-success
 
 #pm-replyto
   width: 220px

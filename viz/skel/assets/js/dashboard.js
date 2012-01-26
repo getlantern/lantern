@@ -365,12 +365,10 @@ function LDCtrl(){
     };
     console.log('submitting contact form, data=', data);
     $.post('/api/contact', data).done(function(){
-      console.log('contact form submitted successfully');
-      // XXX TODO flash success message
+      $('#pm-result').removeClass('error').html('Feedback submitted successfully').show().delay(5000).fadeOut();
       self.pm = '';
     }).fail(function(e){
-      // XXX TODO flash failure message
-      console.log('failed to submit contact form', e);
+      $('#pm-result').addClass('error').html('Could not submit feedback').show().delay(5000).fadeOut();
     });
   };
 
