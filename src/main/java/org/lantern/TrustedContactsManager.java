@@ -23,5 +23,7 @@ public interface TrustedContactsManager {
     void addTrustedContacts(Collection<String> trusted);
     
     void removeTrustedContacts(Collection<String> trusted);
+    
+    void clearTrustedContacts();
 
 }

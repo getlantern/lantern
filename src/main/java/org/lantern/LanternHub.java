@@ -110,7 +110,8 @@ public class LanternHub {
     private static final AtomicReference<HttpsEverywhere> httpsEverywhere =
         new AtomicReference<HttpsEverywhere>();
     
-    private static  Settings settings;
+    private static final AtomicReference<Settings> settings = 
+        new AtomicReference<Settings>();
     
     static {
         resetSettings();
@@ -120,7 +121,7 @@ public class LanternHub {
             @Override
             public void run() {
                 LOG.info("Writing settings");
-                settingsIo.get().write(settings);
+                settingsIo.get().write(settings());
                 LOG.info("Finished writing settings...");
             }
             
@@ -172,7 +173,7 @@ public class LanternHub {
             return trustedContactsManager.get();
         }
     }
-
+    
     public static Display display() {
         synchronized (display) {
             if (display.get() == null) {
@@ -256,12 +257,16 @@ public class LanternHub {
     public static PeerProxyManager trustedPeerProxyManager() {
         synchronized (trustedPeerProxyManager) {
             if (trustedPeerProxyManager.get() == null) {
-                final PeerProxyManager eppl =
-                    new DefaultPeerProxyManager(false);
-                trustedPeerProxyManager.set(eppl);
+                _resetTrustedPeerProxyManager();
             }
             return trustedPeerProxyManager.get();
         }
+    }
+
+    private static void _resetTrustedPeerProxyManager() {
+        final PeerProxyManager eppl =
+            new DefaultPeerProxyManager(false);
+        trustedPeerProxyManager.set(eppl);
     }
     
     public static PeerProxyManager anonymousPeerProxyManager() {
@@ -282,10 +287,14 @@ public class LanternHub {
     public static CookieTracker cookieTracker() {
         synchronized (cookieTracker) {
             if (cookieTracker.get() == null) {
-                cookieTracker.set(new InMemoryCookieTracker());
+                _resetCookieTracker();
             }
             return cookieTracker.get();
         }
+    }
+    
+    protected static void _resetCookieTracker() {
+        cookieTracker.set(new InMemoryCookieTracker());
     }
     
     public static LocalCipherProvider localCipherProvider() {
@@ -330,15 +339,15 @@ public class LanternHub {
 
    
     public static Whitelist whitelist() {
-        return settings.getWhitelist();
+        return settings().getWhitelist();
     }
     
     public static Platform platform() {
-        return settings.getPlatform();
+        return settings().getPlatform();
     }
     
     public static Internet internet() {
-        return settings.getInternet();
+        return settings().getInternet();
     }
     
     public static SettingsIo settingsIo() {
@@ -352,7 +361,7 @@ public class LanternHub {
     }
     
     public static Settings settings() {
-        return settings;
+        return settings.get();
     }
     
     public static EventBus eventBus() {
@@ -385,7 +394,7 @@ public class LanternHub {
         final SettingsIo io = LanternHub.settingsIo();
         LOG.info("Setting settings...");
         try {
-            settings = io.read();
+            settings.set(io.read());
         } catch (final Throwable t) {
             LOG.error("Caught throwable: {}", t);
         }
@@ -438,6 +447,10 @@ public class LanternHub {
     public static void setRoster(final Roster rost) {
         roster.set(rost);
     }
+    
+    protected static void _resetRoster() {
+        setRoster(new Roster());
+    }
 
     public static HttpsEverywhere httpsEverywhere() {
         synchronized (httpsEverywhere) {
@@ -447,5 +460,18 @@ public class LanternHub {
             return httpsEverywhere.get();
         }
     }
+    
+    public static void resetUserConfig() {
+        /* resets user specific configuration */
+        settings().setEmail("");
+        settings().setPassword("");
+        settings().setStoredPassword("");
+        settings().setPasswordSaved(false);
+        getTrustedContactsManager().clearTrustedContacts();
+        _resetRoster();
+        _resetTrustedPeerProxyManager();
+        _resetCookieTracker();
+    }
+    
 
 }

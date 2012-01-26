@@ -124,6 +124,13 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
         writeContacts();
     }
 
+    @Override
+    public void clearTrustedContacts() {
+        trustedContacts.clear();
+        writeContacts();
+    }
+    
+
     private void writeContacts() {
         synchronized (CONTACTS_FILE) {
             // We just write the whole thing again from scratch.

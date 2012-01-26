@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Properties;
-
+import java.net.URI;
+import java.net.URISyntaxException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -20,6 +22,8 @@ import org.apache.log4j.spi.LoggingEvent;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.eclipse.swt.widgets.Display;
+import org.jboss.netty.handler.codec.http.Cookie;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.json.simple.JSONObject;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.cookie.CookieTracker;
@@ -196,17 +200,39 @@ public class Launcher {
         
         LOG.info("About to start Lantern server on port: "+
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
-        
-        //final XmppHandler xmpp = LanternHub.xmppHandler();
-        final CookieTracker cookieTracker = LanternHub.cookieTracker();
-        final SetCookieObserver cookieObserver = new WhitelistSetCookieObserver(cookieTracker);
-        final CookieFilter.Factory cookieFilterFactory = new DefaultCookieFilterFactory(cookieTracker);
 
+
+        /* delegate all calls to the current hub cookie tracker */
+        final CookieTracker hubTracker = new CookieTracker() {
+
+            @Override
+            public void setCookies(Collection<Cookie> cookies, HttpRequest context) {
+                LanternHub.cookieTracker().setCookies(cookies, context);
+            }
+
+            @Override
+            public boolean wouldSendCookie(final Cookie cookie, final URI toRequestUri) {
+                return LanternHub.cookieTracker().wouldSendCookie(cookie, toRequestUri);
+            }
+
+            @Override
+            public boolean wouldSendCookie(final Cookie cookie, final URI toRequestUri, final boolean requireValueMatch) {
+                return LanternHub.cookieTracker().wouldSendCookie(cookie, toRequestUri, requireValueMatch);
+            }
+
+            @Override
+            public CookieFilter asOutboundCookieFilter(final HttpRequest request, final boolean requireValueMatch) throws URISyntaxException {
+                return LanternHub.cookieTracker().asOutboundCookieFilter(request, requireValueMatch);
+            }
+        };
+
+        final SetCookieObserver cookieObserver = new WhitelistSetCookieObserver(hubTracker);
+        final CookieFilter.Factory cookieFilterFactory = new DefaultCookieFilterFactory(hubTracker);
         final HttpProxyServer server = 
             new LanternHttpProxyServer(
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
                 //null, sslRandomPort,
-                proxyKeyStore, cookieTracker, cookieFilterFactory);
+                proxyKeyStore, cookieObserver, cookieFilterFactory);
         server.start();
         
         // This won't connect in the case where the user hasn't entered 
