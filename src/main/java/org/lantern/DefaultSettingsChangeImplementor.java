@@ -78,6 +78,18 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
     }
 
     @Override
+    public void setEmail(final String email) {
+        final String storedEmail = LanternHub.settings().getEmail();
+        if ((email == null && storedEmail == null) || 
+            (email.equals(storedEmail))) {
+            log.info("Email is unchanged.");
+            return;
+        }
+        log.info("Email address changed. Clearing user specific settings");
+        LanternHub.resetUserConfig();
+    }
+
+    @Override
     public void setGetMode(final boolean getMode) {
         // When we move to give mode, we want to start advertising our 
         // ID and to start accepting incoming connections.

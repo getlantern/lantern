@@ -99,14 +99,7 @@ public class DefaultLanternApi implements LanternApi {
         final Settings set = LanternHub.settings();
         LanternHub.xmppHandler().disconnect();
         final Map<String, String> params = LanternUtils.toParamMap(req);
-        String pass = params.remove("password");
-        if (StringUtils.isBlank(pass) && set.isSavePassword()) {
-            pass = set.getStoredPassword();
-            if (StringUtils.isBlank(pass)) {
-                sendError(resp, "No password given and no password stored");
-                return;
-            }
-        }
+
         final String rawEmail = params.remove("email");
         if (StringUtils.isBlank(rawEmail)) {
             sendError(resp, "No email address provided");
@@ -118,7 +111,21 @@ public class DefaultLanternApi implements LanternApi {
         } else {
             email = rawEmail;
         }
+        // important: keep in this order, changing email 
+        // discards user settings associated with the old 
+        // address (eg saved password if desired) -- 
+        // the saved password is purposely not examined util
+        // this setting has been changed (or not changed)
         changeSetting(resp, "email", email, false, false);
+        
+        String pass = params.remove("password");
+        if (StringUtils.isBlank(pass) && set.isSavePassword()) {
+            pass = set.getStoredPassword();
+            if (StringUtils.isBlank(pass)) {
+                sendError(resp, "No password given and no password stored");
+                return;
+            }
+        }
         changeSetting(resp, "password", pass, false, false);
         
         // We write to disk to make sure Lantern's considered configured for
@@ -143,16 +150,7 @@ public class DefaultLanternApi implements LanternApi {
 
     private void handleSignout(final HttpServletResponse resp) {
         log.info("Signing out");
-        LanternHub.xmppHandler().disconnect();
-        
-        // We stop proxying outside of any user settings since if we're
-        // not logged in there's no sense in proxying. Could theoretically
-        // use cached proxies, but definitely no peer proxies would work.
-        try {
-            Proxifier.stopProxying();
-        } catch (Proxifier.ProxyConfigurationError e) {
-            log.error("failed to stop proxying: {}", e);
-        }
+        _signout();
         returnSettings(resp);
     }
 
@@ -175,13 +173,44 @@ public class DefaultLanternApi implements LanternApi {
 
     private void handleReset(final HttpServletResponse resp) {
         try {
+            _signout();
+            
+            // capture a few session settings 
+            final int curApiPort = LanternHub.settings().getApiPort();
+            final boolean bindToLocalhost = LanternHub.settings().isBindToLocalhost();
+            
             FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
+            
             LanternHub.resetSettings();
+            LanternHub.resetUserConfig();
+            
+            // restore session settings
+            LanternHub.settings().setApiPort(curApiPort);
+            LanternHub.settings().setBindToLocalhost(bindToLocalhost);
+            
             returnSettings(resp);
         } catch (final IOException e) {
             sendServerError(resp, "Error resetting settings: "+
                e.getMessage());
         }
+    }
+    
+    private void _signout() {
+
+        // We stop proxying outside of any user settings since if we're
+        // not logged in there's no sense in proxying. Could theoretically
+        // use cached proxies, but definitely no peer proxies would work.
+        try {
+            Proxifier.stopProxying();
+        } catch (Proxifier.ProxyConfigurationError e) {
+            log.error("failed to stop proxying: {}", e);
+        }
+        LanternHub.xmppHandler().disconnect();
+        
+        // clear user specific settings 
+        // roster, trusted contacts, saved password
+        
+        
     }
 
     private void returnSettings(final HttpServletResponse resp) {
