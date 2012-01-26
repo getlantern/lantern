@@ -100,7 +100,8 @@ A. ...
             <li ng:repeat="peer in peers.$filter(peerfilter)">
               <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
             </li>
-            <li ng:show="!peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
+            <li ng:show="peers == FETCHING">Loading...</li>
+            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
           </ul>
           <span class=smallnote>Lantern cloud proxies will be used when no trusted peers are available</span>
           <div class=controls>
@@ -306,7 +307,8 @@ A. ...
             <li ng:repeat="peer in peers.$filter(peerfilter)">
               <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
             </li>
-            <li ng:show="!peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
+            <li ng:show="peers == FETCHING">Loading...</li>
+            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
           </ul>
           <span class=smallnote>Lantern cloud proxies will be used when no trusted peers are available</span>
         </div>
