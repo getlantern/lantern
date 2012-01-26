@@ -2,12 +2,13 @@ cometd = $.cometd;
 
 FETCHING = 'fetching...'; // poor-man's promise
 FETCHFAILED = 'fetch failed';
+FETCHSUCCESS = 'fetch succeeded';
 
 // http://html5pattern.com/
 HOSTNAMEPAT = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/;
 
 BYTEDIM = {GB: 1024*1024*1024, MB: 1024*1024, KB: 1024};
-angular.filter('bytes', function(input) {
+angular.filter('bytes', function(input){
   var nbytes = parseInt(input);
   if(isNaN(nbytes))return input;
   for(dim in BYTEDIM){
@@ -184,13 +185,12 @@ function LDCtrl(){
     var data = {
       email: email || self.state.email
     };
-    if(!self.state.savePassword || !self.state.passwordSaved){
-      data.password = self.inputpassword;
-      if(!data.password){
+    if(!self.state.savePassword || !self.state.passwordSaved || self.inputpassword){
+      if(!self.inputpassword){
         console.log('no password saved or supplied, bailing');
-        self.inputpassword = '';
         return;
       }
+      data.password = self.inputpassword;
     }
     console.log('Signing in with:', data);
     $.post('/api/signin', data).done(function(state){
@@ -216,6 +216,12 @@ function LDCtrl(){
     return 'assets/img/arrow-right.png';
   };
 
+  self.autoproxy_continue_src = function(){
+    if(self._autoproxyresp === FETCHING)
+      return 'assets/img/arrow-right-disabled.png';
+    return 'assets/img/arrow-right.png';
+  };
+
   self.toggleTrusted = function(peer){
     var url = '/api/' + (peer.trusted ? 'add' : 'remove') + 'trustedpeer?email=' + peer.email;
     $.post(url).done(function(){
@@ -224,18 +230,26 @@ function LDCtrl(){
       peer.trusted = !peer.trusted;
       console.log('failed to set peer.trusted to ' + peer.trusted + ' for ' + peer.email); 
     });
-  }
+  };
 
-  self.init_applyautoproxy = function() {
-      $.post('/api/applyautoproxy').done(function(state){
-          $('#systemproxy').removeClass('autoproxyfailed');
-          showid('#setupcomplete');
-      }).fail(function(){
-        $('#systemproxy').addClass('autoproxyfailed');
-        console.log('autoproxy failed');
-      });
-    
-  }
+  self.init_applyautoproxy = function(){
+    console.log('in init_applyautoproxy');
+    if(self._autoproxyresp === FETCHING){
+      console.log('autoproxy request pending, ignoring');
+      return;
+    }
+    self._autoproxyresp = FETCHING;
+    $.post('/api/applyautoproxy').done(function(state){
+      $('#systemproxy').removeClass('autoproxyfailed');
+      self._autoproxyresp = FETCHSUCCESS;
+      console.log('autoproxy request succeeded', state);
+      showid('#setupcomplete');
+    }).fail(function(e){
+      $('#systemproxy').addClass('autoproxyfailed');
+      self._autoproxyresp = FETCHFAILED;
+      console.log('autoproxy request failed',e);
+    });
+  };
 
   self.finishsetup = function(){
     showid('#setupcomplete');

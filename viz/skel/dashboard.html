@@ -10,8 +10,9 @@
     <script src=jquery/json2.js></script>
     <script src=org/cometd.js></script>
     <script src=jquery/jquery.cometd.js></script>
-    <script src=assets/js/libs/angular-0.10.5.min.js ng:autobind></script>
-	<script src=assets/js/dashboard.js></script>
+<!--<script src=assets/js/libs/angular-0.10.5.min.js ng:autobind></script>-->
+    <script src=assets/js/libs/angular-0.10.5.js ng:autobind></script>
+    <script src=assets/js/dashboard.js></script>
   </head>
   <body ng:controller=LDCtrl ng:show=stateloaded() ng:class="!state.initialSetupComplete && 'welcome' || ''" lang=en>
     <div id=ld-container>
@@ -126,7 +127,7 @@ A. ...
               <figcaption>Back</figcaption>
             </figure>
             <figure>
-              <a ng:click=init_applyautoproxy()><img src=assets/img/arrow-right.png alt=Continue /></a>
+              <a ng:click=init_applyautoproxy()><img ng:src={{autoproxy_continue_src()}} alt=Continue /></a>
               <figcaption>Continue</figcaption>
             </figure>
           </div>
