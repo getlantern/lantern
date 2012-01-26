@@ -206,6 +206,8 @@ function LDCtrl(){
       if(!self.state.initialSetupComplete)
         showid(self.state.getMode && '#trustedpeers' || '#setupcomplete');
     }).fail(function(){
+      if(self.state.initialSetupComplete)
+        self.showsignin(true);
       $('form.signin').addClass('badcredentials');
       console.log('signin failed');
     });
