@@ -39,7 +39,6 @@ class DefaultCookieFilterFactory implements CookieFilter.Factory {
      * applied to it.
      */
     boolean shouldFilter(HttpRequest request) {
-        // this is true only for proxied sites currently, not across the board. 
-        return LanternHub.whitelist().isWhitelisted(request);
+        return LanternUtils.shouldProxy(request);
    }
 }
