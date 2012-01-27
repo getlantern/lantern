@@ -75,7 +75,7 @@ public class Dashboard {
         browser.setSize(minWidth, minHeight);
         //browser.setBounds(0, 0, 800, 600);
         browser.setUrl("http://localhost:"+
-            LanternHub.settings().getApiPort()+"/dashboard.html");
+            LanternHub.settings().getApiPort());
             
         shell.addListener (SWT.Close, new Listener () {
             @Override

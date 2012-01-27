@@ -4,6 +4,7 @@
 *.settings
 *.classpath
 *.project
+.sass-cache
 Lantern
 log.txt
 target/
