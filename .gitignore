@@ -4,4 +4,6 @@
 *.settings
 *.classpath
 *.project
+Lantern
+log.txt
 target/
