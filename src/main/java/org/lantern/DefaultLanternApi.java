@@ -127,6 +127,7 @@ public class DefaultLanternApi implements LanternApi {
             }
         }
         changeSetting(resp, "password", pass, false, false);
+        log.info("Signing in with password: {}", pass);
         
         // We write to disk to make sure Lantern's considered configured for
         // the subsequent connect call.
