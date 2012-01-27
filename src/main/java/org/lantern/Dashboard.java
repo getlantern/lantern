@@ -49,7 +49,7 @@ public class Dashboard {
         this.shell = new Shell(LanternHub.display());
         final Image small = newImage("16on.png");
         final Image medium = newImage("32on.png");
-        final Image large = newImage("64on.png");
+        final Image large = newImage("128on.png");
         final Image[] icons = new Image[]{small, medium, large};
         shell.setImages(icons);
         // this.shell = createShell(this.display);
