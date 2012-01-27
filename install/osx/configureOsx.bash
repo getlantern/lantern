@@ -65,13 +65,13 @@ log "Changing permissions on launchd plist file"
 chmod 644 $LAUNCHD_PLIST || die "Could not change permissions"
 
 
-log "Opening app"
-open $APP_PATH || die "Could not open app bundle at $APP_PATH?"
+#log "Opening app"
+#open $APP_PATH || die "Could not open app bundle at $APP_PATH?"
 
 log "Loading launchd plist file"
-#launchctl load -F $LAUNCHD_PLIST || die "Could not load plist via launchctl"
-log "Loading plist for future launch on startup"
-launchctl load $LAUNCHD_PLIST || die "Could not load plist via launchctl"
+launchctl load -F $LAUNCHD_PLIST || die "Could not load plist via launchctl"
+#log "Loading plist for future launch on startup"
+#launchctl load $LAUNCHD_PLIST || die "Could not load plist via launchctl"
 
 #log "Copying default proxy off pac file"
 #cp $APP_PATH/Contents/Resources/app/proxy_off.pac ~/.lantern/proxy.pac || die "Could not copy default pac file using APP_PATH $APP_PATH ?"
