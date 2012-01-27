@@ -271,7 +271,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             readingChunks = false;
         }
         
-        this.proxying = shouldProxy(request);
+        this.proxying = LanternUtils.shouldProxy(request);
         
         if (proxying) {
             // If it's an HTTP request, see if we can redirect it to HTTPS.
@@ -313,13 +313,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         }
     }
     
-    private boolean shouldProxy(final HttpRequest request) {
-        if (LanternHub.settings().isProxyAllSites()) {
-            return true;
-        }
-        return LanternHub.whitelist().isWhitelisted(request);
-    }
-
     private HttpRequestProcessor dispatchProxyRequest(
         final ChannelHandlerContext ctx, final MessageEvent me) {
         final HttpRequest request = (HttpRequest) me.getMessage();
