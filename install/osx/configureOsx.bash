@@ -3,13 +3,14 @@
 
 mkdir ~/Library/Logs/Lantern
 rm ~/Library/Logs/Lantern/installer.log
+LOG_FILE=~/Library/Logs/Lantern/installer.log
 function log() {
-  echo "`date`: $@" >> ~/Library/Logs/Lantern/installer.log
+  echo "`date`: $@" >> $LOG_FILE
 }
 
 function logFile() {
   log "Full file at $@:"
-  cat "$@" >> ~/Library/Logs/Lantern/installer.log
+  cat "$@" >> $LOG_FILE
 }
 
 function die() {
@@ -45,7 +46,13 @@ test -f ~/.lantern/lantern_truststore.jks && log "trust store still exists!! not
 log "Executing perl replace on Info.plist"
 # The following is done to modify the install4j-generated Info.plist to run without a UI
 perl -pi -e "s/<dict>/<dict><key>LSUIElement<\/key><string>1<\/string>/g" $APP_PATH/Contents/Info.plist || die "Could not fix Info.plist"
+
+# Just make sure the launchd Info.plist is using the correct path to our app bundle...
 perl -pi -e "s:/Applications/Lantern/Lantern.app:$APP_PATH:g" $PLIST_INSTALL_FULL || die "Could not fix Info.plist"
+
+log "About to sign code...output is"
+codesign -f -s - $APP_PATH >> $LOG_FILE
+log "Signed code..."
 
 # We also need to change the contents of the Info.plist file to reflect the correct path.
 log "Running in `pwd`"
