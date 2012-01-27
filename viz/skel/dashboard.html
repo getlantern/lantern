@@ -260,7 +260,11 @@ A. ...
             <label><input type=checkbox ng:model=requestreply /> please reply to</label>
             <input id=pm-replyto type=email ng:model=requestreplyto ng:disabled={{!requestreply}} placeholder=email@example.com value={{state.email}} />
             -->
-            <span id=pm-result></span>
+            <span ng:show=loggedin() id=pm-result></span>
+            <span ng:show=loggedout() class=extra>
+              <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()">Sign in</a>
+              to send feedback
+            </span>
             <input id=pm-send type=button value=Send ng:disabled="{{!loggedin() || !pm}}" ng:click=sendpm() />
           </div>
           <div class=extra ng:show=requestreply>
