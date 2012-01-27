@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="5.0.11" transformSequenceNumber="3">
-  <directoryPresets config="../viz" />
+  <directoryPresets config=".." />
   <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Team Lantern" publisherWeb="http://www.getlantern.org" version="0.2" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -35,9 +35,6 @@
         </exclude>
       </dirEntry>
       <fileEntry mountPoint="25" file="../GeoIP.dat.gz" overwriteMode="2" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="true" overrideUninstallMode="false" />
-      <dirEntry mountPoint="25" file="../srv" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="srv" excludeSuffixes="" dirMode="755" overrideDirMode="false">
-        <exclude />
-      </dirEntry>
       <dirEntry mountPoint="25" file="../https" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="https" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude />
       </dirEntry>
@@ -48,8 +45,10 @@
       <dirEntry mountPoint="25" file="../firefox" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="firefox" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude />
       </dirEntry>
-      <dirEntry mountPoint="25" file="../viz/skel" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="skel" excludeSuffixes="" dirMode="755" overrideDirMode="false">
-        <exclude />
+      <dirEntry mountPoint="25" file="../dashboard" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="dashboard" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+        <exclude>
+          <entry location="compass/config.rb" fileType="regular" />
+        </exclude>
       </dirEntry>
       <dirEntry mountPoint="149" file="./win" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="win" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude>
@@ -66,7 +65,7 @@
   </files>
   <launchers>
     <launcher name="lantern-osx-gui" id="27" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="./common/lantern.icns" swtApp="true" fileset="147">
-      <executable name="lantern" type="1" iconSet="true" iconFile="" executableDir="." redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="true" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="false" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="true" globalSingleInstance="false">
+      <executable name="lantern" type="1" iconSet="true" iconFile="" executableDir="." redirectStderr="true" stderrFile="${installer:sys.userHome}/Library/Logs/Lantern/stderr.log" stderrMode="overwrite" redirectStdout="true" stdoutFile="${installer:sys.userHome}/Library/Logs/Lantern/stdout.log" stdoutMode="overwrite" failOnStderrOutput="true" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="false" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="true" globalSingleInstance="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
       <splashScreen show="false" autoOff="true" alwaysOnTop="true" width="0" height="0" bitmapFile="" java6SplashScreen="false">
@@ -661,17 +660,20 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                           <string>configureOsx.bash</string>
                         </object>
                       </void>
+                      <void property="failOnRedirectionError">
+                        <boolean>true</boolean>
+                      </void>
                       <void property="logArguments">
                         <boolean>true</boolean>
                       </void>
                       <void property="stderrFile">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}/install4jerr.txt</string>
+                          <string>${installer:sys.userHome}/Library/Logs/Lantern/install4jerr.txt</string>
                         </object>
                       </void>
                       <void property="stdoutFile">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}/install4jout.txt</string>
+                          <string>${installer:sys.userHome}/Library/Logs/Lantern/install4jerr.txt</string>
                         </object>
                       </void>
                       <void property="wait">
@@ -711,12 +713,12 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                       </void>
                       <void property="stderrFile">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}/install4jerr.txt</string>
+                          <string>${installer:sys.userHome}/Library/Logs/Lantern/install4jerr.txt</string>
                         </object>
                       </void>
                       <void property="stdoutFile">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}/install4jout.txt</string>
+                          <string>${installer:sys.userHome}/Library/Logs/Lantern/install4jout.txt</string>
                         </object>
                       </void>
                       <void property="wait">

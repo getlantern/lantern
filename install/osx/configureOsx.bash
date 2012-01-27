@@ -22,6 +22,8 @@ log "Running as `whoami`"
 log "USER is $USER"
 log "User name is $userName"
 
+# The following test is due to bizarre installer behavior where it installs to 
+# /Applications/Lantern.app sometimes and /Applications/Lantern/Lantern.app in others.
 APP_PATH=/Applications/Lantern/Lantern.app
 test -d $APP_PATH || APP_PATH=/Applications/Lantern.app
 #PLIST_DIR=/Library/LaunchAgents
@@ -41,8 +43,7 @@ test -f ~/.lantern/lantern_truststore.jks && rm -rf ~/.lantern/lantern_truststor
 test -f ~/.lantern/lantern_truststore.jks && log "trust store still exists!! not good."
 
 log "Executing perl replace on Info.plist"
-# The following test is due to bizarre installer behavior where it installs to 
-# /Applications/Lantern.app sometimes and /Applications/Lantern/Lantern.app in others.
+# The following is done to modify the install4j-generated Info.plist to run without a UI
 perl -pi -e "s/<dict>/<dict><key>LSUIElement<\/key><string>1<\/string>/g" $APP_PATH/Contents/Info.plist || die "Could not fix Info.plist"
 perl -pi -e "s:/Applications/Lantern/Lantern.app:$APP_PATH:g" $PLIST_INSTALL_FULL || die "Could not fix Info.plist"
 
