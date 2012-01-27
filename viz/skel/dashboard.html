@@ -6,12 +6,11 @@
     <meta name=viewport content="width=device-width, initial-scale=1.0">
     <title>Lantern Dashboard</title>
     <link rel=stylesheet href=assets/css/style.css />
-    <script src=assets/js/libs/jquery-1.7.1.min.js></script>
-    <script src=jquery/json2.js></script>
-    <script src=org/cometd.js></script>
-    <script src=jquery/jquery.cometd.js></script>
-<!--<script src=assets/js/libs/angular-0.10.5.min.js ng:autobind></script>-->
-    <script src=assets/js/libs/angular-0.10.5.js ng:autobind></script>
+    <script src=assets/js/lib/jquery-1.7.1.min.js></script>
+    <script src=assets/js/lib/json2.js></script>
+    <script src=assets/js/lib/cometd.js></script>
+    <script src=assets/js/lib/jquery.cometd.js></script>
+    <script src=assets/js/lib/angular-0.10.5.js ng:autobind></script>
     <script src=assets/js/dashboard.js></script>
   </head>
   <body ng:controller=LDCtrl ng:show=stateloaded() ng:class="!state.initialSetupComplete && 'welcome' || ''" lang=en>
@@ -242,7 +241,7 @@ A. ...
               <ul>
                 <li><label><input type=checkbox ng:change=toggle('startAtLogin') ng:model=state.startAtLogin /> Launch on system startup</label></li>
                 <li><label><input type=checkbox ng:change=toggle('connectOnLaunch') ng:model=state.connectOnLaunch /> Sign in on launch</label></li>
-                <li><label><input type=checkbox ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Set as system proxy</label></li>
+                <li ng:show=state.getMode><label><input type=checkbox ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Set as system proxy</label></li>
               </ul>
               <input type=button id=reset-button ng:click=reset() value="Reset Lantern" />
             </dd>
