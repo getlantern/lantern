@@ -215,16 +215,16 @@ function LDCtrl(){
 
   self.fs_submit_src = function(){
     if(self.fsform.$invalid && !(self.loggedin() && self.sameuser()))
-      return 'assets/img/arrow-right-disabled.png';
+      return 'img/arrow-right-disabled.png';
     if(self.loggingin())
-      return 'assets/img/spinner-big.gif';
-    return 'assets/img/arrow-right.png';
+      return 'img/spinner-big.gif';
+    return 'img/arrow-right.png';
   };
 
   self.autoproxy_continue_src = function(){
     if(self._autoproxyresp === FETCHING)
-      return 'assets/img/spinner-big.gif';
-    return 'assets/img/arrow-right.png';
+      return 'img/spinner-big.gif';
+    return 'img/arrow-right.png';
   };
 
   self.toggleTrusted = function(peer){
