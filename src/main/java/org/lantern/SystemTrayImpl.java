@@ -81,7 +81,7 @@ public class SystemTrayImpl implements SystemTray {
             this.menu = new Menu (shell, SWT.POP_UP);
             
             final MenuItem dashboardItem = new MenuItem(menu, SWT.PUSH);
-            dashboardItem.setText("Open Dashboard");
+            dashboardItem.setText("Open Dashboard"); // XXX i18n
             dashboardItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
@@ -93,7 +93,7 @@ public class SystemTrayImpl implements SystemTray {
             new MenuItem(menu, SWT.SEPARATOR);
             
             final MenuItem quitItem = new MenuItem(menu, SWT.PUSH);
-            quitItem.setText(I18n.tr("Quit"));
+            quitItem.setText("Quit Lantern"); // XXX i18n
             
             quitItem.addListener (SWT.Selection, new Listener () {
                 @Override
