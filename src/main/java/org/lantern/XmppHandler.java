@@ -17,4 +17,6 @@ public interface XmppHandler extends ProxyStatusListener, ProxyProvider {
 
     boolean isLoggedIn();
 
+    void connect(String email, String pwd) throws IOException;
+
 }

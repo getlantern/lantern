@@ -21,6 +21,7 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
@@ -87,7 +88,8 @@ public class DefaultXmppHandler implements XmppHandler {
     private final Queue<ProxyHolder> laeProxies = 
         new ConcurrentLinkedQueue<ProxyHolder>();
 
-    private XmppP2PClient client;
+    private AtomicReference<XmppP2PClient> client = 
+        new AtomicReference<XmppP2PClient>();
     private boolean displayedUpdateMessage = false;
     
     private static final String UNCENSORED_ID = "-lan-";
@@ -186,7 +188,12 @@ public class DefaultXmppHandler implements XmppHandler {
             }
             LanternHub.settingsIo().write();
         }
-        
+        connect(email, pwd);
+    }
+
+    @Override
+    public void connect(final String email, final String pwd) 
+        throws IOException {
         final InetSocketAddress plainTextProxyRelayAddress = 
             new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
         
@@ -210,19 +217,19 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         
         final UpnpService upnpService = new Upnp();
-        this.client = P2P.newXmppP2PHttpClient("shoot", natPmpService, 
+        this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService, 
             upnpService, new InetSocketAddress(this.sslProxyRandomPort), 
             //newTlsSocketFactory(), SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
             newTlsSocketFactory(), newTlsServerSocketFactory(),
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
-            plainTextProxyRelayAddress, false);
+            plainTextProxyRelayAddress, false));
 
         // This is a global, backup listener added to the client. We might
         // get notifications of messages twice in some cases, but that's
         // better than the alternative of sometimes not being notified
         // at all.
         LOG.info("Adding message listener...");
-        this.client.addMessageListener(typedListener);
+        this.client.get().addMessageListener(typedListener);
         LanternHub.eventBus().post(
             new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTING));
         LanternHub.eventBus().post(
@@ -234,7 +241,7 @@ public class DefaultXmppHandler implements XmppHandler {
             id = UNCENSORED_ID;
         }
         try {
-            this.client.login(email, pwd, id);
+            this.client.get().login(email, pwd, id);
         } catch (final IOException e) {
             LanternHub.eventBus().post(
                 new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
@@ -252,7 +259,7 @@ public class DefaultXmppHandler implements XmppHandler {
         // proxies to work with.
         //LanternHub.eventBus().post(
         //    new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTED));
-        final XMPPConnection connection = this.client.getXmppConnection();
+        final XMPPConnection connection = this.client.get().getXmppConnection();
         final Collection<InetSocketAddress> googleStunServers = 
             XmppUtils.googleStunServers(connection);
         StunServerRepository.setStunServers(googleStunServers);
@@ -314,7 +321,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     @Override
     public void disconnect() {
-        if (this.client == null) {
+        if (this.client.get() == null) {
             LOG.info("Not disconnecting since we're not yet connected");
             return;
         }
@@ -325,7 +332,8 @@ public class DefaultXmppHandler implements XmppHandler {
         LanternHub.asyncEventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_OUT));
         
-        this.client.logout();
+        this.client.get().logout();
+        this.client.set(null);
         
         LanternHub.eventBus().post(
             new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
@@ -377,7 +385,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 addProxy(server);
                 LanternUtils.addProxy(server);
             }
-            if (!servers.isEmpty()) { 
+            if (!servers.isEmpty() && isLoggedIn()) { 
                 if (!Configurator.configured()) {
                     Configurator.configure();
                 }
@@ -408,7 +416,7 @@ public class DefaultXmppHandler implements XmppHandler {
         // do is grab our Google Talk shared status, signifying support for
         // their protocol, and then we don't interfere with GChat visibility.
         final Packet status = XmppUtils.getSharedStatus(
-                this.client.getXmppConnection());
+                this.client.get().getXmppConnection());
         LOG.info("Status:\n{}", status.toXML());
     }
 
@@ -441,11 +449,13 @@ public class DefaultXmppHandler implements XmppHandler {
      * get around these messages showing up in the user's gchat window.
      */
     private void updatePresence() {
-        final XMPPConnection conn = this.client.getXmppConnection();
-        if (!conn.isConnected()) {
+        if (!isLoggedIn()) {
             LOG.info("Not updating presence when we're not connected");
             return;
         }
+        
+        final XMPPConnection conn = this.client.get().getXmppConnection();
+
         LOG.info("Sending presence available");
         
         // OK, this is bizarre. For whatever reason, we **have** to send the
@@ -487,7 +497,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     private void configureRoster() {
-        final XMPPConnection xmpp = this.client.getXmppConnection();
+        final XMPPConnection xmpp = this.client.get().getXmppConnection();
 
         final Roster roster = xmpp.getRoster();
 
@@ -626,7 +636,7 @@ public class DefaultXmppHandler implements XmppHandler {
             XmppMessageConstants.ERROR_TYPE);
         final String errorMessage = "Error: "+message+" with host: "+isa;
         msg.setProperty(XmppMessageConstants.MESSAGE, errorMessage);
-        this.client.getXmppConnection().sendPacket(msg);
+        this.client.get().getXmppConnection().sendPacket(msg);
     }
     
     private void processTypedMessage(final Message msg, final Integer type) {
@@ -658,7 +668,7 @@ public class DefaultXmppHandler implements XmppHandler {
         msg.setProperty(P2PConstants.MAC, LanternUtils.getMacAddress());
         msg.setProperty(P2PConstants.CERT, 
             LanternHub.getKeyStoreManager().getBase64Cert());
-        this.client.getXmppConnection().sendPacket(msg);
+        this.client.get().getXmppConnection().sendPacket(msg);
     }
 
     private void processInfoData(final Message msg) {
@@ -708,15 +718,16 @@ public class DefaultXmppHandler implements XmppHandler {
             addLaeProxy(cur);
             return;
         }
-        if (!this.client.getXmppConnection().isConnected()) {
+        if (!isLoggedIn()) {
             LOG.info("Not connected -- ignoring proxy: {}", cur);
             return;
         }
-        final String jid = this.client.getXmppConnection().getUser().trim();
+        final String jid = 
+            this.client.get().getXmppConnection().getUser().trim();
         final String emailId = XmppUtils.jidToUser(jid);
         LOG.info("We are: {}", jid);
         LOG.info("Service name: {}",
-             this.client.getXmppConnection().getServiceName());
+             this.client.get().getXmppConnection().getServiceName());
         if (jid.equals(cur.trim())) {
             LOG.info("Not adding ourselves as a proxy!!");
             return;
@@ -770,7 +781,7 @@ public class DefaultXmppHandler implements XmppHandler {
         msg.setProperty(P2PConstants.MAC, LanternUtils.getMacAddress());
         msg.setProperty(P2PConstants.CERT, 
             LanternHub.getKeyStoreManager().getBase64Cert());
-        this.client.getXmppConnection().sendPacket(msg);
+        this.client.get().getXmppConnection().sendPacket(msg);
     }
 
     private void addLaeProxy(final String cur) {
@@ -961,7 +972,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     @Override
     public XmppP2PClient getP2PClient() {
-        return client;
+        return client.get();
     }
 
     private static final class ProxyHolder {
@@ -1064,10 +1075,10 @@ public class DefaultXmppHandler implements XmppHandler {
 
     @Override
     public boolean isLoggedIn() {
-        if (this.client == null) {
+        if (this.client.get() == null) {
             return false;
         }
-        final XMPPConnection conn = client.getXmppConnection();
+        final XMPPConnection conn = client.get().getXmppConnection();
         if (conn == null) {
             return false;
         }
