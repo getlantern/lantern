@@ -57,11 +57,11 @@ public class JettyLauncher {
         //final ServletContextHandler api = newContext(secureBase, apiName);
         contexts.addHandler(contextHandler);
 
-        final File vizSkel = new File("viz", "skel");
-        if (vizSkel.isDirectory()) {
-            contextHandler.setResourceBase(vizSkel.toString());
+        final File staticdir = new File("dashboard", "assets");
+        if (staticdir.isDirectory()) {
+            contextHandler.setResourceBase(staticdir.toString());
         } else {
-            contextHandler.setResourceBase("skel");
+            contextHandler.setResourceBase("assets");
         }
         
         server.setHandler(contexts);
@@ -466,8 +466,6 @@ public class JettyLauncher {
         }
         log.info("Server is running!");
         LanternHub.dashboard().openBrowser();
-        //final String url = fullBasePath + "/dashboard.html";
-        //LanternUtils.browseUrl(url);
     }
 }
 
