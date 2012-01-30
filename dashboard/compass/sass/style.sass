@@ -37,12 +37,8 @@ $blueprint-grid-columns: 30
 +global-reset
 +blueprint-typography
 
-body.welcome
-  background-color: $background-color-alt5
-  //
-    #ld-container
-      -webkit-mask-box-image: -webkit-gradient(linear, left top, left bottom, from(rgba(0,0,0,1)), to(rgba(0,0,0,0)))
-      -moz-mask-box-image: -moz-linear-gradient(top, rgba(0,0,0,1), rgba(0,0,0,0))
+body
+  background: image-url('spinner-big.gif') center no-repeat
 
 $welcome-wdth: 500px
 $welcome-hght: 300px
@@ -160,10 +156,7 @@ form.signin .error, #systemproxy .error
   visibility: hidden
 
 .togglespinner.LOGGING_IN
-  margin-bottom: 41px - 32px // height of arrow - height of spinner
-
-#signin-overlay .spinner
-  margin-top: 5px
+  margin-top: 41px - 32px // height of arrow - height of spinner
 
 .badcredentials
   input[type=text], input[type=password]
@@ -190,11 +183,15 @@ html, body, #sidebar, .panel.selected
 body
   display: table
   width: 100%
-  // XXX add to body instead of this div?
   & > #ld-container, #dashboard
     width: 100%
     height: 100%
     display: table
+
+#ld-container
+  display: none
+  &.welcome
+    background-color: $background-color-alt5
 
 #sidebar, .panel.selected
   display: table-cell
@@ -261,6 +258,7 @@ li
 
 .panel, .overlay
   display: none
+  background-color: #fff
 
 .panel
   width: 100%
@@ -276,7 +274,6 @@ li
   top: 0
   margin-top: $topbar-hght + 2px
   left: $sidebar-wdth + $gap-size * 2
-  background-color: #fff
   padding: $gap-size
   +box-shadow($edge-color 0 0 10px)
   a.close
@@ -569,3 +566,8 @@ button
   margin: 0 -200px
   height: 200px
   text-align: center
+  & .spinner
+    margin-top: 18px
+  & button
+    margin-top: 19px
+

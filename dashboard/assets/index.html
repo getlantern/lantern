@@ -13,8 +13,8 @@
     <script src=js/lib/angular-0.10.5.js ng:autobind></script>
     <script src=js/dashboard.js></script>
   </head>
-  <body ng:controller=LDCtrl ng:show=stateloaded() ng:class="!state.initialSetupComplete && 'welcome' || ''" lang=en>
-    <div id=ld-container>
+  <body ng:controller=LDCtrl lang=en>
+    <div id=ld-container ng:show=stateloaded() ng:class="!state.initialSetupComplete && 'welcome' || ''">
       <div id=welcome-container ng:show=!state.initialSetupComplete>
         <div id=welcome class="slide selected" data-cls=slide>
           <h1>Welcome to Lantern</h1>
