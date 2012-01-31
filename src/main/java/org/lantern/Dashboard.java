@@ -124,6 +124,7 @@ public class Dashboard {
             if (!LanternHub.display().readAndDispatch())
                 LanternHub.display().sleep();
         }
+        hiddenShell.dispose();
     }
 
     private Image newImage(final String path) {
