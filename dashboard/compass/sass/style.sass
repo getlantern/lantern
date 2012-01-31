@@ -126,9 +126,10 @@ form.signin
     width: 350px
     margin: 0 0 1em -176px
   #trustedpeers-overlay &
-    border: thin solid $edge-color
+    border: 1px solid $edge-color
     width: 400px
     min-height: 90px
+    max-height: 456px
     padding-left: 3px
     +border-radius(3px)
     +box-sizing(border-box)
@@ -225,9 +226,11 @@ $sidebar-wdth: 200px
 #sidebar-update-link
   color: $font-color-important !important
 
-#changelog
-  width: 600px
-  height: 500px
+#changelog-frame
+  width: 620px
+  height: 537px
+  border: 1px solid #eee
+  margin: 5px
 
 #search
   margin-top: 1em
@@ -278,8 +281,7 @@ li
 
 .overlay
   position: absolute
-  top: 0
-  margin-top: $topbar-hght + 2px
+  top: $topbar-hght + 2px
   left: $sidebar-wdth + $gap-size * 2
   padding: $gap-size
   +box-shadow($edge-color 0 0 10px)
@@ -299,7 +301,7 @@ a.close
 
 #siteslist
   width: 100%
-  height: 100%
+  max-height: 491px
   padding-left: 0
   margin: 0 20px 0 0
   overflow-y: auto
@@ -319,12 +321,24 @@ a.close
     padding-right: 10px
   li
     padding: 2px 0 2px 6px
-    &:last-child input[type=text]
-      border: 1px solid $edge-color
     &:hover
       background-color: $background-color-alt4
       a.delete
         color: $font-color-input
+
+#required-legend
+  padding: 5px 0 0 0
+  .smallnote
+    margin: 0 3px 0 7px
+
+#sitetoadd
+  border: 1px solid $edge-color !important
+  padding-left: 5px
+  height: 22px
+
+#sitetoadd-li
+  background-color: $background-color-alt4
+  padding: 7px 0 7px 18px !important
 
 a.close
   color: #ddd

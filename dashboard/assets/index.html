@@ -284,7 +284,7 @@ A. ...
             <dd><time datetime={{newversion.released}}>Feb. 20, 2012 11:15am</time></dd>
             <dt>Changelog</dt>
             <dd>
-              <a class=overlaylink href=#changelog-overlay title=https://raw.github.com/getlantern/lantern/master/CHANGES.rst>View</a>
+              <a class=overlaylink href=#changelog title=https://raw.github.com/getlantern/lantern/master/CHANGES.rst>View</a>
             </dd>
           </dl>
         </div>
@@ -307,14 +307,16 @@ A. ...
           <a class=close>×</a>
           <h1>Proxied sites</h1>
           <ul id=siteslist>
-            <li ng:repeat="entry in whitelist.$orderBy(['required', 'site'])">
-              <form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input class=whitelistentry ng:model=newsite type=text placeholder=example.com value="{{entry.site + (entry.required && ' (required)' || '')}}" required ng:readonly={{entry.required}} ng:pattern=/^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/ /></form>
-              <a class=delete ng:show=!entry.required ng:click="updatewhitelist(entry.site, false)">×</a>
-            </li>
-            <li>
+            <li id=sitetoadd-li>
               <form ng:submit="updatewhitelist(sitetoadd, true)"><input id=sitetoadd ng:model=sitetoadd type=text required placeholder="Add a new site" /></form>
             </li>
+            <li ng:repeat="entry in whitelist.$orderBy(['required', 'site'])">
+              <span ng:class="[!entry.required && 'hidden', 'smallnote', 'disabled']">✽</span>
+              <form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input class=whitelistentry ng:model=newsite type=text placeholder=example.com value={{entry.site}} required ng:readonly={{entry.required}} ng:pattern=/^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/ /></form>
+              <a class=delete ng:show=!entry.required ng:click="updatewhitelist(entry.site, false)">×</a>
+            </li>
           </ul>
+          <div id=required-legend><span class=smallnote>✽</span> required</div>
         </div>
 
         <div class=overlay data-cls=overlay id=trustedpeers-overlay>
@@ -331,9 +333,9 @@ A. ...
           <span class=smallnote>Lantern cloud proxies will be used when no trusted peers are available</span>
         </div>
 
-        <div class=overlay data-cls=overlay id=changelog-overlay>
+        <div class=overlay data-cls=overlay id=changelog>
           <a class=close>×</a>
-          <iframe id=changelog src=http://api.rst2a.com/1.0/rst2/html?style=lsr&uri=https://raw.github.com/getlantern/lantern/master/CHANGES.rst></iframe>
+          <iframe id=changelog-frame src=http://api.rst2a.com/1.0/rst2/html?style=lsr&uri=https://raw.github.com/getlantern/lantern/master/CHANGES.rst></iframe>
         </div>
 
       </div>
