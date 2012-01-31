@@ -1,17 +1,19 @@
-cometd = $.cometd;
+'use strict';
 
-FETCHING = 'fetching...'; // poor-man's promise
-FETCHFAILED = 'fetch failed';
-FETCHSUCCESS = 'fetch succeeded';
+var cometd = $.cometd;
+
+var FETCHING = 'fetching...'; // poor-man's promise
+var FETCHFAILED = 'fetch failed';
+var FETCHSUCCESS = 'fetch succeeded';
 
 // http://html5pattern.com/
-HOSTNAMEPAT = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/;
+var HOSTNAMEPAT = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/;
 
-BYTEDIM = {GB: 1024*1024*1024, MB: 1024*1024, KB: 1024};
+var BYTEDIM = {GB: 1024*1024*1024, MB: 1024*1024, KB: 1024};
 angular.filter('bytes', function(input){
   var nbytes = parseInt(input);
   if(isNaN(nbytes))return input;
-  for(dim in BYTEDIM){
+  for(var dim in BYTEDIM){
     var base = BYTEDIM[dim];
     if(nbytes >= base){
       return Math.round(nbytes/base) + dim;
@@ -20,11 +22,11 @@ angular.filter('bytes', function(input){
   return nbytes + 'B';
 });
 
-FRAGMENTPAT = /^[^#]*(#.*)$/;
+var FRAGMENTPAT = /^[^#]*(#.*)$/;
 function clickevt2id(evt){
-  //console.log('evt.target:',evt.target,'evt.currentTarget:',evt.currentTarget);
   return evt.currentTarget.href.match(FRAGMENTPAT)[1];
 }
+
 function showid(id, ignorecls){
   var $el = $(id);
   if(!$el.length)
@@ -42,6 +44,7 @@ function showid(id, ignorecls){
     $('#panel-list > li > a[href='+id+']').toggleClass('selected');
   }
 }
+
 function showidclickhandler(evt){
   showid(clickevt2id(evt));
   // XXX height hack unneeded when viewport has minheight of 630
