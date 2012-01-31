@@ -63,6 +63,19 @@ function LDCtrl(){
     self.$digest();
   };
 
+  // XXX dummy data
+  self.newversion = {
+    number: "0.10.1",
+    released: "2012-02-20T11:15:00.0Z",
+    url: {
+      macos:   "http://path/to/installer.dmg",
+      windows: "http://path/to/installer.exe",
+      ubuntu:  "http://path/to/package.deb",
+      fedora:  "http://path/to/package.rpm",
+      tarball: "http://path/to/source.tgz"
+    }
+  };
+
   self.inputemail = null;
   self.inputpassword = null;
 

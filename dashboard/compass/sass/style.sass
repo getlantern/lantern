@@ -171,6 +171,9 @@ form.signin .error, #systemproxy .error
 .error
   color: $font-color-error !important
 
+.important
+  color: $font-color-important !important
+
 input.ng-invalid:not(.ng-pristine)
   outline-color: $font-color-error
 
@@ -221,6 +224,10 @@ $sidebar-wdth: 200px
 
 #sidebar-update-link
   color: $font-color-important !important
+
+#changelog
+  width: 600px
+  height: 500px
 
 #search
   margin-top: 1em
@@ -328,7 +335,7 @@ a
   cursor: pointer
 
 dl
-  float: left
+  +clearfix
   margin-bottom: 0
 
 dt
@@ -537,18 +544,23 @@ button
   &:active:not([disabled])
     background-color: #ccc
 
-#manage-trusted-link
+.buttonlink
   border: 1px solid #bbb
-  text-decoration: none
-  color: #333
   padding: 0px 8px
-  margin-top: 1em
+  text-decoration: none
+  color: #333 !important
   display: inline-block
   +border-radius(3px)
   +background-image(linear-gradient(#fff, #eee))
   &:active
     +background-image(linear-gradient(#a9b6c3, #7684a1 50%, #9ea7b8, #a9b6c3))
     border-color: #666
+
+#manage-trusted-link
+  margin-top: 1em
+
+p .buttonlink
+  margin-left: 8px
 
 #reset-button
   margin-top: 1em

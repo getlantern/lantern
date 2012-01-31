@@ -232,7 +232,7 @@ A. ...
                   <a class="overlaylink actionlink" ng:show=!state.proxyAllSites href=#proxiedsites>Manage proxied sites...</a>
                 </li>
                 <li>
-                  <a class="overlaylink actionlink" id=manage-trusted-link href=#trustedpeers-overlay>Manage trusted peers...</a>
+                  <a class="overlaylink buttonlink" id=manage-trusted-link href=#trustedpeers-overlay>Manage trusted peers...</a>
                 </li>
               </ul>
             </dd>
@@ -273,6 +273,20 @@ A. ...
         </div>
         <div class=panel id=update data-cls=panel>
           <h1>Update</h1>
+          <p>
+            A new version of Lantern is available!
+            <a class=buttonlink href={{newversion.url.macos}} target="_blank">Download now</a>
+          </p>
+          <dl>
+            <dt>Version</dt>
+            <dd>{{newversion.number}}</dd>
+            <dt>Released</dt>
+            <dd><time datetime={{newversion.released}}>Feb. 20, 2012 11:15am</time></dd>
+            <dt>Changelog</dt>
+            <dd>
+              <a class=overlaylink href=#changelog-overlay title=https://raw.github.com/getlantern/lantern/master/CHANGES.rst>View</a>
+            </dd>
+          </dl>
         </div>
 
         <div id=signin-overlay ng:show=showsignin()>
@@ -315,6 +329,11 @@ A. ...
             <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
           </ul>
           <span class=smallnote>Lantern cloud proxies will be used when no trusted peers are available</span>
+        </div>
+
+        <div class=overlay data-cls=overlay id=changelog-overlay>
+          <a class=close>×</a>
+          <iframe id=changelog src=http://api.rst2a.com/1.0/rst2/html?style=lsr&uri=https://raw.github.com/getlantern/lantern/master/CHANGES.rst></iframe>
         </div>
 
       </div>
