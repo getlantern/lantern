@@ -213,7 +213,7 @@ A. ...
           <dl>
             <dt>Port</dt>
             <dd>
-              <input type=number value={{state.port}} id=port min=1024 max=65535 readonly />
+              <input type=text value={{state.port}} id=port min=1024 max=65535 readonly />
             </dd>
             <dt ng:show=state.getMode>Policy</dt>
             <dd ng:show=state.getMode>
@@ -267,9 +267,11 @@ A. ...
             </span>
             <input id=pm-send type=button value=Send ng:disabled="{{!loggedin() || !pm}}" ng:click=sendpm() />
           </div>
+          <!--
           <div class=extra ng:show=requestreply>
             Only request replies to secure email accounts.
           </div>
+          -->
         </div>
         <div class=panel id=update data-cls=panel>
           <h1>Update</h1>
