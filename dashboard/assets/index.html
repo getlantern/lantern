@@ -14,7 +14,7 @@
     <script src=js/dashboard.js></script>
   </head>
   <body ng:controller=LDCtrl lang=en>
-    <div id=ld-container ng:show=stateloaded() ng:class="!state.initialSetupComplete && 'welcome' || ''">
+    <div id=ld-container style="display: none" ng:show=stateloaded() ng:class="!state.initialSetupComplete && 'welcome' || ''">
       <div id=welcome-container ng:show=!state.initialSetupComplete>
         <div id=welcome class="slide selected" data-cls=slide>
           <h1>Welcome to Lantern</h1>
@@ -183,7 +183,7 @@ A. ...
         <div class="panel selected" id=status data-cls=panel>
           <h1>Status</h1>
           <dl>
-            <dt>Mode</dt>
+            <dt>Connection</dt>
             <dd>
               <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}
               <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()" ng:show=loggedout()>Sign in</a></span>
@@ -213,7 +213,7 @@ A. ...
           <dl>
             <dt>Port</dt>
             <dd>
-              <input type=number value={{state.port}} id=port min=1024 max=65535 readonly />
+              <input type=text value={{state.port}} id=port min=1024 max=65535 readonly />
             </dd>
             <dt ng:show=state.getMode>Policy</dt>
             <dd ng:show=state.getMode>
@@ -232,7 +232,7 @@ A. ...
                   <a class="overlaylink actionlink" ng:show=!state.proxyAllSites href=#proxiedsites>Manage proxied sites...</a>
                 </li>
                 <li>
-                  <a class="overlaylink actionlink" id=manage-trusted-link href=#trustedpeers-overlay>Manage trusted peers...</a>
+                  <a class="overlaylink buttonlink" id=manage-trusted-link href=#trusted>Manage trusted peers...</a>
                 </li>
               </ul>
             </dd>
@@ -267,12 +267,28 @@ A. ...
             </span>
             <input id=pm-send type=button value=Send ng:disabled="{{!loggedin() || !pm}}" ng:click=sendpm() />
           </div>
+          <!--
           <div class=extra ng:show=requestreply>
             Only request replies to secure email accounts.
           </div>
+          -->
         </div>
         <div class=panel id=update data-cls=panel>
           <h1>Update</h1>
+          <p>
+            A new version of Lantern is available!
+            <a class=buttonlink href={{newversion.url.macos}} target="_blank">Download now</a>
+          </p>
+          <dl>
+            <dt>Version</dt>
+            <dd>{{newversion.number}}</dd>
+            <dt>Released</dt>
+            <dd><time datetime={{newversion.released}}>Feb. 20, 2012 11:15am</time></dd>
+            <dt>Changelog</dt>
+            <dd>
+              <a class=overlaylink href=#changelog title=https://raw.github.com/getlantern/lantern/master/CHANGES.rst>View</a>
+            </dd>
+          </dl>
         </div>
 
         <div id=signin-overlay ng:show=showsignin()>
@@ -293,19 +309,22 @@ A. ...
           <a class=close>×</a>
           <h1>Proxied sites</h1>
           <ul id=siteslist>
-            <li ng:repeat="entry in whitelist.$orderBy(['required', 'site'])">
-              <form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input class=whitelistentry ng:model=newsite type=text placeholder=example.com value="{{entry.site + (entry.required && ' (required)' || '')}}" required ng:readonly={{entry.required}} ng:pattern=/^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/ /></form>
-              <a class=delete ng:show=!entry.required ng:click="updatewhitelist(entry.site, false)">×</a>
-            </li>
-            <li>
+            <li id=sitetoadd-li>
               <form ng:submit="updatewhitelist(sitetoadd, true)"><input id=sitetoadd ng:model=sitetoadd type=text required placeholder="Add a new site" /></form>
             </li>
+            <li ng:repeat="entry in whitelist.$orderBy(['required', 'site'])">
+              <span ng:class="[!entry.required && 'hidden', 'smallnote', 'disabled']">✽</span>
+              <form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input class=whitelistentry ng:model=newsite type=text placeholder=example.com value={{entry.site}} required ng:readonly={{entry.required}} ng:pattern=/^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/ /></form>
+              <a class=delete ng:show=!entry.required ng:click="updatewhitelist(entry.site, false)">×</a>
+            </li>
           </ul>
+          <div id=required-legend><span class=smallnote>✽</span> required</div>
         </div>
 
-        <div class=overlay data-cls=overlay id=trustedpeers-overlay>
+        <div class=overlay data-cls=overlay id=trusted>
           <a class=close>×</a>
           <h1>Trusted peers</h1>
+          <h4>Contacts you would trust to proxy unencrypted traffic</h4>
           <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
           <ul class=peerlist>
             <li ng:repeat="peer in peers.$filter(peerfilter)">
@@ -314,7 +333,12 @@ A. ...
             <li ng:show="peers == FETCHING">Loading...</li>
             <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
           </ul>
-          <span class=smallnote>Lantern cloud proxies will be used when no trusted peers are available</span>
+          <div class=smallnote>Lantern cloud proxies will be used when no trusted peers are available</div>
+        </div>
+
+        <div class=overlay data-cls=overlay id=changelog>
+          <a class=close>×</a>
+          <iframe id=changelog-frame src=http://api.rst2a.com/1.0/rst2/html?style=lsr&uri=https://raw.github.com/getlantern/lantern/master/CHANGES.rst></iframe>
         </div>
 
       </div>

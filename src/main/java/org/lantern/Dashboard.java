@@ -5,6 +5,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.LocationEvent;
+import org.eclipse.swt.browser.LocationListener;
+import org.eclipse.swt.browser.OpenWindowListener;
+import org.eclipse.swt.browser.WindowEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
@@ -76,7 +80,33 @@ public class Dashboard {
         //browser.setBounds(0, 0, 800, 600);
         browser.setUrl("http://localhost:"+
             LanternHub.settings().getApiPort());
-            
+
+        // create a hidden browser to intercept external
+        // location references that should be openend
+        // in the system's native browser.
+        Shell hiddenShell = new Shell(LanternHub.display());
+        final Browser externalBrowser = new Browser(hiddenShell, SWT.NONE);
+
+        externalBrowser.addLocationListener(new LocationListener() {
+            @Override
+            public void changing(LocationEvent event) {
+                // launch external browser with link,
+                // but don't actually go there.
+                event.doit = false;
+                LanternUtils.browseUrl(event.location);
+            }
+
+            @Override
+            public void changed(LocationEvent event) {}
+        });
+
+        browser.addOpenWindowListener(new OpenWindowListener() {
+            @Override
+            public void open(WindowEvent e) {
+                e.browser = externalBrowser;
+            }
+        });
+
         shell.addListener (SWT.Close, new Listener () {
             @Override
             public void handleEvent(final Event event) {
@@ -94,6 +124,7 @@ public class Dashboard {
             if (!LanternHub.display().readAndDispatch())
                 LanternHub.display().sleep();
         }
+        hiddenShell.dispose();
     }
 
     private Image newImage(final String path) {

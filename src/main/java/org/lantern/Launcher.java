@@ -238,7 +238,19 @@ public class Launcher {
         // This won't connect in the case where the user hasn't entered 
         // their user name and password and the user is running with a UI.
         // Otherwise, it will connect.
-        LanternHub.xmppHandler();
+        XmppHandler xmpp = LanternHub.xmppHandler();
+        if (LanternHub.settings().isConnectOnLaunch() &&
+            (LanternUtils.isConfigured() || !LanternUtils.runWithUi())) {
+            try {
+                xmpp.connect();
+            } catch (final IOException e) {
+                LOG.info("Could not login", e);
+            }
+        } else {
+            LOG.info("Not auto-logging in with settings:\n{}",
+                LanternHub.settings());
+        }
+
     }
 
     

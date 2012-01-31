@@ -44,11 +44,12 @@ function showid(id, ignorecls){
 }
 function showidclickhandler(evt){
   showid(clickevt2id(evt));
-  var docheight = $(document).height(), bodheight = $('body').height();
-  if(docheight > bodheight){ // XXX height hack
-    console.log('height hack: increasing body height from', bodheight, 'to', docheight);
-    $('body').height(docheight);
-  }
+  // XXX height hack unneeded when viewport has minheight of 630
+  //var docheight = $(document).height(), bodheight = $('body').height();
+  //if(docheight > bodheight){
+  //  console.log('height hack: increasing body height from', bodheight, 'to', docheight);
+  //  $('body').height(docheight);
+  //}
 }
 
 function LDCtrl(){
@@ -61,6 +62,19 @@ function LDCtrl(){
   self.update = function(state){
     self.state = state;
     self.$digest();
+  };
+
+  // XXX dummy data
+  self.newversion = {
+    number: "0.10.1",
+    released: "2012-02-20T11:15:00.0Z",
+    url: {
+      macos:   "http://path/to/installer.dmg",
+      windows: "http://path/to/installer.exe",
+      ubuntu:  "http://path/to/package.deb",
+      fedora:  "http://path/to/package.rpm",
+      tarball: "http://path/to/source.tgz"
+    }
   };
 
   self.inputemail = null;
@@ -388,17 +402,17 @@ $(document).ready(function(){
     '.overlaylink'
     ).click(showidclickhandler);
 
-  // XXX height hack
-  $window = $(window);
-  function _resize_body(){
-    $body.height($window.height());
-  }
-  $window.resize(_resize_body);
+  // XXX height hack unneeded when viewport has minheight of 630
+  //$window = $(window);
+  //function _resize_body(){
+  //  $body.height($window.height());
+  //}
+  //$window.resize(_resize_body);
 
   $('.overlay .close').click(function(evt){
     $(evt.target).parent('.overlay').removeClass('selected');
     evt.preventDefault();
-    _resize_body(); // XXX height hack
+    //_resize_body(); // XXX height hack
   });
 
   $('#userlink, #usermenu a').click(function(evt){
