@@ -122,8 +122,8 @@ public class LanternUtilsTest {
         final String allOtr = XmppUtils.getOtr(conn).toXML();
         LOG.info("All OTR: {}", allOtr);
         
-        assertTrue(
-            allOtr.contains("lantern-controller@appspot.com\" value=\"enabled"));
+        assertTrue("Unexpected response: "+allOtr, 
+            allOtr.contains("google:nosave"));
     }
     
 
