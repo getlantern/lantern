@@ -125,33 +125,33 @@ form.signin
     left: 50%
     width: 350px
     margin: 0 0 1em -176px
-  #trustedpeers-overlay &
+  #trusted &
     border: 1px solid $edge-color
     width: 400px
     min-height: 90px
-    max-height: 456px
+    max-height: 414px
     padding-left: 3px
     +border-radius(3px)
     +box-sizing(border-box)
+    margin-bottom: 8px
 
 .searchpeers
   #trustedpeers &
     width: 350px
     margin-bottom: 5px
-  #trustedpeers-overlay &
+  #trusted &
     width: 400px
     margin-bottom: 8px
 
-#trustedpeers-overlay
-  .usecloud
-    margin-top: 1em
-    display: block
-    font-size: $font-size-smaller
+#trusted
   h1
-    margin-bottom: 25px
+    margin-bottom: 20px
+  h4
+    color: $font-color-input
 
 .smallnote
   font-size: 9pt
+  color: $font-color-input
 
 form.signin .error, #systemproxy .error
   visibility: hidden
