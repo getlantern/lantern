@@ -146,17 +146,6 @@ public class DefaultXmppHandler implements XmppHandler {
         final int plainTextProxyRandomPort) {
         this.sslProxyRandomPort = sslProxyRandomPort;
         this.plainTextProxyRandomPort = plainTextProxyRandomPort;
-        if (LanternHub.settings().isConnectOnLaunch() && 
-            (LanternUtils.isConfigured() || !LanternUtils.runWithUi())) {
-            try {
-                connect();
-            } catch (final IOException e) {
-                LOG.info("Could not login", e);
-            }
-        } else {
-            LOG.info("Not auto-logging in with settings:\n{}",
-                LanternHub.settings());
-        }
     }
     
     @Override
