@@ -26,6 +26,8 @@ public class Whitelist {
         addDefaultEntry("getlantern.org", true);
         addDefaultEntry("google.com", true);
         addDefaultEntry("exceptional.io", true);
+        addDefaultEntry("rst2a.com", true); // changelog
+        addDefaultEntry("github.com", true); // changelog
 
         // optional
         addDefaultEntry("avaaz.org", false);
