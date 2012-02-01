@@ -13,6 +13,7 @@ import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -384,14 +385,17 @@ public class DefaultXmppHandler implements XmppHandler {
         }
 
         // This is really a JSONObject, but that itself is a map.
-        final Map<String, String> update = 
-            (Map<String, String>) json.get(LanternConstants.UPDATE_KEY);
+        final JSONObject update = 
+            (JSONObject) json.get(LanternConstants.UPDATE_KEY);
         if (update != null) {
-            LOG.info("About to show update...");
+            LOG.info("About to propagate update...");
             LanternHub.display().asyncExec (new Runnable () {
                 @Override
                 public void run () {
-                    LanternHub.eventBus().post(new UpdateEvent(update));
+                    final Map<String, String> event = 
+                        new HashMap<String, String>();
+                    update.putAll(event);
+                    LanternHub.eventBus().post(new UpdateEvent(event));
                 }
             });
         }

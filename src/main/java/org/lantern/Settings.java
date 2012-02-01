@@ -1,5 +1,6 @@
 package org.lantern;
 
+import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
@@ -23,7 +24,7 @@ public class Settings implements MutableSettings {
     private Whitelist whitelist;
     
     private ConnectivityStatus connectivity = ConnectivityStatus.DISCONNECTED; 
-    private UpdateEvent update = new UpdateEvent();
+    private Map<String, String> update = new HashMap<String, String>();
     
     private Internet internet = new Internet();
     private Platform platform = new Platform();
@@ -146,7 +147,7 @@ public class Settings implements MutableSettings {
     
     @Subscribe
     public void onUpdate(final UpdateEvent ue) {
-        this.update = ue;
+        this.update = ue.getData();
     }
     
     @Subscribe
@@ -164,13 +165,13 @@ public class Settings implements MutableSettings {
         return language;
     }
 
-    public void setUpdate(UpdateEvent update) {
+    public void setUpdate(final Map<String, String> update) {
         this.update = update;
     }
     
     @JsonView({UIStateSettings.class, PersistentSettings.class})
     public Map<String, String> getUpdate() {
-        return update.getData();
+        return update;
     }
 
     public void setSettings(SettingsState settings) {
