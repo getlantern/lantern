@@ -10,7 +10,8 @@
     <script src=js/lib/json2.js></script>
     <script src=js/lib/cometd.js></script>
     <script src=js/lib/jquery.cometd.js></script>
-    <script src=js/lib/angular-0.10.5.js ng:autobind></script>
+<!--<script src=js/lib/angular-0.10.5.js ng:autobind></script>-->
+    <script src=js/lib/angular-0.10.5.min.js ng:autobind></script>
     <script src=js/dashboard.js></script>
   </head>
   <body ng:controller=LDCtrl lang=en>
@@ -176,7 +177,7 @@ A. ...
               <li><a href=#status class=selected>Status</a></li>
               <li><a href=#hood>Under the Hood</a></li>
               <li><a href=#contact>Contact</a></li>
-              <li><a href=#update ng:show="state.update" id="sidebar-update-link">Update</a></li>
+              <li><a href=#update ng:show=updateavailable() id=sidebar-update-link>Update</a></li>
             </ul>
           </nav>
         </div>
@@ -203,8 +204,8 @@ A. ...
             </dd>
             <dt>Version</dt>
             <dd>
-              Lantern {{state.version}}
-              <a href=#update ng:show="state.update" id=update-avail-link class="actionlink panellink">Update available</a>
+              {{state.version == 'lantern_version_tok' && '(development)' || 'Lantern ' + state.version}}
+              <a href=#update ng:show=updateavailable() id=update-avail-link class="actionlink panellink">Update available</a>
             </dd>
           </dl>
         </div>
@@ -265,7 +266,7 @@ A. ...
               <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()">Sign in</a>
               to send feedback
             </span>
-            <input id=pm-send type=button value=Send ng:disabled="{{!loggedin() || !pm}}" ng:click=sendpm() />
+            <button id=pm-send class=buttonlink ng:disabled="{{!loggedin() || !pm}}" ng:click=sendpm()>Send</button>
           </div>
           <!--
           <div class=extra ng:show=requestreply>
@@ -275,20 +276,22 @@ A. ...
         </div>
         <div class=panel id=update data-cls=panel>
           <h1>Update</h1>
-          <p>
-            A new version of Lantern is available!
-            <a class=buttonlink href={{newversion.url.macos}} target="_blank">Download now</a>
+          <p ng:show=!updateavailable()>
+            No updates available at this time.
           </p>
-          <dl>
+          <p ng:show=updateavailable()>
+            A new version of Lantern is available!
+            <a class=buttonlink href={{state.update.url}} target="_blank">Download now</a>
+          </p>
+          <dl ng:show=updateavailable()>
             <dt>Version</dt>
-            <dd>{{newversion.number}}</dd>
+            <dd>{{state.update.number}}</dd>
             <dt>Released</dt>
-            <dd><time datetime={{newversion.released}}>Feb. 20, 2012 11:15am</time></dd>
-            <dt>Changelog</dt>
-            <dd>
-              <a class=overlaylink href=#changelog title=https://raw.github.com/getlantern/lantern/master/CHANGES.rst>View</a>
-            </dd>
+            <dd><time title={{state.update.released}} datetime={{state.update.released}}>{{state.update.released | date}}</time></dd>
           </dl>
+          <div>
+            <a class=overlaylink href=#changelog title=https://raw.github.com/getlantern/lantern/master/CHANGES.rst>Changelog</a>
+          </div>
         </div>
 
         <div id=signin-overlay ng:show=showsignin()>
