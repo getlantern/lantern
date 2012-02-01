@@ -15,7 +15,11 @@ public class UpdateEvent {
     }
     
     public UpdateEvent(final Map<String, String> data) {
-        this.data = data;
+        if (data == null) {
+            this.data = new HashMap<String, String>();
+        } else {
+            this.data = data;
+        }
     }
 
     public Map<String, String> getData() {
