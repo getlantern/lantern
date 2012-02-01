@@ -8,21 +8,21 @@ import java.util.Map;
  */
 public class UpdateEvent {
 
-    private final Map<String, String> data;
+    private final Map<String, Object> data;
 
     public UpdateEvent() {
-        this(new HashMap<String, String>());
+        this(new HashMap<String, Object>());
     }
     
-    public UpdateEvent(final Map<String, String> data) {
+    public UpdateEvent(final Map<String, Object> data) {
         if (data == null) {
-            this.data = new HashMap<String, String>();
+            this.data = new HashMap<String, Object>();
         } else {
             this.data = data;
         }
     }
 
-    public Map<String, String> getData() {
+    public Map<String, Object> getData() {
         return data;
     }
 
