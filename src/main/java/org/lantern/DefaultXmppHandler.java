@@ -283,8 +283,8 @@ public class DefaultXmppHandler implements XmppHandler {
                     if(pres.getType().equals(Presence.Type.subscribe)) {
                         LOG.info("Got subscribe packet!!");
                         final String from = pres.getFrom();
-                        if (from.startsWith("lantern-controller@") &&
-                            from.endsWith("lantern-controller.appspotchat.com")) {
+                        if (from.startsWith("lanternctrl@") &&
+                            from.endsWith("lanternctrl.appspotchat.com")) {
                             LOG.info("Got lantern subscription request!!");
                             return true;
                         } else {
@@ -614,8 +614,8 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     private boolean isLanternHub(final String from) {
-        return from.startsWith("lantern-controller@") && 
-            from.contains("lantern-controller.appspot");
+        return from.startsWith("lanternctrl@") && 
+            from.contains("lanternctrl.appspot");
     }
 
     private void sendErrorMessage(final InetSocketAddress isa,

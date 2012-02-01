@@ -1,6 +1,7 @@
 package org.lantern;
 
 import java.util.Locale;
+import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
@@ -168,8 +169,8 @@ public class Settings implements MutableSettings {
     }
     
     @JsonView({UIStateSettings.class, PersistentSettings.class})
-    public UpdateEvent getUpdate() {
-        return update;
+    public Map<String, String> getUpdate() {
+        return update.getData();
     }
 
     public void setSettings(SettingsState settings) {

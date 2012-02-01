@@ -8,24 +8,18 @@ import java.util.Map;
  */
 public class UpdateEvent {
 
-    private final String url;
-    private final String version;
+    private final Map<String, String> data;
 
     public UpdateEvent() {
         this(new HashMap<String, String>());
     }
     
     public UpdateEvent(final Map<String, String> data) {
-        this.version = data.get(LanternConstants.UPDATE_VERSION_KEY);
-        this.url = data.get(LanternConstants.UPDATE_URL_KEY);
+        this.data = data;
     }
 
-    public String getUrl() {
-        return url;
-    }
-
-    public String getVersion() {
-        return version;
+    public Map<String, String> getData() {
+        return data;
     }
 
 }
