@@ -51,6 +51,11 @@
             <artifactId>cometd-java-server</artifactId>
             <version>2.4.0.RC3</version>
         </dependency>
+        <dependency>
+            <groupId>org.cometd.java</groupId>
+            <artifactId>cometd-websocket-jetty</artifactId>
+            <version>2.4.0.RC3</version>
+        </dependency>
          <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
