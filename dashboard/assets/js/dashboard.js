@@ -2,7 +2,6 @@
 
 var cometd = $.cometd;
 var cometurl = location.protocol + "//" + location.host + "/cometd";
-cometd.websocketEnabled = false; // XXX until server is configured properly
 cometd.configure({
   url: cometurl,
   logLevel: 'info'
