@@ -90,7 +90,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private AtomicReference<XmppP2PClient> client = 
         new AtomicReference<XmppP2PClient>();
-    private boolean displayedUpdateMessage = false;
     
     private static final String UNCENSORED_ID = "-lan-";
     
@@ -387,10 +386,8 @@ public class DefaultXmppHandler implements XmppHandler {
         // This is really a JSONObject, but that itself is a map.
         final Map<String, String> update = 
             (Map<String, String>) json.get(LanternConstants.UPDATE_KEY);
-        LOG.info("Already displayed update? {}", displayedUpdateMessage);
-        if (update != null && !displayedUpdateMessage) {
+        if (update != null) {
             LOG.info("About to show update...");
-            displayedUpdateMessage = true;
             LanternHub.display().asyncExec (new Runnable () {
                 @Override
                 public void run () {
