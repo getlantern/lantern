@@ -400,6 +400,23 @@ $(document).ready(function(){
   var scope = null;
   var $body = $('body');
 
+  function getscope(){
+    if(scope === null){
+      scope = $body.scope();
+    }
+    if(typeof scope === 'undefined'){
+      console.log('scope() returned undefined, forcing compilation'); // XXX https://github.com/getlantern/lantern/issues/124
+      angular.compile(document)().$apply();
+      scope = $body.scope();
+      if(typeof scope === 'undefined'){
+        console.log('scope() returned undefined again, so much for that idea');
+      }else{
+        console.log('scope() is now returning a defined value, it worked?');
+      }
+    }
+    return scope;
+  }
+
   $(window).bind('hashchange', function(){
     showid(location.hash);
   });
@@ -430,9 +447,7 @@ $(document).ready(function(){
   // XXX
   $('input.whitelistentry').live('blur', function(){
     console.log('blur');
-    if(!scope)
-      scope = $body.scope();
-    setTimeout(scope.fetchwhitelist, 200);
+    setTimeout(getscope().fetchwhitelist, 200);
   });
   $('#sitetoadd').live('blur', function(){
     $(this).val('');
@@ -445,10 +460,9 @@ $(document).ready(function(){
   }
   function _connectionBroken(){
     console.log('CometD Connection Broken');
-    if(!scope)
-      scope = $body.scope();
-    scope.state = {};
-    scope.$digest();
+    var s = getscope();
+    s.state = {};
+    s.$digest();
   }
   function _connectionClosed(){
     console.log('CometD Connection Closed');
@@ -478,28 +492,27 @@ $(document).ready(function(){
   });
 
   function syncHandler(msg){
-    if(!scope)
-      scope = $body.scope();
-    scope.update(msg.data);
+    var s = getscope();
+    s.update(msg.data);
 
     // XXX
-    if(scope.state.getMode){
-      if(scope.loggedin()){
-        if(scope.peers === FETCHFAILED){
+    if(s.state.getMode){
+      if(s.loggedin()){
+        if(s.peers === FETCHFAILED){
           // XXX back-off
           console.log('retrying fetchpeers in 1s');
-          setTimeout(scope.fetchpeers, 1000);
-        }else if(scope.peers === null){
+          setTimeout(s.fetchpeers, 1000);
+        }else if(s.peers === null){
           console.log('calling fetch peers for the first time');
-          scope.fetchpeers();
+          s.fetchpeers();
         }
       }
-      if(scope.whitelist === null){
-        scope.fetchwhitelist();
-      }else if(scope.whitelist === FETCHFAILED){
+      if(s.whitelist === null){
+        s.fetchwhitelist();
+      }else if(s.whitelist === FETCHFAILED){
         // XXX back-off
         console.log('retrying fetchwhitelist in 1s');
-        setTimeout(scope.fetchwhitelist, 1000);
+        setTimeout(s.fetchwhitelist, 1000);
       }
     }
   }
