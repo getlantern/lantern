@@ -1,6 +1,12 @@
 'use strict';
 
 var cometd = $.cometd;
+var cometurl = location.protocol + "//" + location.host + "/cometd";
+cometd.websocketEnabled = false; // XXX until server is configured properly
+cometd.configure({
+  url: cometurl,
+  logLevel: 'info'
+});
 
 var FETCHING = 'fetching...'; // poor-man's promise
 var FETCHFAILED = 'fetch failed';
@@ -434,39 +440,44 @@ $(document).ready(function(){
     $(this).val('');
   });
 
+
+  // http://cometd.org/documentation/cometd-javascript/subscription
   function _connectionEstablished(){
     console.log('CometD Connection Established');
   }
-
   function _connectionBroken(){
     console.log('CometD Connection Broken');
-    // XXX "Closing window in x seconds..."?
+    if(!scope)
+      scope = $body.scope();
+    scope.state = {};
+    scope.$digest();
   }
-
-  // XXX never getting called?
   function _connectionClosed(){
     console.log('CometD Connection Closed');
-    // XXX "Lantern has shut down." Close window
-    //alert('CometD Connection Closed');
   }
 
-  // Function that manages the connection status with the Bayeux server
   var _connected = false;
-  function _metaConnect(message){
-    if (cometd.isDisconnected()){
+  cometd.addListener('/meta/connect', function(message){
+    if(cometd.isDisconnected()){
       _connected = false;
       _connectionClosed();
       return;
     }
-
     var wasConnected = _connected;
-    _connected = message.successful === true;
-    if (!wasConnected && _connected){
+    _connected = message.successful;
+    if(!wasConnected && _connected){ // reconnected
       _connectionEstablished();
     }else if(wasConnected && !_connected){
       _connectionBroken();
     }
-  }
+  });
+  cometd.addListener('/meta/disconnect', function(message){
+    console.log('got disconnect'); // XXX never getting called
+    if(message.successful){
+      _connected = false;
+      _connectionClosed();
+    }
+  });
 
   function syncHandler(msg){
     if(!scope)
@@ -495,29 +506,32 @@ $(document).ready(function(){
     }
   }
 
-  function _metaHandshake(handshake){
+  var _subscription;
+  function _refresh(){
+    _appUnsubscribe();
+    _appSubscribe();
+  }
+  function _appUnsubscribe(){
+    if (_subscription) 
+      cometd.unsubscribe(_subscription);
+    _subscription = null;
+  }
+  function _appSubscribe(){
+    _subscription = cometd.subscribe('/sync', syncHandler);
+  }
+  cometd.addListener('/meta/handshake', function (handshake){
     if (handshake.successful === true){
       cometd.batch(function(){
-        cometd.subscribe('/sync', syncHandler);
+        _refresh();
         if(location.hash)
           showid(location.hash, 'overlay');
       });
     }
-  }
+  });
 
   $(window).unload(function(){
     cometd.disconnect(true);
   });
-
-  var cometURL = location.protocol + "//" + location.host + "/cometd";
-  cometd.configure({
-    url: cometURL,
-    logLevel: 'info'
-  });
-
-  cometd.addListener('/meta/handshake', _metaHandshake);
-  cometd.addListener('/meta/connect', _metaConnect);
-  // XXX subscribe to /meta/disconnect?
 
   cometd.handshake();
 });
