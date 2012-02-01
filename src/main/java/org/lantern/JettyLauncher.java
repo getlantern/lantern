@@ -93,6 +93,8 @@ public class JettyLauncher {
         final ServletHolder cometd = new ServletHolder(cometdServlet);
         cometd.setInitParameter("jsonContext", 
             "org.lantern.SettingsJSONContextServer");
+        cometd.setInitParameter("transports", 
+            "org.cometd.websocket.server.WebSocketTransport");
         cometd.setInitOrder(1);
         contextHandler.addServlet(cometd, "/cometd/*");
         
