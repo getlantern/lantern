@@ -1,17 +1,25 @@
-cometd = $.cometd;
+'use strict';
 
-FETCHING = 'fetching...'; // poor-man's promise
-FETCHFAILED = 'fetch failed';
-FETCHSUCCESS = 'fetch succeeded';
+var cometd = $.cometd;
+var cometurl = location.protocol + "//" + location.host + "/cometd";
+cometd.websocketEnabled = false; // XXX until server is configured properly
+cometd.configure({
+  url: cometurl,
+  logLevel: 'info'
+});
+
+var FETCHING = 'fetching...'; // poor-man's promise
+var FETCHFAILED = 'fetch failed';
+var FETCHSUCCESS = 'fetch succeeded';
 
 // http://html5pattern.com/
-HOSTNAMEPAT = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/;
+var HOSTNAMEPAT = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/;
 
-BYTEDIM = {GB: 1024*1024*1024, MB: 1024*1024, KB: 1024};
+var BYTEDIM = {GB: 1024*1024*1024, MB: 1024*1024, KB: 1024};
 angular.filter('bytes', function(input){
   var nbytes = parseInt(input);
   if(isNaN(nbytes))return input;
-  for(dim in BYTEDIM){
+  for(var dim in BYTEDIM){
     var base = BYTEDIM[dim];
     if(nbytes >= base){
       return Math.round(nbytes/base) + dim;
@@ -20,11 +28,11 @@ angular.filter('bytes', function(input){
   return nbytes + 'B';
 });
 
-FRAGMENTPAT = /^[^#]*(#.*)$/;
+var FRAGMENTPAT = /^[^#]*(#.*)$/;
 function clickevt2id(evt){
-  //console.log('evt.target:',evt.target,'evt.currentTarget:',evt.currentTarget);
   return evt.currentTarget.href.match(FRAGMENTPAT)[1];
 }
+
 function showid(id, ignorecls){
   var $el = $(id);
   if(!$el.length)
@@ -42,6 +50,7 @@ function showid(id, ignorecls){
     $('#panel-list > li > a[href='+id+']').toggleClass('selected');
   }
 }
+
 function showidclickhandler(evt){
   showid(clickevt2id(evt));
   // XXX height hack unneeded when viewport has minheight of 630
@@ -431,39 +440,44 @@ $(document).ready(function(){
     $(this).val('');
   });
 
+
+  // http://cometd.org/documentation/cometd-javascript/subscription
   function _connectionEstablished(){
     console.log('CometD Connection Established');
   }
-
   function _connectionBroken(){
     console.log('CometD Connection Broken');
-    // XXX "Closing window in x seconds..."?
+    if(!scope)
+      scope = $body.scope();
+    scope.state = {};
+    scope.$digest();
   }
-
-  // XXX never getting called?
   function _connectionClosed(){
     console.log('CometD Connection Closed');
-    // XXX "Lantern has shut down." Close window
-    //alert('CometD Connection Closed');
   }
 
-  // Function that manages the connection status with the Bayeux server
   var _connected = false;
-  function _metaConnect(message){
-    if (cometd.isDisconnected()){
+  cometd.addListener('/meta/connect', function(message){
+    if(cometd.isDisconnected()){
       _connected = false;
       _connectionClosed();
       return;
     }
-
     var wasConnected = _connected;
-    _connected = message.successful === true;
-    if (!wasConnected && _connected){
+    _connected = message.successful;
+    if(!wasConnected && _connected){ // reconnected
       _connectionEstablished();
     }else if(wasConnected && !_connected){
       _connectionBroken();
     }
-  }
+  });
+  cometd.addListener('/meta/disconnect', function(message){
+    console.log('got disconnect'); // XXX never getting called
+    if(message.successful){
+      _connected = false;
+      _connectionClosed();
+    }
+  });
 
   function syncHandler(msg){
     if(!scope)
@@ -492,29 +506,32 @@ $(document).ready(function(){
     }
   }
 
-  function _metaHandshake(handshake){
+  var _subscription;
+  function _refresh(){
+    _appUnsubscribe();
+    _appSubscribe();
+  }
+  function _appUnsubscribe(){
+    if (_subscription) 
+      cometd.unsubscribe(_subscription);
+    _subscription = null;
+  }
+  function _appSubscribe(){
+    _subscription = cometd.subscribe('/sync', syncHandler);
+  }
+  cometd.addListener('/meta/handshake', function (handshake){
     if (handshake.successful === true){
       cometd.batch(function(){
-        cometd.subscribe('/sync', syncHandler);
+        _refresh();
         if(location.hash)
           showid(location.hash, 'overlay');
       });
     }
-  }
+  });
 
   $(window).unload(function(){
     cometd.disconnect(true);
   });
-
-  var cometURL = location.protocol + "//" + location.host + "/cometd";
-  cometd.configure({
-    url: cometURL,
-    logLevel: 'info'
-  });
-
-  cometd.addListener('/meta/handshake', _metaHandshake);
-  cometd.addListener('/meta/connect', _metaConnect);
-  // XXX subscribe to /meta/disconnect?
 
   cometd.handshake();
 });
