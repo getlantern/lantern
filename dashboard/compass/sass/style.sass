@@ -196,6 +196,7 @@ body
     display: table
 
 #ld-container
+  background-color: $blueprint-background-color
   &.welcome
     background-color: $background-color-alt5
 
@@ -390,6 +391,7 @@ input[type=number]
 textarea
   border: 1px solid $edge-color
   +box-shadow($edge-color 0 0 5px)
+  +box-sizing(border-box)
   padding: 5px
 
 textarea, input[type=text], input[type=email]
@@ -418,6 +420,9 @@ textarea, input[type=text], input[type=email]
 
 #pm-send
   float: right
+  font-size: $blueprint-font-size
+  margin: 0
+  padding: 3px 6px
 
 #topbar
   position: absolute
@@ -555,7 +560,8 @@ button
   margin: 10px 0
   color: $font-color-input
   &[disabled]
-    color: $font-color-disabled
+    color: $font-color-disabled !important
+    cursor: default !important
   &:hover:not([disabled])
     color: #333
     border: 1px solid #999
@@ -563,6 +569,7 @@ button
     background-color: #ccc
 
 .buttonlink
+  cursor: pointer
   border: 1px solid #bbb
   padding: 0px 8px
   text-decoration: none
@@ -570,7 +577,7 @@ button
   display: inline-block
   +border-radius(3px)
   +background-image(linear-gradient(#fff, #eee))
-  &:active
+  &:active:not([disabled])
     +background-image(linear-gradient(#a9b6c3, #7684a1 50%, #9ea7b8, #a9b6c3))
     border-color: #666
 

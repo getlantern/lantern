@@ -73,17 +73,8 @@ function LDCtrl(){
     self.$digest();
   };
 
-  // XXX dummy data
-  self.newversion = {
-    number: "0.10.1",
-    released: "2012-02-20T11:15:00.0Z",
-    url: {
-      macos:   "http://path/to/installer.dmg",
-      windows: "http://path/to/installer.exe",
-      ubuntu:  "http://path/to/package.deb",
-      fedora:  "http://path/to/package.rpm",
-      tarball: "http://path/to/source.tgz"
-    }
+  self.updateavailable = function(){
+    return !$.isEmptyObject(self.state.update);
   };
 
   self.inputemail = null;
@@ -387,11 +378,18 @@ function LDCtrl(){
       message: self.pm
     };
     console.log('submitting contact form, data=', data);
+    // disable send button, update label
+    self.pm = '';
+    self.$digest();
+    $('#pm-send').html('Sending...');
     $.post('/api/contact', data).done(function(){
       $('#pm-result').removeClass('error').html('Feedback submitted successfully').show().delay(5000).fadeOut();
-      self.pm = '';
     }).fail(function(e){
+      self.pm = data.message;
+      self.$digest();
       $('#pm-result').addClass('error').html('Could not submit feedback').show().delay(5000).fadeOut();
+    }).always(function(){
+      $('#pm-send').html('Send');
     });
   };
 
