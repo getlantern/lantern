@@ -7,15 +7,18 @@ import java.util.Map;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.httpseverywhere.HttpsEverywhere;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 
 import com.google.common.eventbus.Subscribe;
 
 /**
  * Top level class containing all user settings.
  */
-//@JsonPropertyOrder({"user", "system", "whitelist", "roster"})
 public class Settings implements MutableSettings {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     // marker class used to indicate settings that are 
     // saved / loaded between runs of lantern.
     public static class PersistentSettings {}
@@ -24,7 +27,7 @@ public class Settings implements MutableSettings {
     private Whitelist whitelist;
     
     private ConnectivityStatus connectivity = ConnectivityStatus.DISCONNECTED; 
-    private Map<String, String> update = new HashMap<String, String>();
+    private Map<String, Object> update = new HashMap<String, Object>();
     
     private Internet internet = new Internet();
     private Platform platform = new Platform();
@@ -147,6 +150,7 @@ public class Settings implements MutableSettings {
     
     @Subscribe
     public void onUpdate(final UpdateEvent ue) {
+        log.info("Got update event");
         this.update = ue.getData();
     }
     
@@ -165,12 +169,12 @@ public class Settings implements MutableSettings {
         return language;
     }
 
-    public void setUpdate(final Map<String, String> update) {
+    public void setUpdate(final Map<String, Object> update) {
         this.update = update;
     }
     
     @JsonView({UIStateSettings.class, PersistentSettings.class})
-    public Map<String, String> getUpdate() {
+    public Map<String, Object> getUpdate() {
         return update;
     }
 

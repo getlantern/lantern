@@ -392,9 +392,9 @@ public class DefaultXmppHandler implements XmppHandler {
             LanternHub.display().asyncExec (new Runnable () {
                 @Override
                 public void run () {
-                    final Map<String, String> event = 
-                        new HashMap<String, String>();
-                    update.putAll(event);
+                    final Map<String, Object> event = 
+                        new HashMap<String, Object>();
+                    event.putAll(update);
                     LanternHub.eventBus().post(new UpdateEvent(event));
                 }
             });
