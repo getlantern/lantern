@@ -79,6 +79,12 @@ public class Settings implements MutableSettings {
     
     private boolean passwordSaved;
     
+    /**
+     * Whether or not we're running from launchd. Not stored or sent to the 
+     * browser.
+     */
+    private boolean launchd = false;
+    
     {
         LanternHub.register(this);
     }
@@ -201,6 +207,7 @@ public class Settings implements MutableSettings {
         return email;
     }
 
+    @Override
     public void setEmail(final String email) {
         this.email = email;
     }
@@ -361,6 +368,15 @@ public class Settings implements MutableSettings {
     @JsonView(PersistentSettings.class)
     public Whitelist getWhitelist() {
         return whitelist;
+    }
+    
+
+    public void setLaunchd(final boolean launchd) {
+        this.launchd = launchd;
+    }
+
+    public boolean isLaunchd() {
+        return launchd;
     }
 
     @Override
