@@ -7,6 +7,7 @@ $background-color-alt5: #2F2F2F
 $blueprint-font-family: Helvetica, Arial, sans-serif
 $font-fixedwidth: Monaco, monospace
 $blueprint-font-size: 14px
+$font-size-small: .9 * $blueprint-font-size
 $font-size-smaller: .85 * $blueprint-font-size
 
 $font-color: #333
@@ -90,10 +91,21 @@ $welcome-controls-wdth: 300px
 .slide
   display: none
 
+#done .smallnote
+  margin-top: 20px
+
+//#lock
+  background: image-url('lock.png') no-repeat center
+  height: 32px
+  width: 32px
+  display: inline-block
+  border: 1px solid #aaa
+  +border-radius(30px)
+
 .slide.selected
   display: block
 
-#terms textarea
+//#terms textarea
   text-align: left
   width: 400px
   height: 140px
@@ -159,9 +171,12 @@ form.signin .error, #systemproxy .error
 .togglespinner.LOGGING_IN
   margin-top: 41px - 32px // height of arrow - height of spinner
 
+#signin .error
+  text-align: left
+  margin-left: 114px
+
 .badcredentials
-  input[type=text], input[type=password]
-    border: 1px solid $font-color-error !important
+  font-size: $font-size-small
   .error
     visibility: visible !important
 
@@ -304,6 +319,7 @@ a.close
 
 #siteslist
   width: 100%
+  min-width: 264px
   max-height: 491px
   padding-left: 0
   margin: 0 20px 0 0
@@ -607,4 +623,3 @@ p .buttonlink
     margin-top: 18px
   & button
     margin-top: 19px
-

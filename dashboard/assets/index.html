@@ -10,7 +10,6 @@
     <script src=js/lib/json2.js></script>
     <script src=js/lib/cometd.js></script>
     <script src=js/lib/jquery.cometd.js></script>
-<!--<script src=js/lib/angular-0.10.5.js ng:autobind></script>-->
     <script src=js/lib/angular-0.10.5.min.js ng:autobind></script>
     <script src=js/dashboard.js></script>
   </head>
@@ -22,37 +21,11 @@
           <h4>Internet freedom for everyone.</h4>
           <div class=controls>
             <figure>
-     <!-- XXX <a href=#terms><img src=img/arrow-right.png alt=Continue /></a> -->
               <a href=#mode><img src=img/arrow-right.png alt=Continue /></a>
               <figcaption>Continue</figcaption>
             </figure>
           </div>
         </div>
-        <!--
-        <div id=terms class=slide data-cls=slide>
-          <h1>Fine Print</h1>
-          <textarea readonly>
-English
-
-Software License Agreement for Lantern
-
-Please read this software license agreement ("license") carefully before using the software. By using the software, you are agreeing to be bound by the terms of the license. If you do not agree to the terms of this license, do not install and/or use the software, and if presented with the option to "agree" or "disagree" to the terms, click "disagree". 
-
-1. General.
-A. ...
-          </textarea>
-          <div class=controls>
-            <figure>
-              <a href=#welcome><img src=img/arrow-left.png alt=Disagree /></a>
-              <figcaption>Disagree</figcaption>
-            </figure>
-            <figure>
-              <a href=#mode><img src=img/arrow-right.png alt=Agree /></a>
-              <figcaption>Agree</figcaption>
-            </figure>
-          </div>
-        </div>
-        -->
         <div id=mode class=slide data-cls=slide>
           <h1>Use Lantern to</h1>
           <ul class=welcome-optionlist>
@@ -61,7 +34,6 @@ A. ...
           </ul>
           <div class=controls>
             <figure>
-          <!--<a href=#terms><img src=img/arrow-left.png alt=Back /></a>-->
               <a href=#welcome><img src=img/arrow-left.png alt=Back /></a>
               <figcaption>Back</figcaption>
             </figure>
@@ -73,6 +45,7 @@ A. ...
         </div>
         <div id=signin class=slide data-cls=slide>
           <h1>Sign into Google</h1>
+          <p>Lantern uses gchat to connect with people online.</p>
           <form id=firstsignin-form name=fsform class=signin ng:submit=fs_submit()>
             <ul>
               <li><div class=error>Bad username or password.</div></li>
@@ -97,13 +70,13 @@ A. ...
           <h4>Choose people you would trust to proxy any unencrypted traffic.</h4>
           <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
           <ul class=peerlist>
-            <li ng:repeat="peer in peers.$filter(peerfilter)">
-              <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
-            </li>
             <li ng:show="peers == FETCHING">Loading...</li>
             <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
+            <li ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter)">
+              <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
+            </li>
           </ul>
-          <span class=smallnote>Lantern cloud proxies will be used when no trusted peers are available</span>
+          <span class=smallnote>Lantern cloud proxies will be used when no trusted peers are available.</span>
           <div class=controls>
             <figure>
               <a href=#signin><img src=img/arrow-left.png alt=Back /></a>
@@ -133,9 +106,14 @@ A. ...
             </figure>
           </div>
         </div>
-        <div id=setupcomplete class=slide data-cls=slide>
+        <div id=done class=slide data-cls=slide>
           <h1>Finished</h1>
           <h4>Thank you for joining Lantern.</h4>
+          <p class=smallnote>
+            You are one of a handful of trusted testers with early access to Lantern.<br/>
+            With your feedback, Lantern can improve until it’s ready for global access.<br/>
+            In the meantime, thanks for helping to keep the circle small and the turnaround fast.<br/>
+          </p>
           <div class=controls>
             <figure>
               <a href="{{state.getMode && '#systemproxy' || '#signin'}}"><img src=img/arrow-left.png alt=Back /></a>
@@ -169,9 +147,6 @@ A. ...
         </div>
         <div id=sidebar>
           <h1>Dashboard</h1>
-          <!--
-          <input id=search type=search placeholder="Search (TODO)" results=0 incremental autosave/>
-          -->
           <nav>
             <ul id=panel-list>
               <li><a href=#status class=selected>Status</a></li>
@@ -312,10 +287,11 @@ A. ...
           <a class=close>×</a>
           <h1>Proxied sites</h1>
           <ul id=siteslist>
-            <li id=sitetoadd-li>
+            <li ng:show="whitelist == FETCHING">Loading...</li>
+            <li ng:show="whitelist != FETCHING" id=sitetoadd-li>
               <form ng:submit="updatewhitelist(sitetoadd, true)"><input id=sitetoadd ng:model=sitetoadd type=text required placeholder="Add a new site" /></form>
             </li>
-            <li ng:repeat="entry in whitelist.$orderBy(['required', 'site'])">
+            <li ng:show="whitelist != FETCHING" ng:repeat="entry in whitelist.$orderBy(['required', 'site'])">
               <span ng:class="[!entry.required && 'hidden', 'smallnote', 'disabled']">✽</span>
               <form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input class=whitelistentry ng:model=newsite type=text placeholder=example.com value={{entry.site}} required ng:readonly={{entry.required}} ng:pattern=/^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/ /></form>
               <a class=delete ng:show=!entry.required ng:click="updatewhitelist(entry.site, false)">×</a>
@@ -330,13 +306,13 @@ A. ...
           <h4>Contacts you would trust to proxy unencrypted traffic</h4>
           <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
           <ul class=peerlist>
-            <li ng:repeat="peer in peers.$filter(peerfilter)">
-              <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
-            </li>
             <li ng:show="peers == FETCHING">Loading...</li>
             <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
+            <li ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter)">
+              <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
+            </li>
           </ul>
-          <div class=smallnote>Lantern cloud proxies will be used when no trusted peers are available</div>
+          <div class=smallnote>Lantern cloud proxies will be used when no trusted peers are available.</div>
         </div>
 
         <div class=overlay data-cls=overlay id=changelog>

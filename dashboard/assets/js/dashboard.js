@@ -72,6 +72,11 @@ function LDCtrl(){
     self.$digest();
   };
 
+  // XXX
+  self.FETCHING = FETCHING;
+  self.FETCHFAILED = FETCHFAILED;
+  self.FETCHSUCCESS = FETCHSUCCESS;
+
   self.updateavailable = function(){
     return !$.isEmptyObject(self.state.update);
   };
@@ -153,7 +158,7 @@ function LDCtrl(){
     }else{
       console.log('already signed in, just skipping to next screen');
       self.inputpassword = '';
-      showid(self.state.getMode && '#trustedpeers' || '#setupcomplete');
+      showid(self.state.getMode && '#trustedpeers' || '#done');
     }
   };
 
@@ -161,12 +166,15 @@ function LDCtrl(){
     if(self.state.getMode){
       console.log('fetching peers');
       self.peers = FETCHING;
+      self.$digest();
       $.ajax({url: '/api/roster', dataType: 'json'}).done(function(r){
         self.peers = r.entries;
+        self.$digest();
         console.log('set peers');
       }).fail(function(e){
         console.log('failed to fetch peers:',e);
         self.peers = FETCHFAILED;
+        self.$digest();
       });
     }
   };
@@ -175,6 +183,7 @@ function LDCtrl(){
     if(self.state.getMode){
       console.log('fetching whitelist');
       self.whitelist = FETCHING;
+      self.$digest();
       $.ajax({url: '/api/whitelist', dataType: 'json'}).done(function(r){
         self.whitelist = r.entries;
         self.$digest();
@@ -217,8 +226,11 @@ function LDCtrl(){
       self.update(state);
       self.fetchpeers();
       if(!self.state.initialSetupComplete)
-        showid(self.state.getMode && '#trustedpeers' || '#setupcomplete');
+        showid(self.state.getMode && '#trustedpeers' || '#done');
     }).fail(function(){
+      // XXX backend does not pass logged_out state immediately, take matters into our own hands
+      self.state.authenticationStatus = 'LOGGED_OUT';
+      self.$digest();
       if(self.state.initialSetupComplete)
         self.showsignin(true);
       $('form.signin').addClass('badcredentials');
@@ -263,7 +275,7 @@ function LDCtrl(){
       self._autoproxyresp = FETCHSUCCESS;
       self.$digest();
       console.log('autoproxy request succeeded');
-      showid('#setupcomplete');
+      showid('#done');
     }).fail(function(e){
       $('#systemproxy').addClass('autoproxyfailed');
       self._autoproxyresp = FETCHFAILED;
@@ -273,7 +285,7 @@ function LDCtrl(){
   };
 
   self.finishsetup = function(){
-    showid('#setupcomplete');
+    showid('#done');
     $('#welcome-container').fadeOut('slow');
     setTimeout(function(){
     $.post('/settings?initialSetupComplete=true').done(function(){
