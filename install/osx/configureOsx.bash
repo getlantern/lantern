@@ -69,7 +69,7 @@ chmod 644 $LAUNCHD_PLIST || die "Could not change permissions"
 #open $APP_PATH || die "Could not open app bundle at $APP_PATH?"
 
 log "Loading launchd plist file"
-launchctl load -F $LAUNCHD_PLIST || die "Could not load plist via launchctl"
+#launchctl load -F $LAUNCHD_PLIST || die "Could not load plist via launchctl"
 #log "Loading plist for future launch on startup"
 #launchctl load $LAUNCHD_PLIST || die "Could not load plist via launchctl"
 

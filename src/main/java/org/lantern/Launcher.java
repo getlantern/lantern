@@ -75,6 +75,8 @@ public class Launcher {
             "make the API server publicly accessible on non-localhost.");
         options.addOption(null, LanternConstants.OPTION_HELP, false,
                           "display command line help");
+        options.addOption(null, LanternConstants.OPTION_LAUNCHD, false,
+            "running from launchd - not normally called from command line");
         final CommandLineParser parser = new PosixParser();
         final CommandLine cmd;
         try {
@@ -114,7 +116,11 @@ public class Launcher {
             LanternHub.settings().setApiPort(LanternUtils.randomPort());
         }
         LOG.info("Running API on port: {}", LanternHub.settings().getApiPort());
-        
+
+        if (cmd.hasOption(LanternConstants.OPTION_LAUNCHD)) {
+            LOG.info("Running from launchd or launchd set on command line");
+            LanternHub.settings().setLaunchd(true);
+        }
         LOG.info("Waiting for internet connection...");
         LanternUtils.waitForInternet();
         LOG.info("Got internet...");
@@ -155,8 +161,9 @@ public class Launcher {
         
         launchLantern();
         
-        LanternHub.jettyLauncher().openBrowserWhenReady();
-        //new StatsSimulator().start();
+        if (!LanternHub.settings().isLaunchd()) {
+            LanternHub.jettyLauncher().openBrowserWhenReady();
+        }
         
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
