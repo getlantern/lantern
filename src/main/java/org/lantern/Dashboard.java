@@ -116,9 +116,9 @@ public class Dashboard {
                 } else {
                     final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
                     final MessageBox messageBox = new MessageBox (shell, style);
-                    messageBox.setText ("Exit?");
+                    messageBox.setText ("Quit Lantern?");
                     final String msg = 
-                        "Are you sure you want to cancel configuring Lantern?";
+                        "Lantern setup has not been completed. Quit and set up later?";
                     messageBox.setMessage (msg);
                     event.doit = messageBox.open () == SWT.YES;
                     if (event.doit) {
