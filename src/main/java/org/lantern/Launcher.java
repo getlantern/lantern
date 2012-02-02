@@ -161,7 +161,8 @@ public class Launcher {
         
         launchLantern();
         
-        if (!LanternHub.settings().isLaunchd()) {
+        if (!LanternHub.settings().isLaunchd() || 
+            !LanternHub.settings().isInitialSetupComplete()) {
             LanternHub.jettyLauncher().openBrowserWhenReady();
         }
         
