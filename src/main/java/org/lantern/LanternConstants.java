@@ -64,6 +64,7 @@ public class LanternConstants {
 
     public static final String UPDATE_URL_KEY = "uuk";
 
+    
     /**
      * The length of keys in translation property files.
      */
@@ -72,6 +73,7 @@ public class LanternConstants {
     /* the following are command line options */
     public static final String OPTION_DISABLE_UI = "disable-ui";
     public static final String OPTION_HELP = "help";
+    public static final String OPTION_LAUNCHD = "launchd";
     
     public static final String OPTION_PUBLIC_API = "public-api";
     
