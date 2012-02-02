@@ -110,8 +110,22 @@ public class Dashboard {
         shell.addListener (SWT.Close, new Listener () {
             @Override
             public void handleEvent(final Event event) {
-                browser.stop();
-                browser.setUrl("about:blank");
+                if (LanternHub.settings().isInitialSetupComplete()) {
+                    browser.stop();
+                    browser.setUrl("about:blank");
+                } else {
+                    final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
+                    final MessageBox messageBox = new MessageBox (shell, style);
+                    messageBox.setText ("Exit?");
+                    final String msg = 
+                        "Are you sure you want to cancel configuring Lantern?";
+                    messageBox.setMessage (msg);
+                    event.doit = messageBox.open () == SWT.YES;
+                    if (event.doit) {
+                        LanternHub.display().dispose();
+                        System.exit(0);
+                    }
+                }
             }
         });
         shell.setLayout(new FillLayout());
