@@ -7,8 +7,8 @@ import java.util.Map;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.httpseverywhere.HttpsEverywhere;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -48,7 +48,7 @@ public class Settings implements MutableSettings {
     
     private boolean proxyAllSites;
     
-    private Country country = LanternHub.censored().country();
+    private Country country;
     
     private Country countryDetected = LanternHub.censored().country();
     
@@ -235,6 +235,9 @@ public class Settings implements MutableSettings {
 
     @JsonView({UIStateSettings.class, PersistentSettings.class})
     public Country getCountry() {
+        if (this.country == null) {
+            this.country = LanternHub.censored().country();
+        }
         return this.country;
     }
     
