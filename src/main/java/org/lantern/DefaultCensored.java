@@ -58,6 +58,10 @@ public class DefaultCensored implements Censored {
     @Override
     public Country country() {
         final InetAddress address = new PublicIpAddress().getPublicIpAddress();
+        if (address == null) {
+            // Just return an empty country instead of throwing null pointer.
+            return new Country("", "");
+        }
         final com.maxmind.geoip.Country country = 
             LanternHub.getGeoIpLookup().getCountry(address);
         return new Country(country.getCode(), country.getName());
@@ -87,6 +91,9 @@ public class DefaultCensored implements Censored {
 
     @Override
     public boolean isCountryCodeCensored(final String cc) {
+        if (StringUtils.isBlank(cc)) {
+            return false;
+        }
         return CENSORED.contains(cc);
     }
     
@@ -109,6 +116,9 @@ public class DefaultCensored implements Censored {
     }
     private boolean isMatch(final InetAddress address, 
         final Collection<String> countries) { 
+        if (address == null) {
+            return false;
+        }
         return countries.contains(countryCode(address));
     }
     
