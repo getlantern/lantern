@@ -67,7 +67,7 @@
         </div>
         <div id=trustedpeers class=slide data-cls=slide>
           <h1>Trusted Peers</h1>
-          <h4>Choose people you would trust to proxy any unencrypted traffic.</h4>
+          <h4>Choose people you would trust to proxy any <a class=doc href=https://github.com/getlantern/lantern/wiki/HTTP-vs-HTTPS target=_blank>unencrypted traffic</a>.</h4>
           <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
           <ul class=peerlist>
             <li ng:show="peers == FETCHING">Loading...</li>
@@ -76,7 +76,7 @@
               <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
             </li>
           </ul>
-          <span class=smallnote>Lantern cloud proxies will be used when no trusted peers are available.</span>
+          <span class=smallnote><a class=doc href=https://github.com/getlantern/lantern/wiki/Lantern-Cloud-Proxies target=_blank>Lantern cloud proxies</a> will be used when no trusted peers are available.</span>
           <div class=controls>
             <figure>
               <a href=#signin><img src=img/arrow-left.png alt=Back /></a>
@@ -91,9 +91,9 @@
         <div id=systemproxy class=slide data-cls=slide>
           <h1>System Proxy</h1>
           <ul class=welcome-optionlist>
-            <li><div class=error>Proxy configuration failed.</div></li>  
-            <li><label><input type=radio value={{true}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Automatically configure Lantern as my system proxy</label></li>
-            <li><label><input type=radio value={{false}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> I will manually configure my browser to use Lantern</label></li>
+            <li><div class=error>Proxy configuration failed.</div></li>
+            <li><label><input type=radio value={{true}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Set Lantern as my system proxy (recommended)</label><div class=smallnote>Your browser should start using Lantern automatically</div></li>
+            <li><label><input type=radio value={{false}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> I will <a class=doc href=https://github.com/getlantern/lantern/wiki/Manual-Proxy-Configuration target=_blank>manually configure</a> my browser to use Lantern</label></li>
           </ul>
           <div class=controls>
             <figure>
@@ -291,11 +291,10 @@
           <a class=close>×</a>
           <h1>Proxied sites</h1>
           <ul id=siteslist>
-            <li ng:show="whitelist == FETCHING">Loading...</li>
-            <li ng:show="whitelist != FETCHING" id=sitetoadd-li>
-              <form ng:submit="updatewhitelist(sitetoadd, true)"><input id=sitetoadd ng:model=sitetoadd type=text required placeholder="Add a new site" /></form>
+            <li id=sitetoadd-li>
+              <form ng:submit="updatewhitelist(sitetoadd, true)"><input id=sitetoadd ng:model=sitetoadd type=text required placeholder="Add a new site" ng:pattern=/^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/ /></form>
             </li>
-            <li ng:show="whitelist != FETCHING" ng:repeat="entry in whitelist.$orderBy(['required', 'site'])">
+            <li ng:repeat="entry in whitelist.$orderBy(['required', 'site'])">
               <span ng:class="[!entry.required && 'hidden', 'smallnote', 'disabled']">✽</span>
               <form ng:submit="!entry.required && updatewhitelist(entry.site, newsite)"><input class=whitelistentry ng:model=newsite type=text placeholder=example.com value={{entry.site}} required ng:readonly={{entry.required}} ng:pattern=/^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/ /></form>
               <a class=delete ng:show=!entry.required ng:click="updatewhitelist(entry.site, false)">×</a>
@@ -307,7 +306,7 @@
         <div class=overlay data-cls=overlay id=trusted>
           <a class=close>×</a>
           <h1>Trusted peers</h1>
-          <h4>Contacts you would trust to proxy unencrypted traffic</h4>
+          <h4>Contacts you would trust to proxy <a class=doc href=https://github.com/getlantern/lantern/wiki/HTTP-vs-HTTPS target=_blank>unencrypted traffic</a></h4>
           <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
           <ul class=peerlist>
             <li ng:show="peers == FETCHING">Loading...</li>
@@ -316,7 +315,7 @@
               <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
             </li>
           </ul>
-          <div class=smallnote>Lantern cloud proxies will be used when no trusted peers are available.</div>
+          <div class=smallnote><a class=doc href=https://github.com/getlantern/lantern/wiki/Lantern-Cloud-Proxies target=_blank>Lantern cloud proxies</a> will be used when no trusted peers are available.</div>
         </div>
 
         <div class=overlay data-cls=overlay id=changelog>

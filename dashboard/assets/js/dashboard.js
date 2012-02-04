@@ -363,7 +363,6 @@ function LDCtrl(){
           console.log('/api/addtowhitelist?site='+site+' failed');
         });
         self.whitelist = r1.entries;
-        self.$digest();
         console.log('/api/removefromwhitelist?site='+site+' succeeded');
       }).fail(function(){
         console.log('/api/removefromwhitelist?site='+site+' failed');
@@ -456,9 +455,17 @@ $(document).ready(function(){
   });
 
   // XXX
-  $('input.whitelistentry').live('blur', function(){
-    console.log('blur');
-    setTimeout(getscope().fetchwhitelist, 200);
+  $('input.whitelistentry.ng-dirty:not(.ng-invalid)').live('blur', function(){
+    console.log('blur - valid -> submitting');
+    $(this).closest('form').triggerHandler('submit');
+  });
+  $('input.whitelistentry:not([readonly])').live('focus', function(){
+    console.log('focus');
+    $(this).data('pristine', $(this).val());
+  });
+  $('input.whitelistentry.ng-dirty.ng-invalid').live('blur', function(){
+    console.log('blur - invalid -> reverting');
+    $(this).val($(this).data('pristine'));
   });
   $('#sitetoadd').live('blur', function(){
     $(this).val('');
