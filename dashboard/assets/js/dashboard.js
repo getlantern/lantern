@@ -88,7 +88,7 @@ function LDCtrl(){
   self.peerfilter = function(peer){
     var f = self.peerfilterinput;
     if(!f)return true;
-    if(peer.name && peer.name.indexOf(f) !== -1)return true;
+    if(peer.name && peer.name.toLowerCase().indexOf(f.toLowerCase()) !== -1)return true;
     return peer.email.indexOf(f) !== -1;
   };
   self.peers = null;
