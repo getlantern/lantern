@@ -100,6 +100,7 @@ public class SystemTrayImpl implements SystemTray {
                 public void handleEvent (final Event event) {
                     System.out.println("Got exit call");
                     display.dispose();
+                    LanternHub.xmppHandler().disconnect();
                     System.exit(0);
                 }
             });
