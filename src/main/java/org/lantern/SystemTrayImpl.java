@@ -207,6 +207,10 @@ public class SystemTrayImpl implements SystemTray {
     }
 
     private void changeIcon(final String fileName) {
+        if (display.isDisposed()) {
+            log.info("Ingoring call since display is disposed");
+            return;
+        }
         display.asyncExec (new Runnable () {
             @Override
             public void run () {
