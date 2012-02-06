@@ -14,18 +14,8 @@ var FETCHSUCCESS = 'fetch succeeded';
 // http://html5pattern.com/
 var HOSTNAMEPAT = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/;
 
-var BYTEDIM = {GB: 1024*1024*1024, MB: 1024*1024, KB: 1024};
-angular.filter('bytes', function(input){
-  var nbytes = parseInt(input);
-  if(isNaN(nbytes))return input;
-  for(var dim in BYTEDIM){
-    var base = BYTEDIM[dim];
-    if(nbytes >= base){
-      return Math.round(nbytes/base) + dim;
-    }
-  }
-  return nbytes + 'B';
-});
+var BYTEDIM = {GB: 1024*1024*1024, MB: 1024*1024, KB: 1024, B: 1};
+var BYTESTR = {GB: 'gigabyte', MB: 'megabyte', KB: 'kilobyte', B: 'byte'};
 
 var FRAGMENTPAT = /^[^#]*(#.*)$/;
 function clickevt2id(evt){
@@ -79,6 +69,48 @@ function LDCtrl(){
 
   self.updateavailable = function(){
     return !$.isEmptyObject(self.state.update);
+  };
+
+angular.filter('bytes', function(input){
+  var nbytes = parseInt(input);
+  if(isNaN(nbytes))return input;
+  for(var dim in BYTEDIM){
+    var base = BYTEDIM[dim];
+    if(nbytes >= base){
+      return Math.round(nbytes/base) + dim;
+    }
+  }
+  return nbytes + 'B';
+});
+
+  self._totalbytes = function(){
+    return self.state.upRate + self.state.downRate;
+  };
+
+  self._rateunits = function(){
+    // returns a key in BYTEDIM based on up + down rate
+    var nbytes = self._totalbytes();
+    if(isNaN(nbytes)){
+      console.log('nbytes is NaN, bailing');
+      return '';
+    }
+    for(var dim in BYTEDIM){ // expects largest units first
+      var base = BYTEDIM[dim];
+      if(nbytes >= base)
+        return dim;
+    }
+    return 'B';
+  };
+
+  self.bytesrate = function(nbytes, longstr){
+    var units = self._rateunits(),
+        base = BYTEDIM[units],
+        scaled = Math.round(nbytes/base);
+    if(longstr){
+      units = BYTESTR[units] + (scaled !== 1 ? 's' : '');
+      return scaled + ' ' + units + ' per second';
+    }
+    return scaled + units + '/s';
   };
 
   self.inputemail = null;

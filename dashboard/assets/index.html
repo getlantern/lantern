@@ -133,8 +133,8 @@
             <!--
             <span id=topbar-peers class=topbar-stat>{{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span>
             -->
-            <span id=topbar-rate-up class="topbar-stat rate">{{state.upRate | bytes}}</span>
-            <span id=topbar-rate-dn class="topbar-stat rate">{{state.downRate | bytes}}</span>
+            <span id=topbar-rate-up class="topbar-stat rate">{{bytesrate(state.upRate)}}</span>
+            <span id=topbar-rate-dn class="topbar-stat rate">{{bytesrate(state.downRate)}}</span>
           </span>
           <a ng:show=state.email id=userlink class="collapsed">{{state.email}}</a>
         </div>
@@ -173,9 +173,9 @@
               </span>
             </dd>
             -->
-            <dt ng:show=loggedin()>Traffic</dt>
+            <dt ng:show=loggedin()>Rate</dt>
             <dd ng:show=loggedin()>
-              <span class=rate>{{state.upRate+state.downRate|bytes}}</span><!--via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>-->
+              <span class=rate>{{bytesrate(state.upRate+state.downRate, true)}}</span><!--via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>-->
             </dd>
             <dt>Version</dt>
             <dd>
