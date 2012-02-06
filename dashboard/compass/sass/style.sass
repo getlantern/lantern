@@ -17,6 +17,7 @@ $font-color-important: #c00
 $font-color-error: #c00
 $font-color-success: #26df50
 $font-color-warning: #900
+$font-color-tip: #ffa400
 $header-color: #000
 $header-color-alt: #53637d
 $link-color: #3f6ec6
@@ -198,6 +199,9 @@ form.signin .error, #systemproxy .error
 .error
   color: $font-color-error !important
 
+.success
+  color: $font-color-success !important
+
 .important
   color: $font-color-important !important
 
@@ -375,7 +379,7 @@ a.close
   padding: 7px 0 7px 18px !important
 
 a.close
-  color: #ddd
+  color: #bbb
   &:hover
     color: $font-color-input
 
@@ -428,26 +432,25 @@ textarea
 textarea, input[type=text], input[type=email]
   +border-radius(3px)
 
+$contact-wdth: 510px
 #contact-msg
-  width: 500px
+  width: $contact-wdth
+  margin-bottom: 17px
 
 #pm-textarea
   height: 200px
   margin-bottom: 1em
   display: block
-  width: 500px
+  width: $contact-wdth
+  background: image-url('lock.png') no-repeat top right
 
 #pm-controls
-  width: 500px
+  width: $contact-wdth
   input[type=email]
     border: 1px solid transparent
     &:not([disabled]):hover
       color: #000
       border-color: $edge-color
-
-#pm-result
-  display: none
-  color: $font-color-success
 
 #pm-replyto
   width: 220px
@@ -641,3 +644,25 @@ p .buttonlink
     margin-top: 18px
   & button
     margin-top: 19px
+
+.flashmsg
+  display: none
+  color: $font-color-input
+  height: 22px
+  width: 530px
+  background-color: rgba(255, 255, 255, 0.9)
+  position: fixed
+  top: 4px
+  left: 50%
+  margin-left: -250px
+  text-align: center
+  border: 1px solid $edge-color
+  +border-radius(3px)
+  +box-shadow($edge-color 1px 1px 5px)
+  img
+    vertical-align: text-bottom
+  a.close
+    top: 0
+    right: -5px
+  &.tip
+    color: $font-color-tip

@@ -234,13 +234,12 @@
             Sensitive communication can be submitted securely through the
             form below.
           </p>
-          <textarea ng:model=pm id=pm-textarea placeholder="Private message to Lantern developers"></textarea>
+          <textarea ng:model=pm id=pm-textarea placeholder="Private message to Lantern developers" title="This form is sent securely."></textarea>
           <div id=pm-controls>
             <!--
             <label><input type=checkbox ng:model=requestreply /> please reply to</label>
             <input id=pm-replyto type=email ng:model=requestreplyto ng:disabled={{!requestreply}} placeholder=email@example.com value={{state.email}} />
             -->
-            <span ng:show=loggedin() id=pm-result></span>
             <span ng:show=loggedout() class=extra>
               <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()">Sign in</a>
               to send feedback
@@ -321,6 +320,20 @@
         <div class=overlay data-cls=overlay id=changelog>
           <a class=close>×</a>
           <iframe id=changelog-frame src=http://api.rst2a.com/1.0/rst2/html?style=lsr&uri=https://raw.github.com/getlantern/lantern/master/CHANGES.rst></iframe>
+        </div>
+
+        <div class="flashmsg tip" id=tip-trayicon>
+          <a class=close>×</a>
+          <span class=content>
+            Tip: Look for the
+            <img src=img/16on.png alt="Lantern connected icon" />
+            icon in your {{iconloctxt()}} when you need to find Lantern.
+          </span>
+        </div>
+
+        <div class=flashmsg id=flash-main>
+          <a class=close>×</a>
+          <span class=content></span>
         </div>
 
       </div>

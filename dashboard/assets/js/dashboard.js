@@ -142,6 +142,17 @@ function LDCtrl(){
     }
   };
 
+  self.iconloctxt = function(){
+    var platform = self.state.platform || {};
+    switch(platform.osName){
+    case 'Mac OS X':
+      return 'menu bar';
+    case 'Windows':
+      return 'system tray';
+    }
+    return 'notification icon area';
+  };
+
   self.switchlinktext = function(){
     if(self.loggedin())
       return 'Switch to '+(self.state.getMode?'giv':'gett')+'ing access';
@@ -291,6 +302,7 @@ function LDCtrl(){
     $.post('/settings?initialSetupComplete=true').done(function(){
       self.showsignin(false)
       showid('#status');
+      $('#tip-trayicon').fadeIn();
       console.log('finished setup.');
     }).fail(function(e){
       alert('Could not complete setup.'); console.log(e); // XXX
@@ -393,11 +405,13 @@ function LDCtrl(){
     self.$digest();
     $('#pm-send').html('Sending...');
     $.post('/api/contact', data).done(function(){
-      $('#pm-result').removeClass('error').html('Feedback submitted successfully').show().delay(5000).fadeOut();
+      $('#flash-main .content').addClass('success').removeClass('error')
+        .html('Feedback submitted successfully').parent('#flash-main').fadeIn();
     }).fail(function(e){
       self.pm = data.message;
       self.$digest();
-      $('#pm-result').addClass('error').html('Could not submit feedback').show().delay(5000).fadeOut();
+      $('#flash-main .content').addClass('error').removeClass('success')
+        .html('Could not submit feedback').parent('#flash-main').fadeIn();
     }).always(function(){
       $('#pm-send').html('Send');
     });
@@ -447,6 +461,11 @@ $(document).ready(function(){
     $(evt.target).parent('.overlay').removeClass('selected');
     evt.preventDefault();
     //_resize_body(); // XXX height hack
+  });
+
+  $('.flashmsg .close').click(function(evt){
+    $(evt.target).parent('.flashmsg').fadeOut();
+    evt.preventDefault();
   });
 
   $('#userlink, #usermenu a').click(function(evt){
