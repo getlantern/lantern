@@ -71,18 +71,6 @@ function LDCtrl(){
     return !$.isEmptyObject(self.state.update);
   };
 
-angular.filter('bytes', function(input){
-  var nbytes = parseInt(input);
-  if(isNaN(nbytes))return input;
-  for(var dim in BYTEDIM){
-    var base = BYTEDIM[dim];
-    if(nbytes >= base){
-      return Math.round(nbytes/base) + dim;
-    }
-  }
-  return nbytes + 'B';
-});
-
   self._totalbytes = function(){
     return self.state.upRate + self.state.downRate;
   };
