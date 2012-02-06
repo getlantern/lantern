@@ -31,10 +31,23 @@ public class SystemTrayImpl implements SystemTray {
     private Display display;
     private Shell shell;
     private TrayItem trayItem;
+    private MenuItem connectionStatusItem;
     private MenuItem updateItem;
     private Menu menu;
     private Map<String, String> updateData;
 
+    private final static String LABEL_DISCONNECTED = "Lantern: Not connected";
+    private final static String LABEL_CONNECTING = "Lantern: Connecting...";
+    private final static String LABEL_CONNECTED = "Lantern: Connected";
+    private final static String LABEL_DISCONNECTING = "Lantern: Disconnecting...";
+    
+    // could be changed to red/yellow/green
+    private final static String ICON_DISCONNECTED  = "16off.png";
+    private final static String ICON_CONNECTING    = "16off.png"; 
+    private final static String ICON_CONNECTED     = "16on.png";
+    private final static String ICON_DISCONNECTING = "16off.png"; 
+
+    
     /**
      * Creates a new system tray handler class.
      * 
@@ -80,6 +93,10 @@ public class SystemTrayImpl implements SystemTray {
 
             this.menu = new Menu (shell, SWT.POP_UP);
             
+            this.connectionStatusItem = new MenuItem(menu, SWT.PUSH);
+            connectionStatusItem.setText(LABEL_DISCONNECTED); // XXX i18n 
+            connectionStatusItem.setEnabled(false);
+            
             final MenuItem dashboardItem = new MenuItem(menu, SWT.PUSH);
             dashboardItem.setText("Open Dashboard"); // XXX i18n
             dashboardItem.addListener (SWT.Selection, new Listener () {
@@ -115,9 +132,9 @@ public class SystemTrayImpl implements SystemTray {
             
             final String imageName;
             if (SystemUtils.IS_OS_MAC_OSX) {
-                imageName = "16off.png";
+                imageName = ICON_DISCONNECTED;
             } else {
-                imageName = "16on.png";
+                imageName = ICON_CONNECTED;
             }
             final Image image = newImage(imageName, 16, 16);
             setImage(image);
@@ -129,6 +146,16 @@ public class SystemTrayImpl implements SystemTray {
             @Override
             public void run () {
                 trayItem.setImage (image);
+            }
+        });
+    }
+    
+    private void setStatusLabel(final String status) {
+        display.asyncExec (new Runnable () {
+            @Override
+            public void run () {
+                // XXX i18n 
+                connectionStatusItem.setText(status);
             }
         });
     }
@@ -185,22 +212,23 @@ public class SystemTrayImpl implements SystemTray {
         log.info("Got connectivity state changed {}", cs);
         switch (cs) {
         case DISCONNECTED: {
-            // This could be changed to a red icon.
-            changeIcon("16off.png");
+            changeIcon(ICON_DISCONNECTED);
+            changeStatusLabel(LABEL_DISCONNECTED);
             break;
         }
         case CONNECTING: {
-            // This could be changed to yellow.
-            changeIcon("16off.png");
+            changeIcon(ICON_CONNECTING);
+            changeStatusLabel(LABEL_CONNECTING);
             break;
         }
         case CONNECTED: {
-            changeIcon("16on.png");
+            changeIcon(ICON_CONNECTED);
+            changeStatusLabel(LABEL_CONNECTED);
             break;
         }
         case DISCONNECTING:
-            // This could be changed to yellow?
-            changeIcon("16off.png");
+            changeIcon(ICON_DISCONNECTING);
+            changeStatusLabel(LABEL_DISCONNECTING);
             break;
         }
 
@@ -221,6 +249,14 @@ public class SystemTrayImpl implements SystemTray {
                 }
             }
         });
+    }
+    
+    private void changeStatusLabel(final String status) {
+        if (display.isDisposed()) {
+            log.info("Ingoring call since display is disposed");
+            return;
+        }
+        setStatusLabel(status);
     }
 
 }
