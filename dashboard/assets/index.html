@@ -50,7 +50,7 @@
             <ul>
               <li><div class=error>Bad username or password.</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail value="{{state.email || ''}}" required autofocus /></li>
-              <li><input type=password placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} /></li>
+              <li><input type=password placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
             <div class=controls>
@@ -279,7 +279,7 @@
             <ul>
               <li><div class=error>Bad username or password.</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail value="{{state.email || ''}}" required /></li>
-              <li><input type=password placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} /></li>
+              <li><input type=password placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
             <button ng:show=!loggingin() type=submit ng:disabled="{{(loggedin() && sameuser()) || (passrequired() && !inputpassword)}}" >Sign in</button>
