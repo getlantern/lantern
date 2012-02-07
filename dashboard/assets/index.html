@@ -176,6 +176,8 @@
             <dt ng:show=loggedin()>Traffic</dt>
             <dd ng:show=loggedin()>
               <span class=rate>{{state.upRate+state.downRate|bytes}}</span><!--via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>-->
+               ( {{ state.upTotalThisRun + state.downTotalThisRun | bytes }} This Run, 
+                 {{ state.upTotalLifetime + state.downTotalLifetime | bytes }} Lifetime)
             </dd>
             <dt>Version</dt>
             <dd>

@@ -467,10 +467,14 @@ public class LanternHub {
         settings().setPassword("");
         settings().setStoredPassword("");
         settings().setPasswordSaved(false);
+        settings().setDownTotalLifetime(0);
+        settings().setUpTotalLifetime(0);
+
         getTrustedContactsManager().clearTrustedContacts();
         _resetRoster();
         _resetTrustedPeerProxyManager();
         _resetCookieTracker();
+        statsTracker().resetUserStats();
     }
     
 
