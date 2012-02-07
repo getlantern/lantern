@@ -38,6 +38,12 @@ function showid(id, ignorecls){
     $('#panel-list > li > a.selected').toggleClass('selected');
     $('#panel-list > li > a[href='+id+']').toggleClass('selected');
   }
+  // XXX
+  var lb = $el.find('.lionbars');
+  if(lb.length){
+    lb.lionbars({autohide: true});
+    lb.removeClass('.lionbars');
+  }
 }
 
 function showidclickhandler(evt){
@@ -589,7 +595,7 @@ $(document).ready(function(){
   function _appSubscribe(){
     _subscription = cometd.subscribe('/sync', syncHandler);
   }
-  cometd.addListener('/meta/handshake', function (handshake){
+  cometd.addListener('/meta/handshake', function(handshake){
     if (handshake.successful === true){
       cometd.batch(function(){
         _refresh();

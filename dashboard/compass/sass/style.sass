@@ -353,7 +353,8 @@ a.close
   form
     display: inline
   input[type=text]
-    width: 200px
+    width: 215px
+    +box-sizing(border-box)
     border: 1px solid transparent
     &:hover
       border: 1px solid $edge-color
@@ -368,6 +369,8 @@ a.close
       background-color: $background-color-alt4
       a.delete
         color: $font-color-input
+        &:hover
+          color: #000
 
 #required-legend
   padding: 5px 0 0 0
@@ -377,11 +380,12 @@ a.close
 #sitetoadd
   border: 1px solid $edge-color !important
   padding-left: 5px
-  height: 22px
+  height: 26px
 
 #sitetoadd-li
   background-color: $background-color-alt4
   padding: 7px 0 7px 18px !important
+  //border-bottom: 1px dotted #fff
 
 a.close
   color: #bbb

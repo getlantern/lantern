@@ -6,7 +6,9 @@
     <meta name=viewport content="width=device-width, initial-scale=1.0">
     <title>Lantern Dashboard</title>
     <link rel=stylesheet href=css/style.css />
+    <link rel=stylesheet href=css/lib/lionbars.css />
     <script src=js/lib/jquery-1.7.1.min.js></script>
+    <script src=js/lib/jquery.lionbars.0.3.min.js></script>
     <script src=js/lib/json2.js></script>
     <script src=js/lib/cometd.js></script>
     <script src=js/lib/jquery.cometd.js></script>
@@ -69,7 +71,7 @@
           <h1>Trusted Peers</h1>
           <h4>Choose people you would trust to proxy any <a class=doc href=https://github.com/getlantern/lantern/wiki/HTTP-vs-HTTPS target=_blank>unencrypted traffic</a>.</h4>
           <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
-          <ul class=peerlist>
+          <ul class="peerlist lionbars">
             <li ng:show="peers == FETCHING">Loading...</li>
             <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
             <li ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter)">
@@ -289,7 +291,7 @@
         <div class=overlay id=proxiedsites data-cls=overlay>
           <a class=close>×</a>
           <h1>Proxied sites</h1>
-          <ul id=siteslist>
+          <ul id=siteslist class=lionbars>
             <li id=sitetoadd-li>
               <form ng:submit="updatewhitelist(sitetoadd, true)"><input id=sitetoadd ng:model=sitetoadd type=text required placeholder="Add a new site" ng:pattern=/^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/ /></form>
             </li>
@@ -307,7 +309,7 @@
           <h1>Trusted peers</h1>
           <h4>Contacts you would trust to proxy <a class=doc href=https://github.com/getlantern/lantern/wiki/HTTP-vs-HTTPS target=_blank>unencrypted traffic</a></h4>
           <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
-          <ul class=peerlist>
+          <ul class="peerlist lionbars">
             <li ng:show="peers == FETCHING">Loading...</li>
             <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
             <li ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter)">
