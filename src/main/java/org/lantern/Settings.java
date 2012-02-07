@@ -79,6 +79,10 @@ public class Settings implements MutableSettings {
     
     private boolean passwordSaved;
     
+    // sum of past runs
+    private long historicalUpBytes = 0;
+    private long historicalDownBytes = 0;
+    
     /**
      * Whether or not we're running from launchd. Not stored or sent to the 
      * browser.
@@ -343,6 +347,34 @@ public class Settings implements MutableSettings {
     @JsonView(UIStateSettings.class)
     public long getDownRate() {
         return LanternHub.statsTracker().getDownBytesPerSecond();
+    }
+    
+    @JsonView(UIStateSettings.class)
+    public long getUpTotalThisRun() {
+        return LanternHub.statsTracker().getUpBytesThisRun();
+    }
+    
+    @JsonView(UIStateSettings.class)
+    public long getDownTotalThisRun() {
+        return LanternHub.statsTracker().getDownBytesThisRun();
+    }
+    
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public long getUpTotalLifetime() {
+        return getUpTotalThisRun() + historicalUpBytes;
+    }
+
+    public void setUpTotalLifetime(long value) {
+        historicalUpBytes = value;
+    }
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public long getDownTotalLifetime() {
+        return getDownTotalThisRun() + historicalDownBytes;
+    }
+
+    public void setDownTotalLifetime(long value) {
+        historicalDownBytes = value;
     }
     
     @JsonView(UIStateSettings.class)

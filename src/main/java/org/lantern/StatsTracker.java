@@ -396,7 +396,54 @@ public class StatsTracker implements LanternData {
         countries.put(cc, cd);
         return cd;
     }
+    
+    public void resetUserStats() {
+        upBytesPerSecondViaProxies.resetLifetimeTotal();
+        downBytesPerSecondViaProxies.resetLifetimeTotal();
+        upBytesPerSecondForPeers.resetLifetimeTotal();
+        downBytesPerSecondForPeers.resetLifetimeTotal();
+        upBytesPerSecondToPeers.resetLifetimeTotal();
+        downBytesPerSecondFromPeers.resetLifetimeTotal();
+        // others?
+    }
+    
+    public long getUpBytesThisRun() {
+        return getUpBytesThisRunForPeers() + // requests uploaded to internet for peers
+               getUpBytesThisRunViaProxies() + // requests sent to other proxies
+               getUpBytesThisRunToPeers();   // responses to requests we proxied
+    }
+    
+    public long getDownBytesThisRun() {
+        return getDownBytesThisRunForPeers() + // downloaded from internet for peers
+               getDownBytesThisRunViaProxies() + // replys to requests proxied by others
+               getDownBytesThisRunFromPeers(); // requests from peers        
+    }
+    
+    public long getUpBytesThisRunForPeers() {
+        return upBytesPerSecondForPeers.lifetimeTotal();
+    }
+    
+    public long getUpBytesThisRunViaProxies() {
+        return upBytesPerSecondViaProxies.lifetimeTotal();
+    }
 
+    public long getUpBytesThisRunToPeers() {
+        return upBytesPerSecondToPeers.lifetimeTotal();
+    }
+    
+    public long getDownBytesThisRunForPeers() {
+        return downBytesPerSecondForPeers.lifetimeTotal();
+    }
+
+    public long getDownBytesThisRunViaProxies() {
+        return downBytesPerSecondViaProxies.lifetimeTotal();
+    }
+
+    public long getDownBytesThisRunFromPeers() {
+        return downBytesPerSecondFromPeers.lifetimeTotal();
+    }
+    
+    
     public long getUpBytesPerSecond() {
         return getUpBytesPerSecondForPeers() + // requests uploaded to internet for peers
                getUpBytesPerSecondViaProxies() + // requests sent to other proxies

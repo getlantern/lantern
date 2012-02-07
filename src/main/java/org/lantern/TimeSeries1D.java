@@ -16,6 +16,7 @@ public class TimeSeries1D {
     
     private static final long NO_AGE_LIMIT = -1;
     private final ConcurrentNavigableMap<Long, AtomicLong> observations;
+    private final AtomicLong lifetimeTotal;
     private final long bucketSizeMillis;
     private final long ageLimit;
     
@@ -58,6 +59,7 @@ public class TimeSeries1D {
     public TimeSeries1D(long bucketSizeMillis, long ageLimit) {
         this.bucketSizeMillis = bucketSizeMillis;
         this.observations = new ConcurrentSkipListMap<Long,AtomicLong>();
+        this.lifetimeTotal = new AtomicLong(0);
         this.ageLimit = ageLimit;
     }
     
@@ -88,6 +90,7 @@ public class TimeSeries1D {
      * @param value the value at the given timestamp
      */
     public void addData(long timestamp, long value) {
+        lifetimeTotal.addAndGet(value);
         final long bucketKey = bucketForTimestamp(timestamp);
         if (!observations.containsKey(bucketKey)) {
             observations.putIfAbsent(bucketKey, new AtomicLong(0));
@@ -126,6 +129,52 @@ public class TimeSeries1D {
         }
         
         return total / (double) buckets;
+    }
+    
+    /** 
+     * computes the total value in the set of
+     * buckets that cover the time window given.
+     * 
+     * @param windowMin minimum time in the window
+     * @param windowMax maximum time in the window
+     *
+     * @return the total of all buckets covering the
+     * time window given.
+     */
+    public double windowTotal(long minTimestamp, long maxTimestamp) {
+        long minBucket = bucketForTimestamp(minTimestamp);
+        long maxBucket = bucketForTimestamp(maxTimestamp);
+        
+        long total = 0;
+        for (AtomicLong cur :
+             observations.subMap(minBucket, true, maxBucket, true).values()) {
+            total += cur.get(); 
+        }
+        
+        return total;
+    }
+    
+    /** 
+     * returns the total of all observations seen by this
+     * time series (including those outside the current set)
+     */
+    public long lifetimeTotal() {
+        return lifetimeTotal.get();
+    }
+    
+    /**
+     * resets the lifetime total of all observations to 0
+     */
+    public void resetLifetimeTotal() {
+        resetLifetimeTotal(0);
+    }
+    
+    /**
+     * resets the lifetime total of all observations to the
+     * given value.
+     */
+    public void resetLifetimeTotal(long value) {
+        lifetimeTotal.set(value);
     }
     
     // ...
