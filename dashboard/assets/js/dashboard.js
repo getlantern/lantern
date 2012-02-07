@@ -322,7 +322,7 @@ function LDCtrl(){
     $.post('/settings?initialSetupComplete=true').done(function(){
       self.showsignin(false)
       showid('#status');
-      $('#tip-trayicon').fadeIn();
+      $('#tip-trayicon').delay(500).fadeIn('slow');
       console.log('finished setup.');
     }).fail(function(e){
       alert('Could not complete setup.'); console.log(e); // XXX
