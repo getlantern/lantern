@@ -425,11 +425,13 @@ function LDCtrl(){
     self.$digest();
     $('#pm-send').html('Sending...');
     $.post('/api/contact', data).done(function(){
+      $('.flashmsg').hide();
       $('#flash-main .content').addClass('success').removeClass('error')
         .html('Feedback submitted successfully').parent('#flash-main').fadeIn();
     }).fail(function(e){
       self.pm = data.message;
       self.$digest();
+      $('.flashmsg').hide();
       $('#flash-main .content').addClass('error').removeClass('success')
         .html('Could not submit feedback').parent('#flash-main').fadeIn();
     }).always(function(){
