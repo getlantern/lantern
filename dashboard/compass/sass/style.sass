@@ -65,16 +65,24 @@ $welcome-controls-wdth: 300px
     color: $background-color-alt5
     margin-bottom: 10px
   .controls
-    width: $welcome-controls-wdth
-    margin-left: -$welcome-controls-wdth / 2
+    width: 180px
+    margin-left: -90px
     line-height: 17pt
     position: absolute
     left: 50%
     bottom: 35px
     figure
+      width: 50px
       font-size: 9pt
       +inline-block
-      margin: 0 30px
+      &.left
+        position: absolute
+        bottom: 0
+        left: 0
+      &.right
+        position: absolute
+        bottom: 0
+        right: 0
   a.doc
     color: $header-color-alt
     border-bottom: 1px $header-color-alt dotted
@@ -180,9 +188,6 @@ form.signin .error, #systemproxy .error
   visibility: hidden
   font-size: $font-size-small
   margin-top: 3px
-
-.togglespinner.LOGGING_IN
-  margin-top: 41px - 32px // height of arrow - height of spinner
 
 #signin .error
   text-align: left
@@ -520,9 +525,6 @@ $contact-wdth: 510px
   &:before
     content: '⬇'
 
-.rate:after
-  content: '/s'
-
 #userlink
   position: absolute
   top: 3px
@@ -652,7 +654,7 @@ p .buttonlink
   width: 530px
   background-color: rgba(255, 255, 255, 0.9)
   position: fixed
-  top: 4px
+  top: 13px
   left: 50%
   margin-left: -250px
   text-align: center

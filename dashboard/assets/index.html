@@ -33,11 +33,11 @@
             <li><label><input type=radio value={{false}} ng:change=switchmode() ng:model=state.getMode /> Give access to others through my connection</label></li>
           </ul>
           <div class=controls>
-            <figure>
+            <figure class=left>
               <a href=#welcome><img src=img/arrow-left.png alt=Back /></a>
               <figcaption>Back</figcaption>
             </figure>
-            <figure>
+            <figure class=right>
               <a href=#signin><img src=img/arrow-right.png alt=Continue /></a>
               <figcaption>Continue</figcaption>
             </figure>
@@ -54,12 +54,12 @@
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
             <div class=controls>
-              <figure>
+              <figure class=left>
                 <a href=#mode><img src=img/arrow-left.png alt=Back /></a>
                 <figcaption>Back</figcaption>
               </figure>
-              <figure>
-                <input id=fs-submit type=image ng:class="['togglespinner', state.authenticationStatus]" ng:src={{fs_submit_src()}} alt=Continue ng:disabled="{{loggedout() && fsform.$invalid}}" />
+              <figure class=right>
+                <input id=fs-submit type=image ng:src={{fs_submit_src()}} alt=Continue ng:disabled="{{loggedout() && fsform.$invalid}}" />
                 <figcaption>Continue</figcaption>
               </figure>
             </div>
@@ -78,11 +78,11 @@
           </ul>
           <span class=smallnote><a class=doc href=https://github.com/getlantern/lantern/wiki/Lantern-Cloud-Proxies target=_blank>Lantern cloud proxies</a> will be used when no trusted peers are available.</span>
           <div class=controls>
-            <figure>
+            <figure class=left>
               <a href=#signin><img src=img/arrow-left.png alt=Back /></a>
               <figcaption>Back</figcaption>
             </figure>
-            <figure>
+            <figure class=right>
               <a href=#systemproxy><img src=img/arrow-right.png alt=Continue /></a>
               <figcaption>Continue</figcaption>
             </figure>
@@ -96,11 +96,11 @@
             <li><label><input type=radio value={{false}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> I will <a class=doc href=https://github.com/getlantern/lantern/wiki/Manual-Proxy-Configuration target=_blank>manually configure</a> my browser to use Lantern</label></li>
           </ul>
           <div class=controls>
-            <figure>
+            <figure class=left>
               <a href=#trustedpeers><img src=img/arrow-left.png alt=Back /></a>
               <figcaption>Back</figcaption>
             </figure>
-            <figure>
+            <figure class=right>
               <a ng:click=init_applyautoproxy()><img ng:class="['togglespinner', state.authenticationStatus]" ng:src={{autoproxy_continue_src()}} alt=Continue /></a>
               <figcaption>Continue</figcaption>
             </figure>
@@ -115,11 +115,11 @@
             In the meantime, thanks for helping to keep the circle small and the turnaround fast.<br/>
           </p>
           <div class=controls>
-            <figure>
+            <figure class=left>
               <a href="{{state.getMode && '#systemproxy' || '#signin'}}"><img src=img/arrow-left.png alt=Back /></a>
               <figcaption>Back</figcaption>
             </figure>
-            <figure>
+            <figure class=right>
               <a ng:click=finishsetup()><img src=img/arrow-right.png alt=Finish /></a>
               <figcaption>Finish</figcaption>
             </figure>
@@ -133,8 +133,8 @@
             <!--
             <span id=topbar-peers class=topbar-stat>{{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span>
             -->
-            <span id=topbar-rate-up class="topbar-stat rate">{{state.upRate | bytes}}</span>
-            <span id=topbar-rate-dn class="topbar-stat rate">{{state.downRate | bytes}}</span>
+            <span id=topbar-rate-up class="topbar-stat rate">{{bytesrate(state.upRate)}}</span>
+            <span id=topbar-rate-dn class="topbar-stat rate">{{bytesrate(state.downRate)}}</span>
           </span>
           <a ng:show=state.email id=userlink class="collapsed">{{state.email}}</a>
         </div>
@@ -173,15 +173,15 @@
               </span>
             </dd>
             -->
-            <dt ng:show=loggedin()>Traffic</dt>
+            <dt ng:show=loggedin()>Rate</dt>
             <dd ng:show=loggedin()>
-              <span class=rate>{{state.upRate+state.downRate|bytes}}</span><!--via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>-->
-               ( {{ state.upTotalThisRun + state.downTotalThisRun | bytes }} This Run, 
-                 {{ state.upTotalLifetime + state.downTotalLifetime | bytes }} Lifetime)
+              <span class=rate>{{bytesrate(totalbytes(), true)}}</span><!--via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>-->
+              <!-- ( {{ state.upTotalThisRun + state.downTotalThisRun }} This Run, 
+                {{ state.upTotalLifetime + state.downTotalLifetime }} Lifetime) -->
             </dd>
             <dt>Version</dt>
             <dd>
-              {{state.version == 'lantern_version_tok' && '(development)' || 'Lantern ' + state.version}}
+              {{state.version == 'lantern_version_tok' && '(development)' || 'Lantern ' + state.version + ' beta'}}
               <a href=#update ng:show=updateavailable() id=update-avail-link class="actionlink panellink">Update available</a>
             </dd>
           </dl>

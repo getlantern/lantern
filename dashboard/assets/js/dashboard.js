@@ -14,18 +14,8 @@ var FETCHSUCCESS = 'fetch succeeded';
 // http://html5pattern.com/
 var HOSTNAMEPAT = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/;
 
-var BYTEDIM = {GB: 1024*1024*1024, MB: 1024*1024, KB: 1024};
-angular.filter('bytes', function(input){
-  var nbytes = parseInt(input);
-  if(isNaN(nbytes))return input;
-  for(var dim in BYTEDIM){
-    var base = BYTEDIM[dim];
-    if(nbytes >= base){
-      return Math.round(nbytes/base) + dim;
-    }
-  }
-  return nbytes + 'B';
-});
+var BYTEDIM = {GB: 1024*1024*1024, MB: 1024*1024, KB: 1024, B: 1};
+var BYTESTR = {GB: 'gigabyte', MB: 'megabyte', KB: 'kilobyte', B: 'byte'};
 
 var FRAGMENTPAT = /^[^#]*(#.*)$/;
 function clickevt2id(evt){
@@ -79,6 +69,36 @@ function LDCtrl(){
 
   self.updateavailable = function(){
     return !$.isEmptyObject(self.state.update);
+  };
+
+  self.totalbytes = function(){
+    return self.state.upRate + self.state.downRate;
+  };
+
+  self._rateunits = function(){
+    // returns a key in BYTEDIM based on up + down rate
+    var nbytes = self.totalbytes();
+    if(isNaN(nbytes)){
+      console.log('nbytes is NaN, bailing');
+      return '';
+    }
+    for(var dim in BYTEDIM){ // expects largest units first
+      var base = BYTEDIM[dim];
+      if(nbytes >= base)
+        return dim;
+    }
+    return 'B';
+  };
+
+  self.bytesrate = function(nbytes, longstr){
+    var units = self._rateunits(),
+        base = BYTEDIM[units],
+        scaled = Math.round(nbytes/base);
+    if(longstr){
+      units = BYTESTR[units] + (scaled !== 1 ? 's' : '');
+      return scaled + ' ' + units + ' per second';
+    }
+    return scaled + units + '/s';
   };
 
   self.inputemail = null;
@@ -302,7 +322,7 @@ function LDCtrl(){
     $.post('/settings?initialSetupComplete=true').done(function(){
       self.showsignin(false)
       showid('#status');
-      $('#tip-trayicon').fadeIn();
+      $('#tip-trayicon').delay(500).fadeIn('slow');
       console.log('finished setup.');
     }).fail(function(e){
       alert('Could not complete setup.'); console.log(e); // XXX
@@ -405,11 +425,13 @@ function LDCtrl(){
     self.$digest();
     $('#pm-send').html('Sending...');
     $.post('/api/contact', data).done(function(){
+      $('.flashmsg').hide();
       $('#flash-main .content').addClass('success').removeClass('error')
         .html('Feedback submitted successfully').parent('#flash-main').fadeIn();
     }).fail(function(e){
       self.pm = data.message;
       self.$digest();
+      $('.flashmsg').hide();
       $('#flash-main .content').addClass('error').removeClass('success')
         .html('Could not submit feedback').parent('#flash-main').fadeIn();
     }).always(function(){
