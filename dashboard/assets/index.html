@@ -177,8 +177,8 @@
             -->
             <dt ng:show=loggedin()>Transfers</dt>
             <dd ng:show=loggedin()>
-              <div>{{bytesrate(updnrate(), true)}} currently <!--via <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>--></div>
-              <div>{{prettybytes(state.upTotalLifetime + state.downTotalLifetime, true)}} lifetime</div>
+              <div>{{bytesrate(updnrate())}} currently <!--via <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>--></div>
+              <div>{{prettybytes(state.upTotalLifetime + state.downTotalLifetime)}} lifetime</div>
             </dd>
             <dt>Version</dt>
             <dd>
