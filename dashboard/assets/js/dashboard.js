@@ -71,13 +71,13 @@ function LDCtrl(){
     return !$.isEmptyObject(self.state.update);
   };
 
-  self._totalbytes = function(){
+  self.totalbytes = function(){
     return self.state.upRate + self.state.downRate;
   };
 
   self._rateunits = function(){
     // returns a key in BYTEDIM based on up + down rate
-    var nbytes = self._totalbytes();
+    var nbytes = self.totalbytes();
     if(isNaN(nbytes)){
       console.log('nbytes is NaN, bailing');
       return '';

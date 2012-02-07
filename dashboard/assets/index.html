@@ -175,7 +175,7 @@
             -->
             <dt ng:show=loggedin()>Rate</dt>
             <dd ng:show=loggedin()>
-              <span class=rate>{{bytesrate(state.upRate+state.downRate, true)}}</span><!--via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>-->
+              <span class=rate>{{bytesrate(totalbytes(), true)}}</span><!--via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>-->
             </dd>
             <dt>Version</dt>
             <dd>
