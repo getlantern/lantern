@@ -77,13 +77,11 @@ function LDCtrl(){
     return !$.isEmptyObject(self.state.update);
   };
 
-  self.totalbytes = function(){
+  self.updnrate = function(){
     return self.state.upRate + self.state.downRate;
   };
 
-  self._rateunits = function(){
-    // returns a key in BYTEDIM based on up + down rate
-    var nbytes = self.totalbytes();
+  self.byteunits = function(nbytes){
     if(isNaN(nbytes)){
       console.log('nbytes is NaN, bailing');
       return '';
@@ -96,15 +94,20 @@ function LDCtrl(){
     return 'B';
   };
 
-  self.bytesrate = function(nbytes, longstr){
-    var units = self._rateunits(),
+  self.prettybytes = function(nbytes, longstr, nbytesother){
+    var units = self.byteunits(nbytesother || nbytes),
         base = BYTEDIM[units],
         scaled = Math.round(nbytes/base);
     if(longstr){
       units = BYTESTR[units] + (scaled !== 1 ? 's' : '');
-      return scaled + ' ' + units + ' per second';
+      return scaled + ' ' + units;
     }
-    return scaled + units + '/s';
+    return scaled + units;
+  };
+
+  self.bytesrate = function(nbytes, longstr, nbytesother){
+    var pb = self.prettybytes(nbytes, longstr, nbytesother);
+    return longstr ? pb + ' per second' : pb + '/s';
   };
 
   self.inputemail = null;

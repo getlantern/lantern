@@ -135,8 +135,8 @@
             <!--
             <span id=topbar-peers class=topbar-stat>{{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span>
             -->
-            <span id=topbar-rate-up class="topbar-stat rate">{{bytesrate(state.upRate)}}</span>
-            <span id=topbar-rate-dn class="topbar-stat rate">{{bytesrate(state.downRate)}}</span>
+            <span id=topbar-rate-up class="topbar-stat rate">{{bytesrate(state.upRate, false, updnrate())}}</span>
+            <span id=topbar-rate-dn class="topbar-stat rate">{{bytesrate(state.downRate, false, updnrate())}}</span>
           </span>
           <a ng:show=state.email id=userlink class="collapsed">{{state.email}}</a>
         </div>
@@ -175,11 +175,10 @@
               </span>
             </dd>
             -->
-            <dt ng:show=loggedin()>Rate</dt>
+            <dt ng:show=loggedin()>Transfers</dt>
             <dd ng:show=loggedin()>
-              <span class=rate>{{bytesrate(totalbytes(), true)}}</span><!--via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>-->
-              <!-- ( {{ state.upTotalThisRun + state.downTotalThisRun }} This Run, 
-                {{ state.upTotalLifetime + state.downTotalLifetime }} Lifetime) -->
+              <div>{{bytesrate(updnrate(), true)}} currently <!--via <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>--></div>
+              <div>{{prettybytes(state.upTotalLifetime + state.downTotalLifetime, true)}} lifetime</div>
             </dd>
             <dt>Version</dt>
             <dd>
