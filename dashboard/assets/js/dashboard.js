@@ -41,7 +41,7 @@ function showid(id, ignorecls){
   // XXX
   var lb = $el.find('.lionbars');
   if(lb.length){
-    lb.lionbars({autohide: true});
+    lb.lionbars();
     lb.removeClass('.lionbars');
   }
 }
