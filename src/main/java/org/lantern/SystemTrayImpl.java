@@ -118,6 +118,7 @@ public class SystemTrayImpl implements SystemTray {
                     System.out.println("Got exit call");
                     display.dispose();
                     LanternHub.xmppHandler().disconnect();
+                    LanternHub.jettyLauncher().stop();
                     System.exit(0);
                 }
             });

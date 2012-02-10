@@ -213,6 +213,15 @@ public class JettyLauncher {
         serve.start();
     }
     
+
+    public void stop() {
+        try {
+            this.server.stop();
+        } catch (final Exception e) {
+            log.info("Exception stopping server", e);
+        }
+    }
+    
     private ServletContextHandler newContext(final String path,
         final String name) {
         final ServletContextHandler context = 
