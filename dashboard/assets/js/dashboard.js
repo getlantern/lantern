@@ -156,20 +156,21 @@ function LDCtrl(){
   self.requestreply = false;
   self.requestreplyto = null;
 
-  self.loggedin = function(){return self.state.authenticationStatus === 'LOGGED_IN';};
-  self.loggedout = function(){return self.state.authenticationStatus === 'LOGGED_OUT';};
-  self.loggingin = function(){return self.state.authenticationStatus === 'LOGGING_IN';};
+  self.loggedin = function(){return self.state.connectivity === 'CONNECTED';};
+  self.loggedout = function(){return self.state.connectivity === 'DISCONNECTED';};
+  self.loggingin = function(){return self.state.connectivity === 'CONNECTING';};
 
   self.conncaption = function(){
-    switch(self.state.authenticationStatus){
-    case 'LOGGED_OUT':
-      return 'Not connected';
-    case 'LOGGING_IN':
-      return 'Connecting';
-    case 'LOGGING_OUT':
-      return 'Disconnecting';
-    case 'LOGGED_IN':
+    var c = self.state.connectivity;
+    switch(c){
+    case 'CONNECTED':
       return (self.state.getMode?'Gett':'Giv')+'ing access';
+    case 'DISCONNECTED':
+      return 'Not connected';
+    case 'CONNECTING':
+      return 'Connecting';
+    case 'DISCONNECTING':
+      return 'Disconnecting';
     }
   };
 
@@ -257,7 +258,7 @@ function LDCtrl(){
       data.password = self.inputpassword;
     }
     // XXX force this for smoother looking login
-    self.state.authenticationStatus = 'LOGGING_IN';
+    self.state.connectivity = 'CONNECTING';
     self.$digest();
     console.log('Signing in with:', data);
     $.post('/api/signin', data).done(function(state){
@@ -271,7 +272,7 @@ function LDCtrl(){
         showid(self.state.getMode && '#trustedpeers' || '#done');
     }).fail(function(){
       // XXX backend does not pass logged_out state immediately, take matters into our own hands
-      self.state.authenticationStatus = 'LOGGED_OUT';
+      self.state.connectivity = 'DISCONNECTED';
       self.$digest();
       if(self.state.initialSetupComplete)
         self.showsignin(true);

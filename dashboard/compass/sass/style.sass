@@ -517,11 +517,11 @@ $contact-wdth: 510px
 
 .connlight
   width: 12px
-  .LOGGED_IN.get &, .LOGGED_IN.give &
+  .CONNECTED.get &, .CONNECTED.give &
     background-image: image-url('connlight-green.png')
-  .LOGGING_IN &, .LOGGING_OUT &, .PAUSED &
+  .CONNECTING &, .DISCONNECTING & //, .PAUSED &
     background-image: image-url('connlight-yellow.png')
-  .LOGGED_OUT &
+  .DISCONNECTED &
     background-image: image-url('connlight-red.png')
 
 #topbar-conn
@@ -572,7 +572,7 @@ $contact-wdth: 510px
   +text-shadow(#fff 1px 1px 0)
   +box-shadow($edge-color 0 0 3px)
 
-#usermenu.LOGGED_IN
+#usermenu.CONNECTED
   height: 68px
 
 #userlink:after

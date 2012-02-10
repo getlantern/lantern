@@ -104,7 +104,7 @@
               <figcaption>Back</figcaption>
             </figure>
             <figure class=right>
-              <a ng:click=init_applyautoproxy()><img ng:class="['togglespinner', state.authenticationStatus]" ng:src={{autoproxy_continue_src()}} alt=Continue /></a>
+              <a ng:click=init_applyautoproxy()><img ng:class="['togglespinner', state.connectivity]" ng:src={{autoproxy_continue_src()}} alt=Continue /></a>
               <figcaption>Continue</figcaption>
             </figure>
           </div>
@@ -131,7 +131,7 @@
       </div>
       <div id=dashboard ng:show=state.initialSetupComplete>
         <div id=topbar>
-          <span id=topbar-conn ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}</span></span>
+          <span id=topbar-conn ng:class="['iconlabel', state.connectivity, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}</span></span>
           <span ng:show=loggedin()>
             <!--
             <span id=topbar-peers class=topbar-stat>{{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span>
@@ -141,7 +141,7 @@
           </span>
           <a ng:show=state.email id=userlink class="collapsed">{{state.email}}</a>
         </div>
-        <div id=usermenu class={{state.authenticationStatus}}>
+        <div id=usermenu class={{state.connectivity}}>
           <ul>
             <li ng:show=loggedin()><a ng:click=switchmode(true)>{{switchlinktext()}}</a></li>
             <li><a ng:click="showsignin(true)">{{loggedin() && 'Switch user' || 'Sign in'}}</a></li>
@@ -164,7 +164,7 @@
           <dl>
             <dt>Connection</dt>
             <dd>
-              <span ng:class="['iconlabel', state.authenticationStatus, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}
+              <span ng:class="['iconlabel', state.connectivity, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}
               <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()" ng:show=loggedout()>Sign in</a></span>
               </span>
             </dd>
