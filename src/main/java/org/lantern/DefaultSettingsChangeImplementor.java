@@ -53,30 +53,31 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
 
     @Override
     public void setSystemProxy(final boolean isSystemProxy) {
+        if (isSystemProxy == LanternHub.settings().isSystemProxy()) {
+            log.info("System proxy setting is unchanged.");
+            return;
+        }
+        
+        log.info("Setting system proxy");
+        
+        // go ahead and change the setting so that it will affect
+        // shouldProxy. it will be set again by the api, but that
+        // doesn't matter.
+        LanternHub.settings().setSystemProxy(isSystemProxy);
+        if (!LanternHub.settings().isInitialSetupComplete()) {
+            return;
+        }
+        
         final Runnable proxyRunner = new Runnable() {
-
             @Override
             public void run() {
-                if (isSystemProxy == LanternHub.settings().isSystemProxy()) {
-                    log.info("System proxy setting is unchanged.");
-                    return;
-                }
-                
-                log.info("Setting system proxy");
-                
-                // go ahead and change the setting so that it will affect
-                // shouldProxy. it will be set again by the api, but that
-                // doesn't matter.
-                LanternHub.settings().setSystemProxy(isSystemProxy);
                 try {
-                    if (LanternHub.settings().isInitialSetupComplete()) {
-                        if (LanternUtils.shouldProxy() ) {
-                            Proxifier.startProxying();
-                        } else {
-                            Proxifier.stopProxying();
-                        }
+                    if (LanternUtils.shouldProxy() ) {
+                        Proxifier.startProxying();
+                    } else {
+                        Proxifier.stopProxying();
                     }
-                } catch (Proxifier.ProxyConfigurationError e) {
+                } catch (final Proxifier.ProxyConfigurationError e) {
                     log.error("Proxy reconfiguration failed: {}", e);
                 }
             }
