@@ -59,10 +59,12 @@ function showidclickhandler(evt){
 function LDCtrl(){
   var self = this;
   self.state = {};
+  self.$watch('state');
   self.stateloaded = function(){
     return !$.isEmptyObject(self.state);
   };
-  self.$watch('state');
+  self.block = false;
+  self.$watch('block');
   self.update = function(state){
     self.state = state;
     self.$digest();
@@ -349,12 +351,17 @@ function LDCtrl(){
   };
 
   self.toggle = function(setting, manual){
-    if(manual)
-      self.state[setting] = !self.state[setting];
-    $.post('/settings?'+setting+'='+self.state[setting]).done(function(){
-      console.log('successfully toggled '+setting+' to '+self.state[setting]);
+    var newvalue = manual ? !self.state[setting] : self.state[setting];
+    console.log('attempting to toggle '+setting+' to '+newvalue);
+    self.block = true;
+    self.$digest();
+    $.post('/settings?' + setting + '=' + newvalue).done(function(){
+      console.log('successfully toggled '+setting+' to '+newvalue);
     }).fail(function(){
       console.log('failed to toggle '+setting);
+    }).always(function(){
+      self.block = false;
+      self.$digest();
     });
   };
 

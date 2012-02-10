@@ -230,6 +230,22 @@ body
     height: 100%
     display: table
 
+#block-overlay
+  background-color: transparent
+  z-index: -100
+
+.block-enabled
+  position: fixed
+  top: 0
+  left: 0
+  right: 0
+  bottom: 0
+  background-color: rgba(255, 255, 255, 0.25) !important
+  z-index: 100 !important
+  +transition-property(background-color)
+  +transition-duration(.1s)
+  +transition-timing-function(ease-in)
+
 #ld-container
   background-color: $blueprint-background-color
   &.welcome
