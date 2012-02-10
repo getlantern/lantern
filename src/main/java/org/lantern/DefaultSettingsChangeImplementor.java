@@ -2,6 +2,9 @@ package org.lantern;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
@@ -16,6 +19,16 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final File launchdPlist;
+    
+    private final Executor proxyQueue = 
+        Executors.newSingleThreadExecutor(new ThreadFactory() {
+            @Override
+            public Thread newThread(final Runnable r) {
+                final Thread t = new Thread(r, "System-Proxy-Thread");
+                t.setDaemon(true);
+                return t;
+            }
+        });
 
     public DefaultSettingsChangeImplementor() {
         this(LanternConstants.LAUNCHD_PLIST);
@@ -40,28 +53,35 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
 
     @Override
     public void setSystemProxy(final boolean isSystemProxy) {
-        if (isSystemProxy == LanternHub.settings().isSystemProxy()) {
-            log.info("System proxy setting is unchanged.");
-            return;
-        }
-        
-        log.info("Setting system proxy");
-        
-        // go ahead and change the setting so that it will affect
-        // shouldProxy. it will be set again by the api, but that
-        // doesn't matter.
-        LanternHub.settings().setSystemProxy(isSystemProxy);
-        try {
-            if (LanternHub.settings().isInitialSetupComplete()) {
-                if (LanternUtils.shouldProxy() ) {
-                    Proxifier.startProxying();
-                } else {
-                    Proxifier.stopProxying();
+        final Runnable proxyRunner = new Runnable() {
+
+            @Override
+            public void run() {
+                if (isSystemProxy == LanternHub.settings().isSystemProxy()) {
+                    log.info("System proxy setting is unchanged.");
+                    return;
+                }
+                
+                log.info("Setting system proxy");
+                
+                // go ahead and change the setting so that it will affect
+                // shouldProxy. it will be set again by the api, but that
+                // doesn't matter.
+                LanternHub.settings().setSystemProxy(isSystemProxy);
+                try {
+                    if (LanternHub.settings().isInitialSetupComplete()) {
+                        if (LanternUtils.shouldProxy() ) {
+                            Proxifier.startProxying();
+                        } else {
+                            Proxifier.stopProxying();
+                        }
+                    }
+                } catch (Proxifier.ProxyConfigurationError e) {
+                    log.error("Proxy reconfiguration failed: {}", e);
                 }
             }
-        } catch (Proxifier.ProxyConfigurationError e) {
-            log.error("Proxy reconfiguration failed: {}", e);
-        }
+        };
+        proxyQueue.execute(proxyRunner);
     }
     
     @Override
