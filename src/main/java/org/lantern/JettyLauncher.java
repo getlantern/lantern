@@ -93,8 +93,8 @@ public class JettyLauncher {
         final ServletHolder cometd = new ServletHolder(cometdServlet);
         cometd.setInitParameter("jsonContext", 
             "org.lantern.SettingsJSONContextServer");
-        cometd.setInitParameter("transports", 
-            "org.cometd.websocket.server.WebSocketTransport");
+        //cometd.setInitParameter("transports", 
+        //    "org.cometd.websocket.server.WebSocketTransport");
         cometd.setInitOrder(1);
         contextHandler.addServlet(cometd, "/cometd/*");
         
@@ -215,11 +215,13 @@ public class JettyLauncher {
     
 
     public void stop() {
+        log.info("Stopping Jetty server...");
         try {
             this.server.stop();
         } catch (final Exception e) {
             log.info("Exception stopping server", e);
         }
+        log.info("Done stopping Jetty server...");
     }
     
     private ServletContextHandler newContext(final String path,
