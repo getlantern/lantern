@@ -30,4 +30,9 @@ public class SettingsState {
     public String getMessage() {
         return message;
     }
+
+    @Override
+    public String toString() {
+        return "SettingsState [state=" + state + ", message=" + message + "]";
+    }
 }
