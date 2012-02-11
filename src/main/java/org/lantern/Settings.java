@@ -167,6 +167,7 @@ public class Settings implements MutableSettings {
     @Subscribe
     public void onConnectivityStateChanged(
         final ConnectivityStatusChangeEvent csce) {
+        log.info("Received connectivity changed event");
         this.connectivity = csce.getConnectivityStatus();
     }
 
