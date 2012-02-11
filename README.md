@@ -25,4 +25,12 @@ can use the UI, depending on your system:
     sudo apt-get install libxtst6
     sudo yum install xorg-x11-deprecated-libs
 
-For more information about Lantern, please visit [http://www.getlantern.org].
+
+Further Reading
+---------------
+
+* http://www.getlantern.org
+* https://github.com/getlantern/lantern/wiki
+* https://github.com/getlantern/lantern/issues
+* https://groups.google.com/forum/#!forum/lantern-devel
+* https://groups.google.com/forum/#!forum/lantern-users-en
