@@ -20,6 +20,7 @@ import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.spi.LoggingEvent;
+import org.eclipse.swt.SWTError;
 import org.eclipse.swt.widgets.Display;
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -362,7 +363,7 @@ public class Launcher {
     
     private static void handleError(final Throwable t, final boolean exit) {
         LOG.error("Uncaught exception: "+t.getMessage(), t);
-        if (t.getMessage().contains("SWTError")) {
+        if (t instanceof SWTError || t.getMessage().contains("SWTError")) {
             System.out.println(
                 "To run without a UI, run lantern with the --" + 
                 LanternConstants.OPTION_DISABLE_UI +
