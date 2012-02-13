@@ -19,7 +19,8 @@ test -d target || mvn install:install-file -DgroupId=cx.ath.matthew -DartifactId
 test -d target || mvn install:install-file -DgroupId=cx.ath.matthew -DartifactId=unix-java-x86_64 -Dversion=0.5 -Dpackaging=jar -Dfile=lib/unix-0.5-x86_64.jar -DgeneratePom=true
 test -d target || mvn install:install-file -DgroupId=cx.ath.matthew -DartifactId=debug -Dversion=1.1 -Dpackaging=jar -Dfile=lib/debug-disable-1.1.jar -DgeneratePom=true
 test -d target || mvn install:install-file -DgroupId=org.freedesktop.dbus -DartifactId=dbus-java -Dversion=2.7 -Dpackaging=jar -Dfile=lib/libdbus-java-2.7.jar -DgeneratePom=true
-
+test -d target || mvn install:install-file -DgroupId=com.barchart.udt -DartifactId=barchart-udt4-bundle -Dversion=1.0.3-SNAPSHOT -Dpackaging=jar -Dfile=lib/barchart-udt4-bundle-1.0.3-SNAPSHOT.jar -DgeneratePom=true
+test -d target || mvn install:install-file -DgroupId=com.barchart.udt -DartifactId=barchart-udt4 -Dversion=1.0.3-SNAPSHOT -Dpackaging=jar -Dfile=lib/barchart-udt4-1.0.3-SNAPSHOT.jar -DgeneratePom=true
 mvn package -Dmaven.test.skip=true || die "Could not package"
 
 ./quickRun.bash $*
