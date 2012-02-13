@@ -305,7 +305,7 @@
     <dependency>
       <groupId>com.mcdermottroe.apple</groupId>
       <artifactId>osx-keychain</artifactId>
-      <version>0.1.3</version>
+      <version>0.1.4</version>
     </dependency>
 
     <dependency>
