@@ -1,8 +1,8 @@
 Lantern Changelog
 =================
 
-Version 0.10
-------------
+Version 0.97.1
+--------------
 
 Release date to be decided, codename Arendt
 
