@@ -155,6 +155,18 @@ public class Dashboard {
     
     
     static final int DEFAULT_QUESTION_FLAGS = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
+    
+    /**
+     * Shows a message to the user using a dialog box;
+     * 
+     * @param title The title of the dialog box.
+     * @param msg The message.
+     */
+    public void showMessage(final String title, final String msg) {
+        final int flags = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.OK;
+        askQuestion(title, msg, flags);
+    }
+    
     /**
      * Shows a dialog to the user asking a yes or no question.
      * 

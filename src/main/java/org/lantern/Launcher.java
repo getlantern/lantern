@@ -42,6 +42,7 @@ import org.slf4j.LoggerFactory;
 public class Launcher {
 
     private static Logger LOG;
+    private static boolean lanternStarted = false;
     
     
     /**
@@ -55,15 +56,25 @@ public class Launcher {
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
-                LOG.error("Uncaught exception", e);
+                LOG.error("Uncaught exception: "+e.getMessage(), e);
                 if (e.getMessage().contains("SWTError")) {
                     System.out.println(
                         "To run without a UI, run lantern with the --" + 
                         LanternConstants.OPTION_DISABLE_UI +
                         " command line argument");
+                } 
+                if (!lanternStarted) {
+                    LOG.info("Showing error to user...");
+                    LanternHub.dashboard().showMessage("Startup Error",
+                       "We're sorry, but there was an error starting Lantern described as '"+e.getMessage()+"'.");
                 }
             }
         });
+
+        // We initialize this super early in case there are any errors 
+        // during startup we have to display to the user.
+        Display.setAppName("Lantern");
+        final Display display = LanternHub.display();
         
         final Options options = new Options();
         options.addOption(null, LanternConstants.OPTION_DISABLE_UI, false,
@@ -131,8 +142,6 @@ public class Launcher {
             LanternHub.jettyLauncher();
             return;
         }
-        Display.setAppName("Lantern");
-        final Display display = LanternHub.display();
 
         // initialize properties, local ciphers etc on this thread 
         // before proceeding with more complicated stuffs.
@@ -258,7 +267,7 @@ public class Launcher {
             LOG.info("Not auto-logging in with settings:\n{}",
                 LanternHub.settings());
         }
-
+        lanternStarted = true;
     }
 
     
