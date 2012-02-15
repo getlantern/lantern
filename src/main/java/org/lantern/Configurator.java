@@ -21,14 +21,6 @@ public class Configurator {
     
     private volatile static boolean configured = false;
     
-    static {
-        try {
-            copyFireFoxExtension();
-        } catch (final IOException e) {
-            LOG.error("Could not copy extension", e);
-        }
-    }
-    
     public static void configure() {
         LOG.info("Configuring...");
         if (configured) {
@@ -47,8 +39,8 @@ public class Configurator {
      * extension.
      * @throws IOException If there's an error copying the extension.
      */
-    public static File copyFireFoxExtension() throws IOException {
-        LOG.info("Copying file extension");
+    public static void copyFireFoxExtension() throws IOException {
+        LOG.info("Copying FireFox extension");
         final File dir = getExtensionDir();
         if (!dir.isDirectory()) {
             LOG.info("Making FireFox extension directory...");
@@ -56,20 +48,26 @@ public class Configurator {
             // the extension here anyway in case the user ever installs 
             // FireFox in the future.
             if (!dir.mkdirs()) {
-                LOG.error("Could not create directory!"+dir);
+                LOG.error("Could not create ext dir: "+dir);
+                throw new IOException("Could not create ext dir: "+dir);
             }
         }
-        final File ffDir = new File("firefox/lantern@getlantern.org");
+        final String extName = "lantern@getlantern.org";
+        final File dest = new File(dir, extName);
+        final File ffDir = new File("firefox/"+extName);
+        if (dest.exists() && !FileUtils.isFileNewer(ffDir, dest)) {
+            LOG.info("Extension appears to already exist and ours is not newer");
+            return;
+        }
         if (!ffDir.isDirectory()) {
             LOG.error("No extension directory found at {}", ffDir);
             throw new IOException("Could not find extension?");
         }
         FileUtils.copyDirectoryToDirectory(ffDir, dir);
         LOG.info("Copied FireFox extension from {} to {}", ffDir, dir);
-        return new File(dir, ffDir.getName());
     }
 
-    private static File getExtensionDir() {
+    public static File getExtensionDir() {
         final File userHome = SystemUtils.getUserHome();
         if (SystemUtils.IS_OS_WINDOWS) {
             final File ffDir = new File(System.getenv("APPDATA"), "Mozilla");
