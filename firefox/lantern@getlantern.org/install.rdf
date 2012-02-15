@@ -9,12 +9,12 @@
     <em:version>1.0</em:version>
     <em:type>2</em:type>
 
-	<!-- Front End Metadata -->
+    <!-- Front End Metadata -->
 
-    <em:name>Status Bar Sample 1</em:name>
-    <em:description>Sample static status bar panel</em:description>
-    <em:creator>My Name</em:creator>
-    <em:homepageURL>http://developer.mozilla.org/en/docs/Creating_a_status_bar_extension</em:homepageURL>
+    <em:name>Lantern Proxy Configurator</em:name>
+    <em:description>Configures FireFox to use Lantern as your proxy while Lantern is running and proxying</em:description>
+    <em:creator>Lantern Team</em:creator>
+    <em:homepageURL>http://www.getlantern.org</em:homepageURL>
 
     <!-- Describe the Firefox versions we support -->
 
