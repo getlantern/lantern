@@ -3,11 +3,12 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
-import java.net.URI;
-import java.net.URISyntaxException;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -19,8 +20,6 @@ import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.spi.LoggingEvent;
-import org.lantern.exceptional4j.ExceptionalAppender;
-import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.eclipse.swt.widgets.Display;
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -28,6 +27,8 @@ import org.json.simple.JSONObject;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.SetCookieObserver;
+import org.lantern.exceptional4j.ExceptionalAppender;
+import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
@@ -269,7 +270,6 @@ public class Launcher {
         }
         lanternStarted = true;
     }
-
     
     private static void printHelp(Options options, String errorMessage) {
         if (errorMessage != null) {
