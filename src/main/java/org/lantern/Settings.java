@@ -1,6 +1,8 @@
 package org.lantern;
 
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 
@@ -88,6 +90,8 @@ public class Settings implements MutableSettings {
      * browser.
      */
     private boolean launchd = false;
+    
+    private Collection<String> proxies = new LinkedHashSet<String>();
     
     {
         LanternHub.register(this);
@@ -413,6 +417,19 @@ public class Settings implements MutableSettings {
 
     public boolean isLaunchd() {
         return launchd;
+    }
+    
+
+    public void addProxy(final String proxy) {
+        this.proxies.add(proxy);
+    }
+    
+    public void setProxies(Collection<String> proxies) {
+        this.proxies = proxies;
+    }
+
+    public Collection<String> getProxies() {
+        return proxies;
     }
 
     @Override

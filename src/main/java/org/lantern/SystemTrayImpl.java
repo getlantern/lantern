@@ -73,8 +73,9 @@ public class SystemTrayImpl implements SystemTray {
     private void createTrayInternal() {
         final Tray tray = display.getSystemTray ();
         if (tray == null) {
-            System.out.println ("The system tray is not available");
+            log.warn("The system tray is not available");
         } else {
+            log.info("Creating system tray...");
             this.trayItem = new TrayItem (tray, SWT.NONE);
             this.trayItem.setToolTipText(
                 I18n.tr("Lantern ")+LanternConstants.VERSION);
