@@ -72,6 +72,7 @@ public class Launcher {
             }
         });
 
+        LOG.info("Starting Lantern...");
         // We initialize this super early in case there are any errors 
         // during startup we have to display to the user.
         Display.setAppName("Lantern");
@@ -143,31 +144,6 @@ public class Launcher {
             LanternHub.jettyLauncher();
             return;
         }
-
-        // initialize properties, local ciphers etc on this thread 
-        // before proceeding with more complicated stuffs.
-        if (!LanternUtils.initProps()) {
-            LOG.error("Unable to initialize local properties, exiting.");
-            return;
-        }
-        
-        /*
-        if (!LanternUtils.isConfigured() || LanternUtils.isNewInstall()) {
-            // Make sure the installer screens themselves don't run through a
-            // defunct Lantern proxy that likely has just been uninstalled.
-            LOG.info("Running install screen...newInstall: {}", 
-                 LanternUtils.isNewInstall());
-            Configurator.unproxy();
-            final LanternBrowser browser = new LanternBrowser(false);
-            browser.install();
-            if (!display.isDisposed ()) {
-                LOG.info("Browser completed...launching Lantern");
-                launchLantern();
-            }
-        } else {
-            launchLantern();
-        }
-        */
         
         launchLantern();
         
@@ -184,6 +160,7 @@ public class Launcher {
     }
 
     public static void launchLantern() {
+        LOG.debug("Launching Lantern...");
         final SystemTray tray = LanternHub.systemTray();
         tray.createTray();
         final KeyStoreManager proxyKeyStore = LanternHub.getKeyStoreManager();

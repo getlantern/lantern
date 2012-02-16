@@ -383,7 +383,7 @@ public class DefaultXmppHandler implements XmppHandler {
             while (iter.hasNext()) {
                 final String server = iter.next();
                 addProxy(server);
-                LanternUtils.addProxy(server);
+                LanternHub.settings().addProxy(server);
             }
             if (!servers.isEmpty() && isLoggedIn()) { 
                 if (!Configurator.configured()) {
