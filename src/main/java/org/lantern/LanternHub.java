@@ -129,6 +129,11 @@ public class LanternHub {
         
         // We need the system tray to listen for events early on.
         systemTray();
+        try {
+            Configurator.copyFireFoxExtension();
+        } catch (final IOException e) {
+            LOG.error("Could not copy extension", e);
+        }
     }
     
     public static LookupService getGeoIpLookup() {
