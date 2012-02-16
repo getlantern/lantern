@@ -57,21 +57,18 @@ public class Launcher {
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
-                LOG.error("Uncaught exception: "+e.getMessage(), e);
-                if (e.getMessage().contains("SWTError")) {
-                    System.out.println(
-                        "To run without a UI, run lantern with the --" + 
-                        LanternConstants.OPTION_DISABLE_UI +
-                        " command line argument");
-                } 
-                if (!lanternStarted) {
-                    LOG.info("Showing error to user...");
-                    LanternHub.dashboard().showMessage("Startup Error",
-                       "We're sorry, but there was an error starting Lantern described as '"+e.getMessage()+"'.");
-                }
+                handleError(e);
             }
         });
+        
+        try {
+            launch(args);
+        } catch (final Throwable t) {
+            handleError(t);
+        }
+    }
 
+    private static void launch(final String... args) {
         LOG.info("Starting Lantern...");
         // We initialize this super early in case there are any errors 
         // during startup we have to display to the user.
@@ -144,7 +141,7 @@ public class Launcher {
             LanternHub.jettyLauncher();
             return;
         }
-        
+
         launchLantern();
         
         if (!LanternHub.settings().isLaunchd() || 
@@ -310,6 +307,22 @@ public class Launcher {
             System.out.println("Exception setting log4j props with file: "
                     + logFile);
             e.printStackTrace();
+        }
+    }
+    
+    private static void handleError(final Throwable t) {
+        LOG.error("Uncaught exception: "+t.getMessage(), t);
+        if (t.getMessage().contains("SWTError")) {
+            System.out.println(
+                "To run without a UI, run lantern with the --" + 
+                LanternConstants.OPTION_DISABLE_UI +
+                " command line argument");
+        } 
+        if (!lanternStarted) {
+            LOG.info("Showing error to user...");
+            LanternHub.dashboard().showMessage("Startup Error",
+               "We're sorry, but there was an error starting Lantern " +
+               "described as '"+t.getMessage()+"'.");
         }
     }
 }
