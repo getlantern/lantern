@@ -76,6 +76,7 @@ public class Dashboard {
         
         log.info("Creating new browser...");
         final Browser browser = new Browser(shell, SWT.NONE);
+        log.info("Running browser: {}", browser.getBrowserType());
         browser.setSize(minWidth, minHeight);
         //browser.setBounds(0, 0, 800, 600);
         browser.setUrl("http://localhost:"+
