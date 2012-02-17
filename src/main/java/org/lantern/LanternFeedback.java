@@ -31,7 +31,8 @@ class LanternFeedback {
 
     protected Map<String, String> systemInfo() {
         final Map<String, String> info = new HashMap<String,String>();
-        
+
+        info.put("lanternVersion", LanternHub.settings().getVersion());        
         info.put("javaVersion", SystemUtils.JAVA_VERSION);
         info.put("osName", SystemUtils.OS_NAME);
         info.put("osArch", SystemUtils.OS_ARCH);
@@ -98,7 +99,8 @@ class LanternFeedback {
       "language",
       "country",
       "timeZone",
-      "diskSpace"
+      "diskSpace",
+      "lanternVersion"
   };
   protected void submitFeedback(Map<String, String> info) throws IOException {
       final List<NameValuePair> params = new ArrayList<NameValuePair>(info.size());
