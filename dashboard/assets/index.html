@@ -136,8 +136,14 @@
             <!--
             <span id=topbar-peers class=topbar-stat>{{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span>
             -->
-            <span id=topbar-rate-up class="topbar-stat rate">{{bytesrate(state.upRate, false, updnrate())}}</span>
-            <span id=topbar-rate-dn class="topbar-stat rate">{{bytesrate(state.downRate, false, updnrate())}}</span>
+            <span id=topbar-rate-up class="topbar-stat rate">
+              <img src=img/topbar-arrow-up.png alt="upload rate" />
+              {{bytesrate(state.upRate, false, updnrate())}}
+            </span>
+            <span id=topbar-rate-dn class="topbar-stat rate">
+              <img src=img/topbar-arrow-dn.png alt="download rate" />
+              {{bytesrate(state.downRate, false, updnrate())}}
+            </span>
           </span>
           <a ng:show=state.email id=userlink class="collapsed">{{state.email}}</a>
         </div>
