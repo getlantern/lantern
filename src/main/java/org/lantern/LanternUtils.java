@@ -26,16 +26,13 @@ import java.nio.channels.UnresolvedAddressException;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
@@ -77,7 +74,6 @@ import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
-import org.json.simple.JSONArray;
 import org.lantern.SettingsState.State;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
@@ -107,11 +103,6 @@ public class LanternUtils {
     
     private static final File LOG_DIR;
     
-    private static final File PROPS_FILE =
-        new File(CONFIG_DIR, "lantern.properties");
-    
-    private static final Properties PROPS = new Properties();
-        
     static {
         
         if (SystemUtils.IS_OS_WINDOWS) {
@@ -145,16 +136,6 @@ public class LanternUtils {
                 LOG.error("Could not make config directory at: "+CONFIG_DIR);
             }
         } 
-        
-        if (!PROPS_FILE.isFile()) {
-            try {
-                if (!PROPS_FILE.createNewFile()) {
-                    LOG.error("Could not create props file!!");
-                }
-            } catch (final IOException e) {
-                LOG.error("Could not create props file!!", e);
-            }
-        }
     }
     
     public static final ClientSocketChannelFactory clientSocketChannelFactory =
@@ -371,10 +352,6 @@ public class LanternUtils {
         return LOG_DIR;
     }
     
-    public static File propsFile() {
-        return PROPS_FILE;
-    }
-    
     public static boolean isTransferEncodingChunked(final HttpMessage m) {
         final List<String> chunked = 
             m.getHeaders(HttpHeaders.Names.TRANSFER_ENCODING);
@@ -388,14 +365,6 @@ public class LanternUtils {
             }
         }
         return false;
-    }
-
-    public static JSONArray toJsonArray(final Collection<String> strs) {
-        final JSONArray json = new JSONArray();
-        synchronized (strs) {
-            json.addAll(strs);
-        }
-        return json;
     }
     
     public static boolean isConfigured() {
@@ -446,39 +415,6 @@ public class LanternUtils {
         return entries;
     }
     
-    public static Collection<String> getProxies() {
-        final String proxies = getStringProperty("proxies");
-        if (StringUtils.isBlank(proxies)) {
-            return Collections.emptySet();
-        } else {
-            final String[] all = proxies.split(",");
-            return Arrays.asList(all);
-        }
-    }
-
-    public static void addProxy(final String server) {
-        String proxies = getStringProperty("proxies");
-        
-        if (proxies == null) {
-            proxies = server;
-        } else {
-            final Set<String> unique = 
-                new LinkedHashSet<String>(Arrays.asList(proxies.split(",")));
-            if (unique.contains(server)) {
-                return;
-            } else {
-                unique.add(server);
-            }
-            final StringBuilder sb = new StringBuilder();
-            for (final String proxy : unique) {
-                sb.append(proxy.trim());
-                sb.append(",");
-            }
-            proxies = sb.toString();
-        }
-        setStringProperty("proxies", proxies);
-    }
-    
     public static void writeCredentials(final String email, final String pwd) {
         LOG.info("Writing credentials...");
         LanternHub.settings().setEmail(email);
@@ -500,106 +436,6 @@ public class LanternUtils {
             State.UNSET;
     }
 
-    public static void setBooleanProperty(final String key, 
-        final boolean value) {
-        initProps();
-        PROPS.setProperty(key, String.valueOf(value));
-        persistProps();
-    }
-
-    public static boolean getBooleanProperty(final String key) {
-        initProps();
-        final String val = PROPS.getProperty(key);
-        if (StringUtils.isBlank(val)) {
-            return false;
-        }
-        return LanternUtils.isTrue(val);
-    }
-    
-
-    /**
-     * Accesses a boolean property using the specified default value if it's
-     * not found.
-     * 
-     * @param key The key.
-     * @param def The default value.
-     * @return <code>true</code> if the property is true, otherwise 
-     * <code>false</code>.
-     */
-    public static boolean getBooleanProperty(final String key, 
-        final boolean def) {
-        initProps();
-        final String val = PROPS.getProperty(key, String.valueOf(def));
-        if (StringUtils.isBlank(val)) {
-            return false;
-        }
-        return LanternUtils.isTrue(val);
-    }
-    
-    public static void setStringProperty(final String key, final String value) {
-        initProps();
-        PROPS.setProperty(key, value);
-        persistProps();
-    }
-
-    public static String getStringProperty(final String key) {
-        initProps();
-        return PROPS.getProperty(key);
-    }
-
-    public static void clear(final String key) {
-        initProps();
-        PROPS.remove(key);
-        persistProps();
-    }
-
-    /**
-     * properties are lazily initialized to give the 
-     * main function a chance to affect certain things
-     * first -- ie as loading the settings may require
-     * user interaction for decryption, we must know
-     * whether or not to use a UI.
-     */
-    private static boolean PROPERTIES_INITIALIZED = false;
-    public static boolean initProps() {
-        if (PROPERTIES_INITIALIZED == true) {
-            return true;
-        }
-        synchronized(PROPS) {   
-            InputStream is = null;
-            try {
-                is = localDecryptInputStream(PROPS_FILE);
-                PROPS.load(is);
-                PROPERTIES_INITIALIZED = true;
-                return true;
-            } catch (final IOException e) {
-                LOG.error("Error loading props file: "+PROPS_FILE, e);
-                return false;
-            } catch (final GeneralSecurityException e) {
-                LOG.error("Error loading props file: "+PROPS_FILE, e);
-                return false;
-            } finally {
-                IOUtils.closeQuietly(is);
-            }
-        }
-    }
-
-    private static void persistProps() {
-        OutputStream os = null;
-        try {
-            os = localEncryptOutputStream(PROPS_FILE);
-            PROPS.store(os, "");
-        } catch (final IOException e) {
-            LOG.error("Could not store props?", e);
-        } catch (final GeneralSecurityException e) {
-            LOG.error("Could not store props?", e);
-        } finally {
-            if (os != null) {
-                IOUtils.closeQuietly(os);
-            }
-        }
-    }
-    
     /**
      * We subclass here purely to expose the encoding method of the built-in
      * request encoder.

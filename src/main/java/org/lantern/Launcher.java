@@ -3,11 +3,12 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
-import java.net.URI;
-import java.net.URISyntaxException;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -19,8 +20,6 @@ import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.spi.LoggingEvent;
-import org.lantern.exceptional4j.ExceptionalAppender;
-import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.eclipse.swt.widgets.Display;
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -28,6 +27,8 @@ import org.json.simple.JSONObject;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.SetCookieObserver;
+import org.lantern.exceptional4j.ExceptionalAppender;
+import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
@@ -56,21 +57,19 @@ public class Launcher {
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
-                LOG.error("Uncaught exception: "+e.getMessage(), e);
-                if (e.getMessage().contains("SWTError")) {
-                    System.out.println(
-                        "To run without a UI, run lantern with the --" + 
-                        LanternConstants.OPTION_DISABLE_UI +
-                        " command line argument");
-                } 
-                if (!lanternStarted) {
-                    LOG.info("Showing error to user...");
-                    LanternHub.dashboard().showMessage("Startup Error",
-                       "We're sorry, but there was an error starting Lantern described as '"+e.getMessage()+"'.");
-                }
+                handleError(e);
             }
         });
+        
+        try {
+            launch(args);
+        } catch (final Throwable t) {
+            handleError(t);
+        }
+    }
 
+    private static void launch(final String... args) {
+        LOG.info("Starting Lantern...");
         // We initialize this super early in case there are any errors 
         // during startup we have to display to the user.
         Display.setAppName("Lantern");
@@ -143,31 +142,6 @@ public class Launcher {
             return;
         }
 
-        // initialize properties, local ciphers etc on this thread 
-        // before proceeding with more complicated stuffs.
-        if (!LanternUtils.initProps()) {
-            LOG.error("Unable to initialize local properties, exiting.");
-            return;
-        }
-        
-        /*
-        if (!LanternUtils.isConfigured() || LanternUtils.isNewInstall()) {
-            // Make sure the installer screens themselves don't run through a
-            // defunct Lantern proxy that likely has just been uninstalled.
-            LOG.info("Running install screen...newInstall: {}", 
-                 LanternUtils.isNewInstall());
-            Configurator.unproxy();
-            final LanternBrowser browser = new LanternBrowser(false);
-            browser.install();
-            if (!display.isDisposed ()) {
-                LOG.info("Browser completed...launching Lantern");
-                launchLantern();
-            }
-        } else {
-            launchLantern();
-        }
-        */
-        
         launchLantern();
         
         if (!LanternHub.settings().isLaunchd() || 
@@ -183,6 +157,7 @@ public class Launcher {
     }
 
     public static void launchLantern() {
+        LOG.debug("Launching Lantern...");
         final SystemTray tray = LanternHub.systemTray();
         tray.createTray();
         final KeyStoreManager proxyKeyStore = LanternHub.getKeyStoreManager();
@@ -269,7 +244,6 @@ public class Launcher {
         }
         lanternStarted = true;
     }
-
     
     private static void printHelp(Options options, String errorMessage) {
         if (errorMessage != null) {
@@ -333,6 +307,22 @@ public class Launcher {
             System.out.println("Exception setting log4j props with file: "
                     + logFile);
             e.printStackTrace();
+        }
+    }
+    
+    private static void handleError(final Throwable t) {
+        LOG.error("Uncaught exception: "+t.getMessage(), t);
+        if (t.getMessage().contains("SWTError")) {
+            System.out.println(
+                "To run without a UI, run lantern with the --" + 
+                LanternConstants.OPTION_DISABLE_UI +
+                " command line argument");
+        } 
+        if (!lanternStarted) {
+            LOG.info("Showing error to user...");
+            LanternHub.dashboard().showMessage("Startup Error",
+               "We're sorry, but there was an error starting Lantern " +
+               "described as '"+t.getMessage()+"'.");
         }
     }
 }
