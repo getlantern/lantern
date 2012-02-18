@@ -46,6 +46,8 @@ import org.jivesoftware.smack.packet.Presence;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import org.lastbamboo.common.p2p.P2PConnectionEvent;
+import org.lastbamboo.common.p2p.P2PConnectionListener;
 import org.lastbamboo.common.p2p.P2PConstants;
 import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
@@ -213,6 +215,15 @@ public class DefaultXmppHandler implements XmppHandler {
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
             plainTextProxyRelayAddress, false));
 
+        this.client.get().addConnectionListener(new P2PConnectionListener() {
+            
+            @Override
+            public void onConnectivityEvent(final P2PConnectionEvent event) {
+                LOG.info("Got connectivity event: {}", event);
+                LanternHub.eventBus().post(event);
+            }
+        });
+        
         // This is a global, backup listener added to the client. We might
         // get notifications of messages twice in some cases, but that's
         // better than the alternative of sometimes not being notified
@@ -372,7 +383,7 @@ public class DefaultXmppHandler implements XmppHandler {
             while (iter.hasNext()) {
                 final String server = iter.next();
                 addProxy(server);
-                LanternUtils.addProxy(server);
+                LanternHub.settings().addProxy(server);
             }
             if (!servers.isEmpty() && isLoggedIn()) { 
                 if (!Configurator.configured()) {

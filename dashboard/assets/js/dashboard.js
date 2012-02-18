@@ -1,5 +1,11 @@
 'use strict';
 
+if(typeof console == 'undefined'){
+  var console = {
+    log: function(){}
+  };
+}
+
 var cometd = $.cometd;
 var cometurl = location.protocol + "//" + location.host + "/cometd";
 cometd.websocketEnabled = false; // XXX not enabled on server
