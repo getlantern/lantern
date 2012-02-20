@@ -1,6 +1,7 @@
 .DS_Store
 *.swp
 *.un~
+*.*~
 *.settings
 *.classpath
 *.project
