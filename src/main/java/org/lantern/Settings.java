@@ -343,7 +343,17 @@ public class Settings implements MutableSettings {
     public Country getCountryDetected() {
         return countryDetected;
     }
-    
+
+    @JsonView(UIStateSettings.class)
+    public long getPeerCount() {
+        return LanternHub.statsTracker().getPeerCount();
+    }
+
+    @JsonView(UIStateSettings.class)
+    public long getPeerCountThisRun() {
+        return LanternHub.statsTracker().getPeerCountThisRun();
+    }
+
     @JsonView(UIStateSettings.class)
     public long getUpRate() {
         return LanternHub.statsTracker().getUpBytesPerSecond();

@@ -163,6 +163,7 @@ function LDCtrl(){
   self.requestreply = false;
   self.requestreplyto = null;
 
+  self.npeers = function() {return self.state.peerCount;}
   self.loggedin = function(){return self.state.connectivity === 'CONNECTED';};
   self.loggedout = function(){return self.state.connectivity === 'DISCONNECTED';};
   self.loggingin = function(){return self.state.connectivity === 'CONNECTING';};
