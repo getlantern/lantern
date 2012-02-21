@@ -83,7 +83,7 @@ public class UpstreamCookieFilterHandler extends SimpleChannelUpstreamHandler {
                 }
             }
             final String outCookieHeader = outCookies.encode();
-            if (outCookieHeader != inCookieHeader) {
+            if (!outCookieHeader.equals(inCookieHeader)) {
                 if (outCookieHeader.length() > 0) {
                     request.setHeader(HttpHeaders.Names.COOKIE, outCookieHeader);
                 }
