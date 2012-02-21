@@ -33,6 +33,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
 import java.util.Random;
 import java.util.Set;
@@ -313,7 +314,7 @@ public class LanternUtils {
                     System.currentTimeMillis());
         } catch (final UnknownHostException e) {
             final byte[] bytes = new byte[24];
-            new Random().nextBytes(bytes);
+            LanternHub.secureRandom().nextBytes(bytes);
             return macMe(bytes);
         }
     }
@@ -513,30 +514,48 @@ public class LanternUtils {
     
     public static int randomPort() {
         final SecureRandom sr = LanternHub.secureRandom();
-        for (int i = 0; i < 10; i++) {
-            final int randomPort = 1024 + (Math.abs(sr.nextInt()) % 60000);
+        for (int i = 0; i < 20; i++) {
+            // The +1 on the random int is because 
+            // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE -- caught
+            // by FindBugs.
+            final int randomPort = 1024 + (Math.abs(sr.nextInt() + 1) % 60000);
+            ServerSocket sock = null;
             try {
-                final ServerSocket sock = new ServerSocket();
+                sock = new ServerSocket();
                 sock.bind(new InetSocketAddress("127.0.0.1", randomPort));
                 final int port = sock.getLocalPort();
-                sock.close();
                 return port;
             } catch (final IOException e) {
                 LOG.info("Could not bind to port: {}", randomPort);
+            } finally {
+                if (sock != null) {
+                    try {
+                        sock.close();
+                    } catch (IOException e) {
+                    }
+                }
             }
+            
         }
         
         // If we can't grab one of our securely chosen random ports, use
         // whatever port the OS assigns.
+        ServerSocket sock = null;
         try {
-            final ServerSocket sock = new ServerSocket();
+            sock = new ServerSocket();
             sock.bind(null);
             final int port = sock.getLocalPort();
-            sock.close();
             return port;
         } catch (final IOException e) {
             LOG.info("Still could not bind?");
-            return 1024 + (Math.abs(sr.nextInt()) % 60000);
+            return 1024 + (Math.abs(sr.nextInt() + 1) % 60000);
+        } finally {
+            if (sock != null) {
+                try {
+                    sock.close();
+                } catch (IOException e) {
+                }
+            }
         }
     }
     
@@ -707,10 +726,10 @@ public class LanternUtils {
         final Map<String, String> map = new TreeMap<String, String>(
                 String.CASE_INSENSITIVE_ORDER);
         final Map<String, String[]> paramMap = req.getParameterMap();
-        final Set<String> keys = paramMap.keySet();
-        for (final String key : keys) {
-            final String[] values = paramMap.get(key);
-            map.put(key, values[0]);
+        final Set<Entry<String, String[]>> entries = paramMap.entrySet();
+        for (final Entry<String, String[]> entry : entries) {
+            final String[] values = entry.getValue();
+            map.put(entry.getKey(), values[0]);
         }
         return map;
     }

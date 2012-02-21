@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
 
 public class CommandLine {
@@ -307,10 +308,11 @@ public class CommandLine {
     }
 
     public void run() {
-      InputStream inputStream = new BufferedInputStream(toWatch.getInputStream());
-      byte[] buffer = new byte[2048];
+      InputStream inputStream = null;
 
       try {
+        inputStream = new BufferedInputStream(toWatch.getInputStream());
+        final byte[] buffer = new byte[2048];
         int read;
         while ((read = inputStream.read(buffer)) > 0) {
           inputOut.write(buffer, 0, read);
@@ -325,11 +327,8 @@ public class CommandLine {
         // it's possible that the stream has been closed. That's okay.
         // Swallow the exception
       } finally {
-        try {
-          inputOut.close();
-        } catch (IOException e) {
-          // Nothing sane to do
-        }
+        IOUtils.closeQuietly(inputStream);
+        IOUtils.closeQuietly(inputOut);
       }
     }
 
