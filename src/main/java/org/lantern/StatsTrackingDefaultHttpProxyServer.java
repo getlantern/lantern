@@ -243,7 +243,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         public ChannelPipelineFactory getRelayPipelineFactory(
             final HttpRequest httpRequest,final Channel browserToProxyChannel,
             final RelayListener relayListener) {
-            final ChannelPipelineFactory innerFactory = getRelayPipelineFactory(httpRequest, browserToProxyChannel, relayListener);
+            final ChannelPipelineFactory innerFactory =
+                    super.getRelayPipelineFactory(httpRequest, browserToProxyChannel, relayListener);
 
             return new ChannelPipelineFactory() {
                 @Override
