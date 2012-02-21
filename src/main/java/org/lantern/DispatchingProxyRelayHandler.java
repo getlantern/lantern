@@ -33,7 +33,6 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.ssl.SslHandler;
-import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.littleshoot.proxy.DefaultRelayPipelineFactoryFactory;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
 import org.littleshoot.proxy.HttpFilter;
@@ -345,11 +344,14 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         }
         try {
             if (TRUSTED_ACTIVE) {
-                final HttpRequestProcessor rp = 
-                    LanternHub.getProxyProvider().getTrustedPeerProxyManager().processRequest(
+                final PeerProxyManager provider = 
+                    LanternHub.getProxyProvider().getTrustedPeerProxyManager();
+                if (provider != null) {
+                    final HttpRequestProcessor rp = provider.processRequest(
                             browserToProxyChannel, ctx, me);
-                if (rp != null) {
-                    return rp;
+                    if (rp != null) {
+                        return rp;
+                    }
                 }
             }
         } catch (final IOException e) {
