@@ -6,6 +6,6 @@
 *.classpath
 *.project
 .sass-cache
-Lantern
+/Lantern
 log.txt
 target/
