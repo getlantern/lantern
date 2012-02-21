@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 import javax.net.ssl.TrustManager;
 
@@ -208,6 +209,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     }
 
     public TrustManager[] getTrustManagers() {
-        return trustManagers;
+        return Arrays.copyOf(trustManagers, trustManagers.length);
     }
 }

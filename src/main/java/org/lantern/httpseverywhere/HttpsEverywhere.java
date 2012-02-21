@@ -200,7 +200,7 @@ public class HttpsEverywhere {
     }
     
     
-    public final class HttpsRuleSet {
+    public static final class HttpsRuleSet {
         private final Collection<HttpsRule> rules;
         private final Collection<HttpsSecureCookieRule> secureCookieRules;
         private final Collection<String> exclusions;
