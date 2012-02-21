@@ -58,7 +58,11 @@ public class StatsTracker implements LanternData {
      * window average of size DATA_RATE_SECONDS.
      */ 
     private static final int DATA_RATE_SECONDS = 1;
-    private static final int ONE_SECOND = 1000;
+    private static final long ONE_SECOND = 1000;
+    private static final long ONE_MINUTE = 60*ONE_SECOND;
+    private static final long ONE_HOUR = 60*ONE_MINUTE;
+    private static final long ONE_DAY = 24*ONE_HOUR;
+
     /** 
      * 1-second time-buckets for i/o bytes - DATA_RATE_SECONDS+1 seconds 
      * prior only looking to track average up/down rates for the moment
@@ -76,8 +80,11 @@ public class StatsTracker implements LanternData {
         = new TimeSeries1D(ONE_SECOND, ONE_SECOND*(DATA_RATE_SECONDS+1));
     private static final TimeSeries1D downBytesPerSecondFromPeers
         = new TimeSeries1D(ONE_SECOND, ONE_SECOND*(DATA_RATE_SECONDS+1));
-
-
+    
+    
+    /* Peer count tracking, just tracks current for now */
+    private static final PeerCounter peersPerSecond
+            = new PeerCounter(ONE_SECOND, ONE_SECOND*2);
     
     private static final ConcurrentHashMap<String, CountryData> countries = 
         new ConcurrentHashMap<String, StatsTracker.CountryData>();
@@ -398,13 +405,22 @@ public class StatsTracker implements LanternData {
     }
     
     public void resetUserStats() {
-        upBytesPerSecondViaProxies.resetLifetimeTotal();
-        downBytesPerSecondViaProxies.resetLifetimeTotal();
-        upBytesPerSecondForPeers.resetLifetimeTotal();
-        downBytesPerSecondForPeers.resetLifetimeTotal();
-        upBytesPerSecondToPeers.resetLifetimeTotal();
-        downBytesPerSecondFromPeers.resetLifetimeTotal();
+        upBytesPerSecondViaProxies.reset();
+        downBytesPerSecondViaProxies.reset();
+        upBytesPerSecondForPeers.reset();
+        downBytesPerSecondForPeers.reset();
+        upBytesPerSecondToPeers.reset();
+        downBytesPerSecondFromPeers.reset();
+        peersPerSecond.reset();
         // others?
+    }
+    
+    public long getPeerCount() {
+        return peersPerSecond.latestValue();
+    }
+    
+    public long getPeerCountThisRun() {
+        return peersPerSecond.lifetimeTotal();
     }
     
     public long getUpBytesThisRun() {
