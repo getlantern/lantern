@@ -2,6 +2,7 @@ package org.lantern;
 
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -108,7 +109,13 @@ public class TimeSeries1D {
     }
 
     public long latestValue() {
-        return observations.lastEntry().getValue().get();
+        Map.Entry<Long, AtomicLong> last = observations.lastEntry(); 
+        if (last != null) {
+            return last.getValue().get();
+        }
+        else {
+            return 0;
+        }
     }
 
     /** 
