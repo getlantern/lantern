@@ -582,6 +582,20 @@ public class LanternUtils {
     }
 
     private static String findKeytoolPath() {
+
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            // try to explicitly select the 1.6 keytool -- 
+            // The user may have 1.5 selected as the default 
+            // javavm (default in os x 10.5.8) 
+            // in this case, the default location below will
+            // point to the 1.5 keytool instead.
+            final File keytool16 = new File("/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/keytool");
+            if (keytool16.exists()) {
+                return keytool16.getAbsolutePath();
+            }
+        }
+        
+        
         final File defaultLocation = new File("/usr/bin/keytool");
         if (defaultLocation.exists()) {
             return defaultLocation.getAbsolutePath();
