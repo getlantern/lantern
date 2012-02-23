@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
-import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
@@ -495,14 +494,8 @@ public class LanternUtils {
 
     public static void waitForInternet() {
         while (true) {
-            try {
-                final DatagramChannel channel = DatagramChannel.open();
-                final SocketAddress server = 
-                    new InetSocketAddress("www.google.com", 80);
-                channel.connect(server);
+            if (hasNetworkConnection()) {
                 return;
-            } catch (final IOException e) {
-            } catch (final UnresolvedAddressException e) {
             }
             try {
                 Thread.sleep(50);
@@ -512,6 +505,22 @@ public class LanternUtils {
         }
     }
     
+    public static boolean hasNetworkConnection() {
+        // Just try a couple of times to make sure.
+        for (int i = 0; i < 2; i++) {
+            try {
+                final DatagramChannel channel = DatagramChannel.open();
+                final SocketAddress server = 
+                    new InetSocketAddress("www.google.com", 80);
+                channel.connect(server);
+                return true;
+            } catch (final IOException e) {
+            } catch (final UnresolvedAddressException e) {
+            }
+        }
+        return false;
+    }
+
     public static int randomPort() {
         final SecureRandom sr = LanternHub.secureRandom();
         for (int i = 0; i < 20; i++) {
