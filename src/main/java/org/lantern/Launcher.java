@@ -31,8 +31,10 @@ import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
+import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
 import org.littleshoot.proxy.KeyStoreManager;
+import org.littleshoot.proxy.PublicIpsOnlyRequestFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,19 +59,20 @@ public class Launcher {
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
-                handleError(e);
+                handleError(e, false);
             }
         });
         
         try {
             launch(args);
         } catch (final Throwable t) {
-            handleError(t);
+            handleError(t, true);
         }
     }
 
     private static void launch(final String... args) {
         LOG.info("Starting Lantern...");
+
         // We initialize this super early in case there are any errors 
         // during startup we have to display to the user.
         Display.setAppName("Lantern");
@@ -131,9 +134,53 @@ public class Launcher {
             LOG.info("Running from launchd or launchd set on command line");
             LanternHub.settings().setLaunchd(true);
         }
-        LOG.info("Waiting for internet connection...");
-        LanternUtils.waitForInternet();
-        LOG.info("Got internet...");
+        
+        if (LanternUtils.hasNetworkConnection()) {
+            LOG.info("Got internet...");
+            launchWithOrWithoutUi();
+        } else {
+            // If we're running on startup, it's quite likely we just haven't
+            // connected to the internet yet. Let's wait for an internet
+            // connection and then start Lantern.
+            if (LanternHub.settings().isLaunchd()) {
+                LOG.info("Waiting for internet connection...");
+                LanternUtils.waitForInternet();
+                launchWithOrWithoutUi();
+            }
+            // If setup is complete and we're not running on startup, open
+            // the dashboard.
+            else if (LanternHub.settings().isInitialSetupComplete()) {
+                LanternHub.jettyLauncher().openBrowserWhenReady();
+                // Wait for an internet connection before starting the XMPP
+                // connection.
+                LOG.info("Waiting for internet connection...");
+                LanternUtils.waitForInternet();
+                launchWithOrWithoutUi();
+            } else {
+                // If we haven't configured Lantern and don't have an internet
+                // connection, the problem is that we can't verify the user's
+                // user name and password when they try to login, so we just
+                // let them know we can't start Lantern until they have a 
+                // connection.
+                // TODO: i18n
+                final String msg = 
+                    "We're sorry, but you cannot configure Lantern without " +
+                    "an active connection to the internet. Please try again " +
+                    "when you have an internet connection.";
+                LanternHub.dashboard().showMessage("No Internet", msg);
+                System.exit(0);
+            }
+        }
+
+        
+        // This is necessary to keep the tray/menu item up in the case
+        // where we're not launching a browser.
+        while (!display.isDisposed ()) {
+            if (!display.readAndDispatch ()) display.sleep ();
+        }
+    }
+
+    private static void launchWithOrWithoutUi() {
         if (!LanternUtils.runWithUi()) {
             // We only run headless on Linux for now.
             LOG.info("Running Lantern with no display...");
@@ -143,16 +190,9 @@ public class Launcher {
         }
 
         launchLantern();
-        
         if (!LanternHub.settings().isLaunchd() || 
             !LanternHub.settings().isInitialSetupComplete()) {
             LanternHub.jettyLauncher().openBrowserWhenReady();
-        }
-        
-        // This is necessary to keep the tray/menu item up in the case
-        // where we're not launching a browser.
-        while (!display.isDisposed ()) {
-            if (!display.readAndDispatch ()) display.sleep ();
         }
     }
 
@@ -161,6 +201,10 @@ public class Launcher {
         final SystemTray tray = LanternHub.systemTray();
         tray.createTray();
         final KeyStoreManager proxyKeyStore = LanternHub.getKeyStoreManager();
+        
+        final HttpRequestFilter publicOnlyRequestFilter = 
+            new PublicIpsOnlyRequestFilter();
+        
         final StatsTrackingDefaultHttpProxyServer sslProxy =
             new StatsTrackingDefaultHttpProxyServer(LanternHub.randomSslPort(),
             new HttpResponseFilters() {
@@ -168,18 +212,12 @@ public class Launcher {
                 public HttpFilter getFilter(String arg0) {
                     return null;
                 }
-            }, null, proxyKeyStore, null);
+            }, null, proxyKeyStore, publicOnlyRequestFilter);
         LOG.debug("SSL port is {}", LanternHub.randomSslPort());
         //final org.littleshoot.proxy.HttpProxyServer sslProxy = 
         //    new DefaultHttpProxyServer(LanternHub.randomSslPort());
         sslProxy.start(false, false);
          
-        
-        // We just use a fixed port for the plain-text proxy on localhost, as
-        // there's no reason to randomize it since it's not public.
-        // If testing two instances on the same machine, just change it on
-        // one of them.
-        
         // The reason this exists is complicated. It's for the case when the
         // offerer gets an incoming connection from the answerer, and then
         // only on the answerer side. The answerer "client" socket relays
@@ -187,7 +225,8 @@ public class Launcher {
         // See http://cdn.getlantern.org/IMAG0210.jpg
         final org.littleshoot.proxy.HttpProxyServer plainTextProxy = 
             new DefaultHttpProxyServer(
-                LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
+                LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT,
+                publicOnlyRequestFilter);
         plainTextProxy.start(true, false);
         
         LOG.info("About to start Lantern server on port: "+
@@ -310,7 +349,7 @@ public class Launcher {
         }
     }
     
-    private static void handleError(final Throwable t) {
+    private static void handleError(final Throwable t, final boolean exit) {
         LOG.error("Uncaught exception: "+t.getMessage(), t);
         if (t.getMessage().contains("SWTError")) {
             System.out.println(
@@ -323,6 +362,10 @@ public class Launcher {
             LanternHub.dashboard().showMessage("Startup Error",
                "We're sorry, but there was an error starting Lantern " +
                "described as '"+t.getMessage()+"'.");
+        }
+        if (exit) {
+            LOG.info("Exiting Lantern");
+            System.exit(1);
         }
     }
 }
