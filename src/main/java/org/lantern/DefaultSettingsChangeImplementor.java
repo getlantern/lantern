@@ -105,7 +105,7 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             log.info("Email is unchanged.");
             return;
         }
-        if (storedEmail.equals(email)) {
+        if (storedEmail != null && storedEmail.equals(email)) {
             log.info("Email is unchanged.");
             return;
         }
