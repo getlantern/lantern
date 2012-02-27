@@ -73,11 +73,7 @@ public class Launcher {
     private static void launch(final String... args) {
         LOG.info("Starting Lantern...");
 
-        // We initialize this super early in case there are any errors 
-        // during startup we have to display to the user.
-        Display.setAppName("Lantern");
-        final Display display = LanternHub.display();
-        
+        // first apply any command line settings
         final Options options = new Options();
         options.addOption(null, LanternConstants.OPTION_DISABLE_UI, false,
                           "run without a graphical user interface.");
@@ -135,6 +131,19 @@ public class Launcher {
             LanternHub.settings().setLaunchd(true);
         }
         
+        final Display display;
+        if (LanternHub.settings().isUiEnabled()) {
+            // We initialize this super early in case there are any errors 
+            // during startup we have to display to the user.
+            Display.setAppName("Lantern");
+            display = LanternHub.display();
+            // Also, We need the system tray to listen for events early on.
+            LanternHub.systemTray();
+        }
+        else {
+            display = null;
+        }
+
         if (LanternUtils.hasNetworkConnection()) {
             LOG.info("Got internet...");
             launchWithOrWithoutUi();
@@ -175,8 +184,10 @@ public class Launcher {
         
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
-        while (!display.isDisposed ()) {
-            if (!display.readAndDispatch ()) display.sleep ();
+        if (display != null) {
+            while (!display.isDisposed ()) {
+                if (!display.readAndDispatch ()) display.sleep ();
+            }
         }
     }
 
