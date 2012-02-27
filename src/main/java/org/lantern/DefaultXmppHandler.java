@@ -159,7 +159,7 @@ public class DefaultXmppHandler implements XmppHandler {
         String email = LanternHub.settings().getEmail();
         String pwd = LanternHub.settings().getPassword();
         if (StringUtils.isBlank(email)) {
-            if (!LanternUtils.runWithUi()) {
+            if (!LanternHub.settings().isUiEnabled()) {
                 email = askForEmail();
                 LanternHub.settings().setEmail(email);
             } else {
@@ -170,7 +170,7 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         
         if (StringUtils.isBlank(pwd)) {
-            if (!LanternUtils.runWithUi()) {
+            if (!LanternHub.settings().isUiEnabled()) {
                 pwd = askForPassword();
                 LanternHub.settings().setPassword(pwd);
             } else {

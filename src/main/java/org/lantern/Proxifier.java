@@ -79,7 +79,7 @@ public class Proxifier {
         // We always want to stop proxying on shutdown -- doesn't hurt 
         // anything in the case where we never proxied in the first place.
         // if there is a Ui we let the Ui handle it. 
-        if (!LanternUtils.runWithUi()) {
+        if (!LanternHub.settings().isUiEnabled()) {
             final Thread hook = new Thread(new Runnable() {
                 @Override
                 public void run() {

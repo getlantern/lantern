@@ -90,6 +90,13 @@ public class Settings implements MutableSettings {
      * browser.
      */
     private boolean launchd = false;
+
+    /**
+     * Whether or not we're running with a graphical UI.  
+     * Not stored or sent to the browser.
+     */
+    private boolean uiEnabled = true;
+    
     
     private Collection<String> proxies = new LinkedHashSet<String>();
     
@@ -429,6 +436,14 @@ public class Settings implements MutableSettings {
         return launchd;
     }
     
+
+    public void setUiEnabled(boolean uiEnabled) {
+        this.uiEnabled = uiEnabled;
+    }
+    
+    public boolean isUiEnabled() {
+        return uiEnabled;
+    }
 
     public void addProxy(final String proxy) {
         this.proxies.add(proxy);

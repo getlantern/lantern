@@ -109,10 +109,10 @@ public class Launcher {
         
         if (cmd.hasOption(LanternConstants.OPTION_DISABLE_UI)) {
             LOG.info("Disabling UI");
-            LanternUtils.setUiEnabled(false);
+            LanternHub.settings().setUiEnabled(false);
         }
         else {
-            LanternUtils.setUiEnabled(true);
+            LanternHub.settings().setUiEnabled(true);
         }
         
         if (cmd.hasOption(LanternConstants.OPTION_PUBLIC_API)) {
@@ -181,7 +181,7 @@ public class Launcher {
     }
 
     private static void launchWithOrWithoutUi() {
-        if (!LanternUtils.runWithUi()) {
+        if (!LanternHub.settings().isUiEnabled()) {
             // We only run headless on Linux for now.
             LOG.info("Running Lantern with no display...");
             launchLantern();
@@ -271,7 +271,7 @@ public class Launcher {
         // Otherwise, it will connect.
         XmppHandler xmpp = LanternHub.xmppHandler();
         if (LanternHub.settings().isConnectOnLaunch() &&
-            (LanternUtils.isConfigured() || !LanternUtils.runWithUi())) {
+            (LanternUtils.isConfigured() || !LanternHub.settings().isUiEnabled())) {
             try {
                 xmpp.connect();
             } catch (final IOException e) {
