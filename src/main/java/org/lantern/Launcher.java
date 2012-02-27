@@ -139,7 +139,7 @@ public class Launcher {
             Display.setAppName("Lantern");
             display = LanternHub.display();
             // Also, We need the system tray to listen for events early on.
-            LanternHub.systemTray();
+            LanternHub.systemTray().createTray();
         }
         else {
             display = null;
