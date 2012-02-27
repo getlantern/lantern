@@ -368,7 +368,7 @@ public class Launcher {
                 LanternConstants.OPTION_DISABLE_UI +
                 " command line argument");
         } 
-        if (!lanternStarted) {
+        else if (!lanternStarted && LanternHub.settings().isUiEnabled()) {
             LOG.info("Showing error to user...");
             LanternHub.dashboard().showMessage("Startup Error",
                "We're sorry, but there was an error starting Lantern " +
