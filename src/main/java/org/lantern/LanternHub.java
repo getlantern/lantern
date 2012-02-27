@@ -191,7 +191,7 @@ public class LanternHub {
     public static SystemTray systemTray() {
         synchronized (systemTray) {
             if (systemTray.get() == null) {
-                if (LanternUtils.runWithUi()) {
+                if (settings().isUiEnabled()) {
                     final SystemTray tray = new SystemTrayImpl();
                     systemTray.set(tray);
                 } else {

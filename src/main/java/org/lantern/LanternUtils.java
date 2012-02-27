@@ -607,15 +607,6 @@ public class LanternUtils {
         LOG.error("Could not fine keytool?!?!?!?");
         return null;
     }
-
-    private static boolean RUN_WITH_UI = true;
-    public static void setUiEnabled(boolean uiIsEnabled) {
-        RUN_WITH_UI = uiIsEnabled;
-    }
-    
-    public static boolean runWithUi() {
-        return RUN_WITH_UI;
-    }
     
     public static Packet activateOtr(final XMPPConnection conn) {
         return XmppUtils.goOffTheRecord(LanternConstants.LANTERN_JID, conn);

@@ -92,7 +92,7 @@ public class Configurator {
         }
         
         if (LanternUtils.shouldProxy() &&
-            (!LanternUtils.runWithUi() || LanternHub.settings().isInitialSetupComplete())) {
+            (!LanternHub.settings().isUiEnabled() || LanternHub.settings().isInitialSetupComplete())) {
             LOG.info("Auto-configuring proxy...");
             boolean finished = false;
             while (!finished) {
@@ -100,7 +100,7 @@ public class Configurator {
                     Proxifier.startProxying();
                     finished = true;
                 } catch (Proxifier.ProxyConfigurationError e) {
-                    if (LanternUtils.runWithUi()) {
+                    if (LanternHub.settings().isUiEnabled()) {
                          // XXX I18n / copy 
                          final String question = "Failed to set Lantern as the system proxy.\n\n" +
                             "If you cancel, Lantern will not be used to handle " +

@@ -68,7 +68,7 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
                 zeroFill(password);
                 zeroFill(rawKey);
 
-                if (LanternUtils.runWithUi()) {
+                if (LanternHub.settings().isUiEnabled()) {
                     password = getPasswordGUI(init, tries);
                 }
                 else {
