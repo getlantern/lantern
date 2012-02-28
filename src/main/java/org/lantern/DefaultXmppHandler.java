@@ -152,7 +152,7 @@ public class DefaultXmppHandler implements XmppHandler {
     
     @Override
     public void connect() throws IOException {
-        if (!LanternUtils.isConfigured()) {
+        if (!LanternUtils.isConfigured() && LanternHub.settings().isUiEnabled()) {
             LOG.info("Not connecting when not configured");
             return;
         }
@@ -161,7 +161,9 @@ public class DefaultXmppHandler implements XmppHandler {
         if (StringUtils.isBlank(email)) {
             if (!LanternHub.settings().isUiEnabled()) {
                 email = askForEmail();
+                pwd = askForPassword();
                 LanternHub.settings().setEmail(email);
+                LanternHub.settings().setPassword(pwd);
             } else {
                 LOG.error("No user name");
                 throw new IllegalStateException("No user name");
