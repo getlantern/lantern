@@ -210,8 +210,6 @@ public class Launcher {
 
     public static void launchLantern() {
         LOG.debug("Launching Lantern...");
-        final SystemTray tray = LanternHub.systemTray();
-        tray.createTray();
         final KeyStoreManager proxyKeyStore = LanternHub.getKeyStoreManager();
         
         final HttpRequestFilter publicOnlyRequestFilter = 
