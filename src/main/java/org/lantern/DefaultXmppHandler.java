@@ -30,6 +30,7 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
@@ -148,8 +149,22 @@ public class DefaultXmppHandler implements XmppHandler {
         final int plainTextProxyRandomPort) {
         this.sslProxyRandomPort = sslProxyRandomPort;
         this.plainTextProxyRandomPort = plainTextProxyRandomPort;
+        prepopulateProxies();
     }
     
+    private void prepopulateProxies() {
+        // Add all the stored proxies.
+        final Collection<String> saved = LanternHub.settings().getProxies();
+        LOG.info("Proxy set is: {}", saved);
+        for (final String proxy : saved) {
+            // Don't use peer proxies since we're not connected to XMPP yet.
+            if (!proxy.contains("@")) {
+                LOG.info("Adding prepopulated proxy: {}", proxy);
+                addProxy(proxy);
+            }
+        }
+    }
+
     @Override
     public void connect() throws IOException {
         if (!LanternUtils.isConfigured() && LanternHub.settings().isUiEnabled()) {
@@ -391,9 +406,6 @@ public class DefaultXmppHandler implements XmppHandler {
                 if (!Configurator.configured()) {
                     Configurator.configure();
                 }
-                LOG.info("Dispatching CONNECTED event");
-                LanternHub.asyncEventBus().post(new ConnectivityStatusChangeEvent(
-                    ConnectivityStatus.CONNECTED));
             }
         }
 
@@ -721,6 +733,10 @@ public class DefaultXmppHandler implements XmppHandler {
             addLaeProxy(cur);
             return;
         }
+        if (!cur.contains("@")) {
+            addGeneralProxy(cur);
+            return;
+        }
         if (!isLoggedIn()) {
             LOG.info("Not connected -- ignoring proxy: {}", cur);
             return;
@@ -747,9 +763,7 @@ public class DefaultXmppHandler implements XmppHandler {
             } catch (final URISyntaxException e) {
                 LOG.error("Error with proxy URI", e);
             }
-        } else {
-            addGeneralProxy(cur);
-        }
+        } 
     }
 
     
@@ -790,7 +804,7 @@ public class DefaultXmppHandler implements XmppHandler {
     private void addLaeProxy(final String cur) {
         LOG.info("Adding LAE proxy");
         addProxyWithChecks(this.laeProxySet, this.laeProxies, 
-            new ProxyHolder(cur, new InetSocketAddress(cur, 443)));
+            new ProxyHolder(cur, new InetSocketAddress(cur, 443)), cur);
     }
     
     private void addGeneralProxy(final String cur) {
@@ -800,19 +814,30 @@ public class DefaultXmppHandler implements XmppHandler {
             Integer.parseInt(StringUtils.substringAfter(cur, ":"));
         final InetSocketAddress isa = 
             new InetSocketAddress(hostname, port);
-        addProxyWithChecks(proxySet, proxies, new ProxyHolder(hostname, isa));
+        addProxyWithChecks(proxySet, proxies, new ProxyHolder(hostname, isa), 
+            cur);
     }
 
     private void addProxyWithChecks(final Set<ProxyHolder> set,
-        final Queue<ProxyHolder> queue, final ProxyHolder ph) {
+        final Queue<ProxyHolder> queue, final ProxyHolder ph, 
+        final String fullProxyString) {
         if (set.contains(ph)) {
             LOG.info("We already know about proxy "+ph+" in {}", set);
+            
+            // Send the event again in case we've somehow gotten into the 
+            // wrong state.
+            LOG.info("Dispatching CONNECTED event");
+            LanternHub.asyncEventBus().post(new ConnectivityStatusChangeEvent(
+                ConnectivityStatus.CONNECTED));
             return;
         }
         
         final Socket sock = new Socket();
         try {
             sock.connect(ph.isa, 60*1000);
+            LOG.info("Dispatching CONNECTED event");
+            LanternHub.asyncEventBus().post(new ConnectivityStatusChangeEvent(
+                ConnectivityStatus.CONNECTED));
             synchronized (set) {
                 if (!set.contains(ph)) {
                     set.add(ph);
@@ -824,12 +849,9 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.error("Could not connect to: {}", ph);
             sendErrorMessage(ph.isa, e.getMessage());
             onCouldNotConnect(ph.isa);
+            LanternHub.settings().removeProxy(fullProxyString);
         } finally {
-            try {
-                sock.close();
-            } catch (final IOException e) {
-                LOG.info("Exception closing", e);
-            }
+            IOUtils.closeQuietly(sock);
         }
     }
 
