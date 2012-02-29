@@ -1,10 +1,11 @@
 package org.lantern;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
@@ -12,6 +13,7 @@ import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.Subscribe;
 
 /**
@@ -98,7 +100,7 @@ public class Settings implements MutableSettings {
     private boolean uiEnabled = true;
     
     
-    private Collection<String> proxies = new LinkedHashSet<String>();
+    private Set<String> proxies = new LinkedHashSet<String>();
     
     {
         LanternHub.register(this);
@@ -446,15 +448,27 @@ public class Settings implements MutableSettings {
     }
 
     public void addProxy(final String proxy) {
-        this.proxies.add(proxy);
-    }
-    
-    public void setProxies(Collection<String> proxies) {
-        this.proxies = proxies;
+        // Don't store peer proxies on disk.
+        if (!proxy.contains("@")) {
+            this.proxies.add(proxy);
+        }
     }
 
-    public Collection<String> getProxies() {
-        return proxies;
+    public void removeProxy(final String proxy) {
+        this.proxies.remove(proxy);
+    }
+    
+    public void setProxies(final Set<String> proxies) {
+        synchronized (this.proxies) {
+            this.proxies = proxies;
+        }
+    }
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public Set<String> getProxies() {
+        synchronized (this.proxies) {
+            return ImmutableSet.copyOf(this.proxies);
+        }
     }
 
     @Override
