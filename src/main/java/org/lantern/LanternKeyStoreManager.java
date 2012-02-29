@@ -79,6 +79,13 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         trustManagers = new TrustManager[] {
             lanternTrustManager
         };
+        Runtime.getRuntime().addShutdownHook(new Thread (new Runnable() {
+            @Override
+            public void run() {
+                fullDelete(KEYSTORE_FILE);
+                fullDelete(TRUSTSTORE_FILE);
+            }
+        }, "Keystore-Delete-Thread"));
     }
     
     private void fullDelete(final File file) {
