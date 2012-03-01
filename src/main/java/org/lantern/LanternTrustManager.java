@@ -5,9 +5,12 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -126,6 +129,7 @@ public class LanternTrustManager implements X509TrustManager {
         log.info("UNKNOWN CLIENT CERTIFICATE: " + chain[0].getSubjectDN());
     }
 
+    @Override
     public void checkServerTrusted(final X509Certificate[] chain, 
         final String authType) throws CertificateException {
         log.info("CHECKING IF SERVER IS TRUSTED");
@@ -147,12 +151,25 @@ public class LanternTrustManager implements X509TrustManager {
         log.info("CHECKING SERVER CERTIFICATE FOR: " + alias);
         try {
             final Certificate local = this.keyStore.getCertificate(alias);
-            if (local == null || !local.equals(cert)) {
+            if (local == null) {
+                log.warn("No matching cert for: "+alias);
+                throw new CertificateException("No cert for "+ alias);
+            }
+            local.verify(cert.getPublicKey());
+            if (!local.equals(cert)) {
                 log.info("Certs not equal:\n"+local+"\n and:\n"+cert);
                 throw new CertificateException("Did not recognize cert: "+cert);
             }
         } catch (final KeyStoreException e) {
             throw new CertificateException("Did not recognize cert: "+cert, e);
+        } catch (final InvalidKeyException e) {
+            throw new CertificateException("Key: "+cert, e);
+        } catch (final NoSuchAlgorithmException e) {
+            throw new CertificateException("Algorithm: "+cert, e);
+        } catch (final NoSuchProviderException e) {
+            throw new CertificateException("Providert: "+cert, e);
+        } catch (final SignatureException e) {
+            throw new CertificateException("Sig: "+cert, e);
         }
         log.info("Certificates matched!");
         
