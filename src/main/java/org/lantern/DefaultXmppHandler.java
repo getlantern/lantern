@@ -247,8 +247,11 @@ public class DefaultXmppHandler implements XmppHandler {
         // at all.
         LOG.info("Adding message listener...");
         this.client.get().addMessageListener(typedListener);
-        LanternHub.eventBus().post(
-            new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTING));
+        
+        if (this.proxies.isEmpty()) {
+            LanternHub.eventBus().post(
+                new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTING));
+        }
         LanternHub.eventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_IN));
         final String id;
@@ -260,8 +263,10 @@ public class DefaultXmppHandler implements XmppHandler {
         try {
             this.client.get().login(email, pwd, id);
         } catch (final IOException e) {
-            LanternHub.eventBus().post(
-                new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
+            if (this.proxies.isEmpty()) {
+                LanternHub.eventBus().post(
+                    new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
+            }
             LanternHub.eventBus().post(
                 new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_OUT));
             LanternHub.settings().setPasswordSaved(false);
@@ -344,16 +349,20 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         LOG.info("Disconnecting!!");
         lastJson = "";
-        LanternHub.eventBus().post(
-            new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTING));
+        if (this.proxies.isEmpty()) {
+            LanternHub.eventBus().post(
+                new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTING));
+        }
         LanternHub.asyncEventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_OUT));
         
         this.client.get().logout();
         this.client.set(null);
         
-        LanternHub.eventBus().post(
-            new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
+        if (this.proxies.isEmpty()) {
+            LanternHub.eventBus().post(
+                new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
+        }
         LanternHub.asyncEventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_OUT));
         proxySet.clear();
