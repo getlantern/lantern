@@ -35,6 +35,7 @@ public class Whitelist {
         addDefaultEntry("balatarin.com", false);
         addDefaultEntry("facebook.com", false);
         addDefaultEntry("flickr.com", false);
+        addDefaultEntry("hrw.org", false); // Human Rights Watch
         addDefaultEntry("ifconfig.me", false);
         addDefaultEntry("linkedin.com", false);
         addDefaultEntry("littleshoot.org", false);
