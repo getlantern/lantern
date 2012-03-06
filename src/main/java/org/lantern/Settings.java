@@ -1,10 +1,11 @@
 package org.lantern;
 
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentSkipListSet;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
@@ -12,6 +13,7 @@ import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.eventbus.Subscribe;
 
 /**
@@ -90,8 +92,15 @@ public class Settings implements MutableSettings {
      * browser.
      */
     private boolean launchd = false;
+
+    /**
+     * Whether or not we're running with a graphical UI.  
+     * Not stored or sent to the browser.
+     */
+    private boolean uiEnabled = true;
     
-    private Collection<String> proxies = new LinkedHashSet<String>();
+    
+    private Set<String> proxies = new LinkedHashSet<String>();
     
     {
         LanternHub.register(this);
@@ -343,7 +352,17 @@ public class Settings implements MutableSettings {
     public Country getCountryDetected() {
         return countryDetected;
     }
-    
+
+    @JsonView(UIStateSettings.class)
+    public long getPeerCount() {
+        return LanternHub.statsTracker().getPeerCount();
+    }
+
+    @JsonView(UIStateSettings.class)
+    public long getPeerCountThisRun() {
+        return LanternHub.statsTracker().getPeerCountThisRun();
+    }
+
     @JsonView(UIStateSettings.class)
     public long getUpRate() {
         return LanternHub.statsTracker().getUpBytesPerSecond();
@@ -420,16 +439,36 @@ public class Settings implements MutableSettings {
     }
     
 
-    public void addProxy(final String proxy) {
-        this.proxies.add(proxy);
+    public void setUiEnabled(boolean uiEnabled) {
+        this.uiEnabled = uiEnabled;
     }
     
-    public void setProxies(Collection<String> proxies) {
-        this.proxies = proxies;
+    public boolean isUiEnabled() {
+        return uiEnabled;
     }
 
-    public Collection<String> getProxies() {
-        return proxies;
+    public void addProxy(final String proxy) {
+        // Don't store peer proxies on disk.
+        if (!proxy.contains("@")) {
+            this.proxies.add(proxy);
+        }
+    }
+
+    public void removeProxy(final String proxy) {
+        this.proxies.remove(proxy);
+    }
+    
+    public void setProxies(final Set<String> proxies) {
+        synchronized (this.proxies) {
+            this.proxies = proxies;
+        }
+    }
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public Set<String> getProxies() {
+        synchronized (this.proxies) {
+            return ImmutableSet.copyOf(this.proxies);
+        }
     }
 
     @Override

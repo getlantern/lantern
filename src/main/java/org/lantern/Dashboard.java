@@ -204,7 +204,7 @@ public class Dashboard {
     }
     
     public void configureShutdownHook() {
-        final Thread hook = new Thread(new Runnable() {
+        LanternHub.display().disposeExec(new Runnable() {
             @Override
             public void run() {
                 boolean finished = false;
@@ -230,7 +230,6 @@ public class Dashboard {
                     }
                 }
             }
-        }, "Unset-Web-Proxy-Thread");
-        LanternHub.display().disposeExec(hook);
+        });
     }
 }

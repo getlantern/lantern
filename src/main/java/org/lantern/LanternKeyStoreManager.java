@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 
 import javax.net.ssl.TrustManager;
 
@@ -78,6 +79,13 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         trustManagers = new TrustManager[] {
             lanternTrustManager
         };
+        Runtime.getRuntime().addShutdownHook(new Thread (new Runnable() {
+            @Override
+            public void run() {
+                fullDelete(KEYSTORE_FILE);
+                fullDelete(TRUSTSTORE_FILE);
+            }
+        }, "Keystore-Delete-Thread"));
     }
     
     private void fullDelete(final File file) {
@@ -208,6 +216,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     }
 
     public TrustManager[] getTrustManagers() {
-        return trustManagers;
+        return Arrays.copyOf(trustManagers, trustManagers.length);
     }
 }
