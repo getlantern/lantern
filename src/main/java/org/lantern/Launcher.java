@@ -130,6 +130,8 @@ public class Launcher {
         if (cmd.hasOption(LanternConstants.OPTION_LAUNCHD)) {
             LOG.info("Running from launchd or launchd set on command line");
             LanternHub.settings().setLaunchd(true);
+        } else {
+            LanternHub.settings().setLaunchd(false);
         }
         
         final Display display;
@@ -201,6 +203,7 @@ public class Launcher {
             return;
         }
 
+        LOG.debug("Is launchd: {}", LanternHub.settings().isLaunchd());
         launchLantern();
         if (!LanternHub.settings().isLaunchd() || 
             !LanternHub.settings().isInitialSetupComplete()) {
