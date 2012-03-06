@@ -169,6 +169,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         allChannels.add(channel);
 
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            @Override
             public void run() {
                 stop();
             }
@@ -201,7 +202,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         return this.ksm;
     }
     
-    class StatsTrackingHttpServerPipelineFactory extends HttpServerPipelineFactory {
+    private static class StatsTrackingHttpServerPipelineFactory 
+        extends HttpServerPipelineFactory {
         
         public StatsTrackingHttpServerPipelineFactory(
             final ProxyAuthorizationManager authorizationManager, 
@@ -226,7 +228,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         }
     }
     
-    class StatsTrackingDefaultRelayPipelineFactoryFactory extends DefaultRelayPipelineFactoryFactory {
+    private static class StatsTrackingDefaultRelayPipelineFactoryFactory 
+        extends DefaultRelayPipelineFactoryFactory {
         
         public StatsTrackingDefaultRelayPipelineFactoryFactory(
             final ChainProxyManager chainProxyManager, 
@@ -240,7 +243,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         public ChannelPipelineFactory getRelayPipelineFactory(
             final HttpRequest httpRequest,final Channel browserToProxyChannel,
             final RelayListener relayListener) {
-            final ChannelPipelineFactory innerFactory = getRelayPipelineFactory(httpRequest, browserToProxyChannel, relayListener);
+            final ChannelPipelineFactory innerFactory =
+                    super.getRelayPipelineFactory(httpRequest, browserToProxyChannel, relayListener);
 
             return new ChannelPipelineFactory() {
                 @Override

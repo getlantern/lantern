@@ -33,8 +33,8 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Queue;
-import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
@@ -315,7 +315,7 @@ public class LanternUtils {
                     System.currentTimeMillis());
         } catch (final UnknownHostException e) {
             final byte[] bytes = new byte[24];
-            new Random().nextBytes(bytes);
+            LanternHub.secureRandom().nextBytes(bytes);
             return macMe(bytes);
         }
     }
@@ -496,14 +496,8 @@ public class LanternUtils {
 
     public static void waitForInternet() {
         while (true) {
-            try {
-                final DatagramChannel channel = DatagramChannel.open();
-                final SocketAddress server = 
-                    new InetSocketAddress("www.google.com", 80);
-                channel.connect(server);
+            if (hasNetworkConnection()) {
                 return;
-            } catch (final IOException e) {
-            } catch (final UnresolvedAddressException e) {
             }
             try {
                 Thread.sleep(50);
@@ -513,32 +507,66 @@ public class LanternUtils {
         }
     }
     
+    public static boolean hasNetworkConnection() {
+        // Just try a couple of times to make sure.
+        for (int i = 0; i < 2; i++) {
+            try {
+                final DatagramChannel channel = DatagramChannel.open();
+                final SocketAddress server = 
+                    new InetSocketAddress("www.google.com", 80);
+                channel.connect(server);
+                return true;
+            } catch (final IOException e) {
+            } catch (final UnresolvedAddressException e) {
+            }
+        }
+        return false;
+    }
+
     public static int randomPort() {
         final SecureRandom sr = LanternHub.secureRandom();
-        for (int i = 0; i < 10; i++) {
-            final int randomPort = 1024 + (Math.abs(sr.nextInt()) % 60000);
+        for (int i = 0; i < 20; i++) {
+            // The +1 on the random int is because 
+            // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE -- caught
+            // by FindBugs.
+            final int randomPort = 1024 + (Math.abs(sr.nextInt() + 1) % 60000);
+            ServerSocket sock = null;
             try {
-                final ServerSocket sock = new ServerSocket();
+                sock = new ServerSocket();
                 sock.bind(new InetSocketAddress("127.0.0.1", randomPort));
                 final int port = sock.getLocalPort();
-                sock.close();
                 return port;
             } catch (final IOException e) {
                 LOG.info("Could not bind to port: {}", randomPort);
+            } finally {
+                if (sock != null) {
+                    try {
+                        sock.close();
+                    } catch (IOException e) {
+                    }
+                }
             }
+            
         }
         
         // If we can't grab one of our securely chosen random ports, use
         // whatever port the OS assigns.
+        ServerSocket sock = null;
         try {
-            final ServerSocket sock = new ServerSocket();
+            sock = new ServerSocket();
             sock.bind(null);
             final int port = sock.getLocalPort();
-            sock.close();
             return port;
         } catch (final IOException e) {
             LOG.info("Still could not bind?");
-            return 1024 + (Math.abs(sr.nextInt()) % 60000);
+            return 1024 + (Math.abs(sr.nextInt() + 1) % 60000);
+        } finally {
+            if (sock != null) {
+                try {
+                    sock.close();
+                } catch (IOException e) {
+                }
+            }
         }
     }
     
@@ -556,6 +584,20 @@ public class LanternUtils {
     }
 
     private static String findKeytoolPath() {
+
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            // try to explicitly select the 1.6 keytool -- 
+            // The user may have 1.5 selected as the default 
+            // javavm (default in os x 10.5.8) 
+            // in this case, the default location below will
+            // point to the 1.5 keytool instead.
+            final File keytool16 = new File("/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/keytool");
+            if (keytool16.exists()) {
+                return keytool16.getAbsolutePath();
+            }
+        }
+        
+        
         final File defaultLocation = new File("/usr/bin/keytool");
         if (defaultLocation.exists()) {
             return defaultLocation.getAbsolutePath();
@@ -566,15 +608,6 @@ public class LanternUtils {
         }
         LOG.error("Could not fine keytool?!?!?!?");
         return null;
-    }
-
-    private static boolean RUN_WITH_UI = true;
-    public static void setUiEnabled(boolean uiIsEnabled) {
-        RUN_WITH_UI = uiIsEnabled;
-    }
-    
-    public static boolean runWithUi() {
-        return RUN_WITH_UI;
     }
     
     public static Packet activateOtr(final XMPPConnection conn) {
@@ -709,10 +742,10 @@ public class LanternUtils {
         final Map<String, String> map = new TreeMap<String, String>(
                 String.CASE_INSENSITIVE_ORDER);
         final Map<String, String[]> paramMap = req.getParameterMap();
-        final Set<String> keys = paramMap.keySet();
-        for (final String key : keys) {
-            final String[] values = paramMap.get(key);
-            map.put(key, values[0]);
+        final Set<Entry<String, String[]>> entries = paramMap.entrySet();
+        for (final Entry<String, String[]> entry : entries) {
+            final String[] values = entry.getValue();
+            map.put(entry.getKey(), values[0]);
         }
         return map;
     }

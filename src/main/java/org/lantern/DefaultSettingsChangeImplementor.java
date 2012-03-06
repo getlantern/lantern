@@ -101,8 +101,11 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
     @Override
     public void setEmail(final String email) {
         final String storedEmail = LanternHub.settings().getEmail();
-        if ((email == null && storedEmail == null) || 
-            (email.equals(storedEmail))) {
+        if ((email == null && storedEmail == null)) {
+            log.info("Email is unchanged.");
+            return;
+        }
+        if (storedEmail != null && storedEmail.equals(email)) {
             log.info("Email is unchanged.");
             return;
         }

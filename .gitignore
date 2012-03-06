@@ -1,10 +1,11 @@
 .DS_Store
 *.swp
 *.un~
+*.*~
 *.settings
 *.classpath
 *.project
 .sass-cache
-Lantern
+/Lantern
 log.txt
 target/

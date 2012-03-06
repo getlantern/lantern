@@ -4,7 +4,7 @@ $background-color-alt2: #bbcee9
 $background-color-alt3: #ebebeb
 $background-color-alt4: #e6ecf5
 $background-color-alt5: #2F2F2F
-$blueprint-font-family: Helvetica, Arial, sans-serif
+$blueprint-font-family: Helvetica, Arial, "Liberation Sans", sans-serif
 $font-fixedwidth: Monaco, monospace
 $blueprint-font-size: 14px
 $font-size-small: .9 * $blueprint-font-size
@@ -534,19 +534,21 @@ $contact-wdth: 510px
   position: absolute
   top: 4px
   font-size: $font-size-smaller
+  span, img
+    vertical-align: middle
 
 #topbar-peers
   left: 133px
 
 #topbar-rate-up
   left: 189px - 50px // XXX subtract for topbar-peers which is hidden
-  &:before
-    content: '⬆'
+  //&:before
+    content: '⬆' // XXX windows doesn't like this character
 
 #topbar-rate-dn
   left: 251px - 50px // XXX subtract for topbar-peers which is hidden
-  &:before
-    content: '⬇'
+  //&:before
+    content: '⬇' // XXX windows doesn't like this character
 
 #userlink
   position: absolute
@@ -674,12 +676,12 @@ p .buttonlink
   display: none
   color: $font-color-input
   height: 22px
-  width: 530px
+  width: 590px
   background-color: rgba(255, 255, 255, 0.9)
   position: fixed
   top: 13px
   left: 50%
-  margin-left: -250px
+  margin-left: -295px
   text-align: center
   border: 1px solid $edge-color
   +border-radius(3px)

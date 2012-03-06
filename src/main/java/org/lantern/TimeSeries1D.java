@@ -2,6 +2,7 @@ package org.lantern;
 
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.ConcurrentNavigableMap;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -14,7 +15,8 @@ import java.util.concurrent.ConcurrentSkipListMap;
  */
 public class TimeSeries1D {
     
-    private static final long NO_AGE_LIMIT = -1;
+    protected static final long NO_AGE_LIMIT = -1;
+    protected static final long DEFAULT_BUCKET_SIZE = 1;
     private final ConcurrentNavigableMap<Long, AtomicLong> observations;
     private final AtomicLong lifetimeTotal;
     private final long bucketSizeMillis;
@@ -25,7 +27,7 @@ public class TimeSeries1D {
      * (bucket size = 1ms) and no age limit
      */
     public TimeSeries1D() {
-        this(1, NO_AGE_LIMIT);
+        this(DEFAULT_BUCKET_SIZE, NO_AGE_LIMIT);
     }
     
     /** 
@@ -106,6 +108,16 @@ public class TimeSeries1D {
         // could certainly update other statistics here.
     }
 
+    public long latestValue() {
+        Map.Entry<Long, AtomicLong> last = observations.lastEntry(); 
+        if (last != null) {
+            return last.getValue().get();
+        }
+        else {
+            return 0;
+        }
+    }
+
     /** 
      * computes the average *per bucket* value in the set of 
      * buckets that cover the time window given.
@@ -175,6 +187,12 @@ public class TimeSeries1D {
      */
     public void resetLifetimeTotal(long value) {
         lifetimeTotal.set(value);
+    }
+    
+    // reset values 
+    public void reset() {
+        observations.clear();
+        resetLifetimeTotal();
     }
     
     // ...

@@ -223,10 +223,9 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
             // construct a "Secret"
             final Base64 base64 = new Base64();
             encodedKey = base64.encode(key);
-             // XXX eh can this be autoboxed or somthing?
             secretValue = new ArrayList<Byte>(encodedKey.length);
             for (byte b : encodedKey) {
-                secretValue.add(new Byte(b));
+                secretValue.add(b);
             }
             final Secret secret = new Secret(sessionPath, new ArrayList<Byte>(), secretValue, SECRET_CONTENT_TYPE);
             final Map<String, Variant> secretProps = new HashMap<String, Variant>();

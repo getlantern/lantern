@@ -127,8 +127,6 @@ public class LanternHub {
             
         }, "Write-Settings-Thread"));
         
-        // We need the system tray to listen for events early on.
-        systemTray();
         try {
             Configurator.copyFireFoxExtension();
         } catch (final IOException e) {
@@ -191,7 +189,7 @@ public class LanternHub {
     public static SystemTray systemTray() {
         synchronized (systemTray) {
             if (systemTray.get() == null) {
-                if (LanternUtils.runWithUi()) {
+                if (settings().isUiEnabled()) {
                     final SystemTray tray = new SystemTrayImpl();
                     systemTray.set(tray);
                 } else {

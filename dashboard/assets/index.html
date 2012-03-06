@@ -136,8 +136,14 @@
             <!--
             <span id=topbar-peers class=topbar-stat>{{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span>
             -->
-            <span id=topbar-rate-up class="topbar-stat rate">{{bytesrate(state.upRate, false, updnrate())}}</span>
-            <span id=topbar-rate-dn class="topbar-stat rate">{{bytesrate(state.downRate, false, updnrate())}}</span>
+            <span id=topbar-rate-up class="topbar-stat rate">
+              <img src=img/topbar-arrow-up.png alt="upload rate" />
+              {{bytesrate(state.upRate, false, updnrate())}}
+            </span>
+            <span id=topbar-rate-dn class="topbar-stat rate">
+              <img src=img/topbar-arrow-dn.png alt="download rate" />
+              {{bytesrate(state.downRate, false, updnrate())}}
+            </span>
           </span>
           <a ng:show=state.email id=userlink class="collapsed">{{state.email}}</a>
         </div>
@@ -178,7 +184,7 @@
             -->
             <dt ng:show=loggedin()>Transfers</dt>
             <dd ng:show=loggedin()>
-              <div>{{bytesrate(updnrate())}} currently <!--via <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize>--></div>
+              <div>{{bytesrate(updnrate())}} currently via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></div>
               <div>{{prettybytes(state.upTotalLifetime + state.downTotalLifetime)}} lifetime</div>
             </dd>
             <dt>Version</dt>
@@ -238,7 +244,7 @@
             Sensitive communication can be submitted securely through the
             form below.
           </p>
-          <textarea ng:model=pm id=pm-textarea placeholder="Private message to Lantern developers" title="This form is sent securely."></textarea>
+          <textarea ng:model=pm id=pm-textarea class=lionbars placeholder="Private message to Lantern developers" title="This form is sent securely."></textarea>
           <div id=pm-controls>
             <!--
             <label><input type=checkbox ng:model=requestreply /> please reply to</label>
