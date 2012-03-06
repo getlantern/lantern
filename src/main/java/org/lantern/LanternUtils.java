@@ -44,6 +44,8 @@ import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpUtils;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.URIException;
@@ -883,6 +885,36 @@ public class LanternUtils {
             return Integer.parseInt(val);
         } 
         return val;
+    }
+    /**
+     * Prints request headers.
+     * 
+     * @param request The request.
+     */
+    public static void printRequestHeaders(final HttpServletRequest request) {
+        LOG.info(getRequestHeaders(request).toString());
+    }
+    
+    /**
+     * Gets request headers as a string.
+     * 
+     * @param request The request.
+     * @return The request headers as a string.
+     */
+    public static String getRequestHeaders(final HttpServletRequest request) {
+        final Enumeration<String> headers = request.getHeaderNames();
+        final StringBuilder sb = new StringBuilder();
+        sb.append("\n");
+        sb.append(request.getRequestURL().toString());
+        sb.append("\n");
+        while (headers.hasMoreElements()) {
+            final String headerName = headers.nextElement();
+            sb.append(headerName);
+            sb.append(": ");
+            sb.append(request.getHeader(headerName));
+            sb.append("\n");
+        }
+        return sb.toString();
     }
 }
 
