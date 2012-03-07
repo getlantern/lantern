@@ -125,6 +125,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         final SSLEngine engine;
         if (this.isLae) {
             log.info("Creating standard SSL engine");
+            // TODO: Pre-ship with approved certs.
             try {
                 engine = SSLContext.getDefault().createSSLEngine();
             } catch (final NoSuchAlgorithmException e) {

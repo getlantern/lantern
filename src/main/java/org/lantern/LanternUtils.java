@@ -193,6 +193,11 @@ public class LanternUtils {
         final Map<URI, AtomicInteger> peerFailureCount,
         final boolean raw) throws IOException {
 
+        if (p2pClient == null) {
+            LOG.info("P2P client is null. Testing?");
+            throw new IOException("P2P client not connected");
+        }
+        
         // Start the connection attempt.
         try {
             LOG.info("Creating a new socket to {}", uri);
