@@ -1,6 +1,8 @@
 package org.lantern;
 
+import java.net.InetSocketAddress;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
@@ -102,6 +104,12 @@ public class Settings implements MutableSettings {
     
     private Set<String> proxies = new LinkedHashSet<String>();
     
+    /**
+     * These are cached proxies we've connected to over TCP/SSL.
+     */
+    private Set<InetSocketAddress> peerProxies = 
+        new HashSet<InetSocketAddress>();
+
     {
         LanternHub.register(this);
     }
@@ -469,6 +477,27 @@ public class Settings implements MutableSettings {
         synchronized (this.proxies) {
             return ImmutableSet.copyOf(this.proxies);
         }
+    }
+    
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public Set<InetSocketAddress> getPeerProxies() {
+        synchronized (this.proxies) {
+            return ImmutableSet.copyOf(this.peerProxies);
+        }
+    }
+
+    public void setPeerProxies(final Set<InetSocketAddress> peerProxies) {
+        synchronized (this.peerProxies) {
+            this.peerProxies = peerProxies;
+        }
+    }
+    
+    public void addPeerProxy(final InetSocketAddress proxy) {
+        this.peerProxies.add(proxy);
+    }
+    
+    public void removePeerProxy(final InetSocketAddress proxy) {
+        this.peerProxies.remove(proxy);
     }
 
     @Override
