@@ -520,8 +520,6 @@ $(document).ready(function(){
     }
   });
 
-
-
   $('.flashmsg .close').click(function(evt){
     $(evt.target).parent('.flashmsg').fadeOut();
     evt.preventDefault();

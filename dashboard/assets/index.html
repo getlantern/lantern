@@ -133,9 +133,7 @@
         <div id=topbar>
           <span id=topbar-conn ng:class="['iconlabel', state.connectivity, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}</span></span>
           <span ng:show=loggedin()>
-            <!--
             <span id=topbar-peers class=topbar-stat>{{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span>
-            -->
             <span id=topbar-rate-up class="topbar-stat rate">
               <img src=img/topbar-arrow-up.png alt="upload rate" />
               {{bytesrate(state.upRate, false, updnrate())}}
@@ -174,17 +172,9 @@
               <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()" ng:show=loggedout()>Sign in</a></span>
               </span>
             </dd>
-            <!--
-            <dt ng:show=loggedin()>Peers</dt>
-            <dd ng:show=loggedin()>
-              <span id=give-mode-peers>
-                {{npeers()}}
-              </span>
-            </dd>
-            -->
             <dt ng:show=loggedin()>Transfers</dt>
             <dd ng:show=loggedin()>
-              <div>{{bytesrate(updnrate())}} currently via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></div>
+            <div>{{bytesrate(updnrate())}} currently<span ng:show=npeers()> via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span></div>
               <div>{{prettybytes(state.upTotalLifetime + state.downTotalLifetime)}} lifetime</div>
             </dd>
             <dt>Version</dt>
