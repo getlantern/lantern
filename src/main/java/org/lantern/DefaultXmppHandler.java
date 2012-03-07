@@ -237,7 +237,7 @@ public class DefaultXmppHandler implements XmppHandler {
             @Override
             public void onConnectivityEvent(final P2PConnectionEvent event) {
                 LOG.info("Got connectivity event: {}", event);
-                LanternHub.eventBus().post(event);
+                LanternHub.asyncEventBus().post(event);
             }
         });
         
@@ -336,7 +336,6 @@ public class DefaultXmppHandler implements XmppHandler {
         
         gTalkSharedStatus();
         updatePresence();
-        //sendInfoRequest();
         configureRoster();
     }
     
