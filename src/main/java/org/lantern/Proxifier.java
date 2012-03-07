@@ -99,6 +99,7 @@ public class Proxifier {
     
     public static void startProxying() throws ProxyConfigurationError {
         if (isProxying()) {
+            LOG.info("Already proxying!");
             return;
         }
 
