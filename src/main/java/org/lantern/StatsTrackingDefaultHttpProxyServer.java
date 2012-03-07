@@ -124,6 +124,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         this.requestFilter = requestFilter;
         this.chainProxyManager = chainProxyManager;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
+            @Override
             public void uncaughtException(final Thread t, final Throwable e) {
                 log.error("Uncaught throwable", e);
             }
