@@ -27,7 +27,7 @@ class PeerCounter extends TimeSeries1D {
     
     public PeerCounter(long bucketSizeMillis, long ageLimit) {
         super(bucketSizeMillis, ageLimit);
-        
+        LanternHub.register(this);
         peers = new ConcurrentSkipListSet<String>();
         lifetimePeers = new ConcurrentSkipListSet<String>();
         
