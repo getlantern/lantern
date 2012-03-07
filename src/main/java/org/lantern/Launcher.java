@@ -296,6 +296,12 @@ public class Launcher {
             LOG.info("Not auto-logging in with settings:\n{}",
                 LanternHub.settings());
         }
+        
+        try {
+            LanternHub.configurator().copyFireFoxExtension();
+        } catch (final IOException e) {
+            LOG.error("Could not copy extension", e);
+        }
         lanternStarted = true;
     }
     
