@@ -8,6 +8,9 @@ import java.util.TreeSet;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.jivesoftware.smack.packet.Presence;
+import org.littleshoot.commom.xmpp.XmppP2PClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.eventbus.Subscribe;
@@ -17,6 +20,8 @@ import com.google.common.eventbus.Subscribe;
  */
 public class Roster {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     private Map<String, LanternPresence> entries = 
         new HashMap<String, LanternPresence>();
     
@@ -57,8 +62,12 @@ public class Roster {
         this.status = ase.getStatus();
         switch (status) {
         case LOGGED_IN:
-            setEntriesMap(LanternUtils.getRosterEntries(
-                LanternHub.xmppHandler().getP2PClient().getXmppConnection()));
+            final XmppP2PClient client = LanternHub.xmppHandler().getP2PClient();
+            if (client != null) {
+                setEntriesMap(LanternUtils.getRosterEntries(client.getXmppConnection()));
+            } else {
+                log.warn("No client -- probably testing");
+            }
             break;
         case LOGGED_OUT:
             setEntriesMap(new HashMap<String, LanternPresence>());
