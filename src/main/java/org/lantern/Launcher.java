@@ -218,6 +218,8 @@ public class Launcher {
         final HttpRequestFilter publicOnlyRequestFilter = 
             new PublicIpsOnlyRequestFilter();
         
+        // Note that just passing in the keystore manager triggers this to 
+        // become an SSL proxy server.
         final StatsTrackingDefaultHttpProxyServer sslProxy =
             new StatsTrackingDefaultHttpProxyServer(LanternHub.randomSslPort(),
             new HttpResponseFilters() {
