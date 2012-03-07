@@ -215,7 +215,8 @@ public class DefaultLanternApi implements LanternApi {
     }
 
     private void returnSettings(final HttpServletResponse resp) {
-        returnJson(resp, LanternHub.settings());
+        final String json = LanternUtils.jsonify(LanternHub.settings(), Settings.UIStateSettings.class);
+        returnJson(resp, json);
     }
 
     private void handleWhitelist(final HttpServletResponse resp) {
@@ -242,9 +243,12 @@ public class DefaultLanternApi implements LanternApi {
         returnJson(resp, roster);
     }
 
-
     private void returnJson(final HttpServletResponse resp, final Object obj) {
         final String json = LanternUtils.jsonify(obj);
+        returnJson(resp, json);
+    }
+    
+    private void returnJson(final HttpServletResponse resp, final String json) {
         final byte[] body;
         try {
             body = json.getBytes("UTF-8");
