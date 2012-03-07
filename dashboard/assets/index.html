@@ -281,7 +281,7 @@
               <li><input type=password placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
-            <button ng:show=!loggingin() type=submit ng:disabled="{{(loggedin() && sameuser()) || (passrequired() && !inputpassword)}}" >Sign in</button>
+            <button ng:show=!loggingin() type=submit ng:disabled="{{(loggedin() && sameuser() && !inputpassword) || (passrequired() && !inputpassword)}}" >Sign in</button>
             <img class=spinner src=img/spinner-big.gif alt="Signing in..." ng:show=loggingin() />
           </form>
         </div>

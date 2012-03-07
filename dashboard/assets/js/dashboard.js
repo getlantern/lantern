@@ -269,9 +269,9 @@ function LDCtrl(){
     self.state.connectivity = 'CONNECTING';
     self.$digest();
     console.log('Signing in with:', data);
+    $('form.signin').removeClass('badcredentials');
     $.post('/api/signin', data).done(function(state){
       console.log('signin succeeded');
-      $('form.signin').removeClass('badcredentials');
       self.inputpassword = '';
       self.showsignin(false);
       self.update(state);
@@ -546,6 +546,12 @@ $(document).ready(function(){
   $('#sitetoadd').live('blur', function(){
     $(this).val('');
   });
+
+  // XXX force revalidation
+  $('form.signin input').keyup(function(evt){
+    $('form.signin input').change();
+  });
+
 
   // http://cometd.org/documentation/cometd-javascript/subscription
   function _connectionEstablished(){
