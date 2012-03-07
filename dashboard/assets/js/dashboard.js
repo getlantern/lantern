@@ -509,6 +509,18 @@ $(document).ready(function(){
     evt.preventDefault();
     //_resize_body(); // XXX height hack
   });
+  var KEYCODE_ESC = 27;
+  $(document).keyup(function(evt){
+    switch(evt.keyCode){
+    case KEYCODE_ESC:
+      $('.overlay.selected').removeClass('selected');
+      getscope().showsignin(false);
+      getscope().$digest();
+      break;
+    }
+  });
+
+
 
   $('.flashmsg .close').click(function(evt){
     $(evt.target).parent('.flashmsg').fadeOut();
@@ -536,7 +548,6 @@ $(document).ready(function(){
   $('#sitetoadd').live('blur', function(){
     $(this).val('');
   });
-
 
   // http://cometd.org/documentation/cometd-javascript/subscription
   function _connectionEstablished(){
