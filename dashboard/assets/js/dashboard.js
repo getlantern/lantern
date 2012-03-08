@@ -350,15 +350,6 @@ function LDCtrl(){
     }, 1000);
   };
 
-  self.signout = function(){
-    $.post('/api/signout').done(function(state){
-      console.log('signout succeeded');
-      self.update(state);
-    }).fail(function(){
-      console.log('signout failed');
-    });
-  };
-
   self.toggle = function(setting, manual){
     var newvalue = manual ? !self.state[setting] : self.state[setting];
     console.log('attempting to toggle '+setting+' to '+newvalue);
