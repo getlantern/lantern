@@ -45,7 +45,7 @@ public class Dashboard {
     }
     
     protected void buildBrowser() {
-        log.info("Creating shell...");
+        log.debug("Creating shell...");
         if (this.shell != null && !this.shell.isDisposed()) {
             this.shell.forceActive();
             return;
@@ -74,9 +74,9 @@ public class Dashboard {
 
         shell.setLocation(x, y);
         
-        log.info("Creating new browser...");
+        log.debug("Creating new browser...");
         final Browser browser = new Browser(shell, SWT.NONE);
-        log.info("Running browser: {}", browser.getBrowserType());
+        log.debug("Running browser: {}", browser.getBrowserType());
         browser.setSize(minWidth, minHeight);
         //browser.setBounds(0, 0, 800, 600);
         browser.setUrl("http://localhost:"+

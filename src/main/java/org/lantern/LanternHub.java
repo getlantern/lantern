@@ -113,6 +113,8 @@ public class LanternHub {
     private static final AtomicReference<Settings> settings = 
         new AtomicReference<Settings>();
     
+    private static final Configurator configurator = new Configurator();
+    
     static {
         resetSettings();
         
@@ -126,12 +128,6 @@ public class LanternHub {
             }
             
         }, "Write-Settings-Thread"));
-        
-        try {
-            Configurator.copyFireFoxExtension();
-        } catch (final IOException e) {
-            LOG.error("Could not copy extension", e);
-        }
     }
     
     public static LookupService getGeoIpLookup() {
@@ -451,6 +447,10 @@ public class LanternHub {
         roster.set(rost);
     }
     
+    public static Configurator configurator() {
+        return configurator;
+    }
+    
     protected static void _resetRoster() {
         setRoster(new Roster());
     }
@@ -479,6 +479,6 @@ public class LanternHub {
         _resetCookieTracker();
         statsTracker().resetUserStats();
     }
-    
+
 
 }

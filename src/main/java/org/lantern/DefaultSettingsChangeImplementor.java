@@ -142,6 +142,10 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         try {
             try {
                 LanternHub.xmppHandler().connect();
+                
+                // TODO: This isn't quite right. We don't necessarily have
+                // proxies to connect to at this point, and we shouldn't set
+                // the OS proxy until we do.
                 if (LanternHub.settings().isInitialSetupComplete()) {
                     // may need to modify the proxying state
                     if (LanternUtils.shouldProxy()) {

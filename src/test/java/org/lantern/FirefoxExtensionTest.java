@@ -12,11 +12,11 @@ public class FirefoxExtensionTest {
 
     @Test public void testCopy() throws Exception {
         final String extName = "lantern@getlantern.org";
-        final File dest = new File(Configurator.getExtensionDir(), extName);
+        final File dest = new File(LanternHub.configurator().getExtensionDir(), extName);
 
         FileUtils.deleteDirectory(dest);
         
-        Configurator.copyFireFoxExtension();
+        LanternHub.configurator().copyFireFoxExtension();
         assertTrue("Did not create directory!", dest.isDirectory());
         dest.delete();
     }
