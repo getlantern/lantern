@@ -1,4 +1,4 @@
-package org.lantern; 
+package org.lantern.privacy; 
 
 import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey;
@@ -28,11 +28,11 @@ public class MacLocalCipherProvider extends AbstractAESLocalCipherProvider {
 
     private final Logger log = LoggerFactory.getLogger(getClass());    
 
-    MacLocalCipherProvider() {
+    public MacLocalCipherProvider() {
         super();
     }
     
-    MacLocalCipherProvider(final File validatorFile, final File cipherParamsFile) {
+    public MacLocalCipherProvider(final File validatorFile, final File cipherParamsFile) {
         super(validatorFile, cipherParamsFile);
     }
 

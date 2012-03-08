@@ -1,4 +1,4 @@
-package org.lantern; 
+package org.lantern.privacy; 
 
 import java.io.File;
 import java.io.IOException;
@@ -10,6 +10,8 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.SecretKey; 
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.spec.IvParameterSpec;
+
+import org.lantern.LanternHub;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

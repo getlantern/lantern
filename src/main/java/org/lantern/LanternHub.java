@@ -18,6 +18,11 @@ import org.eclipse.swt.widgets.Display;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.InMemoryCookieTracker;
 import org.lantern.httpseverywhere.HttpsEverywhere;
+import org.lantern.privacy.DefaultLocalCipherProvider;
+import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.privacy.MacLocalCipherProvider;
+import org.lantern.privacy.SecretServiceLocalCipherProvider;
+import org.lantern.privacy.WindowsLocalCipherProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

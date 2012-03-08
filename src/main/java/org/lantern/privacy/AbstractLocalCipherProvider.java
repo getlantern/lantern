@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.privacy;
 
 import java.io.File;
 import java.io.IOException;
@@ -10,6 +10,10 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import javax.crypto.Cipher;
 import org.apache.commons.io.FileUtils;
+
+import org.lantern.LanternHub;
+import org.lantern.LanternUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
