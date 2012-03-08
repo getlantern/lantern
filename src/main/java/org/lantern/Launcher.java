@@ -16,6 +16,7 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.UnrecognizedOptionException;
+import org.apache.commons.io.FileUtils;
 import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
@@ -146,7 +147,10 @@ public class Launcher {
         else {
             display = null;
         }
-
+        
+        // attempt to load saved settings
+        loadSettingsOrReset();
+        
         if (LanternUtils.hasNetworkConnection()) {
             LOG.info("Got internet...");
             launchWithOrWithoutUi();
@@ -190,6 +194,33 @@ public class Launcher {
         if (display != null) {
             while (!display.isDisposed ()) {
                 if (!display.readAndDispatch ()) display.sleep ();
+            }
+        }
+    }
+
+    private static void loadSettingsOrReset() {
+        LanternHub.resetSettings(true);
+        if (LanternHub.settings().getSettings().getState() == SettingsState.State.CORRUPTED) {
+            try {
+                // current behavior is automatic reset of all local data / ciphers
+                // immediately.  This behavior could be deferred until later or handled
+                // in some other way.
+                LanternHub.localCipherProvider().reset();
+                FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
+                LanternHub.resetSettings(true);
+                LanternHub.resetUserConfig(); // among others, TrustedContacts...
+            }
+            catch (IOException e) {
+                LOG.error("Failed to reset corrupt settings: {}", e);
+                System.exit(1);
+            }
+            // still corrupt?
+            if (LanternHub.settings().getSettings().getState() == SettingsState.State.CORRUPTED) {
+                LOG.error("Failed to reset corrupt settings.");
+                System.exit(1);
+            }
+            else {
+                LOG.info("Settings have been reset.");
             }
         }
     }
