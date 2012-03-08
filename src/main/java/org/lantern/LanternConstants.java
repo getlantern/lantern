@@ -79,7 +79,9 @@ public class LanternConstants {
     
     public static final String OPTION_API_PORT = "api-port";
 
-    public static final String OPTION_DISABLE_KEYCHAIN = "disable-keychain"; 
+    public static final String OPTION_DISABLE_KEYCHAIN = "disable-keychain";
+    
+    public static final String OPTION_PASSWORD_FILE = "password-file";
     
     /**
      * Plist file for launchd on OSX.
