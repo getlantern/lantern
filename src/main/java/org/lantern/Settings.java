@@ -111,6 +111,11 @@ public class Settings implements MutableSettings {
      */
     private boolean uiEnabled = true;
     
+    /**
+     * Indicates whether use of keychains is enabled. 
+     * this can be disabled by command line option.
+     */
+    private boolean keychainEnabled = true;
     
     private Set<String> proxies = new LinkedHashSet<String>();
     
@@ -464,6 +469,13 @@ public class Settings implements MutableSettings {
     @JsonView(CommandLineSettings.class)    
     public boolean isUiEnabled() {
         return uiEnabled;
+    }
+    
+    public void setKeychainEnabled(boolean keychainEnabled) {
+        this.keychainEnabled = keychainEnabled;
+    }
+    public boolean isKeychainEnabled() {
+        return keychainEnabled;
     }
 
     public void addProxy(final String proxy) {
