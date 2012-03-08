@@ -13,6 +13,7 @@ import java.util.Collection;
 import java.util.Properties;
 
 import org.lantern.privacy.InvalidKeyException;
+import org.lantern.privacy.LocalCipherProvider;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -21,6 +22,7 @@ import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
@@ -94,6 +96,8 @@ public class Launcher {
             "running from launchd - not normally called from command line");
         options.addOption(null, LanternConstants.OPTION_DISABLE_KEYCHAIN, false, 
             "disable use of system keychain and ask for local password");
+        options.addOption(null, LanternConstants.OPTION_PASSWORD_FILE, true, 
+            "read local password from the file specified");
         final CommandLineParser parser = new PosixParser();
         final CommandLine cmd;
         try {
@@ -128,6 +132,9 @@ public class Launcher {
             LanternHub.settings().setKeychainEnabled(true);
         }
         
+        if (cmd.hasOption(LanternConstants.OPTION_PASSWORD_FILE)) {
+            loadLocalPasswordFile(cmd.getOptionValue(LanternConstants.OPTION_PASSWORD_FILE));
+        }
         
         if (cmd.hasOption(LanternConstants.OPTION_PUBLIC_API)) {
             LanternHub.settings().setBindToLocalhost(false);
@@ -323,6 +330,47 @@ public class Launcher {
             return false;
         }
         return true;
+    }
+    
+    private static void loadLocalPasswordFile(final String pwFilename) {
+        final LocalCipherProvider lcp = LanternHub.localCipherProvider();
+        if (!lcp.requiresAdditionalUserInput()) {
+            LOG.error("Settings do not require a password to unlock.");
+            System.exit(1);
+        }
+
+        if (StringUtils.isBlank(pwFilename)) {
+            LOG.error("No filename specified to --{}", LanternConstants.OPTION_PASSWORD_FILE);
+            System.exit(1);
+        }
+        final File pwFile = new File(pwFilename);
+        if (!pwFile.exists() && pwFile.canRead()) {
+            LOG.error("Unable to read password from {}", pwFilename);
+            System.exit(1);
+        }
+
+        LOG.info("Reading local password from file \"{}\"", pwFilename);
+        try {
+            final String pw = FileUtils.readLines(pwFile, "US-ASCII").get(0);
+            final boolean init = !LanternHub.settings().isLocalPasswordInitialized();
+            lcp.feedUserInput(pw.toCharArray(), init);
+        }
+        catch (final IndexOutOfBoundsException e) {
+            LOG.error("Password in file \"{}\" was incorrect", pwFilename);
+            System.exit(1);
+        }
+        catch (final InvalidKeyException e) {
+            LOG.error("Password in file \"{}\" was incorrect", pwFilename);
+            System.exit(1);
+        }
+        catch (final GeneralSecurityException e) {
+            LOG.error("Failed to initialize using password in file \"{}\": {}", pwFilename, e);
+            System.exit(1);
+        }
+        catch (final IOException e) {
+            LOG.error("Failed to initialize using password in file \"{}\": {}", pwFilename, e);
+            System.exit(1);
+        }        
     }
     
     private static void launchWithOrWithoutUi() {
