@@ -221,10 +221,7 @@ public class Launcher {
                 // immediately.  This behavior could be deferred until later or handled
                 // in some other way.
                 LOG.warn("Destroying corrupt settings...");
-                LanternHub.localCipherProvider().reset();
-                FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
-                LanternHub.resetSettings(true);
-                LanternHub.resetUserConfig(); // among others, TrustedContacts...
+                LanternHub.destructiveFullReset();
             }
             catch (IOException e) {
                 LOG.error("Failed to reset corrupt settings: {}", e);

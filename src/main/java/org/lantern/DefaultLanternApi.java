@@ -186,9 +186,7 @@ public class DefaultLanternApi implements LanternApi {
         try {
             _signout();
             
-            FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
-            LanternHub.resetSettings(true);
-            LanternHub.resetUserConfig();
+            LanternHub.destructiveFullReset();
             
             returnSettings(resp);
         } catch (final IOException e) {
