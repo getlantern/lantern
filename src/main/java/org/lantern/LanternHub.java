@@ -121,8 +121,10 @@ public class LanternHub {
     private static final Configurator configurator = new Configurator();
     
     static {
-        resetSettings();
+        // start with an UNSET settings object until loaded
+        settings.set(new Settings());
         
+        // if they were sucessfully loaded, save the most current state when exiting.
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
@@ -130,6 +132,15 @@ public class LanternHub {
                 LOG.info("Writing settings");
                 settingsIo.get().write(settings());
                 LOG.info("Finished writing settings...");
+                SettingsState ss = settings().getSettings();
+                if (ss.getState() == SettingsState.State.SET) {
+                    LOG.info("Writing settings");
+                    LanternHub.settingsIo().write(LanternHub.settings());
+                    LOG.info("Finished writing settings...");
+                }
+                else {
+                    LOG.warn("Not writing settings, state was {}", ss.getState());
+                }
             }
             
         }, "Write-Settings-Thread"));

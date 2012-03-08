@@ -72,7 +72,6 @@ public class SettingsIo {
         } finally {
             IOUtils.closeQuietly(is);
         }
-        settingsFile.delete();
         final Settings settings = newSettings();
         final SettingsState ss = new SettingsState();
         ss.setState(State.CORRUPTED);
