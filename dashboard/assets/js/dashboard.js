@@ -82,6 +82,11 @@ function LDCtrl(){
   self.FETCHFAILED = FETCHFAILED;
   self.FETCHSUCCESS = FETCHSUCCESS;
 
+  self.stateunset = function() { return self.stateloaded() && self.state.settings.state == 'UNSET'; }
+  self.stateset = function() { return self.stateloaded() && self.state.settings.state == 'SET'; }
+  self.statelocked = function() { return self.stateloaded() && self.state.settings.state == 'LOCKED'; }
+  self.statecorrupt = function() { return self.stateloaded() && self.state.settings.state == 'CORRUPTED'; }
+
   self.updateavailable = function(){
     return !$.isEmptyObject(self.state.update);
   };
@@ -122,6 +127,13 @@ function LDCtrl(){
   self.inputemail = null;
   self.inputpassword = null;
 
+  // bind these together with a watch so that the value 
+  // propagates during the $digest instead of after it
+  // (was bound using value="{{self.state.email || ''}}")
+  self.$watch("state.email", function(scope, newVal, oldVal) {
+      self.inputemail = self.state.email;
+  }); 
+
   self.peerfilterinput = null;
   self.peerfilter = function(peer){
     var f = self.peerfilterinput;
@@ -147,18 +159,37 @@ function LDCtrl(){
     return 'password';
   };
 
+  self.resetshowsignin = function() {
+    self._showsignin = self.loggedout() && self.state.connectOnLaunch && !self.state.passwordSaved;
+    console.log('set _showsignin to', self._showsignin);
+  }
+
   self.showsignin = function(val){
     if(typeof val == 'undefined'){
       if(typeof self._showsignin == 'undefined'){
-        self._showsignin = !self.loggedin() && self.state.connectOnLaunch && !self.state.passwordSaved;
-        console.log('set _showsignin to', self._showsignin);
+        self.resetshowsignin();
       }
     }else{
       self._showsignin = val;
     }
     return self._showsignin;
   }
-
+  
+  self.showwelcome = function() {
+    if (self.state.initialSetupComplete) {
+      return false;
+    }
+    else if (self.stateset()) {
+      return true;
+    }
+    else if (self.statelocked()) {
+      return !self.state.localPasswordInitialized;
+    }
+    else {
+      return false; // corrupted or unknown
+    }
+  }
+  
   self.pm = null;
   self.requestreply = false;
   self.requestreplyto = null;
@@ -385,6 +416,28 @@ function LDCtrl(){
       });
     }
   };
+  
+  self.localpassword = null;
+  self.unlocksettings = function() {
+    $.post('/api/unlock', {'password': self.localpassword}).done(function(state){
+      $('#unlock-welcome').removeClass("unlock-failed");
+      $('#unlock-welcome').removeClass("invalid-password");
+      self.localpassword = null;
+      self.update(state);
+      // since this is essentially a re-init prior to 
+      // showing the dashboard, we re-init this as well.
+      self.resetshowsignin();
+      self.$digest();
+    }).fail(function(r) {
+      if (r.status >= 400 && r.status < 500) {
+        $('#unlock-slide').addClass("invalid-password");
+      }
+      else if (r.status >= 500 && r.status < 600) {
+        $('#unlock-slide').addClass("unlock-failed");
+      }
+    });
+  }
+  
 
   self._validatewhitelistentry = function(val){
     // XXX ip addresses acceptable?
@@ -457,6 +510,47 @@ function LDCtrl(){
 
   self.todo = function(){alert('todo');}
 }
+
+function SetLocalPasswordCntl() {
+  this.password = '';
+  this.password2 = '';
+  this.servererr = null;
+  this.blankpat = /^\s*$/;
+}
+SetLocalPasswordCntl.prototype = {
+  isvalid: function() {
+    return !this.isblank() && this.passwordsmatch();
+  },
+  
+  isblank: function() {
+    return this.blankpat.test(this.password);
+  },
+  
+  passwordsmatch: function() {
+    return this.password == this.password2;
+  },
+  
+  hasservererr: function() {
+    return this.servererr != null;
+  },
+  
+  submitpassword: function() {
+    console.log('submitting local password...');
+    var thisCtrl = this;
+    $.post('/api/setlocalpassword',
+           {'password': this.password}
+    ).done(function(){
+      thisCtrl.servererr = null;
+      thisCtrl.$digest();
+      console.log('set local password succeeded.');
+      showid('#mode');
+    }).fail(function(e){
+      thisCtrl.servererr = "An error occurred setting local password.";
+      thisCtrl.$digest();
+      console.log('request to set local password failed.');
+    });
+  }
+};
 
 $(document).ready(function(){
   var scope = null;

@@ -280,9 +280,9 @@ public class DefaultLanternApi implements LanternApi {
             LanternHub.resetSettings(true);
             SettingsState.State ss = LanternHub.settings().getSettings().getState();
             if (ss != SettingsState.State.SET) {
-                sendServerError(resp, "Failed to initialize settings with password.");
                 log.error("Settings did not unlock, state is {}", ss);
-                return;
+                // still return the settings in this case so that the frontend
+                // can deal with the state.
             }
             returnSettings(resp);
 

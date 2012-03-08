@@ -45,7 +45,7 @@ body
 $welcome-wdth: 580px
 $welcome-hght: 300px
 $welcome-controls-wdth: 300px
-#welcome-container
+#welcome-container, .wizard-slides
   width: $welcome-wdth
   height: $welcome-hght
   position: relative
@@ -184,7 +184,7 @@ input[type=password]
   font-size: 9pt
   color: $font-color-input
 
-form.signin .error, #systemproxy .error
+form.signin .error, #systemproxy .error, #unlock .error
   visibility: hidden
   font-size: $font-size-small
   margin-top: 3px
@@ -200,6 +200,13 @@ form.signin .error, #systemproxy .error
 .autoproxyfailed
   .error
     visibility: visible !important
+
+.unlock-failed .unlock-failed-error
+  visibility: visible !important
+
+.invalid-password .invalid-password-error 
+  visibility: visible !important
+  
 
 .error
   color: $font-color-error !important
