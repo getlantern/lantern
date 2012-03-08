@@ -176,18 +176,9 @@ public class DefaultLanternApi implements LanternApi {
         try {
             _signout();
             
-            // capture a few session settings 
-            final int curApiPort = LanternHub.settings().getApiPort();
-            final boolean bindToLocalhost = LanternHub.settings().isBindToLocalhost();
-            
             FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
-            
-            LanternHub.resetSettings();
+            LanternHub.resetSettings(true);
             LanternHub.resetUserConfig();
-            
-            // restore session settings
-            LanternHub.settings().setApiPort(curApiPort);
-            LanternHub.settings().setBindToLocalhost(bindToLocalhost);
             
             returnSettings(resp);
         } catch (final IOException e) {

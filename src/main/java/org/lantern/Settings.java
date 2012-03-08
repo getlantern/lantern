@@ -1,5 +1,7 @@
 package org.lantern;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,6 +10,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.commons.beanutils.PropertyUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.httpseverywhere.HttpsEverywhere;
@@ -28,6 +31,14 @@ public class Settings implements MutableSettings {
     // saved / loaded between runs of lantern.
     public static class PersistentSettings {}
     public static class UIStateSettings {}
+    
+    // settings that are set at the command line
+    public static class CommandLineSettings {}
+    
+    // by default, if not marked, fields will be serialized in 
+    // any of the above. To exlude a field from any other class
+    // mark it as transient/internal
+    public static class TransientInternalOnly {} 
 
     private Whitelist whitelist;
     
@@ -336,7 +347,7 @@ public class Settings implements MutableSettings {
     }
 
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({UIStateSettings.class, CommandLineSettings.class})
     public boolean isBindToLocalhost() {
         return bindToLocalhost;
     }
@@ -346,7 +357,7 @@ public class Settings implements MutableSettings {
     }
 
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({UIStateSettings.class, CommandLineSettings.class})
     public int getApiPort() {
         return apiPort;
     }
@@ -441,15 +452,16 @@ public class Settings implements MutableSettings {
         this.launchd = launchd;
     }
 
+    @JsonView(CommandLineSettings.class)
     public boolean isLaunchd() {
         return launchd;
     }
     
-
     public void setUiEnabled(boolean uiEnabled) {
         this.uiEnabled = uiEnabled;
     }
-    
+
+    @JsonView(CommandLineSettings.class)    
     public boolean isUiEnabled() {
         return uiEnabled;
     }
@@ -520,5 +532,37 @@ public class Settings implements MutableSettings {
                 + ", historicalUpBytes=" + historicalUpBytes
                 + ", historicalDownBytes=" + historicalDownBytes + ", launchd="
                 + launchd + ", uiEnabled=" + uiEnabled + "]";
+    }
+    
+    /** 
+     * copy properties annotated with the given jsonView class 
+     * from this Settings object to the Settings object given. 
+     * 
+     * copy is shallow!
+     */
+    public void copyView(Settings into, Class<?> selector)
+        throws IllegalAccessException, IllegalArgumentException, 
+               InvocationTargetException, NoSuchMethodException {
+        for (final Method method : Settings.class.getMethods()) {
+            if (method.isAnnotationPresent(JsonView.class)) {
+                final JsonView v = method.getAnnotation(JsonView.class);
+                for (final Class<?> c : v.value()) {
+                    if (c == selector) {
+                        // method is annotated with selected JsonView
+                        // try to transfer property.
+                        final String propertyName = LanternUtils.methodNameToProperty(method.getName()); 
+                        if (propertyName != null) {
+                            PropertyUtils.setSimpleProperty(into, propertyName,
+                                PropertyUtils.getSimpleProperty(this, propertyName));
+                            log.debug("copied setting {}", propertyName);
+                        }
+                        else {
+                            log.error("Skipping copy of annotated but unbeanish method \"{}\": can't determine prop name", method.getName());
+                        }
+                    }
+                }
+            }
+        }
+        
     }
 }

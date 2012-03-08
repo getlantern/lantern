@@ -394,15 +394,32 @@ public class LanternHub {
         }
     }
 
-    public static void resetSettings() {
+    public static void resetSettings(boolean retainCLIOptions) {
+        final Settings old = settings.get();
         final SettingsIo io = LanternHub.settingsIo();
         LOG.info("Setting settings...");
         try {
             settings.set(io.read());
         } catch (final Throwable t) {
-            LOG.error("Caught throwable: {}", t);
+            LOG.error("Caught throwable resetting settings: {}", t);
         }
-    }
+       
+        // retain any CommandLineSettings to the newly loaded settings
+        // if requested.
+        final Settings cur = settings();
+        if (retainCLIOptions == true && cur != null && old != null) {
+            try {
+                old.copyView(cur, Settings.CommandLineSettings.class);
+            }
+            catch (final Throwable t) {
+                LOG.error("error copying command line settings! {}", t);
+            }
+        }
+   }
+   
+   public static void resetSettings() {
+       resetSettings(true);
+   }
     
     public static ProxyProvider getProxyProvider() {
         synchronized (proxyProvider) {
