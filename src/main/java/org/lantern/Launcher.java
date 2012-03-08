@@ -88,6 +88,8 @@ public class Launcher {
                           "display command line help");
         options.addOption(null, LanternConstants.OPTION_LAUNCHD, false,
             "running from launchd - not normally called from command line");
+        options.addOption(null, LanternConstants.OPTION_FORCE_NO_KEYCHAIN, false, 
+            "disable use of system keychain and ask for local password");
         final CommandLineParser parser = new PosixParser();
         final CommandLine cmd;
         try {
@@ -112,6 +114,16 @@ public class Launcher {
         else {
             LanternHub.settings().setUiEnabled(true);
         }
+        
+        /* option to disable use of keychains in local privacy */
+        if (cmd.hasOption(LanternConstants.OPTION_FORCE_NO_KEYCHAIN)) {
+            LOG.info("Disabling use of system keychains");
+            LanternHub.settings().setKeychainEnabled(false);
+        }
+        else {
+            LanternHub.settings().setKeychainEnabled(true);
+        }
+        
         
         if (cmd.hasOption(LanternConstants.OPTION_PUBLIC_API)) {
             LanternHub.settings().setBindToLocalhost(false);

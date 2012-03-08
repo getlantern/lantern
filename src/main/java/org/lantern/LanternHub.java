@@ -315,20 +315,26 @@ public class LanternHub {
     public static LocalCipherProvider localCipherProvider() {
         synchronized(localCipherProvider) {
             if (localCipherProvider.get() == null) {
-
-                if (SystemUtils.IS_OS_WINDOWS) {
-                    localCipherProvider.set(new WindowsLocalCipherProvider());   
+                final LocalCipherProvider lcp; 
+                
+                if (!settings().isKeychainEnabled()) {
+                    lcp = new DefaultLocalCipherProvider();
+                }
+                else if (SystemUtils.IS_OS_WINDOWS) {
+                    lcp = new WindowsLocalCipherProvider();   
                 }
                 else if (SystemUtils.IS_OS_MAC_OSX) {
-                    localCipherProvider.set(new MacLocalCipherProvider());
+                    lcp = new MacLocalCipherProvider();
                 }
                 else if (SystemUtils.IS_OS_LINUX && 
                          SecretServiceLocalCipherProvider.secretServiceAvailable()) {
-                    localCipherProvider.set(new SecretServiceLocalCipherProvider());                
+                    lcp = new SecretServiceLocalCipherProvider();
                 }
                 else {
-                    localCipherProvider.set(new DefaultLocalCipherProvider());
+                    lcp = new DefaultLocalCipherProvider();
                 }
+                
+                localCipherProvider.set(lcp);
             }
             return localCipherProvider.get();
         }
