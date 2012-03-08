@@ -921,6 +921,37 @@ public class LanternUtils {
         }
         return sb.toString();
     }
+    
+    
+    /** 
+     * returns bean property assocated with a method name of the form 
+     * getXyzW -> xyzW or isXyzW -> xyzW
+     *
+     * returns null if no property name is deduced
+     */
+    public static String methodNameToProperty(final String methodName) {
+        if (methodName.startsWith("get")) {
+            return _lowerFirst(methodName.substring(3));
+        }
+        else if (methodName.startsWith("is")) {
+            return _lowerFirst(methodName.substring(2));
+        }
+        else {
+            return null;
+        }
+    }
+    
+    private static String _lowerFirst(final String s) {
+        if (s == null) {
+            return null;
+        }
+        if (s.length() > 1) {
+            return s.substring(0,1).toLowerCase() + s.substring(1);
+        }
+        else {
+            return s.toLowerCase();
+        }
+    }
 }
 
 
