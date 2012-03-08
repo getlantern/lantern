@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.widgets.Display;
@@ -525,6 +526,13 @@ public class LanternHub {
         _resetCookieTracker();
         statsTracker().resetUserStats();
     }
-
+    
+    /* this should do whatever is necessary to reset back to 'factory' defaults */
+    public static void destructiveFullReset() throws IOException {
+        LanternHub.localCipherProvider().reset();
+        FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
+        LanternHub.resetSettings(true); // does not affect command line though...
+        LanternHub.resetUserConfig(); // among others, TrustedContacts...
+    }
 
 }
