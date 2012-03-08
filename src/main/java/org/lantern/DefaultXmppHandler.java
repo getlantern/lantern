@@ -363,6 +363,8 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         LanternHub.asyncEventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_OUT));
+        
+        peerProxySet.clear();
     }
 
     private void processLanternHubMessage(final Message msg) {
