@@ -12,6 +12,13 @@ public class SettingsState {
         LOCKED
     }
     
+    public SettingsState() {}
+    
+    public SettingsState(final SettingsState other) {
+        this.state = other.getState(); 
+        this.message = other.getMessage();
+    }
+    
     private State state = State.UNSET;
     
     private String message = "";

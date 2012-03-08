@@ -123,6 +123,7 @@ public class LanternHub {
     static {
         // start with an UNSET settings object until loaded
         settings.set(new Settings());
+        _postSettingsState();
         
         // if they were sucessfully loaded, save the most current state when exiting.
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -429,6 +430,12 @@ public class LanternHub {
                 LOG.error("error copying command line settings! {}", t);
             }
         }
+        
+        _postSettingsState();
+   }
+   
+   private static void _postSettingsState() {
+       asyncEventBus().post(new SettingsStateEvent(settings().getSettings()));
    }
    
    public static void resetSettings() {
