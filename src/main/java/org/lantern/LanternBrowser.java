@@ -621,7 +621,7 @@ public class LanternBrowser {
                     final String elements = 
                         StringUtils.substringAfter(location, "finished");
                     if (isConfig) {
-                        Configurator.reconfigure();
+                        LanternHub.configurator().reconfigure();
                     }
                     LanternHub.settings().getSettings().setState(State.SET);
                     LanternHub.settingsIo().write();
