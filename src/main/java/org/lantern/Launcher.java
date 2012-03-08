@@ -154,7 +154,7 @@ public class Launcher {
             // If we're running on startup, it's quite likely we just haven't
             // connected to the internet yet. Let's wait for an internet
             // connection and then start Lantern.
-            if (LanternHub.settings().isLaunchd()) {
+            if (LanternHub.settings().isLaunchd() || !LanternHub.settings().isUiEnabled()) {
                 LOG.info("Waiting for internet connection...");
                 LanternUtils.waitForInternet();
                 launchWithOrWithoutUi();
@@ -295,6 +295,12 @@ public class Launcher {
         } else {
             LOG.info("Not auto-logging in with settings:\n{}",
                 LanternHub.settings());
+        }
+        
+        try {
+            LanternHub.configurator().copyFireFoxExtension();
+        } catch (final IOException e) {
+            LOG.error("Could not copy extension", e);
         }
         lanternStarted = true;
     }

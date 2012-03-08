@@ -80,6 +80,10 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
 
     @Override
     public void onPeer(final URI peerUri) {
+        if (!LanternHub.settings().isGetMode()) {
+            log.info("Ingoring peer when we're in give mode");
+            return;
+        }
         log.info("Received peer URI {}...attempting connection...", peerUri);
         // Unclear how this count will be used for now.
         final Map<URI, AtomicInteger> peerFailureCount = 

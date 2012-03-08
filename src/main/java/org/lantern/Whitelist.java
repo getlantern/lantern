@@ -80,14 +80,14 @@ public class Whitelist {
      * our whitelist, otherwise <code>false</code>.
      */
     public boolean isWhitelisted(final HttpRequest request) {
-        log.info("Checking whitelist for request");
+        log.debug("Checking whitelist for request");
         final String uri = request.getUri();
-        log.info("URI is: {}", uri);
+        log.debug("URI is: {}", uri);
 
         final String referer = request.getHeader("referer");
         
         final String uriToCheck;
-        log.info("Referer: "+referer);
+        log.debug("Referer: "+referer);
         if (!StringUtils.isBlank(referer)) {
             uriToCheck = referer;
         } else {
@@ -126,7 +126,7 @@ public class Whitelist {
     
 
     private String toBaseUri(final String uri) {
-        log.info("Parsing full URI: {}", uri);
+        log.debug("Parsing full URI: {}", uri);
         final String afterHttp;
         if (!uri.startsWith("http")) {
             afterHttp = uri;
@@ -153,7 +153,7 @@ public class Whitelist {
             toMatchBase = domain;
         }
         final String toMatch = toMatchBase + "." + domainExtension;
-        log.info("Matching against: {}", toMatch);
+        log.debug("Matching against: {}", toMatch);
         return toMatch;
     }
 }
