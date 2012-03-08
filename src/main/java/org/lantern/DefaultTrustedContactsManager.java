@@ -127,7 +127,7 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
     @Override
     public void clearTrustedContacts() {
         trustedContacts.clear();
-        writeContacts();
+        CONTACTS_FILE.delete();
     }
     
 
