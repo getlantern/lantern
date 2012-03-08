@@ -7,7 +7,6 @@ import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentSkipListSet;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
@@ -502,22 +501,24 @@ public class Settings implements MutableSettings {
 
     @Override
     public String toString() {
-        return "Settings [connectivity=" + connectivity 
-                + ", update=" + update
+        return "Settings [" 
+                + "connectivity=" + connectivity + ", update=" + update
                 + ", internet=" + internet + ", platform=" + platform
                 + ", startAtLogin=" + startAtLogin + ", isSystemProxy="
                 + isSystemProxy + ", port=" + port + ", version=" + version
                 + ", connectOnLaunch=" + connectOnLaunch + ", language="
                 + language + ", settings=" + settings
+                + ", initialSetupComplete=" + initialSetupComplete
                 + ", authenticationStatus=" + authenticationStatus
                 + ", proxyAllSites=" + proxyAllSites + ", country=" + country
                 + ", countryDetected=" + countryDetected
                 + ", manuallyOverrideCountry=" + manuallyOverrideCountry
-                + ", email=" + email + ", password=" + password
-                + ", storedPassword=" + storedPassword + ", savePassword="
-                + savePassword + ", useCloudProxies=" + useCloudProxies
-                + ", getMode=" + getMode + ", bindToLocalhost="
-                + bindToLocalhost + ", apiPort=" + apiPort + ", passwordSaved="
-                + passwordSaved + "]";
+                + ", savePassword=" + savePassword + ", useCloudProxies="
+                + useCloudProxies + ", getMode=" + getMode
+                + ", bindToLocalhost=" + bindToLocalhost + ", apiPort="
+                + apiPort + ", passwordSaved=" + passwordSaved
+                + ", historicalUpBytes=" + historicalUpBytes
+                + ", historicalDownBytes=" + historicalDownBytes + ", launchd="
+                + launchd + ", uiEnabled=" + uiEnabled + "]";
     }
 }
