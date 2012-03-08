@@ -516,7 +516,10 @@ public class LanternHub {
         settings().setDownTotalLifetime(0);
         settings().setUpTotalLifetime(0);
 
-        getTrustedContactsManager().clearTrustedContacts();
+        TrustedContactsManager tcm = trustedContactsManager.get();
+        if (tcm != null) {
+            tcm.clearTrustedContacts();
+        }
         _resetRoster();
         _resetTrustedPeerProxyManager();
         _resetCookieTracker();
