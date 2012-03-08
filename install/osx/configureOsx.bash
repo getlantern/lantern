@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-mkdir ~/Library/Logs/Lantern
+mkdir -p ~/Library/Logs/Lantern
 rm ~/Library/Logs/Lantern/installer.log
 LOG_FILE=~/Library/Logs/Lantern/installer.log
 function log() {
@@ -29,6 +29,11 @@ APP_PATH=/Applications/Lantern/Lantern.app
 test -d $APP_PATH || APP_PATH=/Applications/Lantern.app
 #PLIST_DIR=/Library/LaunchAgents
 PLIST_DIR=~/Library/LaunchAgents
+
+# LaunchAgents doesn't always exist!!
+test -d $PLIST_DIR || mkdir $PLIST_DIR
+test -d $PLIST_DIR || die "Could not create plist dir?"
+
 PLIST_FILE=org.lantern.plist
 PLIST_INSTALL_FULL=$APP_PATH/Contents/Resources/app/$PLIST_FILE
 LAUNCHD_PLIST=$PLIST_DIR/$PLIST_FILE
