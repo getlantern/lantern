@@ -3,12 +3,14 @@ package org.lantern;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
+import java.security.GeneralSecurityException;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-
+import org.lantern.privacy.InvalidKeyException;
+import org.lantern.privacy.LocalCipherProvider;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.io.FileUtils;
@@ -38,6 +40,8 @@ public class DefaultLanternApi implements LanternApi {
         ROSTER,
         CONTACT,
         WHITELIST,
+        SETLOCALPASSWORD,
+        UNLOCK,
     }
 
     @Override
@@ -91,6 +95,12 @@ public class DefaultLanternApi implements LanternApi {
         case WHITELIST:
             handleWhitelist(resp);
             break;
+        case SETLOCALPASSWORD:
+            handleSetLocalPassword(req, resp);
+            break;
+        case UNLOCK:
+            handleUnlock(req, resp);
+            break;            
         }
     }
 
@@ -203,6 +213,92 @@ public class DefaultLanternApi implements LanternApi {
         // roster, trusted contacts, saved password
         
         
+    }
+    
+    /** 
+     * This set the *initial* local password for encrypting local 
+     * settings in the case that the user specifies a password directly.
+     * It fails if a password has already been set or the local cipher 
+     * does not utilize a user supplied password.
+     */
+    private void handleSetLocalPassword(final HttpServletRequest req, 
+                                        final HttpServletResponse resp) {
+        final LocalCipherProvider lcp = LanternHub.localCipherProvider();
+        if (lcp.isInitialized() == true) {
+            sendError(resp, "Local password has already been set, must reset to change.");
+            return;
+        }
+        if (!lcp.requiresAdditionalUserInput()) {
+            sendError(resp, "Local cipher does not require password.");
+            return;
+        }
+        final String password = req.getParameter("password");
+        if (StringUtils.isBlank(password)) {
+            sendError(resp, "Password cannot be blank");
+            return;
+        }
+        try {
+            lcp.feedUserInput(password.toCharArray(), true);
+            // immediately "unlock" the settings
+            LanternHub.resetSettings(true);
+            SettingsState.State ss = LanternHub.settings().getSettings().getState();
+            if (ss != SettingsState.State.SET) {
+                sendServerError(resp, "Failed to intialize settings.");
+                log.error("Settings did not unlock after initial set password, state is {}", ss);
+                return;
+            }
+        } catch (final GeneralSecurityException e) {
+            sendServerError(resp, "Error setting password.");
+            log.error("Unexpected error setting initial password: {}", e);
+        } catch (final IOException e) {
+            sendServerError(resp, "Error setting password.");
+            log.error("Unexpected error setting initial password: {}", e);
+        }
+    }
+    
+    /** 
+     * unlock 
+     */
+    private void handleUnlock(final HttpServletRequest req, 
+                              final HttpServletResponse resp) {
+        final LocalCipherProvider lcp = LanternHub.localCipherProvider();
+        if (lcp.isInitialized() == false) {
+            sendError(resp, "Local password has not been set, must set first.");
+            return;
+        }
+        if (!lcp.requiresAdditionalUserInput()) {
+            sendError(resp, "Local cipher does not require password.");
+            return;
+        }
+        final String password = req.getParameter("password");
+        if (StringUtils.isBlank(password)) {
+            sendError(resp, "Password cannot be blank");
+            return;
+        }
+        try {
+            // give it the password, *not intialization*
+            lcp.feedUserInput(password.toCharArray(), false);
+            // immediately "unlock" the settings
+            LanternHub.resetSettings(true);
+            SettingsState.State ss = LanternHub.settings().getSettings().getState();
+            if (ss != SettingsState.State.SET) {
+                sendServerError(resp, "Failed to initialize settings with password.");
+                log.error("Settings did not unlock, state is {}", ss);
+                return;
+            }
+            returnSettings(resp);
+
+        } catch (final InvalidKeyException e) {
+            /* bad password */
+            sendError(resp, "Invalid password");
+            return;
+        } catch (final GeneralSecurityException e) {
+            sendServerError(resp, "Error unlocking settings");
+            log.error("Unexpected error unlocking settings: {}", e);
+        } catch (final IOException e) {
+            sendServerError(resp, "Error unlocking settings.");
+            log.error("Unexpected error unlocking settings: {}", e);
+        }
     }
 
     private void returnSettings(final HttpServletResponse resp) {
