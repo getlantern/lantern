@@ -129,9 +129,6 @@ public class LanternHub {
 
             @Override
             public void run() {
-                LOG.info("Writing settings");
-                settingsIo.get().write(settings());
-                LOG.info("Finished writing settings...");
                 SettingsState ss = settings().getSettings();
                 if (ss.getState() == SettingsState.State.SET) {
                     LOG.info("Writing settings");

@@ -9,6 +9,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.SettingsState.State;
+import org.lantern.privacy.UserInputRequiredException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +48,7 @@ public class SettingsIo {
      */
     public Settings read() {
         if (!settingsFile.isFile()) {
-            return newSettings();
+            return blankSettings();
         }
         final ObjectMapper mapper = new ObjectMapper();
         InputStream is = null;
@@ -57,7 +58,7 @@ public class SettingsIo {
             log.info("Building setting from json string...");
             if (StringUtils.isBlank(json) || json.equalsIgnoreCase("null")) {
                 log.info("Can't build settings from empty string");
-                return newSettings();
+                return blankSettings();
             }
             final Settings read = mapper.readValue(json, Settings.class);
             log.info("Built settings from disk: {}", read);
@@ -65,6 +66,9 @@ public class SettingsIo {
                 read.setPassword(read.getStoredPassword());
             }
             return read;
+        } catch (final UserInputRequiredException e) {
+            log.info("Settings require password to be unlocked.");
+            return blankSettings();
         } catch (final IOException e) {
             log.error("Could not read settings", e);
         } catch (final GeneralSecurityException e) {
@@ -72,7 +76,7 @@ public class SettingsIo {
         } finally {
             IOUtils.closeQuietly(is);
         }
-        final Settings settings = newSettings();
+        final Settings settings = blankSettings();
         final SettingsState ss = new SettingsState();
         ss.setState(State.CORRUPTED);
         ss.setMessage("Could not read settings file.");
@@ -80,8 +84,19 @@ public class SettingsIo {
     }
     
 
-    private Settings newSettings() {
-        return new Settings(new Whitelist());
+    private Settings blankSettings() {
+        final Settings s = new Settings(new Whitelist());
+        
+        // if some password initialization is required, 
+        // consider the settings to be "locked"
+        if (LanternHub.localCipherProvider().requiresAdditionalUserInput()) {
+            s.getSettings().setState(State.LOCKED);
+        }
+        // otherwise, consider new settings to have been successfully loaded
+        else {
+            s.getSettings().setState(State.SET);
+        }
+        return s;
     }
 
 

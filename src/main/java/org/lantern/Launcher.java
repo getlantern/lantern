@@ -217,6 +217,7 @@ public class Launcher {
                 // current behavior is automatic reset of all local data / ciphers
                 // immediately.  This behavior could be deferred until later or handled
                 // in some other way.
+                LOG.warn("Destroying corrupt settings...");
                 LanternHub.localCipherProvider().reset();
                 FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
                 LanternHub.resetSettings(true);
@@ -235,6 +236,7 @@ public class Launcher {
                 LOG.info("Settings have been reset.");
             }
         }
+        LOG.info("Settings state is {}", LanternHub.settings().getSettings().getState());
     }
 
     private static void launchWithOrWithoutUi() {
