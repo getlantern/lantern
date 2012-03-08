@@ -26,6 +26,7 @@ import java.nio.channels.UnresolvedAddressException;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -952,6 +953,19 @@ public class LanternUtils {
             return s.toLowerCase();
         }
     }
+    
+    public static void zeroFill(char[] array) {
+        if (array != null) {
+            Arrays.fill(array, '\0');
+        }
+    }
+
+    public static void zeroFill(byte[] array) {
+        if (array != null) {
+            Arrays.fill(array, (byte) 0);
+        }
+    }
+    
 }
 
 

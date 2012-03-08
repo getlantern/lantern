@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
 
+import org.lantern.privacy.InvalidKeyException;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -160,8 +162,7 @@ public class Launcher {
             display = null;
         }
         
-        // attempt to load saved settings
-        loadSettingsOrReset();
+        loadSettings();
         
         if (LanternUtils.hasNetworkConnection()) {
             LOG.info("Got internet...");
@@ -210,7 +211,7 @@ public class Launcher {
         }
     }
 
-    private static void loadSettingsOrReset() {
+    private static void loadSettings() {
         LanternHub.resetSettings(true);
         if (LanternHub.settings().getSettings().getState() == SettingsState.State.CORRUPTED) {
             try {
@@ -236,9 +237,95 @@ public class Launcher {
                 LOG.info("Settings have been reset.");
             }
         }
+        
+        // if there is no UI and the settings are locked, we need to grab the password on 
+        // the command line or else quit.
+        if (!LanternHub.settings().isUiEnabled() && 
+            LanternHub.settings().getSettings().getState() == SettingsState.State.LOCKED) {
+            if (!askToUnlockSettingsCLI()) {
+                LOG.error("Unable to unlock settings.");
+                System.exit(1);
+            }
+        }
+        
         LOG.info("Settings state is {}", LanternHub.settings().getSettings().getState());
     }
-
+    
+    private static boolean askToUnlockSettingsCLI() {
+        if (!LanternHub.localCipherProvider().requiresAdditionalUserInput()) {
+            LOG.info("Local cipher does not require a password.");
+            return true;
+        }
+        while(true) {
+            char [] pw = null; 
+            try {
+                pw = readSettingsPasswordCLI();
+                return unlockSettingsWithPassword(pw);
+            }
+            catch (final InvalidKeyException e) {
+                System.out.println("Password was incorrect, try again."); // XXX i18n
+            }
+            catch (final GeneralSecurityException e) {
+                LOG.error("Error unlocking settings: {}", e);
+            }
+            catch (final IOException e) {
+                LOG.error("Erorr unlocking settings: {}", e);
+            }
+            finally {
+                LanternUtils.zeroFill(pw);
+            }
+        }
+    }
+    
+    private static char [] readSettingsPasswordCLI() throws IOException {
+        if (LanternHub.settings().isLocalPasswordInitialized() == false) {
+            while (true) {
+                // XXX i18n
+                System.out.print("Please enter a password to protect your local data:");
+                System.out.flush();
+                final char [] pw1 = LanternUtils.readPasswordCLI();
+                if (pw1.length == 0) {
+                    System.out.println("password cannot be blank, please try again.");
+                    System.out.flush();
+                    continue;
+                }
+                System.out.print("Please enter password again:");
+                System.out.flush();
+                final char [] pw2 = LanternUtils.readPasswordCLI();
+                if (Arrays.equals(pw1, pw2)) {
+                    // zero out pw2
+                    LanternUtils.zeroFill(pw2);
+                    return pw1;
+                }
+                else {
+                    LanternUtils.zeroFill(pw1);
+                    LanternUtils.zeroFill(pw2);
+                    System.out.println("passwords did not match, please try again.");
+                    System.out.flush();
+                }
+            }
+        }
+        else {
+            System.out.print("Please enter your lantern password:");
+            System.out.flush();
+            return LanternUtils.readPasswordCLI();
+        }
+    }
+    
+    
+    private static boolean unlockSettingsWithPassword(final char [] password)
+        throws GeneralSecurityException, IOException {
+        final boolean init = !LanternHub.settings().isLocalPasswordInitialized();
+        LanternHub.localCipherProvider().feedUserInput(password, init);
+        LanternHub.resetSettings(true);
+        final SettingsState.State ss = LanternHub.settings().getSettings().getState();
+        if (ss != SettingsState.State.SET) {
+            LOG.error("Settings did not unlock, state is {}", ss);
+            return false;
+        }
+        return true;
+    }
+    
     private static void launchWithOrWithoutUi() {
         if (!LanternHub.settings().isUiEnabled()) {
             // We only run headless on Linux for now.

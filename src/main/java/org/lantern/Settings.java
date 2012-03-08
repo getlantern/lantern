@@ -478,6 +478,11 @@ public class Settings implements MutableSettings {
         return keychainEnabled;
     }
 
+    @JsonView(UIStateSettings.class)
+    public boolean isLocalPasswordInitialized() {
+        return LanternHub.localCipherProvider().isInitialized();
+    }
+
     public void addProxy(final String proxy) {
         // Don't store peer proxies on disk.
         if (!proxy.contains("@")) {
