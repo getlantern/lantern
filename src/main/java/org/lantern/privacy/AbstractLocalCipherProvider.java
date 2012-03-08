@@ -47,7 +47,45 @@ abstract class AbstractLocalCipherProvider implements LocalCipherProvider {
         this.validatorFile = validatorFile;
         this.paramsFile = cipherParamsFile;
     }
-        
+    
+    /** 
+     * returns true if the cipher cannot function until
+     * additional user input is provided asynchronously.
+     *
+     * If a cipher is requested while this is true, 
+     * an exception will be thrown.
+     */
+    public boolean requiresAdditionalUserInput() { return false; }
+    
+    /** 
+     * feed in externally provided user input (eg password, phrase, etc)
+     * has no effect if requiresAdditionalUserInput() is false
+     * 
+     * @param input the user provided key data
+     * @param init if true, initialize the key with this input
+     *             if false, validate the input against existing key data
+     *
+     */
+    public void feedUserInput(char [] input, boolean init)
+        throws IOException, GeneralSecurityException {
+        throw new GeneralSecurityException("User input is not required.");
+    }
+    
+    public boolean isInitialized() {
+        return validatorFile.isFile() && paramsFile.isFile();
+    }
+
+    /** 
+     * resets cipher internally.  Prior state information 
+     * (initialization vectors, validators) will be destroyed. 
+     * isInitialized will return false following this call.
+     */
+    public void reset() throws IOException {
+        localKey = null;
+        FileUtils.forceDelete(paramsFile);
+        FileUtils.forceDelete(validatorFile);
+    }
+    
     /** 
      * return the identifier for the algorithm that should be used
      * by the created Cipher and related classes -- eg "AES"
@@ -56,13 +94,23 @@ abstract class AbstractLocalCipherProvider implements LocalCipherProvider {
     
     /**
      * return a Key representing the user's secret value. 
-     * if init is true, a new key should be generated or 
-     * collected from the user. 
+     * if init is true, a new key should be generated.
      *
      * @param init called if a new key should be generated/requested
      *        otherwise it should be expected that the key exists.
      */
     abstract Key getLocalKey(boolean init) throws IOException, GeneralSecurityException;
+
+    protected boolean hasLocalKey() {
+        return localKey != null;
+    }
+
+    /** 
+     * used by subclass as response to feedUserInput
+     */
+    void feedLocalKey(Key localKey) {
+        this.localKey = localKey; 
+    }
 
     /**
      * optional cipher initialization. This is only called when no 
@@ -87,7 +135,7 @@ abstract class AbstractLocalCipherProvider implements LocalCipherProvider {
 
     @Override
     public synchronized Cipher newLocalCipher(int opmode) throws IOException, GeneralSecurityException {
-        final boolean init = !paramsFile.isFile();
+        final boolean init = !isInitialized();
         
         if (localKey == null) {
             log.info("Retrieving local cipher key...");
