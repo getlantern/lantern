@@ -65,6 +65,7 @@ public class SettingsIo {
             if (StringUtils.isBlank(read.getPassword())) {
                 read.setPassword(read.getStoredPassword());
             }
+            read.getSettings().setState(State.SET); // read successfully.
             return read;
         } catch (final UserInputRequiredException e) {
             log.info("Settings require password to be unlocked.");
@@ -77,7 +78,7 @@ public class SettingsIo {
             IOUtils.closeQuietly(is);
         }
         final Settings settings = blankSettings();
-        final SettingsState ss = new SettingsState();
+        final SettingsState ss = settings.getSettings();
         ss.setState(State.CORRUPTED);
         ss.setMessage("Could not read settings file.");
         return settings;
