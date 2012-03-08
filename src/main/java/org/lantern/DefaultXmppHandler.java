@@ -291,7 +291,6 @@ public class DefaultXmppHandler implements XmppHandler {
         LanternUtils.activateOtr(connection);
         
         LOG.info("Connection ID: {}", connection.getConnectionID());
-        LOG.info("User: {}", connection.getUser());
         
         // Here we handle allowing the server to subscribe to our presence.
         connection.addPacketListener(new PacketListener() {
@@ -314,20 +313,20 @@ public class DefaultXmppHandler implements XmppHandler {
                 if(packet instanceof Presence) {
                     final Presence pres = (Presence) packet;
                     if(pres.getType().equals(Presence.Type.subscribe)) {
-                        LOG.info("Got subscribe packet!!");
+                        LOG.debug("Got subscribe packet!!");
                         final String from = pres.getFrom();
                         if (from.startsWith("lanternctrl@") &&
                             from.endsWith("lanternctrl.appspotchat.com")) {
-                            LOG.info("Got lantern subscription request!!");
+                            LOG.debug("Got lantern subscription request!!");
                             return true;
                         } else {
-                            LOG.info("Ignoring subscription request from: {}",
+                            LOG.debug("Ignoring subscription request from: {}",
                                 from);
                         }
                         
                     }
                 } else {
-                    LOG.info("Filtered out packet: ", packet.toXML());
+                    LOG.debug("Filtered out packet: ", packet.toXML());
                     //XmppUtils.printMessage(packet);
                 }
                 return false;
@@ -364,11 +363,6 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         LanternHub.asyncEventBus().post(
             new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_OUT));
-        proxySet.clear();
-        proxies.clear();
-        peerProxySet.clear();
-        laeProxySet.clear();
-        laeProxies.clear();
     }
 
     private void processLanternHubMessage(final Message msg) {
@@ -385,35 +379,29 @@ public class DefaultXmppHandler implements XmppHandler {
         if (delay != null) {
             final long now = System.currentTimeMillis();
             final long elapsed = now - lastInfoMessageScheduled;
-            if (elapsed < 10000) {
+            if (elapsed > 10000 && delay != 0L) {
+                lastInfoMessageScheduled = now;
+                updateTimer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        updatePresence();
+                    }
+                }, delay);
+                LOG.info("Scheduled next info request in {} milliseconds", 
+                    delay);
+            } else {
                 LOG.info("Ignoring duplicate info request scheduling- "+
                     "scheduled request {} milliseconds ago.", elapsed);
-                return;
             }
-            lastInfoMessageScheduled = now;
-            updateTimer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    updatePresence();
-                }
-            }, delay);
-            LOG.info("Scheduled next info request in {} milliseconds", 
-                delay);
         }
         
         if (servers == null) {
-            LOG.info("XMPP: "+XmppUtils.toString(msg));
+            LOG.info("No servers in message");
         } else {
             final Iterator<String> iter = servers.iterator();
             while (iter.hasNext()) {
                 final String server = iter.next();
                 addProxy(server);
-                LanternHub.settings().addProxy(server);
-            }
-            if (!servers.isEmpty() && isLoggedIn()) { 
-                if (!Configurator.configured()) {
-                    Configurator.configure();
-                }
             }
         }
 
@@ -523,12 +511,6 @@ public class DefaultXmppHandler implements XmppHandler {
         final XMPPConnection xmpp = this.client.get().getXmppConnection();
 
         final Roster roster = xmpp.getRoster();
-
-        final RosterEntry lantern = roster.getEntry(LanternConstants.LANTERN_JID);
-        if (lantern == null) {
-            LOG.info("Creating roster entry for Lantern...");
-            //roster.createEntry(LANTERN_JID, "Lantern", null);
-        }
         roster.setSubscriptionMode(Roster.SubscriptionMode.manual);
         
         roster.addRosterListener(new RosterListener() {
@@ -571,12 +553,12 @@ public class DefaultXmppHandler implements XmppHandler {
                 processPresence(p);
             }
         }
-        LOG.info("Finished adding listeners");
+        LOG.debug("Finished adding listeners");
     }
     
     private void processPresence(final Presence presence) {
         final String from = presence.getFrom();
-        LOG.info("Got presence: {}", presence.toXML());
+        LOG.debug("Got presence: {}", presence.toXML());
         if (isLanternHub(from)) {
             LOG.info("Got Lantern hub presence");
         }
@@ -846,6 +828,11 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.info("Dispatching CONNECTED event");
             LanternHub.asyncEventBus().post(new ConnectivityStatusChangeEvent(
                 ConnectivityStatus.CONNECTED));
+            
+            // This is a little odd because the proxy could have originally
+            // come from the settings themselves, but it'll remove duplicates,
+            // so no harm done.
+            LanternHub.settings().addProxy(fullProxyString);
             synchronized (set) {
                 if (!set.contains(ph)) {
                     set.add(ph);

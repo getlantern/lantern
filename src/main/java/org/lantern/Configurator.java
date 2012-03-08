@@ -9,6 +9,8 @@ import org.eclipse.swt.SWT;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
+
 /**
  * Configures Lantern. This can be either on the first run of the application
  * or through the user changing his or her configurations in the configuration
@@ -16,15 +18,45 @@ import org.slf4j.LoggerFactory;
  */
 public class Configurator {
     
-    private static final Logger LOG = 
+    private final Logger LOG = 
         LoggerFactory.getLogger(Configurator.class);
     
-    private volatile static boolean configured = false;
+    private volatile boolean configured = false;
     
-    public static void configure() {
+    /**
+     * Creates a new configurator.
+     */
+    public Configurator() {
+        LanternHub.register(this);
+    }
+    
+    @Subscribe
+    public void onConnectivityEvent(final ConnectivityStatusChangeEvent event) {
+        final ConnectivityStatus status = event.getConnectivityStatus();
+        switch (status) {
+        case CONNECTED:
+            // Note that this call won't do anything on the first run if the
+            // setup screens have not completed -- proxy configuration in
+            // that case happens as a result of the setup complete API call.
+            // This call is necessary in subsequent cases, however, when the
+            // user has completed the setup screens, and Lantern simply 
+            // needs to start up in the correct proxy state.
+            configure();
+            break;
+        case CONNECTING:
+            break;
+        case DISCONNECTED:
+            break;
+        case DISCONNECTING:
+            break;
+        }
+    }
+    
+    public void configure() {
+        
         LOG.info("Configuring...");
         if (configured) {
-            LOG.error("Configure called twice?");
+            LOG.info("Configure called multiple times?");
             return;
         }
         configured = true;
@@ -39,7 +71,7 @@ public class Configurator {
      * extension.
      * @throws IOException If there's an error copying the extension.
      */
-    public static void copyFireFoxExtension() throws IOException {
+    public void copyFireFoxExtension() throws IOException {
         LOG.info("Copying FireFox extension");
         final File dir = getExtensionDir();
         if (!dir.isDirectory()) {
@@ -67,7 +99,7 @@ public class Configurator {
         LOG.info("Copied FireFox extension from {} to {}", ffDir, dir);
     }
 
-    public static File getExtensionDir() {
+    public File getExtensionDir() {
         final File userHome = SystemUtils.getUserHome();
         if (SystemUtils.IS_OS_WINDOWS) {
             final File ffDir = new File(System.getenv("APPDATA"), "Mozilla");
@@ -80,7 +112,7 @@ public class Configurator {
         }
     }
 
-    public static void reconfigure() {
+    public void reconfigure() {
         if (!LanternUtils.isConfigured()) {
             System.out.println("GOOGLE ACCOUNT NOT CONFIGURED");
             return;
@@ -124,14 +156,14 @@ public class Configurator {
         }
     }
     
-    public static boolean configured() {
+    public boolean configured() {
         return configured;
     }
 
     /**
      * Installs the FireFox config file on startup. 
      */
-    private static void copyFirefoxConfig() {
+    private void copyFirefoxConfig() {
         final File ff;
         if (SystemUtils.IS_OS_WINDOWS) {
             ff = new File(System.getenv("ProgramFiles"), "Mozilla Firefox");
