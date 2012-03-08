@@ -1,5 +1,7 @@
 package org.lantern;
 
+import com.google.common.eventbus.Subscribe;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -413,28 +415,68 @@ public class Launcher {
                 proxyKeyStore, cookieObserver, cookieFilterFactory);
         server.start();
         
-        // This won't connect in the case where the user hasn't entered 
-        // their user name and password and the user is running with a UI.
-        // Otherwise, it will connect.
-        XmppHandler xmpp = LanternHub.xmppHandler();
-        if (LanternHub.settings().isConnectOnLaunch() &&
-            (LanternUtils.isConfigured() || !LanternHub.settings().isUiEnabled())) {
-            try {
-                xmpp.connect();
-            } catch (final IOException e) {
-                LOG.info("Could not login", e);
+        // 
+        AutoConnector ac = new AutoConnector(); 
+        
+        lanternStarted = true;
+    }
+
+    /**
+     * the autoconnector tries to auto-connect the 
+     * first time that it observes that the settings 
+     * have reached the SET state.
+     */
+    private static class AutoConnector {
+        
+        private boolean done = false;
+        
+        public AutoConnector() {
+            checkAutoConnect();
+            if (!done) {
+                LanternHub.register(this);
             }
-        } else {
-            LOG.info("Not auto-logging in with settings:\n{}",
-                LanternHub.settings());
         }
         
-        try {
-            LanternHub.configurator().copyFireFoxExtension();
-        } catch (final IOException e) {
-            LOG.error("Could not copy extension", e);
+        @Subscribe
+        public void onStateChange(final SettingsStateEvent sse) {
+            checkAutoConnect();
         }
-        lanternStarted = true;
+        
+        private void checkAutoConnect() {
+            if (done) {
+                return;
+            }
+            if (LanternHub.settings().getSettings().getState() != SettingsState.State.SET) {
+                LOG.info("not testing auto-connect, settings are not ready.");
+                return;
+            }
+            
+            // only test once.
+            done = true;
+            
+            LOG.info("Settings loaded, testing auto-connect behavior");
+            // This won't connect in the case where the user hasn't entered 
+            // their user name and password and the user is running with a UI.
+            // Otherwise, it will connect.
+            XmppHandler xmpp = LanternHub.xmppHandler();
+            if (LanternHub.settings().isConnectOnLaunch() &&
+                (LanternUtils.isConfigured() || !LanternHub.settings().isUiEnabled())) {
+                try {
+                    xmpp.connect();
+                } catch (final IOException e) {
+                    LOG.info("Could not login", e);
+                }
+            } else {
+                LOG.info("Not auto-logging in with settings:\n{}",
+                    LanternHub.settings());
+            }
+
+            try {
+                LanternHub.configurator().copyFireFoxExtension();
+            } catch (final IOException e) {
+                LOG.error("Could not copy extension", e);
+            }
+        }
     }
     
     private static void printHelp(Options options, String errorMessage) {
