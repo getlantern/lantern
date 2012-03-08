@@ -9,6 +9,7 @@ public class SettingsState {
         CORRUPTED,
         SET,
         UNSET,
+        LOCKED
     }
     
     private State state = State.UNSET;
