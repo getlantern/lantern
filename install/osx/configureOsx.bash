@@ -30,6 +30,10 @@ test -d $APP_PATH || APP_PATH=/Applications/Lantern.app
 #PLIST_DIR=/Library/LaunchAgents
 PLIST_DIR=~/Library/LaunchAgents
 
+# Bug in old Lantern installers that would create a file if LaunchAgents wasn't there, so
+# delete a file if we see it.
+test -f $PLIST_DIR && rm $PLIST_DIR
+
 # LaunchAgents doesn't always exist!!
 test -d $PLIST_DIR || mkdir $PLIST_DIR
 test -d $PLIST_DIR || die "Could not create plist dir?"
