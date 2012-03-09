@@ -235,21 +235,16 @@
           </p>
           <textarea ng:model=pm id=pm-textarea class=lionbars placeholder="Private message to Lantern developers" title="This form is sent securely."></textarea>
           <div id=pm-controls>
-            <!--
-            <label><input type=checkbox ng:model=requestreply /> please reply to</label>
-            <input id=pm-replyto type=email ng:model=requestreplyto ng:disabled={{!requestreply}} placeholder=email@example.com value={{state.email}} />
-            -->
             <span ng:show=loggedout() class=extra>
               <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()">Sign in</a>
               to send feedback
             </span>
+            <span ng:show=loggedin()>
+              <label><input type=checkbox ng:model=pmsendfrom /> Send From:</label>
+              <input id=pm-replyto type=email ng:model=pmfromemail ng:disabled={{!pmsendfrom}} placeholder=email@example.com value={{state.email}} />
+            </span>
             <button id=pm-send class=buttonlink ng:disabled="{{!loggedin() || !pm}}" ng:click=sendpm()>Send</button>
           </div>
-          <!--
-          <div class=extra ng:show=requestreply>
-            Only request replies to secure email accounts.
-          </div>
-          -->
         </div>
         <div class=panel id=update data-cls=panel>
           <h1>Update</h1>

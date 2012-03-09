@@ -160,8 +160,8 @@ function LDCtrl(){
   }
 
   self.pm = null;
-  self.requestreply = false;
-  self.requestreplyto = null;
+  self.pmsendfrom = true;
+  self.pmfromemail = null;
 
   self.npeers = function() {return self.state.peerCount;}
   self.loggedin = function(){return self.state.connectivity === 'CONNECTED';};
@@ -435,6 +435,8 @@ function LDCtrl(){
     var data = {
       message: self.pm
     };
+    if(self.pmsendfrom)
+      data.replyto = self.pmfromemail;
     console.log('submitting contact form, data=', data);
     // disable send button, update label
     self.pm = '';
