@@ -251,7 +251,7 @@ function LDCtrl(){
 
   self.signin = function(email){
     if(self.loggedin()){
-      if(email === self.state.email || email + '@gmail.com' === self.state.email){
+      if(self.sameuser()){
         console.log('ingoring signin as', self.state.email, ', already signed in as that user');
         self.showsignin(false);
         self.inputpassword = '';
