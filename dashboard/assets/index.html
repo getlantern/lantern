@@ -52,7 +52,7 @@
           <form id=firstsignin-form name=fsform class=signin ng:submit=fs_submit()>
             <ul>
               <li><div class=error>Bad username or password.</div></li>
-              <li><input type=text placeholder=email@example.com ng:model=inputemail value="{{state.email || ''}}" required autofocus /></li>
+              <li><input type=text placeholder=email@example.com ng:model=inputemail required autofocus /></li>
               <li><input type=password placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
@@ -241,7 +241,7 @@
             </span>
             <span ng:show=loggedin()>
               <label><input type=checkbox ng:model=pmsendfrom /> Send From:</label>
-              <input id=pm-replyto type=email ng:model=pmfromemail ng:disabled={{!pmsendfrom}} placeholder=email@example.com value={{state.email}} />
+              <input id=pm-replyto type=email ng:model=pmfromemail ng:disabled={{!pmsendfrom}} ng:required={{pmsendfrom}} placeholder=email@example.com />
             </span>
             <button id=pm-send class=buttonlink ng:disabled="{{!loggedin() || !pm}}" ng:click=sendpm()>Send</button>
           </div>
@@ -271,7 +271,7 @@
           <form name=signinform class=signin ng:submit=signin(inputemail)>
             <ul>
               <li><div class=error>Bad username or password.</div></li>
-              <li><input type=text placeholder=email@example.com ng:model=inputemail value="{{state.email || ''}}" required /></li>
+              <li><input type=text placeholder=email@example.com ng:model=inputemail required /></li>
               <li><input type=password placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
