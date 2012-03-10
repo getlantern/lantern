@@ -436,7 +436,7 @@ function LDCtrl(){
       message: self.pm
     };
     if(self.pmsendfrom)
-      data.replyto = self.pmfromemail;
+      data.replyto = self.pmfromemail || $('#pm-replyto').val(); // XXX ng:model gets out of sync?
     console.log('submitting contact form, data=', data);
     // disable send button, update label
     self.pm = '';
