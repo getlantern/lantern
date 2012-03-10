@@ -251,8 +251,8 @@ function LDCtrl(){
 
   self.signin = function(email){
     if(self.loggedin()){
-      if(self.sameuser()){
-        console.log('ingoring signin as', self.state.email, ', already signed in as that user');
+      if(self.sameuser() && !self.inputpassword){
+        console.log('ingoring signin as', self.state.email, ', already signed in as that user and no new password supplied');
         self.showsignin(false);
         self.inputpassword = '';
         return;
@@ -261,7 +261,7 @@ function LDCtrl(){
     var data = {
       email: email || self.state.email
     };
-    if(self.passrequired()){
+    if(self.passrequired() || self.inputpassword){
       if(!self.inputpassword){
         console.log('no password saved or supplied, bailing');
         return;
