@@ -130,13 +130,6 @@ function LDCtrl(){
   self.inputemail = null;
   self.inputpassword = null;
 
-  // bind these together with a watch so that the value 
-  // propagates during the $digest instead of after it
-  // (was bound using value="{{self.state.email || ''}}")
-  self.$watch("state.email", function(scope, newVal, oldVal) {
-      self.inputemail = self.state.email;
-  }); 
-
   self.peerfilterinput = null;
   self.peerfilter = function(peer){
     var f = self.peerfilterinput;
