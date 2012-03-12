@@ -66,7 +66,10 @@ function showidclickhandler(evt){
 function LDCtrl(){
   var self = this;
   self.state = {};
-  self.$watch('state');
+  self.$watch('state', function(scope, newVal, oldVal){
+    self.inputemail = self.inputemail || self.state.email;
+    self.pmfromemail = self.pmfromemail || self.state.email;
+  });
   self.stateloaded = function(){
     return !$.isEmptyObject(self.state);
   };
@@ -146,7 +149,7 @@ function LDCtrl(){
 
   self.sameuser = function(){
     var inputemail = self.inputemail, stateemail = self.state.email;
-    return inputemail === null || inputemail === stateemail || inputemail + '@gmail.com' === stateemail;
+    return inputemail === stateemail || inputemail + '@gmail.com' === stateemail;
   };
 
   self.passrequired = function(){
@@ -191,8 +194,8 @@ function LDCtrl(){
   }
   
   self.pm = null;
-  self.requestreply = false;
-  self.requestreplyto = null;
+  self.pmsendfrom = true;
+  self.pmfromemail = null;
 
   self.npeers = function() {return self.state.peerCount;}
   self.loggedin = function(){return self.state.connectivity === 'CONNECTED';};
@@ -279,8 +282,8 @@ function LDCtrl(){
 
   self.signin = function(email){
     if(self.loggedin()){
-      if(email === null || email === self.state.email || email + '@gmail.com' === self.state.email){
-        console.log('ingoring signin as', self.state.email, 'already signed in as that user');
+      if(self.sameuser() && !self.inputpassword){
+        console.log('ingoring signin as', self.state.email, ', already signed in as that user and no new password supplied');
         self.showsignin(false);
         self.inputpassword = '';
         return;
@@ -289,7 +292,7 @@ function LDCtrl(){
     var data = {
       email: email || self.state.email
     };
-    if(self.passrequired()){
+    if(self.passrequired() || self.inputpassword){
       if(!self.inputpassword){
         console.log('no password saved or supplied, bailing');
         return;
@@ -488,6 +491,8 @@ function LDCtrl(){
     var data = {
       message: self.pm
     };
+    if(self.pmsendfrom)
+      data.replyto = self.pmfromemail;
     console.log('submitting contact form, data=', data);
     // disable send button, update label
     self.pm = '';
