@@ -509,13 +509,13 @@ function LDCtrl(){
   self.todo = function(){alert('todo');}
 }
 
-function SetLocalPasswordCntl() {
+function SetLocalPasswordCtrl() {
   this.password = '';
   this.password2 = '';
   this.servererr = null;
   this.blankpat = /^\s*$/;
 }
-SetLocalPasswordCntl.prototype = {
+SetLocalPasswordCtrl.prototype = {
   isvalid: function() {
     return !this.isblank() && this.passwordsmatch();
   },
