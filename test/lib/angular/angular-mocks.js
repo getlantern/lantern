@@ -1,6 +1,6 @@
 
 /**
- * @license AngularJS v"NG_VERSION_FULL"
+ * @license AngularJS v1.0.0rc1
  * (c) 2010-2011 AngularJS http://angularjs.org
  * License: MIT
  *
@@ -249,8 +249,12 @@ angular.mock.$ExceptionHandlerProvider = function() {
       case 'log':
         var errors = [];
         handler = function(e) {
-          errors.push(e);
-        };
+          if (arguments.length == 1) {
+            errors.push(e);
+          } else {
+            errors.push([].slice.call(arguments, 0));
+          }
+        }
         handler.errors = errors;
         break;
       default:
@@ -487,7 +491,7 @@ angular.mock.TzDate = function (offset, timestamp) {
   };
 
   self.getDay = function() {
-    return self.origDate.getDay();
+    return self.date.getDay();
   };
 
   //hide all methods not implemented in this mock that the Date prototype exposes
@@ -680,19 +684,17 @@ angular.mock.dump = function(object) {
  *
  * <pre>
    // controller
-   function MyController($http) {
-     var scope = this;
-
+   function MyController($scope, $http) {
      $http.get('/auth.py').success(function(data) {
-       scope.user = data;
+       $scope.user = data;
      });
 
      this.saveMessage = function(message) {
-       scope.status = 'Saving...';
+       $scope.status = 'Saving...';
        $http.post('/add-msg.py', message).success(function(response) {
-         scope.status = '';
+         $scope.status = '';
        }).error(function() {
-         scope.status = 'ERROR!';
+         $scope.status = 'ERROR!';
        });
      };
    }
@@ -1269,7 +1271,7 @@ function MockXhr() {
  * The `ngMock` is an angular module which is used with `ng` module and adds unit-test configuration as well as useful
  * mocks to the {@link angular.module.AUTO.$injector $injector}.
  */
-angular.module('ngMock', ['ng']).service({
+angular.module('ngMock', ['ng']).provider({
   $browser: angular.mock.$BrowserProvider,
   $exceptionHandler: angular.mock.$ExceptionHandlerProvider,
   $log: angular.mock.$LogProvider,
@@ -1456,6 +1458,9 @@ window.jstestdriver && (function(window) {
       args.push(angular.mock.dump(arg));
     });
     jstestdriver.console.log.apply(jstestdriver.console, args);
+    if (window.console) {
+      window.console.log.apply(window.console, args);
+    }
   };
 })(window);
 
@@ -1523,35 +1528,36 @@ window.jasmine && (function(window) {
    * Example of what a typical jasmine tests looks like with the inject method.
    * <pre>
    *
-   *   angular.module('myTestsModule', [], function($provide) {
-   *     $provide.value('mode', 'test');
-   *   });
+   *   angular.module('myApplicationModule', [])
+   *       .value('mode', 'app')
+   *       .value('version', 'v1.0.1');
+   *
    *
    *   describe('MyApp', function() {
    *
-   *     // you can list multiple module function or aliases
-   *     // which will be used in creating the injector
-   *     beforeEach(module('myTestModule', function($provide) {
-   *       // $provide service is configured as needed
-   *       $provide.value('version', 'v1.0.1');
-   *     });
+   *     // You need to load modules that you want to test,
+   *     // it loads only the "ng" module by default.
+   *     beforeEach(module('myApplicationModule'));
    *
-   *     // The inject() is used to get references.
+   *
+   *     // inject() is used to inject arguments of all given functions
    *     it('should provide a version', inject(function(mode, version) {
    *       expect(version).toEqual('v1.0.1');
-   *       expect(mode).toEqual('test');
-   *     });
+   *       expect(mode).toEqual('app');
+   *     }));
+   *
    *
    *     // The inject and module method can also be used inside of the it or beforeEach
-   *     it('should override a version and test the new version is injected', function(){
+   *     it('should override a version and test the new version is injected', function() {
+   *       // module() takes functions or strings (module aliases)
    *       module(function($provide) {
    *         $provide.value('version', 'overridden'); // override version here
    *       });
+   *
    *       inject(function(version) {
    *         expect(version).toEqual('overridden');
    *       });
    *     ));
-   *
    *   });
    *
    * </pre>
