@@ -34,7 +34,7 @@ jasmine.TrivialReporter.prototype.reportRunnerStarting = function(runner) {
   this.outerDiv = this.createDom('div', { className: 'jasmine_reporter' },
       this.createDom('div', { className: 'banner' },
         this.createDom('div', { className: 'logo' },
-            this.createDom('a', { href: 'http://pivotal.github.com/jasmine/', target: "_blank" }, "Jasmine"),
+            this.createDom('span', { className: 'title' }, "Jasmine"),
             this.createDom('span', { className: 'version' }, runner.env.versionString())),
         this.createDom('div', { className: 'options' },
             "Show ",
@@ -110,7 +110,7 @@ jasmine.TrivialReporter.prototype.reportRunnerResults = function(runner) {
 jasmine.TrivialReporter.prototype.reportSuiteResults = function(suite) {
   var results = suite.results();
   var status = results.passed() ? 'passed' : 'failed';
-  if (results.totalCount == 0) { // todo: change this to check results.skipped
+  if (results.totalCount === 0) { // todo: change this to check results.skipped
     status = 'skipped';
   }
   this.suiteDivs[suite.id].className += " " + status;
@@ -183,6 +183,8 @@ jasmine.TrivialReporter.prototype.specFilter = function(spec) {
     paramMap[decodeURIComponent(p[0])] = decodeURIComponent(p[1]);
   }
 
-  if (!paramMap["spec"]) return true;
-  return spec.getFullName().indexOf(paramMap["spec"]) == 0;
+  if (!paramMap.spec) {
+    return true;
+  }
+  return spec.getFullName().indexOf(paramMap.spec) === 0;
 };
