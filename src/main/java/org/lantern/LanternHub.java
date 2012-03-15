@@ -263,6 +263,8 @@ public class LanternHub {
     }
 
     private static void _resetTrustedPeerProxyManager() {
+        // Close all existing p2p connections.
+        trustedPeerProxyManager.get().closeAll();
         final PeerProxyManager eppl =
             new DefaultPeerProxyManager(false);
         trustedPeerProxyManager.set(eppl);
