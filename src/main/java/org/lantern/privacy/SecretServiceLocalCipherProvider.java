@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.privacy;
 
 import cx.ath.matthew.unix.UnixIOException;
 import java.io.File;
@@ -30,6 +30,8 @@ import org.freedesktop.Secret.Secret;
 import org.freedesktop.Secret.Service;
 import org.freedesktop.Secret.Session;
 
+import org.lantern.LanternUtils;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,11 +62,11 @@ public class SecretServiceLocalCipherProvider extends AbstractAESLocalCipherProv
 
     private static final Logger LOG = LoggerFactory.getLogger(SecretServiceLocalCipherProvider.class);
     
-    SecretServiceLocalCipherProvider() {
+    public SecretServiceLocalCipherProvider() {
         super();
     }
 
-    SecretServiceLocalCipherProvider(final File validatorFile, final File cipherParamsFile) {
+    public SecretServiceLocalCipherProvider(final File validatorFile, final File cipherParamsFile) {
         super(validatorFile, cipherParamsFile);
     }
 

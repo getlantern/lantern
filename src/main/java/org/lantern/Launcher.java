@@ -1,14 +1,19 @@
 package org.lantern;
 
+import com.google.common.eventbus.Subscribe;
+
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
 
+import org.lantern.privacy.InvalidKeyException;
+import org.lantern.privacy.LocalCipherProvider;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -16,6 +21,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.UnrecognizedOptionException;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
@@ -87,6 +94,10 @@ public class Launcher {
                           "display command line help");
         options.addOption(null, LanternConstants.OPTION_LAUNCHD, false,
             "running from launchd - not normally called from command line");
+        options.addOption(null, LanternConstants.OPTION_DISABLE_KEYCHAIN, false, 
+            "disable use of system keychain and ask for local password");
+        options.addOption(null, LanternConstants.OPTION_PASSWORD_FILE, true, 
+            "read local password from the file specified");
         final CommandLineParser parser = new PosixParser();
         final CommandLine cmd;
         try {
@@ -110,6 +121,19 @@ public class Launcher {
         }
         else {
             LanternHub.settings().setUiEnabled(true);
+        }
+        
+        /* option to disable use of keychains in local privacy */
+        if (cmd.hasOption(LanternConstants.OPTION_DISABLE_KEYCHAIN)) {
+            LOG.info("Disabling use of system keychains");
+            LanternHub.settings().setKeychainEnabled(false);
+        }
+        else {
+            LanternHub.settings().setKeychainEnabled(true);
+        }
+        
+        if (cmd.hasOption(LanternConstants.OPTION_PASSWORD_FILE)) {
+            loadLocalPasswordFile(cmd.getOptionValue(LanternConstants.OPTION_PASSWORD_FILE));
         }
         
         if (cmd.hasOption(LanternConstants.OPTION_PUBLIC_API)) {
@@ -146,7 +170,9 @@ public class Launcher {
         else {
             display = null;
         }
-
+        
+        loadSettings();
+        
         if (LanternUtils.hasNetworkConnection()) {
             LOG.info("Got internet...");
             launchWithOrWithoutUi();
@@ -194,6 +220,159 @@ public class Launcher {
         }
     }
 
+    private static void loadSettings() {
+        LanternHub.resetSettings(true);
+        if (LanternHub.settings().getSettings().getState() == SettingsState.State.CORRUPTED) {
+            try {
+                // current behavior is automatic reset of all local data / ciphers
+                // immediately.  This behavior could be deferred until later or handled
+                // in some other way.
+                LOG.warn("Destroying corrupt settings...");
+                LanternHub.destructiveFullReset();
+            }
+            catch (IOException e) {
+                LOG.error("Failed to reset corrupt settings: {}", e);
+                System.exit(1);
+            }
+            // still corrupt?
+            if (LanternHub.settings().getSettings().getState() == SettingsState.State.CORRUPTED) {
+                LOG.error("Failed to reset corrupt settings.");
+                System.exit(1);
+            }
+            else {
+                LOG.info("Settings have been reset.");
+            }
+        }
+        
+        // if there is no UI and the settings are locked, we need to grab the password on 
+        // the command line or else quit.
+        if (!LanternHub.settings().isUiEnabled() && 
+            LanternHub.settings().getSettings().getState() == SettingsState.State.LOCKED) {
+            if (!askToUnlockSettingsCLI()) {
+                LOG.error("Unable to unlock settings.");
+                System.exit(1);
+            }
+        }
+        
+        LOG.info("Settings state is {}", LanternHub.settings().getSettings().getState());
+    }
+    
+    private static boolean askToUnlockSettingsCLI() {
+        if (!LanternHub.localCipherProvider().requiresAdditionalUserInput()) {
+            LOG.info("Local cipher does not require a password.");
+            return true;
+        }
+        while(true) {
+            char [] pw = null; 
+            try {
+                pw = readSettingsPasswordCLI();
+                return unlockSettingsWithPassword(pw);
+            }
+            catch (final InvalidKeyException e) {
+                System.out.println("Password was incorrect, try again."); // XXX i18n
+            }
+            catch (final GeneralSecurityException e) {
+                LOG.error("Error unlocking settings: {}", e);
+            }
+            catch (final IOException e) {
+                LOG.error("Erorr unlocking settings: {}", e);
+            }
+            finally {
+                LanternUtils.zeroFill(pw);
+            }
+        }
+    }
+    
+    private static char [] readSettingsPasswordCLI() throws IOException {
+        if (LanternHub.settings().isLocalPasswordInitialized() == false) {
+            while (true) {
+                // XXX i18n
+                System.out.print("Please enter a password to protect your local data:");
+                System.out.flush();
+                final char [] pw1 = LanternUtils.readPasswordCLI();
+                if (pw1.length == 0) {
+                    System.out.println("password cannot be blank, please try again.");
+                    System.out.flush();
+                    continue;
+                }
+                System.out.print("Please enter password again:");
+                System.out.flush();
+                final char [] pw2 = LanternUtils.readPasswordCLI();
+                if (Arrays.equals(pw1, pw2)) {
+                    // zero out pw2
+                    LanternUtils.zeroFill(pw2);
+                    return pw1;
+                }
+                else {
+                    LanternUtils.zeroFill(pw1);
+                    LanternUtils.zeroFill(pw2);
+                    System.out.println("passwords did not match, please try again.");
+                    System.out.flush();
+                }
+            }
+        }
+        else {
+            System.out.print("Please enter your lantern password:");
+            System.out.flush();
+            return LanternUtils.readPasswordCLI();
+        }
+    }
+    
+    
+    private static boolean unlockSettingsWithPassword(final char [] password)
+        throws GeneralSecurityException, IOException {
+        final boolean init = !LanternHub.settings().isLocalPasswordInitialized();
+        LanternHub.localCipherProvider().feedUserInput(password, init);
+        LanternHub.resetSettings(true);
+        final SettingsState.State ss = LanternHub.settings().getSettings().getState();
+        if (ss != SettingsState.State.SET) {
+            LOG.error("Settings did not unlock, state is {}", ss);
+            return false;
+        }
+        return true;
+    }
+    
+    private static void loadLocalPasswordFile(final String pwFilename) {
+        final LocalCipherProvider lcp = LanternHub.localCipherProvider();
+        if (!lcp.requiresAdditionalUserInput()) {
+            LOG.error("Settings do not require a password to unlock.");
+            System.exit(1);
+        }
+
+        if (StringUtils.isBlank(pwFilename)) {
+            LOG.error("No filename specified to --{}", LanternConstants.OPTION_PASSWORD_FILE);
+            System.exit(1);
+        }
+        final File pwFile = new File(pwFilename);
+        if (!pwFile.exists() && pwFile.canRead()) {
+            LOG.error("Unable to read password from {}", pwFilename);
+            System.exit(1);
+        }
+
+        LOG.info("Reading local password from file \"{}\"", pwFilename);
+        try {
+            final String pw = FileUtils.readLines(pwFile, "US-ASCII").get(0);
+            final boolean init = !LanternHub.settings().isLocalPasswordInitialized();
+            lcp.feedUserInput(pw.toCharArray(), init);
+        }
+        catch (final IndexOutOfBoundsException e) {
+            LOG.error("Password in file \"{}\" was incorrect", pwFilename);
+            System.exit(1);
+        }
+        catch (final InvalidKeyException e) {
+            LOG.error("Password in file \"{}\" was incorrect", pwFilename);
+            System.exit(1);
+        }
+        catch (final GeneralSecurityException e) {
+            LOG.error("Failed to initialize using password in file \"{}\": {}", pwFilename, e);
+            System.exit(1);
+        }
+        catch (final IOException e) {
+            LOG.error("Failed to initialize using password in file \"{}\": {}", pwFilename, e);
+            System.exit(1);
+        }        
+    }
+    
     private static void launchWithOrWithoutUi() {
         if (!LanternHub.settings().isUiEnabled()) {
             // We only run headless on Linux for now.
@@ -281,28 +460,68 @@ public class Launcher {
                 proxyKeyStore, cookieObserver, cookieFilterFactory);
         server.start();
         
-        // This won't connect in the case where the user hasn't entered 
-        // their user name and password and the user is running with a UI.
-        // Otherwise, it will connect.
-        XmppHandler xmpp = LanternHub.xmppHandler();
-        if (LanternHub.settings().isConnectOnLaunch() &&
-            (LanternUtils.isConfigured() || !LanternHub.settings().isUiEnabled())) {
-            try {
-                xmpp.connect();
-            } catch (final IOException e) {
-                LOG.info("Could not login", e);
+        // 
+        AutoConnector ac = new AutoConnector(); 
+        
+        lanternStarted = true;
+    }
+
+    /**
+     * the autoconnector tries to auto-connect the 
+     * first time that it observes that the settings 
+     * have reached the SET state.
+     */
+    private static class AutoConnector {
+        
+        private boolean done = false;
+        
+        public AutoConnector() {
+            checkAutoConnect();
+            if (!done) {
+                LanternHub.register(this);
             }
-        } else {
-            LOG.info("Not auto-logging in with settings:\n{}",
-                LanternHub.settings());
         }
         
-        try {
-            LanternHub.configurator().copyFireFoxExtension();
-        } catch (final IOException e) {
-            LOG.error("Could not copy extension", e);
+        @Subscribe
+        public void onStateChange(final SettingsStateEvent sse) {
+            checkAutoConnect();
         }
-        lanternStarted = true;
+        
+        private void checkAutoConnect() {
+            if (done) {
+                return;
+            }
+            if (LanternHub.settings().getSettings().getState() != SettingsState.State.SET) {
+                LOG.info("not testing auto-connect, settings are not ready.");
+                return;
+            }
+            
+            // only test once.
+            done = true;
+            
+            LOG.info("Settings loaded, testing auto-connect behavior");
+            // This won't connect in the case where the user hasn't entered 
+            // their user name and password and the user is running with a UI.
+            // Otherwise, it will connect.
+            XmppHandler xmpp = LanternHub.xmppHandler();
+            if (LanternHub.settings().isConnectOnLaunch() &&
+                (LanternUtils.isConfigured() || !LanternHub.settings().isUiEnabled())) {
+                try {
+                    xmpp.connect();
+                } catch (final IOException e) {
+                    LOG.info("Could not login", e);
+                }
+            } else {
+                LOG.info("Not auto-logging in with settings:\n{}",
+                    LanternHub.settings());
+            }
+
+            try {
+                LanternHub.configurator().copyFireFoxExtension();
+            } catch (final IOException e) {
+                LOG.error("Could not copy extension", e);
+            }
+        }
     }
     
     private static void printHelp(Options options, String errorMessage) {

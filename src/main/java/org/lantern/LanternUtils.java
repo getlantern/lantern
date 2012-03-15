@@ -26,6 +26,7 @@ import java.nio.channels.UnresolvedAddressException;
 import java.security.GeneralSecurityException;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Enumeration;
@@ -921,6 +922,50 @@ public class LanternUtils {
         }
         return sb.toString();
     }
+    
+    
+    /** 
+     * returns bean property assocated with a method name of the form 
+     * getXyzW -> xyzW or isXyzW -> xyzW
+     *
+     * returns null if no property name is deduced
+     */
+    public static String methodNameToProperty(final String methodName) {
+        if (methodName.startsWith("get")) {
+            return _lowerFirst(methodName.substring(3));
+        }
+        else if (methodName.startsWith("is")) {
+            return _lowerFirst(methodName.substring(2));
+        }
+        else {
+            return null;
+        }
+    }
+    
+    private static String _lowerFirst(final String s) {
+        if (s == null) {
+            return null;
+        }
+        if (s.length() > 1) {
+            return s.substring(0,1).toLowerCase() + s.substring(1);
+        }
+        else {
+            return s.toLowerCase();
+        }
+    }
+    
+    public static void zeroFill(char[] array) {
+        if (array != null) {
+            Arrays.fill(array, '\0');
+        }
+    }
+
+    public static void zeroFill(byte[] array) {
+        if (array != null) {
+            Arrays.fill(array, (byte) 0);
+        }
+    }
+    
 }
 
 
