@@ -326,7 +326,7 @@
             <dd><time title={{state.update.released}} datetime={{state.update.released}}>{{state.update.released || '-' | date}}</time></dd>
           </dl>
           <div>
-            <a class=overlaylink id=changelog-link href=#changelog>Changelog</a>
+            <a class="overlaylink showdown-link" href=#changelog>Changelog</a>
           </div>
         </div>
 
@@ -377,7 +377,7 @@
 
         <div class=overlay data-cls=overlay id=changelog>
           <a class=close>×</a>
-          <ng:include id=changelog-container src="'CHANGES.md'">
+          <ng:include class=showdown id=changelog-container src="'CHANGES.md'">
           </ng:include>
         </div>
 

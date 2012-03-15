@@ -614,13 +614,12 @@ $(document).ready(function(){
     $('#userlink').toggleClass('collapsed');
   });
 
-  $('#changelog-link').click(function(evt){
-    console.log('rendering changelog');
-    var converter = new Showdown.converter(),
-    $chglogctr = $('#changelog-container'),
-    chglogmd = $chglogctr.text(),
-    chgloghtml = converter.makeHtml(chglogmd);
-    $chglogctr.html(chgloghtml);
+  var converter = new Showdown.converter();
+  $('.showdown-link').click(function(evt){
+    var $ctr = $(clickevt2id(evt) + ' .showdown'),
+        md = $ctr.text(),
+        html = converter.makeHtml(md);
+    $ctr.html(html);
     $(this).unbind(evt);
   });
 
