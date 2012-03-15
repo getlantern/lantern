@@ -1,4 +1,4 @@
-package org.lantern; 
+package org.lantern.privacy; 
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -7,12 +7,15 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.GeneralSecurityException;
 import java.util.concurrent.atomic.AtomicReference;
+
+import net.sourceforge.jdpapi.DataProtector;
+import net.sourceforge.jdpapi.DPAPIException;
+
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
-import net.sourceforge.jdpapi.DataProtector;
-import net.sourceforge.jdpapi.DPAPIException;
+import org.lantern.LanternUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

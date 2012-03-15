@@ -17,17 +17,80 @@
   </head>
   <body ng:controller=LDCtrl lang=en>
     <div id=block-overlay ng:class="block && 'block-enabled'"></div>
-    <div id=ld-container style="display: none" ng:show=stateloaded() ng:class="!state.initialSetupComplete && 'welcome' || ''">
-      <div id=welcome-container ng:show=!state.initialSetupComplete>
+    <div id=ld-container style="display: none" ng:show=stateloaded() ng:class="(!state.initialSetupComplete || !stateset()) && 'welcome' || ''">
+
+      <!-- Displayed when user has set a password to protect settings -->
+      <div id=unlock-settings class="wizard-slides" ng:show="state.localPasswordInitialized && statelocked()">
+        <div id=unlock-slide class="slide selected" data-cls=slide>
+          <h1>Unlock settings</h1>
+          <p>Your lantern settings are password protected.</p>
+
+          <form id=unlock-form name=unlockform class=signin ng:submit=unlocksettings()>
+            <ul>
+              <li><div class="error invalid-password-error">Invalid Password.</div></li>
+              <li><div class="error unlock-failed-error">Failed to load settings.</div></li>
+              <li><input name="password" ng:model=localpassword type=password required placeholder="lantern password" /></li>
+              <li><p>Forgot? You may also <a ng:click=reset()>reset</a> your settings.</p></li>
+            </ul>
+            <div class=controls>
+              <figure>
+                <input type=image ng:src="{{(unlockform.password.$valid && 'img/arrow-right.png') || 'img/arrow-right-disabled.png'}}" alt=Continue ng:disabled="{{!unlockform.password.$valid}}" />
+                <figcaption>Unlock</figcaption>
+              </figure>
+            </div>
+          </form>
+        </div>
+      </div>
+      
+      <!-- Displayed when settings are corrupt -->
+      <div id=corrupt-settings class="wizard-slides" ng:show="statecorrupt()">
+        <div id=corrupt-welcome class="slide selected" data-cls=slide>
+          <h1>Unable to load settings</h1>
+          <p>Your current settings could not be loaded and may be corrupt.</p>
+          <p>It may be helpful to <a ng:click=reset()>reset</a> your settings.</p>
+          <div class=controls>
+            <figure>
+              <a href=#welcome><img src=img/arrow-left.png alt=Back /></a>
+              <figcaption>Back</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+      
+      <div id=welcome-container class="wizard-slides" ng:show="showwelcome()" >
         <div id=welcome class="slide selected" data-cls=slide>
           <h1>Welcome to Lantern</h1>
           <h4>Internet freedom for everyone.</h4>
           <div class=controls>
             <figure>
-              <a href=#mode><img src=img/arrow-right.png alt=Continue /></a>
+              <a ng:href="{{statelocked() && '#set-local-password' || '#mode'}}"><img src=img/arrow-right.png alt=Continue /></a>
               <figcaption>Continue</figcaption>
             </figure>
           </div>
+        </div>
+        <div ng:controller="SetLocalPasswordCtrl" id=set-local-password class="slide" data-cls=slide>
+          <h1>Choose a password</h1>
+          <p>Lantern will protect your local settings with this password.</p>
+          <form id=set-local-password-form name=setlocalpasswordform class=signin ng:submit=submitpassword()>
+            <ul>
+              <li><div ng:show="hasservererr()" >{{servererr}}</div></li>
+
+              <li><input name="password" ng:model="password" type=password required placeholder="choose password" /></li>
+              <li><input name="password2" ng:model="password2" type=password required placeholder="verify password" /></li>
+              <li><div ng:show="setlocalpasswordform.password.$dirty && isblank()">Password cannot be blank</div></li>
+              <li><div ng:show="!isblank() && !passwordsmatch()">Passwords do not match</div></li>
+            </ul>
+            <div class=controls>
+              <figure class=left>
+                <a href=#welcome><img src=img/arrow-left.png alt=Back /></a>
+                <figcaption>Back</figcaption>
+              </figure>
+              <figure class=right>
+                <input id=fs-submit type=image ng:src="{{(isvalid() && 'img/arrow-right.png') || 'img/arrow-right-disabled.png'}}" alt=Continue ng:disabled="{{!isvalid()}}" />
+                <figcaption>Continue</figcaption>
+              </figure>
+            </div>
+          </form>
         </div>
         <div id=mode class=slide data-cls=slide>
           <h1>Use Lantern to</h1>

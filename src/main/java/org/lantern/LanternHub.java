@@ -12,12 +12,18 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.widgets.Display;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.InMemoryCookieTracker;
 import org.lantern.httpseverywhere.HttpsEverywhere;
+import org.lantern.privacy.DefaultLocalCipherProvider;
+import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.privacy.MacLocalCipherProvider;
+import org.lantern.privacy.SecretServiceLocalCipherProvider;
+import org.lantern.privacy.WindowsLocalCipherProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,15 +122,24 @@ public class LanternHub {
     private static final Configurator configurator = new Configurator();
     
     static {
-        resetSettings();
+        // start with an UNSET settings object until loaded
+        settings.set(new Settings());
+        _postSettingsState();
         
+        // if they were sucessfully loaded, save the most current state when exiting.
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
             @Override
             public void run() {
-                LOG.info("Writing settings");
-                settingsIo.get().write(settings());
-                LOG.info("Finished writing settings...");
+                SettingsState ss = settings().getSettings();
+                if (ss.getState() == SettingsState.State.SET) {
+                    LOG.info("Writing settings");
+                    LanternHub.settingsIo().write(LanternHub.settings());
+                    LOG.info("Finished writing settings...");
+                }
+                else {
+                    LOG.warn("Not writing settings, state was {}", ss.getState());
+                }
             }
             
         }, "Write-Settings-Thread"));
@@ -301,20 +316,26 @@ public class LanternHub {
     public static LocalCipherProvider localCipherProvider() {
         synchronized(localCipherProvider) {
             if (localCipherProvider.get() == null) {
-
-                if (SystemUtils.IS_OS_WINDOWS) {
-                    localCipherProvider.set(new WindowsLocalCipherProvider());   
+                final LocalCipherProvider lcp; 
+                
+                if (!settings().isKeychainEnabled()) {
+                    lcp = new DefaultLocalCipherProvider();
+                }
+                else if (SystemUtils.IS_OS_WINDOWS) {
+                    lcp = new WindowsLocalCipherProvider();   
                 }
                 else if (SystemUtils.IS_OS_MAC_OSX) {
-                    localCipherProvider.set(new MacLocalCipherProvider());
+                    lcp = new MacLocalCipherProvider();
                 }
                 else if (SystemUtils.IS_OS_LINUX && 
                          SecretServiceLocalCipherProvider.secretServiceAvailable()) {
-                    localCipherProvider.set(new SecretServiceLocalCipherProvider());                
+                    lcp = new SecretServiceLocalCipherProvider();
                 }
                 else {
-                    localCipherProvider.set(new DefaultLocalCipherProvider());
+                    lcp = new DefaultLocalCipherProvider();
                 }
+                
+                localCipherProvider.set(lcp);
             }
             return localCipherProvider.get();
         }
@@ -391,15 +412,38 @@ public class LanternHub {
         }
     }
 
-    public static void resetSettings() {
+    public static void resetSettings(boolean retainCLIOptions) {
+        final Settings old = settings.get();
         final SettingsIo io = LanternHub.settingsIo();
         LOG.info("Setting settings...");
         try {
             settings.set(io.read());
         } catch (final Throwable t) {
-            LOG.error("Caught throwable: {}", t);
+            LOG.error("Caught throwable resetting settings: {}", t);
         }
-    }
+       
+        // retain any CommandLineSettings to the newly loaded settings
+        // if requested.
+        final Settings cur = settings();
+        if (retainCLIOptions == true && cur != null && old != null) {
+            try {
+                old.copyView(cur, Settings.CommandLineSettings.class);
+            }
+            catch (final Throwable t) {
+                LOG.error("error copying command line settings! {}", t);
+            }
+        }
+        
+        _postSettingsState();
+   }
+   
+   private static void _postSettingsState() {
+       asyncEventBus().post(new SettingsStateEvent(settings().getSettings()));
+   }
+   
+   public static void resetSettings() {
+       resetSettings(true);
+   }
     
     public static ProxyProvider getProxyProvider() {
         synchronized (proxyProvider) {
@@ -475,12 +519,22 @@ public class LanternHub {
         settings().setDownTotalLifetime(0);
         settings().setUpTotalLifetime(0);
 
-        getTrustedContactsManager().clearTrustedContacts();
+        TrustedContactsManager tcm = trustedContactsManager.get();
+        if (tcm != null) {
+            tcm.clearTrustedContacts();
+        }
         _resetRoster();
         _resetTrustedPeerProxyManager();
         _resetCookieTracker();
         statsTracker().resetUserStats();
     }
-
+    
+    /* this should do whatever is necessary to reset back to 'factory' defaults */
+    public static void destructiveFullReset() throws IOException {
+        LanternHub.localCipherProvider().reset();
+        FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
+        LanternHub.resetSettings(true); // does not affect command line though...
+        LanternHub.resetUserConfig(); // among others, TrustedContacts...
+    }
 
 }
