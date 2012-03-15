@@ -91,6 +91,7 @@ function LDCtrl(){
   self.statecorrupt = function() { return self.stateloaded() && self.state.settings.state == 'CORRUPTED'; }
 
   self.updateavailable = function(){
+      return true; // XXX
     return !$.isEmptyObject(self.state.update);
   };
 
@@ -611,6 +612,16 @@ $(document).ready(function(){
   $('#userlink, #usermenu a').click(function(evt){
     $('#usermenu').slideToggle(50);
     $('#userlink').toggleClass('collapsed');
+  });
+
+  $('#changelog-link').click(function(evt){
+    console.log('rendering changelog');
+    var converter = new Showdown.converter(),
+    $chglogctr = $('#changelog-container'),
+    chglogmd = $chglogctr.text(),
+    chgloghtml = converter.makeHtml(chglogmd);
+    $chglogctr.html(chgloghtml);
+    $(this).unbind(evt);
   });
 
   // XXX

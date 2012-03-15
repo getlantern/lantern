@@ -13,6 +13,7 @@
     <script src=js/lib/cometd.js></script>
     <script src=js/lib/jquery.cometd.js></script>
     <script src=js/lib/angular-0.10.5.min.js ng:autobind></script>
+    <script src=js/lib/showdown.js></script>
     <script src=js/dashboard.js></script>
   </head>
   <body ng:controller=LDCtrl lang=en>
@@ -320,12 +321,12 @@
           </p>
           <dl ng:show=updateavailable()>
             <dt>Version</dt>
-            <dd>{{state.update.number}}</dd>
+            <dd>{{state.update.number || '-'}}</dd>
             <dt>Released</dt>
-            <dd><time title={{state.update.released}} datetime={{state.update.released}}>{{state.update.released | date}}</time></dd>
+            <dd><time title={{state.update.released}} datetime={{state.update.released}}>{{state.update.released || '-' | date}}</time></dd>
           </dl>
           <div>
-            <a class=overlaylink href=#changelog title=https://raw.github.com/getlantern/lantern/master/CHANGES.rst>Changelog</a>
+            <a class=overlaylink id=changelog-link href=#changelog>Changelog</a>
           </div>
         </div>
 
@@ -376,7 +377,8 @@
 
         <div class=overlay data-cls=overlay id=changelog>
           <a class=close>×</a>
-          <iframe id=changelog-frame src=http://api.rst2a.com/1.0/rst2/html?style=lsr&uri=https://raw.github.com/getlantern/lantern/master/CHANGES.rst></iframe>
+          <ng:include id=changelog-container src="'CHANGES.md'">
+          </ng:include>
         </div>
 
         <div class="flashmsg tip" id=tip-trayicon>
