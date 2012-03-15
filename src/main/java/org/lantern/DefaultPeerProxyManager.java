@@ -143,4 +143,11 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             }
         }
     }
+
+    @Override
+    public void closeAll() {
+        for (final ConnectionTimeSocket sock : this.timedSockets) {
+            sock.requestProcessor.close();
+        }
+    }
 }
