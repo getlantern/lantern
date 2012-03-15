@@ -9,14 +9,11 @@ import java.net.SocketAddress;
 import org.jboss.netty.channel.AbstractChannel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelPipeline;
-import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ChannelSink;
+import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.socket.DefaultSocketChannelConfig;
 import org.jboss.netty.channel.socket.SocketChannel;
 import org.jboss.netty.channel.socket.SocketChannelConfig;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /**
