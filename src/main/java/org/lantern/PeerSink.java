@@ -8,9 +8,6 @@ import org.jboss.netty.channel.ChannelState;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.MessageEvent;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 /** 
  */
 class PeerSink extends AbstractChannelSink {

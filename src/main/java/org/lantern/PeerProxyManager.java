@@ -16,5 +16,7 @@ public interface PeerProxyManager {
 
     HttpRequestProcessor processRequest(Channel browserToProxyChannel,
        ChannelHandlerContext ctx, MessageEvent me) throws IOException;
+    
+    void closeAll();
 
 }
