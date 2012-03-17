@@ -616,11 +616,20 @@ $(document).ready(function(){
 
   var converter = new Showdown.converter();
   $('.showdown-link').click(function(evt){
-    var $ctr = $(clickevt2id(evt) + ' .showdown'),
-        md = $ctr.text(),
-        html = converter.makeHtml(md);
-    $ctr.html(html);
-    $(this).unbind(evt);
+    var sel = clickevt2id(evt) + ' *[src*=' + $(this).attr('data-md') + ']',
+        $target = $(sel);
+    if(!$target.length){
+      console.log('No element matching', sel);
+      return;
+    }
+    if(!$target.hasClass('showdownified')){
+      console.log('showdownifying ' + sel);
+      var md = $target.text(), html = converter.makeHtml(md);
+      $target.html(html).addClass('showdownified');
+    }
+    $('.showdown').hide();
+    $target.show();
+    showid(location.hash);
   });
 
   // XXX

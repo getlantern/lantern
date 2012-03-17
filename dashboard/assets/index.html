@@ -134,7 +134,7 @@
         </div>
         <div id=trustedpeers class=slide data-cls=slide>
           <h1>Trusted Peers</h1>
-          <h4>Choose people you would trust to proxy any <a class=doc href=https://github.com/getlantern/lantern/wiki/HTTP-and-Trusted-Peers target=_blank>unencrypted traffic</a>.</h4>
+          <h4>Choose people you would trust to proxy any <a class="doc showdown-link" href=#md-overlay data-md="'md/HTTP-and-Trusted-Peers.md'">unencrypted traffic</a>.</h4>
           <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
           <ul class="peerlist lionbars">
             <li ng:show="peers == FETCHING">Loading...</li>
@@ -143,7 +143,7 @@
               <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
             </li>
           </ul>
-          <span class=smallnote><a class=doc href=https://github.com/getlantern/lantern/wiki/Lantern-Cloud-Proxies target=_blank>Lantern cloud proxies</a> will be used when no trusted peers are available.</span>
+          <span class=smallnote><a class="doc showdown-link" href=#md-overlay data-md="'md/Lantern-Cloud-Proxies.md'">Lantern cloud proxies</a> will be used when no trusted peers are available.</span>
           <div class=controls>
             <figure class=left>
               <a href=#signin><img src=img/arrow-left.png alt=Back /></a>
@@ -160,7 +160,7 @@
           <ul class=welcome-optionlist>
             <li><div class=error>Proxy configuration failed.</div></li>
             <li><label><input type=radio value={{true}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Set Lantern as my system proxy (recommended)</label><div class=smallnote>Your browser should start using Lantern automatically</div></li>
-            <li><label><input type=radio value={{false}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> I will <a class=doc href=https://github.com/getlantern/lantern/wiki/Manual-Proxy-Configuration target=_blank>manually configure</a> my browser to use Lantern</label></li>
+            <li><label><input type=radio value={{false}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> I will <a class="doc showdown-link" href=#md-overlay data-md="'md/Manual-Proxy-Configuration.md'">manually configure</a> my browser to use Lantern</label></li>
           </ul>
           <div class=controls>
             <figure class=left>
@@ -326,7 +326,7 @@
             <dd><time title={{state.update.released}} datetime={{state.update.released}}>{{state.update.released || '-' | date}}</time></dd>
           </dl>
           <div>
-            <a class="overlaylink showdown-link" href=#changelog>Changelog</a>
+            <a class="overlaylink showdown-link" href=#md-overlay data-md="'CHANGES.md'">Changelog</a>
           </div>
         </div>
 
@@ -363,7 +363,7 @@
         <div class=overlay data-cls=overlay id=trusted>
           <a class=close>×</a>
           <h1>Trusted peers</h1>
-          <h4>Contacts you would trust to proxy <a class=doc href=https://github.com/getlantern/lantern/wiki/HTTP-and-Trusted-Peers target=_blank>unencrypted traffic</a></h4>
+          <h4>Contacts you would trust to proxy <a class="doc showdown-link" href=#md-overlay data-md="'md/HTTP-and-Trusted-Peers.md'">unencrypted traffic</a></h4>
           <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
           <ul class="peerlist lionbars">
             <li ng:show="peers == FETCHING">Loading...</li>
@@ -372,13 +372,7 @@
               <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
             </li>
           </ul>
-          <div class=smallnote><a class=doc href=https://github.com/getlantern/lantern/wiki/Lantern-Cloud-Proxies target=_blank>Lantern cloud proxies</a> will be used when no trusted peers are available.</div>
-        </div>
-
-        <div class=overlay data-cls=overlay id=changelog>
-          <a class=close>×</a>
-          <ng:include class=showdown id=changelog-container src="'CHANGES.md'">
-          </ng:include>
+          <div class=smallnote><a class="doc showdown-link" href=#md-overlay data-md="'md/Lantern-Cloud-Proxies.md'">Lantern cloud proxies</a> will be used when no trusted peers are available.</div>
         </div>
 
         <div class="flashmsg tip" id=tip-trayicon>
@@ -396,6 +390,16 @@
         </div>
 
       </div>
+
+        <div class=overlay data-cls=overlay id=md-overlay>
+          <a class=close>×</a>
+          <ng:include class=showdown id=changelog-container src="'CHANGES.md'"></ng:include>
+          <ng:include class=showdown src="'md/HTTP-and-Trusted-Peers.md'"></ng:include>
+          <ng:include class=showdown src="'md/Lantern-Cloud-Proxies.md'"></ng:include>
+          <ng:include class=showdown src="'md/Manual-Proxy-Configuration.md'"></ng:include>
+        </div>
+
+
     </div>
   </body>
 </html>

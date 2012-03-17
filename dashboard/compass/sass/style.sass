@@ -84,9 +84,12 @@ $welcome-controls-wdth: 300px
         bottom: 0
         right: 0
   a.doc
-    color: $header-color-alt
+    color: $background-color-alt5
     border-bottom: 1px $header-color-alt dotted
     text-decoration: none
+
+a.doc
+  cursor: help
 
 .welcome-optionlist
   text-align: left
@@ -106,6 +109,23 @@ $welcome-controls-wdth: 300px
 
 .slide
   display: none
+
+#md-overlay
+  width: 620px
+  height: 537px
+  margin: 5px
+  color: #888
+  line-height: 1.3
+  font-size: 10pt
+
+.showdown
+  display: none
+  h2
+    font-size: 12pt
+    margin-top: 35px
+    margin-bottom: 4px
+  //p
+    margin-bottom: 4px
 
 #done .smallnote
   margin-top: 20px
@@ -288,21 +308,6 @@ $sidebar-wdth: 200px
 
 #sidebar-update-link
   color: $font-color-important !important
-
-#changelog-container
-  width: 620px
-  height: 537px
-  margin: 5px
-  display: block
-  color: #888
-  line-height: 1.3
-  font-size: 10pt
-  h2
-    font-size: 12pt
-    margin-top: 35px
-    margin-bottom: 4px
-  p
-    margin-bottom: 4px
 
 #search
   margin-top: 1em
