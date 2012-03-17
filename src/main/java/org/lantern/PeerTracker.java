@@ -30,9 +30,11 @@ public class PeerTracker {
             return;
         }
         
+        /*
         final Socket sock = event.getSocket();
         if (sock instanceof SSLSocket) {
             LanternHub.settings().addPeerProxy(event.getRemoteSocketAddress());
         }
+        */
     }
 }
