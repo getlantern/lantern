@@ -110,18 +110,10 @@ a.doc
 .slide
   display: none
 
-#md-overlay
-  width: 620px
-  height: 537px
-  margin: 5px
-  color: #888
-  line-height: 1.3
-  font-size: 10pt
-
 .showdown
   display: none
   h2
-    font-size: 12pt
+    font-size: 13pt
     margin-top: 35px
     margin-bottom: 4px
   //p
@@ -311,6 +303,17 @@ $sidebar-wdth: 200px
 
 #search
   margin-top: 1em
+
+#md-overlay
+  position: fixed
+  top: $topbar-hght + 2px
+  width: 500px
+  left: 50%
+  margin: 0 0 0 -250px
+  height: 400px
+  color: #888
+  line-height: 1.5
+  font-size: 11pt
 
 ul
   +no-bullets

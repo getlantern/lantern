@@ -33,12 +33,15 @@ function showid(id, ignorecls){
   var $el = $(id);
   if(!$el.length)
     return;
-  location.hash = id;
-  if($el.hasClass('selected'))
+  if($el.hasClass('selected')){
+    location.hash = id;
     return;
+  }
   var cls = $el.attr('data-cls');
-  if(cls === ignorecls)
+  if(cls === ignorecls){
+    location.hash = '';
     return;
+  }
   $('.' + cls + '.selected').toggleClass('selected');
   $el.toggleClass('selected');
   if(cls === 'panel'){
@@ -589,7 +592,7 @@ $(document).ready(function(){
   //$window.resize(_resize_body);
 
   $('.overlay .close').click(function(evt){
-    $(evt.target).parent('.overlay').removeClass('selected');
+    $(evt.target).parent('.overlay').hide();
     evt.preventDefault();
     //_resize_body(); // XXX height hack
   });
@@ -597,7 +600,7 @@ $(document).ready(function(){
   $(document).keyup(function(evt){
     switch(evt.keyCode){
     case KEYCODE_ESC:
-      $('.overlay.selected').removeClass('selected');
+      $('.overlay:visible').hide();
       getscope().showsignin(false);
       getscope().$digest();
       break;
@@ -614,7 +617,8 @@ $(document).ready(function(){
     $('#userlink').toggleClass('collapsed');
   });
 
-  var converter = new Showdown.converter();
+  var converter = new Showdown.converter(),
+      $mdoverlay = $('#md-overlay');
   $('.showdown-link').click(function(evt){
     var sel = clickevt2id(evt) + ' *[src*=' + $(this).attr('data-md') + ']',
         $target = $(sel);
@@ -629,7 +633,8 @@ $(document).ready(function(){
     }
     $('.showdown').hide();
     $target.show();
-    showid(location.hash);
+    $mdoverlay.show();
+    return false;
   });
 
   // XXX
