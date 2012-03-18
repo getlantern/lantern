@@ -27,7 +27,7 @@ public class Roster {
     
     private boolean entriesSet = false;
 
-    private AuthenticationStatus status;
+    private GoogleTalkState state;
     
     /**
      * Creates a new roster.
@@ -58,9 +58,9 @@ public class Roster {
     }
     
     @Subscribe
-    public void onAuthStatus(final AuthenticationStatusEvent ase) {
-        this.status = ase.getStatus();
-        switch (status) {
+    public void onAuthStatus(final GoogleTalkStateEvent ase) {
+        this.state = ase.getState();
+        switch (state) {
         case LOGGED_IN:
             final XmppP2PClient client = LanternHub.xmppHandler().getP2PClient();
             if (client != null) {
@@ -75,6 +75,9 @@ public class Roster {
         case LOGGING_IN:
             break;
         case LOGGING_OUT:
+            break;
+        case LOGIN_FAILED:
+            setEntriesMap(new HashMap<String, LanternPresence>());
             break;
         }
     }
@@ -111,7 +114,7 @@ public class Roster {
     }
 
     public void populate() throws IOException {
-        if (this.status != AuthenticationStatus.LOGGED_IN) {
+        if (this.state != GoogleTalkState.LOGGED_IN) {
             throw new IOException("Not logged in!!");
         }
         synchronized (entries) {

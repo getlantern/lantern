@@ -253,7 +253,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTING));
         }
         LanternHub.eventBus().post(
-            new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_IN));
+            new GoogleTalkStateEvent(GoogleTalkState.LOGGING_IN));
         final String id;
         if (LanternHub.settings().isGetMode()) {
             id = "gmail.";
@@ -268,14 +268,14 @@ public class DefaultXmppHandler implements XmppHandler {
                     new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
             }
             LanternHub.eventBus().post(
-                new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_OUT));
+                new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
             LanternHub.settings().setPasswordSaved(false);
             LanternHub.settings().setStoredPassword("");
             LanternHub.settings().setPassword("");
             throw e;
         }
         LanternHub.eventBus().post(
-            new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_IN));
+            new GoogleTalkStateEvent(GoogleTalkState.LOGGED_IN));
         
         // We don't consider ourselves connected until we actually get
         // proxies to work with.
@@ -352,7 +352,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTING));
         }
         LanternHub.asyncEventBus().post(
-            new AuthenticationStatusEvent(AuthenticationStatus.LOGGING_OUT));
+            new GoogleTalkStateEvent(GoogleTalkState.LOGGING_OUT));
         
         this.client.get().logout();
         this.client.set(null);
@@ -362,7 +362,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
         }
         LanternHub.asyncEventBus().post(
-            new AuthenticationStatusEvent(AuthenticationStatus.LOGGED_OUT));
+            new GoogleTalkStateEvent(GoogleTalkState.LOGGED_OUT));
         
         peerProxySet.clear();
     }
