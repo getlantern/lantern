@@ -66,6 +66,12 @@ class MockTrustedConnection extends MockConnection {
                 proc.processRequest(browserToProxyChannel, ctx, me);
                 return proc;
             }
+
+            @Override
+            public void closeAll() {
+                // TODO Auto-generated method stub
+                
+            }
         };
         
         /* this proxyprovider will explode if anything but the expected type 
