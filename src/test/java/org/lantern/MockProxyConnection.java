@@ -71,6 +71,12 @@ class MockProxyConnection extends MockConnection {
                        ChannelHandlerContext ctx, MessageEvent me) throws IOException {
                            throw new IOException();
                        }
+
+                    @Override
+                    public void closeAll() {
+                        // TODO Auto-generated method stub
+                        
+                    }
                     
                 };
             }
