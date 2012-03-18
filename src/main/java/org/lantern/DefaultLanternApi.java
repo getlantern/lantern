@@ -9,12 +9,12 @@ import java.util.Map.Entry;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.lantern.privacy.InvalidKeyException;
-import org.lantern.privacy.LocalCipherProvider;
+
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.httpclient.HttpStatus;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.lantern.privacy.InvalidKeyException;
+import org.lantern.privacy.LocalCipherProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

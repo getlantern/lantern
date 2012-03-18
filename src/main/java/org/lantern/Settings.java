@@ -59,8 +59,8 @@ public class Settings implements MutableSettings {
     /* user has completed 'wizard' setup steps */
     private boolean initialSetupComplete = false;
     
-    private AuthenticationStatus authenticationStatus = 
-        AuthenticationStatus.LOGGED_OUT;
+    private GoogleTalkState googleTalkState = 
+        GoogleTalkState.LOGGED_OUT;
     
     private boolean proxyAllSites;
     
@@ -254,14 +254,14 @@ public class Settings implements MutableSettings {
     }
 
     @JsonView(UIStateSettings.class)
-    public AuthenticationStatus getAuthenticationStatus() {
-        return authenticationStatus;
+    public GoogleTalkState getGoogleTalkState() {
+        return googleTalkState;
     }
     
     @Subscribe
     public void onAuthenticationStateChanged(
-        final AuthenticationStatusEvent ase) {
-        this.authenticationStatus = ase.getStatus();
+        final GoogleTalkStateEvent ase) {
+        this.googleTalkState = ase.getState();
     }
 
     public void setProxyAllSites(final boolean proxyAllSites) {
@@ -538,7 +538,7 @@ public class Settings implements MutableSettings {
                 + ", connectOnLaunch=" + connectOnLaunch + ", language="
                 + language + ", settings=" + settings
                 + ", initialSetupComplete=" + initialSetupComplete
-                + ", authenticationStatus=" + authenticationStatus
+                + ", googleTalkState=" + googleTalkState
                 + ", proxyAllSites=" + proxyAllSites + ", country=" + country
                 + ", countryDetected=" + countryDetected
                 + ", manuallyOverrideCountry=" + manuallyOverrideCountry
