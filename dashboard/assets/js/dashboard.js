@@ -33,12 +33,15 @@ function showid(id, ignorecls){
   var $el = $(id);
   if(!$el.length)
     return;
-  location.hash = id;
-  if($el.hasClass('selected'))
+  if($el.hasClass('selected')){
+    location.hash = id;
     return;
+  }
   var cls = $el.attr('data-cls');
-  if(cls === ignorecls)
+  if(cls === ignorecls){
+    location.hash = '';
     return;
+  }
   $('.' + cls + '.selected').toggleClass('selected');
   $el.toggleClass('selected');
   if(cls === 'panel'){
@@ -91,6 +94,8 @@ function LDCtrl(){
   self.statecorrupt = function() { return self.stateloaded() && self.state.settings.state == 'CORRUPTED'; }
 
   self.updateavailable = function(){
+    // uncomment out to make update panel available:
+    // return true;
     return !$.isEmptyObject(self.state.update);
   };
 
@@ -408,6 +413,8 @@ function LDCtrl(){
     if(confirm(msg)){
       $.post('/api/reset').done(function(state){
         self.update(state);
+        self.inputemail = null;
+        self.pmfromemail = null;
         showid('#welcome');
       });
     }
@@ -588,7 +595,7 @@ $(document).ready(function(){
   //$window.resize(_resize_body);
 
   $('.overlay .close').click(function(evt){
-    $(evt.target).parent('.overlay').removeClass('selected');
+    $(evt.target).parent('.overlay').hide();
     evt.preventDefault();
     //_resize_body(); // XXX height hack
   });
@@ -596,7 +603,7 @@ $(document).ready(function(){
   $(document).keyup(function(evt){
     switch(evt.keyCode){
     case KEYCODE_ESC:
-      $('.overlay.selected').removeClass('selected');
+      $('.overlay:visible').hide();
       getscope().showsignin(false);
       getscope().$digest();
       break;
@@ -611,6 +618,26 @@ $(document).ready(function(){
   $('#userlink, #usermenu a').click(function(evt){
     $('#usermenu').slideToggle(50);
     $('#userlink').toggleClass('collapsed');
+  });
+
+  var converter = new Showdown.converter(),
+      $mdoverlay = $('#md-overlay');
+  $('.showdown-link').click(function(evt){
+    var sel = clickevt2id(evt) + ' *[src*=' + $(this).attr('data-md') + ']',
+        $target = $(sel);
+    if(!$target.length){
+      console.log('No element matching', sel);
+      return;
+    }
+    if(!$target.hasClass('showdownified')){
+      console.log('showdownifying ' + sel);
+      var md = $target.text(), html = converter.makeHtml(md);
+      $target.html(html).addClass('showdownified');
+    }
+    $('.showdown').removeClass('selected');
+    $target.addClass('selected');
+    $mdoverlay.show();
+    return false;
   });
 
   // XXX

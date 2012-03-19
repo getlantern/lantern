@@ -6,8 +6,8 @@ Version 0.97.3
 
 Release date to be determined.
 
-Get Lantern running on Windows and Linux again, various fixes.
-GitHub compare view: http://git.io/5EcZmw
+Restored Windows and Linux support, various fixes.
+GitHub compare view: <http://git.io/5EcZmw>
 
 Version 0.97.2
 --------------
