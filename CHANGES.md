@@ -1,0 +1,1 @@
+dashboard/assets/CHANGES.md

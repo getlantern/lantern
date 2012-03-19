@@ -345,6 +345,7 @@ public class DefaultLanternApi implements LanternApi {
         resp.setStatus(HttpStatus.SC_OK);
         resp.setContentLength(body.length);
         resp.setContentType("application/json; charset=UTF-8");
+        resp.setHeader("Cache-Control", "no-cache,no-store,max-age=0");
         try {
             resp.getOutputStream().write(body);
             resp.getOutputStream().flush();
