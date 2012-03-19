@@ -308,12 +308,15 @@ $sidebar-wdth: 200px
 #search
   margin-top: 1em
 
+$mdoverlaywdth: 500px
 #md-overlay
+  z-index: 2
   position: fixed
   top: $topbar-hght + 2px
-  width: 500px
+  width: $mdoverlaywdth
   left: 50%
-  margin: 0 0 0 -250px
+  margin: 0
+  margin-left: - $mdoverlaywdth / 2 - $gap-size
   max-height: 552px
   color: #888
   line-height: 1.5
