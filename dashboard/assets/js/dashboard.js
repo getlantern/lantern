@@ -412,6 +412,8 @@ function LDCtrl(){
     if(confirm(msg)){
       $.post('/api/reset').done(function(state){
         self.update(state);
+        self.inputemail = null;
+        self.pmfromemail = null;
         showid('#welcome');
       });
     }
@@ -631,8 +633,8 @@ $(document).ready(function(){
       var md = $target.text(), html = converter.makeHtml(md);
       $target.html(html).addClass('showdownified');
     }
-    $('.showdown').hide();
-    $target.show();
+    $('.showdown').removeClass('selected');
+    $target.addClass('selected');
     $mdoverlay.show();
     return false;
   });

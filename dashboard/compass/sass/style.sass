@@ -112,6 +112,10 @@ a.doc
 
 .showdown
   display: none
+  max-height: 552px
+  overflow-y: auto
+  &.selected
+    display: block
   h2
     font-size: 13pt
     margin-top: 35px
@@ -310,7 +314,7 @@ $sidebar-wdth: 200px
   width: 500px
   left: 50%
   margin: 0 0 0 -250px
-  height: 400px
+  max-height: 552px
   color: #888
   line-height: 1.5
   font-size: 11pt
