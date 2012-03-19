@@ -94,7 +94,8 @@ function LDCtrl(){
   self.statecorrupt = function() { return self.stateloaded() && self.state.settings.state == 'CORRUPTED'; }
 
   self.updateavailable = function(){
-      return true; // XXX
+    // uncomment out to make update panel available:
+    // return true;
     return !$.isEmptyObject(self.state.update);
   };
 
