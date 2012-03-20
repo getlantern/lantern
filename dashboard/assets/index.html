@@ -232,7 +232,7 @@
           <dl>
             <dt>Connection</dt>
             <dd>
-              <span ng:class="['iconlabel', state.connectivity, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}
+              <span id=dd-conn ng:class="['iconlabel', state.connectivity, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}
               <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()" ng:show=logged_out()>Sign in</a></span>
               </span>
             </dd>
