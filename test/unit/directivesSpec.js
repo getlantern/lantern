@@ -1,7 +1,7 @@
-/* jasmine specs for widgets go here */
+/* jasmine specs for directives go here */
 
-describe('widgets', function() {
-  beforeEach(module('myApp.widgets'));
+describe('directives', function() {
+  beforeEach(module('myApp.directives'));
 
   describe('app-version', function() {
     it('should print current version', function() {
