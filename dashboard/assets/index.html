@@ -207,14 +207,15 @@
               {{bytesrate(state.downRate, false, updnrate())}}
             </span>
           </span>
-          <a ng:show=state.email id=userlink class="collapsed">{{state.email}}</a>
+          <span ng:show=state.email id=userlink class="collapsed">{{state.email}}</span>
         </div>
+        <!--
         <div id=usermenu class={{state.connectivity}}>
           <ul>
             <li ng:show=connected()><a ng:click=switchmode(true)>{{switchlinktext()}}</a></li>
-            <li><a ng:click="showsignin(true)">{{logged_in() && 'Switch user' || 'Sign in'}}</a></li>
           </ul>
         </div>
+        -->
         <div id=sidebar>
           <h1>Dashboard</h1>
           <nav>
@@ -253,6 +254,11 @@
             <dt>Port</dt>
             <dd>
               <input type=text value={{state.port}} id=port min=1024 max=65535 readonly />
+            </dd>
+            <dt>Mode</dt>
+            <dd>
+              <span id=modelabel>{{state.getMode && 'Get' || 'Give'}}</span>
+              <a class=actionlink ng:click=switchmode(true)>{{switchlinktext()}}</a>
             </dd>
             <dt ng:show=state.getMode>Policy</dt>
             <dd ng:show=state.getMode>

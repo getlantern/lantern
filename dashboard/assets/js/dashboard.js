@@ -637,10 +637,12 @@ $(document).ready(function(){
     evt.preventDefault();
   });
 
+  /*
   $('#userlink, #usermenu a').click(function(evt){
     $('#usermenu').slideToggle(50);
     $('#userlink').toggleClass('collapsed');
   });
+  */
 
   var converter = new Showdown.converter(),
       $mdoverlay = $('#md-overlay');
