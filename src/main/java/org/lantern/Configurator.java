@@ -47,8 +47,6 @@ public class Configurator {
             break;
         case DISCONNECTED:
             break;
-        case DISCONNECTING:
-            break;
         }
     }
     

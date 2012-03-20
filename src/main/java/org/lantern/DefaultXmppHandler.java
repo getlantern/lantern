@@ -347,10 +347,6 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         LOG.info("Disconnecting!!");
         lastJson = "";
-        if (this.proxies.isEmpty()) {
-            LanternHub.eventBus().post(
-                new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTING));
-        }
         LanternHub.asyncEventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.LOGGING_OUT));
         

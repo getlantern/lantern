@@ -228,12 +228,7 @@ public class SystemTrayImpl implements SystemTray {
             changeStatusLabel(LABEL_CONNECTED);
             break;
         }
-        case DISCONNECTING:
-            changeIcon(ICON_DISCONNECTING);
-            changeStatusLabel(LABEL_DISCONNECTING);
-            break;
         }
-
     }
 
     private void changeIcon(final String fileName) {
