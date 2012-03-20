@@ -29,17 +29,17 @@ function clickevt2id(evt){
   return evt.currentTarget.href.match(FRAGMENTPAT)[1];
 }
 
-function showid(id, ignorecls){
+function showid(id, ignorecls, ignore){
   var $el = $(id);
   if(!$el.length)
     return;
-  if($el.hasClass('selected')){
-    location.hash = id;
+  var cls = $el.attr('data-cls');
+  if(cls === ignorecls || ignore){
+    location.hash = '';
     return;
   }
-  var cls = $el.attr('data-cls');
-  if(cls === ignorecls){
-    location.hash = '';
+  location.hash = id;
+  if($el.hasClass('selected')){
     return;
   }
   $('.' + cls + '.selected').toggleClass('selected');
@@ -78,8 +78,21 @@ function LDCtrl(){
   };
   self.block = false;
   self.$watch('block');
+
+  self._reset = function(){
+    console.log('in _reset');
+    self.inputemail = null;
+    self.pmfromemail = null;
+    self.resetshowsignin();
+    if(location.hash && location.hash != '#')
+      showid(location.hash, 'overlay', !self.state.initialSetupComplete);
+  };
+
   self.update = function(state){
+    var firstupdate = !self.stateloaded();
     self.state = state;
+    if(firstupdate)
+      self._reset();
     self.$digest();
   };
 
@@ -161,7 +174,7 @@ function LDCtrl(){
   };
 
   self.resetshowsignin = function() {
-    self._showsignin = self.loggedout() && self.state.connectOnLaunch && !self.state.passwordSaved;
+    self._showsignin = self.logged_out() && self.state.connectOnLaunch && !self.state.passwordSaved;
     console.log('set _showsignin to', self._showsignin);
   }
 
@@ -196,9 +209,21 @@ function LDCtrl(){
   self.pmfromemail = null;
 
   self.npeers = function() {return self.state.peerCount;}
-  self.loggedin = function(){return self.state.connectivity === 'CONNECTED';};
-  self.loggedout = function(){return self.state.connectivity === 'DISCONNECTED';};
-  self.loggingin = function(){return self.state.connectivity === 'CONNECTING';};
+
+
+
+  function bindprops(fieldname, keysobj){ 
+    for(var key in keysobj){
+      self[key.toLowerCase()] = function(){ var key_ = key;
+        return function(){
+          return self.state[fieldname] === key_;
+        }
+      }();
+    }
+  }
+  bindprops('connectivity', {'DISCONNECTED':0, 'CONNECTING':0, 'CONNECTED':0});
+  bindprops('googleTalkState', {'LOGGING_OUT':0, 'LOGGING_IN':0, 'LOGGED_IN':0, 'LOGIN_FAILED':0});
+  self.logged_out = function(){ var gts = self.state.googleTalkState; return gts === 'LOGGED_OUT' || gts === 'LOGIN_FAILED'; };
 
   self.conncaption = function(){
     var c = self.state.connectivity;
@@ -226,12 +251,12 @@ function LDCtrl(){
   };
 
   self.switchlinktext = function(){
-    if(self.loggedin())
+    if(self.connected())
       return 'Switch to '+(self.state.getMode?'giv':'gett')+'ing access';
   };
 
   self.fs_submit = function(){
-    if(self.loggedout() || !self.sameuser()){
+    if(self.logged_out() || !self.sameuser()){
       if(self.fsform.$invalid){
         console.log('form invalid, doing nothing');
         return;
@@ -279,7 +304,7 @@ function LDCtrl(){
   };
 
   self.signin = function(email){
-    if(self.loggedin()){
+    if(self.logged_in()){
       if(self.sameuser() && !self.inputpassword){
         console.log('ingoring signin as', self.state.email, ', already signed in as that user and no new password supplied');
         self.showsignin(false);
@@ -298,10 +323,9 @@ function LDCtrl(){
       data.password = self.inputpassword;
     }
     // XXX force this for smoother looking login
-    self.state.connectivity = 'CONNECTING';
+    self.state.googleTalkState = 'LOGGING_IN';
     self.$digest();
     console.log('Signing in with:', data);
-    $('form.signin').removeClass('badcredentials');
     $.post('/api/signin', data).done(function(state){
       console.log('signin succeeded');
       self.inputpassword = '';
@@ -312,19 +336,18 @@ function LDCtrl(){
         showid(self.state.getMode && '#trustedpeers' || '#done');
     }).fail(function(){
       // XXX backend does not pass logged_out state immediately, take matters into our own hands
-      self.state.connectivity = 'DISCONNECTED';
+      self.state.googleTalkState = 'LOGIN_FAILED';
       self.$digest();
       if(self.state.initialSetupComplete)
         self.showsignin(true);
-      $('form.signin').addClass('badcredentials');
       console.log('signin failed');
     });
   };
 
   self.fs_submit_src = function(){
-    if(self.fsform.$invalid && !(self.loggedin() && self.sameuser()))
+    if(self.fsform.$invalid && !(self.logged_in() && self.sameuser()))
       return 'img/arrow-right-disabled.png';
-    if(self.loggingin())
+    if(self.logging_in())
       return 'img/spinner-big.gif';
     return 'img/arrow-right.png';
   };
@@ -408,13 +431,12 @@ function LDCtrl(){
 
   self.reset = function(){
     var msg = 'Are you sure you want to reset Lantern? ' +
-      (self.loggedin() ? 'You will be signed out and y' : 'Y') +
+      (self.connected() ? 'You will be disconnected and y' : 'Y') +
       'our settings will be erased.';
     if(confirm(msg)){
       $.post('/api/reset').done(function(state){
+        self.state = {};
         self.update(state);
-        self.inputemail = null;
-        self.pmfromemail = null;
         showid('#welcome');
       });
     }
@@ -700,17 +722,20 @@ $(document).ready(function(){
     }
   });
 
+  var nfailed_fetchpeers = 0;
+  var nfailed_fetchwhitelist = 0;
+
   function syncHandler(msg){
     var s = getscope();
     s.update(msg.data);
 
     // XXX
     if(s.state.getMode){
-      if(s.loggedin()){
+      if(s.connected()){
         if(s.peers === FETCHFAILED){
-          // XXX back-off
-          console.log('retrying fetchpeers in 1s');
-          setTimeout(s.fetchpeers, 1000);
+          var backoff = Math.pow(2, ++nfailed_fetchpeers) * 1000;
+          console.log('retrying fetchpeers in ', backoff, ' ms');
+          setTimeout(s.fetchpeers, backoff);
         }else if(s.peers === null){
           console.log('calling fetch peers for the first time');
           s.fetchpeers();
@@ -719,9 +744,9 @@ $(document).ready(function(){
       if(s.whitelist === null){
         s.fetchwhitelist();
       }else if(s.whitelist === FETCHFAILED){
-        // XXX back-off
-        console.log('retrying fetchwhitelist in 1s');
-        setTimeout(s.fetchwhitelist, 1000);
+        var backoff = Math.pow(2, ++nfailed_fetchwhitelist) * 1000;
+        console.log('retrying fetchwhitelist in ', backoff, ' ms');
+        setTimeout(s.fetchwhitelist, backoff);
       }
     }
   }
@@ -743,8 +768,6 @@ $(document).ready(function(){
     if (handshake.successful === true){
       cometd.batch(function(){
         _refresh();
-        if(location.hash)
-          showid(location.hash, 'overlay');
       });
     }
   });

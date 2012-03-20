@@ -113,7 +113,7 @@
         <div id=signin class=slide data-cls=slide>
           <h1>Sign into Google</h1>
           <p>Lantern uses Google to connect to other users.</p>
-          <form id=firstsignin-form name=fsform class=signin ng:submit=fs_submit()>
+          <form id=firstsignin-form name=fsform ng:class="['signin', login_failed() && 'badcredentials']" ng:submit=fs_submit()>
             <ul>
               <li><div class=error>Bad username or password.</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail required autofocus /></li>
@@ -126,7 +126,7 @@
                 <figcaption>Back</figcaption>
               </figure>
               <figure class=right>
-                <input id=fs-submit type=image ng:src={{fs_submit_src()}} alt=Continue ng:disabled="{{loggedout() && fsform.$invalid}}" />
+                <input id=fs-submit type=image ng:src={{fs_submit_src()}} alt=Continue ng:disabled="{{logged_out() && fsform.$invalid}}" />
                 <figcaption>Continue</figcaption>
               </figure>
             </div>
@@ -196,7 +196,7 @@
       <div id=dashboard ng:show=state.initialSetupComplete>
         <div id=topbar>
           <span id=topbar-conn ng:class="['iconlabel', state.connectivity, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}</span></span>
-          <span ng:show=loggedin()>
+          <span ng:show=connected()>
             <span id=topbar-peers class=topbar-stat>{{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span>
             <span id=topbar-rate-up class="topbar-stat rate">
               <img src=img/topbar-arrow-up.png alt="upload rate" />
@@ -211,8 +211,8 @@
         </div>
         <div id=usermenu class={{state.connectivity}}>
           <ul>
-            <li ng:show=loggedin()><a ng:click=switchmode(true)>{{switchlinktext()}}</a></li>
-            <li><a ng:click="showsignin(true)">{{loggedin() && 'Switch user' || 'Sign in'}}</a></li>
+            <li ng:show=connected()><a ng:click=switchmode(true)>{{switchlinktext()}}</a></li>
+            <li><a ng:click="showsignin(true)">{{logged_in() && 'Switch user' || 'Sign in'}}</a></li>
           </ul>
         </div>
         <div id=sidebar>
@@ -232,11 +232,11 @@
             <dt>Connection</dt>
             <dd>
               <span ng:class="['iconlabel', state.connectivity, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}
-              <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()" ng:show=loggedout()>Sign in</a></span>
+              <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()" ng:show=logged_out()>Sign in</a></span>
               </span>
             </dd>
-            <dt ng:show=loggedin()>Transfers</dt>
-            <dd ng:show=loggedin()>
+            <dt ng:show=connected()>Transfers</dt>
+            <dd ng:show=connected()>
             <div>{{bytesrate(updnrate())}} currently<span ng:show=npeers()> via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span></div>
               <div>{{prettybytes(state.upTotalLifetime + state.downTotalLifetime)}} lifetime</div>
             </dd>
@@ -299,15 +299,15 @@
           </p>
           <textarea ng:model=pm id=pm-textarea class=lionbars placeholder="Private message to Lantern developers" title="This form is sent securely."></textarea>
           <div id=pm-controls>
-            <span ng:show=loggedout() class=extra>
+            <span ng:show=logged_out() class=extra>
               <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()">Sign in</a>
               to send feedback
             </span>
-            <span ng:show=loggedin()>
+            <span ng:show=connected()>
               <label><input type=checkbox ng:model=pmsendfrom /> Send From:</label>
               <input id=pm-replyto type=email ng:model=pmfromemail ng:disabled={{!pmsendfrom}} ng:required={{pmsendfrom}} placeholder=email@example.com />
             </span>
-            <button id=pm-send class=buttonlink ng:disabled="{{!loggedin() || !pm}}" ng:click=sendpm()>Send</button>
+            <button id=pm-send class=buttonlink ng:disabled="{{!connected() || !pm}}" ng:click=sendpm()>Send</button>
           </div>
         </div>
         <div class=panel id=update data-cls=panel>
@@ -332,15 +332,15 @@
 
         <div id=signin-overlay ng:show=showsignin()>
           <a class=close ng:click="showsignin(false)">×</a>
-          <form name=signinform class=signin ng:submit=signin(inputemail)>
+          <form name=signinform ng:class="['signin', login_failed() && 'badcredentials']" ng:submit=signin(inputemail)>
             <ul>
               <li><div class=error>Bad username or password.</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail required /></li>
               <li><input type=password placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
-            <button ng:show=!loggingin() type=submit ng:disabled="{{(loggedin() && sameuser() && !inputpassword) || (passrequired() && !inputpassword)}}" >Sign in</button>
-            <img class=spinner src=img/spinner-big.gif alt="Signing in..." ng:show=loggingin() />
+            <button ng:show=!logging_in() type=submit ng:disabled="{{(logged_in() && sameuser() && !inputpassword) || (passrequired() && !inputpassword)}}" >Sign in</button>
+            <img class=spinner src=img/spinner-big.gif alt="Signing in..." ng:show=logging_in() />
           </form>
         </div>
 
