@@ -200,6 +200,7 @@ function LDCtrl(){
       return !self.state.localPasswordInitialized;
     }
     else {
+      console.log('showwelcome: corrupted or unknown state, returning false');
       return false; // corrupted or unknown
     }
   }
@@ -661,6 +662,11 @@ $(document).ready(function(){
     $('.showdown').removeClass('selected');
     $target.addClass('selected');
     $mdoverlay.show();
+    if(!$target.hasClass('lionbarsified')){
+      console.log('lionbarsifying ' + sel);
+      $target.lionbars();
+      $target.addClass('lionbarsified');
+    }
     return false;
   });
 

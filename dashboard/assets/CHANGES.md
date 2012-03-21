@@ -11,7 +11,8 @@ Release date to be determined.
 
 - Integrated documentation into the UI
 
-- Removed switch user from the dasbhoard
+- Removed sign out, switch user, and sign in on launch setting from the
+  dashboard
 
 
 GitHub compare view: <https://github.com/getlantern/lantern/compare/v0.97.2...v0.97.3>

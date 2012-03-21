@@ -285,7 +285,9 @@
             <dd>
               <ul>
                 <li><label><input type=checkbox ng:change=toggle('startAtLogin') ng:model=state.startAtLogin /> Launch on system startup</label></li>
+                <!--
                 <li><label><input type=checkbox ng:change=toggle('connectOnLaunch') ng:model=state.connectOnLaunch /> Sign in on launch</label></li>
+                -->
                 <li ng:show=state.getMode><label><input type=checkbox ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Set as system proxy</label></li>
               </ul>
               <input type=button id=reset-button ng:click=reset() value="Reset Lantern" />
