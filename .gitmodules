@@ -1,3 +1,0 @@
-[submodule "dashboard/assets/md"]
-	path = dashboard/assets/md
-	url = git@github.com:getlantern/lantern.wiki.git

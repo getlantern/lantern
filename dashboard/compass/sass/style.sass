@@ -83,12 +83,12 @@ $welcome-controls-wdth: 300px
         position: absolute
         bottom: 0
         right: 0
-  a.doc
+  a.doc-link
     color: $background-color-alt5
     border-bottom: 1px $header-color-alt dotted
     text-decoration: none
 
-a.doc
+a.doc-link
   cursor: help
 
 .welcome-optionlist
@@ -110,6 +110,9 @@ a.doc
 .slide
   display: none
 
+.doc
+  display: none
+
 .showdown
   display: none
   max-height: 552px
@@ -120,6 +123,8 @@ a.doc
     font-size: 13pt
     margin-top: 35px
     margin-bottom: 4px
+  ul
+    
   //p
     margin-bottom: 4px
 
@@ -310,8 +315,11 @@ $sidebar-wdth: 200px
 #search
   margin-top: 1em
 
+.lb-content
+  padding-right: 10px
+
 $mdoverlaywdth: 500px
-#md-overlay
+#md-overlay, #doc-overlay
   z-index: 2
   position: fixed
   top: $topbar-hght + 2px
@@ -323,6 +331,16 @@ $mdoverlaywdth: 500px
   color: #888
   line-height: 1.5
   font-size: 11pt
+
+#doc-overlay
+  +border-radius(3px)
+  top: 50%
+  max-height: 500px
+  margin-top: -274px
+  .doc
+    overflow-y: auto
+    max-height: 476px
+    font-size: 10pt
 
 ul
   +no-bullets
@@ -358,7 +376,7 @@ li
 .panel, .overlay
   display: none
   background-color: #fff
-  a.doc
+  a.doc-link
     color: $header-color-alt
     border-bottom: 1px $header-color-alt dotted
     text-decoration: none
