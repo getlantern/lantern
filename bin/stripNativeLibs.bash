@@ -11,7 +11,7 @@ for f in `ls swt*.zip`
 do
   echo "Processing zip file $f"
   mkdir zip-temp || die "Could not create zip temp dir"
-  mv $f zip-temp || die "Could not move zip?"
+  cp $f zip-temp || die "Could not move zip?"
   cd zip-temp || die "Could not move to zip temp?"
   unzip $f || die "could not unzip $f"
   mv swt.jar .. || die "Could not move swt jar?"
