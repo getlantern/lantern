@@ -5,7 +5,8 @@
 *.settings
 *.classpath
 *.project
+nbactions.xml
 .sass-cache
 /Lantern
-log.txt
+log.txt*
 target/

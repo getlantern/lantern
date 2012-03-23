@@ -645,14 +645,22 @@ $(document).ready(function(){
   });
   */
 
+  function lionbarsify($el){
+    if($el.hasClass('lionbarsified'))
+      return false;
+    console.log('lionbarsifying', $el);
+    $el.addClass('lionbarsified').lionbars();
+    return true;
+  }
+
   var converter = new Showdown.converter(),
       $mdoverlay = $('#md-overlay');
   $('.showdown-link').click(function(evt){
-    var sel = clickevt2id(evt) + ' *[src*=' + $(this).attr('data-md') + ']',
+    var sel = '#md-overlay *[src*=' + $(this).attr('data-md') + ']',
         $target = $(sel);
     if(!$target.length){
       console.log('No element matching', sel);
-      return;
+      return false;
     }
     if(!$target.hasClass('showdownified')){
       console.log('showdownifying ' + sel);
@@ -662,11 +670,16 @@ $(document).ready(function(){
     $('.showdown').removeClass('selected');
     $target.addClass('selected');
     $mdoverlay.show();
-    if(!$target.hasClass('lionbarsified')){
-      console.log('lionbarsifying ' + sel);
-      $target.lionbars();
-      $target.addClass('lionbarsified');
-    }
+    lionbarsify($target);
+    return false;
+  });
+
+  var $doco = $('#doc-overlay'),
+      $doc = $('.doc');
+  $('.doc-link').click(function(evt){
+    $doc.hide();
+    var $target = $doco.show().find('#' + $(evt.currentTarget).attr('data-doc'));
+    lionbarsify($target.show());
     return false;
   });
 

@@ -1,6 +1,8 @@
 package org.lantern;
 
 import java.io.File;
+import java.net.URL;
+import java.net.MalformedURLException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.SWT;
@@ -81,6 +83,28 @@ public class Dashboard {
         //browser.setBounds(0, 0, 800, 600);
         browser.setUrl("http://localhost:"+
             LanternHub.settings().getApiPort());
+
+        browser.addLocationListener(new LocationListener() {
+            @Override
+            public void changing(LocationEvent event) {
+                try {
+                    final URL url = new URL(event.location);
+                    final String localAuthority = "localhost:" + // XXX aliases should work too
+                        LanternHub.settings().getApiPort();
+                    if (!url.getAuthority().equals(localAuthority)) {
+                        log.info("opening external browser to {}", event.location);
+                        event.doit = false;
+                        LanternUtils.browseUrl(event.location);
+                    }
+                }
+                catch (MalformedURLException e) {
+                    event.doit = false;
+                }
+            }
+
+            @Override
+            public void changed(LocationEvent event) {}
+        });
 
         // create a hidden browser to intercept external
         // location references that should be openend
