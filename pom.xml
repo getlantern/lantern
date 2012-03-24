@@ -10,6 +10,7 @@
   <description>
     Lantern is a peer-to-peer and trust-network-based tool for circumventing censors and preventing monitoring.
   </description>
+  <url>https://github.com/getlantern/lantern</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -24,12 +25,18 @@
   <inceptionYear>2010</inceptionYear>
 
   <issueManagement>
-    <system>JIRA</system>
+    <system>GitHub</system>
     <url>https://github.com/getlantern/lantern/issues</url>
   </issueManagement>
 
-  <dependencies>
+  <scm>
+    <url>https://github.com/getlantern/lantern</url>
+    <connection>scm:git:git://github.com/getlantern/lantern.git</connection>
+    <developerConnection>scm:git:git@github.com:getlantern/lantern.git</developerConnection>
+  </scm>
 
+
+  <dependencies>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
@@ -341,6 +348,74 @@
     <defaultGoal>install</defaultGoal>
 
     <plugins>
+      <plugin>
+        <groupId>com.github.github</groupId>
+        <artifactId>downloads-maven-plugin</artifactId>
+        <version>0.4</version>
+        <configuration>
+          <description>Official ${project.name} build of the ${project.version} release</description>
+          <override>true</override>
+          <includeAttached>true</includeAttached>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>upload</goal>
+            </goals>
+            <phase>install</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>com.github.github</groupId>
+        <artifactId>site-maven-plugin</artifactId>
+        <version>0.5</version>
+        <configuration>
+          <message>Building site for ${project.version}</message>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>site</goal>
+            </goals>
+            <phase>site</phase>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-site-plugin</artifactId>
+        <version>3.0</version>
+        <configuration>
+          <reportPlugins>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-project-info-reports-plugin</artifactId>
+              <version>2.2</version>
+              <configuration>
+                <dependencyDetailsEnabled>true</dependencyDetailsEnabled>
+                <dependencyLocationsEnabled>true</dependencyLocationsEnabled>
+              </configuration>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-javadoc-plugin</artifactId>
+              <version>2.7</version>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-surefire-report-plugin</artifactId>
+              <version>2.6</version>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-checkstyle-plugin</artifactId>
+              <version>2.6</version>
+            </plugin>
+          </reportPlugins>
+        </configuration>
+      </plugin>
+
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
