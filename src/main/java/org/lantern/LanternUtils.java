@@ -601,8 +601,23 @@ public class LanternUtils {
             if (keytool16.exists()) {
                 return keytool16.getAbsolutePath();
             }
+        } 
+        final File jh = new File(System.getProperty("java.home"), "bin");
+        if (jh.isDirectory()) {
+            final String name;
+            if (SystemUtils.IS_OS_WINDOWS) {
+                name = "keytool.exe";
+            } else {
+                name = "keytool";
+            }
+            try {
+                return new File(jh, name).getCanonicalPath();
+            } catch (final IOException e) {
+                LOG.warn("Error getting canonical path: " + jh);
+            }
+        } else {
+            LOG.warn("java.home/bin not a directory? "+jh);
         }
-        
         
         final File defaultLocation = new File("/usr/bin/keytool");
         if (defaultLocation.exists()) {
@@ -612,7 +627,7 @@ public class LanternUtils {
         if (networkSetupBin != null) {
             return networkSetupBin;
         }
-        LOG.error("Could not fine keytool?!?!?!?");
+        LOG.error("Could not find keytool?!?!?!?");
         return null;
     }
     
