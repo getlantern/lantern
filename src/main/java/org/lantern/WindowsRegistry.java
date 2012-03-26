@@ -65,7 +65,7 @@ public class WindowsRegistry {
      * 
      * @param key The registry key to query.
      * @param valueName Name of the registry value.
-     * @return 
+     * @param valueData The data for the value name.
      * @return registry value or the empty string if not found.
      */
     public static final int writeREG_SZ(final String key, 
@@ -78,7 +78,7 @@ public class WindowsRegistry {
      * 
      * @param key The registry key to query.
      * @param valueName Name of the registry value.
-     * @return 
+     * @param valueData The data for the value name.
      * @return registry value or the empty string if not found.
      */
     public static final int writeREG_DWORD(final String key, 
@@ -91,7 +91,8 @@ public class WindowsRegistry {
      * 
      * @param key The registry key to query.
      * @param valueName Name of the registry value.
-     * @return 
+     * @param valueData The data for the value name.
+     * @param type The type of data.
      * @return registry value or the empty string if not found.
      */
     private static final int write(final String key, 
@@ -116,6 +117,7 @@ public class WindowsRegistry {
             final InputStream is = process.getInputStream();
             final StringWriter sw = new StringWriter();;
             final Runnable runner = new Runnable() {
+                @Override
                 public void run() {
                     try {
                         int c;
@@ -148,7 +150,7 @@ public class WindowsRegistry {
             e.printStackTrace();
             LOG.error("Error writing to registry", e);
         }
-        System.out.println("BAD NEWS...");
+        LOG.info("Registry call failed -- should have reported error");
         return 1;
     }
     
@@ -169,6 +171,7 @@ public class WindowsRegistry {
             final InputStream is = process.getInputStream();
             final StringWriter sw = new StringWriter();;
             final Runnable runner = new Runnable() {
+                @Override
                 public void run() {
                     try {
                         int c;

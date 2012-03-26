@@ -45,9 +45,26 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             LanternUtils.replaceInFile(this.launchdPlist, 
                 "<"+!start+"/>", "<"+start+"/>");
         } else if (SystemUtils.IS_OS_WINDOWS) {
-            // TODO: Make this work on Windows and Linux!! Tricky on Windows
-            // because it's not clear we have permissions to modify the
-            // registry in all cases.
+            final String key = 
+                "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+            int result = 0;
+            if (start) {
+                try {
+                    final String path = 
+                        new File("lantern.exe").getCanonicalPath();
+                    result = WindowsRegistry.writeREG_SZ(key, "Lantern", path);
+                } catch (final IOException e) {
+                    log.error("Could not get canonical path", e);
+                }
+            } else {
+                result = WindowsRegistry.writeREG_SZ(key, "Lantern", "");
+            }
+            
+            if (result != 0) {
+                log.error("Error enabling proxy server? Result: "+result);
+            }
+        } else if (SystemUtils.IS_OS_LINUX) {
+            // TODO: Make this work on Linux!! 
         }
     }
 
