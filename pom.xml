@@ -44,6 +44,16 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
+	    <groupId>net.java.dev.jna</groupId>
+	    <artifactId>jna</artifactId>
+	    <version>3.4.0</version>
+        </dependency>
+        <dependency>
+	    <groupId>net.java.dev.jna</groupId>
+	    <artifactId>platform</artifactId>
+	    <version>3.4.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.cometd.java</groupId>
             <artifactId>bayeux-api</artifactId>
             <version>2.4.0.RC3</version>
@@ -412,6 +422,35 @@
               <artifactId>maven-checkstyle-plugin</artifactId>
               <version>2.6</version>
             </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-changelog-plugin</artifactId>
+              <version>2.2</version>
+            </plugin>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>findbugs-maven-plugin</artifactId>
+              <version>2.4.0</version>
+              <configuration>
+                <!-- Optional directory to put findbugs xml report -->
+              </configuration>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-jxr-plugin</artifactId>
+              <version>2.3</version>
+            </plugin>
+            <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-pmd-plugin</artifactId>
+              <version>2.7.1</version>
+              <configuration>
+                <linkXref>true</linkXref>
+                <sourceEncoding>utf-8</sourceEncoding>
+                <minimumTokens>100</minimumTokens>
+                <targetJdk>1.5</targetJdk>
+              </configuration>
+            </plugin>
           </reportPlugins>
         </configuration>
       </plugin>
@@ -459,19 +498,6 @@
 
     </plugins>
   </build>
-
-  <reporting>
-    <plugins>
-      <plugin>
-        <groupId>org.codehaus.mojo</groupId>
-        <artifactId>findbugs-maven-plugin</artifactId>
-        <version>2.4.0</version>
-        <configuration>
-          <!-- Optional directory to put findbugs xml report -->
-        </configuration>
-      </plugin>
-    </plugins>
-  </reporting>
 
   <profiles>
     <profile>
