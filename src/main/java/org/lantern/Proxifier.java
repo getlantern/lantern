@@ -6,8 +6,13 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.lantern.win.WinInet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.jna.Pointer;
+import com.sun.jna.platform.win32.Kernel32;
+import com.sun.jna.ptr.IntByReference;
 
 /**
  * Class that handles turning proxying on and off for all platforms.
@@ -242,6 +247,20 @@ public class Proxifier {
         if (serverResult != 0) {
             LOG.error("Error setting proxy server? Result: "+serverResult);
         }
+        
+        refreshWindowsInet();
+    }
+
+    private static void refreshWindowsInet() {
+        Pointer hInternet = null;
+        IntByReference len = new IntByReference();
+        if (!WinInet.INSTANCE.InternetSetOption(hInternet,WinInet.INTERNET_OPTION_PROXY_SETTINGS_CHANGED, (Pointer)null, len)){
+            LOG.error("InternetSetOption failed!:" + Kernel32.INSTANCE.GetLastError());
+        }
+        if (!WinInet.INSTANCE.InternetSetOption(hInternet,WinInet.INTERNET_OPTION_REFRESH, (Pointer)null, len)){
+            LOG.error("InternetSetOption failed!:" + Kernel32.INSTANCE.GetLastError());
+        }
+        LOG.info("InternetSetOption appeared to succeed?");
     }
 
     public static void unproxy() throws ProxyConfigurationError {
@@ -287,6 +306,7 @@ public class Proxifier {
             LOG.info("Successfully reset proxy enable");
         }
         
+        refreshWindowsInet();
         LOG.info("Done resetting the Windows registry");
     }
 
