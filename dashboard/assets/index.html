@@ -6,8 +6,12 @@
     <meta name=viewport content="width=device-width, initial-scale=1.0">
     <title>Lantern Dashboard</title>
     <link rel=stylesheet href=css/style.css />
+    <!--[if lte IE 9]>
+    <link rel=stylesheet href=css/ie.css />
+    <![endif]-->
     <link rel=stylesheet href=css/lib/lionbars.css />
     <script src=js/lib/jquery-1.7.1.min.js></script>
+    <script src=js/lib/jquery.placeholder.min.js></script>
     <script src=js/lib/jquery.lionbars.0.3.min.js></script>
     <script src=js/lib/json2.js></script>
     <script src=js/lib/cometd.js></script>
@@ -160,7 +164,7 @@
           <ul class=welcome-optionlist>
             <li><div class=error>Proxy configuration failed.</div></li>
             <li><label><input type=radio value={{true}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Set Lantern as my system proxy (recommended)</label><div class=smallnote>Your browser should start using Lantern automatically</div></li>
-            <li><label><input type=radio value={{false}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> I will <a class=doc-link href=#doc-overlay data-doc=manual-proxy>manually configure</a> my browser to use Lantern</label></li>
+            <li><label><input type=radio value={{false}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> I will <a class=doc-link href=#doc-overlay data-doc=manual-proxy></a>manually configure my browser to use Lantern</label></li>
           </ul>
           <div class=controls>
             <figure class=left>
