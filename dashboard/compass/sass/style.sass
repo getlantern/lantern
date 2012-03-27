@@ -1,3 +1,5 @@
+$experimental-support-for-svg: true
+
 $blueprint-background-color: #fff
 $background-color-alt: #e9edf2
 $background-color-alt2: #bbcee9
@@ -175,6 +177,8 @@ input[type=password]
     left: 50%
     width: 350px
     margin: 0 0 1em -176px
+    background-color: #eee
+    +border-radius(3px)
   #trusted &
     border: 1px solid $edge-color
     width: 400px
@@ -186,6 +190,7 @@ input[type=password]
     margin-bottom: 8px
 
 .searchpeers
+  +box-sizing(border-box)
   #trustedpeers &
     width: 350px
     margin-bottom: 5px
@@ -312,9 +317,6 @@ $sidebar-wdth: 200px
 
 #search
   margin-top: 1em
-
-//.lb-content
-  padding-right: 10px
 
 $mdoverlaywdth: 500px
 #md-overlay, #doc-overlay
