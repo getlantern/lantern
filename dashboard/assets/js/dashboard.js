@@ -658,7 +658,8 @@ $(document).ready(function(){
   $('.doc-link').click(function(evt){
     $doc.hide();
     var $target = $doco.show().find('#' + $(evt.currentTarget).attr('data-doc'));
-    lionbarsify($target.show());
+    //lionbarsify($target.show()); // XXX none of the docs overflow #doc-overlay
+    $target.show();
     return false;
   });
 
