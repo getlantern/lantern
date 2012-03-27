@@ -29,6 +29,15 @@ function clickevt2id(evt){
   return evt.currentTarget.href.match(FRAGMENTPAT)[1];
 }
 
+var LION = !!navigator.userAgent.match(/Mac OS X 10_7/);
+function lionbarsify($el){
+  if(LION || !$el.length || $el.hasClass('lionbarsified'))
+    return false;
+  console.log('lionbarsifying', $el);
+  $el.addClass('lionbarsified').lionbars();
+  return true;
+}
+
 function showid(id, ignorecls, ignore){
   var $el = $(id);
   if(!$el.length)
@@ -42,28 +51,13 @@ function showid(id, ignorecls, ignore){
   if($el.hasClass('selected')){
     return;
   }
-  $('.' + cls + '.selected').toggleClass('selected');
-  $el.toggleClass('selected');
+  $('.' + cls + '.selected').removeClass('selected');
+  $el.addClass('selected').show();
   if(cls === 'panel'){
-    $('#panel-list > li > a.selected').toggleClass('selected');
-    $('#panel-list > li > a[href='+id+']').toggleClass('selected');
+    $('#panel-list > li > a.selected').removeClass('selected');
+    $('#panel-list > li > a[href='+id+']').addClass('selected');
   }
-  // XXX
-  var lb = $el.find('.lionbars');
-  if(lb.length){
-    lb.lionbars();
-    lb.removeClass('.lionbars');
-  }
-}
-
-function showidclickhandler(evt){
-  showid(clickevt2id(evt));
-  // XXX height hack unneeded when viewport has minheight of 630
-  //var docheight = $(document).height(), bodheight = $('body').height();
-  //if(docheight > bodheight){
-  //  console.log('height hack: increasing body height from', bodheight, 'to', docheight);
-  //  $('body').height(docheight);
-  //}
+  lionbarsify($el.find('.lionbars'));
 }
 
 function LDCtrl(){
@@ -200,7 +194,7 @@ function LDCtrl(){
       return !self.state.localPasswordInitialized;
     }
     else {
-      console.log('showwelcome: corrupted or unknown state, returning false');
+      console.log('showwelcome: corrupted or unknown state, returning false', self.state);
       return false; // corrupted or unknown
     }
   }
@@ -608,25 +602,17 @@ $(document).ready(function(){
     '.panellink, ' +
     '#welcome-container .controls a[href], ' +
     '.overlaylink'
-    ).click(showidclickhandler);
-
-  // XXX height hack unneeded when viewport has minheight of 630
-  //$window = $(window);
-  //function _resize_body(){
-  //  $body.height($window.height());
-  //}
-  //$window.resize(_resize_body);
+    ).click(function(evt){showid(clickevt2id(evt))});
 
   $('.overlay .close').click(function(evt){
-    $(evt.target).parent('.overlay').hide();
+    $(evt.target).parent('.overlay').removeClass('selected').hide();
     evt.preventDefault();
-    //_resize_body(); // XXX height hack
   });
   var KEYCODE_ESC = 27;
   $(document).keyup(function(evt){
     switch(evt.keyCode){
     case KEYCODE_ESC:
-      $('.overlay:visible').hide();
+      $('.overlay:visible').removeClass('selected').hide();
       getscope().showsignin(false);
       getscope().$digest();
       break;
@@ -644,14 +630,6 @@ $(document).ready(function(){
     $('#userlink').toggleClass('collapsed');
   });
   */
-
-  function lionbarsify($el){
-    if($el.hasClass('lionbarsified'))
-      return false;
-    console.log('lionbarsifying', $el);
-    $el.addClass('lionbarsified').lionbars();
-    return true;
-  }
 
   var converter = new Showdown.converter(),
       $mdoverlay = $('#md-overlay');
