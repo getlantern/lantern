@@ -575,6 +575,7 @@ SetLocalPasswordCtrl.prototype = {
 };
 
 $(document).ready(function(){
+  $('input, textarea').placeholder();
   var scope = null;
   var $body = $('body');
 
