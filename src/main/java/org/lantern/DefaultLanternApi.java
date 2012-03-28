@@ -42,6 +42,7 @@ public class DefaultLanternApi implements LanternApi {
         WHITELIST,
         SETLOCALPASSWORD,
         UNLOCK,
+        ERROR,
     }
 
     @Override
@@ -100,7 +101,21 @@ public class DefaultLanternApi implements LanternApi {
             break;
         case UNLOCK:
             handleUnlock(req, resp);
+            break;
+        case ERROR:
+            handleError(req, resp);
             break;            
+        }
+    }
+
+    private void handleError(final HttpServletRequest req, 
+        final HttpServletResponse resp) {
+        final String msg = req.getParameter("msg");
+        if (StringUtils.isNotBlank(msg)) {
+            log.error(msg);
+            ok(resp);
+        } else {
+            sendError(resp, "No msg argument in error API call");
         }
     }
 
@@ -349,6 +364,18 @@ public class DefaultLanternApi implements LanternApi {
         try {
             resp.getOutputStream().write(body);
             resp.getOutputStream().flush();
+        } catch (final IOException e) {
+            log.info("Could not write response", e);
+        }
+    }
+    
+    private void ok(final HttpServletResponse resp) {
+        log.info("Returning json...");
+        resp.setStatus(HttpStatus.SC_OK);
+        resp.setContentLength(0);
+        resp.setHeader("Cache-Control", "no-cache,no-store,max-age=0");
+        try {
+            resp.getOutputStream().close();
         } catch (final IOException e) {
             log.info("Could not write response", e);
         }
