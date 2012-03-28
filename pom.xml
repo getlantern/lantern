@@ -32,7 +32,7 @@
   <scm>
     <url>https://github.com/getlantern/lantern</url>
     <connection>scm:git://github.com/getlantern/lantern.git</connection>
-    <developerConnection>scm:git:git@github.com:getlantern/lantern.git</developerConnection>
+    <developerConnection>scm:git@github.com:getlantern/lantern.git</developerConnection>
   </scm>
 
 
