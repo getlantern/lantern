@@ -1,4 +1,6 @@
 $experimental-support-for-svg: true
+$legacy-support-for-ie6: false
+$legacy-support-for-ie7: false
 
 $blueprint-background-color: #fff
 $background-color-alt: #e9edf2
@@ -275,7 +277,7 @@ body
   left: 0
   right: 0
   bottom: 0
-  background-color: rgba(255, 255, 255, 0.25) !important
+  background: rgba(255, 255, 255, 0.5) image-url('spinner-big.gif') center no-repeat !important
   z-index: 100 !important
   +transition-property(background-color)
   +transition-duration(.1s)
@@ -747,3 +749,36 @@ p .buttonlink
     right: -5px
   &.tip
     color: $font-color-tip
+
+
+// --------------------
+// graceful degradation
+
+.placeholder
+  color: #aaa
+
+html.ie
+  #dd-conn
+    margin-top: -3px
+
+html.ie-unsupported
+  *
+    background: red !important // XXX
+
+html.ie8
+  &, body, #ld-container, #dashboard, .panel
+    overflow: hidden
+  .overlay
+    border: 1px solid $edge-color
+  .block-enabled
+    background: #fff image-url('spinner-big.gif') center no-repeat !important
+    +opacity(0.5)
+  .buttonlink
+    background-color: #eee
+  .flashmsg
+    background-color: #fff
+
+// XXX
+  #doc-overlay
+    .lb-content
+      padding-right: 10px
