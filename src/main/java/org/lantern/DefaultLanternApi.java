@@ -64,6 +64,7 @@ public class DefaultLanternApi implements LanternApi {
             break;
         case RESET:
             handleReset(resp);
+            LanternHub.settingsIo().write();
             break;
         case ADDTOWHITELIST:
             LanternHub.whitelist().addEntry(req.getParameter("site"));
