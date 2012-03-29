@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.0rc2
+ * @license AngularJS v1.0.0rc3
  * (c) 2010-2012 AngularJS http://angularjs.org
  * License: MIT
  */
@@ -173,12 +173,23 @@ function setupModuleLoader(window) {
            * @ngdoc method
            * @name angular.Module#filter
            * @methodOf angular.Module
-           * @param {string} name filter name
+           * @param {string} name Filter name.
            * @param {Function} filterFactory Factory function for creating new instance of filter.
            * @description
            * See {@link angular.module.ng.$filterProvider#register $filterProvider.register()}.
            */
           filter: invokeLater('$filterProvider', 'register'),
+
+          /**
+           * @ngdoc method
+           * @name angular.Module#controller
+           * @methodOf angular.Module
+           * @param {string} name Controller name.
+           * @param {Function} constructor Controller constructor function.
+           * @description
+           * See {@link angular.module.ng.$controllerProvider#register $controllerProvider.register()}.
+           */
+          controller: invokeLater('$controllerProvider', 'register'),
 
           /**
            * @ngdoc method
