@@ -761,9 +761,21 @@ html.ie
   #dd-conn
     margin-top: -3px
 
+#upgrade-ie
+  display: none
+
 html.ie-unsupported
-  *
-    background: red !important // XXX
+  #upgrade-ie
+    display: block
+    position: fixed
+    left: 0
+    right: 0
+    bottom: 0
+    z-index: 500
+    background: #eee
+    padding: 0 0 4px 0
+    text-align: center
+    color: $font-color-error
 
 html.ie8
   &, body, #ld-container, #dashboard, .panel

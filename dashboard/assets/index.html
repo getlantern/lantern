@@ -10,7 +10,7 @@
     <title>Lantern Dashboard</title>
     <link rel=stylesheet href=css/style.css />
     <link rel=stylesheet href=css/lib/lionbars.css />
-    <!--[if IE 8]><script src=js/lib/html5.js></script><![endif]-->
+    <!--[if lt IE 9]><script src=js/lib/html5.js></script><![endif]-->
     <script src=js/lib/jquery-1.7.1.min.js></script>
     <script src=js/lib/jquery.placeholder.min.js></script>
     <script src=js/lib/jquery.lionbars.0.3.min.js></script>
@@ -24,6 +24,17 @@
   <body ng:controller=LDCtrl lang=en>
     <div id=block-overlay ng:class="block && 'block-enabled'"></div>
     <div id=ld-container style="display: none" ng:show=stateloaded() ng:class="(!state.initialSetupComplete || !stateset()) && 'welcome' || ''">
+
+      <!--[if lt IE 8]> 
+      <script>
+        console.log('Unsupported browser, notifying backend');
+        $.post('/api/error', {msg: 'Unsupported browser: ' + navigator.userAgent });
+      </script>
+      <div id=upgrade-ie>
+        You appear to be running an old version of Internet Explorer.
+        Please <a id=upgrade-ie-link href=http://www.beautyoftheweb.com/Experience#/download target=_blank>upgrade</a>.
+      </div>
+      <![endif]-->
 
       <!-- Displayed when user has set a password to protect settings -->
       <div id=unlock-settings class="wizard-slides" ng:show="state.localPasswordInitialized && statelocked()">
