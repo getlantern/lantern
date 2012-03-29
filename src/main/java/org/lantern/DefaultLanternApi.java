@@ -199,6 +199,7 @@ public class DefaultLanternApi implements LanternApi {
 
     private void handleReset(final HttpServletResponse resp) {
         try {
+            LanternHub.xmppHandler().clearProxies();
             _signout();
             
             LanternHub.destructiveFullReset();

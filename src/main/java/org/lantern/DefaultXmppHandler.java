@@ -340,6 +340,15 @@ public class DefaultXmppHandler implements XmppHandler {
     
 
     @Override
+    public void clearProxies() {
+        this.proxies.clear();
+        this.proxySet.clear();
+        this.peerProxySet.clear();
+        this.laeProxySet.clear();
+        this.laeProxies.clear();
+    }
+    
+    @Override
     public void disconnect() {
         if (this.client.get() == null) {
             LOG.info("Not disconnecting since we're not yet connected");

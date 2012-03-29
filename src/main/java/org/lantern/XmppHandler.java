@@ -19,4 +19,6 @@ public interface XmppHandler extends ProxyStatusListener, ProxyProvider {
 
     void connect(String email, String pwd) throws IOException;
 
+    void clearProxies();
+
 }
