@@ -5,7 +5,7 @@
   <groupId>org.lantern</groupId>
   <artifactId>lantern</artifactId>
   <packaging>jar</packaging>
-  <version>0.3-SNAPSHOT</version>
+  <version>1.0-SNAPSHOT</version>
   <name>Lantern Censorship Circumvention and Monitoring Prevention Tool</name>
   <description>
     Lantern is a peer-to-peer and trust-network-based tool for circumventing censors and preventing monitoring.
