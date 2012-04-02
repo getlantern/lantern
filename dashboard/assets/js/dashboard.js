@@ -606,14 +606,16 @@ $(document).ready(function(){
     ).click(function(evt){showid(clickevt2id(evt))});
 
   $('.overlay .close').click(function(evt){
-    $(evt.target).parent('.overlay').removeClass('selected').hide();
+    $(evt.target).parent('.overlay').removeClass('selected').hide()
+      .parent('.overlay-modal').hide();
     evt.preventDefault();
   });
   var KEYCODE_ESC = 27;
   $(document).keyup(function(evt){
     switch(evt.keyCode){
     case KEYCODE_ESC:
-      $('.overlay:visible').removeClass('selected').hide();
+      $('.overlay:visible').removeClass('selected').hide()
+        .parent('.overlay-modal').hide();
       getscope().showsignin(false);
       getscope().$digest();
       break;
@@ -654,12 +656,14 @@ $(document).ready(function(){
   });
 
   var $doco = $('#doc-overlay'),
+      $docmodal = $('#doc-modal'),
       $doc = $('.doc');
   $('.doc-link').click(function(evt){
     $doc.hide();
-    var $target = $doco.show().find('#' + $(evt.currentTarget).attr('data-doc'));
+    $docmodal.show();
+    var $target = $doco.show().find('#' + $(evt.currentTarget).attr('data-doc')).show();
     //lionbarsify($target.show()); // XXX none of the docs overflow #doc-overlay
-    $target.show();
+    $doco.css('margin-top', -Math.round($doco.outerHeight()/2) + 'px');
     return false;
   });
 
