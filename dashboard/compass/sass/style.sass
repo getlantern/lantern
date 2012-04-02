@@ -332,7 +332,7 @@ $mdoverlaywdth: 500px
   max-height: 552px
   color: #888
   line-height: 1.5
-  font-size: 11pt
+  font-size: 10pt
 
 #doc-overlay
   +border-radius(3px)
@@ -342,7 +342,6 @@ $mdoverlaywdth: 500px
   .doc
     overflow-y: auto
     max-height: 476px
-    font-size: 10pt
 
 #doc-modal
   position: fixed
@@ -352,6 +351,8 @@ $mdoverlaywdth: 500px
   right: 0
   background-color: rgba(0, 0, 0, 0.25)
   display: none
+  #ld-container.welcome &
+    background-color: rgba(0, 0, 0, 0.5)
 
 ul
   +no-bullets
@@ -801,6 +802,8 @@ html.ie8
   #doc-modal
     background-color: #000
     +opacity(0.25)
+    #ld-container.welcome &
+      +opacity(0.5)
 
 // XXX
   #doc-overlay

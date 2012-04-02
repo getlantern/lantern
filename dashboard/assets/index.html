@@ -128,7 +128,8 @@
         </div>
         <div id=signin class=slide data-cls=slide>
           <h1>Sign into Google</h1>
-          <p>Lantern uses Google to connect to other users.</p>
+          <p>Lantern uses Google to connect to other users.
+             <a href=#doc-overlay data-doc=why-google class="smallnote doc-link">Why?</a></p>
           <form id=firstsignin-form name=fsform ng:class="['signin', login_failed() && 'badcredentials']" ng:submit=fs_submit()>
             <ul>
               <li><div class=error>Bad username or password.</div></li>
@@ -425,11 +426,30 @@
       <div id=doc-modal class=overlay-modal>
       <div class=overlay data-cls=overlay id=doc-overlay>
         <a class=close>×</a>
+        <div class=doc id=why-google>
+          <p>Lantern works by connecting users around the world together in a
+          peer-to-peer network. By signing in with your Google account, you
+          allow Lantern to take advantage of any trusted relationships between
+          you and any contacts you may have on the other side of the censorship
+          divide. Knowing about trusted relationships is critical to the speed
+          and safety of Lantern’s design.
+          </p>
+
+          <p>Those using Lantern to get access choose which of their Google
+          contacts they would trust to proxy any unencrypted traffic. Whenever
+          these trusted contacts are connected to Lantern, Lantern can securely
+          route traffic through them from the people who trust them, even when
+          the destination site does not offer an encrypted (https) connection.
+          If everyone on the Lantern network were connected anonymously,
+          Lantern would not be able to take advantage of these trusted
+          relationships, and the network would be much less efficient.
+          </p>
+        </div>
         <div class=doc id=unencrypted-traffic>
           <p>When you visit a web page whose url begins with http://, content is
           transferred between your computer and the computer hosting the web site
           in plaintext. This means that there is nothing stopping any
-          intermediary along the traffic's path (such as your internet service
+          intermediary along the traffic’s path (such as your internet service
           provider, the internet service provider of the web site, or anyone in
           between) from reading the traffic.</p>
 
@@ -439,8 +459,8 @@
           http and https, but unfortunately, many web sites transfer content
           over http only.</p>
 
-          <p>When Lantern reroutes your traffic through another user's connection,
-          it checks to see whether the web site you're visiting offers https.
+          <p>When Lantern reroutes your traffic through another user’s connection,
+          it checks to see whether the web site you’re visiting offers https.
           If so, Lantern can safely route your traffic through any other Lantern
           user without fear that they could read your traffic.</p>
 
@@ -456,7 +476,7 @@
           trust be used to proxy traffic to http-only web sites.</p>
         </div>
         <div class=doc id=cloud-proxies>
-          <p>Lantern Cloud Proxies are used when you don't have any trusted
+          <p>Lantern Cloud Proxies are used when you don’t have any trusted
           peers online whose uncensored connections can be used to proxy your
           traffic. In that case, Lantern Cloud Proxies act as a backup,
           available to proxy your traffic 24/7.</p>
