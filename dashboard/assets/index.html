@@ -259,8 +259,13 @@
             </dd>
             <dt>Version</dt>
             <dd>
-              {{state.version == 'lantern_version_tok' && '(development)' || 'Lantern ' + state.version + ' beta'}}
-              <a href=#update ng:show=updateavailable() id=update-avail-link class="actionlink panellink">Update available</a>
+              <p>
+                {{state.version == 'lantern_version_tok' && '(development)' || 'Lantern ' + state.version + ' beta'}}
+                <a href=#update ng:show=updateavailable() id=update-avail-link class="actionlink panellink">Update available</a>
+              </p>
+              <p>
+                <a class=showdown-link href=#md-overlay data-md="'CHANGES.md'">Changelog</a>
+              </p>
             </dd>
           </dl>
         </div>
@@ -349,9 +354,6 @@
             <dt>Released</dt>
             <dd><time title={{state.update.released}} datetime={{state.update.released}}>{{state.update.released || '-' | date}}</time></dd>
           </dl>
-          <div>
-            <a class=showdown-link href=#md-overlay data-md="'CHANGES.md'">Changelog</a>
-          </div>
         </div>
 
         <div id=signin-overlay ng:show=showsignin()>
