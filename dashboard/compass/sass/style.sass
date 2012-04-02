@@ -47,15 +47,17 @@ body
   background: image-url('spinner-big.gif') center no-repeat
 
 $welcome-wdth: 580px
-$welcome-hght: 300px
+$welcome-hght: 380px
 $welcome-controls-wdth: 300px
 #welcome-container, .wizard-slides
+  +box-sizing(border-box)
   width: $welcome-wdth
   height: $welcome-hght
   position: relative
-  top: 165px
+  top: 50%
   left: 50%
   margin-left: -$welcome-wdth / 2
+  margin-top: -$welcome-hght / 2
   color: $background-color-alt5
   +text-shadow(#ddd 0px 1px 0)
   background-color: $background-color-alt3
@@ -261,6 +263,10 @@ body
   & > #ld-container, #dashboard
     width: 100%
     height: 100%
+  &.welcome, &.welcome #ld-container
+    position: fixed
+    top: 0
+    bottom: 0
 
 #dashboard
   display: table
@@ -285,7 +291,7 @@ body
 
 #ld-container
   background-color: $blueprint-background-color
-  &.welcome
+  body.welcome &
     background-color: $background-color-alt5
 
 #sidebar, .panel.selected
@@ -351,7 +357,7 @@ $mdoverlaywdth: 500px
   right: 0
   background-color: rgba(0, 0, 0, 0.25)
   display: none
-  #ld-container.welcome &
+  body.welcome &
     background-color: rgba(0, 0, 0, 0.5)
 
 ul
@@ -802,7 +808,7 @@ html.ie8
   #doc-modal
     background-color: #000
     +opacity(0.25)
-    #ld-container.welcome &
+    body.welcome &
       +opacity(0.5)
 
 // XXX
