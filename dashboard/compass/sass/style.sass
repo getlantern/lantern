@@ -779,6 +779,8 @@ p .buttonlink
 html.ie
   #dd-conn
     margin-top: -3px
+  .lb-wrap
+    overflow: hidden
 
 #upgrade-ie
   display: none
@@ -799,8 +801,11 @@ html.ie-unsupported
 html.ie8
   &, body, #ld-container, #dashboard, .panel
     overflow: hidden
-  .overlay
+  .overlay, #signin-overlay
     border: 1px solid $edge-color
+  .overlay-modal
+    background-color: #fff
+    +opacity(0.5)
   .block-enabled
     background: #fff image-url('spinner-big.gif') center no-repeat !important
     +opacity(0.5)
