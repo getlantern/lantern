@@ -204,10 +204,18 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
     public void setSavePassword(final boolean savePassword) {
         log.info("Setting savePassword to {}", savePassword);
         final Settings set = LanternHub.settings();
-        set.setSavePassword(savePassword);
-        if (!savePassword) {
+        if (savePassword) {
+            final String password = set.getPassword();
+            if (password != null && !password.equals("")) {
+                log.info("Restoring from current password");
+                set.setStoredPassword(password);
+                set.setPasswordSaved(true);
+            }
+        }
+        else {
             log.info("Clearing existing stored password (if any)");
-            this.setPassword("");
+            set.setStoredPassword("");
+            set.setPasswordSaved(false);
         }
     }
     
