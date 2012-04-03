@@ -651,7 +651,7 @@ $(document).ready(function(){
   var converter = new Showdown.converter(),
       $mdoverlay = $('#md-overlay');
   $('.showdown-link').click(function(evt){
-    var sel = '#md-overlay *[src*=' + $(this).attr('data-md') + ']',
+    var sel = '.showdown[src*=' + $(this).attr('data-md') + ']',
         $target = $(sel);
     if(!$target.length){
       console.log('No element matching', sel);

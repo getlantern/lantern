@@ -266,9 +266,11 @@
                 {{state.version == 'lantern_version_tok' && '(development)' || 'Lantern ' + state.version + ' beta'}}
                 <a href=#update ng:show=updateavailable() id=update-avail-link class="actionlink panellink">Update available</a>
               </p>
+              <!--[if gte IE 9]>
               <p>
                 <a class=showdown-link href=#md-overlay data-md="'CHANGES.md'">Changelog</a>
               </p>
+              <![endif]-->
             </dd>
           </dl>
         </div>
