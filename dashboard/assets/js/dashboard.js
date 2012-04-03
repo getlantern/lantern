@@ -160,6 +160,7 @@ function LDCtrl(){
   };
 
   self.passrequired = function(){
+    if(self.logged_in()) return false;
     return !(self.sameuser() && self.state.passwordSaved && self.state.savePassword);
   };
 
@@ -188,6 +189,8 @@ function LDCtrl(){
   }
   
   self.showwelcome = function() {
+    if (!self.stateloaded()) return;
+
     if (self.state.initialSetupComplete) {
       return false;
     }
@@ -270,7 +273,7 @@ function LDCtrl(){
   };
 
   self.fetchpeers = function(){
-    if(self.state.getMode){
+    if(self.state.getMode && self.connected() && self.logged_in()){
       console.log('fetching peers');
       self.peers = FETCHING;
       self.$digest();
@@ -330,7 +333,6 @@ function LDCtrl(){
       self.inputpassword = '';
       self.showsignin(false);
       self.update(state);
-      self.fetchpeers();
       if(!self.state.initialSetupComplete)
         showid(self.state.getMode && '#trustedpeers' || '#done');
     }).fail(function(){
@@ -746,11 +748,12 @@ $(document).ready(function(){
 
     // XXX
     if(s.state.getMode){
-      if(s.connected()){
+      if(s.connected() && s.logged_in()){
         if(s.peers === FETCHFAILED){
           var backoff = Math.pow(2, ++nfailed_fetchpeers) * 1000;
           console.log('retrying fetchpeers in ', backoff, ' ms');
           setTimeout(s.fetchpeers, backoff);
+          s.peers = []; // XXX
         }else if(s.peers === null){
           console.log('calling fetch peers for the first time');
           s.fetchpeers();
@@ -762,6 +765,7 @@ $(document).ready(function(){
         var backoff = Math.pow(2, ++nfailed_fetchwhitelist) * 1000;
         console.log('retrying fetchwhitelist in ', backoff, ' ms');
         setTimeout(s.fetchwhitelist, backoff);
+        s.whitelist = []; // XXX
       }
     }
   }

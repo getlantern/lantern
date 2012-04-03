@@ -253,6 +253,7 @@
               <span id=dd-conn ng:class="['iconlabel', state.connectivity, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}
               <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()" ng:show=logged_out()>Sign in</a></span>
               </span>
+              <p class=smallnote ng:show="state.getMode && connected() && logged_out()">Lantern can connect to known proxies but will be unable to discover new ones until you sign into Google.</p>
             </dd>
             <dt ng:show=connected()>Transfers</dt>
             <dd ng:show=connected()>
@@ -358,7 +359,8 @@
           </dl>
         </div>
 
-        <div id=signin-overlay ng:show=showsignin()>
+        <div class=overlay-modal ng:show=showsignin()>
+        <div id=signin-overlay>
           <a class=close ng:click="showsignin(false)">×</a>
           <form name=signinform ng:class="['signin', login_failed() && 'badcredentials']" ng:submit=signin(inputemail)>
             <ul>
@@ -370,6 +372,7 @@
             <button ng:show=!logging_in() type=submit ng:disabled="{{(logged_in() && sameuser() && !inputpassword) || (passrequired() && !inputpassword)}}" >Sign in</button>
             <img class=spinner src=img/spinner-big.gif alt="Signing in..." ng:show=logging_in() />
           </form>
+        </div>
         </div>
 
         <div class=overlay id=proxiedsites data-cls=overlay>
