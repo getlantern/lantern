@@ -12,7 +12,8 @@
     <link rel=stylesheet href=css/lib/lionbars.css />
     <!--[if lt IE 9]><script src=js/lib/html5.js></script><![endif]-->
     <script src=js/lib/jquery-1.7.1.min.js></script>
-    <script src=js/lib/jquery.placeholder.min.js></script>
+    <!--<script src=js/lib/jquery.placeholder.min.js></script>-->
+    <script src=js/lib/jquery.placeholder.js></script>
     <script src=js/lib/jquery.lionbars.0.3.min.js></script>
     <script src=js/lib/json2.js></script>
     <script src=js/lib/cometd.js></script>
@@ -134,7 +135,7 @@
             <ul>
               <li><div class=error>Bad username or password.</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail required autofocus /></li>
-              <li><input type=password placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
+              <li><input type=password class=signinpwinput placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
             <div class=controls>
@@ -363,7 +364,7 @@
             <ul>
               <li><div class=error>Bad username or password.</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail required /></li>
-              <li><input type=password placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
+              <li><input type=password class=signinpwinput placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
             <button ng:show=!logging_in() type=submit ng:disabled="{{(logged_in() && sameuser() && !inputpassword) || (passrequired() && !inputpassword)}}" >Sign in</button>

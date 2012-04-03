@@ -58,6 +58,8 @@ function showid(id, ignorecls, ignore){
     $('#panel-list > li > a[href='+id+']').addClass('selected');
   }
   lionbarsify($el.find('.lionbars'));
+  // XXX
+  $('.signinpwinput').blur();
 }
 
 function LDCtrl(){
@@ -161,10 +163,12 @@ function LDCtrl(){
     return !(self.sameuser() && self.state.passwordSaved && self.state.savePassword);
   };
 
+  self._passreqtxt = 'password';
+  self._nopassreqtxt = '••••••••••••••••';
   self.passplaceholder = function(){
     if(!self.passrequired())
-      return '••••••••••••••••';
-    return 'password';
+      return self._nopassreqtxt;
+    return self._passreqtxt;
   };
 
   self.resetshowsignin = function() {
@@ -251,7 +255,7 @@ function LDCtrl(){
   };
 
   self.fs_submit = function(){
-    if(self.logged_out() || !self.sameuser()){
+    if(self.logged_out() || (!self.sameuser() || self.inputpassword)){
       if(self.fsform.$invalid){
         console.log('form invalid, doing nothing');
         return;
@@ -575,7 +579,6 @@ SetLocalPasswordCtrl.prototype = {
 };
 
 $(document).ready(function(){
-  $('input, textarea').placeholder();
   var scope = null;
   var $body = $('body');
 
@@ -595,6 +598,13 @@ $(document).ready(function(){
     }
     return scope;
   }
+
+  $('input, textarea').placeholder(function(input, $input){
+    var s = getscope();
+    if($input.hasClass('signinpwinput'))
+      return input.value == s._passreqtxt || input.value == s._nopassreqtxt;
+    return input.value == $input.attr('placeholder');
+  });
 
   $(window).bind('hashchange', function(){
     showid(location.hash);
