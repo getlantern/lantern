@@ -158,6 +158,7 @@ function LDCtrl(){
   };
 
   self.passrequired = function(){
+    if(self.logged_in()) return false;
     return !(self.sameuser() && self.state.passwordSaved && self.state.savePassword);
   };
 
@@ -253,7 +254,7 @@ function LDCtrl(){
   };
 
   self.fs_submit = function(){
-    if(self.logged_out() || !self.sameuser()){
+    if(self.logged_out() || (!self.sameuser() || self.inputpassword)){
       if(self.fsform.$invalid){
         console.log('form invalid, doing nothing');
         return;
