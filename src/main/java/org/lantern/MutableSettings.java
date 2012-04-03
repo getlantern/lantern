@@ -19,4 +19,6 @@ public interface MutableSettings {
     void setEmail(String email);
     
     void setPassword(String password);
+    
+    void setSavePassword(boolean savePassword);
 }

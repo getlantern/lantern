@@ -65,6 +65,9 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             }
         } else if (SystemUtils.IS_OS_LINUX) {
             // TODO: Make this work on Linux!! 
+            log.warn("setStartAtLogin not yet implemented for Linux");
+        } else {
+            log.warn("setStartAtLogin not yet implemented for {}", SystemUtils.OS_NAME);
         }
     }
 
@@ -105,6 +108,7 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
     @Override
     public void setPort(final int port) {
         // Not yet supported.
+        log.warn("setPort not yet implemented");
     }
 
     @Override
@@ -193,6 +197,17 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         } else {
             set.setStoredPassword("");
             set.setPasswordSaved(false);
+        }
+    }
+    
+    @Override
+    public void setSavePassword(final boolean savePassword) {
+        log.info("Setting savePassword to {}", savePassword);
+        final Settings set = LanternHub.settings();
+        set.setSavePassword(savePassword);
+        if (!savePassword) {
+            log.info("Clearing existing stored password (if any)");
+            this.setPassword("");
         }
     }
     
