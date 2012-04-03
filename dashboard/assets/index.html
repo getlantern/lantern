@@ -467,7 +467,7 @@
           <p>When Lantern reroutes your traffic through another user’s connection,
           it checks to see whether the web site you’re visiting offers https.
           If so, Lantern can safely route your traffic through any other Lantern
-          user without fear that they could read your traffic.</p>
+          user without risking that they could read your traffic.</p>
 
           <p>However, if the web site offers only http, Lantern takes extra
           measures to protect your traffic. First, Lantern adds its own
@@ -481,17 +481,18 @@
           trust be used to proxy traffic to http-only web sites.</p>
         </div>
         <div class=doc id=cloud-proxies>
-          <p>Lantern Cloud Proxies are used when you don’t have any trusted
-          peers online whose uncensored connections can be used to proxy your
-          traffic. In that case, Lantern Cloud Proxies act as a backup,
+          <p>Lantern Cloud Proxies are used when none of your trusted peers with
+          uncensored connections is currently online to proxy your traffic to
+          http-only sites. In that case, Lantern Cloud Proxies act as a backup,
           available to proxy your traffic 24/7.</p>
 
-          <p>Lantern takes the responsibility of proxying your traffic very
-          seriously. We have an explicit interest in keeping any information
+          <p>Proxying users’ traffic is a responsibility to be taken very
+          seriously. Lantern has an explicit interest in keeping any information
           about proxied traffic secret and ephemeral, i.e. not stored,
           analyzed, or shared with anyone. Any human contact with traffic
-          information is limited to only the core Lantern developers and is
-          strictly incidental to making sure Lantern works properly.</p>
+          information before it is discarded is limited to only the core Lantern
+          developers and is strictly incidental to making sure Lantern is working
+          properly.</p>
         </div>
         <div class=doc id=manual-proxy>
           (manual proxy configuration)
