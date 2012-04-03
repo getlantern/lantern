@@ -160,7 +160,7 @@ function LDCtrl(){
   };
 
   self.passrequired = function(){
-    if(self.logged_in()) return false;
+    if(self.sameuser() && self.logged_in()) return false;
     return !(self.sameuser() && self.state.passwordSaved && self.state.savePassword);
   };
 
@@ -333,6 +333,7 @@ function LDCtrl(){
       self.inputpassword = '';
       self.showsignin(false);
       self.update(state);
+      self.fetchpeers();
       if(!self.state.initialSetupComplete)
         showid(self.state.getMode && '#trustedpeers' || '#done');
     }).fail(function(){
