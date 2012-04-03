@@ -5,6 +5,7 @@
 *.settings
 *.classpath
 *.project
+lantern_getexceptional.txt
 nbactions.xml
 .sass-cache
 /Lantern
