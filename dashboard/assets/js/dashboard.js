@@ -114,7 +114,7 @@ function LDCtrl(){
 
   self.byteunits = function(nbytes){
     if(isNaN(nbytes)){
-      console.log('nbytes is NaN, bailing');
+      //console.log('nbytes is NaN, bailing');
       return '';
     }
     for(var dim in BYTEDIM){ // expects largest units first
@@ -273,7 +273,7 @@ function LDCtrl(){
   };
 
   self.fetchpeers = function(){
-    if(self.state.getMode && self.connected() && self.logged_in()){
+    if(self.state.getMode && self.logged_in()){
       console.log('fetching peers');
       self.peers = FETCHING;
       self.$digest();
@@ -333,9 +333,10 @@ function LDCtrl(){
       self.inputpassword = '';
       self.showsignin(false);
       self.update(state);
-      self.fetchpeers();
-      if(!self.state.initialSetupComplete)
+      if(!self.state.initialSetupComplete){
         showid(self.state.getMode && '#trustedpeers' || '#done');
+        self.fetchpeers();
+      }
     }).fail(function(){
       // XXX backend does not pass logged_out state immediately, take matters into our own hands
       self.state.googleTalkState = 'LOGIN_FAILED';
