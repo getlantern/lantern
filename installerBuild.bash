@@ -4,7 +4,7 @@ CONSTANTS_FILE=src/main/java/org/lantern/LanternConstants.java
 function die() {
   echo $*
   echo "Reverting version file"
-  git checkout $CONSTANTS_FILE || die "Could not revert version file?"
+  git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
   exit 1
 }
 
