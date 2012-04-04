@@ -4,7 +4,7 @@ CONSTANTS_FILE=src/main/java/org/lantern/LanternConstants.java
 function die() {
   echo $*
   echo "Reverting version file"
-  git checkout $CONSTANTS_FILE || die "Could not revert version file?"
+  git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
   exit 1
 }
 
@@ -25,12 +25,12 @@ fi
 
 perl -pi -e "s/ExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE
 
-git up || die "Could not update git"
+git pull origin || die '"git pull origin" failed?'
 mvn clean || die "Could not clean?"
 mvn $MVN_ARGS install -Dmaven.test.skip=true || die "Could not build?"
 
 echo "Reverting version file"
-git checkout $CONSTANTS_FILE || die "Could not revert version file?"
+git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 
 cp target/lantern-*-jar-with-dependencies.jar install/common/lantern.jar || die "Could not copy jar?"
 

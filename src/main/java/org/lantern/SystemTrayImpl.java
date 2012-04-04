@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -140,6 +142,21 @@ public class SystemTrayImpl implements SystemTray {
             }
             final Image image = newImage(imageName, 16, 16);
             setImage(image);
+            
+            if (SystemUtils.IS_OS_WINDOWS) {
+                this.trayItem.addSelectionListener(new SelectionListener() {
+                    @Override
+                    public void widgetSelected(SelectionEvent se) {
+                        log.debug("opening dashboard");
+                        LanternHub.jettyLauncher().openBrowserWhenReady();
+                    }
+                    
+                    @Override
+                    public void widgetDefaultSelected(SelectionEvent se) {
+                        log.warn("default selection event unhandled");
+                    }
+                });
+            }
         }
     }
 

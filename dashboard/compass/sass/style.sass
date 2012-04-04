@@ -47,15 +47,17 @@ body
   background: image-url('spinner-big.gif') center no-repeat
 
 $welcome-wdth: 580px
-$welcome-hght: 300px
+$welcome-hght: 380px
 $welcome-controls-wdth: 300px
 #welcome-container, .wizard-slides
+  +box-sizing(border-box)
   width: $welcome-wdth
   height: $welcome-hght
   position: relative
-  top: 150px
+  top: 50%
   left: 50%
   margin-left: -$welcome-wdth / 2
+  margin-top: -$welcome-hght / 2
   color: $background-color-alt5
   +text-shadow(#ddd 0px 1px 0)
   background-color: $background-color-alt3
@@ -162,7 +164,7 @@ form.signin
     font-size: 16pt
     +border-radius(5px)
 
-input[type=password]
+input[type=password], input.signinpwinput
   background: image-url('lock.png') no-repeat center right
 
 .peerlist
@@ -261,6 +263,10 @@ body
   & > #ld-container, #dashboard
     width: 100%
     height: 100%
+  &.welcome, &.welcome #ld-container
+    position: fixed
+    top: 0
+    bottom: 0
 
 #dashboard
   display: table
@@ -285,7 +291,7 @@ body
 
 #ld-container
   background-color: $blueprint-background-color
-  &.welcome
+  body.welcome &
     background-color: $background-color-alt5
 
 #sidebar, .panel.selected
@@ -332,7 +338,7 @@ $mdoverlaywdth: 500px
   max-height: 552px
   color: #888
   line-height: 1.5
-  font-size: 11pt
+  font-size: 10pt
 
 #doc-overlay
   +border-radius(3px)
@@ -342,7 +348,20 @@ $mdoverlaywdth: 500px
   .doc
     overflow-y: auto
     max-height: 476px
-    font-size: 10pt
+
+.overlay-modal
+  position: fixed
+  top: 0
+  bottom: 0
+  left: 0
+  right: 0
+  background-color: rgba(255, 255, 255, 0.5)
+
+#doc-modal
+  display: none
+  background-color: rgba(0, 0, 0, 0.25)
+  body.welcome &
+    background-color: rgba(0, 0, 0, 0.5)
 
 ul
   +no-bullets
@@ -760,6 +779,8 @@ p .buttonlink
 html.ie
   #dd-conn
     margin-top: -3px
+  .lb-wrap
+    overflow: hidden
 
 #upgrade-ie
   display: none
@@ -780,8 +801,11 @@ html.ie-unsupported
 html.ie8
   &, body, #ld-container, #dashboard, .panel
     overflow: hidden
-  .overlay
+  .overlay, #signin-overlay
     border: 1px solid $edge-color
+  .overlay-modal
+    background-color: #fff
+    +opacity(0.5)
   .block-enabled
     background: #fff image-url('spinner-big.gif') center no-repeat !important
     +opacity(0.5)
@@ -789,6 +813,11 @@ html.ie8
     background-color: #eee
   .flashmsg
     background-color: #fff
+  #doc-modal
+    background-color: #000
+    +opacity(0.25)
+    body.welcome &
+      +opacity(0.5)
 
 // XXX
   #doc-overlay

@@ -12,11 +12,7 @@ systems.
 To run Lantern from source, you need Maven and Java installed. The Lantern
 developers use Oracle's Java 1.6 SDK, but other SDKs may work.
 
-To fetch required submodules, run:
-
-    $ git submodule update --init
-
-and then you can run:
+Then you can run:
 
     $ ./run.bash
 

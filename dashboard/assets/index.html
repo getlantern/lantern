@@ -12,7 +12,8 @@
     <link rel=stylesheet href=css/lib/lionbars.css />
     <!--[if lt IE 9]><script src=js/lib/html5.js></script><![endif]-->
     <script src=js/lib/jquery-1.7.1.min.js></script>
-    <script src=js/lib/jquery.placeholder.min.js></script>
+    <!--<script src=js/lib/jquery.placeholder.min.js></script>-->
+    <script src=js/lib/jquery.placeholder.js></script>
     <script src=js/lib/jquery.lionbars.0.3.min.js></script>
     <script src=js/lib/json2.js></script>
     <script src=js/lib/cometd.js></script>
@@ -21,9 +22,9 @@
     <script src=js/lib/showdown.js></script>
     <script src=js/dashboard.js></script>
   </head>
-  <body ng:controller=LDCtrl lang=en>
+  <body ng:controller=LDCtrl lang=en ng:class="(!state.initialSetupComplete || !stateset()) && 'welcome'">
     <div id=block-overlay ng:class="block && 'block-enabled'"></div>
-    <div id=ld-container style="display: none" ng:show=stateloaded() ng:class="(!state.initialSetupComplete || !stateset()) && 'welcome' || ''">
+    <div id=ld-container style="display: none" ng:show=stateloaded()>
 
       <!--[if lt IE 8]> 
       <script>
@@ -128,12 +129,13 @@
         </div>
         <div id=signin class=slide data-cls=slide>
           <h1>Sign into Google</h1>
-          <p>Lantern uses Google to connect to other users.</p>
+          <p>Lantern uses Google to connect to other users.
+             <a href=#doc-overlay data-doc=why-google class="smallnote doc-link">Why?</a></p>
           <form id=firstsignin-form name=fsform ng:class="['signin', login_failed() && 'badcredentials']" ng:submit=fs_submit()>
             <ul>
               <li><div class=error>Bad username or password.</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail required autofocus /></li>
-              <li><input type=password placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
+              <li><input type=password class=signinpwinput placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
             <div class=controls>
@@ -251,6 +253,7 @@
               <span id=dd-conn ng:class="['iconlabel', state.connectivity, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}
               <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()" ng:show=logged_out()>Sign in</a></span>
               </span>
+              <p class=smallnote ng:show="state.getMode && connected() && logged_out()">Lantern can connect to known proxies but will be unable to discover new ones until you sign into Google.</p>
             </dd>
             <dt ng:show=connected()>Transfers</dt>
             <dd ng:show=connected()>
@@ -259,8 +262,15 @@
             </dd>
             <dt>Version</dt>
             <dd>
-              {{state.version == 'lantern_version_tok' && '(development)' || 'Lantern ' + state.version + ' beta'}}
-              <a href=#update ng:show=updateavailable() id=update-avail-link class="actionlink panellink">Update available</a>
+              <p>
+                {{state.version == 'lantern_version_tok' && '(development)' || 'Lantern ' + state.version + ' beta'}}
+                <a href=#update ng:show=updateavailable() id=update-avail-link class="actionlink panellink">Update available</a>
+              </p>
+              <!--[if gte IE 9]>
+              <p>
+                <a class=showdown-link href=#md-overlay data-md="'CHANGES.md'">Changelog</a>
+              </p>
+              <![endif]-->
             </dd>
           </dl>
         </div>
@@ -300,6 +310,7 @@
             <dt>Application</dt>
             <dd>
               <ul>
+                <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
                 <li><label><input type=checkbox ng:change=toggle('startAtLogin') ng:model=state.startAtLogin /> Launch on system startup</label></li>
                 <!--
                 <li><label><input type=checkbox ng:change=toggle('connectOnLaunch') ng:model=state.connectOnLaunch /> Sign in on launch</label></li>
@@ -349,23 +360,22 @@
             <dt>Released</dt>
             <dd><time title={{state.update.released}} datetime={{state.update.released}}>{{state.update.released || '-' | date}}</time></dd>
           </dl>
-          <div>
-            <a class=showdown-link href=#md-overlay data-md="'CHANGES.md'">Changelog</a>
-          </div>
         </div>
 
-        <div id=signin-overlay ng:show=showsignin()>
+        <div class=overlay-modal ng:show=showsignin()>
+        <div id=signin-overlay>
           <a class=close ng:click="showsignin(false)">×</a>
           <form name=signinform ng:class="['signin', login_failed() && 'badcredentials']" ng:submit=signin(inputemail)>
             <ul>
               <li><div class=error>Bad username or password.</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail required /></li>
-              <li><input type=password placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
+              <li><input type=password class=signinpwinput placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
             <button ng:show=!logging_in() type=submit ng:disabled="{{(logged_in() && sameuser() && !inputpassword) || (passrequired() && !inputpassword)}}" >Sign in</button>
             <img class=spinner src=img/spinner-big.gif alt="Signing in..." ng:show=logging_in() />
           </form>
+        </div>
         </div>
 
         <div class=overlay id=proxiedsites data-cls=overlay>
@@ -420,13 +430,33 @@
         <ng:include class=showdown id=changelog-container src="'CHANGES.md'"></ng:include>
       </div>
 
+      <div id=doc-modal class=overlay-modal>
       <div class=overlay data-cls=overlay id=doc-overlay>
         <a class=close>×</a>
+        <div class=doc id=why-google>
+          <p>Lantern works by connecting users around the world together in a
+          peer-to-peer network. By signing in with your Google account, you
+          allow Lantern to take advantage of any trusted relationships between
+          you and any contacts you may have on the other side of the censorship
+          divide. Knowing about trusted relationships is critical to the speed
+          and safety of Lantern’s design.
+          </p>
+
+          <p>Those using Lantern to get access choose which of their Google
+          contacts they would trust to proxy any unencrypted traffic. Whenever
+          these trusted contacts are connected to Lantern, Lantern can securely
+          route traffic through them from the people who trust them, even when
+          the destination site does not offer an encrypted (https) connection.
+          If everyone on the Lantern network were connected anonymously,
+          Lantern would not be able to take advantage of these trusted
+          relationships, and the network would be much less efficient.
+          </p>
+        </div>
         <div class=doc id=unencrypted-traffic>
           <p>When you visit a web page whose url begins with http://, content is
           transferred between your computer and the computer hosting the web site
           in plaintext. This means that there is nothing stopping any
-          intermediary along the traffic's path (such as your internet service
+          intermediary along the traffic’s path (such as your internet service
           provider, the internet service provider of the web site, or anyone in
           between) from reading the traffic.</p>
 
@@ -436,10 +466,10 @@
           http and https, but unfortunately, many web sites transfer content
           over http only.</p>
 
-          <p>When Lantern reroutes your traffic through another user's connection,
-          it checks to see whether the web site you're visiting offers https.
+          <p>When Lantern reroutes your traffic through another user’s connection,
+          it checks to see whether the web site you’re visiting offers https.
           If so, Lantern can safely route your traffic through any other Lantern
-          user without fear that they could read your traffic.</p>
+          user without risking that they could read your traffic.</p>
 
           <p>However, if the web site offers only http, Lantern takes extra
           measures to protect your traffic. First, Lantern adds its own
@@ -453,24 +483,24 @@
           trust be used to proxy traffic to http-only web sites.</p>
         </div>
         <div class=doc id=cloud-proxies>
-          <p>Lantern Cloud Proxies are used when you don't have any trusted
-          peers online whose uncensored connections can be used to proxy your
-          traffic. In that case, Lantern Cloud Proxies act as a backup,
+          <p>Lantern Cloud Proxies are used when none of your trusted peers with
+          uncensored connections is currently online to proxy your traffic to
+          http-only sites. In that case, Lantern Cloud Proxies act as a backup,
           available to proxy your traffic 24/7.</p>
 
-          <p>Lantern takes the responsibility of proxying your traffic very
-          seriously. We have an explicit interest in keeping any information
+          <p>Proxying users’ traffic is a responsibility to be taken very
+          seriously. Lantern has an explicit interest in keeping any information
           about proxied traffic secret and ephemeral, i.e. not stored,
           analyzed, or shared with anyone. Any human contact with traffic
-          information is limited to only the core Lantern developers and is
-          strictly incidental to making sure Lantern works properly.</p>
+          information before it is discarded is limited to only the core Lantern
+          developers and is strictly incidental to making sure Lantern is working
+          properly.</p>
         </div>
         <div class=doc id=manual-proxy>
           (manual proxy configuration)
         </div>
       </div>
-
-
+      </div>
     </div>
   </body>
 </html>

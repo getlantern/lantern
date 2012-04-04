@@ -58,6 +58,8 @@ function showid(id, ignorecls, ignore){
     $('#panel-list > li > a[href='+id+']').addClass('selected');
   }
   lionbarsify($el.find('.lionbars'));
+  // XXX
+  $('.signinpwinput').blur();
 }
 
 function LDCtrl(){
@@ -112,7 +114,7 @@ function LDCtrl(){
 
   self.byteunits = function(nbytes){
     if(isNaN(nbytes)){
-      console.log('nbytes is NaN, bailing');
+      //console.log('nbytes is NaN, bailing');
       return '';
     }
     for(var dim in BYTEDIM){ // expects largest units first
@@ -158,13 +160,16 @@ function LDCtrl(){
   };
 
   self.passrequired = function(){
+    if(self.sameuser() && self.logged_in()) return false;
     return !(self.sameuser() && self.state.passwordSaved && self.state.savePassword);
   };
 
+  self._passreqtxt = 'password';
+  self._nopassreqtxt = '••••••••••••••••';
   self.passplaceholder = function(){
     if(!self.passrequired())
-      return '••••••••••••••••';
-    return 'password';
+      return self._nopassreqtxt;
+    return self._passreqtxt;
   };
 
   self.resetshowsignin = function() {
@@ -184,6 +189,8 @@ function LDCtrl(){
   }
   
   self.showwelcome = function() {
+    if (!self.stateloaded()) return;
+
     if (self.state.initialSetupComplete) {
       return false;
     }
@@ -251,7 +258,7 @@ function LDCtrl(){
   };
 
   self.fs_submit = function(){
-    if(self.logged_out() || !self.sameuser()){
+    if(self.logged_out() || (!self.sameuser() || self.inputpassword)){
       if(self.fsform.$invalid){
         console.log('form invalid, doing nothing');
         return;
@@ -266,7 +273,7 @@ function LDCtrl(){
   };
 
   self.fetchpeers = function(){
-    if(self.state.getMode){
+    if(self.state.getMode && self.logged_in()){
       console.log('fetching peers');
       self.peers = FETCHING;
       self.$digest();
@@ -326,9 +333,10 @@ function LDCtrl(){
       self.inputpassword = '';
       self.showsignin(false);
       self.update(state);
-      self.fetchpeers();
-      if(!self.state.initialSetupComplete)
+      if(!self.state.initialSetupComplete){
         showid(self.state.getMode && '#trustedpeers' || '#done');
+        self.fetchpeers();
+      }
     }).fail(function(){
       // XXX backend does not pass logged_out state immediately, take matters into our own hands
       self.state.googleTalkState = 'LOGIN_FAILED';
@@ -575,7 +583,6 @@ SetLocalPasswordCtrl.prototype = {
 };
 
 $(document).ready(function(){
-  $('input, textarea').placeholder();
   var scope = null;
   var $body = $('body');
 
@@ -596,6 +603,13 @@ $(document).ready(function(){
     return scope;
   }
 
+  $('input, textarea').placeholder(function(input, $input){
+    var s = getscope();
+    if($input.hasClass('signinpwinput'))
+      return input.value == s._passreqtxt || input.value == s._nopassreqtxt;
+    return input.value == $input.attr('placeholder');
+  });
+
   $(window).bind('hashchange', function(){
     showid(location.hash);
   });
@@ -606,14 +620,16 @@ $(document).ready(function(){
     ).click(function(evt){showid(clickevt2id(evt))});
 
   $('.overlay .close').click(function(evt){
-    $(evt.target).parent('.overlay').removeClass('selected').hide();
+    $(evt.target).parent('.overlay').removeClass('selected').hide()
+      .parent('.overlay-modal').hide();
     evt.preventDefault();
   });
   var KEYCODE_ESC = 27;
   $(document).keyup(function(evt){
     switch(evt.keyCode){
     case KEYCODE_ESC:
-      $('.overlay:visible').removeClass('selected').hide();
+      $('.overlay:visible').removeClass('selected').hide()
+        .parent('.overlay-modal').hide();
       getscope().showsignin(false);
       getscope().$digest();
       break;
@@ -635,7 +651,7 @@ $(document).ready(function(){
   var converter = new Showdown.converter(),
       $mdoverlay = $('#md-overlay');
   $('.showdown-link').click(function(evt){
-    var sel = '#md-overlay *[src*=' + $(this).attr('data-md') + ']',
+    var sel = '.showdown[src*=' + $(this).attr('data-md') + ']',
         $target = $(sel);
     if(!$target.length){
       console.log('No element matching', sel);
@@ -654,12 +670,14 @@ $(document).ready(function(){
   });
 
   var $doco = $('#doc-overlay'),
+      $docmodal = $('#doc-modal'),
       $doc = $('.doc');
   $('.doc-link').click(function(evt){
     $doc.hide();
-    var $target = $doco.show().find('#' + $(evt.currentTarget).attr('data-doc'));
+    $docmodal.show();
+    var $target = $doco.show().find('#' + $(evt.currentTarget).attr('data-doc')).show();
     //lionbarsify($target.show()); // XXX none of the docs overflow #doc-overlay
-    $target.show();
+    $doco.css('margin-top', -Math.round($doco.outerHeight()/2) + 'px');
     return false;
   });
 
@@ -732,11 +750,12 @@ $(document).ready(function(){
 
     // XXX
     if(s.state.getMode){
-      if(s.connected()){
+      if(s.connected() && s.logged_in()){
         if(s.peers === FETCHFAILED){
           var backoff = Math.pow(2, ++nfailed_fetchpeers) * 1000;
           console.log('retrying fetchpeers in ', backoff, ' ms');
           setTimeout(s.fetchpeers, backoff);
+          s.peers = []; // XXX
         }else if(s.peers === null){
           console.log('calling fetch peers for the first time');
           s.fetchpeers();
@@ -748,6 +767,7 @@ $(document).ready(function(){
         var backoff = Math.pow(2, ++nfailed_fetchwhitelist) * 1000;
         console.log('retrying fetchwhitelist in ', backoff, ' ms');
         setTimeout(s.fetchwhitelist, backoff);
+        s.whitelist = []; // XXX
       }
     }
   }
