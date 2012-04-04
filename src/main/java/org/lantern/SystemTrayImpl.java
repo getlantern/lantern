@@ -8,6 +8,8 @@ import java.util.Map;
 
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -89,6 +91,16 @@ public class SystemTrayImpl implements SystemTray {
                 @Override
                 public void handleEvent (final Event event) {
                     System.out.println("hide");
+                }
+            });
+            this.trayItem.addSelectionListener(new SelectionListener(){
+                @Override
+                public void widgetSelected(SelectionEvent se) {
+                    LanternHub.jettyLauncher().openBrowserWhenReady();
+                }
+                @Override
+                public void widgetDefaultSelected(SelectionEvent se) {
+                    return;
                 }
             });
 
