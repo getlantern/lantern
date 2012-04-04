@@ -826,7 +826,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                         <object class="com.install4j.api.windows.RegistryRoot" field="HKEY_CURRENT_USER" />
                       </void>
                       <void property="value">
-                        <string>"${installer:sys.contentDir}\lantern.exe"</string>
+                        <string>"${installer:sys.contentDir}\Lantern.exe"</string>
                       </void>
                       <void property="valueName">
                         <string>Lantern</string>

@@ -22,13 +22,13 @@ echo New netsh
 goto install
 
 :install
-if defined NEW_NETSH netsh advfirewall firewall add rule name="Lantern" dir=in action=allow program="%~1\lantern.exe" enable=yes profile=any
-if defined OLD_NETSH netsh firewall add allowedprogram "%~1\lantern.exe" "Lantern" ENABLE
+if defined NEW_NETSH netsh advfirewall firewall add rule name="Lantern" dir=in action=allow program="%~1\Lantern.exe" enable=yes profile=any
+if defined OLD_NETSH netsh firewall add allowedprogram "%~1\Lantern.exe" "Lantern" ENABLE
 goto :end
 
 :removeNetSh
-if defined NEW_NETSH netsh advfirewall firewall delete rule name="Lantern" program="%~1\lantern.exe"
-if defined OLD_NETSH netsh firewall delete allowedprogram "%~1\lantern.exe"
+if defined NEW_NETSH netsh advfirewall firewall delete rule name="Lantern" program="%~1\Lantern.exe"
+if defined OLD_NETSH netsh firewall delete allowedprogram "%~1\Lantern.exe"
 goto :end
 
 :setNetShVersion 
