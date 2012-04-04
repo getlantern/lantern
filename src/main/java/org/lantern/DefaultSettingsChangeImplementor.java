@@ -51,7 +51,7 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             if (start) {
                 try {
                     final String path = 
-                        "\"\\\""+new File("lantern.exe").getCanonicalPath()+"\\\"\"";
+                        "\"\\\""+new File("lantern.exe").getCanonicalPath()+"\\\"\"" + " --launchd";
                     result = WindowsRegistry.writeREG_SZ(key, "Lantern", path);
                 } catch (final IOException e) {
                     log.error("Could not get canonical path", e);
