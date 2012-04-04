@@ -149,6 +149,10 @@ public class DefaultXmppHandler implements XmppHandler {
         final int plainTextProxyRandomPort) {
         this.sslProxyRandomPort = sslProxyRandomPort;
         this.plainTextProxyRandomPort = plainTextProxyRandomPort;
+        
+        // This just links connectivity with Google Talk login status when 
+        // running in give mode.
+        new GiveModeConnectivityHandler();
         prepopulateProxies();
     }
     
@@ -198,7 +202,7 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         connect(email, pwd);
     }
-
+    
     @Override
     public void connect(final String email, final String pwd) 
         throws IOException {
@@ -249,8 +253,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.client.get().addMessageListener(typedListener);
         
         if (this.proxies.isEmpty()) {
-            LanternHub.eventBus().post(
-                new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTING));
+            connectivityEvent(ConnectivityStatus.CONNECTING);
         }
         LanternHub.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.LOGGING_IN));
@@ -260,12 +263,12 @@ public class DefaultXmppHandler implements XmppHandler {
         } else {
             id = UNCENSORED_ID;
         }
+
         try {
             this.client.get().login(email, pwd, id);
         } catch (final IOException e) {
             if (this.proxies.isEmpty()) {
-                LanternHub.eventBus().post(
-                    new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
+                connectivityEvent(ConnectivityStatus.DISCONNECTED);
             }
             LanternHub.eventBus().post(
                 new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
@@ -277,10 +280,8 @@ public class DefaultXmppHandler implements XmppHandler {
         LanternHub.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.LOGGED_IN));
         
-        // We don't consider ourselves connected until we actually get
-        // proxies to work with.
-        //LanternHub.eventBus().post(
-        //    new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTED));
+        // Note we don't consider ourselves connected in get mode until we 
+        // actually get proxies to work with.
         final XMPPConnection connection = this.client.get().getXmppConnection();
         final Collection<InetSocketAddress> googleStunServers = 
             XmppUtils.googleStunServers(connection);
@@ -339,6 +340,15 @@ public class DefaultXmppHandler implements XmppHandler {
     }
     
 
+    private void connectivityEvent(final ConnectivityStatus cs) {
+        if (LanternHub.settings().isGetMode()) {
+            LanternHub.eventBus().post(
+                new ConnectivityStatusChangeEvent(cs));
+        } else {
+            LOG.info("Ignoring connectivity event in give mode..");
+        }
+    }
+
     @Override
     public void clearProxies() {
         this.proxies.clear();
@@ -363,8 +373,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.client.set(null);
         
         if (this.proxies.isEmpty()) {
-            LanternHub.eventBus().post(
-                new ConnectivityStatusChangeEvent(ConnectivityStatus.DISCONNECTED));
+            connectivityEvent(ConnectivityStatus.DISCONNECTED);
         }
         LanternHub.asyncEventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.LOGGED_OUT));
@@ -824,8 +833,7 @@ public class DefaultXmppHandler implements XmppHandler {
             // Send the event again in case we've somehow gotten into the 
             // wrong state.
             LOG.info("Dispatching CONNECTED event");
-            LanternHub.asyncEventBus().post(new ConnectivityStatusChangeEvent(
-                ConnectivityStatus.CONNECTED));
+            connectivityEvent(ConnectivityStatus.CONNECTED);
             return;
         }
         
@@ -833,8 +841,7 @@ public class DefaultXmppHandler implements XmppHandler {
         try {
             sock.connect(ph.isa, 60*1000);
             LOG.info("Dispatching CONNECTED event");
-            LanternHub.asyncEventBus().post(new ConnectivityStatusChangeEvent(
-                ConnectivityStatus.CONNECTED));
+            connectivityEvent(ConnectivityStatus.CONNECTED);
             
             // This is a little odd because the proxy could have originally
             // come from the settings themselves, but it'll remove duplicates,
