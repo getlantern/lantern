@@ -66,7 +66,7 @@ public class Settings implements MutableSettings {
     
     private Country country;
     
-    private Country countryDetected = LanternHub.censored().country();
+    private Country countryDetected;
     
     private boolean manuallyOverrideCountry;
     
@@ -87,7 +87,7 @@ public class Settings implements MutableSettings {
      */
     private boolean useCloudProxies = true;
     
-    private boolean getMode = LanternHub.censored().isCensored();
+    private Boolean getMode = null;
     
     private boolean bindToLocalhost = true;
     
@@ -273,6 +273,17 @@ public class Settings implements MutableSettings {
         return proxyAllSites;
     }
 
+    public void setCountryDetected(Country countryDetected) {
+        this.countryDetected = countryDetected;
+    }
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public Country getCountryDetected() {
+        if (this.countryDetected == null) {
+            this.countryDetected = LanternHub.censored().country();
+        }
+        return countryDetected;
+    }
 
     @JsonView({UIStateSettings.class, PersistentSettings.class})
     public Country getCountry() {
@@ -344,6 +355,9 @@ public class Settings implements MutableSettings {
 
     @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isGetMode() {
+        if (getMode == null) {
+            this.getMode = LanternHub.censored().isCensored();
+        }
         return getMode;
     }
 
@@ -365,15 +379,6 @@ public class Settings implements MutableSettings {
     @JsonView({UIStateSettings.class, CommandLineSettings.class})
     public int getApiPort() {
         return apiPort;
-    }
-
-    public void setCountryDetected(Country countryDetected) {
-        this.countryDetected = countryDetected;
-    }
-
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
-    public Country getCountryDetected() {
-        return countryDetected;
     }
 
     @JsonView(UIStateSettings.class)
