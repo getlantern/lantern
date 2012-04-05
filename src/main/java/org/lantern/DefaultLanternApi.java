@@ -169,7 +169,7 @@ public class DefaultLanternApi implements LanternApi {
             }
             returnSettings(resp);
         } catch (final IOException e) {
-            sendClientError(resp, "Could not login: "+e.getMessage());
+            sendServerError(resp, "Could not connect: "+e.getMessage());
         } catch (final Proxifier.ProxyConfigurationError e) {
             log.error("Proxy configuration failed: {}", e);
             sendServerError(resp, "Proxy configuration failed");
