@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.0rc3
+ * @license AngularJS v1.0.0rc4
  * (c) 2010-2012 AngularJS http://angularjs.org
  * License: MIT
  */
@@ -48,6 +48,7 @@ function setupModuleLoader(window) {
      *
      * // configure existing services inside initialization blocks.
      * myModule.config(function($locationProvider) {
+'use strict';
      *   // Configure existing providers
      *   $locationProvider.hashPrefix('!');
      * });
