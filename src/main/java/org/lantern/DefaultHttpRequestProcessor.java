@@ -157,7 +157,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         pipeline.addLast("decoder", new HttpResponseDecoder());
         pipeline.addLast("encoder", new HttpRequestEncoder());
         pipeline.addLast("handler", 
-            new OutboundHandler(browserToProxyChannel, httpRequests));
+            new ChunkedProxyDownloader(browserToProxyChannel, httpRequests));
         //this.proxyHost = proxyAddress.getHostName();
         
         log.info("Connecting to proxy at: {}", proxyAddress);
