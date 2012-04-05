@@ -12,6 +12,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
 
+import javax.security.auth.login.CredentialException;
+
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.apache.commons.cli.CommandLine;
@@ -510,6 +512,8 @@ public class Launcher {
                     xmpp.connect();
                 } catch (final IOException e) {
                     LOG.info("Could not login", e);
+                } catch (final CredentialException e) {
+                    LOG.info("Bad credentials");
                 }
             } else {
                 LOG.info("Not auto-logging in with settings:\n{}",

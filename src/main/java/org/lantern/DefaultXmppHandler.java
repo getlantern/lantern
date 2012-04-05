@@ -28,6 +28,7 @@ import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
+import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
@@ -170,7 +171,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     @Override
-    public void connect() throws IOException {
+    public void connect() throws IOException, CredentialException {
         if (!LanternUtils.isConfigured() && LanternHub.settings().isUiEnabled()) {
             LOG.info("Not connecting when not configured");
             return;
@@ -205,7 +206,7 @@ public class DefaultXmppHandler implements XmppHandler {
     
     @Override
     public void connect(final String email, final String pwd) 
-        throws IOException {
+        throws IOException, CredentialException {
         final InetSocketAddress plainTextProxyRelayAddress = 
             new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
         
@@ -275,6 +276,13 @@ public class DefaultXmppHandler implements XmppHandler {
             LanternHub.settings().setPasswordSaved(false);
             LanternHub.settings().setStoredPassword("");
             LanternHub.settings().setPassword("");
+            throw e;
+        } catch (final CredentialException e) {
+            if (this.proxies.isEmpty()) {
+                connectivityEvent(ConnectivityStatus.DISCONNECTED);
+            }
+            LanternHub.eventBus().post(
+                new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
             throw e;
         }
         LanternHub.eventBus().post(

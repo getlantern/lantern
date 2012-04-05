@@ -7,6 +7,7 @@ import java.security.GeneralSecurityException;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.security.auth.login.CredentialException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -116,7 +117,7 @@ public class DefaultLanternApi implements LanternApi {
             log.error(msg);
             ok(resp);
         } else {
-            sendError(resp, "No msg argument in error API call");
+            sendClientError(resp, "No msg argument in error API call");
         }
     }
 
@@ -128,7 +129,7 @@ public class DefaultLanternApi implements LanternApi {
 
         final String rawEmail = params.remove("email");
         if (StringUtils.isBlank(rawEmail)) {
-            sendError(resp, "No email address provided");
+            sendClientError(resp, "No email address provided");
             return;
         }
         final String email;
@@ -148,7 +149,7 @@ public class DefaultLanternApi implements LanternApi {
         if (StringUtils.isBlank(pass) && set.isSavePassword()) {
             pass = set.getStoredPassword();
             if (StringUtils.isBlank(pass)) {
-                sendError(resp, "No password given and no password stored");
+                sendClientError(resp, "No password given and no password stored");
                 return;
             }
         }
@@ -160,18 +161,21 @@ public class DefaultLanternApi implements LanternApi {
         LanternHub.settingsIo().write();
         try {
             LanternHub.xmppHandler().connect();
-            if (LanternUtils.shouldProxy() && LanternHub.settings().isInitialSetupComplete()) {
+            if (LanternHub.settings().isInitialSetupComplete()) {
                 // We automatically start proxying upon connect if the 
                 // user's settings say they're in get mode and to use the 
                 // system proxy.
                 Proxifier.startProxying();
             }
+            returnSettings(resp);
         } catch (final IOException e) {
-            sendError(resp, "Could not login: "+e.getMessage());
+            sendClientError(resp, "Could not login: "+e.getMessage());
         } catch (final Proxifier.ProxyConfigurationError e) {
             log.error("Proxy configuration failed: {}", e);
+            sendServerError(resp, "Proxy configuration failed");
+        } catch (final CredentialException e) {
+            sendError(resp, HttpStatus.SC_UNAUTHORIZED, e.getMessage());
         }
-        returnSettings(resp);
     }
 
 
@@ -240,16 +244,16 @@ public class DefaultLanternApi implements LanternApi {
                                         final HttpServletResponse resp) {
         final LocalCipherProvider lcp = LanternHub.localCipherProvider();
         if (lcp.isInitialized() == true) {
-            sendError(resp, "Local password has already been set, must reset to change.");
+            sendClientError(resp, "Local password has already been set, must reset to change.");
             return;
         }
         if (!lcp.requiresAdditionalUserInput()) {
-            sendError(resp, "Local cipher does not require password.");
+            sendClientError(resp, "Local cipher does not require password.");
             return;
         }
         final String password = req.getParameter("password");
         if (StringUtils.isBlank(password)) {
-            sendError(resp, "Password cannot be blank");
+            sendClientError(resp, "Password cannot be blank");
             return;
         }
         try {
@@ -278,16 +282,16 @@ public class DefaultLanternApi implements LanternApi {
                               final HttpServletResponse resp) {
         final LocalCipherProvider lcp = LanternHub.localCipherProvider();
         if (lcp.isInitialized() == false) {
-            sendError(resp, "Local password has not been set, must set first.");
+            sendClientError(resp, "Local password has not been set, must set first.");
             return;
         }
         if (!lcp.requiresAdditionalUserInput()) {
-            sendError(resp, "Local cipher does not require password.");
+            sendClientError(resp, "Local cipher does not require password.");
             return;
         }
         final String password = req.getParameter("password");
         if (StringUtils.isBlank(password)) {
-            sendError(resp, "Password cannot be blank");
+            sendClientError(resp, "Password cannot be blank");
             return;
         }
         try {
@@ -305,7 +309,7 @@ public class DefaultLanternApi implements LanternApi {
 
         } catch (final InvalidKeyException e) {
             /* bad password */
-            sendError(resp, "Invalid password");
+            sendClientError(resp, "Invalid password");
             return;
         } catch (final GeneralSecurityException e) {
             sendServerError(resp, "Error unlocking settings");
@@ -330,7 +334,7 @@ public class DefaultLanternApi implements LanternApi {
     private void handleRoster(final HttpServletResponse resp) {
         log.info("Processing roster call.");
         if (!LanternHub.xmppHandler().isLoggedIn()) {
-            sendError(resp, "Not logged in!");
+            sendClientError(resp, "Not logged in!");
             return;
         }
         final Roster roster = LanternHub.roster();
@@ -338,7 +342,7 @@ public class DefaultLanternApi implements LanternApi {
             try {
                 roster.populate();
             } catch (final IOException e) {
-                sendError(resp, "Could not populate roster!");
+                sendServerError(resp, "Could not populate roster!");
                 return;
             }
         }
@@ -382,33 +386,31 @@ public class DefaultLanternApi implements LanternApi {
             log.info("Could not write response", e);
         }
     }
-
-    private void sendServerError(final HttpServletResponse resp, 
+    
+    private void sendClientError(final HttpServletResponse resp, 
         final String msg) {
-        try {
-            resp.sendError(HttpStatus.SC_INTERNAL_SERVER_ERROR, msg);
-        } catch (final IOException e) {
-            log.info("Could not send error", e);
-        }
+        sendError(resp, HttpStatus.SC_BAD_REQUEST, msg);
     }
     
-    private void sendError(final HttpServletResponse resp, final String msg) {
-        try {
-            resp.sendError(HttpStatus.SC_BAD_REQUEST, msg);
-        } catch (final IOException e) {
-            log.info("Could not send error", e);
-        }
+    private void sendServerError(final HttpServletResponse resp, 
+        final String msg) {
+        sendError(resp, HttpStatus.SC_INTERNAL_SERVER_ERROR, msg);
     }
-
-    private void sendError(final Exception e, 
+    
+    private void sendServerError(final Exception e, 
         final HttpServletResponse resp, final boolean sendErrors) {
         log.info("Caught exception", e);
         if (sendErrors) {
-            try {
-                resp.sendError(HttpStatus.SC_SERVICE_UNAVAILABLE, e.getMessage());
-            } catch (final IOException ioe) {
-                log.info("Could not send response", e);
-            }
+            sendError(resp, HttpStatus.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+        }
+    }
+
+    private void sendError(final HttpServletResponse resp, final int errorCode, 
+        final String msg) {
+        try {
+            resp.sendError(errorCode, msg);
+        } catch (final IOException e) {
+            log.info("Could not send response", e);
         }
     }
 
@@ -423,7 +425,7 @@ public class DefaultLanternApi implements LanternApi {
     private void changeSetting(final HttpServletResponse resp,
         final Map<String, String> params) {
         if (params.isEmpty()) {
-            sendError(resp, "You must set a setting");
+            sendClientError(resp, "You must set a setting");
             return;
         }
         final Entry<String, String> keyVal = params.entrySet().iterator().next();
@@ -469,11 +471,11 @@ public class DefaultLanternApi implements LanternApi {
             PropertyUtils.setSimpleProperty(bean, key, obj);
             //PropertyUtils.setProperty(bean, key, obj);
         } catch (final IllegalAccessException e) {
-            sendError(e, resp, logErrors);
+            sendServerError(e, resp, logErrors);
         } catch (final InvocationTargetException e) {
-            sendError(e, resp, logErrors);
+            sendServerError(e, resp, logErrors);
         } catch (final NoSuchMethodException e) {
-            sendError(e, resp, logErrors);
+            sendServerError(e, resp, logErrors);
         }
     }
 
@@ -484,8 +486,8 @@ public class DefaultLanternApi implements LanternApi {
         try {
             new LanternFeedback().submit(message, email);
         }
-        catch (Exception e) {
-            sendError(e, resp, true);
+        catch (final Exception e) {
+            sendServerError(e, resp, true);
         }
     }
 
