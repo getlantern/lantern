@@ -131,9 +131,9 @@
           <h1>Sign into Google</h1>
           <p>Lantern uses Google to connect to other users.
              <a href=#doc-overlay data-doc=why-google class="smallnote doc-link">Why?</a></p>
-          <form id=firstsignin-form name=fsform ng:class="['signin', login_failed() && 'badcredentials']" ng:submit=fs_submit()>
+          <form id=firstsignin-form name=fsform class=signin ng:submit=fs_submit()>
             <ul>
-              <li><div class=error>Bad username or password.</div></li>
+              <li><div class=error ng:class="login_failed() && 'visible' || 'hidden'">{{badcredentials && 'Bad username or password.' || 'Connection error.'}}</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail required autofocus /></li>
               <li><input type=password class=signinpwinput placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
@@ -365,9 +365,9 @@
         <div class=overlay-modal ng:show=showsignin()>
         <div id=signin-overlay>
           <a class=close ng:click="showsignin(false)">×</a>
-          <form name=signinform ng:class="['signin', login_failed() && 'badcredentials']" ng:submit=signin(inputemail)>
+          <form name=signinform class=signin ng:submit=signin(inputemail)>
             <ul>
-              <li><div class=error>Bad username or password.</div></li>
+                <li><div class=error ng:class="login_failed() && 'visible' || 'hidden'">{{badcredentials && 'Bad username or password.' || 'Connection error.'}}</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail required /></li>
               <li><input type=password class=signinpwinput placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>

@@ -173,7 +173,7 @@ function LDCtrl(){
   };
 
   self.resetshowsignin = function() {
-    self._showsignin = self.logged_out() && self.state.connectOnLaunch && !self.state.passwordSaved;
+    self._showsignin = self.logged_out() && !self.state.passwordSaved;
     console.log('set _showsignin to', self._showsignin);
   }
 
@@ -213,7 +213,6 @@ function LDCtrl(){
   self.npeers = function() {return self.state.peerCount;}
 
 
-
   function bindprops(fieldname, keysobj){ 
     for(var key in keysobj){
       self[key.toLowerCase()] = function(){ var key_ = key;
@@ -226,6 +225,7 @@ function LDCtrl(){
   bindprops('connectivity', {'DISCONNECTED':0, 'CONNECTING':0, 'CONNECTED':0});
   bindprops('googleTalkState', {'LOGGING_OUT':0, 'LOGGING_IN':0, 'LOGGED_IN':0, 'LOGIN_FAILED':0});
   self.logged_out = function(){ var gts = self.state.googleTalkState; return gts === 'LOGGED_OUT' || gts === 'LOGIN_FAILED'; };
+  self.badcredentials = false;
 
   self.conncaption = function(){
     var c = self.state.connectivity;
@@ -242,9 +242,9 @@ function LDCtrl(){
   };
 
   self.iconloctxt = function(){
-    var platform = self.state.platform || {};
-    switch(platform.osName){
-    case 'Mac OS X':
+    var os = (self.state.platform || {osName: ''}).osName.split(' ')[0];
+    switch(os){
+    case 'Mac':
       return 'menu bar';
     case 'Windows':
       return 'system tray';
@@ -337,13 +337,23 @@ function LDCtrl(){
         showid(self.state.getMode && '#trustedpeers' || '#done');
         self.fetchpeers();
       }
-    }).fail(function(){
-      // XXX backend does not pass logged_out state immediately, take matters into our own hands
+    }).fail(function(jqXHR, textStatus){
+      var code = jqXHR.status;
+      switch(code){
+      case 401:
+        self.badcredentials = true;
+        break;
+      case 500:
+        self.badcredentials = false;
+        break;
+      default:
+        console.log('unexpected signin response status code:', code);
+      }
       self.state.googleTalkState = 'LOGIN_FAILED';
       self.$digest();
       if(self.state.initialSetupComplete)
         self.showsignin(true);
-      console.log('signin failed');
+      console.log('signin failed:', code);
     });
   };
 

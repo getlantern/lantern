@@ -213,15 +213,17 @@ input[type=password], input.signinpwinput
   color: $font-color-input
 
 form.signin .error, #systemproxy .error, #unlock .error
-  visibility: hidden
   font-size: $font-size-small
   margin-top: 3px
+
+#systemproxy .error, #unlock .error
+  visibility: hidden
 
 #signin .error
   text-align: left
   margin-left: 154px
 
-.badcredentials
+.badcredentials, .connection
   .error
     visibility: visible !important
 
@@ -675,6 +677,9 @@ $contact-wdth: 510px
 
 .hidden
   visibility: hidden
+
+.visible
+  visibility: visible
 
 .disabled
   color: $font-color-disabled
