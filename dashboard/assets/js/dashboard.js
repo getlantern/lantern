@@ -242,9 +242,9 @@ function LDCtrl(){
   };
 
   self.iconloctxt = function(){
-    var platform = self.state.platform || {};
-    switch(platform.osName){
-    case 'Mac OS X':
+    var os = (self.state.platform || {osName: ''}).osName.split(' ')[0];
+    switch(os){
+    case 'Mac':
       return 'menu bar';
     case 'Windows':
       return 'system tray';
