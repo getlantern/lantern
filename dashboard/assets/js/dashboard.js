@@ -213,7 +213,6 @@ function LDCtrl(){
   self.npeers = function() {return self.state.peerCount;}
 
 
-
   function bindprops(fieldname, keysobj){ 
     for(var key in keysobj){
       self[key.toLowerCase()] = function(){ var key_ = key;
@@ -226,6 +225,7 @@ function LDCtrl(){
   bindprops('connectivity', {'DISCONNECTED':0, 'CONNECTING':0, 'CONNECTED':0});
   bindprops('googleTalkState', {'LOGGING_OUT':0, 'LOGGING_IN':0, 'LOGGED_IN':0, 'LOGIN_FAILED':0});
   self.logged_out = function(){ var gts = self.state.googleTalkState; return gts === 'LOGGED_OUT' || gts === 'LOGIN_FAILED'; };
+  self.badcredentials = false;
 
   self.conncaption = function(){
     var c = self.state.connectivity;
@@ -337,13 +337,23 @@ function LDCtrl(){
         showid(self.state.getMode && '#trustedpeers' || '#done');
         self.fetchpeers();
       }
-    }).fail(function(){
-      // XXX backend does not pass logged_out state immediately, take matters into our own hands
+    }).fail(function(jqXHR, textStatus){
+      var code = jqXHR.status;
+      switch(code){
+      case 401:
+        self.badcredentials = true;
+        break;
+      case 500:
+        self.badcredentials = false;
+        break;
+      default:
+        console.log('unexpected signin response status code:', code);
+      }
       self.state.googleTalkState = 'LOGIN_FAILED';
       self.$digest();
       if(self.state.initialSetupComplete)
         self.showsignin(true);
-      console.log('signin failed');
+      console.log('signin failed:', code);
     });
   };
 
