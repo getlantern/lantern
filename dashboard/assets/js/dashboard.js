@@ -173,7 +173,7 @@ function LDCtrl(){
   };
 
   self.resetshowsignin = function() {
-    self._showsignin = self.logged_out() && self.state.connectOnLaunch && !self.state.passwordSaved;
+    self._showsignin = self.logged_out() && !self.state.passwordSaved;
     console.log('set _showsignin to', self._showsignin);
   }
 
