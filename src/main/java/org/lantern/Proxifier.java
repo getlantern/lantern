@@ -106,6 +106,10 @@ public class Proxifier {
             LOG.info("Already proxying!");
             return;
         }
+        
+        if (!LanternUtils.shouldProxy()) {
+            LOG.info("Not proxying in current mode...");
+        }
 
         LOG.info("Autoconfiguring local to proxy Lantern");
         if (SystemUtils.IS_OS_MAC_OSX) {

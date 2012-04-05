@@ -6,6 +6,8 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
+import javax.security.auth.login.CredentialException;
+
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -176,8 +178,13 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
                     }
                 }
             } catch (final IOException e) {
-                log.info("Could not login", e);
+                log.info("Could not connect to server", e);
                 // Don't proxy if there's some error connecting.
+                if (LanternHub.settings().isInitialSetupComplete()) {
+                    Proxifier.stopProxying();
+                }
+            } catch (final CredentialException e) {
+                log.info("Credentials are wrong!!");
                 if (LanternHub.settings().isInitialSetupComplete()) {
                     Proxifier.stopProxying();
                 }

@@ -44,9 +44,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
+import javax.security.auth.login.CredentialException;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpUtils;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.URIException;
@@ -386,7 +386,8 @@ public class LanternUtils {
     }
     
     public static Collection<LanternPresence> getRosterEntries(final String email,
-        final String pwd, final int attempts) throws IOException {
+        final String pwd, final int attempts) throws IOException, 
+        CredentialException {
         final XMPPConnection conn = 
             XmppUtils.persistentXmppConnection(email, pwd, "lantern", attempts);
         return getRosterEntries(conn).values();
