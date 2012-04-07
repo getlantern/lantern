@@ -14,9 +14,10 @@ then
 fi
 
 VERSION=$1
+INTERNAL_VERSION=$1-`git rev-parse HEAD | cut -c1-10`
 MVN_ARGS=$2
 echo "*******MAVEN ARGS*******: $MVN_ARGS"
-perl -pi -e "s/lantern_version_tok/$VERSION/g" $CONSTANTS_FILE
+perl -pi -e "s/lantern_version_tok/$INTERNAL_VERSION/g" $CONSTANTS_FILE
 GE_API_KEY=`cat lantern_getexceptional.txt`
 if [ ! -n "$GE_API_KEY" ]
   then
@@ -34,4 +35,4 @@ git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 
 cp target/lantern-*-jar-with-dependencies.jar install/common/lantern.jar || die "Could not copy jar?"
 
-git tag -f -a v$VERSION -m "Version $VERSION release with MVN_ARGS $MVN_ARGS"
+git tag -f -a v$VERSION -m "Version $INTERNAL_VERSION release with MVN_ARGS $MVN_ARGS"
