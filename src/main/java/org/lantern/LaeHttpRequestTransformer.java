@@ -2,6 +2,8 @@ package org.lantern;
 
 import java.net.InetSocketAddress;
 
+import org.apache.commons.lang.StringUtils;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +14,8 @@ import org.slf4j.LoggerFactory;
 public class LaeHttpRequestTransformer implements HttpRequestTransformer {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+    
+    private static final long CHUNK_SIZE = 2000000;
     
     @Override
     public void transform(final HttpRequest request,
@@ -28,8 +32,16 @@ public class LaeHttpRequestTransformer implements HttpRequestTransformer {
             log.debug("proxyUri: " + proxyUri);
             request.setUri(proxyUri);
         } else {
-            log.info("NOT MODIFYING URI -- ALREADY HAS FREELANTERN");
+            log.info("NOT MODIFYING URI -- ALREADY HAS HOST");
         }
+        
+        final String range = request.getHeader(HttpHeaders.Names.RANGE);
+        if (StringUtils.isNotBlank(range)) {
+            log.info("Request already has range!");
+            return;
+        }
+        
+        request.setHeader(HttpHeaders.Names.RANGE, "bytes=0-"+CHUNK_SIZE);
     }
 
 }
