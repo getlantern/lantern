@@ -27,7 +27,7 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private static final long CHUNK_SIZE = 1024 * 1024 * 10 - (2 * 1024);
+    private static final long CHUNK_SIZE = 2000000;
     
     private final Channel browserToProxyChannel;
 
@@ -50,6 +50,7 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
             if (chunk.isLast()) {
                 log.info("GOT LAST CHUNK");
             }
+            //log.info("Chunk size: {}", chunk.getContent().readableBytes());
             browserToProxyChannel.write(chunk);
         } else {
             log.info("Got message on outbound handler: {}", msg);
@@ -64,6 +65,11 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
             final HttpResponse response = (HttpResponse) msg;
             final int code = response.getStatus().getCode();
             if (code != 206) {
+                if (code >= 500 && code < 600) {
+                    log.warn("Server error response: {}",response.getHeaders());
+                    browserToProxyChannel.close();
+                    return;
+                }
                 log.info("No 206. Writing whole response");
                 browserToProxyChannel.write(response);
             } else {
@@ -84,6 +90,11 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
                     response.setStatus(HttpResponseStatus.OK);
                     
                     log.info("Setting Content Length to: "+cl+" from "+cr);
+                    
+                    // We need to set the appropriate total content length 
+                    // here. This should be the final value of the Content-Range
+                    // as the Content-Length header is just the length of the
+                    // content for this single response, not the full entity.
                     response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, cl);
                     response.removeHeader(HttpHeaders.Names.CONTENT_RANGE);
                     browserToProxyChannel.write(response);
@@ -96,7 +107,7 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
                 }
                 
                 // Spin up additional requests on a new thread.
-                requestRange(request, response, cr, cl, ctx.getChannel());
+                requestRange(request, cr, cl, ctx.getChannel());
             }
         }
     }
@@ -113,8 +124,8 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
     }
 
     private void requestRange(final HttpRequest request, 
-        final HttpResponse response, final String contentRange, 
-        final long fullContentLength, final Channel channel) {
+        final String contentRange, final long fullContentLength, 
+        final Channel channel) {
         log.info("Queuing request based on Content-Range: {}", contentRange);
         // Note we don't need to thread this since it's all asynchronous 
         // anyway.
@@ -124,7 +135,7 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
             log.error("Blank bytes body: "+contentRange);
             return;
         }
-        final long contentLength = HttpHeaders.getContentLength(response);
+        //final long contentLength = HttpHeaders.getContentLength(response);
         final String startPlus = StringUtils.substringAfter(body, "-");
         final String startString = StringUtils.substringBefore(startPlus, "/");
         final long start = Long.parseLong(startString) + 1;
@@ -136,7 +147,7 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
             return;
         }
         final long end;
-        if (contentLength - start > CHUNK_SIZE) {
+        if (fullContentLength - start > CHUNK_SIZE) {
             end = start + CHUNK_SIZE;
         } else {
             end = fullContentLength - 1;
