@@ -8,6 +8,7 @@ import java.util.concurrent.ThreadFactory;
 
 import javax.security.auth.login.CredentialException;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -196,14 +197,20 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
 
     @Override
     public void setPassword(final String password) {
-        log.info("Setting password");
         final Settings set = LanternHub.settings();
-        if (set.isSavePassword()) {
-            set.setStoredPassword(password);
-            set.setPasswordSaved(true);
-        } else {
+        if (StringUtils.isBlank(password)) {
+            log.info("Clearing password");
             set.setStoredPassword("");
             set.setPasswordSaved(false);
+        } else {
+            log.info("Setting password");
+            if (set.isSavePassword()) {
+                set.setStoredPassword(password);
+                set.setPasswordSaved(true);
+            } else {
+                set.setStoredPassword("");
+                set.setPasswordSaved(false);
+            }
         }
     }
     
