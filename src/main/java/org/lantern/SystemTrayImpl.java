@@ -143,7 +143,7 @@ public class SystemTrayImpl implements SystemTray {
             final Image image = newImage(imageName, 16, 16);
             setImage(image);
             
-            if (SystemUtils.IS_OS_WINDOWS) {
+            if (SystemUtils.IS_OS_WINDOWS || SystemUtils.IS_OS_LINUX) {
                 this.trayItem.addSelectionListener(new SelectionListener() {
                     @Override
                     public void widgetSelected(SelectionEvent se) {
