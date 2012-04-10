@@ -1,19 +1,28 @@
 package org.lantern;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.lantern.TestingUtils.extractCookies;
+import static org.lantern.TestingUtils.extractSetCookies;
+
 import java.util.Set;
-import org.jboss.netty.buffer.ChannelBuffer;
+
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.CookieEncoder;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
-import static org.junit.Assert.*;
+import org.junit.BeforeClass;
 import org.junit.Test;
-import static org.lantern.TestingUtils.*;
 
 public class HttpsEverywhereSecureCookieIntegrationTest {
     
+    
+    @BeforeClass
+    public static void setup() {
+        LanternHub.resetSettings(false);
+    }
     
     /**
      * These tests check that things come through the 

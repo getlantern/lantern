@@ -437,15 +437,11 @@ public class LanternHub {
         }
         
         _postSettingsState();
-   }
+    }
    
-   private static void _postSettingsState() {
-       asyncEventBus().post(new SettingsStateEvent(settings().getSettings()));
-   }
-   
-   public static void resetSettings() {
-       resetSettings(true);
-   }
+    private static void _postSettingsState() {
+        asyncEventBus().post(new SettingsStateEvent(settings().getSettings()));
+    }
     
     public static ProxyProvider getProxyProvider() {
         synchronized (proxyProvider) {
