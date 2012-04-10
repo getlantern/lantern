@@ -329,10 +329,12 @@ public class LanternHub {
                 else if (SystemUtils.IS_OS_MAC_OSX) {
                     lcp = new MacLocalCipherProvider();
                 }
+                /* disabled per #249
                 else if (SystemUtils.IS_OS_LINUX && 
                          SecretServiceLocalCipherProvider.secretServiceAvailable()) {
                     lcp = new SecretServiceLocalCipherProvider();
                 }
+                */
                 else {
                     lcp = new DefaultLocalCipherProvider();
                 }
