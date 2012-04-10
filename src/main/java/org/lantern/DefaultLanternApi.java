@@ -174,6 +174,8 @@ public class DefaultLanternApi implements LanternApi {
             log.error("Proxy configuration failed: {}", e);
             sendServerError(resp, "Proxy configuration failed");
         } catch (final CredentialException e) {
+            log.info("CredentialException, clearing password");
+            changeSetting(resp, "password", "", false, false);
             sendError(resp, HttpStatus.SC_UNAUTHORIZED, e.getMessage());
         }
     }
