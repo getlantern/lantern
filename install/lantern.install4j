@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="5.0.11" transformSequenceNumber="3">
-  <directoryPresets config=".." />
+  <directoryPresets config="./common" />
   <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Team Lantern" publisherWeb="http://www.getlantern.org" version="0.97" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -93,9 +93,9 @@
         <content />
       </customScript>
       <iconImageFiles>
-        <file path="./16on.png" />
-        <file path="./32on.png" />
-        <file path="./64on.png" />
+        <file path="./common/16on.png" />
+        <file path="./common/32on.png" />
+        <file path="./common/64on.png" />
       </iconImageFiles>
     </launcher>
     <launcher name="Lantern" id="224" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" swtApp="true" fileset="145">
@@ -1074,10 +1074,16 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <includedDownloadableComponents />
     </macos>
     <linuxDeb name="Linux Deb Archive" id="579" customizedId="" mediaFileName="" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bzip="false" description="Lantern" dependencies="" maintainerEmail="lantern_deb@getlantern.org">
-      <excludedLaunchers />
+      <excludedLaunchers>
+        <launcher id="27" />
+        <launcher id="224" />
+      </excludedLaunchers>
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
-      <exclude />
+      <exclude>
+        <entry location=".i4j_fileset_145" fileType="regular" />
+        <entry location=".i4j_fileset_147" fileType="regular" />
+      </exclude>
       <variables />
       <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
         <commentFiles />
