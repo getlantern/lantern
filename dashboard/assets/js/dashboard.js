@@ -1,6 +1,17 @@
 'use strict';
 
-if(typeof console == 'undefined'){
+var CONSOLESHIM = false;
+
+if(CONSOLESHIM){
+  console.log_ = console.log;
+  console.log = function(){
+    for (var i = 0, j = arguments.length; i < j; i++){
+      $('#console-shim > pre').append(arguments[i].toString() + ' ');
+      console.log_.apply(this, arguments);
+    }
+      $('#console-shim > pre').append('\n');
+  }
+}else if(typeof console == 'undefined'){
   var console = {
     log: function(){}
   };
