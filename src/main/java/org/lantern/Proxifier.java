@@ -59,7 +59,7 @@ public class Proxifier {
                     mpm.runScript("ln", "/usr/bin/osascript", "Lantern");
                 LOG.info("Result of script is: {}", result);
             } else {
-                LOG.info("Appears to already be a link to oasacript");
+                LOG.info("Appears to already be a link to osascript");
             }
         }
         LANTERN_PROXYING_FILE.delete();
