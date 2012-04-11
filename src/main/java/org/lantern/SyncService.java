@@ -55,7 +55,7 @@ public class SyncService {
     @Listener(Channel.META_CONNECT)
     public void metaConnect(final ServerSession remote, final Message connect) {
         // Make sure we give clients the most recent data whenever they connect.
-        log.debug("Got connection from client...syncing");
+        log.debug("Got connection from client, calling sync");
         sync();
     }
 
@@ -112,7 +112,7 @@ public class SyncService {
         sync(false);
     }
     private void sync(final boolean force) {
-        log.debug("Syncing with channel...");
+        log.debug("In sync method");
         if (session == null) {
             log.debug("No session...not syncing");
             return;
@@ -123,7 +123,7 @@ public class SyncService {
                 elapsed);
             return;
         }
-        log.debug("Actually syncing...");
+        
         final ClientSessionChannel channel = 
             session.getLocalSession().getChannel("/sync");
         
@@ -131,6 +131,7 @@ public class SyncService {
             final Settings settings = LanternHub.settings();
             channel.publish(settings);
             lastUpdateTime = System.currentTimeMillis();
+            log.debug("Sync performed");
         }
     }
 }
