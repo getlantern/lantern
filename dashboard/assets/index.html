@@ -23,6 +23,7 @@
     <script src=js/dashboard.js></script>
   </head>
   <body ng:controller=LDCtrl lang=en ng:class="(!state.initialSetupComplete || !stateset()) && 'welcome'">
+    <div id=console-shim style="display: block; position: fixed; left: 0; right: 0; bottom: 0; color: green; z-index: 500;"><pre></pre></div>
     <div id=block-overlay ng:class="block && 'block-enabled'"></div>
     <div id=ld-container style="display: none" ng:show=stateloaded()>
 
