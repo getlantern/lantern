@@ -109,6 +109,7 @@ public class Proxifier {
         
         if (!LanternUtils.shouldProxy()) {
             LOG.info("Not proxying in current mode...");
+            return;
         }
 
         LOG.info("Autoconfiguring local to proxy Lantern");
