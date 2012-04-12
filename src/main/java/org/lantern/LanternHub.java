@@ -22,7 +22,6 @@ import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.privacy.MacLocalCipherProvider;
-import org.lantern.privacy.SecretServiceLocalCipherProvider;
 import org.lantern.privacy.WindowsLocalCipherProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -370,10 +369,6 @@ public class LanternHub {
     
     public static Platform platform() {
         return settings().getPlatform();
-    }
-    
-    public static Internet internet() {
-        return settings().getInternet();
     }
     
     public static SettingsIo settingsIo() {
