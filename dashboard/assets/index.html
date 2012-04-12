@@ -10,10 +10,11 @@
     <title>Lantern Dashboard</title>
     <link rel=stylesheet href=css/style.css />
     <link rel=stylesheet href=css/lib/lionbars.css />
+    <!--[if IE ]><script>var __IE = true;</script><![endif]-->
+    <!--[if ! IE ]><!--><script>var __IE = false;</script><!--<![endif]-->
     <!--[if lt IE 9]><script src=js/lib/html5.js></script><![endif]-->
     <script src=js/lib/jquery-1.7.1.min.js></script>
-    <!--<script src=js/lib/jquery.placeholder.min.js></script>-->
-    <script src=js/lib/jquery.placeholder.js></script>
+    <script src=js/lib/jquery.placeholder.min.js></script>
     <script src=js/lib/jquery.lionbars.0.3.min.js></script>
     <script src=js/lib/json2.js></script>
     <script src=js/lib/cometd.js></script>
@@ -48,7 +49,7 @@
             <ul>
               <li><div class="error invalid-password-error">Invalid Password.</div></li>
               <li><div class="error unlock-failed-error">Failed to load settings.</div></li>
-              <li><input name="password" ng:model=localpassword type=password required placeholder="lantern password" /></li>
+              <li><input name="password" ng:model=localpassword type=password required placeholder="Lantern password" /></li>
               <li><p>Forgot? You may also <a ng:click=reset()>reset</a> your settings.</p></li>
             </ul>
             <div class=controls>
@@ -136,7 +137,12 @@
             <ul>
               <li><div class=error ng:class="login_failed() && 'visible' || 'hidden'">{{badcredentials && 'Bad username or password.' || 'Connection error.'}}</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail required autofocus /></li>
+              <!--[if IE ]>
+              <li><input type=password class="signinpwinput ie" placeholder=password title="This form is sent securely." /></li>
+              <![endif]-->
+              <!--[if ! IE]><!-->
               <li><input type=password class=signinpwinput placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
+              <!--<![endif]-->
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
             <div class=controls>
@@ -370,10 +376,15 @@
             <ul>
                 <li><div class=error ng:class="login_failed() && 'visible' || 'hidden'">{{badcredentials && 'Bad username or password.' || 'Connection error.'}}</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail required /></li>
+              <!--[if IE ]>
+              <li><input type=password class="signinpwinput ie" placeholder=password title="This form is sent securely." /></li>
+              <![endif]-->
+              <!--[if ! IE]><!-->
               <li><input type=password class=signinpwinput placeholder={{passplaceholder()}} ng:model=inputpassword ng:required={{passrequired()}} title="This form is sent securely." /></li>
+              <!--<![endif]-->
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
-            <button ng:show=!logging_in() type=submit ng:disabled="{{(logged_in() && sameuser() && !inputpassword) || (passrequired() && !inputpassword)}}" >Sign in</button>
+            <button ng:show=!logging_in() type=submit ng:disabled="{{(logged_in() && sameuser() && !__IE && !inputpassword) || (passrequired() && !__IE && !inputpassword)}}" >Sign in</button>
             <img class=spinner src=img/spinner-big.gif alt="Signing in..." ng:show=logging_in() />
           </form>
         </div>

@@ -69,12 +69,11 @@ function showid(id, ignorecls, ignore){
     $('#panel-list > li > a[href='+id+']').addClass('selected');
   }
   lionbarsify($el.find('.lionbars'));
-  // XXX
-  $('.signinpwinput').blur();
 }
 
 function LDCtrl(){
   var self = this;
+  self.__IE = __IE;
   self.state = {};
   self.$watch('state', function(scope, newVal, oldVal){
     self.inputemail = self.inputemail || self.state.email;
@@ -89,6 +88,8 @@ function LDCtrl(){
   self._reset = function(){
     console.log('in _reset');
     self.inputemail = null;
+    if(__IE)
+      $('.signinpwinput.ie').val('');
     self.pmfromemail = null;
     self.resetshowsignin();
     if(location.hash && location.hash != '#')
@@ -317,6 +318,10 @@ function LDCtrl(){
   };
 
   self.signin = function(email){
+    if(__IE){
+      self.inputpassword = $('.signinpwinput.ie:visible').val();
+      console.log('set inputpassword to ', self.inputpassword, ' for ie');
+    }
     if(self.logged_in()){
       if(self.sameuser() && !self.inputpassword){
         console.log('ingoring signin as', self.state.email, ', already signed in as that user and no new password supplied');
@@ -624,12 +629,7 @@ $(document).ready(function(){
     return scope;
   }
 
-  $('input, textarea').placeholder(function(input, $input){
-    var s = getscope();
-    if($input.hasClass('signinpwinput'))
-      return input.value == s._passreqtxt || input.value == s._nopassreqtxt;
-    return input.value == $input.attr('placeholder');
-  });
+  $('input, textarea').placeholder();
 
   $(window).bind('hashchange', function(){
     showid(location.hash);
