@@ -9,6 +9,8 @@ import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.beanutils.PropertyUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -36,7 +38,7 @@ public class Settings implements MutableSettings {
     public static class CommandLineSettings {}
     
     // by default, if not marked, fields will be serialized in 
-    // any of the above. To exlude a field from any other class
+    // any of the above. To exclude a field from any other class
     // mark it as transient/internal
     public static class TransientInternalOnly {} 
 
@@ -45,7 +47,6 @@ public class Settings implements MutableSettings {
     private ConnectivityStatus connectivity = ConnectivityStatus.DISCONNECTED; 
     private Map<String, Object> update = new HashMap<String, Object>();
     
-    private Internet internet = new Internet();
     private Platform platform = new Platform();
     private boolean startAtLogin = true;
     private boolean isSystemProxy = true;
@@ -64,9 +65,11 @@ public class Settings implements MutableSettings {
     
     private boolean proxyAllSites;
     
-    private Country country;
+    private final AtomicReference<Country> country = 
+        new AtomicReference<Country>();
     
-    private Country countryDetected;
+    private final AtomicReference<Country> countryDetected = 
+        new AtomicReference<Country>();
     
     private boolean manuallyOverrideCountry;
     
@@ -87,7 +90,7 @@ public class Settings implements MutableSettings {
      */
     private boolean useCloudProxies = true;
     
-    private Boolean getMode = null;
+    private final AtomicBoolean getMode = new AtomicBoolean(false);
     
     private boolean bindToLocalhost = true;
     
@@ -127,12 +130,38 @@ public class Settings implements MutableSettings {
 
     {
         LanternHub.register(this);
+        threadPublicIpLookup();
     }
     
     public Settings() {}
     
     public Settings(final Whitelist whitelist) {
         this.whitelist = whitelist;
+    }
+    
+    /**
+     * We thread this because otherwise looking up our public IP address 
+     * over the network can delay the creation of settings altogether. That's
+     * problematic if the UI is waiting on them, for example.
+     */
+    private void threadPublicIpLookup() {
+        final Thread thread = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                getMode.set(LanternHub.censored().isCensored());
+                final Country count = LanternHub.censored().country();
+                if (countryDetected.get() == null) {
+                    countryDetected.set(count);
+                }
+                if (country.get() == null) {
+                    country.set(count);
+                }
+            }
+            
+        }, "Public-IP-Lookup-Thread");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     @JsonView({UIStateSettings.class, PersistentSettings.class})
@@ -173,11 +202,6 @@ public class Settings implements MutableSettings {
     @JsonView(UIStateSettings.class)
     public String getVersion() {
         return this.version;
-    }
-    
-    @JsonView(UIStateSettings.class)
-    public Internet getInternet() {
-        return internet;
     }
 
     @JsonView(UIStateSettings.class)
@@ -273,29 +297,23 @@ public class Settings implements MutableSettings {
         return proxyAllSites;
     }
 
-    public void setCountryDetected(Country countryDetected) {
-        this.countryDetected = countryDetected;
+    public void setCountryDetected(final Country countryDetected) {
+        this.countryDetected.set(countryDetected);
     }
 
     @JsonView({UIStateSettings.class, PersistentSettings.class})
     public Country getCountryDetected() {
-        if (this.countryDetected == null) {
-            this.countryDetected = LanternHub.censored().country();
-        }
-        return countryDetected;
+        return countryDetected.get();
     }
 
     @JsonView({UIStateSettings.class, PersistentSettings.class})
     public Country getCountry() {
-        if (this.country == null) {
-            this.country = LanternHub.censored().country();
-        }
-        return this.country;
+        return this.country.get();
     }
     
     @Override
     public void setCountry(final Country country) {
-        this.country = country;
+        this.country.set(country);
     }
 
     public void setManuallyOverrideCountry(
@@ -308,6 +326,7 @@ public class Settings implements MutableSettings {
         return manuallyOverrideCountry;
     }
 
+    @Override
     public void setSavePassword(final boolean savePassword) {
         this.savePassword = savePassword;
     }
@@ -349,16 +368,13 @@ public class Settings implements MutableSettings {
 
     @Override
     public void setGetMode(final boolean getMode) {
-        this.getMode = getMode;
+        this.getMode.set(getMode);
     }
 
 
     @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isGetMode() {
-        if (getMode == null) {
-            this.getMode = LanternHub.censored().isCensored();
-        }
-        return getMode;
+        return getMode.get();
     }
 
     public void setBindToLocalhost(boolean bindToLocalhost) {
@@ -537,7 +553,7 @@ public class Settings implements MutableSettings {
     public String toString() {
         return "Settings [" 
                 + "connectivity=" + connectivity + ", update=" + update
-                + ", internet=" + internet + ", platform=" + platform
+                + ", platform=" + platform
                 + ", startAtLogin=" + startAtLogin + ", isSystemProxy="
                 + isSystemProxy + ", port=" + port + ", version=" + version
                 + ", connectOnLaunch=" + connectOnLaunch + ", language="

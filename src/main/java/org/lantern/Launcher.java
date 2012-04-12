@@ -1,7 +1,5 @@
 package org.lantern;
 
-import com.google.common.eventbus.Subscribe;
-
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
@@ -14,8 +12,6 @@ import java.util.Properties;
 
 import javax.security.auth.login.CredentialException;
 
-import org.lantern.privacy.InvalidKeyException;
-import org.lantern.privacy.LocalCipherProvider;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -39,6 +35,8 @@ import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.SetCookieObserver;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
+import org.lantern.privacy.InvalidKeyException;
+import org.lantern.privacy.LocalCipherProvider;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestFilter;
@@ -47,6 +45,8 @@ import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.PublicIpsOnlyRequestFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.eventbus.Subscribe;
 
 
 /**
