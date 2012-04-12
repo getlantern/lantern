@@ -1,3 +1,9 @@
+/**
+ * @license AngularJS v1.0.0rc5
+ * (c) 2010-2012 AngularJS http://angularjs.org
+ * License: MIT
+ */
+(function(angular) {
 'use strict';
 
 /**
@@ -418,3 +424,5 @@ angular.module('ngResource', ['ng']).
 
     return ResourceFactory;
   }]);
+
+})(window.angular);

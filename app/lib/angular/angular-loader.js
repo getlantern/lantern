@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.0rc4
+ * @license AngularJS v1.0.0rc5
  * (c) 2010-2012 AngularJS http://angularjs.org
  * License: MIT
  */
@@ -61,7 +61,7 @@ function setupModuleLoader(window) {
      * </pre>
      *
      * However it's more likely that you'll just use
-     * {@link angular.module.ng.$compileProvider.directive.ng-app ng-app} or
+     * {@link angular.module.ng.$compileProvider.directive.ngApp ngApp} or
      * {@link angular.bootstrap} to simplify this process for you.
      *
      * @param {!string} name The name of the module to create or retrieve.

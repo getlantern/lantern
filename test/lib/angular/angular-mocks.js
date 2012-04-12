@@ -1,6 +1,6 @@
 
 /**
- * @license AngularJS v1.0.0rc4
+ * @license AngularJS v1.0.0rc5
  * (c) 2010-2011 AngularJS http://angularjs.org
  * License: MIT
  *
@@ -137,13 +137,6 @@ angular.mock.$Browser = function() {
   self.baseHref = function() {
     return this.$$baseHref;
   };
-
-  self.$$scripts = [];
-  self.addJs = function(url, done) {
-    var script = {url: url, done: done};
-    self.$$scripts.push(script);
-    return script;
-  };
 };
 angular.mock.$Browser.prototype = {
 
@@ -248,13 +241,15 @@ angular.mock.$ExceptionHandlerProvider = function() {
         break;
       case 'log':
         var errors = [];
+
         handler = function(e) {
           if (arguments.length == 1) {
             errors.push(e);
           } else {
             errors.push([].slice.call(arguments, 0));
           }
-        }
+        };
+
         handler.errors = errors;
         break;
       default:
@@ -452,7 +447,7 @@ angular.mock.$LogProvider = function() {
     if (angular.isString(timestamp)) {
       var tsStr = timestamp;
 
-      self.origDate = jsonStringToDate(timestamp)
+      self.origDate = jsonStringToDate(timestamp);
 
       timestamp = self.origDate.getTime();
       if (isNaN(timestamp))
@@ -1231,7 +1226,7 @@ function createHttpBackendMock($delegate, $browser) {
       }
     });
   }
-};
+}
 
 function MockHttpExpectation(method, url, data, headers) {
 
@@ -1551,7 +1546,6 @@ window.jasmine && (function(window) {
    */
   window.module = angular.mock.module = function() {
     var moduleFns = Array.prototype.slice.call(arguments, 0);
-    var stack = new Error('Module Declaration Location:').stack;
     return isSpecRunning() ? workFn() : workFn;
     /////////////////////
     function workFn() {
