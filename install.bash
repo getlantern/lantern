@@ -7,5 +7,5 @@ function die() {
 mvn --version || die "Please install maven from http://maven.apache.org" 
 
 #pushd ..
-test -d target || install_deps.bash
+test -d target || installDeps.bash
 mvn package -Dmaven.test.skip=true || die "Could not package"
