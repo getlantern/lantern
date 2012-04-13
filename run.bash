@@ -1,3 +1,3 @@
 #!/usr/bin/env bash
-./install.bash $*
+./install.bash $* || exit
 ./quickRun.bash $*
