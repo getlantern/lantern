@@ -16,6 +16,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.widgets.Display;
+import org.lantern.AppIndicatorTray;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.InMemoryCookieTracker;
 import org.lantern.httpseverywhere.HttpsEverywhere;
@@ -200,8 +201,14 @@ public class LanternHub {
         synchronized (systemTray) {
             if (systemTray.get() == null) {
                 if (settings().isUiEnabled()) {
-                    final SystemTray tray = new SystemTrayImpl();
-                    systemTray.set(tray);
+                    if (AppIndicatorTray.isSupported()) {
+                        final SystemTray tray = new AppIndicatorTray();
+                        systemTray.set(tray);
+                    }
+                    else {
+                        final SystemTray tray = new SystemTrayImpl();
+                        systemTray.set(tray);
+                    }
                 } else {
                     return new SystemTray() {
                         @Override
