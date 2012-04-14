@@ -1,28 +1,18 @@
 package org.lantern;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.util.Map;
-
-import org.apache.commons.lang.SystemUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.google.common.eventbus.Subscribe;
 
 import org.lantern.linux.AppIndicator;
 import org.lantern.linux.Glib;
 import org.lantern.linux.Gobject;
 import org.lantern.linux.Gtk;
-import org.lantern.linux.Unique;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.sun.jna.Callback;
-import com.sun.jna.Library;
+import com.google.common.eventbus.Subscribe;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
-
 
 
 /**
@@ -85,6 +75,9 @@ public class AppIndicatorTray implements SystemTray {
     private Gobject.GCallback quitItemCallback;
 
 
+    public AppIndicatorTray() {
+    	LanternHub.register(this);
+    }
 
     @Override
     public void createTray() {
@@ -101,6 +94,7 @@ public class AppIndicatorTray implements SystemTray {
         connectionStatusItem = libgtk.gtk_menu_item_new_with_label(LABEL_DISCONNECTED);
         libgtk.gtk_widget_set_sensitive(connectionStatusItem, Gtk.FALSE);
         libgtk.gtk_menu_shell_append(menu, connectionStatusItem);
+        libgtk.gtk_widget_show_all(connectionStatusItem);
         
         dashboardItem = libgtk.gtk_menu_item_new_with_label("Open Dashboard");
         dashboardItemCallback = new Gobject.GCallback() {
@@ -134,19 +128,61 @@ public class AppIndicatorTray implements SystemTray {
             "lantern", "indicator-messages-new",
             AppIndicator.CATEGORY_APPLICATION_STATUS);
         libappindicator.app_indicator_set_menu(appIndicator, menu);
-        libappindicator.app_indicator_set_status(appIndicator, libappindicator.STATUS_ACTIVE);
+        
+        changeIcon(ICON_DISCONNECTED, LABEL_DISCONNECTED);
+        libappindicator.app_indicator_set_status(appIndicator, AppIndicator.STATUS_ACTIVE);
     }
 
-    private void openDashboard() {
+    private String iconPath(final String fileName) {
+		final File iconTest = new File(ICON_DISCONNECTED);
+		if (iconTest.isFile()) {
+			return new File(new File("."), fileName).getAbsolutePath();
+		}
+		// Running from main line.
+		return new File(new File("install/common"), fileName).getAbsolutePath();
+	}
+
+	private void openDashboard() {
         LOG.debug("openDashboard called.");
+        LanternHub.jettyLauncher().openBrowserWhenReady();
     }
 
     private void quit() {
         LOG.debug("quit called.");
+        LanternHub.xmppHandler().disconnect();
+        LanternHub.jettyLauncher().stop();
+        System.exit(0);
     }
     
     @Override
-    public void addUpdate(Map<String, String> updateData) {  
+    public void addUpdate(final Map<String, String> updateData) { 
+    	// TODO: Support updates in app indicator.
     }
 
+
+    @Subscribe
+    public void onConnectivityStateChanged(
+        final ConnectivityStatusChangeEvent csce) {
+        final ConnectivityStatus cs = csce.getConnectivityStatus();
+        LOG.info("Got connectivity state changed {}", cs);
+        switch (cs) {
+        case DISCONNECTED: {
+            changeIcon(ICON_DISCONNECTED, LABEL_DISCONNECTED);
+            break;
+        }
+        case CONNECTING: {
+            changeIcon(ICON_CONNECTING, LABEL_CONNECTING);
+            break;
+        }
+        case CONNECTED: {
+            changeIcon(ICON_CONNECTED, LABEL_CONNECTED);
+            break;
+        }
+        }
+    }
+
+    private void changeIcon(final String fileName, final String label) {
+    	libappindicator.app_indicator_set_icon_full(appIndicator, iconPath(fileName), "Lantern");
+    	libgtk.gtk_menu_item_set_label(connectionStatusItem, label);
+    }
 };
