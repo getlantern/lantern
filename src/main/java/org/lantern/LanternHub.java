@@ -201,7 +201,7 @@ public class LanternHub {
         synchronized (systemTray) {
             if (systemTray.get() == null) {
                 if (settings().isUiEnabled()) {
-                    if (AppIndicatorTray.isSupported()) {
+                    if (SystemUtils.IS_OS_LINUX && AppIndicatorTray.isSupported()) {
                         final SystemTray tray = new AppIndicatorTray();
                         systemTray.set(tray);
                     }
