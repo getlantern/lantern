@@ -1103,9 +1103,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       </postUninstallScript>
     </linuxDeb>
   </mediaSets>
-  <buildIds buildAll="false">
-    <mediaSet refId="689" />
-  </buildIds>
+  <buildIds buildAll="false" />
   <buildOptions verbose="false" faster="false" debug="true" />
 </install4j>
 
