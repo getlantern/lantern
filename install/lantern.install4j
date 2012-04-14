@@ -1073,7 +1073,36 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <excludedComponents />
       <includedDownloadableComponents />
     </macos>
-    <linuxDeb name="Linux Deb Archive 64" id="579" customizedId="" mediaFileName="lantern" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./linux/linux-amd64-1.7.0_03.tar.gz" manualJREEntry="true" bzip="false" description="Lantern" dependencies="" maintainerEmail="lantern_deb@getlantern.org">
+    <linuxDeb name="Linux Deb Archive 64" id="579" customizedId="" mediaFileName="lantern-64" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./linux/linux-amd64-1.7.0_03.tar.gz" manualJREEntry="true" bzip="false" description="Lantern" dependencies="" maintainerEmail="lantern_deb@getlantern.org">
+      <excludedLaunchers>
+        <launcher id="27" />
+        <launcher id="224" />
+      </excludedLaunchers>
+      <excludedBeans />
+      <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
+      <exclude>
+        <entry location=".i4j_fileset_145" fileType="regular" />
+        <entry location=".i4j_fileset_147" fileType="regular" />
+      </exclude>
+      <variables />
+      <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
+        <commentFiles />
+        <customAttributes />
+      </autoUpdate>
+      <preInstallScript mode="1" file="">
+        <content />
+      </preInstallScript>
+      <postInstallScript mode="1" file="">
+        <content />
+      </postInstallScript>
+      <preUninstallScript mode="1" file="">
+        <content />
+      </preUninstallScript>
+      <postUninstallScript mode="1" file="">
+        <content />
+      </postUninstallScript>
+    </linuxDeb>
+    <linuxDeb name="Linux Deb Archive 32" id="690" customizedId="" mediaFileName="lantern-32" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="linux-x86-1.7.0_03" manualJREEntry="false" bzip="false" description="" dependencies="" maintainerEmail="">
       <excludedLaunchers>
         <launcher id="27" />
         <launcher id="224" />

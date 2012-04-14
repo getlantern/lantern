@@ -16,7 +16,7 @@ ARCH=$2
 /Applications/install4j\ 5/bin/install4jc -m linuxDeb -r $VERSION ./install/lantern.install4j
 
 name=lantern-$VERSION-$ARCH-bit.deb
-mv install/lantern*.deb $name || die "Could not find built installer?"
+mv install/lantern*$ARCH*.deb $name || die "Could not find built installer?"
 echo "Uploading to http://cdn.getlantern.org/$name..."
 aws -putp lantern $name
 echo "Uploaded lantern to http://cdn.getlantern.org/$name"
