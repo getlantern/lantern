@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="5.0.11" transformSequenceNumber="3">
-  <directoryPresets config="./common" />
+  <directoryPresets config="./linux" />
   <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Team Lantern" publisherWeb="http://www.getlantern.org" version="0.97" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -1073,7 +1073,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <excludedComponents />
       <includedDownloadableComponents />
     </macos>
-    <linuxDeb name="Linux Deb Archive" id="579" customizedId="" mediaFileName="lantern" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="linux-amd64-1.7.0_03" manualJREEntry="false" bzip="false" description="Lantern" dependencies="" maintainerEmail="lantern_deb@getlantern.org">
+    <linuxDeb name="Linux Deb Archive 64" id="579" customizedId="" mediaFileName="lantern" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./linux/linux-amd64-1.7.0_03.tar.gz" manualJREEntry="true" bzip="false" description="Lantern" dependencies="" maintainerEmail="lantern_deb@getlantern.org">
       <excludedLaunchers>
         <launcher id="27" />
         <launcher id="224" />
