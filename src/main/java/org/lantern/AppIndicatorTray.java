@@ -139,10 +139,15 @@ public class AppIndicatorTray implements SystemTray {
 
     private void openDashboard() {
         LOG.debug("openDashboard called.");
+        LanternHub.jettyLauncher().openBrowserWhenReady();
     }
 
     private void quit() {
         LOG.debug("quit called.");
+        LanternHub.display().dispose();
+        LanternHub.xmppHandler().disconnect();
+        LanternHub.jettyLauncher().stop();
+        System.exit(0);
     }
     
     @Override
