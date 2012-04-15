@@ -76,7 +76,7 @@ public class AppIndicatorTray implements SystemTray {
 
 
     public AppIndicatorTray() {
-    	LanternHub.register(this);
+        LanternHub.register(this);
     }
 
     @Override
@@ -134,15 +134,15 @@ public class AppIndicatorTray implements SystemTray {
     }
 
     private String iconPath(final String fileName) {
-		final File iconTest = new File(ICON_DISCONNECTED);
-		if (iconTest.isFile()) {
-			return new File(new File("."), fileName).getAbsolutePath();
-		}
-		// Running from main line.
-		return new File(new File("install/common"), fileName).getAbsolutePath();
-	}
+        final File iconTest = new File(ICON_DISCONNECTED);
+        if (iconTest.isFile()) {
+            return new File(new File("."), fileName).getAbsolutePath();
+        }
+        // Running from main line.
+        return new File(new File("install/common"), fileName).getAbsolutePath();
+    }
 
-	private void openDashboard() {
+    private void openDashboard() {
         LOG.debug("openDashboard called.");
         LanternHub.jettyLauncher().openBrowserWhenReady();
     }
@@ -156,7 +156,7 @@ public class AppIndicatorTray implements SystemTray {
     
     @Override
     public void addUpdate(final Map<String, String> updateData) { 
-    	// TODO: Support updates in app indicator.
+        // TODO: Support updates in app indicator.
     }
 
 
@@ -182,7 +182,7 @@ public class AppIndicatorTray implements SystemTray {
     }
 
     private void changeIcon(final String fileName, final String label) {
-    	libappindicator.app_indicator_set_icon_full(appIndicator, iconPath(fileName), "Lantern");
-    	libgtk.gtk_menu_item_set_label(connectionStatusItem, label);
+        libappindicator.app_indicator_set_icon_full(appIndicator, iconPath(fileName), "Lantern");
+        libgtk.gtk_menu_item_set_label(connectionStatusItem, label);
     }
 };
