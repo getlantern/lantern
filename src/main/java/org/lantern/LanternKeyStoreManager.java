@@ -60,18 +60,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         }
         reset(LanternUtils.getMacAddress());
         createTrustStore();
-        final File littleProxyCert = new File("lantern_littleproxy_cert");
-        if (littleProxyCert.isFile()) {
-            log.info("Importing cert");
-            final String result = LanternUtils.runKeytool("-import", 
-                "-noprompt", "-file", littleProxyCert.getName(), 
-                "-alias", "littleproxy", "-keystore", 
-                TRUSTSTORE_FILE.getAbsolutePath(), "-storepass",  PASS);
-            
-            log.info("Result of running keytool: {}", result);
-        } else {
-            log.warn("NO LITTLEPROXY CERT FILE TO IMPORT!!");
-        }
         
         this.lanternTrustManager = 
             new LanternTrustManager(this, TRUSTSTORE_FILE, PASS);
@@ -217,5 +205,9 @@ public class LanternKeyStoreManager implements KeyStoreManager {
 
     public TrustManager[] getTrustManagers() {
         return Arrays.copyOf(trustManagers, trustManagers.length);
+    }
+
+    public LanternTrustManager getTrustManager() {
+        return this.lanternTrustManager;
     }
 }

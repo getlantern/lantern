@@ -44,6 +44,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
+import javax.net.SocketFactory;
 import javax.security.auth.login.CredentialException;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
@@ -73,6 +74,7 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMessage;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
+import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.XMPPConnection;
@@ -980,6 +982,67 @@ public class LanternUtils {
         if (array != null) {
             Arrays.fill(array, (byte) 0);
         }
+    }
+    
+    public static void configureXmpp() {
+        final ConnectionConfiguration config = 
+            new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
+        config.setExpiredCertificatesCheckEnabled(true);
+        config.setNotMatchingDomainCheckEnabled(true);
+        config.setSendPresence(false);
+        
+        config.setCompressionEnabled(true);
+        
+        config.setRosterLoadedAtLogin(true);
+        config.setReconnectionAllowed(false);
+        
+        config.setVerifyChainEnabled(true);
+        
+        // TODO: Enable this. Google Talk root CA is equifax, which java 
+        // doesn't support by default.
+        //config.setVerifyRootCAEnabled(true);
+        config.setSelfSignedCertificateEnabled(false);
+        final LanternTrustManager tm = 
+            LanternHub.getKeyStoreManager().getTrustManager();
+        config.setTruststorePath(tm.getTruststorePath());
+        config.setTruststorePassword(tm.getTruststorePassword());
+        
+        config.setSocketFactory(new SocketFactory() {
+            
+            @Override
+            public Socket createSocket(final InetAddress host, final int port, 
+                final InetAddress localHost, final int localPort) 
+                throws IOException {
+                // We ignore the local port binding.
+                return createSocket(host, port);
+            }
+            
+            @Override
+            public Socket createSocket(final String host, final int port, 
+                final InetAddress localHost, final int localPort)
+                throws IOException, UnknownHostException {
+                // We ignore the local port binding.
+                return createSocket(host, port);
+            }
+            
+            @Override
+            public Socket createSocket(final InetAddress host, final int port) 
+                throws IOException {
+                LOG.info("Creating socket");
+                final Socket sock = new Socket();
+                sock.connect(new InetSocketAddress(host, port), 40000);
+                LOG.info("Socket connected");
+                return sock;
+            }
+            
+            @Override
+            public Socket createSocket(final String host, final int port) 
+                throws IOException, UnknownHostException {
+                LOG.info("Creating socket");
+                return createSocket(InetAddress.getByName(host), port);
+            }
+        });
+        XmppUtils.setGlobalConfig(config);
     }
     
 }
