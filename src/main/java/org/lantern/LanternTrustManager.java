@@ -43,8 +43,29 @@ public class LanternTrustManager implements X509TrustManager {
         this.trustStoreFile = trustStoreFile;
         this.password = password;
         this.keyStore = getKs();
+        
+        addStaticCerts();
     }
     
+    private void addStaticCerts() {
+        final File littleProxyCert = new File("lantern_littleproxy_cert");
+        log.info("Importing cert");
+        final String result = LanternUtils.runKeytool("-import", 
+            "-noprompt", "-file", littleProxyCert.getName(), 
+            "-alias", "littleproxy", "-keystore", 
+            trustStoreFile.getAbsolutePath(), "-storepass",  this.password);
+        
+        log.info("Result of running keytool: {}", result);
+        
+        /*
+        final String result2 = LanternUtils.runKeytool("-import", 
+            "-noprompt", "-file", "gmail-cert", 
+            "-alias", "gmail.com", "-keystore", 
+            trustStoreFile.getAbsolutePath(), "-storepass",  this.password);
+        log.info("Result of running keytool: {}", result2);
+        */
+    }
+
     private KeyStore getKs() {
         try {
             final KeyStore ks = KeyStore.getInstance("JKS");
@@ -106,6 +127,9 @@ public class LanternTrustManager implements X509TrustManager {
             "-storepass", this.password);
         log.info("Result of deleting old cert: {}", deleteResult);
         
+        
+        // TODO: We should be able to just add it to the trust store here 
+        // without saving
         final String importResult = LanternUtils.runKeytool("-importcert", 
             "-noprompt", "-alias", fileName, "-keystore", 
             trustStoreFile.getAbsolutePath(), 
@@ -172,6 +196,13 @@ public class LanternTrustManager implements X509TrustManager {
             throw new CertificateException("Sig: "+cert, e);
         }
         log.info("Certificates matched!");
-        
+    }
+
+    public String getTruststorePath() {
+        return trustStoreFile.getAbsolutePath();
+    }
+
+    public String getTruststorePassword() {
+        return this.password;
     }
 }
