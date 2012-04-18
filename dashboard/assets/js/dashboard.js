@@ -185,6 +185,9 @@ function LDCtrl(){
     return self._passreqtxt;
   };
 
+  self._logging_in = false;
+  self._login_failed = false;
+
   self.resetshowsignin = function() {
     self._showsignin = self.logged_out() && !self.state.passwordSaved;
     console.log('set _showsignin to', self._showsignin);
@@ -341,8 +344,10 @@ function LDCtrl(){
       }
       data.password = self.inputpassword;
     }
-    // XXX force this for smoother looking login
-    self.state.googleTalkState = 'LOGGING_IN';
+    // XXX hack around state race conditions
+    self._logging_in = true;
+    self._login_failed = false;
+    self.badcredentials = null;
     self.$digest();
     console.log('Signing in with:', data);
     $.post('/api/signin', data).done(function(state){
@@ -366,18 +371,20 @@ function LDCtrl(){
       default:
         console.log('unexpected signin response status code:', code);
       }
-      self.state.googleTalkState = 'LOGIN_FAILED';
-      self.$digest();
+      self._login_failed = true;
       if(self.state.initialSetupComplete)
         self.showsignin(true);
       console.log('signin failed:', code);
+    }).always(function(){
+      self._logging_in = false;
+      self.$digest();
     });
   };
 
   self.fs_submit_src = function(){
     if(self.fsform.$invalid && !(self.logged_in() && self.sameuser()))
       return 'img/arrow-right-disabled.png';
-    if(self.logging_in())
+    if(self._logging_in)
       return 'img/spinner-big.gif';
     return 'img/arrow-right.png';
   };

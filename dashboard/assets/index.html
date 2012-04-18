@@ -135,7 +135,7 @@
              <a href=#doc-overlay data-doc=why-google class="smallnote doc-link">Why?</a></p>
           <form id=firstsignin-form name=fsform class=signin ng:submit=fs_submit()>
             <ul>
-              <li><div class=error ng:class="(login_failed() && typeof(badcredentials) == 'boolean') && 'visible' || 'hidden'">{{badcredentials && 'Bad username or password.' || 'Connection error.'}}</div></li>
+              <li><div class=error ng:class="(_login_failed && badcredentials != null) && 'visible' || 'hidden'">{{badcredentials && 'Bad username or password.' || 'Connection error.'}}</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail required autofocus /></li>
               <!--[if IE ]>
               <li><input type=password class="signinpwinput ie" placeholder=password title="This form is sent securely." /></li>
@@ -374,7 +374,7 @@
           <a class=close ng:click="showsignin(false)">×</a>
           <form name=signinform class=signin ng:submit=signin(inputemail)>
             <ul>
-                <li><div class=error ng:class="(login_failed() && typeof(badcredentials) == 'boolean') && 'visible' || 'hidden'">{{badcredentials && 'Bad username or password.' || 'Connection error.'}}</div></li>
+                <li><div class=error ng:class="(_login_failed && badcredentials != null) && 'visible' || 'hidden'">{{badcredentials && 'Bad username or password.' || 'Connection error.'}}</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail required /></li>
               <!--[if IE ]>
               <li><input type=password class="signinpwinput ie" placeholder=password title="This form is sent securely." /></li>
@@ -384,8 +384,8 @@
               <!--<![endif]-->
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
-            <button ng:show=!logging_in() type=submit ng:disabled="{{(logged_in() && sameuser() && !__IE && !inputpassword) || (passrequired() && !__IE && !inputpassword)}}" >Sign in</button>
-            <img class=spinner src=img/spinner-big.gif alt="Signing in..." ng:show=logging_in() />
+            <button ng:show=!_logging_in type=submit ng:disabled="{{(logged_in() && sameuser() && !__IE && !inputpassword) || (passrequired() && !__IE && !inputpassword)}}" >Sign in</button>
+            <img class=spinner src=img/spinner-big.gif alt="Signing in..." ng:show=_logging_in />
           </form>
         </div>
         </div>
