@@ -15,7 +15,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
-import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -459,10 +458,12 @@ public class Settings implements MutableSettings {
         return passwordSaved;
     }
 
+    /*
     @JsonView(UIStateSettings.class)
     public HttpsEverywhere getHttpsEverywhere() {
         return LanternHub.httpsEverywhere();
     }
+    */
     
     public void setWhitelist(Whitelist whitelist) {
         this.whitelist = whitelist;
