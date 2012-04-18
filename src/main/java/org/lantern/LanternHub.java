@@ -417,6 +417,10 @@ public class LanternHub {
             return dashboard.get();
         }
     }
+    
+    public static LanternTrustManager trustManager() {
+        return LanternHub.getKeyStoreManager().getTrustManager();
+    }
 
     public static void resetSettings(boolean retainCLIOptions) {
         final Settings old = settings.get();
