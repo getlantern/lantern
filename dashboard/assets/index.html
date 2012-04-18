@@ -341,15 +341,11 @@
           </p>
           <textarea ng:model=pm id=pm-textarea class=lionbars placeholder="Private message to Lantern developers" title="This form is sent securely."></textarea>
           <div id=pm-controls>
-            <span ng:show=logged_out() class=extra>
-              <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()">Sign in</a>
-              to send feedback
-            </span>
-            <span ng:show=connected()>
+            <span>
               <label><input type=checkbox ng:model=pmsendfrom /> Send From:</label>
               <input id=pm-replyto type=email ng:model=pmfromemail ng:disabled={{!pmsendfrom}} ng:required={{pmsendfrom}} placeholder=email@example.com />
             </span>
-            <button id=pm-send class=buttonlink ng:disabled="{{!connected() || !pm}}" ng:click=sendpm()>Send</button>
+            <button id=pm-send class=buttonlink ng:disabled="{{!pm}}" ng:click=sendpm()>Send</button>
           </div>
         </div>
         <div class=panel id=update data-cls=panel>

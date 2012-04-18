@@ -344,7 +344,7 @@ function LDCtrl(){
       }
       data.password = self.inputpassword;
     }
-    // XXX hack around state race conditions
+    // XXX control this state ourselves due to synchronization issues with backend (#252)
     self._logging_in = true;
     self._login_failed = false;
     self.badcredentials = null;
