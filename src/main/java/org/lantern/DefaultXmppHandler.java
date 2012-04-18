@@ -154,6 +154,7 @@ public class DefaultXmppHandler implements XmppHandler {
         // This just links connectivity with Google Talk login status when 
         // running in give mode.
         new GiveModeConnectivityHandler();
+        LanternUtils.configureXmpp();
         prepopulateProxies();
     }
     
