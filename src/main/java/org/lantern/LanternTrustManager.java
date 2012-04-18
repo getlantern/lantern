@@ -2,8 +2,10 @@ package org.lantern;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
@@ -13,6 +15,7 @@ import java.security.NoSuchProviderException;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 import javax.net.ssl.X509TrustManager;
@@ -48,6 +51,12 @@ public class LanternTrustManager implements X509TrustManager {
     }
     
     private void addStaticCerts() {
+        final String rootResult = LanternUtils.runKeytool("-import", 
+            "-noprompt", "-file", "google-equifax-root.crt", 
+            "-alias", "gmail.com", "-keystore", 
+            trustStoreFile.getAbsolutePath(), "-storepass",  this.password);
+        log.info("Result of running keytool for root certs: {}", rootResult);
+        
         final File littleProxyCert = new File("lantern_littleproxy_cert");
         log.info("Importing cert");
         final String result = LanternUtils.runKeytool("-import", 

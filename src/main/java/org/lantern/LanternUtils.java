@@ -995,12 +995,8 @@ public class LanternUtils {
         
         config.setRosterLoadedAtLogin(true);
         config.setReconnectionAllowed(false);
-        
         config.setVerifyChainEnabled(true);
-        
-        // TODO: Enable this. Google Talk root CA is equifax, which java 
-        // doesn't support by default.
-        //config.setVerifyRootCAEnabled(true);
+        config.setVerifyRootCAEnabled(true);
         config.setSelfSignedCertificateEnabled(false);
         final LanternTrustManager tm = 
             LanternHub.getKeyStoreManager().getTrustManager();
