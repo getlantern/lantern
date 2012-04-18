@@ -2,10 +2,8 @@ package org.lantern;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
@@ -15,7 +13,6 @@ import java.security.NoSuchProviderException;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
-import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 
 import javax.net.ssl.X509TrustManager;
@@ -213,5 +210,9 @@ public class LanternTrustManager implements X509TrustManager {
 
     public String getTruststorePassword() {
         return this.password;
+    }
+
+    public KeyStore getTruststore() {
+        return this.keyStore;
     }
 }
