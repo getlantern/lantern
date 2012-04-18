@@ -374,7 +374,7 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         LOG.info("Disconnecting!!");
         lastJson = "";
-        LanternHub.asyncEventBus().post(
+        LanternHub.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.LOGGING_OUT));
         
         this.client.get().logout();
@@ -383,7 +383,7 @@ public class DefaultXmppHandler implements XmppHandler {
         if (this.proxies.isEmpty()) {
             connectivityEvent(ConnectivityStatus.DISCONNECTED);
         }
-        LanternHub.asyncEventBus().post(
+        LanternHub.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.LOGGED_OUT));
         
         peerProxySet.clear();
