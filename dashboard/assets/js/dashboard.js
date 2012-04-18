@@ -40,6 +40,7 @@ function clickevt2id(evt){
   return evt.currentTarget.href.match(FRAGMENTPAT)[1];
 }
 
+// XXX check for Lion or greater (new scrollbars are kept in mountain lion)
 var LION = !!navigator.userAgent.match(/Mac OS X 10_7/);
 function lionbarsify($el){
   if(LION || !$el.length || $el.hasClass('lionbarsified'))
@@ -237,7 +238,7 @@ function LDCtrl(){
   bindprops('connectivity', {'DISCONNECTED':0, 'CONNECTING':0, 'CONNECTED':0});
   bindprops('googleTalkState', {'LOGGING_OUT':0, 'LOGGING_IN':0, 'LOGGED_IN':0, 'LOGIN_FAILED':0});
   self.logged_out = function(){ var gts = self.state.googleTalkState; return gts === 'LOGGED_OUT' || gts === 'LOGIN_FAILED'; };
-  self.badcredentials = false;
+  self.badcredentials = null;
 
   self.conncaption = function(){
     var c = self.state.connectivity;
@@ -324,7 +325,7 @@ function LDCtrl(){
     }
     if(self.logged_in()){
       if(self.sameuser() && !self.inputpassword){
-        console.log('ingoring signin as', self.state.email, ', already signed in as that user and no new password supplied');
+        console.log('ingoring signin as', self.state.email, ', already signed in as that user or no new password supplied');
         self.showsignin(false);
         self.inputpassword = '';
         return;
