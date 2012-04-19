@@ -74,6 +74,11 @@ log "Changing permissions on launchd plist file"
 chmod 644 $LAUNCHD_PLIST || die "Could not change permissions"
 
 
+log "Copying policy files"
+cp local_policy.jar /System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/security/ || die "Could not copy policy file!!"
+cp US_export_policy.jar /System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/security/ || die "Could not copy export policy file!!"
+log "Copied policy files"
+
 #log "Opening app"
 #open $APP_PATH || die "Could not open app bundle at $APP_PATH?"
 
