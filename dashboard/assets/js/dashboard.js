@@ -352,7 +352,9 @@ function LDCtrl(){
     console.log('Signing in with:', data);
     $.post('/api/signin', data).done(function(state){
       console.log('signin succeeded');
+      self.inputemail = '';
       self.inputpassword = '';
+      self.pmfromemail = '';
       self.showsignin(false);
       self.update(state);
       if(!self.state.initialSetupComplete){
