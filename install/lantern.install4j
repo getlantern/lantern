@@ -230,7 +230,17 @@
               <action name="" id="511" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction" />
+                    <object class="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction">
+                      <void property="elevatedProcessTypeMac">
+                        <object class="com.install4j.runtime.beans.actions.misc.ElevatedProcessType" field="MAIN" />
+                      </void>
+                      <void property="obtainIfAdminMac">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="obtainIfNormalMac">
+                        <boolean>true</boolean>
+                      </void>
+                    </object>
                   </java>
                 </serializedBean>
                 <condition />
@@ -665,6 +675,9 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                           <string>configureOsx.bash</string>
                         </object>
                       </void>
+                      <void property="executionType">
+                        <object class="com.install4j.runtime.beans.actions.misc.ExecutionType" field="ADMIN" />
+                      </void>
                       <void property="failOnRedirectionError">
                         <boolean>true</boolean>
                       </void>
@@ -678,7 +691,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                       </void>
                       <void property="stdoutFile">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}/Library/Logs/Lantern/install4jerr.txt</string>
+                          <string>${installer:sys.userHome}/Library/Logs/Lantern/install4jout.txt</string>
                         </object>
                       </void>
                       <void property="wait">
@@ -738,6 +751,37 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                   </java>
                 </serializedBean>
                 <condition>return Util.isWindows();</condition>
+              </action>
+              <action name="" id="692" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
+                      <void property="destinationFile">
+                        <object class="java.io.File">
+                          <string>${installer:sys.javaHome}/lib/security</string>
+                        </object>
+                      </void>
+                      <void property="files">
+                        <array class="java.io.File" length="2">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>US_export_policy.jar</string>
+                            </object>
+                          </void>
+                          <void index="1">
+                            <object class="java.io.File">
+                              <string>local_policy.jar</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                      <void property="overwriteMode">
+                        <object class="com.install4j.api.context.OverwriteMode" field="IF_NEWER" />
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
               </action>
             </actions>
             <formComponents />

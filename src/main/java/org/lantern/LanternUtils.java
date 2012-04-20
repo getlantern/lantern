@@ -1003,6 +1003,46 @@ public class LanternUtils {
         config.setTruststorePath(tm.getTruststorePath());
         config.setTruststorePassword(tm.getTruststorePassword());
         
+        final String[] cipherSuites = new String[] {
+            //"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+            //"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+            //"TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA",
+            //"TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA",
+            "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+            "TLS_DHE_DSS_WITH_AES_256_CBC_SHA",
+            //"TLS_ECDH_RSA_WITH_AES_256_CBC_SHA",
+            //"TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA",
+            //"TLS_RSA_WITH_CAMELLIA_256_CBC_SHA",
+            //"TLS_RSA_WITH_AES_256_CBC_SHA",
+            //"TLS_ECDHE_ECDSA_WITH_RC4_128_SHA",
+            //"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
+            //"TLS_ECDHE_RSA_WITH_RC4_128_SHA",
+            //"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+            //"TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA",
+            //"TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA",
+            //"TLS_DHE_DSS_WITH_RC4_128_SHA",
+            //"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+            //"TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
+            //"TLS_ECDH_RSA_WITH_RC4_128_SHA",
+            //"TLS_ECDH_RSA_WITH_AES_128_CBC_SHA",
+            //"TLS_ECDH_ECDSA_WITH_RC4_128_SHA",
+            //"TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA",
+            //"TLS_RSA_WITH_SEED_CBC_SHA",
+            //"TLS_RSA_WITH_CAMELLIA_128_CBC_SHA",
+            //"TLS_RSA_WITH_RC4_128_MD5",
+            //"TLS_RSA_WITH_RC4_128_SHA",
+            //"TLS_RSA_WITH_AES_128_CBC_SHA",
+            //"TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA",
+            //"TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA",
+            //"TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA",
+            //"TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA",
+            //"TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA",
+            //"TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA",
+            //"SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA",
+            //"TLS_RSA_WITH_3DES_EDE_CBC_SHA",
+        };
+        config.setCipherSuites(cipherSuites);
+        
         config.setSocketFactory(new SocketFactory() {
             
             @Override
@@ -1038,6 +1078,8 @@ public class LanternUtils {
                 return createSocket(InetAddress.getByName(host), port);
             }
         });
+        
+
         XmppUtils.setGlobalConfig(config);
     }
     
