@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.sun.jna.Callback;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 
@@ -37,7 +38,7 @@ public class AppIndicatorTray implements SystemTray {
     private static Glib libglib = null;
     private static Gobject libgobject = null;
     private static Gtk libgtk = null;
-    //private static Unique libunique = null;
+
     private static AppIndicator libappindicator = null;
     static {
         try {
@@ -55,12 +56,13 @@ public class AppIndicatorTray implements SystemTray {
     public static boolean isSupported() {
         return (libglib != null && libgtk != null && libappindicator != null);
     }
-    
-    private Pointer mainContext;
-    private Pointer mainLoop;
 
-    private Pointer uniqueApp;
-    private Pointer appIndicator;
+
+    public interface FailureCallback {
+        public void createTrayFailed();
+    };
+
+    private AppIndicator.AppIndicatorInstanceStruct appIndicator;
     private Pointer menu;
     
     private Pointer connectionStatusItem;
@@ -74,14 +76,18 @@ public class AppIndicatorTray implements SystemTray {
     private Gobject.GCallback updateItemCallback;
     private Gobject.GCallback quitItemCallback;
 
+    FailureCallback _failureCallback = null;
 
-    public AppIndicatorTray() {
-        LanternHub.register(this);
+    public AppIndicatorTray() {        
+    }
+
+    public AppIndicatorTray(FailureCallback fbc) {
+        _failureCallback = fbc;
     }
 
     @Override
     public void createTray() {
-        
+
         /*uniqueApp = libunique.unique_app_new("org.lantern.lantern", null);
         if (libunique.unique_app_is_running(uniqueApp)) {
             LOG.error("Already running!");
@@ -127,10 +133,32 @@ public class AppIndicatorTray implements SystemTray {
         appIndicator = libappindicator.app_indicator_new(
             "lantern", "indicator-messages-new",
             AppIndicator.CATEGORY_APPLICATION_STATUS);
+        
+        /* XXX basically a hack -- we should subclass the AppIndicator 
+           type and override the fallback entry in the 'vtable', instead we just
+           hack the app indicator class itself. Not an issue unless we need other 
+           appindicators. 
+        */
+        AppIndicator.AppIndicatorClassStruct aiclass = 
+            new AppIndicator.AppIndicatorClassStruct(appIndicator.parent.g_type_instance.g_class);
+        
+        AppIndicator.Fallback replacementFallback = new AppIndicator.Fallback() {
+            @Override
+            public Pointer callback(AppIndicator.AppIndicatorInstanceStruct self) {
+                fallback();
+                return null;
+            }
+        };
+
+        aiclass.fallback = replacementFallback;
+        aiclass.write();
+
         libappindicator.app_indicator_set_menu(appIndicator, menu);
         
         changeIcon(ICON_DISCONNECTED, LABEL_DISCONNECTED);
         libappindicator.app_indicator_set_status(appIndicator, AppIndicator.STATUS_ACTIVE);
+    
+        LanternHub.register(this);
     }
 
     private String iconPath(final String fileName) {
@@ -140,6 +168,13 @@ public class AppIndicatorTray implements SystemTray {
         }
         // Running from main line.
         return new File(new File("install/common"), fileName).getAbsolutePath();
+    }
+
+    protected void fallback() {
+        LOG.debug("Failed to create appindicator system tray.");
+        if (_failureCallback != null) {
+            _failureCallback.createTrayFailed();
+        }
     }
 
     private void openDashboard() {
@@ -159,6 +194,10 @@ public class AppIndicatorTray implements SystemTray {
         // TODO: Support updates in app indicator.
     }
 
+    @Override
+    public boolean isActive() {
+        return true;
+    }
 
     @Subscribe
     public void onConnectivityStateChanged(

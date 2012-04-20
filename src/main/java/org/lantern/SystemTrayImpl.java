@@ -59,6 +59,10 @@ public class SystemTrayImpl implements SystemTray {
         LanternHub.register(this);
     }
 
+    public static boolean isSupported() {
+        return LanternHub.display().getSystemTray() != null;
+    }
+
     @Override
     public void createTray() {
         this.display = LanternHub.display();
@@ -246,6 +250,11 @@ public class SystemTrayImpl implements SystemTray {
             break;
         }
         }
+    }
+
+    @Override
+    public boolean isActive() {
+        return true;
     }
 
     private void changeIcon(final String fileName) {
