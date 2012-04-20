@@ -200,23 +200,7 @@ public class LanternHub {
     public static SystemTray systemTray() {
         synchronized (systemTray) {
             if (systemTray.get() == null) {
-                if (settings().isUiEnabled()) {
-                    if (SystemUtils.IS_OS_LINUX && AppIndicatorTray.isSupported()) {
-                        final SystemTray tray = new AppIndicatorTray();
-                        systemTray.set(tray);
-                    }
-                    else {
-                        final SystemTray tray = new SystemTrayImpl();
-                        systemTray.set(tray);
-                    }
-                } else {
-                    return new SystemTray() {
-                        @Override
-                        public void createTray() {}
-                        @Override
-                        public void addUpdate(Map<String, String> updateData) {}
-                    };
-                }
+                systemTray.set(new FallbackTray());
             }
             return systemTray.get();
         }

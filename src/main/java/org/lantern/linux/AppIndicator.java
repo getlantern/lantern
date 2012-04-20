@@ -1,8 +1,10 @@
 package org.lantern.linux;
 
+import com.sun.jna.Callback;
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
+import com.sun.jna.Structure;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,33 +22,79 @@ public interface AppIndicator extends Library {
     public static final int STATUS_ACTIVE    = 1;
     public static final int STATUS_ATTENTION = 2;
 
-    public Pointer app_indicator_new(String id, String icon_name, int category);
-    public Pointer app_indicator_new_with_path(String id, String icon_name, int category, String icon_theme_path);
-    public void app_indicator_set_status(Pointer self, int status);
-    public void app_indicator_set_attention_icon(Pointer self, String icon_name);
-    public void app_indicator_set_attention_icon_full(Pointer self, String name, String icon_desc);
-    public void app_indicator_set_menu(Pointer self, Pointer menu);
-    public void app_indicator_set_icon(Pointer self, String icon_name);
-    public void app_indicator_set_icon_full(Pointer self, String icon_name, String icon_desc);
-    public void app_indicator_set_label(Pointer self, String label, String guide);
-    public void app_indicator_set_icon_theme_path(Pointer self, String icon_theme_path);
-    public void app_indicator_set_ordering_index(Pointer self, int ordering_index);
-    public void app_indicator_set_secondary_active_target(Pointer self, Pointer menuitem);
+    public interface Fallback extends Callback {
+        public Pointer callback(AppIndicatorInstanceStruct self);
+    }
+
+    public interface Unfallback extends Callback {
+        public void callback(AppIndicatorInstanceStruct self, Pointer status_icon);
+    }
+
+    public class AppIndicatorClassStruct extends Structure {
+        public class ByReference extends AppIndicatorClassStruct implements Structure.ByReference {}
+
+        public Gobject.GObjectClassStruct parent_class;
+        
+        public Pointer new_icon; 
+        public Pointer new_attention_icon; 
+        public Pointer new_status; 
+        public Pointer new_icon_theme;
+        public Pointer new_label;
+        public Pointer connection_changed;
+        public Pointer scroll_event;
+        public Pointer app_indicator_reserved_ats;
+        //public Pointer fallback;
+        public Fallback fallback;
+        public Pointer unfallback;
+        public Pointer app_indicator_reserved_1;
+        public Pointer app_indicator_reserved_2;
+        public Pointer app_indicator_reserved_3;
+        public Pointer app_indicator_reserved_4;
+        public Pointer app_indicator_reserved_5;
+        public Pointer app_indicator_reserved_6;
+
+        public AppIndicatorClassStruct() {}
+        public AppIndicatorClassStruct(Pointer p) {
+            super(p);
+            useMemory(p);
+            read();
+        }
+
+    }
+
+    public class AppIndicatorInstanceStruct extends Structure {
+        public Gobject.GObjectStruct parent;
+        public Pointer priv;
+    }
+
+
+    public AppIndicatorInstanceStruct app_indicator_new(String id, String icon_name, int category);
+    public AppIndicatorInstanceStruct app_indicator_new_with_path(String id, String icon_name, int category, String icon_theme_path);
+    public void app_indicator_set_status(AppIndicatorInstanceStruct self, int status);
+    public void app_indicator_set_attention_icon(AppIndicatorInstanceStruct self, String icon_name);
+    public void app_indicator_set_attention_icon_full(AppIndicatorInstanceStruct self, String name, String icon_desc);
+    public void app_indicator_set_menu(AppIndicatorInstanceStruct self, Pointer menu);
+    public void app_indicator_set_icon(AppIndicatorInstanceStruct self, String icon_name);
+    public void app_indicator_set_icon_full(AppIndicatorInstanceStruct self, String icon_name, String icon_desc);
+    public void app_indicator_set_label(AppIndicatorInstanceStruct self, String label, String guide);
+    public void app_indicator_set_icon_theme_path(AppIndicatorInstanceStruct self, String icon_theme_path);
+    public void app_indicator_set_ordering_index(AppIndicatorInstanceStruct self, int ordering_index);
+    public void app_indicator_set_secondary_active_target(AppIndicatorInstanceStruct self, Pointer menuitem);
     
-    public String app_indicator_get_id(Pointer self);
-    public int    app_indicator_get_category(Pointer self);
-    public int    app_indicator_get_status(Pointer self);
+    public String app_indicator_get_id(AppIndicatorInstanceStruct self);
+    public int    app_indicator_get_category(AppIndicatorInstanceStruct self);
+    public int    app_indicator_get_status(AppIndicatorInstanceStruct self);
     
-    public String app_indicator_get_icon(Pointer self);
-    public String app_indicator_get_icon_desc(Pointer self);
-    public String app_indicator_get_icon_theme_path(Pointer self);
-    public String app_indicator_get_attention_icon(Pointer self);
+    public String app_indicator_get_icon(AppIndicatorInstanceStruct self);
+    public String app_indicator_get_icon_desc(AppIndicatorInstanceStruct self);
+    public String app_indicator_get_icon_theme_path(AppIndicatorInstanceStruct self);
+    public String app_indicator_get_attention_icon(AppIndicatorInstanceStruct self);
     
-    public Pointer app_indicator_get_menu(Pointer self);
-    public String  app_indicator_get_label(Pointer self);
-    public String  app_indicator_get_label_guide(Pointer self);
-    public int     app_indicator_get_ordering_index(Pointer self);
-    public Pointer app_indicator_get_secondary_active_target(Pointer self);
+    public Pointer app_indicator_get_menu(AppIndicatorInstanceStruct self);
+    public String  app_indicator_get_label(AppIndicatorInstanceStruct self);
+    public String  app_indicator_get_label_guide(AppIndicatorInstanceStruct self);
+    public int     app_indicator_get_ordering_index(AppIndicatorInstanceStruct self);
+    public Pointer app_indicator_get_secondary_active_target(AppIndicatorInstanceStruct self);
     
-    public void app_indicator_build_menu_from_desktop(Pointer self, String desktop_file, String destkop_profile);
+    public void app_indicator_build_menu_from_desktop(AppIndicatorInstanceStruct self, String desktop_file, String destkop_profile);
 }
