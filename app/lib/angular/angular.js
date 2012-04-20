@@ -1,15 +1,12 @@
 /**
- * @license AngularJS v1.0.0rc5
- * (c) 2010-2012 AngularJS http://angularjs.org
+ * @license AngularJS v1.0.0rc6
+ * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
 (function(window, document, undefined) {
 'use strict';
 
 ////////////////////////////////////
-
-if (typeof document.getAttribute == 'undefined')
-  document.getAttribute = function() {};
 
 /**
  * @ngdoc function
@@ -1246,11 +1243,11 @@ function setupModuleLoader(window) {
  * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
  */
 var version = {
-  full: '1.0.0rc5',    // all of these placeholder strings will be replaced by rake's
+  full: '1.0.0rc6',    // all of these placeholder strings will be replaced by rake's
   major: 1,    // compile task
   minor: 0,
   dot: 0,
-  codeName: 'reality-distortion'
+  codeName: 'runny-nose'
 };
 
 
@@ -3365,7 +3362,7 @@ function $TemplateCacheProvider() {
  * Calling the linking function returns the element of the template. It is either the original element
  * passed in, or the clone of the element if the `cloneAttachFn` is provided.
  *
- * After linking the view is not updateh until after a call to $digest which typically is done by
+ * After linking the view is not updated until after a call to $digest which typically is done by
  * Angular automatically.
  *
  * If you need access to the bound view, there are two ways to do it:
@@ -3742,12 +3739,17 @@ function $CompileProvider($provide) {
           addTextInterpolateDirective(directives, node.nodeValue);
           break;
         case 8: /* Comment */
-          match = COMMENT_DIRECTIVE_REGEXP.exec(node.nodeValue);
-          if (match) {
-            nName = directiveNormalize(match[1]);
-            if (addDirective(directives, nName, 'M', maxPriority)) {
-              attrs[nName] = trim(match[2]);
+          try {
+            match = COMMENT_DIRECTIVE_REGEXP.exec(node.nodeValue);
+            if (match) {
+              nName = directiveNormalize(match[1]);
+              if (addDirective(directives, nName, 'M', maxPriority)) {
+                attrs[nName] = trim(match[2]);
+              }
             }
+          } catch (e) {
+            // turns out that under some circumstances IE9 throws errors when one attempts to read comment's node value.
+            // Just ignore it and continue. (Can't seem to reproduce in test case.)
           }
           break;
       }
@@ -11264,7 +11266,7 @@ var ngValueDirective = [function() {
  *
  * Once scenario in which the use of `ngBind` is prefered over `{{ expression }}` binding is when
  * it's desirable to put bindings into template that is momentarily displayed by the browser in its
- * raw state before Angular compiles it. Since `ngBind` is an element attribute, it makes make the
+ * raw state before Angular compiles it. Since `ngBind` is an element attribute, it makes the
  * bindings invisible to the user while the page is loading.
  *
  * An alternative solution to this problem would be using the
@@ -11374,7 +11376,7 @@ var ngBindTemplateDirective = ['$interpolate', function($interpolate) {
  * {@link angular.module.ng.$compileProvider.directive.ngBindHtml ngBindHtml} directive is too
  * restrictive and when you absolutely trust the source of the content you are binding to.
  *
- * See {@link angular.module.ng.$sanitize $sanitize} docs for examples.
+ * See {@link angular.module.ngSanitize.$sanitize $sanitize} docs for examples.
  *
  * @element ANY
  * @param {expression} ngBindHtmlUnsafe {@link guide/dev_guide.expressions Expression} to evaluate.
@@ -12982,8 +12984,11 @@ var scriptDirective = ['$templateCache', function($templateCache) {
     terminal: true,
     compile: function(element, attr) {
       if (attr.type == 'text/ng-template') {
-        var templateUrl = attr.id;
-        $templateCache.put(templateUrl, element.text());
+        var templateUrl = attr.id,
+            // IE is not consistent, in scripts we have to read .text but in other nodes we have to read .textContent
+            text = element[0].text;
+
+        $templateCache.put(templateUrl, text);
       }
     }
   };
@@ -13011,16 +13016,10 @@ var scriptDirective = ['$templateCache', function($templateCache) {
  * be nested into the `<select>` element. This element will then represent `null` or "not selected"
  * option. See example below for demonstration.
  *
- * Note: `ngOptions` provides iterator facility for `<option>` element which must be used instead
- * of {@link angular.module.ng.$compileProvider.directive.ngRepeat ngRepeat}. `ngRepeat` is not
- * suitable for use with `<option>` element because of the following reasons:
- *
- *   * value attribute of the option element that we need to bind to requires a string, but the
- *     source of data for the iteration might be in a form of array containing objects instead of
- *     strings
- *   * {@link angular.module.ng.$compileProvider.directive.ngRepeat ngRepeat} unrolls after the
-  *    select binds causing incorect rendering on most browsers.
- *   * binding to a value not in list confuses most browsers.
+ * Note: `ngOptions` provides iterator facility for `<option>` element which should be used instead
+ * of {@link angular.module.ng.$compileProvider.directive.ngRepeat ngRepeat} when you want the
+ * `select` model to be bound to a non-string value. This is because an option element can currently
+ * be bound to string values only.
  *
  * @param {string} name assignable expression to data-bind to.
  * @param {string=} required The control is considered valid only if value is entered.
@@ -13081,11 +13080,11 @@ var scriptDirective = ['$templateCache', function($templateCache) {
           <select ng-model="color" ng-options="c.name for c in colors"></select><br>
 
           Color (null allowed):
-          <div  class="nullable">
+          <span  class="nullable">
             <select ng-model="color" ng-options="c.name for c in colors">
               <option value="">-- chose color --</option>
             </select>
-          </div><br/>
+          </span><br/>
 
           Color grouped by shade:
           <select ng-model="color" ng-options="c.name group by c.shade for c in colors">
@@ -13115,49 +13114,136 @@ var scriptDirective = ['$templateCache', function($templateCache) {
 var ngOptionsDirective = valueFn({ terminal: true });
 var selectDirective = ['$compile', '$parse', function($compile,   $parse) {
                          //00001111100000000000222200000000000000000000003333000000000000044444444444444444000000000555555555555555550000000666666666666666660000000000000007777
-  var NG_OPTIONS_REGEXP = /^\s*(.*?)(?:\s+as\s+(.*?))?(?:\s+group\s+by\s+(.*))?\s+for\s+(?:([\$\w][\$\w\d]*)|(?:\(\s*([\$\w][\$\w\d]*)\s*,\s*([\$\w][\$\w\d]*)\s*\)))\s+in\s+(.*)$/;
+  var NG_OPTIONS_REGEXP = /^\s*(.*?)(?:\s+as\s+(.*?))?(?:\s+group\s+by\s+(.*))?\s+for\s+(?:([\$\w][\$\w\d]*)|(?:\(\s*([\$\w][\$\w\d]*)\s*,\s*([\$\w][\$\w\d]*)\s*\)))\s+in\s+(.*)$/,
+      nullModelCtrl = {$setViewValue: noop};
 
   return {
     restrict: 'E',
-    require: '?ngModel',
-    link: function(scope, element, attr, ctrl) {
-      if (!ctrl) return;
+    require: ['select', '?ngModel'],
+    controller: ['$element', '$scope', function($element, $scope) {
+      var self = this,
+          optionsMap = {},
+          ngModelCtrl = nullModelCtrl,
+          nullOption,
+          unknownOption;
 
-      var multiple = attr.multiple,
-          optionsExp = attr.ngOptions;
+      self.init = function(ngModelCtrl_, nullOption_, unknownOption_) {
+        ngModelCtrl = ngModelCtrl_;
+        nullOption = nullOption_;
+        unknownOption = unknownOption_;
+      }
+
+
+      self.addOption = function(value) {
+        optionsMap[value] = true;
+
+        if (ngModelCtrl.$viewValue == value) {
+          $element.val(value);
+          if (unknownOption.parent()) unknownOption.remove();
+        }
+      };
+
+
+      self.removeOption = function(value) {
+        if (this.hasOption(value)) {
+          delete optionsMap[value];
+          if (ngModelCtrl.$viewValue == value) {
+            this.renderUnknownOption(value);
+          }
+        }
+      };
+
+
+      self.renderUnknownOption = function(val) {
+        var unknownVal = '? ' + hashKey(val) + ' ?';
+        unknownOption.val(unknownVal);
+        $element.prepend(unknownOption);
+        $element.val(unknownVal);
+        unknownOption.prop('selected', true); // needed for IE
+      }
+
+
+      self.hasOption = function(value) {
+        return optionsMap.hasOwnProperty(value);
+      }
+
+      $scope.$on('$destroy', function() {
+        // disable unknown option so that we don't do work when the whole select is being destroyed
+        self.renderUnknownOption = noop;
+      });
+    }],
+
+    link: function(scope, element, attr, ctrls) {
+      // if ngModel is not defined, we don't need to do anything
+      if (!ctrls[1]) return;
+
+      var selectCtrl = ctrls[0],
+          ngModelCtrl = ctrls[1],
+          multiple = attr.multiple,
+          optionsExp = attr.ngOptions,
+          nullOption = false, // if false, user will not be able to select it (used by ngOptions)
+          emptyOption,
+          // we can't just jqLite('<option>') since jqLite is not smart enough
+          // to create it in <select> and IE barfs otherwise.
+          optionTemplate = jqLite(document.createElement('option')),
+          optGroupTemplate =jqLite(document.createElement('optgroup')),
+          unknownOption = optionTemplate.clone();
+
+      // find "null" option
+      for(var i = 0, children = element.children(), ii = children.length; i < ii; i++) {
+        if (children[i].value == '') {
+          emptyOption = nullOption = children.eq(i);
+          break;
+        }
+      }
+
+      selectCtrl.init(ngModelCtrl, nullOption, unknownOption);
 
       // required validator
       if (multiple && (attr.required || attr.ngRequired)) {
         var requiredValidator = function(value) {
-          ctrl.$setValidity('required', !attr.required || (value && value.length));
+          ngModelCtrl.$setValidity('required', !attr.required || (value && value.length));
           return value;
         };
 
-        ctrl.$parsers.push(requiredValidator);
-        ctrl.$formatters.unshift(requiredValidator);
+        ngModelCtrl.$parsers.push(requiredValidator);
+        ngModelCtrl.$formatters.unshift(requiredValidator);
 
         attr.$observe('required', function() {
-          requiredValidator(ctrl.$viewValue);
+          requiredValidator(ngModelCtrl.$viewValue);
         });
       }
 
-      if (optionsExp) Options(scope, element, ctrl);
-      else if (multiple) Multiple(scope, element, ctrl);
-      else Single(scope, element, ctrl);
+      if (optionsExp) Options(scope, element, ngModelCtrl);
+      else if (multiple) Multiple(scope, element, ngModelCtrl);
+      else Single(scope, element, ngModelCtrl, selectCtrl);
 
 
       ////////////////////////////
 
 
 
-      function Single(scope, selectElement, ctrl) {
-        ctrl.$render = function() {
-          selectElement.val(ctrl.$viewValue);
+      function Single(scope, selectElement, ngModelCtrl, selectCtrl) {
+        ngModelCtrl.$render = function() {
+          var viewValue = ngModelCtrl.$viewValue;
+
+          if (selectCtrl.hasOption(viewValue)) {
+            if (unknownOption.parent()) unknownOption.remove();
+            selectElement.val(viewValue);
+            if (viewValue === '') emptyOption.prop('selected', true); // to make IE9 happy
+          } else {
+            if (isUndefined(viewValue) && emptyOption) {
+              selectElement.val('');
+            } else {
+              selectCtrl.renderUnknownOption(viewValue);
+            }
+          }
         };
 
         selectElement.bind('change', function() {
           scope.$apply(function() {
-            ctrl.$setViewValue(selectElement.val());
+            if (unknownOption.parent()) unknownOption.remove();
+            ngModelCtrl.$setViewValue(selectElement.val());
           });
         });
       }
@@ -13208,26 +13294,26 @@ var selectDirective = ['$compile', '$parse', function($compile,   $parse) {
             groupByFn = $parse(match[3] || ''),
             valueFn = $parse(match[2] ? match[1] : valueName),
             valuesFn = $parse(match[7]),
-            // we can't just jqLite('<option>') since jqLite is not smart enough
-            // to create it in <select> and IE barfs otherwise.
-            optionTemplate = jqLite(document.createElement('option')),
-            optGroupTemplate = jqLite(document.createElement('optgroup')),
-            nullOption = false, // if false then user will not be able to select it
             // This is an array of array of existing option groups in DOM. We try to reuse these if possible
             // optionGroupsCache[0] is the options with no option group
             // optionGroupsCache[?][0] is the parent: either the SELECT or OPTGROUP element
             optionGroupsCache = [[{element: selectElement, label:''}]];
 
-        // find existing special options
-        forEach(selectElement.children(), function(option) {
-          if (option.value == '') {
-            // developer declared null option, so user should be able to select it
-            nullOption = jqLite(option).remove();
-            // compile the element since there might be bindings in it
-            $compile(nullOption)(scope);
-          }
-        });
-        selectElement.html(''); // clear contents
+        if (nullOption) {
+          // compile the element since there might be bindings in it
+          $compile(nullOption)(scope);
+
+          // remove the class, which is added automatically because we recompile the element and it
+          // becomes the compilation root
+          nullOption.removeClass('ng-scope');
+
+          // we need to remove it before calling selectElement.html('') because otherwise IE will
+          // remove the label from the element. wtf?
+          nullOption.remove();
+        }
+
+        // clear contents, we'll add what's needed based on the model
+        selectElement.html('');
 
         selectElement.bind('change', function() {
           scope.$apply(function() {
@@ -13239,8 +13325,8 @@ var selectDirective = ['$compile', '$parse', function($compile,   $parse) {
             if (multiple) {
               value = [];
               for (groupIndex = 0, groupLength = optionGroupsCache.length;
-              groupIndex < groupLength;
-              groupIndex++) {
+                   groupIndex < groupLength;
+                   groupIndex++) {
                 // list of options for that group. (first item has the parent)
                 optionGroup = optionGroupsCache[groupIndex];
 
@@ -13354,7 +13440,7 @@ var selectDirective = ['$compile', '$parse', function($compile,   $parse) {
               }
             }
 
-            lastElement = null;  // start at the begining
+            lastElement = null;  // start at the beginning
             for(index = 0, length = optionGroup.length; index < length; index++) {
               option = optionGroup[index];
               if ((existingOption = existingOptions[index+1])) {
@@ -13420,19 +13506,34 @@ var optionDirective = ['$interpolate', function($interpolate) {
   return {
     restrict: 'E',
     priority: 100,
+    require: '^select',
     compile: function(element, attr) {
       if (isUndefined(attr.value)) {
         var interpolateFn = $interpolate(element.text(), true);
-        if (interpolateFn) {
-          return function (scope, element, attr) {
-            scope.$watch(interpolateFn, function(value) {
-              attr.$set('value', value);
-            });
-          }
-        } else {
+        if (!interpolateFn) {
           attr.$set('value', element.text());
         }
       }
+
+      // For some reason Opera defaults to true and if not overridden this messes up the repeater.
+      // We don't want the view to drive the initialization of the model anyway.
+      element.prop('selected', false);
+
+      return function (scope, element, attr, selectCtrl) {
+        if (interpolateFn) {
+          scope.$watch(interpolateFn, function(newVal, oldVal) {
+            attr.$set('value', newVal);
+            if (newVal !== oldVal) selectCtrl.removeOption(oldVal);
+            selectCtrl.addOption(newVal);
+          });
+        } else {
+          selectCtrl.addOption(attr.value);
+        }
+
+        element.bind('$destroy', function() {
+          selectCtrl.removeOption(attr.value);
+        });
+      };
     }
   }
 }];

@@ -1,6 +1,6 @@
 /**
- * @license AngularJS v1.0.0rc5
- * (c) 2010-2012 AngularJS http://angularjs.org
+ * @license AngularJS v1.0.0rc6
+ * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
 (function(angular) {
@@ -106,23 +106,23 @@
       });
 
      // We can retrieve a collection from the server
-     var cards = CreditCard.query();
-     // GET: /user/123/card
-     // server returns: [ {id:456, number:'1234', name:'Smith'} ];
+     var cards = CreditCard.query(function() {
+       // GET: /user/123/card
+       // server returns: [ {id:456, number:'1234', name:'Smith'} ];
 
-     var card = cards[0];
-     // each item is an instance of CreditCard
-     expect(card instanceof CreditCard).toEqual(true);
-     card.name = "J. Smith";
-     // non GET methods are mapped onto the instances
-     card.$save();
-     // POST: /user/123/card/456 {id:456, number:'1234', name:'J. Smith'}
-     // server returns: {id:456, number:'1234', name: 'J. Smith'};
+       var card = cards[0];
+       // each item is an instance of CreditCard
+       expect(card instanceof CreditCard).toEqual(true);
+       card.name = "J. Smith";
+       // non GET methods are mapped onto the instances
+       card.$save();
+       // POST: /user/123/card/456 {id:456, number:'1234', name:'J. Smith'}
+       // server returns: {id:456, number:'1234', name: 'J. Smith'};
 
-     // our custom method is mapped as well.
-     card.$charge({amount:9.99});
-     // POST: /user/123/card/456?amount=9.99&charge=true {id:456, number:'1234', name:'J. Smith'}
-     // server returns: {id:456, number:'1234', name: 'J. Smith'};
+       // our custom method is mapped as well.
+       card.$charge({amount:9.99});
+       // POST: /user/123/card/456?amount=9.99&charge=true {id:456, number:'1234', name:'J. Smith'}
+     });
 
      // we can create an instance as well
      var newCard = new CreditCard({number:'0123'});
@@ -324,7 +324,7 @@ angular.module('ngResource', ['ng']).
       }
 
       forEach(actions, function(action, name) {
-        var isPostOrPut = action.method == 'POST' || action.method == 'PUT';
+        var hasBody = action.method == 'POST' || action.method == 'PUT' || action.method == 'PATCH';
         Resource[name] = function(a1, a2, a3, a4) {
           var params = {};
           var data;
@@ -355,7 +355,7 @@ angular.module('ngResource', ['ng']).
             }
           case 1:
             if (isFunction(a1)) success = a1;
-            else if (isPostOrPut) data = a1;
+            else if (hasBody) data = a1;
             else params = a1;
             break;
           case 0: break;
@@ -415,7 +415,7 @@ angular.module('ngResource', ['ng']).
             throw "Expected between 1-3 arguments [params, success, error], got " +
               arguments.length + " arguments.";
           }
-          var data = isPostOrPut ? this : undefined;
+          var data = hasBody ? this : undefined;
           Resource[name].call(this, params, data, success, error);
         };
       });
