@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="5.0.11" transformSequenceNumber="3">
-  <directoryPresets config="../../local_policy.jar" />
+  <directoryPresets config="." />
   <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Team Lantern" publisherWeb="http://www.getlantern.org" version="0.97" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -52,9 +52,13 @@
         </exclude>
       </dirEntry>
       <fileEntry mountPoint="25" file="../COPYING" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
-      <fileEntry mountPoint="25" file="../../US_export_policy.jar" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
-      <fileEntry mountPoint="25" file="../../local_policy.jar" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
       <fileEntry mountPoint="25" file="../google-equifax-root.crt" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" />
+      <dirEntry mountPoint="25" file="./java7" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="java7" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+        <exclude />
+      </dirEntry>
+      <dirEntry mountPoint="25" file="./java6" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="java6" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+        <exclude />
+      </dirEntry>
       <dirEntry mountPoint="149" file="./win" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="win" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude>
           <entry location=".svn" fileType="regular" />
@@ -765,12 +769,12 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                         <array class="java.io.File" length="2">
                           <void index="0">
                             <object class="java.io.File">
-                              <string>US_export_policy.jar</string>
+                              <string>java6/local_policy.jar</string>
                             </object>
                           </void>
                           <void index="1">
                             <object class="java.io.File">
-                              <string>local_policy.jar</string>
+                              <string>java6/US_export_policy.jar</string>
                             </object>
                           </void>
                         </array>
@@ -781,7 +785,38 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                     </object>
                   </java>
                 </serializedBean>
-                <condition />
+                <condition>return System.getProperty("java.version").startsWith("1.6");</condition>
+              </action>
+              <action name="" id="694" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
+                      <void property="destinationFile">
+                        <object class="java.io.File">
+                          <string>${installer:sys.javaHome}/lib/security</string>
+                        </object>
+                      </void>
+                      <void property="files">
+                        <array class="java.io.File" length="2">
+                          <void index="0">
+                            <object class="java.io.File">
+                              <string>java7/local_policy.jar</string>
+                            </object>
+                          </void>
+                          <void index="1">
+                            <object class="java.io.File">
+                              <string>java7/US_export_policy.jar</string>
+                            </object>
+                          </void>
+                        </array>
+                      </void>
+                      <void property="overwriteMode">
+                        <object class="com.install4j.api.context.OverwriteMode" field="IF_NEWER" />
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return System.getProperty("java.version").startsWith("1.7");</condition>
               </action>
             </actions>
             <formComponents />
