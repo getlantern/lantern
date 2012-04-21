@@ -83,6 +83,16 @@ public class LanternConstants {
     
     public static final String OPTION_PASSWORD_FILE = "password-file";
     
+    public static final String OPTION_TRUSTED_PEERS = "trusted-peers";
+    
+    public static final String OPTION_ANON_PEERS ="anon-peers";
+    
+    public static final String OPTION_PEERS = "all-peers";
+    
+    public static final String OPTION_LAE = "lae";
+    
+    public static final String OPTION_CENTRAL = "central";
+    
     /**
      * Plist file for launchd on OSX.
      */
@@ -95,5 +105,7 @@ public class LanternConstants {
 
     public static final File DEFAULT_SETTINGS_FILE = 
         new File(LanternUtils.configDir(), "settings.json");
+
+    
 
 }

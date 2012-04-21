@@ -100,6 +100,15 @@ public class Launcher {
             "disable use of system keychain and ask for local password");
         options.addOption(null, LanternConstants.OPTION_PASSWORD_FILE, true, 
             "read local password from the file specified");
+        
+        options.addOption(null, LanternConstants.OPTION_TRUSTED_PEERS, true,
+            "use trusted peer-to-peer connections for proxies.");
+        options.addOption(null, LanternConstants.OPTION_ANON_PEERS, true,
+            "use anonymous peer-to-peer connections for proxies.");
+        options.addOption(null, LanternConstants.OPTION_LAE, true,
+            "use app engine proxies.");
+        options.addOption(null, LanternConstants.OPTION_CENTRAL, true,
+            "use centralized proxies.");
         final CommandLineParser parser = new PosixParser();
         final CommandLine cmd;
         try {
@@ -108,9 +117,36 @@ public class Launcher {
                 throw new UnrecognizedOptionException("Extra arguments were provided");
             }
         }
-        catch (ParseException e) {
+        catch (final ParseException e) {
             printHelp(options, e.getMessage()+" args: "+Arrays.asList(args));
             return;
+        }
+        
+        if (cmd.hasOption(LanternConstants.OPTION_TRUSTED_PEERS)) {
+            final String val = cmd.getOptionValue(
+                LanternConstants.OPTION_TRUSTED_PEERS);
+            LOG.info("Using trusted peers: {}", val);
+            LanternHub.settings().setUseTrustedPeers(Boolean.parseBoolean(val));
+        }
+        if (cmd.hasOption(LanternConstants.OPTION_ANON_PEERS)) {
+            final String val = cmd.getOptionValue(
+                LanternConstants.OPTION_ANON_PEERS);
+            LOG.info("Using anonymous peers: {}", val);
+            LanternHub.settings().setUseAnonymousPeers(Boolean.parseBoolean(val));
+        }
+        if (cmd.hasOption(LanternConstants.OPTION_LAE)) {
+            final String val = cmd.getOptionValue(
+                LanternConstants.OPTION_LAE);
+            LOG.info("Using LAE proxy: {}", val);
+            LanternHub.settings().setUseLaeProxies(
+                Boolean.parseBoolean(val));
+        }
+        if (cmd.hasOption(LanternConstants.OPTION_CENTRAL)) {
+            final String val = 
+                cmd.getOptionValue(LanternConstants.OPTION_CENTRAL);
+            LOG.info("Using central proxies: {}", val);
+            LanternHub.settings().setUseCentralProxies(
+                Boolean.parseBoolean(val));
         }
         if (cmd.hasOption(LanternConstants.OPTION_HELP)) {
             printHelp(options, null);
