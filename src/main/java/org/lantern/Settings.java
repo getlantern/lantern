@@ -127,6 +127,11 @@ public class Settings implements MutableSettings {
     private Set<InetSocketAddress> peerProxies = 
         new HashSet<InetSocketAddress>();
 
+    private boolean useTrustedPeers = true;
+    private boolean useAnonymousPeers = true;
+    private boolean useLaeProxies = true;
+    private boolean useCentralProxies = true;
+
     {
         LanternHub.register(this);
         threadPublicIpLookup();
@@ -548,6 +553,43 @@ public class Settings implements MutableSettings {
     
     public void removePeerProxy(final InetSocketAddress proxy) {
         this.peerProxies.remove(proxy);
+    }
+    
+
+    public void setUseTrustedPeers(final boolean useTrustedPeers) {
+        this.useTrustedPeers = useTrustedPeers;
+    }
+    
+    @JsonView({UIStateSettings.class})
+    public boolean isUseTrustedPeers() {
+        return useTrustedPeers;
+    }
+
+    public void setUseLaeProxies(boolean useLaeProxies) {
+        this.useLaeProxies = useLaeProxies;
+    }
+
+    @JsonView({UIStateSettings.class})
+    public boolean isUseLaeProxies() {
+        return useLaeProxies;
+    }
+
+    public void setUseAnonymousPeers(boolean useAnonymousPeers) {
+        this.useAnonymousPeers = useAnonymousPeers;
+    }
+
+    @JsonView({UIStateSettings.class})
+    public boolean isUseAnonymousPeers() {
+        return useAnonymousPeers;
+    }
+
+    public void setUseCentralProxies(boolean useCentralProxies) {
+        this.useCentralProxies = useCentralProxies;
+    }
+
+    @JsonView({UIStateSettings.class})
+    public boolean isUseCentralProxies() {
+        return useCentralProxies;
     }
 
     @Override

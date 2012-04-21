@@ -65,10 +65,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     // "Each incoming HTTP request can be no larger than 32MB"
     private static final long REQUEST_SIZE_LIMIT = 1024 * 1024 * 32 - 4096;
 
-    private static final boolean PROXIES_ACTIVE = true;
-    private static final boolean ANONYMOUS_ACTIVE = true;
-    private static final boolean TRUSTED_ACTIVE = true;
-    private static final boolean LAE_ACTIVE = true;
+    private static final boolean PROXIES_ACTIVE = LanternHub.settings().isUseCentralProxies();
+    private static final boolean ANONYMOUS_ACTIVE = LanternHub.settings().isUseAnonymousPeers();
+    private static final boolean TRUSTED_ACTIVE = LanternHub.settings().isUseTrustedPeers();
+    private static final boolean LAE_ACTIVE = LanternHub.settings().isUseLaeProxies();
     
     private static final ClientSocketChannelFactory clientSocketChannelFactory =
         new NioClientSocketChannelFactory(
