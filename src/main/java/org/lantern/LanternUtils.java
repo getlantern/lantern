@@ -665,21 +665,21 @@ public class LanternUtils {
     public static char[] readPasswordCLI() throws IOException {
         Console console = System.console();
         if (console == null) {
-            LOG.error("Request to read password in non-interactive context.");
-            throw new IOException("No console available.");
+            LOG.info("No console -- using System.in...");
+            final Scanner sc = new Scanner(System.in);
+            return sc.nextLine().toCharArray();
         }
         try {
             return console.readPassword();
-        } catch (IOError e) {
-            throw new IOException(e);
+        } catch (final IOError e) {
+            throw new IOException("Could not read pass from console", e);
         }
     }
     
     public static String readLineCLI() throws IOException {
         Console console = System.console();
         if (console == null) {
-            //LOG.error("Request to read line in non-interactive context.");
-            //throw new IOException("No console available.");
+            LOG.info("No console -- using System.in...");
             final Scanner sc = new Scanner(System.in);
             return sc.nextLine();
         }
