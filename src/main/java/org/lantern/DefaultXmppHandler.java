@@ -460,9 +460,11 @@ public class DefaultXmppHandler implements XmppHandler {
         try {
             System.out.print("Please enter your gmail e-mail, as in johndoe@gmail.com: ");
             return LanternUtils.readLineCLI();
-        } catch (IOException e) {
-            System.out.println("IO error trying to read your email address!");
-            return "";
+        } catch (final IOException e) {
+            final String msg = "IO error trying to read your email address!";
+            System.out.println(msg);
+            LOG.error(msg, e);
+            throw new IllegalStateException(msg, e);
         }
     }
     
@@ -471,8 +473,10 @@ public class DefaultXmppHandler implements XmppHandler {
             System.out.print("Please enter your gmail password: ");
             return new String(LanternUtils.readPasswordCLI());
         } catch (IOException e) {
-            System.out.println("IO error trying to read your password!");
-            return "";
+            final String msg = "IO error trying to read your email address!";
+            System.out.println(msg);
+            LOG.error(msg, e);
+            throw new IllegalStateException(msg, e);
         }
     }
 
