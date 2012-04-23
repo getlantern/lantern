@@ -48,28 +48,23 @@ public class LanternTrustManager implements X509TrustManager {
     }
     
     private void addStaticCerts() {
-        final String rootResult = LanternUtils.runKeytool("-import", 
-            "-noprompt", "-file", "google-equifax-root.crt", 
-            "-alias", "gmail.com", "-keystore", 
-            trustStoreFile.getAbsolutePath(), "-storepass",  this.password);
-        log.info("Result of running keytool for root certs: {}", rootResult);
-        
-        final File littleProxyCert = new File("lantern_littleproxy_cert");
+        addCert("google-equifax-root.crt", "gmail.com");
+        addCert("lantern_littleproxy_cert", "littleproxy");
+    }
+
+    private void addCert(final String fileName, final String alias) {
+        final File cert = new File(fileName);
+        if (!cert.isFile()) {
+            log.error("No cert at "+cert);
+            System.exit(1);
+        }
         log.info("Importing cert");
         final String result = LanternUtils.runKeytool("-import", 
-            "-noprompt", "-file", littleProxyCert.getName(), 
-            "-alias", "littleproxy", "-keystore", 
+            "-noprompt", "-file", cert.getName(), 
+            "-alias", alias, "-keystore", 
             trustStoreFile.getAbsolutePath(), "-storepass",  this.password);
         
         log.info("Result of running keytool: {}", result);
-        
-        /*
-        final String result2 = LanternUtils.runKeytool("-import", 
-            "-noprompt", "-file", "gmail-cert", 
-            "-alias", "gmail.com", "-keystore", 
-            trustStoreFile.getAbsolutePath(), "-storepass",  this.password);
-        log.info("Result of running keytool: {}", result2);
-        */
     }
 
     private KeyStore getKs() {
