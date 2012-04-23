@@ -122,36 +122,19 @@ public class Launcher {
             return;
         }
         
-        if (cmd.hasOption(LanternConstants.OPTION_TRUSTED_PEERS)) {
-            final String val = cmd.getOptionValue(
-                LanternConstants.OPTION_TRUSTED_PEERS);
-            LOG.info("Using trusted peers: {}", val);
-            LanternHub.settings().setUseTrustedPeers(Boolean.parseBoolean(val));
-        }
-        if (cmd.hasOption(LanternConstants.OPTION_ANON_PEERS)) {
-            final String val = cmd.getOptionValue(
-                LanternConstants.OPTION_ANON_PEERS);
-            LOG.info("Using anonymous peers: {}", val);
-            LanternHub.settings().setUseAnonymousPeers(Boolean.parseBoolean(val));
-        }
-        if (cmd.hasOption(LanternConstants.OPTION_LAE)) {
-            final String val = cmd.getOptionValue(
-                LanternConstants.OPTION_LAE);
-            LOG.info("Using LAE proxy: {}", val);
-            LanternHub.settings().setUseLaeProxies(
-                Boolean.parseBoolean(val));
-        }
-        if (cmd.hasOption(LanternConstants.OPTION_CENTRAL)) {
-            final String val = 
-                cmd.getOptionValue(LanternConstants.OPTION_CENTRAL);
-            LOG.info("Using central proxies: {}", val);
-            LanternHub.settings().setUseCentralProxies(
-                Boolean.parseBoolean(val));
-        }
         if (cmd.hasOption(LanternConstants.OPTION_HELP)) {
             printHelp(options, null);
             return;
         }
+
+        LanternHub.settings().setUseTrustedPeers(
+            parseBooleanDefaultTrue(cmd, LanternConstants.OPTION_TRUSTED_PEERS));
+        LanternHub.settings().setUseAnonymousPeers(
+            parseBooleanDefaultTrue(cmd, LanternConstants.OPTION_ANON_PEERS));
+        LanternHub.settings().setUseLaeProxies(
+            parseBooleanDefaultTrue(cmd, LanternConstants.OPTION_LAE));
+        LanternHub.settings().setUseCentralProxies(
+            parseBooleanDefaultTrue(cmd, LanternConstants.OPTION_CENTRAL));
         
         if (cmd.hasOption(LanternConstants.OPTION_DISABLE_UI)) {
             LOG.info("Disabling UI");
@@ -256,6 +239,18 @@ public class Launcher {
                 if (!display.readAndDispatch ()) display.sleep ();
             }
         }
+    }
+
+    private static boolean parseBooleanDefaultTrue(final CommandLine cmd, 
+        final String option) {
+        if (cmd.hasOption(option)) {
+            final String val = cmd.getOptionValue(option);
+            LOG.info("Value for command line arg {} is: {}", option, val);
+            return Boolean.parseBoolean(val);
+        }
+        
+        // DEFAULTS TO TRUE!!
+        return true;
     }
 
     private static void loadSettings() {
