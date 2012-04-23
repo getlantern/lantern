@@ -87,8 +87,6 @@ public class LanternConstants {
     
     public static final String OPTION_ANON_PEERS ="anon-peers";
     
-    public static final String OPTION_PEERS = "all-peers";
-    
     public static final String OPTION_LAE = "lae";
     
     public static final String OPTION_CENTRAL = "central";
