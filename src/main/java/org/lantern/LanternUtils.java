@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
@@ -677,13 +678,15 @@ public class LanternUtils {
     public static String readLineCLI() throws IOException {
         Console console = System.console();
         if (console == null) {
-            LOG.error("Request to read line in non-interactive context.");
-            throw new IOException("No console available.");
+            //LOG.error("Request to read line in non-interactive context.");
+            //throw new IOException("No console available.");
+            final Scanner sc = new Scanner(System.in);
+            return sc.nextLine();
         }
         try {
             return console.readLine();
-        } catch (IOError e) {
-            throw new IOException(e);
+        } catch (final IOError e) {
+            throw new IOException("Could not read line from console", e);
         }
     }
         
