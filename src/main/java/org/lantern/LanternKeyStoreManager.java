@@ -160,7 +160,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         int i = 0;
         while (!file.isFile() && i < 20) {
             try {
-                Thread.sleep(200);
+                Thread.sleep(80);
                 i++;
             } catch (final InterruptedException e) {
                 log.error("Interrupted?", e);

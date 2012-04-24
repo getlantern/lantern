@@ -42,9 +42,10 @@ public class LanternTrustManager implements X509TrustManager {
         this.ksm = ksm;
         this.trustStoreFile = trustStoreFile;
         this.password = password;
-        this.keyStore = getKs();
-        
         addStaticCerts();
+        
+        // This has to go after the certs are added!!
+        this.keyStore = getKs();
     }
     
     private void addStaticCerts() {
