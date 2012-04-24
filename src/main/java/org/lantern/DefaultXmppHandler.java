@@ -494,19 +494,25 @@ public class DefaultXmppHandler implements XmppHandler {
             return;
         }
         
+        if (LanternHub.settings().isGetMode()) {
+            LOG.info("Not reporting any stats in get mode");
+            return;
+        }
+        
         final XMPPConnection conn = this.client.get().getXmppConnection();
 
         LOG.info("Sending presence available");
         
         // OK, this is bizarre. For whatever reason, we **have** to send the
         // following packet in order to get presence events from our peers.
-        // DO NOT REMOVE THIS MESSAGE!!
+        // DO NOT REMOVE THIS MESSAGE!! See XMPP spec.
         final Presence pres = new Presence(Presence.Type.available);
         conn.sendPacket(pres);
         
         final Presence forHub = new Presence(Presence.Type.available);
         forHub.setTo(LanternConstants.LANTERN_JID);
         
+        /*
         final JSONObject json = new JSONObject();
         final StatsTracker statsTracker = LanternHub.statsTracker();
         json.put(LanternConstants.COUNTRY_CODE, LanternHub.censored().countryCode());
@@ -525,6 +531,10 @@ public class DefaultXmppHandler implements XmppHandler {
         //    LanternHub.whitelist().getRemovalsAsJson());
         json.put(LanternConstants.VERSION_KEY, LanternConstants.VERSION);
         final String str = json.toJSONString();
+        */
+        
+        final String str = 
+            LanternUtils.jsonify(LanternHub.statsTracker());
         LOG.info("Reporting data: {}", str);
         if (!this.lastJson.equals(str)) {
             this.lastJson = str;

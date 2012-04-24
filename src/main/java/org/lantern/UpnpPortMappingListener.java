@@ -116,6 +116,7 @@ public class UpnpPortMappingListener extends DefaultRegistryListener {
                 @Override
                 public void success(ActionInvocation invocation) {
                     log.debug("Port mapping added: " + pm);
+                    LanternHub.statsTracker().setUpnp(true);
                     activeForService.add(pm);
                     portMapListener.onPortMap((int) pm.getExternalPort().getValue().longValue());
                 }
@@ -124,6 +125,7 @@ public class UpnpPortMappingListener extends DefaultRegistryListener {
                 public void failure(ActionInvocation invocation, UpnpResponse operation, String defaultMsg) {
                     handleFailureMessage("Failed to add port mapping: " + pm);
                     handleFailureMessage("Reason: " + defaultMsg);
+                    LanternHub.statsTracker().setUpnp(false);
                     portMapListener.onPortMapError();
                 }
             }.run(); // Synchronous!

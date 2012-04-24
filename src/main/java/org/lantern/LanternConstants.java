@@ -9,6 +9,8 @@ import org.lantern.exceptional4j.ExceptionalUtils;
  */
 public class LanternConstants {
     
+    static final long START_TIME = System.currentTimeMillis();
+    
     /**
      * This is the version of Lantern we're running. This is automatically
      * replaced when we push new releases.

@@ -118,7 +118,7 @@ public class LanternHub {
         new AtomicReference<Settings>();
     
     private static final Configurator configurator = new Configurator();
-    
+
     static {
         // start with an UNSET settings object until loaded
         settings.set(new Settings());
@@ -212,7 +212,7 @@ public class LanternHub {
             return statsTracker.get();
         }
     }
-
+    
     public static LanternKeyStoreManager getKeyStoreManager() {
         synchronized (proxyKeyStore) {
             if (proxyKeyStore.get() == null) {
