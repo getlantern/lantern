@@ -95,6 +95,8 @@ public class Launcher {
     private static final String OPTION_CENTRAL = "disable-central";
     private static final String OPTION_UDP = "disable-udp";
     private static final String OPTION_TCP = "disable-tcp";
+    private static final String OPTION_USER = "user";
+    private static final String OPTION_PASS = "pass";
     
     private static void launch(final String... args) {
         LOG.info("Starting Lantern...");
@@ -129,6 +131,10 @@ public class Launcher {
             "disable UDP for peer-to-peer connections.");
         options.addOption(null, OPTION_TCP, false,
             "disable TCP for peer-to-peer connections.");
+        options.addOption(null, OPTION_USER, true,
+            "Google user name -- WARNING INSECURE - ONLY USE THIS FOR TESTING!");
+        options.addOption(null, OPTION_PASS, true,
+            "Google password -- WARNING INSECURE - ONLY USE THIS FOR TESTING!");
         
         final CommandLineParser parser = new PosixParser();
         final CommandLine cmd;
@@ -159,7 +165,12 @@ public class Launcher {
         
         IceConfig.setTcp(parseOptionDefaultTrue(cmd, OPTION_TCP));
         IceConfig.setUdp(parseOptionDefaultTrue(cmd, OPTION_UDP));
-        
+        if (cmd.hasOption(OPTION_USER)) {
+            LanternHub.settings().setEmail(cmd.getOptionValue(OPTION_USER));
+        }
+        if (cmd.hasOption(OPTION_PASS)) {
+            LanternHub.settings().setPassword(cmd.getOptionValue(OPTION_PASS));
+        }
         if (cmd.hasOption(OPTION_DISABLE_UI)) {
             LOG.info("Disabling UI");
             LanternHub.settings().setUiEnabled(false);
