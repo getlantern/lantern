@@ -261,13 +261,17 @@ public class DefaultXmppHandler implements XmppHandler {
             new GoogleTalkStateEvent(GoogleTalkState.LOGGING_IN));
         final String id;
         if (LanternHub.settings().isGetMode()) {
+            LOG.info("Setting ID for get mode...");
             id = "gmail.";
         } else {
+            LOG.info("Setting ID for give mode");
             id = UNCENSORED_ID;
         }
 
         try {
             this.client.get().login(email, pwd, id);
+            LanternHub.eventBus().post(
+                new GoogleTalkStateEvent(GoogleTalkState.LOGGED_IN));
         } catch (final IOException e) {
             if (this.proxies.isEmpty()) {
                 connectivityEvent(ConnectivityStatus.DISCONNECTED);
@@ -286,8 +290,6 @@ public class DefaultXmppHandler implements XmppHandler {
                 new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
             throw e;
         }
-        LanternHub.eventBus().post(
-            new GoogleTalkStateEvent(GoogleTalkState.LOGGED_IN));
         
         // Note we don't consider ourselves connected in get mode until we 
         // actually get proxies to work with.
@@ -494,10 +496,6 @@ public class DefaultXmppHandler implements XmppHandler {
             return;
         }
         
-        if (LanternHub.settings().isGetMode()) {
-            LOG.info("Not reporting any stats in get mode");
-            return;
-        }
         
         final XMPPConnection conn = this.client.get().getXmppConnection();
 
@@ -533,15 +531,20 @@ public class DefaultXmppHandler implements XmppHandler {
         final String str = json.toJSONString();
         */
         
-        final String str = 
-            LanternUtils.jsonify(LanternHub.statsTracker());
-        LOG.info("Reporting data: {}", str);
-        if (!this.lastJson.equals(str)) {
-            this.lastJson = str;
-            forHub.setProperty("stats", str);
+        if (!LanternHub.settings().isGetMode()) {
+            final String str = 
+                LanternUtils.jsonify(LanternHub.statsTracker());
+            LOG.info("Reporting data: {}", str);
+            if (!this.lastJson.equals(str)) {
+                this.lastJson = str;
+                forHub.setProperty("stats", str);
+            } else {
+                LOG.info("No new stats to report");
+            }
         } else {
-            LOG.info("No new stats to report");
+            LOG.info("Not reporting any stats in get mode");
         }
+
         
         conn.sendPacket(forHub);
     }
