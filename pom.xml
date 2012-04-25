@@ -16,6 +16,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <slf4j.version>1.6.1</slf4j.version>
+    <cometd.version>2.4.0.RC3</cometd.version>
   </properties>
 
   <organization>
@@ -56,22 +57,22 @@
         <dependency>
             <groupId>org.cometd.java</groupId>
             <artifactId>bayeux-api</artifactId>
-            <version>2.4.0.RC3</version>
+            <version>${cometd.version}</version>
         </dependency>
         <dependency>
             <groupId>org.cometd.java</groupId>
             <artifactId>cometd-java-annotations</artifactId>
-            <version>2.4.0.RC3</version>
+            <version>${cometd.version}</version>
         </dependency>
         <dependency>
             <groupId>org.cometd.java</groupId>
             <artifactId>cometd-java-server</artifactId>
-            <version>2.4.0.RC3</version>
+            <version>${cometd.version}</version>
         </dependency>
         <dependency>
             <groupId>org.cometd.java</groupId>
             <artifactId>cometd-websocket-jetty</artifactId>
-            <version>2.4.0.RC3</version>
+            <version>${cometd.version}</version>
         </dependency>
          <dependency>
             <groupId>org.eclipse.jetty</groupId>
@@ -130,12 +131,6 @@
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
       <version>11.0.1</version>
-    </dependency>
-
-    <dependency>
-      <groupId>org.dnsjava</groupId>
-      <artifactId>dnsjava</artifactId>
-      <version>2.0.6</version>
     </dependency>
 
     <dependency>
@@ -219,7 +214,13 @@
     <dependency>
 	<groupId>org.codehaus.jackson</groupId>
 	<artifactId>jackson-jaxrs</artifactId>
-	<version>1.9.2</version>
+	<version>1.9.5</version>
+    </dependency>
+
+    <dependency>
+	<groupId>org.codehaus.jackson</groupId>
+	<artifactId>jackson-mrbean</artifactId>
+	<version>1.9.6</version>
     </dependency>
 
     <dependency>
