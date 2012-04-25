@@ -271,7 +271,7 @@ public class Settings implements MutableSettings {
         initialSetupComplete = val;
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({UIStateSettings.class, PersistentSettings.class, CommandLineSettings.class})
     public String getEmail() {
         return email;
     }
@@ -347,6 +347,7 @@ public class Settings implements MutableSettings {
     }
 
     @JsonIgnore
+    @JsonView({CommandLineSettings.class})
     public String getPassword() {
         return password;
     }
