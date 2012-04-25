@@ -72,27 +72,6 @@ public class LanternConstants {
      */
     public static final int I18N_KEY_LENGTH = 40;
     
-    /* the following are command line options */
-    public static final String OPTION_DISABLE_UI = "disable-ui";
-    public static final String OPTION_HELP = "help";
-    public static final String OPTION_LAUNCHD = "launchd";
-    
-    public static final String OPTION_PUBLIC_API = "public-api";
-    
-    public static final String OPTION_API_PORT = "api-port";
-
-    public static final String OPTION_DISABLE_KEYCHAIN = "disable-keychain";
-    
-    public static final String OPTION_PASSWORD_FILE = "password-file";
-    
-    public static final String OPTION_TRUSTED_PEERS = "trusted-peers";
-    
-    public static final String OPTION_ANON_PEERS ="anon-peers";
-    
-    public static final String OPTION_LAE = "lae";
-    
-    public static final String OPTION_CENTRAL = "central";
-    
     /**
      * Plist file for launchd on OSX.
      */

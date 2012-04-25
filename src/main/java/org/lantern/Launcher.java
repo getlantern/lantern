@@ -37,6 +37,7 @@ import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
+import org.lastbamboo.common.offer.answer.IceConfig;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestFilter;
@@ -80,35 +81,55 @@ public class Launcher {
         }
     }
 
+    // the following are command line options 
+    private static final String OPTION_DISABLE_UI = "disable-ui";
+    private static final String OPTION_HELP = "help";
+    private static final String OPTION_LAUNCHD = "launchd";
+    private static final String OPTION_PUBLIC_API = "public-api";
+    private static final String OPTION_API_PORT = "api-port";
+    private static final String OPTION_DISABLE_KEYCHAIN = "disable-keychain";
+    private static final String OPTION_PASSWORD_FILE = "password-file";
+    private static final String OPTION_TRUSTED_PEERS = "trusted-peers";
+    private static final String OPTION_ANON_PEERS ="anon-peers";
+    private static final String OPTION_LAE = "disable-lae";
+    private static final String OPTION_CENTRAL = "disable-central";
+    private static final String OPTION_UDP = "disable-udp";
+    private static final String OPTION_TCP = "disable-tcp";
+    
     private static void launch(final String... args) {
         LOG.info("Starting Lantern...");
 
         // first apply any command line settings
         final Options options = new Options();
-        options.addOption(null, LanternConstants.OPTION_DISABLE_UI, false,
+        options.addOption(null, OPTION_DISABLE_UI, false,
                           "run without a graphical user interface.");
         
-        options.addOption(null, LanternConstants.OPTION_API_PORT, true,
+        options.addOption(null, OPTION_API_PORT, true,
             "the port to run the API server on.");
-        options.addOption(null, LanternConstants.OPTION_PUBLIC_API, false,
+        options.addOption(null, OPTION_PUBLIC_API, false,
             "make the API server publicly accessible on non-localhost.");
-        options.addOption(null, LanternConstants.OPTION_HELP, false,
+        options.addOption(null, OPTION_HELP, false,
                           "display command line help");
-        options.addOption(null, LanternConstants.OPTION_LAUNCHD, false,
+        options.addOption(null, OPTION_LAUNCHD, false,
             "running from launchd - not normally called from command line");
-        options.addOption(null, LanternConstants.OPTION_DISABLE_KEYCHAIN, false, 
+        options.addOption(null, OPTION_DISABLE_KEYCHAIN, false, 
             "disable use of system keychain and ask for local password");
-        options.addOption(null, LanternConstants.OPTION_PASSWORD_FILE, true, 
+        options.addOption(null, OPTION_PASSWORD_FILE, true, 
             "read local password from the file specified");
         
-        options.addOption(null, LanternConstants.OPTION_TRUSTED_PEERS, true,
-            "use trusted peer-to-peer connections for proxies.");
-        options.addOption(null, LanternConstants.OPTION_ANON_PEERS, true,
-            "use anonymous peer-to-peer connections for proxies.");
-        options.addOption(null, LanternConstants.OPTION_LAE, true,
-            "use app engine proxies.");
-        options.addOption(null, LanternConstants.OPTION_CENTRAL, true,
-            "use centralized proxies.");
+        options.addOption(null, OPTION_TRUSTED_PEERS, false,
+            "disable use of trusted peer-to-peer connections for proxies.");
+        options.addOption(null, OPTION_ANON_PEERS, false,
+            "disable use of anonymous peer-to-peer connections for proxies.");
+        options.addOption(null, OPTION_LAE, false,
+            "disable use of app engine proxies.");
+        options.addOption(null, OPTION_CENTRAL, false,
+            "disable use of centralized proxies.");
+        options.addOption(null, OPTION_UDP, false,
+            "disable UDP for peer-to-peer connections.");
+        options.addOption(null, OPTION_TCP, false,
+            "disable TCP for peer-to-peer connections.");
+        
         final CommandLineParser parser = new PosixParser();
         final CommandLine cmd;
         try {
@@ -122,21 +143,24 @@ public class Launcher {
             return;
         }
         
-        if (cmd.hasOption(LanternConstants.OPTION_HELP)) {
+        if (cmd.hasOption(OPTION_HELP)) {
             printHelp(options, null);
             return;
         }
 
         LanternHub.settings().setUseTrustedPeers(
-            parseBooleanDefaultTrue(cmd, LanternConstants.OPTION_TRUSTED_PEERS));
+            parseOptionDefaultTrue(cmd, OPTION_TRUSTED_PEERS));
         LanternHub.settings().setUseAnonymousPeers(
-            parseBooleanDefaultTrue(cmd, LanternConstants.OPTION_ANON_PEERS));
+            parseOptionDefaultTrue(cmd, OPTION_ANON_PEERS));
         LanternHub.settings().setUseLaeProxies(
-            parseBooleanDefaultTrue(cmd, LanternConstants.OPTION_LAE));
+            parseOptionDefaultTrue(cmd, OPTION_LAE));
         LanternHub.settings().setUseCentralProxies(
-            parseBooleanDefaultTrue(cmd, LanternConstants.OPTION_CENTRAL));
+            parseOptionDefaultTrue(cmd, OPTION_CENTRAL));
         
-        if (cmd.hasOption(LanternConstants.OPTION_DISABLE_UI)) {
+        IceConfig.setTcp(parseOptionDefaultTrue(cmd, OPTION_TCP));
+        IceConfig.setUdp(parseOptionDefaultTrue(cmd, OPTION_UDP));
+        
+        if (cmd.hasOption(OPTION_DISABLE_UI)) {
             LOG.info("Disabling UI");
             LanternHub.settings().setUiEnabled(false);
         }
@@ -145,7 +169,7 @@ public class Launcher {
         }
         
         /* option to disable use of keychains in local privacy */
-        if (cmd.hasOption(LanternConstants.OPTION_DISABLE_KEYCHAIN)) {
+        if (cmd.hasOption(OPTION_DISABLE_KEYCHAIN)) {
             LOG.info("Disabling use of system keychains");
             LanternHub.settings().setKeychainEnabled(false);
         }
@@ -153,16 +177,16 @@ public class Launcher {
             LanternHub.settings().setKeychainEnabled(true);
         }
         
-        if (cmd.hasOption(LanternConstants.OPTION_PASSWORD_FILE)) {
-            loadLocalPasswordFile(cmd.getOptionValue(LanternConstants.OPTION_PASSWORD_FILE));
+        if (cmd.hasOption(OPTION_PASSWORD_FILE)) {
+            loadLocalPasswordFile(cmd.getOptionValue(OPTION_PASSWORD_FILE));
         }
         
-        if (cmd.hasOption(LanternConstants.OPTION_PUBLIC_API)) {
+        if (cmd.hasOption(OPTION_PUBLIC_API)) {
             LanternHub.settings().setBindToLocalhost(false);
         }
-        if (cmd.hasOption(LanternConstants.OPTION_API_PORT)) {
+        if (cmd.hasOption(OPTION_API_PORT)) {
             final String portStr = 
-                cmd.getOptionValue(LanternConstants.OPTION_API_PORT);
+                cmd.getOptionValue(OPTION_API_PORT);
             LOG.info("Using command-line port: "+portStr);
             final int port = Integer.parseInt(portStr);
             LanternHub.settings().setApiPort(port);
@@ -172,7 +196,7 @@ public class Launcher {
         }
         LOG.info("Running API on port: {}", LanternHub.settings().getApiPort());
 
-        if (cmd.hasOption(LanternConstants.OPTION_LAUNCHD)) {
+        if (cmd.hasOption(OPTION_LAUNCHD)) {
             LOG.info("Running from launchd or launchd set on command line");
             LanternHub.settings().setLaunchd(true);
         } else {
@@ -241,12 +265,11 @@ public class Launcher {
         }
     }
 
-    private static boolean parseBooleanDefaultTrue(final CommandLine cmd, 
+    private static boolean parseOptionDefaultTrue(final CommandLine cmd, 
         final String option) {
         if (cmd.hasOption(option)) {
-            final String val = cmd.getOptionValue(option);
-            LOG.info("Value for command line arg {} is: {}", option, val);
-            return Boolean.parseBoolean(val);
+            LOG.info("Disabling proxy type with option: "+option);
+            return false;
         }
         
         // DEFAULTS TO TRUE!!
@@ -373,7 +396,7 @@ public class Launcher {
         }
 
         if (StringUtils.isBlank(pwFilename)) {
-            LOG.error("No filename specified to --{}", LanternConstants.OPTION_PASSWORD_FILE);
+            LOG.error("No filename specified to --{}", OPTION_PASSWORD_FILE);
             System.exit(1);
         }
         final File pwFile = new File(pwFilename);
@@ -629,7 +652,7 @@ public class Launcher {
         if (t instanceof SWTError || t.getMessage().contains("SWTError")) {
             System.out.println(
                 "To run without a UI, run lantern with the --" + 
-                LanternConstants.OPTION_DISABLE_UI +
+                OPTION_DISABLE_UI +
                 " command line argument");
         } 
         else if (!lanternStarted && LanternHub.settings().isUiEnabled()) {
