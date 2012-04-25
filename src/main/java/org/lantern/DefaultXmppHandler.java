@@ -539,6 +539,7 @@ public class DefaultXmppHandler implements XmppHandler {
             if (!this.lastJson.equals(str)) {
                 this.lastJson = str;
                 forHub.setProperty("stats", str);
+                LanternHub.statsTracker().resetCumulativeStats();
             } else {
                 LOG.info("No new stats to report");
             }
