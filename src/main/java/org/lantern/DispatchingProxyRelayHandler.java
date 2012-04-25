@@ -64,11 +64,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     // http://code.google.com/appengine/docs/quotas.html:
     // "Each incoming HTTP request can be no larger than 32MB"
     private static final long REQUEST_SIZE_LIMIT = 1024 * 1024 * 32 - 4096;
-
-    private static final boolean PROXIES_ACTIVE = LanternHub.settings().isUseCentralProxies();
-    private static final boolean ANONYMOUS_ACTIVE = LanternHub.settings().isUseAnonymousPeers();
-    private static final boolean TRUSTED_ACTIVE = LanternHub.settings().isUseTrustedPeers();
-    private static final boolean LAE_ACTIVE = LanternHub.settings().isUseLaeProxies();
     
     private static final ClientSocketChannelFactory clientSocketChannelFactory =
         new NioClientSocketChannelFactory(
@@ -318,7 +313,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         log.info("Dispatching request");
         if (request.getMethod() == HttpMethod.CONNECT) {
             try {
-                if (ANONYMOUS_ACTIVE && 
+                if (LanternHub.settings().isUseAnonymousPeers() && 
                     LanternHub.getProxyProvider().getAnonymousPeerProxyManager().processRequest(
                         browserToProxyChannel, ctx, me) != null) {
                     log.info("Processed CONNECT on peer...returning");
@@ -343,7 +338,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
         }
         try {
-            if (TRUSTED_ACTIVE) {
+            if (LanternHub.settings().isUseTrustedPeers()) {
                 final PeerProxyManager provider = 
                     LanternHub.getProxyProvider().getTrustedPeerProxyManager();
                 if (provider != null) {
@@ -383,11 +378,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     }
 
     private boolean useStandardProxies() {
-        return PROXIES_ACTIVE && LanternHub.settings().isUseCloudProxies();
+        return LanternHub.settings().isUseCentralProxies() && LanternHub.settings().isUseCloudProxies();
     }
 
     private boolean useLae() {
-        return LAE_ACTIVE && LanternHub.settings().isUseCloudProxies();
+        return LanternHub.settings().isUseLaeProxies() && LanternHub.settings().isUseCloudProxies();
     }
 
     private void centralConnect(final HttpRequest request) {
