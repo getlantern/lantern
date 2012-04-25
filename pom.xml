@@ -360,6 +360,7 @@
     <defaultGoal>install</defaultGoal>
 
     <plugins>
+<!--
       <plugin>
         <groupId>com.github.github</groupId>
         <artifactId>downloads-maven-plugin</artifactId>
@@ -378,6 +379,7 @@
           </execution>
         </executions>
       </plugin>
+-->
       <plugin>
         <groupId>com.github.github</groupId>
         <artifactId>site-maven-plugin</artifactId>
