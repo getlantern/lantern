@@ -81,6 +81,18 @@ public class StatsTracker implements Stats {
         return System.currentTimeMillis() - LanternConstants.START_TIME;
     }
     
+    /**
+     * Resets all stats that the server treats as cumulative aggregates -- i.e.
+     * where the server doesn't differentiate data for individual users and
+     * simply adds whatever we send them to the total.
+     */
+    public void resetCumulativeStats() {
+        this.directRequests.set(0);
+        this.directBytes.set(0L);
+        this.proxiedRequests.set(0);
+        this.bytesProxied.set(0L);
+    }
+    
     public void resetUserStats() {
         upBytesPerSecondViaProxies.reset();
         downBytesPerSecondViaProxies.reset();
