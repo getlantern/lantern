@@ -89,7 +89,7 @@ public class Settings implements MutableSettings {
      */
     private boolean useCloudProxies = true;
     
-    private final AtomicBoolean getMode = new AtomicBoolean(false);
+    private final AtomicBoolean getMode = new AtomicBoolean(true);
     
     private boolean bindToLocalhost = true;
     
