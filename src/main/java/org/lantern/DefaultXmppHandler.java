@@ -403,6 +403,7 @@ public class DefaultXmppHandler implements XmppHandler {
             (JSONArray) json.get(LanternConstants.SERVERS);
         final Long delay = 
             (Long) json.get(LanternConstants.UPDATE_TIME);
+        LOG.info("Server sent delay of: "+delay);
         if (delay != null) {
             final long now = System.currentTimeMillis();
             final long elapsed = now - lastInfoMessageScheduled;
@@ -544,7 +545,6 @@ public class DefaultXmppHandler implements XmppHandler {
         } else {
             LOG.info("Not reporting any stats in get mode");
         }
-
         
         conn.sendPacket(forHub);
     }
