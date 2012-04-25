@@ -318,7 +318,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                         browserToProxyChannel, ctx, me) != null) {
                     log.info("Processed CONNECT on peer...returning");
                     return null;
-                } else {
+                } else if (useStandardProxies()){
                     // We need to forward the CONNECT request from this proxy to an
                     // external proxy that can handle it. We effectively want to 
                     // relay all traffic in this case without doing anything on 
@@ -332,7 +332,9 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 // This will happen whenever the server's giving us bad
                 // anonymous proxies, which could happen quite often.
                 // We should fall back to central.
-                centralConnect(request);
+                if (useStandardProxies()) {
+                    centralConnect(request);
+                }
                 return null;
             }
 
