@@ -561,7 +561,7 @@ public class Settings implements MutableSettings {
         this.useTrustedPeers = useTrustedPeers;
     }
     
-    @JsonView({UIStateSettings.class})
+    @JsonView({UIStateSettings.class, CommandLineSettings.class})
     public boolean isUseTrustedPeers() {
         return useTrustedPeers;
     }
@@ -570,7 +570,7 @@ public class Settings implements MutableSettings {
         this.useLaeProxies = useLaeProxies;
     }
 
-    @JsonView({UIStateSettings.class})
+    @JsonView({UIStateSettings.class, CommandLineSettings.class})
     public boolean isUseLaeProxies() {
         return useLaeProxies;
     }
@@ -579,7 +579,7 @@ public class Settings implements MutableSettings {
         this.useAnonymousPeers = useAnonymousPeers;
     }
 
-    @JsonView({UIStateSettings.class})
+    @JsonView({UIStateSettings.class, CommandLineSettings.class})
     public boolean isUseAnonymousPeers() {
         return useAnonymousPeers;
     }
@@ -588,7 +588,7 @@ public class Settings implements MutableSettings {
         this.useCentralProxies = useCentralProxies;
     }
 
-    @JsonView({UIStateSettings.class})
+    @JsonView({UIStateSettings.class, CommandLineSettings.class})
     public boolean isUseCentralProxies() {
         return useCentralProxies;
     }
