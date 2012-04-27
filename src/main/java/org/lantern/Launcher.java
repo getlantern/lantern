@@ -279,7 +279,7 @@ public class Launcher {
     private static boolean parseOptionDefaultTrue(final CommandLine cmd, 
         final String option) {
         if (cmd.hasOption(option)) {
-            LOG.info("Disabling proxy type with option: "+option);
+            LOG.info("Found option: "+option);
             return false;
         }
         
