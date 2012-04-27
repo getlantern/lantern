@@ -419,7 +419,7 @@ public class LanternHub {
         final Settings cur = settings();
         if (retainCLIOptions == true && cur != null && old != null) {
             try {
-                old.copyView(cur, Settings.CommandLineSettings.class);
+                old.copyCLI(cur);
             }
             catch (final Throwable t) {
                 LOG.error("error copying command line settings! {}", t);

@@ -166,10 +166,10 @@ public class Launcher {
         IceConfig.setTcp(parseOptionDefaultTrue(cmd, OPTION_TCP));
         IceConfig.setUdp(parseOptionDefaultTrue(cmd, OPTION_UDP));
         if (cmd.hasOption(OPTION_USER)) {
-            LanternHub.settings().setEmail(cmd.getOptionValue(OPTION_USER));
+            LanternHub.settings().setCommandLineEmail(cmd.getOptionValue(OPTION_USER));
         }
         if (cmd.hasOption(OPTION_PASS)) {
-            LanternHub.settings().setPassword(cmd.getOptionValue(OPTION_PASS));
+            LanternHub.settings().setCommandLinePassword(cmd.getOptionValue(OPTION_PASS));
         }
         if (cmd.hasOption(OPTION_DISABLE_UI)) {
             LOG.info("Disabling UI");

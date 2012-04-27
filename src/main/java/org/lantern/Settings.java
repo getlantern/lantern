@@ -1,5 +1,9 @@
 package org.lantern;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
@@ -32,15 +36,35 @@ public class Settings implements MutableSettings {
     // saved / loaded between runs of lantern.
     public static class PersistentSettings {}
     public static class UIStateSettings {}
-    
-    // settings that are set at the command line
-    public static class CommandLineSettings {}
-    
-    // by default, if not marked, fields will be serialized in 
-    // any of the above. To exclude a field from any other class
-    // mark it as transient/internal
-    public static class TransientInternalOnly {} 
 
+    // by default, if not marked, fields will be serialized in 
+    // all of the above classes. To exclude a field from other
+    // class mark it as @JsonIgnore
+
+    
+    // These settings are controlled from the command line 
+    // and survive events that reload the persistent settings
+    // (ie resetting and unlocking)
+    // 
+    // If non-null, they are overlaid on the loaded persistent 
+    // settings values. This is necessary to preserve settings 
+    // such as the current api port and availability flags for
+    // features (ui, keychain, peer types etc) that may preceed 
+    // or affect the way settings are loaded and are generally 
+    // not expected to change during a single run.  They are 
+    // generally orthogonal to the persistent settings. 
+    //
+    // The overrides field may be specified to force overlay 
+    // of the setting onto another setting at reload time.
+    // This is preferred to having a setting that is persistent 
+    // and survives reset to avoid an un-resettable setting.
+    //
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.METHOD})
+    public @interface CommandLineOption {
+        String override() default "";
+    }
+    
     private Whitelist whitelist;
     
     private ConnectivityStatus connectivity = ConnectivityStatus.DISCONNECTED; 
@@ -74,9 +98,13 @@ public class Settings implements MutableSettings {
     
     private String email;
     
+    private String commandLineEmail;
+
     private String password;
     
     private String storedPassword;
+
+    private String commandLinePassword;
     
     /**
      * Whether or not to save the user's Google account password on disk.
@@ -271,7 +299,18 @@ public class Settings implements MutableSettings {
         initialSetupComplete = val;
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class, CommandLineSettings.class})
+
+    public void setCommandLineEmail(String email) {
+        commandLineEmail = email;
+    }
+
+    @JsonIgnore
+    @CommandLineOption(override="email")
+    public String getCommandLineEmail() {
+        return commandLineEmail;
+    }
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public String getEmail() {
         return email;
     }
@@ -347,9 +386,18 @@ public class Settings implements MutableSettings {
     }
 
     @JsonIgnore
-    @JsonView({CommandLineSettings.class})
     public String getPassword() {
         return password;
+    }
+
+    public void setCommandLinePassword(String password) {
+        commandLinePassword = password;
+    }
+
+    @JsonIgnore
+    @CommandLineOption(override="password")
+    public String getCommandLinePassword() {
+        return commandLinePassword;
     }
 
     public void setStoredPassword(final String storedPassword) {
@@ -386,8 +434,8 @@ public class Settings implements MutableSettings {
         this.bindToLocalhost = bindToLocalhost;
     }
 
-
-    @JsonView({UIStateSettings.class, CommandLineSettings.class})
+    @JsonView({UIStateSettings.class})
+    @CommandLineOption
     public boolean isBindToLocalhost() {
         return bindToLocalhost;
     }
@@ -397,7 +445,8 @@ public class Settings implements MutableSettings {
     }
 
 
-    @JsonView({UIStateSettings.class, CommandLineSettings.class})
+    @JsonView({UIStateSettings.class})
+    @CommandLineOption
     public int getApiPort() {
         return apiPort;
     }
@@ -485,7 +534,8 @@ public class Settings implements MutableSettings {
         this.launchd = launchd;
     }
 
-    @JsonView(CommandLineSettings.class)
+    @JsonIgnore
+    @CommandLineOption
     public boolean isLaunchd() {
         return launchd;
     }
@@ -494,7 +544,8 @@ public class Settings implements MutableSettings {
         this.uiEnabled = uiEnabled;
     }
 
-    @JsonView(CommandLineSettings.class)    
+    @JsonIgnore
+    @CommandLineOption
     public boolean isUiEnabled() {
         return uiEnabled;
     }
@@ -561,7 +612,8 @@ public class Settings implements MutableSettings {
         this.useTrustedPeers = useTrustedPeers;
     }
     
-    @JsonView({UIStateSettings.class, CommandLineSettings.class})
+    @JsonView({UIStateSettings.class})
+    @CommandLineOption
     public boolean isUseTrustedPeers() {
         return useTrustedPeers;
     }
@@ -570,7 +622,8 @@ public class Settings implements MutableSettings {
         this.useLaeProxies = useLaeProxies;
     }
 
-    @JsonView({UIStateSettings.class, CommandLineSettings.class})
+    @JsonView({UIStateSettings.class})
+    @CommandLineOption
     public boolean isUseLaeProxies() {
         return useLaeProxies;
     }
@@ -579,7 +632,8 @@ public class Settings implements MutableSettings {
         this.useAnonymousPeers = useAnonymousPeers;
     }
 
-    @JsonView({UIStateSettings.class, CommandLineSettings.class})
+    @JsonView({UIStateSettings.class})
+    @CommandLineOption
     public boolean isUseAnonymousPeers() {
         return useAnonymousPeers;
     }
@@ -588,7 +642,8 @@ public class Settings implements MutableSettings {
         this.useCentralProxies = useCentralProxies;
     }
 
-    @JsonView({UIStateSettings.class, CommandLineSettings.class})
+    @JsonView({UIStateSettings.class})
+    @CommandLineOption
     public boolean isUseCentralProxies() {
         return useCentralProxies;
     }
@@ -617,34 +672,37 @@ public class Settings implements MutableSettings {
     }
     
     /** 
-     * copy properties annotated with the given jsonView class 
+     * copy properties annotated with the CommandLineOption setting 
      * from this Settings object to the Settings object given. 
      * 
      * copy is shallow!
      */
-    public void copyView(Settings into, Class<?> selector)
+    public void copyCLI(Settings into)
         throws IllegalAccessException, IllegalArgumentException, 
                InvocationTargetException, NoSuchMethodException {
         for (final Method method : Settings.class.getMethods()) {
-            if (method.isAnnotationPresent(JsonView.class)) {
-                final JsonView v = method.getAnnotation(JsonView.class);
-                for (final Class<?> c : v.value()) {
-                    if (c == selector) {
-                        // method is annotated with selected JsonView
-                        // try to transfer property.
-                        final String propertyName = LanternUtils.methodNameToProperty(method.getName()); 
-                        if (propertyName != null) {
-                            PropertyUtils.setSimpleProperty(into, propertyName,
-                                PropertyUtils.getSimpleProperty(this, propertyName));
-                            log.debug("copied setting {}", propertyName);
-                        }
-                        else {
-                            log.error("Skipping copy of annotated but unbeanish method \"{}\": can't determine prop name", method.getName());
+            if (method.isAnnotationPresent(CommandLineOption.class)) {
+                final CommandLineOption v = method.getAnnotation(CommandLineOption.class);
+                final String propertyName = LanternUtils.methodNameToProperty(method.getName());
+                if (propertyName != null) {
+                    Object val = PropertyUtils.getSimpleProperty(this, propertyName);
+                    if (val != null) {
+
+                        PropertyUtils.setSimpleProperty(into, propertyName, val);
+                        log.debug("copied setting {}", propertyName);
+                        
+                        final String override = v.override();
+                        if (!override.equals("")) {
+                            PropertyUtils.setSimpleProperty(into, override, val);
+                            log.debug("override setting {} = {}", override, propertyName);
                         }
                     }
                 }
+                else {
+                    log.error("Skipping copy of annotated but unbeanish method \"{}\": can't determine prop name", method.getName());
+                }
             }
         }
-        
     }
+
 }
