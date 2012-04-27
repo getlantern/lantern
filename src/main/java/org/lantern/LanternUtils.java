@@ -149,6 +149,13 @@ public class LanternUtils {
             Executors.newCachedThreadPool(),
             Executors.newCachedThreadPool());
     
+    public static String jidToUserId(final String fullId) {
+        return fullId.split("/")[0];
+    }
+    
+    public static String jidToInstanceId(final String fullId) {
+        return fullId.split("/")[1];
+    }
     
     /**
      * Helper method that ensures all written requests are properly recorded.
