@@ -29,10 +29,11 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     private final Executor exec = Executors.newCachedThreadPool(
         new ThreadFactory() {
         
+        private int threadNumber = 0;
         @Override
         public Thread newThread(final Runnable r) {
             final Thread t = 
-                new Thread(r, "P2P-Socket-Creation-Thread");
+                new Thread(r, "P2P-Socket-Creation-Thread-"+threadNumber++);
             t.setDaemon(true);
             return t;
         }
