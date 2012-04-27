@@ -511,28 +511,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final Presence forHub = new Presence(Presence.Type.available);
         forHub.setTo(LanternConstants.LANTERN_JID);
         
-        /*
-        final JSONObject json = new JSONObject();
-        final StatsTracker statsTracker = LanternHub.statsTracker();
-        json.put(LanternConstants.COUNTRY_CODE, LanternHub.censored().countryCode());
-        json.put(LanternConstants.BYTES_PROXIED, 
-            statsTracker.getTotalBytesProxied());
-        json.put(LanternConstants.DIRECT_BYTES, 
-            statsTracker.getDirectBytes());
-        json.put(LanternConstants.REQUESTS_PROXIED, 
-            statsTracker.getTotalProxiedRequests());
-        json.put(LanternConstants.DIRECT_REQUESTS, 
-            statsTracker.getDirectRequests());
-        //json.put(LanternConstants.WHITELIST_ADDITIONS, 
-        //    LanternHub.whitelist().getAdditionsAsJson());
-            //LanternUtils.toJsonArray(Whitelist.getAdditions()));
-        //json.put(LanternConstants.WHITELIST_REMOVALS, 
-        //    LanternHub.whitelist().getRemovalsAsJson());
-        json.put(LanternConstants.VERSION_KEY, LanternConstants.VERSION);
-        final String str = json.toJSONString();
-        */
-        
-        if (!LanternHub.settings().isGetMode()) {
+        //if (!LanternHub.settings().isGetMode()) {
             final String str = 
                 LanternUtils.jsonify(LanternHub.statsTracker());
             LOG.info("Reporting data: {}", str);
@@ -543,9 +522,9 @@ public class DefaultXmppHandler implements XmppHandler {
             } else {
                 LOG.info("No new stats to report");
             }
-        } else {
-            LOG.info("Not reporting any stats in get mode");
-        }
+        //} else {
+        //    LOG.info("Not reporting any stats in get mode");
+        //}
         
         conn.sendPacket(forHub);
     }
