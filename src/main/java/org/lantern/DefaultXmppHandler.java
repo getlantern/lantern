@@ -723,14 +723,6 @@ public class DefaultXmppHandler implements XmppHandler {
                 } else {
                     LanternHub.anonymousPeerProxyManager().onPeer(uri);
                 }
-
-                /*
-                if (LanternHub..getTrustedContactsManager().isTrusted(msg)) {
-                    this.establishedPeerProxies.add(uri);
-                } else {
-                    this.establishedAnonymousProxies.add(uri);
-                }
-                */
             } catch (final IOException e) {
                 LOG.error("Could not add cert??", e);
             }
@@ -965,37 +957,6 @@ public class DefaultXmppHandler implements XmppHandler {
     public PeerProxyManager getTrustedPeerProxyManager() {
         return LanternHub.trustedPeerProxyManager();
     }
-    
-    
-    /*
-    @Override
-    public URI getAnonymousProxy() {
-        LOG.info("Getting anonymous proxy");
-        return getProxyUri(this.establishedAnonymousProxies);
-    }
-
-    @Override
-    public URI getPeerProxy() {
-        LOG.info("Getting peer proxy");
-        final URI proxy = getProxyUri(this.establishedPeerProxies);
-        if (proxy == null) {
-            LOG.info("Peer proxies {} and anonymous proxies {}", 
-                this.establishedPeerProxies, this.establishedAnonymousProxies);
-        }
-        return proxy;
-    }
-    
-    private URI getProxyUri(final Queue<URI> queue) {
-        if (queue.isEmpty()) {
-            LOG.info("No proxy URIs");
-            return null;
-        }
-        final URI proxy = queue.remove();
-        queue.add(proxy);
-        LOG.info("FIFO queue is now: {}", queue);
-        return proxy;
-    }
-    */
 
     private InetSocketAddress getProxy(final Queue<ProxyHolder> queue) {
         synchronized (queue) {
