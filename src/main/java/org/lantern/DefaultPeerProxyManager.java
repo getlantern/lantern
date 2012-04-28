@@ -103,6 +103,8 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                     log.info("Got socket and adding it for peer: {}", peerUri);
                     ts.onSocket(sock);
                     timedSockets.add(ts);
+                    LanternHub.eventBus().post(
+                        new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTED));
                 } catch (final IOException e) {
                     log.info("Could not create peer socket");
                 }                
