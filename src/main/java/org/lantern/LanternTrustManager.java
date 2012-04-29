@@ -146,19 +146,28 @@ public class LanternTrustManager implements X509TrustManager {
         certFile.delete();
     }
 
+    @Override
     public X509Certificate[] getAcceptedIssuers() {
         return new X509Certificate[0];
     }
 
+    @Override
     public void checkClientTrusted(final X509Certificate[] chain, 
         final String authType) throws CertificateException {
-        log.info("UNKNOWN CLIENT CERTIFICATE: " + chain[0].getSubjectDN());
+        log.info("CHECKING IF CLIENT IS TRUSTED");
+        //log.info("UNKNOWN CLIENT CERTIFICATE: " + chain[0].getSubjectDN());
+        authenticate(chain, authType);
     }
 
     @Override
     public void checkServerTrusted(final X509Certificate[] chain, 
         final String authType) throws CertificateException {
         log.info("CHECKING IF SERVER IS TRUSTED");
+        authenticate(chain, authType);
+    }
+
+    private void authenticate(X509Certificate[] chain, String authType)
+        throws CertificateException {
         if (chain == null || chain.length == 0) {
             throw new IllegalArgumentException(
                 "null or zero-length certificate chain");
