@@ -71,6 +71,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         // This removes the highest priority socket.
         final ConnectionTimeSocket cts = this.timedSockets.poll();
         if (cts == null) {
+            log.info("No peer sockets available!!");
             return null;
         }
         // When we use a socket, we always replace it with a new one.
@@ -94,15 +95,20 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             @Override
             public void run() {
                 try {
-                    final ConnectionTimeSocket ts = 
-                        new ConnectionTimeSocket(peerUri);
+                    // We open a number of sockets because in almost every
+                    // scenario the browser makes many connections to the proxy
+                    // to open a single page.
+                    for (int i = 0; i < 4; i++) {
+                        final ConnectionTimeSocket ts = 
+                            new ConnectionTimeSocket(peerUri);
 
-                    final Socket sock = LanternUtils.openOutgoingPeerSocket(
-                        peerUri, LanternHub.xmppHandler().getP2PClient(), 
-                        peerFailureCount);
-                    log.info("Got socket and adding it for peer: {}", peerUri);
-                    ts.onSocket(sock);
-                    timedSockets.add(ts);
+                        final Socket sock = LanternUtils.openOutgoingPeerSocket(
+                            peerUri, LanternHub.xmppHandler().getP2PClient(), 
+                            peerFailureCount);
+                        log.info("Got socket and adding it for peer: {}", peerUri);
+                        ts.onSocket(sock);
+                        timedSockets.add(ts);
+                    }
                     LanternHub.eventBus().post(
                         new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTED));
                 } catch (final IOException e) {
