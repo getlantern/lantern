@@ -105,49 +105,59 @@ public class LanternUtils {
     private static final File CONFIG_DIR = 
         new File(System.getProperty("user.home"), ".lantern");
     
-    private static final File DATA_DIR;
+    private static File DATA_DIR;
     
-    private static final File LOG_DIR;
+    private static File LOG_DIR;
+    
+    
+    public static ClientSocketChannelFactory clientSocketChannelFactory;
+
     
     static {
-        
-        if (SystemUtils.IS_OS_WINDOWS) {
-            //logDirParent = CommonUtils.getDataDir();
-            DATA_DIR = new File(System.getenv("APPDATA"), "Lantern");
-            LOG_DIR = new File(DATA_DIR, "logs");
-        } else if (SystemUtils.IS_OS_MAC_OSX) {
-            final File homeLibrary = 
-                new File(System.getProperty("user.home"), "Library");
-            DATA_DIR = CONFIG_DIR;//new File(homeLibrary, "Logs");
-            final File allLogsDir = new File(homeLibrary, "Logs");
-            LOG_DIR = new File(allLogsDir, "Lantern");
-        } else {
-            DATA_DIR = new File(SystemUtils.getUserHome(), ".lantern");
-            LOG_DIR = new File(DATA_DIR, "logs");
+        try {
+            Class.forName("org.lantern.LanternControllerUtils");
+            DATA_DIR = null;
+            LOG_DIR = null;
+            clientSocketChannelFactory = null;
+        } catch (final ClassNotFoundException e) {
+            // Only load these if we're not on app engine.
+            if (SystemUtils.IS_OS_WINDOWS) {
+                //logDirParent = CommonUtils.getDataDir();
+                DATA_DIR = new File(System.getenv("APPDATA"), "Lantern");
+                LOG_DIR = new File(DATA_DIR, "logs");
+            } else if (SystemUtils.IS_OS_MAC_OSX) {
+                final File homeLibrary = 
+                    new File(System.getProperty("user.home"), "Library");
+                DATA_DIR = CONFIG_DIR;//new File(homeLibrary, "Logs");
+                final File allLogsDir = new File(homeLibrary, "Logs");
+                LOG_DIR = new File(allLogsDir, "Lantern");
+            } else {
+                DATA_DIR = new File(System.getProperty("user.home"), ".lantern");
+                LOG_DIR = new File(DATA_DIR, "logs");
+            }
+
+            if (!DATA_DIR.isDirectory()) {
+                if (!DATA_DIR.mkdirs()) {
+                    System.err.println("Could not create parent at: "
+                            + DATA_DIR);
+                }
+            }
+            if (!LOG_DIR.isDirectory()) {
+                if (!LOG_DIR.mkdirs()) {
+                    System.err.println("Could not create dir at: " + LOG_DIR);
+                }
+            }
+            if (!CONFIG_DIR.isDirectory()) {
+                if (!CONFIG_DIR.mkdirs()) {
+                    LOG.error("Could not make config directory at: "+CONFIG_DIR);
+                }
+            } 
+            clientSocketChannelFactory = new NioClientSocketChannelFactory(
+                    Executors.newCachedThreadPool(),
+                    Executors.newCachedThreadPool());
         }
 
-        if (!DATA_DIR.isDirectory()) {
-            if (!DATA_DIR.mkdirs()) {
-                System.err.println("Could not create parent at: "
-                        + DATA_DIR);
-            }
-        }
-        if (!LOG_DIR.isDirectory()) {
-            if (!LOG_DIR.mkdirs()) {
-                System.err.println("Could not create dir at: " + LOG_DIR);
-            }
-        }
-        if (!CONFIG_DIR.isDirectory()) {
-            if (!CONFIG_DIR.mkdirs()) {
-                LOG.error("Could not make config directory at: "+CONFIG_DIR);
-            }
-        } 
     }
-    
-    public static final ClientSocketChannelFactory clientSocketChannelFactory =
-        new NioClientSocketChannelFactory(
-            Executors.newCachedThreadPool(),
-            Executors.newCachedThreadPool());
     
     public static String jidToUserId(final String fullId) {
         return fullId.split("/")[0];
