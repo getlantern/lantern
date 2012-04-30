@@ -4,7 +4,6 @@
  */
 (function(window) {
   var rootDescribes = new Describes(window);
-  var describePath = [];
   rootDescribes.collectMode();
 
   var JASMINE_TYPE = 'jasmine test case';
@@ -22,7 +21,7 @@
         return false;
       },
 
-      runTestConfiguration: function(testRunConfiguration, onTestDone, onTestRunConfigurationComplete){
+      runTestConfiguration: function(testRunConfiguration, onTestDone, onTestRunConfigurationComplete) {
         if (testRunConfiguration.getTestCaseInfo().getType() != JASMINE_TYPE) return false;
 
         var jasmineEnv = jasmine.currentEnv_ = new jasmine.Env();
@@ -33,7 +32,7 @@
           return rootDescribes.isExclusive(spec);
         };
         jasmineEnv.reporter = {
-          log: function(str){
+          log: function(str) {
             specLog.push(str);
           },
 
@@ -82,7 +81,7 @@
         return true;
       },
 
-      onTestsFinish: function(){
+      onTestsFinish: function() {
         jasmine.currentEnv_ = null;
         rootDescribes.collectMode();
       }
@@ -92,7 +91,7 @@
   function formatStack(stack) {
     var lines = (stack||'').split(/\r?\n/);
     var frames = [];
-    for (i = 0; i < lines.length; i++) {
+    for (var i = 0; i < lines.length; i++) {
       if (!lines[i].match(/\/jasmine[\.-]/)) {
         frames.push(lines[i].replace(/https?:\/\/\w+(:\d+)?\/test\//, '').replace(/^\s*/, '      '));
       }
@@ -100,8 +99,8 @@
     return frames.join('\n');
   }
 
-  function noop(){}
-  function Describes(window){
+  function noop() {}
+  function Describes(window) {
     var describes = {};
     var beforeEachs = {};
     var afterEachs = {};
@@ -116,10 +115,10 @@
     intercept('beforeEach', beforeEachs);
     intercept('afterEach', afterEachs);
 
-    function intercept(functionName, collection){
-      window[functionName] = function(desc, fn){
+    function intercept(functionName, collection) {
+      window[functionName] = function(desc, fn) {
         if (collectMode) {
-          collection[desc] = function(){
+          collection[desc] = function() {
             jasmine.getEnv()[functionName](desc, fn);
           };
         } else {
@@ -127,15 +126,15 @@
         }
       };
     }
-    window.ddescribe = function(name, fn){
+    window.ddescribe = function(name, fn) {
       if (exclusive < 1) {
         exclusive = 1; // run ddescribe only
       }
-      window.describe(name, function(){
+      window.describe(name, function() {
         var oldIt = window.it;
-        window.it = function(name, fn){
+        window.it = function(name, fn) {
           fn.exclusive = 1; // run anything under ddescribe
-          oldIt(name, fn);
+          jasmine.getEnv().it(name, fn);
         };
         try {
           fn.call(this);
@@ -144,7 +143,7 @@
         };
       });
     };
-    window.iit = function(name, fn){
+    window.iit = function(name, fn) {
       exclusive = fn.exclusive = 2; // run only iits
       jasmine.getEnv().it(name, fn);
     };
@@ -154,7 +153,7 @@
       collectMode = true;
       exclusive = 0; // run everything
     };
-    this.playback = function(){
+    this.playback = function() {
       collectMode = false;
       playback(beforeEachs);
       playback(afterEachs);
@@ -195,4 +194,3 @@ jasmine.Spec.prototype.fail = function (e) {
   }
   this.results_.addResult(expectationResult);
 };
-
