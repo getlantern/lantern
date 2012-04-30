@@ -1,7 +1,8 @@
-# angular-seed — the seed for &lt;angular/&gt; apps
+# angular-seed — the seed for AngularJS apps
 
-This project is an application skeleton for a typical [angular](http://angularjs.org/) web app. You
-can use it to quickly bootstrap your angular webapp projects and dev environment for these projects.
+This project is an application skeleton for a typical [AngularJS](http://angularjs.org/) web app.
+You can use it to quickly bootstrap your angular webapp projects and dev environment for these
+projects.
 
 The seed contains angular libraries, test libraries and a bunch of scripts all preconfigured for
 instant web development gratification. Just clone the repo (or download the zip/tarball), start up
@@ -113,7 +114,7 @@ fetch the changes and merge them into your project with git.
         angular/
           angular.js            --> the latest angular js
           angular.min.js        --> the latest minified angular js
-          angular-ie-compat.js  --> angular patch for IE 6&7 compatibility
+          angular-*.js  --> angular add-on modules
           version.txt           --> version number
       partials/         --> angular view partials (partial html templates)
         partial1.html

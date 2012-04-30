@@ -1,5 +1,6 @@
 'use strict';
-/* http://docs-next.angularjs.org/api/angular.module.ng.$compileProvider.directive */
+
+/* Directives */
 
 
 angular.module('myApp.directives', []).

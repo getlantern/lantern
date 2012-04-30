@@ -1,5 +1,6 @@
 'use strict';
-/* http://docs-next.angularjs.org/api/angular.module.ng.$filter */
+
+/* Filters */
 
 angular.module('myApp.filters', []).
   filter('interpolate', ['version', function(version) {

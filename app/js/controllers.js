@@ -1,5 +1,6 @@
 'use strict';
-/* App Controllers */
+
+/* Controllers */
 
 
 function MyCtrl1() {}
