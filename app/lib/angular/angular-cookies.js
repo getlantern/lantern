@@ -1,9 +1,9 @@
 /**
- * @license AngularJS v1.0.0rc7
+ * @license AngularJS v1.0.0rc8
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
-(function(angular) {
+(function(window, angular, undefined) {
 'use strict';
 
 /**
@@ -168,4 +168,4 @@ angular.module('ngCookies', ['ng']).
 
     }]);
 
-})(window.angular);
+})(window, window.angular);

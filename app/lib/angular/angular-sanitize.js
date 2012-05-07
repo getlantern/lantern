@@ -1,9 +1,9 @@
 /**
- * @license AngularJS v1.0.0rc7
+ * @license AngularJS v1.0.0rc8
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
-(function(angular) {
+(function(window, angular, undefined) {
 'use strict';
 
 /**
@@ -406,8 +406,7 @@ angular.module('ngSanitize', []).value('$sanitize', $sanitize);
  *
  * @description
  * Creates a binding that will sanitize the result of evaluating the `expression` with the
- * {@link angular.module.ngSanitize.$sanitize $sanitize} service and innerHTML the result into the
- * current element.
+ * {@link angular.module.ngSanitize.$sanitize $sanitize} service and innerHTML the result into the current element.
  *
  * See {@link angular.module.ngSanitize.$sanitize $sanitize} docs for examples.
  *
@@ -530,4 +529,4 @@ angular.module('ngSanitize').filter('linky', function() {
   };
 });
 
-})(window.angular);
+})(window, window.angular);
