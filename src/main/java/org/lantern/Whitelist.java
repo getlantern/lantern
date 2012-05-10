@@ -31,6 +31,7 @@ public class Whitelist {
         addDefaultEntry("avaaz.org", false);
         addDefaultEntry("bittorrent.com", false);
         addDefaultEntry("balatarin.com", false);
+        addDefaultEntry("chinadigitaltimes.net", false);
         addDefaultEntry("facebook.com", false);
         addDefaultEntry("flickr.com", false);
         addDefaultEntry("hrw.org", false); // Human Rights Watch
@@ -51,7 +52,6 @@ public class Whitelist {
         addDefaultEntry("wordpress.org", false);
         addDefaultEntry("wordpress.com", false);
         addDefaultEntry("youtube.com", false);
-        addDefaultEntry("chinadigitaltimes.net", false);
     }
     
     public boolean isWhitelisted(final String uri,
