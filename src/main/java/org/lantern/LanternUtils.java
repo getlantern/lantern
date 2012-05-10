@@ -1004,7 +1004,7 @@ public class LanternUtils {
         }
     }
     
-    public static void configureXmpp() {
+    public static ConnectionConfiguration xmppConfig() {
         final ConnectionConfiguration config = 
             new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
         config.setExpiredCertificatesCheckEnabled(true);
@@ -1030,6 +1030,7 @@ public class LanternUtils {
             //"TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA",
             "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
             "TLS_DHE_DSS_WITH_AES_256_CBC_SHA",
+            "SSL_RSA_WITH_RC4_128_SHA",
             //"TLS_ECDH_RSA_WITH_AES_256_CBC_SHA",
             //"TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA",
             //"TLS_RSA_WITH_CAMELLIA_256_CBC_SHA",
@@ -1098,9 +1099,11 @@ public class LanternUtils {
                 return createSocket(InetAddress.getByName(host), port);
             }
         });
-        
-
-        XmppUtils.setGlobalConfig(config);
+        return config;
+    }
+    
+    public static void configureXmpp() {
+        XmppUtils.setGlobalConfig(xmppConfig());
     }
     
 }
