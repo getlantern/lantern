@@ -51,6 +51,7 @@ public class Whitelist {
         addDefaultEntry("wordpress.org", false);
         addDefaultEntry("wordpress.com", false);
         addDefaultEntry("youtube.com", false);
+        addDefaultEntry("chinadigitaltimes.net", false);
     }
     
     public boolean isWhitelisted(final String uri,
