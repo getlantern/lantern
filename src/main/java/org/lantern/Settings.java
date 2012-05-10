@@ -117,7 +117,7 @@ public class Settings implements MutableSettings {
      */
     private boolean useCloudProxies = true;
     
-    private final AtomicBoolean getMode = new AtomicBoolean(true);
+    private AtomicBoolean getMode = null;
     
     private boolean bindToLocalhost = true;
     
@@ -160,6 +160,8 @@ public class Settings implements MutableSettings {
     private boolean useLaeProxies = true;
     private boolean useCentralProxies = true;
 
+    private final Object getModeLock = new Object();
+
     {
         LanternHub.register(this);
         threadPublicIpLookup();
@@ -178,16 +180,24 @@ public class Settings implements MutableSettings {
      */
     private void threadPublicIpLookup() {
         final Thread thread = new Thread(new Runnable() {
-
             @Override
             public void run() {
-                getMode.set(LanternHub.censored().isCensored());
+                // This performs the public IP lookup so by the time we set
+                // GET versus GIVE mode we already know the IP and don't have
+                // to wait.
                 final Country count = LanternHub.censored().country();
                 if (countryDetected.get() == null) {
                     countryDetected.set(count);
                 }
                 if (country.get() == null) {
                     country.set(count);
+                }
+                
+                synchronized (getModeLock) {
+                    if (getMode == null) {
+                        getMode = new AtomicBoolean(
+                            LanternHub.censored().isCensored());
+                    }
                 }
             }
             
@@ -421,16 +431,27 @@ public class Settings implements MutableSettings {
 
     @Override
     public void setGetMode(final boolean getMode) {
-        this.getMode.set(getMode);
+        synchronized (getModeLock) {
+            if (this.getMode == null) {
+                this.getMode = new AtomicBoolean(getMode);
+            } else {
+                this.getMode.set(getMode);
+            }
+        }
     }
 
 
     @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isGetMode() {
-        return getMode.get();
+        synchronized (getModeLock) {
+            if (getMode == null) {
+                getMode = new AtomicBoolean(LanternHub.censored().isCensored());
+            } 
+            return getMode.get();
+        }
     }
 
-    public void setBindToLocalhost(boolean bindToLocalhost) {
+    public void setBindToLocalhost(final boolean bindToLocalhost) {
         this.bindToLocalhost = bindToLocalhost;
     }
 
