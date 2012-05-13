@@ -48,6 +48,7 @@ import org.jivesoftware.smack.packet.Presence;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.lastbamboo.common.p2p.P2PConnectionListener;
 import org.lastbamboo.common.p2p.P2PConstants;
@@ -1025,6 +1026,12 @@ public class DefaultXmppHandler implements XmppHandler {
     
     private ServerSocketFactory newTlsServerSocketFactory() {
         LOG.info("Creating TLS server socket factory");
+        
+        // Note the following just sets what cipher suite the server side
+        // selects. DHE is for perfect forward secrecy.
+        IceConfig.setCipherSuites(new String[] {
+            "TLS_DHE_RSA_WITH_AES_256_CBC_SHA"
+        });
         String algorithm = 
             Security.getProperty("ssl.KeyManagerFactory.algorithm");
         if (algorithm == null) {
