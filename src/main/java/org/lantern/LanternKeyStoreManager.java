@@ -30,6 +30,8 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
     private static final String PASS = 
         String.valueOf(LanternHub.secureRandom().nextLong());
+    
+    private static final String KEYSIZE = "1024";
 
     private String localCert;
     
@@ -89,7 +91,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             return;
         }
         final String result = LanternUtils.runKeytool("-genkey", "-alias", 
-            "foo", "-keysize", "1024", "-validity", "365", "-keyalg", "DSA", 
+            "foo", "-keysize", KEYSIZE, "-validity", "365", "-keyalg", "DSA", 
             "-dname", "CN="+LanternUtils.getMacAddress(), "-keystore", 
             TRUSTSTORE_FILE.getAbsolutePath(), "-keypass", PASS, 
             "-storepass", PASS);
@@ -113,7 +115,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         // Note we use DSA instead of RSA because apparently only the JDK 
         // has RSA available.
         final String genKeyResult = LanternUtils.runKeytool("-genkey", "-alias", 
-            macAddress, "-keysize", "1024", "-validity", "365", "-keyalg", "DSA", 
+            macAddress, "-keysize", KEYSIZE, "-validity", "365", "-keyalg", "DSA", 
             "-dname", "CN="+macAddress, "-keypass", PASS, "-storepass", 
             PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
         
