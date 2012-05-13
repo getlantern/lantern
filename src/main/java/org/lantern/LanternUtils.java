@@ -360,6 +360,8 @@ public class LanternUtils {
     }
 
     private static String macMe(final byte[] mac) {
+        // We wrap the MAC in a SHA-1 to avoid distributing actual 
+        // MAC addresses.
         final MessageDigest md = new Sha1();
         md.update(mac);
         final byte[] raw = md.digest();
@@ -370,7 +372,6 @@ public class LanternUtils {
     public static File configDir() {
         return CONFIG_DIR;
     }
-    
 
     public static File dataDir() {
         return DATA_DIR;
