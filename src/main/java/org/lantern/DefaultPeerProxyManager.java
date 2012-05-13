@@ -110,7 +110,8 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                         timedSockets.add(ts);
                     }
                     LanternHub.eventBus().post(
-                        new ConnectivityStatusChangeEvent(ConnectivityStatus.CONNECTED));
+                        new ConnectivityStatusChangeEvent(
+                            ConnectivityStatus.CONNECTED));
                 } catch (final IOException e) {
                     log.info("Could not create peer socket");
                 }                
