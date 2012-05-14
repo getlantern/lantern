@@ -30,10 +30,12 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         new ThreadFactory() {
         
         private int threadNumber = 0;
+        
         @Override
         public Thread newThread(final Runnable r) {
             final Thread t = 
-                new Thread(r, "P2P-Socket-Creation-Thread-"+threadNumber++);
+                new Thread(r, "P2P-Socket-Creation-Thread-"+threadNumber);
+            threadNumber++;
             t.setDaemon(true);
             return t;
         }
@@ -60,7 +62,6 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     
     public DefaultPeerProxyManager(final boolean anon) {
         this.anon = anon;
-        
     }
 
     @Override
