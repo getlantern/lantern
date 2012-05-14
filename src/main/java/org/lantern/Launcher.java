@@ -100,7 +100,12 @@ public class Launcher {
     
     private static void launch(final String... args) {
         LOG.info("Starting Lantern...");
-
+        // Note the following just sets what cipher suite the server side
+        // selects. DHE is for perfect forward secrecy.
+        IceConfig.setCipherSuites(new String[] {
+            "TLS_DHE_RSA_WITH_AES_256_CBC_SHA"
+        });
+        
         // first apply any command line settings
         final Options options = new Options();
         options.addOption(null, OPTION_DISABLE_UI, false,
@@ -163,6 +168,8 @@ public class Launcher {
         LanternHub.settings().setUseCentralProxies(
             parseOptionDefaultTrue(cmd, OPTION_CENTRAL));
         
+        //IceConfig.setTcp(false);
+        //IceConfig.setUdp(true);
         IceConfig.setTcp(parseOptionDefaultTrue(cmd, OPTION_TCP));
         IceConfig.setUdp(parseOptionDefaultTrue(cmd, OPTION_UDP));
         if (cmd.hasOption(OPTION_USER)) {
@@ -285,6 +292,16 @@ public class Launcher {
         
         // DEFAULTS TO TRUE!!
         return true;
+    }
+    
+    private static boolean parseOptionDefaultFalse(final CommandLine cmd, 
+        final String option) {
+        if (cmd.hasOption(option)) {
+            LOG.info("Found option: "+option);
+            return false;
+        }
+        
+        return false;
     }
 
     private static void loadSettings() {
