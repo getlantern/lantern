@@ -92,14 +92,13 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         final Map<URI, AtomicInteger> peerFailureCount = 
             new HashMap<URI, AtomicInteger>();
         exec.execute(new Runnable() {
-
             @Override
             public void run() {
                 try {
                     // We open a number of sockets because in almost every
                     // scenario the browser makes many connections to the proxy
                     // to open a single page.
-                    for (int i = 0; i < 4; i++) {
+                    for (int i = 0; i < 6; i++) {
                         final ConnectionTimeSocket ts = 
                             new ConnectionTimeSocket(peerUri);
 
@@ -117,7 +116,6 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                     log.info("Could not create peer socket");
                 }                
             }
-            
         });
     }
 
