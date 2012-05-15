@@ -36,7 +36,7 @@ describe('my app', function() {
     });
 
 
-    it('should render view1 when user navigates to /view2', function() {
+    it('should render view2 when user navigates to /view2', function() {
       expect(element('[ng-view] p:first').text()).
         toMatch(/partial for view 2/);
     });
