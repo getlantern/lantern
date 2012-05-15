@@ -9404,7 +9404,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
 
 })( window );
 /**
- * @license AngularJS v1.0.0rc8
+ * @license AngularJS v1.0.0rc9
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -10648,11 +10648,11 @@ function setupModuleLoader(window) {
  * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
  */
 var version = {
-  full: '1.0.0rc8',    // all of these placeholder strings will be replaced by rake's
+  full: '1.0.0rc9',    // all of these placeholder strings will be replaced by rake's
   major: 1,    // compile task
   minor: 0,
   dot: 0,
-  codeName: 'blooming-touch'
+  codeName: 'eggplant-teleportation'
 };
 
 
@@ -10839,7 +10839,7 @@ function publishExternalAPI(angular){
  * @returns {Object} jQuery object.
  */
 
-var jqCache = {},
+var jqCache = JQLite.cache = {},
     jqName = JQLite.expando = 'ng-' + new Date().getTime(),
     jqId = 1,
     addEventListenerFn = (window.document.addEventListener
@@ -10887,15 +10887,15 @@ function JQLitePatchJQueryRemove(name, dispatchThis) {
         fireEvent = dispatchThis,
         set, setIndex, setLength,
         element, childIndex, childLength, children,
-        fns, data;
+        fns, events;
 
     while(list.length) {
       set = list.shift();
       for(setIndex = 0, setLength = set.length; setIndex < setLength; setIndex++) {
         element = jqLite(set[setIndex]);
         if (fireEvent) {
-          data = element.data('events');
-          if ( (fns = data && data.$destroy) ) {
+          events = element.data('events');
+          if ( (fns = events && events.$destroy) ) {
             forEach(fns, function(fn){
               fn.handler();
             });
@@ -10950,19 +10950,35 @@ function JQLiteDealoc(element){
   }
 }
 
+function JQLiteUnbind(element, type, fn) {
+  var events = JQLiteData(element, 'events'),
+      handle = JQLiteData(element, 'handle');
+
+  if (!handle) return; //no listeners registered
+
+  if (isUndefined(type)) {
+    forEach(events, function(eventHandler, type) {
+      removeEventListenerFn(element, type, eventHandler);
+      delete events[type];
+    });
+  } else {
+    if (isUndefined(fn)) {
+      removeEventListenerFn(element, type, events[type]);
+      delete events[type];
+    } else {
+      arrayRemove(events[type], fn);
+    }
+  }
+}
+
 function JQLiteRemoveData(element) {
   var cacheId = element[jqName],
       cache = jqCache[cacheId];
 
   if (cache) {
-    if (cache.bind) {
-      forEach(cache.bind, function(fn, type){
-        if (type == '$destroy') {
-          fn({});
-        } else {
-          removeEventListenerFn(element, type, fn);
-        }
-      });
+    if (cache.handle) {
+      cache.events.$destroy && cache.handle({}, '$destroy');
+      JQLiteUnbind(element);
     }
     delete jqCache[cacheId];
     element[jqName] = undefined; // ie does not allow deletion of attributes on elements.
@@ -11264,8 +11280,8 @@ forEach({
   };
 });
 
-function createEventHandler(element) {
-  var eventHandler = function (event) {
+function createEventHandler(element, events) {
+  var eventHandler = function (event, type) {
     if (!event.preventDefault) {
       event.preventDefault = function() {
         event.returnValue = false; //ie
@@ -11295,8 +11311,12 @@ function createEventHandler(element) {
       return event.defaultPrevented;
     };
 
-    forEach(eventHandler.fns, function(fn){
-      fn.call(element, event);
+    forEach(events[type || event.type], function(fn) {
+      try {
+        fn.call(element, event);
+      } catch (e) {
+        // Not much to do here since jQuery ignores these anyway
+      }
     });
 
     // Remove monkey-patched methods (IE),
@@ -11313,7 +11333,7 @@ function createEventHandler(element) {
       delete event.isDefaultPrevented;
     }
   };
-  eventHandler.fns = [];
+  eventHandler.elem = element;
   return eventHandler;
 }
 
@@ -11328,61 +11348,45 @@ forEach({
   dealoc: JQLiteDealoc,
 
   bind: function bindFn(element, type, fn){
-    var bind = JQLiteData(element, 'bind');
+    var events = JQLiteData(element, 'events'),
+        handle = JQLiteData(element, 'handle');
 
+    if (!events) JQLiteData(element, 'events', events = {});
+    if (!handle) JQLiteData(element, 'handle', handle = createEventHandler(element, events));
 
-    if (!bind) JQLiteData(element, 'bind', bind = {});
     forEach(type.split(' '), function(type){
-      var eventHandler = bind[type];
+      var eventFns = events[type];
 
-
-      if (!eventHandler) {
+      if (!eventFns) {
         if (type == 'mouseenter' || type == 'mouseleave') {
-          var mouseenter = bind.mouseenter = createEventHandler(element);
-          var mouseleave = bind.mouseleave = createEventHandler(element);
           var counter = 0;
 
+          events.mouseenter = [];
+          events.mouseleave = [];
 
           bindFn(element, 'mouseover', function(event) {
             counter++;
             if (counter == 1) {
-              mouseenter(event);
+              handle(event, 'mouseenter');
             }
           });
           bindFn(element, 'mouseout', function(event) {
             counter --;
             if (counter == 0) {
-              mouseleave(event);
+              handle(event, 'mouseleave');
             }
           });
-          eventHandler = bind[type];
         } else {
-          eventHandler = bind[type] = createEventHandler(element);
-          addEventListenerFn(element, type, eventHandler);
+          addEventListenerFn(element, type, handle);
+          events[type] = [];
         }
+        eventFns = events[type]
       }
-      eventHandler.fns.push(fn);
+      eventFns.push(fn);
     });
   },
 
-  unbind: function(element, type, fn) {
-    var bind = JQLiteData(element, 'bind');
-    if (!bind) return; //no listeners registered
-
-    if (isUndefined(type)) {
-      forEach(bind, function(eventHandler, type) {
-        removeEventListenerFn(element, type, eventHandler);
-        delete bind[type];
-      });
-    } else {
-      if (isUndefined(fn)) {
-        removeEventListenerFn(element, type, bind[type]);
-        delete bind[type];
-      } else {
-        arrayRemove(bind[type].fns, fn);
-      }
-    }
-  },
+  unbind: JQLiteUnbind,
 
   replaceWith: function(element, replaceNode) {
     var index, parent = element.parentNode;
@@ -12301,7 +12305,8 @@ function Browser(window, document, $log, $sniffer) {
   // URL API
   //////////////////////////////////////////////////////////////
 
-  var lastBrowserUrl = location.href;
+  var lastBrowserUrl = location.href,
+      baseElement = document.find('base');
 
   /**
    * @ngdoc method
@@ -12330,7 +12335,11 @@ function Browser(window, document, $log, $sniffer) {
       lastBrowserUrl = url;
       if ($sniffer.history) {
         if (replace) history.replaceState(null, '', url);
-        else history.pushState(null, '', url);
+        else {
+          history.pushState(null, '', url);
+          // Crazy Opera Bug: http://my.opera.com/community/forums/topic.dml?id=1185462
+          baseElement.attr('href', baseElement.attr('href'));
+        }
       } else {
         if (replace) location.replace(url);
         else location.href = url;
@@ -12338,7 +12347,8 @@ function Browser(window, document, $log, $sniffer) {
       return self;
     // getter
     } else {
-      return location.href;
+      // the replacement is a workaround for https://bugzilla.mozilla.org/show_bug.cgi?id=407172
+      return location.href.replace(/%27/g,"'");
     }
   };
 
@@ -12409,7 +12419,7 @@ function Browser(window, document, $log, $sniffer) {
    * @returns {string=}
    */
   self.baseHref = function() {
-    var href = document.find('base').attr('href');
+    var href = baseElement.attr('href');
     return href ? href.replace(/^https?\:\/\/[^\/]*/, '') : href;
   };
 
@@ -14070,7 +14080,7 @@ function $InterpolateProvider() {
   }];
 }
 
-var URL_MATCH = /^(file|ftp|http|https):\/\/(\w+:{0,1}\w*@)?([\w\.-]*)(:([0-9]+))?(\/[^\?#]*)?(\?([^#]*))?(#(.*))?$/,
+var URL_MATCH = /^([^:]+):\/\/(\w+:{0,1}\w*@)?([\w\.-]*)(:([0-9]+))?(\/[^\?#]*)?(\?([^#]*))?(#(.*))?$/,
     PATH_MATCH = /^([^\?#]*)?(\?([^#]*))?(#(.*))?$/,
     HASH_MATCH = PATH_MATCH,
     DEFAULT_PORTS = {'http': 80, 'https': 443, 'ftp': 21};
@@ -16684,7 +16694,7 @@ function $RootScopeProvider(){
            scope.counter = 0;
 
            expect(scope.counter).toEqual(0);
-           scope.$watch('name', function(scope, newValue, oldValue) {
+           scope.$watch('name', function(newValue, oldValue) {
              counter = counter + 1;
            });
            expect(scope.counter).toEqual(0);
@@ -17121,10 +17131,15 @@ function $RootScopeProvider(){
  */
 function $SnifferProvider() {
   this.$get = ['$window', function($window) {
-    var eventSupport = {};
+    var eventSupport = {},
+        android = int((/android (\d+)/.exec(lowercase($window.navigator.userAgent)) || [])[1]);
 
     return {
-      history: !!($window.history && $window.history.pushState),
+      // Android has history.pushState, but it does not update location correctly
+      // so let's not use the history API at all.
+      // http://code.google.com/p/android/issues/detail?id=17471
+      // https://github.com/angular/angular.js/issues/904
+      history: !!($window.history && $window.history.pushState && !(android < 4)),
       hashchange: 'onhashchange' in $window &&
                   // IE8 compatible mode lies
                   (!$window.document.documentMode || $window.document.documentMode > 7),
