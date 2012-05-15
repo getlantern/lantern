@@ -94,6 +94,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         exec.execute(new Runnable() {
             @Override
             public void run() {
+                boolean gotConnected = false;
                 try {
                     // We open a number of sockets because in almost every
                     // scenario the browser makes many connections to the proxy
@@ -108,10 +109,13 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                         log.info("Got socket and adding it for peer: {}", peerUri);
                         ts.onSocket(sock);
                         timedSockets.add(ts);
+                        if (!gotConnected) {
+                            LanternHub.eventBus().post(
+                                    new ConnectivityStatusChangeEvent(
+                                        ConnectivityStatus.CONNECTED));
+                        }
+                        gotConnected = true;
                     }
-                    LanternHub.eventBus().post(
-                        new ConnectivityStatusChangeEvent(
-                            ConnectivityStatus.CONNECTED));
                 } catch (final IOException e) {
                     log.info("Could not create peer socket");
                 }                
