@@ -68,6 +68,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     public HttpRequestProcessor processRequest(
         final Channel browserToProxyChannel, final ChannelHandlerContext ctx, 
         final MessageEvent me) throws IOException {
+        log.info("Processing request...");
         
         // This removes the highest priority socket.
         final ConnectionTimeSocket cts = this.timedSockets.poll();
@@ -75,14 +76,19 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             log.info("No peer sockets available!!");
             return null;
         }
-        // When we use a socket, we always replace it with a new one.
-        onPeer(cts.peerUri);
         cts.requestProcessor.processRequest(browserToProxyChannel, ctx, me);
+        
+        // When we use a socket, we always replace it with a new one.
+        onPeer(cts.peerUri, 1);
         return cts.requestProcessor;
     }
 
     @Override
     public void onPeer(final URI peerUri) {
+        onPeer(peerUri, 6);
+    }
+
+    private void onPeer(final URI peerUri, final int sockets) {
         if (!LanternHub.settings().isGetMode()) {
             log.info("Ingoring peer when we're in give mode");
             return;
@@ -99,7 +105,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                     // We open a number of sockets because in almost every
                     // scenario the browser makes many connections to the proxy
                     // to open a single page.
-                    for (int i = 0; i < 6; i++) {
+                    for (int i = 0; i < sockets; i++) {
                         final ConnectionTimeSocket ts = 
                             new ConnectionTimeSocket(peerUri);
 
