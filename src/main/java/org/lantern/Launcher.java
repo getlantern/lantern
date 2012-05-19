@@ -3,11 +3,13 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Properties;
 
 import javax.security.auth.login.CredentialException;
@@ -38,6 +40,7 @@ import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lastbamboo.common.offer.answer.IceConfig;
+import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestFilter;
@@ -168,7 +171,7 @@ public class Launcher {
         LanternHub.settings().setUseCentralProxies(
             parseOptionDefaultTrue(cmd, OPTION_CENTRAL));
         
-        //IceConfig.setTcp(false);
+        //IceConfig.setTcp(true);
         //IceConfig.setUdp(true);
         IceConfig.setTcp(parseOptionDefaultTrue(cmd, OPTION_TCP));
         IceConfig.setUdp(parseOptionDefaultTrue(cmd, OPTION_UDP));
@@ -236,6 +239,13 @@ public class Launcher {
         
         loadSettings();
         
+        // Use our stored STUN servers if available.
+        final Collection<String> stunServers = 
+            LanternHub.settings().getStunServers();
+        if (stunServers != null && !stunServers.isEmpty()) {
+            LOG.info("Using stored STUN servers: {}", stunServers);
+            StunServerRepository.setStunServers(toSocketAddresses(stunServers));
+        }
         if (LanternUtils.hasNetworkConnection()) {
             LOG.info("Got internet...");
             launchWithOrWithoutUi();
@@ -281,6 +291,18 @@ public class Launcher {
                 if (!display.readAndDispatch ()) display.sleep ();
             }
         }
+    }
+
+    private static Collection<InetSocketAddress> toSocketAddresses(
+        final Collection<String> stunServers) {
+        final Collection<InetSocketAddress> isas = 
+            new HashSet<InetSocketAddress>();
+        for (final String server : stunServers) {
+            final String host = StringUtils.substringBefore(server, ":");
+            final String port = StringUtils.substringAfter(server, ":");
+            isas.add(new InetSocketAddress(host, Integer.parseInt(port)));
+        }
+        return isas;
     }
 
     private static boolean parseOptionDefaultTrue(final CommandLine cmd, 

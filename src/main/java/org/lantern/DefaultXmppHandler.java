@@ -48,7 +48,6 @@ import org.jivesoftware.smack.packet.Presence;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.lastbamboo.common.p2p.P2PConnectionListener;
 import org.lastbamboo.common.p2p.P2PConstants;
@@ -298,6 +297,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final Collection<InetSocketAddress> googleStunServers = 
             XmppUtils.googleStunServers(connection);
         StunServerRepository.setStunServers(googleStunServers);
+        LanternHub.settings().setStunServers(
+            new HashSet<String>(toStringServers(googleStunServers)));
         
         // Make sure all connections between us and the server are stored
         // OTR.
@@ -351,6 +352,15 @@ public class DefaultXmppHandler implements XmppHandler {
         configureRoster();
     }
     
+
+    private Set<String> toStringServers(
+        final Collection<InetSocketAddress> googleStunServers) {
+        final Set<String> strings = new HashSet<String>();
+        for (final InetSocketAddress isa : googleStunServers) {
+            strings.add(isa.getHostName()+":"+isa.getPort());
+        }
+        return strings;
+    }
 
     private void connectivityEvent(final ConnectivityStatus cs) {
         if (LanternHub.settings().isGetMode()) {

@@ -7,6 +7,7 @@ import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -161,6 +162,8 @@ public class Settings implements MutableSettings {
     private boolean useCentralProxies = true;
 
     private final Object getModeLock = new Object();
+    
+    private Set<String> stunServers = new HashSet<String>();
 
     {
         LanternHub.register(this);
@@ -659,7 +662,7 @@ public class Settings implements MutableSettings {
         return useAnonymousPeers;
     }
 
-    public void setUseCentralProxies(boolean useCentralProxies) {
+    public void setUseCentralProxies(final boolean useCentralProxies) {
         this.useCentralProxies = useCentralProxies;
     }
 
@@ -667,6 +670,15 @@ public class Settings implements MutableSettings {
     @CommandLineOption
     public boolean isUseCentralProxies() {
         return useCentralProxies;
+    }
+    
+    public void setStunServers(final Set<String> stunServers){
+        this.stunServers = stunServers;
+    }
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public Collection<String> getStunServers() {
+        return stunServers;
     }
 
     @Override
@@ -725,5 +737,4 @@ public class Settings implements MutableSettings {
             }
         }
     }
-
 }
