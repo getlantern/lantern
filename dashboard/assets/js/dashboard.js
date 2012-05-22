@@ -269,7 +269,7 @@ function LDCtrl(){
   };
 
   self.switchlinktext = function(){
-    if(self.connected())
+    //if(self.connected())
       return 'Switch to '+(self.state.getMode?'giv':'gett')+'ing access';
   };
 
