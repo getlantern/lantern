@@ -35,6 +35,7 @@ public class NatPmp implements NatPmpService {
      */
     public NatPmp() throws NatPmpException {
         if (NetworkUtils.isPublicAddress()) {
+            // If we're already on the public network, there's no NAT.
             return;
         }
         pmpDevice = new NatPmpDevice(false);
@@ -83,6 +84,7 @@ public class NatPmp implements NatPmpService {
         final int localPort, final int externalPortRequested,
         final PortMapListener portMapListener) {
         if (NetworkUtils.isPublicAddress()) {
+            // If we're already on the public network, there's no NAT.
             return 1;
         }
         if (portMapListener == null) {
@@ -129,11 +131,14 @@ public class NatPmp implements NatPmpService {
             if (extPort != null) { 
                 log.info("Got external port!! "+extPort);
                 portMapListener.onPortMap(extPort);
+                LanternHub.statsTracker().setNatpmp(true);
             } else {
                 portMapListener.onPortMapError();
+                LanternHub.statsTracker().setNatpmp(false);
             }
         } catch (final NatPmpException e) {
             portMapListener.onPortMapError();
+            LanternHub.statsTracker().setNatpmp(false);
         }
         // We have to add it whether it succeeded or not to keep the indeces 
         // in sync.

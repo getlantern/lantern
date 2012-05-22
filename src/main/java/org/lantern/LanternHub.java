@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.SecureRandom;
-import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
@@ -16,7 +15,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.widgets.Display;
-import org.lantern.AppIndicatorTray;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.InMemoryCookieTracker;
 import org.lantern.httpseverywhere.HttpsEverywhere;
@@ -120,7 +118,7 @@ public class LanternHub {
         new AtomicReference<Settings>();
     
     private static final Configurator configurator = new Configurator();
-    
+
     static {
         // start with an UNSET settings object until loaded
         settings.set(new Settings());
@@ -214,7 +212,7 @@ public class LanternHub {
             return statsTracker.get();
         }
     }
-
+    
     public static LanternKeyStoreManager getKeyStoreManager() {
         synchronized (proxyKeyStore) {
             if (proxyKeyStore.get() == null) {
@@ -421,7 +419,7 @@ public class LanternHub {
         final Settings cur = settings();
         if (retainCLIOptions == true && cur != null && old != null) {
             try {
-                old.copyView(cur, Settings.CommandLineSettings.class);
+                old.copyCLI(cur);
             }
             catch (final Throwable t) {
                 LOG.error("error copying command line settings! {}", t);

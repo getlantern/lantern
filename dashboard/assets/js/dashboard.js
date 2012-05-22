@@ -31,6 +31,7 @@ var FETCHSUCCESS = 'fetch succeeded';
 
 // http://html5pattern.com/
 var HOSTNAMEPAT = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/;
+var IPADDRPAT = /((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$/;
 
 var BYTEDIM = {GB: 1024*1024*1024, MB: 1024*1024, KB: 1024, B: 1};
 var BYTESTR = {GB: 'gigabyte', MB: 'megabyte', KB: 'kilobyte', B: 'byte'};
@@ -509,7 +510,7 @@ function LDCtrl(){
 
   self._validatewhitelistentry = function(val){
     // XXX ip addresses acceptable?
-    if(!HOSTNAMEPAT.test(val)){
+    if(!HOSTNAMEPAT.test(val) && !IPADDRPAT.test(val)){
       console.log('not a valid hostname:', val, '(so much for html5 defenses)');
       return false;
     }

@@ -52,6 +52,7 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
             }
         };
         final Thread mapper = new Thread(upnpRunner, "UPnP-Mapping-Thread");
+        mapper.setDaemon(true);
         mapper.start();
         
         // The mapping index isn't relevant in this case because the underlying

@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Queue;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.Executors;
@@ -104,50 +105,67 @@ public class LanternUtils {
     private static final File CONFIG_DIR = 
         new File(System.getProperty("user.home"), ".lantern");
     
-    private static final File DATA_DIR;
+    private static File DATA_DIR;
     
-    private static final File LOG_DIR;
+    private static File LOG_DIR;
+    
+    
+    public static ClientSocketChannelFactory clientSocketChannelFactory;
+
     
     static {
-        
-        if (SystemUtils.IS_OS_WINDOWS) {
-            //logDirParent = CommonUtils.getDataDir();
-            DATA_DIR = new File(System.getenv("APPDATA"), "Lantern");
-            LOG_DIR = new File(DATA_DIR, "logs");
-        } else if (SystemUtils.IS_OS_MAC_OSX) {
-            final File homeLibrary = 
-                new File(System.getProperty("user.home"), "Library");
-            DATA_DIR = CONFIG_DIR;//new File(homeLibrary, "Logs");
-            final File allLogsDir = new File(homeLibrary, "Logs");
-            LOG_DIR = new File(allLogsDir, "Lantern");
-        } else {
-            DATA_DIR = new File(SystemUtils.getUserHome(), ".lantern");
-            LOG_DIR = new File(DATA_DIR, "logs");
+        try {
+            Class.forName("org.lantern.LanternControllerUtils");
+            DATA_DIR = null;
+            LOG_DIR = null;
+            clientSocketChannelFactory = null;
+        } catch (final ClassNotFoundException e) {
+            // Only load these if we're not on app engine.
+            if (SystemUtils.IS_OS_WINDOWS) {
+                //logDirParent = CommonUtils.getDataDir();
+                DATA_DIR = new File(System.getenv("APPDATA"), "Lantern");
+                LOG_DIR = new File(DATA_DIR, "logs");
+            } else if (SystemUtils.IS_OS_MAC_OSX) {
+                final File homeLibrary = 
+                    new File(System.getProperty("user.home"), "Library");
+                DATA_DIR = CONFIG_DIR;//new File(homeLibrary, "Logs");
+                final File allLogsDir = new File(homeLibrary, "Logs");
+                LOG_DIR = new File(allLogsDir, "Lantern");
+            } else {
+                DATA_DIR = new File(System.getProperty("user.home"), ".lantern");
+                LOG_DIR = new File(DATA_DIR, "logs");
+            }
+
+            if (!DATA_DIR.isDirectory()) {
+                if (!DATA_DIR.mkdirs()) {
+                    System.err.println("Could not create parent at: "
+                            + DATA_DIR);
+                }
+            }
+            if (!LOG_DIR.isDirectory()) {
+                if (!LOG_DIR.mkdirs()) {
+                    System.err.println("Could not create dir at: " + LOG_DIR);
+                }
+            }
+            if (!CONFIG_DIR.isDirectory()) {
+                if (!CONFIG_DIR.mkdirs()) {
+                    LOG.error("Could not make config directory at: "+CONFIG_DIR);
+                }
+            } 
+            clientSocketChannelFactory = new NioClientSocketChannelFactory(
+                    Executors.newCachedThreadPool(),
+                    Executors.newCachedThreadPool());
         }
 
-        if (!DATA_DIR.isDirectory()) {
-            if (!DATA_DIR.mkdirs()) {
-                System.err.println("Could not create parent at: "
-                        + DATA_DIR);
-            }
-        }
-        if (!LOG_DIR.isDirectory()) {
-            if (!LOG_DIR.mkdirs()) {
-                System.err.println("Could not create dir at: " + LOG_DIR);
-            }
-        }
-        if (!CONFIG_DIR.isDirectory()) {
-            if (!CONFIG_DIR.mkdirs()) {
-                LOG.error("Could not make config directory at: "+CONFIG_DIR);
-            }
-        } 
     }
     
-    public static final ClientSocketChannelFactory clientSocketChannelFactory =
-        new NioClientSocketChannelFactory(
-            Executors.newCachedThreadPool(),
-            Executors.newCachedThreadPool());
+    public static String jidToUserId(final String fullId) {
+        return fullId.split("/")[0];
+    }
     
+    public static String jidToInstanceId(final String fullId) {
+        return fullId.split("/")[1];
+    }
     
     /**
      * Helper method that ensures all written requests are properly recorded.
@@ -342,6 +360,8 @@ public class LanternUtils {
     }
 
     private static String macMe(final byte[] mac) {
+        // We wrap the MAC in a SHA-1 to avoid distributing actual 
+        // MAC addresses.
         final MessageDigest md = new Sha1();
         md.update(mac);
         final byte[] raw = md.digest();
@@ -352,7 +372,6 @@ public class LanternUtils {
     public static File configDir() {
         return CONFIG_DIR;
     }
-    
 
     public static File dataDir() {
         return DATA_DIR;
@@ -664,26 +683,28 @@ public class LanternUtils {
     public static char[] readPasswordCLI() throws IOException {
         Console console = System.console();
         if (console == null) {
-            LOG.error("Request to read password in non-interactive context.");
-            throw new IOException("No console available.");
+            LOG.info("No console -- using System.in...");
+            final Scanner sc = new Scanner(System.in);
+            return sc.nextLine().toCharArray();
         }
         try {
             return console.readPassword();
-        } catch (IOError e) {
-            throw new IOException(e);
+        } catch (final IOError e) {
+            throw new IOException("Could not read pass from console", e);
         }
     }
     
     public static String readLineCLI() throws IOException {
         Console console = System.console();
         if (console == null) {
-            LOG.error("Request to read line in non-interactive context.");
-            throw new IOException("No console available.");
+            LOG.info("No console -- using System.in...");
+            final Scanner sc = new Scanner(System.in);
+            return sc.nextLine();
         }
         try {
             return console.readLine();
-        } catch (IOError e) {
-            throw new IOException(e);
+        } catch (final IOError e) {
+            throw new IOException("Could not read line from console", e);
         }
     }
         
@@ -984,7 +1005,7 @@ public class LanternUtils {
         }
     }
     
-    public static void configureXmpp() {
+    public static ConnectionConfiguration xmppConfig() {
         final ConnectionConfiguration config = 
             new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
         config.setExpiredCertificatesCheckEnabled(true);
@@ -1010,6 +1031,7 @@ public class LanternUtils {
             //"TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA",
             "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
             "TLS_DHE_DSS_WITH_AES_256_CBC_SHA",
+            "SSL_RSA_WITH_RC4_128_SHA",
             //"TLS_ECDH_RSA_WITH_AES_256_CBC_SHA",
             //"TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA",
             //"TLS_RSA_WITH_CAMELLIA_256_CBC_SHA",
@@ -1078,9 +1100,11 @@ public class LanternUtils {
                 return createSocket(InetAddress.getByName(host), port);
             }
         });
-        
-
-        XmppUtils.setGlobalConfig(config);
+        return config;
+    }
+    
+    public static void configureXmpp() {
+        XmppUtils.setGlobalConfig(xmppConfig());
     }
     
 }

@@ -64,11 +64,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     // http://code.google.com/appengine/docs/quotas.html:
     // "Each incoming HTTP request can be no larger than 32MB"
     private static final long REQUEST_SIZE_LIMIT = 1024 * 1024 * 32 - 4096;
-
-    private static final boolean PROXIES_ACTIVE = true;
-    private static final boolean ANONYMOUS_ACTIVE = true;
-    private static final boolean TRUSTED_ACTIVE = true;
-    private static final boolean LAE_ACTIVE = true;
     
     private static final ClientSocketChannelFactory clientSocketChannelFactory =
         new NioClientSocketChannelFactory(
@@ -318,12 +313,12 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         log.info("Dispatching request");
         if (request.getMethod() == HttpMethod.CONNECT) {
             try {
-                if (ANONYMOUS_ACTIVE && 
+                if (LanternHub.settings().isUseAnonymousPeers() && 
                     LanternHub.getProxyProvider().getAnonymousPeerProxyManager().processRequest(
                         browserToProxyChannel, ctx, me) != null) {
                     log.info("Processed CONNECT on peer...returning");
                     return null;
-                } else {
+                } else if (useStandardProxies()){
                     // We need to forward the CONNECT request from this proxy to an
                     // external proxy that can handle it. We effectively want to 
                     // relay all traffic in this case without doing anything on 
@@ -337,13 +332,15 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 // This will happen whenever the server's giving us bad
                 // anonymous proxies, which could happen quite often.
                 // We should fall back to central.
-                centralConnect(request);
+                if (useStandardProxies()) {
+                    centralConnect(request);
+                }
                 return null;
             }
 
         }
         try {
-            if (TRUSTED_ACTIVE) {
+            if (LanternHub.settings().isUseTrustedPeers()) {
                 final PeerProxyManager provider = 
                     LanternHub.getProxyProvider().getTrustedPeerProxyManager();
                 if (provider != null) {
@@ -383,11 +380,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     }
 
     private boolean useStandardProxies() {
-        return PROXIES_ACTIVE && LanternHub.settings().isUseCloudProxies();
+        return LanternHub.settings().isUseCentralProxies() && LanternHub.settings().isUseCloudProxies();
     }
 
     private boolean useLae() {
-        return LAE_ACTIVE && LanternHub.settings().isUseCloudProxies();
+        return LanternHub.settings().isUseLaeProxies() && LanternHub.settings().isUseCloudProxies();
     }
 
     private void centralConnect(final HttpRequest request) {
