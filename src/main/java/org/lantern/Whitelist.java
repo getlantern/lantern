@@ -31,6 +31,7 @@ public class Whitelist {
         addDefaultEntry("avaaz.org", false);
         addDefaultEntry("bittorrent.com", false);
         addDefaultEntry("balatarin.com", false);
+        addDefaultEntry("chinadigitaltimes.net", false);
         addDefaultEntry("facebook.com", false);
         addDefaultEntry("flickr.com", false);
         addDefaultEntry("hrw.org", false); // Human Rights Watch
@@ -121,7 +122,7 @@ public class Whitelist {
             this.whitelist = entries; 
         }
     }
-    
+
 
     private String toBaseUri(final String uri) {
         log.debug("Parsing full URI: {}", uri);
@@ -137,21 +138,34 @@ public class Whitelist {
         } else {
             base = afterHttp;
         }
-        String domainExtension = StringUtils.substringAfterLast(base, ".");
-        
-        // Make sure we strip alternative ports, like 443.
-        if (domainExtension.contains(":")) {
-            domainExtension = StringUtils.substringBefore(domainExtension, ":");
-        }
-        final String domain = StringUtils.substringBeforeLast(base, ".");
-        final String toMatchBase;
-        if (domain.contains(".")) {
-            toMatchBase = StringUtils.substringAfterLast(domain, ".");
+        log.debug("base uri: " + base);
+
+        // http://html5pattern.com/ - changed slightly
+        // just in case there is a port following
+        if (base.matches("((^|\\.)((25[0-5])|(2[0-4]\\d)|(1\\d\\d)|([1-9]?\\d))){4}:?(.*)?$")) {
+            log.debug("uri is an ip address");
+            String toMatch = base;
+            if (base.contains(":")) {
+                toMatch = StringUtils.substringBefore(toMatch, ":");
+            }
+            return toMatch;
         } else {
-            toMatchBase = domain;
+            String domainExtension = StringUtils.substringAfterLast(base, ".");
+
+            // Make sure we strip alternative ports, like 443.
+            if (domainExtension.contains(":")) {
+                domainExtension = StringUtils.substringBefore(domainExtension, ":");
+            }
+            final String domain = StringUtils.substringBeforeLast(base, ".");
+            final String toMatchBase;
+            if (domain.contains(".")) {
+                toMatchBase = StringUtils.substringAfterLast(domain, ".");
+            } else {
+                toMatchBase = domain;
+            }
+            final String toMatch = toMatchBase + "." + domainExtension;
+            log.debug("Matching against: {}", toMatch);
+            return toMatch;
         }
-        final String toMatch = toMatchBase + "." + domainExtension;
-        log.debug("Matching against: {}", toMatch);
-        return toMatch;
     }
 }

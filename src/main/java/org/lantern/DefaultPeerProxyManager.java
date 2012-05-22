@@ -29,10 +29,13 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     private final Executor exec = Executors.newCachedThreadPool(
         new ThreadFactory() {
         
+        private int threadNumber = 0;
+        
         @Override
         public Thread newThread(final Runnable r) {
             final Thread t = 
-                new Thread(r, "P2P-Socket-Creation-Thread");
+                new Thread(r, "P2P-Socket-Creation-Thread-"+threadNumber);
+            threadNumber++;
             t.setDaemon(true);
             return t;
         }
@@ -59,27 +62,33 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     
     public DefaultPeerProxyManager(final boolean anon) {
         this.anon = anon;
-        
     }
 
     @Override
     public HttpRequestProcessor processRequest(
         final Channel browserToProxyChannel, final ChannelHandlerContext ctx, 
         final MessageEvent me) throws IOException {
+        log.info("Processing request...");
         
         // This removes the highest priority socket.
         final ConnectionTimeSocket cts = this.timedSockets.poll();
         if (cts == null) {
+            log.info("No peer sockets available!!");
             return null;
         }
-        // When we use a socket, we always replace it with a new one.
-        onPeer(cts.peerUri);
         cts.requestProcessor.processRequest(browserToProxyChannel, ctx, me);
+        
+        // When we use a socket, we always replace it with a new one.
+        onPeer(cts.peerUri, 1);
         return cts.requestProcessor;
     }
 
     @Override
     public void onPeer(final URI peerUri) {
+        onPeer(peerUri, 6);
+    }
+
+    private void onPeer(final URI peerUri, final int sockets) {
         if (!LanternHub.settings().isGetMode()) {
             log.info("Ingoring peer when we're in give mode");
             return;
@@ -89,24 +98,34 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         final Map<URI, AtomicInteger> peerFailureCount = 
             new HashMap<URI, AtomicInteger>();
         exec.execute(new Runnable() {
-
             @Override
             public void run() {
+                boolean gotConnected = false;
                 try {
-                    final ConnectionTimeSocket ts = 
-                        new ConnectionTimeSocket(peerUri);
+                    // We open a number of sockets because in almost every
+                    // scenario the browser makes many connections to the proxy
+                    // to open a single page.
+                    for (int i = 0; i < sockets; i++) {
+                        final ConnectionTimeSocket ts = 
+                            new ConnectionTimeSocket(peerUri);
 
-                    final Socket sock = LanternUtils.openOutgoingPeerSocket(
-                        peerUri, LanternHub.xmppHandler().getP2PClient(), 
-                        peerFailureCount);
-                    log.info("Got socket and adding it for peer: {}", peerUri);
-                    ts.onSocket(sock);
-                    timedSockets.add(ts);
+                        final Socket sock = LanternUtils.openOutgoingPeerSocket(
+                            peerUri, LanternHub.xmppHandler().getP2PClient(), 
+                            peerFailureCount);
+                        log.info("Got socket and adding it for peer: {}", peerUri);
+                        ts.onSocket(sock);
+                        timedSockets.add(ts);
+                        if (!gotConnected) {
+                            LanternHub.eventBus().post(
+                                    new ConnectivityStatusChangeEvent(
+                                        ConnectivityStatus.CONNECTED));
+                        }
+                        gotConnected = true;
+                    }
                 } catch (final IOException e) {
                     log.info("Could not create peer socket");
                 }                
             }
-            
         });
     }
 

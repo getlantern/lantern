@@ -64,43 +64,13 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
     
     private static final ChannelBuffer LAST_CHUNK =
         copiedBuffer("0\r\n\r\n", CharsetUtil.US_ASCII);
-    
-    private URI peerUri;
-    //private final ProxyStatusListener proxyStatusListener;
-    //private final P2PClient p2pClient;
-    
-    /**
-     * Map recording the number of consecutive connection failures for a
-     * given peer. Note that a successful connection will reset this count
-     * back to zero.
-     */
-    private static Map<URI, AtomicInteger> peerFailureCount =
-        new ConcurrentHashMap<URI, AtomicInteger>();
-
-    //private final Proxy proxy;
 
     private boolean chunked;
-
-    //private final AtomicReference<Socket> socketRef =
-    //    new AtomicReference<Socket>();
-    
-    //private final KeyStoreManager keyStoreManager;
 
     private volatile boolean startedCopying;
 
     private final Socket sock;
 
-    /*
-    public PeerHttpRequestProcessor(final Proxy proxy, 
-        final ProxyStatusListener proxyStatusListener,
-        final P2PClient p2pClient, final KeyStoreManager keyStoreManager) {
-        this.proxy = proxy;
-        this.proxyStatusListener = proxyStatusListener;
-        this.p2pClient = p2pClient;
-        this.keyStoreManager = keyStoreManager;
-    }
-    */
-    
     public PeerHttpRequestProcessor(final Socket sock) {
         this.sock = sock;
     }

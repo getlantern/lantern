@@ -261,13 +261,17 @@ public class DefaultXmppHandler implements XmppHandler {
             new GoogleTalkStateEvent(GoogleTalkState.LOGGING_IN));
         final String id;
         if (LanternHub.settings().isGetMode()) {
+            LOG.info("Setting ID for get mode...");
             id = "gmail.";
         } else {
+            LOG.info("Setting ID for give mode");
             id = UNCENSORED_ID;
         }
 
         try {
             this.client.get().login(email, pwd, id);
+            LanternHub.eventBus().post(
+                new GoogleTalkStateEvent(GoogleTalkState.LOGGED_IN));
         } catch (final IOException e) {
             if (this.proxies.isEmpty()) {
                 connectivityEvent(ConnectivityStatus.DISCONNECTED);
@@ -286,8 +290,6 @@ public class DefaultXmppHandler implements XmppHandler {
                 new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
             throw e;
         }
-        LanternHub.eventBus().post(
-            new GoogleTalkStateEvent(GoogleTalkState.LOGGED_IN));
         
         // Note we don't consider ourselves connected in get mode until we 
         // actually get proxies to work with.
@@ -295,6 +297,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final Collection<InetSocketAddress> googleStunServers = 
             XmppUtils.googleStunServers(connection);
         StunServerRepository.setStunServers(googleStunServers);
+        LanternHub.settings().setStunServers(
+            new HashSet<String>(toStringServers(googleStunServers)));
         
         // Make sure all connections between us and the server are stored
         // OTR.
@@ -349,6 +353,15 @@ public class DefaultXmppHandler implements XmppHandler {
     }
     
 
+    private Set<String> toStringServers(
+        final Collection<InetSocketAddress> googleStunServers) {
+        final Set<String> strings = new HashSet<String>();
+        for (final InetSocketAddress isa : googleStunServers) {
+            strings.add(isa.getHostName()+":"+isa.getPort());
+        }
+        return strings;
+    }
+
     private void connectivityEvent(final ConnectivityStatus cs) {
         if (LanternHub.settings().isGetMode()) {
             LanternHub.eventBus().post(
@@ -401,6 +414,7 @@ public class DefaultXmppHandler implements XmppHandler {
             (JSONArray) json.get(LanternConstants.SERVERS);
         final Long delay = 
             (Long) json.get(LanternConstants.UPDATE_TIME);
+        LOG.info("Server sent delay of: "+delay);
         if (delay != null) {
             final long now = System.currentTimeMillis();
             final long elapsed = now - lastInfoMessageScheduled;
@@ -460,9 +474,11 @@ public class DefaultXmppHandler implements XmppHandler {
         try {
             System.out.print("Please enter your gmail e-mail, as in johndoe@gmail.com: ");
             return LanternUtils.readLineCLI();
-        } catch (IOException e) {
-            System.out.println("IO error trying to read your email address!");
-            return "";
+        } catch (final IOException e) {
+            final String msg = "IO error trying to read your email address!";
+            System.out.println(msg);
+            LOG.error(msg, e);
+            throw new IllegalStateException(msg, e);
         }
     }
     
@@ -471,8 +487,10 @@ public class DefaultXmppHandler implements XmppHandler {
             System.out.print("Please enter your gmail password: ");
             return new String(LanternUtils.readPasswordCLI());
         } catch (IOException e) {
-            System.out.println("IO error trying to read your password!");
-            return "";
+            final String msg = "IO error trying to read your email address!";
+            System.out.println(msg);
+            LOG.error(msg, e);
+            throw new IllegalStateException(msg, e);
         }
     }
 
@@ -490,44 +508,34 @@ public class DefaultXmppHandler implements XmppHandler {
             return;
         }
         
+        
         final XMPPConnection conn = this.client.get().getXmppConnection();
 
         LOG.info("Sending presence available");
         
         // OK, this is bizarre. For whatever reason, we **have** to send the
         // following packet in order to get presence events from our peers.
-        // DO NOT REMOVE THIS MESSAGE!!
+        // DO NOT REMOVE THIS MESSAGE!! See XMPP spec.
         final Presence pres = new Presence(Presence.Type.available);
         conn.sendPacket(pres);
         
         final Presence forHub = new Presence(Presence.Type.available);
         forHub.setTo(LanternConstants.LANTERN_JID);
         
-        final JSONObject json = new JSONObject();
-        final StatsTracker statsTracker = LanternHub.statsTracker();
-        json.put(LanternConstants.COUNTRY_CODE, LanternHub.censored().countryCode());
-        json.put(LanternConstants.BYTES_PROXIED, 
-            statsTracker.getTotalBytesProxied());
-        json.put(LanternConstants.DIRECT_BYTES, 
-            statsTracker.getDirectBytes());
-        json.put(LanternConstants.REQUESTS_PROXIED, 
-            statsTracker.getTotalProxiedRequests());
-        json.put(LanternConstants.DIRECT_REQUESTS, 
-            statsTracker.getDirectRequests());
-        //json.put(LanternConstants.WHITELIST_ADDITIONS, 
-        //    LanternHub.whitelist().getAdditionsAsJson());
-            //LanternUtils.toJsonArray(Whitelist.getAdditions()));
-        //json.put(LanternConstants.WHITELIST_REMOVALS, 
-        //    LanternHub.whitelist().getRemovalsAsJson());
-        json.put(LanternConstants.VERSION_KEY, LanternConstants.VERSION);
-        final String str = json.toJSONString();
-        LOG.info("Reporting data: {}", str);
-        if (!this.lastJson.equals(str)) {
-            this.lastJson = str;
-            forHub.setProperty("stats", str);
-        } else {
-            LOG.info("No new stats to report");
-        }
+        //if (!LanternHub.settings().isGetMode()) {
+            final String str = 
+                LanternUtils.jsonify(LanternHub.statsTracker());
+            LOG.info("Reporting data: {}", str);
+            if (!this.lastJson.equals(str)) {
+                this.lastJson = str;
+                forHub.setProperty("stats", str);
+                LanternHub.statsTracker().resetCumulativeStats();
+            } else {
+                LOG.info("No new stats to report");
+            }
+        //} else {
+        //    LOG.info("Not reporting any stats in get mode");
+        //}
         
         conn.sendPacket(forHub);
     }
@@ -726,14 +734,6 @@ public class DefaultXmppHandler implements XmppHandler {
                 } else {
                     LanternHub.anonymousPeerProxyManager().onPeer(uri);
                 }
-
-                /*
-                if (LanternHub..getTrustedContactsManager().isTrusted(msg)) {
-                    this.establishedPeerProxies.add(uri);
-                } else {
-                    this.establishedAnonymousProxies.add(uri);
-                }
-                */
             } catch (final IOException e) {
                 LOG.error("Could not add cert??", e);
             }
@@ -968,37 +968,6 @@ public class DefaultXmppHandler implements XmppHandler {
     public PeerProxyManager getTrustedPeerProxyManager() {
         return LanternHub.trustedPeerProxyManager();
     }
-    
-    
-    /*
-    @Override
-    public URI getAnonymousProxy() {
-        LOG.info("Getting anonymous proxy");
-        return getProxyUri(this.establishedAnonymousProxies);
-    }
-
-    @Override
-    public URI getPeerProxy() {
-        LOG.info("Getting peer proxy");
-        final URI proxy = getProxyUri(this.establishedPeerProxies);
-        if (proxy == null) {
-            LOG.info("Peer proxies {} and anonymous proxies {}", 
-                this.establishedPeerProxies, this.establishedAnonymousProxies);
-        }
-        return proxy;
-    }
-    
-    private URI getProxyUri(final Queue<URI> queue) {
-        if (queue.isEmpty()) {
-            LOG.info("No proxy URIs");
-            return null;
-        }
-        final URI proxy = queue.remove();
-        queue.add(proxy);
-        LOG.info("FIFO queue is now: {}", queue);
-        return proxy;
-    }
-    */
 
     private InetSocketAddress getProxy(final Queue<ProxyHolder> queue) {
         synchronized (queue) {
@@ -1067,6 +1036,7 @@ public class DefaultXmppHandler implements XmppHandler {
     
     private ServerSocketFactory newTlsServerSocketFactory() {
         LOG.info("Creating TLS server socket factory");
+        
         String algorithm = 
             Security.getProperty("ssl.KeyManagerFactory.algorithm");
         if (algorithm == null) {

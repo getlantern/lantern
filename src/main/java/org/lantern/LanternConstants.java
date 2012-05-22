@@ -9,6 +9,8 @@ import org.lantern.exceptional4j.ExceptionalUtils;
  */
 public class LanternConstants {
     
+    static final long START_TIME = System.currentTimeMillis();
+    
     /**
      * This is the version of Lantern we're running. This is automatically
      * replaced when we push new releases.
@@ -70,19 +72,6 @@ public class LanternConstants {
      */
     public static final int I18N_KEY_LENGTH = 40;
     
-    /* the following are command line options */
-    public static final String OPTION_DISABLE_UI = "disable-ui";
-    public static final String OPTION_HELP = "help";
-    public static final String OPTION_LAUNCHD = "launchd";
-    
-    public static final String OPTION_PUBLIC_API = "public-api";
-    
-    public static final String OPTION_API_PORT = "api-port";
-
-    public static final String OPTION_DISABLE_KEYCHAIN = "disable-keychain";
-    
-    public static final String OPTION_PASSWORD_FILE = "password-file";
-    
     /**
      * Plist file for launchd on OSX.
      */
@@ -95,5 +84,7 @@ public class LanternConstants {
 
     public static final File DEFAULT_SETTINGS_FILE = 
         new File(LanternUtils.configDir(), "settings.json");
+
+    
 
 }

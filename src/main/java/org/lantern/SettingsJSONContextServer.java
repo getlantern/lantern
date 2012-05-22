@@ -1,8 +1,7 @@
 package org.lantern; 
 
-import org.cometd.server.JacksonJSONContextServer;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig; 
+import org.cometd.server.JacksonJSONContextServer;
 
 /** 
  * customizes (de)serialization in cometd exchanges
