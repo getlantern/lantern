@@ -63,6 +63,10 @@ function showid(id, ignorecls, ignore){
   if($el.hasClass('selected')){
     return;
   }
+  if(id == '#proxiedsites' || id == '#trusted'){
+    showid('#settings');
+    location.hash = id;
+  }
   $('.' + cls + '.selected').removeClass('selected');
   $el.addClass('selected').show();
   if(cls === 'panel'){
@@ -667,9 +671,14 @@ $(document).ready(function(){
     }
   });
 
+
   $('.flashmsg .close').click(function(evt){
     $(evt.target).parent('.flashmsg').fadeOut();
     evt.preventDefault();
+  });
+
+  $('.hideflashmsg').click(function(evt){
+    $(evt.target).parents('.flashmsg').fadeOut();
   });
 
   /*

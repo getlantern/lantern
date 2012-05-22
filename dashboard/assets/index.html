@@ -83,7 +83,8 @@
           <h4>Internet freedom for everyone.</h4>
           <div class=controls>
             <figure>
-              <a ng:href="{{statelocked() && '#set-local-password' || '#mode'}}"><img src=img/arrow-right.png alt=Continue /></a>
+          <!--<a ng:href="{{statelocked() && '#set-local-password' || '#mode'}}"><img src=img/arrow-right.png alt=Continue /></a>-->
+              <a ng:href="{{statelocked() && '#set-local-password' || '#signin'}}"><img src=img/arrow-right.png alt=Continue /></a>
               <figcaption>Continue</figcaption>
             </figure>
           </div>
@@ -112,6 +113,7 @@
             </div>
           </form>
         </div>
+        <!--
         <div id=mode class=slide data-cls=slide>
           <h1>Use Lantern to</h1>
           <ul class=welcome-optionlist>
@@ -129,9 +131,10 @@
             </figure>
           </div>
         </div>
+        -->
         <div id=signin class=slide data-cls=slide>
           <h1>Sign into Google</h1>
-          <p>Lantern uses Google to connect to other users.
+          <p>Lantern uses Google Talk to connect to other users.
              <a href=#doc-overlay data-doc=why-google class="smallnote doc-link">Why?</a></p>
           <form id=firstsignin-form name=fsform class=signin ng:submit=fs_submit()>
             <ul>
@@ -147,7 +150,8 @@
             </ul>
             <div class=controls>
               <figure class=left>
-                <a href=#mode><img src=img/arrow-left.png alt=Back /></a>
+            <!--<a href=#mode><img src=img/arrow-left.png alt=Back /></a>-->
+                <a href=#welcome><img src=img/arrow-left.png alt=Back /></a>
                 <figcaption>Back</figcaption>
               </figure>
               <figure class=right>
@@ -280,7 +284,7 @@
               <![endif]-->
               <!--[if ! IE ]><!-->
               <p>
-                <a class=showdown-link href=#md-overlay data-md="'CHANGES.md'">Changelog</a>
+                <a class="small showdown-link" href=#md-overlay data-md="'CHANGES.md'">Changelog</a>
               </p>
               <!--<![endif]-->
             </dd>
@@ -289,8 +293,8 @@
         <div class=panel id=settings data-cls=panel>
           <h1>Settings</h1>
           <dl>
-            <dt>Port</dt>
-            <dd>
+            <dt ng:show=state.getMode>Port</dt>
+            <dd ng:show=state.getMode>
               <input type=text value={{state.port}} id=port min=1024 max=65535 readonly />
             </dd>
             <dt>Mode</dt>
@@ -424,11 +428,23 @@
 
         <div class="flashmsg tip" id=tip-trayicon>
           <a class=close>×</a>
-          <span class=content>
-            Tip: Look for the
-            <img src=img/16on.png alt="Lantern connected icon" />
-            icon in your {{iconloctxt()}} when you need to find Lantern.
-          </span>
+          <div class=content>
+            <h1>Huzzah!</h1>
+            <div ng:show=state.getMode>
+              Traffic to your <a href=#proxiedsites>proxied sites</a> will now be routed through your Lantern peers.
+              <a id=tryit href=https://www.getlantern.org/check target=_blank>Try it</a>
+            </div>
+            <div ng:show=!state.getMode>
+              Your internet connection is now being made available to those who need it.<br/>
+              Thanks for helping to keep the web free and open to everyone.
+            </div>
+            <h1>What now?</h1>
+            <div id=whatnowtxt>
+              Feel free to review your <a class=hideflashmsg href=#settings>Settings</a>,
+              or just close this window and leave Lantern running in the background.
+              Look for the <img src=img/16on.png alt="Lantern" /> icon in your {{iconloctxt()}} when you’d like to get back here.<br/>
+            </div>
+          </div>
         </div>
 
         <div class=flashmsg id=flash-main>

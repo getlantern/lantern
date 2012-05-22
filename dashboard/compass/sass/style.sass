@@ -21,7 +21,6 @@ $font-color-important: #c00
 $font-color-error: #c00
 $font-color-success: #26df50
 $font-color-warning: #900
-$font-color-tip: #ffa400
 $header-color: #000
 $header-color-alt: #53637d
 $link-color: #3f6ec6
@@ -131,6 +130,9 @@ a.doc-link
     margin-bottom: 4px
   //p
     margin-bottom: 4px
+
+.small
+  font-size: $font-size-small
 
 #done .smallnote
   margin-top: 20px
@@ -755,6 +757,7 @@ p .buttonlink
     margin-top: 19px
 
 .flashmsg
+  z-index: 500
   display: none
   color: $font-color-input
   height: 22px
@@ -774,7 +777,34 @@ p .buttonlink
     top: 0
     right: -5px
   &.tip
-    color: $font-color-tip
+    +box-shadow($edge-color 1px 1px 20px)
+    color: #53637D
+    background-color: #fff
+    height: 226px
+    top: 12px
+    .content
+      padding: 30px
+      h1
+        font-size: 15pt
+        color: #aaa
+      div
+        margin: 10px 0 20px 0
+
+#tryit
+  font-size: $font-size-smaller
+  display: inline-block
+  background-color: $font-color-success
+  +background-image(linear-gradient($font-color-success, darken($font-color-success, 10%)))
+  padding: 1px 10px 1px 8px
+  text-decoration: none
+  color: #fff
+  +border-radius(3px)
+  &:hover
+    background: darken($font-color-success, 10%)
+
+#whatnowtxt
+  font-size: $font-size-small
+  margin-bottom: 0
 
 
 // --------------------
