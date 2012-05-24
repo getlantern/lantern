@@ -7,7 +7,7 @@ around the world connected by a peer-to-peer network.
 Lantern is written in Java and runs on modern Mac, Windows, and Linux desktop
 systems.
 
-![screenshot](http://www.getlantern.org/static/img/dl-mac_dashboard.png)
+![screenshot](https://www.getlantern.org/static/img/dl-mac_setup.png)
 
 To run Lantern from source, you need Maven and Java installed. The Lantern
 developers use Oracle's Java 1.6 SDK, but other SDKs may work.
