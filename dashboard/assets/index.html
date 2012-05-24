@@ -293,14 +293,14 @@
         <div class=panel id=settings data-cls=panel>
           <h1>Settings</h1>
           <dl>
-            <dt ng:show=state.getMode>Port</dt>
-            <dd ng:show=state.getMode>
-              <input type=text value={{state.port}} id=port min=1024 max=65535 readonly />
-            </dd>
             <dt>Mode</dt>
             <dd>
               <span id=modelabel>{{state.getMode && 'Get' || 'Give'}}</span>
               <a class=actionlink ng:click=switchmode(true)>{{switchlinktext()}}</a>
+            </dd>
+            <dt ng:show=state.getMode>Port</dt>
+            <dd ng:show=state.getMode>
+              <input type=text value={{state.port}} id=port min=1024 max=65535 readonly />
             </dd>
             <dt ng:show=state.getMode>Policy</dt>
             <dd ng:show=state.getMode>
