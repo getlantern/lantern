@@ -614,7 +614,7 @@ SetLocalPasswordCtrl.prototype = {
       thisCtrl.servererr = null;
       thisCtrl.$digest();
       console.log('set local password succeeded.');
-      showid('#mode');
+      showid('#signin');
     }).fail(function(e){
       thisCtrl.servererr = "An error occurred setting local password.";
       thisCtrl.$digest();
