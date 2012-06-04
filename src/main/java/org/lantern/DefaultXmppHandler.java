@@ -1141,6 +1141,13 @@ public class DefaultXmppHandler implements XmppHandler {
         return new SocketFactory() {
             
             @Override
+            public Socket createSocket() throws IOException {
+                final SSLSocket sock = (SSLSocket) sf.createSocket();
+                sock.setEnabledCipherSuites(IceConfig.getCipherSuites());
+                return sock;
+            }
+            
+            @Override
             public Socket createSocket(final InetAddress address, 
                 final int port, final InetAddress localAddress, 
                 final int localPort) throws IOException {
