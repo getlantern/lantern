@@ -96,11 +96,13 @@ fetch the changes and merge them into your project with git.
         app.css         --> default stylesheet
       img/              --> image files
       index.html        --> app layout file (the main html template file of the app)
+      index-async.html  --> just like index.html, but loads js files asynchronously
       js/               --> javascript files
+        app.js          --> application
         controllers.js  --> application controllers
+        directives.js   --> application directives
         filters.js      --> custom angular filters
         services.js     --> custom angular services
-        widgets.js      --> custom angular widgets
       lib/              --> angular and 3rd party javascript libraries
         angular/
           angular.js            --> the latest angular js
