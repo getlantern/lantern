@@ -1,20 +1,10 @@
 package org.lantern;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Security;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,13 +17,6 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.net.ServerSocketFactory;
-import javax.net.SocketFactory;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLServerSocketFactory;
-import javax.net.ssl.SSLSocket;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.codec.binary.Base64;
@@ -54,7 +37,6 @@ import org.jivesoftware.smack.packet.Presence;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.lastbamboo.common.p2p.P2PConnectionListener;
 import org.lastbamboo.common.p2p.P2PConstants;
@@ -241,7 +223,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService, 
             upnpService, new InetSocketAddress(this.sslProxyRandomPort), 
             //newTlsSocketFactory(), SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
-            newTlsSocketFactory(), newTlsServerSocketFactory(),
+            LanternUtils.newTlsSocketFactory(), LanternUtils.newTlsServerSocketFactory(),
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
             plainTextProxyRelayAddress, false));
 
@@ -1041,150 +1023,6 @@ public class DefaultXmppHandler implements XmppHandler {
         }
     }
     
-    private ServerSocketFactory newTlsServerSocketFactory() {
-        LOG.info("Creating TLS server socket factory");
-        
-        String algorithm = 
-            Security.getProperty("ssl.KeyManagerFactory.algorithm");
-        if (algorithm == null) {
-            algorithm = "SunX509";
-        }
-        try {
-            final KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(LanternHub.getKeyStoreManager().keyStoreAsInputStream(),
-                    LanternHub.getKeyStoreManager().getKeyStorePassword());
-
-            // Set up key manager factory to use our key store
-            final KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
-            kmf.init(ks, LanternHub.getKeyStoreManager().getCertificatePassword());
-
-            // Initialize the SSLContext to work with our key managers.
-            final SSLContext serverContext = SSLContext.getInstance("TLS");
-            serverContext.init(kmf.getKeyManagers(), null, null);
-            
-            //return serverContext.getServerSocketFactory();
-            return wrappedServerSocketFactory(serverContext.getServerSocketFactory());
-        } catch (final KeyStoreException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final NoSuchAlgorithmException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final CertificateException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final IOException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final UnrecoverableKeyException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final KeyManagementException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        }
-    }
-
-    private ServerSocketFactory wrappedServerSocketFactory(
-        final SSLServerSocketFactory ssf) {
-        return new ServerSocketFactory() {
-            
-            @Override
-            public ServerSocket createServerSocket() throws IOException {
-                final SSLServerSocket ssl = 
-                    (SSLServerSocket) ssf.createServerSocket();
-                ssl.setEnabledCipherSuites(IceConfig.getCipherSuites());
-                return ssl;
-            }
-            
-            @Override
-            public ServerSocket createServerSocket(final int port, 
-                final int backlog, final InetAddress ifAddress) 
-                throws IOException {
-                final SSLServerSocket ssl = 
-                    (SSLServerSocket) ssf.createServerSocket(port, backlog, ifAddress);
-                ssl.setEnabledCipherSuites(IceConfig.getCipherSuites());
-                return ssl;
-            }
-            
-            @Override
-            public ServerSocket createServerSocket(final int port, 
-                final int backlog) throws IOException {
-                final SSLServerSocket ssl = 
-                    (SSLServerSocket) ssf.createServerSocket(port, backlog);
-                ssl.setEnabledCipherSuites(IceConfig.getCipherSuites());
-                return ssl;
-            }
-            
-            @Override
-            public ServerSocket createServerSocket(final int port) 
-                throws IOException {
-                final SSLServerSocket ssl = 
-                    (SSLServerSocket) ssf.createServerSocket(port);
-                ssl.setEnabledCipherSuites(IceConfig.getCipherSuites());
-                return ssl;
-            }
-        };
-    }
-
-    private SocketFactory newTlsSocketFactory() {
-        LOG.info("Creating TLS socket factory");
-        try {
-            final SSLContext clientContext = SSLContext.getInstance("TLS");
-            clientContext.init(null, 
-                LanternHub.getKeyStoreManager().getTrustManagers(), null);
-            return wrappedSocketFactory(clientContext.getSocketFactory());
-        } catch (final NoSuchAlgorithmException e) {
-            LOG.error("No TLS?", e);
-            throw new Error("No TLS?", e);
-        } catch (final KeyManagementException e) {
-            LOG.error("Key managmement issue?", e);
-            throw new Error("Key managmement issue?", e);
-        }
-    }
-
-    private SocketFactory wrappedSocketFactory(final SocketFactory sf) {
-        return new SocketFactory() {
-            
-            @Override
-            public Socket createSocket() throws IOException {
-                final SSLSocket sock = (SSLSocket) sf.createSocket();
-                sock.setEnabledCipherSuites(IceConfig.getCipherSuites());
-                return sock;
-            }
-            
-            @Override
-            public Socket createSocket(final InetAddress address, 
-                final int port, final InetAddress localAddress, 
-                final int localPort) throws IOException {
-                final SSLSocket sock = 
-                    (SSLSocket) sf.createSocket(address, port, localAddress, localPort);
-                sock.setEnabledCipherSuites(IceConfig.getCipherSuites());
-                return sock;
-            }
-            
-            @Override
-            public Socket createSocket(final String host, final int port, 
-                final InetAddress localHost, final int localPort) 
-                throws IOException, UnknownHostException {
-                final SSLSocket sock = 
-                    (SSLSocket) sf.createSocket(host, port, localHost, localPort);
-                sock.setEnabledCipherSuites(IceConfig.getCipherSuites());
-                return sock;
-            }
-            
-            @Override
-            public Socket createSocket(final InetAddress host, 
-                final int port) throws IOException {
-                final SSLSocket sock = (SSLSocket) sf.createSocket(host, port);
-                sock.setEnabledCipherSuites(IceConfig.getCipherSuites());
-                return sock;
-            }
-            
-            @Override
-            public Socket createSocket(final String host, final int port) 
-                throws IOException, UnknownHostException {
-                final SSLSocket sock = (SSLSocket) sf.createSocket(host, port);
-                sock.setEnabledCipherSuites(IceConfig.getCipherSuites());
-                return sock;
-            }
-        };
-    }
-
     @Override
     public boolean isLoggedIn() {
         if (this.client.get() == null) {
