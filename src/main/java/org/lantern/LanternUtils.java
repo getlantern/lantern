@@ -223,7 +223,7 @@ public class LanternUtils {
         return openOutgoingPeerSocket(uri, p2pClient, peerFailureCount, false);
     }
     
-    public static Socket openOutgoingPeerSocket(
+    private static Socket openOutgoingPeerSocket(
         final URI uri, final P2PClient p2pClient,
         final Map<URI, AtomicInteger> peerFailureCount,
         final boolean raw) throws IOException {
@@ -242,7 +242,17 @@ public class LanternUtils {
             } else {
                 sock = p2pClient.newSocket(uri);
             }
-            LOG.info("Got outgoing peer socket: {}", sock);
+            
+            // Note that it's OK that this prints SSL_NULL_WITH_NULL_NULL --
+            // the handshake doesn't actually happen until the first IO, so
+            // the SSL ciphers and such should be all null at this point.
+            LOG.debug("Got outgoing peer socket {}", sock);
+            if (sock instanceof SSLSocket) {
+                LOG.debug("Socket has ciphers {}", 
+                    ((SSLSocket)sock).getEnabledCipherSuites());
+            } else {
+                LOG.debug("Not an SSL socket...");
+            }
             //startReading(sock, browserToProxyChannel, recordStats);
             return sock;
         } catch (final NoAnswerException nae) {
