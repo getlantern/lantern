@@ -58,6 +58,10 @@ public class LanternUtilsTest {
         });
         //System.setProperty("javax.net.debug", "ssl:record");
         //System.setProperty("javax.net.debug", "ssl:handshake");
+        
+        final LanternKeyStoreManager ksm = LanternHub.getKeyStoreManager();
+        ksm.addBase64Cert(LanternUtils.getMacAddress(), ksm.getBase64Cert());
+        
         final SocketFactory clientFactory = LanternUtils.newTlsSocketFactory();
         final ServerSocketFactory serverFactory = 
             LanternUtils.newTlsServerSocketFactory();
@@ -100,8 +104,12 @@ public class LanternUtilsTest {
                     LOG.debug("Incoming cipher list..." + 
                         Arrays.asList(sock.getEnabledCipherSuites()));
                     final InputStream is = sock.getInputStream();
-                    final byte[] data = new byte[msg.getBytes("UTF-8").length];
-                    is.read(data);
+                    final int length = msg.getBytes("UTF-8").length;
+                    final byte[] data = new byte[length];
+                    int bytes = 0;
+                    while (bytes < length) {
+                        bytes += is.read(data, bytes, length - bytes);
+                    }
                     final String read = new String(data, "UTF-8");
                     synchronized (readOnServer) {
                         readOnServer.set(read.trim());
