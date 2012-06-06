@@ -52,13 +52,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.crypto.Cipher;
 import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
-import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import javax.security.auth.login.CredentialException;
 import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
@@ -1131,7 +1131,7 @@ public class LanternUtils {
         XmppUtils.setGlobalConfig(xmppConfig());
     }
     
-    public static ServerSocketFactory newTlsServerSocketFactory() {
+    public static SSLServerSocketFactory newTlsServerSocketFactory() {
         LOG.info("Creating TLS server socket factory");
         try {
             final LanternKeyStoreManager ksm = LanternHub.getKeyStoreManager();
@@ -1181,9 +1181,9 @@ public class LanternUtils {
         }
     }
 
-    private static ServerSocketFactory wrappedServerSocketFactory(
+    private static SSLServerSocketFactory wrappedServerSocketFactory(
         final SSLServerSocketFactory ssf) {
-        return new ServerSocketFactory() {
+        return new SSLServerSocketFactory() {
             @Override
             public ServerSocket createServerSocket() throws IOException {
                 final SSLServerSocket ssl = 
@@ -1216,6 +1216,14 @@ public class LanternUtils {
                 configure(ssl);
                 return ssl;
             }
+            @Override
+            public String[] getDefaultCipherSuites() {
+                return ssf.getDefaultCipherSuites();
+            }
+            @Override
+            public String[] getSupportedCipherSuites() {
+                return ssf.getSupportedCipherSuites();
+            }
             
             private void configure(final SSLServerSocket ssl) {
                 ssl.setNeedClientAuth(true);
@@ -1228,7 +1236,7 @@ public class LanternUtils {
     }
 
 
-    public static SocketFactory newTlsSocketFactory() {
+    public static SSLSocketFactory newTlsSocketFactory() {
         LOG.info("Creating TLS socket factory");
         try {
             final SSLContext clientContext = SSLContext.getInstance("TLS");
@@ -1247,8 +1255,8 @@ public class LanternUtils {
         }
     }
 
-    private static SocketFactory wrappedSocketFactory(final SocketFactory sf) {
-        return new SocketFactory() {
+    private static SSLSocketFactory wrappedSocketFactory(final SSLSocketFactory sf) {
+        return new SSLSocketFactory() {
             @Override
             public Socket createSocket() throws IOException {
                 final SSLSocket sock = (SSLSocket) sf.createSocket();
@@ -1292,6 +1300,25 @@ public class LanternUtils {
                 return sock;
             }
             
+            @Override
+            public Socket createSocket(final Socket s, final String host, 
+                final int port, final boolean autoClose) throws IOException {
+                final SSLSocket sock = 
+                    (SSLSocket) sf.createSocket(s, host, port, autoClose);
+                configure(sock);
+                return sock;
+            }
+
+            @Override
+            public String[] getDefaultCipherSuites() {
+                return sf.getDefaultCipherSuites();
+            }
+
+            @Override
+            public String[] getSupportedCipherSuites() {
+                return sf.getSupportedCipherSuites();
+            }
+            
             private void configure(final SSLSocket sock) {
                 sock.setNeedClientAuth(true);
                 final String[] suites = IceConfig.getCipherSuites();
@@ -1299,6 +1326,7 @@ public class LanternUtils {
                     sock.setEnabledCipherSuites(suites);
                 }
             }
+
         };
     }
 }
