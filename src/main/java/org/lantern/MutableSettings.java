@@ -21,4 +21,6 @@ public interface MutableSettings {
     void setPassword(String password);
     
     void setSavePassword(boolean savePassword);
+
+    void setServerPort(int serverPort);
 }
