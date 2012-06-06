@@ -125,7 +125,7 @@ public class Whitelist {
         addDefaultEntry("rthk.hk");
         addDefaultEntry("singtao.com");
         addDefaultEntry("taiwandaily.net");
-        addDefaultEntry("the-sun.on.cc");
+        addDefaultEntry("on.cc");
         addDefaultEntry("yzzk.com");
     }
     
@@ -235,7 +235,19 @@ public class Whitelist {
             if (domainExtension.contains(":")) {
                 domainExtension = StringUtils.substringBefore(domainExtension, ":");
             }
-            final String domain = StringUtils.substringBeforeLast(base, ".");
+            String domain = StringUtils.substringBeforeLast(base, ".");
+            log.debug("Domain: {}", domain);
+            final String[] majorTlds = {"com", "org", "net"};
+            for (final String tld : majorTlds) {
+                if (domain.endsWith("."+tld)) {
+                    domain = StringUtils.substringBeforeLast(domain, "."+tld);
+                    domainExtension = tld + "." + domainExtension;
+                    log.debug("Domain: {}", domain);
+                    log.debug("domainExtension: {}", domainExtension);
+                    break;
+                }
+            }
+            
             final String toMatchBase;
             if (domain.contains(".")) {
                 toMatchBase = StringUtils.substringAfterLast(domain, ".");
