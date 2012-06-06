@@ -240,7 +240,6 @@ public class Settings implements MutableSettings {
         this.port = port;
     }
 
-    @Override
     public void setServerPort(final int serverPort) {
         this.serverPort = serverPort;
     }
