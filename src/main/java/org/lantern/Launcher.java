@@ -92,8 +92,8 @@ public class Launcher {
     private static final String OPTION_API_PORT = "api-port";
     private static final String OPTION_DISABLE_KEYCHAIN = "disable-keychain";
     private static final String OPTION_PASSWORD_FILE = "password-file";
-    private static final String OPTION_TRUSTED_PEERS = "trusted-peers";
-    private static final String OPTION_ANON_PEERS ="anon-peers";
+    private static final String OPTION_TRUSTED_PEERS = "disable-trusted-peers";
+    private static final String OPTION_ANON_PEERS ="disable-anon-peers";
     private static final String OPTION_LAE = "disable-lae";
     private static final String OPTION_CENTRAL = "disable-central";
     private static final String OPTION_UDP = "disable-udp";
@@ -171,10 +171,12 @@ public class Launcher {
         LanternHub.settings().setUseCentralProxies(
             parseOptionDefaultTrue(cmd, OPTION_CENTRAL));
         
-        //IceConfig.setTcp(true);
-        //IceConfig.setUdp(true);
-        IceConfig.setTcp(parseOptionDefaultTrue(cmd, OPTION_TCP));
-        IceConfig.setUdp(parseOptionDefaultTrue(cmd, OPTION_UDP));
+        LanternHub.settings().setUseLaeProxies(false);
+        LanternHub.settings().setUseCentralProxies(false);
+        IceConfig.setTcp(false);
+        IceConfig.setUdp(true);
+        //IceConfig.setTcp(parseOptionDefaultTrue(cmd, OPTION_TCP));
+        //IceConfig.setUdp(parseOptionDefaultTrue(cmd, OPTION_UDP));
         if (cmd.hasOption(OPTION_USER)) {
             LanternHub.settings().setCommandLineEmail(cmd.getOptionValue(OPTION_USER));
         }
