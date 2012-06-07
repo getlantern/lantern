@@ -14,6 +14,7 @@
     <!--[if ! IE ]><!--><script>var __IE = false;</script><!--<![endif]-->
     <!--[if lt IE 9]><script src=js/lib/html5.js></script><![endif]-->
     <script src=js/lib/jquery-1.7.1.min.js></script>
+    <script src=js/lib/jquery.color.min.js></script>
     <script src=js/lib/jquery.placeholder.min.js></script>
     <script src=js/lib/jquery.lionbars.0.3.min.js></script>
     <script src=js/lib/json2.js></script>
@@ -312,7 +313,7 @@
                     Proxy all sites
                   </label>
                 </li>
-                <li>
+                <li id=onlyproxy>
                   <label>
                     <input type=radio value={{false}} ng:change=toggle('proxyAllSites') ng:model=state.proxyAllSites />
                     Only proxy certain sites
@@ -435,7 +436,7 @@
           <div class=content>
             <h1>Huzzah!</h1>
             <div ng:show=state.getMode>
-              Traffic to your <a href=#proxiedsites>proxied sites</a> will now be routed through your Lantern peers.
+              Traffic to your <a id=proxiedsites-tip href=#proxiedsites>proxied sites</a> will now be routed through your Lantern peers.
               <a id=tryit href=https://www.getlantern.org/check target=_blank>Try it</a>
             </div>
             <div ng:show=!state.getMode>
@@ -444,7 +445,7 @@
             </div>
             <h1>What now?</h1>
             <div id=whatnowtxt>
-              Feel free to review your <a class=hideflashmsg href=#settings>Settings</a>,
+              Feel free to review your <a id=settings-tip href=#settings>Settings</a>,
               or just close this window and leave Lantern running in the background.
               Look for the <img src=img/16on.png alt="Lantern" /> icon in your {{iconloctxt()}} when you’d like to get back here.<br/>
             </div>

@@ -655,6 +655,29 @@ $(document).ready(function(){
     '.overlaylink'
     ).click(function(evt){showid(clickevt2id(evt))});
 
+  function hilite(entiresettingspanel){
+    var sel = entiresettingspanel ? '#settings, #onlyproxy' : '#onlyproxy';
+    $(sel).css('background-color', '#ffffaa').animate({
+      backgroundColor: '#fff'}, 2000);
+  }
+  function mvtipti(after_else_func){
+    var $tipti = $('#tip-trayicon');
+    if (!$tipti.hasClass('moved')){
+      $tipti.animate({top: '+=305'}, 1000, after_else_func).addClass('moved');
+    } else {
+      after_else_func();
+    }
+  }
+  $('#proxiedsites-tip').click(function(evt){
+    evt.preventDefault();
+    evt.stopPropagation();
+    showid('#settings');
+    mvtipti(hilite);
+  });
+  $('#settings-tip').click(function(){
+    mvtipti(function(){hilite(true);});
+  });
+
   $('.overlay .close').click(function(evt){
     $(evt.target).parent('.overlay').removeClass('selected').hide()
       .parent('.overlay-modal').hide();
@@ -678,9 +701,11 @@ $(document).ready(function(){
     evt.preventDefault();
   });
 
+  /*
   $('.hideflashmsg').click(function(evt){
     $(evt.target).parents('.flashmsg').fadeOut();
   });
+  */
 
   /*
   $('#userlink, #usermenu a').click(function(evt){
