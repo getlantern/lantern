@@ -34,6 +34,7 @@ public class Whitelist {
         addDefaultEntry("box.com");
         addDefaultEntry("box.net");
         addDefaultEntry("dropbox.com");
+        addDefaultEntry("eff.org");
         addDefaultEntry("facebook.com");
         addDefaultEntry("flickr.com");
         addDefaultEntry("friendfeed.com");
