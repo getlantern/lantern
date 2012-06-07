@@ -520,7 +520,9 @@ public class LanternHub {
     /* this should do whatever is necessary to reset back to 'factory' defaults */
     public static void destructiveFullReset() throws IOException {
         LanternHub.localCipherProvider().reset();
-        FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
+        if (LanternConstants.DEFAULT_SETTINGS_FILE.isFile()) {
+            FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
+        }
         LanternHub.resetSettings(true); // does not affect command line though...
         LanternHub.resetUserConfig(); // among others, TrustedContacts...
     }
