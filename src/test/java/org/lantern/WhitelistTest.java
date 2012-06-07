@@ -10,7 +10,6 @@ import org.junit.Test;
 
 
 public class WhitelistTest {
-
     
     @Test
     public void testWhitelist() throws Exception {
@@ -19,7 +18,9 @@ public class WhitelistTest {
         final Settings settings = io.read();
         final Whitelist whitelist = settings.getWhitelist();
         
-        
+        assertTrue(whitelist.isWhitelisted("libertytimes.com.tw"));
+        assertTrue(!whitelist.isWhitelisted("libertytimes.org.tw"));
+        assertTrue(whitelist.isWhitelisted("on.cc"));
         assertTrue(whitelist.isWhitelisted("www.facebook.com:443"));
         assertTrue(whitelist.isWhitelisted("avaaz.org"));
         assertTrue(whitelist.isWhitelisted("getlantern.org"));
@@ -43,9 +44,12 @@ public class WhitelistTest {
         assertTrue(readWhitelist.isWhitelisted("http://www.nytimes.com/"));
         assertFalse(readWhitelist.isWhitelisted("avaaz.org"));
         assertTrue(readWhitelist.isWhitelisted("getlantern.org"));
+        
+        assertTrue(readWhitelist.isWhitelisted("getlantern.org"));
+        
     }
 
-    @Test
+    //@Test
     public void testIPAddressInWhitelist() throws Exception {
         final File settingsFile = settingsFile();
         final SettingsIo io = new SettingsIo(settingsFile);
@@ -80,10 +84,6 @@ public class WhitelistTest {
 
     private File settingsFile() {
         return testFile("settings.json");
-    }
-
-    private File plist() {
-        return testFile("plist");
     }
 
     private File testFile(final String name) {

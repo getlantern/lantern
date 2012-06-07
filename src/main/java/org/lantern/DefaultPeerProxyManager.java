@@ -123,7 +123,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                         gotConnected = true;
                     }
                 } catch (final IOException e) {
-                    log.info("Could not create peer socket");
+                    log.info("Could not create peer socket", e);
                 }                
             }
         });

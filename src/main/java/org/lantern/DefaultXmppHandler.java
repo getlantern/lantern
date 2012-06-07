@@ -5,13 +5,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Security;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,10 +17,6 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.net.ServerSocketFactory;
-import javax.net.SocketFactory;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.codec.binary.Base64;
@@ -234,7 +223,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService, 
             upnpService, new InetSocketAddress(this.sslProxyRandomPort), 
             //newTlsSocketFactory(), SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
-            newTlsSocketFactory(), newTlsServerSocketFactory(),
+            LanternUtils.newTlsSocketFactory(), LanternUtils.newTlsServerSocketFactory(),
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
             plainTextProxyRelayAddress, false));
 
@@ -1034,58 +1023,6 @@ public class DefaultXmppHandler implements XmppHandler {
         }
     }
     
-    private ServerSocketFactory newTlsServerSocketFactory() {
-        LOG.info("Creating TLS server socket factory");
-        
-        String algorithm = 
-            Security.getProperty("ssl.KeyManagerFactory.algorithm");
-        if (algorithm == null) {
-            algorithm = "SunX509";
-        }
-        try {
-            final KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(LanternHub.getKeyStoreManager().keyStoreAsInputStream(),
-                    LanternHub.getKeyStoreManager().getKeyStorePassword());
-
-            // Set up key manager factory to use our key store
-            final KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
-            kmf.init(ks, LanternHub.getKeyStoreManager().getCertificatePassword());
-
-            // Initialize the SSLContext to work with our key managers.
-            final SSLContext serverContext = SSLContext.getInstance("TLS");
-            serverContext.init(kmf.getKeyManagers(), null, null);
-            return serverContext.getServerSocketFactory();
-        } catch (final KeyStoreException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final NoSuchAlgorithmException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final CertificateException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final IOException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final UnrecoverableKeyException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final KeyManagementException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        }
-    }
-
-    private SocketFactory newTlsSocketFactory() {
-        LOG.info("Creating TLS socket factory");
-        try {
-            final SSLContext clientContext = SSLContext.getInstance("TLS");
-            clientContext.init(null, 
-                LanternHub.getKeyStoreManager().getTrustManagers(), null);
-            return clientContext.getSocketFactory();
-        } catch (final NoSuchAlgorithmException e) {
-            LOG.error("No TLS?", e);
-            throw new Error("No TLS?", e);
-        } catch (final KeyManagementException e) {
-            LOG.error("Key managmement issue?", e);
-            throw new Error("Key managmement issue?", e);
-        }
-    }
-
     @Override
     public boolean isLoggedIn() {
         if (this.client.get() == null) {

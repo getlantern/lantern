@@ -5,6 +5,12 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.AlgorithmParameterSpec;
 import java.util.Arrays;
 
 import javax.net.ssl.TrustManager;
@@ -31,7 +37,9 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     private static final String PASS = 
         String.valueOf(LanternHub.secureRandom().nextLong());
     
-    private static final String KEYSIZE = "1024";
+    private static final String KEYSIZE = "2048";
+    
+    private static final String ALG = "RSA";
 
     private String localCert;
     
@@ -91,7 +99,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             return;
         }
         final String result = LanternUtils.runKeytool("-genkey", "-alias", 
-            "foo", "-keysize", KEYSIZE, "-validity", "365", "-keyalg", "DSA", 
+            "foo", "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG, 
             "-dname", "CN="+LanternUtils.getMacAddress(), "-keystore", 
             TRUSTSTORE_FILE.getAbsolutePath(), "-keypass", PASS, 
             "-storepass", PASS);
@@ -115,9 +123,10 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         // Note we use DSA instead of RSA because apparently only the JDK 
         // has RSA available.
         final String genKeyResult = LanternUtils.runKeytool("-genkey", "-alias", 
-            macAddress, "-keysize", KEYSIZE, "-validity", "365", "-keyalg", "DSA", 
+            macAddress, "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG, 
             "-dname", "CN="+macAddress, "-keypass", PASS, "-storepass", 
             PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
+        
         
         log.info("Result of keytool -genkey call: {}", genKeyResult);
         
