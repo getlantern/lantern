@@ -155,7 +155,6 @@ public class LanternTrustManager implements X509TrustManager {
     public void checkClientTrusted(final X509Certificate[] chain, 
         final String authType) throws CertificateException {
         log.info("CHECKING IF CLIENT IS TRUSTED");
-        //log.info("UNKNOWN CLIENT CERTIFICATE: " + chain[0].getSubjectDN());
         authenticate(chain, authType);
     }
 
@@ -183,7 +182,7 @@ public class LanternTrustManager implements X509TrustManager {
             throw new CertificateException("No name!!");
         }
         final String alias = StringUtils.substringAfterLast(name, "CN=");
-        log.info("CHECKING SERVER CERTIFICATE FOR: " + alias);
+        log.info("CHECKING FOR CERTIFICATE UNDER: " + alias);
         try {
             final Certificate local = this.keyStore.getCertificate(alias);
             if (local == null) {

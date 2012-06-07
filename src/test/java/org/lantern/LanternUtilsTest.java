@@ -4,11 +4,26 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.SocketAddress;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.cert.PKIXParameters;
+import java.security.cert.TrustAnchor;
+import java.security.cert.X509Certificate;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.concurrent.atomic.AtomicReference;
+
+import javax.net.ServerSocketFactory;
+import javax.net.SocketFactory;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLSocket;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -17,18 +32,10 @@ import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.junit.Test;
+import org.lastbamboo.common.offer.answer.IceConfig;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.security.InvalidAlgorithmParameterException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
-import java.security.cert.PKIXParameters;
-import java.security.cert.TrustAnchor;
-import java.security.cert.X509Certificate;
 
 /**
  * Test for Lantern utilities.
@@ -37,9 +44,89 @@ public class LanternUtilsTest {
     
     private static Logger LOG = LoggerFactory.getLogger(LanternUtilsTest.class);
     
+    private final String msg = "oh hi";
+    
+    private final AtomicReference<String> readOnServer = 
+        new AtomicReference<String>("");
+    
+    @Test
+    public void testSSL() throws Exception {
+        IceConfig.setCipherSuites(new String[] {
+            "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+            //"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+            //"SSL_RSA_WITH_RC4_128_SHA"
+        });
+        //System.setProperty("javax.net.debug", "ssl:record");
+        //System.setProperty("javax.net.debug", "ssl:handshake");
+        
+        final LanternKeyStoreManager ksm = LanternHub.getKeyStoreManager();
+        ksm.addBase64Cert(LanternUtils.getMacAddress(), ksm.getBase64Cert());
+        
+        final SocketFactory clientFactory = LanternUtils.newTlsSocketFactory();
+        final ServerSocketFactory serverFactory = 
+            LanternUtils.newTlsServerSocketFactory();
+        
+        final SocketAddress endpoint =
+            new InetSocketAddress("127.0.0.1", LanternUtils.randomPort()); 
+        
+        final SSLServerSocket ss = 
+            (SSLServerSocket) serverFactory.createServerSocket();
+        ss.bind(endpoint);
+        
+        acceptIncoming(ss);
+        Thread.sleep(400);
+        
+        final SSLSocket client = (SSLSocket) clientFactory.createSocket();
+        
+        client.connect(endpoint, 2000);
+        
+        assertTrue(client.isConnected());
+        
+        synchronized (readOnServer) {
+            final OutputStream os = client.getOutputStream();
+            os.write(msg.getBytes("UTF-8"));
+            os.close();
+            readOnServer.wait(2000);
+        }
+        
+        assertEquals(msg, readOnServer.get());
+    }
+    
+    private void acceptIncoming(final SSLServerSocket ss) {
+        final Runnable runner = new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    
+                    final SSLSocket sock = (SSLSocket) ss.accept();
+                    
+                    LOG.debug("Incoming cipher list..." + 
+                        Arrays.asList(sock.getEnabledCipherSuites()));
+                    final InputStream is = sock.getInputStream();
+                    final int length = msg.getBytes("UTF-8").length;
+                    final byte[] data = new byte[length];
+                    int bytes = 0;
+                    while (bytes < length) {
+                        bytes += is.read(data, bytes, length - bytes);
+                    }
+                    final String read = new String(data, "UTF-8");
+                    synchronized (readOnServer) {
+                        readOnServer.set(read.trim());
+                        readOnServer.notifyAll();
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        };
+        final Thread t = new Thread(runner, "test-thread");
+        t.setDaemon(true);
+        t.start();
+    }
+
     @Test
     public void testRoster() throws Exception {
-        
         System.setProperty("javax.net.debug", "ssl:record");
         System.setProperty("javax.net.debug", "ssl:handshake");
         try {
@@ -59,7 +146,7 @@ public class LanternUtilsTest {
                 TrustAnchor ta = (TrustAnchor)it.next();
                 // Get certificate
                 X509Certificate cert = ta.getTrustedCert();
-                System.err.println(cert);
+                //System.err.println(cert);
             }
         //} catch (CertificateException e) {
         } catch (KeyStoreException e) {
@@ -73,10 +160,8 @@ public class LanternUtilsTest {
         //    LanternHub.trustManager().getTruststorePath());
         
         LanternUtils.configureXmpp();
-        //final String email = LanternHub.settings().getEmail();
-        //final String pwd = LanternHub.settings().getPassword();
-        final String email = "adamfisk@gmail.com";
-        final String pwd = "#@$77rq7rR";
+        final String email = LanternHub.settings().getEmail();
+        final String pwd = LanternHub.settings().getPassword();
         if (StringUtils.isBlank(email) || StringUtils.isBlank(pwd)) {
             LOG.info("user name and password not configured");
             return;
@@ -87,7 +172,7 @@ public class LanternUtilsTest {
         
     }
     
-    //@Test 
+    @Test 
     public void testToTypes() throws Exception {
         assertEquals(String.class, LanternUtils.toTyped("33fga").getClass());
         assertEquals(Integer.class, LanternUtils.toTyped("21314").getClass());
@@ -101,7 +186,7 @@ public class LanternUtilsTest {
         assertEquals(String.class, LanternUtils.toTyped("2222a").getClass());
     }
     
-    //@Test
+    @Test
     public void testReplaceInFile() throws Exception {
         final File temp = File.createTempFile(String.valueOf(hashCode()), "test");
         temp.deleteOnExit();
@@ -112,7 +197,7 @@ public class LanternUtilsTest {
         assertEquals("blah blah blah <false/> blah blah", newFile);
     }
     
-    //@Test 
+    @Test 
     public void testGoogleStunServers() throws Exception {
         final String email = LanternHub.settings().getEmail();
         final String pwd = LanternHub.settings().getPassword();
@@ -155,7 +240,7 @@ public class LanternUtilsTest {
         //Thread.sleep(40000);
     }
     
-    //@Test 
+    @Test 
     public void testOtrMode() throws Exception {
         final String email = LanternHub.settings().getEmail();
         final String pwd = LanternHub.settings().getPassword();
@@ -176,7 +261,7 @@ public class LanternUtilsTest {
     }
     
 
-    //@Test 
+    @Test 
     public void testToHttpsCandidates() throws Exception {
         Collection<String> candidates = 
             LanternUtils.toHttpsCandidates("http://www.google.com");

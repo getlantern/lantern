@@ -76,6 +76,7 @@ public class Settings implements MutableSettings {
     private boolean isSystemProxy = true;
     
     private int port = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
+    private int serverPort = LanternUtils.randomPort();
     private String version = LanternConstants.VERSION;
     private boolean connectOnLaunch = true;
     private String language = Locale.getDefault().getLanguage();
@@ -237,6 +238,15 @@ public class Settings implements MutableSettings {
     @Override
     public void setPort(final int port) {
         this.port = port;
+    }
+
+    public void setServerPort(final int serverPort) {
+        this.serverPort = serverPort;
+    }
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public int getServerPort() {
+        return serverPort;
     }
     
     @JsonView(UIStateSettings.class)
