@@ -172,6 +172,7 @@ public class Launcher {
         
         IceConfig.setTcp(parseOptionDefaultTrue(cmd, OPTION_TCP));
         IceConfig.setUdp(parseOptionDefaultTrue(cmd, OPTION_UDP));
+        
         if (cmd.hasOption(OPTION_USER)) {
             set.setCommandLineEmail(cmd.getOptionValue(OPTION_USER));
         }
@@ -612,16 +613,25 @@ public class Launcher {
             // This won't connect in the case where the user hasn't entered 
             // their user name and password and the user is running with a UI.
             // Otherwise, it will connect.
-            XmppHandler xmpp = LanternHub.xmppHandler();
+            final XmppHandler xmpp = LanternHub.xmppHandler();
             if (LanternHub.settings().isConnectOnLaunch() &&
                 (LanternUtils.isConfigured() || !LanternHub.settings().isUiEnabled())) {
-                try {
-                    xmpp.connect();
-                } catch (final IOException e) {
-                    LOG.info("Could not login", e);
-                } catch (final CredentialException e) {
-                    LOG.info("Bad credentials");
-                }
+                final Runnable runner = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            xmpp.connect();
+                        } catch (final IOException e) {
+                            LOG.info("Could not login", e);
+                        } catch (final CredentialException e) {
+                            LOG.info("Bad credentials");
+                        }
+                    }
+                };
+                final Thread t = 
+                    new Thread(runner, "Auto-Connect-From-Settings-Ready");
+                t.setDaemon(true);
+                t.start();
             } else {
                 LOG.info("Not auto-logging in with settings:\n{}",
                     LanternHub.settings());
