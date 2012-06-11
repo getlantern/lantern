@@ -73,6 +73,7 @@ function showid(id, ignorecls, ignore){
   if(cls === 'panel'){
     $('#panel-list > li > a.selected').removeClass('selected');
     $('#panel-list > li > a[href='+id+']').addClass('selected');
+    $('.flashmsg:not(#tip-trayicon), .overlay').fadeOut().removeClass('selected');
   }
   lionbarsify($el.find('.lionbars'));
 }
@@ -520,7 +521,7 @@ function LDCtrl(){
     self._undo();
     $('.flashmsg').hide();
   };
-  self.updatewhitelist = function(site, newsite){
+  self.updatewhitelist = function(site, newsite, noundo){
     if(typeof newsite === 'string'){
       if(newsite === site){
         console.log('site == newsite == ', site, 'ignoring');
@@ -542,12 +543,14 @@ function LDCtrl(){
           });
 
           // show flash msg with undo
-          self._undo = function(){
-            self.updatewhitelist(newsite, site);
-          };
-          $('.flashmsg').hide();
-          $('#flash-main .content').addClass('success').removeClass('error')
-            .html('Changed ' + site + ' to ' + newsite + '. <a onclick=scope.undo()>Undo</a>').parent('#flash-main').fadeIn();
+          if(!noundo){
+            self._undo = function(){
+              self.updatewhitelist(newsite, site, true);
+            };
+            $('.flashmsg').hide();
+            $('#flash-main .content').addClass('success').removeClass('error')
+              .html('Changed ' + site + ' to ' + newsite + '. <a onclick=getscope().undo()>Undo</a>').parent('#flash-main').fadeIn();
+          }
         }).fail(function(){
           console.log('/api/addtowhitelist?site='+newsite+' failed');
           $('.flashmsg').hide();
@@ -575,7 +578,7 @@ function LDCtrl(){
           };
           $('.flashmsg').hide();
           $('#flash-main .content').addClass('success').removeClass('error')
-            .html('Removed ' + site + '. <a onclick=scope.undo()>Undo</a>').parent('#flash-main').fadeIn();
+            .html('Removed ' + site + '. <a onclick=getscope().undo()>Undo</a>').parent('#flash-main').fadeIn();
         }
         self.whitelist = r.entries;
         self.$digest();
@@ -686,7 +689,7 @@ $(document).ready(function(){
     return scope;
   }
 
-  window.scope = getscope();
+  window.getscope = getscope;
 
   $('input, textarea').placeholder();
 
