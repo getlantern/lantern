@@ -111,7 +111,6 @@ public class AppIndicatorTray implements SystemTray {
             }
         };
         libgobject.g_signal_connect_data(dashboardItem, "activate", dashboardItemCallback,null, null, 0);
-        libgtk.gtk_widget_set_sensitive(connectionStatusItem, Gtk.TRUE);
         libgtk.gtk_menu_shell_append(menu, dashboardItem);
         libgtk.gtk_widget_show_all(dashboardItem);
         
@@ -126,7 +125,6 @@ public class AppIndicatorTray implements SystemTray {
             }
         };
         libgobject.g_signal_connect_data(quitItem, "activate", quitItemCallback,null, null, 0);
-        libgtk.gtk_widget_set_sensitive(quitItem, Gtk.TRUE);
         libgtk.gtk_menu_shell_append(menu, quitItem);
         libgtk.gtk_widget_show_all(quitItem);
         
