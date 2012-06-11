@@ -10,6 +10,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.channel.Channel;
@@ -21,6 +22,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Class the keeps track of P2P connections to peers, dispatching them and
  * creating new ones as needed.
+ * 
+ * TODO: Reuse sockets better?
  */
 public class DefaultPeerProxyManager implements PeerProxyManager {
     
@@ -68,19 +71,52 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     public HttpRequestProcessor processRequest(
         final Channel browserToProxyChannel, final ChannelHandlerContext ctx, 
         final MessageEvent me) throws IOException {
-        log.info("Processing request...");
+        log.info("Processing request...sockets in queue {} on this {}", 
+            this.timedSockets.size(), this);
         
-        // This removes the highest priority socket.
-        final ConnectionTimeSocket cts = this.timedSockets.poll();
-        if (cts == null) {
-            log.info("No peer sockets available!!");
-            return null;
-        }
+        final ConnectionTimeSocket cts = selectSocket();
         cts.requestProcessor.processRequest(browserToProxyChannel, ctx, me);
         
-        // When we use a socket, we always replace it with a new one.
-        onPeer(cts.peerUri, 1);
+        // When we use sockets we replace them.
+        final int socketsToFetch;
+        if (this.timedSockets.size() > 20) {
+            socketsToFetch = 0;
+        } else if (this.timedSockets.size() > 10) {
+            socketsToFetch = 1;
+        } else if (this.timedSockets.size() > 4) {
+            socketsToFetch = 2;
+        } else {
+            socketsToFetch = 3;
+        }
+        onPeer(cts.peerUri, socketsToFetch);
         return cts.requestProcessor;
+    }
+
+    private ConnectionTimeSocket selectSocket() throws IOException {
+        // This removes the highest priority socket.
+        for (int i = 0; i < this.timedSockets.size(); i++) {
+            final ConnectionTimeSocket cts;
+            try {
+                cts = this.timedSockets.poll(10, TimeUnit.SECONDS);
+            } catch (final InterruptedException e) {
+                log.info("Interrupted?", e);
+                return null;
+            }
+            if (cts == null) {
+                log.info("No peer sockets available!! TRUSTED: "+!anon);
+                return null;
+            }
+            final Socket s = cts.sock;
+            if (s != null) {
+                if (!s.isClosed()) {
+                    log.info("Found connected socket!");
+                    return cts;
+                }
+            }
+        }
+        log.warn("Could not find connected socket");
+        throw new IOException("No availabe connected sockets in "+
+            this.timedSockets);
     }
 
     @Override
@@ -93,7 +129,8 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             log.info("Ingoring peer when we're in give mode");
             return;
         }
-        log.info("Received peer URI {}...attempting connection...", peerUri);
+        log.info("Received peer URI {}...attempting {} connections...", 
+            peerUri, sockets);
         // Unclear how this count will be used for now.
         final Map<URI, AtomicInteger> peerFailureCount = 
             new HashMap<URI, AtomicInteger>();
@@ -145,6 +182,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
          */
         private final URI peerUri;
         private HttpRequestProcessor requestProcessor;
+        private Socket sock;
         
         public ConnectionTimeSocket(final URI peerUri) {
             this.peerUri = peerUri;
@@ -152,6 +190,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
 
         private void onSocket(final Socket sock) {
             this.elapsed = System.currentTimeMillis() - this.startTime;
+            this.sock = sock;
             if (anon) {
                 this.requestProcessor = 
                     new PeerHttpConnectRequestProcessor(sock);
