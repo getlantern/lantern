@@ -294,6 +294,12 @@ public class LanternUtils {
                 long count = 0;
                 int n = 0;
                 try {
+                    LOG.info("READING FROM SOCKET: {}", sock);
+                    if (sock.isClosed()) {
+                        LOG.error("SOCKET IS CLOSED");
+                        ProxyUtils.closeOnFlush(channel);
+                        return;
+                    }
                     final InputStream is = sock.getInputStream();
                     while (-1 != (n = is.read(buffer))) {
                         //LOG.info("Writing response data: {}", new String(buffer, 0, n));
