@@ -718,10 +718,12 @@ public class DefaultXmppHandler implements XmppHandler {
             try {
                 // Add the peer if we're able to add the cert.
                 LanternHub.getKeyStoreManager().addBase64Cert(mac, base64Cert);
-                if (LanternHub.getTrustedContactsManager().isTrusted(msg)) {
-                    LanternHub.trustedPeerProxyManager().onPeer(uri);
-                } else {
-                    LanternHub.anonymousPeerProxyManager().onPeer(uri);
+                if (LanternHub.settings().isAutoConnectToPeers()) {
+                    if (LanternHub.getTrustedContactsManager().isTrusted(msg)) {
+                        LanternHub.trustedPeerProxyManager().onPeer(uri);
+                    } else {
+                        LanternHub.anonymousPeerProxyManager().onPeer(uri);
+                    }
                 }
             } catch (final IOException e) {
                 LOG.error("Could not add cert??", e);

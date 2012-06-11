@@ -37,6 +37,11 @@ public class Settings implements MutableSettings {
     // saved / loaded between runs of lantern.
     public static class PersistentSettings {}
     public static class UIStateSettings {}
+    
+    /**
+     * Settings that are not sent to the UI or persisted to disk.
+     */
+    public static class TransientSettings {}
 
     // by default, if not marked, fields will be serialized in 
     // all of the above classes. To exclude a field from other
@@ -82,8 +87,13 @@ public class Settings implements MutableSettings {
     private String language = Locale.getDefault().getLanguage();
     
     private SettingsState settings = new SettingsState();
-    /* user has completed 'wizard' setup steps */
+    
+    /**
+     * User has completed 'wizard' setup steps. 
+     */
     private boolean initialSetupComplete = false;
+    
+    private boolean autoConnectToPeers = true;
     
     private GoogleTalkState googleTalkState = 
         GoogleTalkState.LOGGED_OUT;
@@ -594,6 +604,15 @@ public class Settings implements MutableSettings {
     @JsonView(UIStateSettings.class)
     public boolean isLocalPasswordInitialized() {
         return LanternHub.localCipherProvider().isInitialized();
+    }
+
+    public void setAutoConnectToPeers(final boolean autoConnectToPeers) {
+        this.autoConnectToPeers = autoConnectToPeers;
+    }
+
+    @JsonView(TransientSettings.class)
+    public boolean isAutoConnectToPeers() {
+        return autoConnectToPeers;
     }
 
     public void addProxy(final String proxy) {
