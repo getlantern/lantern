@@ -509,7 +509,6 @@ function LDCtrl(){
   
 
   self._validatewhitelistentry = function(val){
-    // XXX ip addresses acceptable?
     if(!HOSTNAMEPAT.test(val) && !IPADDRPAT.test(val)){
       console.log('not a valid hostname:', val, '(so much for html5 defenses)');
       return false;
@@ -546,6 +545,14 @@ function LDCtrl(){
         self.whitelist = r.entries;
         self.$digest();
         console.log(url+' succeeded');
+        if(newsite){
+          var $newentry = $('.whitelistentry[value="'+site+'"]').parents('li');
+          $newentry.scrollIntoView({
+            complete: function(){
+              $newentry.css('background-color', '#ffa').animate({backgroundColor: '#fff'}, 2000);
+            }
+          });
+        }
       }).fail(function(){
         console.log(url+' failed');
       });
