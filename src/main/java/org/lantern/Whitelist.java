@@ -40,6 +40,7 @@ public class Whitelist {
         addDefaultEntry("friendfeed.com");
         addDefaultEntry("hrw.org"); // Human Rights Watch
         addDefaultEntry("ifconfig.me");
+        addDefaultEntry("igfw.net");
         addDefaultEntry("linkedin.com");
         addDefaultEntry("littleshoot.org");
         addDefaultEntry("livejournal.com");
