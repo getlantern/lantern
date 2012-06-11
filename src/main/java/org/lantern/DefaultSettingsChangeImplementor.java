@@ -64,7 +64,7 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             }
             
             if (result != 0) {
-                log.error("Error enabling proxy server? Result: "+result);
+                log.error("Error changing startAtLogin? Result: "+result);
             }
         } else if (SystemUtils.IS_OS_LINUX) {
             // TODO: Make this work on Linux!! 
