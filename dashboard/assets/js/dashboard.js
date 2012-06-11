@@ -516,6 +516,10 @@ function LDCtrl(){
     return true;
   };
 
+  self.undo = function(){
+    self._undo();
+    $('.flashmsg').hide();
+  };
   self.updatewhitelist = function(site, newsite){
     if(typeof newsite === 'string'){
       if(newsite === site){
@@ -527,21 +531,52 @@ function LDCtrl(){
         $.post('/api/addtowhitelist?site=' + newsite).done(function(r2){
           self.whitelist = r2.entries;
           self.$digest();
-          console.log('/api/addtowhitelist?site='+site+' succeeded');
+          console.log('/api/addtowhitelist?site='+newsite+' succeeded');
+
+          // scroll to and highlight
+          var $newentry = $('.whitelistentry[value="'+newsite+'"]').parents('li');
+          $newentry.scrollIntoView({
+            complete: function(){
+              $newentry.css('background-color', '#ffa').animate({backgroundColor: '#fff'}, 2000);
+            }
+          });
+
+          // show flash msg with undo
+          self._undo = function(){
+            self.updatewhitelist(newsite, site);
+          };
+          $('.flashmsg').hide();
+          $('#flash-main .content').addClass('success').removeClass('error')
+            .html('Changed ' + site + ' to ' + newsite + '. <a onclick=scope.undo()>Undo</a>').parent('#flash-main').fadeIn();
         }).fail(function(){
-          console.log('/api/addtowhitelist?site='+site+' failed');
-        });
+          console.log('/api/addtowhitelist?site='+newsite+' failed');
+          $('.flashmsg').hide();
+          $('#flash-main .content').addClass('error').removeClass('success')
+            .html('Failed to add ' + newsite).parent('#flash-main').fadeIn();
+          });
         self.whitelist = r1.entries;
         console.log('/api/removefromwhitelist?site='+site+' succeeded');
       }).fail(function(){
         console.log('/api/removefromwhitelist?site='+site+' failed');
+        $('.flashmsg').hide();
+        $('#flash-main .content').addClass('error').removeClass('success')
+          .html('Failed to remove ' + site).parent('#flash-main').fadeIn();
       });
     }else if(typeof newsite === 'boolean'){
       if(newsite && !self._validatewhitelistentry(site))return;
       var url = '/api/' + (newsite ? 'addtowhitelist' : 'removefromwhitelist') + '?site=' + site;
       $.post(url).done(function(r){
-        if(newsite)
+        if(newsite){ // site added
           $('#sitetoadd').val('');
+        }else{ // site removed
+          // show flash msg with undo
+          self._undo = function(){
+            self.updatewhitelist(site, true);
+          };
+          $('.flashmsg').hide();
+          $('#flash-main .content').addClass('success').removeClass('error')
+            .html('Removed ' + site + '. <a onclick=scope.undo()>Undo</a>').parent('#flash-main').fadeIn();
+        }
         self.whitelist = r.entries;
         self.$digest();
         console.log(url+' succeeded');
@@ -650,6 +685,8 @@ $(document).ready(function(){
     }
     return scope;
   }
+
+  window.scope = getscope();
 
   $('input, textarea').placeholder();
 
