@@ -9404,7 +9404,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
 
 })( window );
 /**
- * @license AngularJS v1.0.0rc10
+ * @license AngularJS v1.0.0rc11
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -10166,7 +10166,9 @@ function startingTag(element) {
     // are not allowed to have children. So we just ignore it.
     element.html('');
   } catch(e) {}
-  return jqLite('<div>').append(element).html().match(/^(<[^>]+>)/)[1];
+  return jqLite('<div>').append(element).html().
+      match(/^(<[^>]+>)/)[1].
+      replace(/^<([\w\-]+)/, function(match, nodeName) { return '<' + lowercase(nodeName); });
 }
 
 
@@ -10315,7 +10317,7 @@ function angularInit(element, bootstrap) {
  * @description
  * Use this function to manually start up angular application.
  *
- * See: {@link guide/dev_guide.bootstrap.manual_bootstrap Bootstrap}
+ * See: {@link guide/bootstrap Bootstrap}
  *
  * @param {Element} element DOM element which is the root of angular application.
  * @param {Array<String|Function>=} modules an array of module declarations. See: {@link angular.module modules}
@@ -10324,10 +10326,13 @@ function angularInit(element, bootstrap) {
 function bootstrap(element, modules) {
   element = jqLite(element);
   modules = modules || [];
+  modules.unshift(['$provide', function($provide) {
+    $provide.value('$rootElement', element);
+  }]);
   modules.unshift('ng');
   var injector = createInjector(modules);
   injector.invoke(
-    ['$rootScope', '$compile', '$injector', function(scope, compile, injector){
+    ['$rootScope', '$rootElement', '$compile', '$injector', function(scope, element, compile, injector){
       scope.$apply(function() {
         element.data('$injector', injector);
         compile(element)(scope);
@@ -10648,11 +10653,11 @@ function setupModuleLoader(window) {
  * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
  */
 var version = {
-  full: '1.0.0rc10',    // all of these placeholder strings will be replaced by rake's
+  full: '1.0.0rc11',    // all of these placeholder strings will be replaced by rake's
   major: 1,    // compile task
   minor: 0,
   dot: 0,
-  codeName: 'tesseract-giftwrapping'
+  codeName: 'promise-resolution'
 };
 
 
@@ -11131,8 +11136,12 @@ forEach('input,select,option,textarea,button,form'.split(','), function(value) {
   BOOLEAN_ELEMENTS[uppercase(value)] = true;
 });
 
-function isBooleanAttr(element, name) {
-  return BOOLEAN_ELEMENTS[element.nodeName] && BOOLEAN_ATTR[name.toLowerCase()];
+function getBooleanAttrName(element, name) {
+  // check dom last since we will most likely fail on name
+  var booleanAttr = BOOLEAN_ATTR[name.toLowerCase()];
+
+  // booleanAttr is here twice to minimize DOM access
+  return booleanAttr && BOOLEAN_ELEMENTS[element.nodeName] && booleanAttr;
 }
 
 forEach({
@@ -11325,11 +11334,7 @@ function createEventHandler(element, events) {
     };
 
     forEach(events[type || event.type], function(fn) {
-      try {
-        fn.call(element, event);
-      } catch (e) {
-        // Not much to do here since jQuery ignores these anyway
-      }
+      fn.call(element, event);
     });
 
     // Remove monkey-patched methods (IE),
@@ -11622,7 +11627,7 @@ HashQueueMap.prototype = {
  *
  * @description
  * Creates an injector function that can be used for retrieving services as well as for
- * dependency injection (see {@link guide/dev_guide.di dependency injection}).
+ * dependency injection (see {@link guide/di dependency injection}).
  *
 
  * @param {Array.<string|Function>} modules A list of module functions or their aliases. See
@@ -11657,19 +11662,32 @@ var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
 var FN_ARG_SPLIT = /,/;
 var FN_ARG = /^\s*(_?)(.+?)\1\s*$/;
 var STRIP_COMMENTS = /((\/\/.*$)|(\/\*[\s\S]*?\*\/))/mg;
-function inferInjectionArgs(fn) {
-  assertArgFn(fn);
-  if (!fn.$inject) {
-    var args = fn.$inject = [];
-    var fnText = fn.toString().replace(STRIP_COMMENTS, '');
-    var argDecl = fnText.match(FN_ARGS);
-    forEach(argDecl[1].split(FN_ARG_SPLIT), function(arg){
-      arg.replace(FN_ARG, function(all, underscore, name){
-        args.push(name);
+function annotate(fn) {
+  var $inject,
+      fnText,
+      argDecl,
+      last;
+
+  if (typeof fn == 'function') {
+    if (!($inject = fn.$inject)) {
+      $inject = [];
+      fnText = fn.toString().replace(STRIP_COMMENTS, '');
+      argDecl = fnText.match(FN_ARGS);
+      forEach(argDecl[1].split(FN_ARG_SPLIT), function(arg){
+        arg.replace(FN_ARG, function(all, underscore, name){
+          $inject.push(name);
+        });
       });
-    });
+      fn.$inject = $inject;
+    }
+  } else if (isArray(fn)) {
+    last = fn.length - 1;
+    assertArgFn(fn[last], 'fn')
+    $inject = fn.slice(0, last);
+  } else {
+    assertArgFn(fn, 'fn', true);
   }
-  return fn.$inject;
+  return $inject;
 }
 
 ///////////////////////////////////////
@@ -11750,7 +11768,7 @@ function inferInjectionArgs(fn) {
  * @param {Object=} self The `this` for the invoked method.
  * @param {Object=} locals Optional object. If preset then any argument names are read from this object first, before
  *   the `$injector` is consulted.
- * @return the value returned by the invoked `fn` function.
+ * @returns {*} the value returned by the invoked `fn` function.
  */
 
 /**
@@ -11764,8 +11782,89 @@ function inferInjectionArgs(fn) {
  * @param {function} Type Annotated constructor function.
  * @param {Object=} locals Optional object. If preset then any argument names are read from this object first, before
  *   the `$injector` is consulted.
- * @return new instance of `Type`.
+ * @returns {Object} new instance of `Type`.
  */
+
+/**
+ * @ngdoc method
+ * @name angular.module.AUTO.$injector#annotate
+ * @methodOf angular.module.AUTO.$injector
+ *
+ * @description
+ * Returns an array of service names which the function is requesting for injection. This API is used by the injector
+ * to determine which services need to be injected into the function when the function is invoked. There are three
+ * ways in which the function can be annotated with the needed dependencies.
+ *
+ * # Argument names
+ *
+ * The simplest form is to extract the dependencies from the arguments of the function. This is done by converting
+ * the function into a string using `toString()` method and extracting the argument names.
+ * <pre>
+ *   // Given
+ *   function MyController($scope, $route) {
+ *     // ...
+ *   }
+ *
+ *   // Then
+ *   expect(injector.annotate(MyController)).toEqual(['$scope', '$route']);
+ * </pre>
+ *
+ * This method does not work with code minfication / obfuscation. For this reason the following annotation strategies
+ * are supported.
+ *
+ * # The `$injector` property
+ *
+ * If a function has an `$inject` property and its value is an array of strings, then the strings represent names of
+ * services to be injected into the function.
+ * <pre>
+ *   // Given
+ *   var MyController = function(obfuscatedScope, obfuscatedRoute) {
+ *     // ...
+ *   }
+ *   // Define function dependencies
+ *   MyController.$inject = ['$scope', '$route'];
+ *
+ *   // Then
+ *   expect(injector.annotate(MyController)).toEqual(['$scope', '$route']);
+ * </pre>
+ *
+ * # The array notation
+ *
+ * It is often desirable to inline Injected functions and that's when setting the `$inject` property is very
+ * inconvenient. In these situations using the array notation to specify the dependencies in a way that survives
+ * minification is a better choice:
+ *
+ * <pre>
+ *   // We wish to write this (not minification / obfuscation safe)
+ *   injector.invoke(function($compile, $rootScope) {
+ *     // ...
+ *   });
+ *
+ *   // We are forced to write break inlining
+ *   var tmpFn = function(obfuscatedCompile, obfuscatedRootScope) {
+ *     // ...
+ *   };
+ *   tmpFn.$inject = ['$compile', '$rootScope'];
+ *   injector.invoke(tempFn);
+ *
+ *   // To better support inline function the inline annotation is supported
+ *   injector.invoke(['$compile', '$rootScope', function(obfCompile, obfRootScope) {
+ *     // ...
+ *   }]);
+ *
+ *   // Therefore
+ *   expect(injector.annotate(
+ *      ['$compile', '$rootScope', function(obfus_$compile, obfus_$rootScope) {}])
+ *    ).toEqual(['$compile', '$rootScope']);
+ * </pre>
+ *
+ * @param {function|Array.<string|Function>} fn Function for which dependent service names need to be retrieved as described
+ *   above.
+ *
+ * @returns {Array.<string>} The names of the services which the function requires.
+ */
+
+
 
 
 /**
@@ -12069,23 +12168,11 @@ function createInjector(modulesToLoad) {
 
     function invoke(fn, self, locals){
       var args = [],
-          $inject,
-          length,
+          $inject = annotate(fn),
+          length, i,
           key;
 
-      if (typeof fn == 'function') {
-        $inject = inferInjectionArgs(fn);
-        length = $inject.length;
-      } else {
-        if (isArray(fn)) {
-          $inject = fn;
-          length = $inject.length - 1;
-          fn = $inject[length];
-        }
-        assertArgFn(fn, 'fn');
-      }
-
-      for(var i = 0; i < length; i++) {
+      for(i = 0, length = $inject.length; i < length; i++) {
         key = $inject[i];
         args.push(
           locals && locals.hasOwnProperty(key)
@@ -12093,6 +12180,11 @@ function createInjector(modulesToLoad) {
           : getService(key, path)
         );
       }
+      if (!fn.$inject) {
+        // this means that we must be an array.
+        fn = fn[length];
+      }
+
 
       // Performance optimization: http://jsperf.com/apply-vs-call-vs-invoke
       switch (self ? -1 : args.length) {
@@ -12125,7 +12217,8 @@ function createInjector(modulesToLoad) {
     return {
       invoke: invoke,
       instantiate: instantiate,
-      get: getService
+      get: getService,
+      annotate: annotate
     };
   }
 }
@@ -12747,6 +12840,9 @@ function $TemplateCacheProvider() {
  */
 
 
+var NON_ASSIGNABLE_MODEL_EXPRESSION = 'Non-assignable model expression: ';
+
+
 /**
  * @ngdoc function
  * @name angular.module.ng.$compile
@@ -12864,7 +12960,7 @@ function $TemplateCacheProvider() {
  *
  *
  * For information on how the compiler works, see the
- * {@link guide/dev_guide.compiler Angular HTML Compiler} section of the Developer Guide.
+ * {@link guide/compiler Angular HTML Compiler} section of the Developer Guide.
  */
 
 
@@ -12874,7 +12970,20 @@ function $TemplateCacheProvider() {
  * @function
  *
  * @description
+ */
+
+/**
+ * @ngdoc function
+ * @name angular.module.ng.$compileProvider#directive
+ * @methodOf angular.module.ng.$compileProvider
+ * @function
  *
+ * @description
+ * Register a new directive with compiler
+ *
+ * @param {string} name name of the directive.
+ * @param {function} directiveFactory An injectable directive factory function.
+ * @returns {angular.module.ng.$compileProvider} Self for chaining.
  */
 $CompileProvider.$inject = ['$provide'];
 function $CompileProvider($provide) {
@@ -12937,54 +13046,12 @@ function $CompileProvider($provide) {
 
   this.$get = [
             '$injector', '$interpolate', '$exceptionHandler', '$http', '$templateCache', '$parse',
-            '$controller',
+            '$controller', '$rootScope',
     function($injector,   $interpolate,   $exceptionHandler,   $http,   $templateCache,   $parse,
-             $controller) {
-
-    var LOCAL_MODE = {
-      attribute: function(localName, mode, parentScope, scope, attr) {
-        scope[localName] = attr[localName];
-      },
-
-      evaluate: function(localName, mode, parentScope, scope, attr) {
-        scope[localName] = parentScope.$eval(attr[localName]);
-      },
-
-      bind: function(localName, mode, parentScope, scope, attr) {
-        var getter = $interpolate(attr[localName]);
-        scope.$watch(
-          function() { return getter(parentScope); },
-          function(v) { scope[localName] = v; }
-        );
-      },
-
-      accessor: function(localName, mode, parentScope, scope, attr) {
-        var getter = noop,
-            setter = noop,
-            exp = attr[localName];
-
-        if (exp) {
-          getter = $parse(exp);
-          setter = getter.assign || function() {
-            throw Error("Expression '" + exp + "' not assignable.");
-          };
-        }
-
-        scope[localName] = function(value) {
-          return arguments.length ? setter(parentScope, value) : getter(parentScope);
-        };
-      },
-
-      expression: function(localName, mode, parentScope, scope, attr) {
-        scope[localName] = function(locals) {
-          $parse(attr[localName])(parentScope, locals);
-        };
-      }
-    };
+             $controller,   $rootScope) {
 
     var Attributes = function(element, attr) {
       this.$$element = element;
-      this.$$observers = {};
       this.$attr = attr || {};
     };
 
@@ -13002,7 +13069,8 @@ function $CompileProvider($provide) {
        * @param {string=} attrName Optional none normalized name. Defaults to key.
        */
       $set: function(key, value, writeAttr, attrName) {
-        var booleanKey = isBooleanAttr(this.$$element[0], key.toLowerCase());
+        var booleanKey = getBooleanAttrName(this.$$element[0], key),
+            $$observers = this.$$observers;
 
         if (booleanKey) {
           this.$$element.prop(key, value);
@@ -13030,7 +13098,7 @@ function $CompileProvider($provide) {
         }
 
         // fire observers
-        forEach(this.$$observers[key], function(fn) {
+        $$observers && forEach($$observers[key], function(fn) {
           try {
             fn(value);
           } catch (e) {
@@ -13049,10 +13117,17 @@ function $CompileProvider($provide) {
        * @returns {function(*)} the `fn` Function passed in.
        */
       $observe: function(key, fn) {
-        // keep only observers for interpolated attrs
-        if (this.$$observers[key]) {
-          this.$$observers[key].push(fn);
-        }
+        var attrs = this,
+            $$observers = (attrs.$$observers || (attrs.$$observers = {})),
+            listeners = ($$observers[key] || ($$observers[key] = []));
+
+        listeners.push(fn);
+        $rootScope.$evalAsync(function() {
+          if (!listeners.$$inter) {
+            // no one registered attribute interpolation function, so lets call it manually
+            fn(attrs[key]);
+          }
+        });
         return fn;
       }
     };
@@ -13214,7 +13289,7 @@ function $CompileProvider($provide) {
               attrs[nName] = value = trim((msie && name == 'href')
                 ? decodeURIComponent(node.getAttribute(name, 2))
                 : attr.value);
-              if (isBooleanAttr(node, nName)) {
+              if (getBooleanAttrName(node, nName)) {
                 attrs[nName] = true; // presence means true
               }
               addAttrInterpolateDirective(node, directives, value, nName);
@@ -13455,9 +13530,67 @@ function $CompileProvider($provide) {
         $element = attrs.$$element;
 
         if (newScopeDirective && isObject(newScopeDirective.scope)) {
-          forEach(newScopeDirective.scope, function(mode, name) {
-            (LOCAL_MODE[mode] || wrongMode)(name, mode,
-                scope.$parent || scope, scope, attrs);
+          var LOCAL_REGEXP = /^\s*([@=&])\s*(\w*)\s*$/;
+
+          var parentScope = scope.$parent || scope;
+
+          forEach(newScopeDirective.scope, function(definiton, scopeName) {
+            var match = definiton.match(LOCAL_REGEXP) || [],
+                attrName = match[2]|| scopeName,
+                mode = match[1], // @, =, or &
+                lastValue,
+                parentGet, parentSet;
+
+            switch (mode) {
+
+              case '@': {
+                attrs.$observe(attrName, function(value) {
+                  scope[scopeName] = value;
+                });
+                attrs.$$observers[attrName].$$scope = parentScope;
+                break;
+              }
+
+              case '=': {
+                parentGet = $parse(attrs[attrName]);
+                parentSet = parentGet.assign || function() {
+                  // reset the change, or we will throw this exception on every $digest
+                  lastValue = scope[scopeName] = parentGet(parentScope);
+                  throw Error(NON_ASSIGNABLE_MODEL_EXPRESSION + attrs[attrName] +
+                      ' (directive: ' + newScopeDirective.name + ')');
+                };
+                lastValue = scope[scopeName] = parentGet(parentScope);
+                scope.$watch(function() {
+                  var parentValue = parentGet(parentScope);
+
+                  if (parentValue !== scope[scopeName]) {
+                    // we are out of sync and need to copy
+                    if (parentValue !== lastValue) {
+                      // parent changed and it has precedence
+                      lastValue = scope[scopeName] = parentValue;
+                    } else {
+                      // if the parent can be assigned then do so
+                      parentSet(parentScope, lastValue = scope[scopeName]);
+                    }
+                  }
+                  return parentValue;
+                });
+                break;
+              }
+
+              case '&': {
+                parentGet = $parse(attrs[attrName]);
+                scope[scopeName] = function(locals) {
+                  return parentGet(parentScope, locals);
+                }
+                break;
+              }
+
+              default: {
+                throw Error('Invalid isolate scope definition for directive ' +
+                    newScopeDirective.name + ': ' + definiton);
+              }
+            }
           });
         }
 
@@ -13469,12 +13602,6 @@ function $CompileProvider($provide) {
               $attrs: attrs,
               $transclude: boundTranscludeFn
             };
-
-
-            forEach(directive.inject || {}, function(mode, name) {
-              (LOCAL_MODE[mode] || wrongMode)(name, mode,
-                  newScopeDirective ? scope.$parent || scope : scope, locals, attrs);
-            });
 
             controller = directive.controller;
             if (controller == '@') {
@@ -13560,6 +13687,7 @@ function $CompileProvider($provide) {
       var srcAttr = src.$attr,
           dstAttr = dst.$attr,
           $element = dst.$$element;
+
       // reapply the old attributes to the new element
       forEach(dst, function(value, key) {
         if (key.charAt(0) != '$') {
@@ -13569,10 +13697,12 @@ function $CompileProvider($provide) {
           dst.$set(key, value, true, srcAttr[key]);
         }
       });
+
       // copy the new attributes on the old attrs object
       forEach(src, function(value, key) {
         if (key == 'class') {
           safeAddClass($element, value);
+          dst['class'] = (dst['class'] ? dst['class'] + ' ' : '') + value;
         } else if (key == 'style') {
           $element.attr('style', $element.attr('style') + ';' + value);
         } else if (key.charAt(0) != '$' && !dst.hasOwnProperty(key)) {
@@ -13706,19 +13836,20 @@ function $CompileProvider($provide) {
       directives.push({
         priority: 100,
         compile: valueFn(function(scope, element, attr) {
+          var $$observers = (attr.$$observers || (attr.$$observers = {}));
+
           if (name === 'class') {
             // we need to interpolate classes again, in the case the element was replaced
             // and therefore the two class attrs got merged - we want to interpolate the result
             interpolateFn = $interpolate(attr[name], true);
           }
 
-          // we define observers array only for interpolated attrs
-          // and ignore observers for non interpolated attrs to save some memory
-          attr.$$observers[name] = [];
           attr[name] = undefined;
-          scope.$watch(interpolateFn, function(value) {
-            attr.$set(name, value);
-          });
+          ($$observers[name] || ($$observers[name] = [])).$$inter = true;
+          (attr.$$observers && attr.$$observers[name].$$scope || scope).
+            $watch(interpolateFn, function(value) {
+              attr.$set(name, value);
+            });
         })
       });
     }
@@ -13773,6 +13904,43 @@ var PREFIX_REGEXP = /^(x[\:\-_]|data[\:\-_])/i;
 function directiveNormalize(name) {
   return camelCase(name.replace(PREFIX_REGEXP, ''));
 }
+
+/**
+ * @ngdoc object
+ * @name angular.module.ng.$compile.directive.Attributes
+ * @description
+ *
+ * A shared object between directive compile / linking functions which contains normalized DOM element
+ * attributes. The the values reflect current binding state `{{ }}`. The normalization is needed
+ * since all of these are treated as equivalent in Angular:
+ *
+ *          <span ng:bind="a" ng-bind="a" data-ng-bind="a" x-ng-bind="a">
+ */
+
+/**
+ * @ngdoc property
+ * @name angular.module.ng.$compile.directive.Attributes#$attr
+ * @propertyOf angular.module.ng.$compile.directive.Attributes
+ * @returns {object} A map of DOM element attribute names to the normalized name. This is
+ *          needed to do reverse lookup from normalized name back to actual name.
+ */
+
+
+/**
+ * @ngdoc function
+ * @name angular.module.ng.$compile.directive.Attributes#$set
+ * @methodOf angular.module.ng.$compile.directive.Attributes
+ * @function
+ *
+ * @description
+ * Set DOM element attribute value.
+ *
+ *
+ * @param {string} name Normalized element attribute name of the property to modify. The name is
+ *          revers translated using the {@link angular.module.ng.$compile.directive.Attributes#$attr $attr}
+ *          property to the original name.
+ * @param {string} value Value to set the attribute to.
+ */
 
 
 
@@ -14311,7 +14479,7 @@ LocationUrl.prototype = {
    * Return full url representation with all segments encoded according to rules specified in
    * {@link http://www.ietf.org/rfc/rfc3986.txt RFC 3986}.
    *
-   * @return {string}
+   * @return {string} full url
    */
   absUrl: locationGetter('$$absUrl'),
 
@@ -14328,7 +14496,7 @@ LocationUrl.prototype = {
    * Change path, search and hash, when called with parameter and return `$location`.
    *
    * @param {string=} url New url without base prefix (e.g. `/path?a=b#hash`)
-   * @return {string}
+   * @return {string} url
    */
   url: function(url, replace) {
     if (isUndefined(url))
@@ -14352,7 +14520,7 @@ LocationUrl.prototype = {
    *
    * Return protocol of current url.
    *
-   * @return {string}
+   * @return {string} protocol of current url
    */
   protocol: locationGetter('$$protocol'),
 
@@ -14366,7 +14534,7 @@ LocationUrl.prototype = {
    *
    * Return host of current url.
    *
-   * @return {string}
+   * @return {string} host of current url.
    */
   host: locationGetter('$$host'),
 
@@ -14380,7 +14548,7 @@ LocationUrl.prototype = {
    *
    * Return port of current url.
    *
-   * @return {Number}
+   * @return {Number} port
    */
   port: locationGetter('$$port'),
 
@@ -14400,7 +14568,7 @@ LocationUrl.prototype = {
    * if it is missing.
    *
    * @param {string=} path New path
-   * @return {string}
+   * @return {string} path
    */
   path: locationGetterSetter('$$path', function(path) {
     return path.charAt(0) == '/' ? path : '/' + path;
@@ -14422,7 +14590,7 @@ LocationUrl.prototype = {
    * @param {string=} paramValue If `search` is a string, then `paramValue` will override only a
    *    single search parameter. If the value is `null`, the parameter will be deleted.
    *
-   * @return {string}
+   * @return {string} search
    */
   search: function(search, paramValue) {
     if (isUndefined(search))
@@ -14455,7 +14623,7 @@ LocationUrl.prototype = {
    * Change hash fragment when called with parameter and return `$location`.
    *
    * @param {string=} hash New hash fragment
-   * @return {string}
+   * @return {string} hash
    */
   hash: locationGetterSetter('$$hash', identity),
 
@@ -14502,10 +14670,13 @@ function locationGetterSetter(property, preprocess) {
  *
  * @requires $browser
  * @requires $sniffer
- * @requires $document
+ * @requires $rootElement
  *
  * @description
- * The $location service parses the URL in the browser address bar (based on the {@link https://developer.mozilla.org/en/window.location window.location}) and makes the URL available to your application. Changes to the URL in the address bar are reflected into $location service and changes to $location are reflected into the browser address bar.
+ * The $location service parses the URL in the browser address bar (based on the
+ * {@link https://developer.mozilla.org/en/window.location window.location}) and makes the URL
+ * available to your application. Changes to the URL in the address bar are reflected into
+ * $location service and changes to $location are reflected into the browser address bar.
  *
  * **The $location service:**
  *
@@ -14518,7 +14689,8 @@ function locationGetterSetter(property, preprocess) {
  *   - Clicks on a link.
  * - Represents the URL object as a set of methods (protocol, host, port, path, search, hash).
  *
- * For more information see {@link guide/dev_guide.services.$location Developer Guide: Angular Services: Using $location}
+ * For more information see {@link guide/dev_guide.services.$location Developer Guide: Angular
+ * Services: Using $location}
  */
 
 /**
@@ -14565,67 +14737,75 @@ function $LocationProvider(){
     }
   };
 
-  this.$get = ['$rootScope', '$browser', '$sniffer', '$document',
-      function( $rootScope,   $browser,   $sniffer,   $document) {
-    var currentUrl,
+  this.$get = ['$rootScope', '$browser', '$sniffer', '$rootElement',
+      function( $rootScope,   $browser,   $sniffer,   $rootElement) {
+    var $location,
         basePath = $browser.baseHref() || '/',
         pathPrefix = pathPrefixFromBase(basePath),
-        initUrl = $browser.url();
+        initUrl = $browser.url(),
+        absUrlPrefix;
 
     if (html5Mode) {
       if ($sniffer.history) {
-        currentUrl = new LocationUrl(convertToHtml5Url(initUrl, basePath, hashPrefix), pathPrefix);
+        $location = new LocationUrl(
+          convertToHtml5Url(initUrl, basePath, hashPrefix),
+          pathPrefix);
       } else {
-        currentUrl = new LocationHashbangUrl(convertToHashbangUrl(initUrl, basePath, hashPrefix),
-                                             hashPrefix);
+        $location = new LocationHashbangUrl(
+          convertToHashbangUrl(initUrl, basePath, hashPrefix),
+          hashPrefix);
       }
-
-      // link rewriting
-      var u = currentUrl,
-          absUrlPrefix = composeProtocolHostPort(u.protocol(), u.host(), u.port()) + pathPrefix;
-
-      $document.bind('click', function(event) {
-        // TODO(vojta): rewrite link when opening in new tab/window (in legacy browser)
-        // currently we open nice url link and redirect then
-
-        if (event.ctrlKey || event.metaKey || event.which == 2) return;
-
-        var elm = jqLite(event.target);
-
-        // traverse the DOM up to find first A tag
-        while (elm.length && lowercase(elm[0].nodeName) !== 'a') {
-          elm = elm.parent();
-        }
-
-        var absHref = elm.prop('href');
-
-        if (!absHref ||
-            elm.attr('target') ||
-            absHref.indexOf(absUrlPrefix) !== 0) { // link to different domain or base path
-          return;
-        }
-
-        // update location with href without the prefix
-        currentUrl.url(absHref.substr(absUrlPrefix.length));
-        $rootScope.$apply();
-        event.preventDefault();
-        // hack to work around FF6 bug 684208 when scenario runner clicks on links
-        window.angular['ff-684208-preventDefault'] = true;
-      });
     } else {
-      currentUrl = new LocationHashbangUrl(initUrl, hashPrefix);
+      $location = new LocationHashbangUrl(initUrl, hashPrefix);
     }
 
+    // link rewriting
+    absUrlPrefix = composeProtocolHostPort(
+        $location.protocol(), $location.host(), $location.port()) + pathPrefix;
+
+    $rootElement.bind('click', function(event) {
+      // TODO(vojta): rewrite link when opening in new tab/window (in legacy browser)
+      // currently we open nice url link and redirect then
+
+      if (event.ctrlKey || event.metaKey || event.which == 2) return;
+
+      var elm = jqLite(event.target);
+
+      // traverse the DOM up to find first A tag
+      while (elm.length && lowercase(elm[0].nodeName) !== 'a') {
+        elm = elm.parent();
+      }
+
+      var absHref = elm.prop('href');
+
+      if (!absHref ||
+        elm.attr('target') ||
+        absHref.indexOf(absUrlPrefix) !== 0) { // link to different domain or base path
+        return;
+      }
+
+      // update location with href without the prefix
+      $location.url(absHref.substr(absUrlPrefix.length));
+      $rootScope.$apply();
+      event.preventDefault();
+      // hack to work around FF6 bug 684208 when scenario runner clicks on links
+      window.angular['ff-684208-preventDefault'] = true;
+    });
+
+
     // rewrite hashbang url <> html5 url
-    if (currentUrl.absUrl() != initUrl) {
-      $browser.url(currentUrl.absUrl(), true);
+    if ($location.absUrl() != initUrl) {
+      $browser.url($location.absUrl(), true);
     }
 
     // update $location when $browser url changes
     $browser.onUrlChange(function(newUrl) {
-      if (currentUrl.absUrl() != newUrl) {
+      if ($location.absUrl() != newUrl) {
         $rootScope.$evalAsync(function() {
-          currentUrl.$$parse(newUrl);
+          var oldUrl = $location.absUrl();
+
+          $location.$$parse(newUrl);
+          afterLocationChange(oldUrl);
         });
         if (!$rootScope.$$phase) $rootScope.$digest();
       }
@@ -14634,18 +14814,30 @@ function $LocationProvider(){
     // update browser
     var changeCounter = 0;
     $rootScope.$watch(function $locationWatch() {
-      if ($browser.url() != currentUrl.absUrl()) {
+      var oldUrl = $browser.url();
+
+      if (!changeCounter || oldUrl != $location.absUrl()) {
         changeCounter++;
         $rootScope.$evalAsync(function() {
-          $browser.url(currentUrl.absUrl(), currentUrl.$$replace);
-          currentUrl.$$replace = false;
+          if ($rootScope.$broadcast('$locationChangeStart', $location.absUrl(), oldUrl).
+              defaultPrevented) {
+            $location.$$parse(oldUrl);
+          } else {
+            $browser.url($location.absUrl(), $location.$$replace);
+            $location.$$replace = false;
+            afterLocationChange(oldUrl);
+          }
         });
       }
 
       return changeCounter;
     });
 
-    return currentUrl;
+    return $location;
+
+    function afterLocationChange(oldUrl) {
+      $rootScope.$broadcast('$locationChangeSuccess', $location.absUrl(), oldUrl);
+    }
 }];
 }
 
@@ -15571,6 +15763,39 @@ function getterFn(path, csp) {
 
 ///////////////////////////////////
 
+/**
+ * @ngdoc function
+ * @name angular.module.ng.$parse
+ * @function
+ *
+ * @description
+ *
+ * Converts Angular {@link guide/expression expression} into a function.
+ *
+ * <pre>
+ *   var getter = $parse('user.name');
+ *   var setter = getter.assign;
+ *   var context = {user:{name:'angular'}};
+ *   var locals = {user:{name:'local'}};
+ *
+ *   expect(getter(context)).toEqual('angular');
+ *   setter(context, 'newValue');
+ *   expect(context.user.name).toEqual('newValue');
+ *   expect(getter(context, locals)).toEqual('local');
+ * </pre>
+ *
+ *
+ * @param {string} expression String expression to compile.
+ * @returns {function(context, locals)} a function which represents the compiled expression:
+ *
+ *    * `context`: an object against which any expressions embedded in the strings are evaluated
+ *      against (Topically a scope object).
+ *    * `locals`: local variables context object, useful for overriding values in `context`.
+ *
+ *    The return function also has an `assign` property, if the expression is assignable, which
+ *    allows one to set values to expressions.
+ *
+ */
 function $ParseProvider() {
   var cache = {};
   this.$get = ['$filter', '$sniffer', function($filter, $sniffer) {
@@ -15997,7 +16222,7 @@ function $RouteProvider(){
    * @methodOf angular.module.ng.$routeProvider
    *
    * @param {string} path Route path (matched against `$location.path`). If `$location.path`
-   *    contains redudant trailing slash or is missing one, the route will still match and the
+   *    contains redundant trailing slash or is missing one, the route will still match and the
    *    `$location.path` will be updated to add or drop the trailing slash to exacly match the
    *    route definition.
    * @param {Object} route Mapping information to be assigned to `$route.current` on route
@@ -16007,16 +16232,30 @@ function $RouteProvider(){
    *
    *    - `controller` – `{function()=}` – Controller fn that should be associated with newly
    *      created scope.
-   *    - `template` – `{string=}` – path to an html template that should be used by
+   *    - `template` – `{string=}` –  html template as a string that should be used by
    *      {@link angular.module.ng.$compileProvider.directive.ngView ngView} or
    *      {@link angular.module.ng.$compileProvider.directive.ngInclude ngInclude} directives.
+   *      this property takes precedence over `templateUrl`.
+   *    - `templateUrl` – `{string=}` – path to an html template that should be used by
+   *      {@link angular.module.ng.$compileProvider.directive.ngView ngView}.
+   *    - `resolve` - `{Object.<string, function>=}` - An optional map of dependencies which should
+   *      be injected into the controller. If any of these dependencies are promises, they will be
+   *      resolved and converted to a value before the controller is instantiated and the
+   *      `$aftreRouteChange` event is fired. The map object is:
+   *
+   *      - `key` – `{string}`: a name of a dependency to be injected into the controller.
+   *      - `factory` - `{string|function}`: If `string` then it is an alias for a service.
+   *        Otherwise if function, then it is {@link api/angular.module.AUTO.$injector#invoke injected}
+   *        and the return value is treated as the dependency. If the result is a promise, it is resolved
+   *        before its value is injected into the controller.
+   *
    *    - `redirectTo` – {(string|function())=} – value to update
    *      {@link angular.module.ng.$location $location} path with and trigger route redirection.
    *
    *      If `redirectTo` is a function, it will be called with the following parameters:
    *
    *      - `{Object.<string>}` - route parameters extracted from the current
-   *        `$location.path()` by applying the current route template.
+   *        `$location.path()` by applying the current route templateUrl.
    *      - `{string}` - current `$location.path()`
    *      - `{Object}` - current `$location.search()`
    *
@@ -16067,8 +16306,8 @@ function $RouteProvider(){
   };
 
 
-  this.$get = ['$rootScope', '$location', '$routeParams',
-      function( $rootScope,  $location,  $routeParams) {
+  this.$get = ['$rootScope', '$location', '$routeParams', '$q', '$injector', '$http', '$templateCache',
+      function( $rootScope,   $location,   $routeParams,   $q,   $injector,   $http,   $templateCache) {
 
     /**
      * @ngdoc object
@@ -16077,6 +16316,16 @@ function $RouteProvider(){
      * @requires $routeParams
      *
      * @property {Object} current Reference to the current route definition.
+     * The route definition contains:
+     *
+     *   - `controller`: The controller constructor as define in route definition.
+     *   - `locals`: A map of locals which is used by {@link angular.module.ng.$controller $controller} service for
+     *     controller instantiation. The `locals` contain
+     *     the resolved values of the `resolve` map. Additionally the `locals` also contain:
+     *
+     *     - `$scope` - The current route scope.
+     *     - `$template` - The current route template HTML.
+     *
      * @property {Array.<Object>} routes Array of all configured routes.
      *
      * @description
@@ -16109,7 +16358,7 @@ function $RouteProvider(){
            <hr />
 
            <pre>$location.path() = {{$location.path()}}</pre>
-           <pre>$route.current.template = {{$route.current.template}}</pre>
+           <pre>$route.current.templateUrl = {{$route.current.templateUrl}}</pre>
            <pre>$route.current.params = {{$route.current.params}}</pre>
            <pre>$route.current.scope.name = {{$route.current.scope.name}}</pre>
            <pre>$routeParams = {{$routeParams}}</pre>
@@ -16130,11 +16379,19 @@ function $RouteProvider(){
        <file name="script.js">
          angular.module('ngView', [], function($routeProvider, $locationProvider) {
            $routeProvider.when('/Book/:bookId', {
-             template: 'book.html',
-             controller: BookCntl
+             templateUrl: 'book.html',
+             controller: BookCntl,
+             resolve: {
+               // I will cause a 1 second delay
+               delay: function($q, $timeout) {
+                 var delay = $q.defer();
+                 $timeout(delay.resolve, 1000);
+                 return delay.promise;
+               }
+             }
            });
            $routeProvider.when('/Book/:bookId/ch/:chapterId', {
-             template: 'chapter.html',
+             templateUrl: 'chapter.html',
              controller: ChapterCntl
            });
 
@@ -16168,6 +16425,7 @@ function $RouteProvider(){
            expect(content).toMatch(/Chapter Id\: 1/);
 
            element('a:contains("Scarlet")').click();
+           sleep(2); // promises are not part of scenario waiting
            content = element('.doc-example-live [ng-view]').text();
            expect(content).toMatch(/controller\: BookCntl/);
            expect(content).toMatch(/Book Id\: Scarlet/);
@@ -16178,11 +16436,15 @@ function $RouteProvider(){
 
     /**
      * @ngdoc event
-     * @name angular.module.ng.$route#$beforeRouteChange
+     * @name angular.module.ng.$route#$routeChangeStart
      * @eventOf angular.module.ng.$route
      * @eventType broadcast on root scope
      * @description
-     * Broadcasted before a route change.
+     * Broadcasted before a route change. At this  point the route services starts
+     * resolving all of the dependencies needed for the route change to occurs.
+     * Typically this involves fetching the view template as well as any dependencies
+     * defined in `resolve` route property. Once  all of the dependencies are resolved
+     * `$routeChangeSuccess` is fired.
      *
      * @param {Route} next Future route information.
      * @param {Route} current Current route information.
@@ -16190,14 +16452,29 @@ function $RouteProvider(){
 
     /**
      * @ngdoc event
-     * @name angular.module.ng.$route#$afterRouteChange
+     * @name angular.module.ng.$route#$routeChangeSuccess
      * @eventOf angular.module.ng.$route
      * @eventType broadcast on root scope
      * @description
-     * Broadcasted after a route change.
+     * Broadcasted after a route dependencies are resolved.
+     * {@link angular.module.ng.$compileProvider.directive.ngView ngView} listens for the directive
+     * to instantiate the controller and render the view.
      *
      * @param {Route} current Current route information.
      * @param {Route} previous Previous route information.
+     */
+
+    /**
+     * @ngdoc event
+     * @name angular.module.ng.$route#$routeChangeError
+     * @eventOf angular.module.ng.$route
+     * @eventType broadcast on root scope
+     * @description
+     * Broadcasted if any of the resolve promises are rejected.
+     *
+     * @param {Route} current Current route information.
+     * @param {Route} previous Previous route information.
+     * @param {Route} rejection Rejection of the promise. Usually the error of the failed promise.
      */
 
     /**
@@ -16212,7 +16489,6 @@ function $RouteProvider(){
      */
 
     var matcher = switchRouteMatcher,
-        dirty = 0,
         forceReload = false,
         $route = {
           routes: routes,
@@ -16223,19 +16499,19 @@ function $RouteProvider(){
            * @methodOf angular.module.ng.$route
            *
            * @description
-           * Causes `$route` service to reload theR current route even if
+           * Causes `$route` service to reload the current route even if
            * {@link angular.module.ng.$location $location} hasn't changed.
            *
            * As a result of that, {@link angular.module.ng.$compileProvider.directive.ngView ngView}
            * creates new scope, reinstantiates the controller.
            */
           reload: function() {
-            dirty++;
             forceReload = true;
+            $rootScope.$evalAsync(updateRoute);
           }
         };
 
-    $rootScope.$watch(function() { return dirty + $location.url(); }, updateRoute);
+    $rootScope.$on('$locationChangeSuccess', updateRoute);
 
     return $route;
 
@@ -16276,7 +16552,7 @@ function $RouteProvider(){
         $rootScope.$broadcast('$routeUpdate', last);
       } else if (next || last) {
         forceReload = false;
-        $rootScope.$broadcast('$beforeRouteChange', next, last);
+        $rootScope.$broadcast('$routeChangeStart', next, last);
         $route.current = next;
         if (next) {
           if (next.redirectTo) {
@@ -16287,11 +16563,52 @@ function $RouteProvider(){
               $location.url(next.redirectTo(next.pathParams, $location.path(), $location.search()))
                        .replace();
             }
-          } else {
-            copy(next.params, $routeParams);
           }
         }
-        $rootScope.$broadcast('$afterRouteChange', next, last);
+
+        $q.when(next).
+          then(function() {
+            if (next) {
+              var keys = [],
+                  values = [],
+                  template;
+
+              forEach(next.resolve || {}, function(value, key) {
+                keys.push(key);
+                values.push(isFunction(value) ? $injector.invoke(value) : $injector.get(value));
+              });
+              if (isDefined(template = next.template)) {
+              } else if (isDefined(template = next.templateUrl)) {
+                template = $http.get(template, {cache: $templateCache}).
+                    then(function(response) { return response.data; });
+              }
+              if (isDefined(template)) {
+                keys.push('$template');
+                values.push(template);
+              }
+              return $q.all(values).then(function(values) {
+                var locals = {};
+                forEach(values, function(value, index) {
+                  locals[keys[index]] = value;
+                });
+                return locals;
+              });
+            }
+          }).
+          // after route change
+          then(function(locals) {
+            if (next == $route.current) {
+              if (next) {
+                next.locals = locals;
+                copy(next.params, $routeParams);
+              }
+              $rootScope.$broadcast('$routeChangeSuccess', next, last);
+            }
+          }, function(error) {
+            if (next == $route.current) {
+              $rootScope.$broadcast('$routeChangeError', next, last, error);
+            }
+          });
       }
     }
 
@@ -16420,7 +16737,7 @@ function $RouteParamsProvider() {
  *
  * Every application has a single root {@link angular.module.ng.$rootScope.Scope scope}.
  * All other scopes are child scopes of the root scope. Scopes provide mechanism for watching the model and provide
- * event processing life-cycle. See {@link guide/dev_guide.scopes developer guide on scopes}.
+ * event processing life-cycle. See {@link guide/scope developer guide on scopes}.
  */
 function $RootScopeProvider(){
   var TTL = 10;
@@ -16483,9 +16800,6 @@ function $RootScopeProvider(){
          expect(parent.salutation).toEqual('Hello');
      * </pre>
      *
-     * # Dependency Injection
-     * See {@link guide/dev_guide.di dependency injection}.
-     *
      *
      * @param {Object.<string, function()>=} providers Map of service factory which need to be provided
      *     for the current scope. Defaults to {@link angular.module.ng}.
@@ -16532,7 +16846,7 @@ function $RootScopeProvider(){
        * the scope and its child scopes to be permanently detached from the parent and thus stop
        * participating in model change detection and listener notification by invoking.
        *
-       * @params {boolean} isolate if true then the scoped does not prototypically inherit from the
+       * @param {boolean} isolate if true then the scoped does not prototypically inherit from the
        *         parent scope. The scope is isolated, as it can not se parent scope properties.
        *         When creating widgets it is useful for the widget to not accidently read parent
        *         state.
@@ -16637,12 +16951,12 @@ function $RootScopeProvider(){
        *    {@link angular.module.ng.$rootScope.Scope#$digest $digest} cycle. A change in the return value triggers a
        *    call to the `listener`.
        *
-       *    - `string`: Evaluated as {@link guide/dev_guide.expressions expression}
+       *    - `string`: Evaluated as {@link guide/expression expression}
        *    - `function(scope)`: called with current `scope` as a parameter.
        * @param {(function()|string)=} listener Callback called whenever the return value of
        *   the `watchExpression` changes.
        *
-       *    - `string`: Evaluated as {@link guide/dev_guide.expressions expression}
+       *    - `string`: Evaluated as {@link guide/expression expression}
        *    - `function(newValue, oldValue, scope)`: called with current and previous values as parameters.
        *
        * @param {boolean=} objectEquality Compare object for equality rather then for refference.
@@ -16689,7 +17003,7 @@ function $RootScopeProvider(){
        * Because a {@link angular.module.ng.$rootScope.Scope#$watch watcher}'s listener can change the model, the
        * `$digest()` keeps calling the {@link angular.module.ng.$rootScope.Scope#$watch watchers} until no more listeners are
        * firing. This means that it is possible to get into an infinite loop. This function will throw
-       * `'Maximum iteration limit exceeded.'` if the number of iterations exceeds 100.
+       * `'Maximum iteration limit exceeded.'` if the number of iterations exceeds 10.
        *
        * Usually you don't call `$digest()` directly in
        * {@link angular.module.ng.$compileProvider.directive.ngController controllers} or in
@@ -16867,9 +17181,8 @@ function $RootScopeProvider(){
        *
        * @param {(string|function())=} expression An angular expression to be executed.
        *
-       *    - `string`: execute using the rules as defined in  {@link guide/dev_guide.expressions expression}.
-       *    - `function(scope, locals)`: execute the function with the current `scope` parameter.
-       * @param {Object=} locals Hash object of local variables for the expression.
+       *    - `string`: execute using the rules as defined in  {@link guide/expression expression}.
+       *    - `function(scope)`: execute the function with the current `scope` parameter.
        *
        * @returns {*} The result of evaluating the expression.
        */
@@ -16897,7 +17210,7 @@ function $RootScopeProvider(){
        *
        * @param {(string|function())=} expression An angular expression to be executed.
        *
-       *    - `string`: execute using the rules as defined in  {@link guide/dev_guide.expressions expression}.
+       *    - `string`: execute using the rules as defined in  {@link guide/expression expression}.
        *    - `function(scope)`: execute the function with the current `scope` parameter.
        *
        */
@@ -16934,7 +17247,7 @@ function $RootScopeProvider(){
        *
        * Scope's `$apply()` method transitions through the following stages:
        *
-       * 1. The {@link guide/dev_guide.expressions expression} is executed using the
+       * 1. The {@link guide/expression expression} is executed using the
        *    {@link angular.module.ng.$rootScope.Scope#$eval $eval()} method.
        * 2. Any exceptions from the execution of the expression are forwarded to the
        *    {@link angular.module.ng.$exceptionHandler $exceptionHandler} service.
@@ -16944,7 +17257,7 @@ function $RootScopeProvider(){
        *
        * @param {(string|function())=} exp An angular expression to be executed.
        *
-       *    - `string`: execute using the rules as defined in {@link guide/dev_guide.expressions expression}.
+       *    - `string`: execute using the rules as defined in {@link guide/expression expression}.
        *    - `function(scope)`: execute the function with current `scope` parameter.
        *
        * @returns {*} The result of evaluating the expression.
@@ -17338,8 +17651,8 @@ function $HttpProvider() {
         'Accept': 'application/json, text/plain, */*',
         'X-Requested-With': 'XMLHttpRequest'
       },
-      post: {'Content-Type': 'application/json'},
-      put:  {'Content-Type': 'application/json'}
+      post: {'Content-Type': 'application/json;charset=utf-8'},
+      put:  {'Content-Type': 'application/json;charset=utf-8'}
     }
   };
 
@@ -18257,12 +18570,12 @@ function $TimeoutProvider() {
       * Cancels a task associated with the `promise`. As a result of this the promise will be
       * resolved with a rejection.
       *
-      * @param {Promise} promise Promise returned by the `$timeout` function.
+      * @param {Promise=} promise Promise returned by the `$timeout` function.
       * @returns {boolean} Returns `true` if the task hasn't executed yet and was successfully
       *   canceled.
       */
     timeout.cancel = function(promise) {
-      if (promise.$$timeoutId in deferreds) {
+      if (promise && promise.$$timeoutId in deferreds) {
         deferreds[promise.$$timeoutId].reject('canceled');
         return $browser.defer.cancel(promise.$$timeoutId);
       }
@@ -18808,7 +19121,7 @@ var DATE_FORMATS_SPLIT = /((?:[^yMdHhmsaZE']+)|(?:'(?:[^']|'')*')|(?:E+|y+|M+|d+
  *   * `'Z'`: 4 digit (+sign) representation of the timezone offset (-1200-1200)
  *
  *   `format` string can also be one of the following predefined
- *   {@link guide/dev_guide.i18n localizable formats}:
+ *   {@link guide/i18n localizable formats}:
  *
  *   * `'medium'`: equivalent to `'MMM d, y h:mm:ss a'` for en_US locale
  *     (e.g. Sep 3, 2010 12:05:08 pm)
@@ -19522,7 +19835,6 @@ forEach(BOOLEAN_ATTR, function(propName, attrName) {
       priority: 100,
       compile: function() {
         return function(scope, element, attr) {
-          attr.$$observers[attrName] = [];
           scope.$watch(attr[normalized], function(value) {
             attr.$set(attrName, !!value);
           });
@@ -19539,27 +19851,15 @@ forEach(['src', 'href'], function(attrName) {
   ngAttributeAliasDirectives[normalized] = function() {
     return {
       priority: 99, // it needs to run after the attributes are interpolated
-      compile: function() {
-        return function(scope, element, attr) {
-          var value = attr[normalized];
-          if (value == undefined) {
-            // undefined value means that the directive is being interpolated
-            // so just register observer
-            attr.$$observers[attrName] = [];
-            attr.$observe(normalized, function(value) {
-              attr.$set(attrName, value);
+      link: function(scope, element, attr) {
+        attr.$observe(normalized, function(value) {
+          attr.$set(attrName, value);
 
-              // on IE, if "ng:src" directive declaration is used and "src" attribute doesn't exist
-              // then calling element.setAttribute('src', 'foo') doesn't do anything, so we need
-              // to set the property as well to achieve the desired effect
-              if (msie) element.prop(attrName, value);
-            });
-          } else {
-            // value present means that no interpolation, so copy to native attribute.
-            attr.$set(attrName, value);
-            element.prop(attrName, value);
-          }
-        };
+          // on IE, if "ng:src" directive declaration is used and "src" attribute doesn't exist
+          // then calling element.setAttribute('src', 'foo') doesn't do anything, so we need
+          // to set the property as well to achieve the desired effect
+          if (msie) element.prop(attrName, value);
+        });
       }
     };
   };
@@ -20455,6 +20755,7 @@ function checkboxInputType(scope, element, attr, ctrl) {
 /**
  * @ngdoc directive
  * @name angular.module.ng.$compileProvider.directive.textarea
+ * @restrict E
  *
  * @description
  * HTML textarea element control with angular data-binding. The data-binding and validation
@@ -20609,9 +20910,82 @@ var VALID_CLASS = 'ng-valid',
  *
  * @description
  *
+ * `NgModelController` provides API for the `ng-model` directive. The controller contains
+ * services for data-binding, validation, CSS update, value formatting and parsing. It
+ * specifically does not contain any logic which deals with DOM rendering or listening to
+ * DOM events. The `NgModelController` is meant to be extended by other directives where, the
+ * directive provides DOM manipulation and the `NgModelController` provides the data-binding.
+ *
+ * This example shows how to use `NgModelController` with a custom control to achieve
+ * data-binding. Notice how different directives (`contenteditable`, `ng-model`, and `required`)
+ * collaborate together to achieve the desired result.
+ *
+ * <example module="customControl">
+    <file name="style.css">
+      [contenteditable] {
+        border: 1px solid black;
+        background-color: white;
+        min-height: 20px;
+      }
+
+      .ng-invalid {
+        border: 1px solid red;
+      }
+
+    </file>
+    <file name="script.js">
+      angular.module('customControl', []).
+        directive('contenteditable', function() {
+          return {
+            restrict: 'A', // only activate on element attribute
+            require: '?ngModel', // get a hold of NgModelController
+            link: function(scope, element, attrs, ngModel) {
+              if(!ngModel) return; // do nothing if no ng-model
+
+              // Specify how UI should be updated
+              ngModel.$render = function() {
+                element.html(ngModel.$viewValue || '');
+              };
+
+              // Listen for change events to enable binding
+              element.bind('blur keyup change', function() {
+                scope.$apply(read);
+              });
+              read(); // initialize
+
+              // Write data to the model
+              function read() {
+                ngModel.$setViewValue(element.html());
+              }
+            }
+          };
+        });
+    </file>
+    <file name="index.html">
+      <form name="myForm">
+       <div contenteditable
+            name="myWidget" ng-model="userContent"
+            required>Change me!</div>
+        <span ng-show="myForm.myWidget.$error.required">Required!</span>
+       <hr>
+       <textarea ng-model="userContent"></textarea>
+      </form>
+    </file>
+    <file name="scenario.js">
+      it('should data-bind and become invalid', function() {
+        var contentEditable = element('[contenteditable]');
+
+        expect(contentEditable.text()).toEqual('Change me!');
+        input('userContent').enter('');
+        expect(contentEditable.text()).toEqual('');
+        expect(contentEditable.prop('className')).toMatch(/ng-invalid-required/);
+      });
+    </file>
+ * </example>
+ *
  */
-var NgModelController = ['$scope', '$exceptionHandler', '$attrs', 'ngModel', '$element',
-    function($scope, $exceptionHandler, $attr, ngModel, $element) {
+var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$parse',
+    function($scope, $exceptionHandler, $attr, $element, $parse) {
   this.$viewValue = Number.NaN;
   this.$modelValue = Number.NaN;
   this.$parsers = [];
@@ -20621,8 +20995,26 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', 'ngModel', '$e
   this.$dirty = false;
   this.$valid = true;
   this.$invalid = false;
-  this.$render = noop;
   this.$name = $attr.name;
+
+  var ngModelGet = $parse($attr.ngModel),
+      ngModelSet = ngModelGet.assign;
+
+  if (!ngModelSet) {
+    throw Error(NON_ASSIGNABLE_MODEL_EXPRESSION + $attr.ngModel +
+        ' (' + startingTag($element) + ')');
+  }
+
+  /**
+   * @ngdoc function
+   * @name angular.module.ng.$compileProvider.directive.ngModel.NgModelController#$render
+   * @methodOf angular.module.ng.$compileProvider.directive.ngModel.NgModelController
+   *
+   * @description
+   * Called when the view needs to be updated. It is expected that the user of the ng-model
+   * directive will implement this method.
+   */
+  this.$render = noop;
 
   var parentForm = $element.inheritedData('$formController') || nullFormCtrl,
       invalidCount = 0, // used to easily determine if we are valid
@@ -20717,7 +21109,7 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', 'ngModel', '$e
 
     if (this.$modelValue !== value) {
       this.$modelValue = value;
-      ngModel(value);
+      ngModelSet($scope, value);
       forEach(this.$viewChangeListeners, function(listener) {
         try {
           listener();
@@ -20730,9 +21122,7 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', 'ngModel', '$e
 
   // model -> value
   var ctrl = this;
-  $scope.$watch(function() {
-    return ngModel();
-  }, function(value) {
+  $scope.$watch(ngModelGet, function(value) {
 
     // ignore change from view
     if (ctrl.$modelValue === value) return;
@@ -20785,11 +21175,8 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', 'ngModel', '$e
  *  - {@link angular.module.ng.$compileProvider.directive.textarea textarea}
  *
  */
-var ngModelDirective = [function() {
+var ngModelDirective = function() {
   return {
-    inject: {
-      ngModel: 'accessor'
-    },
     require: ['ngModel', '^?form'],
     controller: NgModelController,
     link: function(scope, element, attr, ctrls) {
@@ -20805,7 +21192,7 @@ var ngModelDirective = [function() {
       });
     }
   };
-}];
+};
 
 
 /**
@@ -20866,11 +21253,12 @@ var ngChangeDirective = valueFn({
 });
 
 
-var requiredDirective = [function() {
+var requiredDirective = function() {
   return {
     require: '?ngModel',
     link: function(scope, elm, attr, ctrl) {
       if (!ctrl) return;
+      attr.required = true; // force truthy in case we are on non input element
 
       var validator = function(value) {
         if (attr.required && (isEmpty(value) || value === false)) {
@@ -20890,7 +21278,7 @@ var requiredDirective = [function() {
       });
     }
   };
-}];
+};
 
 
 /**
@@ -20971,7 +21359,7 @@ var ngListDirective = function() {
 
 var CONSTANT_VALUE_REGEXP = /^(true|false|\d+)$/;
 
-var ngValueDirective = [function() {
+var ngValueDirective = function() {
   return {
     priority: 100,
     compile: function(tpl, tplAttr) {
@@ -20981,7 +21369,6 @@ var ngValueDirective = [function() {
         };
       } else {
         return function(scope, elm, attr) {
-          attr.$$observers.value = [];
           scope.$watch(attr.ngValue, function(value) {
             attr.$set('value', value, false);
           });
@@ -20989,7 +21376,7 @@ var ngValueDirective = [function() {
       }
     }
   };
-}];
+};
 
 /**
  * @ngdoc directive
@@ -21013,7 +21400,7 @@ var ngValueDirective = [function() {
  *
  *
  * @element ANY
- * @param {expression} ngBind {@link guide/dev_guide.expressions Expression} to evaluate.
+ * @param {expression} ngBind {@link guide/expression Expression} to evaluate.
  *
  * @example
  * Enter a name in the Live Preview text box; the greeting below the text box changes instantly.
@@ -21118,7 +21505,7 @@ var ngBindTemplateDirective = ['$interpolate', function($interpolate) {
  * See {@link angular.module.ngSanitize.$sanitize $sanitize} docs for examples.
  *
  * @element ANY
- * @param {expression} ngBindHtmlUnsafe {@link guide/dev_guide.expressions Expression} to evaluate.
+ * @param {expression} ngBindHtmlUnsafe {@link guide/expression Expression} to evaluate.
  */
 var ngBindHtmlUnsafeDirective = [function() {
   return function(scope, element, attr) {
@@ -21160,7 +21547,7 @@ function classDirective(name, selector) {
  * new classes are added.
  *
  * @element ANY
- * @param {expression} ngClass {@link guide/dev_guide.expressions Expression} to eval. The result
+ * @param {expression} ngClass {@link guide/expression Expression} to eval. The result
  *   of the evaluation can be a string representing space delimited class
  *   names, an array, or a map of class names to boolean values.
  *
@@ -21210,7 +21597,7 @@ var ngClassDirective = classDirective('', true);
  * {@link angular.module.ng.$compileProvider.directive.ngRepeat ngRepeat}.
  *
  * @element ANY
- * @param {expression} ngClassOdd {@link guide/dev_guide.expressions Expression} to eval. The result
+ * @param {expression} ngClassOdd {@link guide/expression Expression} to eval. The result
  *   of the evaluation can be a string representing space delimited class names or an array.
  *
  * @example
@@ -21257,7 +21644,7 @@ var ngClassOddDirective = classDirective('Odd', 0);
  * {@link angular.module.ng.$compileProvider.directive.ngRepeat ngRepeat}.
  *
  * @element ANY
- * @param {expression} ngClassEven {@link guide/dev_guide.expressions Expression} to eval. The
+ * @param {expression} ngClassEven {@link guide/expression Expression} to eval. The
  *   result of the evaluation can be a string representing space delimited class names or an array.
  *
  * @example
@@ -21372,7 +21759,7 @@ var ngCloakDirective = ngDirective({
  * @element ANY
  * @scope
  * @param {expression} ngController Name of a globally accessible constructor function or an
- *     {@link guide/dev_guide.expressions expression} that on the current scope evaluates to a
+ *     {@link guide/expression expression} that on the current scope evaluates to a
  *     constructor function.
  *
  * @example
@@ -21488,7 +21875,7 @@ var ngCspDirective = ['$sniffer', function($sniffer) {
  * element is clicked.
  *
  * @element ANY
- * @param {expression} ngClick {@link guide/dev_guide.expressions Expression} to evaluate upon
+ * @param {expression} ngClick {@link guide/expression Expression} to evaluate upon
  * click. (Event object is available as `$event`)
  *
  * @example
@@ -21540,7 +21927,7 @@ forEach(
  * The `ngDblclick` directive allows you to specify custom behavior on dblclick event.
  *
  * @element ANY
- * @param {expression} ngDblclick {@link guide/dev_guide.expressions Expression} to evaluate upon
+ * @param {expression} ngDblclick {@link guide/expression Expression} to evaluate upon
  * dblclick. (Event object is available as `$event`)
  *
  * @example
@@ -21556,7 +21943,7 @@ forEach(
  * The ngMousedown directive allows you to specify custom behavior on mousedown event.
  *
  * @element ANY
- * @param {expression} ngMousedown {@link guide/dev_guide.expressions Expression} to evaluate upon
+ * @param {expression} ngMousedown {@link guide/expression Expression} to evaluate upon
  * mousedown. (Event object is available as `$event`)
  *
  * @example
@@ -21572,7 +21959,7 @@ forEach(
  * Specify custom behavior on mouseup event.
  *
  * @element ANY
- * @param {expression} ngMouseup {@link guide/dev_guide.expressions Expression} to evaluate upon
+ * @param {expression} ngMouseup {@link guide/expression Expression} to evaluate upon
  * mouseup. (Event object is available as `$event`)
  *
  * @example
@@ -21587,7 +21974,7 @@ forEach(
  * Specify custom behavior on mouseover event.
  *
  * @element ANY
- * @param {expression} ngMouseover {@link guide/dev_guide.expressions Expression} to evaluate upon
+ * @param {expression} ngMouseover {@link guide/expression Expression} to evaluate upon
  * mouseover. (Event object is available as `$event`)
  *
  * @example
@@ -21603,7 +21990,7 @@ forEach(
  * Specify custom behavior on mouseenter event.
  *
  * @element ANY
- * @param {expression} ngMouseenter {@link guide/dev_guide.expressions Expression} to evaluate upon
+ * @param {expression} ngMouseenter {@link guide/expression Expression} to evaluate upon
  * mouseenter. (Event object is available as `$event`)
  *
  * @example
@@ -21619,7 +22006,7 @@ forEach(
  * Specify custom behavior on mouseleave event.
  *
  * @element ANY
- * @param {expression} ngMouseleave {@link guide/dev_guide.expressions Expression} to evaluate upon
+ * @param {expression} ngMouseleave {@link guide/expression Expression} to evaluate upon
  * mouseleave. (Event object is available as `$event`)
  *
  * @example
@@ -21635,7 +22022,7 @@ forEach(
  * Specify custom behavior on mousemove event.
  *
  * @element ANY
- * @param {expression} ngMousemove {@link guide/dev_guide.expressions Expression} to evaluate upon
+ * @param {expression} ngMousemove {@link guide/expression Expression} to evaluate upon
  * mousemove. (Event object is available as `$event`)
  *
  * @example
@@ -21654,7 +22041,7 @@ forEach(
  * server and reloading the current page).
  *
  * @element form
- * @param {expression} ngSubmit {@link guide/dev_guide.expressions Expression} to eval.
+ * @param {expression} ngSubmit {@link guide/expression Expression} to eval.
  *
  * @example
    <doc:example>
@@ -21839,7 +22226,7 @@ var ngIncludeDirective = ['$http', '$templateCache', '$anchorScroll', '$compile'
  *  before the template enters execution mode during bootstrap.
  *
  * @element ANY
- * @param {expression} ngInit {@link guide/dev_guide.expressions Expression} to eval.
+ * @param {expression} ngInit {@link guide/expression Expression} to eval.
  *
  * @example
    <doc:example>
@@ -21907,7 +22294,7 @@ var ngNonBindableDirective = ngDirective({ terminal: true, priority: 1000 });
  * # Overview
  * `ngPluralize` is a directive that displays messages according to en-US localization rules.
  * These rules are bundled with angular.js and the rules can be overridden
- * (see {@link guide/dev_guide.i18n Angular i18n} dev guide). You configure ngPluralize directive
+ * (see {@link guide/i18n Angular i18n} dev guide). You configure ngPluralize directive
  * by specifying the mappings between
  * {@link http://unicode.org/repos/cldr-tmp/trunk/diff/supplemental/language_plural_rules.html
  * plural categories} and the strings to be displayed.
@@ -21926,8 +22313,8 @@ var ngNonBindableDirective = ngDirective({ terminal: true, priority: 1000 });
  * You configure ngPluralize by providing 2 attributes: `count` and `when`.
  * You can also provide an optional attribute, `offset`.
  *
- * The value of the `count` attribute can be either a string or an {@link guide/dev_guide.expressions
- * Angular expression}; these are evaluated on the current scope for its binded value.
+ * The value of the `count` attribute can be either a string or an {@link guide/expression
+ * Angular expression}; these are evaluated on the current scope for its bound value.
  *
  * The `when` attribute specifies the mappings between plural categories and the actual
  * string to be displayed. The value of the attribute should be a JSON object so that Angular
@@ -22290,7 +22677,7 @@ var ngRepeatDirective = ngDirective({
  * conditionally.
  *
  * @element ANY
- * @param {expression} ngShow If the {@link guide/dev_guide.expressions expression} is truthy
+ * @param {expression} ngShow If the {@link guide/expression expression} is truthy
  *     then the element is shown or hidden respectively.
  *
  * @example
@@ -22330,7 +22717,7 @@ var ngShowDirective = ngDirective(function(scope, element, attr){
  * of the HTML conditionally.
  *
  * @element ANY
- * @param {expression} ngHide If the {@link guide/dev_guide.expressions expression} truthy then
+ * @param {expression} ngHide If the {@link guide/expression expression} truthy then
  *     the element is shown or hidden respectively.
  *
  * @example
@@ -22368,7 +22755,7 @@ var ngHideDirective = ngDirective(function(scope, element, attr){
  * The `ngStyle` directive allows you to set CSS style on an HTML element conditionally.
  *
  * @element ANY
- * @param {expression} ngStyle {@link guide/dev_guide.expressions Expression} which evals to an
+ * @param {expression} ngStyle {@link guide/expression Expression} which evals to an
  *      object whose keys are CSS style names and values are corresponding values for those CSS
  *      keys.
  *
@@ -22623,11 +23010,11 @@ var ngTranscludeDirective = ngDirective({
       <file name="script.js">
         angular.module('ngView', [], function($routeProvider, $locationProvider) {
           $routeProvider.when('/Book/:bookId', {
-            template: 'book.html',
+            templateUrl: 'book.html',
             controller: BookCntl
           });
           $routeProvider.when('/Book/:bookId/ch/:chapterId', {
-            template: 'chapter.html',
+            templateUrl: 'chapter.html',
             controller: ChapterCntl
           });
 
@@ -22686,11 +23073,10 @@ var ngViewDirective = ['$http', '$templateCache', '$route', '$anchorScroll', '$c
     restrict: 'ECA',
     terminal: true,
     link: function(scope, element, attr) {
-      var changeCounter = 0,
-          lastScope,
+      var lastScope,
           onloadExp = attr.onload || '';
 
-      scope.$on('$afterRouteChange', update);
+      scope.$on('$routeChangeSuccess', update);
       update();
 
 
@@ -22701,43 +23087,36 @@ var ngViewDirective = ['$http', '$templateCache', '$route', '$anchorScroll', '$c
         }
       }
 
-      function update() {
-        var template = $route.current && $route.current.template,
-            thisChangeId = ++changeCounter;
+      function clearContent() {
+        element.html('');
+        destroyLastScope();
+      }
 
-        function clearContent() {
-          // ignore callback if another route change occured since
-          if (thisChangeId === changeCounter) {
-            element.html('');
-            destroyLastScope();
-          }
-        }
+      function update() {
+        var locals = $route.current && $route.current.locals,
+            template = locals && locals.$template;
 
         if (template) {
-          $http.get(template, {cache: $templateCache}).success(function(response) {
-            // ignore callback if another route change occured since
-            if (thisChangeId === changeCounter) {
-              element.html(response);
-              destroyLastScope();
+          element.html(template);
+          destroyLastScope();
 
-              var link = $compile(element.contents()),
-                  current = $route.current,
-                  controller;
+          var link = $compile(element.contents()),
+              current = $route.current,
+              controller;
 
-              lastScope = current.scope = scope.$new();
-              if (current.controller) {
-                controller = $controller(current.controller, {$scope: lastScope});
-                element.contents().data('$ngControllerController', controller);
-              }
+          lastScope = current.scope = scope.$new();
+          if (current.controller) {
+            locals.$scope = lastScope;
+            controller = $controller(current.controller, locals);
+            element.contents().data('$ngControllerController', controller);
+          }
 
-              link(lastScope);
-              lastScope.$emit('$viewContentLoaded');
-              lastScope.$eval(onloadExp);
+          link(lastScope);
+          lastScope.$emit('$viewContentLoaded');
+          lastScope.$eval(onloadExp);
 
-              // $anchorScroll might listen on event...
-              $anchorScroll();
-            }
-          }).error(clearContent);
+          // $anchorScroll might listen on event...
+          $anchorScroll();
         } else {
           clearContent();
         }
