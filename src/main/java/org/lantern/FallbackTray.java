@@ -6,12 +6,18 @@ import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
+
 /** 
  * A SystemTray implementation that falls back among available alternatives. 
 */
 class FallbackTray implements SystemTray {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private SystemTray tray;
+    
+    public FallbackTray() {
+        LanternHub.register(this);
+    }
 
     @Override
     public void createTray() {
@@ -30,8 +36,15 @@ class FallbackTray implements SystemTray {
         }
     }
 
+    @Subscribe
+    public void onUpdate(final UpdateEvent update) {
+        if (tray != null) {
+            tray.addUpdate(update.getData());
+        }
+    }
+    
     @Override
-    public void addUpdate(Map<String, String> updateData) {
+    public void addUpdate(final Map<String, Object> updateData) {
         tray.addUpdate(updateData);
     }
 
@@ -53,7 +66,7 @@ class FallbackTray implements SystemTray {
                 @Override
                 public void createTray() {}
                 @Override
-                public void addUpdate(Map<String, String> updateData) {}
+                public void addUpdate(Map<String, Object> updateData) {}
                 @Override
                 public boolean isActive() {return false;}
             };
