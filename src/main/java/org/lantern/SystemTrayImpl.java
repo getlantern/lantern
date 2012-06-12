@@ -207,6 +207,10 @@ public class SystemTrayImpl implements SystemTray {
     @Override
     public void addUpdate(final Map<String, Object> data) {
         log.info("Adding update data: {}", data);
+        if (this.updateData != null && this.updateData.equals(data)) {
+            log.info("Ignoring duplicate update data");
+            return;
+        }
         this.updateData = data;
         display.asyncExec (new Runnable () {
             @Override

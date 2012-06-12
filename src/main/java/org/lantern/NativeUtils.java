@@ -1,9 +1,13 @@
 package org.lantern;
 
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Image;
 import java.awt.PopupMenu;
+import java.io.IOException;
 import java.lang.reflect.Constructor;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
@@ -30,6 +34,15 @@ public class NativeUtils
             return openSiteMac(uri);
         } else if (SystemUtils.IS_OS_WINDOWS) {
             return openSiteWindows(uri);
+        } else {
+            final Desktop d = Desktop.getDesktop();
+            try {
+                d.browse(new URI(uri));
+            } catch (final IOException e) {
+                LOG.info("Could not open URI: "+uri, e);
+            } catch (final URISyntaxException e) {
+                LOG.info("Could not open URI: "+uri, e);
+            }
         }
 
         return null;
