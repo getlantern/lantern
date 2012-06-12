@@ -59,8 +59,8 @@ public class LanternHub {
     
     private static final AtomicReference<StatsTracker> statsTracker = 
         new AtomicReference<StatsTracker>();
-    private static final AtomicReference<LanternKeyStoreManager> proxyKeyStore = 
-        new AtomicReference<LanternKeyStoreManager>();
+    private static final LanternKeyStoreManager proxyKeyStore = 
+        new LanternKeyStoreManager();
     
     private static final AtomicReference<XmppHandler> xmppHandler = 
         new AtomicReference<XmppHandler>();
@@ -214,12 +214,7 @@ public class LanternHub {
     }
     
     public static LanternKeyStoreManager getKeyStoreManager() {
-        synchronized (proxyKeyStore) {
-            if (proxyKeyStore.get() == null) {
-                proxyKeyStore.set(new LanternKeyStoreManager());
-            }
-            return proxyKeyStore.get();
-        }
+        return proxyKeyStore;
     }
 
     public static XmppHandler xmppHandler() {
