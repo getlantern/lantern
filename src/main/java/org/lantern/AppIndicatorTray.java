@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
-import com.sun.jna.Callback;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 
@@ -77,6 +76,8 @@ public class AppIndicatorTray implements SystemTray {
     private Gobject.GCallback quitItemCallback;
 
     FailureCallback _failureCallback = null;
+
+    private Map<String, Object> updateData;
 
     public AppIndicatorTray() {        
     }
@@ -188,8 +189,9 @@ public class AppIndicatorTray implements SystemTray {
     }
     
     @Override
-    public void addUpdate(final Map<String, String> updateData) { 
-        // TODO: Support updates in app indicator.
+    public void addUpdate(final Map<String, Object> data) { 
+        LOG.info("Adding update data: {}", data);
+        this.updateData = data;
     }
 
     @Override

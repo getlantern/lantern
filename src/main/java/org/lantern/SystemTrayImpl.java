@@ -36,7 +36,7 @@ public class SystemTrayImpl implements SystemTray {
     private MenuItem connectionStatusItem;
     private MenuItem updateItem;
     private Menu menu;
-    private Map<String, String> updateData;
+    private Map<String, Object> updateData;
 
     private final static String LABEL_DISCONNECTED = "Lantern: Not connected";
     private final static String LABEL_CONNECTING = "Lantern: Connecting...";
@@ -205,7 +205,7 @@ public class SystemTrayImpl implements SystemTray {
     }
 
     @Override
-    public void addUpdate(final Map<String, String> data) {
+    public void addUpdate(final Map<String, Object> data) {
         log.info("Adding update data: {}", data);
         this.updateData = data;
         display.asyncExec (new Runnable () {
@@ -217,7 +217,7 @@ public class SystemTrayImpl implements SystemTray {
                         @Override
                         public void handleEvent (final Event event) {
                             log.info("Got update call");
-                            NativeUtils.openUri(updateData.get(
+                            NativeUtils.openUri((String) updateData.get(
                                 LanternConstants.UPDATE_URL_KEY));
                         }
                     });
