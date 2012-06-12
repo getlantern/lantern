@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.0rc11
+ * @license AngularJS v1.0.0rc12
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -37,7 +37,7 @@ function setupModuleLoader(window) {
      * # Module
      *
      * A module is a collocation of services, directives, filters, and configure information. Module
-     * is used to configure the {@link angular.module.AUTO.$injector $injector}.
+     * is used to configure the {@link AUTO.$injector $injector}.
      *
      * <pre>
      * // Create a new module
@@ -61,7 +61,7 @@ function setupModuleLoader(window) {
      * </pre>
      *
      * However it's more likely that you'll just use
-     * {@link angular.module.ng.$compileProvider.directive.ngApp ngApp} or
+     * {@link ng.directive:ngApp ngApp} or
      * {@link angular.bootstrap} to simplify this process for you.
      *
      * @param {!string} name The name of the module to create or retrieve.
@@ -121,7 +121,7 @@ function setupModuleLoader(window) {
            * @param {string} name service name
            * @param {Function} providerType Construction function for creating new instance of the service.
            * @description
-           * See {@link angular.module.AUTO.$provide#provider $provide.provider()}.
+           * See {@link AUTO.$provide#provider $provide.provider()}.
            */
           provider: invokeLater('$provide', 'provider'),
 
@@ -132,7 +132,7 @@ function setupModuleLoader(window) {
            * @param {string} name service name
            * @param {Function} providerFunction Function for creating new instance of the service.
            * @description
-           * See {@link angular.module.AUTO.$provide#factory $provide.factory()}.
+           * See {@link AUTO.$provide#factory $provide.factory()}.
            */
           factory: invokeLater('$provide', 'factory'),
 
@@ -143,7 +143,7 @@ function setupModuleLoader(window) {
            * @param {string} name service name
            * @param {Function} constructor A constructor function that will be instantiated.
            * @description
-           * See {@link angular.module.AUTO.$provide#service $provide.service()}.
+           * See {@link AUTO.$provide#service $provide.service()}.
            */
           service: invokeLater('$provide', 'service'),
 
@@ -154,7 +154,7 @@ function setupModuleLoader(window) {
            * @param {string} name service name
            * @param {*} object Service instance object.
            * @description
-           * See {@link angular.module.AUTO.$provide#value $provide.value()}.
+           * See {@link AUTO.$provide#value $provide.value()}.
            */
           value: invokeLater('$provide', 'value'),
 
@@ -166,7 +166,7 @@ function setupModuleLoader(window) {
            * @param {*} object Constant value.
            * @description
            * Because the constant are fixed, they get applied before other provide methods.
-           * See {@link angular.module.AUTO.$provide#constant $provide.constant()}.
+           * See {@link AUTO.$provide#constant $provide.constant()}.
            */
           constant: invokeLater('$provide', 'constant', 'unshift'),
 
@@ -177,7 +177,7 @@ function setupModuleLoader(window) {
            * @param {string} name Filter name.
            * @param {Function} filterFactory Factory function for creating new instance of filter.
            * @description
-           * See {@link angular.module.ng.$filterProvider#register $filterProvider.register()}.
+           * See {@link ng.$filterProvider#register $filterProvider.register()}.
            */
           filter: invokeLater('$filterProvider', 'register'),
 
@@ -188,7 +188,7 @@ function setupModuleLoader(window) {
            * @param {string} name Controller name.
            * @param {Function} constructor Controller constructor function.
            * @description
-           * See {@link angular.module.ng.$controllerProvider#register $controllerProvider.register()}.
+           * See {@link ng.$controllerProvider#register $controllerProvider.register()}.
            */
           controller: invokeLater('$controllerProvider', 'register'),
 
@@ -200,7 +200,7 @@ function setupModuleLoader(window) {
            * @param {Function} directiveFactory Factory function for creating new instance of
            * directives.
            * @description
-           * See {@link angular.module.ng.$compileProvider.directive $compileProvider.directive()}.
+           * See {@link ng.$compileProvider.directive $compileProvider.directive()}.
            */
           directive: invokeLater('$compileProvider', 'directive'),
 

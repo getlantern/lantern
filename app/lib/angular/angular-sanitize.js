@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.0rc11
+ * @license AngularJS v1.0.0rc12
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -8,7 +8,7 @@
 
 /**
  * @ngdoc overview
- * @name angular.module.ngSanitize
+ * @name ngSanitize
  * @description
  */
 
@@ -31,7 +31,7 @@
 
 /**
  * @ngdoc service
- * @name angular.module.ngSanitize.$sanitize
+ * @name ngSanitize.$sanitize
  * @function
  *
  * @description
@@ -402,13 +402,13 @@ angular.module('ngSanitize', []).value('$sanitize', $sanitize);
 
 /**
  * @ngdoc directive
- * @name angular.module.ngSanitize.directive.ngBindHtml
+ * @name ngSanitize.directive:ngBindHtml
  *
  * @description
  * Creates a binding that will sanitize the result of evaluating the `expression` with the
- * {@link angular.module.ngSanitize.$sanitize $sanitize} service and innerHTML the result into the current element.
+ * {@link ngSanitize.$sanitize $sanitize} service and innerHTML the result into the current element.
  *
- * See {@link angular.module.ngSanitize.$sanitize $sanitize} docs for examples.
+ * See {@link ngSanitize.$sanitize $sanitize} docs for examples.
  *
  * @element ANY
  * @param {expression} ngBindHtml {@link guide/expression Expression} to evaluate.
@@ -424,7 +424,7 @@ angular.module('ngSanitize').directive('ngBindHtml', ['$sanitize', function($san
 }]);
 /**
  * @ngdoc filter
- * @name angular.module.ngSanitize.filter.linky
+ * @name ngSanitize.filter:linky
  * @function
  *
  * @description

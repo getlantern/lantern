@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.0rc11
+ * @license AngularJS v1.0.0rc12
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -67,7 +67,6 @@ var Error             = window.Error,
     /** @name angular */
     angular           = window.angular || (window.angular = {}),
     angularModule,
-    /** @name angular.module.ng */
     nodeName_,
     uid               = ['0', '0', '0'];
 
@@ -526,7 +525,7 @@ function isLeafNode (node) {
  * * If  `source` is not an object or array, `source` is returned.
  *
  * Note: this function is used to augment the Object type in Angular expressions. See
- * {@link angular.module.ng.$filter} for more information about Angular arrays.
+ * {@link ng.$filter} for more information about Angular arrays.
  *
  * @param {*} source The source that will be used to make a copy.
  *                   Can be any type, including primitives, `null`, and `undefined`.
@@ -836,7 +835,7 @@ function encodeUriQuery(val, pctEncodeSpaces) {
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngApp
+ * @name ng.directive:ngApp
  *
  * @element ANY
  * @param {angular.Module} ngApp on optional application
@@ -916,7 +915,7 @@ function angularInit(element, bootstrap) {
  *
  * @param {Element} element DOM element which is the root of angular application.
  * @param {Array<String|Function>=} modules an array of module declarations. See: {@link angular.module modules}
- * @returns {angular.module.auto.$injector} Returns the newly created injector for this app.
+ * @returns {AUTO.$injector} Returns the newly created injector for this app.
  */
 function bootstrap(element, modules) {
   element = jqLite(element);
@@ -1017,7 +1016,7 @@ function setupModuleLoader(window) {
      * # Module
      *
      * A module is a collocation of services, directives, filters, and configure information. Module
-     * is used to configure the {@link angular.module.AUTO.$injector $injector}.
+     * is used to configure the {@link AUTO.$injector $injector}.
      *
      * <pre>
      * // Create a new module
@@ -1040,7 +1039,7 @@ function setupModuleLoader(window) {
      * </pre>
      *
      * However it's more likely that you'll just use
-     * {@link angular.module.ng.$compileProvider.directive.ngApp ngApp} or
+     * {@link ng.directive:ngApp ngApp} or
      * {@link angular.bootstrap} to simplify this process for you.
      *
      * @param {!string} name The name of the module to create or retrieve.
@@ -1100,7 +1099,7 @@ function setupModuleLoader(window) {
            * @param {string} name service name
            * @param {Function} providerType Construction function for creating new instance of the service.
            * @description
-           * See {@link angular.module.AUTO.$provide#provider $provide.provider()}.
+           * See {@link AUTO.$provide#provider $provide.provider()}.
            */
           provider: invokeLater('$provide', 'provider'),
 
@@ -1111,7 +1110,7 @@ function setupModuleLoader(window) {
            * @param {string} name service name
            * @param {Function} providerFunction Function for creating new instance of the service.
            * @description
-           * See {@link angular.module.AUTO.$provide#factory $provide.factory()}.
+           * See {@link AUTO.$provide#factory $provide.factory()}.
            */
           factory: invokeLater('$provide', 'factory'),
 
@@ -1122,7 +1121,7 @@ function setupModuleLoader(window) {
            * @param {string} name service name
            * @param {Function} constructor A constructor function that will be instantiated.
            * @description
-           * See {@link angular.module.AUTO.$provide#service $provide.service()}.
+           * See {@link AUTO.$provide#service $provide.service()}.
            */
           service: invokeLater('$provide', 'service'),
 
@@ -1133,7 +1132,7 @@ function setupModuleLoader(window) {
            * @param {string} name service name
            * @param {*} object Service instance object.
            * @description
-           * See {@link angular.module.AUTO.$provide#value $provide.value()}.
+           * See {@link AUTO.$provide#value $provide.value()}.
            */
           value: invokeLater('$provide', 'value'),
 
@@ -1145,7 +1144,7 @@ function setupModuleLoader(window) {
            * @param {*} object Constant value.
            * @description
            * Because the constant are fixed, they get applied before other provide methods.
-           * See {@link angular.module.AUTO.$provide#constant $provide.constant()}.
+           * See {@link AUTO.$provide#constant $provide.constant()}.
            */
           constant: invokeLater('$provide', 'constant', 'unshift'),
 
@@ -1156,7 +1155,7 @@ function setupModuleLoader(window) {
            * @param {string} name Filter name.
            * @param {Function} filterFactory Factory function for creating new instance of filter.
            * @description
-           * See {@link angular.module.ng.$filterProvider#register $filterProvider.register()}.
+           * See {@link ng.$filterProvider#register $filterProvider.register()}.
            */
           filter: invokeLater('$filterProvider', 'register'),
 
@@ -1167,7 +1166,7 @@ function setupModuleLoader(window) {
            * @param {string} name Controller name.
            * @param {Function} constructor Controller constructor function.
            * @description
-           * See {@link angular.module.ng.$controllerProvider#register $controllerProvider.register()}.
+           * See {@link ng.$controllerProvider#register $controllerProvider.register()}.
            */
           controller: invokeLater('$controllerProvider', 'register'),
 
@@ -1179,7 +1178,7 @@ function setupModuleLoader(window) {
            * @param {Function} directiveFactory Factory function for creating new instance of
            * directives.
            * @description
-           * See {@link angular.module.ng.$compileProvider.directive $compileProvider.directive()}.
+           * See {@link ng.$compileProvider.directive $compileProvider.directive()}.
            */
           directive: invokeLater('$compileProvider', 'directive'),
 
@@ -1248,11 +1247,11 @@ function setupModuleLoader(window) {
  * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
  */
 var version = {
-  full: '1.0.0rc11',    // all of these placeholder strings will be replaced by rake's
+  full: '1.0.0rc12',    // all of these placeholder strings will be replaced by rake's
   major: 1,    // compile task
   minor: 0,
   dot: 0,
-  codeName: 'promise-resolution'
+  codeName: 'regression-extermination'
 };
 
 
@@ -1343,7 +1342,6 @@ function publishExternalAPI(angular){
         $browser: $BrowserProvider,
         $cacheFactory: $CacheFactoryProvider,
         $controller: $ControllerProvider,
-        $defer: $DeferProvider,
         $document: $DocumentProvider,
         $exceptionHandler: $ExceptionHandlerProvider,
         $filter: $FilterProvider,
@@ -1431,7 +1429,7 @@ function publishExternalAPI(angular){
  *   camelCase directive name, then the controller for this directive will be retrieved (e.g.
  *   `'ngModel'`).
  * - `injector()` - retrieves the injector of the current element or its parent.
- * - `scope()` - retrieves the {@link api/angular.module.ng.$rootScope.Scope scope} of the current
+ * - `scope()` - retrieves the {@link api/ng.$rootScope.Scope scope} of the current
  *   element or its parent.
  * - `inheritedData()` - same as `data()`, but walks up the DOM until a value is found or the top
  *   parent element is reached.
@@ -2227,7 +2225,7 @@ HashQueueMap.prototype = {
 
  * @param {Array.<string|Function>} modules A list of module functions or their aliases. See
  *        {@link angular.module}. The `ng` module must be explicitly added.
- * @returns {function()} Injector function. See {@link angular.module.AUTO.$injector $injector}.
+ * @returns {function()} Injector function. See {@link AUTO.$injector $injector}.
  *
  * @example
  * Typical usage
@@ -2247,10 +2245,10 @@ HashQueueMap.prototype = {
 
 /**
  * @ngdoc overview
- * @name angular.module.AUTO
+ * @name AUTO
  * @description
  *
- * Implicit module which gets automatically added to each {@link angular.module.AUTO.$injector $injector}.
+ * Implicit module which gets automatically added to each {@link AUTO.$injector $injector}.
  */
 
 var FN_ARGS = /^function\s*[^\(]*\(\s*([^\)]*)\)/m;
@@ -2289,13 +2287,13 @@ function annotate(fn) {
 
 /**
  * @ngdoc object
- * @name angular.module.AUTO.$injector
+ * @name AUTO.$injector
  * @function
  *
  * @description
  *
  * `$injector` is used to retrieve object instances as defined by
- * {@link angular.module.AUTO.$provide provider}, instantiate types, invoke methods,
+ * {@link AUTO.$provide provider}, instantiate types, invoke methods,
  * and load modules.
  *
  * The following always holds true:
@@ -2329,7 +2327,7 @@ function annotate(fn) {
  * ## Inference
  *
  * In JavaScript calling `toString()` on a function returns the function definition. The definition can then be
- * parsed and the function arguments can be extracted. *NOTE:* This does not work with minfication, and obfuscation
+ * parsed and the function arguments can be extracted. *NOTE:* This does not work with minification, and obfuscation
  * tools since these tools change the argument names.
  *
  * ## `$inject` Annotation
@@ -2341,8 +2339,8 @@ function annotate(fn) {
 
 /**
  * @ngdoc method
- * @name angular.module.AUTO.$injector#get
- * @methodOf angular.module.AUTO.$injector
+ * @name AUTO.$injector#get
+ * @methodOf AUTO.$injector
  *
  * @description
  * Return an instance of the service.
@@ -2353,8 +2351,8 @@ function annotate(fn) {
 
 /**
  * @ngdoc method
- * @name angular.module.AUTO.$injector#invoke
- * @methodOf angular.module.AUTO.$injector
+ * @name AUTO.$injector#invoke
+ * @methodOf AUTO.$injector
  *
  * @description
  * Invoke the method and supply the method arguments from the `$injector`.
@@ -2368,8 +2366,8 @@ function annotate(fn) {
 
 /**
  * @ngdoc method
- * @name angular.module.AUTO.$injector#instantiate
- * @methodOf angular.module.AUTO.$injector
+ * @name AUTO.$injector#instantiate
+ * @methodOf AUTO.$injector
  * @description
  * Create a new instance of JS type. The method takes a constructor function invokes the new operator and supplies
  * all of the arguments to the constructor function as specified by the constructor annotation.
@@ -2382,8 +2380,8 @@ function annotate(fn) {
 
 /**
  * @ngdoc method
- * @name angular.module.AUTO.$injector#annotate
- * @methodOf angular.module.AUTO.$injector
+ * @name AUTO.$injector#annotate
+ * @methodOf AUTO.$injector
  *
  * @description
  * Returns an array of service names which the function is requesting for injection. This API is used by the injector
@@ -2464,7 +2462,7 @@ function annotate(fn) {
 
 /**
  * @ngdoc object
- * @name angular.module.AUTO.$provide
+ * @name AUTO.$provide
  *
  * @description
  *
@@ -2514,8 +2512,8 @@ function annotate(fn) {
 
 /**
  * @ngdoc method
- * @name angular.module.AUTO.$provide#provider
- * @methodOf angular.module.AUTO.$provide
+ * @name AUTO.$provide#provider
+ * @methodOf AUTO.$provide
  * @description
  *
  * Register a provider for a service. The providers can be retrieved and can have additional configuration methods.
@@ -2524,17 +2522,17 @@ function annotate(fn) {
  * @param {(Object|function())} provider If the provider is:
  *
  *   - `Object`: then it should have a `$get` method. The `$get` method will be invoked using
- *               {@link angular.module.AUTO.$injector#invoke $injector.invoke()} when an instance needs to be created.
+ *               {@link AUTO.$injector#invoke $injector.invoke()} when an instance needs to be created.
  *   - `Constructor`: a new instance of the provider will be created using
- *               {@link angular.module.AUTO.$injector#instantiate $injector.instantiate()}, then treated as `object`.
+ *               {@link AUTO.$injector#instantiate $injector.instantiate()}, then treated as `object`.
  *
  * @returns {Object} registered provider instance
  */
 
 /**
  * @ngdoc method
- * @name angular.module.AUTO.$provide#factory
- * @methodOf angular.module.AUTO.$provide
+ * @name AUTO.$provide#factory
+ * @methodOf AUTO.$provide
  * @description
  *
  * A short hand for configuring services if only `$get` method is required.
@@ -2548,8 +2546,8 @@ function annotate(fn) {
 
 /**
  * @ngdoc method
- * @name angular.module.AUTO.$provide#service
- * @methodOf angular.module.AUTO.$provide
+ * @name AUTO.$provide#service
+ * @methodOf AUTO.$provide
  * @description
  *
  * A short hand for registering service of given class.
@@ -2562,8 +2560,8 @@ function annotate(fn) {
 
 /**
  * @ngdoc method
- * @name angular.module.AUTO.$provide#value
- * @methodOf angular.module.AUTO.$provide
+ * @name AUTO.$provide#value
+ * @methodOf AUTO.$provide
  * @description
  *
  * A short hand for configuring services if the `$get` method is a constant.
@@ -2576,13 +2574,13 @@ function annotate(fn) {
 
 /**
  * @ngdoc method
- * @name angular.module.AUTO.$provide#constant
- * @methodOf angular.module.AUTO.$provide
+ * @name AUTO.$provide#constant
+ * @methodOf AUTO.$provide
  * @description
  *
- * A constant value, but unlike {@link angular.module.AUTO.$provide#value value} it can be injected
+ * A constant value, but unlike {@link AUTO.$provide#value value} it can be injected
  * into configuration function (other modules) and it is not interceptable by
- * {@link angular.module.AUTO.$provide#decorator decorator}.
+ * {@link AUTO.$provide#decorator decorator}.
  *
  * @param {string} name The name of the constant.
  * @param {*} value The constant value.
@@ -2592,8 +2590,8 @@ function annotate(fn) {
 
 /**
  * @ngdoc method
- * @name angular.module.AUTO.$provide#decorator
- * @methodOf angular.module.AUTO.$provide
+ * @name AUTO.$provide#decorator
+ * @methodOf AUTO.$provide
  * @description
  *
  * Decoration of service, allows the decorator to intercept the service instance creation. The
@@ -2602,7 +2600,7 @@ function annotate(fn) {
  *
  * @param {string} name The name of the service to decorate.
  * @param {function()} decorator This function will be invoked when the service needs to be
- *    instanciated. The function is called using the {@link angular.module.AUTO.$injector#invoke
+ *    instanciated. The function is called using the {@link AUTO.$injector#invoke
  *    injector.invoke} method and is therefore fully injectable. Local injection arguments:
  *
  *    * `$delegate` - The original service instance, which can be monkey patched, configured,
@@ -2819,7 +2817,7 @@ function createInjector(modulesToLoad) {
 }
 /**
  * @ngdoc function
- * @name angular.module.ng.$anchorScroll
+ * @name ng.$anchorScroll
  * @requires $window
  * @requires $location
  * @requires $rootScope
@@ -2884,8 +2882,9 @@ function $AnchorScrollProvider() {
 }
 
 /**
- * @ngdoc object
- * @name angular.module.ng.$browser
+ * ! This is a private undocumented service !
+ *
+ * @name ng.$browser
  * @requires $log
  * @description
  * This object has two goals:
@@ -2893,7 +2892,7 @@ function $AnchorScrollProvider() {
  * - hide all the global state in the browser caused by the window object
  * - abstract away all the browser specific features and inconsistencies
  *
- * For tests we provide {@link angular.module.ngMock.$browser mock implementation} of the `$browser`
+ * For tests we provide {@link ngMock.$browser mock implementation} of the `$browser`
  * service, which can be used for convenient testing of the application without the interaction with
  * the real browser apis.
  */
@@ -2969,9 +2968,8 @@ function Browser(window, document, $log, $sniffer) {
       pollTimeout;
 
   /**
-   * @ngdoc method
-   * @name angular.module.ng.$browser#addPollFn
-   * @methodOf angular.module.ng.$browser
+   * @name ng.$browser#addPollFn
+   * @methodOf ng.$browser
    *
    * @param {function()} fn Poll function to add
    *
@@ -3010,9 +3008,8 @@ function Browser(window, document, $log, $sniffer) {
       baseElement = document.find('base');
 
   /**
-   * @ngdoc method
-   * @name angular.module.ng.$browser#url
-   * @methodOf angular.module.ng.$browser
+   * @name ng.$browser#url
+   * @methodOf ng.$browser
    *
    * @description
    * GETTER:
@@ -3025,7 +3022,7 @@ function Browser(window, document, $log, $sniffer) {
    * Returns its own instance to allow chaining
    *
    * NOTE: this api is intended for use only by the $location service. Please use the
-   * {@link angular.module.ng.$location $location service} to change url.
+   * {@link ng.$location $location service} to change url.
    *
    * @param {string} url New url (when used as setter)
    * @param {boolean=} replace Should new url replace current history record ?
@@ -3066,9 +3063,8 @@ function Browser(window, document, $log, $sniffer) {
   }
 
   /**
-   * @ngdoc method
-   * @name angular.module.ng.$browser#onUrlChange
-   * @methodOf angular.module.ng.$browser
+   * @name ng.$browser#onUrlChange
+   * @methodOf ng.$browser
    * @TODO(vojta): refactor to use node's syntax for events
    *
    * @description
@@ -3084,7 +3080,7 @@ function Browser(window, document, $log, $sniffer) {
    * The listener gets called with new url as parameter.
    *
    * NOTE: this api is intended for use only by the $location service. Please use the
-   * {@link angular.module.ng.$location $location service} to monitor url changes in angular apps.
+   * {@link ng.$location $location service} to monitor url changes in angular apps.
    *
    * @param {function(string)} listener Listener function to be called when url changes.
    * @return {function(string)} Returns the registered listener fn - handy if the fn is anonymous.
@@ -3132,9 +3128,8 @@ function Browser(window, document, $log, $sniffer) {
   var cookiePath = self.baseHref();
 
   /**
-   * @ngdoc method
-   * @name angular.module.ng.$browser#cookies
-   * @methodOf angular.module.ng.$browser
+   * @name ng.$browser#cookies
+   * @methodOf ng.$browser
    *
    * @param {string=} name Cookie name
    * @param {string=} value Cokkie value
@@ -3191,9 +3186,8 @@ function Browser(window, document, $log, $sniffer) {
 
 
   /**
-   * @ngdoc method
-   * @name angular.module.ng.$browser#defer
-   * @methodOf angular.module.ng.$browser
+   * @name ng.$browser#defer
+   * @methodOf ng.$browser
    * @param {function()} fn A function, who's execution should be defered.
    * @param {number=} [delay=0] of milliseconds to defer the function execution.
    * @returns {*} DeferId that can be used to cancel the task via `$browser.defer.cancel()`.
@@ -3219,10 +3213,8 @@ function Browser(window, document, $log, $sniffer) {
 
 
   /**
-   * THIS DOC IS NOT VISIBLE because ngdocs can't process docs for foo#method.method
-   *
-   * @name angular.module.ng.$browser#defer.cancel
-   * @methodOf angular.module.ng.$browser.defer
+   * @name ng.$browser#defer.cancel
+   * @methodOf ng.$browser.defer
    *
    * @description
    * Cancels a defered task identified with `deferId`.
@@ -3250,7 +3242,7 @@ function $BrowserProvider(){
 }
 /**
  * @ngdoc object
- * @name angular.module.ng.$cacheFactory
+ * @name ng.$cacheFactory
  *
  * @description
  * Factory that constructs cache objects.
@@ -3403,12 +3395,12 @@ function $CacheFactoryProvider() {
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$templateCache
+ * @name ng.$templateCache
  *
  * @description
  * Cache used for storing html templates.
  *
- * See {@link angular.module.ng.$cacheFactory $cacheFactory}.
+ * See {@link ng.$cacheFactory $cacheFactory}.
  *
  */
 function $TemplateCacheProvider() {
@@ -3440,20 +3432,20 @@ var NON_ASSIGNABLE_MODEL_EXPRESSION = 'Non-assignable model expression: ';
 
 /**
  * @ngdoc function
- * @name angular.module.ng.$compile
+ * @name ng.$compile
  * @function
  *
  * @description
  * Compiles a piece of HTML string or DOM into a template and produces a template function, which
- * can then be used to link {@link angular.module.ng.$rootScope.Scope scope} and the template together.
+ * can then be used to link {@link ng.$rootScope.Scope scope} and the template together.
  *
  * The compilation is a process of walking the DOM tree and trying to match DOM elements to
- * {@link angular.module.ng.$compileProvider.directive directives}. For each match it
+ * {@link ng.$compileProvider.directive directives}. For each match it
  * executes corresponding template function and collects the
  * instance functions into a single template function which is then returned.
  *
  * The template function can then be used once to produce the view or as it is the case with
- * {@link angular.module.ng.$compileProvider.directive.ngRepeat repeater} many-times, in which
+ * {@link ng.directive:ngRepeat repeater} many-times, in which
  * case each call results in a view that is a DOM clone of the original template.
  *
  <doc:example module="compile">
@@ -3516,7 +3508,7 @@ var NON_ASSIGNABLE_MODEL_EXPRESSION = 'Non-assignable model expression: ';
  * @returns {function(scope[, cloneAttachFn])} a link function which is used to bind template
  * (a DOM element/tree) to a scope. Where:
  *
- *  * `scope` - A {@link angular.module.ng.$rootScope.Scope Scope} to bind to.
+ *  * `scope` - A {@link ng.$rootScope.Scope Scope} to bind to.
  *  * `cloneAttachFn` - If `cloneAttachFn` is provided, then the link function will clone the
  *               `template` and call the `cloneAttachFn` function allowing the caller to attach the
  *               cloned elements to the DOM document at the appropriate place. The `cloneAttachFn` is
@@ -3561,7 +3553,7 @@ var NON_ASSIGNABLE_MODEL_EXPRESSION = 'Non-assignable model expression: ';
 
 /**
  * @ngdoc service
- * @name angular.module.ng.$compileProvider
+ * @name ng.$compileProvider
  * @function
  *
  * @description
@@ -3569,8 +3561,8 @@ var NON_ASSIGNABLE_MODEL_EXPRESSION = 'Non-assignable model expression: ';
 
 /**
  * @ngdoc function
- * @name angular.module.ng.$compileProvider#directive
- * @methodOf angular.module.ng.$compileProvider
+ * @name ng.$compileProvider#directive
+ * @methodOf ng.$compileProvider
  * @function
  *
  * @description
@@ -3578,7 +3570,7 @@ var NON_ASSIGNABLE_MODEL_EXPRESSION = 'Non-assignable model expression: ';
  *
  * @param {string} name name of the directive.
  * @param {function} directiveFactory An injectable directive factory function.
- * @returns {angular.module.ng.$compileProvider} Self for chaining.
+ * @returns {ng.$compileProvider} Self for chaining.
  */
 $CompileProvider.$inject = ['$provide'];
 function $CompileProvider($provide) {
@@ -3591,8 +3583,8 @@ function $CompileProvider($provide) {
 
   /**
    * @ngdoc function
-   * @name angular.module.ng.$compileProvider.directive
-   * @methodOf angular.module.ng.$compileProvider
+   * @name ng.$compileProvider.directive
+   * @methodOf ng.$compileProvider
    * @function
    *
    * @description
@@ -4502,7 +4494,7 @@ function directiveNormalize(name) {
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$compile.directive.Attributes
+ * @name ng.$compile.directive.Attributes
  * @description
  *
  * A shared object between directive compile / linking functions which contains normalized DOM element
@@ -4514,8 +4506,8 @@ function directiveNormalize(name) {
 
 /**
  * @ngdoc property
- * @name angular.module.ng.$compile.directive.Attributes#$attr
- * @propertyOf angular.module.ng.$compile.directive.Attributes
+ * @name ng.$compile.directive.Attributes#$attr
+ * @propertyOf ng.$compile.directive.Attributes
  * @returns {object} A map of DOM element attribute names to the normalized name. This is
  *          needed to do reverse lookup from normalized name back to actual name.
  */
@@ -4523,8 +4515,8 @@ function directiveNormalize(name) {
 
 /**
  * @ngdoc function
- * @name angular.module.ng.$compile.directive.Attributes#$set
- * @methodOf angular.module.ng.$compile.directive.Attributes
+ * @name ng.$compile.directive.Attributes#$set
+ * @methodOf ng.$compile.directive.Attributes
  * @function
  *
  * @description
@@ -4532,7 +4524,7 @@ function directiveNormalize(name) {
  *
  *
  * @param {string} name Normalized element attribute name of the property to modify. The name is
- *          revers translated using the {@link angular.module.ng.$compile.directive.Attributes#$attr $attr}
+ *          revers translated using the {@link ng.$compile.directive.Attributes#$attr $attr}
  *          property to the original name.
  * @param {string} value Value to set the attribute to.
  */
@@ -4560,13 +4552,13 @@ function directiveLinkingFn(
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$controllerProvider
+ * @name ng.$controllerProvider
  * @description
- * The {@link angular.module.ng.$controller $controller service} is used by Angular to create new
+ * The {@link ng.$controller $controller service} is used by Angular to create new
  * controllers.
  *
  * This provider allows controller registration via the
- * {@link angular.module.ng.$controllerProvider#register register} method.
+ * {@link ng.$controllerProvider#register register} method.
  */
 function $ControllerProvider() {
   var controllers = {};
@@ -4574,8 +4566,8 @@ function $ControllerProvider() {
 
   /**
    * @ngdoc function
-   * @name angular.module.ng.$controllerProvider#register
-   * @methodOf angular.module.ng.$controllerProvider
+   * @name ng.$controllerProvider#register
+   * @methodOf ng.$controllerProvider
    * @param {string} name Controller name
    * @param {Function|Array} constructor Controller constructor fn (optionally decorated with DI
    *    annotations in the array notation).
@@ -4593,7 +4585,7 @@ function $ControllerProvider() {
 
     /**
      * @ngdoc function
-     * @name angular.module.ng.$controller
+     * @name ng.$controller
      * @requires $injector
      *
      * @param {Function|string} constructor If called with a function then it's considered to be the
@@ -4610,7 +4602,7 @@ function $ControllerProvider() {
      * @description
      * `$controller` service is responsible for instantiating controllers.
      *
-     * It's just simple call to {@link angular.module.AUTO.$injector $injector}, but extracted into
+     * It's just simple call to {@link AUTO.$injector $injector}, but extracted into
      * a service, so that one can override this service with {@link https://gist.github.com/1649788
      * BC version}.
      */
@@ -4630,56 +4622,8 @@ function $ControllerProvider() {
 }
 
 /**
- * @ngdoc function
- * @name angular.module.ng.$defer
- * @deprecated Made obsolete by $timeout service. Please migrate your code. This service will be
- *   removed with 1.0 final.
- * @requires $browser
- *
- * @description
- * Delegates to {@link angular.module.ng.$browser#defer $browser.defer}, but wraps the `fn` function
- * into a try/catch block and delegates any exceptions to
- * {@link angular.module.ng.$exceptionHandler $exceptionHandler} service.
- *
- * In tests you can use `$browser.defer.flush()` to flush the queue of deferred functions.
- *
- * @param {function()} fn A function, who's execution should be deferred.
- * @param {number=} [delay=0] of milliseconds to defer the function execution.
- * @returns {*} DeferId that can be used to cancel the task via `$defer.cancel()`.
- */
-
-/**
- * @ngdoc function
- * @name angular.module.ng.$defer#cancel
- * @methodOf angular.module.ng.$defer
- *
- * @description
- * Cancels a defered task identified with `deferId`.
- *
- * @param {*} deferId Token returned by the `$defer` function.
- * @returns {boolean} Returns `true` if the task hasn't executed yet and was successfuly canceled.
- */
-function $DeferProvider(){
-  this.$get = ['$rootScope', '$browser', '$log', function($rootScope, $browser, $log) {
-    $log.warn('$defer service has been deprecated, migrate to $timeout');
-
-    function defer(fn, delay) {
-      return $browser.defer(function() {
-        $rootScope.$apply(fn);
-      }, delay);
-    }
-
-    defer.cancel = function(deferId) {
-      return $browser.defer.cancel(deferId);
-    };
-
-    return defer;
-  }];
-}
-
-/**
  * @ngdoc object
- * @name angular.module.ng.$document
+ * @name ng.$document
  * @requires $window
  *
  * @description
@@ -4694,7 +4638,7 @@ function $DocumentProvider(){
 
 /**
  * @ngdoc function
- * @name angular.module.ng.$exceptionHandler
+ * @name ng.$exceptionHandler
  * @requires $log
  *
  * @description
@@ -4703,7 +4647,7 @@ function $DocumentProvider(){
  * the browser console.
  *
  * In unit tests, if `angular-mocks.js` is loaded, this service is overridden by
- * {@link angular.module.ngMock.$exceptionHandler mock $exceptionHandler}
+ * {@link ngMock.$exceptionHandler mock $exceptionHandler}
  *
  * @param {Error} exception Exception associated with the error.
  * @param {string=} cause optional information about the context in which
@@ -4719,7 +4663,7 @@ function $ExceptionHandlerProvider() {
 
 /**
  * @ngdoc function
- * @name angular.module.ng.$interpolateProvider
+ * @name ng.$interpolateProvider
  * @function
  *
  * @description
@@ -4732,8 +4676,8 @@ function $InterpolateProvider() {
 
   /**
    * @ngdoc method
-   * @name angular.module.ng.$interpolateProvider#startSymbol
-   * @methodOf angular.module.ng.$interpolateProvider
+   * @name ng.$interpolateProvider#startSymbol
+   * @methodOf ng.$interpolateProvider
    * @description
    * Symbol to denote start of expression in the interpolated string. Defaults to `{{`.
    *
@@ -4750,8 +4694,8 @@ function $InterpolateProvider() {
 
   /**
    * @ngdoc method
-   * @name angular.module.ng.$interpolateProvider#endSymbol
-   * @methodOf angular.module.ng.$interpolateProvider
+   * @name ng.$interpolateProvider#endSymbol
+   * @methodOf ng.$interpolateProvider
    * @description
    * Symbol to denote the end of expression in the interpolated string. Defaults to `}}`.
    *
@@ -4773,7 +4717,7 @@ function $InterpolateProvider() {
 
     /**
      * @ngdoc function
-     * @name angular.module.ng.$interpolate
+     * @name ng.$interpolate
      * @function
      *
      * @requires $parse
@@ -4781,8 +4725,8 @@ function $InterpolateProvider() {
      * @description
      *
      * Compiles a string with markup into an interpolation function. This service is used by the
-     * HTML {@link angular.module.ng.$compile $compile} service for data binding. See
-     * {@link angular.module.ng.$interpolateProvider $interpolateProvider} for configuring the
+     * HTML {@link ng.$compile $compile} service for data binding. See
+     * {@link ng.$interpolateProvider $interpolateProvider} for configuring the
      * interpolation markup.
      *
      *
@@ -4945,7 +4889,7 @@ function convertToHashbangUrl(url, basePath, hashPrefix) {
         path = match.path.substr(pathPrefix.length);
 
     if (match.path.indexOf(pathPrefix) !== 0) {
-      throw 'Invalid url "' + url + '", missing path prefix "' + pathPrefix + '" !';
+      throw Error('Invalid url "' + url + '", missing path prefix "' + pathPrefix + '" !');
     }
 
     return composeProtocolHostPort(match.protocol, match.host, match.port) + basePath +
@@ -4974,7 +4918,7 @@ function LocationUrl(url, pathPrefix) {
     var match = matchUrl(url, this);
 
     if (match.path.indexOf(pathPrefix) !== 0) {
-      throw 'Invalid url "' + url + '", missing path prefix "' + pathPrefix + '" !';
+      throw Error('Invalid url "' + url + '", missing path prefix "' + pathPrefix + '" !');
     }
 
     this.$$path = decodeURIComponent(match.path.substr(pathPrefix.length));
@@ -5020,8 +4964,9 @@ function LocationHashbangUrl(url, hashPrefix) {
   this.$$parse = function(url) {
     var match = matchUrl(url, this);
 
+
     if (match.hash && match.hash.indexOf(hashPrefix) !== 0) {
-      throw 'Invalid url "' + url + '", missing hash prefix "' + hashPrefix + '" !';
+      throw Error('Invalid url "' + url + '", missing hash prefix "' + hashPrefix + '" !');
     }
 
     basePath = match.path + (match.search ? '?' + match.search : '');
@@ -5065,8 +5010,8 @@ LocationUrl.prototype = {
 
   /**
    * @ngdoc method
-   * @name angular.module.ng.$location#absUrl
-   * @methodOf angular.module.ng.$location
+   * @name ng.$location#absUrl
+   * @methodOf ng.$location
    *
    * @description
    * This method is getter only.
@@ -5080,8 +5025,8 @@ LocationUrl.prototype = {
 
   /**
    * @ngdoc method
-   * @name angular.module.ng.$location#url
-   * @methodOf angular.module.ng.$location
+   * @name ng.$location#url
+   * @methodOf ng.$location
    *
    * @description
    * This method is getter / setter.
@@ -5107,8 +5052,8 @@ LocationUrl.prototype = {
 
   /**
    * @ngdoc method
-   * @name angular.module.ng.$location#protocol
-   * @methodOf angular.module.ng.$location
+   * @name ng.$location#protocol
+   * @methodOf ng.$location
    *
    * @description
    * This method is getter only.
@@ -5121,8 +5066,8 @@ LocationUrl.prototype = {
 
   /**
    * @ngdoc method
-   * @name angular.module.ng.$location#host
-   * @methodOf angular.module.ng.$location
+   * @name ng.$location#host
+   * @methodOf ng.$location
    *
    * @description
    * This method is getter only.
@@ -5135,8 +5080,8 @@ LocationUrl.prototype = {
 
   /**
    * @ngdoc method
-   * @name angular.module.ng.$location#port
-   * @methodOf angular.module.ng.$location
+   * @name ng.$location#port
+   * @methodOf ng.$location
    *
    * @description
    * This method is getter only.
@@ -5149,8 +5094,8 @@ LocationUrl.prototype = {
 
   /**
    * @ngdoc method
-   * @name angular.module.ng.$location#path
-   * @methodOf angular.module.ng.$location
+   * @name ng.$location#path
+   * @methodOf ng.$location
    *
    * @description
    * This method is getter / setter.
@@ -5171,8 +5116,8 @@ LocationUrl.prototype = {
 
   /**
    * @ngdoc method
-   * @name angular.module.ng.$location#search
-   * @methodOf angular.module.ng.$location
+   * @name ng.$location#search
+   * @methodOf ng.$location
    *
    * @description
    * This method is getter / setter.
@@ -5207,8 +5152,8 @@ LocationUrl.prototype = {
 
   /**
    * @ngdoc method
-   * @name angular.module.ng.$location#hash
-   * @methodOf angular.module.ng.$location
+   * @name ng.$location#hash
+   * @methodOf ng.$location
    *
    * @description
    * This method is getter / setter.
@@ -5224,8 +5169,8 @@ LocationUrl.prototype = {
 
   /**
    * @ngdoc method
-   * @name angular.module.ng.$location#replace
-   * @methodOf angular.module.ng.$location
+   * @name ng.$location#replace
+   * @methodOf ng.$location
    *
    * @description
    * If called, all changes to $location during current `$digest` will be replacing current history
@@ -5261,7 +5206,7 @@ function locationGetterSetter(property, preprocess) {
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$location
+ * @name ng.$location
  *
  * @requires $browser
  * @requires $sniffer
@@ -5290,7 +5235,7 @@ function locationGetterSetter(property, preprocess) {
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$locationProvider
+ * @name ng.$locationProvider
  * @description
  * Use the `$locationProvider` to configure how the application deep linking paths are stored.
  */
@@ -5300,8 +5245,8 @@ function $LocationProvider(){
 
   /**
    * @ngdoc property
-   * @name angular.module.ng.$locationProvider#hashPrefix
-   * @methodOf angular.module.ng.$locationProvider
+   * @name ng.$locationProvider#hashPrefix
+   * @methodOf ng.$locationProvider
    * @description
    * @param {string=} prefix Prefix for hash part (containing path and search)
    * @returns {*} current value if used as getter or itself (chaining) if used as setter
@@ -5317,8 +5262,8 @@ function $LocationProvider(){
 
   /**
    * @ngdoc property
-   * @name angular.module.ng.$locationProvider#html5Mode
-   * @methodOf angular.module.ng.$locationProvider
+   * @name ng.$locationProvider#html5Mode
+   * @methodOf ng.$locationProvider
    * @description
    * @param {string=} mode Use HTML5 strategy if available.
    * @returns {*} current value if used as getter or itself (chaining) if used as setter
@@ -5335,12 +5280,14 @@ function $LocationProvider(){
   this.$get = ['$rootScope', '$browser', '$sniffer', '$rootElement',
       function( $rootScope,   $browser,   $sniffer,   $rootElement) {
     var $location,
-        basePath = $browser.baseHref() || '/',
-        pathPrefix = pathPrefixFromBase(basePath),
+        basePath,
+        pathPrefix,
         initUrl = $browser.url(),
         absUrlPrefix;
 
     if (html5Mode) {
+      basePath = $browser.baseHref() || '/';
+      pathPrefix = pathPrefixFromBase(basePath);
       if ($sniffer.history) {
         $location = new LocationUrl(
           convertToHtml5Url(initUrl, basePath, hashPrefix),
@@ -5350,13 +5297,13 @@ function $LocationProvider(){
           convertToHashbangUrl(initUrl, basePath, hashPrefix),
           hashPrefix);
       }
+      // link rewriting
+      absUrlPrefix = composeProtocolHostPort(
+        $location.protocol(), $location.host(), $location.port()) + pathPrefix;
     } else {
       $location = new LocationHashbangUrl(initUrl, hashPrefix);
+      absUrlPrefix = $location.absUrl().split('#')[0];
     }
-
-    // link rewriting
-    absUrlPrefix = composeProtocolHostPort(
-        $location.protocol(), $location.host(), $location.port()) + pathPrefix;
 
     $rootElement.bind('click', function(event) {
       // TODO(vojta): rewrite link when opening in new tab/window (in legacy browser)
@@ -5371,7 +5318,8 @@ function $LocationProvider(){
         elm = elm.parent();
       }
 
-      var absHref = elm.prop('href');
+      var absHref = elm.prop('href'),
+          href;
 
       if (!absHref ||
         elm.attr('target') ||
@@ -5380,7 +5328,9 @@ function $LocationProvider(){
       }
 
       // update location with href without the prefix
-      $location.url(absHref.substr(absUrlPrefix.length));
+      href = absHref.substr(absUrlPrefix.length);
+      if (href.charAt(0) == '#') href = href.substr(1);
+      $location.url(href);
       $rootScope.$apply();
       event.preventDefault();
       // hack to work around FF6 bug 684208 when scenario runner clicks on links
@@ -5438,7 +5388,7 @@ function $LocationProvider(){
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$log
+ * @name ng.$log
  * @requires $window
  *
  * @description
@@ -5476,8 +5426,8 @@ function $LogProvider(){
     return {
       /**
        * @ngdoc method
-       * @name angular.module.ng.$log#log
-       * @methodOf angular.module.ng.$log
+       * @name ng.$log#log
+       * @methodOf ng.$log
        *
        * @description
        * Write a log message
@@ -5486,8 +5436,8 @@ function $LogProvider(){
 
       /**
        * @ngdoc method
-       * @name angular.module.ng.$log#warn
-       * @methodOf angular.module.ng.$log
+       * @name ng.$log#warn
+       * @methodOf ng.$log
        *
        * @description
        * Write a warning message
@@ -5496,8 +5446,8 @@ function $LogProvider(){
 
       /**
        * @ngdoc method
-       * @name angular.module.ng.$log#info
-       * @methodOf angular.module.ng.$log
+       * @name ng.$log#info
+       * @methodOf ng.$log
        *
        * @description
        * Write an information message
@@ -5506,8 +5456,8 @@ function $LogProvider(){
 
       /**
        * @ngdoc method
-       * @name angular.module.ng.$log#error
-       * @methodOf angular.module.ng.$log
+       * @name ng.$log#error
+       * @methodOf ng.$log
        *
        * @description
        * Write an error message
@@ -6360,7 +6310,7 @@ function getterFn(path, csp) {
 
 /**
  * @ngdoc function
- * @name angular.module.ng.$parse
+ * @name ng.$parse
  * @function
  *
  * @description
@@ -6411,7 +6361,7 @@ function $ParseProvider() {
 
 /**
  * @ngdoc service
- * @name angular.module.ng.$q
+ * @name ng.$q
  * @requires $rootScope
  *
  * @description
@@ -6525,7 +6475,7 @@ function $ParseProvider() {
  *
  *  There are three main differences:
  *
- * - $q is integrated with the {@link angular.module.ng.$rootScope.Scope} Scope model observation
+ * - $q is integrated with the {@link ng.$rootScope.Scope} Scope model observation
  *   mechanism in angular, which means faster propagation of resolution or rejection into your
  *   models and avoiding unnecessary browser repaints, which would result in flickering UI.
  * - $q promises are recognized by the templating engine in angular, which means that in templates
@@ -6555,8 +6505,8 @@ function qFactory(nextTick, exceptionHandler) {
 
   /**
    * @ngdoc
-   * @name angular.module.ng.$q#defer
-   * @methodOf angular.module.ng.$q
+   * @name ng.$q#defer
+   * @methodOf ng.$q
    * @description
    * Creates a `Deferred` object which represents a task which will finish in the future.
    *
@@ -6645,8 +6595,8 @@ function qFactory(nextTick, exceptionHandler) {
 
   /**
    * @ngdoc
-   * @name angular.module.ng.$q#reject
-   * @methodOf angular.module.ng.$q
+   * @name ng.$q#reject
+   * @methodOf ng.$q
    * @description
    * Creates a promise that is resolved as rejected with the specified `reason`. This api should be
    * used to forward rejection in a chain of promises. If you are dealing with the last promise in
@@ -6693,8 +6643,8 @@ function qFactory(nextTick, exceptionHandler) {
 
   /**
    * @ngdoc
-   * @name angular.module.ng.$q#when
-   * @methodOf angular.module.ng.$q
+   * @name ng.$q#when
+   * @methodOf ng.$q
    * @description
    * Wraps an object that might be a value or a (3rd party) then-able promise into a $q promise.
    * This is useful when you are dealing with on object that might or might not be a promise, or if
@@ -6756,8 +6706,8 @@ function qFactory(nextTick, exceptionHandler) {
 
   /**
    * @ngdoc
-   * @name angular.module.ng.$q#all
-   * @methodOf angular.module.ng.$q
+   * @name ng.$q#all
+   * @methodOf ng.$q
    * @description
    * Combines multiple promises into a single promise that is resolved when all of the input
    * promises are resolved.
@@ -6801,20 +6751,20 @@ function qFactory(nextTick, exceptionHandler) {
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$routeProvider
+ * @name ng.$routeProvider
  * @function
  *
  * @description
  *
- * Used for configuring routes. See {@link angular.module.ng.$route $route} for an example.
+ * Used for configuring routes. See {@link ng.$route $route} for an example.
  */
 function $RouteProvider(){
   var routes = {};
 
   /**
    * @ngdoc method
-   * @name angular.module.ng.$routeProvider#when
-   * @methodOf angular.module.ng.$routeProvider
+   * @name ng.$routeProvider#when
+   * @methodOf ng.$routeProvider
    *
    * @param {string} path Route path (matched against `$location.path`). If `$location.path`
    *    contains redundant trailing slash or is missing one, the route will still match and the
@@ -6828,11 +6778,11 @@ function $RouteProvider(){
    *    - `controller` – `{function()=}` – Controller fn that should be associated with newly
    *      created scope.
    *    - `template` – `{string=}` –  html template as a string that should be used by
-   *      {@link angular.module.ng.$compileProvider.directive.ngView ngView} or
-   *      {@link angular.module.ng.$compileProvider.directive.ngInclude ngInclude} directives.
+   *      {@link ng.directive:ngView ngView} or
+   *      {@link ng.directive:ngInclude ngInclude} directives.
    *      this property takes precedence over `templateUrl`.
    *    - `templateUrl` – `{string=}` – path to an html template that should be used by
-   *      {@link angular.module.ng.$compileProvider.directive.ngView ngView}.
+   *      {@link ng.directive:ngView ngView}.
    *    - `resolve` - `{Object.<string, function>=}` - An optional map of dependencies which should
    *      be injected into the controller. If any of these dependencies are promises, they will be
    *      resolved and converted to a value before the controller is instantiated and the
@@ -6840,12 +6790,12 @@ function $RouteProvider(){
    *
    *      - `key` – `{string}`: a name of a dependency to be injected into the controller.
    *      - `factory` - `{string|function}`: If `string` then it is an alias for a service.
-   *        Otherwise if function, then it is {@link api/angular.module.AUTO.$injector#invoke injected}
+   *        Otherwise if function, then it is {@link api/AUTO.$injector#invoke injected}
    *        and the return value is treated as the dependency. If the result is a promise, it is resolved
    *        before its value is injected into the controller.
    *
    *    - `redirectTo` – {(string|function())=} – value to update
-   *      {@link angular.module.ng.$location $location} path with and trigger route redirection.
+   *      {@link ng.$location $location} path with and trigger route redirection.
    *
    *      If `redirectTo` is a function, it will be called with the following parameters:
    *
@@ -6885,8 +6835,8 @@ function $RouteProvider(){
 
   /**
    * @ngdoc method
-   * @name angular.module.ng.$routeProvider#otherwise
-   * @methodOf angular.module.ng.$routeProvider
+   * @name ng.$routeProvider#otherwise
+   * @methodOf ng.$routeProvider
    *
    * @description
    * Sets route definition that will be used on route change when no other route definition
@@ -6906,7 +6856,7 @@ function $RouteProvider(){
 
     /**
      * @ngdoc object
-     * @name angular.module.ng.$route
+     * @name ng.$route
      * @requires $location
      * @requires $routeParams
      *
@@ -6914,7 +6864,7 @@ function $RouteProvider(){
      * The route definition contains:
      *
      *   - `controller`: The controller constructor as define in route definition.
-     *   - `locals`: A map of locals which is used by {@link angular.module.ng.$controller $controller} service for
+     *   - `locals`: A map of locals which is used by {@link ng.$controller $controller} service for
      *     controller instantiation. The `locals` contain
      *     the resolved values of the `resolve` map. Additionally the `locals` also contain:
      *
@@ -6927,16 +6877,16 @@ function $RouteProvider(){
      * Is used for deep-linking URLs to controllers and views (HTML partials).
      * It watches `$location.url()` and tries to map the path to an existing route definition.
      *
-     * You can define routes through {@link angular.module.ng.$routeProvider $routeProvider}'s API.
+     * You can define routes through {@link ng.$routeProvider $routeProvider}'s API.
      *
-     * The `$route` service is typically used in conjunction with {@link angular.module.ng.$compileProvider.directive.ngView ngView}
-     * directive and the {@link angular.module.ng.$routeParams $routeParams} service.
+     * The `$route` service is typically used in conjunction with {@link ng.directive:ngView ngView}
+     * directive and the {@link ng.$routeParams $routeParams} service.
      *
      * @example
        This example shows how changing the URL hash causes the `$route` to match a route against the
        URL, and the `ngView` pulls in the partial.
 
-       Note that this example is using {@link angular.module.ng.$compileProvider.directive.script inlined templates}
+       Note that this example is using {@link ng.directive:script inlined templates}
        to get it working on jsfiddle as well.
 
      <example module="ngView">
@@ -7031,8 +6981,8 @@ function $RouteProvider(){
 
     /**
      * @ngdoc event
-     * @name angular.module.ng.$route#$routeChangeStart
-     * @eventOf angular.module.ng.$route
+     * @name ng.$route#$routeChangeStart
+     * @eventOf ng.$route
      * @eventType broadcast on root scope
      * @description
      * Broadcasted before a route change. At this  point the route services starts
@@ -7047,12 +6997,12 @@ function $RouteProvider(){
 
     /**
      * @ngdoc event
-     * @name angular.module.ng.$route#$routeChangeSuccess
-     * @eventOf angular.module.ng.$route
+     * @name ng.$route#$routeChangeSuccess
+     * @eventOf ng.$route
      * @eventType broadcast on root scope
      * @description
      * Broadcasted after a route dependencies are resolved.
-     * {@link angular.module.ng.$compileProvider.directive.ngView ngView} listens for the directive
+     * {@link ng.directive:ngView ngView} listens for the directive
      * to instantiate the controller and render the view.
      *
      * @param {Route} current Current route information.
@@ -7061,8 +7011,8 @@ function $RouteProvider(){
 
     /**
      * @ngdoc event
-     * @name angular.module.ng.$route#$routeChangeError
-     * @eventOf angular.module.ng.$route
+     * @name ng.$route#$routeChangeError
+     * @eventOf ng.$route
      * @eventType broadcast on root scope
      * @description
      * Broadcasted if any of the resolve promises are rejected.
@@ -7074,8 +7024,8 @@ function $RouteProvider(){
 
     /**
      * @ngdoc event
-     * @name angular.module.ng.$route#$routeUpdate
-     * @eventOf angular.module.ng.$route
+     * @name ng.$route#$routeUpdate
+     * @eventOf ng.$route
      * @eventType broadcast on root scope
      * @description
      *
@@ -7090,14 +7040,14 @@ function $RouteProvider(){
 
           /**
            * @ngdoc method
-           * @name angular.module.ng.$route#reload
-           * @methodOf angular.module.ng.$route
+           * @name ng.$route#reload
+           * @methodOf ng.$route
            *
            * @description
            * Causes `$route` service to reload the current route even if
-           * {@link angular.module.ng.$location $location} hasn't changed.
+           * {@link ng.$location $location} hasn't changed.
            *
-           * As a result of that, {@link angular.module.ng.$compileProvider.directive.ngView ngView}
+           * As a result of that, {@link ng.directive:ngView ngView}
            * creates new scope, reinstantiates the controller.
            */
           reload: function() {
@@ -7249,13 +7199,13 @@ function $RouteProvider(){
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$routeParams
+ * @name ng.$routeParams
  * @requires $route
  *
  * @description
  * Current set of route parameters. The route parameters are a combination of the
- * {@link angular.module.ng.$location $location} `search()`, and `path()`. The `path` parameters
- * are extracted when the {@link angular.module.ng.$route $route} path is matched.
+ * {@link ng.$location $location} `search()`, and `path()`. The `path` parameters
+ * are extracted when the {@link ng.$route $route} path is matched.
  *
  * In case of parameter name collision, `path` params take precedence over `search` params.
  *
@@ -7304,7 +7254,7 @@ function $RouteParamsProvider() {
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$rootScopeProvider
+ * @name ng.$rootScopeProvider
  * @description
  *
  * Provider for the $rootScope service.
@@ -7312,8 +7262,8 @@ function $RouteParamsProvider() {
 
 /**
  * @ngdoc function
- * @name angular.module.ng.$rootScopeProvider#digestTtl
- * @methodOf angular.module.ng.$rootScopeProvider
+ * @name ng.$rootScopeProvider#digestTtl
+ * @methodOf ng.$rootScopeProvider
  * @description
  *
  * Sets the number of digest iteration the scope should attempt to execute before giving up and
@@ -7327,10 +7277,10 @@ function $RouteParamsProvider() {
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$rootScope
+ * @name ng.$rootScope
  * @description
  *
- * Every application has a single root {@link angular.module.ng.$rootScope.Scope scope}.
+ * Every application has a single root {@link ng.$rootScope.Scope scope}.
  * All other scopes are child scopes of the root scope. Scopes provide mechanism for watching the model and provide
  * event processing life-cycle. See {@link guide/scope developer guide on scopes}.
  */
@@ -7349,12 +7299,12 @@ function $RootScopeProvider(){
 
     /**
      * @ngdoc function
-     * @name angular.module.ng.$rootScope.Scope
+     * @name ng.$rootScope.Scope
      *
      * @description
-     * A root scope can be retrieved using the {@link angular.module.ng.$rootScope $rootScope} key from the
-     * {@link angular.module.AUTO.$injector $injector}. Child scopes are created using the
-     * {@link angular.module.ng.$rootScope.Scope#$new $new()} method. (Most scopes are created automatically when
+     * A root scope can be retrieved using the {@link ng.$rootScope $rootScope} key from the
+     * {@link AUTO.$injector $injector}. Child scopes are created using the
+     * {@link ng.$rootScope.Scope#$new $new()} method. (Most scopes are created automatically when
      * compiled HTML template is executed.)
      *
      * Here is a simple scope snippet to show how you can interact with the scope.
@@ -7397,7 +7347,7 @@ function $RootScopeProvider(){
      *
      *
      * @param {Object.<string, function()>=} providers Map of service factory which need to be provided
-     *     for the current scope. Defaults to {@link angular.module.ng}.
+     *     for the current scope. Defaults to {@link ng}.
      * @param {Object.<string, *>=} instanceCache Provides pre-instantiated services which should
      *     append/override services provided by `providers`. This is handy when unit-testing and having
      *     the need to override a default service.
@@ -7416,8 +7366,8 @@ function $RootScopeProvider(){
 
     /**
      * @ngdoc property
-     * @name angular.module.ng.$rootScope.Scope#$id
-     * @propertyOf angular.module.ng.$rootScope.Scope
+     * @name ng.$rootScope.Scope#$id
+     * @propertyOf ng.$rootScope.Scope
      * @returns {number} Unique scope ID (monotonically increasing alphanumeric sequence) useful for
      *   debugging.
      */
@@ -7426,18 +7376,18 @@ function $RootScopeProvider(){
     Scope.prototype = {
       /**
        * @ngdoc function
-       * @name angular.module.ng.$rootScope.Scope#$new
-       * @methodOf angular.module.ng.$rootScope.Scope
+       * @name ng.$rootScope.Scope#$new
+       * @methodOf ng.$rootScope.Scope
        * @function
        *
        * @description
-       * Creates a new child {@link angular.module.ng.$rootScope.Scope scope}.
+       * Creates a new child {@link ng.$rootScope.Scope scope}.
        *
-       * The parent scope will propagate the {@link angular.module.ng.$rootScope.Scope#$digest $digest()} and
-       * {@link angular.module.ng.$rootScope.Scope#$digest $digest()} events. The scope can be removed from the scope
-       * hierarchy using {@link angular.module.ng.$rootScope.Scope#$destroy $destroy()}.
+       * The parent scope will propagate the {@link ng.$rootScope.Scope#$digest $digest()} and
+       * {@link ng.$rootScope.Scope#$digest $digest()} events. The scope can be removed from the scope
+       * hierarchy using {@link ng.$rootScope.Scope#$destroy $destroy()}.
        *
-       * {@link angular.module.ng.$rootScope.Scope#$destroy $destroy()} must be called on a scope when it is desired for
+       * {@link ng.$rootScope.Scope#$destroy $destroy()} must be called on a scope when it is desired for
        * the scope and its child scopes to be permanently detached from the parent and thus stop
        * participating in model change detection and listener notification by invoking.
        *
@@ -7485,17 +7435,17 @@ function $RootScopeProvider(){
 
       /**
        * @ngdoc function
-       * @name angular.module.ng.$rootScope.Scope#$watch
-       * @methodOf angular.module.ng.$rootScope.Scope
+       * @name ng.$rootScope.Scope#$watch
+       * @methodOf ng.$rootScope.Scope
        * @function
        *
        * @description
        * Registers a `listener` callback to be executed whenever the `watchExpression` changes.
        *
-       * - The `watchExpression` is called on every call to {@link angular.module.ng.$rootScope.Scope#$digest $digest()} and
-       *   should return the value which will be watched. (Since {@link angular.module.ng.$rootScope.Scope#$digest $digest()}
+       * - The `watchExpression` is called on every call to {@link ng.$rootScope.Scope#$digest $digest()} and
+       *   should return the value which will be watched. (Since {@link ng.$rootScope.Scope#$digest $digest()}
        *   reruns when it detects changes the `watchExpression` can execute multiple times per
-       *   {@link angular.module.ng.$rootScope.Scope#$digest $digest()} and should be idempotent.)
+       *   {@link ng.$rootScope.Scope#$digest $digest()} and should be idempotent.)
        * - The `listener` is called only when the value from the current `watchExpression` and the
        *   previous call to `watchExpression' are not equal (with the exception of the initial run
        *   see below). The inequality is determined according to
@@ -7507,13 +7457,13 @@ function $RootScopeProvider(){
        *   limit is 100 to prevent infinity loop deadlock.
        *
        *
-       * If you want to be notified whenever {@link angular.module.ng.$rootScope.Scope#$digest $digest} is called,
+       * If you want to be notified whenever {@link ng.$rootScope.Scope#$digest $digest} is called,
        * you can register an `watchExpression` function with no `listener`. (Since `watchExpression`,
-       * can execute multiple times per {@link angular.module.ng.$rootScope.Scope#$digest $digest} cycle when a change is
+       * can execute multiple times per {@link ng.$rootScope.Scope#$digest $digest} cycle when a change is
        * detected, be prepared for multiple calls to your listener.)
        *
        * After a watcher is registered with the scope, the `listener` fn is called asynchronously
-       * (via {@link angular.module.ng.$rootScope.Scope#$evalAsync $evalAsync}) to initialize the
+       * (via {@link ng.$rootScope.Scope#$evalAsync $evalAsync}) to initialize the
        * watcher. In rare cases, this is undesirable because the listener is called when the result
        * of `watchExpression` didn't change. To detect this scenario within the `listener` fn, you
        * can compare the `newVal` and `oldVal`. If these two values are identical (`===`) then the
@@ -7521,7 +7471,7 @@ function $RootScopeProvider(){
        *
        *
        * # Example
-         <pre>
+       * <pre>
            // let's assume that scope was dependency injected as the $rootScope
            var scope = $rootScope;
            scope.name = 'misko';
@@ -7538,12 +7488,12 @@ function $RootScopeProvider(){
            scope.name = 'adam';
            scope.$digest();
            expect(scope.counter).toEqual(1);
-         </pre>
+       * </pre>
        *
        *
        *
        * @param {(function()|string)} watchExpression Expression that is evaluated on each
-       *    {@link angular.module.ng.$rootScope.Scope#$digest $digest} cycle. A change in the return value triggers a
+       *    {@link ng.$rootScope.Scope#$digest $digest} cycle. A change in the return value triggers a
        *    call to the `listener`.
        *
        *    - `string`: Evaluated as {@link guide/expression expression}
@@ -7589,32 +7539,32 @@ function $RootScopeProvider(){
 
       /**
        * @ngdoc function
-       * @name angular.module.ng.$rootScope.Scope#$digest
-       * @methodOf angular.module.ng.$rootScope.Scope
+       * @name ng.$rootScope.Scope#$digest
+       * @methodOf ng.$rootScope.Scope
        * @function
        *
        * @description
-       * Process all of the {@link angular.module.ng.$rootScope.Scope#$watch watchers} of the current scope and its children.
-       * Because a {@link angular.module.ng.$rootScope.Scope#$watch watcher}'s listener can change the model, the
-       * `$digest()` keeps calling the {@link angular.module.ng.$rootScope.Scope#$watch watchers} until no more listeners are
+       * Process all of the {@link ng.$rootScope.Scope#$watch watchers} of the current scope and its children.
+       * Because a {@link ng.$rootScope.Scope#$watch watcher}'s listener can change the model, the
+       * `$digest()` keeps calling the {@link ng.$rootScope.Scope#$watch watchers} until no more listeners are
        * firing. This means that it is possible to get into an infinite loop. This function will throw
        * `'Maximum iteration limit exceeded.'` if the number of iterations exceeds 10.
        *
        * Usually you don't call `$digest()` directly in
-       * {@link angular.module.ng.$compileProvider.directive.ngController controllers} or in
-       * {@link angular.module.ng.$compileProvider.directive directives}.
-       * Instead a call to {@link angular.module.ng.$rootScope.Scope#$apply $apply()} (typically from within a
-       * {@link angular.module.ng.$compileProvider.directive directives}) will force a `$digest()`.
+       * {@link ng.directive:ngController controllers} or in
+       * {@link ng.$compileProvider.directive directives}.
+       * Instead a call to {@link ng.$rootScope.Scope#$apply $apply()} (typically from within a
+       * {@link ng.$compileProvider.directive directives}) will force a `$digest()`.
        *
        * If you want to be notified whenever `$digest()` is called,
-       * you can register a `watchExpression` function  with {@link angular.module.ng.$rootScope.Scope#$watch $watch()}
+       * you can register a `watchExpression` function  with {@link ng.$rootScope.Scope#$watch $watch()}
        * with no `listener`.
        *
        * You may have a need to call `$digest()` from within unit-tests, to simulate the scope
        * life-cycle.
        *
        * # Example
-         <pre>
+       * <pre>
            var scope = ...;
            scope.name = 'misko';
            scope.counter = 0;
@@ -7632,7 +7582,7 @@ function $RootScopeProvider(){
            scope.name = 'adam';
            scope.$digest();
            expect(scope.counter).toEqual(1);
-         </pre>
+       * </pre>
        *
        */
       $digest: function() {
@@ -7714,8 +7664,8 @@ function $RootScopeProvider(){
 
       /**
        * @ngdoc event
-       * @name angular.module.$rootScope.Scope#$destroy
-       * @eventOf angular.module.ng.$rootScope.Scope
+       * @name ng.$rootScope.Scope#$destroy
+       * @eventOf ng.$rootScope.Scope
        * @eventType broadcast on scope being destroyed
        *
        * @description
@@ -7724,18 +7674,18 @@ function $RootScopeProvider(){
 
       /**
        * @ngdoc function
-       * @name angular.module.ng.$rootScope.Scope#$destroy
-       * @methodOf angular.module.ng.$rootScope.Scope
+       * @name ng.$rootScope.Scope#$destroy
+       * @methodOf ng.$rootScope.Scope
        * @function
        *
        * @description
        * Remove the current scope (and all of its children) from the parent scope. Removal implies
-       * that calls to {@link angular.module.ng.$rootScope.Scope#$digest $digest()} will no longer
+       * that calls to {@link ng.$rootScope.Scope#$digest $digest()} will no longer
        * propagate to the current scope and its children. Removal also implies that the current
        * scope is eligible for garbage collection.
        *
        * The `$destroy()` is usually used by directives such as
-       * {@link angular.module.ng.$compileProvider.directive.ngRepeat ngRepeat} for managing the
+       * {@link ng.directive:ngRepeat ngRepeat} for managing the
        * unrolling of the loop.
        *
        * Just before a scope is destroyed a `$destroy` event is broadcasted on this scope.
@@ -7756,8 +7706,8 @@ function $RootScopeProvider(){
 
       /**
        * @ngdoc function
-       * @name angular.module.ng.$rootScope.Scope#$eval
-       * @methodOf angular.module.ng.$rootScope.Scope
+       * @name ng.$rootScope.Scope#$eval
+       * @methodOf ng.$rootScope.Scope
        * @function
        *
        * @description
@@ -7765,14 +7715,14 @@ function $RootScopeProvider(){
        * expression are propagated (uncaught). This is useful when evaluating engular expressions.
        *
        * # Example
-         <pre>
-           var scope = angular.module.ng.$rootScope.Scope();
+       * <pre>
+           var scope = ng.$rootScope.Scope();
            scope.a = 1;
            scope.b = 2;
 
            expect(scope.$eval('a+b')).toEqual(3);
            expect(scope.$eval(function(scope){ return scope.a + scope.b; })).toEqual(3);
-         </pre>
+       * </pre>
        *
        * @param {(string|function())=} expression An angular expression to be executed.
        *
@@ -7787,8 +7737,8 @@ function $RootScopeProvider(){
 
       /**
        * @ngdoc function
-       * @name angular.module.ng.$rootScope.Scope#$evalAsync
-       * @methodOf angular.module.ng.$rootScope.Scope
+       * @name ng.$rootScope.Scope#$evalAsync
+       * @methodOf ng.$rootScope.Scope
        * @function
        *
        * @description
@@ -7797,11 +7747,11 @@ function $RootScopeProvider(){
        * The `$evalAsync` makes no guarantees as to when the `expression` will be executed, only that:
        *
        *   - it will execute in the current script execution context (before any DOM rendering).
-       *   - at least one {@link angular.module.ng.$rootScope.Scope#$digest $digest cycle} will be performed after
+       *   - at least one {@link ng.$rootScope.Scope#$digest $digest cycle} will be performed after
        *     `expression` execution.
        *
        * Any exceptions from the execution of the expression are forwarded to the
-       * {@link angular.module.ng.$exceptionHandler $exceptionHandler} service.
+       * {@link ng.$exceptionHandler $exceptionHandler} service.
        *
        * @param {(string|function())=} expression An angular expression to be executed.
        *
@@ -7815,39 +7765,41 @@ function $RootScopeProvider(){
 
       /**
        * @ngdoc function
-       * @name angular.module.ng.$rootScope.Scope#$apply
-       * @methodOf angular.module.ng.$rootScope.Scope
+       * @name ng.$rootScope.Scope#$apply
+       * @methodOf ng.$rootScope.Scope
        * @function
        *
        * @description
        * `$apply()` is used to execute an expression in angular from outside of the angular framework.
        * (For example from browser DOM events, setTimeout, XHR or third party libraries).
        * Because we are calling into the angular framework we need to perform proper scope life-cycle
-       * of {@link angular.module.ng.$exceptionHandler exception handling},
-       * {@link angular.module.ng.$rootScope.Scope#$digest executing watches}.
+       * of {@link ng.$exceptionHandler exception handling},
+       * {@link ng.$rootScope.Scope#$digest executing watches}.
        *
        * ## Life cycle
        *
        * # Pseudo-Code of `$apply()`
-          function $apply(expr) {
-            try {
-              return $eval(expr);
-            } catch (e) {
-              $exceptionHandler(e);
-            } finally {
-              $root.$digest();
-            }
-          }
+       * <pre>
+           function $apply(expr) {
+             try {
+               return $eval(expr);
+             } catch (e) {
+               $exceptionHandler(e);
+             } finally {
+               $root.$digest();
+             }
+           }
+       * </pre>
        *
        *
        * Scope's `$apply()` method transitions through the following stages:
        *
        * 1. The {@link guide/expression expression} is executed using the
-       *    {@link angular.module.ng.$rootScope.Scope#$eval $eval()} method.
+       *    {@link ng.$rootScope.Scope#$eval $eval()} method.
        * 2. Any exceptions from the execution of the expression are forwarded to the
-       *    {@link angular.module.ng.$exceptionHandler $exceptionHandler} service.
-       * 3. The {@link angular.module.ng.$rootScope.Scope#$watch watch} listeners are fired immediately after the expression
-       *    was executed using the {@link angular.module.ng.$rootScope.Scope#$digest $digest()} method.
+       *    {@link ng.$exceptionHandler $exceptionHandler} service.
+       * 3. The {@link ng.$rootScope.Scope#$watch watch} listeners are fired immediately after the expression
+       *    was executed using the {@link ng.$rootScope.Scope#$digest $digest()} method.
        *
        *
        * @param {(string|function())=} exp An angular expression to be executed.
@@ -7876,12 +7828,12 @@ function $RootScopeProvider(){
 
       /**
        * @ngdoc function
-       * @name angular.module.ng.$rootScope.Scope#$on
-       * @methodOf angular.module.ng.$rootScope.Scope
+       * @name ng.$rootScope.Scope#$on
+       * @methodOf ng.$rootScope.Scope
        * @function
        *
        * @description
-       * Listen on events of a given type. See {@link angular.module.ng.$rootScope.Scope#$emit $emit} for discussion of
+       * Listen on events of a given type. See {@link ng.$rootScope.Scope#$emit $emit} for discussion of
        * event life cycle.
        *
        * @param {string} name Event name to listen on.
@@ -7914,25 +7866,25 @@ function $RootScopeProvider(){
 
       /**
        * @ngdoc function
-       * @name angular.module.ng.$rootScope.Scope#$emit
-       * @methodOf angular.module.ng.$rootScope.Scope
+       * @name ng.$rootScope.Scope#$emit
+       * @methodOf ng.$rootScope.Scope
        * @function
        *
        * @description
        * Dispatches an event `name` upwards through the scope hierarchy notifying the
-       * registered {@link angular.module.ng.$rootScope.Scope#$on} listeners.
+       * registered {@link ng.$rootScope.Scope#$on} listeners.
        *
        * The event life cycle starts at the scope on which `$emit` was called. All
-       * {@link angular.module.ng.$rootScope.Scope#$on listeners} listening for `name` event on this scope get notified.
+       * {@link ng.$rootScope.Scope#$on listeners} listening for `name` event on this scope get notified.
        * Afterwards, the event traverses upwards toward the root scope and calls all registered
        * listeners along the way. The event will stop propagating if one of the listeners cancels it.
        *
-       * Any exception emmited from the {@link angular.module.ng.$rootScope.Scope#$on listeners} will be passed
-       * onto the {@link angular.module.ng.$exceptionHandler $exceptionHandler} service.
+       * Any exception emmited from the {@link ng.$rootScope.Scope#$on listeners} will be passed
+       * onto the {@link ng.$exceptionHandler $exceptionHandler} service.
        *
        * @param {string} name Event name to emit.
        * @param {...*} args Optional set of arguments which will be passed onto the event listeners.
-       * @return {Object} Event object, see {@link angular.module.ng.$rootScope.Scope#$on}
+       * @return {Object} Event object, see {@link ng.$rootScope.Scope#$on}
        */
       $emit: function(name, args) {
         var empty = [],
@@ -7972,25 +7924,25 @@ function $RootScopeProvider(){
 
       /**
        * @ngdoc function
-       * @name angular.module.ng.$rootScope.Scope#$broadcast
-       * @methodOf angular.module.ng.$rootScope.Scope
+       * @name ng.$rootScope.Scope#$broadcast
+       * @methodOf ng.$rootScope.Scope
        * @function
        *
        * @description
        * Dispatches an event `name` downwards to all child scopes (and their children) notifying the
-       * registered {@link angular.module.ng.$rootScope.Scope#$on} listeners.
+       * registered {@link ng.$rootScope.Scope#$on} listeners.
        *
        * The event life cycle starts at the scope on which `$broadcast` was called. All
-       * {@link angular.module.ng.$rootScope.Scope#$on listeners} listening for `name` event on this scope get notified.
+       * {@link ng.$rootScope.Scope#$on listeners} listening for `name` event on this scope get notified.
        * Afterwards, the event propagates to all direct and indirect scopes of the current scope and
        * calls all registered listeners along the way. The event cannot be canceled.
        *
-       * Any exception emmited from the {@link angular.module.ng.$rootScope.Scope#$on listeners} will be passed
-       * onto the {@link angular.module.ng.$exceptionHandler $exceptionHandler} service.
+       * Any exception emmited from the {@link ng.$rootScope.Scope#$on listeners} will be passed
+       * onto the {@link ng.$exceptionHandler $exceptionHandler} service.
        *
        * @param {string} name Event name to emit.
        * @param {...*} args Optional set of arguments which will be passed onto the event listeners.
-       * @return {Object} Event object, see {@link angular.module.ng.$rootScope.Scope#$on}
+       * @return {Object} Event object, see {@link ng.$rootScope.Scope#$on}
        */
       $broadcast: function(name, args) {
         var target = this,
@@ -8066,7 +8018,7 @@ function $RootScopeProvider(){
 /**
  * !!! This is an undocumented "private" service !!!
  *
- * @name angular.module.ng.$sniffer
+ * @name ng.$sniffer
  * @requires $window
  *
  * @property {boolean} history Does the browser support html5 history api ?
@@ -8110,7 +8062,7 @@ function $SnifferProvider() {
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$window
+ * @name ng.$window
  *
  * @description
  * A reference to the browser's `window` object. While `window`
@@ -8270,7 +8222,7 @@ function $HttpProvider() {
 
     /**
      * @ngdoc function
-     * @name angular.module.ng.$http
+     * @name ng.$http
      * @requires $httpBacked
      * @requires $browser
      * @requires $cacheFactory
@@ -8284,19 +8236,19 @@ function $HttpProvider() {
      * XMLHttpRequest} object or via {@link http://en.wikipedia.org/wiki/JSONP JSONP}.
      *
      * For unit testing applications that use `$http` service, see
-     * {@link angular.module.ngMock.$httpBackend $httpBackend mock}.
+     * {@link ngMock.$httpBackend $httpBackend mock}.
      *
-     * For a higher level of abstraction, please check out the {@link angular.module.ngResource.$resource
+     * For a higher level of abstraction, please check out the {@link ngResource.$resource
      * $resource} service.
      *
-     * The $http API is based on the {@link angular.module.ng.$q deferred/promise APIs} exposed by
+     * The $http API is based on the {@link ng.$q deferred/promise APIs} exposed by
      * the $q service. While for simple usage patters this doesn't matter much, for advanced usage,
      * it is important to familiarize yourself with these apis and guarantees they provide.
      *
      *
      * # General usage
      * The `$http` service is a function which takes a single argument — a configuration object —
-     * that is used to generate an http request and returns  a {@link angular.module.ng.$q promise}
+     * that is used to generate an http request and returns  a {@link ng.$q promise}
      * with two $http specific methods: `success` and `error`.
      *
      * <pre>
@@ -8331,12 +8283,12 @@ function $HttpProvider() {
      *
      * Complete list of shortcut methods:
      *
-     * - {@link angular.module.ng.$http#get $http.get}
-     * - {@link angular.module.ng.$http#head $http.head}
-     * - {@link angular.module.ng.$http#post $http.post}
-     * - {@link angular.module.ng.$http#put $http.put}
-     * - {@link angular.module.ng.$http#delete $http.delete}
-     * - {@link angular.module.ng.$http#jsonp $http.jsonp}
+     * - {@link ng.$http#get $http.get}
+     * - {@link ng.$http#head $http.head}
+     * - {@link ng.$http#post $http.post}
+     * - {@link ng.$http#put $http.put}
+     * - {@link ng.$http#delete $http.delete}
+     * - {@link ng.$http#jsonp $http.jsonp}
      *
      *
      * # Setting HTTP Headers
@@ -8400,18 +8352,18 @@ function $HttpProvider() {
      * # Response interceptors
      *
      * Before you start creating interceptors, be sure to understand the
-     * {@link angular.module.ng.$q $q and deferred/promise APIs}.
+     * {@link ng.$q $q and deferred/promise APIs}.
      *
      * For purposes of global error handling, authentication or any kind of synchronous or
      * asynchronous preprocessing of received responses, it is desirable to be able to intercept
      * responses for http requests before they are handed over to the application code that
-     * initiated these requests. The response interceptors leverage the {@link angular.module.ng.$q
+     * initiated these requests. The response interceptors leverage the {@link ng.$q
      * promise apis} to fulfil this need for both synchronous and asynchronous preprocessing.
      *
      * The interceptors are service factories that are registered with the $httpProvider by
      * adding them to the `$httpProvider.responseInterceptors` array. The factory is called and
      * injected with dependencies (if specified) and returns the interceptor  — a function that
-     * takes a {@link angular.module.ng.$q promise} and returns the original or a new promise.
+     * takes a {@link ng.$q promise} and returns the original or a new promise.
      *
      * <pre>
      *   // register the interceptor as a service
@@ -8510,14 +8462,14 @@ function $HttpProvider() {
      *      response body and headers and returns its transformed (typically deserialized) version.
      *    - **cache** – `{boolean|Cache}` – If true, a default $http cache will be used to cache the
      *      GET request, otherwise if a cache instance built with
-     *      {@link angular.module.ng.$cacheFactory $cacheFactory}, this cache will be used for
+     *      {@link ng.$cacheFactory $cacheFactory}, this cache will be used for
      *      caching.
      *    - **timeout** – `{number}` – timeout in milliseconds.
      *    - **withCredentials** - `{boolean}` - whether to to set the `withCredentials` flag on the
      *      XHR object. See {@link https://developer.mozilla.org/en/http_access_control#section_5
      *      requests with credentials} for more information.
      *
-     * @returns {HttpPromise} Returns a {@link angular.module.ng.$q promise} object with the
+     * @returns {HttpPromise} Returns a {@link ng.$q promise} object with the
      *   standard `then` method and two http specific methods: `success` and `error`. The `then`
      *   method takes two arguments a success and an error callback which will be called with a
      *   response object. The `success` and `error` methods take a single argument - a function that
@@ -8664,8 +8616,8 @@ function $HttpProvider() {
 
     /**
      * @ngdoc method
-     * @name angular.module.ng.$http#get
-     * @methodOf angular.module.ng.$http
+     * @name ng.$http#get
+     * @methodOf ng.$http
      *
      * @description
      * Shortcut method to perform `GET` request
@@ -8677,8 +8629,8 @@ function $HttpProvider() {
 
     /**
      * @ngdoc method
-     * @name angular.module.ng.$http#delete
-     * @methodOf angular.module.ng.$http
+     * @name ng.$http#delete
+     * @methodOf ng.$http
      *
      * @description
      * Shortcut method to perform `DELETE` request
@@ -8690,8 +8642,8 @@ function $HttpProvider() {
 
     /**
      * @ngdoc method
-     * @name angular.module.ng.$http#head
-     * @methodOf angular.module.ng.$http
+     * @name ng.$http#head
+     * @methodOf ng.$http
      *
      * @description
      * Shortcut method to perform `HEAD` request
@@ -8703,8 +8655,8 @@ function $HttpProvider() {
 
     /**
      * @ngdoc method
-     * @name angular.module.ng.$http#jsonp
-     * @methodOf angular.module.ng.$http
+     * @name ng.$http#jsonp
+     * @methodOf ng.$http
      *
      * @description
      * Shortcut method to perform `JSONP` request
@@ -8718,8 +8670,8 @@ function $HttpProvider() {
 
     /**
      * @ngdoc method
-     * @name angular.module.ng.$http#post
-     * @methodOf angular.module.ng.$http
+     * @name ng.$http#post
+     * @methodOf ng.$http
      *
      * @description
      * Shortcut method to perform `POST` request
@@ -8732,8 +8684,8 @@ function $HttpProvider() {
 
     /**
      * @ngdoc method
-     * @name angular.module.ng.$http#put
-     * @methodOf angular.module.ng.$http
+     * @name ng.$http#put
+     * @methodOf ng.$http
      *
      * @description
      * Shortcut method to perform `PUT` request
@@ -8747,8 +8699,8 @@ function $HttpProvider() {
 
         /**
          * @ngdoc property
-         * @name angular.module.ng.$http#defaults
-         * @propertyOf angular.module.ng.$http
+         * @name ng.$http#defaults
+         * @propertyOf ng.$http
          *
          * @description
          * Runtime equivalent of the `$httpProvider.defaults` property. Allows configuration of
@@ -8908,19 +8860,19 @@ var XHR = window.XMLHttpRequest || function() {
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$httpBackend
+ * @name ng.$httpBackend
  * @requires $browser
  * @requires $window
  * @requires $document
  *
  * @description
- * HTTP backend used by the {@link angular.module.ng.$http service} that delegates to
+ * HTTP backend used by the {@link ng.$http service} that delegates to
  * XMLHttpRequest object or JSONP and deals with browser incompatibilities.
  *
  * You should never need to use this service directly, instead use the higher-level abstractions:
- * {@link angular.module.ng.$http $http} or {@link angular.module.ngResource.$resource $resource}.
+ * {@link ng.$http $http} or {@link ngResource.$resource $resource}.
  *
- * During testing this implementation is swapped with {@link angular.module.ngMock.$httpBackend mock
+ * During testing this implementation is swapped with {@link ngMock.$httpBackend mock
  * $httpBackend} which can be trained with responses.
  */
 function $HttpBackendProvider() {
@@ -9027,7 +8979,7 @@ function createHttpBackend($browser, XHR, $browserDefer, callbacks, rawDocument,
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$locale
+ * @name ng.$locale
  *
  * @description
  * $locale service provides localization rules for various Angular components. As of right now the
@@ -9104,26 +9056,26 @@ function $TimeoutProvider() {
 
      /**
       * @ngdoc function
-      * @name angular.module.ng.$timeout
+      * @name ng.$timeout
       * @requires $browser
       *
       * @description
       * Angular's wrapper for `window.setTimeout`. The `fn` function is wrapped into a try/catch
       * block and delegates any exceptions to
-      * {@link angular.module.ng.$exceptionHandler $exceptionHandler} service.
+      * {@link ng.$exceptionHandler $exceptionHandler} service.
       *
       * The return value of registering a timeout function is a promise which will be resolved when
       * the timeout is reached and the timeout function is executed.
       *
       * To cancel a the timeout request, call `$timeout.cancel(promise)`.
       *
-      * In tests you can use {@link angular.module.ngMock.$timeout `$timeout.flush()`} to
+      * In tests you can use {@link ngMock.$timeout `$timeout.flush()`} to
       * synchronously flush the queue of deferred functions.
       *
       * @param {function()} fn A function, who's execution should be delayed.
       * @param {number=} [delay=0] Delay in milliseconds.
       * @param {boolean=} [invokeApply=true] If set to false skips model dirty checking, otherwise
-      *   will invoke `fn` within the {@link angular.module.ng.$rootScope.Scope#$apply $apply} block.
+      *   will invoke `fn` within the {@link ng.$rootScope.Scope#$apply $apply} block.
       * @returns {*} Promise that will be resolved when the timeout is reached. The value this
       *   promise will be resolved with is the return value of the `fn` function.
       */
@@ -9158,8 +9110,8 @@ function $TimeoutProvider() {
 
      /**
       * @ngdoc function
-      * @name angular.module.ng.$timeout#cancel
-      * @methodOf angular.module.ng.$timeout
+      * @name ng.$timeout#cancel
+      * @methodOf ng.$timeout
       *
       * @description
       * Cancels a task associated with the `promise`. As a result of this the promise will be
@@ -9183,7 +9135,7 @@ function $TimeoutProvider() {
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$filterProvider
+ * @name ng.$filterProvider
  * @description
  *
  * Filters are just functions which transform input to an output. However filters need to be Dependency Injected. To
@@ -9231,8 +9183,8 @@ function $TimeoutProvider() {
  */
 /**
  * @ngdoc method
- * @name angular.module.ng.$filterProvider#register
- * @methodOf angular.module.ng.$filterProvider
+ * @name ng.$filterProvider#register
+ * @methodOf ng.$filterProvider
  * @description
  * Register filter factory function.
  *
@@ -9243,7 +9195,7 @@ function $TimeoutProvider() {
 
 /**
  * @ngdoc function
- * @name angular.module.ng.$filter
+ * @name ng.$filter
  * @function
  * @description
  * Filters are used for formatting data displayed to the user.
@@ -9285,14 +9237,14 @@ function $FilterProvider($provide) {
 
 /**
  * @ngdoc filter
- * @name angular.module.ng.$filter.filter
+ * @name ng.filter:filter
  * @function
  *
  * @description
  * Selects a subset of items from `array` and returns it as a new array.
  *
  * Note: This function is used to augment the `Array` type in Angular expressions. See
- * {@link angular.module.ng.$filter} for more information about Angular arrays.
+ * {@link ng.$filter} for more information about Angular arrays.
  *
  * @param {Array} array The source array.
  * @param {string|Object|function()} expression The predicate to be used for selecting items from
@@ -9448,7 +9400,7 @@ function filterFilter() {
 
 /**
  * @ngdoc filter
- * @name angular.module.ng.$filter.currency
+ * @name ng.filter:currency
  * @function
  *
  * @description
@@ -9499,7 +9451,7 @@ function currencyFilter($locale) {
 
 /**
  * @ngdoc filter
- * @name angular.module.ng.$filter.number
+ * @name ng.filter:number
  * @function
  *
  * @description
@@ -9685,7 +9637,7 @@ var DATE_FORMATS_SPLIT = /((?:[^yMdHhmsaZE']+)|(?:'(?:[^']|'')*')|(?:E+|y+|M+|d+
 
 /**
  * @ngdoc filter
- * @name angular.module.ng.$filter.date
+ * @name ng.filter:date
  * @function
  *
  * @description
@@ -9832,7 +9784,7 @@ function dateFilter($locale) {
 
 /**
  * @ngdoc filter
- * @name angular.module.ng.$filter.json
+ * @name ng.filter:json
  * @function
  *
  * @description
@@ -9867,7 +9819,7 @@ function jsonFilter() {
 
 /**
  * @ngdoc filter
- * @name angular.module.ng.$filter.lowercase
+ * @name ng.filter:lowercase
  * @function
  * @description
  * Converts string to lowercase.
@@ -9878,7 +9830,7 @@ var lowercaseFilter = valueFn(lowercase);
 
 /**
  * @ngdoc filter
- * @name angular.module.ng.$filter.uppercase
+ * @name ng.filter:uppercase
  * @function
  * @description
  * Converts string to uppercase.
@@ -9888,7 +9840,7 @@ var uppercaseFilter = valueFn(uppercase);
 
 /**
  * @ngdoc function
- * @name angular.module.ng.$filter.limitTo
+ * @name ng.filter:limitTo
  * @function
  *
  * @description
@@ -9897,7 +9849,7 @@ var uppercaseFilter = valueFn(uppercase);
  * value and sign (positive or negative) of `limit`.
  *
  * Note: This function is used to augment the `Array` type in Angular expressions. See
- * {@link angular.module.ng.$filter} for more information about Angular arrays.
+ * {@link ng.$filter} for more information about Angular arrays.
  *
  * @param {Array} array Source array to be limited.
  * @param {string|Number} limit The length of the returned array. If the `limit` number is
@@ -9974,14 +9926,14 @@ function limitToFilter(){
 
 /**
  * @ngdoc function
- * @name angular.module.ng.$filter.orderBy
+ * @name ng.filter:orderBy
  * @function
  *
  * @description
  * Orders a specified `array` by the `expression` predicate.
  *
  * Note: this function is used to augment the `Array` type in Angular expressions. See
- * {@link angular.module.ng.$filter} for more informaton about Angular arrays.
+ * {@link ng.$filter} for more informaton about Angular arrays.
  *
  * @param {Array} array The array to sort.
  * @param {function(*)|string|Array.<(function(*)|string)>} expression A predicate to be
@@ -10148,7 +10100,7 @@ var htmlAnchorDirective = valueFn({
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngHref
+ * @name ng.directive:ngHref
  * @restrict A
  *
  * @description
@@ -10228,7 +10180,7 @@ var htmlAnchorDirective = valueFn({
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngSrc
+ * @name ng.directive:ngSrc
  * @restrict A
  *
  * @description
@@ -10253,7 +10205,7 @@ var htmlAnchorDirective = valueFn({
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngDisabled
+ * @name ng.directive:ngDisabled
  * @restrict A
  *
  * @description
@@ -10292,7 +10244,7 @@ var htmlAnchorDirective = valueFn({
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngChecked
+ * @name ng.directive:ngChecked
  * @restrict A
  *
  * @description
@@ -10322,7 +10274,7 @@ var htmlAnchorDirective = valueFn({
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngMultiple
+ * @name ng.directive:ngMultiple
  * @restrict A
  *
  * @description
@@ -10358,7 +10310,7 @@ var htmlAnchorDirective = valueFn({
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngReadonly
+ * @name ng.directive:ngReadonly
  * @restrict A
  *
  * @description
@@ -10388,7 +10340,7 @@ var htmlAnchorDirective = valueFn({
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngSelected
+ * @name ng.directive:ngSelected
  * @restrict A
  *
  * @description
@@ -10469,7 +10421,7 @@ var nullFormCtrl = {
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$compileProvider.directive.form.FormController
+ * @name ng.directive:form.FormController
  *
  * @property {boolean} $pristine True if user has not interacted with the form yet.
  * @property {boolean} $dirty True if user has already interacted with the form.
@@ -10486,7 +10438,7 @@ var nullFormCtrl = {
  * `FormController` keeps track of all its controls and nested forms as well as state of them,
  * such as being valid/invalid or dirty/pristine.
  *
- * Each {@link angular.module.ng.$compileProvider.directive.form form} directive creates an instance
+ * Each {@link ng.directive:form form} directive creates an instance
  * of `FormController`.
  *
  */
@@ -10583,11 +10535,11 @@ function FormController(element, attrs) {
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngForm
+ * @name ng.directive:ngForm
  * @restrict EAC
  *
  * @description
- * Nestable alias of {@link angular.module.ng.$compileProvider.directive.form `form`} directive. HTML
+ * Nestable alias of {@link ng.directive:form `form`} directive. HTML
  * does not allow nesting of form elements. It is useful to nest forms, for example if the validity of a
  * sub-group of controls needs to be determined.
  *
@@ -10598,21 +10550,21 @@ function FormController(element, attrs) {
 
  /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.form
+ * @name ng.directive:form
  * @restrict E
  *
  * @description
  * Directive that instantiates
- * {@link angular.module.ng.$compileProvider.directive.form.FormController FormController}.
+ * {@link ng.directive:form.FormController FormController}.
  *
  * If `name` attribute is specified, the form controller is published onto the current scope under
  * this name.
  *
- * # Alias: {@link angular.module.ng.$compileProvider.directive.ngForm `ngForm`}
+ * # Alias: {@link ng.directive:ngForm `ngForm`}
  *
  * In angular forms can be nested. This means that the outer form is valid when all of the child
  * forms are valid as well. However browsers do not allow nesting of `<form>` elements, for this
- * reason angular provides {@link angular.module.ng.$compileProvider.directive.ngForm `ngForm`} alias
+ * reason angular provides {@link ng.directive:ngForm `ngForm`} alias
  * which behaves identical to `<form>` but allows form nesting.
  *
  *
@@ -10636,8 +10588,8 @@ function FormController(element, attrs) {
  * You can use one of the following two ways to specify what javascript method should be called when
  * a form is submitted:
  *
- * - {@link angular.module.ng.$compileProvider.directive.ngSubmit ngSubmit} directive on the form element
- * - {@link angular.module.ng.$compileProvider.directive.ngClick ngClick} directive on the first
+ * - {@link ng.directive:ngSubmit ngSubmit} directive on the form element
+ * - {@link ng.directive:ngClick ngClick} directive on the first
   *  button or input field of type submit (input[type=submit])
  *
  * To prevent double execution of the handler, use only one of ngSubmit or ngClick directives. This
@@ -10730,7 +10682,7 @@ var inputType = {
 
   /**
    * @ngdoc inputType
-   * @name angular.module.ng.$compileProvider.directive.input.text
+   * @name ng.directive:input.text
    *
    * @description
    * Standard HTML text input with angular data binding.
@@ -10796,7 +10748,7 @@ var inputType = {
 
   /**
    * @ngdoc inputType
-   * @name angular.module.ng.$compileProvider.directive.input.number
+   * @name ng.directive:input.number
    *
    * @description
    * Text input with number validation and transformation. Sets the `number` validation
@@ -10864,7 +10816,7 @@ var inputType = {
 
   /**
    * @ngdoc inputType
-   * @name angular.module.ng.$compileProvider.directive.input.url
+   * @name ng.directive:input.url
    *
    * @description
    * Text input with URL validation. Sets the `url` validation error key if the content is not a
@@ -10929,7 +10881,7 @@ var inputType = {
 
   /**
    * @ngdoc inputType
-   * @name angular.module.ng.$compileProvider.directive.input.email
+   * @name ng.directive:input.email
    *
    * @description
    * Text input with email validation. Sets the `email` validation error key if not a valid email
@@ -10992,7 +10944,7 @@ var inputType = {
 
   /**
    * @ngdoc inputType
-   * @name angular.module.ng.$compileProvider.directive.input.radio
+   * @name ng.directive:input.radio
    *
    * @description
    * HTML radio button.
@@ -11033,7 +10985,7 @@ var inputType = {
 
   /**
    * @ngdoc inputType
-   * @name angular.module.ng.$compileProvider.directive.input.checkbox
+   * @name ng.directive:input.checkbox
    *
    * @description
    * HTML checkbox.
@@ -11349,13 +11301,13 @@ function checkboxInputType(scope, element, attr, ctrl) {
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.textarea
+ * @name ng.directive:textarea
  * @restrict E
  *
  * @description
  * HTML textarea element control with angular data-binding. The data-binding and validation
  * properties of this element are exactly the same as those of the
- * {@link angular.module.ng.$compileProvider.directive.input input element}.
+ * {@link ng.directive:input input element}.
  *
  * @param {string} ngModel Assignable angular expression to data-bind to.
  * @param {string=} name Property name of the form under which the control is published.
@@ -11374,7 +11326,7 @@ function checkboxInputType(scope, element, attr, ctrl) {
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.input
+ * @name ng.directive:input
  * @restrict E
  *
  * @description
@@ -11486,7 +11438,7 @@ var VALID_CLASS = 'ng-valid',
 
 /**
  * @ngdoc object
- * @name angular.module.ng.$compileProvider.directive.ngModel.NgModelController
+ * @name ng.directive:ngModel.NgModelController
  *
  * @property {string} $viewValue Actual string value in the view.
  * @property {*} $modelValue The value in the model, that the control is bound to.
@@ -11602,8 +11554,8 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
 
   /**
    * @ngdoc function
-   * @name angular.module.ng.$compileProvider.directive.ngModel.NgModelController#$render
-   * @methodOf angular.module.ng.$compileProvider.directive.ngModel.NgModelController
+   * @name ng.directive:ngModel.NgModelController#$render
+   * @methodOf ng.directive:ngModel.NgModelController
    *
    * @description
    * Called when the view needs to be updated. It is expected that the user of the ng-model
@@ -11630,8 +11582,8 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
 
   /**
    * @ngdoc function
-   * @name angular.module.ng.$compileProvider.directive.ngModel.NgModelController#$setValidity
-   * @methodOf angular.module.ng.$compileProvider.directive.ngModel.NgModelController
+   * @name ng.directive:ngModel.NgModelController#$setValidity
+   * @methodOf ng.directive:ngModel.NgModelController
    *
    * @description
    * Change the validity state, and notifies the form when the control changes validity. (i.e. it
@@ -11672,15 +11624,15 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
 
   /**
    * @ngdoc function
-   * @name angular.module.ng.$compileProvider.directive.ngModel.NgModelController#$setViewValue
-   * @methodOf angular.module.ng.$compileProvider.directive.ngModel.NgModelController
+   * @name ng.directive:ngModel.NgModelController#$setViewValue
+   * @methodOf ng.directive:ngModel.NgModelController
    *
    * @description
    * Read a value from view.
    *
    * This method should be called from within a DOM event handler.
-   * For example {@link angular.module.ng.$compileProvider.directive.input input} or
-   * {@link angular.module.ng.$compileProvider.directive.select select} directives call it.
+   * For example {@link ng.directive:input input} or
+   * {@link ng.directive:select select} directives call it.
    *
    * It internally calls all `formatters` and if resulted value is valid, updates the model and
    * calls all registered change listeners.
@@ -11740,7 +11692,7 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngModel
+ * @name ng.directive:ngModel
  *
  * @element input
  *
@@ -11755,19 +11707,19 @@ var NgModelController = ['$scope', '$exceptionHandler', '$attrs', '$element', '$
  * - providing validation behavior (i.e. required, number, email, url),
  * - keeping state of the control (valid/invalid, dirty/pristine, validation errors),
  * - setting related css class onto the element (`ng-valid`, `ng-invalid`, `ng-dirty`, `ng-pristine`),
- * - register the control with parent {@link angular.module.ng.$compileProvider.directive.form form}.
+ * - register the control with parent {@link ng.directive:form form}.
  *
  * For basic examples, how to use `ngModel`, see:
  *
- *  - {@link angular.module.ng.$compileProvider.directive.input input}
- *    - {@link angular.module.ng.$compileProvider.directive.input.text text}
- *    - {@link angular.module.ng.$compileProvider.directive.input.checkbox checkbox}
- *    - {@link angular.module.ng.$compileProvider.directive.input.radio radio}
- *    - {@link angular.module.ng.$compileProvider.directive.input.number number}
- *    - {@link angular.module.ng.$compileProvider.directive.input.email email}
- *    - {@link angular.module.ng.$compileProvider.directive.input.url url}
- *  - {@link angular.module.ng.$compileProvider.directive.select select}
- *  - {@link angular.module.ng.$compileProvider.directive.textarea textarea}
+ *  - {@link ng.directive:input input}
+ *    - {@link ng.directive:input.text text}
+ *    - {@link ng.directive:input.checkbox checkbox}
+ *    - {@link ng.directive:input.radio radio}
+ *    - {@link ng.directive:input.number number}
+ *    - {@link ng.directive:input.email email}
+ *    - {@link ng.directive:input.url url}
+ *  - {@link ng.directive:select select}
+ *  - {@link ng.directive:textarea textarea}
  *
  */
 var ngModelDirective = function() {
@@ -11792,7 +11744,7 @@ var ngModelDirective = function() {
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngChange
+ * @name ng.directive:ngChange
  * @restrict E
  *
  * @description
@@ -11878,7 +11830,7 @@ var requiredDirective = function() {
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngList
+ * @name ng.directive:ngList
  *
  * @description
  * Text input that converts between comma-seperated string into an array of strings.
@@ -11975,7 +11927,7 @@ var ngValueDirective = function() {
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngBind
+ * @name ng.directive:ngBind
  *
  * @description
  * The `ngBind` attribute tells Angular to replace the text content of the specified HTML element
@@ -11991,7 +11943,7 @@ var ngValueDirective = function() {
  * bindings invisible to the user while the page is loading.
  *
  * An alternative solution to this problem would be using the
- * {@link angular.module.ng.$compileProvider.directive.ngCloak ngCloak} directive.
+ * {@link ng.directive:ngCloak ngCloak} directive.
  *
  *
  * @element ANY
@@ -12030,7 +11982,7 @@ var ngBindDirective = ngDirective(function(scope, element, attr) {
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngBindTemplate
+ * @name ng.directive:ngBindTemplate
  *
  * @description
  * The `ngBindTemplate` directive specifies that the element
@@ -12089,15 +12041,15 @@ var ngBindTemplateDirective = ['$interpolate', function($interpolate) {
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngBindHtmlUnsafe
+ * @name ng.directive:ngBindHtmlUnsafe
  *
  * @description
  * Creates a binding that will innerHTML the result of evaluating the `expression` into the current
  * element. *The innerHTML-ed content will not be sanitized!* You should use this directive only if
- * {@link angular.module.ngSanitize.directive.ngBindHtml ngBindHtml} directive is too
+ * {@link ngSanitize.directive:ngBindHtml ngBindHtml} directive is too
  * restrictive and when you absolutely trust the source of the content you are binding to.
  *
- * See {@link angular.module.ngSanitize.$sanitize $sanitize} docs for examples.
+ * See {@link ngSanitize.$sanitize $sanitize} docs for examples.
  *
  * @element ANY
  * @param {expression} ngBindHtmlUnsafe {@link guide/expression Expression} to evaluate.
@@ -12130,7 +12082,7 @@ function classDirective(name, selector) {
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngClass
+ * @name ng.directive:ngClass
  *
  * @description
  * The `ngClass` allows you to set CSS class on HTML element dynamically by databinding an
@@ -12181,15 +12133,15 @@ var ngClassDirective = classDirective('', true);
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngClassOdd
+ * @name ng.directive:ngClassOdd
  *
  * @description
  * The `ngClassOdd` and `ngClassEven` directives work exactly as
- * {@link angular.module.ng.$compileProvider.directive.ngClass ngClass}, except it works in
+ * {@link ng.directive:ngClass ngClass}, except it works in
  * conjunction with `ngRepeat` and takes affect only on odd (even) rows.
  *
  * This directive can be applied only within a scope of an
- * {@link angular.module.ng.$compileProvider.directive.ngRepeat ngRepeat}.
+ * {@link ng.directive:ngRepeat ngRepeat}.
  *
  * @element ANY
  * @param {expression} ngClassOdd {@link guide/expression Expression} to eval. The result
@@ -12228,15 +12180,15 @@ var ngClassOddDirective = classDirective('Odd', 0);
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngClassEven
+ * @name ng.directive:ngClassEven
  *
  * @description
  * The `ngClassOdd` and `ngClassEven` works exactly as
- * {@link angular.module.ng.$compileProvider.directive.ngClass ngClass}, except it works in
+ * {@link ng.directive:ngClass ngClass}, except it works in
  * conjunction with `ngRepeat` and takes affect only on odd (even) rows.
  *
  * This directive can be applied only within a scope of an
- * {@link angular.module.ng.$compileProvider.directive.ngRepeat ngRepeat}.
+ * {@link ng.directive:ngRepeat ngRepeat}.
  *
  * @element ANY
  * @param {expression} ngClassEven {@link guide/expression Expression} to eval. The
@@ -12275,7 +12227,7 @@ var ngClassEvenDirective = classDirective('Even', 1);
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngCloak
+ * @name ng.directive:ngCloak
  *
  * @description
  * The `ngCloak` directive is used to prevent the Angular html template from being briefly
@@ -12335,7 +12287,7 @@ var ngCloakDirective = ngDirective({
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngController
+ * @name ng.directive:ngController
  *
  * @description
  * The `ngController` directive assigns behavior to a scope. This is a key aspect of how angular
@@ -12348,7 +12300,7 @@ var ngCloakDirective = ngDirective({
  * * Controller — The `ngController` directive specifies a Controller class; the class has
  *   methods that typically express the business logic behind the application.
  *
- * Note that an alternative way to define controllers is via the `{@link angular.module.ng.$route}`
+ * Note that an alternative way to define controllers is via the `{@link ng.$route}`
  * service.
  *
  * @element ANY
@@ -12437,13 +12389,13 @@ var ngControllerDirective = [function() {
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngCsp
+ * @name ng.directive:ngCsp
  * @priority 1000
  *
  * @description
  * Enables [CSP (Content Security Policy)](https://developer.mozilla.org/en/Security/CSP) support.
  * This directive should be used on the root element of the application (typically the `<html>`
- * element or other element with the {@link angular.module.ng.$compileProvider.directive.ngApp ngApp}
+ * element or other element with the {@link ng.directive:ngApp ngApp}
  * directive).
  *
  * If enabled the performance of template expression evaluator will suffer slightly, so don't enable
@@ -12463,7 +12415,7 @@ var ngCspDirective = ['$sniffer', function($sniffer) {
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngClick
+ * @name ng.directive:ngClick
  *
  * @description
  * The ngClick allows you to specify custom behavior when
@@ -12516,7 +12468,7 @@ forEach(
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngDblclick
+ * @name ng.directive:ngDblclick
  *
  * @description
  * The `ngDblclick` directive allows you to specify custom behavior on dblclick event.
@@ -12526,13 +12478,13 @@ forEach(
  * dblclick. (Event object is available as `$event`)
  *
  * @example
- * See {@link angular.module.ng.$compileProvider.directive.ngClick ngClick}
+ * See {@link ng.directive:ngClick ngClick}
  */
 
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngMousedown
+ * @name ng.directive:ngMousedown
  *
  * @description
  * The ngMousedown directive allows you to specify custom behavior on mousedown event.
@@ -12542,13 +12494,13 @@ forEach(
  * mousedown. (Event object is available as `$event`)
  *
  * @example
- * See {@link angular.module.ng.$compileProvider.directive.ngClick ngClick}
+ * See {@link ng.directive:ngClick ngClick}
  */
 
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngMouseup
+ * @name ng.directive:ngMouseup
  *
  * @description
  * Specify custom behavior on mouseup event.
@@ -12558,12 +12510,12 @@ forEach(
  * mouseup. (Event object is available as `$event`)
  *
  * @example
- * See {@link angular.module.ng.$compileProvider.directive.ngClick ngClick}
+ * See {@link ng.directive:ngClick ngClick}
  */
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngMouseover
+ * @name ng.directive:ngMouseover
  *
  * @description
  * Specify custom behavior on mouseover event.
@@ -12573,13 +12525,13 @@ forEach(
  * mouseover. (Event object is available as `$event`)
  *
  * @example
- * See {@link angular.module.ng.$compileProvider.directive.ngClick ngClick}
+ * See {@link ng.directive:ngClick ngClick}
  */
 
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngMouseenter
+ * @name ng.directive:ngMouseenter
  *
  * @description
  * Specify custom behavior on mouseenter event.
@@ -12589,13 +12541,13 @@ forEach(
  * mouseenter. (Event object is available as `$event`)
  *
  * @example
- * See {@link angular.module.ng.$compileProvider.directive.ngClick ngClick}
+ * See {@link ng.directive:ngClick ngClick}
  */
 
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngMouseleave
+ * @name ng.directive:ngMouseleave
  *
  * @description
  * Specify custom behavior on mouseleave event.
@@ -12605,13 +12557,13 @@ forEach(
  * mouseleave. (Event object is available as `$event`)
  *
  * @example
- * See {@link angular.module.ng.$compileProvider.directive.ngClick ngClick}
+ * See {@link ng.directive:ngClick ngClick}
  */
 
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngMousemove
+ * @name ng.directive:ngMousemove
  *
  * @description
  * Specify custom behavior on mousemove event.
@@ -12621,13 +12573,13 @@ forEach(
  * mousemove. (Event object is available as `$event`)
  *
  * @example
- * See {@link angular.module.ng.$compileProvider.directive.ngClick ngClick}
+ * See {@link ng.directive:ngClick ngClick}
  */
 
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngSubmit
+ * @name ng.directive:ngSubmit
  *
  * @description
  * Enables binding angular expressions to onsubmit events.
@@ -12684,7 +12636,7 @@ var ngSubmitDirective = ngDirective(function(scope, element, attrs) {
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngInclude
+ * @name ng.directive:ngInclude
  * @restrict ECA
  *
  * @description
@@ -12700,7 +12652,7 @@ var ngSubmitDirective = ngDirective(function(scope, element, attrs) {
  *                 make sure you wrap it in quotes, e.g. `src="'myPartialTemplate.html'"`.
  * @param {string=} onload Expression to evaluate when a new partial is loaded.
  *
- * @param {string=} autoscroll Whether `ngInclude` should call {@link angular.module.ng.$anchorScroll
+ * @param {string=} autoscroll Whether `ngInclude` should call {@link ng.$anchorScroll
  *                  $anchorScroll} to scroll the viewport after the content is loaded.
  *
  *                  - If the attribute is not set, disable scrolling.
@@ -12754,8 +12706,8 @@ var ngSubmitDirective = ngDirective(function(scope, element, attrs) {
 
 /**
  * @ngdoc event
- * @name angular.module.ng.$compileProvider.directive.ngInclude#$includeContentLoaded
- * @eventOf angular.module.ng.$compileProvider.directive.ngInclude
+ * @name ng.directive:ngInclude#$includeContentLoaded
+ * @eventOf ng.directive:ngInclude
  * @eventType emit on the current ngInclude scope
  * @description
  * Emitted every time the ngInclude content is reloaded.
@@ -12814,7 +12766,7 @@ var ngIncludeDirective = ['$http', '$templateCache', '$anchorScroll', '$compile'
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngInit
+ * @name ng.directive:ngInit
  *
  * @description
  * The `ngInit` directive specifies initialization tasks to be executed
@@ -12850,7 +12802,7 @@ var ngInitDirective = ngDirective({
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngNonBindable
+ * @name ng.directive:ngNonBindable
  * @priority 1000
  *
  * @description
@@ -12882,7 +12834,7 @@ var ngNonBindableDirective = ngDirective({ terminal: true, priority: 1000 });
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngPluralize
+ * @name ng.directive:ngPluralize
  * @restrict EA
  *
  * @description
@@ -13085,7 +13037,7 @@ var ngPluralizeDirective = ['$locale', '$interpolate', function($locale, $interp
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngRepeat
+ * @name ng.directive:ngRepeat
  *
  * @description
  * The `ngRepeat` directive instantiates a template once per item from a collection. Each template
@@ -13265,7 +13217,7 @@ var ngRepeatDirective = ngDirective({
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngShow
+ * @name ng.directive:ngShow
  *
  * @description
  * The `ngShow` and `ngHide` directives show or hide a portion of the DOM tree (HTML)
@@ -13305,7 +13257,7 @@ var ngShowDirective = ngDirective(function(scope, element, attr){
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngHide
+ * @name ng.directive:ngHide
  *
  * @description
  * The `ngHide` and `ngShow` directives hide or show a portion
@@ -13344,7 +13296,7 @@ var ngHideDirective = ngDirective(function(scope, element, attr){
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngStyle
+ * @name ng.directive:ngStyle
  *
  * @description
  * The `ngStyle` directive allows you to set CSS style on an HTML element conditionally.
@@ -13390,7 +13342,7 @@ var ngStyleDirective = ngDirective(function(scope, element, attr) {
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngSwitch
+ * @name ng.directive:ngSwitch
  * @restrict EA
  *
  * @description
@@ -13501,7 +13453,7 @@ var ngSwitchDefaultDirective = ngDirective({
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngTransclude
+ * @name ng.directive:ngTransclude
  *
  * @description
  * Insert the transcluded DOM here.
@@ -13558,12 +13510,12 @@ var ngTranscludeDirective = ngDirective({
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.ngView
+ * @name ng.directive:ngView
  * @restrict ECA
  *
  * @description
  * # Overview
- * `ngView` is a directive that complements the {@link angular.module.ng.$route $route} service by
+ * `ngView` is a directive that complements the {@link ng.$route $route} service by
  * including the rendered template of the current route into the main layout (`index.html`) file.
  * Every time the current route changes, the included view changes with it according to the
  * configuration of the `$route` service.
@@ -13654,8 +13606,8 @@ var ngTranscludeDirective = ngDirective({
 
 /**
  * @ngdoc event
- * @name angular.module.ng.$compileProvider.directive.ngView#$viewContentLoaded
- * @eventOf angular.module.ng.$compileProvider.directive.ngView
+ * @name ng.directive:ngView#$viewContentLoaded
+ * @eventOf ng.directive:ngView
  * @eventType emit on the current ngView scope
  * @description
  * Emitted every time the ngView content is reloaded.
@@ -13722,7 +13674,7 @@ var ngViewDirective = ['$http', '$templateCache', '$route', '$anchorScroll', '$c
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.script
+ * @name ng.directive:script
  *
  * @description
  * Load content of a script tag, with type `text/ng-template`, into `$templateCache`, so that the
@@ -13767,7 +13719,7 @@ var scriptDirective = ['$templateCache', function($templateCache) {
 
 /**
  * @ngdoc directive
- * @name angular.module.ng.$compileProvider.directive.select
+ * @name ng.directive:select
  * @restrict E
  *
  * @description
@@ -13788,7 +13740,7 @@ var scriptDirective = ['$templateCache', function($templateCache) {
  * option. See example below for demonstration.
  *
  * Note: `ngOptions` provides iterator facility for `<option>` element which should be used instead
- * of {@link angular.module.ng.$compileProvider.directive.ngRepeat ngRepeat} when you want the
+ * of {@link ng.directive:ngRepeat ngRepeat} when you want the
  * `select` model to be bound to a non-string value. This is because an option element can currently
  * be bound to string values only.
  *
