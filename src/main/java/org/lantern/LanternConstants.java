@@ -62,9 +62,13 @@ public class LanternConstants {
      */
     public static final String UPDATE_KEY = "uk";
     
-    public static final String UPDATE_VERSION_KEY = "uv";
+    public static final String UPDATE_VERSION_KEY = "number";
 
-    public static final String UPDATE_URL_KEY = "uuk";
+    public static final String UPDATE_URL_KEY = "url";
+    
+    public static final String UPDATE_MESSAGE_KEY = "message";
+    
+    public static final String UPDATE_RELEASED_KEY = "released";
 
     
     /**
