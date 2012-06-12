@@ -3,13 +3,17 @@ package org.lantern;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URI;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.jboss.netty.channel.Channel;
@@ -21,6 +25,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Class the keeps track of P2P connections to peers, dispatching them and
  * creating new ones as needed.
+ * 
+ * TODO: Reuse sockets better?
  */
 public class DefaultPeerProxyManager implements PeerProxyManager {
     
@@ -29,10 +35,13 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     private final Executor exec = Executors.newCachedThreadPool(
         new ThreadFactory() {
         
+        private int threadNumber = 0;
+        
         @Override
         public Thread newThread(final Runnable r) {
             final Thread t = 
-                new Thread(r, "P2P-Socket-Creation-Thread");
+                new Thread(r, "P2P-Socket-Creation-Thread-"+threadNumber);
+            threadNumber++;
             t.setDaemon(true);
             return t;
         }
@@ -57,56 +66,140 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
 
     private final boolean anon;
     
+    /**
+     * Online peers we've exchanged certs with.
+     */
+    private final Collection<URI> certPeers = new HashSet<URI>();
+    
     public DefaultPeerProxyManager(final boolean anon) {
         this.anon = anon;
-        
     }
 
     @Override
     public HttpRequestProcessor processRequest(
         final Channel browserToProxyChannel, final ChannelHandlerContext ctx, 
         final MessageEvent me) throws IOException {
+        log.info("Processing request...sockets in queue {} on this {}", 
+            this.timedSockets.size(), this);
         
-        // This removes the highest priority socket.
-        final ConnectionTimeSocket cts = this.timedSockets.poll();
-        if (cts == null) {
+        final ConnectionTimeSocket cts;
+        try {
+            cts = selectSocket();
+        } catch (final IOException e) {
+            // This means there's no socket available.
             return null;
         }
-        // When we use a socket, we always replace it with a new one.
-        onPeer(cts.peerUri);
         cts.requestProcessor.processRequest(browserToProxyChannel, ctx, me);
+        
+        // When we use sockets we replace them.
+        final int socketsToFetch;
+        if (this.timedSockets.size() > 20) {
+            socketsToFetch = 0;
+        } else if (this.timedSockets.size() > 10) {
+            socketsToFetch = 1;
+        } else if (this.timedSockets.size() > 4) {
+            socketsToFetch = 2;
+        } else {
+            socketsToFetch = 3;
+        }
+        onPeer(cts.peerUri, socketsToFetch);
         return cts.requestProcessor;
+    }
+
+    private ConnectionTimeSocket selectSocket() throws IOException {
+        pruneSockets();
+        if (this.timedSockets.isEmpty()) {
+            // Try to create some more sockets using peers we've learned about.
+            for (final URI peer : certPeers) {
+                onPeer(peer, 2);
+            }
+        }
+        // This removes the highest priority socket.
+        for (int i = 0; i < this.timedSockets.size(); i++) {
+            final ConnectionTimeSocket cts;
+            try {
+                cts = this.timedSockets.poll(20, TimeUnit.SECONDS);
+            } catch (final InterruptedException e) {
+                log.info("Interrupted?", e);
+                return null;
+            }
+            if (cts == null) {
+                log.info("No peer sockets available!! TRUSTED: "+!anon);
+                return null;
+            }
+            final Socket s = cts.sock;
+            if (s != null) {
+                if (!s.isClosed()) {
+                    log.info("Found connected socket!");
+                    return cts;
+                }
+            }
+        }
+        
+        log.warn("Could not find connected socket");
+        throw new IOException("No availabe connected sockets in "+
+            this.timedSockets);
+    }
+    
+
+    private void pruneSockets() {
+        final Iterator<ConnectionTimeSocket> iter = this.timedSockets.iterator();
+        while (iter.hasNext()) {
+            final ConnectionTimeSocket cts = iter.next();
+            if (cts.sock != null) {
+                if (cts.sock.isClosed()) {
+                    iter.remove();
+                }
+            }
+        }
     }
 
     @Override
     public void onPeer(final URI peerUri) {
+        onPeer(peerUri, 6);
+    }
+
+    private void onPeer(final URI peerUri, final int sockets) {
         if (!LanternHub.settings().isGetMode()) {
             log.info("Ingoring peer when we're in give mode");
             return;
         }
-        log.info("Received peer URI {}...attempting connection...", peerUri);
+        log.info("Received peer URI {}...attempting {} connections...", 
+            peerUri, sockets);
+        
+        certPeers.add(peerUri);
         // Unclear how this count will be used for now.
         final Map<URI, AtomicInteger> peerFailureCount = 
             new HashMap<URI, AtomicInteger>();
         exec.execute(new Runnable() {
-
             @Override
             public void run() {
+                boolean gotConnected = false;
                 try {
-                    final ConnectionTimeSocket ts = 
-                        new ConnectionTimeSocket(peerUri);
+                    // We open a number of sockets because in almost every
+                    // scenario the browser makes many connections to the proxy
+                    // to open a single page.
+                    for (int i = 0; i < sockets; i++) {
+                        final ConnectionTimeSocket ts = 
+                            new ConnectionTimeSocket(peerUri);
 
-                    final Socket sock = LanternUtils.openOutgoingPeerSocket(
-                        peerUri, LanternHub.xmppHandler().getP2PClient(), 
-                        peerFailureCount);
-                    log.info("Got socket and adding it for peer: {}", peerUri);
-                    ts.onSocket(sock);
-                    timedSockets.add(ts);
+                        final Socket sock = LanternUtils.openOutgoingPeerSocket(
+                            peerUri, LanternHub.xmppHandler().getP2PClient(), 
+                            peerFailureCount);
+                        log.info("Got socket and adding it for peer: {}", peerUri);
+                        ts.onSocket(sock);
+                        timedSockets.add(ts);
+                        if (!gotConnected) {
+                            LanternHub.eventBus().post(
+                                    new ConnectivityStatusChangeEvent(
+                                        ConnectivityStatus.CONNECTED));
+                        }
+                        gotConnected = true;
+                    }
                 } catch (final IOException e) {
-                    log.info("Could not create peer socket");
+                    log.info("Could not create peer socket", e);
                 }                
             }
-            
         });
     }
 
@@ -126,6 +219,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
          */
         private final URI peerUri;
         private HttpRequestProcessor requestProcessor;
+        private Socket sock;
         
         public ConnectionTimeSocket(final URI peerUri) {
             this.peerUri = peerUri;
@@ -133,6 +227,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
 
         private void onSocket(final Socket sock) {
             this.elapsed = System.currentTimeMillis() - this.startTime;
+            this.sock = sock;
             if (anon) {
                 this.requestProcessor = 
                     new PeerHttpConnectRequestProcessor(sock);
@@ -145,9 +240,20 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     }
 
     @Override
+    public void removePeer(final URI uri) {
+        this.certPeers.remove(uri);
+    }
+    
+    @Override
     public void closeAll() {
         for (final ConnectionTimeSocket sock : this.timedSockets) {
             sock.requestProcessor.close();
         }
     }
+    
+    @Override
+    public String toString() {
+        return getClass().getSimpleName()+"-"+hashCode()+" anon: "+anon;
+    }
+
 }

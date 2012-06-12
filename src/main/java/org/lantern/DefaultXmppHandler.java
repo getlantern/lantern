@@ -5,13 +5,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Security;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,10 +17,6 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.net.ServerSocketFactory;
-import javax.net.SocketFactory;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.codec.binary.Base64;
@@ -102,8 +91,6 @@ public class DefaultXmppHandler implements XmppHandler {
         SmackConfiguration.setPacketReplyTimeout(30 * 1000);
     }
 
-    private final int sslProxyRandomPort;
-
     private final Timer updateTimer = new Timer(true);
 
     private volatile long lastInfoMessageScheduled = 0L;
@@ -135,25 +122,14 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private String lastJson = "";
 
-    private final int plainTextProxyRandomPort;
-
     /**
      * Creates a new XMPP handler.
-     * 
-     * @param keyStoreManager The class for managing certificates.
-     * @param sslProxyRandomPort The port of the HTTP proxy that other peers  
-     * will relay to.
-     * @param plainTextProxyRandomPort The port of the HTTP proxy running
-     * only locally and accepting plain-text sockets.
      */
-    public DefaultXmppHandler(final int sslProxyRandomPort, 
-        final int plainTextProxyRandomPort) {
-        this.sslProxyRandomPort = sslProxyRandomPort;
-        this.plainTextProxyRandomPort = plainTextProxyRandomPort;
-        
+    public DefaultXmppHandler() {
         // This just links connectivity with Google Talk login status when 
         // running in give mode.
         new GiveModeConnectivityHandler();
+        LanternUtils.configureXmpp();
         prepopulateProxies();
     }
     
@@ -208,7 +184,8 @@ public class DefaultXmppHandler implements XmppHandler {
     public void connect(final String email, final String pwd) 
         throws IOException, CredentialException {
         final InetSocketAddress plainTextProxyRelayAddress = 
-            new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
+            new InetSocketAddress("127.0.0.1", 
+                LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
         
         NatPmpService natPmpService = null;
         try {
@@ -231,9 +208,9 @@ public class DefaultXmppHandler implements XmppHandler {
         
         final UpnpService upnpService = new Upnp();
         this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService, 
-            upnpService, new InetSocketAddress(this.sslProxyRandomPort), 
+            upnpService, new InetSocketAddress(LanternHub.settings().getServerPort()), 
             //newTlsSocketFactory(), SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
-            newTlsSocketFactory(), newTlsServerSocketFactory(),
+            LanternUtils.newTlsSocketFactory(), LanternUtils.newTlsServerSocketFactory(),
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
             plainTextProxyRelayAddress, false));
 
@@ -260,13 +237,17 @@ public class DefaultXmppHandler implements XmppHandler {
             new GoogleTalkStateEvent(GoogleTalkState.LOGGING_IN));
         final String id;
         if (LanternHub.settings().isGetMode()) {
+            LOG.info("Setting ID for get mode...");
             id = "gmail.";
         } else {
+            LOG.info("Setting ID for give mode");
             id = UNCENSORED_ID;
         }
 
         try {
             this.client.get().login(email, pwd, id);
+            LanternHub.eventBus().post(
+                new GoogleTalkStateEvent(GoogleTalkState.LOGGED_IN));
         } catch (final IOException e) {
             if (this.proxies.isEmpty()) {
                 connectivityEvent(ConnectivityStatus.DISCONNECTED);
@@ -285,8 +266,6 @@ public class DefaultXmppHandler implements XmppHandler {
                 new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
             throw e;
         }
-        LanternHub.eventBus().post(
-            new GoogleTalkStateEvent(GoogleTalkState.LOGGED_IN));
         
         // Note we don't consider ourselves connected in get mode until we 
         // actually get proxies to work with.
@@ -294,6 +273,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final Collection<InetSocketAddress> googleStunServers = 
             XmppUtils.googleStunServers(connection);
         StunServerRepository.setStunServers(googleStunServers);
+        LanternHub.settings().setStunServers(
+            new HashSet<String>(toStringServers(googleStunServers)));
         
         // Make sure all connections between us and the server are stored
         // OTR.
@@ -348,6 +329,15 @@ public class DefaultXmppHandler implements XmppHandler {
     }
     
 
+    private Set<String> toStringServers(
+        final Collection<InetSocketAddress> googleStunServers) {
+        final Set<String> strings = new HashSet<String>();
+        for (final InetSocketAddress isa : googleStunServers) {
+            strings.add(isa.getHostName()+":"+isa.getPort());
+        }
+        return strings;
+    }
+
     private void connectivityEvent(final ConnectivityStatus cs) {
         if (LanternHub.settings().isGetMode()) {
             LanternHub.eventBus().post(
@@ -374,7 +364,7 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         LOG.info("Disconnecting!!");
         lastJson = "";
-        LanternHub.asyncEventBus().post(
+        LanternHub.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.LOGGING_OUT));
         
         this.client.get().logout();
@@ -383,7 +373,7 @@ public class DefaultXmppHandler implements XmppHandler {
         if (this.proxies.isEmpty()) {
             connectivityEvent(ConnectivityStatus.DISCONNECTED);
         }
-        LanternHub.asyncEventBus().post(
+        LanternHub.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.LOGGED_OUT));
         
         peerProxySet.clear();
@@ -400,6 +390,7 @@ public class DefaultXmppHandler implements XmppHandler {
             (JSONArray) json.get(LanternConstants.SERVERS);
         final Long delay = 
             (Long) json.get(LanternConstants.UPDATE_TIME);
+        LOG.info("Server sent delay of: "+delay);
         if (delay != null) {
             final long now = System.currentTimeMillis();
             final long elapsed = now - lastInfoMessageScheduled;
@@ -459,9 +450,11 @@ public class DefaultXmppHandler implements XmppHandler {
         try {
             System.out.print("Please enter your gmail e-mail, as in johndoe@gmail.com: ");
             return LanternUtils.readLineCLI();
-        } catch (IOException e) {
-            System.out.println("IO error trying to read your email address!");
-            return "";
+        } catch (final IOException e) {
+            final String msg = "IO error trying to read your email address!";
+            System.out.println(msg);
+            LOG.error(msg, e);
+            throw new IllegalStateException(msg, e);
         }
     }
     
@@ -470,8 +463,10 @@ public class DefaultXmppHandler implements XmppHandler {
             System.out.print("Please enter your gmail password: ");
             return new String(LanternUtils.readPasswordCLI());
         } catch (IOException e) {
-            System.out.println("IO error trying to read your password!");
-            return "";
+            final String msg = "IO error trying to read your email address!";
+            System.out.println(msg);
+            LOG.error(msg, e);
+            throw new IllegalStateException(msg, e);
         }
     }
 
@@ -489,44 +484,34 @@ public class DefaultXmppHandler implements XmppHandler {
             return;
         }
         
+        
         final XMPPConnection conn = this.client.get().getXmppConnection();
 
         LOG.info("Sending presence available");
         
         // OK, this is bizarre. For whatever reason, we **have** to send the
         // following packet in order to get presence events from our peers.
-        // DO NOT REMOVE THIS MESSAGE!!
+        // DO NOT REMOVE THIS MESSAGE!! See XMPP spec.
         final Presence pres = new Presence(Presence.Type.available);
         conn.sendPacket(pres);
         
         final Presence forHub = new Presence(Presence.Type.available);
         forHub.setTo(LanternConstants.LANTERN_JID);
         
-        final JSONObject json = new JSONObject();
-        final StatsTracker statsTracker = LanternHub.statsTracker();
-        json.put(LanternConstants.COUNTRY_CODE, LanternHub.censored().countryCode());
-        json.put(LanternConstants.BYTES_PROXIED, 
-            statsTracker.getTotalBytesProxied());
-        json.put(LanternConstants.DIRECT_BYTES, 
-            statsTracker.getDirectBytes());
-        json.put(LanternConstants.REQUESTS_PROXIED, 
-            statsTracker.getTotalProxiedRequests());
-        json.put(LanternConstants.DIRECT_REQUESTS, 
-            statsTracker.getDirectRequests());
-        //json.put(LanternConstants.WHITELIST_ADDITIONS, 
-        //    LanternHub.whitelist().getAdditionsAsJson());
-            //LanternUtils.toJsonArray(Whitelist.getAdditions()));
-        //json.put(LanternConstants.WHITELIST_REMOVALS, 
-        //    LanternHub.whitelist().getRemovalsAsJson());
-        json.put(LanternConstants.VERSION_KEY, LanternConstants.VERSION);
-        final String str = json.toJSONString();
-        LOG.info("Reporting data: {}", str);
-        if (!this.lastJson.equals(str)) {
-            this.lastJson = str;
-            forHub.setProperty("stats", str);
-        } else {
-            LOG.info("No new stats to report");
-        }
+        //if (!LanternHub.settings().isGetMode()) {
+            final String str = 
+                LanternUtils.jsonify(LanternHub.statsTracker());
+            LOG.info("Reporting data: {}", str);
+            if (!this.lastJson.equals(str)) {
+                this.lastJson = str;
+                forHub.setProperty("stats", str);
+                LanternHub.statsTracker().resetCumulativeStats();
+            } else {
+                LOG.info("No new stats to report");
+            }
+        //} else {
+        //    LOG.info("Not reporting any stats in get mode");
+        //}
         
         conn.sendPacket(forHub);
     }
@@ -631,7 +616,8 @@ public class DefaultXmppHandler implements XmppHandler {
     }
     */
 
-    private void addOrRemovePeer(final Presence p, final String from) {
+    @Override
+    public void addOrRemovePeer(final Presence p, final String from) {
         LOG.info("Processing peer: {}", from);
         final URI uri;
         try {
@@ -648,7 +634,7 @@ public class DefaultXmppHandler implements XmppHandler {
             sendAndRequestCert(uri);
         }
         else {
-            LOG.info("Removing JID for peer '"+from+"' with presence: {}", p);
+            LOG.info("Removing JID for peer '"+from);
             removePeer(uri);
         }
     }
@@ -720,19 +706,13 @@ public class DefaultXmppHandler implements XmppHandler {
             try {
                 // Add the peer if we're able to add the cert.
                 LanternHub.getKeyStoreManager().addBase64Cert(mac, base64Cert);
-                if (LanternHub.getTrustedContactsManager().isTrusted(msg)) {
-                    LanternHub.trustedPeerProxyManager().onPeer(uri);
-                } else {
-                    LanternHub.anonymousPeerProxyManager().onPeer(uri);
+                if (LanternHub.settings().isAutoConnectToPeers()) {
+                    if (LanternHub.getTrustedContactsManager().isTrusted(msg)) {
+                        LanternHub.trustedPeerProxyManager().onPeer(uri);
+                    } else {
+                        LanternHub.anonymousPeerProxyManager().onPeer(uri);
+                    }
                 }
-
-                /*
-                if (LanternHub..getTrustedContactsManager().isTrusted(msg)) {
-                    this.establishedPeerProxies.add(uri);
-                } else {
-                    this.establishedAnonymousProxies.add(uri);
-                }
-                */
             } catch (final IOException e) {
                 LOG.error("Could not add cert??", e);
             }
@@ -785,7 +765,8 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.info("Considering peer proxy");
         synchronized (peerProxySet) {
             // We purely do this to keep track of which peers we've attempted
-            // to establish connections to.
+            // to establish connections to. This is to avoid exchanging certs
+            // multiple times.
             
             // TODO: I believe this excludes exchanging keys with peers who
             // are on multiple machines when the peer URI is a general JID and
@@ -822,12 +803,9 @@ public class DefaultXmppHandler implements XmppHandler {
     }
     
     private void addGeneralProxy(final String cur) {
-        final String hostname = 
-            StringUtils.substringBefore(cur, ":");
-        final int port = 
-            Integer.parseInt(StringUtils.substringAfter(cur, ":"));
-        final InetSocketAddress isa = 
-            new InetSocketAddress(hostname, port);
+        final String hostname = StringUtils.substringBefore(cur, ":");
+        final int port = Integer.parseInt(StringUtils.substringAfter(cur, ":"));
+        final InetSocketAddress isa = new InetSocketAddress(hostname, port);
         addProxyWithChecks(proxySet, proxies, new ProxyHolder(hostname, isa), 
             cur);
     }
@@ -931,6 +909,11 @@ public class DefaultXmppHandler implements XmppHandler {
         // changed 
         removePeerUri(uri);
         removeAnonymousPeerUri(uri);
+        if (LanternHub.getTrustedContactsManager().isJidTrusted(uri.toASCIIString())) {
+            LanternHub.trustedPeerProxyManager().removePeer(uri);
+        } else {
+            LanternHub.anonymousPeerProxyManager().removePeer(uri);
+        }
     }
     
     private void removePeerUri(final URI peerUri) {
@@ -967,37 +950,6 @@ public class DefaultXmppHandler implements XmppHandler {
     public PeerProxyManager getTrustedPeerProxyManager() {
         return LanternHub.trustedPeerProxyManager();
     }
-    
-    
-    /*
-    @Override
-    public URI getAnonymousProxy() {
-        LOG.info("Getting anonymous proxy");
-        return getProxyUri(this.establishedAnonymousProxies);
-    }
-
-    @Override
-    public URI getPeerProxy() {
-        LOG.info("Getting peer proxy");
-        final URI proxy = getProxyUri(this.establishedPeerProxies);
-        if (proxy == null) {
-            LOG.info("Peer proxies {} and anonymous proxies {}", 
-                this.establishedPeerProxies, this.establishedAnonymousProxies);
-        }
-        return proxy;
-    }
-    
-    private URI getProxyUri(final Queue<URI> queue) {
-        if (queue.isEmpty()) {
-            LOG.info("No proxy URIs");
-            return null;
-        }
-        final URI proxy = queue.remove();
-        queue.add(proxy);
-        LOG.info("FIFO queue is now: {}", queue);
-        return proxy;
-    }
-    */
 
     private InetSocketAddress getProxy(final Queue<ProxyHolder> queue) {
         synchronized (queue) {
@@ -1064,57 +1016,6 @@ public class DefaultXmppHandler implements XmppHandler {
         }
     }
     
-    private ServerSocketFactory newTlsServerSocketFactory() {
-        LOG.info("Creating TLS server socket factory");
-        String algorithm = 
-            Security.getProperty("ssl.KeyManagerFactory.algorithm");
-        if (algorithm == null) {
-            algorithm = "SunX509";
-        }
-        try {
-            final KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(LanternHub.getKeyStoreManager().keyStoreAsInputStream(),
-                    LanternHub.getKeyStoreManager().getKeyStorePassword());
-
-            // Set up key manager factory to use our key store
-            final KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
-            kmf.init(ks, LanternHub.getKeyStoreManager().getCertificatePassword());
-
-            // Initialize the SSLContext to work with our key managers.
-            final SSLContext serverContext = SSLContext.getInstance("TLS");
-            serverContext.init(kmf.getKeyManagers(), null, null);
-            return serverContext.getServerSocketFactory();
-        } catch (final KeyStoreException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final NoSuchAlgorithmException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final CertificateException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final IOException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final UnrecoverableKeyException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final KeyManagementException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        }
-    }
-
-    private SocketFactory newTlsSocketFactory() {
-        LOG.info("Creating TLS socket factory");
-        try {
-            final SSLContext clientContext = SSLContext.getInstance("TLS");
-            clientContext.init(null, 
-                LanternHub.getKeyStoreManager().getTrustManagers(), null);
-            return clientContext.getSocketFactory();
-        } catch (final NoSuchAlgorithmException e) {
-            LOG.error("No TLS?", e);
-            throw new Error("No TLS?", e);
-        } catch (final KeyManagementException e) {
-            LOG.error("Key managmement issue?", e);
-            throw new Error("Key managmement issue?", e);
-        }
-    }
-
     @Override
     public boolean isLoggedIn() {
         if (this.client.get() == null) {

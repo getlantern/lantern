@@ -1,10 +1,5 @@
 package org.lantern;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -14,25 +9,21 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.apache.commons.io.IOUtils;
 import org.jboss.netty.channel.Channel;
-import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.maxmind.geoip.LookupService;
 
 /**
- * Class for tracking all Lantern data. This also displays data from the 
- * Google Transparency Report and ONI.
+ * Class for tracking statistics about Lantern.
  */
-public class StatsTracker implements LanternData {
+public class StatsTracker implements Stats {
     
     private final static Logger log = 
         LoggerFactory.getLogger(StatsTracker.class);
-    
+
     private final AtomicLong bytesProxied = new AtomicLong(0L);
     
     private final AtomicLong directBytes = new AtomicLong(0L);
@@ -41,17 +32,8 @@ public class StatsTracker implements LanternData {
     
     private final AtomicInteger directRequests = new AtomicInteger(0);
 
-    private static final JSONObject oniJson = new JSONObject();
-    
-    private static final JSONObject googleRemoveProductAndReasonJson = 
-        new JSONObject();
-    private static final JSONObject googleRemovalJson = 
-        new JSONObject();
-    private static final JSONObject googleRemovalByProductJson = 
-        new JSONObject();
-    private static final JSONObject googleUserDataJson = 
-        new JSONObject();
-    
+    private static final ConcurrentHashMap<String, CountryData> countries = 
+        new ConcurrentHashMap<String, CountryData>();
     
     /** 
      * getXYZBytesPerSecond calls will be calculated using a moving 
@@ -86,322 +68,29 @@ public class StatsTracker implements LanternData {
     private static final PeerCounter peersPerSecond
             = new PeerCounter(ONE_SECOND, ONE_SECOND*2);
     
-    private static final ConcurrentHashMap<String, CountryData> countries = 
-        new ConcurrentHashMap<String, StatsTracker.CountryData>();
     
-    static {
-        // Adding Cuba and North Korea since ONI has no data for them but they
-        // seem to clearly censor.
-        //CensoredUtils.CENSORED.add("CU");
-        //CensoredUtils.CENSORED.add("KP");
-        
-        /*
-        addOniData();
-        final String[] columnNames0 = {
-            "Period Ending", 
-            "Country", 
-            "Country Code", 
-            "Content Removal Requests", 
-            "Percentage of removal requests fully or partially complied with", 
-            "Items Requested To Be Removed"
-        };
-        addGenericGoogleData(columnNames0, 
-            "google-content-removal-requests.csv", 2, 1, 
-            googleRemovalJson);
-        
-        final String[] columnNames3 = {
-            "Period Ending","Country","Country Code","Product",
-            "Court Orders","Executive, Police, etc.",
-            "Items Requested To Be Removed",
-        };
-        addGenericGoogleData(columnNames3, 
-            "google-content-removal-requests-by-product.csv", 2, 1, 
-            googleRemovalByProductJson);
-        
-        final String[] columnNames1 = {
-            "Period Ending",
-            "Country",
-            "Country Code",
-            "Product",
-            "Reason",
-            "Court Orders",
-            "Executive, Police, etc.", 
-            "Items Requested To Be Removed",
-        };
-        
-        addGoogleProductAndReason(columnNames1, 
-            "google-content-removal-requests-by-product-and-reason.csv", 2, 1, 
-            googleRemoveProductAndReasonJson);
-        
-        
-        final String[] columnNames4 = {
-            "Period Ending", "Country", "Country Code", "Data Requests", 
-            "Percentage of data requests fully or partially complied with", 
-            "Users/Accounts Specified"
-        };
-        addGoogleUserData(columnNames4, 
-            "google-user-data-requests.csv", 2, 1, 
-            googleUserDataJson);
-            */
-        
-    }
-
-    public StatsTracker() {}
-
-    private static void addGoogleProductAndReason(final String[] columnNames, 
-        final String fileName, final int countryCodeIndex, 
-        final int countryNameIndex, final JSONObject json) {
-        final File file = new File("data/"+fileName);
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(
-                new InputStreamReader(new FileInputStream(file)));
-            String line = br.readLine();
-            line = br.readLine();
-            while (line != null) {
-                addGoogleProductAndReasonData(columnNames, line, fileName, 
-                    countryCodeIndex, countryNameIndex, json);
-                line = br.readLine();
-            }
-        } catch (final IOException e) {
-            log.error("No file?", e);
-        } finally {
-            IOUtils.closeQuietly(br);
-        }
+    private boolean upnp;
+    
+    private boolean natpmp;
+    
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getUptime()
+     */
+    @Override
+    public long getUptime() {
+        return System.currentTimeMillis() - LanternConstants.START_TIME;
     }
     
-    private static void addGoogleUserData(final String[] columnNames, 
-        final String fileName, final int countryCodeIndex, 
-        final int countryNameIndex, final JSONObject json) {
-        final File file = new File("data/"+fileName);
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(
-                new InputStreamReader(new FileInputStream(file)));
-            String line = br.readLine();
-            line = br.readLine();
-            while (line != null) {
-                addUserCsvData(columnNames, line, fileName, 
-                   countryCodeIndex, countryNameIndex, json);
-                line = br.readLine();
-            }
-        } catch (final IOException e) {
-            log.error("No file?", e);
-        } finally {
-            IOUtils.closeQuietly(br);
-        }
-    }
-
-    private static void addGenericGoogleData(final String[] columnNames, 
-        final String fileName, final int countryCodeIndex, 
-        final int countryNameIndex, final JSONObject json) {
-        final File file = new File("data/"+fileName);
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(
-                new InputStreamReader(new FileInputStream(file)));
-            String line = br.readLine();
-            line = br.readLine();
-            while (line != null) {
-                addGenericGoogleCsvData(columnNames, line, fileName, 
-                   countryCodeIndex, countryNameIndex, json);
-                line = br.readLine();
-            }
-        } catch (final IOException e) {
-            log.error("No file?", e);
-        } finally {
-            IOUtils.closeQuietly(br);
-        }
-    }
-
-    static void addOniData() {
-        final File file = new File("data/oni_country_data_2011-11-08.csv");
-        BufferedReader br = null;
-        try {
-            br = new BufferedReader(
-                new InputStreamReader(new FileInputStream(file)));
-            String line = br.readLine();
-            line = br.readLine();
-            while (line != null) {
-                addOniCountryData(line);
-                line = br.readLine();
-            }
-            //log.info("CENSORED COUNTRIES:\n{}",LanternHub.settings().censored().getCensored());
-        } catch (final IOException e) {
-            log.error("No file?", e);
-        } finally {
-            IOUtils.closeQuietly(br);
-        }
-    }
-    
-    private static void addGoogleProductAndReasonData(final String[] columnNames, 
-        final String lineParam, final String name, final int countryCodeIndex,
-        final int countryNameIndex, final JSONObject global) {
-        final String line;
-        if (lineParam.endsWith(",")) {
-            line = lineParam +"0";
-        } else {
-            line = lineParam;
-        }
-        final String[] data = line.split(",");
-        final String cc = data[countryCodeIndex];
-        final String countryName = data[countryNameIndex];
-        
-        final JSONObject json = new JSONObject();
-        
-        for (int i = 5; i < columnNames.length; i++) {
-            json.put(columnNames[i], data[i]);
-        }
-        
-        //google.put(name, json);
-        final JSONObject countryObject;
-        if (!global.containsKey(cc)) {
-            countryObject = new JSONObject();
-            global.put(cc, countryObject);
-        } else {
-            countryObject = (JSONObject) global.get(cc);
-        }
-        final CountryData cd = newCountryData(cc, countryName);
-        cd.data.put(name, countryObject);
-        
-        final JSONObject productObject;
-        if (!countryObject.containsKey(name)) {
-            productObject = new JSONObject();
-            if (cc.equals("NO")) {
-                System.out.println("Adding "+data[3]+" to country object");
-            }
-            countryObject.put(data[3], productObject);
-        } else {
-            productObject = (JSONObject) countryObject.get(data[3]);
-        }
-        
-        productObject.put(data[4], json);
-    }
-
-    private static void addUserCsvData(final String[] columnNames, 
-        final String lineParam, final String name, final int countryCodeIndex,
-        final int countryNameIndex, final JSONObject global) {
-        final String line;
-        if (lineParam.endsWith(",")) {
-            line = lineParam +"0";
-        } else {
-            line = lineParam;
-        }
-        final String[] data = line.split(",");
-        final String cc = data[countryCodeIndex];
-        
-        final String countryName = data[countryNameIndex];
-        
-        final JSONObject json = new JSONObject();
-        
-        for (int i = 0; i < columnNames.length; i++) {
-            json.put(columnNames[i], data[i]);
-        }
-        
-        //google.put(name, json);
-        global.put(cc, json);
-
-        final CountryData cd = newCountryData(cc, countryName);
-        final String key = "user-requests";
-        final JSONArray userRequests;
-        if (cd.data.containsKey(key)) {
-            userRequests = (JSONArray) cd.data.get(key);
-        } else {
-            userRequests = new JSONArray();
-            cd.data.put(key, userRequests);
-        }
-        userRequests.add(json);
-    }
-    
-    private static void addGenericGoogleCsvData(final String[] columnNames, 
-        final String lineParam, final String name, final int countryCodeIndex,
-        final int countryNameIndex, final JSONObject global) {
-        final String line;
-        if (lineParam.endsWith(",")) {
-            line = lineParam +"0";
-        } else {
-            line = lineParam;
-        }
-        final String[] data = line.split(",");
-        final String cc = data[countryCodeIndex];
-        
-        final String countryName = data[countryNameIndex];
-        final JSONObject json = new JSONObject();
-        
-        for (int i = 3; i < columnNames.length; i++) {
-            json.put(columnNames[i], data[i]);
-        }
-        
-        global.put(cc, json);
-
-        final CountryData cd = newCountryData(cc, countryName);
-        cd.data.put(name, json);
-    }
-
-    /*
-    public void clear() {
-        bytesProxied.set(0L);
-        directBytes.set(0L);
-        proxiedRequests.set(0);
-        directRequests.set(0);
-    }
-    */
-
-    private static final int country_code = 0;
-    private static final int country_index = 1;
-    private static final int political_score = 2;
-    private static final int political_description = 3;
-    private static final int social_score = 4;
-    private static final int social_description = 5;
-    private static final int tools_score = 6;
-    private static final int tools_description = 7;
-    private static final int conflict_security_score = 8;
-    private static final int conflict_security_description = 9;
-    private static final int transparency = 10;
-    private static final int consistency = 11;
-    private static final int testing_date = 12;
-    private static final int url = 13;
-    
-    private static void addOniCountryData(final String line) {
-        // We define a country as "censored" if it has any "pervasive" or
-        // "substantial" censorship according to ONI.
-        final boolean censored = 
-            line.contains("pervasive") || 
-            line.contains("substantial");
-        final String[] data = line.split(",");
-        final String cc = data[country_code];
-        final String name = data[country_index];
-        if (censored) {
-            //LanternHub.settings().censored().getCensored().add(cc);
-            
-        }
-        
-        final JSONObject json = new JSONObject();
-        json.put("political", data[political_description]);
-        json.put("social", data[social_description]);
-        json.put("tools", data[tools_description]);
-        json.put("conflict_security", data[conflict_security_description]);
-        json.put("transparency", data[transparency]);
-        json.put("consistency", data[consistency]);
-        json.put("testing_date", data[testing_date]);
-        json.put("url", data[url]);
-        
-        oniJson.put(cc, json);
-        
-        final CountryData cd = newCountryData(cc, name);
-
-        cd.data.put("oni", json);
-    }
-
-    private static CountryData newCountryData(final String cc, 
-        final String name) {
-        if (countries.containsKey(cc)) {
-            return countries.get(cc);
-        } 
-        final Country co = new Country(cc, name);
-        final CountryData cd = new CountryData(co);
-        countries.put(cc, cd);
-        return cd;
+    /**
+     * Resets all stats that the server treats as cumulative aggregates -- i.e.
+     * where the server doesn't differentiate data for individual users and
+     * simply adds whatever we send them to the total.
+     */
+    public void resetCumulativeStats() {
+        this.directRequests.set(0);
+        this.directBytes.set(0L);
+        this.proxiedRequests.set(0);
+        this.bytesProxied.set(0L);
     }
     
     public void resetUserStats() {
@@ -415,83 +104,155 @@ public class StatsTracker implements LanternData {
         // others?
     }
     
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getPeerCount()
+     */
+    @Override
     public long getPeerCount() {
         return peersPerSecond.latestValue();
     }
     
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getPeerCountThisRun()
+     */
+    @Override
     public long getPeerCountThisRun() {
         return peersPerSecond.lifetimeTotal();
     }
     
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getUpBytesThisRun()
+     */
+    @Override
     public long getUpBytesThisRun() {
         return getUpBytesThisRunForPeers() + // requests uploaded to internet for peers
                getUpBytesThisRunViaProxies() + // requests sent to other proxies
                getUpBytesThisRunToPeers();   // responses to requests we proxied
     }
     
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getDownBytesThisRun()
+     */
+    @Override
     public long getDownBytesThisRun() {
         return getDownBytesThisRunForPeers() + // downloaded from internet for peers
                getDownBytesThisRunViaProxies() + // replys to requests proxied by others
                getDownBytesThisRunFromPeers(); // requests from peers        
     }
     
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getUpBytesThisRunForPeers()
+     */
+    @Override
     public long getUpBytesThisRunForPeers() {
         return upBytesPerSecondForPeers.lifetimeTotal();
     }
     
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getUpBytesThisRunViaProxies()
+     */
+    @Override
     public long getUpBytesThisRunViaProxies() {
         return upBytesPerSecondViaProxies.lifetimeTotal();
     }
 
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getUpBytesThisRunToPeers()
+     */
+    @Override
     public long getUpBytesThisRunToPeers() {
         return upBytesPerSecondToPeers.lifetimeTotal();
     }
     
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getDownBytesThisRunForPeers()
+     */
+    @Override
     public long getDownBytesThisRunForPeers() {
         return downBytesPerSecondForPeers.lifetimeTotal();
     }
 
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getDownBytesThisRunViaProxies()
+     */
+    @Override
     public long getDownBytesThisRunViaProxies() {
         return downBytesPerSecondViaProxies.lifetimeTotal();
     }
 
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getDownBytesThisRunFromPeers()
+     */
+    @Override
     public long getDownBytesThisRunFromPeers() {
         return downBytesPerSecondFromPeers.lifetimeTotal();
     }
     
     
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getUpBytesPerSecond()
+     */
+    @Override
     public long getUpBytesPerSecond() {
         return getUpBytesPerSecondForPeers() + // requests uploaded to internet for peers
                getUpBytesPerSecondViaProxies() + // requests sent to other proxies
                getUpBytesPerSecondToPeers();   // responses to requests we proxied
     }
 
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getDownBytesPerSecond()
+     */
+    @Override
     public long getDownBytesPerSecond() {
         return getDownBytesPerSecondForPeers() + // downloaded from internet for peers
                getDownBytesPerSecondViaProxies() + // replys to requests proxied by others
                getDownBytesPerSecondFromPeers(); // requests from peers
     }
     
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getUpBytesPerSecondForPeers()
+     */
+    @Override
     public long getUpBytesPerSecondForPeers() {
         return getBytesPerSecond(upBytesPerSecondForPeers);
     }
 
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getUpBytesPerSecondViaProxies()
+     */
+    @Override
     public long getUpBytesPerSecondViaProxies() {
         return getBytesPerSecond(upBytesPerSecondViaProxies);
     }
 
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getDownBytesPerSecondForPeers()
+     */
+    @Override
     public long getDownBytesPerSecondForPeers() {
         return getBytesPerSecond(downBytesPerSecondForPeers);
     }
     
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getDownBytesPerSecondViaProxies()
+     */
+    @Override
     public long getDownBytesPerSecondViaProxies() {
         return getBytesPerSecond(downBytesPerSecondViaProxies);
     }
     
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getDownBytesPerSecondFromPeers()
+     */
+    @Override
     public long getDownBytesPerSecondFromPeers() {
         return getBytesPerSecond(downBytesPerSecondFromPeers);
     }
     
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getUpBytesPerSecondToPeers()
+     */
+    @Override
     public long getUpBytesPerSecondToPeers() {
         return getBytesPerSecond(upBytesPerSecondToPeers);
     }
@@ -603,6 +364,50 @@ public class StatsTracker implements LanternData {
         log.debug("upBytesPerSecondToPeers += {} up-rate {}", bp, getUpBytesPerSecond());
     }
 
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getTotalBytesProxied()
+     */
+    @Override
+    public long getTotalBytesProxied() {
+        return bytesProxied.get();
+    }
+
+    public void addDirectBytes(final int db) {
+        directBytes.addAndGet(db);
+    }
+
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getDirectBytes()
+     */
+    @Override
+    public long getDirectBytes() {
+        return directBytes.get();
+    }
+
+    public void incrementDirectRequests() {
+        this.directRequests.incrementAndGet();
+    }
+
+    public void incrementProxiedRequests() {
+        this.proxiedRequests.incrementAndGet();
+    }
+
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getTotalProxiedRequests()
+     */
+    @Override
+    public int getTotalProxiedRequests() {
+        return proxiedRequests.get();
+    }
+
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getDirectRequests()
+     */
+    @Override
+    public int getDirectRequests() {
+        return directRequests.get();
+    }
+    
 
     public void addBytesProxied(final long bp, final Channel channel) {
         bytesProxied.addAndGet(bp);
@@ -626,36 +431,28 @@ public class StatsTracker implements LanternData {
         }
     }
 
+    public void setUpnp(final boolean upnp) {
+        this.upnp = upnp;
+    }
+
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#isUpnp()
+     */
     @Override
-    public long getTotalBytesProxied() {
-        return bytesProxied.get();
+    public boolean isUpnp() {
+        return upnp;
     }
 
-    public void addDirectBytes(final int db) {
-        directBytes.addAndGet(db);
+    public void setNatpmp(final boolean natpmp) {
+        this.natpmp = natpmp;
     }
 
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#isNatpmp()
+     */
     @Override
-    public long getDirectBytes() {
-        return directBytes.get();
-    }
-
-    public void incrementDirectRequests() {
-        this.directRequests.incrementAndGet();
-    }
-
-    public void incrementProxiedRequests() {
-        this.proxiedRequests.incrementAndGet();
-    }
-
-    @Override
-    public int getTotalProxiedRequests() {
-        return proxiedRequests.get();
-    }
-
-    @Override
-    public int getDirectRequests() {
-        return directRequests.get();
+    public boolean isNatpmp() {
+        return natpmp;
     }
 
     private CountryData toCountryData(final Channel channel) {
@@ -692,10 +489,37 @@ public class StatsTracker implements LanternData {
         cd.addresses.add(addr);
         return cd;
     }
+    
 
-    private static final class CountryData {
+    public static CountryData newCountryData(final String cc, 
+        final String name) {
+        if (countries.containsKey(cc)) {
+            return countries.get(cc);
+        } 
+        final Country co = new Country(cc, name);
+        final CountryData cd = new CountryData(co);
+        countries.put(cc, cd);
+        return cd;
+    }
+
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getCountryCode()
+     */
+    @Override
+    public String getCountryCode() {
+        return LanternHub.censored().countryCode();
+    }
+    
+    /* (non-Javadoc)
+     * @see org.lantern.Stats#getVersion()
+     */
+    @Override
+    public String getVersion() {
+        return LanternConstants.VERSION;
+    }
+    
+    public static final class CountryData {
         private final Set<InetAddress> addresses = new HashSet<InetAddress>();
-        private volatile int requests;
         private volatile long bytes;
         
         private final JSONObject lanternData = new JSONObject();
@@ -707,61 +531,5 @@ public class StatsTracker implements LanternData {
             data.put("code", country.getCode());
             data.put("lantern", lanternData);
         }
-
-        private JSONObject toJson() {
-            lanternData.put("users", addresses.size());
-            lanternData.put("proxied_bytes", bytes);
-            lanternData.put("proxied_requests", requests);
-
-            return data;
-        }
-    }
-
-    public String toJson() {
-        final JSONObject json = new JSONObject();
-        json.put("direct_bytes", directBytes);
-        json.put("direct_requests", directRequests);
-        json.put("proxied_bytes", bytesProxied);
-        json.put("proxied_requests", proxiedRequests);
-        
-        final LookupService ls = LanternHub.getGeoIpLookup();
-        final InetAddress ia = new PublicIpAddress().getPublicIpAddress();
-        final String homeland = ls.getCountry(ia).getCode();
-        json.put("my_country", homeland);
-        
-        final JSONArray countryData = new JSONArray();
-        json.put("countries", countryData);
-        synchronized (countries) {
-            for (final CountryData cd : countries.values()) {
-                countryData.add(cd.toJson());
-            }
-        }
-        return json.toJSONString();
-    }
-
-    public String oniJson() {
-        return oniJson.toJSONString();
-    }
-
-    public String countryData(final String countryCode) {
-        log.info("Accessing data for country: '{}'", countryCode);
-        final CountryData data = countries.get(countryCode.trim());
-        return data.toJson().toJSONString();
-    }
-
-    public String googleContentRemovalProductReason() {
-        return googleRemoveProductAndReasonJson.toJSONString();
-    }
-
-    public String googleContentRemovalRequests() {
-        return googleRemovalJson.toJSONString();
-    }
-
-    public String googleUserRequests() {
-        return googleUserDataJson.toJSONString();
-    }
-    
-    public String googleRemovalByProductRequests() {
-        return googleRemovalByProductJson.toJSONString();
     }
 }

@@ -3,11 +3,13 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Properties;
 
 import javax.security.auth.login.CredentialException;
@@ -37,6 +39,8 @@ import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
+import org.lastbamboo.common.offer.answer.IceConfig;
+import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestFilter;
@@ -80,26 +84,69 @@ public class Launcher {
         }
     }
 
+    // the following are command line options 
+    private static final String OPTION_DISABLE_UI = "disable-ui";
+    private static final String OPTION_HELP = "help";
+    private static final String OPTION_LAUNCHD = "launchd";
+    private static final String OPTION_PUBLIC_API = "public-api";
+    private static final String OPTION_API_PORT = "api-port";
+    private static final String OPTION_DISABLE_KEYCHAIN = "disable-keychain";
+    private static final String OPTION_PASSWORD_FILE = "password-file";
+    private static final String OPTION_TRUSTED_PEERS = "disable-trusted-peers";
+    private static final String OPTION_ANON_PEERS ="disable-anon-peers";
+    private static final String OPTION_LAE = "disable-lae";
+    private static final String OPTION_CENTRAL = "disable-central";
+    private static final String OPTION_UDP = "disable-udp";
+    private static final String OPTION_TCP = "disable-tcp";
+    private static final String OPTION_USER = "user";
+    private static final String OPTION_PASS = "pass";
+    private static final String OPTION_GET = "force-get";
+    private static final String OPTION_GIVE = "force-give";
+    
     private static void launch(final String... args) {
         LOG.info("Starting Lantern...");
-
+        // Note the following just sets what cipher suite the server side
+        // selects. DHE is for perfect forward secrecy.
+        IceConfig.setCipherSuites(new String[] {
+            "TLS_DHE_RSA_WITH_AES_256_CBC_SHA"
+        });
+        
         // first apply any command line settings
         final Options options = new Options();
-        options.addOption(null, LanternConstants.OPTION_DISABLE_UI, false,
+        options.addOption(null, OPTION_DISABLE_UI, false,
                           "run without a graphical user interface.");
-        
-        options.addOption(null, LanternConstants.OPTION_API_PORT, true,
+        options.addOption(null, OPTION_API_PORT, true,
             "the port to run the API server on.");
-        options.addOption(null, LanternConstants.OPTION_PUBLIC_API, false,
+        options.addOption(null, OPTION_PUBLIC_API, false,
             "make the API server publicly accessible on non-localhost.");
-        options.addOption(null, LanternConstants.OPTION_HELP, false,
+        options.addOption(null, OPTION_HELP, false,
                           "display command line help");
-        options.addOption(null, LanternConstants.OPTION_LAUNCHD, false,
+        options.addOption(null, OPTION_LAUNCHD, false,
             "running from launchd - not normally called from command line");
-        options.addOption(null, LanternConstants.OPTION_DISABLE_KEYCHAIN, false, 
+        options.addOption(null, OPTION_DISABLE_KEYCHAIN, false, 
             "disable use of system keychain and ask for local password");
-        options.addOption(null, LanternConstants.OPTION_PASSWORD_FILE, true, 
+        options.addOption(null, OPTION_PASSWORD_FILE, true, 
             "read local password from the file specified");
+        
+        options.addOption(null, OPTION_TRUSTED_PEERS, false,
+            "disable use of trusted peer-to-peer connections for proxies.");
+        options.addOption(null, OPTION_ANON_PEERS, false,
+            "disable use of anonymous peer-to-peer connections for proxies.");
+        options.addOption(null, OPTION_LAE, false,
+            "disable use of app engine proxies.");
+        options.addOption(null, OPTION_CENTRAL, false,
+            "disable use of centralized proxies.");
+        options.addOption(null, OPTION_UDP, false,
+            "disable UDP for peer-to-peer connections.");
+        options.addOption(null, OPTION_TCP, false,
+            "disable TCP for peer-to-peer connections.");
+        options.addOption(null, OPTION_USER, true,
+            "Google user name -- WARNING INSECURE - ONLY USE THIS FOR TESTING!");
+        options.addOption(null, OPTION_PASS, true,
+            "Google password -- WARNING INSECURE - ONLY USE THIS FOR TESTING!");
+        options.addOption(null, OPTION_GET, false, "Force running in get mode");
+        options.addOption(null, OPTION_GIVE, false, "Force running in give mode");
+        
         final CommandLineParser parser = new PosixParser();
         final CommandLine cmd;
         try {
@@ -108,60 +155,75 @@ public class Launcher {
                 throw new UnrecognizedOptionException("Extra arguments were provided");
             }
         }
-        catch (ParseException e) {
+        catch (final ParseException e) {
             printHelp(options, e.getMessage()+" args: "+Arrays.asList(args));
             return;
         }
-        if (cmd.hasOption(LanternConstants.OPTION_HELP)) {
+        
+        if (cmd.hasOption(OPTION_HELP)) {
             printHelp(options, null);
             return;
         }
+        final Settings set = LanternHub.settings();
+        set.setUseTrustedPeers(parseOptionDefaultTrue(cmd, OPTION_TRUSTED_PEERS));
+        set.setUseAnonymousPeers(parseOptionDefaultTrue(cmd, OPTION_ANON_PEERS));
+        set.setUseLaeProxies(parseOptionDefaultTrue(cmd, OPTION_LAE));
+        set.setUseCentralProxies(parseOptionDefaultTrue(cmd, OPTION_CENTRAL));
         
-        if (cmd.hasOption(LanternConstants.OPTION_DISABLE_UI)) {
+        IceConfig.setTcp(parseOptionDefaultTrue(cmd, OPTION_TCP));
+        IceConfig.setUdp(parseOptionDefaultTrue(cmd, OPTION_UDP));
+        
+        if (cmd.hasOption(OPTION_USER)) {
+            set.setCommandLineEmail(cmd.getOptionValue(OPTION_USER));
+        }
+        if (cmd.hasOption(OPTION_PASS)) {
+            set.setCommandLinePassword(cmd.getOptionValue(OPTION_PASS));
+        }
+        if (cmd.hasOption(OPTION_DISABLE_UI)) {
             LOG.info("Disabling UI");
-            LanternHub.settings().setUiEnabled(false);
+            set.setUiEnabled(false);
         }
         else {
-            LanternHub.settings().setUiEnabled(true);
+            set.setUiEnabled(true);
         }
         
         /* option to disable use of keychains in local privacy */
-        if (cmd.hasOption(LanternConstants.OPTION_DISABLE_KEYCHAIN)) {
+        if (cmd.hasOption(OPTION_DISABLE_KEYCHAIN)) {
             LOG.info("Disabling use of system keychains");
-            LanternHub.settings().setKeychainEnabled(false);
+            set.setKeychainEnabled(false);
         }
         else {
-            LanternHub.settings().setKeychainEnabled(true);
+            set.setKeychainEnabled(true);
         }
         
-        if (cmd.hasOption(LanternConstants.OPTION_PASSWORD_FILE)) {
-            loadLocalPasswordFile(cmd.getOptionValue(LanternConstants.OPTION_PASSWORD_FILE));
+        if (cmd.hasOption(OPTION_PASSWORD_FILE)) {
+            loadLocalPasswordFile(cmd.getOptionValue(OPTION_PASSWORD_FILE));
         }
         
-        if (cmd.hasOption(LanternConstants.OPTION_PUBLIC_API)) {
-            LanternHub.settings().setBindToLocalhost(false);
+        if (cmd.hasOption(OPTION_PUBLIC_API)) {
+            set.setBindToLocalhost(false);
         }
-        if (cmd.hasOption(LanternConstants.OPTION_API_PORT)) {
+        if (cmd.hasOption(OPTION_API_PORT)) {
             final String portStr = 
-                cmd.getOptionValue(LanternConstants.OPTION_API_PORT);
+                cmd.getOptionValue(OPTION_API_PORT);
             LOG.info("Using command-line port: "+portStr);
             final int port = Integer.parseInt(portStr);
-            LanternHub.settings().setApiPort(port);
+            set.setApiPort(port);
         } else {
             LOG.info("Using random port...");
-            LanternHub.settings().setApiPort(LanternUtils.randomPort());
+            set.setApiPort(LanternUtils.randomPort());
         }
-        LOG.info("Running API on port: {}", LanternHub.settings().getApiPort());
+        LOG.info("Running API on port: {}", set.getApiPort());
 
-        if (cmd.hasOption(LanternConstants.OPTION_LAUNCHD)) {
+        if (cmd.hasOption(OPTION_LAUNCHD)) {
             LOG.info("Running from launchd or launchd set on command line");
-            LanternHub.settings().setLaunchd(true);
+            set.setLaunchd(true);
         } else {
-            LanternHub.settings().setLaunchd(false);
+            set.setLaunchd(false);
         }
         
         final Display display;
-        if (LanternHub.settings().isUiEnabled()) {
+        if (set.isUiEnabled()) {
             // We initialize this super early in case there are any errors 
             // during startup we have to display to the user.
             Display.setAppName("Lantern");
@@ -175,6 +237,19 @@ public class Launcher {
         
         loadSettings();
         
+        if (cmd.hasOption(OPTION_GIVE)) {
+            LanternHub.settings().setGetMode(false);
+        } else if (cmd.hasOption(OPTION_GET)) {
+            LanternHub.settings().setGetMode(true);
+        }
+        
+        // Use our stored STUN servers if available.
+        final Collection<String> stunServers = 
+            LanternHub.settings().getStunServers();
+        if (stunServers != null && !stunServers.isEmpty()) {
+            LOG.info("Using stored STUN servers: {}", stunServers);
+            StunServerRepository.setStunServers(toSocketAddresses(stunServers));
+        }
         if (LanternUtils.hasNetworkConnection()) {
             LOG.info("Got internet...");
             launchWithOrWithoutUi();
@@ -220,6 +295,39 @@ public class Launcher {
                 if (!display.readAndDispatch ()) display.sleep ();
             }
         }
+    }
+
+    private static Collection<InetSocketAddress> toSocketAddresses(
+        final Collection<String> stunServers) {
+        final Collection<InetSocketAddress> isas = 
+            new HashSet<InetSocketAddress>();
+        for (final String server : stunServers) {
+            final String host = StringUtils.substringBefore(server, ":");
+            final String port = StringUtils.substringAfter(server, ":");
+            isas.add(new InetSocketAddress(host, Integer.parseInt(port)));
+        }
+        return isas;
+    }
+
+    private static boolean parseOptionDefaultTrue(final CommandLine cmd, 
+        final String option) {
+        if (cmd.hasOption(option)) {
+            LOG.info("Found option: "+option);
+            return false;
+        }
+        
+        // DEFAULTS TO TRUE!!
+        return true;
+    }
+    
+    private static boolean parseOptionDefaultFalse(final CommandLine cmd, 
+        final String option) {
+        if (cmd.hasOption(option)) {
+            LOG.info("Found option: "+option);
+            return false;
+        }
+        
+        return false;
     }
 
     private static void loadSettings() {
@@ -342,7 +450,7 @@ public class Launcher {
         }
 
         if (StringUtils.isBlank(pwFilename)) {
-            LOG.error("No filename specified to --{}", LanternConstants.OPTION_PASSWORD_FILE);
+            LOG.error("No filename specified to --{}", OPTION_PASSWORD_FILE);
             System.exit(1);
         }
         final File pwFile = new File(pwFilename);
@@ -401,15 +509,16 @@ public class Launcher {
         
         // Note that just passing in the keystore manager triggers this to 
         // become an SSL proxy server.
+        final int staticRandomPort = LanternHub.settings().getServerPort();
         final StatsTrackingDefaultHttpProxyServer sslProxy =
-            new StatsTrackingDefaultHttpProxyServer(LanternHub.randomSslPort(),
+            new StatsTrackingDefaultHttpProxyServer(staticRandomPort,
             new HttpResponseFilters() {
                 @Override
                 public HttpFilter getFilter(String arg0) {
                     return null;
                 }
             }, null, proxyKeyStore, publicOnlyRequestFilter);
-        LOG.debug("SSL port is {}", LanternHub.randomSslPort());
+        LOG.debug("SSL port is {}", staticRandomPort);
         //final org.littleshoot.proxy.HttpProxyServer sslProxy = 
         //    new DefaultHttpProxyServer(LanternHub.randomSslPort());
         sslProxy.start(false, false);
@@ -505,16 +614,25 @@ public class Launcher {
             // This won't connect in the case where the user hasn't entered 
             // their user name and password and the user is running with a UI.
             // Otherwise, it will connect.
-            XmppHandler xmpp = LanternHub.xmppHandler();
+            final XmppHandler xmpp = LanternHub.xmppHandler();
             if (LanternHub.settings().isConnectOnLaunch() &&
                 (LanternUtils.isConfigured() || !LanternHub.settings().isUiEnabled())) {
-                try {
-                    xmpp.connect();
-                } catch (final IOException e) {
-                    LOG.info("Could not login", e);
-                } catch (final CredentialException e) {
-                    LOG.info("Bad credentials");
-                }
+                final Runnable runner = new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            xmpp.connect();
+                        } catch (final IOException e) {
+                            LOG.info("Could not login", e);
+                        } catch (final CredentialException e) {
+                            LOG.info("Bad credentials");
+                        }
+                    }
+                };
+                final Thread t = 
+                    new Thread(runner, "Auto-Connect-From-Settings-Ready");
+                t.setDaemon(true);
+                t.start();
             } else {
                 LOG.info("Not auto-logging in with settings:\n{}",
                     LanternHub.settings());
@@ -598,7 +716,7 @@ public class Launcher {
         if (t instanceof SWTError || t.getMessage().contains("SWTError")) {
             System.out.println(
                 "To run without a UI, run lantern with the --" + 
-                LanternConstants.OPTION_DISABLE_UI +
+                OPTION_DISABLE_UI +
                 " command line argument");
         } 
         else if (!lanternStarted && LanternHub.settings().isUiEnabled()) {

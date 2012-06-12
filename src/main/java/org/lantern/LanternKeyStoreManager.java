@@ -30,6 +30,10 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
     private static final String PASS = 
         String.valueOf(LanternHub.secureRandom().nextLong());
+    
+    private static final String KEYSIZE = "2048";
+    
+    private static final String ALG = "RSA";
 
     private String localCert;
     
@@ -60,18 +64,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         }
         reset(LanternUtils.getMacAddress());
         createTrustStore();
-        final File littleProxyCert = new File("lantern_littleproxy_cert");
-        if (littleProxyCert.isFile()) {
-            log.info("Importing cert");
-            final String result = LanternUtils.runKeytool("-import", 
-                "-noprompt", "-file", littleProxyCert.getName(), 
-                "-alias", "littleproxy", "-keystore", 
-                TRUSTSTORE_FILE.getAbsolutePath(), "-storepass",  PASS);
-            
-            log.info("Result of running keytool: {}", result);
-        } else {
-            log.warn("NO LITTLEPROXY CERT FILE TO IMPORT!!");
-        }
         
         this.lanternTrustManager = 
             new LanternTrustManager(this, TRUSTSTORE_FILE, PASS);
@@ -101,7 +93,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             return;
         }
         final String result = LanternUtils.runKeytool("-genkey", "-alias", 
-            "foo", "-keysize", "1024", "-validity", "365", "-keyalg", "DSA", 
+            "foo", "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG, 
             "-dname", "CN="+LanternUtils.getMacAddress(), "-keystore", 
             TRUSTSTORE_FILE.getAbsolutePath(), "-keypass", PASS, 
             "-storepass", PASS);
@@ -125,9 +117,10 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         // Note we use DSA instead of RSA because apparently only the JDK 
         // has RSA available.
         final String genKeyResult = LanternUtils.runKeytool("-genkey", "-alias", 
-            macAddress, "-keysize", "1024", "-validity", "365", "-keyalg", "DSA", 
+            macAddress, "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG, 
             "-dname", "CN="+macAddress, "-keypass", PASS, "-storepass", 
             PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
+        
         
         log.info("Result of keytool -genkey call: {}", genKeyResult);
         
@@ -172,7 +165,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         int i = 0;
         while (!file.isFile() && i < 20) {
             try {
-                Thread.sleep(200);
+                Thread.sleep(80);
                 i++;
             } catch (final InterruptedException e) {
                 log.error("Interrupted?", e);
@@ -217,5 +210,9 @@ public class LanternKeyStoreManager implements KeyStoreManager {
 
     public TrustManager[] getTrustManagers() {
         return Arrays.copyOf(trustManagers, trustManagers.length);
+    }
+
+    public LanternTrustManager getTrustManager() {
+        return this.lanternTrustManager;
     }
 }

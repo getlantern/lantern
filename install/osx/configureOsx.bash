@@ -39,7 +39,8 @@ test -d $PLIST_DIR || mkdir $PLIST_DIR
 test -d $PLIST_DIR || die "Could not create plist dir?"
 
 PLIST_FILE=org.lantern.plist
-PLIST_INSTALL_FULL=$APP_PATH/Contents/Resources/app/$PLIST_FILE
+INSTALL_FILES=$APP_PATH/Contents/Resources/app
+PLIST_INSTALL_FULL=$INSTALL_FILES/$PLIST_FILE
 LAUNCHD_PLIST=$PLIST_DIR/$PLIST_FILE
 
 test -f $PLIST_INSTALL_FULL || die "plist file does not exist at $PLIST_INSTALL_FULL?"
@@ -73,6 +74,12 @@ cp $PLIST_INSTALL_FULL $PLIST_DIR || die "Could not copy plist file from $PLIST_
 log "Changing permissions on launchd plist file"
 chmod 644 $LAUNCHD_PLIST || die "Could not change permissions"
 
+
+# We do this in  the installer proper
+#log "Copying policy files"
+#cp $INSTALL_FILES/local_policy.jar /System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/security/ || die "Could not copy policy file!!"
+#cp $INSTALL_FILES/US_export_policy.jar /System/Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/lib/security/ || die "Could not copy export policy file!!"
+#log "Copied policy files"
 
 #log "Opening app"
 #open $APP_PATH || die "Could not open app bundle at $APP_PATH?"
