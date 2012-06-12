@@ -220,8 +220,7 @@ public class LanternHub {
     public static XmppHandler xmppHandler() {
         synchronized (xmppHandler) {
             if (xmppHandler.get() == null) {
-                xmppHandler.set(new DefaultXmppHandler(randomSslPort(), 
-                    LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT));
+                xmppHandler.set(new DefaultXmppHandler());
             }
             return xmppHandler.get();
         }
@@ -229,15 +228,6 @@ public class LanternHub {
     
     public static void setXmppHandler(final XmppHandler xmpp) {
         xmppHandler.set(xmpp);
-    }
-
-    public static int randomSslPort() {
-        synchronized (randomSslPort) {
-            if (randomSslPort.get() == -1) {
-                randomSslPort.set(LanternUtils.randomPort());
-            }
-            return randomSslPort.get();
-        }
     }
 
     public static JettyLauncher jettyLauncher() {

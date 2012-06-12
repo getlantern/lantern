@@ -509,15 +509,16 @@ public class Launcher {
         
         // Note that just passing in the keystore manager triggers this to 
         // become an SSL proxy server.
+        final int staticRandomPort = LanternHub.settings().getServerPort();
         final StatsTrackingDefaultHttpProxyServer sslProxy =
-            new StatsTrackingDefaultHttpProxyServer(LanternHub.randomSslPort(),
+            new StatsTrackingDefaultHttpProxyServer(staticRandomPort,
             new HttpResponseFilters() {
                 @Override
                 public HttpFilter getFilter(String arg0) {
                     return null;
                 }
             }, null, proxyKeyStore, publicOnlyRequestFilter);
-        LOG.debug("SSL port is {}", LanternHub.randomSslPort());
+        LOG.debug("SSL port is {}", staticRandomPort);
         //final org.littleshoot.proxy.HttpProxyServer sslProxy = 
         //    new DefaultHttpProxyServer(LanternHub.randomSslPort());
         sslProxy.start(false, false);
