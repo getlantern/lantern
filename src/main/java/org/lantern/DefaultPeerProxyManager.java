@@ -3,8 +3,12 @@ package org.lantern;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -16,8 +20,11 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
+import org.jivesoftware.smack.packet.Presence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.eventbus.Subscribe;
 
 /**
  * Class the keeps track of P2P connections to peers, dispatching them and
@@ -63,6 +70,11 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
 
     private final boolean anon;
     
+    /**
+     * Online peers we've exchanged certs with.
+     */
+    private final Collection<URI> certPeers = new HashSet<URI>();
+    
     public DefaultPeerProxyManager(final boolean anon) {
         this.anon = anon;
     }
@@ -74,7 +86,13 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         log.info("Processing request...sockets in queue {} on this {}", 
             this.timedSockets.size(), this);
         
-        final ConnectionTimeSocket cts = selectSocket();
+        final ConnectionTimeSocket cts;
+        try {
+            cts = selectSocket();
+        } catch (final IOException e) {
+            // This means there's no socket available.
+            return null;
+        }
         cts.requestProcessor.processRequest(browserToProxyChannel, ctx, me);
         
         // When we use sockets we replace them.
@@ -93,11 +111,18 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     }
 
     private ConnectionTimeSocket selectSocket() throws IOException {
+        pruneSockets();
+        if (this.timedSockets.isEmpty()) {
+            // Try to create some more sockets using peers we've learned about.
+            for (final URI peer : certPeers) {
+                onPeer(peer, 2);
+            }
+        }
         // This removes the highest priority socket.
         for (int i = 0; i < this.timedSockets.size(); i++) {
             final ConnectionTimeSocket cts;
             try {
-                cts = this.timedSockets.poll(10, TimeUnit.SECONDS);
+                cts = this.timedSockets.poll(20, TimeUnit.SECONDS);
             } catch (final InterruptedException e) {
                 log.info("Interrupted?", e);
                 return null;
@@ -114,9 +139,23 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                 }
             }
         }
+        
         log.warn("Could not find connected socket");
         throw new IOException("No availabe connected sockets in "+
             this.timedSockets);
+    }
+    
+
+    private void pruneSockets() {
+        final Iterator<ConnectionTimeSocket> iter = this.timedSockets.iterator();
+        while (iter.hasNext()) {
+            final ConnectionTimeSocket cts = iter.next();
+            if (cts.sock != null) {
+                if (cts.sock.isClosed()) {
+                    iter.remove();
+                }
+            }
+        }
     }
 
     @Override
@@ -131,6 +170,8 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         }
         log.info("Received peer URI {}...attempting {} connections...", 
             peerUri, sockets);
+        
+        certPeers.add(peerUri);
         // Unclear how this count will be used for now.
         final Map<URI, AtomicInteger> peerFailureCount = 
             new HashMap<URI, AtomicInteger>();
@@ -207,5 +248,10 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         for (final ConnectionTimeSocket sock : this.timedSockets) {
             sock.requestProcessor.close();
         }
+    }
+    
+    @Override
+    public String toString() {
+        return getClass().getSimpleName()+"-"+hashCode()+" anon: "+anon;
     }
 }
