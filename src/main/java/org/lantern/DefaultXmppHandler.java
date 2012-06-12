@@ -91,8 +91,6 @@ public class DefaultXmppHandler implements XmppHandler {
         SmackConfiguration.setPacketReplyTimeout(30 * 1000);
     }
 
-    private final int sslProxyRandomPort;
-
     private final Timer updateTimer = new Timer(true);
 
     private volatile long lastInfoMessageScheduled = 0L;
@@ -124,22 +122,10 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private String lastJson = "";
 
-    private final int plainTextProxyRandomPort;
-
     /**
      * Creates a new XMPP handler.
-     * 
-     * @param keyStoreManager The class for managing certificates.
-     * @param sslProxyRandomPort The port of the HTTP proxy that other peers  
-     * will relay to.
-     * @param plainTextProxyRandomPort The port of the HTTP proxy running
-     * only locally and accepting plain-text sockets.
      */
-    public DefaultXmppHandler(final int sslProxyRandomPort, 
-        final int plainTextProxyRandomPort) {
-        this.sslProxyRandomPort = sslProxyRandomPort;
-        this.plainTextProxyRandomPort = plainTextProxyRandomPort;
-        
+    public DefaultXmppHandler() {
         // This just links connectivity with Google Talk login status when 
         // running in give mode.
         new GiveModeConnectivityHandler();
@@ -198,7 +184,8 @@ public class DefaultXmppHandler implements XmppHandler {
     public void connect(final String email, final String pwd) 
         throws IOException, CredentialException {
         final InetSocketAddress plainTextProxyRelayAddress = 
-            new InetSocketAddress("127.0.0.1", plainTextProxyRandomPort);
+            new InetSocketAddress("127.0.0.1", 
+                LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
         
         NatPmpService natPmpService = null;
         try {
@@ -221,7 +208,7 @@ public class DefaultXmppHandler implements XmppHandler {
         
         final UpnpService upnpService = new Upnp();
         this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService, 
-            upnpService, new InetSocketAddress(this.sslProxyRandomPort), 
+            upnpService, new InetSocketAddress(LanternHub.settings().getServerPort()), 
             //newTlsSocketFactory(), SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
             LanternUtils.newTlsSocketFactory(), LanternUtils.newTlsServerSocketFactory(),
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
