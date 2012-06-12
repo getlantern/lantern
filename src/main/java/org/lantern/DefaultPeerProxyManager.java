@@ -3,7 +3,6 @@ package org.lantern;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -20,11 +19,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
-import org.jivesoftware.smack.packet.Presence;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.eventbus.Subscribe;
 
 /**
  * Class the keeps track of P2P connections to peers, dispatching them and
@@ -244,6 +240,11 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     }
 
     @Override
+    public void removePeer(final URI uri) {
+        this.certPeers.remove(uri);
+    }
+    
+    @Override
     public void closeAll() {
         for (final ConnectionTimeSocket sock : this.timedSockets) {
             sock.requestProcessor.close();
@@ -254,4 +255,5 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     public String toString() {
         return getClass().getSimpleName()+"-"+hashCode()+" anon: "+anon;
     }
+
 }
