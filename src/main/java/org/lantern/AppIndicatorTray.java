@@ -191,6 +191,10 @@ public class AppIndicatorTray implements SystemTray {
     @Override
     public void addUpdate(final Map<String, Object> data) { 
         LOG.info("Adding update data: {}", data);
+        if (this.updateData != null && this.updateData.equals(data)) {
+            LOG.info("Ignoring duplicate update data");
+            return;
+        }
         this.updateData = data;
         final String label = I18n.tr("Update to Lantern ") + 
             data.get(LanternConstants.UPDATE_VERSION_KEY);
