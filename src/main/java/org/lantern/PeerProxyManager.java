@@ -19,4 +19,6 @@ public interface PeerProxyManager {
     
     void closeAll();
 
+    void removePeer(URI uri);
+
 }

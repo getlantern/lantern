@@ -11,4 +11,6 @@ public interface SystemTray {
 
     void addUpdate(Map<String, String> updateData);
 
+    boolean isActive();
+
 }

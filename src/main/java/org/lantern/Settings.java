@@ -1,8 +1,13 @@
 package org.lantern;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetSocketAddress;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -15,7 +20,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
-import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,14 +38,39 @@ public class Settings implements MutableSettings {
     public static class PersistentSettings {}
     public static class UIStateSettings {}
     
-    // settings that are set at the command line
-    public static class CommandLineSettings {}
-    
-    // by default, if not marked, fields will be serialized in 
-    // any of the above. To exclude a field from any other class
-    // mark it as transient/internal
-    public static class TransientInternalOnly {} 
+    /**
+     * Settings that are not sent to the UI or persisted to disk.
+     */
+    public static class TransientSettings {}
 
+    // by default, if not marked, fields will be serialized in 
+    // all of the above classes. To exclude a field from other
+    // class mark it as @JsonIgnore
+
+    
+    // These settings are controlled from the command line 
+    // and survive events that reload the persistent settings
+    // (ie resetting and unlocking)
+    // 
+    // If non-null, they are overlaid on the loaded persistent 
+    // settings values. This is necessary to preserve settings 
+    // such as the current api port and availability flags for
+    // features (ui, keychain, peer types etc) that may preceed 
+    // or affect the way settings are loaded and are generally 
+    // not expected to change during a single run.  They are 
+    // generally orthogonal to the persistent settings. 
+    //
+    // The overrides field may be specified to force overlay 
+    // of the setting onto another setting at reload time.
+    // This is preferred to having a setting that is persistent 
+    // and survives reset to avoid an un-resettable setting.
+    //
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({ElementType.METHOD})
+    public @interface CommandLineOption {
+        String override() default "";
+    }
+    
     private Whitelist whitelist;
     
     private ConnectivityStatus connectivity = ConnectivityStatus.DISCONNECTED; 
@@ -52,13 +81,19 @@ public class Settings implements MutableSettings {
     private boolean isSystemProxy = true;
     
     private int port = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
+    private int serverPort = LanternUtils.randomPort();
     private String version = LanternConstants.VERSION;
     private boolean connectOnLaunch = true;
     private String language = Locale.getDefault().getLanguage();
     
     private SettingsState settings = new SettingsState();
-    /* user has completed 'wizard' setup steps */
+    
+    /**
+     * User has completed 'wizard' setup steps. 
+     */
     private boolean initialSetupComplete = false;
+    
+    private boolean autoConnectToPeers = true;
     
     private GoogleTalkState googleTalkState = 
         GoogleTalkState.LOGGED_OUT;
@@ -75,9 +110,13 @@ public class Settings implements MutableSettings {
     
     private String email;
     
+    private String commandLineEmail;
+
     private String password;
     
     private String storedPassword;
+
+    private String commandLinePassword;
     
     /**
      * Whether or not to save the user's Google account password on disk.
@@ -90,7 +129,7 @@ public class Settings implements MutableSettings {
      */
     private boolean useCloudProxies = true;
     
-    private final AtomicBoolean getMode = new AtomicBoolean(false);
+    private AtomicBoolean getMode = null;
     
     private boolean bindToLocalhost = true;
     
@@ -128,6 +167,15 @@ public class Settings implements MutableSettings {
     private Set<InetSocketAddress> peerProxies = 
         new HashSet<InetSocketAddress>();
 
+    private boolean useTrustedPeers = true;
+    private boolean useAnonymousPeers = true;
+    private boolean useLaeProxies = true;
+    private boolean useCentralProxies = true;
+
+    private final Object getModeLock = new Object();
+    
+    private Set<String> stunServers = new HashSet<String>();
+
     {
         LanternHub.register(this);
         threadPublicIpLookup();
@@ -146,16 +194,24 @@ public class Settings implements MutableSettings {
      */
     private void threadPublicIpLookup() {
         final Thread thread = new Thread(new Runnable() {
-
             @Override
             public void run() {
-                getMode.set(LanternHub.censored().isCensored());
+                // This performs the public IP lookup so by the time we set
+                // GET versus GIVE mode we already know the IP and don't have
+                // to wait.
                 final Country count = LanternHub.censored().country();
                 if (countryDetected.get() == null) {
                     countryDetected.set(count);
                 }
                 if (country.get() == null) {
                     country.set(count);
+                }
+                
+                synchronized (getModeLock) {
+                    if (getMode == null) {
+                        getMode = new AtomicBoolean(
+                            LanternHub.censored().isCensored());
+                    }
                 }
             }
             
@@ -192,6 +248,15 @@ public class Settings implements MutableSettings {
     @Override
     public void setPort(final int port) {
         this.port = port;
+    }
+
+    public void setServerPort(final int serverPort) {
+        this.serverPort = serverPort;
+    }
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public int getServerPort() {
+        return serverPort;
     }
     
     @JsonView(UIStateSettings.class)
@@ -265,6 +330,17 @@ public class Settings implements MutableSettings {
 
     public void setInitialSetupComplete(boolean val) {
         initialSetupComplete = val;
+    }
+
+
+    public void setCommandLineEmail(String email) {
+        commandLineEmail = email;
+    }
+
+    @JsonIgnore
+    @CommandLineOption(override="email")
+    public String getCommandLineEmail() {
+        return commandLineEmail;
     }
 
     @JsonView({UIStateSettings.class, PersistentSettings.class})
@@ -347,6 +423,16 @@ public class Settings implements MutableSettings {
         return password;
     }
 
+    public void setCommandLinePassword(String password) {
+        commandLinePassword = password;
+    }
+
+    @JsonIgnore
+    @CommandLineOption(override="password")
+    public String getCommandLinePassword() {
+        return commandLinePassword;
+    }
+
     public void setStoredPassword(final String storedPassword) {
         this.storedPassword = storedPassword;
     }
@@ -368,21 +454,32 @@ public class Settings implements MutableSettings {
 
     @Override
     public void setGetMode(final boolean getMode) {
-        this.getMode.set(getMode);
+        synchronized (getModeLock) {
+            if (this.getMode == null) {
+                this.getMode = new AtomicBoolean(getMode);
+            } else {
+                this.getMode.set(getMode);
+            }
+        }
     }
 
 
     @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isGetMode() {
-        return getMode.get();
+        synchronized (getModeLock) {
+            if (getMode == null) {
+                getMode = new AtomicBoolean(LanternHub.censored().isCensored());
+            } 
+            return getMode.get();
+        }
     }
 
-    public void setBindToLocalhost(boolean bindToLocalhost) {
+    public void setBindToLocalhost(final boolean bindToLocalhost) {
         this.bindToLocalhost = bindToLocalhost;
     }
 
-
-    @JsonView({UIStateSettings.class, CommandLineSettings.class})
+    @JsonView({UIStateSettings.class})
+    @CommandLineOption
     public boolean isBindToLocalhost() {
         return bindToLocalhost;
     }
@@ -392,7 +489,8 @@ public class Settings implements MutableSettings {
     }
 
 
-    @JsonView({UIStateSettings.class, CommandLineSettings.class})
+    @JsonView({UIStateSettings.class})
+    @CommandLineOption
     public int getApiPort() {
         return apiPort;
     }
@@ -459,10 +557,12 @@ public class Settings implements MutableSettings {
         return passwordSaved;
     }
 
+    /*
     @JsonView(UIStateSettings.class)
     public HttpsEverywhere getHttpsEverywhere() {
         return LanternHub.httpsEverywhere();
     }
+    */
     
     public void setWhitelist(Whitelist whitelist) {
         this.whitelist = whitelist;
@@ -478,7 +578,8 @@ public class Settings implements MutableSettings {
         this.launchd = launchd;
     }
 
-    @JsonView(CommandLineSettings.class)
+    @JsonIgnore
+    @CommandLineOption
     public boolean isLaunchd() {
         return launchd;
     }
@@ -487,7 +588,8 @@ public class Settings implements MutableSettings {
         this.uiEnabled = uiEnabled;
     }
 
-    @JsonView(CommandLineSettings.class)    
+    @JsonIgnore
+    @CommandLineOption
     public boolean isUiEnabled() {
         return uiEnabled;
     }
@@ -502,6 +604,15 @@ public class Settings implements MutableSettings {
     @JsonView(UIStateSettings.class)
     public boolean isLocalPasswordInitialized() {
         return LanternHub.localCipherProvider().isInitialized();
+    }
+
+    public void setAutoConnectToPeers(final boolean autoConnectToPeers) {
+        this.autoConnectToPeers = autoConnectToPeers;
+    }
+
+    @JsonView(TransientSettings.class)
+    public boolean isAutoConnectToPeers() {
+        return autoConnectToPeers;
     }
 
     public void addProxy(final String proxy) {
@@ -548,6 +659,56 @@ public class Settings implements MutableSettings {
     public void removePeerProxy(final InetSocketAddress proxy) {
         this.peerProxies.remove(proxy);
     }
+    
+
+    public void setUseTrustedPeers(final boolean useTrustedPeers) {
+        this.useTrustedPeers = useTrustedPeers;
+    }
+    
+    @JsonView({UIStateSettings.class})
+    @CommandLineOption
+    public boolean isUseTrustedPeers() {
+        return useTrustedPeers;
+    }
+
+    public void setUseLaeProxies(boolean useLaeProxies) {
+        this.useLaeProxies = useLaeProxies;
+    }
+
+    @JsonView({UIStateSettings.class})
+    @CommandLineOption
+    public boolean isUseLaeProxies() {
+        return useLaeProxies;
+    }
+
+    public void setUseAnonymousPeers(boolean useAnonymousPeers) {
+        this.useAnonymousPeers = useAnonymousPeers;
+    }
+
+    @JsonView({UIStateSettings.class})
+    @CommandLineOption
+    public boolean isUseAnonymousPeers() {
+        return useAnonymousPeers;
+    }
+
+    public void setUseCentralProxies(final boolean useCentralProxies) {
+        this.useCentralProxies = useCentralProxies;
+    }
+
+    @JsonView({UIStateSettings.class})
+    @CommandLineOption
+    public boolean isUseCentralProxies() {
+        return useCentralProxies;
+    }
+    
+    public void setStunServers(final Set<String> stunServers){
+        this.stunServers = stunServers;
+    }
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public Collection<String> getStunServers() {
+        return stunServers;
+    }
 
     @Override
     public String toString() {
@@ -573,34 +734,36 @@ public class Settings implements MutableSettings {
     }
     
     /** 
-     * copy properties annotated with the given jsonView class 
+     * copy properties annotated with the CommandLineOption setting 
      * from this Settings object to the Settings object given. 
      * 
      * copy is shallow!
      */
-    public void copyView(Settings into, Class<?> selector)
+    public void copyCLI(Settings into)
         throws IllegalAccessException, IllegalArgumentException, 
                InvocationTargetException, NoSuchMethodException {
         for (final Method method : Settings.class.getMethods()) {
-            if (method.isAnnotationPresent(JsonView.class)) {
-                final JsonView v = method.getAnnotation(JsonView.class);
-                for (final Class<?> c : v.value()) {
-                    if (c == selector) {
-                        // method is annotated with selected JsonView
-                        // try to transfer property.
-                        final String propertyName = LanternUtils.methodNameToProperty(method.getName()); 
-                        if (propertyName != null) {
-                            PropertyUtils.setSimpleProperty(into, propertyName,
-                                PropertyUtils.getSimpleProperty(this, propertyName));
-                            log.debug("copied setting {}", propertyName);
-                        }
-                        else {
-                            log.error("Skipping copy of annotated but unbeanish method \"{}\": can't determine prop name", method.getName());
+            if (method.isAnnotationPresent(CommandLineOption.class)) {
+                final CommandLineOption v = method.getAnnotation(CommandLineOption.class);
+                final String propertyName = LanternUtils.methodNameToProperty(method.getName());
+                if (propertyName != null) {
+                    Object val = PropertyUtils.getSimpleProperty(this, propertyName);
+                    if (val != null) {
+
+                        PropertyUtils.setSimpleProperty(into, propertyName, val);
+                        log.debug("copied setting {}", propertyName);
+                        
+                        final String override = v.override();
+                        if (!override.equals("")) {
+                            PropertyUtils.setSimpleProperty(into, override, val);
+                            log.debug("override setting {} = {}", override, propertyName);
                         }
                     }
                 }
+                else {
+                    log.error("Skipping copy of annotated but unbeanish method \"{}\": can't determine prop name", method.getName());
+                }
             }
         }
-        
     }
 }

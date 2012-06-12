@@ -31,6 +31,7 @@ var FETCHSUCCESS = 'fetch succeeded';
 
 // http://html5pattern.com/
 var HOSTNAMEPAT = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/;
+var IPADDRPAT = /((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$/;
 
 var BYTEDIM = {GB: 1024*1024*1024, MB: 1024*1024, KB: 1024, B: 1};
 var BYTESTR = {GB: 'gigabyte', MB: 'megabyte', KB: 'kilobyte', B: 'byte'};
@@ -40,6 +41,7 @@ function clickevt2id(evt){
   return evt.currentTarget.href.match(FRAGMENTPAT)[1];
 }
 
+// XXX check for Lion or greater (new scrollbars are kept in mountain lion)
 var LION = !!navigator.userAgent.match(/Mac OS X 10_7/);
 function lionbarsify($el){
   if(LION || !$el.length || $el.hasClass('lionbarsified'))
@@ -62,11 +64,16 @@ function showid(id, ignorecls, ignore){
   if($el.hasClass('selected')){
     return;
   }
+  if(id == '#proxiedsites' || id == '#trusted'){
+    showid('#settings');
+    location.hash = id;
+  }
   $('.' + cls + '.selected').removeClass('selected');
   $el.addClass('selected').show();
   if(cls === 'panel'){
     $('#panel-list > li > a.selected').removeClass('selected');
     $('#panel-list > li > a[href='+id+']').addClass('selected');
+    $('.flashmsg:not(#tip-trayicon), .overlay').fadeOut().removeClass('selected');
   }
   lionbarsify($el.find('.lionbars'));
 }
@@ -184,6 +191,9 @@ function LDCtrl(){
     return self._passreqtxt;
   };
 
+  self._logging_in = false;
+  self._login_failed = false;
+
   self.resetshowsignin = function() {
     self._showsignin = self.logged_out() && !self.state.passwordSaved;
     console.log('set _showsignin to', self._showsignin);
@@ -237,7 +247,7 @@ function LDCtrl(){
   bindprops('connectivity', {'DISCONNECTED':0, 'CONNECTING':0, 'CONNECTED':0});
   bindprops('googleTalkState', {'LOGGING_OUT':0, 'LOGGING_IN':0, 'LOGGED_IN':0, 'LOGIN_FAILED':0});
   self.logged_out = function(){ var gts = self.state.googleTalkState; return gts === 'LOGGED_OUT' || gts === 'LOGIN_FAILED'; };
-  self.badcredentials = false;
+  self.badcredentials = null;
 
   self.conncaption = function(){
     var c = self.state.connectivity;
@@ -265,7 +275,7 @@ function LDCtrl(){
   };
 
   self.switchlinktext = function(){
-    if(self.connected())
+    //if(self.connected())
       return 'Switch to '+(self.state.getMode?'giv':'gett')+'ing access';
   };
 
@@ -324,7 +334,7 @@ function LDCtrl(){
     }
     if(self.logged_in()){
       if(self.sameuser() && !self.inputpassword){
-        console.log('ingoring signin as', self.state.email, ', already signed in as that user and no new password supplied');
+        console.log('ingoring signin as', self.state.email, ', already signed in as that user or no new password supplied');
         self.showsignin(false);
         self.inputpassword = '';
         return;
@@ -340,13 +350,17 @@ function LDCtrl(){
       }
       data.password = self.inputpassword;
     }
-    // XXX force this for smoother looking login
-    self.state.googleTalkState = 'LOGGING_IN';
+    // XXX control this state ourselves due to synchronization issues with backend (#252)
+    self._logging_in = true;
+    self._login_failed = false;
+    self.badcredentials = null;
     self.$digest();
     console.log('Signing in with:', data);
     $.post('/api/signin', data).done(function(state){
       console.log('signin succeeded');
+      self.inputemail = '';
       self.inputpassword = '';
+      self.pmfromemail = '';
       self.showsignin(false);
       self.update(state);
       if(!self.state.initialSetupComplete){
@@ -365,18 +379,20 @@ function LDCtrl(){
       default:
         console.log('unexpected signin response status code:', code);
       }
-      self.state.googleTalkState = 'LOGIN_FAILED';
-      self.$digest();
+      self._login_failed = true;
       if(self.state.initialSetupComplete)
         self.showsignin(true);
       console.log('signin failed:', code);
+    }).always(function(){
+      self._logging_in = false;
+      self.$digest();
     });
   };
 
   self.fs_submit_src = function(){
     if(self.fsform.$invalid && !(self.logged_in() && self.sameuser()))
       return 'img/arrow-right-disabled.png';
-    if(self.logging_in())
+    if(self._logging_in)
       return 'img/spinner-big.gif';
     return 'img/arrow-right.png';
   };
@@ -494,15 +510,18 @@ function LDCtrl(){
   
 
   self._validatewhitelistentry = function(val){
-    // XXX ip addresses acceptable?
-    if(!HOSTNAMEPAT.test(val)){
+    if(!HOSTNAMEPAT.test(val) && !IPADDRPAT.test(val)){
       console.log('not a valid hostname:', val, '(so much for html5 defenses)');
       return false;
     }
     return true;
   };
 
-  self.updatewhitelist = function(site, newsite){
+  self.undo = function(){
+    self._undo();
+    $('.flashmsg').hide();
+  };
+  self.updatewhitelist = function(site, newsite, noundo){
     if(typeof newsite === 'string'){
       if(newsite === site){
         console.log('site == newsite == ', site, 'ignoring');
@@ -513,24 +532,65 @@ function LDCtrl(){
         $.post('/api/addtowhitelist?site=' + newsite).done(function(r2){
           self.whitelist = r2.entries;
           self.$digest();
-          console.log('/api/addtowhitelist?site='+site+' succeeded');
+          console.log('/api/addtowhitelist?site='+newsite+' succeeded');
+
+          // scroll to and highlight
+          var $newentry = $('.whitelistentry[value="'+newsite+'"]').parents('li');
+          $newentry.scrollIntoView({
+            complete: function(){
+              $newentry.css('background-color', '#ffa').animate({backgroundColor: '#fff'}, 2000);
+            }
+          });
+
+          // show flash msg with undo
+          if(!noundo){
+            self._undo = function(){
+              self.updatewhitelist(newsite, site, true);
+            };
+            $('.flashmsg').hide();
+            $('#flash-main .content').addClass('success').removeClass('error')
+              .html('Changed ' + site + ' to ' + newsite + '. <a onclick=getscope().undo()>Undo</a>').parent('#flash-main').fadeIn();
+          }
         }).fail(function(){
-          console.log('/api/addtowhitelist?site='+site+' failed');
-        });
+          console.log('/api/addtowhitelist?site='+newsite+' failed');
+          $('.flashmsg').hide();
+          $('#flash-main .content').addClass('error').removeClass('success')
+            .html('Failed to add ' + newsite).parent('#flash-main').fadeIn();
+          });
         self.whitelist = r1.entries;
         console.log('/api/removefromwhitelist?site='+site+' succeeded');
       }).fail(function(){
         console.log('/api/removefromwhitelist?site='+site+' failed');
+        $('.flashmsg').hide();
+        $('#flash-main .content').addClass('error').removeClass('success')
+          .html('Failed to remove ' + site).parent('#flash-main').fadeIn();
       });
     }else if(typeof newsite === 'boolean'){
       if(newsite && !self._validatewhitelistentry(site))return;
       var url = '/api/' + (newsite ? 'addtowhitelist' : 'removefromwhitelist') + '?site=' + site;
       $.post(url).done(function(r){
-        if(newsite)
+        if(newsite){ // site added
           $('#sitetoadd').val('');
+        }else{ // site removed
+          // show flash msg with undo
+          self._undo = function(){
+            self.updatewhitelist(site, true);
+          };
+          $('.flashmsg').hide();
+          $('#flash-main .content').addClass('success').removeClass('error')
+            .html('Removed ' + site + '. <a onclick=getscope().undo()>Undo</a>').parent('#flash-main').fadeIn();
+        }
         self.whitelist = r.entries;
         self.$digest();
         console.log(url+' succeeded');
+        if(newsite){
+          var $newentry = $('.whitelistentry[value="'+site+'"]').parents('li');
+          $newentry.scrollIntoView({
+            complete: function(){
+              $newentry.css('background-color', '#ffa').animate({backgroundColor: '#fff'}, 2000);
+            }
+          });
+        }
       }).fail(function(){
         console.log(url+' failed');
       });
@@ -599,7 +659,7 @@ SetLocalPasswordCtrl.prototype = {
       thisCtrl.servererr = null;
       thisCtrl.$digest();
       console.log('set local password succeeded.');
-      showid('#mode');
+      showid('#signin');
     }).fail(function(e){
       thisCtrl.servererr = "An error occurred setting local password.";
       thisCtrl.$digest();
@@ -629,6 +689,8 @@ $(document).ready(function(){
     return scope;
   }
 
+  window.getscope = getscope;
+
   $('input, textarea').placeholder();
 
   $(window).bind('hashchange', function(){
@@ -639,6 +701,29 @@ $(document).ready(function(){
     '#welcome-container .controls a[href], ' +
     '.overlaylink'
     ).click(function(evt){showid(clickevt2id(evt))});
+
+  function hilite(entiresettingspanel){
+    var sel = entiresettingspanel ? '#settings, #onlyproxy' : '#onlyproxy';
+    $(sel).css('background-color', '#ffffaa').animate({
+      backgroundColor: '#fff'}, 2000);
+  }
+  function mvtipti(after_else_func){
+    var $tipti = $('#tip-trayicon');
+    if (!$tipti.hasClass('moved')){
+      $tipti.animate({top: '+=305'}, 1000, after_else_func).addClass('moved');
+    } else {
+      after_else_func();
+    }
+  }
+  $('#proxiedsites-tip').click(function(evt){
+    evt.preventDefault();
+    evt.stopPropagation();
+    showid('#settings');
+    mvtipti(hilite);
+  });
+  $('#settings-tip').click(function(){
+    mvtipti(function(){hilite(true);});
+  });
 
   $('.overlay .close').click(function(evt){
     $(evt.target).parent('.overlay').removeClass('selected').hide()
@@ -657,10 +742,17 @@ $(document).ready(function(){
     }
   });
 
+
   $('.flashmsg .close').click(function(evt){
     $(evt.target).parent('.flashmsg').fadeOut();
     evt.preventDefault();
   });
+
+  /*
+  $('.hideflashmsg').click(function(evt){
+    $(evt.target).parents('.flashmsg').fadeOut();
+  });
+  */
 
   /*
   $('#userlink, #usermenu a').click(function(evt){

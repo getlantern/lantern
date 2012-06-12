@@ -21,7 +21,6 @@ $font-color-important: #c00
 $font-color-error: #c00
 $font-color-success: #26df50
 $font-color-warning: #900
-$font-color-tip: #ffa400
 $header-color: #000
 $header-color-alt: #53637d
 $link-color: #3f6ec6
@@ -97,6 +96,11 @@ $welcome-controls-wdth: 300px
 a.doc-link
   cursor: help
 
+a.outbound-link
+  color: #888
+  border-bottom: 1px #888 dotted
+  text-decoration: none
+
 .welcome-optionlist
   text-align: left
   position: relative
@@ -132,6 +136,9 @@ a.doc-link
   //p
     margin-bottom: 4px
 
+.small
+  font-size: $font-size-small
+
 #done .smallnote
   margin-top: 20px
 
@@ -163,6 +170,8 @@ form.signin
     padding: 4px
     font-size: 16pt
     +border-radius(5px)
+  input[type=text], .error
+    margin-top: -1px !important
 
 input[type=password], input.signinpwinput
   background: image-url('lock.png') no-repeat center right
@@ -688,6 +697,7 @@ $contact-wdth: 510px
   width: 64px
   border: 0
   color: $font-color-input
+  background-color: inherit
 
 #give-mode-peers input[type=checkbox]
   margin-left: 15px
@@ -725,8 +735,10 @@ button
     +background-image(linear-gradient(#a9b6c3, #7684a1 50%, #9ea7b8, #a9b6c3))
     border-color: #666
 
-#manage-trusted-link
-  margin-top: 1em
+#httpsev-li
+  font-size: 9pt
+  margin: .3em 0 .7em 0
+  color: #888
 
 p .buttonlink
   margin-left: 8px
@@ -753,6 +765,7 @@ p .buttonlink
     margin-top: 19px
 
 .flashmsg
+  z-index: 3
   display: none
   color: $font-color-input
   height: 22px
@@ -772,7 +785,34 @@ p .buttonlink
     top: 0
     right: -5px
   &.tip
-    color: $font-color-tip
+    +box-shadow($edge-color 1px 1px 20px)
+    color: #53637D
+    background-color: #fff
+    height: 226px
+    top: 12px
+    .content
+      padding: 30px
+      h1
+        font-size: 15pt
+        color: #aaa
+      div
+        margin: 10px 0 20px 0
+
+#tryit
+  font-size: $font-size-smaller
+  display: inline-block
+  background-color: $font-color-success
+  +background-image(linear-gradient($font-color-success, darken($font-color-success, 10%)))
+  padding: 1px 10px 1px 8px
+  text-decoration: none
+  color: #fff
+  +border-radius(3px)
+  &:hover
+    background: darken($font-color-success, 10%)
+
+#whatnowtxt
+  font-size: $font-size-smaller
+  margin-bottom: 0
 
 
 // --------------------
@@ -786,6 +826,10 @@ html.ie
     margin-top: -3px
   .lb-wrap
     overflow: hidden
+  #siteslist
+    //max-height: 450px
+    a.delete
+      padding-right: 32px
 
 #upgrade-ie
   display: none

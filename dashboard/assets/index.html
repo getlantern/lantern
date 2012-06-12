@@ -14,6 +14,8 @@
     <!--[if ! IE ]><!--><script>var __IE = false;</script><!--<![endif]-->
     <!--[if lt IE 9]><script src=js/lib/html5.js></script><![endif]-->
     <script src=js/lib/jquery-1.7.1.min.js></script>
+    <script src=js/lib/jquery.color.min.js></script>
+    <script src=js/lib/jquery.scrollIntoView.min.js></script>
     <script src=js/lib/jquery.placeholder.min.js></script>
     <script src=js/lib/jquery.lionbars.0.3.min.js></script>
     <script src=js/lib/json2.js></script>
@@ -83,7 +85,8 @@
           <h4>Internet freedom for everyone.</h4>
           <div class=controls>
             <figure>
-              <a ng:href="{{statelocked() && '#set-local-password' || '#mode'}}"><img src=img/arrow-right.png alt=Continue /></a>
+          <!--<a ng:href="{{statelocked() && '#set-local-password' || '#mode'}}"><img src=img/arrow-right.png alt=Continue /></a>-->
+              <a ng:href="{{statelocked() && '#set-local-password' || '#signin'}}"><img src=img/arrow-right.png alt=Continue /></a>
               <figcaption>Continue</figcaption>
             </figure>
           </div>
@@ -112,6 +115,7 @@
             </div>
           </form>
         </div>
+        <!--
         <div id=mode class=slide data-cls=slide>
           <h1>Use Lantern to</h1>
           <ul class=welcome-optionlist>
@@ -129,13 +133,14 @@
             </figure>
           </div>
         </div>
+        -->
         <div id=signin class=slide data-cls=slide>
           <h1>Sign into Google</h1>
-          <p>Lantern uses Google to connect to other users.
+          <p>Lantern uses Google Talk to connect to other users.
              <a href=#doc-overlay data-doc=why-google class="smallnote doc-link">Why?</a></p>
           <form id=firstsignin-form name=fsform class=signin ng:submit=fs_submit()>
             <ul>
-              <li><div class=error ng:class="login_failed() && 'visible' || 'hidden'">{{badcredentials && 'Bad username or password.' || 'Connection error.'}}</div></li>
+              <li><div class=error ng:class="(_login_failed && badcredentials != null) && 'visible' || 'hidden'">{{badcredentials && 'Bad username or password.' || 'Connection error.'}}</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail required autofocus /></li>
               <!--[if IE ]>
               <li><input type=password class="signinpwinput ie" placeholder=password title="This form is sent securely." /></li>
@@ -147,7 +152,8 @@
             </ul>
             <div class=controls>
               <figure class=left>
-                <a href=#mode><img src=img/arrow-left.png alt=Back /></a>
+            <!--<a href=#mode><img src=img/arrow-left.png alt=Back /></a>-->
+                <a href=#welcome><img src=img/arrow-left.png alt=Back /></a>
                 <figcaption>Back</figcaption>
               </figure>
               <figure class=right>
@@ -273,25 +279,31 @@
                 {{state.version == 'lantern_version_tok' && '(development)' || 'Lantern ' + state.version + ' beta'}}
                 <a href=#update ng:show=updateavailable() id=update-avail-link class="actionlink panellink">Update available</a>
               </p>
+              <!-- don't render changelog link in IE < 9; doesn't preserve whitespace so the injected markdown is ill-formed -->
               <!--[if gte IE 9]>
               <p>
-                <a class=showdown-link href=#md-overlay data-md="'CHANGES.md'">Changelog</a>
+                <a class="small showdown-link" href=#md-overlay data-md="'CHANGES.md'">Changelog</a>
               </p>
               <![endif]-->
+              <!--[if ! IE ]><!-->
+              <p>
+                <a class="small showdown-link" href=#md-overlay data-md="'CHANGES.md'">Changelog</a>
+              </p>
+              <!--<![endif]-->
             </dd>
           </dl>
         </div>
         <div class=panel id=settings data-cls=panel>
           <h1>Settings</h1>
           <dl>
-            <dt>Port</dt>
-            <dd>
-              <input type=text value={{state.port}} id=port min=1024 max=65535 readonly />
-            </dd>
             <dt>Mode</dt>
             <dd>
               <span id=modelabel>{{state.getMode && 'Get' || 'Give'}}</span>
               <a class=actionlink ng:click=switchmode(true)>{{switchlinktext()}}</a>
+            </dd>
+            <dt ng:show=state.getMode>Port</dt>
+            <dd ng:show=state.getMode>
+              <input type=text value={{state.port}} id=port min=1024 max=65535 readonly />
             </dd>
             <dt ng:show=state.getMode>Policy</dt>
             <dd ng:show=state.getMode>
@@ -302,15 +314,18 @@
                     Proxy all sites
                   </label>
                 </li>
-                <li>
+                <li id=onlyproxy>
                   <label>
                     <input type=radio value={{false}} ng:change=toggle('proxyAllSites') ng:model=state.proxyAllSites />
                     Only proxy certain sites
                   </label>
                   <a class="overlaylink actionlink" ng:show=!state.proxyAllSites href=#proxiedsites>Manage proxied sites...</a>
                 </li>
+                <li id=httpsev-li>Http traffic will be redirected over https
+                  using rulesets from <a class=outbound-link href=https://www.eff.org/https-everywhere title=https://www.eff.org/https-everywhere target=_blank>HTTPS Everywhere</a>
+                </li>
                 <li>
-                  <a class="overlaylink buttonlink" id=manage-trusted-link href=#trusted>Manage trusted peers...</a>
+                  <a class="overlaylink buttonlink" href=#trusted>Manage trusted peers...</a>
                 </li>
               </ul>
             </dd>
@@ -341,15 +356,11 @@
           </p>
           <textarea ng:model=pm id=pm-textarea class=lionbars placeholder="Private message to Lantern developers" title="This form is sent securely."></textarea>
           <div id=pm-controls>
-            <span ng:show=logged_out() class=extra>
-              <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()">Sign in</a>
-              to send feedback
-            </span>
-            <span ng:show=connected()>
+            <span>
               <label><input type=checkbox ng:model=pmsendfrom /> Send From:</label>
               <input id=pm-replyto type=email ng:model=pmfromemail ng:disabled={{!pmsendfrom}} ng:required={{pmsendfrom}} placeholder=email@example.com />
             </span>
-            <button id=pm-send class=buttonlink ng:disabled="{{!connected() || !pm}}" ng:click=sendpm()>Send</button>
+            <button id=pm-send class=buttonlink ng:disabled="{{!pm}}" ng:click=sendpm()>Send</button>
           </div>
         </div>
         <div class=panel id=update data-cls=panel>
@@ -374,7 +385,7 @@
           <a class=close ng:click="showsignin(false)">×</a>
           <form name=signinform class=signin ng:submit=signin(inputemail)>
             <ul>
-                <li><div class=error ng:class="login_failed() && 'visible' || 'hidden'">{{badcredentials && 'Bad username or password.' || 'Connection error.'}}</div></li>
+                <li><div class=error ng:class="(_login_failed && badcredentials != null) && 'visible' || 'hidden'">{{badcredentials && 'Bad username or password.' || 'Connection error.'}}</div></li>
               <li><input type=text placeholder=email@example.com ng:model=inputemail required /></li>
               <!--[if IE ]>
               <li><input type=password class="signinpwinput ie" placeholder=password title="This form is sent securely." /></li>
@@ -384,8 +395,8 @@
               <!--<![endif]-->
               <li><label><input type=checkbox ng:model=state.savePassword ng:change=toggle('savePassword') /> Save password</label></li>
             </ul>
-            <button ng:show=!logging_in() type=submit ng:disabled="{{(logged_in() && sameuser() && !__IE && !inputpassword) || (passrequired() && !__IE && !inputpassword)}}" >Sign in</button>
-            <img class=spinner src=img/spinner-big.gif alt="Signing in..." ng:show=logging_in() />
+            <button ng:show=!_logging_in type=submit ng:disabled="{{(logged_in() && sameuser() && !__IE && !inputpassword) || (passrequired() && !__IE && !inputpassword)}}" >Sign in</button>
+            <img class=spinner src=img/spinner-big.gif alt="Signing in..." ng:show=_logging_in />
           </form>
         </div>
         </div>
@@ -423,11 +434,23 @@
 
         <div class="flashmsg tip" id=tip-trayicon>
           <a class=close>×</a>
-          <span class=content>
-            Tip: Look for the
-            <img src=img/16on.png alt="Lantern connected icon" />
-            icon in your {{iconloctxt()}} when you need to find Lantern.
-          </span>
+          <div class=content>
+            <h1>Huzzah!</h1>
+            <div ng:show=state.getMode>
+              Traffic to your <a id=proxiedsites-tip href=#proxiedsites>proxied sites</a> will now be routed through your Lantern peers.
+              <a id=tryit href=https://www.getlantern.org/check target=_blank>Try it</a>
+            </div>
+            <div ng:show=!state.getMode>
+              Your internet connection is now being made available to those who need it.<br/>
+              Thanks for helping to keep the web free and open to everyone.
+            </div>
+            <h1>What now?</h1>
+            <div id=whatnowtxt>
+              Feel free to review your <a id=settings-tip href=#settings>Settings</a>,
+              or just close this window and leave Lantern running in the background.
+              Look for the <img src=img/16on.png alt="Lantern" /> icon in your {{iconloctxt()}} when you’d like to get back here.<br/>
+            </div>
+          </div>
         </div>
 
         <div class=flashmsg id=flash-main>
@@ -447,21 +470,8 @@
         <a class=close>×</a>
         <div class=doc id=why-google>
           <p>Lantern works by connecting users around the world together in a
-          peer-to-peer network. By signing in with your Google account, you
-          allow Lantern to take advantage of any trusted relationships between
-          you and any contacts you may have on the other side of the censorship
-          divide. Knowing about trusted relationships is critical to the speed
-          and safety of Lantern’s design.
-          </p>
-
-          <p>Those using Lantern to get access choose which of their Google
-          contacts they would trust to proxy any unencrypted traffic. Whenever
-          these trusted contacts are connected to Lantern, Lantern can securely
-          route traffic through them from the people who trust them, even when
-          the destination site does not offer an encrypted (https) connection.
-          If everyone on the Lantern network were connected anonymously,
-          Lantern would not be able to take advantage of these trusted
-          relationships, and the network would be much less efficient.
+          peer-to-peer network. Signing into Google Talk allows you to connect
+          to users you know and trust, and not just anyone.
           </p>
         </div>
         <div class=doc id=unencrypted-traffic>

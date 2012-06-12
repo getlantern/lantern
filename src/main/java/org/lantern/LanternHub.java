@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.security.SecureRandom;
-import java.util.Map;
 import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
@@ -16,7 +15,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.widgets.Display;
-import org.lantern.AppIndicatorTray;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.InMemoryCookieTracker;
 import org.lantern.httpseverywhere.HttpsEverywhere;
@@ -61,8 +59,8 @@ public class LanternHub {
     
     private static final AtomicReference<StatsTracker> statsTracker = 
         new AtomicReference<StatsTracker>();
-    private static final AtomicReference<LanternKeyStoreManager> proxyKeyStore = 
-        new AtomicReference<LanternKeyStoreManager>();
+    private static final LanternKeyStoreManager proxyKeyStore = 
+        new LanternKeyStoreManager();
     
     private static final AtomicReference<XmppHandler> xmppHandler = 
         new AtomicReference<XmppHandler>();
@@ -120,7 +118,7 @@ public class LanternHub {
         new AtomicReference<Settings>();
     
     private static final Configurator configurator = new Configurator();
-    
+
     static {
         // start with an UNSET settings object until loaded
         settings.set(new Settings());
@@ -200,23 +198,7 @@ public class LanternHub {
     public static SystemTray systemTray() {
         synchronized (systemTray) {
             if (systemTray.get() == null) {
-                if (settings().isUiEnabled()) {
-                    if (SystemUtils.IS_OS_LINUX && AppIndicatorTray.isSupported()) {
-                        final SystemTray tray = new AppIndicatorTray();
-                        systemTray.set(tray);
-                    }
-                    else {
-                        final SystemTray tray = new SystemTrayImpl();
-                        systemTray.set(tray);
-                    }
-                } else {
-                    return new SystemTray() {
-                        @Override
-                        public void createTray() {}
-                        @Override
-                        public void addUpdate(Map<String, String> updateData) {}
-                    };
-                }
+                systemTray.set(new FallbackTray());
             }
             return systemTray.get();
         }
@@ -230,21 +212,15 @@ public class LanternHub {
             return statsTracker.get();
         }
     }
-
+    
     public static LanternKeyStoreManager getKeyStoreManager() {
-        synchronized (proxyKeyStore) {
-            if (proxyKeyStore.get() == null) {
-                proxyKeyStore.set(new LanternKeyStoreManager());
-            }
-            return proxyKeyStore.get();
-        }
+        return proxyKeyStore;
     }
 
     public static XmppHandler xmppHandler() {
         synchronized (xmppHandler) {
             if (xmppHandler.get() == null) {
-                xmppHandler.set(new DefaultXmppHandler(randomSslPort(), 
-                    LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT));
+                xmppHandler.set(new DefaultXmppHandler());
             }
             return xmppHandler.get();
         }
@@ -252,15 +228,6 @@ public class LanternHub {
     
     public static void setXmppHandler(final XmppHandler xmpp) {
         xmppHandler.set(xmpp);
-    }
-
-    public static int randomSslPort() {
-        synchronized (randomSslPort) {
-            if (randomSslPort.get() == -1) {
-                randomSslPort.set(LanternUtils.randomPort());
-            }
-            return randomSslPort.get();
-        }
     }
 
     public static JettyLauncher jettyLauncher() {
@@ -417,6 +384,10 @@ public class LanternHub {
             return dashboard.get();
         }
     }
+    
+    public static LanternTrustManager trustManager() {
+        return LanternHub.getKeyStoreManager().getTrustManager();
+    }
 
     public static void resetSettings(boolean retainCLIOptions) {
         final Settings old = settings.get();
@@ -433,7 +404,7 @@ public class LanternHub {
         final Settings cur = settings();
         if (retainCLIOptions == true && cur != null && old != null) {
             try {
-                old.copyView(cur, Settings.CommandLineSettings.class);
+                old.copyCLI(cur);
             }
             catch (final Throwable t) {
                 LOG.error("error copying command line settings! {}", t);
@@ -534,7 +505,9 @@ public class LanternHub {
     /* this should do whatever is necessary to reset back to 'factory' defaults */
     public static void destructiveFullReset() throws IOException {
         LanternHub.localCipherProvider().reset();
-        FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
+        if (LanternConstants.DEFAULT_SETTINGS_FILE.isFile()) {
+            FileUtils.forceDelete(LanternConstants.DEFAULT_SETTINGS_FILE);
+        }
         LanternHub.resetSettings(true); // does not affect command line though...
         LanternHub.resetUserConfig(); // among others, TrustedContacts...
     }

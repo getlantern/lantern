@@ -42,9 +42,32 @@ public class LanternTrustManager implements X509TrustManager {
         this.ksm = ksm;
         this.trustStoreFile = trustStoreFile;
         this.password = password;
+        addStaticCerts();
+        
+        // This has to go after the certs are added!!
         this.keyStore = getKs();
     }
     
+    private void addStaticCerts() {
+        addCert("google-equifax-root.crt", "gmail.com");
+        addCert("lantern_littleproxy_cert", "littleproxy");
+    }
+
+    private void addCert(final String fileName, final String alias) {
+        final File cert = new File(fileName);
+        if (!cert.isFile()) {
+            log.error("No cert at "+cert);
+            System.exit(1);
+        }
+        log.info("Importing cert");
+        final String result = LanternUtils.runKeytool("-import", 
+            "-noprompt", "-file", cert.getName(), 
+            "-alias", alias, "-keystore", 
+            trustStoreFile.getAbsolutePath(), "-storepass",  this.password);
+        
+        log.info("Result of running keytool: {}", result);
+    }
+
     private KeyStore getKs() {
         try {
             final KeyStore ks = KeyStore.getInstance("JKS");
@@ -106,6 +129,9 @@ public class LanternTrustManager implements X509TrustManager {
             "-storepass", this.password);
         log.info("Result of deleting old cert: {}", deleteResult);
         
+        
+        // TODO: We should be able to just add it to the trust store here 
+        // without saving
         final String importResult = LanternUtils.runKeytool("-importcert", 
             "-noprompt", "-alias", fileName, "-keystore", 
             trustStoreFile.getAbsolutePath(), 
@@ -120,19 +146,27 @@ public class LanternTrustManager implements X509TrustManager {
         certFile.delete();
     }
 
+    @Override
     public X509Certificate[] getAcceptedIssuers() {
         return new X509Certificate[0];
     }
 
+    @Override
     public void checkClientTrusted(final X509Certificate[] chain, 
         final String authType) throws CertificateException {
-        log.info("UNKNOWN CLIENT CERTIFICATE: " + chain[0].getSubjectDN());
+        log.info("CHECKING IF CLIENT IS TRUSTED");
+        authenticate(chain, authType);
     }
 
     @Override
     public void checkServerTrusted(final X509Certificate[] chain, 
         final String authType) throws CertificateException {
         log.info("CHECKING IF SERVER IS TRUSTED");
+        authenticate(chain, authType);
+    }
+
+    private void authenticate(X509Certificate[] chain, String authType)
+        throws CertificateException {
         if (chain == null || chain.length == 0) {
             throw new IllegalArgumentException(
                 "null or zero-length certificate chain");
@@ -148,7 +182,7 @@ public class LanternTrustManager implements X509TrustManager {
             throw new CertificateException("No name!!");
         }
         final String alias = StringUtils.substringAfterLast(name, "CN=");
-        log.info("CHECKING SERVER CERTIFICATE FOR: " + alias);
+        log.info("CHECKING FOR CERTIFICATE UNDER: " + alias);
         try {
             final Certificate local = this.keyStore.getCertificate(alias);
             if (local == null) {
@@ -172,6 +206,17 @@ public class LanternTrustManager implements X509TrustManager {
             throw new CertificateException("Sig: "+cert, e);
         }
         log.info("Certificates matched!");
-        
+    }
+
+    public String getTruststorePath() {
+        return trustStoreFile.getAbsolutePath();
+    }
+
+    public String getTruststorePassword() {
+        return this.password;
+    }
+
+    public KeyStore getTruststore() {
+        return this.keyStore;
     }
 }
