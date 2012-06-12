@@ -55,9 +55,13 @@ public class Proxifier {
             final File Lantern = new File("Lantern");
             if (!Lantern.isFile()) {
                 LOG.info("Creating hard link to osascript...");
-                final String result = 
-                    mpm.runScript("ln", "/usr/bin/osascript", "Lantern");
-                LOG.info("Result of script is: {}", result);
+                try {
+                    final String result = 
+                        mpm.runScript("ln", "/usr/bin/osascript", "Lantern");
+                    LOG.info("Result of script is: {}", result);
+                } catch (final IOException e) {
+                    LOG.warn("Error creating hard link!!", e);
+                }
             } else {
                 LOG.info("Appears to already be a link to osascript");
             }
@@ -190,12 +194,19 @@ public class Proxifier {
         // XXX @myleshorton can we skip this when there's no need to change
         // system proxy settings, e.g. an unproxy call after a proxy call was
         // canceled, or vice versa?
-        final String result = 
-            //mpm.runScript("osascript", "-e", applescriptCommand);
-            mpm.runScript("./Lantern", "-e", applescriptCommand);
-        LOG.info("Result of script is: {}", result);
-        
-        if (result.contains("canceled")) {
+        try {
+            final String result = //mpm.runScript("osascript", "-e", applescriptCommand);
+                mpm.runScript("./Lantern", "-e", applescriptCommand);
+            LOG.info("Result of script is {}", result);
+        } catch (final IOException e) {
+            final String msg = e.getMessage();
+            if (!msg.contains("canceled")) {
+                // Could just be another language here...
+                LOG.error("Script failure with unknown message: "+msg, e);
+            } else {
+                LOG.info("Exception running script", e);
+            }
+            LanternHub.settings().setSystemProxy(false);
             throw new ProxyConfigurationCancelled();
         }
     }

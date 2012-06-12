@@ -346,14 +346,24 @@ public class MacProxyManager {
         return output;
     }
     
-    public String runScript(final String script, final String... args) {
+    public String runScript(final String script, final String... args) 
+        throws IOException {
         log.info("Got args: {}", Arrays.asList(args));
         final CommandLine command = new CommandLine(script, args);
         command.execute();
         final String output = command.getStdOut();
         if (!command.isSuccessful()) {
             //throw new RuntimeException("exec return code " + command.getStdOut() + ": " + output);
-            log.warn("Command failed!! -- {}", args);
+            // This will happen if the user has security settings set and
+            // cancels, for example.
+            final String msg =
+                "Command failed!! Args: "+Arrays.asList(args)+" Result: "+output;
+            if (output != null && !output.contains("canceled")) {
+                log.warn(msg);
+            } else {
+                log.info(msg);
+            }
+            throw new IOException(msg);
         }
         return output;
     }
