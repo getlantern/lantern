@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import javax.security.auth.login.CredentialException;
 
+import org.jivesoftware.smack.packet.Presence;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 
 /**
@@ -37,5 +38,14 @@ public interface XmppHandler extends ProxyStatusListener, ProxyProvider {
         CredentialException;
 
     void clearProxies();
+
+    /**
+     * Adds or removes a peer depending on the peer's availability 
+     * advertised in its presence.
+     * 
+     * @param p The presence.
+     * @param from The full peer JID.
+     */
+    void addOrRemovePeer(Presence p, String from);
 
 }
