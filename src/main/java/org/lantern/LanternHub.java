@@ -74,9 +74,6 @@ public class LanternHub {
     private static final AtomicReference<SettingsChangeImplementor> settingsChangeImplementor =
         new AtomicReference<SettingsChangeImplementor>(new DefaultSettingsChangeImplementor());
 
-    private static final AtomicReference<Integer> randomSslPort = 
-        new AtomicReference<Integer>(-1);
-    
     private static final AtomicReference<Timer> timer =
         new AtomicReference<Timer>();
     

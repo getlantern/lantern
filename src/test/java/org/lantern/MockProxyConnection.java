@@ -77,6 +77,12 @@ class MockProxyConnection extends MockConnection {
                         // TODO Auto-generated method stub
                         
                     }
+
+                    @Override
+                    public void removePeer(URI uri) {
+                        // TODO Auto-generated method stub
+                        
+                    }
                     
                 };
             }

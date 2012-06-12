@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
-import com.sun.jna.Callback;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 
@@ -77,6 +76,8 @@ public class AppIndicatorTray implements SystemTray {
     private Gobject.GCallback quitItemCallback;
 
     FailureCallback _failureCallback = null;
+
+    private Map<String, Object> updateData;
 
     public AppIndicatorTray() {        
     }
@@ -188,8 +189,23 @@ public class AppIndicatorTray implements SystemTray {
     }
     
     @Override
-    public void addUpdate(final Map<String, String> updateData) { 
-        // TODO: Support updates in app indicator.
+    public void addUpdate(final Map<String, Object> data) { 
+        LOG.info("Adding update data: {}", data);
+        this.updateData = data;
+        final String label = I18n.tr("Update to Lantern ") + 
+            data.get(LanternConstants.UPDATE_VERSION_KEY);
+        updateItem = libgtk.gtk_menu_item_new_with_label(label);
+        updateItemCallback = new Gobject.GCallback() {
+            @Override
+            public void callback(Pointer instance, Pointer pointer) {
+                LOG.debug("updateItemCallback called");
+                NativeUtils.openUri(
+                    (String)data.get(LanternConstants.UPDATE_URL_KEY));
+            }
+        };
+        libgobject.g_signal_connect_data(updateItem, "activate", updateItemCallback,null, null, 0);
+        libgtk.gtk_menu_shell_append(menu, updateItem);
+        libgtk.gtk_widget_show_all(updateItem);
     }
 
     @Override
