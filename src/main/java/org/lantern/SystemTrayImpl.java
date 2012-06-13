@@ -123,6 +123,7 @@ public class SystemTrayImpl implements SystemTray {
                 @Override
                 public void handleEvent (final Event event) {
                     System.out.println("Got exit call");
+                    LanternHub.eventBus().post(new QuitEvent());
                     display.dispose();
                     LanternHub.xmppHandler().disconnect();
                     LanternHub.jettyLauncher().stop();
