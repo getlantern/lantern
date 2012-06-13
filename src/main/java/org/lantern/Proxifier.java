@@ -122,7 +122,7 @@ public class Proxifier {
         } else if (SystemUtils.IS_OS_WINDOWS) {
             proxyWindows();
         } else if (SystemUtils.IS_OS_LINUX) {
-            // TODO: proxyLinux();
+            proxyLinux();
         }
         // success
         try {
@@ -147,7 +147,7 @@ public class Proxifier {
         } else if (SystemUtils.IS_OS_WINDOWS) {
             unproxyWindows();
         } else if (SystemUtils.IS_OS_LINUX) {
-            // TODO: unproxyLinux();
+            unproxyLinux();
         }
         LANTERN_PROXYING_FILE.delete();
         LanternHub.eventBus().post(new ProxyingEvent(false));
@@ -157,10 +157,28 @@ public class Proxifier {
         return LANTERN_PROXYING_FILE.isFile();
     }
     
+    private static void proxyLinux() throws ProxyConfigurationError {
+        genericUbuntuProxyCall(PROXY_ON.getAbsolutePath());
+    }
+
+    private static void genericUbuntuProxyCall(String path) 
+        throws ProxyConfigurationError {
+        try {
+            final String result = 
+                mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
+                    "autoconfig-url", path);
+            LOG.info("Result of Ubuntu gsettings call: {}", result);
+        } catch (final IOException e) {
+            LOG.warn("Error calling Ubuntu proxy script!", e);
+            throw new ProxyConfigurationError();
+        }
+    }
+    
     private static void proxyOsx() throws ProxyConfigurationError {
         configureOsxProxyPacFile();
         proxyOsxViaScript();
     }
+    
 
     public static void proxyOsxViaScript() throws ProxyConfigurationError {
         proxyOsxViaScript(true);
@@ -324,6 +342,10 @@ public class Proxifier {
         
         refreshWindowsInet();
         LOG.info("Done resetting the Windows registry");
+    }
+    
+    private static void unproxyLinux() throws ProxyConfigurationError {
+        genericUbuntuProxyCall("");
     }
 
     private static void unproxyOsx() throws ProxyConfigurationError {
