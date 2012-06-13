@@ -138,6 +138,7 @@ public class Proxifier {
     
     public static void stopProxying() throws ProxyConfigurationError {
         if (!isProxying()) {
+            LOG.info("Ignoring call since we're not proxying");
             return; 
         }
 
@@ -297,6 +298,7 @@ public class Proxifier {
         LOG.info("InternetSetOption appeared to succeed?");
     }
 
+    /*
     public static void unproxy() throws ProxyConfigurationError {
         if (SystemUtils.IS_OS_WINDOWS) {
             // We first want to read the start values so we can return the
@@ -314,6 +316,7 @@ public class Proxifier {
             LOG.warn("We don't yet support proxy configuration on other OSes");
         }
     }
+    */
     
     protected static void unproxyWindows() {
         LOG.info("Resetting Windows registry settings to original values.");
