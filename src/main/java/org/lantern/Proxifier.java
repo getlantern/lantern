@@ -308,6 +308,8 @@ public class Proxifier {
             }
         } else if (SystemUtils.IS_OS_MAC_OSX) {
             unproxyOsx();
+        } else if (SystemUtils.IS_OS_LINUX) {
+            unproxyLinux();
         } else {
             LOG.warn("We don't yet support proxy configuration on other OSes");
         }
