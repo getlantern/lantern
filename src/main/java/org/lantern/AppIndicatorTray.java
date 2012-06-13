@@ -183,6 +183,8 @@ public class AppIndicatorTray implements SystemTray {
 
     private void quit() {
         LOG.debug("quit called.");
+        LanternHub.eventBus().post(new QuitEvent());
+        LanternHub.display().dispose();
         LanternHub.xmppHandler().disconnect();
         LanternHub.jettyLauncher().stop();
         System.exit(0);
