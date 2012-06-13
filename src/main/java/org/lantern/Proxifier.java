@@ -216,10 +216,14 @@ public class Proxifier {
     private static void genericUbuntuProxyCall(String path) 
         throws ProxyConfigurationError {
         try {
-            final String result = 
+            final String result1 = 
+                mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
+                    "mode", "'auto'");
+            LOG.info("Result of Ubuntu gsettings mode call: {}", result1);
+            final String result2 = 
                 mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
                     "autoconfig-url", path);
-            LOG.info("Result of Ubuntu gsettings call: {}", result);
+            LOG.info("Result of Ubuntu gsettings pac file call: {}", result2);
         } catch (final IOException e) {
             LOG.warn("Error calling Ubuntu proxy script!", e);
             throw new ProxyConfigurationError();
