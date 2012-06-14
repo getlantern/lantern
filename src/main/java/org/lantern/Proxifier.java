@@ -210,7 +210,7 @@ public class Proxifier {
     }
     
     private static void proxyLinux() throws ProxyConfigurationError {
-        genericUbuntuProxyCall(PROXY_ON.getAbsolutePath());
+        genericUbuntuProxyCall(PROXY_ON.toURI().toASCIIString());
     }
 
     private static void genericUbuntuProxyCall(String path) 
