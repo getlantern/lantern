@@ -297,33 +297,29 @@ public class Launcher {
     }
 
     private static void configureCipherSuites() {
-        try {
-            final int maxKeyLen = Cipher.getMaxAllowedKeyLength("AES");
-            if (maxKeyLen < 256) {
-                if (!SystemUtils.IS_OS_WINDOWS_VISTA) {
-                    LOG.error("No policy files on non-Vista machine!!");
-                }
-                LOG.info("Reverting to weaker ciphers on Vista");
-                IceConfig.setCipherSuites(new String[] {
-                    "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
-                });
-            } else {
-                // Note the following just sets what cipher suite the server 
-                // side selects. DHE is for perfect forward secrecy.
-                
-                // CBC mitigates the BEAST attack. We also include 128 because 
-                // we never have enough permissions to copy the unlimited  
-                // strength policy files on Vista, so we have to revert back
-                // to 128.
-                IceConfig.setCipherSuites(new String[] {
-                    "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-                    "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
-                });
+        if (!LanternUtils.isUnlimitedKeyStrength()) {
+            if (!SystemUtils.IS_OS_WINDOWS_VISTA) {
+                LOG.error("No policy files on non-Vista machine!!");
             }
-        } catch (final NoSuchAlgorithmException e) {
-            LOG.error("No AES?", e);
+            LOG.info("Reverting to weaker ciphers on Vista");
+            IceConfig.setCipherSuites(new String[] {
+                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
+            });
+        } else {
+            // Note the following just sets what cipher suite the server 
+            // side selects. DHE is for perfect forward secrecy.
+            
+            // CBC mitigates the BEAST attack. We also include 128 because 
+            // we never have enough permissions to copy the unlimited  
+            // strength policy files on Vista, so we have to revert back
+            // to 128.
+            IceConfig.setCipherSuites(new String[] {
+                "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
+            });
         }
     }
+    
     
     private static Collection<InetSocketAddress> toSocketAddresses(
         final Collection<String> stunServers) {
