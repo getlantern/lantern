@@ -7,11 +7,13 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
 
+import javax.crypto.Cipher;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.cli.CommandLine;
@@ -106,12 +108,7 @@ public class Launcher {
     
     private static void launch(final String... args) {
         LOG.info("Starting Lantern...");
-        // Note the following just sets what cipher suite the server side
-        // selects. DHE is for perfect forward secrecy.
-        IceConfig.setCipherSuites(new String[] {
-            "TLS_DHE_RSA_WITH_AES_256_CBC_SHA"
-        });
-        copyPolicyFiles();
+        configureCipherSuites();
         
         // first apply any command line settings
         final Options options = new Options();
@@ -299,40 +296,29 @@ public class Launcher {
         }
     }
 
-    private static void copyPolicyFiles() {
-        if (SystemUtils.IS_JAVA_1_6) {
-            copy16PolicyFiles();
-        } else {
-            copy17PolicyFiles();
-        }
-    }
-    
-    private static void copy16PolicyFiles() {
-        copyToLibSecurity(new File("java6"));
-    }
-
-    private static void copy17PolicyFiles() {
-        copyToLibSecurity(new File("java7"));
-    }
-    
-    private static void copyToLibSecurity(final File parent) {
-        if (!parent.isDirectory()) {
-            LOG.info("No files to copy -- no parent at {}", parent);
-            return;
-        }
-        final File[] files = {
-            new File (parent, "US_export_policy.jar"),
-            new File (parent, "local_policy.jar"),
-        };
-        final File home = new File(System.getProperty("java.home"));
-        for (final File file : files) {
-            try {
-                FileUtils.copyFileToDirectory(file, home);
-                LOG.info("Successfully copied {} to {}", file, home);
-            } catch (final IOException e) {
-                LOG.error("Could not copy file: "+file, e);
+    private static void configureCipherSuites() {
+        try {
+            final int maxKeyLen = Cipher.getMaxAllowedKeyLength("AES");
+            if (maxKeyLen < 256 && SystemUtils.IS_OS_WINDOWS_VISTA) {
+                LOG.info("Reverting to weaker ciphers on Vista");
+                IceConfig.setCipherSuites(new String[] {
+                    "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
+                });
+            } else {
+                // Note the following just sets what cipher suite the server 
+                // side selects. DHE is for perfect forward secrecy.
+                
+                // CBC mitigates the BEAST attack. We also include 128 because 
+                // we never have enough permissions to copy the unlimited  
+                // strength policy files on Vista, so we have to revert back
+                // to 128.
+                IceConfig.setCipherSuites(new String[] {
+                    "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+                    "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
+                });
             }
-           
+        } catch (final NoSuchAlgorithmException e) {
+            LOG.error("No AES?", e);
         }
     }
     
