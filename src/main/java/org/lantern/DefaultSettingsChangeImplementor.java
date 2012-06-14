@@ -48,29 +48,38 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             LanternUtils.replaceInFile(this.launchdPlist, 
                 "<"+!start+"/>", "<"+start+"/>");
         } else if (SystemUtils.IS_OS_WINDOWS) {
-            final String key = 
-                "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";
-            int result = 0;
-            if (start) {
-                try {
-                    final String path = 
-                        "\"\\\""+new File("Lantern.exe").getCanonicalPath()+"\\\"\"" + " --launchd";
-                    result = WindowsRegistry.writeREG_SZ(key, "Lantern", path);
-                } catch (final IOException e) {
-                    log.error("Could not get canonical path", e);
-                }
-            } else {
-                result = WindowsRegistry.writeREG_SZ(key, "Lantern", "");
-            }
-            
-            if (result != 0) {
-                log.error("Error changing startAtLogin? Result: "+result);
-            }
+            setStartAtLoginWindows(start);
         } else if (SystemUtils.IS_OS_LINUX) {
-            // TODO: Make this work on Linux!! 
-            log.warn("setStartAtLogin not yet implemented for Linux");
+            log.info("Setting setStartAtLogin for Linux");
+            setStartAtLoginLinux(start);
         } else {
             log.warn("setStartAtLogin not yet implemented for {}", SystemUtils.OS_NAME);
+        }
+    }
+
+    private void setStartAtLoginLinux(final boolean start) {
+        // TODO Auto-generated method stub
+        
+    }
+
+    private void setStartAtLoginWindows(final boolean start) {
+        final String key = 
+            "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+        int result = 0;
+        if (start) {
+            try {
+                final String path = 
+                    "\"\\\""+new File("Lantern.exe").getCanonicalPath()+"\\\"\"" + " --launchd";
+                result = WindowsRegistry.writeREG_SZ(key, "Lantern", path);
+            } catch (final IOException e) {
+                log.error("Could not get canonical path", e);
+            }
+        } else {
+            result = WindowsRegistry.writeREG_SZ(key, "Lantern", "");
+        }
+        
+        if (result != 0) {
+            log.error("Error changing startAtLogin? Result: "+result);
         }
     }
 
