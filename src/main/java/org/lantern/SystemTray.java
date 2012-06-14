@@ -9,7 +9,7 @@ public interface SystemTray {
 
     void createTray();
 
-    void addUpdate(Map<String, String> updateData);
+    void addUpdate(Map<String, Object> updateData);
 
     boolean isActive();
 

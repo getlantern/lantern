@@ -616,7 +616,8 @@ public class DefaultXmppHandler implements XmppHandler {
     }
     */
 
-    private void addOrRemovePeer(final Presence p, final String from) {
+    @Override
+    public void addOrRemovePeer(final Presence p, final String from) {
         LOG.info("Processing peer: {}", from);
         final URI uri;
         try {
@@ -633,7 +634,7 @@ public class DefaultXmppHandler implements XmppHandler {
             sendAndRequestCert(uri);
         }
         else {
-            LOG.info("Removing JID for peer '"+from+"' with presence: {}", p);
+            LOG.info("Removing JID for peer '"+from);
             removePeer(uri);
         }
     }
@@ -764,7 +765,8 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.info("Considering peer proxy");
         synchronized (peerProxySet) {
             // We purely do this to keep track of which peers we've attempted
-            // to establish connections to.
+            // to establish connections to. This is to avoid exchanging certs
+            // multiple times.
             
             // TODO: I believe this excludes exchanging keys with peers who
             // are on multiple machines when the peer URI is a general JID and
@@ -801,12 +803,9 @@ public class DefaultXmppHandler implements XmppHandler {
     }
     
     private void addGeneralProxy(final String cur) {
-        final String hostname = 
-            StringUtils.substringBefore(cur, ":");
-        final int port = 
-            Integer.parseInt(StringUtils.substringAfter(cur, ":"));
-        final InetSocketAddress isa = 
-            new InetSocketAddress(hostname, port);
+        final String hostname = StringUtils.substringBefore(cur, ":");
+        final int port = Integer.parseInt(StringUtils.substringAfter(cur, ":"));
+        final InetSocketAddress isa = new InetSocketAddress(hostname, port);
         addProxyWithChecks(proxySet, proxies, new ProxyHolder(hostname, isa), 
             cur);
     }
@@ -910,6 +909,11 @@ public class DefaultXmppHandler implements XmppHandler {
         // changed 
         removePeerUri(uri);
         removeAnonymousPeerUri(uri);
+        if (LanternHub.getTrustedContactsManager().isJidTrusted(uri.toASCIIString())) {
+            LanternHub.trustedPeerProxyManager().removePeer(uri);
+        } else {
+            LanternHub.anonymousPeerProxyManager().removePeer(uri);
+        }
     }
     
     private void removePeerUri(final URI peerUri) {

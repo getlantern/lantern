@@ -23,6 +23,7 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
@@ -110,6 +111,7 @@ public class Launcher {
         IceConfig.setCipherSuites(new String[] {
             "TLS_DHE_RSA_WITH_AES_256_CBC_SHA"
         });
+        copyPolicyFiles();
         
         // first apply any command line settings
         final Options options = new Options();
@@ -297,6 +299,43 @@ public class Launcher {
         }
     }
 
+    private static void copyPolicyFiles() {
+        if (SystemUtils.IS_JAVA_1_6) {
+            copy16PolicyFiles();
+        } else {
+            copy17PolicyFiles();
+        }
+    }
+    
+    private static void copy16PolicyFiles() {
+        copyToLibSecurity(new File("java6"));
+    }
+
+    private static void copy17PolicyFiles() {
+        copyToLibSecurity(new File("java7"));
+    }
+    
+    private static void copyToLibSecurity(final File parent) {
+        if (!parent.isDirectory()) {
+            LOG.info("No files to copy -- no parent at {}", parent);
+            return;
+        }
+        final File[] files = {
+            new File (parent, "US_export_policy.jar"),
+            new File (parent, "local_policy.jar"),
+        };
+        final File home = new File(System.getProperty("java.home"));
+        for (final File file : files) {
+            try {
+                FileUtils.copyFileToDirectory(file, home);
+                LOG.info("Successfully copied {} to {}", file, home);
+            } catch (final IOException e) {
+                LOG.error("Could not copy file: "+file, e);
+            }
+           
+        }
+    }
+    
     private static Collection<InetSocketAddress> toSocketAddresses(
         final Collection<String> stunServers) {
         final Collection<InetSocketAddress> isas = 

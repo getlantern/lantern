@@ -17,6 +17,14 @@ public class LanternConstants {
      */
     public static final String VERSION = "lantern_version_tok";
     
+    /**
+     * Default size of download chunks -- the range we'll request even if the
+     * other side is serving much smaller content, just in case we're able
+     * to chunk. The minus one is just there due to an off by one error on the
+     * client/LAE proxy.
+     */
+    public static final long CHUNK_SIZE = 2000000 - 1;
+    
     public static final String GET_EXCEPTIONAL_API_KEY = 
         ExceptionalUtils.NO_OP_KEY;
     
@@ -62,9 +70,13 @@ public class LanternConstants {
      */
     public static final String UPDATE_KEY = "uk";
     
-    public static final String UPDATE_VERSION_KEY = "uv";
+    public static final String UPDATE_VERSION_KEY = "number";
 
-    public static final String UPDATE_URL_KEY = "uuk";
+    public static final String UPDATE_URL_KEY = "url";
+    
+    public static final String UPDATE_MESSAGE_KEY = "message";
+    
+    public static final String UPDATE_RELEASED_KEY = "released";
 
     
     /**

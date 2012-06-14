@@ -36,7 +36,7 @@ public class SystemTrayImpl implements SystemTray {
     private MenuItem connectionStatusItem;
     private MenuItem updateItem;
     private Menu menu;
-    private Map<String, String> updateData;
+    private Map<String, Object> updateData;
 
     private final static String LABEL_DISCONNECTED = "Lantern: Not connected";
     private final static String LABEL_CONNECTING = "Lantern: Connecting...";
@@ -123,6 +123,7 @@ public class SystemTrayImpl implements SystemTray {
                 @Override
                 public void handleEvent (final Event event) {
                     System.out.println("Got exit call");
+                    LanternHub.eventBus().post(new QuitEvent());
                     display.dispose();
                     LanternHub.xmppHandler().disconnect();
                     LanternHub.jettyLauncher().stop();
@@ -205,8 +206,12 @@ public class SystemTrayImpl implements SystemTray {
     }
 
     @Override
-    public void addUpdate(final Map<String, String> data) {
+    public void addUpdate(final Map<String, Object> data) {
         log.info("Adding update data: {}", data);
+        if (this.updateData != null && this.updateData.equals(data)) {
+            log.info("Ignoring duplicate update data");
+            return;
+        }
         this.updateData = data;
         display.asyncExec (new Runnable () {
             @Override
@@ -217,7 +222,7 @@ public class SystemTrayImpl implements SystemTray {
                         @Override
                         public void handleEvent (final Event event) {
                             log.info("Got update call");
-                            NativeUtils.openUri(updateData.get(
+                            NativeUtils.openUri((String) updateData.get(
                                 LanternConstants.UPDATE_URL_KEY));
                         }
                     });

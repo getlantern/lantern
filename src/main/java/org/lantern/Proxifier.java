@@ -6,10 +6,12 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.eclipse.swt.SWT;
 import org.lantern.win.WinInet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Kernel32;
 import com.sun.jna.ptr.IntByReference;
@@ -35,6 +37,8 @@ public class Proxifier {
     private static String proxyServerOriginal;
     private static String proxyEnableOriginal = "0";
 
+    private static boolean interactiveUnproxyCalled;
+
     private static final MacProxyManager mpm = 
         new MacProxyManager("testId", 4291);
     
@@ -51,6 +55,15 @@ public class Proxifier {
     private static final File PROXY_OFF = new File("proxy_off.pac");
     
     static {
+        final class Subscriber {
+            @Subscribe
+            public void onQuit(final QuitEvent quit) {
+                LOG.info("Got quit event!");
+                interactiveUnproxy();
+            }
+        }
+        LanternHub.register(new Subscriber());
+        
         if (SystemUtils.IS_OS_MAC_OSX) {
             final File Lantern = new File("Lantern");
             if (!Lantern.isFile()) {
@@ -86,20 +99,14 @@ public class Proxifier {
 
         // We always want to stop proxying on shutdown -- doesn't hurt 
         // anything in the case where we never proxied in the first place.
-        // if there is a Ui we let the Ui handle it. 
-        if (!LanternHub.settings().isUiEnabled()) {
-            final Thread hook = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        stopProxying();
-                    } catch (final Proxifier.ProxyConfigurationError e) {
-                        LOG.error("Failed to unconfigure proxy: {}", e);
-                    }
-                }
-            }, "Unset-Web-Proxy-Thread");
-            Runtime.getRuntime().addShutdownHook(hook);
-        }
+        // If there is a UI we let the UI handle it. 
+        final Thread hook = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                interactiveUnproxy();
+            }
+        }, "Unset-Web-Proxy-Thread");
+        Runtime.getRuntime().addShutdownHook(hook);
     }
     
     private static final File ACTIVE_PAC = 
@@ -122,7 +129,7 @@ public class Proxifier {
         } else if (SystemUtils.IS_OS_WINDOWS) {
             proxyWindows();
         } else if (SystemUtils.IS_OS_LINUX) {
-            // TODO: proxyLinux();
+            proxyLinux();
         }
         // success
         try {
@@ -136,8 +143,53 @@ public class Proxifier {
         LanternHub.eventBus().post(new ProxyingEvent(true));
     }
     
+    public static void interactiveUnproxy() {
+        if (Proxifier.interactiveUnproxyCalled) {
+            LOG.info("Interactive unproxy already called!");
+            return;
+        }
+        Proxifier.interactiveUnproxyCalled = true;
+        if (!LanternHub.settings().isUiEnabled()) {
+            try {
+                stopProxying();
+            } catch (final Proxifier.ProxyConfigurationError e) {
+                LOG.error("Failed to unconfigure proxy: {}", e);
+            }
+        } else {
+            // The following often happens as the result of the quit event
+            // because we need the UI to still be up to interact with the 
+            // user -- that's not always the case with System.exit/shutdown
+            // hooks.
+            boolean finished = false;
+            while (!finished) {
+                try {
+                    Proxifier.stopProxying();
+                    finished = true;
+                } catch (final Proxifier.ProxyConfigurationError e) {
+                    LOG.error("Failed to unconfigure proxy.");
+                    // XXX i18n
+                    final String question = "Failed to change the system proxy settings.\n\n" + 
+                    "If Lantern remains as the system proxy after being shut down, " + 
+                    "you will need to manually change the system's network proxy settings " + 
+                    "in order to access the web.\n\nTry again?";
+                    
+                    // TODO: Don't think this will work on Linux.
+                    final int response = LanternHub.dashboard().askQuestion("Proxy Settings", question,
+                        SWT.APPLICATION_MODAL | SWT.ICON_WARNING | SWT.RETRY | SWT.CANCEL);
+                    if (response == SWT.CANCEL) {
+                        finished = true;
+                    }
+                    else {
+                        LOG.info("Trying again");
+                    }
+                }
+            }
+        }
+    }
+
     public static void stopProxying() throws ProxyConfigurationError {
         if (!isProxying()) {
+            LOG.info("Ignoring call since we're not proxying");
             return; 
         }
 
@@ -147,7 +199,7 @@ public class Proxifier {
         } else if (SystemUtils.IS_OS_WINDOWS) {
             unproxyWindows();
         } else if (SystemUtils.IS_OS_LINUX) {
-            // TODO: unproxyLinux();
+            unproxyLinux();
         }
         LANTERN_PROXYING_FILE.delete();
         LanternHub.eventBus().post(new ProxyingEvent(false));
@@ -157,10 +209,32 @@ public class Proxifier {
         return LANTERN_PROXYING_FILE.isFile();
     }
     
+    private static void proxyLinux() throws ProxyConfigurationError {
+        genericUbuntuProxyCall(PROXY_ON.toURI().toASCIIString());
+    }
+
+    private static void genericUbuntuProxyCall(String path) 
+        throws ProxyConfigurationError {
+        try {
+            final String result1 = 
+                mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
+                    "mode", "'auto'");
+            LOG.info("Result of Ubuntu gsettings mode call: {}", result1);
+            final String result2 = 
+                mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
+                    "autoconfig-url", path);
+            LOG.info("Result of Ubuntu gsettings pac file call: {}", result2);
+        } catch (final IOException e) {
+            LOG.warn("Error calling Ubuntu proxy script!", e);
+            throw new ProxyConfigurationError();
+        }
+    }
+    
     private static void proxyOsx() throws ProxyConfigurationError {
         configureOsxProxyPacFile();
         proxyOsxViaScript();
     }
+    
 
     public static void proxyOsxViaScript() throws ProxyConfigurationError {
         proxyOsxViaScript(true);
@@ -279,6 +353,7 @@ public class Proxifier {
         LOG.info("InternetSetOption appeared to succeed?");
     }
 
+    /*
     public static void unproxy() throws ProxyConfigurationError {
         if (SystemUtils.IS_OS_WINDOWS) {
             // We first want to read the start values so we can return the
@@ -290,10 +365,13 @@ public class Proxifier {
             }
         } else if (SystemUtils.IS_OS_MAC_OSX) {
             unproxyOsx();
+        } else if (SystemUtils.IS_OS_LINUX) {
+            unproxyLinux();
         } else {
             LOG.warn("We don't yet support proxy configuration on other OSes");
         }
     }
+    */
     
     protected static void unproxyWindows() {
         LOG.info("Resetting Windows registry settings to original values.");
@@ -324,6 +402,10 @@ public class Proxifier {
         
         refreshWindowsInet();
         LOG.info("Done resetting the Windows registry");
+    }
+    
+    private static void unproxyLinux() throws ProxyConfigurationError {
+        genericUbuntuProxyCall("");
     }
 
     private static void unproxyOsx() throws ProxyConfigurationError {
