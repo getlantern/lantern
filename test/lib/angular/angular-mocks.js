@@ -1,6 +1,6 @@
 
 /**
- * @license AngularJS v1.0.0rc12
+ * @license AngularJS v1.0.0
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  *
@@ -39,7 +39,7 @@ angular.mock.$Browser = function() {
   var self = this;
 
   this.isMock = true;
-  self.$$url = "http://server";
+  self.$$url = "http://server/";
   self.$$lastUrl = self.$$url; // used by url polling fn
   self.pollFns = [];
 

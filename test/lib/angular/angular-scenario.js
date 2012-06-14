@@ -9404,7 +9404,7 @@ if ( typeof define === "function" && define.amd && define.amd.jQuery ) {
 
 })( window );
 /**
- * @license AngularJS v1.0.0rc12
+ * @license AngularJS v1.0.0
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -10652,11 +10652,11 @@ function setupModuleLoader(window) {
  * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
  */
 var version = {
-  full: '1.0.0rc12',    // all of these placeholder strings will be replaced by rake's
+  full: '1.0.0',    // all of these placeholder strings will be replaced by rake's
   major: 1,    // compile task
   minor: 0,
   dot: 0,
-  codeName: 'regression-extermination'
+  codeName: 'temporal-domination'
 };
 
 
@@ -14232,6 +14232,10 @@ function encodePath(path) {
   return segments.join('/');
 }
 
+function stripHash(url) {
+  return url.split('#')[0];
+}
+
 
 function matchUrl(url, obj) {
   var match = URL_MATCH.exec(url);
@@ -14311,19 +14315,19 @@ function convertToHashbangUrl(url, basePath, hashPrefix) {
  * @param {string} url HTML5 url
  * @param {string} pathPrefix
  */
-function LocationUrl(url, pathPrefix) {
+function LocationUrl(url, pathPrefix, appBaseUrl) {
   pathPrefix = pathPrefix || '';
 
   /**
    * Parse given html5 (regular) url string into properties
-   * @param {string} url HTML5 url
+   * @param {string} newAbsoluteUrl HTML5 url
    * @private
    */
-  this.$$parse = function(url) {
-    var match = matchUrl(url, this);
+  this.$$parse = function(newAbsoluteUrl) {
+    var match = matchUrl(newAbsoluteUrl, this);
 
     if (match.path.indexOf(pathPrefix) !== 0) {
-      throw Error('Invalid url "' + url + '", missing path prefix "' + pathPrefix + '" !');
+      throw Error('Invalid url "' + newAbsoluteUrl + '", missing path prefix "' + pathPrefix + '" !');
     }
 
     this.$$path = decodeURIComponent(match.path.substr(pathPrefix.length));
@@ -14346,6 +14350,14 @@ function LocationUrl(url, pathPrefix) {
                     pathPrefix + this.$$url;
   };
 
+
+  this.$$rewriteAppUrl = function(absoluteLinkUrl) {
+    if(absoluteLinkUrl.indexOf(appBaseUrl) == 0) {
+      return absoluteLinkUrl;
+    }
+  }
+
+
   this.$$parse(url);
 }
 
@@ -14358,7 +14370,7 @@ function LocationUrl(url, pathPrefix) {
  * @param {string} url Legacy url
  * @param {string} hashPrefix Prefix for hash part (containing path and search)
  */
-function LocationHashbangUrl(url, hashPrefix) {
+function LocationHashbangUrl(url, hashPrefix, appBaseUrl) {
   var basePath;
 
   /**
@@ -14400,6 +14412,13 @@ function LocationHashbangUrl(url, hashPrefix) {
     this.$$absUrl = composeProtocolHostPort(this.$$protocol, this.$$host, this.$$port) +
                     basePath + (this.$$url ? '#' + hashPrefix + this.$$url : '');
   };
+
+  this.$$rewriteAppUrl = function(absoluteLinkUrl) {
+    if(absoluteLinkUrl.indexOf(appBaseUrl) == 0) {
+      return absoluteLinkUrl;
+    }
+  }
+
 
   this.$$parse(url);
 }
@@ -14589,6 +14608,19 @@ LocationUrl.prototype = {
 
 LocationHashbangUrl.prototype = inherit(LocationUrl.prototype);
 
+function LocationHashbangInHtml5Url(url, hashPrefix, appBaseUrl, baseExtra) {
+  LocationHashbangUrl.apply(this, arguments);
+
+
+  this.$$rewriteAppUrl = function(absoluteLinkUrl) {
+    if (absoluteLinkUrl.indexOf(appBaseUrl) == 0) {
+      return appBaseUrl + baseExtra + '#' + hashPrefix  + absoluteLinkUrl.substr(appBaseUrl.length);
+    }
+  }
+}
+
+LocationHashbangInHtml5Url.prototype = inherit(LocationHashbangUrl.prototype);
+
 function locationGetter(property) {
   return function() {
     return this[property];
@@ -14688,26 +14720,33 @@ function $LocationProvider(){
         basePath,
         pathPrefix,
         initUrl = $browser.url(),
-        absUrlPrefix;
+        initUrlParts = matchUrl(initUrl),
+        appBaseUrl;
 
     if (html5Mode) {
       basePath = $browser.baseHref() || '/';
       pathPrefix = pathPrefixFromBase(basePath);
+      appBaseUrl =
+          composeProtocolHostPort(initUrlParts.protocol, initUrlParts.host, initUrlParts.port) +
+          pathPrefix + '/';
+
       if ($sniffer.history) {
         $location = new LocationUrl(
           convertToHtml5Url(initUrl, basePath, hashPrefix),
-          pathPrefix);
+          pathPrefix, appBaseUrl);
       } else {
-        $location = new LocationHashbangUrl(
+        $location = new LocationHashbangInHtml5Url(
           convertToHashbangUrl(initUrl, basePath, hashPrefix),
-          hashPrefix);
+          hashPrefix, appBaseUrl, basePath.substr(pathPrefix.length + 1));
       }
-      // link rewriting
-      absUrlPrefix = composeProtocolHostPort(
-        $location.protocol(), $location.host(), $location.port()) + pathPrefix;
     } else {
-      $location = new LocationHashbangUrl(initUrl, hashPrefix);
-      absUrlPrefix = $location.absUrl().split('#')[0];
+      appBaseUrl =
+          composeProtocolHostPort(initUrlParts.protocol, initUrlParts.host, initUrlParts.port) +
+          (initUrlParts.path || '') +
+          (initUrlParts.search ? ('?' + initUrlParts.search) : '') +
+          '#' + hashPrefix + '/';
+
+      $location = new LocationHashbangUrl(initUrl, hashPrefix, appBaseUrl);
     }
 
     $rootElement.bind('click', function(event) {
@@ -14719,27 +14758,22 @@ function $LocationProvider(){
       var elm = jqLite(event.target);
 
       // traverse the DOM up to find first A tag
-      while (elm.length && lowercase(elm[0].nodeName) !== 'a') {
+      while (lowercase(elm[0].nodeName) !== 'a') {
+        if (elm[0] === $rootElement[0]) return;
         elm = elm.parent();
       }
 
       var absHref = elm.prop('href'),
-          href;
+          rewrittenUrl = $location.$$rewriteAppUrl(absHref);
 
-      if (!absHref ||
-        elm.attr('target') ||
-        absHref.indexOf(absUrlPrefix) !== 0) { // link to different domain or base path
-        return;
+      if (absHref && !elm.attr('target') && rewrittenUrl) {
+        // update location manually
+        $location.$$parse(rewrittenUrl);
+        $rootScope.$apply();
+        event.preventDefault();
+        // hack to work around FF6 bug 684208 when scenario runner clicks on links
+        window.angular['ff-684208-preventDefault'] = true;
       }
-
-      // update location with href without the prefix
-      href = absHref.substr(absUrlPrefix.length);
-      if (href.charAt(0) == '#') href = href.substr(1);
-      $location.url(href);
-      $rootScope.$apply();
-      event.preventDefault();
-      // hack to work around FF6 bug 684208 when scenario runner clicks on links
-      window.angular['ff-684208-preventDefault'] = true;
     });
 
 
