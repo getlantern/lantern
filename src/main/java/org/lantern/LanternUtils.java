@@ -1335,6 +1335,15 @@ public class LanternUtils {
 
         };
     }
+    
+    public static boolean isUnlimitedKeyStrength() {
+        try {
+            return Cipher.getMaxAllowedKeyLength("AES") == Integer.MAX_VALUE;
+        } catch (final NoSuchAlgorithmException e) {
+            LOG.error("No AES?", e);
+            return false;
+        }
+    }
 }
 
 
