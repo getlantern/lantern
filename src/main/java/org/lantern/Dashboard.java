@@ -215,7 +215,13 @@ public class Dashboard {
         return askQuestion(title, question, DEFAULT_QUESTION_FLAGS) == SWT.YES;
     }
     
-    public int askQuestion(final String title, final String question, final int style) {
+    public int askQuestion(final String title, final String question, 
+        final int style) {
+        if (!LanternHub.settings().isUiEnabled()) {
+            log.info("MESSAGE BOX TITLE: "+title);
+            log.info("MESSAGE BOX MESSAGE: "+question);
+            return -1;
+        }
         final AtomicInteger response = new AtomicInteger();
         LanternHub.display().syncExec(new Runnable() {
             @Override
