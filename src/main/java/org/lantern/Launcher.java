@@ -299,7 +299,10 @@ public class Launcher {
     private static void configureCipherSuites() {
         try {
             final int maxKeyLen = Cipher.getMaxAllowedKeyLength("AES");
-            if (maxKeyLen < 256 && SystemUtils.IS_OS_WINDOWS_VISTA) {
+            if (maxKeyLen < 256) {
+                if (!SystemUtils.IS_OS_WINDOWS_VISTA) {
+                    LOG.error("No policy files on non-Vista machine!!");
+                }
                 LOG.info("Reverting to weaker ciphers on Vista");
                 IceConfig.setCipherSuites(new String[] {
                     "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
