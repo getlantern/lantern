@@ -72,6 +72,12 @@ class MockTrustedConnection extends MockConnection {
                 // TODO Auto-generated method stub
                 
             }
+
+            @Override
+            public void removePeer(URI uri) {
+                // TODO Auto-generated method stub
+                
+            }
         };
         
         /* this proxyprovider will explode if anything but the expected type 

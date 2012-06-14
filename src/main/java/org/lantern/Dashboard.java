@@ -30,10 +30,6 @@ public class Dashboard {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private Shell shell;
 
-    public Dashboard() {
-        configureShutdownHook();
-    }
-
     /**
      * Opens the browser.
      */
@@ -219,7 +215,13 @@ public class Dashboard {
         return askQuestion(title, question, DEFAULT_QUESTION_FLAGS) == SWT.YES;
     }
     
-    public int askQuestion(final String title, final String question, final int style) {
+    public int askQuestion(final String title, final String question, 
+        final int style) {
+        if (!LanternHub.settings().isUiEnabled()) {
+            log.info("MESSAGE BOX TITLE: "+title);
+            log.info("MESSAGE BOX MESSAGE: "+question);
+            return -1;
+        }
         final AtomicInteger response = new AtomicInteger();
         LanternHub.display().syncExec(new Runnable() {
             @Override
@@ -240,35 +242,5 @@ public class Dashboard {
         messageBox.setText(title);
         messageBox.setMessage(question);
         return messageBox.open();
-    }
-    
-    public void configureShutdownHook() {
-        LanternHub.display().disposeExec(new Runnable() {
-            @Override
-            public void run() {
-                boolean finished = false;
-                while (!finished) {
-                    try {
-                        Proxifier.stopProxying();
-                        finished = true;
-                    } catch (final Proxifier.ProxyConfigurationError e) {
-                        log.error("Failed to unconfigure proxy.");
-                        // XXX i18n
-                        final String question = "Failed to change the system proxy settings.\n\n" + 
-                        "If Lantern remains as the system proxy after being shut down, " + 
-                        "you will need to manually change the system's network proxy settings " + 
-                        "in order to access the web.\n\nTry again?";
-                        final int response = askQuestion("Proxy Settings", question,
-                            SWT.APPLICATION_MODAL | SWT.ICON_WARNING | SWT.RETRY | SWT.CANCEL);
-                        if (response == SWT.CANCEL) {
-                            finished = true;
-                        }
-                        else {
-                            log.info("Trying again");
-                        }
-                    }
-                }
-            }
-        });
     }
 }
