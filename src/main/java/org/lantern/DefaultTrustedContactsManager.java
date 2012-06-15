@@ -30,7 +30,7 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
         LoggerFactory.getLogger(DefaultTrustedContactsManager.class);
     
     private static final File CONTACTS_FILE =
-        new File(LanternUtils.configDir(), "trusted.txt");
+        new File(LanternConstants.CONFIG_DIR, "trusted.txt");
     
     static {
         if (!CONTACTS_FILE.isFile()) {

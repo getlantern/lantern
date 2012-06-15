@@ -447,7 +447,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
         // Start the connection attempt.
         final ClientBootstrap cb = 
-            new ClientBootstrap(LanternUtils.clientSocketChannelFactory);
+            new ClientBootstrap(LanternConstants.clientSocketChannelFactory);
         
         final ChannelPipeline pipeline = cb.getPipeline();
         

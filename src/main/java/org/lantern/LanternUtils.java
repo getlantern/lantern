@@ -46,7 +46,6 @@ import java.util.Queue;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.crypto.Cipher;
@@ -82,8 +81,6 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
-import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMessage;
 import org.jboss.netty.handler.codec.http.HttpRequest;
@@ -111,67 +108,10 @@ import com.google.common.io.Files;
  */
 public class LanternUtils {
 
-    private static final Logger LOG = 
-        LoggerFactory.getLogger(LanternUtils.class);
-    
     private static String MAC_ADDRESS;
     
-    private static final File CONFIG_DIR = 
-        new File(System.getProperty("user.home"), ".lantern");
-    
-    private static File DATA_DIR;
-    
-    private static File LOG_DIR;
-    
-    
-    public static ClientSocketChannelFactory clientSocketChannelFactory;
-
-    
-    static {
-        try {
-            Class.forName("org.lantern.LanternControllerUtils");
-            DATA_DIR = null;
-            LOG_DIR = null;
-            clientSocketChannelFactory = null;
-        } catch (final ClassNotFoundException e) {
-            // Only load these if we're not on app engine.
-            if (SystemUtils.IS_OS_WINDOWS) {
-                //logDirParent = CommonUtils.getDataDir();
-                DATA_DIR = new File(System.getenv("APPDATA"), "Lantern");
-                LOG_DIR = new File(DATA_DIR, "logs");
-            } else if (SystemUtils.IS_OS_MAC_OSX) {
-                final File homeLibrary = 
-                    new File(System.getProperty("user.home"), "Library");
-                DATA_DIR = CONFIG_DIR;//new File(homeLibrary, "Logs");
-                final File allLogsDir = new File(homeLibrary, "Logs");
-                LOG_DIR = new File(allLogsDir, "Lantern");
-            } else {
-                DATA_DIR = new File(System.getProperty("user.home"), ".lantern");
-                LOG_DIR = new File(DATA_DIR, "logs");
-            }
-
-            if (!DATA_DIR.isDirectory()) {
-                if (!DATA_DIR.mkdirs()) {
-                    System.err.println("Could not create parent at: "
-                            + DATA_DIR);
-                }
-            }
-            if (!LOG_DIR.isDirectory()) {
-                if (!LOG_DIR.mkdirs()) {
-                    System.err.println("Could not create dir at: " + LOG_DIR);
-                }
-            }
-            if (!CONFIG_DIR.isDirectory()) {
-                if (!CONFIG_DIR.mkdirs()) {
-                    LOG.error("Could not make config directory at: "+CONFIG_DIR);
-                }
-            } 
-            clientSocketChannelFactory = new NioClientSocketChannelFactory(
-                    Executors.newCachedThreadPool(),
-                    Executors.newCachedThreadPool());
-        }
-
-    }
+    private static final Logger LOG = 
+        LoggerFactory.getLogger(LanternUtils.class);
     
     public static String jidToUserId(final String fullId) {
         return fullId.split("/")[0];
@@ -399,18 +339,6 @@ public class LanternUtils {
         return MAC_ADDRESS;
     }
 
-    public static File configDir() {
-        return CONFIG_DIR;
-    }
-
-    public static File dataDir() {
-        return DATA_DIR;
-    }
-    
-    public static File logDir() {
-        return LOG_DIR;
-    }
-    
     public static boolean isTransferEncodingChunked(final HttpMessage m) {
         final List<String> chunked = 
             m.getHeaders(HttpHeaders.Names.TRANSFER_ENCODING);

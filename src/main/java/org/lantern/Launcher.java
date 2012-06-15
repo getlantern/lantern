@@ -740,7 +740,7 @@ public class Launcher {
     }
     
     private static void configureProductionLogger() {
-        final File logDir = LanternUtils.logDir();
+        final File logDir = LanternConstants.LOG_DIR;
         final File logFile = new File(logDir, "java.log");
         final Properties props = new Properties();
         try {

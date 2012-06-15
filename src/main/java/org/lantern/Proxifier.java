@@ -32,7 +32,7 @@ public class Proxifier {
      * proxying traffic. Useful for things like the FireFox extensions.
      */
     private static final File LANTERN_PROXYING_FILE =
-        new File(LanternUtils.configDir(), "lanternProxying");
+        new File(LanternConstants.CONFIG_DIR, "lanternProxying");
     
     private static String proxyServerOriginal;
     private static String proxyEnableOriginal = "0";
@@ -110,7 +110,7 @@ public class Proxifier {
     }
     
     private static final File ACTIVE_PAC = 
-        new File(LanternUtils.configDir(), "proxy.pac");
+        new File(LanternConstants.CONFIG_DIR, "proxy.pac");
     
     public static void startProxying() throws ProxyConfigurationError {
         if (isProxying()) {
