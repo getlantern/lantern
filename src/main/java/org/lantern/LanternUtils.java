@@ -338,6 +338,18 @@ public class LanternUtils {
         MAC_ADDRESS = Base64.encodeBase64URLSafeString(raw);
         return MAC_ADDRESS;
     }
+    
+    
+    /**
+     * This is the local proxy port data is relayed to on the "server" side
+     * of P2P connections.
+     * 
+     * NOT IN CONSTANTS BECAUSE LanternUtils INITIALIZES THE LOGGER, WHICH
+     * CAN'T HAPPEN IN CONSTANTS DUE TO THE CONFIGURATION SEQUENCE IN 
+     * PRODUCTION.
+     */
+    public static final int PLAINTEXT_LOCALHOST_PROXY_PORT = 
+        LanternUtils.randomPort();
 
     public static boolean isTransferEncodingChunked(final HttpMessage m) {
         final List<String> chunked = 

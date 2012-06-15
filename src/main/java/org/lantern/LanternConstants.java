@@ -40,13 +40,6 @@ public class LanternConstants {
    
     public static final String VERSION_KEY = "v";
     
-    /**
-     * This is the local proxy port data is relayed to on the "server" side
-     * of P2P connections.
-     */
-    public static final int PLAINTEXT_LOCALHOST_PROXY_PORT = 
-        LanternUtils.randomPort();
-    
     public static final int LANTERN_LOCALHOST_HTTP_PORT = 8787;
     
     public static final String USER_NAME = "un";
