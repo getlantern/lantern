@@ -7,13 +7,11 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
-import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
 
-import javax.crypto.Cipher;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.cli.CommandLine;
@@ -242,6 +240,8 @@ public class Launcher {
             LanternHub.settings().setGetMode(true);
         }
         
+        gnomeAutoStart();
+        
         // Use our stored STUN servers if available.
         final Collection<String> stunServers = 
             LanternHub.settings().getStunServers();
@@ -292,6 +292,22 @@ public class Launcher {
         if (display != null) {
             while (!display.isDisposed ()) {
                 if (!display.readAndDispatch ()) display.sleep ();
+            }
+        }
+    }
+    
+    private static void gnomeAutoStart() {
+        if (SystemUtils.IS_OS_LINUX && !LanternHub.settings().isInitialSetupComplete()) {
+            final File lanternDesktop = 
+                new File(LanternConstants.GNOME_AUTOSTART.getName());
+            try {
+                FileUtils.copyFileToDirectory(lanternDesktop, 
+                    LanternConstants.GNOME_AUTOSTART.getParentFile());
+                final File path = new File(System.getProperty("user.dir"), "lantern");
+                LanternUtils.replaceInFile(LanternConstants.GNOME_AUTOSTART, 
+                    "Exec=", "Exec="+path.getAbsolutePath());
+            } catch (final IOException e) {
+                LOG.error("Could not configure gnome autostart", e);
             }
         }
     }
@@ -354,6 +370,9 @@ public class Launcher {
         return false;
     }
 
+    // TODO: We want to make it such that once this method returns the
+    // settings are always fully loaded or the entire app has aborted, 
+    // including prompting the user for password.
     private static void loadSettings() {
         LanternHub.resetSettings(true);
         if (LanternHub.settings().getSettings().getState() == SettingsState.State.CORRUPTED) {

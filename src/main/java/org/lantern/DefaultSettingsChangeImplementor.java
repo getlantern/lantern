@@ -33,20 +33,23 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             }
         });
 
+    private final File gnomeAutostart;
+
     public DefaultSettingsChangeImplementor() {
-        this(LanternConstants.LAUNCHD_PLIST);
+        this(LanternConstants.LAUNCHD_PLIST, LanternConstants.GNOME_AUTOSTART);
     }
     
-    public DefaultSettingsChangeImplementor(final File launchdPlist) {
+    public DefaultSettingsChangeImplementor(final File launchdPlist, 
+        final File gnomeAutostart) {
         this.launchdPlist = launchdPlist;
+        this.gnomeAutostart = gnomeAutostart;
     }
     
     @Override
     public void setStartAtLogin(final boolean start) {
+        log.info("Setting start at login to "+start);
         if (SystemUtils.IS_OS_MAC_OSX && this.launchdPlist.isFile()) {
-            log.info("Setting start at login to "+start);
-            LanternUtils.replaceInFile(this.launchdPlist, 
-                "<"+!start+"/>", "<"+start+"/>");
+            setStartAtLoginOsx(start);
         } else if (SystemUtils.IS_OS_WINDOWS) {
             setStartAtLoginWindows(start);
         } else if (SystemUtils.IS_OS_LINUX) {
@@ -57,12 +60,17 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         }
     }
 
-    private void setStartAtLoginLinux(final boolean start) {
-        // TODO Auto-generated method stub
-        
+    public void setStartAtLoginOsx(final boolean start) {
+        LanternUtils.replaceInFile(this.launchdPlist, 
+                "<"+!start+"/>", "<"+start+"/>");
     }
 
-    private void setStartAtLoginWindows(final boolean start) {
+    public void setStartAtLoginLinux(final boolean start) {
+        LanternUtils.replaceInFile(this.gnomeAutostart, 
+            "X-GNOME-Autostart-enabled="+!start, "X-GNOME-Autostart-enabled="+start);
+    }
+
+    public void setStartAtLoginWindows(final boolean start) {
         final String key = 
             "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";
         int result = 0;
