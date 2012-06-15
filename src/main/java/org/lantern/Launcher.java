@@ -297,13 +297,29 @@ public class Launcher {
     }
     
     private static void gnomeAutoStart() {
-        if (SystemUtils.IS_OS_LINUX && !LanternHub.settings().isInitialSetupComplete()) {
-            final File lanternDesktop = 
+        // Before setup we should just do the default, which is to run on
+        // startup. The user can configure this differently at any point 
+        // hereafter.
+        if (SystemUtils.IS_OS_LINUX && 
+            !LanternConstants.GNOME_AUTOSTART.isFile()) {
+            final File lanternDesktop;
+            final File candidate1 = 
                 new File(LanternConstants.GNOME_AUTOSTART.getName());
+            final File candidate2 = 
+                new File("install/linux", LanternConstants.GNOME_AUTOSTART.getName());
+            if (candidate1.isFile()) {
+                lanternDesktop = candidate1;
+            } else if (candidate2.isFile()){
+                lanternDesktop = candidate2;
+            } else {
+                LOG.error("Could not find lantern.desktop file");
+                return;
+            }
             try {
                 FileUtils.copyFileToDirectory(lanternDesktop, 
                     LanternConstants.GNOME_AUTOSTART.getParentFile());
-                final File path = new File(System.getProperty("user.dir"), "lantern");
+                final File path = 
+                    new File(System.getProperty("user.dir"), "lantern");
                 LanternUtils.replaceInFile(LanternConstants.GNOME_AUTOSTART, 
                     "Exec=", "Exec="+path.getAbsolutePath());
             } catch (final IOException e) {
