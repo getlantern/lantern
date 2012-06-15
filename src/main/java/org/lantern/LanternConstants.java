@@ -89,6 +89,12 @@ public class LanternConstants {
      */
     public static final File LAUNCHD_PLIST =
         new File(System.getProperty("user.home"), "Library/LaunchAgents/org.lantern.plist");
+    
+    /**
+     * Configuration file for starting at login on Gnome.
+     */
+    public static final File GNOME_AUTOSTART =
+        new File(System.getProperty("user.home"), ".config/autostart/lantern.desktop");
 
     public static final String CONNECT_ON_LAUNCH = "connectOnLaunch";
 
