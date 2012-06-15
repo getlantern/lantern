@@ -1,17 +1,16 @@
 package org.lantern.privacy; 
 
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
-
-import com.mcdermottroe.apple.OSXKeychain;
-import com.mcdermottroe.apple.OSXKeychainException;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import org.apache.commons.codec.binary.Base64;
 
+import org.apache.commons.codec.binary.Base64;
+import org.lantern.LanternHub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.mcdermottroe.apple.OSXKeychain;
+import com.mcdermottroe.apple.OSXKeychainException;
 
 /**
  * MacLocalCipherProvider
@@ -44,7 +43,7 @@ public class MacLocalCipherProvider extends AbstractAESLocalCipherProvider {
             final String encodedKey = keychain.findGenericPassword(SERVICE_NAME, ACCOUNT_NAME);
             return base64.decode(encodedKey.getBytes());
         } catch (OSXKeychainException e) {
-            throw new GeneralSecurityException(e);
+            throw new GeneralSecurityException("Keychain error?", e);
         }
     }
 
@@ -54,17 +53,21 @@ public class MacLocalCipherProvider extends AbstractAESLocalCipherProvider {
         final byte [] encodedKey = base64.encode(key);
         try {
             OSXKeychain keychain = OSXKeychain.getInstance();
-            String keyString = new String(encodedKey);
+            String keyString = new String(encodedKey, "UTF-8");
             try {
                 keychain.modifyGenericPassword(SERVICE_NAME, ACCOUNT_NAME, keyString);
                 log.debug("Replaced old lantern keychain entry.");
-            } catch (OSXKeychainException e) {
+            } catch (final OSXKeychainException e) {
                 /* not found, add */
                 keychain.addGenericPassword(SERVICE_NAME, ACCOUNT_NAME, keyString);
                 log.debug("Created new lantern keychain entry.");
             }
-        } catch (OSXKeychainException e) {
-            throw new GeneralSecurityException(e);
+        } catch (final OSXKeychainException e) {
+            log.error("Error adding to keychain?", e);
+            LanternHub.dashboard().showMessage("Keychain error", 
+                "Sorry, but there was an error writing to your keychain. " +
+                "Try resetting Lantern or deleting the Lantern entry in your keychain.");
+            throw new GeneralSecurityException("Keychain error?", e);
         } finally {
             zeroFill(encodedKey);
         }

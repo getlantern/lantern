@@ -105,7 +105,7 @@
         <file path="./common/64on.png" />
       </iconImageFiles>
     </launcher>
-    <launcher name="Lantern" id="224" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" swtApp="true" fileset="145">
+    <launcher name="Lantern" id="224" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="Lantern" icnsFile="" swtApp="true" fileset="145">
       <executable name="Lantern" type="1" iconSet="true" iconFile="" executableDir="" redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="false" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
@@ -135,7 +135,7 @@
         <file path="./common/64on.png" />
       </iconImageFiles>
     </launcher>
-    <launcher name="lantern" id="580" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="lantern" icnsFile="" swtApp="true" fileset="">
+    <launcher name="lantern" id="580" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="Lantern" icnsFile="" swtApp="true" fileset="">
       <executable name="lantern" type="1" iconSet="true" iconFile="" executableDir="" redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="false" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
@@ -242,6 +242,9 @@
                         <boolean>true</boolean>
                       </void>
                       <void property="obtainIfNormalMac">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="obtainIfNormalWin">
                         <boolean>true</boolean>
                       </void>
                     </object>
@@ -522,6 +525,9 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction">
+                      <void property="programGroupName">
+                        <string>Lantern</string>
+                      </void>
                       <void property="uninstallerMenuName">
                         <string>${i18n:UninstallerMenuEntry(${compiler:sys.fullName})}</string>
                       </void>
