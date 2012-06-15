@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Exec=
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name[en_US]=test
+Name=test
+Comment[en_US]=
+Comment=
