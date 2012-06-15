@@ -1,8 +1,14 @@
 package org.lantern;
 
 import java.io.File;
+import java.util.concurrent.Executors;
 
+import org.apache.commons.lang.SystemUtils;
+import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.lantern.exceptional4j.ExceptionalUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Constants for Lantern.
@@ -100,9 +106,65 @@ public class LanternConstants {
 
     public static final String START_AT_LOGIN = "startAtLogin";
 
-    public static final File DEFAULT_SETTINGS_FILE = 
-        new File(LanternUtils.configDir(), "settings.json");
-
+    public static final File CONFIG_DIR = 
+        new File(System.getProperty("user.home"), ".lantern");
     
+    public static final File DEFAULT_SETTINGS_FILE = 
+        new File(CONFIG_DIR, "settings.json");
+    
+    public static File DATA_DIR;
+    
+    public static File LOG_DIR;
+    
+    public static ClientSocketChannelFactory clientSocketChannelFactory;
+
+    static {
+        try {
+            Class.forName("org.lantern.LanternControllerUtils");
+            DATA_DIR = null;
+            LOG_DIR = null;
+            clientSocketChannelFactory = null;
+        } catch (final ClassNotFoundException e) {
+            // Only load these if we're not on app engine.
+            if (SystemUtils.IS_OS_WINDOWS) {
+                //logDirParent = CommonUtils.getDataDir();
+                DATA_DIR = new File(System.getenv("APPDATA"), "Lantern");
+                LOG_DIR = new File(DATA_DIR, "logs");
+            } else if (SystemUtils.IS_OS_MAC_OSX) {
+                final File homeLibrary = 
+                    new File(System.getProperty("user.home"), "Library");
+                DATA_DIR = CONFIG_DIR;//new File(homeLibrary, "Logs");
+                final File allLogsDir = new File(homeLibrary, "Logs");
+                LOG_DIR = new File(allLogsDir, "Lantern");
+            } else {
+                DATA_DIR = new File(System.getProperty("user.home"), ".lantern");
+                LOG_DIR = new File(DATA_DIR, "logs");
+            }
+
+            if (!DATA_DIR.isDirectory()) {
+                if (!DATA_DIR.mkdirs()) {
+                    System.err.println("Could not create parent at: "
+                            + DATA_DIR);
+                }
+            }
+            if (!LOG_DIR.isDirectory()) {
+                if (!LOG_DIR.mkdirs()) {
+                    System.err.println("Could not create dir at: " + LOG_DIR);
+                }
+            }
+            if (!CONFIG_DIR.isDirectory()) {
+                if (!CONFIG_DIR.mkdirs()) {
+                    System.err.println("Could not make config directory at: "+
+                        CONFIG_DIR);
+                }
+            }
+            
+            // This is initialized here because we don't want to load it on
+            // App Engine -- DO NOT MOVE.
+            clientSocketChannelFactory = new NioClientSocketChannelFactory(
+                    Executors.newCachedThreadPool(),
+                    Executors.newCachedThreadPool());
+        }
+    }
 
 }

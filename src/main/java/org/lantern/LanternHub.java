@@ -45,7 +45,7 @@ public class LanternHub {
         new AtomicReference<SecureRandom>(new SecureRandom());
     
     private static final File UNZIPPED = 
-        new File(LanternUtils.dataDir(), "GeoIP.dat");
+        new File(LanternConstants.DATA_DIR, "GeoIP.dat");
     
     private static final AtomicReference<TrustedContactsManager> trustedContactsManager =
         new AtomicReference<TrustedContactsManager>();
