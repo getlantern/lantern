@@ -316,12 +316,23 @@ public class Launcher {
                 return;
             }
             try {
-                FileUtils.copyFileToDirectory(lanternDesktop, 
-                    LanternConstants.GNOME_AUTOSTART.getParentFile());
+            	final File parent = LanternConstants.GNOME_AUTOSTART.getParentFile();
+            	if (!parent.isDirectory()) {
+            		if (!parent.mkdirs()) {
+            			LOG.error("Could not make dir for gnome autostart: "+parent);
+            			return;
+            		}
+            	}
+                FileUtils.copyFileToDirectory(lanternDesktop, parent);
                 final File path = 
                     new File(System.getProperty("user.dir"), "lantern");
-                LanternUtils.replaceInFile(LanternConstants.GNOME_AUTOSTART, 
-                    "Exec=", "Exec="+path.getAbsolutePath());
+                
+                // Lantern might now actually be installed yet, so abort this call
+                // if not.
+                if (path.isFile()) {
+	                LanternUtils.replaceInFile(LanternConstants.GNOME_AUTOSTART, 
+	                    "Exec=", "Exec="+path.getAbsolutePath());
+                }
             } catch (final IOException e) {
                 LOG.error("Could not configure gnome autostart", e);
             }
