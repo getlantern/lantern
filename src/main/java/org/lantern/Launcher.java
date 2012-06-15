@@ -600,7 +600,7 @@ public class Launcher {
         // See http://cdn.getlantern.org/IMAG0210.jpg
         final org.littleshoot.proxy.HttpProxyServer plainTextProxy = 
             new DefaultHttpProxyServer(
-                LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT,
+                LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT,
                 publicOnlyRequestFilter);
         plainTextProxy.start(true, false);
         
