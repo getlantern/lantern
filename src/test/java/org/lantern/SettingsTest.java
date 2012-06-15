@@ -60,34 +60,59 @@ public class SettingsTest {
             return;
         }
         final Settings settings = LanternHub.settings();
-        final File temp = plist();
+        final File temp1 = plist();
+        final File temp2 = autostart();
         final File settingsFile = settingsFile();
-        FileUtils.copyFile(LanternConstants.LAUNCHD_PLIST, temp);
-        final String cur = FileUtils.readFileToString(temp, "UTF-8");
-        
-        assertTrue(cur.contains("<true/>") || cur.contains("<false/>"));
+        FileUtils.copyFile(LanternConstants.LAUNCHD_PLIST, temp1);
+        FileUtils.copyFile(LanternConstants.GNOME_AUTOSTART, temp2);
+        final String cur1 = FileUtils.readFileToString(temp1, "UTF-8");
+        final String cur2 = FileUtils.readFileToString(temp2, "UTF-8");
+        assertTrue(cur1.contains("X-GNOME-Autostart-enabled=true") || cur1.contains("X-GNOME-Autostart-enabled=false"));
+        assertTrue(cur2.contains("<true/>") || cur2.contains("<false/>"));
         final SettingsIo ss = new SettingsIo(settingsFile);
         final DefaultSettingsChangeImplementor implementor = 
-            new DefaultSettingsChangeImplementor(temp);
-        if (cur.contains("<true/>")) {
-            assertFalse(cur.contains("<false/>"));
+            new DefaultSettingsChangeImplementor(temp1, null);
+        if (cur1.contains("<true/>")) {
+            assertFalse(cur1.contains("<false/>"));
             //Configurator.setStartAtLogin(temp, false);
             settings.setStartAtLogin(false);
-            implementor.setStartAtLogin(false);
+            implementor.setStartAtLoginOsx(false);
             ss.write(settings);
-            final String newFile = FileUtils.readFileToString(temp, "UTF-8");
+            final String newFile = FileUtils.readFileToString(temp1, "UTF-8");
             assertTrue(newFile.contains("<false/>"));
-        } else if (cur.contains("<false/>")) {
-            assertFalse(cur.contains("<true/>"));
+        } else if (cur1.contains("<false/>")) {
+            assertFalse(cur1.contains("<true/>"));
             //Configurator.setStartAtLogin(temp, true);
             settings.setStartAtLogin(true);
-            implementor.setStartAtLogin(true);
+            implementor.setStartAtLoginOsx(true);
             ss.write(settings);
-            final String newFile = FileUtils.readFileToString(temp, "UTF-8");
+            final String newFile = FileUtils.readFileToString(temp1, "UTF-8");
             assertTrue(newFile.contains("<true/>"));
+        }
+        
+        if (cur2.contains("X-GNOME-Autostart-enabled=true")) {
+            assertFalse(cur2.contains("<false/>"));
+            //Configurator.setStartAtLogin(temp, false);
+            settings.setStartAtLogin(false);
+            implementor.setStartAtLoginLinux(false);
+            ss.write(settings);
+            final String newFile = FileUtils.readFileToString(temp2, "UTF-8");
+            assertTrue(newFile.contains("X-GNOME-Autostart-enabled=false"));
+        } else if (cur2.contains("X-GNOME-Autostart-enabled=false")) {
+            assertFalse(cur2.contains("X-GNOME-Autostart-enabled=true"));
+            //Configurator.setStartAtLogin(temp, true);
+            settings.setStartAtLogin(true);
+            implementor.setStartAtLoginLinux(true);
+            ss.write(settings);
+            final String newFile = FileUtils.readFileToString(temp2, "UTF-8");
+            assertTrue(newFile.contains("X-GNOME-Autostart-enabled=true"));
         }
     }
     
+    private File autostart() {
+        return testFile("lantern.desktop");
+    }
+
     private File settingsFile() {
         return testFile("settings.json");
     }
