@@ -7,8 +7,6 @@ import org.apache.commons.lang.SystemUtils;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.lantern.exceptional4j.ExceptionalUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Constants for Lantern.
