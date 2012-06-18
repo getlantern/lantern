@@ -104,6 +104,17 @@ public class LanternConstants {
     
     public static final File DEFAULT_SETTINGS_FILE = 
         new File(CONFIG_DIR, "settings.json");
+
+    /**
+     * Note that we don't include the "X-" for experimental headers here. See:
+     * the draft that appears likely to become an RFC at:
+     * 
+     * http://tools.ietf.org/html/draft-ietf-appsawg-xdash
+     */
+    public static final String LANTERN_VERSION_HTTP_HEADER_NAME = 
+        "Lantern-Version";
+    
+    public static final String LANTERN_VERSION_HTTP_HEADER_VALUE = VERSION;
     
     public static File DATA_DIR;
     
