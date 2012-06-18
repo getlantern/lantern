@@ -93,7 +93,8 @@ public class LanternConstants {
      * Configuration file for starting at login on Gnome.
      */
     public static final File GNOME_AUTOSTART =
-        new File(System.getProperty("user.home"), ".config/autostart/lantern.desktop");
+        new File(System.getProperty("user.home"), 
+            ".config/autostart/lantern-autostart.desktop");
 
     public static final String CONNECT_ON_LAUNCH = "connectOnLaunch";
 
