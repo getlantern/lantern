@@ -22,10 +22,16 @@ public class LanternConstants {
     public static final String VERSION = "lantern_version_tok";
     
     /**
-     * Default size of download chunks -- the range we'll request even if the
-     * other side is serving much smaller content, just in case we're able
-     * to chunk. The minus one is just there due to an off by one error on the
-     * client/LAE proxy.
+     * We make range requests of the form "bytes=x-y" where
+     * y <= x + CHUNK_SIZE
+     * in order to chunk and parallelize downloads of large entities. This
+     * is especially important for requests to laeproxy since it is subject
+     * to GAE's response size limits.
+     * Because "bytes=x-y" requests bytes x through y _inclusive_,
+     * this actually requests y - x + 1 bytes,
+     * i.e. CHUNK_SIZE + 1 bytes
+     * when x = 0 and y = CHUNK_SIZE.
+     * This currently corresponds to laeproxy's RANGE_REQ_SIZE of 2000000.
      */
     public static final long CHUNK_SIZE = 2000000 - 1;
     
