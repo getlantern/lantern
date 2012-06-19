@@ -2,12 +2,8 @@ package org.lantern.linux;
 
 import com.sun.jna.Callback;
 import com.sun.jna.Library;
-import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 import com.sun.jna.Structure;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /* bindings for libappindicator 0.1 */
 public interface AppIndicator extends Library {

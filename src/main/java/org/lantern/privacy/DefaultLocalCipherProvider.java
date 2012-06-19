@@ -2,9 +2,10 @@ package org.lantern.privacy;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.Key;
 import java.security.GeneralSecurityException;
+import java.security.Key;
 import java.security.spec.KeySpec;
+
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
@@ -12,7 +13,6 @@ import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
 import org.lantern.LanternHub;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

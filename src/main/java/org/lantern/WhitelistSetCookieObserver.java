@@ -1,6 +1,7 @@
 package org.lantern;
 
 import java.util.Collection;
+
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.lantern.cookie.SetCookieObserver;

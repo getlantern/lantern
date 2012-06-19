@@ -1,39 +1,37 @@
 package org.lantern.privacy;
 
-import cx.ath.matthew.unix.UnixIOException;
 import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Condition; 
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import org.apache.commons.codec.binary.Base64;
 
+import org.apache.commons.codec.binary.Base64;
+import org.freedesktop.Secret.Collection;
+import org.freedesktop.Secret.Item;
+import org.freedesktop.Secret.Pair;
+import org.freedesktop.Secret.Prompt;
+import org.freedesktop.Secret.Secret;
+import org.freedesktop.Secret.Service;
+import org.freedesktop.Secret.Session;
 import org.freedesktop.dbus.DBusConnection;
-import org.freedesktop.dbus.exceptions.DBusException; 
 import org.freedesktop.dbus.DBusSigHandler;
 import org.freedesktop.dbus.DBusSignal;
 import org.freedesktop.dbus.Path;
 import org.freedesktop.dbus.Variant;
-
-import org.freedesktop.Secret.Collection; 
-import org.freedesktop.Secret.Item;
-import org.freedesktop.Secret.Pair;
-import org.freedesktop.Secret.Prompt;
-import org.freedesktop.Secret.Secret; 
-import org.freedesktop.Secret.Service;
-import org.freedesktop.Secret.Session;
-
+import org.freedesktop.dbus.exceptions.DBusException;
 import org.lantern.LanternUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import cx.ath.matthew.unix.UnixIOException;
 
 /**
  * SecretServiceLocalCipherProvider
