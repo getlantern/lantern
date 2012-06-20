@@ -2,6 +2,7 @@ package org.lantern.win;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import com.sun.jna.Library;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;

@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
 
-mkdir -p ~/Library/Logs/Lantern
-rm ~/Library/Logs/Lantern/installer.log
+mkdir -p ~/Library/Logs/Lantern 
 LOG_FILE=~/Library/Logs/Lantern/installer.log
+rm $LOG_FILE
+
 function log() {
   echo "`date`: $@" >> $LOG_FILE
 }
