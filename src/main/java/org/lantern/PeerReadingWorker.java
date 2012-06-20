@@ -4,15 +4,12 @@ import java.io.OutputStream;
 import java.io.PushbackInputStream;
 import java.net.SocketException;
 import java.nio.channels.ClosedChannelException;
-import java.util.regex.Pattern; 
+import java.util.regex.Pattern;
 
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.Channels;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 /** 

@@ -2,6 +2,7 @@ package org.lantern.privacy;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
+
 import javax.crypto.Cipher;
 
 

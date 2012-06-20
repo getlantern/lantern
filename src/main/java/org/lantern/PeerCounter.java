@@ -1,13 +1,15 @@
 package org.lantern;
 
-import com.google.common.eventbus.Subscribe;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentSkipListSet;
+
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.eventbus.Subscribe;
 
 
 class PeerCounter extends TimeSeries1D {
