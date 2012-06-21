@@ -5,6 +5,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.LocationEvent;
@@ -44,7 +45,12 @@ public class Dashboard {
     
     protected void buildBrowser() {
         log.debug("Creating shell...");
-        System.setProperty("org.eclipse.swt.browser.IEVersion", "8000");
+        
+        // This gets around a bug in XP/SWT/IE where SWT loads IE 7 even when
+        // IE 8 is on the user's system.
+        if (SystemUtils.IS_OS_WINDOWS_XP) {
+            System.setProperty("org.eclipse.swt.browser.IEVersion", "8000");
+        }
         if (this.shell != null && !this.shell.isDisposed()) {
             this.shell.forceActive();
             return;
