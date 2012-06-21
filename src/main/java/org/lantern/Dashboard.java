@@ -44,6 +44,7 @@ public class Dashboard {
     
     protected void buildBrowser() {
         log.debug("Creating shell...");
+        System.setProperty("org.eclipse.swt.browser.IEVersion", "8000");
         if (this.shell != null && !this.shell.isDisposed()) {
             this.shell.forceActive();
             return;
