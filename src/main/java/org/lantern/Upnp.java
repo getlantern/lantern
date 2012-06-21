@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.teleal.cling.UpnpService;
 import org.teleal.cling.UpnpServiceImpl;
 import org.teleal.cling.support.model.PortMapping;
+import org.teleal.cling.transport.spi.InitializationException;
 
 public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
     
@@ -73,9 +74,20 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
             "Lantern Port Mapping"
         );
 
-        final UpnpService upnpService = new UpnpServiceImpl(
-            new UpnpPortMappingListener(portMapListener, desiredMapping)
-        );
+        final UpnpService upnpService;
+        try {
+            upnpService = new UpnpServiceImpl(
+                new UpnpPortMappingListener(portMapListener, desiredMapping)
+            );
+        } catch (final InitializationException e) {
+            final String msg = e.getMessage();
+            if (msg.contains("no Inet4Address associated")) {
+                log.info("Could not map -- no internet access?", e);
+            } else {
+                log.error("Could not map port", e);
+            }
+            return;
+        }
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
