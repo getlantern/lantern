@@ -85,6 +85,11 @@ function LDCtrl(){
   self.$watch('state', function(scope, newVal, oldVal){
     self.inputemail = self.inputemail || self.state.email;
     self.pmfromemail = self.pmfromemail || self.state.email;
+    window['ga-disable-UA-32870114-1'] = !self.state.analytics;
+    if (self.state.analytics && !self.tracked) {
+      self.tracked = true;
+      _gaq.push(['_trackPageview']);
+    }
   });
   self.stateloaded = function(){
     return !$.isEmptyObject(self.state);
@@ -596,7 +601,7 @@ function LDCtrl(){
       });
     }
   };
-
+  
   self.sendpm = function(){
     if(!self.pm)return;
     var data = {

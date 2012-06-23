@@ -24,6 +24,23 @@
     <script src=js/lib/angular-0.10.5.min.js ng:autobind></script>
     <script src=js/lib/showdown.js></script>
     <script src=js/dashboard.js></script>
+    
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-32870114-1']);
+      _gaq.push(['_gat._anonymizeIp']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', 'true']);
+      //_gaq.push(['_trackPageview']);
+    
+      window['ga-disable-UA-32870114-1'] = true;
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = 'https://ssl.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+
   </head>
   <body ng:controller=LDCtrl lang=en ng:class="(!state.initialSetupComplete || !stateset()) && 'welcome'">
     <div id=console-shim style="display: block; position: fixed; left: 0; right: 0; bottom: 0; color: green; z-index: 500;"><pre></pre></div>
@@ -327,6 +344,7 @@
                 <li><label><input type=checkbox ng:change=toggle('connectOnLaunch') ng:model=state.connectOnLaunch /> Sign in on launch</label></li>
                 -->
                 <li ng:show=state.getMode><label><input type=checkbox ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Set as system proxy</label></li>
+                <li><label><input type=checkbox ng:change=toggle('analytics') ng:model=state.analytics /> Report usage statistics to Lantern team</label></li>
               </ul>
               <input type=button id=reset-button ng:click=reset() value="Reset Lantern" />
             </dd>

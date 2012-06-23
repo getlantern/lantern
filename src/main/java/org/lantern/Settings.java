@@ -161,6 +161,8 @@ public class Settings implements MutableSettings {
     
     private Set<String> proxies = new LinkedHashSet<String>();
     
+    private boolean analytics = false;
+    
     /**
      * These are cached proxies we've connected to over TCP/SSL.
      */
@@ -708,6 +710,15 @@ public class Settings implements MutableSettings {
     @JsonView({UIStateSettings.class, PersistentSettings.class})
     public Collection<String> getStunServers() {
         return stunServers;
+    }
+
+    public void setAnalytics(final boolean analytics) {
+        this.analytics = analytics;
+    }
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public boolean isAnalytics() {
+        return analytics;
     }
 
     @Override
