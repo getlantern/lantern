@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.0
+ * @license AngularJS v1.0.1
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -1247,11 +1247,11 @@ function setupModuleLoader(window) {
  * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
  */
 var version = {
-  full: '1.0.0',    // all of these placeholder strings will be replaced by rake's
+  full: '1.0.1',    // all of these placeholder strings will be replaced by rake's
   major: 1,    // compile task
   minor: 0,
-  dot: 0,
-  codeName: 'temporal-domination'
+  dot: 1,
+  codeName: 'thorium-shielding'
 };
 
 
@@ -3030,6 +3030,7 @@ function Browser(window, document, $log, $sniffer) {
   self.url = function(url, replace) {
     // setter
     if (url) {
+      if (lastBrowserUrl == url) return;
       lastBrowserUrl = url;
       if ($sniffer.history) {
         if (replace) history.replaceState(null, '', url);
@@ -5354,8 +5355,8 @@ function $LocationProvider(){
 
       // traverse the DOM up to find first A tag
       while (lowercase(elm[0].nodeName) !== 'a') {
-        if (elm[0] === $rootElement[0]) return;
-        elm = elm.parent();
+        // ignore rewriting if no A tag (reached root element, or no parent - removed from document)
+        if (elm[0] === $rootElement[0] || !(elm = elm.parent())[0]) return;
       }
 
       var absHref = elm.prop('href'),
