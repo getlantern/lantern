@@ -177,6 +177,8 @@ public class Settings implements MutableSettings {
     private final Object getModeLock = new Object();
     
     private Set<String> stunServers = new HashSet<String>();
+    
+    private int invites = 0;
 
     {
         LanternHub.register(this);
@@ -195,6 +197,9 @@ public class Settings implements MutableSettings {
      * problematic if the UI is waiting on them, for example.
      */
     private void threadPublicIpLookup() {
+        if (LanternConstants.ON_APP_ENGINE) {
+            return;
+        }
         final Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -719,6 +724,15 @@ public class Settings implements MutableSettings {
     @JsonView({UIStateSettings.class, PersistentSettings.class})
     public boolean isAnalytics() {
         return analytics;
+    }
+    
+    public void setInvites(int invites) {
+        this.invites = invites;
+    }
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public int getInvites() {
+        return invites;
     }
 
     @Override

@@ -435,6 +435,13 @@ public class DefaultXmppHandler implements XmppHandler {
                 }
             });
         }
+        
+        final Long invites = 
+            (Long) json.get(LanternConstants.INVITES_KEY);
+        if (invites != null) {
+            LOG.info("Setting invites to: {}", invites);
+            LanternHub.settings().setInvites(invites.intValue());
+        }
     }
 
     private void gTalkSharedStatus() {
