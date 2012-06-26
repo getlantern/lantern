@@ -523,6 +523,10 @@ public class LanternUtils {
 
     public static int randomPort() {
         final SecureRandom sr = LanternHub.secureRandom();
+        if (LanternConstants.ON_APP_ENGINE) {
+            // Can't create server sockets on app engine.
+            return -1;
+        }
         for (int i = 0; i < 20; i++) {
             // The +1 on the random int is because 
             // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE -- caught
