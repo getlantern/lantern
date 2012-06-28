@@ -32,6 +32,7 @@ import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Message;
+import org.jivesoftware.smack.packet.Message.Type;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.json.simple.JSONArray;
@@ -121,6 +122,8 @@ public class DefaultXmppHandler implements XmppHandler {
     };
 
     private String lastJson = "";
+
+    private String hubAddress;
 
     /**
      * Creates a new XMPP handler.
@@ -380,8 +383,9 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     private void processLanternHubMessage(final Message msg) {
-
         LOG.info("Lantern controlling agent response");
+        this.hubAddress = msg.getFrom();
+        LOG.info("Set hub address to: {}", hubAddress);
         final String body = msg.getBody();
         LOG.info("Body: {}", body);
         final Object obj = JSONValue.parse(body);
@@ -1033,5 +1037,32 @@ public class DefaultXmppHandler implements XmppHandler {
             return false;
         }
         return conn.isAuthenticated();
+    }
+
+    @Override
+    public void sendInvite(final String email) {
+        final XMPPConnection conn = this.client.get().getXmppConnection();
+        LOG.info("Sending invite");
+        
+        if (StringUtils.isBlank(this.hubAddress)) {
+            LOG.error("Blank hub address when sending invite?");
+            return;
+        }
+        final Presence pres = new Presence(Presence.Type.available);
+        pres.setTo(LanternConstants.LANTERN_JID);
+        pres.setProperty(LanternConstants.INVITE_KEY, email);
+        
+        final Runnable runner = new Runnable() {
+            
+            @Override
+            public void run() {
+                conn.sendPacket(pres);
+            }
+        };
+        final Thread t = new Thread(runner, "Invite-Thread");
+        t.setDaemon(true);
+        t.start();
+        LanternHub.settings().setInvites(LanternHub.settings().getInvites()-1);
+        LanternHub.settingsIo().write();
     }
 }
