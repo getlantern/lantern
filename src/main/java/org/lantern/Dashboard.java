@@ -50,6 +50,14 @@ public class Dashboard {
         // IE 8 is on the user's system.
         if (SystemUtils.IS_OS_WINDOWS_XP) {
             System.setProperty("org.eclipse.swt.browser.IEVersion", "8000");
+            
+            // Make extra sure all these values are set.
+            final String key = 
+                "HKCU\\Software\\Microsoft\\Internet Explorer\\Main\\" +
+                "FeatureControl\\FEATURE_BROWSER_EMULATION";
+            WindowsRegistry.writeREG_DWORD(key, "java.exe", "8000");
+            WindowsRegistry.writeREG_DWORD(key, "Lantern.exe", "8000");
+            WindowsRegistry.writeREG_DWORD(key, "lantern.exe", "8000");
         }
         if (this.shell != null && !this.shell.isDisposed()) {
             this.shell.forceActive();
