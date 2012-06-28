@@ -48,4 +48,11 @@ public interface XmppHandler extends ProxyStatusListener, ProxyProvider {
      */
     void addOrRemovePeer(Presence p, String from);
 
+    /**
+     * Sends an invite to the specified email address.
+     * 
+     * @param email The email address to send the invite to.
+     */
+    void sendInvite(String email);
+
 }

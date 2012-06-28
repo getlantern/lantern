@@ -83,6 +83,8 @@ public class LanternConstants {
 
     public static final String INVITES_KEY = "invites";
     
+    public static final String INVITE_KEY = "inv";
+    
     /**
      * The length of keys in translation property files.
      */
