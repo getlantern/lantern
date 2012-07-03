@@ -434,7 +434,7 @@
             <plugin>
               <groupId>org.codehaus.mojo</groupId>
               <artifactId>findbugs-maven-plugin</artifactId>
-              <version>2.4.0</version>
+              <version>2.5.1</version>
               <configuration>
                 <!-- Optional directory to put findbugs xml report -->
               </configuration>
@@ -454,6 +454,10 @@
                 <minimumTokens>100</minimumTokens>
                 <targetJdk>1.5</targetJdk>
               </configuration>
+            </plugin>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>cobertura-maven-plugin</artifactId>
             </plugin>
           </reportPlugins>
         </configuration>
