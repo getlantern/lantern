@@ -67,7 +67,7 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
         final HttpRequest request = (HttpRequest) me.getMessage();
         try {
             final byte[] data = LanternUtils.toByteBuffer(request, ctx);
-            log.info("Writing data on peer socket: {}", new String(data));
+            log.info("Writing data on peer socket: {}", new String(data, "UTF-8"));
             os.write(data);
             // shady, hard to know if it's really been done
             LanternHub.statsTracker().addUpBytesViaProxies(data.length, this.sock);
