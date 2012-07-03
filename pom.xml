@@ -196,6 +196,7 @@
       <version>4.1.2</version>
     </dependency>
 
+<!--
     <dependency>
       <groupId>org.jboss.netty</groupId>
       <artifactId>netty</artifactId>
@@ -203,7 +204,6 @@
       <scope>compile</scope>
     </dependency>
 
-<!--
     <dependency>
       <groupId>org.eclipse.jetty</groupId>
       <artifactId>jetty-server</artifactId>
@@ -408,7 +408,7 @@
               <version>2.2</version>
               <configuration>
                 <dependencyDetailsEnabled>true</dependencyDetailsEnabled>
-                <dependencyLocationsEnabled>true</dependencyLocationsEnabled>
+                <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
               </configuration>
             </plugin>
             <plugin>
