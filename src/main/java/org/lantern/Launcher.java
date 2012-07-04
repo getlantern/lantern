@@ -28,8 +28,11 @@ import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.spi.LoggingEvent;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.json.simple.JSONObject;
@@ -79,9 +82,25 @@ public class Launcher {
         });
         
         try {
+            resetSwtBrowser();
             launch(args);
         } catch (final Throwable t) {
             handleError(t, true);
+        }
+    }
+
+    /**
+     * This is hack around issues with the SWT browser on XP opening in IE7 on
+     * the first run and IE 8 on the second.
+     */
+    private static void resetSwtBrowser() {
+        if (SystemUtils.IS_OS_WINDOWS_XP) {
+            final Shell shell = new Shell(LanternHub.display());
+            final Browser browser = new Browser(shell, SWT.NONE);
+            browser.close();
+            shell.dispose();
+            LanternHub.display().dispose();
+            LanternHub.resetDisplay();
         }
     }
 

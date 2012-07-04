@@ -191,6 +191,13 @@ public class LanternHub {
             return display.get();
         }
     }
+    
+
+    public static void resetDisplay() {
+        synchronized (display) {
+            display.set(null);
+        }
+    }
 
     public static SystemTray systemTray() {
         synchronized (systemTray) {
@@ -508,5 +515,4 @@ public class LanternHub {
         LanternHub.resetSettings(true); // does not affect command line though...
         LanternHub.resetUserConfig(); // among others, TrustedContacts...
     }
-
 }
