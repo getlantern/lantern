@@ -56,8 +56,15 @@ public class Dashboard {
                 "HKCU\\Software\\Microsoft\\Internet Explorer\\Main\\" +
                 "FeatureControl\\FEATURE_BROWSER_EMULATION";
             WindowsRegistry.writeREG_DWORD(key, "java.exe", "8000");
-            WindowsRegistry.writeREG_DWORD(key, "Lantern.exe", "8000");
+            WindowsRegistry.writeREG_DWORD(key, "javaw.exe", "8000");
+            WindowsRegistry.writeREG_DWORD(key, "eclipse.exe", "8000");
             WindowsRegistry.writeREG_DWORD(key, "lantern.exe", "8000");
+            try {
+                log.debug("Sleeping for 10 seconds...");
+                Thread.sleep(10000);
+                log.debug("Waking");
+            } catch (InterruptedException e1) {
+            }
         }
         if (this.shell != null && !this.shell.isDisposed()) {
             this.shell.forceActive();
