@@ -13,6 +13,10 @@ import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.jna.platform.win32.Advapi32Util;
+import com.sun.jna.platform.win32.Win32Exception;
+import com.sun.jna.platform.win32.WinReg;
+
 /**
  * Class that does the dirty work of executing changes to the various settings 
  * users can configure.
@@ -72,18 +76,29 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
 
     public void setStartAtLoginWindows(final boolean start) {
         final String key = 
-            "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+            "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
         int result = 0;
         if (start) {
             try {
                 final String path = 
                     "\"\\\""+new File("Lantern.exe").getCanonicalPath()+"\\\"\"" + " --launchd";
-                result = WindowsRegistry.writeREG_SZ(key, "Lantern", path);
+                //result = WindowsRegistry.writeREG_SZ(key, "Lantern", path);
+                
+                Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, 
+                        key, "Lantern", path);
             } catch (final IOException e) {
                 log.error("Could not get canonical path", e);
+            } catch (final Win32Exception e) {
+                log.error("Cannot write to registry", e);
             }
         } else {
-            result = WindowsRegistry.writeREG_SZ(key, "Lantern", "");
+            try {
+                //result = WindowsRegistry.writeREG_SZ(key, "Lantern", "");
+                Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, 
+                    key, "Lantern", "");
+            } catch (final Win32Exception e) {
+                log.error("Cannot write to registry", e);
+            }
         }
         
         if (result != 0) {
