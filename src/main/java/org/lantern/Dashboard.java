@@ -23,6 +23,10 @@ import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.jna.platform.win32.Advapi32Util;
+import com.sun.jna.platform.win32.Win32Exception;
+import com.sun.jna.platform.win32.WinReg;
+
 /**
  * Browser dashboard for controlling lantern.
  */
@@ -53,15 +57,27 @@ public class Dashboard {
             
             // Make extra sure all these values are set.
             final String key = 
-                "HKCU\\Software\\Microsoft\\Internet Explorer\\Main\\" +
+                "Software\\Microsoft\\Internet Explorer\\Main\\" +
                 "FeatureControl\\FEATURE_BROWSER_EMULATION";
-            WindowsRegistry.writeREG_DWORD(key, "java.exe", "8000");
-            WindowsRegistry.writeREG_DWORD(key, "javaw.exe", "8000");
-            WindowsRegistry.writeREG_DWORD(key, "eclipse.exe", "8000");
-            WindowsRegistry.writeREG_DWORD(key, "lantern.exe", "8000");
+            
             try {
-                log.debug("Sleeping for 10 seconds...");
-                Thread.sleep(10000);
+                Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, key, 
+                    "java.exe", 8000);
+                Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, key, 
+                    "javaw.exe", 8000);
+                Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, key, 
+                    "eclipse.exe", 8000);
+                Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, key, 
+                    "lantern.exe", 8000);
+            } catch (final Win32Exception e) {
+                log.error("Cannot write to registry", e);
+            }
+            
+            // We still sleep quickly here just in case there's anything
+            // asynchronous under the hood.
+            try {
+                log.debug("Sleeping for 400 ms...");
+                Thread.sleep(400);
                 log.debug("Waking");
             } catch (InterruptedException e1) {
             }
