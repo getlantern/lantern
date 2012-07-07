@@ -26,7 +26,8 @@ fi
 
 perl -pi -e "s/ExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE
 
-git pull origin || die '"git pull origin" failed?'
+curBranch=`git branch 2> /dev/null | sed -e '/^[^*]/d' -e 's/* \(.*\)/\1/'`
+git pull origin $curBranch || die '"git pull origin" failed?'
 mvn clean || die "Could not clean?"
 mvn $MVN_ARGS install -Dmaven.test.skip=true || die "Could not build?"
 
@@ -36,3 +37,4 @@ git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 cp target/lantern-*-jar-with-dependencies.jar install/common/lantern.jar || die "Could not copy jar?"
 
 git tag -f -a v$VERSION -m "Version $INTERNAL_VERSION release with MVN_ARGS $MVN_ARGS"
+#git push --tags

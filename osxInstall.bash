@@ -16,9 +16,5 @@ VERSION=$1
 
 name=lantern-$VERSION.dmg
 mv install/Lantern.dmg $name
-echo "Uploading to http://cdn.getlantern.org/$name..."
-aws -putp lantern $name
-echo "Uploaded lantern to http://cdn.getlantern.org/$name"
-echo "Also available at http://lantern.s3.amazonaws.com/$name"
-
+./installMetaRefresh.bash osx $name latest.dmg
 
