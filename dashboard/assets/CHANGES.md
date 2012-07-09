@@ -5,7 +5,7 @@ Lantern Changelog
 Version 0.97.7
 --------------
 
-Released 2012-06-. [Compare
+Released 2012-07-06. [Compare
 view](https://github.com/getlantern/lantern/compare/v0.97.6...v0.97.7)
 
 - Implemented set as system proxy and start on login for Ubuntu 12.04
@@ -14,21 +14,21 @@ view](https://github.com/getlantern/lantern/compare/v0.97.6...v0.97.7)
 Version 0.97.6
 --------------
 
-Released 2012-. [Compare
+Released 2012-04-26. [Compare
 view](https://github.com/getlantern/lantern/compare/v0.97.5...v0.97.6)
 
 
 Version 0.97.5
 --------------
 
-Released 2012-. [Compare
+Released 2012-04-13. [Compare
 view](https://github.com/getlantern/lantern/compare/v0.97.4...v0.97.5)
 
 
 Version 0.97.4
 --------------
 
-Released 2012-. [Compare
+Released 2012-03-29. [Compare
 view](https://github.com/getlantern/lantern/compare/v0.97.3...v0.97.4)
 
 
