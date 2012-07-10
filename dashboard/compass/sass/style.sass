@@ -180,6 +180,8 @@ input[type=password], input.signinpwinput
   overflow-x: hidden
   overflow-y: auto
   white-space: nowrap
+  padding-left: 3px
+  +box-sizing(border-box)
   #trustedpeers &
     font-size: $font-size-smaller
     height: 90px
@@ -197,10 +199,22 @@ input[type=password], input.signinpwinput
     width: 400px
     min-height: 90px
     max-height: 414px
-    padding-left: 3px
     +border-radius(3px)
-    +box-sizing(border-box)
     margin-bottom: 8px
+
+img.plus
+  vertical-align: bottom
+
+.invite-link
+  text-decoration: none
+  color: $font-color !important
+  img.plus
+    display: none
+  &:hover
+    text-decoration: underline
+    color: $link-color !important
+    img.plus
+      display: inline
 
 .searchpeers
   +box-sizing(border-box)
