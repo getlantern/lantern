@@ -302,7 +302,7 @@ function LDCtrl(){
   };
 
   self.fetchpeers = function(){
-    if(self.state.getMode && self.logged_in()){
+    if(self.logged_in()){
       console.log('fetching peers');
       self.peers = FETCHING;
       self.$digest();
@@ -880,7 +880,6 @@ $(document).ready(function(){
     s.update(msg.data);
 
     // XXX
-    if(s.state.getMode){
       if(s.connected() && s.logged_in()){
         if(s.peers === FETCHFAILED){
           var backoff = Math.pow(2, ++nfailed_fetchpeers) * 1000;
@@ -900,7 +899,6 @@ $(document).ready(function(){
         setTimeout(s.fetchwhitelist, backoff);
         s.whitelist = []; // XXX
       }
-    }
   }
 
   var _subscription;
