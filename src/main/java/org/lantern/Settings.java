@@ -179,6 +179,11 @@ public class Settings implements MutableSettings {
     private Set<String> stunServers = new HashSet<String>();
     
     private int invites = 0;
+    
+    /**
+     * Locally-stored set of users we've invited.
+     */
+    private Set<String> invited = new HashSet<String>();
 
     {
         LanternHub.register(this);
@@ -734,6 +739,15 @@ public class Settings implements MutableSettings {
     public int getInvites() {
         return invites;
     }
+    
+    public Set<String> getInvited() {
+        return invited;
+    }
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public void setInvited(final Set<String> invited) {
+        this.invited = invited;
+    }
 
     @Override
     public String toString() {
@@ -791,4 +805,5 @@ public class Settings implements MutableSettings {
             }
         }
     }
+
 }

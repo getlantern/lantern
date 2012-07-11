@@ -1,5 +1,7 @@
 package org.lantern;
 
+import java.util.Set;
+
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.RosterPacket.ItemStatus;
@@ -12,7 +14,7 @@ public class LanternPresence {
     private boolean trusted;
     private String name;
     private String email;
-
+    
     public LanternPresence(final RosterEntry entry) {
         this.available = false;
         final ItemStatus stat = entry.getStatus();
@@ -80,8 +82,11 @@ public class LanternPresence {
     public String getEmail() {
         return email;
     }
-    
 
+    public boolean isInvited() {
+        return LanternHub.settings().getInvited().contains(email);
+    }
+    
     @Override
     public String toString() {
         return "LanternPresence [available=" + available + ", away=" + away
