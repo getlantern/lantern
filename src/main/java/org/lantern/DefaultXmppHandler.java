@@ -32,7 +32,6 @@ import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Message;
-import org.jivesoftware.smack.packet.Message.Type;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.json.simple.JSONArray;
@@ -1048,9 +1047,18 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.error("Blank hub address when sending invite?");
             return;
         }
+        
+        final Set<String> invited = LanternHub.settings().getInvited();
+        if (invited.contains(email)) {
+            LOG.info("Already invited");
+            return;
+        }
         final Presence pres = new Presence(Presence.Type.available);
         pres.setTo(LanternConstants.LANTERN_JID);
         pres.setProperty(LanternConstants.INVITE_KEY, email);
+        conn.sendPacket(pres);
+        
+        invited.add(email);
         
         final Runnable runner = new Runnable() {
             
