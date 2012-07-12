@@ -111,7 +111,13 @@ public class Dashboard {
         shell.setLocation(x, y);
         
         log.debug("Creating new browser...");
-        final Browser browser = new Browser(shell, SWT.NONE);
+        final int browserType;
+        if (SystemUtils.IS_OS_LINUX) {
+            browserType = SWT.WEBKIT;
+        } else {
+            browserType = SWT.NONE;
+        }
+        final Browser browser = new Browser(shell, browserType);
         log.debug("Running browser: {}", browser.getBrowserType());
         browser.setSize(minWidth, minHeight);
         //browser.setBounds(0, 0, 800, 600);
