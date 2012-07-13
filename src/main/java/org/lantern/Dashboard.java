@@ -1,10 +1,11 @@
 package org.lantern;
 
 import java.io.File;
-import java.net.URL;
 import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.LocationEvent;
@@ -21,6 +22,10 @@ import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.jna.platform.win32.Advapi32Util;
+import com.sun.jna.platform.win32.Win32Exception;
+import com.sun.jna.platform.win32.WinReg;
 
 /**
  * Browser dashboard for controlling lantern.
@@ -44,6 +49,39 @@ public class Dashboard {
     
     protected void buildBrowser() {
         log.debug("Creating shell...");
+        
+        // This gets around a bug in XP/SWT/IE where SWT loads IE 7 even when
+        // IE 8 is on the user's system.
+        if (SystemUtils.IS_OS_WINDOWS_XP) {
+            System.setProperty("org.eclipse.swt.browser.IEVersion", "8000");
+            
+            // Make extra sure all these values are set.
+            final String key = 
+                "Software\\Microsoft\\Internet Explorer\\Main\\" +
+                "FeatureControl\\FEATURE_BROWSER_EMULATION";
+            
+            try {
+                Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, key, 
+                    "java.exe", 8000);
+                Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, key, 
+                    "javaw.exe", 8000);
+                Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, key, 
+                    "eclipse.exe", 8000);
+                Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, key, 
+                    "lantern.exe", 8000);
+            } catch (final Win32Exception e) {
+                log.error("Cannot write to registry", e);
+            }
+            
+            // We still sleep quickly here just in case there's anything
+            // asynchronous under the hood.
+            try {
+                log.debug("Sleeping for 400 ms...");
+                Thread.sleep(400);
+                log.debug("Waking");
+            } catch (InterruptedException e1) {
+            }
+        }
         if (this.shell != null && !this.shell.isDisposed()) {
             this.shell.forceActive();
             return;
@@ -73,7 +111,13 @@ public class Dashboard {
         shell.setLocation(x, y);
         
         log.debug("Creating new browser...");
-        final Browser browser = new Browser(shell, SWT.NONE);
+        final int browserType;
+        if (SystemUtils.IS_OS_LINUX) {
+            browserType = SWT.WEBKIT;
+        } else {
+            browserType = SWT.NONE;
+        }
+        final Browser browser = new Browser(shell, browserType);
         log.debug("Running browser: {}", browser.getBrowserType());
         browser.setSize(minWidth, minHeight);
         //browser.setBounds(0, 0, 800, 600);
@@ -131,7 +175,38 @@ public class Dashboard {
         shell.addListener (SWT.Close, new Listener () {
             @Override
             public void handleEvent(final Event event) {
-                if (LanternHub.settings().isInitialSetupComplete()) {
+                if (LanternHub.settings().getSettings().getState() == SettingsState.State.LOCKED) {
+                    if (LanternHub.systemTray().isActive()) {
+                        // user presented with unlock screen and just hit close
+                        final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
+                        final MessageBox messageBox = new MessageBox (shell, style);
+                        messageBox.setText ("Leave Lantern locked?");
+                        final String msg =
+                            "Lantern will not work while it is locked. Hide "+
+                            "dashboard now? You can unlock Lantern later by "+
+                            "reopening the dashboard from its icon in the "+
+                            (SystemUtils.IS_OS_WINDOWS ? "system tray." :
+                            "menu bar.");
+                        messageBox.setMessage (msg);
+                        event.doit = messageBox.open () == SWT.YES;
+                        if (event.doit) {
+                            // don't quit, just hide the window so user can unlock later
+                            browser.close();
+                        }
+                    } else {
+                        // no system tray so close means quit, not hide
+                        final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
+                        final MessageBox messageBox = new MessageBox (shell, style);
+                        messageBox.setText ("Quit Lantern?");
+                        final String msg = "Quit Lantern?";
+                        messageBox.setMessage (msg);
+                        event.doit = messageBox.open () == SWT.YES;
+                        if (event.doit) {
+                            LanternHub.display().dispose();
+                            System.exit(0);
+                        }
+                    }
+                } else if (LanternHub.settings().isInitialSetupComplete()) {
                     if (LanternHub.systemTray().isActive()) {
                         browser.stop();
                         browser.setUrl("about:blank");
@@ -140,8 +215,7 @@ public class Dashboard {
                         final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
                         final MessageBox messageBox = new MessageBox (shell, style);
                         messageBox.setText ("Quit Lantern?");
-                        final String msg = 
-                            "Quit Lantern?";
+                        final String msg = "Quit Lantern?";
                         messageBox.setMessage (msg);
                         event.doit = messageBox.open () == SWT.YES;
                         if (event.doit) {
@@ -153,7 +227,7 @@ public class Dashboard {
                     final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
                     final MessageBox messageBox = new MessageBox (shell, style);
                     messageBox.setText ("Quit Lantern?");
-                    final String msg = 
+                    final String msg =
                         "Lantern setup has not been completed. Quit and set up later?";
                     messageBox.setMessage (msg);
                     event.doit = messageBox.open () == SWT.YES;
@@ -215,7 +289,13 @@ public class Dashboard {
         return askQuestion(title, question, DEFAULT_QUESTION_FLAGS) == SWT.YES;
     }
     
-    public int askQuestion(final String title, final String question, final int style) {
+    public int askQuestion(final String title, final String question, 
+        final int style) {
+        if (!LanternHub.settings().isUiEnabled()) {
+            log.info("MESSAGE BOX TITLE: "+title);
+            log.info("MESSAGE BOX MESSAGE: "+question);
+            return -1;
+        }
         final AtomicInteger response = new AtomicInteger();
         LanternHub.display().syncExec(new Runnable() {
             @Override
