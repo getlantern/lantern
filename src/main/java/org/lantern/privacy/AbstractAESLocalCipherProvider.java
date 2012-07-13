@@ -5,14 +5,14 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.Key;
 import java.security.spec.AlgorithmParameterSpec;
+
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey; 
-import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 import org.lantern.LanternHub;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

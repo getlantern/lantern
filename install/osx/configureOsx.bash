@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
 
-mkdir -p ~/Library/Logs/Lantern
-rm ~/Library/Logs/Lantern/installer.log
+mkdir -p ~/Library/Logs/Lantern 
 LOG_FILE=~/Library/Logs/Lantern/installer.log
+rm $LOG_FILE
+
 function log() {
   echo "`date`: $@" >> $LOG_FILE
 }
@@ -60,9 +61,9 @@ perl -pi -e "s/<dict>/<dict><key>LSUIElement<\/key><string>1<\/string>/g" $APP_P
 # Just make sure the launchd Info.plist is using the correct path to our app bundle...
 perl -pi -e "s:/Applications/Lantern/Lantern.app:$APP_PATH:g" $PLIST_INSTALL_FULL || die "Could not fix Info.plist"
 
-log "About to sign code...output is"
-codesign -f -s - $APP_PATH >> $LOG_FILE
-log "Signed code..."
+#log "About to sign code...output is"
+#codesign -f -s - $APP_PATH >> $LOG_FILE
+#log "Signed code..."
 
 # We also need to change the contents of the Info.plist file to reflect the correct path.
 log "Running in `pwd`"

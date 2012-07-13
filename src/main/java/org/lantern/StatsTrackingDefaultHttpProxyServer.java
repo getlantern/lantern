@@ -15,9 +15,6 @@ import org.jboss.netty.channel.group.ChannelGroupFuture;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.littleshoot.proxy.ChainProxyManager;
 import org.littleshoot.proxy.DefaultProxyAuthorizationManager;
 import org.littleshoot.proxy.DefaultRelayPipelineFactoryFactory;
@@ -31,6 +28,8 @@ import org.littleshoot.proxy.ProxyAuthorizationHandler;
 import org.littleshoot.proxy.ProxyAuthorizationManager;
 import org.littleshoot.proxy.RelayListener;
 import org.littleshoot.proxy.RelayPipelineFactoryFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This is a the little proxy DefaultHttpProxyServer slightly

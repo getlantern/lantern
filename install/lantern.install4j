@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="5.0.11" transformSequenceNumber="3">
-  <directoryPresets config="." />
+<install4j version="5.1.1" transformSequenceNumber="4">
+  <directoryPresets config="./linux" />
   <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Team Lantern" publisherWeb="http://www.getlantern.org" version="0.97" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -13,20 +13,24 @@
     </searchSequence>
     <variables />
     <mergedProjects />
+    <codeSigning macEnabled="true" macPkcs12File="../../secure/bns_cert.p12" windowsEnabled="true" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="../../secure/bns_cert.p12" />
   </application>
   <files keepModificationTimes="false" missingFilesStrategy="warn" globalExcludeSuffixes="" defaultOverwriteMode="4" defaultUninstallMode="0" launcherOverwriteMode="3" defaultFileMode="644" defaultDirMode="755">
     <filesets>
       <fileset name="Windows File Set" id="145" customizedId="" />
       <fileset name="OSX File Set" id="147" customizedId="" />
+      <fileset name="Ubuntu File Set" id="788" customizedId="" />
     </filesets>
     <roots>
       <root id="146" fileset="145" location="" />
       <root id="148" fileset="147" location="" />
+      <root id="789" fileset="788" location="" />
     </roots>
     <mountPoints>
       <mountPoint id="25" root="" location="" mode="755" />
       <mountPoint id="149" root="146" location="" mode="755" />
       <mountPoint id="150" root="148" location="" mode="755" />
+      <mountPoint id="790" root="789" location="" mode="755" />
     </mountPoints>
     <entries>
       <dirEntry mountPoint="25" file="./common" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="common" excludeSuffixes="" dirMode="755" overrideDirMode="false">
@@ -69,11 +73,16 @@
           <entry location=".svn" fileType="regular" />
         </exclude>
       </dirEntry>
+      <dirEntry mountPoint="790" file="./linux" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="linux" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+        <exclude>
+          <entry location="linux-amd64-1.7.0_03.tar.gz" fileType="regular" />
+        </exclude>
+      </dirEntry>
     </entries>
     <components />
   </files>
   <launchers>
-    <launcher name="lantern-osx-gui" id="27" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="Lantern" icnsFile="./common/lantern.icns" swtApp="true" fileset="147">
+    <launcher name="lantern-osx-gui" id="27" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="Lantern" icnsFile="./common/lantern.icns" customMacBundleIdentifier="false" macBundleIdentifier="" swtApp="true" fileset="147">
       <executable name="lantern" type="1" iconSet="true" iconFile="" executableDir="." redirectStderr="true" stderrFile="${installer:sys.userHome}/Library/Logs/Lantern/stderr.log" stderrMode="overwrite" redirectStdout="true" stdoutFile="${installer:sys.userHome}/Library/Logs/Lantern/stdout.log" stdoutMode="overwrite" failOnStderrOutput="false" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="true" globalSingleInstance="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
@@ -99,14 +108,17 @@
       <customScript mode="1" file="">
         <content />
       </customScript>
+      <infoPlist mode="1" file="">
+        <content />
+      </infoPlist>
       <iconImageFiles>
         <file path="./common/16on.png" />
         <file path="./common/32on.png" />
         <file path="./common/64on.png" />
       </iconImageFiles>
     </launcher>
-    <launcher name="Lantern" id="224" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="" icnsFile="" swtApp="true" fileset="145">
-      <executable name="Lantern" type="1" iconSet="true" iconFile="" executableDir="" redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="false" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
+    <launcher name="Lantern" id="224" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="Lantern" icnsFile="" customMacBundleIdentifier="false" macBundleIdentifier="" swtApp="true" fileset="145">
+      <executable name="Lantern" type="1" iconSet="true" iconFile="" executableDir="" redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="false" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="highestAvailable" checkConsoleParameter="false" globalSingleInstance="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
       <splashScreen show="false" autoOff="true" alwaysOnTop="true" width="0" height="0" bitmapFile="" java6SplashScreen="false">
@@ -129,14 +141,17 @@
       <customScript mode="1" file="">
         <content />
       </customScript>
+      <infoPlist mode="1" file="">
+        <content />
+      </infoPlist>
       <iconImageFiles>
         <file path="./common/16on.png" />
         <file path="./common/32on.png" />
         <file path="./common/64on.png" />
       </iconImageFiles>
     </launcher>
-    <launcher name="lantern" id="580" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="lantern" icnsFile="" swtApp="true" fileset="">
-      <executable name="lantern" type="1" iconSet="true" iconFile="" executableDir="" redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="false" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
+    <launcher name="lantern" id="580" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="lantern" icnsFile="" customMacBundleIdentifier="false" macBundleIdentifier="" swtApp="true" fileset="788">
+      <executable name="lantern" type="1" iconSet="true" iconFile="" executableDir="" redirectStderr="true" stderrFile="lantern-stderr.log" stderrMode="overwrite" redirectStdout="true" stdoutFile="lantern-stdout.log" stdoutMode="overwrite" failOnStderrOutput="false" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
       <splashScreen show="false" autoOff="true" alwaysOnTop="true" width="0" height="0" bitmapFile="" java6SplashScreen="false">
@@ -159,6 +174,9 @@
       <customScript mode="1" file="">
         <content />
       </customScript>
+      <infoPlist mode="1" file="">
+        <content />
+      </infoPlist>
       <iconImageFiles>
         <file path="./common/16on.png" />
         <file path="./common/32on.png" />
@@ -173,7 +191,7 @@
       <customAttributes />
     </autoUpdate>
     <applications>
-      <application name="" id="installer" customizedId="" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" fileset="" customIcnsFile="./common/lantern.icns" customIcoFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
+      <application name="" id="installer" customizedId="" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="none" fileset="" customIcnsFile="./common/lantern.icns" customIcoFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
         <serializedBean>
           <java class="java.beans.XMLDecoder">
             <object class="com.install4j.runtime.beans.applications.InstallerApplication">
@@ -220,7 +238,7 @@
         <launcherIds />
         <variables />
         <startup>
-          <screen name="" id="1" customizedId="" beanClass="com.install4j.runtime.beans.screens.StartupScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="1" customizedId="" beanClass="com.install4j.runtime.beans.screens.StartupScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.StartupScreen" />
@@ -231,17 +249,17 @@
             <preActivation />
             <postActivation />
             <actions>
-              <action name="" id="511" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="511" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction">
-                      <void property="elevatedProcessTypeMac">
-                        <object class="com.install4j.runtime.beans.actions.misc.ElevatedProcessType" field="MAIN" />
+                      <void property="failIfNotObtainedMac">
+                        <boolean>false</boolean>
                       </void>
-                      <void property="obtainIfAdminMac">
+                      <void property="failIfNotRootUnix">
                         <boolean>true</boolean>
                       </void>
-                      <void property="obtainIfNormalMac">
+                      <void property="obtainIfNormalWin">
                         <boolean>true</boolean>
                       </void>
                     </object>
@@ -254,7 +272,7 @@
           </screen>
         </startup>
         <screens>
-          <screen name="" id="2" customizedId="" beanClass="com.install4j.runtime.beans.screens.WelcomeScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="2" customizedId="" beanClass="com.install4j.runtime.beans.screens.WelcomeScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.WelcomeScreen" />
@@ -265,7 +283,7 @@
             <preActivation />
             <postActivation />
             <actions>
-              <action name="" id="3" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="true" failureStrategy="1" errorMessage="">
+              <action name="" id="3" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="true" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction">
@@ -284,7 +302,7 @@
             </actions>
             <formComponents />
           </screen>
-          <screen name="" id="4" customizedId="" beanClass="com.install4j.runtime.beans.screens.InstallationDirectoryScreen" enabled="false" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="4" customizedId="" beanClass="com.install4j.runtime.beans.screens.InstallationDirectoryScreen" enabled="false" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.InstallationDirectoryScreen" />
@@ -295,7 +313,7 @@
             <preActivation />
             <postActivation />
             <actions>
-              <action name="" id="5" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="true" failureStrategy="1" errorMessage="">
+              <action name="" id="5" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="true" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction">
@@ -314,7 +332,7 @@
             </actions>
             <formComponents />
           </screen>
-          <screen name="" id="33" customizedId="" beanClass="com.install4j.runtime.beans.screens.FormScreen" enabled="false" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="33" customizedId="" beanClass="com.install4j.runtime.beans.screens.FormScreen" enabled="false" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.FormScreen">
@@ -446,7 +464,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
               </formComponent>
             </formComponents>
           </screen>
-          <screen name="" id="6" customizedId="" beanClass="com.install4j.runtime.beans.screens.ComponentsScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="6" customizedId="" beanClass="com.install4j.runtime.beans.screens.ComponentsScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.ComponentsScreen" />
@@ -459,7 +477,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
             <actions />
             <formComponents />
           </screen>
-          <screen name="" id="7" customizedId="" beanClass="com.install4j.runtime.beans.screens.StandardProgramGroupScreen" enabled="false" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="7" customizedId="" beanClass="com.install4j.runtime.beans.screens.StandardProgramGroupScreen" enabled="false" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.StandardProgramGroupScreen">
@@ -476,7 +494,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
             <actions />
             <formComponents />
           </screen>
-          <screen name="" id="8" customizedId="" beanClass="com.install4j.runtime.beans.screens.InstallationScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="true" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="8" customizedId="" beanClass="com.install4j.runtime.beans.screens.InstallationScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="true" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.InstallationScreen" />
@@ -487,7 +505,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
             <preActivation />
             <postActivation />
             <actions>
-              <action name="" id="261" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="We apologize, but we were unable to stop the existing Lantern installation running on this computer. Please manually close it in Task Manager and run the installer again.">
+              <action name="" id="261" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="We apologize, but we were unable to stop the existing Lantern installation running on this computer. Please manually close it in Task Manager and run the installer again.">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction">
@@ -502,7 +520,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="340" customizedId="" beanClass="com.install4j.runtime.beans.actions.UninstallPreviousAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="340" customizedId="" beanClass="com.install4j.runtime.beans.actions.UninstallPreviousAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.UninstallPreviousAction" />
@@ -510,7 +528,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="9" customizedId="" beanClass="com.install4j.runtime.beans.actions.InstallFilesAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="${i18n:FileCorrupted}">
+              <action name="" id="9" customizedId="" beanClass="com.install4j.runtime.beans.actions.InstallFilesAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="${i18n:FileCorrupted}">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.InstallFilesAction" />
@@ -518,31 +536,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="10" customizedId="" beanClass="com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction">
-                      <void property="uninstallerMenuName">
-                        <string>${i18n:UninstallerMenuEntry(${compiler:sys.fullName})}</string>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition>!context.getBooleanVariable("sys.programGroupDisabled")</condition>
-              </action>
-              <action name="" id="11" customizedId="" beanClass="com.install4j.runtime.beans.actions.desktop.RegisterAddRemoveAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.desktop.RegisterAddRemoveAction">
-                      <void property="itemName">
-                        <string>${compiler:sys.fullName} ${compiler:sys.version}</string>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition />
-              </action>
-              <action name="" id="42" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="Could not copy FireFox configuration.">
+              <action name="" id="42" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="Could not copy FireFox configuration.">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
@@ -571,7 +565,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition>return Util.isWindows();</condition>
               </action>
-              <action name="" id="154" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="154" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
@@ -597,7 +591,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition>return Util.isMacOS();</condition>
               </action>
-              <action name="" id="272" customizedId="" beanClass="com.install4j.runtime.beans.actions.services.InstallServiceAction" enabled="false" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="">
+              <action name="" id="272" customizedId="" beanClass="com.install4j.runtime.beans.actions.services.InstallServiceAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.services.InstallServiceAction">
@@ -618,7 +612,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="345" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetOwnerAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="">
+              <action name="" id="345" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetOwnerAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.SetOwnerAction">
@@ -642,7 +636,22 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition>return Util.isMacOS();</condition>
               </action>
-              <action name="" id="343" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetModeAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not fix file permissions.">
+              <action name="" id="10" customizedId="" beanClass="com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.desktop.CreateProgramGroupAction">
+                      <void property="programGroupName">
+                        <string>Lantern</string>
+                      </void>
+                      <void property="uninstallerMenuName">
+                        <string>${i18n:UninstallerMenuEntry(${compiler:sys.fullName})}</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>!context.getBooleanVariable("sys.programGroupDisabled")</condition>
+              </action>
+              <action name="" id="343" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.SetModeAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not fix file permissions.">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.SetModeAction">
@@ -663,7 +672,19 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition>return Util.isMacOS();</condition>
               </action>
-              <action name="" id="430" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="We're sorry, but there was an error installing Lantern.">
+              <action name="" id="11" customizedId="" beanClass="com.install4j.runtime.beans.actions.desktop.RegisterAddRemoveAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.desktop.RegisterAddRemoveAction">
+                      <void property="itemName">
+                        <string>${compiler:sys.fullName} ${compiler:sys.version}</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
+              <action name="" id="430" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="We're sorry, but there was an error installing Lantern.">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
@@ -679,10 +700,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                           <string>configureOsx.bash</string>
                         </object>
                       </void>
-                      <void property="executionType">
-                        <object class="com.install4j.runtime.beans.actions.misc.ExecutionType" field="ADMIN" />
-                      </void>
-                      <void property="failOnRedirectionError">
+                      <void property="failOnStdinFileError">
                         <boolean>true</boolean>
                       </void>
                       <void property="logArguments">
@@ -693,10 +711,16 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                           <string>${installer:sys.userHome}/Library/Logs/Lantern/install4jerr.txt</string>
                         </object>
                       </void>
+                      <void property="stderrRedirectionMode">
+                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
+                      </void>
                       <void property="stdoutFile">
                         <object class="java.io.File">
                           <string>${installer:sys.userHome}/Library/Logs/Lantern/install4jout.txt</string>
                         </object>
+                      </void>
+                      <void property="stdoutRedirectionMode">
+                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
                       </void>
                       <void property="wait">
                         <boolean>true</boolean>
@@ -711,7 +735,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition>return Util.isMacOS();</condition>
               </action>
-              <action name="" id="390" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not execute bat file. Would you like to continue?">
+              <action name="" id="390" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not execute bat file. Would you like to continue?">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
@@ -738,10 +762,16 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                           <string>${installer:sys.userHome}/Library/Logs/Lantern/install4jerr.txt</string>
                         </object>
                       </void>
+                      <void property="stderrRedirectionMode">
+                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
+                      </void>
                       <void property="stdoutFile">
                         <object class="java.io.File">
                           <string>${installer:sys.userHome}/Library/Logs/Lantern/install4jout.txt</string>
                         </object>
+                      </void>
+                      <void property="stdoutRedirectionMode">
+                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
                       </void>
                       <void property="wait">
                         <boolean>true</boolean>
@@ -756,7 +786,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition>return Util.isWindows();</condition>
               </action>
-              <action name="" id="692" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="692" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
@@ -787,7 +817,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition>return System.getProperty("java.version").startsWith("1.6");</condition>
               </action>
-              <action name="" id="694" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="694" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
@@ -821,7 +851,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
             </actions>
             <formComponents />
           </screen>
-          <screen name="" id="12" customizedId="" beanClass="com.install4j.runtime.beans.screens.FinishedScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="true" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="12" customizedId="" beanClass="com.install4j.runtime.beans.screens.FinishedScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="true" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.FinishedScreen" />
@@ -864,7 +894,19 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
 </preActivation>
             <postActivation />
             <actions>
-              <action name="" id="472" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="There was a problem starting Lantern">
+              <action name="" id="651" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not start Lantern.">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction">
+                      <void property="launcherId">
+                        <string>27</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return Util.isMacOS();</condition>
+              </action>
+              <action name="" id="472" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="There was a problem starting Lantern">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction">
@@ -874,9 +916,9 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                     </object>
                   </java>
                 </serializedBean>
-                <condition>return Util.isWindows() || Util.isLinux();</condition>
+                <condition>return Util.isWindows();</condition>
               </action>
-              <action name="" id="41" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="false" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="41" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction">
@@ -897,7 +939,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="87" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not configure Lantern to run on startup">
+              <action name="" id="87" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not configure Lantern to run on startup">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction">
@@ -918,29 +960,25 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                 </serializedBean>
                 <condition>return Util.isWindows();</condition>
               </action>
-              <action name="" id="220" customizedId="" beanClass="com.install4j.runtime.beans.actions.services.StartServiceAction" enabled="false" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="">
+              <action name="" id="220" customizedId="" beanClass="com.install4j.runtime.beans.actions.services.StartServiceAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.services.StartServiceAction">
-                      <void property="launcherId">
-                        <string>273</string>
-                      </void>
-                    </object>
+                    <object class="com.install4j.runtime.beans.actions.services.StartServiceAction" />
                   </java>
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="651" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="750" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction">
                       <void property="launcherId">
-                        <string>27</string>
+                        <string>580</string>
                       </void>
                     </object>
                   </java>
                 </serializedBean>
-                <condition>return Util.isMacOS();</condition>
+                <condition>return Util.isLinux(); </condition>
               </action>
             </actions>
             <formComponents>
@@ -967,7 +1005,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
           </screen>
         </screens>
       </application>
-      <application name="" id="uninstaller" customizedId="" beanClass="com.install4j.runtime.beans.applications.UninstallerApplication" enabled="true" commentSet="false" comment="" fileset="" customIcnsFile="./common/lantern.icns" customIcoFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
+      <application name="" id="uninstaller" customizedId="" beanClass="com.install4j.runtime.beans.applications.UninstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="none" fileset="" customIcnsFile="./common/lantern.icns" customIcoFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
         <serializedBean>
           <java class="java.beans.XMLDecoder">
             <object class="com.install4j.runtime.beans.applications.UninstallerApplication">
@@ -997,7 +1035,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
         <launcherIds />
         <variables />
         <startup>
-          <screen name="" id="14" customizedId="" beanClass="com.install4j.runtime.beans.screens.StartupScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="14" customizedId="" beanClass="com.install4j.runtime.beans.screens.StartupScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.StartupScreen" />
@@ -1009,7 +1047,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
             <postActivation />
             <actions>
               <link name="" id="512" customizedId="" beanClass="" enabled="true" targetId="511" mergedProjectId="" />
-              <action name="" id="21" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="21" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.LoadResponseFileAction" />
@@ -1022,7 +1060,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
           </screen>
         </startup>
         <screens>
-          <screen name="" id="15" customizedId="" beanClass="com.install4j.runtime.beans.screens.UninstallWelcomeScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="15" customizedId="" beanClass="com.install4j.runtime.beans.screens.UninstallWelcomeScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.UninstallWelcomeScreen" />
@@ -1035,7 +1073,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
             <actions />
             <formComponents />
           </screen>
-          <screen name="" id="16" customizedId="" beanClass="com.install4j.runtime.beans.screens.UninstallationScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="16" customizedId="" beanClass="com.install4j.runtime.beans.screens.UninstallationScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.UninstallationScreen" />
@@ -1046,7 +1084,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
             <preActivation />
             <postActivation />
             <actions>
-              <action name="" id="470" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.DeleteRegistryItemAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="true" failureStrategy="1" errorMessage="">
+              <action name="" id="470" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.DeleteRegistryItemAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="true" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.registry.DeleteRegistryItemAction">
@@ -1064,7 +1102,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                 </serializedBean>
                 <condition>return Util.isWindows();</condition>
               </action>
-              <action name="" id="119" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="119" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.DeleteFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.DeleteFileAction">
@@ -1082,7 +1120,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="17" customizedId="" beanClass="com.install4j.runtime.beans.actions.UninstallFilesAction" enabled="true" commentSet="false" comment="" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="17" customizedId="" beanClass="com.install4j.runtime.beans.actions.UninstallFilesAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.UninstallFilesAction" />
@@ -1093,7 +1131,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
             </actions>
             <formComponents />
           </screen>
-          <screen name="" id="19" customizedId="" beanClass="com.install4j.runtime.beans.screens.UninstallFailureScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="true" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="19" customizedId="" beanClass="com.install4j.runtime.beans.screens.UninstallFailureScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="true" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.UninstallFailureScreen" />
@@ -1106,7 +1144,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
             <actions />
             <formComponents />
           </screen>
-          <screen name="" id="18" customizedId="" beanClass="com.install4j.runtime.beans.screens.UninstallSuccessScreen" enabled="true" commentSet="false" comment="" rollbackBarrier="false" backButton="2" finishScreen="true" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="18" customizedId="" beanClass="com.install4j.runtime.beans.screens.UninstallSuccessScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="true" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.UninstallSuccessScreen" />
@@ -1124,9 +1162,10 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
     </applications>
   </installerGui>
   <mediaSets>
-    <windows name="Windows" id="26" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="../windows-x86-1.7.0_03.tar.gz" manualJREEntry="true" bundleType="2" jreURL="http://cdn.getlantern.org/windows-x86-1.7.0_03.tar.gz" jreFtpURL="" jreShared="true" directDownload="true" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
+    <windows name="Windows" id="26" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="../windows-x86-1.7.0_03.tar.gz" manualJREEntry="true" bundleType="2" jreURL="http://cdn.getlantern.org/windows-x86-1.7.0_03.tar.gz" jreShared="true" directDownload="true" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
       <excludedLaunchers>
         <launcher id="27" />
+        <launcher id="580" />
       </excludedLaunchers>
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
@@ -1141,7 +1180,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <excludedComponents />
       <includedDownloadableComponents />
     </windows>
-    <macos name="Mac OS X Single Bundle" id="157" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" customInstallBaseDir="" contentFilesType="1" downloadURL="" launcherId="27">
+    <macos name="Mac OS X Single Bundle" id="157" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" appleJre="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" launcherId="27">
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
       <exclude>
@@ -1155,7 +1194,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <excludedComponents />
       <includedDownloadableComponents />
     </macos>
-    <linuxDeb name="Linux Deb Archive 64" id="579" customizedId="" mediaFileName="lantern-64" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./linux/linux-amd64-1.7.0_03.tar.gz" manualJREEntry="true" bzip="false" description="Lantern" dependencies="" maintainerEmail="lantern_deb@getlantern.org">
+    <linuxDeb name="Linux Deb Archive 64" id="579" customizedId="" mediaFileName="lantern-64" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./linux/linux-amd64-1.7.0_03.tar.gz" manualJREEntry="true" bzip="false" description="Lantern" dependencies="libwebkitgtk-1.0-0" maintainerEmail="lantern_deb@getlantern.org">
       <excludedLaunchers>
         <launcher id="27" />
         <launcher id="224" />
@@ -1174,7 +1213,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <preInstallScript mode="1" file="">
         <content />
       </preInstallScript>
-      <postInstallScript mode="1" file="">
+      <postInstallScript mode="2" file="./linux/configureAndLaunchUbuntu.txt">
         <content />
       </postInstallScript>
       <preUninstallScript mode="1" file="">
@@ -1203,7 +1242,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <preInstallScript mode="1" file="">
         <content />
       </preInstallScript>
-      <postInstallScript mode="1" file="">
+      <postInstallScript mode="2" file="./linux/configureAndLaunchUbuntu.txt">
         <content />
       </postInstallScript>
       <preUninstallScript mode="1" file="">
@@ -1214,7 +1253,9 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       </postUninstallScript>
     </linuxDeb>
   </mediaSets>
-  <buildIds buildAll="false" />
-  <buildOptions verbose="false" faster="false" debug="true" />
+  <buildIds buildAll="false">
+    <mediaSet refId="157" />
+  </buildIds>
+  <buildOptions verbose="false" faster="true" disableSigning="false" debug="true" />
 </install4j>
 

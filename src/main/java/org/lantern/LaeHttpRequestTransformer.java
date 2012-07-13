@@ -15,8 +15,6 @@ public class LaeHttpRequestTransformer implements HttpRequestTransformer {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private static final long CHUNK_SIZE = 2000000;
-    
     @Override
     public void transform(final HttpRequest request,
         final InetSocketAddress proxyAddress) {
@@ -41,7 +39,10 @@ public class LaeHttpRequestTransformer implements HttpRequestTransformer {
             return;
         }
         
-        request.setHeader(HttpHeaders.Names.RANGE, "bytes=0-"+CHUNK_SIZE);
+        request.setHeader(LanternConstants.LANTERN_VERSION_HTTP_HEADER_NAME, 
+            LanternConstants.LANTERN_VERSION_HTTP_HEADER_VALUE);
+        request.setHeader(HttpHeaders.Names.RANGE, 
+            "bytes=0-"+LanternConstants.CHUNK_SIZE);
     }
 
 }

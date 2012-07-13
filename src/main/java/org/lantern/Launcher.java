@@ -23,12 +23,16 @@ import org.apache.commons.cli.PosixParser;
 import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.SystemUtils;
 import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.spi.LoggingEvent;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
+import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.json.simple.JSONObject;
@@ -105,11 +109,7 @@ public class Launcher {
     
     private static void launch(final String... args) {
         LOG.info("Starting Lantern...");
-        // Note the following just sets what cipher suite the server side
-        // selects. DHE is for perfect forward secrecy.
-        IceConfig.setCipherSuites(new String[] {
-            "TLS_DHE_RSA_WITH_AES_256_CBC_SHA"
-        });
+        configureCipherSuites();
         
         // first apply any command line settings
         final Options options = new Options();
@@ -243,6 +243,8 @@ public class Launcher {
             LanternHub.settings().setGetMode(true);
         }
         
+        gnomeAutoStart();
+        
         // Use our stored STUN servers if available.
         final Collection<String> stunServers = 
             LanternHub.settings().getStunServers();
@@ -296,7 +298,82 @@ public class Launcher {
             }
         }
     }
+    
+    private static void gnomeAutoStart() {
+        // Before setup we should just do the default, which is to run on
+        // startup. The user can configure this differently at any point 
+        // hereafter.
+        if (SystemUtils.IS_OS_LINUX && 
+            !LanternConstants.GNOME_AUTOSTART.isFile()) {
+            final File lanternDesktop;
+            final File candidate1 = 
+                new File(LanternConstants.GNOME_AUTOSTART.getName());
+            final File candidate2 = 
+                new File("install/linux", LanternConstants.GNOME_AUTOSTART.getName());
+            if (candidate1.isFile()) {
+                lanternDesktop = candidate1;
+            } else if (candidate2.isFile()){
+                lanternDesktop = candidate2;
+            } else {
+                LOG.error("Could not find lantern.desktop file");
+                return;
+            }
+            try {
+                final File parent = LanternConstants.GNOME_AUTOSTART.getParentFile();
+                if (!parent.isDirectory()) {
+                    if (!parent.mkdirs()) {
+                        LOG.error("Could not make dir for gnome autostart: "+parent);
+                        return;
+                    }
+                }
+                FileUtils.copyFileToDirectory(lanternDesktop, parent);
+                
+                LOG.info("Copied {} to {}", lanternDesktop, parent);
+                /*
+                final File path = 
+                    new File(System.getProperty("user.dir"), "lantern");
+                
+                // Lantern might now actually be installed yet, so abort this 
+                // call if not.
+                if (path.isFile()) {
+                    LOG.info("Setting exe in gnome autostart file");
+                    LanternUtils.replaceInFile(LanternConstants.GNOME_AUTOSTART, 
+                        "Exec=", "Exec="+path.getAbsolutePath());
+                } else {
+                    LOG.info("No lantern executable file at {}", path);
+                }
+                */
+            } catch (final IOException e) {
+                LOG.error("Could not configure gnome autostart", e);
+            }
+        }
+    }
 
+    private static void configureCipherSuites() {
+        if (!LanternUtils.isUnlimitedKeyStrength()) {
+            if (!SystemUtils.IS_OS_WINDOWS_VISTA) {
+                LOG.error("No policy files on non-Vista machine!!");
+            }
+            LOG.info("Reverting to weaker ciphers on Vista");
+            IceConfig.setCipherSuites(new String[] {
+                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
+            });
+        } else {
+            // Note the following just sets what cipher suite the server 
+            // side selects. DHE is for perfect forward secrecy.
+            
+            // CBC mitigates the BEAST attack. We also include 128 because 
+            // we never have enough permissions to copy the unlimited  
+            // strength policy files on Vista, so we have to revert back
+            // to 128.
+            IceConfig.setCipherSuites(new String[] {
+                "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
+            });
+        }
+    }
+    
+    
     private static Collection<InetSocketAddress> toSocketAddresses(
         final Collection<String> stunServers) {
         final Collection<InetSocketAddress> isas = 
@@ -330,6 +407,9 @@ public class Launcher {
         return false;
     }
 
+    // TODO: We want to make it such that once this method returns the
+    // settings are always fully loaded or the entire app has aborted, 
+    // including prompting the user for password.
     private static void loadSettings() {
         LanternHub.resetSettings(true);
         if (LanternHub.settings().getSettings().getState() == SettingsState.State.CORRUPTED) {
@@ -530,7 +610,7 @@ public class Launcher {
         // See http://cdn.getlantern.org/IMAG0210.jpg
         final org.littleshoot.proxy.HttpProxyServer plainTextProxy = 
             new DefaultHttpProxyServer(
-                LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT,
+                LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT,
                 publicOnlyRequestFilter);
         plainTextProxy.start(true, false);
         
@@ -670,7 +750,7 @@ public class Launcher {
     }
     
     private static void configureProductionLogger() {
-        final File logDir = LanternUtils.logDir();
+        final File logDir = LanternConstants.LOG_DIR;
         final File logFile = new File(logDir, "java.log");
         final Properties props = new Properties();
         try {

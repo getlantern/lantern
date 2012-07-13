@@ -1,22 +1,17 @@
 package org.lantern.privacy; 
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream; 
-import java.io.OutputStream;
 import java.security.GeneralSecurityException;
 import java.util.concurrent.atomic.AtomicReference;
 
-import net.sourceforge.jdpapi.DataProtector;
 import net.sourceforge.jdpapi.DPAPIException;
+import net.sourceforge.jdpapi.DataProtector;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-
+import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public class WindowsLocalCipherProvider extends AbstractAESLocalCipherProvider {
     
     public static final File DEFAULT_KEY_FILE = 
-        new File(LanternUtils.configDir(), "cipher.dpk");
+        new File(LanternConstants.CONFIG_DIR, "cipher.dpk");
 
     private static final AtomicReference<Boolean> DPAPI_INITIALIZED =
         new AtomicReference<Boolean>();

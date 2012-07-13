@@ -1,7 +1,11 @@
 package org.lantern;
 
 import java.io.File;
+import java.util.concurrent.Executors;
 
+import org.apache.commons.lang.SystemUtils;
+import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.lantern.exceptional4j.ExceptionalUtils;
 
 /**
@@ -17,6 +21,20 @@ public class LanternConstants {
      */
     public static final String VERSION = "lantern_version_tok";
     
+    /**
+     * We make range requests of the form "bytes=x-y" where
+     * y <= x + CHUNK_SIZE
+     * in order to chunk and parallelize downloads of large entities. This
+     * is especially important for requests to laeproxy since it is subject
+     * to GAE's response size limits.
+     * Because "bytes=x-y" requests bytes x through y _inclusive_,
+     * this actually requests y - x + 1 bytes,
+     * i.e. CHUNK_SIZE + 1 bytes
+     * when x = 0 and y = CHUNK_SIZE.
+     * This currently corresponds to laeproxy's RANGE_REQ_SIZE of 2000000.
+     */
+    public static final long CHUNK_SIZE = 2000000 - 1;
+    
     public static final String GET_EXCEPTIONAL_API_KEY = 
         ExceptionalUtils.NO_OP_KEY;
     
@@ -25,13 +43,6 @@ public class LanternConstants {
     
    
     public static final String VERSION_KEY = "v";
-    
-    /**
-     * This is the local proxy port data is relayed to on the "server" side
-     * of P2P connections.
-     */
-    public static final int PLAINTEXT_LOCALHOST_PROXY_PORT = 
-        LanternUtils.randomPort();
     
     public static final int LANTERN_LOCALHOST_HTTP_PORT = 8787;
     
@@ -81,14 +92,88 @@ public class LanternConstants {
      */
     public static final File LAUNCHD_PLIST =
         new File(System.getProperty("user.home"), "Library/LaunchAgents/org.lantern.plist");
+    
+    /**
+     * Configuration file for starting at login on Gnome.
+     */
+    public static final File GNOME_AUTOSTART =
+        new File(System.getProperty("user.home"), 
+            ".config/autostart/lantern-autostart.desktop");
 
     public static final String CONNECT_ON_LAUNCH = "connectOnLaunch";
 
     public static final String START_AT_LOGIN = "startAtLogin";
 
-    public static final File DEFAULT_SETTINGS_FILE = 
-        new File(LanternUtils.configDir(), "settings.json");
-
+    public static final File CONFIG_DIR = 
+        new File(System.getProperty("user.home"), ".lantern");
     
+    public static final File DEFAULT_SETTINGS_FILE = 
+        new File(CONFIG_DIR, "settings.json");
+
+    /**
+     * Note that we don't include the "X-" for experimental headers here. See:
+     * the draft that appears likely to become an RFC at:
+     * 
+     * http://tools.ietf.org/html/draft-ietf-appsawg-xdash
+     */
+    public static final String LANTERN_VERSION_HTTP_HEADER_NAME = 
+        "Lantern-Version";
+    
+    public static final String LANTERN_VERSION_HTTP_HEADER_VALUE = VERSION;
+    
+    public static File DATA_DIR;
+    
+    public static File LOG_DIR;
+    
+    public static ClientSocketChannelFactory clientSocketChannelFactory;
+
+    static {
+        try {
+            Class.forName("org.lantern.LanternControllerUtils");
+            DATA_DIR = null;
+            LOG_DIR = null;
+            clientSocketChannelFactory = null;
+        } catch (final ClassNotFoundException e) {
+            // Only load these if we're not on app engine.
+            if (SystemUtils.IS_OS_WINDOWS) {
+                //logDirParent = CommonUtils.getDataDir();
+                DATA_DIR = new File(System.getenv("APPDATA"), "Lantern");
+                LOG_DIR = new File(DATA_DIR, "logs");
+            } else if (SystemUtils.IS_OS_MAC_OSX) {
+                final File homeLibrary = 
+                    new File(System.getProperty("user.home"), "Library");
+                DATA_DIR = CONFIG_DIR;//new File(homeLibrary, "Logs");
+                final File allLogsDir = new File(homeLibrary, "Logs");
+                LOG_DIR = new File(allLogsDir, "Lantern");
+            } else {
+                DATA_DIR = new File(System.getProperty("user.home"), ".lantern");
+                LOG_DIR = new File(DATA_DIR, "logs");
+            }
+
+            if (!DATA_DIR.isDirectory()) {
+                if (!DATA_DIR.mkdirs()) {
+                    System.err.println("Could not create parent at: "
+                            + DATA_DIR);
+                }
+            }
+            if (!LOG_DIR.isDirectory()) {
+                if (!LOG_DIR.mkdirs()) {
+                    System.err.println("Could not create dir at: " + LOG_DIR);
+                }
+            }
+            if (!CONFIG_DIR.isDirectory()) {
+                if (!CONFIG_DIR.mkdirs()) {
+                    System.err.println("Could not make config directory at: "+
+                        CONFIG_DIR);
+                }
+            }
+            
+            // This is initialized here because we don't want to load it on
+            // App Engine -- DO NOT MOVE.
+            clientSocketChannelFactory = new NioClientSocketChannelFactory(
+                    Executors.newCachedThreadPool(),
+                    Executors.newCachedThreadPool());
+        }
+    }
 
 }

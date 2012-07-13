@@ -45,7 +45,7 @@ public class LanternHub {
         new AtomicReference<SecureRandom>(new SecureRandom());
     
     private static final File UNZIPPED = 
-        new File(LanternUtils.dataDir(), "GeoIP.dat");
+        new File(LanternConstants.DATA_DIR, "GeoIP.dat");
     
     private static final AtomicReference<TrustedContactsManager> trustedContactsManager =
         new AtomicReference<TrustedContactsManager>();
@@ -189,6 +189,13 @@ public class LanternHub {
                 display.set(new Display());
             }
             return display.get();
+        }
+    }
+    
+
+    public static void resetDisplay() {
+        synchronized (display) {
+            display.set(null);
         }
     }
 
@@ -508,5 +515,4 @@ public class LanternHub {
         LanternHub.resetSettings(true); // does not affect command line though...
         LanternHub.resetUserConfig(); // among others, TrustedContacts...
     }
-
 }

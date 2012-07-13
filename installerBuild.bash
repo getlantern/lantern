@@ -36,3 +36,4 @@ git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 cp target/lantern-*-jar-with-dependencies.jar install/common/lantern.jar || die "Could not copy jar?"
 
 git tag -f -a v$VERSION -m "Version $INTERNAL_VERSION release with MVN_ARGS $MVN_ARGS"
+git push --tags
