@@ -1,0 +1,12 @@
+# Ubuntu 12.04 doesn't have the webkit 1.0 lib installed by default, only 3.0
+# SWT doesn't support 3.0. See SWT's webkitgtk.h
+
+# We can't actually run the following from the installer because you can't call
+# apt-get from within apt-get. We instead just specify the dependency in
+# install4j and let the user deal with it.
+
+#sudo apt-get install -y libwebkitgtk-1.0-0
+# Now just launch lantern
+mkdir ~/.lantern &> /dev/null
+mkdir ~/.lantern/logs &> /dev/null
+lantern &> ~/.lantern/logs/lantern.out
