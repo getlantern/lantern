@@ -13,6 +13,10 @@ import org.apache.commons.lang.SystemUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.sun.jna.platform.win32.Advapi32Util;
+import com.sun.jna.platform.win32.Win32Exception;
+import com.sun.jna.platform.win32.WinReg;
+
 /**
  * Class that does the dirty work of executing changes to the various settings 
  * users can configure.
@@ -33,44 +37,72 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             }
         });
 
+    private final File gnomeAutostart;
+
     public DefaultSettingsChangeImplementor() {
-        this(LanternConstants.LAUNCHD_PLIST);
+        this(LanternConstants.LAUNCHD_PLIST, LanternConstants.GNOME_AUTOSTART);
     }
     
-    public DefaultSettingsChangeImplementor(final File launchdPlist) {
+    public DefaultSettingsChangeImplementor(final File launchdPlist, 
+        final File gnomeAutostart) {
         this.launchdPlist = launchdPlist;
+        this.gnomeAutostart = gnomeAutostart;
     }
     
     @Override
     public void setStartAtLogin(final boolean start) {
+        log.info("Setting start at login to "+start);
         if (SystemUtils.IS_OS_MAC_OSX && this.launchdPlist.isFile()) {
-            log.info("Setting start at login to "+start);
-            LanternUtils.replaceInFile(this.launchdPlist, 
-                "<"+!start+"/>", "<"+start+"/>");
+            setStartAtLoginOsx(start);
         } else if (SystemUtils.IS_OS_WINDOWS) {
-            final String key = 
-                "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run";
-            int result = 0;
-            if (start) {
-                try {
-                    final String path = 
-                        "\"\\\""+new File("Lantern.exe").getCanonicalPath()+"\\\"\"" + " --launchd";
-                    result = WindowsRegistry.writeREG_SZ(key, "Lantern", path);
-                } catch (final IOException e) {
-                    log.error("Could not get canonical path", e);
-                }
-            } else {
-                result = WindowsRegistry.writeREG_SZ(key, "Lantern", "");
-            }
-            
-            if (result != 0) {
-                log.error("Error changing startAtLogin? Result: "+result);
-            }
+            setStartAtLoginWindows(start);
         } else if (SystemUtils.IS_OS_LINUX) {
-            // TODO: Make this work on Linux!! 
-            log.warn("setStartAtLogin not yet implemented for Linux");
+            log.info("Setting setStartAtLogin for Linux");
+            setStartAtLoginLinux(start);
         } else {
             log.warn("setStartAtLogin not yet implemented for {}", SystemUtils.OS_NAME);
+        }
+    }
+
+    public void setStartAtLoginOsx(final boolean start) {
+        LanternUtils.replaceInFile(this.launchdPlist, 
+                "<"+!start+"/>", "<"+start+"/>");
+    }
+
+    public void setStartAtLoginLinux(final boolean start) {
+        LanternUtils.replaceInFile(this.gnomeAutostart, 
+            "X-GNOME-Autostart-enabled="+!start, "X-GNOME-Autostart-enabled="+start);
+    }
+
+    public void setStartAtLoginWindows(final boolean start) {
+        final String key = 
+            "Software\\Microsoft\\Windows\\CurrentVersion\\Run";
+        int result = 0;
+        if (start) {
+            try {
+                final String path = 
+                    "\"\\\""+new File("Lantern.exe").getCanonicalPath()+"\\\"\"" + " --launchd";
+                //result = WindowsRegistry.writeREG_SZ(key, "Lantern", path);
+                
+                Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, 
+                        key, "Lantern", path);
+            } catch (final IOException e) {
+                log.error("Could not get canonical path", e);
+            } catch (final Win32Exception e) {
+                log.error("Cannot write to registry", e);
+            }
+        } else {
+            try {
+                //result = WindowsRegistry.writeREG_SZ(key, "Lantern", "");
+                Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, 
+                    key, "Lantern", "");
+            } catch (final Win32Exception e) {
+                log.error("Cannot write to registry", e);
+            }
+        }
+        
+        if (result != 0) {
+            log.error("Error changing startAtLogin? Result: "+result);
         }
     }
 

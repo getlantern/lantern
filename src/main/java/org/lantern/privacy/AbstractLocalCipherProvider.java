@@ -8,12 +8,12 @@ import java.security.Key;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.Arrays;
+
 import javax.crypto.Cipher;
+
 import org.apache.commons.io.FileUtils;
-
+import org.lantern.LanternConstants;
 import org.lantern.LanternHub;
-import org.lantern.LanternUtils;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,10 +27,10 @@ import org.slf4j.LoggerFactory;
 abstract class AbstractLocalCipherProvider implements LocalCipherProvider {
 
     public static File DEFAULT_CIPHER_PARAMS_FILE =
-            new File(LanternUtils.configDir(), "cipher.params");
+            new File(LanternConstants.CONFIG_DIR, "cipher.params");
     
     public static final File DEFAULT_VALIDATOR_FILE = 
-        new File(LanternUtils.configDir(), "cipher.validator");
+        new File(LanternConstants.CONFIG_DIR, "cipher.validator");
     
     private static final int VALIDATOR_SALT_BYTES = 8;
     

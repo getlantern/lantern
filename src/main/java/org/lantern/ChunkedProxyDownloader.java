@@ -27,8 +27,6 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private static final long CHUNK_SIZE = 2000000;
-    
     private final Channel browserToProxyChannel;
 
     private final Queue<HttpRequest> httpRequests;
@@ -147,12 +145,14 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
             return;
         }
         final long end;
-        if (fullContentLength - start > CHUNK_SIZE) {
-            end = start + CHUNK_SIZE;
+        if (fullContentLength - start > LanternConstants.CHUNK_SIZE) {
+            end = start + LanternConstants.CHUNK_SIZE;
         } else {
             end = fullContentLength - 1;
         }
         request.setHeader(HttpHeaders.Names.RANGE, "bytes="+start+"-"+end);
+        request.setHeader(LanternConstants.LANTERN_VERSION_HTTP_HEADER_NAME, 
+            LanternConstants.LANTERN_VERSION_HTTP_HEADER_VALUE);
         writeRequest(request, channel);
     }
     

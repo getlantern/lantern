@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Exec=/bin/sh "/opt/lantern/lantern"
+Icon=/opt/lantern/.install4j/lantern.png
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true
+Name[en_US]=Lantern
+Name=Lantern
+Comment[en_US]=
+Comment=

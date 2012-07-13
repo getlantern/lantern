@@ -312,7 +312,7 @@
     <dependency>
       <groupId>${swt.groupId}</groupId>
       <artifactId>${swt.artifactId}</artifactId>
-      <version>3.7.1</version>
+      <version>3.7.2</version>
     </dependency>
 
     <dependency>

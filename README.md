@@ -4,8 +4,8 @@ README
 Lantern allows you to give or get access to the internet through other users
 around the world connected by a peer-to-peer network.
 
-Lantern is written in Java and runs on modern Mac, Windows, and Linux desktop
-systems.
+Lantern is written in Java and runs on modern Mac, Windows, and Ubuntu Linux
+desktop systems.
 
 ![screenshot](https://www.getlantern.org/static/img/dl-mac_setup.png)
 
@@ -16,11 +16,11 @@ Then you can run:
 
     $ ./run.bash
 
-That's really a "build and run" script that'll grab dependencies, build and
-then run Lantern. There's also a `quickRun.bash` script that can run it
+That's actually a "build and run" script that'll grab dependencies, build and
+then run Lantern. There's also a `quickRun.bash` script that will just run it
 when already built.
 
-Lantern's binds its HTTP API to a random port for security. You can pass
+Lantern binds its HTTP API to a random port for security. You can pass
 `--api-port=xyz` to override this. This is helpful for pointing external
 browsers at Lantern for development.
 
@@ -28,8 +28,10 @@ If you want to run Lantern in headless mode, you can pass `--disable-ui`. That
 can be useful if you want to just keep Lantern running all the time on a
 server, for example.
 
-If you're running Linux, you may need to run one of the following before you
-can use the UI, depending on your system:
+If you're running Linux, note that Lantern's UI currently targets the
+Ubuntu 12.04 desktop environment (i.e. Unity). Other environments may work as
+well, but you may need to run something like the following before you can use
+the UI, depending on your system:
 
     sudo apt-get install libxtst6
     sudo yum install xorg-x11-deprecated-libs

@@ -185,7 +185,7 @@ public class DefaultXmppHandler implements XmppHandler {
         throws IOException, CredentialException {
         final InetSocketAddress plainTextProxyRelayAddress = 
             new InetSocketAddress("127.0.0.1", 
-                LanternConstants.PLAINTEXT_LOCALHOST_PROXY_PORT);
+                LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT);
         
         NatPmpService natPmpService = null;
         try {
