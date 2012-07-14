@@ -244,6 +244,18 @@ public class StatsSimulator {
             // TODO Auto-generated method stub
             return null;
         }
+
+        @Override
+        public Object getAttachment() {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public void setAttachment(Object arg0) {
+            // TODO Auto-generated method stub
+            
+        }
         
     }
 }
