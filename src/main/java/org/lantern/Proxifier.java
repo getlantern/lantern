@@ -214,11 +214,8 @@ public class Proxifier {
     }
     
     private static void proxyLinux() throws ProxyConfigurationError {
-        genericUbuntuProxyCall(PROXY_ON.toURI().toASCIIString());
-    }
+        final String path = PROXY_ON.toURI().toASCIIString();
 
-    private static void genericUbuntuProxyCall(String path) 
-        throws ProxyConfigurationError {
         try {
             final String result1 = 
                 mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
@@ -446,7 +443,15 @@ public class Proxifier {
     }
     
     private static void unproxyLinux() throws ProxyConfigurationError {
-        genericUbuntuProxyCall("");
+        try {
+            final String result1 = 
+                mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
+                    "mode", "'none'");
+            LOG.info("Result of Ubuntu gsettings mode call: {}", result1);
+        } catch (final IOException e) {
+            LOG.warn("Error calling Ubuntu proxy script!", e);
+            throw new ProxyConfigurationError();
+        }
     }
 
     private static void unproxyOsx() throws ProxyConfigurationError {
