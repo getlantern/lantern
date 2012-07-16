@@ -12,7 +12,7 @@
       <envVar name="JDK_HOME" />
     </searchSequence>
     <variables>
-      <variable name="deb-description" value="P2P trust netwP2P trust network of encrypted, mutually authenticated, HTTP proxies designed to provide access to the open internet with as few points of control as possible." description="" category="" />
+      <variable name="deb-description" value="P2P trust network of encrypted, mutually authenticated, HTTP proxies designed to provide access to the open internet with as few points of control as possible." description="" category="" />
     </variables>
     <mergedProjects />
     <codeSigning macEnabled="true" macPkcs12File="../../secure/bns_cert.p12" windowsEnabled="true" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="../../secure/bns_cert.p12" />
@@ -896,6 +896,18 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
 </preActivation>
             <postActivation />
             <actions>
+              <action name="" id="750" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="false" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="Could not launch linux installer">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction">
+                      <void property="launcherId">
+                        <string>580</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition />
+              </action>
               <action name="" id="651" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not start Lantern.">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
@@ -970,17 +982,25 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="750" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="">
+              <action name="" id="878" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction">
-                      <void property="launcherId">
-                        <string>580</string>
+                    <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
+                      <void property="executable">
+                        <object class="java.io.File">
+                          <string>configureAndLaunchUbuntu.bash</string>
+                        </object>
+                      </void>
+                      <void property="stderrRedirectionMode">
+                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="LOG_FILE" />
+                      </void>
+                      <void property="stdoutRedirectionMode">
+                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="LOG_FILE" />
                       </void>
                     </object>
                   </java>
                 </serializedBean>
-                <condition>return Util.isLinux(); </condition>
+                <condition>return Util.isLinux();</condition>
               </action>
             </actions>
             <formComponents>
@@ -1215,7 +1235,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <preInstallScript mode="1" file="">
         <content />
       </preInstallScript>
-      <postInstallScript mode="2" file="./linux/configureAndLaunchUbuntu.txt">
+      <postInstallScript mode="1" file="./linux/configureAndLaunchUbuntu.txt">
         <content />
       </postInstallScript>
       <preUninstallScript mode="1" file="">
