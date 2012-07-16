@@ -183,16 +183,16 @@
         <div id=trustedpeers class=slide data-cls=slide>
           <h1>Invite</h1>
           <h4>Invite trusted contacts to join Lantern.</h4>
-          <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
+          <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Enter name or email" results=0 incremental autosave/>
           <ul class="peerlist lionbars">
             <li ng:show="peers == FETCHING">Loading...</li>
-            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length"><span ng:show=peerfilterinput><a ng:click=invite(peerfilterinput) ng:show=validateemail(peerfilterinput)>Add and invite {{ peerfilterinput }}<img class=plus src=img/plus-small-white.png /></a><span ng:show=!validateemail(peerfilterinput)>No matching contacts</span></span><span ng:show=!peerfilterinput>No available contacts</span></li>
+            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length"><span ng:show=peerfilterinput><a ng:click=invite(peerfilterinput) ng:show=validateemail(peerfilterinput)>Add and invite {{ peerfilterinput }}<img class=plus src=img/plus-small-white.png /></a><span ng:show=!validateemail(peerfilterinput) class=disabled>No matching contacts</span></span><span ng:show=!peerfilterinput class=disabled>No available contacts</span></li>
             <li ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter)">
             <a class=invite-link ng:show="state.invites > 0" ng:click=invite(peer.email)><span ng:show=peer.name>{{ peer.name }} &lt;{{ peer.email }}&gt;</span><span ng:show=!peer.name>{{ peer.email }}</span><img class=plus src=img/plus-small-white.png /></a>
             <span ng:show=!state.invites><span ng:show=peer.name>{{ peer.name }} &lt;{{ peer.email }}&gt;</span><span ng:show=!peer.name>{{ peer.email }}</span></span>
             </li>
           </ul>
-          <span id=invites-remaining class=smallnote>{{ state.invites }} invite{{ state.invites != 1 && 's' || ''}} remaining</span>
+          <span class=invites-remaining class=smallnote>{{ state.invites }} invite{{ state.invites != 1 && 's' || ''}} remaining</span>
           <div class=controls>
             <figure class=left>
               <a href=#signin><img src=img/arrow-left.png alt=Back /></a>
@@ -333,7 +333,7 @@
                 </li>
                 <!--
                 <li>
-                  <a class="overlaylink buttonlink" href=#trusted>Manage trusted peers...</a>
+                  <a class="overlaylink buttonlink" href=#trusted>Manage trusted contacts...</a>
                 </li>
                 -->
               </ul>
@@ -427,22 +427,22 @@
           <div id=required-legend><span class=smallnote>✽</span> required</div>
         </div>
 
-        <!--
-        <div class=overlay data-cls=overlay id=trusted>
-          <a class=close>×</a>
-          <h1>Trusted peers</h1>
-          <h4>Contacts you would trust to proxy <a class=doc-link href=#doc-overlay data-doc=unencrypted-traffic>unencrypted traffic</a></h4>
+        <!--<div class=overlay data-cls=overlay id=trusted>-->
+        <div id=trusted>
+          <h1>Contacts</h1>
           <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
           <ul class="peerlist lionbars">
             <li ng:show="peers == FETCHING">Loading...</li>
-            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
+            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length" class=disabled>No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
             <li ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter)">
-              <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
+              {{peer.name || peer.email}}
             </li>
           </ul>
-          <div class=smallnote><a class=doc-link href=#doc-overlay data-doc=cloud-proxies>Lantern cloud proxies</a> will be used when no trusted peers are available.</div>
+          <!--
+          <div ng:show=state.getMode class=smallnote><a class=doc-link href=#doc-overlay data-doc=cloud-proxies>Lantern cloud proxies</a> will be used when no trusted contacts are available.</div>
+          -->
+          <div class=invites-remaining class=smallnote>{{ state.invites }} invite{{ state.invites != 1 && 's' || ''}} remaining</div>
         </div>
-        -->
 
         <div class="flashmsg tip" id=tip-trayicon>
           <a class=close>×</a>
@@ -483,7 +483,7 @@
         <div class=doc id=why-google>
           <p>Lantern works by connecting users around the world together in a
           peer-to-peer network. Signing into Google Talk allows you to connect
-          to users you know and trust, and not just anyone.
+          through users you know and trust, and not just anyone.
           </p>
         </div>
         <div class=doc id=unencrypted-traffic>

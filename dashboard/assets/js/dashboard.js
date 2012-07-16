@@ -419,7 +419,7 @@ function LDCtrl(){
     $.post(url).done(function(){
       console.log('successfully invited ' + email); 
       self.$digest();
-      $('#invites-remaining').css('color', '#f00').animate({color: '#666'}, 2000);
+      $('.invites-remaining').css('color', '#f00').animate({color: '#666'}, 2000);
       // XXX flash message + clear input?
     }).fail(function(){
       console.log('failed to invite ' + email); 
