@@ -38,7 +38,7 @@ public class Proxifier {
         new File(LanternConstants.CONFIG_DIR, "lanternProxying");
     
     private static String proxyServerOriginal;
-    private static String proxyEnableOriginal = "0";
+    private static int proxyEnableOriginal = 0;
 
     private static boolean interactiveUnproxyCalled;
 
@@ -312,12 +312,14 @@ public class Proxifier {
                 WINDOWS_REGISTRY_PROXY_KEY, ps);
         proxyEnableOriginal = 
             //WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, pe);
-            Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, 
+            Advapi32Util.registryGetIntValue(WinReg.HKEY_CURRENT_USER, 
                 WINDOWS_REGISTRY_PROXY_KEY, pe);
+            //Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, 
+            //    WINDOWS_REGISTRY_PROXY_KEY, pe);
         
         final String proxyServerUs = "127.0.0.1:"+
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
-        final String proxyEnableUs = "1";
+        final int proxyEnableUs = 1;
 
         // OK, we do one final check here. If the original proxy settings were
         // already configured for Lantern for whatever reason, we want to 
@@ -325,8 +327,8 @@ public class Proxifier {
         // stops Lantern, the system actually goes back to its original pre-
         // lantern state.
         if (proxyServerOriginal.equals(LANTERN_PROXY_ADDRESS) && 
-            proxyEnableOriginal.equals(proxyEnableUs)) {
-            proxyEnableOriginal = "0";
+            proxyEnableOriginal == proxyEnableUs) {
+            proxyEnableOriginal = 0;
         }
                 
         LOG.info("Setting registry to use Lantern as a proxy...");
@@ -338,7 +340,7 @@ public class Proxifier {
         }
         
         try {
-            Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, 
+            Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, 
                     WINDOWS_REGISTRY_PROXY_KEY, pe, proxyEnableUs);
         } catch (final Win32Exception e) {
             LOG.error("Cannot write to registry", e);
