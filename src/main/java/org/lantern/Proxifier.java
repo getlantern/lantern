@@ -399,7 +399,7 @@ public class Proxifier {
     
     protected static void unproxyWindows() {
         LOG.info("Resetting Windows registry settings to original values.");
-        final String proxyEnableUs = "1";
+        final int proxyEnableUs = 1;
         
         // On shutdown, we need to check if the user has modified the
         // registry since we originally set it. If they have, we want
@@ -408,8 +408,8 @@ public class Proxifier {
         final String proxyServer = 
             Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, WINDOWS_REGISTRY_PROXY_KEY, ps);
             //WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
-        final String proxyEnable =
-            Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, WINDOWS_REGISTRY_PROXY_KEY, pe);
+        final int proxyEnable =
+            Advapi32Util.registryGetIntValue(WinReg.HKEY_CURRENT_USER, WINDOWS_REGISTRY_PROXY_KEY, pe);
             //WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, pe);
         
         
@@ -428,11 +428,11 @@ public class Proxifier {
             LOG.info("Successfully reset proxy server");
         }
         
-        if (proxyEnable.equals(proxyEnableUs)) {
+        if (proxyEnable == proxyEnableUs) {
             LOG.info("Setting proxy enable back to 0");
             try {
-                Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, 
-                        WINDOWS_REGISTRY_PROXY_KEY, pe, "0");
+                Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, 
+                        WINDOWS_REGISTRY_PROXY_KEY, pe, 0);
             } catch (final Win32Exception e) {
                 LOG.error("Cannot write to registry", e);
             }
