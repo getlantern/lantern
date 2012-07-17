@@ -175,7 +175,8 @@ public class Dashboard {
         shell.addListener (SWT.Close, new Listener () {
             @Override
             public void handleEvent(final Event event) {
-                if (LanternHub.settings().getSettings().getState() == SettingsState.State.LOCKED) {
+                if (LanternHub.settings().getSettings().getState() == SettingsState.State.LOCKED &&
+                    LanternHub.settings().isLocalPasswordInitialized()) {
                     if (LanternHub.systemTray().isActive()) {
                         // user presented with unlock screen and just hit close
                         final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
