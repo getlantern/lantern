@@ -7,6 +7,10 @@
 
 #sudo apt-get install -y libwebkitgtk-1.0-0
 # Now just launch lantern
-mkdir ~/.lantern &> /dev/null
-mkdir ~/.lantern/logs &> /dev/null
-lantern &> ~/.lantern/logs/lantern.out
+
+#su $USER -c "mkdir -p ~/.lantern/logs &> /dev/null"
+#lantern &> ~/lantern.out
+
+cp /opt/lantern/lantern.desktop /usr/share/applications
+lantern &
+#su $USER -c "lantern &"
