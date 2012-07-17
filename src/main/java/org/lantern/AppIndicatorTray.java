@@ -49,7 +49,7 @@ public class AppIndicatorTray implements SystemTray {
             //libunique = (Unique) Native.loadLibrary("unique-3.0", Unique.class);
         }
         catch (final Throwable ex) {
-            LOG.debug("no supported version of appindicator libs found", ex);
+            LOG.warn("no supported version of appindicator libs found", ex);
         }
     }
 
