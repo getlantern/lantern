@@ -39,6 +39,7 @@ public class AppIndicatorTray implements SystemTray {
     private static Gtk libgtk = null;
 
     private static AppIndicator libappindicator = null;
+    
     static {
         try {
             libappindicator = (AppIndicator) Native.loadLibrary("appindicator", AppIndicator.class);
@@ -47,8 +48,8 @@ public class AppIndicatorTray implements SystemTray {
             libglib = (Glib) Native.loadLibrary("glib-2.0", Glib.class);
             //libunique = (Unique) Native.loadLibrary("unique-3.0", Unique.class);
         }
-        catch (Throwable ex) {
-            LOG.debug("no supported version of appindicator libs found: {}", ex.getMessage());
+        catch (final Throwable ex) {
+            LOG.debug("no supported version of appindicator libs found", ex);
         }
     }
 
@@ -75,7 +76,7 @@ public class AppIndicatorTray implements SystemTray {
     private Gobject.GCallback updateItemCallback;
     private Gobject.GCallback quitItemCallback;
 
-    FailureCallback _failureCallback = null;
+    private FailureCallback _failureCallback = null;
 
     private Map<String, Object> updateData;
 
@@ -219,7 +220,7 @@ public class AppIndicatorTray implements SystemTray {
 
     @Override
     public boolean isActive() {
-        return this.active;
+        return isSupported() && this.active;
     }
 
     @Subscribe
