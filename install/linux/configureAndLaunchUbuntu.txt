@@ -11,10 +11,18 @@
 #su $USER -c "mkdir -p ~/.lantern/logs &> /dev/null"
 #lantern &> ~/lantern.out
 
-echo "Copying lantern.desktop so ubuntu can find it"
-echo "User is '$USER'"
+#echo "Copying lantern.desktop so ubuntu can find it"
+#echo "User is '$USER'"
 cp /opt/lantern/lantern.desktop /usr/share/applications
-
 cp $I4J_INSTALL_LOCATION/java7/* $I4J_INSTALL_LOCATION/jre/lib/security/ || echo "Could not copy policy files!!"
+
+echo "************************************************************************************"
+echo "************************************************************************************"
+echo ""
+echo "            Congratulations, you have successfully installed Lantern.               "
+echo " To run it, simply type 'lantern' on the command line or run it from Dash on Ubuntu "
+echo ""
+echo "************************************************************************************"
+echo "************************************************************************************"
 #lantern &
 #su $USER -c "lantern &"
