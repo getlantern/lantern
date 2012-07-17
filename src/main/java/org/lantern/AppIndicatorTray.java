@@ -146,7 +146,8 @@ public class AppIndicatorTray implements SystemTray {
         
         AppIndicator.Fallback replacementFallback = new AppIndicator.Fallback() {
             @Override
-            public Pointer callback(AppIndicator.AppIndicatorInstanceStruct self) {
+            public Pointer callback(
+                final AppIndicator.AppIndicatorInstanceStruct self) {
                 fallback();
                 return null;
             }
@@ -174,7 +175,7 @@ public class AppIndicatorTray implements SystemTray {
     }
 
     protected void fallback() {
-        LOG.debug("Failed to create appindicator system tray.");
+        LOG.warn("Failed to create appindicator system tray.");
         if (_failureCallback != null) {
             _failureCallback.createTrayFailed();
         }
