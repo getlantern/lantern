@@ -148,15 +148,6 @@ public class LanternConstants {
             } else {
                 DATA_DIR = new File(System.getProperty("user.home"), ".lantern");
                 LOG_DIR = new File(DATA_DIR, "logs");
-                final File tmpDir = new File(DATA_DIR, "tmp");
-                if (!tmpDir.isDirectory()) {
-                    if (!tmpDir.mkdir()) {
-                        System.err.println("COULD NOT MAKE TEMPT DIR AT "+tmpDir);
-                    } else {
-                        System.setProperty("java.io.tmpdir", tmpDir.getAbsolutePath());
-                    }
-                }
-                
             }
 
             if (!DATA_DIR.isDirectory()) {
