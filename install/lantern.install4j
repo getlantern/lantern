@@ -12,7 +12,7 @@
       <envVar name="JDK_HOME" />
     </searchSequence>
     <variables>
-      <variable name="deb-description" value="P2P trust network of encrypted, mutually authenticated, HTTP proxies designed to provide access to the open internet with as few points of control as possible." description="" category="" />
+      <variable name="deb-description" value="P2P trust network of encrypted, mutually authenticated, HTTP proxies." description="" category="" />
     </variables>
     <mergedProjects />
     <codeSigning macEnabled="true" macPkcs12File="../../secure/bns_cert.p12" windowsEnabled="true" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="../../secure/bns_cert.p12" />
