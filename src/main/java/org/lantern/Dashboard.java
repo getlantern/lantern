@@ -147,7 +147,7 @@ public class Dashboard {
         });
 
         // create a hidden browser to intercept external
-        // location references that should be openend
+        // location references that should be opened
         // in the system's native browser.
         Shell hiddenShell = new Shell(LanternHub.display());
         final Browser externalBrowser = new Browser(hiddenShell, SWT.NONE);
