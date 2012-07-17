@@ -496,6 +496,39 @@ Lantern requires your Google Account credentials to access the Internet. What yo
             <actions />
             <formComponents />
           </screen>
+          <screen name="" id="882" customizedId="" beanClass="com.install4j.runtime.beans.screens.AdditionalConfirmationsScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+            <serializedBean>
+              <java class="java.beans.XMLDecoder">
+                <object class="com.install4j.runtime.beans.screens.AdditionalConfirmationsScreen" />
+              </java>
+            </serializedBean>
+            <condition />
+            <validation />
+            <preActivation />
+            <postActivation />
+            <actions />
+            <formComponents>
+              <formComponent name="Add a desktop link" id="883" customizedId="" beanClass="com.install4j.runtime.beans.formcomponents.CheckboxComponent" enabled="true" commentSet="false" comment="" insetTop="" insetLeft="" insetBottom="" insetRight="" resetInitOnPrevious="false">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.formcomponents.CheckboxComponent">
+                      <void property="checkboxText">
+                        <string>${i18n:CreateDesktopIcon}</string>
+                      </void>
+                      <void property="initiallySelected">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="variableName">
+                        <string>createDesktopLinkAction</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <initScript />
+                <visibilityScript />
+              </formComponent>
+            </formComponents>
+          </screen>
           <screen name="" id="8" customizedId="" beanClass="com.install4j.runtime.beans.screens.InstallationScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="true" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
@@ -964,7 +997,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                         <object class="com.install4j.api.windows.RegistryRoot" field="HKEY_CURRENT_USER" />
                       </void>
                       <void property="value">
-                        <string>"${installer:sys.contentDir}\Lantern.exe"</string>
+                        <string>"${installer:sys.contentDir}\Lantern.exe" --launchd</string>
                       </void>
                       <void property="valueName">
                         <string>Lantern</string>
@@ -986,6 +1019,13 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
+                      <void property="arguments">
+                        <array class="java.lang.String" length="1">
+                          <void index="0">
+                            <string>${installer:sys.userName}</string>
+                          </void>
+                        </array>
+                      </void>
                       <void property="executable">
                         <object class="java.io.File">
                           <string>configureAndLaunchUbuntu.bash</string>
@@ -1235,7 +1275,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <preInstallScript mode="1" file="">
         <content />
       </preInstallScript>
-      <postInstallScript mode="1" file="./linux/configureAndLaunchUbuntu.txt">
+      <postInstallScript mode="2" file="./linux/configureAndLaunchUbuntu.txt">
         <content />
       </postInstallScript>
       <preUninstallScript mode="1" file="">
