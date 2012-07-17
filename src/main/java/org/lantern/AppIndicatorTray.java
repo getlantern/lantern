@@ -79,6 +79,8 @@ public class AppIndicatorTray implements SystemTray {
 
     private Map<String, Object> updateData;
 
+    private boolean active = false;
+
     public AppIndicatorTray() {        
     }
 
@@ -158,6 +160,7 @@ public class AppIndicatorTray implements SystemTray {
         libappindicator.app_indicator_set_status(appIndicator, AppIndicator.STATUS_ACTIVE);
     
         LanternHub.register(this);
+        this.active = true;
     }
 
     private String iconPath(final String fileName) {
@@ -216,7 +219,7 @@ public class AppIndicatorTray implements SystemTray {
 
     @Override
     public boolean isActive() {
-        return true;
+        return this.active;
     }
 
     @Subscribe
