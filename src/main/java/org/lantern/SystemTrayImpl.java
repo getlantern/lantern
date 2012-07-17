@@ -37,6 +37,7 @@ public class SystemTrayImpl implements SystemTray {
     private MenuItem updateItem;
     private Menu menu;
     private Map<String, Object> updateData;
+    private boolean active = false;
 
     private final static String LABEL_DISCONNECTED = "Lantern: Not connected";
     private final static String LABEL_CONNECTING = "Lantern: Connecting...";
@@ -162,6 +163,7 @@ public class SystemTrayImpl implements SystemTray {
                     }
                 });
             }
+            this.active = true;
         }
     }
 
@@ -259,7 +261,7 @@ public class SystemTrayImpl implements SystemTray {
 
     @Override
     public boolean isActive() {
-        return true;
+        return this.active;
     }
 
     private void changeIcon(final String fileName) {
