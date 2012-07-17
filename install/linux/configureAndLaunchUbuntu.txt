@@ -11,6 +11,10 @@
 #su $USER -c "mkdir -p ~/.lantern/logs &> /dev/null"
 #lantern &> ~/lantern.out
 
+echo "Copying lantern.desktop so ubuntu can find it"
+echo "User is '$USER'"
 cp /opt/lantern/lantern.desktop /usr/share/applications
-lantern &
+
+cp $I4J_INSTALL_LOCATION/java7/* $I4J_INSTALL_LOCATION/jre/lib/security/ || echo "Could not copy policy files!!"
+#lantern &
 #su $USER -c "lantern &"
