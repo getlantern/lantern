@@ -193,7 +193,7 @@
       <customAttributes />
     </autoUpdate>
     <applications>
-      <application name="" id="installer" customizedId="" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="none" fileset="" customIcnsFile="./common/lantern.icns" customIcoFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
+      <application name="" id="installer" customizedId="" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="elevated" fileset="" customIcnsFile="./common/lantern.icns" customIcoFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
         <serializedBean>
           <java class="java.beans.XMLDecoder">
             <object class="com.install4j.runtime.beans.applications.InstallerApplication">
@@ -251,7 +251,7 @@
             <preActivation />
             <postActivation />
             <actions>
-              <action name="" id="511" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="511" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction" enabled="false" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not obtain administrator privileges. Would you like to quit?">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction">
@@ -265,6 +265,23 @@
                   </java>
                 </serializedBean>
                 <condition />
+              </action>
+              <action name="" id="1079" customizedId="" beanClass="com.install4j.runtime.beans.actions.control.RunScriptAction" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not configure Lantern!">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.control.RunScriptAction">
+                      <void property="script">
+                        <object class="com.install4j.api.beans.ScriptProperty">
+                          <void property="value">
+                            <string>context.setInstallationDirectory(new File(System.getenv("APPDATA"), "Lantern"));
+return true;</string>
+                          </void>
+                        </object>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return Util.isWindows();</condition>
               </action>
             </actions>
             <formComponents />
@@ -493,7 +510,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
             <actions />
             <formComponents />
           </screen>
-          <screen name="" id="882" customizedId="" beanClass="com.install4j.runtime.beans.screens.AdditionalConfirmationsScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="882" customizedId="" beanClass="com.install4j.runtime.beans.screens.AdditionalConfirmationsScreen" enabled="false" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="false" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.AdditionalConfirmationsScreen" />
@@ -526,7 +543,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
               </formComponent>
             </formComponents>
           </screen>
-          <screen name="" id="8" customizedId="" beanClass="com.install4j.runtime.beans.screens.InstallationScreen" enabled="true" commentSet="false" comment="" actionElevationType="inherit" rollbackBarrier="true" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
+          <screen name="" id="8" customizedId="" beanClass="com.install4j.runtime.beans.screens.InstallationScreen" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="true" backButton="2" finishScreen="false" wizardIndexChangeType="unchanged" wizardIndexKey="">
             <serializedBean>
               <java class="java.beans.XMLDecoder">
                 <object class="com.install4j.runtime.beans.screens.InstallationScreen" />
@@ -542,7 +559,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction">
                       <void property="closeStrategy">
-                        <object class="com.install4j.runtime.beans.actions.misc.CloseStrategy" field="TERMINATE" />
+                        <object class="com.install4j.runtime.beans.actions.misc.CloseStrategy" field="ASK_ONLY" />
                       </void>
                       <void property="timeOut">
                         <int>25000</int>
@@ -552,7 +569,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="340" customizedId="" beanClass="com.install4j.runtime.beans.actions.UninstallPreviousAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="340" customizedId="" beanClass="com.install4j.runtime.beans.actions.UninstallPreviousAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not uninstall. Quit?">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.UninstallPreviousAction" />
@@ -560,15 +577,26 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="9" customizedId="" beanClass="com.install4j.runtime.beans.actions.InstallFilesAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="2" errorMessage="${i18n:FileCorrupted}">
+              <action name="" id="9" customizedId="" beanClass="com.install4j.runtime.beans.actions.InstallFilesAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="${i18n:FileCorrupted}">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.InstallFilesAction" />
+                    <object class="com.install4j.runtime.beans.actions.InstallFilesAction">
+                      <void property="delay">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="directoryResolverScript">
+                        <object class="com.install4j.api.beans.ScriptProperty">
+                          <void property="value">
+                            <string />
+                          </void>
+                        </object>
+                      </void>
+                    </object>
                   </java>
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="42" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="Could not copy FireFox configuration.">
+              <action name="" id="42" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="Could not copy FireFox configuration.">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
@@ -788,7 +816,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition>return Util.isMacOS();</condition>
               </action>
-              <action name="" id="390" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not execute bat file. Would you like to continue?">
+              <action name="" id="390" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RunExecutableAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.RunExecutableAction">
@@ -807,24 +835,24 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                           <string>Lantern.bat</string>
                         </object>
                       </void>
+                      <void property="failOnStdoutFileError">
+                        <boolean>true</boolean>
+                      </void>
+                      <void property="keepConsoleWindow">
+                        <boolean>true</boolean>
+                      </void>
                       <void property="logArguments">
                         <boolean>true</boolean>
                       </void>
                       <void property="stderrFile">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}/Library/Logs/Lantern/install4jerr.txt</string>
+                          <string>${installer:sys.userHome}/install4jerr.txt</string>
                         </object>
-                      </void>
-                      <void property="stderrRedirectionMode">
-                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
                       </void>
                       <void property="stdoutFile">
                         <object class="java.io.File">
-                          <string>${installer:sys.userHome}/Library/Logs/Lantern/install4jout.txt</string>
+                          <string>${installer:sys.userHome}/install4jout.txt</string>
                         </object>
-                      </void>
-                      <void property="stdoutRedirectionMode">
-                        <object class="com.install4j.runtime.installer.helper.launching.OutputRedirectionMode" field="FILE" />
                       </void>
                       <void property="wait">
                         <boolean>true</boolean>
@@ -901,37 +929,6 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                 </serializedBean>
                 <condition>return System.getProperty("java.version").startsWith("1.7");</condition>
               </action>
-              <action name="" id="945" customizedId="" beanClass="com.install4j.runtime.beans.actions.files.CopyFileAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="true" failureStrategy="4" errorMessage="">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.files.CopyFileAction">
-                      <void property="destinationFile">
-                        <object class="java.io.File">
-                          <string>/opt/lantern/jre/lib/security</string>
-                        </object>
-                      </void>
-                      <void property="files">
-                        <array class="java.io.File" length="2">
-                          <void index="0">
-                            <object class="java.io.File">
-                              <string>java7/local_policy.jar</string>
-                            </object>
-                          </void>
-                          <void index="1">
-                            <object class="java.io.File">
-                              <string>java7/US_export_policy.jar</string>
-                            </object>
-                          </void>
-                        </array>
-                      </void>
-                      <void property="overwriteMode">
-                        <object class="com.install4j.api.context.OverwriteMode" field="ALWAYS" />
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition>return Util.isLinux();</condition>
-              </action>
             </actions>
             <formComponents />
           </screen>
@@ -990,6 +987,18 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                 </serializedBean>
                 <condition />
               </action>
+              <action name="" id="472" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="There was a problem starting Lantern">
+                <serializedBean>
+                  <java class="java.beans.XMLDecoder">
+                    <object class="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction">
+                      <void property="launcherId">
+                        <string>224</string>
+                      </void>
+                    </object>
+                  </java>
+                </serializedBean>
+                <condition>return Util.isWindows();</condition>
+              </action>
               <action name="" id="651" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not start Lantern.">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
@@ -1001,18 +1010,6 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                   </java>
                 </serializedBean>
                 <condition>return Util.isMacOS();</condition>
-              </action>
-              <action name="" id="472" customizedId="" beanClass="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="There was a problem starting Lantern">
-                <serializedBean>
-                  <java class="java.beans.XMLDecoder">
-                    <object class="com.install4j.runtime.beans.actions.finish.ExecuteLauncherAction">
-                      <void property="launcherId">
-                        <string>224</string>
-                      </void>
-                    </object>
-                  </java>
-                </serializedBean>
-                <condition>return Util.isWindows();</condition>
               </action>
               <action name="" id="41" customizedId="" beanClass="com.install4j.runtime.beans.actions.registry.SetRegistryValueAction" enabled="false" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
                 <serializedBean>
@@ -1282,6 +1279,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
       <exclude>
         <entry location=".i4j_fileset_147" fileType="regular" />
+        <entry location=".i4j_fileset_788" fileType="regular" />
       </exclude>
       <variables />
       <autoUpdate useMinUpdatableVersion="false" minUpdatableVersion="" useMaxUpdatableVersion="false" maxUpdatableVersion="">
@@ -1365,8 +1363,8 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
     </linuxDeb>
   </mediaSets>
   <buildIds buildAll="false">
-    <mediaSet refId="157" />
+    <mediaSet refId="26" />
   </buildIds>
-  <buildOptions verbose="false" faster="true" disableSigning="false" debug="true" />
+  <buildOptions verbose="true" faster="true" disableSigning="false" debug="true" />
 </install4j>
 
