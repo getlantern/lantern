@@ -7,11 +7,14 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
+import org.lantern.win.Registry;
 import org.lantern.win.WinInet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.install4j.api.windows.RegistryRoot;
+import com.install4j.api.windows.WinRegistry;
 import com.sun.jna.Pointer;
 import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.Kernel32;
@@ -306,14 +309,17 @@ public class Proxifier {
         
         // We first want to read the start values so we can return the
         // registry to the original state when we shut down.
+
         proxyServerOriginal = 
+            Registry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
             //WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
-            Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, 
-                WINDOWS_REGISTRY_PROXY_KEY, ps);
+            //Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, 
+            //    WINDOWS_REGISTRY_PROXY_KEY, ps);
         proxyEnableOriginal = 
+            Registry.readInt(WINDOWS_REGISTRY_PROXY_KEY, pe);
             //WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, pe);
-            Advapi32Util.registryGetIntValue(WinReg.HKEY_CURRENT_USER, 
-                WINDOWS_REGISTRY_PROXY_KEY, pe);
+            //Advapi32Util.registryGetIntValue(WinReg.HKEY_CURRENT_USER, 
+            //    WINDOWS_REGISTRY_PROXY_KEY, pe);
             //Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, 
             //    WINDOWS_REGISTRY_PROXY_KEY, pe);
         
