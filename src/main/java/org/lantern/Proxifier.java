@@ -14,10 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.sun.jna.Pointer;
-import com.sun.jna.platform.win32.Advapi32Util;
 import com.sun.jna.platform.win32.Kernel32;
-import com.sun.jna.platform.win32.Win32Exception;
-import com.sun.jna.platform.win32.WinReg;
 import com.sun.jna.ptr.IntByReference;
 
 /**
@@ -336,6 +333,11 @@ public class Proxifier {
         }
                 
         LOG.info("Setting registry to use Lantern as a proxy...");
+        
+        Registry.write(WINDOWS_REGISTRY_PROXY_KEY, ps, proxyServerUs);
+        Registry.write(WINDOWS_REGISTRY_PROXY_KEY, pe, proxyEnableUs);
+        
+        /*
         try {
             Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, 
                     WINDOWS_REGISTRY_PROXY_KEY, ps, proxyServerUs);
@@ -349,7 +351,7 @@ public class Proxifier {
         } catch (final Win32Exception e) {
             LOG.error("Cannot write to registry", e);
         }
-        
+        */
         /*
         final int enableResult = 
             WindowsRegistry.writeREG_SZ(WINDOWS_REGISTRY_PROXY_KEY, ps, proxyServerUs);
@@ -410,37 +412,45 @@ public class Proxifier {
         // to keep their setting. If not, we want to revert back to 
         // before Lantern started.
         final String proxyServer = 
-            Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, WINDOWS_REGISTRY_PROXY_KEY, ps);
+            Registry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
+            //Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, WINDOWS_REGISTRY_PROXY_KEY, ps);
             //WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
         final int proxyEnable =
-            Advapi32Util.registryGetIntValue(WinReg.HKEY_CURRENT_USER, WINDOWS_REGISTRY_PROXY_KEY, pe);
+            Registry.readInt(WINDOWS_REGISTRY_PROXY_KEY, pe);
+            //Advapi32Util.registryGetIntValue(WinReg.HKEY_CURRENT_USER, WINDOWS_REGISTRY_PROXY_KEY, pe);
             //WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, pe);
         
         
         if (proxyServer.equals(LANTERN_PROXY_ADDRESS)) {
             LOG.info("Setting proxy server back to: {}", 
                 proxyServerOriginal);
+            Registry.write(WINDOWS_REGISTRY_PROXY_KEY, ps, proxyServerOriginal);
             
+            /*
             try {
                 Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, 
                         WINDOWS_REGISTRY_PROXY_KEY, ps, proxyServerOriginal);
             } catch (final Win32Exception e) {
                 LOG.error("Cannot write to registry", e);
             }
-            //WindowsRegistry.writeREG_SZ(WINDOWS_REGISTRY_PROXY_KEY, ps, 
-            //    proxyServerOriginal);
+            WindowsRegistry.writeREG_SZ(WINDOWS_REGISTRY_PROXY_KEY, ps, 
+                proxyServerOriginal);
+                */
             LOG.info("Successfully reset proxy server");
         }
         
         if (proxyEnable == proxyEnableUs) {
             LOG.info("Setting proxy enable back to 0");
+            Registry.write(WINDOWS_REGISTRY_PROXY_KEY, pe, 0);
+            /*
             try {
                 Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, 
                         WINDOWS_REGISTRY_PROXY_KEY, pe, 0);
             } catch (final Win32Exception e) {
                 LOG.error("Cannot write to registry", e);
             }
-            //WindowsRegistry.writeREG_DWORD(WINDOWS_REGISTRY_PROXY_KEY, pe, "0");
+            WindowsRegistry.writeREG_DWORD(WINDOWS_REGISTRY_PROXY_KEY, pe, "0");
+            */
             LOG.info("Successfully reset proxy enable");
         }
         
