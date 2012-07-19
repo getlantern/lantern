@@ -251,7 +251,7 @@
             <preActivation />
             <postActivation />
             <actions>
-              <action name="" id="511" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction" enabled="false" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not obtain administrator privileges. Would you like to quit?">
+              <action name="" id="511" customizedId="" beanClass="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction" enabled="true" commentSet="false" comment="" actionElevationType="none" rollbackBarrier="false" multiExec="false" failureStrategy="3" errorMessage="Could not obtain administrator privileges. Would you like to quit?">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.RequestPrivilegesAction">
@@ -590,6 +590,9 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                             <string />
                           </void>
                         </object>
+                      </void>
+                      <void property="triggerReboot">
+                        <boolean>false</boolean>
                       </void>
                     </object>
                   </java>
