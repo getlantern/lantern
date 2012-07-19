@@ -20,12 +20,9 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
+import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.sun.jna.platform.win32.Advapi32Util;
-import com.sun.jna.platform.win32.Win32Exception;
-import com.sun.jna.platform.win32.WinReg;
 
 /**
  * Browser dashboard for controlling lantern.
@@ -59,7 +56,13 @@ public class Dashboard {
             final String key = 
                 "Software\\Microsoft\\Internet Explorer\\Main\\" +
                 "FeatureControl\\FEATURE_BROWSER_EMULATION";
+
+            Registry.write(key, "java.exe", 8000);
+            Registry.write(key, "javaw.exe", 8000);
+            Registry.write(key, "eclipse.exe", 8000);
+            Registry.write(key, "lantern.exe", 8000);
             
+            /*
             try {
                 Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, key, 
                     "java.exe", 8000);
@@ -72,6 +75,7 @@ public class Dashboard {
             } catch (final Win32Exception e) {
                 log.error("Cannot write to registry", e);
             }
+            */
             
             // We still sleep quickly here just in case there's anything
             // asynchronous under the hood.

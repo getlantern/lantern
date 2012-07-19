@@ -1,6 +1,5 @@
 package org.lantern.win;
 
-import org.littleshoot.util.WindowsRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,14 +22,14 @@ public class Registry {
             return Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, 
                 key, name);
         } catch (final Win32Exception e) {
-            LOG.error("Cannot write to  using JNA", e);
+            LOG.error("Cannot write to registry using JNA "+key, e);
             return readWithCommandReg(key, name);
         }
     }
     
     private static String readWithCommandReg(final String key, 
         final String name) {
-        return WindowsRegistry.read("HKCU\\"+key, name);
+        return WindowsRegCommand.read("HKCU\\"+key, name);
     }
 
     public static int readInt(final String key, final String name) {
@@ -38,7 +37,7 @@ public class Registry {
             return Advapi32Util.registryGetIntValue(WinReg.HKEY_CURRENT_USER, 
                 key, name);
         } catch (final Win32Exception e) {
-            LOG.error("Cannot write to  using JNA", e);
+            LOG.error("Cannot write to registry using JNA "+key, e);
             return Integer.parseInt(readWithCommandReg(key, name));
         }
     }
@@ -51,7 +50,7 @@ public class Registry {
             return true;
         
         } catch (final Win32Exception e) {
-            LOG.error("Cannot write to  using JNA", e);
+            LOG.error("Cannot write to registry using JNA "+key, e);
             return writeWithCommandReg(key, name, value);
         }
     }
@@ -64,7 +63,7 @@ public class Registry {
             return true;
         
         } catch (final Win32Exception e) {
-            LOG.error("Cannot write to  using JNA", e);
+            LOG.error("Cannot write to registry using JNA "+key, e);
             return writeWithCommandReg(key, name, value);
         }
     }
@@ -72,13 +71,27 @@ public class Registry {
     
     private static boolean writeWithCommandReg(final String key, 
         final String name, final Integer value) {
-        return writeWithCommandReg(key, name, value.toString());
+        final int exit = 
+                WindowsRegCommand.writeREG_DWORD("HKCU\\"+key, name, value.toString());
+            final boolean succeeded = exit == 0;
+            if (!succeeded) {
+                LOG.warn("Could not write to reg with REG command either: "+key);
+            } else {
+                LOG.info("Successfully wrote ot registry with REG command");
+            }
+            return succeeded;
     }
     
     private static boolean writeWithCommandReg(final String key, 
         final String name, final String value) {
         final int exit = 
-            WindowsRegistry.write("HKCU\\"+key, name, value.toString());
-        return exit == 0;
+            WindowsRegCommand.writeREG_SZ("HKCU\\"+key, name, value.toString());
+        final boolean succeeded = exit == 0;
+        if (!succeeded) {
+            LOG.warn("Could not write to reg with REG command either: "+key);
+        } else {
+            LOG.info("Successfully wrote ot registry with REG command");
+        }
+        return succeeded;
     }
 }
