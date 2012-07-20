@@ -72,7 +72,7 @@ public class Registry {
     private static boolean writeWithCommandReg(final String key, 
         final String name, final Integer value) {
         final int exit = 
-                WindowsRegCommand.writeREG_DWORD("HKCU\\"+key, name, value.toString());
+                WindowsRegCommand.writeREG_DWORD("HKCU\\"+key, name, value);
             final boolean succeeded = exit == 0;
             if (!succeeded) {
                 LOG.warn("Could not write to reg with REG command either: "+key);
