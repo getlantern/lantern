@@ -78,12 +78,13 @@ public class WindowsRegCommand {
      * 
      * @param key The registry key to query.
      * @param valueName Name of the registry value.
-     * @param valueData The data for the value name.
+     * @param value The data for the value name.
      * @return registry value or the empty string if not found.
      */
     public static final int writeREG_DWORD(final String key, 
-        final String valueName, final String valueData) {
-        return write(key, valueName, valueData, "REG_DWORD");
+        final String valueName, final int value) {
+        return write(key, valueName, Integer.valueOf(value).toString(), 
+            "REG_DWORD");
     }
     
     /**
@@ -197,9 +198,13 @@ public class WindowsRegCommand {
             final Scanner scan = new Scanner(output);
             String type = "";
             String value = "";
-            while (scan.hasNext()) {
-                type = value;
-                value = scan.next().trim();
+            try {
+                while (scan.hasNext()) {
+                    type = value;
+                    value = scan.next().trim();
+                }
+            } finally {
+                scan.close();
             }
             
             // If the value is a registry type, it means it's empty (there is
