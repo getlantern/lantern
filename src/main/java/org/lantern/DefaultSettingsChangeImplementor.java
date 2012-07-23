@@ -78,27 +78,16 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         if (start) {
             try {
                 final String path = 
-                    "\"\\\""+new File("Lantern.exe").getCanonicalPath()+"\\\"\"" + " --launchd";
+                    "\""+new File("Lantern.exe").getCanonicalPath()+"\"" + " --launchd";
+                    //"\"\\\""+new File("Lantern.exe").getCanonicalPath()+"\\\"\"" + " --launchd";
                 
                 
-                //result = WindowsRegistry.writeREG_SZ(key, "Lantern", path);
                 Registry.write(key, "Lantern", path);
-                //Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, 
-                //        key, "Lantern", path);
             } catch (final IOException e) {
                 log.error("Could not get canonical path", e);
             }
         } else {
             Registry.write(key, "Lantern", "");
-            /*
-            try {
-                //result = WindowsRegistry.writeREG_SZ(key, "Lantern", "");
-                Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, 
-                    key, "Lantern", "");
-            } catch (final Win32Exception e) {
-                log.error("Cannot write to registry", e);
-            }
-            */
         }
         
         if (result != 0) {
