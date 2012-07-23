@@ -9,6 +9,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
 import org.lantern.win.Registry;
 import org.lantern.win.WinInet;
+import org.lantern.win.WinProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +36,8 @@ public class Proxifier {
     private static final File LANTERN_PROXYING_FILE =
         new File(LanternConstants.CONFIG_DIR, "lanternProxying");
     
-    private static String proxyServerOriginal;
-    private static int proxyEnableOriginal = 0;
+    private static String proxyServerOriginal = "";
+    //private static int proxyEnableOriginal = 0;
 
     private static boolean interactiveUnproxyCalled;
 
@@ -302,81 +303,46 @@ public class Proxifier {
             return;
         }
         
+        final WinProxy proxy = new WinProxy();
+        
         // We first want to read the start values so we can return the
         // registry to the original state when we shut down.
 
-        proxyServerOriginal = 
-            Registry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
-            //WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
-            //Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, 
-            //    WINDOWS_REGISTRY_PROXY_KEY, ps);
-        proxyEnableOriginal = 
-            Registry.readInt(WINDOWS_REGISTRY_PROXY_KEY, pe);
-            //WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, pe);
-            //Advapi32Util.registryGetIntValue(WinReg.HKEY_CURRENT_USER, 
-            //    WINDOWS_REGISTRY_PROXY_KEY, pe);
-            //Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, 
-            //    WINDOWS_REGISTRY_PROXY_KEY, pe);
-        
+        final String curProxy = proxy.getProxy();
         final String proxyServerUs = "127.0.0.1:"+
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
-        final int proxyEnableUs = 1;
 
         // OK, we do one final check here. If the original proxy settings were
         // already configured for Lantern for whatever reason, we want to 
         // change the original to be the system defaults so that when the user
         // stops Lantern, the system actually goes back to its original pre-
         // lantern state.
-        if (proxyServerOriginal.equals(LANTERN_PROXY_ADDRESS) && 
-            proxyEnableOriginal == proxyEnableUs) {
-            proxyEnableOriginal = 0;
+        if (curProxy.equals(LANTERN_PROXY_ADDRESS)) {
+            // Only set the original proxy server to blank if it's not already
+            // set.
+            if (StringUtils.isBlank(proxyServerOriginal)) {
+                proxyServerOriginal = "";
+            }
+        } else {
+            proxyServerOriginal = curProxy;
         }
                 
         LOG.info("Setting registry to use Lantern as a proxy...");
         
-        Registry.write(WINDOWS_REGISTRY_PROXY_KEY, ps, proxyServerUs);
-        Registry.write(WINDOWS_REGISTRY_PROXY_KEY, pe, proxyEnableUs);
-        
-        /*
-        try {
-            Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, 
-                    WINDOWS_REGISTRY_PROXY_KEY, ps, proxyServerUs);
-        } catch (final Win32Exception e) {
-            LOG.error("Cannot write to registry", e);
+        if (proxy.proxy(proxyServerUs)) {
+            LOG.info("Successfully reset proxy server");
+        } else {
+            LOG.warn("Error setting the proxy server?");
         }
-        
-        try {
-            Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, 
-                    WINDOWS_REGISTRY_PROXY_KEY, pe, proxyEnableUs);
-        } catch (final Win32Exception e) {
-            LOG.error("Cannot write to registry", e);
-        }
-        */
-        /*
-        final int enableResult = 
-            WindowsRegistry.writeREG_SZ(WINDOWS_REGISTRY_PROXY_KEY, ps, proxyServerUs);
-        final int serverResult = 
-            WindowsRegistry.writeREG_DWORD(WINDOWS_REGISTRY_PROXY_KEY, pe, proxyEnableUs);
-        
-        
-        if (enableResult != 0) {
-            LOG.error("Error enabling the proxy server? Result: "+enableResult);
-        }
-    
-        if (serverResult != 0) {
-            LOG.error("Error setting proxy server? Result: "+serverResult);
-        }
-        */
-        
-        refreshWindowsInet();
     }
 
     private static void refreshWindowsInet() {
         Pointer hInternet = null;
-        IntByReference len = new IntByReference();
-        if (!WinInet.INSTANCE.InternetSetOption(hInternet,WinInet.INTERNET_OPTION_PROXY_SETTINGS_CHANGED, (Pointer)null, len)){
-            LOG.error("InternetSetOption failed!:" + Kernel32.INSTANCE.GetLastError());
-        }
+        IntByReference len = new IntByReference(0);
+        //WinInet.INTERNET_PER_CONN_PROXY_SERVER
+        //if (!WinInet.INSTANCE.InternetSetOption(hInternet,WinInet.INTERNET_OPTION_PROXY_SETTINGS_CHANGED, (Pointer)null, len)){
+        //    LOG.error("InternetSetOption failed!:" + Kernel32.INSTANCE.GetLastError());
+        //}
         if (!WinInet.INSTANCE.InternetSetOption(hInternet,WinInet.INTERNET_OPTION_REFRESH, (Pointer)null, len)){
             LOG.error("InternetSetOption failed!:" + Kernel32.INSTANCE.GetLastError());
         }
@@ -405,18 +371,19 @@ public class Proxifier {
     
     protected static void unproxyWindows() {
         LOG.info("Resetting Windows registry settings to original values.");
-        final int proxyEnableUs = 1;
+        final WinProxy proxy = new WinProxy();
+        //final int proxyEnableUs = 1;
         
         // On shutdown, we need to check if the user has modified the
         // registry since we originally set it. If they have, we want
         // to keep their setting. If not, we want to revert back to 
         // before Lantern started.
-        final String proxyServer = 
-            Registry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
+        final String proxyServer = proxy.getProxy();
+            //Registry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
             //Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, WINDOWS_REGISTRY_PROXY_KEY, ps);
             //WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
-        final int proxyEnable =
-            Registry.readInt(WINDOWS_REGISTRY_PROXY_KEY, pe);
+        //final int proxyEnable =
+        //    Registry.readInt(WINDOWS_REGISTRY_PROXY_KEY, pe);
             //Advapi32Util.registryGetIntValue(WinReg.HKEY_CURRENT_USER, WINDOWS_REGISTRY_PROXY_KEY, pe);
             //WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, pe);
         
@@ -424,7 +391,12 @@ public class Proxifier {
         if (proxyServer.equals(LANTERN_PROXY_ADDRESS)) {
             LOG.info("Setting proxy server back to: {}", 
                 proxyServerOriginal);
-            Registry.write(WINDOWS_REGISTRY_PROXY_KEY, ps, proxyServerOriginal);
+            if (proxy.proxy(proxyServerOriginal)) {
+                LOG.info("Successfully reset proxy server");
+            } else {
+                LOG.warn("Error setting the proxy server?");
+            }
+            //Registry.write(WINDOWS_REGISTRY_PROXY_KEY, ps, proxyServerOriginal);
             
             /*
             try {
@@ -436,25 +408,18 @@ public class Proxifier {
             WindowsRegistry.writeREG_SZ(WINDOWS_REGISTRY_PROXY_KEY, ps, 
                 proxyServerOriginal);
                 */
-            LOG.info("Successfully reset proxy server");
+            
         }
         
+        /*
         if (proxyEnable == proxyEnableUs) {
             LOG.info("Setting proxy enable back to 0");
             Registry.write(WINDOWS_REGISTRY_PROXY_KEY, pe, 0);
-            /*
-            try {
-                Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, 
-                        WINDOWS_REGISTRY_PROXY_KEY, pe, 0);
-            } catch (final Win32Exception e) {
-                LOG.error("Cannot write to registry", e);
-            }
-            WindowsRegistry.writeREG_DWORD(WINDOWS_REGISTRY_PROXY_KEY, pe, "0");
-            */
             LOG.info("Successfully reset proxy enable");
         }
         
         refreshWindowsInet();
+        */
         LOG.info("Done resetting the Windows registry");
     }
     
