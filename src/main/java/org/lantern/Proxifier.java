@@ -7,16 +7,11 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
-import org.lantern.win.Registry;
-import org.lantern.win.WinInet;
 import org.lantern.win.WinProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
-import com.sun.jna.Pointer;
-import com.sun.jna.platform.win32.Kernel32;
-import com.sun.jna.ptr.IntByReference;
 
 /**
  * Class that handles turning proxying on and off for all platforms.
@@ -37,19 +32,11 @@ public class Proxifier {
         new File(LanternConstants.CONFIG_DIR, "lanternProxying");
     
     private static String proxyServerOriginal = "";
-    //private static int proxyEnableOriginal = 0;
 
     private static boolean interactiveUnproxyCalled;
 
     private static final MacProxyManager mpm = 
         new MacProxyManager("testId", 4291);
-    
-    private static final String WINDOWS_REGISTRY_PROXY_KEY = 
-        //"HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings";
-        "Software\\Microsoft\\Windows\\CurrentVersion\\Internet Settings";
-    
-    private static final String ps = "ProxyServer";
-    private static final String pe = "ProxyEnable";
     
     private static final String LANTERN_PROXY_ADDRESS = "127.0.0.1:"+
         LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
@@ -240,7 +227,8 @@ public class Proxifier {
         proxyOsxViaScript(true);
     }
     
-    private static void proxyOsxViaScript(final boolean proxy) throws ProxyConfigurationError {
+    private static void proxyOsxViaScript(final boolean proxy) 
+        throws ProxyConfigurationError {
         final String onOrOff;
         if (proxy) {
             onOrOff = "on";
@@ -336,57 +324,15 @@ public class Proxifier {
         }
     }
 
-    private static void refreshWindowsInet() {
-        Pointer hInternet = null;
-        IntByReference len = new IntByReference(0);
-        //WinInet.INTERNET_PER_CONN_PROXY_SERVER
-        //if (!WinInet.INSTANCE.InternetSetOption(hInternet,WinInet.INTERNET_OPTION_PROXY_SETTINGS_CHANGED, (Pointer)null, len)){
-        //    LOG.error("InternetSetOption failed!:" + Kernel32.INSTANCE.GetLastError());
-        //}
-        if (!WinInet.INSTANCE.InternetSetOption(hInternet,WinInet.INTERNET_OPTION_REFRESH, (Pointer)null, len)){
-            LOG.error("InternetSetOption failed!:" + Kernel32.INSTANCE.GetLastError());
-        }
-        LOG.info("InternetSetOption appeared to succeed?");
-    }
-
-    /*
-    public static void unproxy() throws ProxyConfigurationError {
-        if (SystemUtils.IS_OS_WINDOWS) {
-            // We first want to read the start values so we can return the
-            // registry to the original state when we shut down.
-            proxyServerOriginal = 
-                WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
-            if (proxyServerOriginal.equals(LANTERN_PROXY_ADDRESS)) {
-                unproxyWindows();
-            }
-        } else if (SystemUtils.IS_OS_MAC_OSX) {
-            unproxyOsx();
-        } else if (SystemUtils.IS_OS_LINUX) {
-            unproxyLinux();
-        } else {
-            LOG.warn("We don't yet support proxy configuration on other OSes");
-        }
-    }
-    */
-    
     protected static void unproxyWindows() {
         LOG.info("Resetting Windows registry settings to original values.");
         final WinProxy proxy = new WinProxy();
-        //final int proxyEnableUs = 1;
         
         // On shutdown, we need to check if the user has modified the
         // registry since we originally set it. If they have, we want
         // to keep their setting. If not, we want to revert back to 
         // before Lantern started.
         final String proxyServer = proxy.getProxy();
-            //Registry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
-            //Advapi32Util.registryGetStringValue(WinReg.HKEY_CURRENT_USER, WINDOWS_REGISTRY_PROXY_KEY, ps);
-            //WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, ps);
-        //final int proxyEnable =
-        //    Registry.readInt(WINDOWS_REGISTRY_PROXY_KEY, pe);
-            //Advapi32Util.registryGetIntValue(WinReg.HKEY_CURRENT_USER, WINDOWS_REGISTRY_PROXY_KEY, pe);
-            //WindowsRegistry.read(WINDOWS_REGISTRY_PROXY_KEY, pe);
-        
         
         if (proxyServer.equals(LANTERN_PROXY_ADDRESS)) {
             LOG.info("Setting proxy server back to: {}", 
@@ -396,30 +342,7 @@ public class Proxifier {
             } else {
                 LOG.warn("Error setting the proxy server?");
             }
-            //Registry.write(WINDOWS_REGISTRY_PROXY_KEY, ps, proxyServerOriginal);
-            
-            /*
-            try {
-                Advapi32Util.registrySetStringValue(WinReg.HKEY_CURRENT_USER, 
-                        WINDOWS_REGISTRY_PROXY_KEY, ps, proxyServerOriginal);
-            } catch (final Win32Exception e) {
-                LOG.error("Cannot write to registry", e);
-            }
-            WindowsRegistry.writeREG_SZ(WINDOWS_REGISTRY_PROXY_KEY, ps, 
-                proxyServerOriginal);
-                */
-            
         }
-        
-        /*
-        if (proxyEnable == proxyEnableUs) {
-            LOG.info("Setting proxy enable back to 0");
-            Registry.write(WINDOWS_REGISTRY_PROXY_KEY, pe, 0);
-            LOG.info("Successfully reset proxy enable");
-        }
-        
-        refreshWindowsInet();
-        */
         LOG.info("Done resetting the Windows registry");
     }
     
