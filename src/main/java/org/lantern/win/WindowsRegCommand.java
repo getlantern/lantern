@@ -106,7 +106,11 @@ public class WindowsRegCommand {
             finalValue = " ";
         }
         else {
-            finalValue = valueData;
+            // The processbuilder call handles quotes in a crazy way, so we
+            // have to add in some escape funkiness.
+            finalValue = valueData.replaceAll("\"", "\\\\\"");
+            //finalValue = valueData.replaceAll("\"", "\\\\\"\\\\\"");
+            //finalValue = valueData;
         }
         final ProcessBuilder pb = 
             new ProcessBuilder("reg", "add", "\""+ key + "\"", "/v", 
