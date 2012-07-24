@@ -5,14 +5,16 @@ function die() {
   exit 1
 }
 
-if [ $# -ne "1" ]
+if [ $# -ne "2" ]
 then
-    die "$0: Received $# args... version required"
+    die "$0: Received $# args... version and cert password required"
 fi
 ./installerBuild.bash $* || die "Could not build!!"
 
 VERSION=$1
-/Applications/install4j\ 5/bin/install4jc -m macos -r $VERSION ./install/lantern.install4j
+INSTALL4J_PASS=$2
+
+/Applications/install4j\ 5/bin/install4jc --mac-keystore-password=$INSTALL4J_PASS -m macos -r $VERSION ./install/lantern.install4j
 
 name=lantern-$VERSION.dmg
 mv install/Lantern.dmg $name
