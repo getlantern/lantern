@@ -5,9 +5,9 @@ function die() {
   exit 1
 }
 
-if [ $# -lt "1" ]
+if [ $# -lt "2" ]
 then
-    die "$0: Received $# args... version required"
+    die "$0: Received $# args... version and cert password required"
 fi
 
 VERSION=$1
