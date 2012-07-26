@@ -291,7 +291,7 @@ public class Proxifier {
             return;
         }
         
-        final WinProxy proxy = new WinProxy();
+        final WinProxy proxy = new WinProxy(LanternConstants.CONFIG_DIR);
         
         // We first want to read the start values so we can return the
         // registry to the original state when we shut down.
