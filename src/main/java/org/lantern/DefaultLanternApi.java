@@ -44,6 +44,7 @@ public class DefaultLanternApi implements LanternApi {
         SETLOCALPASSWORD,
         UNLOCK,
         ERROR,
+        INVITE,
     }
 
     @Override
@@ -106,8 +107,23 @@ public class DefaultLanternApi implements LanternApi {
             break;
         case ERROR:
             handleError(req, resp);
-            break;            
+            break;
+        case INVITE:
+            handleInvite(req, resp);
+            break;
         }
+    }
+
+    private void handleInvite(final HttpServletRequest req, 
+        final HttpServletResponse resp) {
+        final Map<String, String> params = LanternUtils.toParamMap(req);
+        final String email = params.remove("email");
+        if (StringUtils.isBlank(email)) {
+            sendClientError(resp, "No email argument provided");
+            return;
+        }
+        LanternHub.xmppHandler().sendInvite(email);
+        returnSettings(resp);
     }
 
     private void handleError(final HttpServletRequest req, 

@@ -63,7 +63,7 @@ public class LanternConstants {
     public static final String UPDATE_TIME = "ut";
     
     
-    /*
+    /**
      * The following are keys in the properties files.
      */
     public static final String FORCE_CENSORED = "forceCensored";
@@ -81,6 +81,9 @@ public class LanternConstants {
     
     public static final String UPDATE_RELEASED_KEY = "released";
 
+    public static final String INVITES_KEY = "invites";
+    
+    public static final String INVITE_KEY = "inv";
     
     /**
      * The length of keys in translation property files.
@@ -127,12 +130,16 @@ public class LanternConstants {
     
     public static ClientSocketChannelFactory clientSocketChannelFactory;
 
+    public static final boolean ON_APP_ENGINE;
+    
     static {
+        boolean tempAppEngine;
         try {
             Class.forName("org.lantern.LanternControllerUtils");
             DATA_DIR = null;
             LOG_DIR = null;
             clientSocketChannelFactory = null;
+            tempAppEngine = true;
         } catch (final ClassNotFoundException e) {
             // Only load these if we're not on app engine.
             if (SystemUtils.IS_OS_WINDOWS) {
@@ -173,7 +180,10 @@ public class LanternConstants {
             clientSocketChannelFactory = new NioClientSocketChannelFactory(
                     Executors.newCachedThreadPool(),
                     Executors.newCachedThreadPool());
+            tempAppEngine = false;
         }
+        
+        ON_APP_ENGINE = tempAppEngine;
     }
 
 }
