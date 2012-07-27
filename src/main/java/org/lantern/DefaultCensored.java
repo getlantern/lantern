@@ -24,11 +24,30 @@ public class DefaultCensored implements Censored {
         new TreeSet<String>(Sets.newHashSet(
             // These are taken from ONI data -- 11/16 - any country containing
             // any type of censorship considered "substantial" or "pervasive".
-            "AE", "AM", "BH", "CN", "CU", "ET", "ID", "IR", "KP", "KR", 
-            "KW", "MM", "OM", "PK", "PS", "QA", "SA", "SD", "SY", "TM", "UZ", 
-            "VN", "YE")
-
-        );
+            "AE", // United Arab Emirates
+            "AM", // Armenia
+            "BH", // Bahrain
+            "CN", // China
+            "CU", // Cuba
+            "ET", // Ethiopia
+            "ID", // Indonesia
+            "IR", // Iran
+            "KP", // North Korea
+            "KR", // South Korea
+            "KW", // Kuwait
+            "MM", // Myanmar
+            "OM", // Oman
+            "PK", // Pakistan
+            "PS", // Palestine
+            "QA", // Qatar
+            "SA", // Saudi Arabia
+            "SD", // Sudan
+            "SY", // Syria
+            "TM", // Turkmenistan
+            "UZ", // Uzbekistan
+            "VN", // Vietnam
+            "YE" // Yemen
+        ));
     
     public DefaultCensored() {
         CENSORED.add("CU");
