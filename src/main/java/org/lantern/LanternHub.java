@@ -59,8 +59,16 @@ public class LanternHub {
     
     private static final AtomicReference<StatsTracker> statsTracker = 
         new AtomicReference<StatsTracker>();
-    private static final LanternKeyStoreManager proxyKeyStore = 
-        new LanternKeyStoreManager();
+    private static final LanternKeyStoreManager proxyKeyStore;
+    
+    static {
+        if (!LanternConstants.ON_APP_ENGINE) {
+            proxyKeyStore = new LanternKeyStoreManager();
+        } else {
+            proxyKeyStore = null;
+        }
+    }
+        
     
     private static final AtomicReference<XmppHandler> xmppHandler = 
         new AtomicReference<XmppHandler>();
@@ -121,23 +129,25 @@ public class LanternHub {
         settings.set(new Settings());
         _postSettingsState();
         
-        // if they were sucessfully loaded, save the most current state when exiting.
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                SettingsState ss = settings().getSettings();
-                if (ss.getState() == SettingsState.State.SET) {
-                    LOG.info("Writing settings");
-                    LanternHub.settingsIo().write(LanternHub.settings());
-                    LOG.info("Finished writing settings...");
+        if (!LanternConstants.ON_APP_ENGINE) {
+            // if they were successfully loaded, save the most current state when exiting.
+            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+    
+                @Override
+                public void run() {
+                    SettingsState ss = settings().getSettings();
+                    if (ss.getState() == SettingsState.State.SET) {
+                        LOG.info("Writing settings");
+                        LanternHub.settingsIo().write(LanternHub.settings());
+                        LOG.info("Finished writing settings...");
+                    }
+                    else {
+                        LOG.warn("Not writing settings, state was {}", ss.getState());
+                    }
                 }
-                else {
-                    LOG.warn("Not writing settings, state was {}", ss.getState());
-                }
-            }
-            
-        }, "Write-Settings-Thread"));
+                
+            }, "Write-Settings-Thread"));
+        }
     }
     
     public static LookupService getGeoIpLookup() {

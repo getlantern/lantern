@@ -96,7 +96,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
             return true;
         }
         try {
-            log.info("Writing {}", new String(data));
+            log.info("Writing {}", new String(data, "UTF-8"));
             final OutputStream os = this.sock.getOutputStream();
             os.write(data);
             return true;

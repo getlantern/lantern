@@ -32,6 +32,8 @@ var FETCHSUCCESS = 'fetch succeeded';
 // http://html5pattern.com/
 var HOSTNAMEPAT = /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/;
 var IPADDRPAT = /((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$/;
+// http://stackoverflow.com/a/46181
+var EMAILPAT = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
 var BYTEDIM = {GB: 1024*1024*1024, MB: 1024*1024, KB: 1024, B: 1};
 var BYTESTR = {GB: 'gigabyte', MB: 'megabyte', KB: 'kilobyte', B: 'byte'};
@@ -85,6 +87,11 @@ function LDCtrl(){
   self.$watch('state', function(scope, newVal, oldVal){
     self.inputemail = self.inputemail || self.state.email;
     self.pmfromemail = self.pmfromemail || self.state.email;
+    window['ga-disable-UA-32870114-1'] = !self.state.analytics;
+    if (self.state.analytics && !self.tracked) {
+      self.tracked = true;
+      _gaq.push(['_trackPageview']);
+    }
   });
   self.stateloaded = function(){
     return !$.isEmptyObject(self.state);
@@ -290,12 +297,12 @@ function LDCtrl(){
     }else{
       console.log('already signed in, just skipping to next screen');
       self.inputpassword = '';
-      showid(self.state.getMode && '#trustedpeers' || '#done');
+      showid('#trustedpeers');
     }
   };
 
   self.fetchpeers = function(){
-    if(self.state.getMode && self.logged_in()){
+    if(self.logged_in()){
       console.log('fetching peers');
       self.peers = FETCHING;
       self.$digest();
@@ -364,7 +371,7 @@ function LDCtrl(){
       self.showsignin(false);
       self.update(state);
       if(!self.state.initialSetupComplete){
-        showid(self.state.getMode && '#trustedpeers' || '#done');
+        showid('#trustedpeers');
         self.fetchpeers();
       }
     }).fail(function(jqXHR, textStatus){
@@ -403,13 +410,20 @@ function LDCtrl(){
     return 'img/arrow-right.png';
   };
 
-  self.toggleTrusted = function(peer){
-    var url = '/api/' + (peer.trusted ? 'add' : 'remove') + 'trustedpeer?email=' + peer.email;
+  self.invite = function(email){
+    if(!self.validateemail(email)){
+      console.log('invalid email: ' + email);
+      return;
+    }
+    var url = '/api/invite?email=' + email;
     $.post(url).done(function(){
-      console.log('successfully set peer.trusted to ' + peer.trusted + ' for ' + peer.email); 
+      console.log('successfully invited ' + email); 
+      self.$digest();
+      $('.invites-remaining').css('color', '#f00').animate({color: '#666'}, 2000);
+      // XXX flash message + clear input?
     }).fail(function(){
-      peer.trusted = !peer.trusted;
-      console.log('failed to set peer.trusted to ' + peer.trusted + ' for ' + peer.email); 
+      console.log('failed to invite ' + email); 
+      // XXX flash message?
     });
   };
 
@@ -509,6 +523,10 @@ function LDCtrl(){
   }
   
 
+  self.validateemail = function(val){
+    return EMAILPAT.test(val);
+  };
+
   self._validatewhitelistentry = function(val){
     if(!HOSTNAMEPAT.test(val) && !IPADDRPAT.test(val)){
       console.log('not a valid hostname:', val, '(so much for html5 defenses)');
@@ -596,7 +614,7 @@ function LDCtrl(){
       });
     }
   };
-
+  
   self.sendpm = function(){
     if(!self.pm)return;
     var data = {
@@ -704,8 +722,8 @@ $(document).ready(function(){
 
   function hilite(entiresettingspanel){
     var sel = entiresettingspanel ? '#settings, #onlyproxy' : '#onlyproxy';
-    $(sel).css('background-color', '#ffffaa').animate({
-      backgroundColor: '#fff'}, 2000);
+    $(sel).css('background-color', '#ffa').animate({
+      backgroundColor: 'transparent'}, 2000);
   }
   function mvtipti(after_else_func){
     var $tipti = $('#tip-trayicon');
@@ -862,7 +880,6 @@ $(document).ready(function(){
     s.update(msg.data);
 
     // XXX
-    if(s.state.getMode){
       if(s.connected() && s.logged_in()){
         if(s.peers === FETCHFAILED){
           var backoff = Math.pow(2, ++nfailed_fetchpeers) * 1000;
@@ -882,7 +899,6 @@ $(document).ready(function(){
         setTimeout(s.fetchwhitelist, backoff);
         s.whitelist = []; // XXX
       }
-    }
   }
 
   var _subscription;

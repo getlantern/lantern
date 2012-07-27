@@ -161,6 +161,8 @@ public class Settings implements MutableSettings {
     
     private Set<String> proxies = new LinkedHashSet<String>();
     
+    private boolean analytics = false;
+    
     /**
      * These are cached proxies we've connected to over TCP/SSL.
      */
@@ -175,6 +177,13 @@ public class Settings implements MutableSettings {
     private final Object getModeLock = new Object();
     
     private Set<String> stunServers = new HashSet<String>();
+    
+    private int invites = 0;
+    
+    /**
+     * Locally-stored set of users we've invited.
+     */
+    private Set<String> invited = new HashSet<String>();
 
     {
         LanternHub.register(this);
@@ -193,6 +202,9 @@ public class Settings implements MutableSettings {
      * problematic if the UI is waiting on them, for example.
      */
     private void threadPublicIpLookup() {
+        if (LanternConstants.ON_APP_ENGINE) {
+            return;
+        }
         final Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -710,6 +722,33 @@ public class Settings implements MutableSettings {
         return stunServers;
     }
 
+    public void setAnalytics(final boolean analytics) {
+        this.analytics = analytics;
+    }
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public boolean isAnalytics() {
+        return analytics;
+    }
+    
+    public void setInvites(int invites) {
+        this.invites = invites;
+    }
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public int getInvites() {
+        return invites;
+    }
+    
+    public Set<String> getInvited() {
+        return invited;
+    }
+
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public void setInvited(final Set<String> invited) {
+        this.invited = invited;
+    }
+
     @Override
     public String toString() {
         return "Settings [" 
@@ -766,4 +805,5 @@ public class Settings implements MutableSettings {
             }
         }
     }
+
 }

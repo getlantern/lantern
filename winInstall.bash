@@ -20,7 +20,5 @@ INSTALL4J_PASS=$2
 
 name=lantern-$VERSION.exe
 mv install/Lantern.exe $name
-echo "Uploading to http://cdn.getlantern.org/$name..."
-aws -putp lantern $name
-echo "Uploaded lantern to http://cdn.getlantern.org/$name"
-echo "Also available at http://lantern.s3.amazonaws.com/$name"
+
+./installMetaRefresh.bash win $name latest.exe

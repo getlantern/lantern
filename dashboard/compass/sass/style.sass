@@ -35,6 +35,15 @@ $blueprint-grid-width: 21px
 $blueprint-grid-margin: 10px
 $blueprint-grid-columns: 30
 
+$topbar-hght: 24px
+$gap-size: 24px
+$welcome-wdth: 580px
+$welcome-hght: 380px
+$welcome-controls-wdth: 300px
+$sidebar-wdth: 200px
+$mdoverlaywdth: 500px
+$contact-wdth: 510px
+
 @import compass
 @import compass/css3
 @import blueprint
@@ -45,9 +54,6 @@ $blueprint-grid-columns: 30
 body
   background: image-url('spinner-big.gif') center no-repeat
 
-$welcome-wdth: 580px
-$welcome-hght: 380px
-$welcome-controls-wdth: 300px
 #welcome-container, .wizard-slides
   +box-sizing(border-box)
   width: $welcome-wdth
@@ -180,8 +186,9 @@ input[type=password], input.signinpwinput
   overflow-x: hidden
   overflow-y: auto
   white-space: nowrap
+  padding-left: 3px
+  +box-sizing(border-box)
   #trustedpeers &
-    font-size: $font-size-smaller
     height: 90px
     text-align: left
     border: 1px solid #aaa
@@ -192,15 +199,33 @@ input[type=password], input.signinpwinput
     margin: 0 0 1em -176px
     background-color: #eee
     +border-radius(3px)
+    font-size: $font-size-smaller
   #trusted &
-    border: 1px solid $edge-color
-    width: 400px
-    min-height: 90px
-    max-height: 414px
-    padding-left: 3px
+    border: 1px solid #eee
+    //background-color: #eef
+    width: 200px
     +border-radius(3px)
-    +box-sizing(border-box)
-    margin-bottom: 8px
+    position: fixed
+    top: 91px
+    bottom: 40px
+    overflow-x: hidden
+    overflow-y: auto
+    font-size: .75 * $blueprint-font-size
+    font-weight: 300
+
+img.plus
+  vertical-align: bottom
+
+.invite-link
+  text-decoration: none
+  color: $font-color !important
+  img.plus
+    display: none
+  &:hover
+    text-decoration: underline
+    color: $link-color !important
+    img.plus
+      display: inline
 
 .searchpeers
   +box-sizing(border-box)
@@ -208,14 +233,25 @@ input[type=password], input.signinpwinput
     width: 350px
     margin-bottom: 5px
   #trusted &
-    width: 400px
-    margin-bottom: 8px
+    width: 200px
 
 #trusted
+  background-color: #fff
+  +box-shadow($edge-color 0 0 5px)
+  padding: 4px
+  position: absolute
+  top: $topbar-hght
+  right: 0
+  bottom: 0
+  border-top: 1px solid $edge-color
   h1
-    margin-bottom: 20px
-  h4
-    color: $font-color-input
+    margin-top: 10px
+    margin-bottom: 7px
+    font-size: 12pt
+    border-bottom: 1px solid #eee
+  .invites-remaining
+    position: fixed
+    bottom: 3px
 
 .smallnote
   font-size: 9pt
@@ -316,12 +352,9 @@ h1
 p
   margin-bottom: 1em
 
-$topbar-hght: 24px
-$gap-size: 24px
 #sidebar, .panel
   padding: ($topbar-hght + $gap-size) 0 0 0
 
-$sidebar-wdth: 200px
 #sidebar
   background-color: $background-color-alt
   text-align: right
@@ -337,7 +370,6 @@ $sidebar-wdth: 200px
 #search
   margin-top: 1em
 
-$mdoverlaywdth: 500px
 #md-overlay, #doc-overlay
   z-index: 2
   position: fixed
@@ -543,7 +575,6 @@ textarea
 textarea, input[type=text], input[type=email]
   +border-radius(3px)
 
-$contact-wdth: 510px
 #contact-msg
   width: $contact-wdth
   margin-bottom: 17px

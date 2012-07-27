@@ -24,6 +24,23 @@
     <script src=js/lib/angular-0.10.5.min.js ng:autobind></script>
     <script src=js/lib/showdown.js></script>
     <script src=js/dashboard.js></script>
+    
+    <script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-32870114-1']);
+      _gaq.push(['_gat._anonymizeIp']);
+      _gaq.push(['_setDomainName', 'none']);
+      _gaq.push(['_setAllowLinker', 'true']);
+      //_gaq.push(['_trackPageview']);
+    
+      window['ga-disable-UA-32870114-1'] = true;
+      (function() {
+        var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+        ga.src = 'https://ssl.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+
   </head>
   <body ng:controller=LDCtrl lang=en ng:class="(!state.initialSetupComplete || !stateset()) && 'welcome'">
     <div id=console-shim style="display: block; position: fixed; left: 0; right: 0; bottom: 0; color: green; z-index: 500;"><pre></pre></div>
@@ -164,24 +181,25 @@
           </form>
         </div>
         <div id=trustedpeers class=slide data-cls=slide>
-          <h1>Trusted Peers</h1>
-          <h4>Choose people you would trust to proxy any <a class=doc-link href=#doc-overlay data-doc=unencrypted-traffic>unencrypted traffic</a>.</h4>
-          <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
+          <h1>Invite</h1>
+          <h4>Invite trusted contacts to join Lantern.</h4>
+          <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Enter name or email" results=0 incremental autosave/>
           <ul class="peerlist lionbars">
             <li ng:show="peers == FETCHING">Loading...</li>
-            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
+            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length"><span ng:show=peerfilterinput><a ng:click=invite(peerfilterinput) ng:show=validateemail(peerfilterinput)>Add and invite {{ peerfilterinput }}<img class=plus src=img/plus-small-white.png /></a><span ng:show=!validateemail(peerfilterinput) class=disabled>No matching contacts</span></span><span ng:show=!peerfilterinput class=disabled>No available contacts</span></li>
             <li ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter)">
-              <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
+            <a class=invite-link ng:show="state.invites > 0" ng:click=invite(peer.email)><span ng:show=peer.name>{{ peer.name }} &lt;{{ peer.email }}&gt;</span><span ng:show=!peer.name>{{ peer.email }}</span><img class=plus src=img/plus-small-white.png /></a>
+            <span ng:show=!state.invites><span ng:show=peer.name>{{ peer.name }} &lt;{{ peer.email }}&gt;</span><span ng:show=!peer.name>{{ peer.email }}</span></span>
             </li>
           </ul>
-          <span class=smallnote><a class=doc-link href=#doc-overlay data-doc=cloud-proxies>Lantern cloud proxies</a> will be used when no trusted peers are available.</span>
+          <span class=invites-remaining class=smallnote>{{ state.invites }} invite{{ state.invites != 1 && 's' || ''}} remaining</span>
           <div class=controls>
             <figure class=left>
               <a href=#signin><img src=img/arrow-left.png alt=Back /></a>
               <figcaption>Back</figcaption>
             </figure>
             <figure class=right>
-              <a href=#systemproxy><img src=img/arrow-right.png alt=Continue /></a>
+              <a href="{{state.getMode && '#systemproxy' || '#done'}}"><img src=img/arrow-right.png alt=Continue /></a>
               <figcaption>Continue</figcaption>
             </figure>
           </div>
@@ -313,9 +331,11 @@
                 <li id=httpsev-li>Http traffic will be redirected over https
                   using rulesets from <a class=outbound-link href=https://www.eff.org/https-everywhere title=https://www.eff.org/https-everywhere target=_blank>HTTPS Everywhere</a>
                 </li>
+                <!--
                 <li>
-                  <a class="overlaylink buttonlink" href=#trusted>Manage trusted peers...</a>
+                  <a class="overlaylink buttonlink" href=#trusted>Manage trusted contacts...</a>
                 </li>
+                -->
               </ul>
             </dd>
             <dt>Application</dt>
@@ -327,6 +347,7 @@
                 <li><label><input type=checkbox ng:change=toggle('connectOnLaunch') ng:model=state.connectOnLaunch /> Sign in on launch</label></li>
                 -->
                 <li ng:show=state.getMode><label><input type=checkbox ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Set as system proxy</label></li>
+                <li><label><input type=checkbox ng:change=toggle('analytics') ng:model=state.analytics /> Enable Google Analytics</label></li>
               </ul>
               <input type=button id=reset-button ng:click=reset() value="Reset Lantern" />
             </dd>
@@ -406,19 +427,21 @@
           <div id=required-legend><span class=smallnote>✽</span> required</div>
         </div>
 
-        <div class=overlay data-cls=overlay id=trusted>
-          <a class=close>×</a>
-          <h1>Trusted peers</h1>
-          <h4>Contacts you would trust to proxy <a class=doc-link href=#doc-overlay data-doc=unencrypted-traffic>unencrypted traffic</a></h4>
+        <!--<div class=overlay data-cls=overlay id=trusted>-->
+        <div id=trusted>
+          <h1>Contacts</h1>
           <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
           <ul class="peerlist lionbars">
             <li ng:show="peers == FETCHING">Loading...</li>
-            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length">No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
+            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length" class=disabled>No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
             <li ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter)">
-              <label><input type=checkbox ng:model=peer.trusted ng:change=toggleTrusted(peer) /> {{peer.name || peer.email}}</label>
+              {{peer.name || peer.email}}
             </li>
           </ul>
-          <div class=smallnote><a class=doc-link href=#doc-overlay data-doc=cloud-proxies>Lantern cloud proxies</a> will be used when no trusted peers are available.</div>
+          <!--
+          <div ng:show=state.getMode class=smallnote><a class=doc-link href=#doc-overlay data-doc=cloud-proxies>Lantern cloud proxies</a> will be used when no trusted contacts are available.</div>
+          -->
+          <div class=invites-remaining class=smallnote>{{ state.invites }} invite{{ state.invites != 1 && 's' || ''}} remaining</div>
         </div>
 
         <div class="flashmsg tip" id=tip-trayicon>
@@ -460,7 +483,7 @@
         <div class=doc id=why-google>
           <p>Lantern works by connecting users around the world together in a
           peer-to-peer network. Signing into Google Talk allows you to connect
-          to users you know and trust, and not just anyone.
+          through users you know and trust, and not just anyone.
           </p>
         </div>
         <div class=doc id=unencrypted-traffic>
