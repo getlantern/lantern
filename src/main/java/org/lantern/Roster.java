@@ -3,6 +3,7 @@ package org.lantern;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.TreeSet;
 
@@ -28,6 +29,9 @@ public class Roster {
     private boolean entriesSet = false;
 
     private GoogleTalkState state;
+    
+    private final Collection<String> subscriptionRequests = 
+        new HashSet<String>();
     
     /**
      * Creates a new roster.
@@ -125,5 +129,9 @@ public class Roster {
                 }
             }
         }
+    }
+
+    public void addSubscriptionRequest(final String from) {
+        subscriptionRequests.add(from);
     }
 }
