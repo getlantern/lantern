@@ -30,6 +30,7 @@ import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
@@ -82,7 +83,7 @@ public class DefaultXmppHandler implements XmppHandler {
     private final Queue<ProxyHolder> laeProxies = 
         new ConcurrentLinkedQueue<ProxyHolder>();
 
-    private AtomicReference<XmppP2PClient> client = 
+    private final AtomicReference<XmppP2PClient> client = 
         new AtomicReference<XmppP2PClient>();
     
     private static final String UNCENSORED_ID = "-lan-";
@@ -96,7 +97,6 @@ public class DefaultXmppHandler implements XmppHandler {
     private volatile long lastInfoMessageScheduled = 0L;
     
     private final MessageListener typedListener = new MessageListener() {
-
         @Override
         public void processMessage(final Chat ch, final Message msg) {
             // Note the Chat will always be null here. We try to avoid using
@@ -117,7 +117,6 @@ public class DefaultXmppHandler implements XmppHandler {
                 processTypedMessage(msg, type);
             } 
         }
-
     };
 
     private String lastJson = "";
@@ -289,13 +288,27 @@ public class DefaultXmppHandler implements XmppHandler {
             
             @Override
             public void processPacket(final Packet pack) {
+                final Presence pres = (Presence) pack;
+                final String from = pres.getFrom();
                 LOG.info("Responding to subscribtion request from {} and to {}", 
-                    pack.getFrom(), pack.getTo());
-                final Presence packet = 
-                    new Presence(Presence.Type.subscribed);
-                packet.setTo(pack.getFrom());
-                packet.setFrom(pack.getTo());
-                connection.sendPacket(packet);
+                    from, pack.getTo());
+                
+                // Allow subscription requests from the lantern bot.
+                if (from.startsWith("lanternctrl@") &&
+                    from.endsWith("lanternctrl.appspotchat.com")) {
+                    final Presence packet = 
+                        new Presence(Presence.Type.subscribed);
+                    packet.setTo(from);
+                    packet.setFrom(pack.getTo());
+                    connection.sendPacket(packet);
+                } else {
+                    LOG.info("Adding subscription request...");
+                    // Otherwise it's a subscription request from another user
+                    // and we should ask the user whether or not to allow it.
+                    final org.lantern.Roster roster = LanternHub.roster();
+                    roster.addSubscriptionRequest(pack.getFrom());
+                }
+
             }
         }, new PacketFilter() {
             
@@ -306,16 +319,21 @@ public class DefaultXmppHandler implements XmppHandler {
                     final Presence pres = (Presence) packet;
                     if(pres.getType().equals(Presence.Type.subscribe)) {
                         LOG.debug("Got subscribe packet!!");
+                        return true;
+                        /*
                         final String from = pres.getFrom();
                         if (from.startsWith("lanternctrl@") &&
                             from.endsWith("lanternctrl.appspotchat.com")) {
                             LOG.debug("Got lantern subscription request!!");
                             return true;
                         } else {
-                            LOG.debug("Ignoring subscription request from: {}",
-                                from);
+                            LOG.debug("Got subscription request from: {}",from);
+                            // This means we've received an invitation from
+                            // someone to be added to their roster. We need to
+                            // add this to the JSON returned to the dashboard
+                            // in the roster API call.
                         }
-                        
+                        */
                     }
                 } else {
                     LOG.debug("Filtered out packet: ", packet.toXML());
@@ -1072,5 +1090,21 @@ public class DefaultXmppHandler implements XmppHandler {
         t.start();
         LanternHub.settings().setInvites(LanternHub.settings().getInvites()-1);
         LanternHub.settingsIo().write();
+        
+        // If the user is not already on our roster, we want to make sure to
+        // send them an invite. If the e-mail address specified does not 
+        // correspond with a Jabber ID, then we're out of luck. If it doesn,
+        // then this will send the roster invite.
+        final Roster roster = conn.getRoster();
+        final RosterEntry entry = roster.getEntry(email);
+        if (entry == null) {
+            LOG.info("Inviting user to join roster: {}", email);
+            try {
+                roster.createEntry(email, 
+                    StringUtils.substringBefore(email, "@"), null);
+            } catch (final XMPPException e) {
+                LOG.error("Could not create entry?", e);
+            }
+        }
     }
 }
