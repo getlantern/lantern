@@ -231,7 +231,6 @@ public class LanternUtils {
             @Override
             public void run() {
                 final byte[] buffer = new byte[4096];
-                long count = 0;
                 int n = 0;
                 try {
                     LOG.info("READING FROM SOCKET: {}", sock);
@@ -254,7 +253,6 @@ public class LanternUtils {
                             tracker.addBytesProxied(n, sock);
                             tracker.addDownBytesViaProxies(n, sock);
                         }
-                        count += n;
                         
                     }
                     ProxyUtils.closeOnFlush(channel);
@@ -593,7 +591,8 @@ public class LanternUtils {
             // javavm (default in os x 10.5.8) 
             // in this case, the default location below will
             // point to the 1.5 keytool instead.
-            final File keytool16 = new File("/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/keytool");
+            final File keytool16 = new File(
+                "/System/Library/Frameworks/JavaVM.framework/Versions/1.6/Commands/keytool");
             if (keytool16.exists()) {
                 return keytool16.getAbsolutePath();
             }
@@ -682,21 +681,27 @@ public class LanternUtils {
         }
     }
         
-    public static InputStream localDecryptInputStream(InputStream in) throws IOException, GeneralSecurityException {
-        Cipher cipher = LanternHub.localCipherProvider().newLocalCipher(Cipher.DECRYPT_MODE);
+    public static InputStream localDecryptInputStream(final InputStream in) 
+        throws IOException, GeneralSecurityException {
+        Cipher cipher = 
+            LanternHub.localCipherProvider().newLocalCipher(Cipher.DECRYPT_MODE);
         return new CipherInputStream(in, cipher);
     }
     
-    public static InputStream localDecryptInputStream(File file) throws IOException, GeneralSecurityException {
+    public static InputStream localDecryptInputStream(File file) 
+        throws IOException, GeneralSecurityException {
         return localDecryptInputStream(new FileInputStream(file));
     }
     
-    public static OutputStream localEncryptOutputStream(OutputStream os) throws IOException, GeneralSecurityException {
-        Cipher cipher = LanternHub.localCipherProvider().newLocalCipher(Cipher.ENCRYPT_MODE);
+    public static OutputStream localEncryptOutputStream(final OutputStream os)
+        throws IOException, GeneralSecurityException {
+        Cipher cipher = 
+            LanternHub.localCipherProvider().newLocalCipher(Cipher.ENCRYPT_MODE);
         return new CipherOutputStream(os, cipher);
     }
     
-    public static OutputStream localEncryptOutputStream(File file) throws IOException, GeneralSecurityException {
+    public static OutputStream localEncryptOutputStream(File file) 
+        throws IOException, GeneralSecurityException {
         return localEncryptOutputStream(new FileOutputStream(file));
     }
     
@@ -705,9 +710,11 @@ public class LanternUtils {
      * dest file given. 
      * 
      * @param plainSrc a plaintext source File to copy
-     * @param encryptedDest a destination file to write an encrypted copy of plainSrc to
+     * @param encryptedDest a destination file to write an encrypted copy of 
+     * plainSrc to
      */
-    public static void localEncryptedCopy(final File plainSrc, final File encryptedDest)
+    public static void localEncryptedCopy(final File plainSrc, 
+        final File encryptedDest)
         throws GeneralSecurityException, IOException {
         if (plainSrc.equals(encryptedDest)) {
             throw new IOException("Source and dest cannot be the same file.");
@@ -730,10 +737,12 @@ public class LanternUtils {
      * dest file given. 
      * 
      * @param encryptedSrc an encrypted source file to copy
-     * @param plainDest a destination file to write a decrypted copy of encryptedSrc to
+     * @param plainDest a destination file to write a decrypted copy of 
+     * encryptedSrc to
      * 
      */
-    public static void localDecryptedCopy(final File encryptedSrc, final File plainDest)
+    public static void localDecryptedCopy(final File encryptedSrc, 
+        final File plainDest)
         throws GeneralSecurityException, IOException {
         if (encryptedSrc.equals(plainDest)) {
             throw new IOException("Source and dest cannot be the same file.");
@@ -787,7 +796,7 @@ public class LanternUtils {
         return "";
     }
     
-    public static String jsonify(final Object all, Class<?> view) {
+    public static String jsonify(final Object all, final Class<?> view) {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.configure(Feature.INDENT_OUTPUT, true);
         ObjectWriter writer = mapper.writerWithView(view);
@@ -854,7 +863,8 @@ public class LanternUtils {
         }
     }
 
-    public static void loadJarLibrary(final Class<?> jarRepresentative, final String fileName) throws IOException {
+    public static void loadJarLibrary(final Class<?> jarRepresentative, 
+        final String fileName) throws IOException {
         File tempDir = null;
         InputStream is = null; 
         try {
@@ -865,6 +875,17 @@ public class LanternUtils {
             System.load(tempLib.getAbsolutePath());
         } finally {
             FileUtils.deleteQuietly(tempDir);
+            IOUtils.closeQuietly(is);
+        }
+    }
+    
+    public static String fileInJarToString(final String fileName) 
+        throws IOException {
+        InputStream is = null; 
+        try {
+            is = LanternUtils.class.getResourceAsStream("/" + fileName);
+            return IOUtils.toString(is);
+        } finally {
             IOUtils.closeQuietly(is);
         }
     }

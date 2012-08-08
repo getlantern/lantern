@@ -344,6 +344,7 @@ public class DefaultLanternApi implements LanternApi {
     }
 
     private void handleWhitelist(final HttpServletResponse resp) {
+        Proxifier.refresh();
         final Whitelist wl = LanternHub.whitelist();
         returnJson(resp, wl);
     }

@@ -103,7 +103,12 @@ public class Proxifier {
         new File(LanternConstants.CONFIG_DIR, "proxy.pac");
     
     public static void startProxying() throws ProxyConfigurationError {
-        if (isProxying()) {
+        startProxying(false);
+    }
+    
+    private static void startProxying(final boolean force) 
+        throws ProxyConfigurationError {
+        if (isProxying() && !force) {
             LOG.info("Already proxying!");
             return;
         }
@@ -113,6 +118,11 @@ public class Proxifier {
             return;
         }
 
+        // Always update the pac file to make sure we've got all the latest
+        // entries.
+        PacFileGenerator.generatePacFile(
+            LanternHub.whitelist().getEntriesAsStrings(), PROXY_ON);
+        
         LOG.info("Autoconfiguring local to proxy Lantern");
         if (SystemUtils.IS_OS_MAC_OSX) {
             proxyOsx();
@@ -411,6 +421,20 @@ public class Proxifier {
             final String msg = "Got unexpected result from AppleScript: "+result;
             LOG.error(msg);
             throw new IOException(msg);
+        }
+    }
+
+    /**
+     * This will refresh the proxy entries for things like new additions to
+     * the whitelist.
+     */
+    public static void refresh() {
+        if (isProxying()) {
+            try {
+                startProxying(true);
+            } catch (final ProxyConfigurationError e) {
+                LOG.error("Could not configure proxy!!", e);
+            }
         }
     }
 }
