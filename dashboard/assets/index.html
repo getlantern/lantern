@@ -186,10 +186,10 @@
           <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Enter name or email" results=0 incremental autosave/>
           <ul class="peerlist lionbars unpopulated">
             <li ng:show="peers == FETCHING">Loading...</li>
-            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length"><span ng:show=peerfilterinput><a ng:click=invite(peerfilterinput) ng:show=validateemail(peerfilterinput)>Add and invite {{ peerfilterinput }}<img class=plus src=img/plus-small-white.png /></a><span ng:show=!validateemail(peerfilterinput) class=disabled>No matching contacts</span></span><span ng:show=!peerfilterinput class=disabled>No available contacts</span></li>
-            <li ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter)">
-            <a class=invite-link ng:show="state.invites > 0" ng:click=invite(peer.email)><span ng:show=peer.name>{{ peer.name }} &lt;{{ peer.email }}&gt;</span><span ng:show=!peer.name>{{ peer.email }}</span><img class=plus src=img/plus-small-white.png /></a>
-            <span ng:show=!state.invites><span ng:show=peer.name>{{ peer.name }} &lt;{{ peer.email }}&gt;</span><span ng:show=!peer.name>{{ peer.email }}</span></span>
+            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length"><span ng:show=peerfilterinput><a ng:click=invite(peerfilterinput) ng:show=validateemail(peerfilterinput) title="Invite {{ peerfilterinput }}">{{ peerfilterinput }}<img class=plus src=img/plus-small-white.png /></a><span ng:show=!validateemail(peerfilterinput) class=disabled>No matching contacts</span></span><span ng:show=!peerfilterinput class=disabled>No available contacts</span></li>
+            <li ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter).$orderBy(peerorder)">
+            <a class=invite-link ng:show="state.invites > 0" ng:click=invite(peer.email) title="Invite {{ peer.email }}"><span ng:show=peer.name>{{ peer.name }}</span><span ng:show=!peer.name>{{ peer.email }}</span><img class=plus src=img/plus-small-white.png /></a>
+            <span ng:show=!state.invites><span ng:show=peer.name title="{{ peer.email }}">{{ peer.name }}</span><span ng:show=!peer.name>{{ peer.email }}</span></span>
             </li>
           </ul>
           <span class=invites-remaining class=smallnote>{{ state.invites }} invite{{ state.invites != 1 && 's' || ''}} remaining</span>
@@ -433,9 +433,10 @@
           <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
           <ul class="peerlist lionbars unpopulated">
             <li ng:show="peers == FETCHING">Loading...</li>
-            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length" class=disabled>No {{peerfilterinput && 'matching' || 'available'}} contacts</li>
-            <li ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter)">
-              {{peer.name || peer.email}}
+            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length"><span ng:show=peerfilterinput><a ng:click=invite(peerfilterinput) ng:show=validateemail(peerfilterinput) title="Invite {{ peerfilterinput }}">{{ peerfilterinput }}<img class=plus src=img/plus-small-white.png /></a><span ng:show=!validateemail(peerfilterinput) class=disabled>No matching contacts</span></span><span ng:show=!peerfilterinput class=disabled>No available contacts</span></li>
+            <li ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter).$orderBy(peerorder)">
+              <a class=invite-link ng:show="state.invites > 0" ng:click=invite(peer.email) title="Invite {{ peer.email }}"><span ng:show=peer.name>{{ peer.name }}</span><span ng:show=!peer.name>{{ peer.email }}</span><img class=plus src=img/plus-small-white.png /></a>
+              <span ng:show=!state.invites><span ng:show=peer.name title="{{ peer.email }}">{{ peer.name }}</span><span ng:show=!peer.name>{{ peer.email }}</span></span>
             </li>
           </ul>
           <!--

@@ -175,6 +175,9 @@ function LDCtrl(){
   self.inputpassword = null;
 
   self.peerfilterinput = null;
+  self.peerorder = function(peer){
+    return peer.name || peer.email;
+  };
   self.peerfilter = function(peer){
     var f = self.peerfilterinput;
     if(!f)return true;
@@ -427,10 +430,16 @@ function LDCtrl(){
       console.log('successfully invited ' + email); 
       self.$digest();
       $('.invites-remaining').css('color', '#f00').animate({color: '#666'}, 2000);
-      // XXX flash message + clear input?
+      $('.flashmsg').hide();
+      $('#flash-main .content').addClass('success').removeClass('error')
+        .html('Invite sent to ' + email).parent('#flash-main').fadeIn();
+      self.peerfilterinput = null;
+      self.$digest();
     }).fail(function(){
       console.log('failed to invite ' + email); 
-      // XXX flash message?
+      $('.flashmsg').hide();
+      $('#flash-main .content').addClass('success').removeClass('error')
+        .html('Invite sent to ' + email).parent('#flash-main').fadeIn();
     });
   };
 
