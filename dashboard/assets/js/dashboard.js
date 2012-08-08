@@ -43,11 +43,15 @@ function clickevt2id(evt){
   return evt.currentTarget.href.match(FRAGMENTPAT)[1];
 }
 
-// XXX check for Lion or greater (new scrollbars are kept in mountain lion)
-var LION = !!navigator.userAgent.match(/Mac OS X 10_7/);
+var LION = false;//!!navigator.userAgent.match(/Mac OS X 10_[78]/);
 function lionbarsify($el){
   if(LION || !$el.length || $el.hasClass('lionbarsified'))
     return false;
+  if($el.is(':hidden') || $el.hasClass('unpopulated')){
+    console.log($el, 'is not visible or not populated, scheduling later lionsbars call');
+    setTimeout(function(){lionbarsify($el);}, 500);
+    return false;
+  }
   console.log('lionbarsifying', $el);
   $el.addClass('lionbarsified').lionbars();
   return true;
@@ -310,6 +314,7 @@ function LDCtrl(){
         self.peers = r.entries;
         self.$digest();
         console.log('set peers');
+        $('.peerlist').removeClass('unpopulated');
       }).fail(function(e){
         console.log('failed to fetch peers:',e);
         self.peers = FETCHFAILED;
@@ -327,6 +332,7 @@ function LDCtrl(){
         self.whitelist = r.entries;
         self.$digest();
         console.log('set whitelist');
+        $('#siteslist').removeClass('unpopulated');
       }).fail(function(e){
         console.log('failed to fetch whitelist:',e);
         self.whitelist = FETCHFAILED;
@@ -373,6 +379,7 @@ function LDCtrl(){
       if(!self.state.initialSetupComplete){
         showid('#trustedpeers');
         self.fetchpeers();
+        lionbarsify($('#trustedpeers > .peerlist'));
       }
     }).fail(function(jqXHR, textStatus){
       var code = jqXHR.status;
@@ -811,6 +818,10 @@ $(document).ready(function(){
     $doco.css('margin-top', -Math.round($doco.outerHeight()/2) + 'px');
     return false;
   });
+
+
+  lionbarsify($('#trusted > .peerlist'));
+
 
   // XXX
   $('input.whitelistentry.ng-dirty:not(.ng-invalid)').live('blur', function(){
