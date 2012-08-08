@@ -261,4 +261,15 @@ public class Whitelist {
             return toMatch;
         }
     }
+
+    public Collection<String> getEntriesAsStrings() {
+        final Collection<WhitelistEntry> entries = getEntries();
+        final Collection<String> parsed = 
+            new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
+        for (final WhitelistEntry entry : entries) {
+            final String str = entry.getSite();
+            parsed.add(str);
+        }
+        return parsed;
+    }
 }

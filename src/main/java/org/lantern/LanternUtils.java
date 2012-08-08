@@ -878,6 +878,17 @@ public class LanternUtils {
             IOUtils.closeQuietly(is);
         }
     }
+    
+    public static String fileInJarToString(final String fileName) 
+        throws IOException {
+        InputStream is = null; 
+        try {
+            is = LanternUtils.class.getResourceAsStream("/" + fileName);
+            return IOUtils.toString(is);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+    }
 
     public static String jidToEmail(final String jid) {
         if (jid.contains("/")) {

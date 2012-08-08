@@ -2,6 +2,7 @@ package org.lantern;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -38,6 +39,13 @@ public class PacFileGenerator {
 
     private static String loadTemplate() {
         final File file = new File("src/main/resources/proxy_on.pac.template");
+        if (!file.isFile()) {
+            try {
+                return LanternUtils.fileInJarToString("proxy_on.pac.template");
+            } catch (final IOException e) {
+                throw new Error("Could not load template from jar!!", e);
+            }
+        }
         FileReader fr = null;
         try {
             fr = new FileReader(file);
@@ -49,6 +57,21 @@ public class PacFileGenerator {
         }
         LOG.error("Could not load template!!");
         throw new Error("Could not load template!!");
+    }
+
+    public static void generatePacFile(final Collection<String> entries, 
+        final File proxyOn) {
+        LOG.debug("Writing pac file to: {}", proxyOn);
+        final String pac = generatePacFileString(entries);
+        FileWriter fw = null;
+        try {
+            fw = new FileWriter(proxyOn);
+            fw.write(pac);
+        } catch (final IOException e) {
+            LOG.error("Could not write to pac file at: {}", proxyOn);
+        } finally {
+            IOUtils.closeQuietly(fw);
+        }
     }
 
 }
