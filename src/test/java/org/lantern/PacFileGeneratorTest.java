@@ -15,23 +15,11 @@ public class PacFileGeneratorTest {
     
     @Test
     public void testGeneratePacFile() throws Exception {
-        final Collection<String> sites = getEntries();
+        final Collection<String> sites = new Whitelist().getEntriesAsStrings();
         final String pac = PacFileGenerator.generatePacFileString(sites);
         
         final String refPac = loadRefPac();
         assertEquals(refPac, pac);
-    }
-     
-
-    private Collection<String> getEntries() {
-        final Collection<WhitelistEntry> entries = new Whitelist().getEntries();
-        final Collection<String> parsed = 
-            new TreeSet<String>(String.CASE_INSENSITIVE_ORDER);
-        for (final WhitelistEntry entry : entries) {
-            final String str = entry.getSite();
-            parsed.add(str);
-        }
-        return parsed;
     }
 
 

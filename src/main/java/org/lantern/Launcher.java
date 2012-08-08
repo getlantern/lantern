@@ -329,20 +329,6 @@ public class Launcher {
                 FileUtils.copyFileToDirectory(lanternDesktop, parent);
                 
                 LOG.info("Copied {} to {}", lanternDesktop, parent);
-                /*
-                final File path = 
-                    new File(System.getProperty("user.dir"), "lantern");
-                
-                // Lantern might now actually be installed yet, so abort this 
-                // call if not.
-                if (path.isFile()) {
-                    LOG.info("Setting exe in gnome autostart file");
-                    LanternUtils.replaceInFile(LanternConstants.GNOME_AUTOSTART, 
-                        "Exec=", "Exec="+path.getAbsolutePath());
-                } else {
-                    LOG.info("No lantern executable file at {}", path);
-                }
-                */
             } catch (final IOException e) {
                 LOG.error("Could not configure gnome autostart", e);
             }
@@ -618,7 +604,7 @@ public class Launcher {
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
 
 
-        /* delegate all calls to the current hub cookie tracker */
+        // Delegate all calls to the current hub cookie tracker.
         final CookieTracker hubTracker = new CookieTracker() {
 
             @Override
@@ -658,9 +644,8 @@ public class Launcher {
     }
 
     /**
-     * the autoconnector tries to auto-connect the 
-     * first time that it observes that the settings 
-     * have reached the SET state.
+     * The autoconnector tries to auto-connect the first time that it observes 
+     * that the settings have reached the SET state.
      */
     private static class AutoConnector {
         
