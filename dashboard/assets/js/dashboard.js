@@ -835,7 +835,6 @@ $(document).ready(function(){
 
   lionbarsify($('#trusted > .peerlist'));
 
-
   // XXX
   $('input.whitelistentry.ng-dirty:not(.ng-invalid)').live('blur', function(){
     console.log('blur - valid -> submitting');

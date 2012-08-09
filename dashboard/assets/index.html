@@ -224,15 +224,18 @@
         </div>
         <div id=done class=slide data-cls=slide>
           <h1>Finished</h1>
-          <h4>Thank you for joining Lantern.</h4>
-          <p class=smallnote>
-            You are one of a handful of trusted testers with early access to Lantern.<br/>
-            With your feedback, Lantern can improve until it’s ready for global access.<br/>
-            In the meantime, thanks for helping to keep the circle small and the turnaround fast.<br/>
+          <p>
+            Thank you for joining Lantern.<br/>
+            Your usage and feedback at this early stage is invaluable.
           </p>
+          <div class=smallnote>
+            Help improve Lantern even more. Securely report<br/>
+            usage events to Lantern developers automatically:
+          </div>
+          <label class=analytics><input type=checkbox ng:change=toggle('analytics') ng:model=state.analytics /> Enable automatic reporting</label>
           <div class=controls>
             <figure class=left>
-              <a href="{{state.getMode && '#systemproxy' || '#signin'}}"><img src=img/arrow-left.png alt=Back /></a>
+              <a href="{{state.getMode && '#systemproxy' || '#trustedpeers'}}"><img src=img/arrow-left.png alt=Back /></a>
               <figcaption>Back</figcaption>
             </figure>
             <figure class=right>
@@ -347,7 +350,7 @@
                 <li><label><input type=checkbox ng:change=toggle('connectOnLaunch') ng:model=state.connectOnLaunch /> Sign in on launch</label></li>
                 -->
                 <li ng:show=state.getMode><label><input type=checkbox ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Set as system proxy</label></li>
-                <li><label><input type=checkbox ng:change=toggle('analytics') ng:model=state.analytics /> Enable Google Analytics</label></li>
+                <li><label><input type=checkbox ng:change=toggle('analytics') ng:model=state.analytics /> Enable automatic reporting</label></li>
               </ul>
               <input type=button id=reset-button ng:click=reset() value="Reset Lantern" />
             </dd>
