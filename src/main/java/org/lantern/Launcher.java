@@ -28,11 +28,8 @@ import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.spi.LoggingEvent;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.json.simple.JSONObject;
@@ -762,6 +759,11 @@ public class Launcher {
                     @Override
                     public boolean addData(final JSONObject json, 
                         final LoggingEvent le) {
+                        if (!LanternHub.settings().isAnalytics()) {
+                            // Don't report anything if the user doesn't have
+                            // it turned on.
+                            return false;
+                        }
                         json.put("version", LanternConstants.VERSION);
                         return true;
                     }
