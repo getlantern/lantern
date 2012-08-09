@@ -8,6 +8,7 @@ import org.jivesoftware.smack.packet.Presence;
 public class PresenceEvent {
 
     private final String jid;
+
     private final Presence presence;
 
     public PresenceEvent(final String jid, final Presence pres) {
@@ -27,4 +28,8 @@ public class PresenceEvent {
         return presence;
     }
 
+    @Override
+    public String toString() {
+        return "PresenceEvent [jid=" + jid + ", presence=" + presence + "]";
+    }
 }

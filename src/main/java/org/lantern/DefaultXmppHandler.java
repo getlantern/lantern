@@ -35,6 +35,7 @@ import org.jivesoftware.smack.filter.PacketFilter;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.packet.Presence.Type;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -302,7 +303,7 @@ public class DefaultXmppHandler implements XmppHandler {
                     packet.setFrom(pack.getTo());
                     connection.sendPacket(packet);
                 } else {
-                    LOG.info("Adding subscription request...");
+                    LOG.info("Adding subscription request from: {}", pack.getFrom());
                     // Otherwise it's a subscription request from another user
                     // and we should ask the user whether or not to allow it.
                     final org.lantern.Roster roster = LanternHub.roster();
@@ -320,23 +321,11 @@ public class DefaultXmppHandler implements XmppHandler {
                     if(pres.getType().equals(Presence.Type.subscribe)) {
                         LOG.debug("Got subscribe packet!!");
                         return true;
-                        /*
-                        final String from = pres.getFrom();
-                        if (from.startsWith("lanternctrl@") &&
-                            from.endsWith("lanternctrl.appspotchat.com")) {
-                            LOG.debug("Got lantern subscription request!!");
-                            return true;
-                        } else {
-                            LOG.debug("Got subscription request from: {}",from);
-                            // This means we've received an invitation from
-                            // someone to be added to their roster. We need to
-                            // add this to the JSON returned to the dashboard
-                            // in the roster API call.
-                        }
-                        */
+                    } else {
+                        LOG.debug("Not a subscription request: {}", packet.toXML());
                     }
                 } else {
-                    LOG.debug("Filtered out packet: ", packet.toXML());
+                    LOG.debug("Not a presence packet: {}", packet.toXML());
                     //XmppUtils.printMessage(packet);
                 }
                 return false;
@@ -546,7 +535,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private void configureRoster() {
         final XMPPConnection xmpp = this.client.get().getXmppConnection();
-
         final Roster roster = xmpp.getRoster();
         roster.setSubscriptionMode(Roster.SubscriptionMode.manual);
         
@@ -1093,7 +1081,7 @@ public class DefaultXmppHandler implements XmppHandler {
         
         // If the user is not already on our roster, we want to make sure to
         // send them an invite. If the e-mail address specified does not 
-        // correspond with a Jabber ID, then we're out of luck. If it doesn,
+        // correspond with a Jabber ID, then we're out of luck. If it does,
         // then this will send the roster invite.
         final Roster roster = conn.getRoster();
         final RosterEntry entry = roster.getEntry(email);
@@ -1106,5 +1094,50 @@ public class DefaultXmppHandler implements XmppHandler {
                 LOG.error("Could not create entry?", e);
             }
         }
+    }
+
+    @Override
+    public void approveSubscription(final String jid) {
+        sendTypedPacket(jid, Presence.Type.subscribed);
+    }
+
+    /*
+    @Override
+    public void rejectSubscription(final String jid) {
+        LOG.info("Sending unsubscribed message to: {}", jid);
+        sendTypedPacket(jid, Presence.Type.unsubscribe);
+    }
+    */
+    
+    @Override
+    public void unsubscribe(final String jid) {
+        LOG.info("Sending unsubscribe message to: {}", jid);
+        sendTypedPacket(jid, Presence.Type.unsubscribe);
+    }
+    
+    @Override
+    public void unsubscribed(final String jid) {
+        LOG.info("Sending unsubscribed message to: {}", jid);
+        sendTypedPacket(jid, Presence.Type.unsubscribed);
+        final XMPPConnection xmpp = this.client.get().getXmppConnection();
+        final Roster roster = xmpp.getRoster();
+        final RosterEntry entry = roster.getEntry(jid);
+        if (entry != null) {
+            try {
+                roster.removeEntry(entry);
+            } catch (final XMPPException e) {
+                LOG.error("Could not remove entry?", e);
+            }
+        }
+        //final int entry = LanternHub.roster().removeEntry(LanternHu);
+    }
+    
+    private void sendTypedPacket(final String jid, final Type type) {
+        final Presence packet = new Presence(type);
+        packet.setTo(jid);
+        final XMPPConnection conn = this.client.get().getXmppConnection();
+        //packet.setFrom(XmppUtils.jidToUser(conn));
+        //packet.setFrom(conn.getUser());
+        conn.sendPacket(packet);
     }
 }

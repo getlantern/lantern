@@ -1,9 +1,8 @@
 package org.lantern;
 
-import java.util.Set;
-
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.RosterEntry;
+import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.RosterPacket.ItemStatus;
 
 public class LanternPresence {
@@ -15,24 +14,46 @@ public class LanternPresence {
     private String name;
     private String email;
     
+    public LanternPresence(final boolean available, final boolean away, 
+        final String status, final String name, final String email) {
+        this.available = available;
+        this.away = away;
+        this.status = status;
+        this.name = name;
+        this.email = email;
+        this.trusted = extractTrusted(email);
+    }
+    
     public LanternPresence(final RosterEntry entry) {
-        this.available = false;
-        final ItemStatus stat = entry.getStatus();
-        if (stat != null) {
-            this.status = stat.toString();
-        } else {
-            this.status = "";
-        }
-        
+        this(false, false, extractStatus(entry),  
+            extractName(entry), entry.getUser().trim());
+    }
+
+    public LanternPresence(final Presence pres) {
+        this(pres.isAvailable(), false, pres.getStatus(), pres.getFrom(), 
+            pres.getFrom());
+    }
+
+    private static String extractName(final RosterEntry entry) {
         final String entryName  = entry.getName();
         if (StringUtils.isBlank(entryName)) {
-            this.name = "";
+            return "";
         } else {
-            this.name = entryName;
+            return entryName;
         }
-        this.email = entry.getUser().trim();
-        this.trusted = LanternHub.getTrustedContactsManager().isTrusted(
-            this.email);
+    }
+
+    private static boolean extractTrusted(final String email) {
+        return LanternHub.getTrustedContactsManager().isTrusted(email);
+    }
+
+    private static String extractStatus(final RosterEntry entry) {
+        final ItemStatus stat = entry.getStatus();
+        if (stat != null) {
+            return stat.toString();
+        } else {
+            return "";
+        }
     }
 
     public boolean isAvailable() {

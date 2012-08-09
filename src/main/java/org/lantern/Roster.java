@@ -42,12 +42,18 @@ public class Roster {
     
     @Subscribe
     public void onPresence(final PresenceEvent event) {
+        log.info("Got presence!! {}", event);
         final String email = LanternUtils.jidToEmail(event.getJid());
         if (entries.containsKey(email)) {
             final LanternPresence lp = entries.get(email);
             final Presence pres = event.getPresence();
             lp.setAvailable(pres.isAvailable());
             lp.setStatus(pres.getStatus());
+        } else {
+            // This may be someone we have subscribed to who we're just now
+            // getting the presence for.
+            log.info("Adding non-roster presence: {}", email);
+            entries.put(email, new LanternPresence(event.getPresence()));
         }
     }
     
@@ -58,7 +64,12 @@ public class Roster {
             final LanternPresence lp = entries.get(email);
             lp.setAvailable(false);
             lp.setAway(true);
-        }
+        } 
+    }
+    
+
+    public LanternPresence removeEntry(final String jid) {
+        return entries.remove(jid);
     }
     
     @Subscribe
@@ -107,7 +118,7 @@ public class Roster {
         synchronized (entries) {
             values = entries.values();
         }
-        final TreeSet<LanternPresence> ordered = 
+        final Collection<LanternPresence> ordered = 
             new TreeSet<LanternPresence>(LanternUtils.PRESENCE_COMPARATOR);
         ordered.addAll(values);
         return ordered;
@@ -133,5 +144,9 @@ public class Roster {
 
     public void addSubscriptionRequest(final String from) {
         subscriptionRequests.add(from);
+    }
+
+    public Collection<String> getSubscriptionRequests() {
+        return subscriptionRequests;
     }
 }
