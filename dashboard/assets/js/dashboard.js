@@ -430,16 +430,20 @@ function LDCtrl(){
       console.log('successfully invited ' + email); 
       self.$digest();
       $('.invites-remaining').css('color', '#f00').animate({color: '#666'}, 2000);
-      $('.flashmsg').hide();
-      $('#flash-main .content').addClass('success').removeClass('error')
-        .html('Invite sent to ' + email).parent('#flash-main').fadeIn();
+      if(self.state.initialSetupComplete){
+        $('.flashmsg').hide();
+        $('#flash-main .content').addClass('success').removeClass('error')
+          .html('Invite sent to ' + email).parent('#flash-main').fadeIn();
+      }
       self.peerfilterinput = null;
       self.$digest();
     }).fail(function(){
       console.log('failed to invite ' + email); 
-      $('.flashmsg').hide();
-      $('#flash-main .content').addClass('success').removeClass('error')
-        .html('Invite sent to ' + email).parent('#flash-main').fadeIn();
+      if(self.state.initialSetupComplete){
+        $('.flashmsg').hide();
+        $('#flash-main .content').addClass('success').removeClass('error')
+          .html('Invite sent to ' + email).parent('#flash-main').fadeIn();
+      }
     });
   };
 
