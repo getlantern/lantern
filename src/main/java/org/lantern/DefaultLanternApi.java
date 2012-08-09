@@ -45,6 +45,8 @@ public class DefaultLanternApi implements LanternApi {
         UNLOCK,
         ERROR,
         INVITE,
+        APPROVESUBSCRIPTION,
+        REJECTSUBSCRIPTION
     }
 
     @Override
@@ -111,7 +113,37 @@ public class DefaultLanternApi implements LanternApi {
         case INVITE:
             handleInvite(req, resp);
             break;
+        case APPROVESUBSCRIPTION:
+            handleApproveSubscription(req, resp);
+            break;
+        case REJECTSUBSCRIPTION:
+            handleRejectSubscription(req, resp);
+            break;
         }
+    }
+
+    private void handleApproveSubscription(final HttpServletRequest req,
+        final HttpServletResponse resp) {
+        final Map<String, String> params = LanternUtils.toParamMap(req);
+        final String jid = params.remove("jid");
+        if (StringUtils.isBlank(jid)) {
+            sendClientError(resp, "No jid argument provided");
+            return;
+        }
+        LanternHub.xmppHandler().approveSubscription(jid);
+        returnSettings(resp);
+    }
+    
+    private void handleRejectSubscription(final HttpServletRequest req,
+        final HttpServletResponse resp) {
+        final Map<String, String> params = LanternUtils.toParamMap(req);
+        final String jid = params.remove("jid");
+        if (StringUtils.isBlank(jid)) {
+            sendClientError(resp, "No jid argument provided");
+            return;
+        }
+        LanternHub.xmppHandler().unsubscribed(jid);
+        returnSettings(resp);
     }
 
     private void handleInvite(final HttpServletRequest req, 
@@ -326,7 +358,7 @@ public class DefaultLanternApi implements LanternApi {
             returnSettings(resp);
 
         } catch (final InvalidKeyException e) {
-            /* bad password */
+            // bad password 
             sendClientError(resp, "Invalid password");
             return;
         } catch (final GeneralSecurityException e) {
@@ -339,7 +371,8 @@ public class DefaultLanternApi implements LanternApi {
     }
 
     private void returnSettings(final HttpServletResponse resp) {
-        final String json = LanternUtils.jsonify(LanternHub.settings(), Settings.UIStateSettings.class);
+        final String json = LanternUtils.jsonify(LanternHub.settings(), 
+            Settings.UIStateSettings.class);
         returnJson(resp, json);
     }
 
