@@ -161,7 +161,7 @@ public class Settings implements MutableSettings {
     
     private Set<String> proxies = new LinkedHashSet<String>();
     
-    private boolean analytics = false;
+    private boolean analytics = true;
     
     /**
      * These are cached proxies we've connected to over TCP/SSL.
