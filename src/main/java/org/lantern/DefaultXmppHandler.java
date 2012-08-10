@@ -1054,6 +1054,7 @@ public class DefaultXmppHandler implements XmppHandler {
     public void subscribed(final String jid) {
         LOG.info("Sending subscribe message to: {}", jid);
         sendTypedPacket(jid, Presence.Type.subscribed);
+        roster.removeIncomingSubscriptionRequest(jid);
     }
     
     @Override
@@ -1066,6 +1067,7 @@ public class DefaultXmppHandler implements XmppHandler {
     public void unsubscribed(final String jid) {
         LOG.info("Sending unsubscribed message to: {}", jid);
         sendTypedPacket(jid, Presence.Type.unsubscribed);
+        roster.removeIncomingSubscriptionRequest(jid);
     }
     
     private void sendTypedPacket(final String jid, final Type type) {
