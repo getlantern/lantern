@@ -434,7 +434,7 @@ function LDCtrl(){
       }
       return;
     }
-    var url = '/api/invite?email=' + email;
+    var url = '/api/invite?email=' + encodeURIComponent(email);
     $.post(url).done(function(){
       console.log('successfully invited ' + email); 
       self.$digest();
