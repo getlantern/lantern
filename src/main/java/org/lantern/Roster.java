@@ -126,11 +126,13 @@ public class Roster implements RosterListener {
 
     public void addIncomingSubscriptionRequest(final String from) {
         incomingSubscriptionRequests.add(from);
+        LanternHub.eventBus().post(new RosterStateChangedEvent());
     }
     
 
     public void removeIncomingSubscriptionRequest(final String from) {
         incomingSubscriptionRequests.remove(from);
+        LanternHub.eventBus().post(new RosterStateChangedEvent());
     }
 
     public Collection<String> getSubscriptionRequests() {
@@ -143,6 +145,7 @@ public class Roster implements RosterListener {
         for (final String entry : entries) {
             addEntry(new LanternPresence(entry));
         }
+        LanternHub.eventBus().post(new RosterStateChangedEvent());
     }
 
     @Override
@@ -154,7 +157,7 @@ public class Roster implements RosterListener {
             storedEntries.remove(email);
             storedEntries.remove(entry);
         }
-        LanternHub.eventBus().post(new SyncEvent());
+        LanternHub.eventBus().post(new RosterStateChangedEvent());
     }
 
     @Override
@@ -162,13 +165,19 @@ public class Roster implements RosterListener {
         // Not sure what to do with this one -- initiate a request for updated
         // info about each entry in the list?
         log.debug("Entries updated: {} for roster: {}", entries, this);
+        for (final String entry : entries) {
+            final Presence pres = 
+                this.xmppHandler.getP2PClient().getXmppConnection().getRoster().getPresence(entry);
+            onPresence(pres);
+        }
+        LanternHub.eventBus().post(new RosterStateChangedEvent());
     }
 
     @Override
     public void presenceChanged(final Presence pres) {
         log.debug("Got presence changed event.");
         processPresence(pres);
-        LanternHub.eventBus().post(new SyncEvent());
+        LanternHub.eventBus().post(new RosterStateChangedEvent());
     }
     
 
