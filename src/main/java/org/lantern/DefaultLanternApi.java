@@ -130,7 +130,7 @@ public class DefaultLanternApi implements LanternApi {
             sendClientError(resp, "No jid argument provided");
             return;
         }
-        LanternHub.xmppHandler().approveSubscription(jid);
+        LanternHub.xmppHandler().subscribed(jid);
         returnSettings(resp);
     }
     
