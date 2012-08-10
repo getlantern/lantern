@@ -14,6 +14,15 @@ public class LanternPresence {
     private String name;
     private String email;
     
+    public LanternPresence(final RosterEntry entry) {
+        this(false, false, extractStatus(entry),  
+            extractName(entry), entry.getUser().trim());
+    }
+
+    public LanternPresence(final String email) {
+        this(false, true, "", "", email);
+    }
+    
     public LanternPresence(final boolean available, final boolean away, 
         final String status, final String name, final String email) {
         this.available = available;
@@ -24,10 +33,6 @@ public class LanternPresence {
         this.trusted = extractTrusted(email);
     }
     
-    public LanternPresence(final RosterEntry entry) {
-        this(false, false, extractStatus(entry),  
-            extractName(entry), entry.getUser().trim());
-    }
 
     public LanternPresence(final Presence pres) {
         this(pres.isAvailable(), false, pres.getStatus(), pres.getFrom(), 
