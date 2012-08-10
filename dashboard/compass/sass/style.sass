@@ -259,6 +259,62 @@ img.plus
     position: fixed
     bottom: 3px
 
+#ninvites-search-row
+  margin-bottom: 30px
+
+#ninvites
+  font-size: 13pt
+  float: left
+  margin-right: 100px
+
+#invites .searchpeers
+  width: 300px
+
+#invite-peerlist
+  +inline-block-list
+  margin-left: 32px
+  &.has-invites
+    .not-invited .invite-link
+      &:hover
+        background: darken($font-color-success, 10%) !important
+        cursor: pointer
+      &:active
+        background: darken($font-color-success, 20%) !important
+        cursor: pointer
+    .peertile:hover .not-invited .invite-link
+      +background-image(linear-gradient($font-color-success, darken($font-color-success, 10%)))
+      cursor: pointer
+
+.peertile
+  width: 300px
+  height: 150px
+  position: relative
+  img
+    width: 90px
+    height: 90px
+    float: left
+    margin-right: 5px
+  .name, .email
+    width: 200px
+    text-overflow: ellipsis
+    overflow: hidden
+  .email
+    font-size: $font-size-smaller
+  .invite-link
+    margin-top: 5px
+    display: inline-block
+    background-color: $font-color-success
+    +background-image(linear-gradient(#a3d4a4, #7cd279))
+    padding: 1px 10px 1px 8px
+    text-decoration: none
+    color: #fff !important
+    +border-radius(3px)
+    cursor: default
+
+.invited .invite-link
+  background: #2af !important
+  cursor: default
+
 .smallnote
   font-size: 9pt
   color: $font-color-input

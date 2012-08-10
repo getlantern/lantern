@@ -277,6 +277,7 @@
               <li><a href=#status class=selected>Status</a></li>
               <li><a href=#contact>Contact</a></li>
               <li><a href=#settings>Settings</a></li>
+              <li><a href=#invites>Invites</a></li>
               <li><a href=#update ng:show=updateavailable() id=sidebar-update-link>Update</a></li>
             </ul>
           </nav>
@@ -377,6 +378,35 @@
             </span>
             <button id=pm-send class=buttonlink ng:disabled="{{!pm}}" ng:click=sendpm()>Send</button>
           </div>
+        </div>
+        <div class=panel id=invites data-cls=panel>
+          <h1>Invites</h1>
+          <div id=ninvites-search-row>
+            <h2 class=invites-remaining id=ninvites>{{ state.invites }} invite{{ state.invites != 1 && 's' || '' }} remaining</h2>
+            <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Enter name or email" results=0 incremental autosave/>
+          </div>
+          <ul id=invite-peerlist ng:class="[state.invites > 0 && 'has-invites' || 'no-invites', 'unpopulated']">
+            <li ng:show="peers == FETCHING">Loading...</li>
+            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length" ng:class="peerfilterinput && validateemail(peerfilterinput) && 'peertile' || ''">
+              <span ng:show=peerfilterinput>
+                <span ng:show=!validateemail(peerfilterinput) class=disabled>No matching contacts</span>
+                <span ng:show=validateemail(peerfilterinput) ng:class="invited(peerfilterinput) && 'invited' || 'not-invited'">
+                  <img />
+                  <div class=name>&nbsp;</div>
+                  <div class=email>{{ peerfilterinput }}</div>
+                  <a class=invite-link ng:click="state.invites > 0 && !invited(peerfilterinput) && invite(peerfilterinput)">Invite{{ invited(peerfilterinput) && 'd' || '' }}</a>
+              </span>
+              <span ng:show=!peerfilterinput class=disabled>No available contacts</span>
+            </li>
+            <li class=peertile ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter).$orderBy(peerorder)">
+              <span ng:class="invited(peer.email) && 'invited' || 'not-invited'">
+                <img />
+                <div class=name>{{ peer.name }}&nbsp;</div>
+                <div class=email title="{{ peer.email }}">{{ peer.email }}</div>
+                <a class=invite-link ng:click="state.invites > 0 && !invited(peer.email) && invite(peer.email)">Invite{{ invited(peer.email) && 'd' || '' }}</a>
+              </span>
+            </li>
+          </ul>
         </div>
         <div class=panel id=update data-cls=panel>
           <h1>Update</h1>

@@ -317,7 +317,7 @@ function LDCtrl(){
         self.peers = r.entries;
         self.$digest();
         console.log('set peers');
-        $('.peerlist').removeClass('unpopulated');
+        $('.peerlist, #invite-peerlist').removeClass('unpopulated');
       }).fail(function(e){
         console.log('failed to fetch peers:',e);
         self.peers = FETCHFAILED;
@@ -425,6 +425,15 @@ function LDCtrl(){
       console.log('invalid email: ' + email);
       return;
     }
+    if(self.state.invites === 0){
+      console.log('invite() called with no invites left, bailing');
+      if(self.state.initialSetupComplete){
+        $('.flashmsg').hide();
+        $('#flash-main .content').addClass('error').removeClass('success')
+          .html('Could not send invite, none remaining').parent('#flash-main').fadeIn();
+      }
+      return;
+    }
     var url = '/api/invite?email=' + email;
     $.post(url).done(function(){
       console.log('successfully invited ' + email); 
@@ -437,14 +446,22 @@ function LDCtrl(){
       }
       self.peerfilterinput = null;
       self.$digest();
+      return true;
     }).fail(function(){
       console.log('failed to invite ' + email); 
       if(self.state.initialSetupComplete){
         $('.flashmsg').hide();
-        $('#flash-main .content').addClass('success').removeClass('error')
-          .html('Invite sent to ' + email).parent('#flash-main').fadeIn();
+        $('#flash-main .content').addClass('error').removeClass('success')
+          .html('Error sending invite to ' + email).parent('#flash-main').fadeIn();
       }
     });
+  };
+
+  self.invited = function(email){
+    var invlist = self.state.invited;
+    for(var i=0,l=invlist.length; i<l; ++i)
+      if(email == invlist[i]) return true;
+    return false;
   };
 
   self.init_applyautoproxy = function(){
