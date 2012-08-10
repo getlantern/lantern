@@ -381,6 +381,18 @@
         </div>
         <div class=panel id=invites data-cls=panel>
           <h1>Invites</h1>
+          <div ng:show="subreqs && subreqs.length" id=subreqs-container>
+            <h2>Pending Requests</h2>
+            <ul id=subreq-peerlist class=unpopulated>
+              <li class=peertile ng:repeat="subreq in subreqs">
+                <img />
+                <div class=name>&nbsp;</div>
+                <div class=email title="{{ subreq }}">{{ subreq }}</div>
+                <a class=approve-link ng:click="handlesubreq(true, subreq)">Accept</a>
+                <a class=deny-link ng:click="handlesubreq(false, subreq)">Decline</a>
+              </li>
+            </ul>
+          </div>
           <div id=ninvites-search-row>
             <h2 class=invites-remaining id=ninvites>{{ state.invites }} invite{{ state.invites != 1 && 's' || '' }} remaining</h2>
             <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Enter name or email" results=0 incremental autosave/>
@@ -389,11 +401,11 @@
             <li ng:show="peers == FETCHING">Loading...</li>
             <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length" ng:class="peerfilterinput && validateemail(peerfilterinput) && 'peertile' || ''">
               <span ng:show=peerfilterinput>
-                <span ng:show=!validateemail(peerfilterinput) class=disabled>No matching contacts</span>
+                <span ng:show=!validateemail(peerfilterinput) class=disabled>No matching contacts. Type an email address to invite someone new.</span>
                 <span ng:show=validateemail(peerfilterinput) ng:class="invited(peerfilterinput) && 'invited' || 'not-invited'">
                   <img />
                   <div class=name>&nbsp;</div>
-                  <div class=email>{{ peerfilterinput }}</div>
+                  <div class=email title="{{ peerfilterinput }}">{{ peerfilterinput }}</div>
                   <a class=invite-link ng:click="state.invites > 0 && !invited(peerfilterinput) && invite(peerfilterinput)">Invite{{ invited(peerfilterinput) && 'd' || '' }}</a>
               </span>
               <span ng:show=!peerfilterinput class=disabled>No available contacts</span>

@@ -262,13 +262,42 @@ img.plus
 #ninvites-search-row
   margin-bottom: 30px
 
-#ninvites
+#invites h2
   font-size: 13pt
+
+#ninvites
   float: left
   margin-right: 100px
 
 #invites .searchpeers
   width: 300px
+
+#subreqs-container
+  border-bottom: 1px $edge-color dotted
+  margin: 0 $gap-size 32px $gap-size
+
+#subreq-peerlist
+  +inline-block-list
+  .approve-link, .deny-link
+    margin-top: 5px
+    display: inline-block
+    background-color: $font-color-success
+    padding: 1px 10px 1px 8px
+    text-decoration: none
+    color: #fff !important
+    +border-radius(3px)
+  .approve-link
+    +background-image(linear-gradient($font-color-success, darken($font-color-success, 10%)))
+    &:hover
+      background: darken($font-color-success, 10%) !important
+    &:active
+      background: darken($font-color-success, 20%) !important
+  .deny-link
+    +background-image(linear-gradient($font-color-error, darken($font-color-error, 10%)))
+    &:hover
+      background: darken($font-color-error, 10%) !important
+    &:active
+      background: darken($font-color-error, 20%) !important
 
 #invite-peerlist
   +inline-block-list

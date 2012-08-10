@@ -185,6 +185,7 @@ function LDCtrl(){
     return peer.email.indexOf(f) !== -1;
   };
   self.peers = null;
+  self.subreqs = null;
   self.whitelist = null;
 
   self.sameuser = function(){
@@ -315,9 +316,10 @@ function LDCtrl(){
       self.$digest();
       $.ajax({url: '/api/roster', dataType: 'json'}).done(function(r){
         self.peers = r.entries;
+        self.subreqs = r.subscriptionRequests;
         self.$digest();
         console.log('set peers');
-        $('.peerlist, #invite-peerlist').removeClass('unpopulated');
+        $('.peerlist, #invite-peerlist, #subreq-peerlist').removeClass('unpopulated');
       }).fail(function(e){
         console.log('failed to fetch peers:',e);
         self.peers = FETCHFAILED;
@@ -459,9 +461,28 @@ function LDCtrl(){
 
   self.invited = function(email){
     var invlist = self.state.invited;
+    if(!invlist)return;
     for(var i=0,l=invlist.length; i<l; ++i)
       if(email == invlist[i]) return true;
     return false;
+  };
+
+  self.handlesubreq = function(approve, jid) {
+    var url = '/api/' + (approve ? '' : 'un') + 'subscribed?jid=' + encodeURIComponent(jid);
+    $.post(url).done(function(){
+      if(self.state.initialSetupComplete){
+        $('.flashmsg').hide();
+        $('#flash-main .content').addClass('success').removeClass('error')
+          .html('Accepted ' + jid).parent('#flash-main').fadeIn();
+      }
+      self.$digest();
+    }).fail(function(){
+      if(self.state.initialSetupComplete){
+        $('.flashmsg').hide();
+        $('#flash-main .content').addClass('error').removeClass('success')
+          .html('Declined ' + jid).parent('#flash-main').fadeIn();
+      }
+    });
   };
 
   self.init_applyautoproxy = function(){
