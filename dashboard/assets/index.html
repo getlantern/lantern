@@ -62,7 +62,7 @@
       <div id=unlock-settings class="wizard-slides" ng:show="state.localPasswordInitialized && statelocked()">
         <div id=unlock-slide class="slide selected" data-cls=slide>
           <h1>Unlock settings</h1>
-          <p>Your lantern settings are password protected.</p>
+          <p>Your Lantern settings are password protected.</p>
 
           <form id=unlock-form name=unlockform class=signin ng:submit=unlocksettings()>
             <ul>
@@ -87,12 +87,14 @@
           <h1>Unable to load settings</h1>
           <p>Your current settings could not be loaded and may be corrupt.</p>
           <p>It may be helpful to <a ng:click=reset()>reset</a> your settings.</p>
+          <!--
           <div class=controls>
             <figure>
               <a href=#welcome><img src=img/arrow-left.png alt=Back /></a>
               <figcaption>Back</figcaption>
             </figure>
           </div>
+          -->
         </div>
       </div>
       
@@ -431,6 +433,7 @@
         </div>
 
         <!--<div class=overlay data-cls=overlay id=trusted>-->
+        <!--
         <div id=trusted>
           <h1>Contacts</h1>
           <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Search by name or email" results=0 incremental autosave/>
@@ -442,11 +445,14 @@
               <span ng:show=!state.invites><span ng:show=peer.name title="{{ peer.email }}">{{ peer.name }}</span><span ng:show=!peer.name>{{ peer.email }}</span></span>
             </li>
           </ul>
+          -->
           <!--
           <div ng:show=state.getMode class=smallnote><a class=doc-link href=#doc-overlay data-doc=cloud-proxies>Lantern cloud proxies</a> will be used when no trusted contacts are available.</div>
           -->
+          <!--
           <div class=invites-remaining class=smallnote>{{ state.invites }} invite{{ state.invites != 1 && 's' || ''}} remaining</div>
         </div>
+        -->
 
         <div class="flashmsg tip" id=tip-trayicon>
           <a class=close>×</a>
