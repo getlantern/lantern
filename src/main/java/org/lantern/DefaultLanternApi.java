@@ -45,8 +45,8 @@ public class DefaultLanternApi implements LanternApi {
         UNLOCK,
         ERROR,
         INVITE,
-        APPROVESUBSCRIPTION,
-        REJECTSUBSCRIPTION
+        SUBSCRIBED,
+        UNSUBSCRIBED
     }
 
     @Override
@@ -113,16 +113,16 @@ public class DefaultLanternApi implements LanternApi {
         case INVITE:
             handleInvite(req, resp);
             break;
-        case APPROVESUBSCRIPTION:
-            handleApproveSubscription(req, resp);
+        case SUBSCRIBED:
+            handleSubscribed(req, resp);
             break;
-        case REJECTSUBSCRIPTION:
-            handleRejectSubscription(req, resp);
+        case UNSUBSCRIBED:
+            handleUnsubscribed(req, resp);
             break;
         }
     }
 
-    private void handleApproveSubscription(final HttpServletRequest req,
+    private void handleSubscribed(final HttpServletRequest req,
         final HttpServletResponse resp) {
         final Map<String, String> params = LanternUtils.toParamMap(req);
         final String jid = params.remove("jid");
@@ -134,7 +134,7 @@ public class DefaultLanternApi implements LanternApi {
         returnSettings(resp);
     }
     
-    private void handleRejectSubscription(final HttpServletRequest req,
+    private void handleUnsubscribed(final HttpServletRequest req,
         final HttpServletResponse resp) {
         final Map<String, String> params = LanternUtils.toParamMap(req);
         final String jid = params.remove("jid");
