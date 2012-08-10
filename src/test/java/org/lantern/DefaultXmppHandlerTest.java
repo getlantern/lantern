@@ -28,6 +28,7 @@ public class DefaultXmppHandlerTest {
         
         LanternHub.resetSettings(true);
         final Settings settings = LanternHub.settings();
+        settings.setGetMode(true);
         settings.setProxies(new HashSet<String>());
         final XmppHandler handler = new DefaultXmppHandler();
         
