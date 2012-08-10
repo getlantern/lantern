@@ -89,17 +89,29 @@ public class SyncService {
         // recently synced.
         sync(true);
     }
-    
+
     @Subscribe 
     public void onRosterStateChanged(final RosterStateChangedEvent rsce) {
         log.debug("Roster changed...");
-        sync();
+        rosterSync();
+    }
+    
+    private void rosterSync() {
+        sync(false, ROSTER_SYNC_CHANNEL);
+    }
+
+    private static final String SETTINGS_SYNC_CHANNEL = "/sync/settings";
+    
+    private static final String ROSTER_SYNC_CHANNEL = "/sync/roster";
+    
+    private void sync(final boolean force) {
+        sync(force, SETTINGS_SYNC_CHANNEL);
     }
     
     private void sync() {
         sync(false);
     }
-    private void sync(final boolean force) {
+    private void sync(final boolean force, final String channelName) {
         log.debug("In sync method");
         if (session == null) {
             log.debug("No session...not syncing");
@@ -113,7 +125,7 @@ public class SyncService {
         }
         
         final ClientSessionChannel channel = 
-            session.getLocalSession().getChannel("/sync");
+            session.getLocalSession().getChannel(channelName);
         
         if (channel != null) {
             final Settings settings = LanternHub.settings();

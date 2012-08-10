@@ -29,7 +29,6 @@ public class BayeuxInitializer extends GenericServlet {
         final ServerAnnotationProcessor processor = 
             new ServerAnnotationProcessor(bayeux);
         processor.process(new SyncService());
-        processor.process(new RosterSyncService());
     }
 
     @Override
