@@ -76,4 +76,14 @@ public interface XmppHandler extends ProxyStatusListener, ProxyProvider {
      */
     void unsubscribed(String jid);
 
+    void addToRoster(String jid);
+    
+    void removeFromRoster(String jid);
+
+    void subscribe(String jid);
+
+    Roster getRoster() throws IOException;
+
+    void resetRoster();
+
 }
