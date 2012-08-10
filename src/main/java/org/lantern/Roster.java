@@ -85,8 +85,12 @@ public class Roster implements RosterListener {
             // This may be someone we have subscribed to who we're just now
             // getting the presence for.
             log.info("Adding non-roster presence: {}", email);
-            storedEntries.put(email, new LanternPresence(pres));
+            addEntry(new LanternPresence(pres));
         }
+    }
+
+    private void addEntry(final LanternPresence pres) {
+        storedEntries.put(pres.getEmail(), pres);
     }
 
     @JsonIgnore
@@ -126,7 +130,7 @@ public class Roster implements RosterListener {
     public void entriesAdded(final Collection<String> entries) {
         log.debug("Adding entries: {} for roster: {}", entries, this);
         for (final String entry : entries) {
-            storedEntries.put(entry, new LanternPresence(entry));
+            addEntry(new LanternPresence(entry));
         }
     }
 

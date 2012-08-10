@@ -4,6 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.RosterPacket.ItemStatus;
+import org.littleshoot.commom.xmpp.XmppUtils;
 
 public class LanternPresence {
 
@@ -29,7 +30,7 @@ public class LanternPresence {
         this.away = away;
         this.status = status;
         this.name = name;
-        this.email = email;
+        this.email = XmppUtils.jidToUser(email);
         this.trusted = extractTrusted(email);
     }
     
