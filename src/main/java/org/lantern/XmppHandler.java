@@ -54,13 +54,6 @@ public interface XmppHandler extends ProxyStatusListener, ProxyProvider {
      * @param email The email address to send the invite to.
      */
     void sendInvite(String email);
-
-    /**
-     * Approve the subscription request of the specified user.
-     * 
-     * @param jid The JID of the subscription request to approve.
-     */
-    void approveSubscription(String jid);
     
     /**
      * Stop subscribing to the presence of another user.

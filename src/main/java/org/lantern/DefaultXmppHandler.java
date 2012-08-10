@@ -1043,19 +1043,6 @@ public class DefaultXmppHandler implements XmppHandler {
         
         addToRoster(email);
     }
-
-    @Override
-    public void approveSubscription(final String jid) {
-        sendTypedPacket(jid, Presence.Type.subscribed);
-    }
-
-    /*
-    @Override
-    public void rejectSubscription(final String jid) {
-        LOG.info("Sending unsubscribed message to: {}", jid);
-        sendTypedPacket(jid, Presence.Type.unsubscribe);
-    }
-    */
     
     @Override
     public void subscribe(final String jid) {
@@ -1079,16 +1066,6 @@ public class DefaultXmppHandler implements XmppHandler {
     public void unsubscribed(final String jid) {
         LOG.info("Sending unsubscribed message to: {}", jid);
         sendTypedPacket(jid, Presence.Type.unsubscribed);
-        final XMPPConnection xmpp = this.client.get().getXmppConnection();
-        final Roster roster = xmpp.getRoster();
-        final RosterEntry entry = roster.getEntry(jid);
-        if (entry != null) {
-            try {
-                roster.removeEntry(entry);
-            } catch (final XMPPException e) {
-                LOG.error("Could not remove entry?", e);
-            }
-        }
     }
     
     private void sendTypedPacket(final String jid, final Type type) {
@@ -1107,12 +1084,12 @@ public class DefaultXmppHandler implements XmppHandler {
         // correspond with a Jabber ID, then we're out of luck. If it does,
         // then this will send the roster invite.
         final XMPPConnection conn = this.client.get().getXmppConnection();
-        final Roster roster = conn.getRoster();
-        final RosterEntry entry = roster.getEntry(email);
+        final Roster rost = conn.getRoster();
+        final RosterEntry entry = rost.getEntry(email);
         if (entry == null) {
             LOG.info("Inviting user to join roster: {}", email);
             try {
-                roster.createEntry(email, 
+                rost.createEntry(email, 
                     StringUtils.substringBefore(email, "@"), new String[]{});
             } catch (final XMPPException e) {
                 LOG.error("Could not create entry?", e);
