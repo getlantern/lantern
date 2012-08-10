@@ -1089,6 +1089,7 @@ public class DefaultXmppHandler implements XmppHandler {
         if (entry == null) {
             LOG.info("Inviting user to join roster: {}", email);
             try {
+                // Note this also sends a subscription request!!
                 rost.createEntry(email, 
                     StringUtils.substringBefore(email, "@"), new String[]{});
             } catch (final XMPPException e) {
