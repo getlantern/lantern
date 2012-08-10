@@ -402,8 +402,11 @@ public class LanternUtils {
         final XMPPConnection xmppConnection) {
         final Roster roster = xmppConnection.getRoster();
         final Collection<RosterEntry> unordered = roster.getEntries();
+        return getRosterEntries(unordered);
+    }
 
-        
+    public static Map<String, LanternPresence> getRosterEntries(
+        final Collection<RosterEntry> unordered) {
         final Map<String, LanternPresence> entries = 
             new HashMap<String, LanternPresence>();
         for (final RosterEntry entry : unordered) {
@@ -411,6 +414,22 @@ public class LanternUtils {
             entries.put(entry.getUser(), lp);
         }
         return entries;
+    }
+    
+
+    public static boolean isLanternHub(final String from) {
+        return from.startsWith("lanternctrl@") && 
+            from.contains("lanternctrl.appspot");
+    }
+    
+
+    public static boolean isLanternJid(final String from) {
+        // Here's the format we're looking for: "-la-"
+        if (from.contains("/"+LanternConstants.UNCENSORED_ID)) {
+            LOG.info("Returning Lantern TRUE for from: {}", from);
+            return true;
+        }
+        return false;
     }
     
     public static void writeCredentials(final String email, final String pwd) {

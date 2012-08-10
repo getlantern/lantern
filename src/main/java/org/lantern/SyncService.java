@@ -90,18 +90,6 @@ public class SyncService {
         sync(true);
     }
     
-    @Subscribe
-    public void onPresence(final PresenceEvent event) {
-        log.debug("Got presence");
-        sync();
-    }
-
-    @Subscribe
-    public void removePresence(final RemovePresenceEvent event) {
-        log.debug("Presence removed...");
-        sync();
-    }
-    
     @Subscribe 
     public void onRosterStateChanged(final RosterStateChangedEvent rsce) {
         log.debug("Roster changed...");

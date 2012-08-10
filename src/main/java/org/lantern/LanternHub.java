@@ -54,9 +54,6 @@ public class LanternHub {
     private static final AtomicReference<SystemTray> systemTray = 
         new AtomicReference<SystemTray>();
     
-    private static final AtomicReference<Roster> roster = 
-        new AtomicReference<Roster>(new Roster());
-    
     private static final AtomicReference<StatsTracker> statsTracker = 
         new AtomicReference<StatsTracker>();
     private static final LanternKeyStoreManager proxyKeyStore;
@@ -258,13 +255,13 @@ public class LanternHub {
     public static PeerProxyManager trustedPeerProxyManager() {
         synchronized (trustedPeerProxyManager) {
             if (trustedPeerProxyManager.get() == null) {
-                _resetTrustedPeerProxyManager();
+                resetTrustedPeerProxyManager();
             }
             return trustedPeerProxyManager.get();
         }
     }
 
-    private static void _resetTrustedPeerProxyManager() {
+    private static void resetTrustedPeerProxyManager() {
         // Close all existing p2p connections.
         if (trustedPeerProxyManager.get() != null) {
             trustedPeerProxyManager.get().closeAll();
@@ -292,13 +289,13 @@ public class LanternHub {
     public static CookieTracker cookieTracker() {
         synchronized (cookieTracker) {
             if (cookieTracker.get() == null) {
-                _resetCookieTracker();
+                resetCookieTracker();
             }
             return cookieTracker.get();
         }
     }
     
-    protected static void _resetCookieTracker() {
+    protected static void resetCookieTracker() {
         cookieTracker.set(new InMemoryCookieTracker());
     }
     
@@ -472,6 +469,7 @@ public class LanternHub {
         eventBus().register(toRegister);
     }
 
+    /*
     public static Roster roster() {
         return roster.get();
     }
@@ -479,14 +477,17 @@ public class LanternHub {
     public static void setRoster(final Roster rost) {
         roster.set(rost);
     }
+    */
     
     public static Configurator configurator() {
         return configurator;
     }
     
+    /*
     protected static void _resetRoster() {
         setRoster(new Roster());
     }
+    */
 
     public static HttpsEverywhere httpsEverywhere() {
         synchronized (httpsEverywhere) {
@@ -498,7 +499,7 @@ public class LanternHub {
     }
     
     public static void resetUserConfig() {
-        /* resets user specific configuration */
+        // resets user specific configuration.
         settings().setEmail("");
         settings().setPassword("");
         settings().setStoredPassword("");
@@ -510,13 +511,15 @@ public class LanternHub {
         if (tcm != null) {
             tcm.clearTrustedContacts();
         }
-        _resetRoster();
-        _resetTrustedPeerProxyManager();
-        _resetCookieTracker();
+        xmppHandler().resetRoster();
+        resetTrustedPeerProxyManager();
+        resetCookieTracker();
         statsTracker().resetUserStats();
     }
     
-    /* this should do whatever is necessary to reset back to 'factory' defaults */
+    /**
+     * This should do whatever is necessary to reset back to 'factory' defaults. 
+     */
     public static void destructiveFullReset() throws IOException {
         LanternHub.localCipherProvider().reset();
         if (LanternConstants.DEFAULT_SETTINGS_FILE.isFile()) {
