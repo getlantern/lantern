@@ -131,6 +131,10 @@ public class DefaultLanternApi implements LanternApi {
             return;
         }
         LanternHub.xmppHandler().subscribed(jid);
+        
+        // We also automatically subscribe to them in turn so we know about
+        // their presence.
+        LanternHub.xmppHandler().subscribe(jid);
         returnSettings(resp);
     }
     
