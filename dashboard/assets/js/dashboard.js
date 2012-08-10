@@ -833,7 +833,7 @@ $(document).ready(function(){
   });
 
 
-  lionbarsify($('#trusted > .peerlist'));
+  //lionbarsify($('#trusted > .peerlist'));
 
   // XXX
   $('input.whitelistentry.ng-dirty:not(.ng-invalid)').live('blur', function(){
