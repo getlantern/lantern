@@ -86,4 +86,6 @@ public interface XmppHandler extends ProxyStatusListener, ProxyProvider {
 
     void resetRoster();
 
+    void subscribed(String jid);
+
 }

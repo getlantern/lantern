@@ -122,7 +122,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private String hubAddress;
 
-    private org.lantern.Roster roster;
+    private final org.lantern.Roster roster = new org.lantern.Roster(this);
 
     private GoogleTalkState state;
 
@@ -144,7 +144,7 @@ public class DefaultXmppHandler implements XmppHandler {
         switch (state) {
         case LOGGED_IN:
             // We wait until we're logged in before creating our roster.
-            this.roster = new org.lantern.Roster(this);
+            this.roster.loggedIn();
             LanternHub.asyncEventBus().post(new SyncEvent());
             synchronized (this.rosterLock) {
                 this.rosterLock.notifyAll();
@@ -241,11 +241,11 @@ public class DefaultXmppHandler implements XmppHandler {
         final UpnpService upnpService = new Upnp();
         this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService, 
             upnpService, new InetSocketAddress(LanternHub.settings().getServerPort()), 
-            //newTlsSocketFactory(), SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
+            //newTlsSocketFactory(),ç SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
             LanternUtils.newTlsSocketFactory(), LanternUtils.newTlsServerSocketFactory(),
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
             plainTextProxyRelayAddress, false));
-
+        
         this.client.get().addConnectionListener(new P2PConnectionListener() {
             
             @Override
@@ -320,8 +320,9 @@ public class DefaultXmppHandler implements XmppHandler {
             @Override
             public void processPacket(final Packet pack) {
                 final Presence pres = (Presence) pack;
+                LOG.debug("Processing packet!! {}", pres);
                 final String from = pres.getFrom();
-                LOG.info("Responding to subscribtion request from {} and to {}", 
+                LOG.info("Responding to presence from {} and to {}", 
                     from, pack.getTo());
                 
                 // Allow subscription requests from the lantern bot.
@@ -333,10 +334,30 @@ public class DefaultXmppHandler implements XmppHandler {
                     packet.setFrom(pack.getTo());
                     connection.sendPacket(packet);
                 } else {
-                    LOG.info("Adding subscription request from: {}", pack.getFrom());
-                    // Otherwise it's a subscription request from another user
-                    // and we should ask the user whether or not to allow it.
-                    roster.addSubscriptionRequest(pack.getFrom());
+                    final Type type = pres.getType();
+                    switch (type) {
+                    case available:
+                        return;
+                    case error:
+                        LOG.warn("Got error packet!! {}", pack.toXML());
+                        return;
+                    case subscribe:
+                        LOG.info("Adding subscription request from: {}", from);
+                        roster.addIncomingSubscriptionRequest(from);
+                        break;
+                    case subscribed:
+                        break;
+                    case unavailable:
+                        return;
+                    case unsubscribe:
+                        LOG.info("Removing subscription request from: {}",from);
+                        roster.removeIncomingSubscriptionRequest(from);
+                        return;
+                    case unsubscribed:
+                        break;
+                    }
+                    
+                    
                 }
 
             }
@@ -344,20 +365,10 @@ public class DefaultXmppHandler implements XmppHandler {
             
             @Override
             public boolean accept(final Packet packet) {
-                //LOG.info("Filtering incoming packet:\n{}", packet.toXML());
                 if(packet instanceof Presence) {
-                    final Presence pres = (Presence) packet;
-                    if(pres.getType().equals(Presence.Type.subscribe)) {
-                        LOG.debug("Got subscribe packet!! {}", packet.toXML());
-                        return true;
-                    } else {
-                        LOG.debug("Not a subscription request: {}", packet.toXML());
-                        // TODO: This could be an unsubscribe packet -- remove 
-                        // the subscription request!!
-                    }
+                    return true;
                 } else {
                     LOG.debug("Not a presence packet: {}", packet.toXML());
-                    //XmppUtils.printMessage(packet);
                 }
                 return false;
             }
@@ -1053,6 +1064,12 @@ public class DefaultXmppHandler implements XmppHandler {
     }
     
     @Override
+    public void subscribed(final String jid) {
+        LOG.info("Sending subscribe message to: {}", jid);
+        sendTypedPacket(jid, Presence.Type.subscribed);
+    }
+    
+    @Override
     public void unsubscribe(final String jid) {
         LOG.info("Sending unsubscribe message to: {}", jid);
         sendTypedPacket(jid, Presence.Type.unsubscribe);
@@ -1127,7 +1144,7 @@ public class DefaultXmppHandler implements XmppHandler {
      */
     private void waitForRoster() {
         synchronized (rosterLock) {
-            while(this.roster == null) {
+            while(!this.roster.populated()) {
                 try {
                     rosterLock.wait(40000);
                 } catch (final InterruptedException e) {
@@ -1146,6 +1163,6 @@ public class DefaultXmppHandler implements XmppHandler {
     
     @Override
     public void resetRoster() {
-        this.roster = null;
+        this.roster.reset();;
     }
 }

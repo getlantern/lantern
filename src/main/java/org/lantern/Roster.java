@@ -28,16 +28,21 @@ public class Roster implements RosterListener {
     private Map<String, LanternPresence> storedEntries = 
         new HashMap<String, LanternPresence>();
     
-    private final Collection<String> subscriptionRequests = 
+    private final Collection<String> incomingSubscriptionRequests = 
         new HashSet<String>();
 
     private final XmppHandler xmppHandler;
+
+    private volatile boolean populated;
     
     /**
      * Creates a new roster.
      */
     public Roster(final XmppHandler xmppHandler) {
         this.xmppHandler = xmppHandler;
+    }
+
+    public void loggedIn() {
         final XMPPConnection conn = 
             xmppHandler.getP2PClient().getXmppConnection();
         
@@ -59,6 +64,7 @@ public class Roster implements RosterListener {
                 processPresence(p);
             }
         }
+        this.populated = true;
     }
     
     private void processPresence(final Presence presence) {
@@ -118,12 +124,17 @@ public class Roster implements RosterListener {
         return ordered;
     }
 
-    public void addSubscriptionRequest(final String from) {
-        subscriptionRequests.add(from);
+    public void addIncomingSubscriptionRequest(final String from) {
+        incomingSubscriptionRequests.add(from);
+    }
+    
+
+    public void removeIncomingSubscriptionRequest(final String from) {
+        incomingSubscriptionRequests.remove(from);
     }
 
     public Collection<String> getSubscriptionRequests() {
-        return subscriptionRequests;
+        return incomingSubscriptionRequests;
     }
 
     @Override
@@ -159,7 +170,18 @@ public class Roster implements RosterListener {
         processPresence(pres);
         LanternHub.eventBus().post(new SyncEvent());
     }
+    
 
+    public boolean populated() {
+        return this.populated;
+    }
+    
+    public void reset() {
+        this.incomingSubscriptionRequests.clear();
+        this.storedEntries.clear();
+        this.populated = false;
+    }
+    
     @Override
     public String toString() {
         String id = "";
