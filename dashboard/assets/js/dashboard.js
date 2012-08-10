@@ -973,7 +973,7 @@ $(document).ready(function(){
     _subscription = null;
   }
   function _appSubscribe(){
-    _subscription = cometd.subscribe('/sync', syncHandler);
+    _subscription = cometd.subscribe('/sync/settings', syncHandler);
   }
   cometd.addListener('/meta/handshake', function(handshake){
     if (handshake.successful === true){
