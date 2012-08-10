@@ -389,16 +389,12 @@ public class DefaultLanternApi implements LanternApi {
             sendClientError(resp, "Not logged in!");
             return;
         }
-        final Roster roster = LanternHub.roster();
-        if (!roster.isEntriesSet()) {
-            try {
-                roster.populate();
-            } catch (final IOException e) {
-                sendServerError(resp, "Could not populate roster!");
-                return;
-            }
+        try {
+            returnJson(resp, LanternHub.xmppHandler().getRoster());
+        } catch (final IOException e) {
+            sendServerError(resp, "Could not populate roster!");
+            return;
         }
-        returnJson(resp, roster);
     }
 
     private void returnJson(final HttpServletResponse resp, final Object obj) {

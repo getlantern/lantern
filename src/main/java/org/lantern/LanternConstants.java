@@ -21,6 +21,9 @@ public class LanternConstants {
      */
     public static final String VERSION = "lantern_version_tok";
     
+    
+    public static final String UNCENSORED_ID = "-lan-";
+    
     /**
      * We make range requests of the form "bytes=x-y" where
      * y <= x + CHUNK_SIZE
