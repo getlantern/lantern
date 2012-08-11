@@ -97,7 +97,7 @@ public class SyncService {
     }
     
     private void rosterSync() {
-        sync(false, ROSTER_SYNC_CHANNEL);
+        sync(true, ROSTER_SYNC_CHANNEL);
     }
 
     private static final String SETTINGS_SYNC_CHANNEL = "/sync/settings";
@@ -128,16 +128,17 @@ public class SyncService {
             session.getLocalSession().getChannel(channelName);
         
         if (channel != null) {
+            final Object syncer;
             if (channelName.equals(ROSTER_SYNC_CHANNEL)) {
-                final Roster rost = LanternHub.xmppHandler().getRoster();
-                channel.publish(rost);
-                log.debug("Sync performed");
+                syncer = LanternHub.xmppHandler().getRoster();
             } else if (channelName.equals(SETTINGS_SYNC_CHANNEL)) {
-                final Settings settings = LanternHub.settings();
-                channel.publish(settings);
+                syncer = LanternHub.settings();
                 lastUpdateTime = System.currentTimeMillis();
-                log.debug("Sync performed");
+            } else {
+                throw new Error("Bad channel name?");
             }
+            channel.publish(syncer);
+            log.debug("Sync performed");
         }
     }
 }
