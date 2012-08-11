@@ -245,7 +245,7 @@
 
     <dependency>
       <groupId>org.littleshoot</groupId>
-      <artifactId>smack-xmpp</artifactId>
+      <artifactId>smack-xmpp-3-2-2</artifactId>
       <version>1.0-SNAPSHOT</version>
     </dependency>
 
