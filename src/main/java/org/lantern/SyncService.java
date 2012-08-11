@@ -128,10 +128,16 @@ public class SyncService {
             session.getLocalSession().getChannel(channelName);
         
         if (channel != null) {
-            final Settings settings = LanternHub.settings();
-            channel.publish(settings);
-            lastUpdateTime = System.currentTimeMillis();
-            log.debug("Sync performed");
+            if (channelName.equals(ROSTER_SYNC_CHANNEL)) {
+                final Roster rost = LanternHub.xmppHandler().getRoster();
+                channel.publish(rost);
+                log.debug("Sync performed");
+            } else if (channelName.equals(SETTINGS_SYNC_CHANNEL)) {
+                final Settings settings = LanternHub.settings();
+                channel.publish(settings);
+                lastUpdateTime = System.currentTimeMillis();
+                log.debug("Sync performed");
+            }
         }
     }
 }
