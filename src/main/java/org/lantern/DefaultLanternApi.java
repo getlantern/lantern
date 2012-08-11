@@ -175,6 +175,7 @@ public class DefaultLanternApi implements LanternApi {
 
     private void handleSignin(final HttpServletRequest req, 
         final HttpServletResponse resp) {
+        log.debug("Signing in...");
         final Settings set = LanternHub.settings();
         LanternHub.xmppHandler().disconnect();
         final Map<String, String> params = LanternUtils.toParamMap(req);
@@ -217,6 +218,10 @@ public class DefaultLanternApi implements LanternApi {
                 // We automatically start proxying upon connect if the 
                 // user's settings say they're in get mode and to use the 
                 // system proxy.
+                
+                // TODO: We actually should not start proxying here since the
+                // user doesn't necessarily have proxies to connect to. We
+                // should only start proxying upon connecting to proxies!!
                 Proxifier.startProxying();
             }
             returnSettings(resp);
