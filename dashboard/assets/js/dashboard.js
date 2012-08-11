@@ -961,8 +961,15 @@ $(document).ready(function(){
         s.whitelist = []; // XXX
       }
   }
+  function syncHandlerRoster(msg){
+    console.log('syncing new roster');
+    var s = getscope(), data = msg.data;
+    s.peers = data.entries;
+    s.subreqs = data.subscriptionRequests;
+    s.$digest();
+  }
 
-  var _subscription;
+  var _subscription, _subscription_roster;
   function _refresh(){
     _appUnsubscribe();
     _appSubscribe();
@@ -971,9 +978,13 @@ $(document).ready(function(){
     if (_subscription) 
       cometd.unsubscribe(_subscription);
     _subscription = null;
+    if (_subscription_roster) 
+      cometd.unsubscribe(_subscription_roster);
+    _subscription_roster = null;
   }
   function _appSubscribe(){
     _subscription = cometd.subscribe('/sync/settings', syncHandler);
+    _subscription_roster = cometd.subscribe('/sync/roster', syncHandlerRoster);
   }
   cometd.addListener('/meta/handshake', function(handshake){
     if (handshake.successful === true){
