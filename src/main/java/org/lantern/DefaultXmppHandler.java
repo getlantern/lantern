@@ -145,7 +145,7 @@ public class DefaultXmppHandler implements XmppHandler {
         case LOGGED_IN:
             // We wait until we're logged in before creating our roster.
             this.roster.loggedIn();
-            LanternHub.asyncEventBus().post(new SyncEvent());
+            //LanternHub.asyncEventBus().post(new SyncEvent());
             synchronized (this.rosterLock) {
                 this.rosterLock.notifyAll();
             }
