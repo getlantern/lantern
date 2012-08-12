@@ -89,7 +89,11 @@ import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Packet;
+import org.jivesoftware.smack.provider.ProviderManager;
+import org.jivesoftware.smackx.packet.VCard;
+import org.jivesoftware.smackx.provider.VCardProvider;
 import org.lantern.SettingsState.State;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
@@ -374,7 +378,7 @@ public class LanternUtils {
         return (StringUtils.isNotBlank(un) && StringUtils.isNotBlank(pwd));
     }
     
-    public static Collection<LanternPresence> getRosterEntries(final String email,
+    public static Collection<LanternRosterEntry> getRosterEntries(final String email,
         final String pwd, final int attempts) throws IOException, 
         CredentialException {
         final XMPPConnection conn = 
@@ -383,10 +387,10 @@ public class LanternUtils {
     }
     
     
-    public static final Comparator<LanternPresence> PRESENCE_COMPARATOR = 
-        new Comparator<LanternPresence>() {
+    public static final Comparator<LanternRosterEntry> PRESENCE_COMPARATOR = 
+        new Comparator<LanternRosterEntry>() {
         @Override
-        public int compare(final LanternPresence re1, final LanternPresence re2) {
+        public int compare(final LanternRosterEntry re1, final LanternRosterEntry re2) {
             final String name1 = re1.getName();
             final String name2 = re2.getName();
             if (name1 == null) {
@@ -398,19 +402,19 @@ public class LanternUtils {
         }
     };
 
-    public static Map<String, LanternPresence> getRosterEntries(
+    public static Map<String, LanternRosterEntry> getRosterEntries(
         final XMPPConnection xmppConnection) {
         final Roster roster = xmppConnection.getRoster();
         final Collection<RosterEntry> unordered = roster.getEntries();
         return getRosterEntries(unordered);
     }
 
-    public static Map<String, LanternPresence> getRosterEntries(
+    public static Map<String, LanternRosterEntry> getRosterEntries(
         final Collection<RosterEntry> unordered) {
-        final Map<String, LanternPresence> entries = 
-            new HashMap<String, LanternPresence>();
+        final Map<String, LanternRosterEntry> entries = 
+            new HashMap<String, LanternRosterEntry>();
         for (final RosterEntry entry : unordered) {
-            final LanternPresence lp = new LanternPresence(entry);
+            final LanternRosterEntry lp = new LanternRosterEntry(entry);
             entries.put(entry.getUser(), lp);
         }
         return entries;
@@ -795,6 +799,13 @@ public class LanternUtils {
             map.put(entry.getKey(), values[0]);
         }
         return map;
+    }
+
+    public static VCard getVCard(final XMPPConnection conn, 
+        final String emailId) throws XMPPException {
+        final VCard card = new VCard();
+        card.load(conn, emailId);
+        return card;
     }
 
     public static String jsonify(final Object all) {

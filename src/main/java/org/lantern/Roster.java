@@ -25,8 +25,8 @@ public class Roster implements RosterListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private Map<String, LanternPresence> storedEntries = 
-        new HashMap<String, LanternPresence>();
+    private Map<String, LanternRosterEntry> storedEntries = 
+        new HashMap<String, LanternRosterEntry>();
     
     private final Collection<String> incomingSubscriptionRequests = 
         new HashSet<String>();
@@ -52,7 +52,7 @@ public class Roster implements RosterListener {
         roster.addRosterListener(this);
         
         final Collection<RosterEntry> unordered = roster.getEntries();
-        final Map<String, LanternPresence> entries = 
+        final Map<String, LanternRosterEntry> entries = 
             LanternUtils.getRosterEntries(unordered);
         setEntriesMap(entries);
         
@@ -84,42 +84,42 @@ public class Roster implements RosterListener {
         log.info("Got presence!! {}", pres);
         final String email = LanternUtils.jidToEmail(pres.getFrom());
         if (storedEntries.containsKey(email)) {
-            final LanternPresence lp = storedEntries.get(email);
+            final LanternRosterEntry lp = storedEntries.get(email);
             lp.setAvailable(pres.isAvailable());
             lp.setStatus(pres.getStatus());
         } else {
             // This may be someone we have subscribed to who we're just now
             // getting the presence for.
             log.info("Adding non-roster presence: {}", email);
-            addEntry(new LanternPresence(pres));
+            addEntry(new LanternRosterEntry(pres));
         }
     }
 
-    private void addEntry(final LanternPresence pres) {
+    private void addEntry(final LanternRosterEntry pres) {
         storedEntries.put(pres.getEmail(), pres);
     }
 
     @JsonIgnore
-    public void setEntriesMap(final Map<String, LanternPresence> entries) {
+    public void setEntriesMap(final Map<String, LanternRosterEntry> entries) {
         synchronized (storedEntries) {
             this.storedEntries = entries;
         }
     }
 
     @JsonIgnore
-    public Map<String, LanternPresence> getEntriesMap() {
+    public Map<String, LanternRosterEntry> getEntriesMap() {
         synchronized (storedEntries) {
             return ImmutableMap.copyOf(storedEntries);
         }
     }
     
-    public Collection<LanternPresence> getEntries() {
-        final Collection<LanternPresence> values;
+    public Collection<LanternRosterEntry> getEntries() {
+        final Collection<LanternRosterEntry> values;
         synchronized (this.storedEntries) {
             values = this.storedEntries.values();
         }
-        final Collection<LanternPresence> ordered = 
-            new TreeSet<LanternPresence>(LanternUtils.PRESENCE_COMPARATOR);
+        final Collection<LanternRosterEntry> ordered = 
+            new TreeSet<LanternRosterEntry>(LanternUtils.PRESENCE_COMPARATOR);
         ordered.addAll(values);
         return ordered;
     }
@@ -143,7 +143,7 @@ public class Roster implements RosterListener {
     public void entriesAdded(final Collection<String> entries) {
         log.debug("Adding entries: {} for roster: {}", entries, this);
         for (final String entry : entries) {
-            addEntry(new LanternPresence(entry));
+            addEntry(new LanternRosterEntry(entry));
         }
         LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
     }
