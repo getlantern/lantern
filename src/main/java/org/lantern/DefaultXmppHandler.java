@@ -126,6 +126,10 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private GoogleTalkState state;
 
+    private String lastUserName;
+
+    private String lastPass;
+
     /**
      * Creates a new XMPP handler.
      */
@@ -151,14 +155,14 @@ public class DefaultXmppHandler implements XmppHandler {
             }
             break;
         case LOGGED_OUT:
-            this.roster.setEntriesMap(new HashMap<String, LanternPresence>());
+            this.roster.setEntriesMap(new HashMap<String, LanternRosterEntry>());
             break;
         case LOGGING_IN:
             break;
         case LOGGING_OUT:
             break;
         case LOGIN_FAILED:
-            this.roster.setEntriesMap(new HashMap<String, LanternPresence>());
+            this.roster.setEntriesMap(new HashMap<String, LanternRosterEntry>());
             break;
         }
     }
@@ -215,6 +219,8 @@ public class DefaultXmppHandler implements XmppHandler {
     public void connect(final String email, final String pwd) 
         throws IOException, CredentialException {
         LOG.info("Connecting to XMPP servers with user name and password...");
+        this.lastUserName = email;
+        this.lastPass = pwd;
         final InetSocketAddress plainTextProxyRelayAddress = 
             new InetSocketAddress("127.0.0.1", 
                 LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT);
@@ -1144,5 +1150,15 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public void resetRoster() {
         this.roster.reset();;
+    }
+
+    @Override
+    public String getLastUserName() {
+        return lastUserName;
+    }
+
+    @Override
+    public String getLastPass() {
+        return lastPass;
     }
 }

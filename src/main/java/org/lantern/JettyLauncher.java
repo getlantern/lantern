@@ -1,9 +1,13 @@
 package org.lantern;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.util.Collection;
 import java.util.Map;
 
+import javax.security.auth.login.CredentialException;
 import javax.servlet.GenericServlet;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
@@ -12,6 +16,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.lang.StringUtils;
 import org.cometd.server.CometdServlet;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
@@ -24,9 +30,15 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.littleshoot.util.ThreadUtils;
+import org.jivesoftware.smack.XMPPConnection;
+import org.jivesoftware.smack.XMPPException;
+import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+
+import eu.medsea.mimeutil.MimeType;
+import eu.medsea.mimeutil.MimeUtil2;
 
 /**
  * Launcher and secure path handler for Jetty.
@@ -159,6 +171,8 @@ public class JettyLauncher {
                 LanternHub.api().processCall(req, resp);
             }
         }
+        
+        
         final ServletHolder ds = new ServletHolder(new DefaultServlet());
         ds.setInitParameter("cacheControl", "no-cache");
         ds.setInitParameter("aliases", "true");
@@ -172,6 +186,10 @@ public class JettyLauncher {
         final ServletHolder apiServlet = new ServletHolder(new ApiServlet());
         apiServlet.setInitOrder(3);
         contextHandler.addServlet(apiServlet, "/api/*");
+        
+        final ServletHolder photoServlet = new ServletHolder(new PhotoServlet());
+        photoServlet.setInitOrder(3);
+        contextHandler.addServlet(photoServlet, "/photo/*");
         
         final ServletHolder config = new ServletHolder(new ConfigServlet());
         config.setInitOrder(3);
