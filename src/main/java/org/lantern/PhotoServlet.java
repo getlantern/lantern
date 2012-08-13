@@ -104,7 +104,8 @@ public final class PhotoServlet extends HttpServlet {
         if (StringUtils.isBlank(user)) {
             throw new IOException("No password!!");
         }
-        return XmppUtils.simpleGoogleTalkConnection(user, pass, "vcard-connection");
+        conn = XmppUtils.simpleGoogleTalkConnection(user, pass, "vcard-connection");
+        return conn;
     }
 
     private void sendError(final HttpServletResponse resp, final int errorCode, 
