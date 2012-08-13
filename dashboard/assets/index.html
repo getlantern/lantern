@@ -412,7 +412,7 @@
             </li>
             <li class=peertile ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter).$orderBy(peerorder)">
               <span ng:class="invited(peer.email) && 'invited' || 'not-invited'">
-                <img />
+                <img src="/photo?email={{ peer.email }}" />
                 <div class=name>{{ peer.name }}&nbsp;</div>
                 <div class=email title="{{ peer.email }}">{{ peer.email }}</div>
                 <a class=invite-link ng:click="state.invites > 0 && !invited(peer.email) && invite(peer.email)">Invite{{ invited(peer.email) && 'd' || '' }}</a>
