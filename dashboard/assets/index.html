@@ -22,7 +22,7 @@
     <script src=js/lib/cometd.js></script>
     <script src=js/lib/jquery.cometd.js></script>
     <script src=js/lib/angular-0.10.5.min.js ng:autobind></script>
-    <script src=js/lib/showdown.js></script>
+    <!--script src=js/lib/showdown.js></script-->
     <script src=js/dashboard.js></script>
     
     <script type="text/javascript">
@@ -182,6 +182,7 @@
             </div>
           </form>
         </div>
+        <!--
         <div id=trustedpeers class=slide data-cls=slide>
           <h1>Invite</h1>
           <h4>Invite trusted contacts to join Lantern.</h4>
@@ -206,16 +207,17 @@
             </figure>
           </div>
         </div>
+        -->
         <div id=systemproxy class=slide data-cls=slide>
           <h1>System Proxy</h1>
           <ul class=welcome-optionlist>
             <li><div class=error>Proxy configuration failed.</div></li>
             <li><label><input type=radio value={{true}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> Set Lantern as my system proxy (recommended)</label><div class=smallnote>Your browser should start using Lantern automatically</div></li>
-            <li><label><input type=radio value={{false}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> I will <a class=doc-link href=#doc-overlay data-doc=manual-proxy></a>manually configure my browser to use Lantern</label></li>
+            <li><label><input type=radio value={{false}} ng:change=toggle('systemProxy') ng:model=state.systemProxy /> I will <!--a class=doc-link href=#doc-overlay data-doc=manual-proxy></a-->manually configure my browser to use Lantern</label></li>
           </ul>
           <div class=controls>
             <figure class=left>
-              <a href=#trustedpeers><img src=img/arrow-left.png alt=Back /></a>
+              <a href=#signin><img src=img/arrow-left.png alt=Back /></a>
               <figcaption>Back</figcaption>
             </figure>
             <figure class=right>
@@ -237,7 +239,7 @@
           <label class=analytics><input type=checkbox ng:change=toggle('analytics') ng:model=state.analytics /> Enable automatic reporting</label>
           <div class=controls>
             <figure class=left>
-              <a href="{{state.getMode && '#systemproxy' || '#trustedpeers'}}"><img src=img/arrow-left.png alt=Back /></a>
+              <a href="{{state.getMode && '#systemproxy' || '#signin'}}"><img src=img/arrow-left.png alt=Back /></a>
               <figcaption>Back</figcaption>
             </figure>
             <figure class=right>
@@ -277,7 +279,13 @@
               <li><a href=#status class=selected>Status</a></li>
               <li><a href=#contact>Contact</a></li>
               <li><a href=#settings>Settings</a></li>
-              <li><a href=#invites>Invites</a></li>
+              <li>
+                <a href=#invites>Invites
+                  <div ng:show="subreqs && subreqs.length" id=pending>
+                    {{ subreqs.length }} pending
+                 </div>
+                </a>
+              </li>
               <li><a href=#update ng:show=updateavailable() id=sidebar-update-link>Update</a></li>
             </ul>
           </nav>
@@ -294,8 +302,19 @@
             </dd>
             <dt ng:show=connected()>Transfers</dt>
             <dd ng:show=connected()>
-            <div>{{bytesrate(updnrate())}} currently<span ng:show=npeers()> via {{npeers()}} <ng:pluralize count=npeers() when="{'1': 'peer', 'other': 'peers'}"></ng:pluralize></span></div>
-              <div>{{prettybytes(state.upTotalLifetime + state.downTotalLifetime)}} lifetime</div>
+            <div>{{ bytesrate(updnrate()) }} currently, {{prettybytes(state.upTotalLifetime + state.downTotalLifetime)}} lifetime</div>
+            </dd>
+            <dt>Invites</dt>
+            <dd>
+              <span>
+                {{ state.invites }} invite{{ state.invites != 1 && 's' || ''}} remaining
+              </span>
+              <span ng:show="state.invites > 0" class=smallnote>
+                <a href=#invites>Invite friends!</a>
+              </span>
+              <div ng:show="state.invites == 0" class=smallnote>
+                More invites will be rolled out soon.
+              </div>
             </dd>
             <dt>Version</dt>
             <dd>
@@ -385,7 +404,7 @@
             <h2>Pending Requests</h2>
             <ul id=subreq-peerlist class=unpopulated>
               <li class=peertile ng:repeat="subreq in subreqs">
-                <img />
+                <img ng:src="/photo?email={{ subreq }}" />
                 <div class=name>&nbsp;</div>
                 <div class=email title="{{ subreq }}">{{ subreq }}</div>
                 <a class=approve-link ng:click="handlesubreq(true, subreq)">Accept</a>
@@ -397,13 +416,14 @@
             <h2 class=invites-remaining id=ninvites>{{ state.invites }} invite{{ state.invites != 1 && 's' || '' }} remaining</h2>
             <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Enter name or email" results=0 incremental autosave/>
           </div>
+          <div id=more-invites class=smallnote ng:show="state.invites == 0">More invites will be rolled out soon.</div>
           <ul id=invite-peerlist ng:class="[state.invites > 0 && 'has-invites' || 'no-invites', 'unpopulated']">
             <li ng:show="peers == FETCHING">Loading...</li>
             <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length" ng:class="peerfilterinput && validateemail(peerfilterinput) && 'peertile' || ''">
               <span ng:show=peerfilterinput>
                 <span ng:show=!validateemail(peerfilterinput) class=disabled>No matching contacts. Type an email address to invite someone new.</span>
                 <span ng:show=validateemail(peerfilterinput) ng:class="invited(peerfilterinput) && 'invited' || 'not-invited'">
-                  <img />
+                  <img ng:src="/photo?email={{ peerfilterinput }}" />
                   <div class=name>&nbsp;</div>
                   <div class=email title="{{ peerfilterinput }}">{{ peerfilterinput }}</div>
                   <a class=invite-link ng:click="state.invites > 0 && !invited(peerfilterinput) && invite(peerfilterinput)">Invite{{ invited(peerfilterinput) && 'd' || '' }}</a>
@@ -412,7 +432,7 @@
             </li>
             <li class=peertile ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter).$orderBy(peerorder)">
               <span ng:class="invited(peer.email) && 'invited' || 'not-invited'">
-                <img src="/photo?email={{ peer.email }}" />
+                <img ng:src="/photo?email={{ peer.email }}" />
                 <div class=name>{{ peer.name }}&nbsp;</div>
                 <div class=email title="{{ peer.email }}">{{ peer.email }}</div>
                 <a class=invite-link ng:click="state.invites > 0 && !invited(peer.email) && invite(peer.email)">Invite{{ invited(peer.email) && 'd' || '' }}</a>
@@ -510,8 +530,9 @@
             </div>
             <h1>What now?</h1>
             <div id=whatnowtxt>
-              Feel free to review your <a id=settings-tip href=#settings>Settings</a>,
-              or just close this window and leave Lantern running in the background.
+              <a id=invites-tip href=#invites>Invite friends</a> to join,
+              review your <a id=settings-tip href=#settings>Settings</a>,
+              or just close this window and leave Lantern running<br/>in the background.
               Look for the <img src=img/16on.png alt="Lantern" /> icon in your {{iconloctxt()}} when you’d like to get back here.<br/>
             </div>
           </div>
@@ -524,10 +545,12 @@
 
       </div>
 
+      <!--
       <div class=overlay data-cls=overlay id=md-overlay>
         <a class=close>×</a>
         <ng:include class=showdown id=changelog-container src="'CHANGES.md'"></ng:include>
       </div>
+      -->
 
       <div id=doc-modal class=overlay-modal>
       <div class=overlay data-cls=overlay id=doc-overlay>
@@ -538,6 +561,7 @@
           through users you know and trust, and not just anyone.
           </p>
         </div>
+        <!--
         <div class=doc id=unencrypted-traffic>
           <p>When you visit a web page whose url begins with http://, content is
           transferred between your computer and the computer hosting the web site
@@ -585,6 +609,7 @@
         <div class=doc id=manual-proxy>
           (manual proxy configuration)
         </div>
+        -->
       </div>
       </div>
     </div>

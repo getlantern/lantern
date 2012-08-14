@@ -305,7 +305,7 @@ function LDCtrl(){
     }else{
       console.log('already signed in, just skipping to next screen');
       self.inputpassword = '';
-      showid('#trustedpeers');
+      showid(self.state.getMode && '#systemproxy' || '#done');
     }
   };
 
@@ -382,9 +382,9 @@ function LDCtrl(){
       self.showsignin(false);
       self.update(state);
       if(!self.state.initialSetupComplete){
-        showid('#trustedpeers');
+        showid(self.state.getMode && '#systemproxy' || '#done');
         self.fetchpeers();
-        lionbarsify($('#trustedpeers > .peerlist'));
+        //lionbarsify($('#trustedpeers > .peerlist'));
       }
     }).fail(function(jqXHR, textStatus){
       var code = jqXHR.status;
@@ -469,18 +469,21 @@ function LDCtrl(){
 
   self.handlesubreq = function(approve, jid) {
     var url = '/api/' + (approve ? '' : 'un') + 'subscribed?jid=' + encodeURIComponent(jid);
+    var msg = (approve ? 'Accepted' : 'Declined') + ' invite from ' + jid;
+    var $flash = $('#flash-main .content'); 
     $.post(url).done(function(){
       if(self.state.initialSetupComplete){
         $('.flashmsg').hide();
-        $('#flash-main .content').addClass('success').removeClass('error')
-          .html('Accepted ' + jid).parent('#flash-main').fadeIn();
+        approve ? $flash.addClass('success').removeClass('error') :
+                  $flash.addClass('error').removeClass('success');
+        $flash.html(msg).parent('#flash-main').fadeIn();
       }
       self.$digest();
     }).fail(function(){
       if(self.state.initialSetupComplete){
         $('.flashmsg').hide();
-        $('#flash-main .content').addClass('error').removeClass('success')
-          .html('Declined ' + jid).parent('#flash-main').fadeIn();
+        $flash.addClass('error').removeClass('success')
+          .html(msg + ' failed').parent('#flash-main').fadeIn();
       }
     });
   };
@@ -800,6 +803,12 @@ $(document).ready(function(){
   $('#settings-tip').click(function(){
     mvtipti(function(){hilite(true);});
   });
+  $('#invites-tip').click(function(){
+    mvtipti(function(){
+      $('#invites').css('background-color', '#ffa').animate({
+        backgroundColor: 'transparent'}, 2000);
+    });
+  });
 
   $('.overlay .close').click(function(evt){
     $(evt.target).parent('.overlay').removeClass('selected').hide()
@@ -837,6 +846,7 @@ $(document).ready(function(){
   });
   */
 
+  /*
   var converter = new Showdown.converter(),
       $mdoverlay = $('#md-overlay');
   $('.showdown-link').click(function(evt){
@@ -857,6 +867,7 @@ $(document).ready(function(){
     lionbarsify($target);
     return false;
   });
+  */
 
   var $doco = $('#doc-overlay'),
       $docmodal = $('#doc-modal'),
