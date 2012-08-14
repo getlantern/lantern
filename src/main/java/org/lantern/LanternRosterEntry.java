@@ -137,8 +137,10 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         return status;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setStatus(final String status) {
+        if (status != null) {
+            this.status = status;
+        }
     }
 
     public void setTrusted(boolean trusted) {
@@ -244,8 +246,8 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     
     @Override
     public int compareTo(final LanternRosterEntry lre) {
-        final Integer score1 = this.emc + this.mc;
-        final Integer score2 = lre.getEmc() + lre.getMc();
+        final Integer score1 = this.emc + this.mc + this.w;
+        final Integer score2 = lre.getEmc() + lre.getMc() + lre.getW();
         final int scores = score1.compareTo(score2);
         
         // If they have the same scores, compare by their e-mails. Otherwise
