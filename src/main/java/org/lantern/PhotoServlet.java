@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.packet.VCard;
@@ -34,6 +35,9 @@ public final class PhotoServlet extends HttpServlet {
     
     private XMPPConnection conn;
     
+    private final int CACHE_DURATION_IN_SECOND = 60 * 60 * 24; // 2 days
+    private final long CACHE_DURATION_IN_MS = CACHE_DURATION_IN_SECOND  * 1000;
+    
     /**
      * Generated serial ID.
      */
@@ -45,7 +49,7 @@ public final class PhotoServlet extends HttpServlet {
     protected void doGet(final HttpServletRequest req, 
         final HttpServletResponse resp) throws ServletException, 
         IOException {
-        log.info("Got photo request: "+req.getRequestURI());
+        log.debug("Got photo request: "+req.getRequestURI());
         final String email = req.getParameter("email");
         if (StringUtils.isBlank(email)) {
             sendError(resp, HttpStatus.SC_BAD_REQUEST, "email required");
@@ -57,16 +61,16 @@ public final class PhotoServlet extends HttpServlet {
         } else {
             final VCard vcard;
             try {
-                vcard = LanternUtils.getVCard(establishConnection(), email);
+                vcard = XmppUtils.getVCard(establishConnection(), email);
                 raw = vcard.getAvatar();
                 cache.put(email, vcard);
             } catch (final XMPPException e) {
-                log.warn("Could not establish connection?", e);
+                log.warn("Exception accessing vcard for "+email, e);
                 sendError(resp, HttpStatus.SC_SERVICE_UNAVAILABLE, "XMPP error");
                 return;
             } catch (final CredentialException e) {
                 sendError(resp, HttpStatus.SC_UNAUTHORIZED, 
-                    "Could not authorized Google Talk connection");
+                    "Could not authorize Google Talk connection");
                 return;
             }
         }
@@ -85,7 +89,12 @@ public final class PhotoServlet extends HttpServlet {
         if (types != null && !types.isEmpty()) {
             resp.setContentType(types.iterator().next().toString());
         }
+        
+        resp.addHeader(HttpHeaders.Names.CACHE_CONTROL, 
+            "max-age=" + CACHE_DURATION_IN_SECOND);
         resp.setContentLength(raw.length);
+        resp.setDateHeader(HttpHeaders.Names.EXPIRES, 
+            System.currentTimeMillis() + CACHE_DURATION_IN_MS);
         resp.getOutputStream().write(raw);
         resp.getOutputStream().close();
     }
@@ -97,7 +106,6 @@ public final class PhotoServlet extends HttpServlet {
         }
         final String user = LanternHub.xmppHandler().getLastUserName();
         final String pass = LanternHub.xmppHandler().getLastPass();
-        log.info("Logging in with {} and {}", user, pass);
         if (StringUtils.isBlank(user)) {
             throw new IOException("No user name!!");
         }

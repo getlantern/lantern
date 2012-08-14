@@ -208,11 +208,11 @@ public class JettyLauncher {
             filterHolder.setInitParameter("allowedOrigins", "*");
             contextHandler.addFilter(filterHolder, secureBase + "/cometd/*", 
                 FilterMapping.REQUEST);
-            
             contextHandler.addFilter(filterHolder, secureBase + "/api/*", 
                     FilterMapping.REQUEST);
-            
             contextHandler.addFilter(filterHolder, secureBase + "/settings/*", 
+                    FilterMapping.REQUEST);
+            contextHandler.addFilter(filterHolder, secureBase + "/photo/*", 
                     FilterMapping.REQUEST);
         }
         
