@@ -35,9 +35,7 @@ import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +44,7 @@ import java.util.Queue;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.crypto.Cipher;
@@ -86,14 +85,11 @@ import org.jboss.netty.handler.codec.http.HttpMessage;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jivesoftware.smack.ConnectionConfiguration;
-import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.XMPPConnection;
-import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.packet.Packet;
-import org.jivesoftware.smack.provider.ProviderManager;
-import org.jivesoftware.smackx.packet.VCard;
-import org.jivesoftware.smackx.provider.VCardProvider;
+import org.jivesoftware.smack.packet.RosterPacket;
+import org.jivesoftware.smack.packet.RosterPacket.Item;
 import org.lantern.SettingsState.State;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
@@ -378,44 +374,46 @@ public class LanternUtils {
         return (StringUtils.isNotBlank(un) && StringUtils.isNotBlank(pwd));
     }
     
-    public static Collection<LanternRosterEntry> getRosterEntries(final String email,
-        final String pwd, final int attempts) throws IOException, 
-        CredentialException {
+    public static Collection<LanternRosterEntry> getRosterEntries(
+        final String email, final String pwd, final int attempts) 
+        throws IOException, CredentialException {
         final XMPPConnection conn = 
             XmppUtils.persistentXmppConnection(email, pwd, "lantern", attempts);
-        return getRosterEntries(conn).values();
+        return getRosterEntries(conn);
     }
-    
-    
-    public static final Comparator<LanternRosterEntry> PRESENCE_COMPARATOR = 
-        new Comparator<LanternRosterEntry>() {
-        @Override
-        public int compare(final LanternRosterEntry re1, final LanternRosterEntry re2) {
-            final String name1 = re1.getName();
-            final String name2 = re2.getName();
-            if (name1 == null) {
-                return 1;
-            } else if (name2 == null) {
-                return -1;
-            }
-            return name1.compareToIgnoreCase(name2);
-        }
-    };
 
-    public static Map<String, LanternRosterEntry> getRosterEntries(
+    public static Collection<LanternRosterEntry> getRosterEntries(
         final XMPPConnection xmppConnection) {
-        final Roster roster = xmppConnection.getRoster();
-        final Collection<RosterEntry> unordered = roster.getEntries();
-        return getRosterEntries(unordered);
+        final RosterPacket msg = XmppUtils.extendedRoster(xmppConnection);
+        return getRosterEntriesByItems(msg.getRosterItems());
     }
 
-    public static Map<String, LanternRosterEntry> getRosterEntries(
+    public static Collection<LanternRosterEntry> getRosterEntriesByItems(
+        final Collection<Item> unordered) {
+        final Collection<LanternRosterEntry> entries = 
+            new TreeSet<LanternRosterEntry>();
+        for (final Item entry : unordered) {
+            final LanternRosterEntry lp = new LanternRosterEntry(entry);
+            final boolean added = entries.add(lp);
+            if (!added) {
+                LOG.warn("DID NOT ADD {}", entry);
+                LOG.warn("ENTRIES: {}", entries);
+            }
+        }
+        return entries;
+    }
+
+    public static Collection<LanternRosterEntry> getRosterEntries(
         final Collection<RosterEntry> unordered) {
-        final Map<String, LanternRosterEntry> entries = 
-            new HashMap<String, LanternRosterEntry>();
+        final Collection<LanternRosterEntry> entries = 
+            new TreeSet<LanternRosterEntry>();
         for (final RosterEntry entry : unordered) {
             final LanternRosterEntry lp = new LanternRosterEntry(entry);
-            entries.put(entry.getUser(), lp);
+            final boolean added = entries.add(lp);
+            if (!added) {
+                LOG.warn("DID NOT ADD {}", entry);
+                LOG.warn("ENTRIES: {}", entries);
+            }
         }
         return entries;
     }
@@ -799,13 +797,6 @@ public class LanternUtils {
             map.put(entry.getKey(), values[0]);
         }
         return map;
-    }
-
-    public static VCard getVCard(final XMPPConnection conn, 
-        final String emailId) throws XMPPException {
-        final VCard card = new VCard();
-        card.load(conn, emailId);
-        return card;
     }
 
     public static String jsonify(final Object all) {
