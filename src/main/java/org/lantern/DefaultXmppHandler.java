@@ -330,17 +330,22 @@ public class DefaultXmppHandler implements XmppHandler {
                 final String from = pres.getFrom();
                 LOG.info("Responding to presence from {} and to {}", 
                     from, pack.getTo());
-                
+
+                final Type type = pres.getType();
                 // Allow subscription requests from the lantern bot.
                 if (from.startsWith("lanternctrl@") &&
                     from.endsWith("lanternctrl.appspotchat.com")) {
-                    final Presence packet = 
-                        new Presence(Presence.Type.subscribed);
-                    packet.setTo(from);
-                    packet.setFrom(pack.getTo());
-                    connection.sendPacket(packet);
+                    if (type == Type.subscribe) {
+                        final Presence packet = 
+                            new Presence(Presence.Type.subscribed);
+                        packet.setTo(from);
+                        packet.setFrom(pack.getTo());
+                        connection.sendPacket(packet);
+                    } else {
+                        LOG.info("Non-subscribed packet from hub? {}", 
+                            pres.toXML());
+                    }
                 } else {
-                    final Type type = pres.getType();
                     switch (type) {
                     case available:
                         return;
@@ -362,10 +367,7 @@ public class DefaultXmppHandler implements XmppHandler {
                     case unsubscribed:
                         break;
                     }
-                    
-                    
                 }
-
             }
         }, new PacketFilter() {
             
