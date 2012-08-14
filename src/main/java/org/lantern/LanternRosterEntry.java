@@ -3,12 +3,16 @@ package org.lantern;
 import org.apache.commons.lang.StringUtils;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.packet.RosterPacket.Item;
 import org.jivesoftware.smack.packet.RosterPacket.ItemStatus;
 import org.jivesoftware.smackx.packet.VCard;
 import org.littleshoot.commom.xmpp.XmppUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class LanternRosterEntry {
+public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
     private boolean available;
     private boolean away;
     private String status;
@@ -18,29 +22,68 @@ public class LanternRosterEntry {
     
     private VCard vcard;
     
+    private final int mc;
+    
+    private final int emc;
+    
+    private final int w;
+    
+    private final boolean rejected;
+    
+    private final String t;
+    
+    private final boolean autosub;
+    
+    private final String aliasFor;
+    
+    private final String inv;
+    
     public LanternRosterEntry(final RosterEntry entry) {
-        this(false, false, extractStatus(entry),  
-            extractName(entry), entry.getUser().trim());
+        this(false, false, entry.getUser(), entry.getName(),  
+            extractStatus(entry), entry.getMc(), entry.getEmc(), entry.getW(),
+            entry.isRejected(), entry.getT(), entry.isAutosub(),
+            entry.getAliasFor(), entry.getInv());
     }
 
-    public LanternRosterEntry(final String email) {
-        this(false, true, "", "", email);
-    }
-    
     public LanternRosterEntry(final boolean available, final boolean away, 
-        final String status, final String name, final String email) {
+        final String email, final String name, final String status, 
+        final int mc, final int emc, final int w, final boolean rejected, 
+        final String t, final boolean autosub, final String aliasFor, 
+        final String inv) {
         this.available = available;
         this.away = away;
-        this.status = status;
-        this.name = name;
+        if (StringUtils.isBlank(email)) {
+            log.warn("No email address!!");
+            throw new IllegalArgumentException("Blank email??");
+        }
         this.email = XmppUtils.jidToUser(email);
         this.trusted = extractTrusted(email);
+        this.name = name == null ? "" : name;
+        this.status = status == null ? "" : status;
+        this.mc = mc;
+        this.emc = emc;
+        this.w = w;
+        this.rejected = rejected;
+        this.t = t == null ? "" : t;
+        this.autosub = autosub;
+        this.aliasFor = aliasFor == null ? "" : aliasFor;
+        this.inv = inv == null ? "" : inv;
     }
-    
 
     public LanternRosterEntry(final Presence pres) {
-        this(pres.isAvailable(), false, pres.getStatus(), pres.getFrom(), 
-            pres.getFrom());
+        this(pres.isAvailable(), false, pres.getFrom(), 
+            pres.getFrom(), pres.getStatus(), 0, 0, 0, false, "", false, "", "");
+    }
+    
+    public LanternRosterEntry(final String email) {
+        this(false, true, email, "", "", 0, 0, 0, false, "", false, "", "");
+    }
+
+    public LanternRosterEntry(final Item entry) {
+        this(false, false, entry.getUser(), entry.getName(),  
+                extractStatus(entry), entry.getMc(), entry.getEmc(), entry.getW(),
+                entry.isRejected(), entry.getT(), entry.isAutosub(),
+                entry.getAliasFor(), entry.getInv());
     }
 
     private static String extractName(final RosterEntry entry) {
@@ -56,8 +99,17 @@ public class LanternRosterEntry {
         return LanternHub.getTrustedContactsManager().isTrusted(email);
     }
 
+
+    private static String extractStatus(final Item entry) {
+        return extractStatus(entry.getItemStatus());
+    }
+    
     private static String extractStatus(final RosterEntry entry) {
         final ItemStatus stat = entry.getStatus();
+        return extractStatus(stat);
+    }
+    
+    private static String extractStatus(final ItemStatus stat) {
         if (stat != null) {
             return stat.toString();
         } else {
@@ -116,13 +168,6 @@ public class LanternRosterEntry {
     public boolean isInvited() {
         return LanternHub.settings().getInvited().contains(email);
     }
-    
-    @Override
-    public String toString() {
-        return "LanternPresence [available=" + available + ", away=" + away
-                + ", status=" + status + ", trusted=" + trusted + ", name="
-                + name + ", email=" + email + "]";
-    }
 
     public VCard getVcard() {
         return vcard;
@@ -130,5 +175,85 @@ public class LanternRosterEntry {
 
     public void setVcard(VCard vcard) {
         this.vcard = vcard;
+    }
+    
+    public int getMc() {
+        return mc;
+    }
+
+    public int getEmc() {
+        return emc;
+    }
+
+    public int getW() {
+        return w;
+    }
+
+    public boolean isRejected() {
+        return rejected;
+    }
+
+    public String getT() {
+        return t;
+    }
+
+    public boolean isAutosub() {
+        return autosub;
+    }
+
+    public String getAliasFor() {
+        return aliasFor;
+    }
+
+    public String getInv() {
+        return inv;
+    }
+    
+    @Override
+    public String toString() {
+        return getClass().getSimpleName()+
+                " [available=" + available + ", away=" + away
+                + ", status=" + status + ", trusted=" + trusted + ", name="
+                + name + ", email=" + email + "]";
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((email == null) ? 0 : email.hashCode());
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        LanternRosterEntry other = (LanternRosterEntry) obj;
+        if (email == null) {
+            if (other.email != null)
+                return false;
+        } else if (!email.equals(other.email))
+            return false;
+        return true;
+    }
+    
+    @Override
+    public int compareTo(final LanternRosterEntry lre) {
+        final Integer score1 = this.emc + this.mc;
+        final Integer score2 = lre.getEmc() + lre.getMc();
+        final int scores = score1.compareTo(score2);
+        
+        // If they have the same scores, compare by their e-mails. Otherwise
+        // any entries with the same score will get consolidated.
+        if (scores == 0) {
+            return this.email.compareToIgnoreCase(lre.getEmail());
+        } else {
+            return -scores;
+        }
     }
 }
