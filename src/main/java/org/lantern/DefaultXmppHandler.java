@@ -155,14 +155,14 @@ public class DefaultXmppHandler implements XmppHandler {
             }
             break;
         case LOGGED_OUT:
-            this.roster.setEntriesMap(new HashMap<String, LanternRosterEntry>());
+            this.roster.reset();
             break;
         case LOGGING_IN:
             break;
         case LOGGING_OUT:
             break;
         case LOGIN_FAILED:
-            this.roster.setEntriesMap(new HashMap<String, LanternRosterEntry>());
+            this.roster.reset();
             break;
         }
     }
