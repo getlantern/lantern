@@ -16,6 +16,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     private boolean available;
     private boolean away;
     private String status;
+    private String subscriptionStatus;
     private boolean trusted;
     private String name;
     private String email;
@@ -37,16 +38,32 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     private final String aliasFor;
     
     private final String inv;
+
+    public LanternRosterEntry(final Presence pres) {
+        this(pres.isAvailable(), false, pres.getFrom(), 
+            pres.getFrom(), pres.getStatus(), 0, 0, 0, false, "", false, "", "");
+    }
+    
+    public LanternRosterEntry(final String email) {
+        this(false, true, email, "", "", 0, 0, 0, false, "", false, "", "");
+    }
     
     public LanternRosterEntry(final RosterEntry entry) {
         this(false, false, entry.getUser(), entry.getName(),  
-            extractStatus(entry), entry.getMc(), entry.getEmc(), entry.getW(),
+            extractSubscriptionStatus(entry), entry.getMc(), entry.getEmc(), entry.getW(),
+            entry.isRejected(), entry.getT(), entry.isAutosub(),
+            entry.getAliasFor(), entry.getInv());
+    }
+    
+    public LanternRosterEntry(final Item entry) {
+        this(false, false, entry.getUser(), entry.getName(),  
+            extractSubscriptionStatus(entry), entry.getMc(), entry.getEmc(), entry.getW(),
             entry.isRejected(), entry.getT(), entry.isAutosub(),
             entry.getAliasFor(), entry.getInv());
     }
 
     public LanternRosterEntry(final boolean available, final boolean away, 
-        final String email, final String name, final String status, 
+        final String email, final String name, final String subscriptionStatus, 
         final int mc, final int emc, final int w, final boolean rejected, 
         final String t, final boolean autosub, final String aliasFor, 
         final String inv) {
@@ -59,7 +76,8 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         this.email = XmppUtils.jidToUser(email);
         this.trusted = extractTrusted(email);
         this.name = name == null ? "" : name;
-        this.status = status == null ? "" : status;
+        this.setSubscriptionStatus(subscriptionStatus == null ? "" : subscriptionStatus);
+        this.status = "";
         this.mc = mc;
         this.emc = emc;
         this.w = w;
@@ -68,22 +86,6 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         this.autosub = autosub;
         this.aliasFor = aliasFor == null ? "" : aliasFor;
         this.inv = inv == null ? "" : inv;
-    }
-
-    public LanternRosterEntry(final Presence pres) {
-        this(pres.isAvailable(), false, pres.getFrom(), 
-            pres.getFrom(), pres.getStatus(), 0, 0, 0, false, "", false, "", "");
-    }
-    
-    public LanternRosterEntry(final String email) {
-        this(false, true, email, "", "", 0, 0, 0, false, "", false, "", "");
-    }
-
-    public LanternRosterEntry(final Item entry) {
-        this(false, false, entry.getUser(), entry.getName(),  
-                extractStatus(entry), entry.getMc(), entry.getEmc(), entry.getW(),
-                entry.isRejected(), entry.getT(), entry.isAutosub(),
-                entry.getAliasFor(), entry.getInv());
     }
 
     private static String extractName(final RosterEntry entry) {
@@ -100,16 +102,16 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     }
 
 
-    private static String extractStatus(final Item entry) {
-        return extractStatus(entry.getItemStatus());
+    private static String extractSubscriptionStatus(final Item entry) {
+        return extractSubscriptionStatus(entry.getItemStatus());
     }
     
-    private static String extractStatus(final RosterEntry entry) {
+    private static String extractSubscriptionStatus(final RosterEntry entry) {
         final ItemStatus stat = entry.getStatus();
-        return extractStatus(stat);
+        return extractSubscriptionStatus(stat);
     }
     
-    private static String extractStatus(final ItemStatus stat) {
+    private static String extractSubscriptionStatus(final ItemStatus stat) {
         if (stat != null) {
             return stat.toString();
         } else {
@@ -209,6 +211,15 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
 
     public String getInv() {
         return inv;
+    }
+
+    public String getSubscriptionStatus() {
+        return subscriptionStatus;
+    }
+
+
+    public void setSubscriptionStatus(String subscriptionStatus) {
+        this.subscriptionStatus = subscriptionStatus;
     }
     
     @Override
