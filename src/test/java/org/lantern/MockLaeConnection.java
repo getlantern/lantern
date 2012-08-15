@@ -68,8 +68,8 @@ class MockLaeConnection extends MockConnection {
             public PeerProxyManager getTrustedPeerProxyManager() {return null;};//throw new IllegalStateException();}
 
             // explosions...
-            //@Override
-            //public PeerProxyManager getAnonymousPeerProxyManager() {throw new IllegalStateException();}
+            @Override
+            public PeerProxyManager getAnonymousPeerProxyManager() {throw new IllegalStateException();}
         };
         
         // start a "local" lantern browser proxy on another random port

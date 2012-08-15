@@ -80,7 +80,7 @@ public class SetCookieObserverHandler extends SimpleChannelHandler {
                     }
                 }
                 catch (IllegalArgumentException e) {
-                    log.warn("Ignoring response with unparsable set-cookie header {}: {}", setCookieHeader, e);
+                    log.warn("Ignoring response with unparsable set-cookie header:" + setCookieHeader, e);
                 }
             }
             if (!setCookies.isEmpty()) {
