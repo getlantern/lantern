@@ -354,6 +354,12 @@ public class DefaultXmppHandler implements XmppHandler {
                         return;
                     case subscribe:
                         LOG.info("Adding subscription request from: {}", from);
+                        
+                        // If we get a subscription request from someone 
+                        // already on our roster, auto-accept it.
+                        if (roster.autoAcceptSubscription(from)) {
+                            subscribed(from);
+                        }
                         roster.addIncomingSubscriptionRequest(from);
                         break;
                     case subscribed:

@@ -3,8 +3,10 @@ package org.lantern;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.TreeSet;
+import java.util.Map;
+import java.util.concurrent.ConcurrentSkipListMap;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
@@ -22,8 +24,8 @@ public class Roster implements RosterListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private Collection<LanternRosterEntry> rosterEntries = 
-        new TreeSet<LanternRosterEntry>();
+    private Map<String, LanternRosterEntry> rosterEntries = 
+        new ConcurrentSkipListMap<String, LanternRosterEntry>();
     
     private final Collection<String> incomingSubscriptionRequests = 
         new HashSet<String>();
@@ -41,6 +43,8 @@ public class Roster implements RosterListener {
 
     public void loggedIn() {
         log.info("Got logged in event");
+        // Threaded to avoid this holding up setting the logged-in state in
+        // the UI.
         final Runnable r = new Runnable() {
             @Override
             public void run() {
@@ -53,7 +57,7 @@ public class Roster implements RosterListener {
                 roster.addRosterListener(Roster.this);
                 final Collection<RosterEntry> unordered = roster.getEntries();
                 
-                final Collection<LanternRosterEntry> entries = 
+                final Map<String, LanternRosterEntry> entries = 
                     LanternUtils.getRosterEntries(unordered);
                 rosterEntries = entries;
                 
@@ -89,31 +93,25 @@ public class Roster implements RosterListener {
     private void onPresence(final Presence pres) {
         log.info("Got presence!! {}", pres);
         final String email = LanternUtils.jidToEmail(pres.getFrom());
-        synchronized (rosterEntries) {
-            for (final LanternRosterEntry entry : rosterEntries) {
-                if (entry.getEmail().equals(email)) {
-                    entry.setAvailable(pres.isAvailable());
-                    entry.setStatus(pres.getStatus());
-                    return;
-                }
-            }
+        final LanternRosterEntry entry = this.rosterEntries.get(email);
+        if (entry != null) {
+            entry.setAvailable(pres.isAvailable());
+            entry.setStatus(pres.getStatus());
+        } else {
+            // This may be someone we have subscribed to who we're just now
+            // getting the presence for.
+            log.info("Adding non-roster presence: {}", email);
+            addEntry(new LanternRosterEntry(pres));
         }
-        // This may be someone we have subscribed to who we're just now
-        // getting the presence for.
-        log.info("Adding non-roster presence: {}", email);
-        addEntry(new LanternRosterEntry(pres));
     }
 
     private void addEntry(final LanternRosterEntry pres) {
-        final boolean added = rosterEntries.add(pres);
-        if (!added) {
-            log.warn("Could not add {}", pres);
-        }
+        rosterEntries.put(pres.getEmail(), pres);
     }
     
     public Collection<LanternRosterEntry> getEntries() {
         synchronized (this.rosterEntries) {
-            return ImmutableSortedSet.copyOf(this.rosterEntries);
+            return ImmutableSortedSet.copyOf(this.rosterEntries.values());
         }
     }
 
@@ -146,17 +144,10 @@ public class Roster implements RosterListener {
         log.debug("Roster entries deleted: {}", entries);
         for (final String entry : entries) {
             final String email = LanternUtils.jidToEmail(entry);
-            synchronized (rosterEntries) {
-                for (final LanternRosterEntry lre : rosterEntries) {
-                    // We remove both because we're not sure what form it's 
-                    // stored in.
-                    if (lre.getEmail().equals(email) || 
-                        lre.getEmail().equals(entry)) {
-                        rosterEntries.remove(lre);
-                        break;
-                    }
-                }
-            }
+            // We remove both because we're not sure what form it's 
+            // stored in.
+            rosterEntries.remove(email);
+            rosterEntries.remove(entry);
         }
         LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
     }
@@ -201,5 +192,23 @@ public class Roster implements RosterListener {
             id = conn.getUser();
         }
         return "Roster for "+id+" [rosterEntries=" + rosterEntries + "]";
+    }
+
+    public boolean autoAcceptSubscription(final String from) {
+        final LanternRosterEntry entry = this.rosterEntries.get(from);
+        if (entry == null) {
+            return false;
+        }
+        final String subscriptionStatus = entry.getSubscriptionStatus();
+        
+        // If we're not still trying to subscribe or unsubscribe to this node,
+        // then it is a legitimate entry.
+        if (StringUtils.isBlank(subscriptionStatus)) {
+            return true;
+        } 
+        
+        // Otherwise only auto-allow subscription requests if we've requested
+        // to subscribe to them.
+        return subscriptionStatus.equalsIgnoreCase("subscribe");
     }
 }
