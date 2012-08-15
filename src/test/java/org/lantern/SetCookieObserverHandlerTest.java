@@ -59,12 +59,23 @@ public class SetCookieObserverHandlerTest {
 
         // create an HttpResponse with several Set-Cookies in it...
         final HttpResponse res = createResponse();
-        final CookieEncoder enc = new CookieEncoder(true);
+        CookieEncoder enc = new CookieEncoder(true);
         enc.addCookie("bad", "0");
+        String cook = enc.encode();
+        res.addHeader(HttpHeaders.Names.SET_COOKIE, cook);
+        enc = new CookieEncoder(true);
         enc.addCookie("good", "1");
+        cook = enc.encode();
+        res.addHeader(HttpHeaders.Names.SET_COOKIE, cook);
+        enc = new CookieEncoder(true);
         enc.addCookie("ugly", "2");
+        cook = enc.encode();
+        res.addHeader(HttpHeaders.Names.SET_COOKIE, cook);
+        enc = new CookieEncoder(true);
         enc.addCookie("toadface", "3");
-        res.setHeader(HttpHeaders.Names.SET_COOKIE, enc.encode());
+        cook = enc.encode();
+        res.addHeader(HttpHeaders.Names.SET_COOKIE, cook);
+        //res.setHeader(HttpHeaders.Names.SET_COOKIE, enc.encode());
         
         // make sure everything is there when we start...
         final Set<Cookie> startCookies = extractSetCookies(res);
