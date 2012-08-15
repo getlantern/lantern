@@ -97,7 +97,7 @@ public final class PhotoServlet extends HttpServlet {
         resp.setDateHeader(HttpHeaders.Names.EXPIRES, 
             System.currentTimeMillis() + CACHE_DURATION_IN_MS);
         resp.getOutputStream().write(imageData);
-        resp.getOutputStream().close();
+        //resp.getOutputStream().close();
     }
 
     private byte[] loadNoImage() {
