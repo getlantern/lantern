@@ -45,6 +45,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.ConcurrentSkipListMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.crypto.Cipher;
@@ -403,17 +404,13 @@ public class LanternUtils {
         return entries;
     }
 
-    public static Collection<LanternRosterEntry> getRosterEntries(
+    public static Map<String, LanternRosterEntry> getRosterEntries(
         final Collection<RosterEntry> unordered) {
-        final Collection<LanternRosterEntry> entries = 
-            new TreeSet<LanternRosterEntry>();
+        final Map<String, LanternRosterEntry> entries = 
+            new ConcurrentSkipListMap<String, LanternRosterEntry>();
         for (final RosterEntry entry : unordered) {
             final LanternRosterEntry lp = new LanternRosterEntry(entry);
-            final boolean added = entries.add(lp);
-            if (!added) {
-                LOG.warn("DID NOT ADD {}", entry);
-                LOG.warn("ENTRIES: {}", entries);
-            }
+            entries.put(lp.getEmail(), lp);
         }
         return entries;
     }
