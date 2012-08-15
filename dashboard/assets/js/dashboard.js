@@ -81,7 +81,7 @@ function showid(id, ignorecls, ignore){
     $('#panel-list > li > a[href='+id+']').addClass('selected');
     $('.flashmsg:not(#tip-trayicon), .overlay').fadeOut().removeClass('selected');
   }
-  lionbarsify($el.find('.lionbars'));
+  //lionbarsify($el.find('.lionbars'));
 }
 
 function LDCtrl(){
