@@ -313,8 +313,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         log.info("Dispatching request");
         if (request.getMethod() == HttpMethod.CONNECT) {
             try {
-                if (LanternHub.settings().isUseAnonymousPeers() && 
-                    LanternHub.getProxyProvider().getAnonymousPeerProxyManager().processRequest(
+                //if (LanternHub.settings().isUseAnonymousPeers() && 
+                //    LanternHub.getProxyProvider().getAnonymousPeerProxyManager().processRequest(
+                if (LanternHub.settings().isUseTrustedPeers() && 
+                    LanternHub.getProxyProvider().getTrustedPeerProxyManager().processRequest(
                         browserToProxyChannel, ctx, me) != null) {
                     log.info("Processed CONNECT on peer...returning");
                     return null;
