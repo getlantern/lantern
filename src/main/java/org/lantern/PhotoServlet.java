@@ -1,6 +1,7 @@
 package org.lantern;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
@@ -14,6 +15,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.httpclient.HttpStatus;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jivesoftware.smack.XMPPConnection;
@@ -44,10 +46,12 @@ public final class PhotoServlet extends HttpServlet {
     private static final long serialVersionUID = -8442913539662036158L;
     
     private final Map<String, VCard> cache = new HashMap<String, VCard>();
+    
+    private final byte[] noImage = loadNoImage();
 
     @Override
     protected void doGet(final HttpServletRequest req, 
-        final HttpServletResponse resp) throws ServletException, 
+        final HttpServletResponse resp) throws ServletException,
         IOException {
         log.debug("Got photo request: "+req.getRequestURI());
         final String email = req.getParameter("email");
@@ -55,7 +59,7 @@ public final class PhotoServlet extends HttpServlet {
             sendError(resp, HttpStatus.SC_BAD_REQUEST, "email required");
             return;
         }
-        final byte[] raw;
+        byte[] raw = null;
         if (cache.containsKey(email)) {
             raw = cache.get(email).getAvatar();
         } else {
@@ -65,9 +69,7 @@ public final class PhotoServlet extends HttpServlet {
                 raw = vcard.getAvatar();
                 cache.put(email, vcard);
             } catch (final XMPPException e) {
-                log.warn("Exception accessing vcard for "+email, e);
-                sendError(resp, HttpStatus.SC_SERVICE_UNAVAILABLE, "XMPP error");
-                return;
+                log.info("Exception accessing vcard for "+email, e);
             } catch (final CredentialException e) {
                 sendError(resp, HttpStatus.SC_UNAUTHORIZED, 
                     "Could not authorize Google Talk connection");
@@ -75,28 +77,48 @@ public final class PhotoServlet extends HttpServlet {
             }
         }
         
+        final byte[] imageData;
         if (raw == null) {
-            // The user has no profile pic. Return 404;
-            sendError(resp, HttpStatus.SC_NOT_FOUND, "No profile image");
-            return;
-        } 
-        final MimeUtil2 mimeUtil = new MimeUtil2();
-        mimeUtil.registerMimeDetector(
-            "eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
-        final InputStream is = new ByteArrayInputStream(raw);
-        
-        final Collection<MimeType> types = mimeUtil.getMimeTypes(is);
-        if (types != null && !types.isEmpty()) {
-            resp.setContentType(types.iterator().next().toString());
+            imageData = noImage;
+        } else {
+            imageData = raw;
+            final MimeUtil2 mimeUtil = new MimeUtil2();
+            mimeUtil.registerMimeDetector(
+                "eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
+            final Collection<MimeType> types = mimeUtil.getMimeTypes(imageData);
+            if (types != null && !types.isEmpty()) {
+                resp.setContentType(types.iterator().next().toString());
+            }
         }
         
         resp.addHeader(HttpHeaders.Names.CACHE_CONTROL, 
             "max-age=" + CACHE_DURATION_IN_SECOND);
-        resp.setContentLength(raw.length);
+        resp.setContentLength(imageData.length);
         resp.setDateHeader(HttpHeaders.Names.EXPIRES, 
             System.currentTimeMillis() + CACHE_DURATION_IN_MS);
-        resp.getOutputStream().write(raw);
+        resp.getOutputStream().write(imageData);
         resp.getOutputStream().close();
+    }
+
+    private byte[] loadNoImage() {
+        final File none;
+        final File installed = new File("default-profile-image.png");
+        if (installed.isFile()) {
+            none = installed;
+        } else {
+            none = new File("install/common/default-profile-image.png");
+        }
+        
+        InputStream is = null;
+        try {
+            is = new FileInputStream(none);
+            return IOUtils.toByteArray(is);
+        } catch (final IOException e) {
+            log.error("No default profile image?", e);
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+        return new byte[0];
     }
 
     private XMPPConnection establishConnection() throws CredentialException, 
