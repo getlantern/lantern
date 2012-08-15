@@ -88,8 +88,8 @@ class MockProxyConnection extends MockConnection {
             }
 
             // explosions...
-            //@Override
-            //public PeerProxyManager getAnonymousPeerProxyManager() {throw new IllegalStateException();}
+            @Override
+            public PeerProxyManager getAnonymousPeerProxyManager() {throw new IllegalStateException();}
             @Override
             public InetSocketAddress getLaeProxy() {throw new IllegalStateException();}
         };

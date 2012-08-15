@@ -712,6 +712,8 @@ public class DefaultXmppHandler implements XmppHandler {
                     final String email = XmppUtils.jidToUser(msg.getFrom());
                     if (this.roster.isFullyOnRoster(email)) {
                         LanternHub.trustedPeerProxyManager().onPeer(uri);
+                    } else {
+                        LanternHub.anonymousPeerProxyManager().onPeer(uri);
                     }
                     /*
                     if (LanternHub.getTrustedContactsManager().isTrusted(msg)) {
@@ -939,12 +941,11 @@ public class DefaultXmppHandler implements XmppHandler {
         return getProxy(this.proxies);
     }
     
-    /*
     @Override
     public PeerProxyManager getAnonymousPeerProxyManager() {
         return LanternHub.anonymousPeerProxyManager();
     }
-    */
+    
     
     @Override
     public PeerProxyManager getTrustedPeerProxyManager() {

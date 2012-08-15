@@ -124,7 +124,7 @@ public class LanternHub {
     static {
         // start with an UNSET settings object until loaded
         settings.set(new Settings());
-        _postSettingsState();
+        postSettingsState();
         
         if (!LanternConstants.ON_APP_ENGINE) {
             // if they were successfully loaded, save the most current state when exiting.
@@ -260,7 +260,7 @@ public class LanternHub {
             return trustedPeerProxyManager.get();
         }
     }
-
+    
     private static void resetTrustedPeerProxyManager() {
         // Close all existing p2p connections.
         if (trustedPeerProxyManager.get() != null) {
@@ -271,7 +271,6 @@ public class LanternHub {
         trustedPeerProxyManager.set(eppl);
     }
     
-    /*
     public static PeerProxyManager anonymousPeerProxyManager() {
         synchronized (anonymousPeerProxyManager) {
             if (anonymousPeerProxyManager.get() == null) {
@@ -282,7 +281,6 @@ public class LanternHub {
             return anonymousPeerProxyManager.get();
         }
     }
-    */
 
     public static SecureRandom secureRandom() {
         return secureRandom.get();
@@ -424,10 +422,10 @@ public class LanternHub {
             }
         }
         
-        _postSettingsState();
+        postSettingsState();
     }
    
-    private static void _postSettingsState() {
+    private static void postSettingsState() {
         asyncEventBus().post(new SettingsStateEvent(settings().getSettings()));
     }
     
@@ -470,26 +468,10 @@ public class LanternHub {
         asyncEventBus().register(toRegister);
         eventBus().register(toRegister);
     }
-
-    /*
-    public static Roster roster() {
-        return roster.get();
-    }
-    
-    public static void setRoster(final Roster rost) {
-        roster.set(rost);
-    }
-    */
     
     public static Configurator configurator() {
         return configurator;
     }
-    
-    /*
-    protected static void _resetRoster() {
-        setRoster(new Roster());
-    }
-    */
 
     public static HttpsEverywhere httpsEverywhere() {
         synchronized (httpsEverywhere) {

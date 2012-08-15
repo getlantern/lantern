@@ -9,6 +9,7 @@ import javax.net.SocketFactory;
 import javax.net.ssl.SSLContext;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -296,8 +297,13 @@ class TestingUtils {
 
     public static Set<Cookie> extractSetCookies(HttpResponse res) {
         if (res.containsHeader(HttpHeaders.Names.SET_COOKIE)) {
-            final String header = res.getHeader(HttpHeaders.Names.SET_COOKIE);
-            return new CookieDecoder().decode(header);
+            final List<String> headers = res.getHeaders(HttpHeaders.Names.SET_COOKIE);
+            
+            final Set<Cookie> cookies = new HashSet<Cookie>();
+            for (final String header : headers) {
+                cookies.addAll(new CookieDecoder().decode(header));
+            }
+            return cookies;
         }
         else {
             return new HashSet<Cookie>();
