@@ -132,7 +132,7 @@ public class Roster implements RosterListener {
 
     @Override
     public void entriesAdded(final Collection<String> entries) {
-        log.debug("Adding entries: {} for roster: {}", entries, this);
+        log.debug("Adding {} entries to roster", entries.size());
         for (final String entry : entries) {
             addEntry(new LanternRosterEntry(entry));
         }
