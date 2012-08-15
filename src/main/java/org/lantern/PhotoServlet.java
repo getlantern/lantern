@@ -35,7 +35,7 @@ public final class PhotoServlet extends HttpServlet {
     
     private XMPPConnection conn;
     
-    private final int CACHE_DURATION_IN_SECOND = 60 * 60 * 24; // 2 days
+    private final int CACHE_DURATION_IN_SECOND = 60 * 60 * 24; 
     private final long CACHE_DURATION_IN_MS = CACHE_DURATION_IN_SECOND  * 1000;
     
     /**
