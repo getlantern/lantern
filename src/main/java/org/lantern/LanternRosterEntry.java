@@ -38,6 +38,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     private final String aliasFor;
     
     private final String inv;
+    private final int sortKey;
 
     public LanternRosterEntry(final Presence pres) {
         this(pres.isAvailable(), false, pres.getFrom(), 
@@ -86,15 +87,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         this.autosub = autosub;
         this.aliasFor = aliasFor == null ? "" : aliasFor;
         this.inv = inv == null ? "" : inv;
-    }
-
-    private static String extractName(final RosterEntry entry) {
-        final String entryName  = entry.getName();
-        if (StringUtils.isBlank(entryName)) {
-            return "";
-        } else {
-            return entryName;
-        }
+        this.sortKey = this.emc + this.mc + this.w;
     }
 
     private static boolean extractTrusted(final String email) {
@@ -217,9 +210,12 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         return subscriptionStatus;
     }
 
-
     public void setSubscriptionStatus(String subscriptionStatus) {
         this.subscriptionStatus = subscriptionStatus;
+    }
+    
+    public int getSortKey() {
+        return sortKey;
     }
     
     @Override
@@ -257,8 +253,8 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     
     @Override
     public int compareTo(final LanternRosterEntry lre) {
-        final Integer score1 = this.emc + this.mc + this.w;
-        final Integer score2 = lre.getEmc() + lre.getMc() + lre.getW();
+        final Integer score1 = this.sortKey;
+        final Integer score2 = lre.getSortKey();
         final int scores = score1.compareTo(score2);
         
         // If they have the same scores, compare by their e-mails. Otherwise
