@@ -345,13 +345,13 @@ public class Launcher {
             // Note the following just sets what cipher suite the server 
             // side selects. DHE is for perfect forward secrecy.
             
-            // CBC mitigates the BEAST attack. We also include 128 because 
-            // we never have enough permissions to copy the unlimited  
-            // strength policy files on Vista, so we have to revert back
-            // to 128.
+            // We include 128 because we never have enough permissions to 
+            // copy the unlimited strength policy files on Vista, so we have 
+            // to revert back to 128.
             IceConfig.setCipherSuites(new String[] {
-                "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
+                //"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+                //"TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
+                "TLS_RSA_WITH_RC4_128_SHA"
             });
         }
     }
