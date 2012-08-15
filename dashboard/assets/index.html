@@ -430,7 +430,7 @@
               </span>
               <span ng:show=!peerfilterinput class=disabled>No available contacts</span>
             </li>
-            <li class=peertile ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter).$orderBy(peerorder)">
+            <li class=peertile ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter)">
               <span ng:class="invited(peer.email) && 'invited' || 'not-invited'">
                 <img ng:src="/photo?email={{ peer.email }}" />
                 <div class=name>{{ peer.name }}&nbsp;</div>
