@@ -63,15 +63,16 @@ public class SettingsTest {
         final File temp1 = plist();
         final File temp2 = autostart();
         final File settingsFile = settingsFile();
-        FileUtils.copyFile(LanternConstants.LAUNCHD_PLIST, temp1);
-        FileUtils.copyFile(LanternConstants.GNOME_AUTOSTART, temp2);
+        FileUtils.copyFile(new File("install/osx/org.lantern.plist"), temp1);
+        FileUtils.copyFile(new File("install/linux/lantern-autostart.desktop"), temp2);
         final String cur1 = FileUtils.readFileToString(temp1, "UTF-8");
         final String cur2 = FileUtils.readFileToString(temp2, "UTF-8");
-        assertTrue(cur1.contains("X-GNOME-Autostart-enabled=true") || cur1.contains("X-GNOME-Autostart-enabled=false"));
-        assertTrue(cur2.contains("<true/>") || cur2.contains("<false/>"));
+        assertTrue(cur1.contains("<true/>") || cur1.contains("<false/>"));
+        assertTrue(cur2.contains("X-GNOME-Autostart-enabled=true") || 
+                cur2.contains("X-GNOME-Autostart-enabled=false"));
         final SettingsIo ss = new SettingsIo(settingsFile);
         final DefaultSettingsChangeImplementor implementor = 
-            new DefaultSettingsChangeImplementor(temp1, null);
+            new DefaultSettingsChangeImplementor(temp1, temp2);
         if (cur1.contains("<true/>")) {
             assertFalse(cur1.contains("<false/>"));
             //Configurator.setStartAtLogin(temp, false);
