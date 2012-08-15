@@ -281,7 +281,7 @@ img.plus
   margin: 0 $gap-size 32px $gap-size
 
 #subreq-peerlist
-  +inline-block-list
+  +horizontal-list
   .approve-link, .deny-link
     margin-top: 5px
     display: inline-block
@@ -304,7 +304,7 @@ img.plus
       background: darken($font-color-error, 20%) !important
 
 #invite-peerlist
-  +inline-block-list
+  +horizontal-list
   margin-left: 32px
   &.has-invites
     .not-invited .invite-link
@@ -576,8 +576,7 @@ a.close
   display: block
 
 #siteslist
-  width: 240px
-  min-width: 264px
+  min-width: 280px
   max-height: 491px
   padding-left: 0
   margin: 0
