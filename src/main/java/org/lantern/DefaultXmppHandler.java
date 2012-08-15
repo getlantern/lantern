@@ -709,11 +709,17 @@ public class DefaultXmppHandler implements XmppHandler {
                 // Add the peer if we're able to add the cert.
                 LanternHub.getKeyStoreManager().addBase64Cert(mac, base64Cert);
                 if (LanternHub.settings().isAutoConnectToPeers()) {
+                    final String email = XmppUtils.jidToUser(msg.getFrom());
+                    if (this.roster.isFullyOnRoster(email)) {
+                        LanternHub.trustedPeerProxyManager().onPeer(uri);
+                    }
+                    /*
                     if (LanternHub.getTrustedContactsManager().isTrusted(msg)) {
                         LanternHub.trustedPeerProxyManager().onPeer(uri);
                     } else {
                         LanternHub.anonymousPeerProxyManager().onPeer(uri);
                     }
+                    */
                 }
             } catch (final IOException e) {
                 LOG.error("Could not add cert??", e);
@@ -901,11 +907,11 @@ public class DefaultXmppHandler implements XmppHandler {
         // changed 
         removePeerUri(uri);
         removeAnonymousPeerUri(uri);
-        if (LanternHub.getTrustedContactsManager().isJidTrusted(uri.toASCIIString())) {
+        //if (LanternHub.getTrustedContactsManager().isJidTrusted(uri.toASCIIString())) {
             LanternHub.trustedPeerProxyManager().removePeer(uri);
-        } else {
-            LanternHub.anonymousPeerProxyManager().removePeer(uri);
-        }
+        //} else {
+        //    LanternHub.anonymousPeerProxyManager().removePeer(uri);
+        //}
     }
     
     private void removePeerUri(final URI peerUri) {
@@ -933,10 +939,12 @@ public class DefaultXmppHandler implements XmppHandler {
         return getProxy(this.proxies);
     }
     
+    /*
     @Override
     public PeerProxyManager getAnonymousPeerProxyManager() {
         return LanternHub.anonymousPeerProxyManager();
     }
+    */
     
     @Override
     public PeerProxyManager getTrustedPeerProxyManager() {

@@ -271,6 +271,7 @@ public class LanternHub {
         trustedPeerProxyManager.set(eppl);
     }
     
+    /*
     public static PeerProxyManager anonymousPeerProxyManager() {
         synchronized (anonymousPeerProxyManager) {
             if (anonymousPeerProxyManager.get() == null) {
@@ -281,6 +282,7 @@ public class LanternHub {
             return anonymousPeerProxyManager.get();
         }
     }
+    */
 
     public static SecureRandom secureRandom() {
         return secureRandom.get();

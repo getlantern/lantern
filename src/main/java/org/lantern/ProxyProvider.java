@@ -9,7 +9,7 @@ public interface ProxyProvider {
 
     InetSocketAddress getLaeProxy();
 
-    PeerProxyManager getAnonymousPeerProxyManager();
+    //PeerProxyManager getAnonymousPeerProxyManager();
     PeerProxyManager getTrustedPeerProxyManager();
 
     //URI getAnonymousProxy();    

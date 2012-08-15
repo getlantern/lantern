@@ -194,6 +194,30 @@ public class Roster implements RosterListener {
         return "Roster for "+id+" [rosterEntries=" + rosterEntries + "]";
     }
 
+    /**
+     * Returns whether or not the given peer is on the roster with no pending
+     * subscription states.
+     * 
+     * @param email The email of the peer.
+     * @return <code>true</code> if the peer is on the roster with no pending
+     * subscription states, otherwise <code>false</code>.
+     */
+    public boolean isFullyOnRoster(final String email) {
+        final LanternRosterEntry entry = this.rosterEntries.get(email);
+        if (entry == null) {
+            return false;
+        }
+        final String subscriptionStatus = entry.getSubscriptionStatus();
+        
+        // If we're not still trying to subscribe or unsubscribe to this node,
+        // then it is a legitimate entry.
+        if (StringUtils.isBlank(subscriptionStatus)) {
+            return true;
+        } 
+        
+        return false;
+    }
+    
     public boolean autoAcceptSubscription(final String from) {
         final LanternRosterEntry entry = this.rosterEntries.get(from);
         if (entry == null) {
