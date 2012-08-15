@@ -414,7 +414,7 @@
           </div>
           <div id=ninvites-search-row>
             <h2 class=invites-remaining id=ninvites>{{ state.invites }} invite{{ state.invites != 1 && 's' || '' }} remaining</h2>
-            <input class=searchpeers type=search ng:model=peerfilterinput placeholder="Enter name or email" results=0 incremental autosave/>
+            <input ng:show="state.invites > 0 || (peers && peers.length)" class=searchpeers type=search ng:model=peerfilterinput placeholder="Enter name or email" results=0 incremental autosave/>
           </div>
           <div id=more-invites class=smallnote ng:show="state.invites == 0">More invites will be rolled out soon.</div>
           <ul id=invite-peerlist ng:class="[state.invites > 0 && 'has-invites' || 'no-invites', 'unpopulated']">
