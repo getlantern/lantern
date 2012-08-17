@@ -89,7 +89,7 @@ public class JettyLauncher {
         connector.setLowResourcesMaxIdleTime(60000);
         connector.setLowResourcesConnections(20000);
         connector.setAcceptQueueSize(5000);
-        connector.setThreadPool(new QueuedThreadPool(20));
+        //connector.setThreadPool(new QueuedThreadPool(20));
         
         if (LanternHub.settings().isBindToLocalhost()) {
             // TODO: Make sure this works on Linux!!

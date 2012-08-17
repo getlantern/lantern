@@ -80,8 +80,8 @@ public class Dashboard {
             // We still sleep quickly here just in case there's anything
             // asynchronous under the hood.
             try {
-                log.debug("Sleeping for 400 ms...");
-                Thread.sleep(400);
+                log.debug("Sleeping for browser...");
+                Thread.sleep(100);
                 log.debug("Waking");
             } catch (InterruptedException e1) {
             }
