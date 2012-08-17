@@ -1,6 +1,7 @@
 package org.lantern;
 
 import java.io.IOException;
+import java.lang.management.ManagementFactory;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
@@ -17,6 +18,12 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.management.InstanceAlreadyExistsException;
+import javax.management.MBeanRegistrationException;
+import javax.management.MBeanServer;
+import javax.management.MalformedObjectNameException;
+import javax.management.NotCompliantMBeanException;
+import javax.management.ObjectName;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.codec.binary.Base64;
@@ -1177,5 +1184,29 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public String getLastPass() {
         return lastPass;
+    }
+    
+    
+    private void setupJmx() {
+        final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
+        try {
+            final Class<? extends Object> clazz = getClass();
+            final String pack = clazz.getPackage().getName();
+            final String oName =
+                pack+":type="+clazz.getSimpleName()+"-"+clazz.getSimpleName();
+            LOG.info("Registering MBean with name: {}", oName);
+            final ObjectName mxBeanName = new ObjectName(oName);
+            if(!mbs.isRegistered(mxBeanName)) {
+                mbs.registerMBean(this, mxBeanName);
+            }
+        } catch (final MalformedObjectNameException e) {
+            LOG.error("Could not set up JMX", e);
+        } catch (final InstanceAlreadyExistsException e) {
+            LOG.error("Could not set up JMX", e);
+        } catch (final MBeanRegistrationException e) {
+            LOG.error("Could not set up JMX", e);
+        } catch (final NotCompliantMBeanException e) {
+            LOG.error("Could not set up JMX", e);
+        }
     }
 }
