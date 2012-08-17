@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Map;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -190,6 +191,7 @@ public class SystemTrayImpl implements SystemTray {
         final File iconFile;
         final File iconCandidate1 = new File("install/common/"+name);
         if (iconCandidate1.isFile()) {
+            log.debug("Using install dir icon");
             iconFile = iconCandidate1;
         } else {
             iconFile = new File(name);
@@ -203,7 +205,9 @@ public class SystemTrayImpl implements SystemTray {
             return new Image (display, is);
         } catch (final FileNotFoundException e) {
             log.error("Could not find icon file: "+iconFile, e);
-        } 
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
         return new Image (display, width, height);
     }
 
