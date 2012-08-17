@@ -13,6 +13,7 @@ import java.net.SocketAddress;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
+import java.security.Security;
 import java.security.cert.PKIXParameters;
 import java.security.cert.TrustAnchor;
 import java.security.cert.X509Certificate;
@@ -31,6 +32,7 @@ import javax.swing.JOptionPane;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
@@ -102,10 +104,12 @@ public class LanternUtilsTest {
     
     @Test
     public void testSSL() throws Exception {
+        Security.addProvider(new BouncyCastleProvider());
         IceConfig.setCipherSuites(new String[] {
-            "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+            //"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
             //"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-            //"SSL_RSA_WITH_RC4_128_SHA"
+            //"SSL_RSA_WITH_RC4_128_SHA",
+                "TLS_ECDHE_RSA_WITH_RC4_128_SHA"
         });
         //System.setProperty("javax.net.debug", "ssl:record");
         //System.setProperty("javax.net.debug", "ssl:handshake");
