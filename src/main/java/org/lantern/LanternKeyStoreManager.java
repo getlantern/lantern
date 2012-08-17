@@ -114,8 +114,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             TRUSTSTORE_FILE.delete();
         }
     
-        // Note we use DSA instead of RSA because apparently only the JDK 
-        // has RSA available.
         final String genKeyResult = LanternUtils.runKeytool("-genkey", "-alias", 
             macAddress, "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG, 
             "-dname", "CN="+macAddress, "-keypass", PASS, "-storepass", 

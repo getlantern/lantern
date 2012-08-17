@@ -7,6 +7,7 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
+import java.security.Security;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -28,6 +29,7 @@ import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
 import org.apache.log4j.spi.LoggingEvent;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.widgets.Display;
 import org.jboss.netty.handler.codec.http.Cookie;
@@ -333,13 +335,15 @@ public class Launcher {
     }
 
     private static void configureCipherSuites() {
+        Security.addProvider(new BouncyCastleProvider());
         if (!LanternUtils.isUnlimitedKeyStrength()) {
             if (!SystemUtils.IS_OS_WINDOWS_VISTA) {
                 LOG.error("No policy files on non-Vista machine!!");
             }
             LOG.info("Reverting to weaker ciphers on Vista");
             IceConfig.setCipherSuites(new String[] {
-                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
+                //"TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
+                "TLS_ECDHE_RSA_WITH_RC4_128_SHA"
             });
         } else {
             // Note the following just sets what cipher suite the server 
