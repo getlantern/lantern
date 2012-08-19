@@ -6,7 +6,8 @@ function die() {
 
 mvn --version || die "Please install maven from http://maven.apache.org" 
 
-SWT_VERSION=3.7.2
+#SWT_VERSION=3.7.2
+SWT_VERSION=4.2
 JNA_VERSION=3.4.1
 #pushd ..
 mvn install:install-file -DgroupId=net.java.dev.jna -DartifactId=jna -Dversion=$JNA_VERSION -Dpackaging=jar -Dfile=lib/jna-$JNA_VERSION.jar -DgeneratePom=true
