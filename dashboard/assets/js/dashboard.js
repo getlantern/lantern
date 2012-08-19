@@ -38,6 +38,39 @@ var EMAILPAT = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@
 var BYTEDIM = {GB: 1024*1024*1024, MB: 1024*1024, KB: 1024, B: 1};
 var BYTESTR = {GB: 'gigabyte', MB: 'megabyte', KB: 'kilobyte', B: 'byte'};
 
+/**
+ * Alternative call directly from SWT to load the roster.
+ */
+function loadRoster() {
+  var s = getscope();
+  s.fetchpeers();
+}
+
+/**
+ * Alternative call directly from SWT to load the state document.
+ */
+function loadSettings() {
+  console.log("Loading settings!!");
+  var s = getscope();
+  $.post('/api/state').done(function(state){
+    console.log('got state doc');
+    s.update(state);
+  }).fail(function(jqXHR, textStatus){
+    var code = jqXHR.status;
+    switch(code){
+    case 401:
+    break;
+    case 500:
+    break;
+    default:
+    console.log('unexpected state sync return code:', code);
+    }
+    console.log('state sync failed');
+  }).always(function() {
+    s.$digest();
+  });
+}
+
 var FRAGMENTPAT = /^[^#]*(#.*)$/;
 function clickevt2id(evt){
   return evt.currentTarget.href.match(FRAGMENTPAT)[1];

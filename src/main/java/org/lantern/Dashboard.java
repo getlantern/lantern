@@ -132,8 +132,8 @@ public class Dashboard {
                 
                 // We need to sync the settings before the roster to correctly
                 // set everything in the state document.
-                settingsSync();
-                rosterSync();
+                //settingsSync();
+                //rosterSync();
                 /*
                 log.debug("Pending calls: {}", pendingCalls);
                 for (final String call : pendingCalls) {
