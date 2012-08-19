@@ -5,7 +5,6 @@ import java.util.TimerTask;
 
 import org.cometd.bayeux.Channel;
 import org.cometd.bayeux.Message;
-import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.cometd.bayeux.server.ServerSession;
 import org.cometd.java.annotation.Configure;
@@ -28,12 +27,13 @@ public class SyncService {
     @Session
     private ServerSession session;
     
-    private volatile long lastUpdateTime = System.currentTimeMillis();
+    private final SyncStrategy strategy;
     
     /**
      * Creates a new sync service.
      */
-    public SyncService() {
+    public SyncService(final SyncStrategy strategy) {
+        this.strategy = strategy;
         // Make sure the config class is added as a listener before this class.
         LanternHub.register(this);
         
@@ -97,15 +97,11 @@ public class SyncService {
     }
     
     private void rosterSync() {
-        sync(false, ROSTER_SYNC_CHANNEL);
+        sync(false, LanternConstants.ROSTER_SYNC_CHANNEL);
     }
-
-    private static final String SETTINGS_SYNC_CHANNEL = "/sync/settings";
-    
-    private static final String ROSTER_SYNC_CHANNEL = "/sync/roster";
     
     private void sync(final boolean force) {
-        sync(force, SETTINGS_SYNC_CHANNEL);
+        sync(force, LanternConstants.SETTINGS_SYNC_CHANNEL);
     }
     
     private void sync() {
@@ -114,33 +110,6 @@ public class SyncService {
     
     private void sync(final boolean force, final String channelName) {
         log.debug("In sync method");
-        if (session == null) {
-            log.debug("No session...not syncing");
-            return;
-        }
-        final long elapsed = System.currentTimeMillis() - lastUpdateTime;
-        if (!force && elapsed < 100) {
-            log.debug("Not pushing more than 10 times a second...{} ms elapsed", 
-                elapsed);
-            return;
-        }
-        
-        final ClientSessionChannel channel = 
-            session.getLocalSession().getChannel(channelName);
-        
-        if (channel != null) {
-            final Object syncer;
-            if (channelName.equals(ROSTER_SYNC_CHANNEL)) {
-                log.debug("Syncing roster...");
-                syncer = LanternHub.xmppHandler().getRoster();
-            } else if (channelName.equals(SETTINGS_SYNC_CHANNEL)) {
-                syncer = LanternHub.settings();
-            } else {
-                throw new Error("Bad channel name?");
-            }
-            lastUpdateTime = System.currentTimeMillis();
-            channel.publish(syncer);
-            log.debug("Sync performed");
-        }
+        this.strategy.sync(force, channelName, this.session);
     }
 }

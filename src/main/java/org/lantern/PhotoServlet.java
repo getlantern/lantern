@@ -48,32 +48,40 @@ public final class PhotoServlet extends HttpServlet {
     private final Map<String, VCard> cache = new HashMap<String, VCard>();
     
     private final byte[] noImage = loadNoImage();
+    
+    private final MimeUtil2 mimeUtil = new MimeUtil2();
 
+    public PhotoServlet() {
+        mimeUtil.registerMimeDetector(
+            "eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
+    }
+    
     @Override
     protected void doGet(final HttpServletRequest req, 
         final HttpServletResponse resp) throws ServletException,
         IOException {
         log.debug("Got photo request: "+req.getRequestURI());
         final String email = req.getParameter("email");
-        if (StringUtils.isBlank(email)) {
-            sendError(resp, HttpStatus.SC_BAD_REQUEST, "email required");
-            return;
-        }
         byte[] raw = null;
-        if (cache.containsKey(email)) {
-            raw = cache.get(email).getAvatar();
+        if (StringUtils.isBlank(email)) {
+            //sendError(resp, HttpStatus.SC_BAD_REQUEST, "email required");
+            
         } else {
-            final VCard vcard;
-            try {
-                vcard = XmppUtils.getVCard(establishConnection(), email);
-                raw = vcard.getAvatar();
-                cache.put(email, vcard);
-            } catch (final XMPPException e) {
-                log.info("Exception accessing vcard for "+email, e);
-            } catch (final CredentialException e) {
-                sendError(resp, HttpStatus.SC_UNAUTHORIZED, 
-                    "Could not authorize Google Talk connection");
-                return;
+            if (cache.containsKey(email)) {
+                raw = cache.get(email).getAvatar();
+            } else {
+                final VCard vcard;
+                try {
+                    vcard = XmppUtils.getVCard(establishConnection(), email);
+                    raw = vcard.getAvatar();
+                    cache.put(email, vcard);
+                } catch (final XMPPException e) {
+                    log.info("Exception accessing vcard for "+email, e);
+                } catch (final CredentialException e) {
+                    sendError(resp, HttpStatus.SC_UNAUTHORIZED, 
+                        "Could not authorize Google Talk connection");
+                    return;
+                }
             }
         }
         
@@ -82,20 +90,19 @@ public final class PhotoServlet extends HttpServlet {
             imageData = noImage;
         } else {
             imageData = raw;
-            final MimeUtil2 mimeUtil = new MimeUtil2();
-            mimeUtil.registerMimeDetector(
-                "eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
             final Collection<MimeType> types = mimeUtil.getMimeTypes(imageData);
             if (types != null && !types.isEmpty()) {
-                resp.setContentType(types.iterator().next().toString());
+                final String ct = types.iterator().next().toString();
+                resp.setContentType(ct);
+                log.info("Set content type to {}", ct);
             }
         }
         
-        resp.addHeader(HttpHeaders.Names.CACHE_CONTROL, 
-            "max-age=" + CACHE_DURATION_IN_SECOND);
+        //resp.addHeader(HttpHeaders.Names.CACHE_CONTROL, 
+        //    "max-age=" + CACHE_DURATION_IN_SECOND);
         resp.setContentLength(imageData.length);
-        resp.setDateHeader(HttpHeaders.Names.EXPIRES, 
-            System.currentTimeMillis() + CACHE_DURATION_IN_MS);
+        //resp.setDateHeader(HttpHeaders.Names.EXPIRES, 
+        //    System.currentTimeMillis() + CACHE_DURATION_IN_MS);
         resp.getOutputStream().write(imageData);
         //resp.getOutputStream().close();
     }
