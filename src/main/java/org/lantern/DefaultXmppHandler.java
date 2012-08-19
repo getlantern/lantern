@@ -147,6 +147,7 @@ public class DefaultXmppHandler implements XmppHandler {
         LanternUtils.configureXmpp();
         prepopulateProxies();
         LanternHub.register(this);
+        //setupJmx();
     }
     
     @Subscribe

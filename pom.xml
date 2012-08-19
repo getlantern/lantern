@@ -82,11 +82,13 @@
          <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
+            <!--<version>8.1.5.v20120716</version>-->
             <version>7.6.0.RC5</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
+            <!--<version>8.1.5.v20120716</version>-->
             <version>7.6.0.RC5</version>
 <!--
             <exclusions>

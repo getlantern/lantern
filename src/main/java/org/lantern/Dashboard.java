@@ -3,6 +3,8 @@ package org.lantern;
 import java.io.File;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang.SystemUtils;
@@ -11,10 +13,13 @@ import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.browser.LocationEvent;
 import org.eclipse.swt.browser.LocationListener;
 import org.eclipse.swt.browser.OpenWindowListener;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.browser.WindowEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
@@ -31,12 +36,20 @@ public class Dashboard {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     private Shell shell;
+    private Browser browser;
+    private boolean completed;
 
+    /**
+     * The display is pulled out into a separate instance variable because
+     * the readAndDispatch method is called extremely frequently.
+     */
+    private final Display display = LanternHub.display();
+    
     /**
      * Opens the browser.
      */
     public void openBrowser() {
-        LanternHub.display().syncExec(new Runnable() {
+        display.syncExec(new Runnable() {
             @Override
             public void run() {
                 buildBrowser();
@@ -62,21 +75,6 @@ public class Dashboard {
             Registry.write(key, "eclipse.exe", 8000);
             Registry.write(key, "lantern.exe", 8000);
             
-            /*
-            try {
-                Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, key, 
-                    "java.exe", 8000);
-                Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, key, 
-                    "javaw.exe", 8000);
-                Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, key, 
-                    "eclipse.exe", 8000);
-                Advapi32Util.registrySetIntValue(WinReg.HKEY_CURRENT_USER, key, 
-                    "lantern.exe", 8000);
-            } catch (final Win32Exception e) {
-                log.error("Cannot write to registry", e);
-            }
-            */
-            
             // We still sleep quickly here just in case there's anything
             // asynchronous under the hood.
             try {
@@ -90,7 +88,7 @@ public class Dashboard {
             this.shell.forceActive();
             return;
         }
-        this.shell = new Shell(LanternHub.display());
+        this.shell = new Shell(display);
         final Image small = newImage("16on.png");
         final Image medium = newImage("32on.png");
         final Image large = newImage("128on.png");
@@ -105,7 +103,7 @@ public class Dashboard {
         final int minHeight = 630;
 
         log.debug("Centering on screen...");
-        final Monitor primary = LanternHub.display().getPrimaryMonitor();
+        final Monitor primary = display.getPrimaryMonitor();
         final Rectangle bounds = primary.getBounds();
         final Rectangle rect = shell.getBounds();
 
@@ -121,7 +119,34 @@ public class Dashboard {
         } else {
             browserType = SWT.NONE;
         }
-        final Browser browser = new Browser(shell, browserType);
+        this.browser = new Browser(shell, browserType);
+        this.browser.addProgressListener(new ProgressListener() {
+            
+            @Override
+            public void completed(final ProgressEvent pe) {
+                if (completed) {
+                    log.debug("Ignoring multiple completed calls");
+                    return;
+                }
+                completed = true;
+                
+                // We need to sync the settings before the roster to correctly
+                // set everything in the state document.
+                settingsSync();
+                rosterSync();
+                /*
+                log.debug("Pending calls: {}", pendingCalls);
+                for (final String call : pendingCalls) {
+                    evaluate(call);
+                }
+                */
+            }
+            
+            @Override
+            public void changed(final ProgressEvent pe) {
+                
+            }
+        });
         log.debug("Running browser: {}", browser.getBrowserType());
         browser.setSize(minWidth, minHeight);
         //browser.setBounds(0, 0, 800, 600);
@@ -153,7 +178,7 @@ public class Dashboard {
         // create a hidden browser to intercept external
         // location references that should be opened
         // in the system's native browser.
-        Shell hiddenShell = new Shell(LanternHub.display());
+        Shell hiddenShell = new Shell(display);
         final Browser externalBrowser = new Browser(hiddenShell, SWT.NONE);
 
         externalBrowser.addLocationListener(new LocationListener() {
@@ -207,7 +232,7 @@ public class Dashboard {
                         messageBox.setMessage (msg);
                         event.doit = messageBox.open () == SWT.YES;
                         if (event.doit) {
-                            LanternHub.display().dispose();
+                            display.dispose();
                             System.exit(0);
                         }
                     }
@@ -224,7 +249,7 @@ public class Dashboard {
                         messageBox.setMessage (msg);
                         event.doit = messageBox.open () == SWT.YES;
                         if (event.doit) {
-                            LanternHub.display().dispose();
+                            display.dispose();
                             System.exit(0);
                         }
                     }
@@ -237,7 +262,7 @@ public class Dashboard {
                     messageBox.setMessage (msg);
                     event.doit = messageBox.open () == SWT.YES;
                     if (event.doit) {
-                        LanternHub.display().dispose();
+                        display.dispose();
                         System.exit(0);
                     }
                 }
@@ -250,8 +275,8 @@ public class Dashboard {
         shell.open();
         shell.forceActive();
         while (!shell.isDisposed()) {
-            if (!LanternHub.display().readAndDispatch())
-                LanternHub.display().sleep();
+            if (!display.readAndDispatch())
+                display.sleep();
         }
         hiddenShell.dispose();
     }
@@ -265,11 +290,12 @@ public class Dashboard {
             final File path2 = new File("install/common", path);
             toUse = path2.getAbsolutePath();
         }
-        return new Image(LanternHub.display(), toUse);
+        return new Image(display, toUse);
     }
     
     
-    static final int DEFAULT_QUESTION_FLAGS = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
+    private static final int DEFAULT_QUESTION_FLAGS = 
+        SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
     
     /**
      * Shows a message to the user using a dialog box;
@@ -302,7 +328,7 @@ public class Dashboard {
             return -1;
         }
         final AtomicInteger response = new AtomicInteger();
-        LanternHub.display().syncExec(new Runnable() {
+        display.syncExec(new Runnable() {
             @Override
             public void run() {
                 response.set(askQuestionOnThread(title, question, style));
@@ -315,11 +341,42 @@ public class Dashboard {
     protected int askQuestionOnThread(final String title, 
         final String question, final int style) {
         log.info("Creating display...");
-        final Shell boxShell = new Shell(LanternHub.display());
+        final Shell boxShell = new Shell(display);
         log.info("Created display...");
         final MessageBox messageBox = new MessageBox (boxShell, style);
         messageBox.setText(title);
         messageBox.setMessage(question);
         return messageBox.open();
+    }
+    
+    public void rosterSync() {
+        log.debug("Syncing roster");
+        evaluate("loadRoster();");
+    }
+
+    public void settingsSync() {
+        log.debug("Syncing state");
+        evaluate("loadSettings();");
+    }
+    
+
+    private final Collection<String> pendingCalls = new LinkedHashSet<String>();
+    
+    private void evaluate(final String call) {
+        if (!this.completed) {
+            log.debug("Got sync before browser has completed loading");
+            pendingCalls.add(call);
+            return;
+        }
+        if (shell.isDisposed()) {
+            log.debug("Ignoring call on disposed shell.");
+            return;
+        }
+        display.syncExec(new Runnable() {
+            @Override
+            public void run() {
+                browser.evaluate(call);
+            } 
+        });
     }
 }
