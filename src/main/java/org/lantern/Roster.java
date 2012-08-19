@@ -57,6 +57,7 @@ public class Roster implements RosterListener {
                 roster.addRosterListener(Roster.this);
                 final Collection<RosterEntry> unordered = roster.getEntries();
                 
+                log.debug("Got roster entries!!");
                 final Map<String, LanternRosterEntry> entries = 
                     LanternUtils.getRosterEntries(unordered);
                 rosterEntries = entries;
@@ -70,6 +71,8 @@ public class Roster implements RosterListener {
                     }
                 }
                 populated = true;
+                log.debug("Finished populating roster");
+                LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
             }
         };
         final Thread t = new Thread(r, "Roster-Populating-Thread");

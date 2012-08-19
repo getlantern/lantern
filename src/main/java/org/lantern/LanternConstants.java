@@ -115,6 +115,11 @@ public class LanternConstants {
     
     public static final File DEFAULT_SETTINGS_FILE = 
         new File(CONFIG_DIR, "settings.json");
+    
+
+    public static final String SETTINGS_SYNC_CHANNEL = "/sync/settings";
+    
+    public static final String ROSTER_SYNC_CHANNEL = "/sync/roster";
 
     /**
      * Note that we don't include the "X-" for experimental headers here. See:

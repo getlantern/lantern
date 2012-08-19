@@ -28,7 +28,7 @@ public class BayeuxInitializer extends GenericServlet {
         //bayeux.addExtension(new AcknowledgedMessagesExtension());
         final ServerAnnotationProcessor processor = 
             new ServerAnnotationProcessor(bayeux);
-        processor.process(new SyncService());
+        processor.process(new SyncService(new CometDSyncStrategy()));
     }
 
     @Override

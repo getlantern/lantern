@@ -46,7 +46,8 @@ public class DefaultLanternApi implements LanternApi {
         ERROR,
         INVITE,
         SUBSCRIBED,
-        UNSUBSCRIBED
+        UNSUBSCRIBED,
+        STATE
     }
 
     @Override
@@ -119,7 +120,16 @@ public class DefaultLanternApi implements LanternApi {
         case UNSUBSCRIBED:
             handleUnsubscribed(req, resp);
             break;
+        case STATE:
+            handleState(req, resp);
+            break;
         }
+    }
+    
+    private void handleState(final HttpServletRequest req,
+        final HttpServletResponse resp) {
+        log.debug("Got state request");
+        returnSettings(resp);
     }
 
     private void handleSubscribed(final HttpServletRequest req,
