@@ -298,17 +298,17 @@ public class Proxifier {
             LOG.info("Not running on Windows");
             return;
         }
-        
+        /*
         final String url = 
             ACTIVE_PAC.toURI().toASCIIString().replace("file:/", "file://");
         LOG.info("Using pac path: {}", url);
         
         WIN_PROXY.setPacFile(url);
+        */
         
-        /*
         // We first want to read the start values so we can return the
         // registry to the original state when we shut down.
-        final String curProxy = proxy.getProxy();
+        final String curProxy = WIN_PROXY.getProxy();
         final String proxyServerUs = "127.0.0.1:"+
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
 
@@ -329,37 +329,37 @@ public class Proxifier {
                 
         LOG.info("Setting registry to use Lantern as a proxy...");
         
-        if (proxy.proxy(proxyServerUs)) {
+        if (WIN_PROXY.proxy(proxyServerUs)) {
             LOG.info("Successfully reset proxy server");
         } else {
             LOG.warn("Error setting the proxy server?");
         }
-        */
+        
     }
 
     protected static void unproxyWindows() {
         //LOG.info("Resetting Windows registry settings to original values.");
         LOG.info("Unproxying windows");
-        WIN_PROXY.noPacFile();
+        //WIN_PROXY.noPacFile();
         
-        /*
+        
         // On shutdown, we need to check if the user has modified the
         // registry since we originally set it. If they have, we want
         // to keep their setting. If not, we want to revert back to 
         // before Lantern started.
-        final String proxyServer = proxy.getProxy();
+        final String proxyServer = WIN_PROXY.getProxy();
         
         if (proxyServer.equals(LANTERN_PROXY_ADDRESS)) {
             LOG.info("Setting proxy server back to: {}", 
                 proxyServerOriginal);
-            if (proxy.proxy(proxyServerOriginal)) {
+            if (WIN_PROXY.proxy(proxyServerOriginal)) {
                 LOG.info("Successfully reset proxy server");
             } else {
                 LOG.warn("Error setting the proxy server?");
             }
         }
         LOG.info("Done resetting the Windows registry");
-        */
+        
     }
     
     private static void unproxyLinux() throws ProxyConfigurationError {
