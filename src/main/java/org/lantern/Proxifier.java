@@ -44,6 +44,8 @@ public class Proxifier {
     private static final File PROXY_ON = new File("proxy_on.pac");
     private static final File PROXY_OFF = new File("proxy_off.pac");
     
+    private static final WinProxy WIN_PROXY = new WinProxy(LanternConstants.CONFIG_DIR);
+    
     static {
         final class Subscriber {
             @Subscribe
@@ -122,6 +124,8 @@ public class Proxifier {
         // entries.
         PacFileGenerator.generatePacFile(
             LanternHub.whitelist().getEntriesAsStrings(), PROXY_ON);
+        
+        copyPacFile();
         
         LOG.info("Autoconfiguring local to proxy Lantern");
         if (SystemUtils.IS_OS_MAC_OSX) {
@@ -228,12 +232,6 @@ public class Proxifier {
     }
     
     private static void proxyOsx() throws ProxyConfigurationError {
-        configureOsxProxyPacFile();
-        proxyOsxViaScript();
-    }
-    
-
-    public static void proxyOsxViaScript() throws ProxyConfigurationError {
         proxyOsxViaScript(true);
     }
     
@@ -284,9 +282,9 @@ public class Proxifier {
     }
 
     /**
-     * Uses a pack file to manipulate browser's use of Lantern.
+     * Uses a pac file to manipulate browser's use of Lantern.
      */
-    private static void configureOsxProxyPacFile() {
+    private static void copyPacFile() {
         try {
             FileUtils.copyFile(PROXY_ON, ACTIVE_PAC);
         } catch (final IOException e) {
@@ -301,11 +299,15 @@ public class Proxifier {
             return;
         }
         
-        final WinProxy proxy = new WinProxy(LanternConstants.CONFIG_DIR);
+        final String url = 
+            ACTIVE_PAC.toURI().toASCIIString().replace("file:/", "file://");
+        LOG.info("Using pac path: {}", url);
         
+        WIN_PROXY.setPacFile(url);
+        
+        /*
         // We first want to read the start values so we can return the
         // registry to the original state when we shut down.
-
         final String curProxy = proxy.getProxy();
         final String proxyServerUs = "127.0.0.1:"+
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
@@ -332,12 +334,15 @@ public class Proxifier {
         } else {
             LOG.warn("Error setting the proxy server?");
         }
+        */
     }
 
     protected static void unproxyWindows() {
-        LOG.info("Resetting Windows registry settings to original values.");
-        final WinProxy proxy = new WinProxy();
+        //LOG.info("Resetting Windows registry settings to original values.");
+        LOG.info("Unproxying windows");
+        WIN_PROXY.noPacFile();
         
+        /*
         // On shutdown, we need to check if the user has modified the
         // registry since we originally set it. If they have, we want
         // to keep their setting. If not, we want to revert back to 
@@ -354,6 +359,7 @@ public class Proxifier {
             }
         }
         LOG.info("Done resetting the Windows registry");
+        */
     }
     
     private static void unproxyLinux() throws ProxyConfigurationError {
