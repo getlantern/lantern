@@ -298,14 +298,13 @@ public class Proxifier {
             LOG.info("Not running on Windows");
             return;
         }
-        /*
-        final String url = 
-            ACTIVE_PAC.toURI().toASCIIString().replace("file:/", "file://");
+        final String url = "file://"+ACTIVE_PAC.getAbsolutePath();
+            //ACTIVE_PAC.toURI().toASCIIString().replace("file:/", "file://");
         LOG.info("Using pac path: {}", url);
         
         WIN_PROXY.setPacFile(url);
-        */
-        
+
+        /*
         // We first want to read the start values so we can return the
         // registry to the original state when we shut down.
         final String curProxy = WIN_PROXY.getProxy();
@@ -334,19 +333,20 @@ public class Proxifier {
         } else {
             LOG.warn("Error setting the proxy server?");
         }
-        
+        */
     }
 
     protected static void unproxyWindows() {
         //LOG.info("Resetting Windows registry settings to original values.");
         LOG.info("Unproxying windows");
-        //WIN_PROXY.noPacFile();
+        WIN_PROXY.unproxy();
         
         
         // On shutdown, we need to check if the user has modified the
         // registry since we originally set it. If they have, we want
         // to keep their setting. If not, we want to revert back to 
         // before Lantern started.
+        /*
         final String proxyServer = WIN_PROXY.getProxy();
         
         if (proxyServer.equals(LANTERN_PROXY_ADDRESS)) {
@@ -359,7 +359,7 @@ public class Proxifier {
             }
         }
         LOG.info("Done resetting the Windows registry");
-        
+        */
     }
     
     private static void unproxyLinux() throws ProxyConfigurationError {
