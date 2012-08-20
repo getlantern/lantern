@@ -51,6 +51,19 @@ $contact-wdth: 510px
 +global-reset
 +blueprint-typography
 
+// from http://chriseppstein.github.com/sass-recipes/
+=search-input($font-size: 11px)
+  font-size: $font-size
+  +border-radius(100px)
+  border: 1px solid #ccc
+  border-top-color: #999
+  border-left-color: #b0b0b0
+  border-right-color: #bbb
+  background: white image-url('search.png') 4px center no-repeat
+  +box-shadow(rgba(black, 0.2), 0, 1px, 0, inset)
+  width: 180px
+  padding: 2px 8px 2px 20px
+
 body
   background: image-url('spinner-big.gif') center no-repeat
 
@@ -665,6 +678,9 @@ input[disabled], input[type=text][readonly]
 
 input[type=number]
   border: 0
+
+input[type=search]
+  +search-input
 
 textarea
   border: 1px solid $edge-color
