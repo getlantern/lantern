@@ -73,11 +73,13 @@ public class DefaultLanternApi implements LanternApi {
             break;
         case ADDTOWHITELIST:
             LanternHub.whitelist().addEntry(req.getParameter("site"));
+            Proxifier.refresh();
             handleWhitelist(resp);
             LanternHub.settingsIo().write();
             break;
         case REMOVEFROMWHITELIST:
             LanternHub.whitelist().removeEntry(req.getParameter("site"));
+            Proxifier.refresh();
             handleWhitelist(resp);
             LanternHub.settingsIo().write();
             break;
@@ -250,7 +252,7 @@ public class DefaultLanternApi implements LanternApi {
 
     private void handleSignout(final HttpServletResponse resp) {
         log.info("Signing out");
-        _signout();
+        signout();
         returnSettings(resp);
     }
 
@@ -274,7 +276,7 @@ public class DefaultLanternApi implements LanternApi {
     private void handleReset(final HttpServletResponse resp) {
         try {
             LanternHub.xmppHandler().clearProxies();
-            _signout();
+            signout();
             
             LanternHub.destructiveFullReset();
             
@@ -285,7 +287,7 @@ public class DefaultLanternApi implements LanternApi {
         }
     }
     
-    private void _signout() {
+    private void signout() {
 
         // We stop proxying outside of any user settings since if we're
         // not logged in there's no sense in proxying. Could theoretically
@@ -396,7 +398,6 @@ public class DefaultLanternApi implements LanternApi {
     }
 
     private void handleWhitelist(final HttpServletResponse resp) {
-        Proxifier.refresh();
         final Whitelist wl = LanternHub.whitelist();
         returnJson(resp, wl);
     }
