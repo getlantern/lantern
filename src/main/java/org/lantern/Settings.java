@@ -180,6 +180,10 @@ public class Settings implements MutableSettings {
     
     private int invites = 0;
     
+    private boolean cache = true;
+    
+    private String uiDir = "dashboard";
+    
     /**
      * Locally-stored set of users we've invited.
      */
@@ -740,13 +744,31 @@ public class Settings implements MutableSettings {
         return invites;
     }
     
+    public void setInvited(final Set<String> invited) {
+        this.invited = invited;
+    }
+    
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
     public Set<String> getInvited() {
         return invited;
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
-    public void setInvited(final Set<String> invited) {
-        this.invited = invited;
+    public void setUiDir(final String uiDir) {
+        this.uiDir = uiDir;
+    }
+
+    @JsonIgnore
+    public String getUiDir() {
+        return uiDir;
+    }
+
+    public void setCache(final boolean cache) {
+        this.cache = cache;
+    }
+
+    @JsonIgnore
+    public boolean isCache() {
+        return cache;
     }
 
     @Override
@@ -805,5 +827,4 @@ public class Settings implements MutableSettings {
             }
         }
     }
-
 }
