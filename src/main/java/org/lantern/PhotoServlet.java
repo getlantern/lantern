@@ -37,7 +37,7 @@ public final class PhotoServlet extends HttpServlet {
     
     private XMPPConnection conn;
     
-    private final int CACHE_DURATION_IN_SECOND = 60 * 60 * 24; 
+    private final int CACHE_DURATION_IN_SECOND = 60 * 60 * 24 * 4; 
     private final long CACHE_DURATION_IN_MS = CACHE_DURATION_IN_SECOND  * 1000;
     
     /**
@@ -98,11 +98,12 @@ public final class PhotoServlet extends HttpServlet {
             }
         }
         
-        //resp.addHeader(HttpHeaders.Names.CACHE_CONTROL, 
-        //    "max-age=" + CACHE_DURATION_IN_SECOND);
+        resp.addHeader(HttpHeaders.Names.CACHE_CONTROL, 
+            "max-age=" + CACHE_DURATION_IN_SECOND);
+        resp.setDateHeader(HttpHeaders.Names.EXPIRES, 
+            System.currentTimeMillis() + CACHE_DURATION_IN_MS);
+        
         resp.setContentLength(imageData.length);
-        //resp.setDateHeader(HttpHeaders.Names.EXPIRES, 
-        //    System.currentTimeMillis() + CACHE_DURATION_IN_MS);
         resp.getOutputStream().write(imageData);
         //resp.getOutputStream().close();
     }
