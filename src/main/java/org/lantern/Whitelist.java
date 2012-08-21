@@ -31,13 +31,19 @@ public class Whitelist {
         addDefaultEntry("avaaz.org");
         addDefaultEntry("bittorrent.com");
         addDefaultEntry("bloglines.com");
+        addDefaultEntry("blogspot.com");
+        addDefaultEntry("bloomberg.com");
         addDefaultEntry("box.com");
         addDefaultEntry("box.net");
+        addDefaultEntry("change.org");
+        addDefaultEntry("dailymotion.com");
+        addDefaultEntry("docstoc.com");
         addDefaultEntry("dropbox.com");
         addDefaultEntry("eff.org");
         addDefaultEntry("facebook.com");
         addDefaultEntry("flickr.com");
         addDefaultEntry("friendfeed.com");
+        addDefaultEntry("freedomhouse.org");
         addDefaultEntry("hrw.org"); // Human Rights Watch
         addDefaultEntry("ifconfig.me");
         addDefaultEntry("igfw.net");
@@ -50,10 +56,13 @@ public class Whitelist {
         addDefaultEntry("plurk.com");
         addDefaultEntry("posterous.com");
         addDefaultEntry("reddit.com");
+        addDefaultEntry("rsf.org");
+        addDefaultEntry("scribd.com");
         addDefaultEntry("stumbleupon.com");
         addDefaultEntry("torproject.org");
         addDefaultEntry("tumblr.com");
         addDefaultEntry("twitter.com");
+        addDefaultEntry("vimeo.com");
         addDefaultEntry("whatismyip.com");
         addDefaultEntry("wikileaks.org");
         addDefaultEntry("wordpress.org");
@@ -78,12 +87,16 @@ public class Whitelist {
         
         
         // China (with various sub-categories below)
+        addDefaultEntry("appledaily.com.tw");
+        addDefaultEntry("boxun.com");
+        addDefaultEntry("fc2.com");
+        addDefaultEntry("hk.nextmedia.com");
+        addDefaultEntry("inmediahk.net");
         addDefaultEntry("pchome.com.tw");
-        addDefaultEntry("wretch.cc");
+        addDefaultEntry("idv.tw");
         addDefaultEntry("pixnet.net");
         addDefaultEntry("roodo.com");
-        addDefaultEntry("idv.tw");
-        addDefaultEntry("fc2.com");
+        addDefaultEntry("wretch.cc");
 
         // Forums
         addDefaultEntry("canadameet.me");
@@ -115,6 +128,7 @@ public class Whitelist {
         addDefaultEntry("dw.de");
         addDefaultEntry("epochtimes.com");
         addDefaultEntry("etaiwannews.com");
+        addDefaultEntry("hrichina.org"); 
         addDefaultEntry("globalvoicesonline.org");
         addDefaultEntry("libertytimes.com.tw");
         addDefaultEntry("mingpao.com");
