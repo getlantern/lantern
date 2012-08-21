@@ -212,9 +212,12 @@ function LDCtrl(){
     return peer.name || peer.email;
   };
   self.peerfilter = function(peer){
+    if(peer.t && peer.t == 'B') // blocked
+      return false;
     var f = self.peerfilterinput;
+    f = f && f.toLowerCase() || '';
     if(!f)return true;
-    if(peer.name && peer.name.toLowerCase().indexOf(f.toLowerCase()) !== -1)return true;
+    if(peer.name && peer.name.toLowerCase().indexOf(f) !== -1)return true;
     return peer.email.indexOf(f) !== -1;
   };
   self.peers = null;
