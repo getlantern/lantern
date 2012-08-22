@@ -37,8 +37,6 @@ public class LanternHttpProxyServer implements HttpProxyServer {
             
     private final int httpLocalPort;
 
-    private final KeyStoreManager keyStoreManager;
-
     private final SetCookieObserver setCookieObserver;
     private final CookieFilter.Factory cookieFilterFactory;
 
@@ -57,12 +55,10 @@ public class LanternHttpProxyServer implements HttpProxyServer {
      * @param xmpp The class dealing with all XMPP interaction with the server.
      */
     public LanternHttpProxyServer(final int httpLocalPort, 
-        final KeyStoreManager keyStoreManager, 
-        SetCookieObserver setCookieObserver, 
-        CookieFilter.Factory cookieFilterFactory) {
+        final SetCookieObserver setCookieObserver, 
+        final CookieFilter.Factory cookieFilterFactory) {
             
         this.httpLocalPort = httpLocalPort;
-        this.keyStoreManager = keyStoreManager;
         this.setCookieObserver = setCookieObserver;
         this.cookieFilterFactory = cookieFilterFactory;
 
@@ -139,7 +135,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
             public ChannelPipeline getPipeline() throws Exception {
                 
                 final SimpleChannelUpstreamHandler dispatcher = 
-                    new DispatchingProxyRelayHandler(keyStoreManager);
+                    new DispatchingProxyRelayHandler();
                                                      
                 
                 final ChannelPipeline pipeline = pipeline();

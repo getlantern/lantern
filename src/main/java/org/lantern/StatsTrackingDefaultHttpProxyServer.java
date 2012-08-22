@@ -22,7 +22,6 @@ import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
 import org.littleshoot.proxy.HttpServerPipelineFactory;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.NetworkUtils;
 import org.littleshoot.proxy.ProxyAuthorizationHandler;
 import org.littleshoot.proxy.ProxyAuthorizationManager;
@@ -53,8 +52,6 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
 
     private final ChainProxyManager chainProxyManager;
 
-    private final KeyStoreManager ksm;
-
     private final HttpRequestFilter requestFilter;
 
     private final ServerBootstrap serverBootstrap;
@@ -84,7 +81,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
      */
     public StatsTrackingDefaultHttpProxyServer(final int port,
         final HttpResponseFilters responseFilters) {
-        this(port, responseFilters, null, null, null);
+        this(port, responseFilters, null, null);
     }
 
     /**
@@ -97,7 +94,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
     public StatsTrackingDefaultHttpProxyServer(final int port,
         final HttpRequestFilter requestFilter,
         final HttpResponseFilters responseFilters) {
-        this(port, responseFilters, null, null, requestFilter);
+        this(port, responseFilters, null, requestFilter);
     }
 
     /**
@@ -115,11 +112,10 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
      */
     public StatsTrackingDefaultHttpProxyServer(final int port,
         final HttpResponseFilters responseFilters,
-        final ChainProxyManager chainProxyManager, final KeyStoreManager ksm,
+        final ChainProxyManager chainProxyManager,
         final HttpRequestFilter requestFilter) {
         this.port = port;
         this.responseFilters = responseFilters;
-        this.ksm = ksm;
         this.requestFilter = requestFilter;
         this.chainProxyManager = chainProxyManager;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
@@ -135,6 +131,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                 Executors.newCachedThreadPool()));
     }
 
+    @Override
     public void start() {
         start(false, true);
     }
@@ -143,7 +140,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         log.info("Starting proxy on port: "+this.port);
         final HttpServerPipelineFactory factory =
             new StatsTrackingHttpServerPipelineFactory(authenticationManager,
-                this.allChannels, this.chainProxyManager, this.ksm,
+                this.allChannels, this.chainProxyManager, 
                 new StatsTrackingDefaultRelayPipelineFactoryFactory(chainProxyManager,
                     this.responseFilters, this.requestFilter,
                     this.allChannels));
@@ -197,10 +194,6 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         final ProxyAuthorizationHandler pah) {
         this.authenticationManager.addHandler(pah);
     }
-
-    public KeyStoreManager getKeyStoreManager() {
-        return this.ksm;
-    }
     
     private static class StatsTrackingHttpServerPipelineFactory 
         extends HttpServerPipelineFactory {
@@ -208,9 +201,10 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         public StatsTrackingHttpServerPipelineFactory(
             final ProxyAuthorizationManager authorizationManager, 
             final ChannelGroup channelGroup, 
-            final ChainProxyManager chainProxyManager, final KeyStoreManager ksm,
+            final ChainProxyManager chainProxyManager, 
             final RelayPipelineFactoryFactory relayPipelineFactoryFactory) {
-            super(authorizationManager, channelGroup, chainProxyManager, ksm, relayPipelineFactoryFactory);
+            super(authorizationManager, channelGroup, chainProxyManager, 
+                LanternHub.getKeyStoreManager(), relayPipelineFactoryFactory);
         }
 
         @Override

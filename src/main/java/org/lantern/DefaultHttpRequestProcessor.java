@@ -58,17 +58,14 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
 
     private final Proxy proxy;
 
-    private final KeyStoreManager keyStoreManager;
-    
     public DefaultHttpRequestProcessor( 
         final ProxyStatusListener proxyStatusListener, 
         final HttpRequestTransformer transformer, final boolean isLae, 
-        final Proxy proxy, final KeyStoreManager keyStoreManager) {
+        final Proxy proxy) {
         this.proxyStatusListener = proxyStatusListener;
         this.transformer = transformer;
         this.isLae = isLae;
         this.proxy = proxy;
-        this.keyStoreManager = keyStoreManager;
     }
     
     private boolean hasProxy() {
@@ -125,19 +122,14 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         final SSLEngine engine;
         if (this.isLae) {
             log.info("Creating standard SSL engine");
-            // TODO: Pre-ship with approved certs.
-            // TODO: Use DHE
-            try {
-                engine = SSLContext.getDefault().createSSLEngine();
-            } catch (final NoSuchAlgorithmException e) {
-                log.error("Could not create default SSL context", e);
-                throw new IllegalArgumentException("No algo?", e);
-            }
+            final LanternClientSslContextFactory sslFactory =
+                new LanternClientSslContextFactory();
+            engine = sslFactory.getClientContext().createSSLEngine();
         }
         else {
             log.info("Creating Lantern SSL engine");
             final LanternClientSslContextFactory sslFactory =
-                new LanternClientSslContextFactory(this.keyStoreManager);
+                new LanternClientSslContextFactory();
             engine = sslFactory.getClientContext().createSSLEngine();
         }
         engine.setUseClientMode(true);

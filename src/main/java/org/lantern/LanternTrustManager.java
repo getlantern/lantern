@@ -49,7 +49,7 @@ public class LanternTrustManager implements X509TrustManager {
     }
     
     private void addStaticCerts() {
-        addCert("google-equifax-root.crt", "gmail.com");
+        addCert("google-equifax-root.crt", "equifax-google-root-cert");
         addCert("lantern_littleproxy_cert", "littleproxy");
     }
 
@@ -165,13 +165,15 @@ public class LanternTrustManager implements X509TrustManager {
         authenticate(chain, authType);
     }
 
-    private void authenticate(X509Certificate[] chain, String authType)
-        throws CertificateException {
+    private void authenticate(final X509Certificate[] chain, 
+        final String authType) throws CertificateException {
         if (chain == null || chain.length == 0) {
+            log.warn("Null or empty chain");
             throw new IllegalArgumentException(
                 "null or zero-length certificate chain");
         }
         if (authType == null || authType.length() == 0) {
+            log.warn("Null or empty auth type");
             throw new IllegalArgumentException(
                 "null or zero-length authentication type");
         }
@@ -179,33 +181,64 @@ public class LanternTrustManager implements X509TrustManager {
         final X509Certificate cert = chain[0];
         final String name = cert.getSubjectX500Principal().getName();
         if (StringUtils.isBlank(name)) {
+            log.warn("No name in cert!!");
             throw new CertificateException("No name!!");
         }
+        
+        final int chainSize = chain.length;
+        
+        // TODO: This *only* checks for hard-coded certs. We either need to
+        // add the hard-coded cert for appspot or we need to also allow
+        // hard-coded root CA certs we trust.
         final String alias = StringUtils.substringAfterLast(name, "CN=");
-        log.info("CHECKING FOR CERTIFICATE UNDER: " + alias);
-        try {
-            final Certificate local = this.keyStore.getCertificate(alias);
-            if (local == null) {
-                log.warn("No matching cert for: "+alias);
-                throw new CertificateException("No cert for "+ alias);
+        
+        // Check for the hard-coded littleproxy cert as well as self-signed 
+        // peer certs here.
+        if (alias.equals("littleproxy") || chainSize == 1) {
+            log.info("CHECKING FOR CERTIFICATE UNDER: " + alias);
+            try {
+                final Certificate local = this.keyStore.getCertificate(alias);
+                if (local == null) {
+                    log.warn("No matching cert for: "+alias);
+                    throw new CertificateException("No cert for "+ alias);
+                }
+                local.verify(cert.getPublicKey());
+                if (!local.equals(cert)) {
+                    log.warn("Certs not equal:\n"+local+"\n and:\n"+cert);
+                    throw new CertificateException("Did not recognize cert: "+cert);
+                } else {
+                    log.info("Verified cert!!");
+                }
+            } catch (final KeyStoreException e) {
+                throw new CertificateException("Did not recognize cert: "+cert, e);
+            } catch (final InvalidKeyException e) {
+                throw new CertificateException("Key: "+cert, e);
+            } catch (final NoSuchAlgorithmException e) {
+                throw new CertificateException("Algorithm: "+cert, e);
+            } catch (final NoSuchProviderException e) {
+                throw new CertificateException("Providert: "+cert, e);
+            } catch (final SignatureException e) {
+                throw new CertificateException("Sig: "+cert, e);
             }
-            local.verify(cert.getPublicKey());
-            if (!local.equals(cert)) {
-                log.info("Certs not equal:\n"+local+"\n and:\n"+cert);
-                throw new CertificateException("Did not recognize cert: "+cert);
+            log.info("Certificates matched!");
+        } else {
+            // Otherwise check if we trust the signing cert.
+            try {
+                final X509Certificate suppliedRootCert = chain[chainSize - 1];
+                final String rootAlias = 
+                    this.keyStore.getCertificateAlias(suppliedRootCert);
+                final boolean trusted = rootAlias != null;
+                if (!trusted) {
+                    log.warn("No alias matching signing cert!");
+                    throw new CertificateException("No alias matching signing cert");
+                } else {
+                    log.info("Root certs matched for {}", rootAlias);
+                }
             }
-        } catch (final KeyStoreException e) {
-            throw new CertificateException("Did not recognize cert: "+cert, e);
-        } catch (final InvalidKeyException e) {
-            throw new CertificateException("Key: "+cert, e);
-        } catch (final NoSuchAlgorithmException e) {
-            throw new CertificateException("Algorithm: "+cert, e);
-        } catch (final NoSuchProviderException e) {
-            throw new CertificateException("Providert: "+cert, e);
-        } catch (final SignatureException e) {
-            throw new CertificateException("Sig: "+cert, e);
+            catch (final KeyStoreException e) {
+                log.warn("Exception accessing keystore!", e);
+            }
         }
-        log.info("Certificates matched!");
     }
 
     public String getTruststorePath() {

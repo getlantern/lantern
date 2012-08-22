@@ -132,18 +132,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
      */
     private boolean proxying;
 
-    private final KeyStoreManager keyStoreManager;
-
     /**
      * Creates a new handler that reads incoming HTTP requests and dispatches
      * them to proxies as appropriate.
-     * 
-     * @param keyStoreManager Keeps track of all trusted keys. 
      */
-    public DispatchingProxyRelayHandler(final KeyStoreManager keyStoreManager) {
-        //this.proxyProvider = proxyProvider;
-        //this.proxyStatusListener = proxyStatusListener;
-        this.keyStoreManager = keyStoreManager;
+    public DispatchingProxyRelayHandler() {
         
         // This uses the raw p2p client because all traffic sent over these
         // connections already uses end-to-end encryption.
@@ -199,7 +192,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     public InetSocketAddress getProxy() {
                         return LanternHub.getProxyProvider().getProxy();
                     }
-                }, this.keyStoreManager);
+                });
         this.laeRequestProcessor =
             new DefaultHttpRequestProcessor(LanternHub.getProxyStatusListener(),
                 new LaeHttpRequestTransformer(), true,
@@ -213,7 +206,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     public InetSocketAddress getProxy() {
                         return LanternHub.getProxyProvider().getLaeProxy();
                     }
-            }, null);
+            });
     }
 
     @Override
@@ -459,7 +452,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         // It's also necessary to use our own engine here, as we need to trust
         // the cert from the proxy.
         final LanternClientSslContextFactory sslFactory =
-            new LanternClientSslContextFactory(this.keyStoreManager);
+            new LanternClientSslContextFactory();
         final SSLEngine engine =
             sslFactory.getClientContext().createSSLEngine();
         engine.setUseClientMode(true);
