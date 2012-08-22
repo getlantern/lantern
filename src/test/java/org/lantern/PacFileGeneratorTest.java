@@ -1,13 +1,13 @@
 package org.lantern;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.Collection;
-import java.util.TreeSet;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 
 public class PacFileGeneratorTest {
@@ -19,12 +19,19 @@ public class PacFileGeneratorTest {
         final String pac = PacFileGenerator.generatePacFileString(sites);
         
         final String refPac = loadRefPac();
-        assertEquals(refPac, pac);
+        
+        
+        for (final String site : sites) {
+            assertTrue(pac.contains(site));
+        }
+        assertTrue(pac.startsWith(StringUtils.substringBefore(refPac, "allDomainsTok")));
+        assertTrue(pac.endsWith(StringUtils.substringAfter(refPac, "allDomainsTok")));
     }
 
 
     private String loadRefPac() throws IOException {
         return IOUtils.toString(
-            new FileReader("src/test/resources/proxy_on.pac.test"));
+            new FileReader("src/main/resources/proxy_on.pac.template"));
+            //new FileReader("src/test/resources/proxy_on.pac.test"));
     }   
 }

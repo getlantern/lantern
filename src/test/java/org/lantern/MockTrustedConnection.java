@@ -101,7 +101,9 @@ class MockTrustedConnection extends MockConnection {
         
         // start a "local" lantern browser proxy on another random port
         localPort = LanternUtils.randomPort();
-        localProxy = startMockLanternHttpProxyServer(localPort, proxyProvider, keyStore, cookieTracker);
+        LanternHub.setKeyStoreManager(keyStore);
+        localProxy = startMockLanternHttpProxyServer(localPort, proxyProvider, 
+            cookieTracker);
     }
 
     @Override

@@ -35,12 +35,14 @@ class MockLaeConnection extends MockConnection {
         currentTest = null;
 
         keyStore = createTempKeyStore();
+        LanternHub.setKeyStoreManager(keyStore);
         // certify ourself to ourself...
         keyStore.addBase64Cert(LanternUtils.getMacAddress(), keyStore.getBase64Cert());
         // the app engine handler uses the "default" SSLContext. Since we have 
         // no legit certs for localhost according to this context, we force the
         // default to be something that we do control... whee! we'll put it back later I promise!
-        SSLContext hackedDefault = new LanternClientSslContextFactory(keyStore).getClientContext();
+        SSLContext hackedDefault = 
+            new LanternClientSslContextFactory().getClientContext();
         oldDefaultContext = SSLContext.getDefault();
         SSLContext.setDefault(hackedDefault);
         
@@ -74,7 +76,8 @@ class MockLaeConnection extends MockConnection {
         
         // start a "local" lantern browser proxy on another random port
         localPort = LanternUtils.randomPort();
-        localProxy = startMockLanternHttpProxyServer(localPort, proxyProvider, keyStore, cookieTracker);
+        localProxy = startMockLanternHttpProxyServer(localPort, proxyProvider, 
+            cookieTracker);
 
     }
     
