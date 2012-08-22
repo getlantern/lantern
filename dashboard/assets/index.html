@@ -419,24 +419,24 @@
           <div id=more-invites class=smallnote ng:show="state.invites == 0">More invites will be rolled out soon.</div>
           <ul id=invite-peerlist ng:class="[state.invites > 0 && 'has-invites' || 'no-invites', 'unpopulated']">
             <li ng:show="peers == FETCHING">Loading...</li>
-            <li class=peertile ng:show="peers != FETCHING" ng:repeat="peer in peers.$filter(peerfilter)">
-              <span ng:class="invited(peer.email) && 'invited' || 'not-invited'">
+            <li class=peertile ng:show="peers != FETCHING" ng:repeat="peer in filteredpeers">
+              <div ng:class="invited(peer.email) && 'invited' || 'not-invited'">
                 <img ng:src="/photo?email={{ peer.email }}" />
                 <div class=name>{{ peer.name }}&nbsp;</div>
                 <div class=email title="{{ peer.email }}">{{ peer.email }}</div>
                 <a class=invite-link ng:click="state.invites > 0 && !invited(peer.email) && invite(peer.email)">Invite{{ invited(peer.email) && 'd' || '' }}</a>
-              </span>
+              </div>
             </li>
-            <li ng:show="peers != FETCHING && !peers.$filter(peerfilter).length" ng:class="peerfilterinput && validateemail(peerfilterinput) && 'peertile' || ''">
-              <span ng:show=peerfilterinput>
-                <span ng:show=!validateemail(peerfilterinput) class=disabled>No matching contacts. Type an email address to invite someone new.</span>
-                <span ng:show=validateemail(peerfilterinput) ng:class="invited(peerfilterinput) && 'invited' || 'not-invited'">
+            <li ng:show="peers != FETCHING && !filteredpeers.length" class=peertile>
+              <div ng:show=peerfilterinput>
+                <div ng:show=!validateemail(peerfilterinput) class=disabled>No matching contacts. Type an email address to invite someone new.</div>
+                <div ng:show=validateemail(peerfilterinput) ng:class="invited(peerfilterinput) && 'invited' || 'not-invited'">
                   <img ng:src="/photo?email={{ peerfilterinput }}" />
                   <div class=name>&nbsp;</div>
                   <div class=email title="{{ peerfilterinput }}">{{ peerfilterinput }}</div>
                   <a class=invite-link ng:click="state.invites > 0 && !invited(peerfilterinput) && invite(peerfilterinput)">Invite{{ invited(peerfilterinput) && 'd' || '' }}</a>
-              </span>
-              <span ng:show=!peerfilterinput class=disabled>No available contacts</span>
+              </div>
+              <div ng:show=!peerfilterinput class=disabled>No available contacts</div>
             </li>
           </ul>
         </div>
