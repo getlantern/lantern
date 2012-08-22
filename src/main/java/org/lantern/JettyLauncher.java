@@ -24,6 +24,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +58,8 @@ public class JettyLauncher {
         //final ServletContextHandler api = newContext(secureBase, apiName);
         contexts.addHandler(contextHandler);
 
-        final File staticdir = new File("dashboard", "assets");
+        final File staticdir = 
+            new File(LanternHub.settings().getUiDir(), "assets");
         if (staticdir.isDirectory()) {
             contextHandler.setResourceBase(staticdir.toString());
         } else {
@@ -163,8 +165,13 @@ public class JettyLauncher {
         
         
         final ServletHolder ds = new ServletHolder(new DefaultServlet());
-        ds.setInitParameter("cacheControl", "no-cache");
+        if (LanternHub.settings().isCache()) {
+            ds.setInitParameter("cacheControl", "public");
+        } else {
+            ds.setInitParameter("cacheControl", "no-cache");
+        }
         ds.setInitParameter("aliases", "true");
+
         ds.setInitOrder(3);
         contextHandler.addServlet(ds, "/*");
         

@@ -48,7 +48,6 @@ import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.PublicIpsOnlyRequestFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -105,6 +104,9 @@ public class Launcher {
     private static final String OPTION_PASS = "pass";
     private static final String OPTION_GET = "force-get";
     private static final String OPTION_GIVE = "force-give";
+    private static final String OPTION_NO_CACHE = "no-cache";
+    private static final String OPTION_VERSION = "version";
+    private static final String OPTION_NEW_UI = "new-ui";
     
     private static void launch(final String... args) {
         LOG.info("Starting Lantern...");
@@ -113,20 +115,19 @@ public class Launcher {
         // first apply any command line settings
         final Options options = new Options();
         options.addOption(null, OPTION_DISABLE_UI, false,
-                          "run without a graphical user interface.");
+            "run without a graphical user interface.");
         options.addOption(null, OPTION_API_PORT, true,
             "the port to run the API server on.");
         options.addOption(null, OPTION_PUBLIC_API, false,
             "make the API server publicly accessible on non-localhost.");
         options.addOption(null, OPTION_HELP, false,
-                          "display command line help");
+            "display command line help");
         options.addOption(null, OPTION_LAUNCHD, false,
             "running from launchd - not normally called from command line");
         options.addOption(null, OPTION_DISABLE_KEYCHAIN, false, 
             "disable use of system keychain and ask for local password");
         options.addOption(null, OPTION_PASSWORD_FILE, true, 
             "read local password from the file specified");
-        
         options.addOption(null, OPTION_TRUSTED_PEERS, false,
             "disable use of trusted peer-to-peer connections for proxies.");
         options.addOption(null, OPTION_ANON_PEERS, false,
@@ -144,7 +145,12 @@ public class Launcher {
         options.addOption(null, OPTION_PASS, true,
             "Google password -- WARNING INSECURE - ONLY USE THIS FOR TESTING!");
         options.addOption(null, OPTION_GET, false, "Force running in get mode");
-        options.addOption(null, OPTION_GIVE, false, "Force running in give mode");
+        options.addOption(null, OPTION_NO_CACHE, false, 
+            "Don't allow caching of static files in the dashboard");
+        options.addOption(null, OPTION_VERSION, false, 
+            "Print the Lantern version");
+        options.addOption(null, OPTION_NEW_UI, false,
+            "Use the new UI under the 'ui' directory");
         
         final CommandLineParser parser = new PosixParser();
         final CommandLine cmd;
@@ -161,6 +167,9 @@ public class Launcher {
         
         if (cmd.hasOption(OPTION_HELP)) {
             printHelp(options, null);
+            return;
+        } else if (cmd.hasOption(OPTION_VERSION)) {
+            printVersion();
             return;
         }
         final Settings set = LanternHub.settings();
@@ -234,12 +243,21 @@ public class Launcher {
             display = null;
         }
         
+        // TODO: Just load all the command line options after the settings to
+        // avoid stupid state issues.
         loadSettings();
         
         if (cmd.hasOption(OPTION_GIVE)) {
             LanternHub.settings().setGetMode(false);
         } else if (cmd.hasOption(OPTION_GET)) {
             LanternHub.settings().setGetMode(true);
+        }
+        
+        if (cmd.hasOption(OPTION_NO_CACHE)) {
+            LanternHub.settings().setCache(false);
+        } 
+        if (cmd.hasOption(OPTION_NEW_UI)) {
+            LanternHub.settings().setUiDir("ui");
         }
         
         gnomeAutoStart();
@@ -353,9 +371,10 @@ public class Launcher {
             // copy the unlimited strength policy files on Vista, so we have 
             // to revert back to 128.
             IceConfig.setCipherSuites(new String[] {
-                "TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
+                //"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
+                //"TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
                 //"TLS_RSA_WITH_RC4_128_SHA"
+                "TLS_ECDHE_RSA_WITH_RC4_128_SHA"
             });
         }
     }
@@ -569,7 +588,7 @@ public class Launcher {
 
     public static void launchLantern() {
         LOG.debug("Launching Lantern...");
-        final KeyStoreManager proxyKeyStore = LanternHub.getKeyStoreManager();
+        //final KeyStoreManager proxyKeyStore = LanternHub.getKeyStoreManager();
         
         final HttpRequestFilter publicOnlyRequestFilter = 
             new PublicIpsOnlyRequestFilter();
@@ -584,7 +603,7 @@ public class Launcher {
                 public HttpFilter getFilter(String arg0) {
                     return null;
                 }
-            }, null, proxyKeyStore, publicOnlyRequestFilter);
+            }, null, publicOnlyRequestFilter);
         LOG.debug("SSL port is {}", staticRandomPort);
         //final org.littleshoot.proxy.HttpProxyServer sslProxy = 
         //    new DefaultHttpProxyServer(LanternHub.randomSslPort());
@@ -635,7 +654,7 @@ public class Launcher {
             new LanternHttpProxyServer(
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
                 //null, sslRandomPort,
-                proxyKeyStore, cookieObserver, cookieFilterFactory);
+                cookieObserver, cookieFilterFactory);
         server.start();
         
         // 
@@ -720,7 +739,10 @@ public class Launcher {
     
         final HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp("lantern", options);
-        return;
+    }
+    
+    private static void printVersion() {
+        System.out.println("Lantern version "+LanternConstants.VERSION);
     }
     
     private static void configureLogger() {
