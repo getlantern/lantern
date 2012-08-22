@@ -1026,6 +1026,10 @@ $(document).ready(function(){
     console.log('syncing new roster');
     var s = getscope(), data = msg.data;
     s.peers = data.entries;
+    s.filteredpeers = s.peers;
+    if(s.filteredpeers.length > s.maxpeers){
+      s.filteredpeers = s.filteredpeers.slice(0, s.maxpeers);
+    }
     s.subreqs = data.subscriptionRequests;
     s.$digest();
   }
