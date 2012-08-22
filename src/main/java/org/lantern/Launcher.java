@@ -106,7 +106,7 @@ public class Launcher {
     private static final String OPTION_GIVE = "force-give";
     private static final String OPTION_NO_CACHE = "no-cache";
     private static final String OPTION_VERSION = "version";
-    private static final String OPTION_UI_DIR = "ui-dir";
+    private static final String OPTION_NEW_UI = "new-ui";
     
     private static void launch(final String... args) {
         LOG.info("Starting Lantern...");
@@ -149,8 +149,8 @@ public class Launcher {
             "Don't allow caching of static files in the dashboard");
         options.addOption(null, OPTION_VERSION, false, 
             "Print the Lantern version");
-        options.addOption(null, OPTION_UI_DIR, true,
-            "Specify the directory to serve static UI files from");
+        options.addOption(null, OPTION_NEW_UI, false,
+            "Use the new UI under the 'ui' directory");
         
         final CommandLineParser parser = new PosixParser();
         final CommandLine cmd;
@@ -256,9 +256,8 @@ public class Launcher {
         if (cmd.hasOption(OPTION_NO_CACHE)) {
             LanternHub.settings().setCache(false);
         } 
-        if (cmd.hasOption(OPTION_UI_DIR)) {
-            final String dir = cmd.getOptionValue(OPTION_UI_DIR);
-            LanternHub.settings().setUiDir(dir);
+        if (cmd.hasOption(OPTION_NEW_UI)) {
+            LanternHub.settings().setUiDir("ui");
         }
         
         gnomeAutoStart();
