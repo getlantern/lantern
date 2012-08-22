@@ -43,6 +43,7 @@ public class PacFileGenerator {
             try {
                 return LanternUtils.fileInJarToString("proxy_on.pac.template");
             } catch (final IOException e) {
+                LOG.error("Could not extract pac template?", e);
                 throw new Error("Could not load template from jar!!", e);
             }
         }

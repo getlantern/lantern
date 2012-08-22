@@ -175,6 +175,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         return localCert;
     }
 
+    @Override
     public InputStream keyStoreAsInputStream() {
         try {
             return new FileInputStream(KEYSTORE_FILE);
@@ -184,6 +185,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         }
     }
     
+    @Override
     public InputStream trustStoreAsInputStream() {
         try {
             return new FileInputStream(TRUSTSTORE_FILE);
@@ -193,19 +195,23 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         }
     }
 
+    @Override
     public char[] getCertificatePassword() {
         return PASS.toCharArray();
     }
 
+    @Override
     public char[] getKeyStorePassword() {
         return PASS.toCharArray();
     }
     
+    @Override
     public void addBase64Cert(final String macAddress, final String base64Cert) 
         throws IOException {
         this.lanternTrustManager.addBase64Cert(macAddress, base64Cert);
     }
 
+    @Override
     public TrustManager[] getTrustManagers() {
         return Arrays.copyOf(trustManagers, trustManagers.length);
     }
