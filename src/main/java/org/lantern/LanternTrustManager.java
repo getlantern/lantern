@@ -186,14 +186,10 @@ public class LanternTrustManager implements X509TrustManager {
         }
         
         final int chainSize = chain.length;
-        
-        // TODO: This *only* checks for hard-coded certs. We either need to
-        // add the hard-coded cert for appspot or we need to also allow
-        // hard-coded root CA certs we trust.
         final String alias = StringUtils.substringAfterLast(name, "CN=");
         
         // Check for the hard-coded littleproxy cert as well as self-signed 
-        // peer certs here.
+        // peer certs here. Self-signed certs are the only certs in the chain.
         if (alias.equals("littleproxy") || chainSize == 1) {
             log.info("CHECKING FOR CERTIFICATE UNDER: " + alias);
             try {
