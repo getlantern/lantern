@@ -221,8 +221,8 @@ class TestingUtils {
      * this mimics the portion of Launcher that starts the local browser proxy, 
      * stubbing out some things.
      */  
-    public static LanternHttpProxyServer startMockLanternHttpProxyServer(int port, ProxyProvider pp, 
-        KeyStoreManager ksm, CookieTracker ct) throws Exception {
+    public static LanternHttpProxyServer startMockLanternHttpProxyServer(
+        int port, ProxyProvider pp, CookieTracker ct) throws Exception {
         
         ProxyStatusListener psl = new ProxyStatusListener() {
             @Override
@@ -239,7 +239,7 @@ class TestingUtils {
         final CookieFilter.Factory cf = new DefaultCookieFilterFactory(ct);
         LanternHub.setProxyProvider(pp);
         LanternHub.setProxyStatusListener(psl);
-        LanternHttpProxyServer server = new LanternHttpProxyServer(port, ksm, co, cf);
+        LanternHttpProxyServer server = new LanternHttpProxyServer(port, co, cf);
         server.start();
         return server;
     }
