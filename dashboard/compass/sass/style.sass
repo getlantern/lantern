@@ -299,18 +299,19 @@ img.plus
   .approve-link, .deny-link
     margin-top: 5px
     +inline-block
-    background-color: $font-color-success
     padding: 1px 10px 1px 8px
     text-decoration: none
     color: #fff !important
     +border-radius(3px)
   .approve-link
+    background-color: $font-color-success
     +background-image(linear-gradient($font-color-success, darken($font-color-success, 10%)))
     &:hover
       background: darken($font-color-success, 10%) !important
     &:active
       background: darken($font-color-success, 20%) !important
   .deny-link
+    background-color: $font-color-error
     +background-image(linear-gradient($font-color-error, darken($font-color-error, 10%)))
     &:hover
       background: darken($font-color-error, 10%) !important
@@ -1004,7 +1005,7 @@ html.ie-unsupported
     color: $font-color-error
 
 html.ie8
-  &, body, #ld-container, #dashboard, .panel
+  //&, body, #ld-container, #dashboard, .panel
     overflow: hidden
   .overlay, #signin-overlay
     border: 1px solid $edge-color
