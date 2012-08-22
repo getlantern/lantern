@@ -130,6 +130,16 @@ function LDCtrl(){
       _gaq.push(['_trackPageview']);
     }
   });
+  self.filteredpeers = [];
+  self.maxpeers = 100;
+  self.$watch('peerfilterinput', function(scope, newval, oldval){
+    if(self.peers){
+      self.filteredpeers = angular.Array.filter(self.peers, self.peerfilter);
+      if(self.filteredpeers.length > self.maxpeers){
+	self.filteredpeers = self.filteredpeers.slice(0, self.maxpeers);
+      }
+    }
+  });
   self.stateloaded = function(){
     return !$.isEmptyObject(self.state);
   };
@@ -352,6 +362,10 @@ function LDCtrl(){
       self.$digest();
       $.ajax({url: '/api/roster', dataType: 'json'}).done(function(r){
         self.peers = r.entries;
+	self.filteredpeers = self.peers;
+        if(self.filteredpeers.length > self.maxpeers){
+          self.filteredpeers = self.filteredpeers.slice(0, self.maxpeers);
+        }
         self.subreqs = r.subscriptionRequests;
         self.$digest();
         console.log('set peers');
