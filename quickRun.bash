@@ -5,8 +5,13 @@ function die() {
 }
 
 fullPath=`dirname $0`
-jar=`find $fullPath/target/*with-dependencies.jar`
+#jar=`find $fullPath/target/*with-dependencies.jar`
+jar=`find $fullPath/target/lantern*SNAPSHOT.jar`
 cp=`echo $jar | sed 's,./,'$fullPath'/,'`
+
+# We need to copy the bouncycastle jar in separately because it's signed. The shaded jar
+# include it in the classpath in its manifest.
+cp lib/bcprov-jdk16-1.46.jar target/
 javaArgs="-jar "$cp" $*"
 
 if [ "$RUN_LANTERN_DEBUG_PORT" ]
