@@ -94,7 +94,6 @@ public class Roster implements RosterListener {
     }
     
     private void onPresence(final Presence pres) {
-        log.info("Got presence!! {}", pres);
         final String email = LanternUtils.jidToEmail(pres.getFrom());
         final LanternRosterEntry entry = this.rosterEntries.get(email);
         if (entry != null) {
