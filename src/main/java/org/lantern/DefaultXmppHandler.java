@@ -237,7 +237,9 @@ public class DefaultXmppHandler implements XmppHandler {
         try {
             natPmpService = new NatPmp();
         } catch (final NatPmpException e) {
-            LOG.error("Could not map", e);
+            // This will happen when NAT-PMP is not supported on the local 
+            // network.
+            LOG.info("Could not map", e);
             // We just use a dummy one in this case.
             natPmpService = new NatPmpService() {
                 @Override
