@@ -22,3 +22,7 @@ name=lantern-$VERSION.exe
 mv install/Lantern.exe $name
 
 ./installMetaRefresh.bash win $name latest.exe
+
+cp $name ~/Desktop/virtual-machine-files/
+
+
