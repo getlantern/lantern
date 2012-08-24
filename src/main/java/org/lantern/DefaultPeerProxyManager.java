@@ -136,7 +136,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             }
         }
         
-        log.warn("Could not find connected socket");
+        log.info("Could not find connected socket");
         throw new IOException("No availabe connected sockets in "+
             this.timedSockets);
     }

@@ -96,7 +96,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
             return true;
         }
         try {
-            log.info("Writing {}", new String(data, "UTF-8"));
+            log.debug("Writing {}", new String(data, "UTF-8"));
             final OutputStream os = this.sock.getOutputStream();
             os.write(data);
             return true;
@@ -130,7 +130,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
         
         final ByteBuffer buf = cb.toByteBuffer();
         final byte[] data = ByteBufferUtils.toRawBytes(buf);
-        log.info("Writing chunk {}", new String(data));
+        log.debug("Writing chunk {}", new String(data));
         final OutputStream os = this.sock.getOutputStream();
         os.write(data);
         return true;
