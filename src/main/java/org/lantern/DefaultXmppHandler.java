@@ -336,7 +336,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 final Presence pres = (Presence) pack;
                 LOG.debug("Processing packet!! {}", pres);
                 final String from = pres.getFrom();
-                LOG.info("Responding to presence from {} and to {}", 
+                LOG.debug("Responding to presence from {} and to {}", 
                     from, pack.getTo());
 
                 final Type type = pres.getType();
@@ -452,18 +452,18 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     private void processLanternHubMessage(final Message msg) {
-        LOG.info("Lantern controlling agent response");
+        LOG.debug("Lantern controlling agent response");
         this.hubAddress = msg.getFrom();
-        LOG.info("Set hub address to: {}", hubAddress);
+        LOG.debug("Set hub address to: {}", hubAddress);
         final String body = msg.getBody();
-        LOG.info("Body: {}", body);
+        LOG.debug("Body: {}", body);
         final Object obj = JSONValue.parse(body);
         final JSONObject json = (JSONObject) obj;
         final JSONArray servers = 
             (JSONArray) json.get(LanternConstants.SERVERS);
         final Long delay = 
             (Long) json.get(LanternConstants.UPDATE_TIME);
-        LOG.info("Server sent delay of: "+delay);
+        LOG.debug("Server sent delay of: "+delay);
         if (delay != null) {
             final long now = System.currentTimeMillis();
             final long elapsed = now - lastInfoMessageScheduled;
@@ -475,16 +475,16 @@ public class DefaultXmppHandler implements XmppHandler {
                         updatePresence();
                     }
                 }, delay);
-                LOG.info("Scheduled next info request in {} milliseconds", 
+                LOG.debug("Scheduled next info request in {} milliseconds", 
                     delay);
             } else {
-                LOG.info("Ignoring duplicate info request scheduling- "+
+                LOG.debug("Ignoring duplicate info request scheduling- "+
                     "scheduled request {} milliseconds ago.", elapsed);
             }
         }
         
         if (servers == null) {
-            LOG.info("No servers in message");
+            LOG.debug("No servers in message");
         } else {
             final Iterator<String> iter = servers.iterator();
             while (iter.hasNext()) {
@@ -581,7 +581,7 @@ public class DefaultXmppHandler implements XmppHandler {
         //if (!LanternHub.settings().isGetMode()) {
             final String str = 
                 LanternUtils.jsonify(LanternHub.statsTracker());
-            LOG.info("Reporting data: {}", str);
+            LOG.debug("Reporting data: {}", str);
             if (!this.lastJson.equals(str)) {
                 this.lastJson = str;
                 forHub.setProperty("stats", str);
