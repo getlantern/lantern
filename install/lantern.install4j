@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="5.1.1" transformSequenceNumber="4">
+<install4j version="5.1.2" transformSequenceNumber="4">
   <directoryPresets config="./linux" />
   <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Team Lantern" publisherWeb="http://www.getlantern.org" version="0.97" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
@@ -15,7 +15,7 @@
       <variable name="deb-description" value="P2P trust network of encrypted, mutually authenticated, HTTP proxies." description="" category="" />
     </variables>
     <mergedProjects />
-    <codeSigning macEnabled="true" macPkcs12File="../../secure/bns_cert.p12" windowsEnabled="true" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="../../secure/bns_cert.p12" />
+    <codeSigning macEnabled="true" macPkcs12File="../../secure/bns-osx-cert-developer-id-application.p12" windowsEnabled="true" windowsKeySource="pkcs12" windowsPvkFile="" windowsSpcFile="" windowsPkcs12File="../../secure/bns_cert.p12" />
   </application>
   <files keepModificationTimes="false" missingFilesStrategy="warn" globalExcludeSuffixes="" defaultOverwriteMode="4" defaultUninstallMode="0" launcherOverwriteMode="3" defaultFileMode="644" defaultDirMode="755">
     <filesets>
@@ -67,16 +67,21 @@
       </dirEntry>
       <dirEntry mountPoint="149" file="./win" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="win" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude>
-          <entry location=".svn" fileType="regular" />
+          <entry location="latest.exe" fileType="regular" />
+          <entry location="log.txt" fileType="regular" />
         </exclude>
       </dirEntry>
       <dirEntry mountPoint="150" file="./osx" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="osx" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude>
-          <entry location=".svn" fileType="regular" />
+          <entry location="latest.dmg" fileType="regular" />
+          <entry location="latest.dmg.stored" fileType="regular" />
+          <entry location="log.txt" fileType="regular" />
         </exclude>
       </dirEntry>
       <dirEntry mountPoint="790" file="./linux" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="linux" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude>
+          <entry location="latest-32.deb" fileType="regular" />
+          <entry location="latest-64.deb" fileType="regular" />
           <entry location="linux-amd64-1.7.0_03.tar.gz" fileType="regular" />
         </exclude>
       </dirEntry>
@@ -1363,7 +1368,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
     </linuxDeb>
   </mediaSets>
   <buildIds buildAll="false">
-    <mediaSet refId="26" />
+    <mediaSet refId="157" />
   </buildIds>
   <buildOptions verbose="true" faster="true" disableSigning="false" debug="true" />
 </install4j>
