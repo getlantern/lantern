@@ -76,7 +76,7 @@ public final class PhotoServlet extends HttpServlet {
                     raw = vcard.getAvatar();
                     cache.put(email, vcard);
                 } catch (final XMPPException e) {
-                    log.info("Exception accessing vcard for "+email, e);
+                    log.debug("Exception accessing vcard for "+email, e);
                 } catch (final CredentialException e) {
                     sendError(resp, HttpStatus.SC_UNAUTHORIZED, 
                         "Could not authorize Google Talk connection");
@@ -94,7 +94,7 @@ public final class PhotoServlet extends HttpServlet {
             if (types != null && !types.isEmpty()) {
                 final String ct = types.iterator().next().toString();
                 resp.setContentType(ct);
-                log.info("Set content type to {}", ct);
+                log.debug("Set content type to {}", ct);
             }
         }
         
@@ -151,7 +151,7 @@ public final class PhotoServlet extends HttpServlet {
         try {
             resp.sendError(errorCode, msg);
         } catch (final IOException e) {
-            log.info("Could not send response", e);
+            log.debug("Could not send response", e);
         }
     }
     

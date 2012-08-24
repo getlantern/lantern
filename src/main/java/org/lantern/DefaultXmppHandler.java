@@ -226,7 +226,7 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public void connect(final String email, final String pwd) 
         throws IOException, CredentialException {
-        LOG.info("Connecting to XMPP servers with user name and password...");
+        LOG.debug("Connecting to XMPP servers with user name and password...");
         this.lastUserName = email;
         this.lastPass = pwd;
         final InetSocketAddress plainTextProxyRelayAddress = 
