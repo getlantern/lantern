@@ -920,12 +920,14 @@ public class LanternUtils {
             LanternHub.settings().isSystemProxy();
     }
     
+    /*
     public static boolean shouldProxy(final HttpRequest request) {
         if (LanternHub.settings().isProxyAllSites()) {
             return true;
         }
         return LanternHub.whitelist().isWhitelisted(request);
     }
+    */
 
     /**
      * Creates a typed object from the specified string. If the string is a
