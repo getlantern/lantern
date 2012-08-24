@@ -31,17 +31,13 @@ public class Proxifier {
     private static final File LANTERN_PROXYING_FILE =
         new File(LanternConstants.CONFIG_DIR, "lanternProxying");
     
-    private static String proxyServerOriginal = "";
-
     private static boolean interactiveUnproxyCalled;
 
     private static final MacProxyManager mpm = 
         new MacProxyManager("testId", 4291);
     
-    private static final String LANTERN_PROXY_ADDRESS = "127.0.0.1:"+
-        LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
-    
-    private static final File PROXY_ON = new File("proxy_on.pac");
+    private static final File PROXY_ON = 
+        new File(LanternConstants.CONFIG_DIR, "proxy_on.pac");
     private static final File PROXY_OFF = new File("proxy_off.pac");
     
     private static final WinProxy WIN_PROXY = new WinProxy(LanternConstants.CONFIG_DIR);
@@ -73,13 +69,6 @@ public class Proxifier {
         }
         LANTERN_PROXYING_FILE.delete();
         LANTERN_PROXYING_FILE.deleteOnExit();
-        if (!PROXY_ON.isFile()) {
-            final String msg = 
-                "No pac at: "+PROXY_ON.getAbsolutePath() +"\nfrom: " +
-                new File(".").getAbsolutePath();
-            LOG.error(msg);
-            throw new IllegalStateException(msg);
-        }
         if (!PROXY_OFF.isFile()) {
             final String msg = 
                 "No pac at: "+PROXY_OFF.getAbsolutePath() +"\nfrom: " +
