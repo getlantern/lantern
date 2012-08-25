@@ -56,6 +56,7 @@ import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.littleshoot.p2p.P2P;
+import org.littleshoot.util.SessionSocketListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -255,12 +256,26 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         
         final UpnpService upnpService = new Upnp();
+        final SessionSocketListener sessionListener = new SessionSocketListener() {
+            
+            @Override
+            public void reconnected() {
+                // We need to send a new presence message each time we 
+                // reconnect to the XMPP server, as otherwise peers won't 
+                // know we're available and we won't get data from the bot.
+                updatePresence();
+            }
+            
+            @Override
+            public void onSocket(String arg0, Socket arg1) throws IOException {
+            }
+        };
         this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService, 
             upnpService, new InetSocketAddress(LanternHub.settings().getServerPort()), 
             //newTlsSocketFactory(),ç SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
             LanternUtils.newTlsSocketFactory(), LanternUtils.newTlsServerSocketFactory(),
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
-            plainTextProxyRelayAddress, false));
+            plainTextProxyRelayAddress, sessionListener, false));
         
         this.client.get().addConnectionListener(new P2PConnectionListener() {
             
