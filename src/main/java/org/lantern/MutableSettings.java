@@ -22,4 +22,6 @@ public interface MutableSettings {
     
     void setSavePassword(boolean savePassword);
 
+    void setProxyAllSites(boolean proxyAll);
+
 }

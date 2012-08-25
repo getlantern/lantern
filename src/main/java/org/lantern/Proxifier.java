@@ -3,7 +3,6 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
@@ -12,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.common.io.Files;
 
 /**
  * Class that handles turning proxying on and off for all platforms.
@@ -38,9 +38,18 @@ public class Proxifier {
     
     private static final File PROXY_ON = 
         new File(LanternConstants.CONFIG_DIR, "proxy_on.pac");
-    private static final File PROXY_OFF = new File("proxy_off.pac");
+    private static final File PROXY_OFF = 
+        new File(LanternConstants.CONFIG_DIR, "proxy_off.pac");
+    private static final File PROXY_ALL = 
+        new File(LanternConstants.CONFIG_DIR, "proxy_all.pac");
     
-    private static final WinProxy WIN_PROXY = new WinProxy(LanternConstants.CONFIG_DIR);
+    static {
+        copyFromLocal(PROXY_ON);
+        copyFromLocal(PROXY_ALL);
+        copyFromLocal(PROXY_OFF);
+    }
+    private static final WinProxy WIN_PROXY = 
+        new WinProxy(LanternConstants.CONFIG_DIR);
     
     static {
         final class Subscriber {
@@ -90,14 +99,52 @@ public class Proxifier {
         Runtime.getRuntime().addShutdownHook(hook);
     }
     
-    private static final File ACTIVE_PAC = 
-        new File(LanternConstants.CONFIG_DIR, "proxy.pac");
     
+    private static void copyFromLocal(final File dest) {
+        final File all = new File(dest.getName());
+        try {
+            Files.copy(all, dest);
+        } catch (final IOException e) {
+            LOG.error("Could not copy from {} to {}", all, dest);
+        }
+    }
+    
+    /**
+     * Configures Lantern to proxy all sites, not just the ones on the 
+     * whitelist.
+     * 
+     * @param proxyAll Whether or not to proxy all sites.
+     * @throws ProxyConfigurationError If there's an error configuring the 
+     * proxy.
+     */
+    public static void proxyAllSites(final boolean proxyAll) 
+        throws ProxyConfigurationError {
+        if (proxyAll) {
+            startProxying(true, PROXY_ALL);
+        } else {
+            // In this case the user is still in GET mode (in order to have that
+            // option available at all), so we need to go back to proxying
+            // using the normal pac file.
+            startProxying(true, PROXY_ON);
+        }
+    }
+
     public static void startProxying() throws ProxyConfigurationError {
-        startProxying(false);
+        if (LanternHub.settings().isProxyAllSites()) {
+            // If we were previously configured to proxy all sites, then we
+            // need to force the override.
+            startProxying(true);
+        } else {
+            startProxying(false);
+        }
     }
     
     private static void startProxying(final boolean force) 
+        throws ProxyConfigurationError {
+        startProxying(force, PROXY_ON);
+    }
+    
+    private static void startProxying(final boolean force, final File pacFile) 
         throws ProxyConfigurationError {
         if (isProxying() && !force) {
             LOG.info("Already proxying!");
@@ -110,19 +157,19 @@ public class Proxifier {
         }
 
         // Always update the pac file to make sure we've got all the latest
-        // entries.
-        PacFileGenerator.generatePacFile(
-            LanternHub.whitelist().getEntriesAsStrings(), PROXY_ON);
-        
-        copyPacFile();
+        // entries -- only recreates proxy_on.
+        if (pacFile.equals(PROXY_ON)) {
+            PacFileGenerator.generatePacFile(
+                LanternHub.whitelist().getEntriesAsStrings(), PROXY_ON);
+        }
         
         LOG.info("Autoconfiguring local to proxy Lantern");
         if (SystemUtils.IS_OS_MAC_OSX) {
-            proxyOsx();
+            proxyOsx(pacFile);
         } else if (SystemUtils.IS_OS_WINDOWS) {
-            proxyWindows();
+            proxyWindows(pacFile);
         } else if (SystemUtils.IS_OS_LINUX) {
-            proxyLinux();
+            proxyLinux(pacFile);
         }
         // success
         try {
@@ -202,9 +249,12 @@ public class Proxifier {
         return LANTERN_PROXYING_FILE.isFile();
     }
     
-    private static void proxyLinux() throws ProxyConfigurationError {
-        final String path = PROXY_ON.toURI().toASCIIString();
+    private static void proxyLinux(final File pacFile) 
+        throws ProxyConfigurationError {
+        final String path = pacFile.toURI().toASCIIString();
 
+        // TODO: what if the user has spaces in their user name? does the 
+        // URL-encoding of the path make the pac file config fail?
         try {
             final String result1 = 
                 mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
@@ -220,12 +270,13 @@ public class Proxifier {
         }
     }
     
-    private static void proxyOsx() throws ProxyConfigurationError {
-        proxyOsxViaScript(true);
+    private static void proxyOsx(final File pacFile) 
+        throws ProxyConfigurationError {
+        configureOsxProxyViaScript(true, pacFile);
     }
     
-    private static void proxyOsxViaScript(final boolean proxy) 
-        throws ProxyConfigurationError {
+    private static void configureOsxProxyViaScript(final boolean proxy,
+        final File pacFile) throws ProxyConfigurationError {
         final String onOrOff;
         if (proxy) {
             onOrOff = "on";
@@ -242,7 +293,7 @@ public class Proxifier {
         
         String applescriptCommand = 
             "do shell script \"./configureNetworkServices.bash "+
-            onOrOff;
+            onOrOff +" "+pacFile.getName();
         
         if (locked) {
             applescriptCommand +="\" with administrator privileges without altering line endings";
@@ -270,85 +321,24 @@ public class Proxifier {
         }
     }
 
-    /**
-     * Uses a pac file to manipulate browser's use of Lantern.
-     */
-    private static void copyPacFile() {
-        try {
-            FileUtils.copyFile(PROXY_ON, ACTIVE_PAC);
-        } catch (final IOException e) {
-            LOG.error("Could not copy pac file?", e);
-        }
-    }
-
-
-    private static void proxyWindows() {
+    private static void proxyWindows(final File pacFile) {
         if (!SystemUtils.IS_OS_WINDOWS) {
             LOG.info("Not running on Windows");
             return;
         }
-        final String url = "file://"+ACTIVE_PAC.getAbsolutePath();
+        
+        // Note we don't use toURI().toASCIIString here because the URL encoding
+        // of spaces causes problems.
+        final String url = "file://"+pacFile.getAbsolutePath();
             //ACTIVE_PAC.toURI().toASCIIString().replace("file:/", "file://");
         LOG.info("Using pac path: {}", url);
         
         WIN_PROXY.setPacFile(url);
-
-        /*
-        // We first want to read the start values so we can return the
-        // registry to the original state when we shut down.
-        final String curProxy = WIN_PROXY.getProxy();
-        final String proxyServerUs = "127.0.0.1:"+
-            LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
-
-        // OK, we do one final check here. If the original proxy settings were
-        // already configured for Lantern for whatever reason, we want to 
-        // change the original to be the system defaults so that when the user
-        // stops Lantern, the system actually goes back to its original pre-
-        // lantern state.
-        if (curProxy.equals(LANTERN_PROXY_ADDRESS)) {
-            // Only set the original proxy server to blank if it's not already
-            // set.
-            if (StringUtils.isBlank(proxyServerOriginal)) {
-                proxyServerOriginal = "";
-            }
-        } else {
-            proxyServerOriginal = curProxy;
-        }
-                
-        LOG.info("Setting registry to use Lantern as a proxy...");
-        
-        if (WIN_PROXY.proxy(proxyServerUs)) {
-            LOG.info("Successfully reset proxy server");
-        } else {
-            LOG.warn("Error setting the proxy server?");
-        }
-        */
     }
 
     protected static void unproxyWindows() {
-        //LOG.info("Resetting Windows registry settings to original values.");
         LOG.info("Unproxying windows");
         WIN_PROXY.unproxy();
-        
-        
-        // On shutdown, we need to check if the user has modified the
-        // registry since we originally set it. If they have, we want
-        // to keep their setting. If not, we want to revert back to 
-        // before Lantern started.
-        /*
-        final String proxyServer = WIN_PROXY.getProxy();
-        
-        if (proxyServer.equals(LANTERN_PROXY_ADDRESS)) {
-            LOG.info("Setting proxy server back to: {}", 
-                proxyServerOriginal);
-            if (WIN_PROXY.proxy(proxyServerOriginal)) {
-                LOG.info("Successfully reset proxy server");
-            } else {
-                LOG.warn("Error setting the proxy server?");
-            }
-        }
-        LOG.info("Done resetting the Windows registry");
-        */
     }
     
     private static void unproxyLinux() throws ProxyConfigurationError {
@@ -364,22 +354,10 @@ public class Proxifier {
     }
 
     private static void unproxyOsx() throws ProxyConfigurationError {
-        unproxyOsxPacFile();
-        unproxyOsxViaScript();
-    }
-    
-    static void unproxyOsxViaScript() throws ProxyConfigurationError {
-        proxyOsxViaScript(false);
-    }
-    
-    private static void unproxyOsxPacFile() {
-        try {
-            LOG.info("Unproxying!!");
-            FileUtils.copyFile(PROXY_OFF, ACTIVE_PAC);
-            LOG.info("Done unproxying!!");
-        } catch (final IOException e) {
-            LOG.error("Could not copy pac file?", e);
-        }
+        // Note that this is a bit of overkill in that we both turn of the
+        // PAC file-based proxying and set the PAC file to one that doesn't
+        // proxy anything.
+        configureOsxProxyViaScript(false, PROXY_OFF);
     }
     
     /**
