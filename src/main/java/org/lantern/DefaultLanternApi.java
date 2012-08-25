@@ -523,7 +523,7 @@ public class DefaultLanternApi implements LanternApi {
     private void setProperty(final Object bean, 
         final String key, final String val, final boolean logErrors,
         final HttpServletResponse resp, final boolean determineType) {
-        log.info("Setting property on {}", bean);
+        log.info("Setting {} property on {}", key, bean);
         final Object obj;
         if (determineType) {
             obj = LanternUtils.toTyped(val);
