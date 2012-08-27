@@ -9,8 +9,7 @@ desktop systems.
 
 ![screenshot](https://www.getlantern.org/static/img/dl-mac_setup.png)
 
-To run Lantern from source, you need Maven and Java installed. The Lantern
-developers use Oracle's Java 1.6 SDK, but other SDKs may work.
+To run Lantern from source, you need Maven and Java installed. The source code is compatible with Java 1.6 and above.
 
 Then you can run:
 
