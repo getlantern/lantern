@@ -29,11 +29,7 @@ server, for example.
 
 If you're running Linux, note that Lantern's UI currently targets the
 Ubuntu 12.04 desktop environment (i.e. Unity). Other environments may work as
-well, but you may need to run something like the following before you can use
-the UI, depending on your system:
-
-    sudo apt-get install libxtst6
-    sudo yum install xorg-x11-deprecated-libs
+well but are untested and unmaintained.
 
 
 Further Reading
