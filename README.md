@@ -9,12 +9,19 @@ desktop systems.
 
 ![screenshot](https://www.getlantern.org/static/img/dl-mac_setup.png)
 
-To run Lantern from source, you need Maven and Java installed. The source code is compatible with Java 1.6 and above.
+To run Lantern from source, you need Maven and Java installed. To install maven on OSX with MacPorts installed, you can run:
+
+```
+sudo port install maven3
+```
+
+The source code is compatible with Java 1.6 and above.
 
 Then you can run:
 
-    $ ./run.bash
-
+```
+$ ./run.bash
+```
 That's actually a "build and run" script that'll grab dependencies, build and
 then run Lantern. There's also a `quickRun.bash` script that will just run it
 when already built.
