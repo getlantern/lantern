@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<link href="../css/styles.css" rel="stylesheet" />
+	
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="../js-webshim/minified/extras/modernizr-custom.js"></script>
+	<script>
+		// set options for html5shiv
+		if(!window.html5){
+			window.html5 = {}; 
+		}
+		window.html5.shivMethods = false;
+	</script>
+	<script src="../js-webshim/minified/extras/mousepress.js"></script>
+	
+	<script src="../js-webshim/minified/polyfiller.js"></script>
+	
+	<script>
+		$.webshims.setOptions({
+			//we do not use any DOM-/JS-APIs on DOM-ready, so we do not need to delay the ready event <- good against fouc
+			waitReady: false
+		});
+		$.webshims.polyfill();
+		
+		
+		$(function(){
+			
+			
+			//If you want to build a simple player the following code can help you
+			$('div.player').each(function(){
+				var player = this;
+				var getSetCurrentTime = createGetSetHandler(
+					function(){
+						$('input.time-slider', player).prop( 'value',  $.prop(this, 'currentTime'));
+					},
+					function(){
+						try {
+							$('video, audio', player).prop('currentTime', $.prop(this, 'value'));
+						} catch(er){}
+					}
+				);
+				var getSetVolume = createGetSetHandler(
+					function(){
+						$('input.volume-slider', player).prop( 'value',  $.prop(this, 'volume'));
+						
+					},
+					function(){
+						$('video, audio', player).prop('volume', $.prop(this, 'value'));
+					}
+				);
+				$('video, audio', this)
+					.bind('durationchange updateMediaState', function(){
+						var duration = $.prop(this, 'duration');
+						if(!duration){return;}
+						$('input.time-slider', player).prop({
+							'max': duration,
+							disabled: false
+						});
+						$('span.duration', player).text(duration);
+					})
+					.bind('progress updateMediaState', function(){
+						var buffered = $.prop(this, 'buffered');
+						if(!buffered || !buffered.length){return;}
+						buffered = getActiveTimeRange( buffered, $.prop(this, 'currentTime') );
+						$('span.progress', player).text( buffered[2] );
+					})
+					.bind('timeupdate', function(){
+						$('span.current-time', player).text( $.prop(this, 'currentTime') );
+					})
+					.bind('timeupdate', getSetCurrentTime.get)
+					.bind('emptied', function(){
+						$('input.time-slider', player).prop('disabled', true);
+						$('span.duration', player).text('--');
+						$('span.current-time', player).text( 0 );
+						$('span.network-state', player).text( 0 );
+						$('span.ready-state', player).text( 0 );
+						$('span.paused-state', player).text( $.prop(this, 'paused') );
+						$('span.height-width', player).text( '-/-' );
+						$('span.progress', player).text('0');
+					})
+					.bind('waiting playing loadedmetadata updateMediaState', function(){
+						$('span.network-state', player).text( $.prop(this, 'networkState') );
+						$('span.ready-state', player).text( $.prop(this, 'readyState') );
+					})
+					.bind('play pause', function(){
+						$('span.paused-state', player).text( $.prop(this, 'paused') );
+					})
+					.bind('volumechange', function(){
+						var muted = $.prop(this, 'muted');
+						$('span.muted-state', player).text( muted );
+						$('input.muted', player).prop('checked', muted);
+						$('span.volume', player).text( $.prop(this, 'volume') );
+					})
+					.bind('volumechange', getSetVolume.get)
+					.bind('play pause', function(){
+						$('span.paused-state', player).text( $.prop(this, 'paused') );
+					})
+					.bind('loadedmetadata updateMediaState', function(){
+						$('span.height-width', player).text( $.prop(this, 'videoWidth') +'/'+ $.prop(this, 'videoHeight') );
+					})
+					.each(function(){
+						if($.prop(this, 'readyState') > $.prop(this, 'HAVE_NOTHING')){
+							$(this).triggerHandler('updateMediaState');
+						}
+					})
+				;
+				
+				$('input.time-slider', player)
+					.bind('input', getSetCurrentTime.set)
+					.prop('value', 0)
+				;
+				$('input.volume-slider', player).bind('input', getSetVolume.set);
+				
+				$('input.play', player).bind('click', function(){
+					$('video, audio', player)[0].play();
+				});
+				$('input.pause', player).bind('click', function(){
+					$('video, audio', player)[0].pause();
+				});
+				$('input.muted', player).bind('click updatemuted', function(){
+					$('video, audio', player).prop('muted', $.prop(this, 'checked'));
+				}).triggerHandler('updatemuted'); 
+				$('input.controls', player).bind('click updatecontrols', function(){
+					$('video, audio', player).prop('controls', $.prop(this, 'checked'));
+				}).prop('checked', true); 
+				
+				$('select.load-media', player).bind('change', function(){
+					var srces = $('option:selected', this).data('src');
+					if(srces){
+						//the following code can be also replaced by the following line
+						//$('video, audio', player).loadMediaSrc(srces).play();
+						
+						$('video, audio', player)
+							.removeAttr('src')
+							.find('source')
+							.remove()
+							.end()
+							.each(function(){
+								var mediaElement = this;
+								if(typeof srces == 'string'){
+									srces = [srces];
+								}
+								$.each(srces, function(i, src){
+									
+									if(typeof src == 'string'){
+										src = {src: src};
+									}
+									$(document.createElement('source')).attr(src).appendTo(mediaElement);
+								});
+							})
+							[0].load()
+						;
+						$('video, audio', player)[0].play();
+					}
+				}).prop('selectedIndex', 0);
+			});
+			
+			//helper for createing throttled get/set functions (good to create time/volume-slider, which are used as getter and setter)
+			function createGetSetHandler(get, set){
+				var throttleTimer;
+				var blockedTimer;
+				var blocked;
+				return {
+					get: function(){
+						if(blocked){return;}
+						return get.apply(this, arguments);
+					},
+					set: function(){
+						clearTimeout(throttleTimer);
+						clearTimeout(blockedTimer);
+						
+						var that = this;
+						var args = arguments;
+						blocked = true;
+						throttleTimer = setTimeout(function(){
+							set.apply(that, args);
+							blockedTimer = setTimeout(function(){
+								blocked = false;
+							}, 30);
+						}, 0);
+					}
+				};
+			};
+			
+			function getActiveTimeRange(range, time){
+				var len = range.length;
+				var index = -1;
+				var start = 0;
+				var end = 0;
+				for(var i = 0; i < len; i++){
+					if(time >= (start = range.start(i)) && time <= (end = range.end(i))){
+						index = i;
+						break;
+					}
+				}
+				return [index, start, end];
+			};
+			
+		});
+	</script>
+	<script src="../demo-js/demo.js"></script>
+	<title>HTML5 mediaelements audio and video : webshims lib - the polyfilling capability based loading JS library</title>
+</head>
+
+<body>
+		<header>
+			<hgroup>
+				<h1>Webshims Lib</h1>
+				<h2>Polyfill only the incapable browsers</h2>
+			</hgroup>
+			<nav>
+				<ul>
+					<li><a href="../index.html">home</a></li>
+				</ul>
+			</nav>
+		</header>
+		<div class="main">
+		<nav>
+			<ul>
+				<li><a href="shiv.html">HTML5 shiv and innerShiv</a></li>
+				<li><a href="es5.html">ES5/JavaScript 1.8.5</a></li>
+				<li><a href="webforms.html">constraint validation and input widgets</a></li>
+				<li><a href="canvas.html">canvas</a></li>
+				<li><strong>mediaelement</strong></li>
+				<li><a href="json-storage.html">storage and JSON</a></li>
+				<li><a href="geolocation.html">geolocation API</a></li>
+				<li><a href="details.html">details &amp; summary</a></li>
+			</ul>
+		</nav>
+		<div class="main-box">
+		<section>
+			<hgroup>
+				<h2>HTML5 audio and video elements</h2>
+				<h3>Demo/About/Documentation audio and video elements</h3>
+			</hgroup>
+			<p>The <code>mediaelement</code> implements the audio, video and source elements including their API and enables playing mp4, mp3, flv, fla etc. media files and playing rtmp streams in incapable browsers using the <a href="http://www.longtailvideo.com/players/">famous JW Player</a>.</p>
+			<section>
+				<h3>Implemented/fixed elements, attributes, properties, methods, events</h3>
+				<ul>
+					<li><strong>elements:</strong> <a href="http://www.w3.org/TR/html5/video.html#video">video</a>, <a href="http://www.w3.org/TR/html5/video.html#audio">audio</a>, <a href="http://www.w3.org/TR/html5/video.html#the-source-element">source</a></li>
+					<li><strong>attributes and IDL/properties</strong>: <a href="http://www.w3.org/TR/html5/video.html#attr-media-controls">controls</a>, <a href="http://www.w3.org/TR/html5/video.html#attr-media-loop">loop</a>, <a href="http://www.w3.org/TR/html5/video.html#attr-media-autoplay">autoplay</a>, <a href="http://www.w3.org/TR/html5/video.html#attr-source-src">src</a></li>
+					<li><strong>properties/IDLs</strong>: <a href="http://www.w3.org/TR/html5/video.html#dom-media-paused">paused</a>, <a href="http://www.w3.org/TR/html5/video.html#dom-media-ended">ended</a>, <a href="http://www.w3.org/TR/html5/video.html#dom-media-muted">muted</a>, <a href="http://www.w3.org/TR/html5/video.html#dom-media-volume">volume</a>, <a href="http://www.w3.org/TR/html5/video.html#dom-media-currenttime">currentTime</a>, <a href="http://www.w3.org/TR/html5/video.html#dom-media-duration">duration</a>, <a href="http://www.w3.org/TR/html5/video.html#dom-media-buffered">buffered</a><sup>1</sup>, <a href="http://www.w3.org/TR/html5/video.html#dom-media-currentsrc">currentSrc</a>, <a href="http://www.w3.org/TR/html5/video.html#dom-media-readystate">readyState</a>, <a href="http://www.w3.org/TR/html5/video.html#dom-media-networkstate">networkState</a>, <a href="http://www.w3.org/TR/html5/video.html#dom-video-videoheight">videoHeight</a><sup>2</sup>, <a href="http://www.w3.org/TR/html5/video.html#dom-video-videowidth">videoWidth</a><sup>2</sup></li>
+					<li><strong>methods</strong>: <a href="http://www.w3.org/TR/html5/video.html#dom-media-play">play</a>, <a href="http://www.w3.org/TR/html5/video.html#dom-media-pause">pause</a>, <a href="http://www.w3.org/TR/html5/video.html#dom-media-load">load</a> (mediaLoad<sup>3</sup>), <a href="http://www.w3.org/TR/html5/video.html#dom-navigator-canplaytype">canPlayType</a> <sup>4</sup> </li>
+					<li><strong>events</strong>: <a href="http://www.w3.org/TR/html5/video.html#event-media-loadedmetadata">loadedmetadata</a>, <a href="http://www.w3.org/TR/html5/video.html#event-media-play">play</a>, <a href="http://www.w3.org/TR/html5/video.html#event-media-pause">pause</a>, <a href="http://www.w3.org/TR/html5/video.html#event-media-playing">playing</a>, <a href="http://www.w3.org/TR/html5/video.html#event-media-canplay">canplay</a>, <a href="http://www.w3.org/TR/html5/video.html#event-media-ended">ended</a>, <a href="http://www.w3.org/TR/html5/video.html#event-media-waiting">waiting</a>, <a href="http://www.w3.org/TR/html5/video.html#event-media-timeupdate">timeupdate</a>, <a href="http://www.w3.org/TR/html5/video.html#event-media-progress">progress</a>, <a href="http://www.w3.org/TR/html5/video.html#event-media-emptied">emptied</a>, <a href="http://www.w3.org/TR/html5/video.html#event-media-volumechange">volumechange</a>, <a href="http://www.w3.org/TR/html5/video.html#event-media-durationchange">durationchange</a></li>
+				</ul>
+				<ul>
+					<li><small>1.buffered is a little bit buggy with youtube videos.</small></li>
+					<li><small>2.videoHeight/videoWidth not supported with youtube videos.</small></li>
+					<li><small>3. mediaLoad is the jQuery plugin method, which corresponds to the native load method (Webshims lib does not override jQuery's own load-method), ( $('video')[0].load() === $('video:first').mediaLoad() ).</small></li>
+					<li><small>4. canPlayType returns "maybe" if native player can't play, but Flash can and is installed. (i.e.: $('video').canPlayType('video/flv') might return "mabe")</small></li>
+				</pul>
+				
+				<h3>Options for the <code>mediaelement</code> feature</h3>
+				
+				<ul>
+					<li><strong>preferFlash</strong> (false): If preferFlash is set to true the mediaelements will be replaced by flash, if flash is available. Otherwise only, if mediaelements aren't supported or the current audio/video container/codec isn't supported by the browser.</li>
+					<li><strong>jwVars</strong> (Flahsvars Object): Object with default flashvars to <a href="http://www.longtailvideo.com/support/jw-player/jw-player-for-flash-v5/12536/configuration-options">configure JWPlayer</a>. This general configuration can be changed by using a data-jwvars attribute, too.</li>
+					<li><strong>changeJW</strong> (Manipulation function): Callback function to also modify the flashvars object for JWPlayer.</li>
+					<!--<li><strong>hasToPlay</strong> (string default: "any" (or "ogg", "webm", "h264", "flv", "mp3", "wav", "m4a", "fla")): If a page is only using for example h.264 encoded videos, this can be set to <code>"h264"</code>. If a browser does not support h264, mp3 or flv/fla, but this property is set to "any", the video format will be still polyfilled.</li>-->
+				</ul>
+				
+				<h3>Extensions/Abstractions to the standard</h3>
+				<ul>
+					<li><strong>loadMediaSrc</strong> (source [, poster]) (jQuery plugin): Removes current audio/video sources adds new source[s] and calls the load method (mediaLoad).</li>
+				</ul>
+<code class="block">
+//simple video
+$("video.my-video").loadMediaSrc("my-video.mp4");
+//or video with type
+$("video.my-video").loadMediaSrc({src: "my-video.mp4", type: "video/mp4"});
+or multiple video sources and new poster
+$("video.my-video").loadMediaSrc(
+	[
+		{src: "my-video.mp4", type: "video/mp4"}, 
+		"my-video.ogg"
+	], 
+	"my-poster.jpg"
+);
+</code>				
+			</section>
+			<section>
+				<h3>Simple Demo</h3>
+				<h4>Video example</h4>
+				<div class="player">
+					
+					<video controls preload="none" poster="http://protofunc.com/jme/media/bbb_watchtrailer.gif" style="width: 400px; height: 228px;">
+						<source src="http://protofunc.com/jme/media/bbb_trailer_mobile.m4v" type="video/mp4" />
+						<source src="http://protofunc.com/jme/media/bbb_trailer_400p.ogg" type="video/ogg" />
+					</video>
+					<table>
+						<thead>
+							<th>property</th>
+							<th>value/control</th>
+						</thead>
+						<tbody>
+							<tr>
+								<th>currentTime</th>
+								<td><span class="current-time"></span></td>
+							</tr>
+							<tr>
+								<th>duration</th>
+								<td><span class="duration"></span></td>
+							</tr>
+							<tr>
+								<th>progress</th>
+								<td><span class="progress">0</span></td>
+							</tr>
+							
+							<tr>
+								<th>paused-state</th>
+								<td><span class="paused-state">true</span></td>
+							</tr>
+							<tr>
+								<th>muted-state</th>
+								<td><span class="muted-state">false</span></td>
+							</tr>
+							<tr>
+								<th>volume</th>
+								<td><span class="volume">1</span></td>
+							</tr>
+							
+							<tr>
+								<th>videoWidth/videoHeight</th>
+								<td><span class="height-width">-/-</span></td>
+							</tr>
+							
+							<tr>
+								<th>networkState</th>
+								<td><span class="network-state"></span></td>
+							</tr>
+							<tr>
+								<th>readyState</th>
+								<td><span class="ready-state"></span></td>
+							</tr>
+							<tr>
+								<th>controls</th>
+								<td><input class="controls" type="checkbox" checked /></td>
+							</tr>
+							<tr>
+								<th>currentTime</th>
+								<td><input class="time-slider" type="range" disabled value="0" step="0.01" /></td>
+							</tr>
+							<tr>
+								<th>play</th>
+								<td><input value="play" type="button" class="play" /></td>
+							</tr>
+							<tr>
+								<th>pause</th>
+								<td><input value="pause" type="button" class="pause" /></td>
+							</tr>
+							<tr>
+								<th>muted</th>
+								<td><input class="muted" type="checkbox" /></td>
+							</tr>
+							<tr>
+								<th>volume</th>
+								<td><input class="volume-slider" type="range"  value="1" max="1" step="0.01" /></td>
+							</tr>
+							<tr>
+								<th>loadMediaSrc</th>
+								<td>
+									<select class="load-media">
+									
+										<option data-src='[{"src": "http://protofunc.com/jme/media/bbb_trailer_mobile.m4v", "type": "video/mp4"}, {"src": "http://protofunc.com/jme/media/bbb_trailer_400p.ogg", "type": "video/ogg"}]'>Big Buck Bunny</option>
+										<option data-src='[{"src": "http://cdn.yayquery.com/ep/23/yayquery_23.mp4", "type": "video/mp4"}, {"src": "http://cdn.yayquery.com/ep/23/yayquery_23.ogv", "type": "video/ogg"}]'>yayQuery - Episode 23 | When Things Are Things</option>
+										
+										
+										<option data-src="http://www.youtube.com/watch?v=siOHh0uzcuY">Youtube: Introduction to HTML 5</option>
+										
+									</select>
+								</td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+				<h4>Audio example using mp3 only</h4>
+				<div class="player">
+					
+					<audio controls preload="none" style="width: 400px; height: 45px;">
+						<source src="http://media.libsyn.com/media/sitepoint/sitepointpodcast044.mp3" type="audio/mpeg" />
+					</audio>
+					<table>
+						<thead>
+							<th>property</th>
+							<th>value/control</th>
+						</thead>
+						<tbody>
+							<tr>
+								<th>currentTime</th>
+								<td><span class="current-time"></span></td>
+							</tr>
+							<tr>
+								<th>duration</th>
+								<td><span class="duration"></span></td>
+							</tr>
+							<tr>
+								<th>progress</th>
+								<td><span class="progress">0</span></td>
+							</tr>
+							
+							<tr>
+								<th>paused-state</th>
+								<td><span class="paused-state">true</span></td>
+							</tr>
+							<tr>
+								<th>muted-state</th>
+								<td><span class="muted-state">false</span></td>
+							</tr>
+							<tr>
+								<th>volume</th>
+								<td><span class="volume">1</span></td>
+							</tr>
+														
+							<tr>
+								<th>networkState</th>
+								<td><span class="network-state"></span></td>
+							</tr>
+							<tr>
+								<th>readyState</th>
+								<td><span class="ready-state"></span></td>
+							</tr>
+							<tr>
+								<th>controls</th>
+								<td><input class="controls" type="checkbox" checked /></td>
+							</tr>
+							<tr>
+								<th>currentTime</th>
+								<td><input class="time-slider" type="range" disabled value="0" step="0.01" /></td>
+							</tr>
+							<tr>
+								<th>play</th>
+								<td><input value="play" type="button" class="play" /></td>
+							</tr>
+							<tr>
+								<th>pause</th>
+								<td><input value="pause" type="button" class="pause" /></td>
+							</tr>
+							<tr>
+								<th>muted</th>
+								<td><input class="muted" type="checkbox" /></td>
+							</tr>
+							<tr>
+								<th>volume</th>
+								<td><input class="volume-slider" type="range"  value="1" max="1" step="0.01" /></td>
+							</tr>
+						</tbody>
+					</table>
+				</div>
+			</section>
+			
+			<section>
+				<h2>How to...</h2>
+				<h3>Styling the video/audio elements</h3>
+				<h4>Setting dimensions</h4>
+				<p>Webshims lib does not use the width/height content attributes to get the dimensions of your audio/video elements. Instead webshims lib mediaelement implementation only looks for the CSS styles.</p>
+				<p>If an width-/height- inline style is used, these properties are taken. In this case also % or em units or the auto values are fully supported. If styles are set through an stylesheet, webshims lib will use the computed styles.</p>
+				<p>If auto is used as a width/height value. A video should always have a valid poster attribute and this poster should have the same ratio as the video.</p>
+<code class="block">
+/*external stylesheet */
+aside.aside video {
+	width: 180px;
+}
+</code>
+<code class="block">
+&lt;!-- videos with fixed width and auto height --&gt;
+&lt;aside class="aside"&gt;
+	&lt;video poster="/img/180x120.jpg" style="height: auto;"&gt;
+		&lt;source src="/video/180x120.mp4" type="video/mp4"&gt;&lt;/source&gt;
+	&lt;/video&gt;
+	
+	&lt;video poster="/img/190x140.jpg" style="height: auto;"&gt;
+		&lt;source src="/video/190x140.mp4" type="video/mp4"&gt;&lt;/source&gt;
+	&lt;/video&gt;
+&lt;/aside&gt;
+</code>
+				<h4>Using additional styles (margin, background, float etc.)</h4>
+				<p>Additional styles like margin, float etc. are not transferred from the audio/video element to the flash-fallback. The best way to use margin, float and other styles is to use an additional wrapper for your mediaelement.</p>
+				<h4>Having controls at bottom and not over the video in JWPlayer</h4>
+				<p>The position of the controls can be configured, using either the general setOptions method or by using the data-jwvars attribute:</p>
+				
+<code class="block">
+$.webshims.setOptions('mediaelement', {
+	jwVars: {
+		controlbar: 'bottom'
+	}
+});
+</code>
+
+<code class="block">
+&lt;video data-jwvars='{"controlbar": "bottom"}' src="my-file.webm" controls&gt;&lt;/video&gt;
+</code>
+				<h4>Using custom styleable controls</h4>
+				<p>Webshims lib does not provide custom styleable controls out of the box. Instead webshims lib polyfills the HTML5 API, so that you can easily build your own controls. Simply have a look into the source code of this site, to see how we have build the controls in our demo. If you are interested in a ready-to-use solution for CSS styleable controls, try <a href="https://github.com/aFarkas/jMediaelement">JME2</a>. JME2 works in all HTML5 browsers without a polyfill and in all browsers including IE6 in conjunction with webshims lib.</p>
+				<h4>Updating JWPlayer/Using licensed JWPlayer</h4>
+				<p>Simply place player.swf into your shims/jwplayer folder.</p>
+				<h4>Changing path to swfobject</h4>
+<code class="block">
+$.webshims.modules.swfobject.src = "/path/to/swfobject.js";
+</code>
+				
+				<h2>Cookbook</h2>
+				
+				<h3>Stop other media if media starts to play</h3>
+<code class="block">
+$(document).bind('play', function(e){
+	$('audio, video').not(e.target).pause();
+});
+</code>
+				<h3>Make a simple playlist</h3>
+<code class="block">
+&lt;video src="video-1.mp4" data-palylist='["video-2.mp4", "video-3.mp4"]' controls="controls"&gt;&lt;/video&gt;
+</code>
+<code class="block">
+//get all audio and video files 
+$('video, audio')
+	//with a playlist
+	.filter('[data-playlist]')
+	.each(function(){
+		//get the playlist array form the data-attribute
+		var playlist = $(this).data('playlist');
+		//put first source into the playlist array 
+		playlist.unshift( $.prop(this, 'src') );
+		//remember index
+		var index = 0;
+		
+		//if media ends playing..
+		$(this).bind('ended', function(){
+			// get next index
+			index++;
+			//if there is no source, we loop to first index
+			if(!playlist[index]){
+				index = 0;
+			}
+			$(this)
+				//renew source elements and call load-method
+				.loadMediaSrc(playlist[index])
+				//start playing
+				.play()
+			;
+		});
+	})
+;	
+</code>
+			</section>
+			
+			<aside>
+				<h3>Simple demos/cookbook</h3>
+				<ul>
+					<li><a href="http://jsfiddle.net/trixta/VvmmC/">Player with some custom controls using input[type="range"]</a></li>
+				</ul>
+			</aside>
+				
+			<aside>
+				<h3>Links about mediaelements</h3>
+				
+				<ul>
+					<li><a href="http://diveintohtml5.info/video.html">Video (Dive Into HTML5)</a></li>
+				</ul>
+				
+			</aside>		
+	</section>
+	</div>
+	</div>
+	<footer>		
+		<small>
+			<strong>Note</strong>: every polyfill is a hack! innovative frontend development is hacky and always will be hacky!
+		</small>
+	</footer>
+<!--[if lte IE 7]>
+	<div class="browser-support"> 			
+		<div class="browser-support-box"> 				
+			Webshims Lib really cares about cross browser support and supports all A-Graded Browsers including IE6 and newest Opera. But I don't care about Styling/Layout issues in IE7- on this demo page.
+		</div> 		
+	</div>
+<![endif]-->
+</body>
+</html>   

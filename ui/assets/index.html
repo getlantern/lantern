@@ -1,65 +1,51 @@
 <!DOCTYPE html>
-<html lang="en">
+<html ng-app>
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta charset="utf-8">
     <title>Lantern Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Lantern Dashboard">
     <meta name="author" content="Team Lantern">
 
-    <!-- Le styles -->
-    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
-    <style>
-      body {
-        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
-      }
-    </style>
-    <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="css/prettify.css" rel="stylesheet">
+    <link href="css/dashboard.css" rel="stylesheet">
 
-    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
-    <!--[if lt IE 9]>
-      <script src="html5.js"></script>
-    <![endif]-->
+    <script src="js/jquery.min.js"></script>
+    <script src="webshims-1.8.13/js-webshim/minified/extras/modernizr-custom.js"></script>
+    <script src="webshims-1.8.13/js-webshim/minified/polyfiller.js"></script>
+    <script>
+      $.webshims.polyfill('forms');
+    </script>
+    <script src="js/json2.js"></script>
+    <script src="js/cometd.js"></script>
+    <script src="js/jquery.cometd.js"></script>
+    <script src="js/angular-1.0.1.min.js"></script>
+    <script src="js/angular-resource-1.0.1.min.js"></script>
+    <script src="js/prettify.js"></script>
+    <script src="js/dashboard.js"></script>
 
-    <!-- Le fav and touch icons -->
-    <!-- <link rel="shortcut icon" href="">
-    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="">
-    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="">
-    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="">
-    <link rel="apple-touch-icon-precomposed" href=""> -->
+    <link rel="shortcut icon" href="img/favicon.ico">
   </head>
 
   <body>
-    <div class="navbar navbar-inverse navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </a>
-          <a class="brand" href="#">Lantern Dashboard</a>
-          <div class="nav-collapse collapse">
-            <ul class="nav">
-              <li class="active"><a href="#">Home</a></li>
-              <li><a href="#contacts">Contacts</a></li>
-              <li><a href="#settings">Settings</a></li>
-            </ul>
-          </div><!--/.nav-collapse -->
-        </div>
-      </div>
-    </div>
-
     <div class="container">
-      <h1>Lantern Network</h1>
-      <p>(Real-time network visualization goes here)</p>
+      <h1>Lantern Dashboard</h1>
+
+      <div class="container" id="settings-container" ng-controller="SettingsCtrl">
+        <h3>Settings State</h3>
+        <div>nsyncs: {{nsyncs}}</div>
+        <pre class="prettyprint"><code ng:show="state">{{state | json}}</code><code ng:show="!state">waiting for data...</code></pre>
+      </div>
+
+      <div class="container" id="roster-container" ng-controller="RosterCtrl">
+        <h3>Roster State</h3>
+        <div>nsyncs: {{nsyncs}}</div>
+        <!-- too slow to prettify when this is big: -->
+        <pre><code ng:show="state">{{state | json}}</code><code ng:show="!state">waiting for data...</code></pre>
+      </div>
+
     </div> <!-- /container -->
 
-    <!-- Le javascript
-    ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="jquery.min.js"></script>
     <script src="bootstrap/js/bootstrap.js"></script>
   </body>
 </html>

@@ -1,0 +1,34 @@
+//errormessages for en are already included in webshims core, this is only for information (by default en is equal to jQuery.webshims.validityMessages[""]):
+
+jQuery.webshims.validityMessages.en = {
+    "typeMismatch": {
+        "email": "Please enter an email address.",
+        "url": "Please enter a URL.",
+        "number": "Please enter a number.",
+        "date": "Please enter a date.",
+        "time": "Please enter a time.",
+        "range": "Invalid input.",
+        "datetime-local": "Please enter a datetime."
+    },
+    "tooLong": "Please enter at most {%maxlength} character(s). You entered {%valueLen}.",
+    "patternMismatch": "Invalid input. {%title}",
+    "valueMissing": {
+        "defaultMessage": "Please fill out this field.",
+        "checkbox": "Please check this box if you want to proceed.",
+        "select": "Please select an option.",
+        "radio": "Please select an option."
+    },
+    "rangeUnderflow": {
+        "defaultMessage": "Value must be greater than or equal to {%min}.",
+        "date": "Value must be at or after {%min}.",
+        "time": "Value must be at or after {%min}.",
+        "datetime-local": "Value must be at or after {%min}."
+    },
+    "rangeOverflow": {
+        "defaultMessage": "Value must be less than or equal to {%max}.",
+        "date": "Value must be at or before {%max}.",
+        "time": "Value must be at or before {%max}.",
+        "datetime-local": "Value must be at or before {%max}."
+    },
+    "stepMismatch": "Invalid input."
+};

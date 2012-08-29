@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<link href="../css/styles.css" rel="stylesheet" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="../js-webshim/minified/extras/modernizr-custom.js"></script>
+	
+	<script src="../js-webshim/minified/polyfiller.js"></script>
+	<script>
+		// set options for html5shiv
+		if(!window.html5){
+			window.html5 = {}; 
+		}
+		window.html5.shivMethods = false;
+	</script>
+	<script class="example">
+		//load all polyfill features
+		//or load only a specific feature with $.webshims.polyfill('feature-name');
+		$.webshims.setOptions({
+			//we do not use any DOM-/JS-APIs on DOM-ready, so we do not need to delay the ready event <- good against fouc
+			waitReady: false
+		});
+		$.webshims.polyfill();
+	</script>
+	<script src="../demo-js/demo.js"></script>
+	<title>JSON and localStorage/sessionStorage : webshims lib - the polyfilling capability based loading JS library</title>
+
+</head>
+
+<body>
+	<header>
+		<hgroup>
+			<h1>Webshims Lib</h1>
+			<h2>Polyfill only the incapable browsers</h2>
+		</hgroup>
+		<nav>
+			<ul>
+				<li><a href="../index.html">home</a></li>
+			</ul>
+		</nav>
+	</header>
+	<div class="main">
+		<nav>
+			<ul>
+				<li><a href="shiv.html">HTML5 shiv and innerShiv</a></li>
+				<li><a href="es5.html">ES5/JavaScript 1.8.5</a></li>
+				<li><a href="webforms.html">constraint validation and input widgets</a></li>
+				<li><a href="canvas.html">canvas</a></li>
+				<li><a href="mediaelement.html">mediaelement</a></li>
+				<li><strong>storage and JSON</strong></li>
+				<li><a href="geolocation.html">geolocation API</a></li>
+				<li><a href="details.html">details &amp; summary</a></li>
+			</ul>
+		</nav>
+		<div class="main-box">
+		<section>
+			<h2>Demo/About/Documentation JSON and localStorage/sessionStorage</h2>
+			<p>The <code>json-storage</code> feature implements JSON.<a href="https://developer.mozilla.org/En/Using_native_JSON">parse/stringify</a> via <a href="http://www.json.org/js.html">JSON2 script</a> and <a href="https://developer.mozilla.org/en/DOM/Storage">localStorage/sessinStorage</a>.</p>
+			<p>The Storage support is based on the <a href="http://gist.github.com/350433">storage polyfill</a> by Remy Sharp. It uses the window.name-trick to store data for the session and shared object (flash) or a cookie (only, if flash isn't available) for localStorage.</p>
+			<p>The following Storage-interface is implemented:</p>
+			<ul>
+				<li>setItem</li>
+				<li>getItem</li>
+				<li>removeItem</li>
+				<li>clear</li>
+				<li>key</li>
+			</ul>
+			<p>If the flash localStorage shim is used and the the storage limit is hit, the flash settings dialog will be placed in to view to request more space for the storage. If the user denies this a DOMexception will be raised (<code>QUOTA_EXCEEDED_ERR: 22</code>).</p>
+			<p>Note: That IDL-attributes and the length property aren't implemented. You shouldn't rely on them, anyway.</p>
+			<p>Note: To use localStorage/sessionStorage you should test your webapp/website in an http-enivroment.</p>
+			<p>Note: For flash localStorage-polyfill: <a href="http://www.macromedia.com/support/documentation/en/flashplayer/help/settings_manager04.html">Add your development-directory to the local-trusted security sandbox.</a></p>
+<code class="block">
+$(function(){
+	if(localStorage.getItem('do-i-know-you') !== null){
+		//yes
+	} else {
+		//but now
+		try {
+			localStorage.setItem('do-i-know-you', 'yes');
+		} catch(e){}
+	}
+});
+</code>		
+			<h3>Options for the swf localStorage (<code>json-storage</code> feature)</h3>
+			<ul>
+				<li><strong>exceededMessage</strong> (string): A message, that will be placed above the flash settings dialog, which informs the user to allow more storage space for your domain.</li>
+			</ul>
+<code class="block">
+$.webshims.setOptions("json-storage", {
+	exceededMessage: "This application needs more space. Please move the slider to 5MB."
+});
+
+//$.webshims.polyfill();
+</code>	
+				<h3>Changing path to swfobject</h3>
+<code class="block">
+$.webshims.modules.swfobject.src = "/path/to/swfobject.js";
+</code>
+			<aside>
+				<h3>Links about JSON and localStorage/sessionStorage</h3>
+				<ul>
+					<li><a href="http://www.json.org/">JSON-Website</a></li>
+					<li><a href="http://dev.w3.org/html5/webstorage/">Webstorage (W3C)</a></li>
+					<li><a href="http://www.smashingmagazine.com/2010/10/11/local-storage-and-how-to-use-it/">Local Storage And How To Use It On Websites</a> (by Chris Heilmann)</li>
+					<li><a href="http://hacks.mozilla.org/2009/06/localstorage/">saving data with localStorage</a> by Christopher Blizzard (uses localStorage + JSON)</li>
+					<li><a href="https://gist.github.com/777191">A simple localStorage/sessionStorage extension, which works with and without webshims lib</a></li>
+				</ul>
+			</aside>
+		</section>
+		</div>
+	</div>	
+	<footer>
+		<small>
+			<strong>Note</strong>: every polyfill is a hack! innovative frontend development is hacky and always will be hacky!
+		</small>
+	</footer>
+<!--[if lte IE 7]>
+	<div class="browser-support"> 			
+		<div class="browser-support-box"> 				
+			Webshims Lib really cares about cross browser support and supports all A-Graded Browsers including IE6 and newest Opera. But I don't care about Styling/Layout issues in IE7- on this demo page.
+		</div> 		
+	</div>
+<![endif]-->
+</body>
+</html>   

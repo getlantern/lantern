@@ -1,0 +1,33 @@
+//errormessages for de are already included in webshims core, this is only for information:
+jQuery.webshims.validityMessages.de = {
+    "typeMismatch": {
+        "email": "{%value} ist keine zulässige E-Mail-Adresse",
+        "url": "{%value} ist keine zulässige Webadresse",
+        "number": "{%value} ist keine Nummer!",
+        "date": "{%value} ist kein Datum",
+        "time": "{%value} ist keine Uhrzeit",
+        "range": "{%value} ist keine Nummer!",
+        "datetime-local": "{%value} ist kein Datum-Uhrzeit Format."
+    },
+    "tooLong": "Der eingegebene Text ist zu lang! Sie haben {%valueLen} Zeichen eingegeben, dabei sind {%maxlength} das Maximum.",
+    "patternMismatch": "{%value} hat für dieses Eingabefeld ein falsches Format! {%title}",
+    "valueMissing": {
+        "defaultMessage": "Bitte geben Sie einen Wert ein",
+        "checkbox": "Bitte aktivieren Sie das Kästchen",
+        "select": "Bitte wählen Sie eine Option aus",
+        "radio": "Bitte wählen Sie eine Option aus"
+    },
+    "rangeUnderflow": {
+        "defaultMessage": "{%value} ist zu niedrig. {%min} ist der unterste Wert, den Sie benutzen können.",
+        "date": "{%value} ist zu früh. {%min} ist die früheste Zeit, die Sie benutzen können.",
+        "time": "{%value} ist zu früh. {%min} ist die früheste Zeit, die Sie benutzen können.",
+        "datetime-local": "{%value} ist zu früh. {%min} ist die früheste Zeit, die Sie benutzen können."
+    },
+    "rangeOverflow": {
+        "defaultMessage": "{%value} ist zu hoch. {%max} ist der oberste Wert, den Sie benutzen können.",
+        "date": "{%value} ist zu spät. {%max} ist die späteste Zeit, die Sie benutzen können.",
+        "time": "{%value} ist zu spät. {%max} ist die späteste Zeit, die Sie benutzen können.",
+        "datetime-local": "{%value} ist zu spät. {%max} ist die späteste Zeit, die Sie benutzen können."
+    },
+    "stepMismatch": "Der Wert {%value} ist in diesem Feld nicht zulässig. Hier sind nur bestimmte Werte zulässig. {%title}"
+};

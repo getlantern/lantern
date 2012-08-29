@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<link href="../css/styles.css" rel="stylesheet" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+
+	<script src="../js-webshim/minified/extras/modernizr-custom.js"></script>
+	<script>
+		// set options for html5shiv
+		if(!window.html5){
+			window.html5 = {}; 
+		}
+		window.html5.shivMethods = false;
+	</script>
+	<script src="../js-webshim/minified/polyfiller.js"></script>
+	
+	<script class="example">
+		$.webshims.setOptions({
+			//we do not use any DOM-/JS-APIs on DOM-ready, so we do not need to delay the ready event <- good against fouc
+			waitReady: false
+		});
+    	
+		//load all polyfill features
+		//or load only a specific feature with $.webshims.polyfill('feature-name');
+		$.webshims.polyfill();
+        
+    </script>
+	<script src="../demo-js/demo.js"></script>
+	<title>HTML5 interactive elements: details &amp; summary : webshims lib - the polyfilling capability based loading JS library</title>
+	<style>
+		/* a special way to deal with FOUCS | see also: ../index.html#polyfill-foucs */
+		.loading-polyfills.no-details details:not([open]) {
+			max-height: 1.2em;
+			overflow: hidden;
+		}
+		.no-details.loading-polyfills details {
+			visibility: hidden;
+		}
+	</style>
+</head>
+
+<body>
+		<header>
+			<hgroup>
+				<h1>Webshims Lib</h1>
+				<h2>Polyfill only the incapable browsers</h2>
+			</hgroup>
+			<nav>
+				<ul>
+					<li><a href="../index.html">home</a></li>
+				</ul>
+			</nav>
+		</header>
+		<div class="main">
+		<nav>
+			<ul>
+				<li><a href="shiv.html">HTML5 shiv and innerShiv</a></li>
+				<li><a href="es5.html">ES5/JavaScript 1.8.5</a></li>
+				<li><a href="webforms.html">constraint validation and input widgets</a></li>
+				<li><a href="canvas.html">canvas</a></li>
+				<li><a href="mediaelement.html">mediaelement</a></li>
+				<li><a href="json-storage.html">storage and JSON</a></li>
+				<li><a href="geolocation.html">geolocation API</a></li>
+				<li><strong>details &amp; summary</strong></li>
+			</ul>
+		</nav>
+		<div class="main-box">
+		<section>
+			
+			<h2>Demo/About/Documentation HTML5 details &amp; summary</h2>
+			<p>The HTML5 details element is an interactive element. If the open attribute is set the details are shown, if not the details are hidden.</p>
+			<details>
+				<summary>click to toggle visibility</summary>
+				<p>Here are the <strong>details</strong> of this element:</p>
+				<p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr,  sed diam nonumy eirmod tempor invidunt ut labore et dolore mag</p>
+			</details>
+			
+			<p>Dynamically creating a details element (always use htmlPolyfill, afterPolyfill, beforePolyfill etc.):</p>
+<code class="block run-once">
+$('details:first').afterPolyfill('&lt;details open="open"&gt;&lt;p&gt;Here is some text&lt;/p&gt;&lt;/details&gt;');
+</code>
+			<p>The openness of a details element can be also scripted. Simply change the open IDL-attribute:</p>
+<code class="block run-once">
+// set the open attribute of the first details element ...
+// ... to its opposite value
+$('details:first').prop('open', !$('details').prop('open') );
+</code>
+			
+
+			<h3>Options for the <code>details</code> feature</h3>
+			<ul>
+				<li><strong>text</strong> (string): <code>"Details"</code> (default) The summary text, which is generated, if no summary element is found as first child of the details element.</li>
+				<li><strong>animate</strong> (boolean); <code>false</code> (default): If set to true, the visibility toggle of details will be animated.</li>
+			</ul>
+			
+<code class="block run-once">
+$.webshims.setOptions('details', {animate: true});
+</code>
+			<aside>
+				<h3>Constraints of the details polyfill</h3>
+				<ul>
+					<li>The polyfill currently only allows other elements as direct children of the details. Simple text is not allowed as direct child of details.</li>
+					<li>The details and summary element can be <strong>considered as experimental</strong>. It is not clear wether and if yes, how a developer can style the summary element. Safari nightly (6) and Chrome 12 are currently the only browsers supporting this element. Note: Please read <a href="http://my.opera.com/ODIN/blog/implementing-html5-details">Bruce Lawson's blog post</a>.</a></li>
+					<li>We currently haven't coded unit tests for this feature</li>
+				</ul>
+			</aside>
+			<aside>
+				<h3>Links about details and summary</h3>
+				<ul>
+					<li><a href="http://www.w3.org/TR/html5/interactive-elements.html">Interactive elements (W3C)</a></li>
+				</ul>
+			</aside>
+		</section>
+		</div>
+		</div>
+	<footer>	
+		<small>
+			<strong>Note</strong>: every polyfill is a hack! innovative frontend development is hacky and always will be hacky!
+		</small>
+	</footer>
+<!--[if lte IE 7]>
+	<div class="browser-support"> 			
+		<div class="browser-support-box"> 				
+			Webshims Lib really cares about cross browser support and supports all A-Graded Browsers including IE6 and newest Opera. But I don't care about Styling/Layout issues in IE7- on this demo page.
+		</div> 		
+	</div>
+<![endif]-->
+</body>
+</html>   
