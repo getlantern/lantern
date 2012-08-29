@@ -56,6 +56,7 @@ import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.littleshoot.p2p.P2P;
+import org.littleshoot.util.SessionSocketListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -226,7 +227,7 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public void connect(final String email, final String pwd) 
         throws IOException, CredentialException {
-        LOG.info("Connecting to XMPP servers with user name and password...");
+        LOG.debug("Connecting to XMPP servers with user name and password...");
         this.lastUserName = email;
         this.lastPass = pwd;
         final InetSocketAddress plainTextProxyRelayAddress = 
@@ -237,7 +238,9 @@ public class DefaultXmppHandler implements XmppHandler {
         try {
             natPmpService = new NatPmp();
         } catch (final NatPmpException e) {
-            LOG.error("Could not map", e);
+            // This will happen when NAT-PMP is not supported on the local 
+            // network.
+            LOG.info("Could not map", e);
             // We just use a dummy one in this case.
             natPmpService = new NatPmpService() {
                 @Override
@@ -253,12 +256,26 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         
         final UpnpService upnpService = new Upnp();
+        final SessionSocketListener sessionListener = new SessionSocketListener() {
+            
+            @Override
+            public void reconnected() {
+                // We need to send a new presence message each time we 
+                // reconnect to the XMPP server, as otherwise peers won't 
+                // know we're available and we won't get data from the bot.
+                updatePresence();
+            }
+            
+            @Override
+            public void onSocket(String arg0, Socket arg1) throws IOException {
+            }
+        };
         this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService, 
             upnpService, new InetSocketAddress(LanternHub.settings().getServerPort()), 
             //newTlsSocketFactory(),ç SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
             LanternUtils.newTlsSocketFactory(), LanternUtils.newTlsServerSocketFactory(),
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
-            plainTextProxyRelayAddress, false));
+            plainTextProxyRelayAddress, sessionListener, false));
         
         this.client.get().addConnectionListener(new P2PConnectionListener() {
             
@@ -336,7 +353,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 final Presence pres = (Presence) pack;
                 LOG.debug("Processing packet!! {}", pres);
                 final String from = pres.getFrom();
-                LOG.info("Responding to presence from {} and to {}", 
+                LOG.debug("Responding to presence from {} and to {}", 
                     from, pack.getTo());
 
                 final Type type = pres.getType();
@@ -452,18 +469,18 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     private void processLanternHubMessage(final Message msg) {
-        LOG.info("Lantern controlling agent response");
+        LOG.debug("Lantern controlling agent response");
         this.hubAddress = msg.getFrom();
-        LOG.info("Set hub address to: {}", hubAddress);
+        LOG.debug("Set hub address to: {}", hubAddress);
         final String body = msg.getBody();
-        LOG.info("Body: {}", body);
+        LOG.debug("Body: {}", body);
         final Object obj = JSONValue.parse(body);
         final JSONObject json = (JSONObject) obj;
         final JSONArray servers = 
             (JSONArray) json.get(LanternConstants.SERVERS);
         final Long delay = 
             (Long) json.get(LanternConstants.UPDATE_TIME);
-        LOG.info("Server sent delay of: "+delay);
+        LOG.debug("Server sent delay of: "+delay);
         if (delay != null) {
             final long now = System.currentTimeMillis();
             final long elapsed = now - lastInfoMessageScheduled;
@@ -475,16 +492,16 @@ public class DefaultXmppHandler implements XmppHandler {
                         updatePresence();
                     }
                 }, delay);
-                LOG.info("Scheduled next info request in {} milliseconds", 
+                LOG.debug("Scheduled next info request in {} milliseconds", 
                     delay);
             } else {
-                LOG.info("Ignoring duplicate info request scheduling- "+
+                LOG.debug("Ignoring duplicate info request scheduling- "+
                     "scheduled request {} milliseconds ago.", elapsed);
             }
         }
         
         if (servers == null) {
-            LOG.info("No servers in message");
+            LOG.debug("No servers in message");
         } else {
             final Iterator<String> iter = servers.iterator();
             while (iter.hasNext()) {
@@ -581,7 +598,7 @@ public class DefaultXmppHandler implements XmppHandler {
         //if (!LanternHub.settings().isGetMode()) {
             final String str = 
                 LanternUtils.jsonify(LanternHub.statsTracker());
-            LOG.info("Reporting data: {}", str);
+            LOG.debug("Reporting data: {}", str);
             if (!this.lastJson.equals(str)) {
                 this.lastJson = str;
                 forHub.setProperty("stats", str);
@@ -1051,10 +1068,19 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.info("Already invited");
             return;
         }
+        final XMPPConnection conn = this.client.get().getXmppConnection();
+        final Roster rost = conn.getRoster();
+        final RosterEntry entry = rost.getEntry(email);
+        
         final Presence pres = new Presence(Presence.Type.available);
         pres.setTo(LanternConstants.LANTERN_JID);
         pres.setProperty(LanternConstants.INVITE_KEY, email);
-        final XMPPConnection conn = this.client.get().getXmppConnection();
+        if (entry != null) {
+            final String name = entry.getName();
+            if (StringUtils.isNotBlank(name)) {
+                pres.setProperty(LanternConstants.INVITE_NAME, name);
+            }
+        }
         conn.sendPacket(pres);
         
         invited.add(email);

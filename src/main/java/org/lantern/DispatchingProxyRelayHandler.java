@@ -3,7 +3,6 @@ package org.lantern;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.util.concurrent.Executors;
 
 import javax.net.ssl.SSLEngine;
 
@@ -19,9 +18,6 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
-import org.jboss.netty.channel.group.DefaultChannelGroup;
-import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
-import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
@@ -33,14 +29,8 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.ssl.SslHandler;
-import org.littleshoot.proxy.DefaultRelayPipelineFactoryFactory;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
-import org.littleshoot.proxy.HttpFilter;
-import org.littleshoot.proxy.HttpRequestHandler;
-import org.littleshoot.proxy.HttpResponseFilters;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.ProxyUtils;
-import org.littleshoot.proxy.RelayPipelineFactoryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,59 +55,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     // "Each incoming HTTP request can be no larger than 32MB"
     private static final long REQUEST_SIZE_LIMIT = 1024 * 1024 * 32 - 4096;
     
-    private static final ClientSocketChannelFactory clientSocketChannelFactory =
-        new NioClientSocketChannelFactory(
-            Executors.newCachedThreadPool(),
-            Executors.newCachedThreadPool());
-    
-    static {
-        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
-            @Override
-            public void run() {
-                //clientSocketChannelFactory.releaseExternalResources();
-            }
-        }));
-    }
-    
-    private final HttpRequestProcessor unproxiedRequestProcessor = 
-        new HttpRequestProcessor() {
-            final RelayPipelineFactoryFactory pf = 
-                new DefaultRelayPipelineFactoryFactory(null, 
-                    new HttpResponseFilters() {
-                        @Override
-                        public HttpFilter getFilter(String arg0) {
-                            return null;
-                        }
-                    }, null, 
-                    new DefaultChannelGroup("HTTP-Proxy-Server"));
-            private final HttpRequestHandler requestHandler =
-                new HttpRequestHandler(clientSocketChannelFactory, pf);
-            
-            @Override
-            public boolean processRequest(final Channel browserChannel,
-                final ChannelHandlerContext ctx, final MessageEvent me) 
-                throws IOException {
-                requestHandler.messageReceived(ctx, me);
-                return true;
-            }
-
-            @Override
-            public boolean processChunk(final ChannelHandlerContext ctx, 
-                final MessageEvent me) throws IOException {
-                requestHandler.messageReceived(ctx, me);
-                return true;
-            }
-            @Override
-            public void close() {
-            }
-        };
-    
-    
     private final HttpRequestProcessor proxyRequestProcessor;
-    
-    //private final HttpRequestProcessor anonymousPeerRequestProcessor;
-    
-    //private final HttpRequestProcessor trustedPeerRequestProcessor;
     
     private final HttpRequestProcessor laeRequestProcessor;
     
@@ -126,53 +64,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     private boolean readingChunks;
 
     /**
-     * Specifies whether or not we're currently proxying requests. This is 
-     * necessary because we don't have all the initial HTTP request data,
-     * such as the referer or the URI, when we're processing HTTP chunks.
-     */
-    private boolean proxying;
-
-    /**
      * Creates a new handler that reads incoming HTTP requests and dispatches
      * them to proxies as appropriate.
      */
     public DispatchingProxyRelayHandler() {
-        
-        // This uses the raw p2p client because all traffic sent over these
-        // connections already uses end-to-end encryption.
-        /*
-        this.anonymousPeerRequestProcessor =
-            new PeerHttpConnectRequestProcessor(new Proxy() {
-                @Override
-                public InetSocketAddress getProxy() {
-                    throw new UnsupportedOperationException(
-                        "Peer proxy required");
-                }
-                @Override
-                public URI getPeerProxy() {
-                    // For CONNECT we can use either an anonymous peer or a
-                    // trusted peer.
-                    final URI lantern = proxyProvider.getAnonymousProxy();
-                    if (lantern == null) {
-                        return proxyProvider.getPeerProxy();
-                    }
-                    return lantern;
-                }
-            },  proxyStatusListener, encryptingP2pClient);
-        
-        this.trustedPeerRequestProcessor =
-            new PeerHttpRequestProcessor(new Proxy() {
-                @Override
-                public InetSocketAddress getProxy() {
-                    throw new UnsupportedOperationException(
-                        "Peer proxy required");
-                }
-                @Override
-                public URI getPeerProxy() {
-                    return proxyProvider.getPeerProxy();
-                }
-            },  proxyStatusListener, encryptingP2pClient, this.keyStoreManager);
-        */
         this.proxyRequestProcessor =
             new DefaultHttpRequestProcessor(LanternHub.getProxyStatusListener(),
                 new HttpRequestTransformer() {
@@ -213,13 +108,13 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     public void messageReceived(final ChannelHandlerContext ctx, 
         final MessageEvent me) {
         messagesReceived++;
-        log.info("Received {} total messages", messagesReceived);
+        log.debug("Received {} total messages", messagesReceived);
         if (!readingChunks) {
-            log.info("Reading HTTP request (not a chunk)...");
+            log.debug("Reading HTTP request (not a chunk)...");
             this.currentRequestProcessor = dispatchRequest(ctx, me);
         } 
         else {
-            log.info("Reading chunks...");
+            log.debug("Reading chunks...");
             try {
                 final HttpChunk chunk = (HttpChunk) me.getMessage();
                 
@@ -240,7 +135,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 log.info("Exception processing chunk", e);
             }
         }
-        log.info("Done processing HTTP request....");
+        log.debug("Done processing HTTP request....");
     }
     
     private HttpRequestProcessor dispatchRequest(
@@ -258,52 +153,35 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             readingChunks = false;
         }
         
-        this.proxying = LanternUtils.shouldProxy(request);
-        
-        if (proxying) {
-            // If it's an HTTP request, see if we can redirect it to HTTPS.
-            final String https = LanternHub.httpsEverywhere().toHttps(uri);
-            if (!https.equals(uri)) {
-                final HttpResponse response = 
-                    new DefaultHttpResponse(request.getProtocolVersion(), 
-                        HttpResponseStatus.MOVED_PERMANENTLY);
-                response.setProtocolVersion(HttpVersion.HTTP_1_0);
-                response.setHeader(HttpHeaders.Names.LOCATION, https);
-                response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, "0");
-                log.info("Sending redirect response!!");
-                browserToProxyChannel.write(response);
-                ProxyUtils.closeOnFlush(browserToProxyChannel);
-                // Note this redirect should result in a new HTTPS request 
-                // coming in on this connection or a new connection -- in fact
-                // this redirect should always result in an HTTP CONNECT 
-                // request as a result of the redirect. That new request
-                // will not attempt to use the existing processor, so it's 
-                // not an issue to return null here.
-                return null;
-            }
-            log.info("Not converting to HTTPS");
-            LanternHub.statsTracker().incrementProxiedRequests();
-            return dispatchProxyRequest(ctx, me);
-        } else {
-            log.info("Not proxying!");
-            LanternHub.statsTracker().incrementDirectRequests();
-            try {
-                this.unproxiedRequestProcessor.processRequest(
-                    browserToProxyChannel, ctx, me);
-            } catch (final IOException e) {
-                // This should not happen because the underlying Netty handler
-                // does not throw an exception.
-                log.warn("Could not handle unproxied request -- " +
-                    "should never happen", e);
-            }
-            return this.unproxiedRequestProcessor;
+        // If it's an HTTP request, see if we can redirect it to HTTPS.
+        final String https = LanternHub.httpsEverywhere().toHttps(uri);
+        if (!https.equals(uri)) {
+            final HttpResponse response = 
+                new DefaultHttpResponse(request.getProtocolVersion(), 
+                    HttpResponseStatus.MOVED_PERMANENTLY);
+            response.setProtocolVersion(HttpVersion.HTTP_1_0);
+            response.setHeader(HttpHeaders.Names.LOCATION, https);
+            response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, "0");
+            log.info("Sending HTTPS redirect response!!");
+            browserToProxyChannel.write(response);
+            ProxyUtils.closeOnFlush(browserToProxyChannel);
+            // Note this redirect should result in a new HTTPS request 
+            // coming in on this connection or a new connection -- in fact
+            // this redirect should always result in an HTTP CONNECT 
+            // request as a result of the redirect. That new request
+            // will not attempt to use the existing processor, so it's 
+            // not an issue to return null here.
+            return null;
         }
+        log.debug("Not converting to HTTPS");
+        LanternHub.statsTracker().incrementProxiedRequests();
+        return dispatchProxyRequest(ctx, me);
     }
     
     private HttpRequestProcessor dispatchProxyRequest(
         final ChannelHandlerContext ctx, final MessageEvent me) {
         final HttpRequest request = (HttpRequest) me.getMessage();
-        log.info("Dispatching request");
+        log.debug("Dispatching request");
         if (request.getMethod() == HttpMethod.CONNECT) {
             try {
                 if (LanternHub.settings().isUseAnonymousPeers() && 
@@ -339,6 +217,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 final PeerProxyManager provider = 
                     LanternHub.getProxyProvider().getTrustedPeerProxyManager();
                 if (provider != null) {
+                    log.info("Sending {} to trusted peers", request.getUri());
                     final HttpRequestProcessor rp = provider.processRequest(
                             browserToProxyChannel, ctx, me);
                     if (rp != null) {
@@ -350,15 +229,18 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             log.info("Caught exception processing request", e);
         }
         try {
+            log.info("Trying to send {} to LAE proxy", request.getUri());
             if (useLae() && isLae(request) && 
                 this.laeRequestProcessor.processRequest(browserToProxyChannel, 
                     ctx, me)) {
+                log.info("Sent {} to LAE proxy", request.getUri());
                 return this.laeRequestProcessor;
             } 
         } catch (final IOException e) {
             log.info("Caught exception processing request", e);
         }
         try {
+            log.info("Trying to send {} to standard proxy", request.getUri());
             if (useStandardProxies() && 
                 this.proxyRequestProcessor.processRequest(
                         browserToProxyChannel, ctx, me)) {
@@ -384,7 +266,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private void centralConnect(final HttpRequest request) {
         if (this.httpConnectChannelFuture == null) {
-            log.info("Opening HTTP CONNECT tunnel");
+            log.debug("Opening HTTP CONNECT tunnel");
             try {
                 this.httpConnectChannelFuture = 
                     openOutgoingRelayChannel(request);
@@ -432,7 +314,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void channelOpen(final ChannelHandlerContext ctx, 
         final ChannelStateEvent e) {
-        log.info("Got incoming channel");
+        log.debug("Got incoming channel");
         this.browserToProxyChannel = e.getChannel();
     }
     
@@ -479,15 +361,15 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         pipeline.addLast("encoder", new HttpRequestEncoder());
         pipeline.addLast("handler", 
             new HttpConnectRelayingHandler(this.browserToProxyChannel, null));
-        log.info("Connecting to relay proxy");
         final InetSocketAddress isa = LanternHub.getProxyProvider().getProxy();
         if (isa == null) {
             log.error("NO PROXY AVAILABLE?");
             ProxyUtils.closeOnFlush(browserToProxyChannel);
             throw new IOException("No proxy to use for CONNECT?");
         }
+        log.info("Connecting to relay proxy {} for {}", isa, request.getUri());
         final ChannelFuture cf = cb.connect(isa);
-        log.info("Got an outbound channel on: {}", hashCode());
+        log.debug("Got an outbound channel on: {}", hashCode());
         
         final ChannelPipeline browserPipeline = 
             browserToProxyChannel.getPipeline();
@@ -537,7 +419,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     @Override 
     public void channelClosed(final ChannelHandlerContext ctx, 
         final ChannelStateEvent e) {
-        log.info("Got inbound channel closed. Closing outbound.");
+        log.debug("Got inbound channel closed. Closing outbound.");
         //this.trustedPeerRequestProcessor.close();
         //this.anonymousPeerRequestProcessor.close();
         if (this.currentRequestProcessor != null) {

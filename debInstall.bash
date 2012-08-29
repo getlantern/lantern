@@ -19,3 +19,5 @@ name=lantern-$VERSION-$ARCH-bit.deb
 mv install/lantern*$ARCH*.deb $name || die "Could not find built installer?"
 
 ./installMetaRefresh.bash linux $name latest-$ARCH.deb
+
+cp $name ~/Desktop/virtual-machine-files/
