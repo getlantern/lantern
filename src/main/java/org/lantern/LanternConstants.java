@@ -88,6 +88,8 @@ public class LanternConstants {
     
     public static final String INVITE_KEY = "inv";
     
+    public static final String INVITE_NAME = "inv_name";
+    
     /**
      * The length of keys in translation property files.
      */
@@ -139,7 +141,7 @@ public class LanternConstants {
     public static ClientSocketChannelFactory clientSocketChannelFactory;
 
     public static final boolean ON_APP_ENGINE;
-    
+
     static {
         boolean tempAppEngine;
         try {
