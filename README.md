@@ -15,6 +15,8 @@ To run Lantern from source, you need Maven and Java installed. To install maven 
 sudo port install maven3
 ```
 
+Otherwise you'll have to download and install it from http://maven.apache.org/download.html.
+
 The source code is compatible with Java 1.6 and above.
 
 Then you can run:
@@ -22,6 +24,7 @@ Then you can run:
 ```
 $ ./run.bash
 ```
+
 That's actually a "build and run" script that'll grab dependencies, build and
 then run Lantern. There's also a `quickRun.bash` script that will just run it
 when already built.
