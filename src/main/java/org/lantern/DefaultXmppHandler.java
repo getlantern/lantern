@@ -1068,10 +1068,19 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.info("Already invited");
             return;
         }
+        final XMPPConnection conn = this.client.get().getXmppConnection();
+        final Roster rost = conn.getRoster();
+        final RosterEntry entry = rost.getEntry(email);
+        
         final Presence pres = new Presence(Presence.Type.available);
         pres.setTo(LanternConstants.LANTERN_JID);
         pres.setProperty(LanternConstants.INVITE_KEY, email);
-        final XMPPConnection conn = this.client.get().getXmppConnection();
+        if (entry != null) {
+            final String name = entry.getName();
+            if (StringUtils.isNotBlank(name)) {
+                pres.setProperty(LanternConstants.INVITE_NAME, name);
+            }
+        }
         conn.sendPacket(pres);
         
         invited.add(email);
