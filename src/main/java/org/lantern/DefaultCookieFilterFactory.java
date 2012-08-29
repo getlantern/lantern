@@ -21,24 +21,14 @@ class DefaultCookieFilterFactory implements CookieFilter.Factory {
 
     @Override
     public CookieFilter createCookieFilter(HttpRequest context) {
-        if (shouldFilter(context)) {
-            try {
-                // this uses the cookie tracker's whitelist and does require a value match.
-                return new HttpsBestEffortCookieFilter(tracker.asOutboundCookieFilter(context, true), context);
+        try {
+            // this uses the cookie tracker's whitelist and does require a value match.
+            return new HttpsBestEffortCookieFilter(tracker.asOutboundCookieFilter(context, true), context);
 
-            }
-            catch (Exception e) {
-                log.error("Unable to create cookie filter for request {}: {}", context, e);
-            }
+        }
+        catch (Exception e) {
+            log.error("Unable to create cookie filter for request {}: {}", context, e);
         }
         return null;
     }
-    
-    /**
-     * returns true iff the request should have a cookie filter 
-     * applied to it.
-     */
-    boolean shouldFilter(HttpRequest request) {
-        return LanternUtils.shouldProxy(request);
-   }
 }

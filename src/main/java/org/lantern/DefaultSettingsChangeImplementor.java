@@ -10,6 +10,7 @@ import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,6 +93,15 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         
         if (result != 0) {
             log.error("Error changing startAtLogin? Result: "+result);
+        }
+    }
+    
+    @Override
+    public void setProxyAllSites(final boolean proxyAll) {
+        try {
+            Proxifier.proxyAllSites(proxyAll);
+        } catch (final ProxyConfigurationError e) {
+            throw new RuntimeException("Error proxying all sites!", e);
         }
     }
 

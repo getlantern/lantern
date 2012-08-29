@@ -5,15 +5,22 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.Principal;
+import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.net.ssl.X509TrustManager;
 
@@ -178,6 +185,8 @@ public class LanternTrustManager implements X509TrustManager {
                 "null or zero-length authentication type");
         }
         
+        final Collection<String> peerIdentity = getPeerIdentity(chain[0]);
+        
         final X509Certificate cert = chain[0];
         final String name = cert.getSubjectX500Principal().getName();
         if (StringUtils.isBlank(name)) {
@@ -219,6 +228,7 @@ public class LanternTrustManager implements X509TrustManager {
             log.info("Certificates matched!");
         } else {
             // Otherwise check if we trust the signing cert.
+            log.debug("Received signed cert...");
             try {
                 final X509Certificate suppliedRootCert = chain[chainSize - 1];
                 final String rootAlias = 
@@ -229,12 +239,65 @@ public class LanternTrustManager implements X509TrustManager {
                     throw new CertificateException("No alias matching signing cert");
                 } else {
                     log.info("Root certs matched for {}", rootAlias);
+                    Principal principalLast = null;
+                    for (int i = chainSize - 1; i >= 0 ; i--) {
+                        final X509Certificate x509 = chain[i];
+                        final Principal principalIssuer = x509.getIssuerDN();
+                        final Principal principalSubject = x509.getSubjectDN();
+                        if (principalLast != null) {
+                            if (principalIssuer.equals(principalLast)) {
+                                try {
+                                    final PublicKey publickey =
+                                        chain[i + 1].getPublicKey();
+                                    chain[i].verify(publickey);
+                                    log.info("Verified signature...");
+                                }
+                                catch (final GeneralSecurityException gsa) {
+                                    throw new CertificateException(
+                                         "Signature verification failed for " + 
+                                         peerIdentity, gsa);
+                                }
+                            }
+                            else {
+                                throw new CertificateException(
+                                    "Subject/issuer verification failed for " + 
+                                    peerIdentity);
+                            }
+                        }
+                        principalLast = principalSubject;
+                    }
+                    log.info("Verified full chain of length: {}", chainSize);
                 }
             }
             catch (final KeyStoreException e) {
                 log.warn("Exception accessing keystore!", e);
             }
         }
+    }
+    
+
+    private static Pattern cnPattern = Pattern.compile("(?i)(cn=)([^,]*)");
+    
+    /**
+     * Returns the identity of the remote server as defined in the specified certificate. The
+     * identity is defined in the subjectDN of the certificate and it can also be defined in
+     * the subjectAltName extension of type "xmpp". When the extension is being used then the
+     * identity defined in the extension in going to be returned. Otherwise, the value stored in
+     * the subjectDN is returned.
+     *
+     * @param x509Certificate the certificate the holds the identity of the remote server.
+     * @return the identity of the remote server as defined in the specified certificate.
+     */
+    private  Collection<String> getPeerIdentity(final X509Certificate x509Certificate) {
+        String name = x509Certificate.getSubjectDN().getName();
+        Matcher matcher = cnPattern.matcher(name);
+        if (matcher.find()) {
+            name = matcher.group(2);
+        }
+        // Create an array with the unique identity
+        final Collection<String> names = new ArrayList<String>();
+        names.add(name);
+        return names;
     }
 
     public String getTruststorePath() {

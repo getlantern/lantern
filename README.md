@@ -9,12 +9,21 @@ desktop systems.
 
 ![screenshot](https://www.getlantern.org/static/img/dl-mac_setup.png)
 
-To run Lantern from source, you need Maven and Java installed. The Lantern
-developers use Oracle's Java 1.6 SDK, but other SDKs may work.
+To run Lantern from source, you need Maven and Java installed. To install maven on OSX with MacPorts installed, you can run:
+
+```
+sudo port install maven3
+```
+
+Otherwise you'll have to download and install it from http://maven.apache.org/download.html.
+
+The source code is compatible with Java 1.6 and above.
 
 Then you can run:
 
-    $ ./run.bash
+```
+$ ./run.bash
+```
 
 That's actually a "build and run" script that'll grab dependencies, build and
 then run Lantern. There's also a `quickRun.bash` script that will just run it
@@ -30,11 +39,7 @@ server, for example.
 
 If you're running Linux, note that Lantern's UI currently targets the
 Ubuntu 12.04 desktop environment (i.e. Unity). Other environments may work as
-well, but you may need to run something like the following before you can use
-the UI, depending on your system:
-
-    sudo apt-get install libxtst6
-    sudo yum install xorg-x11-deprecated-libs
+well but are untested and unmaintained.
 
 
 Further Reading

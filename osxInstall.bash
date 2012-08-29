@@ -21,5 +21,5 @@ INSTALL4J_PASS=$2
 
 name=lantern-$VERSION.dmg
 mv install/Lantern.dmg $name
-./installMetaRefresh.bash osx $name latest.dmg
+./installMetaRefresh.bash osx $name latest.dmg || die "ERROR: Could not build meta-refresh redirect file"
 
