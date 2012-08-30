@@ -31,8 +31,20 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
 
     private final Queue<HttpRequest> httpRequests;
 
-    public ChunkedProxyDownloader(final Channel browserToProxyChannel,
+    private final HttpRequest originalRequest;
+
+    /**
+     * Creates a new chunked downloader.
+     * 
+     * @param request The HTTP request starting this download.
+     * @param browserToProxyChannel The connection to the browser/client.
+     * @param httpRequests All HTTP requests on this connection to the 
+     * client/browser.
+     */
+    public ChunkedProxyDownloader(final HttpRequest request, 
+        final Channel browserToProxyChannel,
         final Queue<HttpRequest> httpRequests) {
+        this.originalRequest = request;
         this.browserToProxyChannel = browserToProxyChannel;
         this.httpRequests = httpRequests;
     }
@@ -46,7 +58,7 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
             final HttpChunk chunk = (HttpChunk) msg;
             
             if (chunk.isLast()) {
-                log.info("GOT LAST CHUNK");
+                log.info("GOT LAST CHUNK FOR {}", this.originalRequest.getUri());
             }
             //log.info("Chunk size: {}", chunk.getContent().readableBytes());
             browserToProxyChannel.write(chunk);
@@ -65,6 +77,7 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
             if (code != 206) {
                 if (code >= 500 && code < 600) {
                     log.warn("Server error response: {}",response.getHeaders());
+                    browserToProxyChannel.write(response);
                     browserToProxyChannel.close();
                     return;
                 }
