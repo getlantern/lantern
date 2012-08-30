@@ -85,10 +85,10 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         if (!hasProxy()) {
             return false;
         }
-        if (cf == null) {
-            cf = openOutgoingChannel(browserToProxyChannel);
-        }
         final HttpRequest request = (HttpRequest) me.getMessage();
+        if (cf == null) {
+            cf = openOutgoingChannel(browserToProxyChannel, request);
+        }
         this.transformer.transform(request, proxyAddress);
         LanternUtils.writeRequest(this.httpRequests, request, cf);
         return true;
@@ -110,7 +110,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
     }
 
     private ChannelFuture openOutgoingChannel(
-        final Channel browserToProxyChannel) {
+        final Channel browserToProxyChannel, final HttpRequest request) {
         
         browserToProxyChannel.setReadable(false);
 
@@ -150,7 +150,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         pipeline.addLast("decoder", new HttpResponseDecoder());
         pipeline.addLast("encoder", new HttpRequestEncoder());
         pipeline.addLast("handler", 
-            new ChunkedProxyDownloader(browserToProxyChannel, httpRequests));
+            new ChunkedProxyDownloader(request, browserToProxyChannel, httpRequests));
         //this.proxyHost = proxyAddress.getHostName();
         
         log.info("Connecting to proxy at: {}", proxyAddress);

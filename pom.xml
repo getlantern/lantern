@@ -139,7 +139,14 @@
     <dependency>
       <groupId>com.google.guava</groupId>
       <artifactId>guava</artifactId>
-      <version>11.0.1</version>
+      <version>13.0.1</version>
+    </dependency>
+
+    <dependency>
+        <groupId>org.seleniumhq.selenium</groupId>
+        <artifactId>selenium-java</artifactId>
+        <version>2.25.0</version>
+        <scope>test</scope>
     </dependency>
 
     <dependency>
