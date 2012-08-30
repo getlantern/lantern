@@ -1,0 +1,38 @@
+<h1><code ng:non-bindable="">$parse</code>
+<span class="hint">(service in module <code ng:non-bindable="">ng</code>
+)</span>
+</h1>
+<div><h2 id="Description">Description</h2>
+<div class="description"><p>Converts Angular <a href="guide/expression">expression</a> into a function.</p>
+
+<pre class="prettyprint linenums">
+  var getter = $parse('user.name');
+  var setter = getter.assign;
+  var context = {user:{name:'angular'}};
+  var locals = {user:{name:'local'}};
+
+  expect(getter(context)).toEqual('angular');
+  setter(context, 'newValue');
+  expect(context.user.name).toEqual('newValue');
+  expect(getter(context, locals)).toEqual('local');
+</pre></div>
+<h2 id="Usage">Usage</h2>
+<div class="usage"><pre class="prettyprint linenums">$parse(expression);</pre>
+<h3 id="Parameters">Parameters</h3>
+<ul class="parameters"><li><code ng:non-bindable="">expression – {string} – </code>
+<p>String expression to compile.</p></li>
+</ul>
+<h3 id="Returns">Returns</h3>
+<div class="returns"><code ng:non-bindable="">{function(context, locals)}</code>
+– <p>a function which represents the compiled expression:</p>
+
+<ul>
+<li><code>context</code>: an object against which any expressions embedded in the strings are evaluated
+ against (Topically a scope object).</li>
+<li><p><code>locals</code>: local variables context object, useful for overriding values in <code>context</code>.</p>
+
+<p>The return function also has an <code>assign</code> property, if the expression is assignable, which
+allows one to set values to expressions.</p></li>
+</ul></div>
+</div>
+</div>

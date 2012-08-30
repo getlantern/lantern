@@ -1,0 +1,116 @@
+<h1><code ng:non-bindable="">ngInclude</code>
+<span class="hint">(directive in module <code ng:non-bindable="">ng</code>
+)</span>
+</h1>
+<div><h2 id="Description">Description</h2>
+<div class="description"><p>Fetches, compiles and includes an external HTML fragment.</p>
+
+<p>Keep in mind that Same Origin Policy applies to included resources
+(e.g. ngInclude won't work for cross-domain requests on all browsers and for
+ file:// access on some browsers).</p></div>
+<h2 id="Usage">Usage</h2>
+<div class="usage">as element (see <a href="guide/ie">IE restrictions</a>)<pre class="prettyprint linenums">&lt;ng-include
+       src="{string}"
+       [onload="{string}"]
+       [autoscroll="{string}"]&gt;
+&lt;/ng-include&gt;</pre>
+as attribute<pre class="prettyprint linenums">&lt;ANY ng-include="{string}"
+     [onload="{string}"]
+     [autoscroll="{string}"]&gt;
+   ...
+&lt;/ANY&gt;</pre>
+as class<pre class="prettyprint linenums">&lt;ANY class="ng-include: {string}; [onload: {string};] [autoscroll: {string};]"&gt;
+   ...
+&lt;/ANY&gt;</pre>
+<h3 id="Directive.info">Directive info</h3>
+<div class="directive-info"><ul><li>This directive creates new scope.</li>
+</ul>
+</div>
+<h3 id="Parameters">Parameters</h3>
+<ul class="parameters"><li><code ng:non-bindable="">ngInclude|src – {string} – </code>
+<p>angular expression evaluating to URL. If the source is a string constant,
+make sure you wrap it in quotes, e.g. <code>src="'myPartialTemplate.html'"</code>.</p></li>
+<li><code ng:non-bindable="">onload<i>(optional)</i> – {string=} – </code>
+<p>Expression to evaluate when a new partial is loaded.</p></li>
+<li><code ng:non-bindable="">autoscroll<i>(optional)</i> – {string=} – </code>
+<p>Whether <code>ngInclude</code> should call <a href="api/ng.$anchorScroll"><code>$anchorScroll</code></a> to scroll the viewport after the content is loaded.</p>
+
+<ul>
+<li>If the attribute is not set, disable scrolling.</li>
+<li>If the attribute is set without value, enable scrolling.</li>
+<li>Otherwise enable scrolling only if the expression evaluates to truthy value.</li>
+</ul></li>
+</ul>
+</div>
+<div class="member event"><h2 id="Events">Events</h2>
+<ul class="events"><li><h3 id="$includeContentLoaded">$includeContentLoaded</h3>
+<div class="$includecontentloaded"><p>Emitted every time the ngInclude content is reloaded.</p><div class="inline"><h4 id="Type.">Type:</h4>
+<div class="type-">emit</div>
+</div>
+<div class="inline"><h4 id="Target.">Target:</h4>
+<div class="target-">the current ngInclude scope</div>
+</div>
+</div>
+</li>
+</ul>
+</div>
+<h2 id="Example">Example</h2>
+<div class="example"><h3>Source</h3>
+<div source-edit="" source-edit-deps="angular.js script.js" source-edit-html="index.html-110 template1.html template2.html" source-edit-css="" source-edit-js="script.js-111" source-edit-unit="" source-edit-scenario="scenario.js-112"></div>
+<div class="tabbable"><div class="tab-pane" title="index.html">
+<pre class="prettyprint linenums" ng-set-text="index.html-110" ng-html-wrap=" angular.js script.js"></pre>
+<script type="text/ng-template" id="index.html-110">
+ <div ng-controller="Ctrl">
+   <select ng-model="template" ng-options="t.name for t in templates">
+    <option value="">(blank)</option>
+   </select>
+   url of the template: <tt>{{template.url}}</tt>
+   <hr/>
+   <div ng-include src="template.url"></div>
+ </div>
+</script>
+</div>
+<div class="tab-pane" title="template1.html">
+<pre class="prettyprint linenums" ng-set-text="template1.html"></pre>
+<script type="text/ng-template" id="template1.html">
+  Content of template1.html
+</script>
+</div>
+<div class="tab-pane" title="template2.html">
+<pre class="prettyprint linenums" ng-set-text="template2.html"></pre>
+<script type="text/ng-template" id="template2.html">
+  Content of template2.html
+</script>
+</div>
+<div class="tab-pane" title="script.js">
+<pre class="prettyprint linenums" ng-set-text="script.js-111"></pre>
+<script type="text/ng-template" id="script.js-111">
+  function Ctrl($scope) {
+    $scope.templates =
+      [ { name: 'template1.html', url: 'template1.html'}
+      , { name: 'template2.html', url: 'template2.html'} ];
+    $scope.template = $scope.templates[0];
+  }
+ </script>
+</div>
+<div class="tab-pane" title="End to end test">
+<pre class="prettyprint linenums" ng-set-text="scenario.js-112"></pre>
+<script type="text/ng-template" id="scenario.js-112">
+  it('should load template1.html', function() {
+   expect(element('.doc-example-live [ng-include]').text()).
+     toMatch(/Content of template1.html/);
+  });
+  it('should load template2.html', function() {
+   select('template').option('1');
+   expect(element('.doc-example-live [ng-include]').text()).
+     toMatch(/Content of template2.html/);
+  });
+  it('should change to blank', function() {
+   select('template').option('');
+   expect(element('.doc-example-live [ng-include]').text()).toEqual('');
+  });
+</script>
+</div>
+</div><h3>Demo</h3>
+<div class="well doc-example-live" ng-embed-app="" ng-set-html="index.html-110" ng-eval-javascript="script.js-111"></div></div>
+</div>

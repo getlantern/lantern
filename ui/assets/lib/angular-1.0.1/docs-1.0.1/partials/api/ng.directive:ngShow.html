@@ -1,0 +1,48 @@
+<h1><code ng:non-bindable="">ngShow</code>
+<span class="hint">(directive in module <code ng:non-bindable="">ng</code>
+)</span>
+</h1>
+<div><h2 id="Description">Description</h2>
+<div class="description"><p>The <code>ngShow</code> and <code>ngHide</code> directives show or hide a portion of the DOM tree (HTML)
+conditionally.</p></div>
+<h2 id="Usage">Usage</h2>
+<div class="usage">as attribute<pre class="prettyprint linenums">&lt;ANY ng-show="{expression}"&gt;
+   ...
+&lt;/ANY&gt;</pre>
+as class<pre class="prettyprint linenums">&lt;ANY class="ng-show: {expression};"&gt;
+   ...
+&lt;/ANY&gt;</pre>
+<h3 id="Parameters">Parameters</h3>
+<ul class="parameters"><li><code ng:non-bindable="">ngShow – {expression} – </code>
+<p>If the <a href="guide/expression">expression</a> is truthy
+then the element is shown or hidden respectively.</p></li>
+</ul>
+</div>
+<h2 id="Example">Example</h2>
+<div class="example"><h3>Source</h3>
+<div source-edit="" source-edit-deps="angular.js" source-edit-html="index.html-122" source-edit-css="" source-edit-js="" source-edit-unit="" source-edit-scenario="scenario.js-123"></div>
+<div class="tabbable"><div class="tab-pane" title="index.html">
+<pre class="prettyprint linenums" ng-set-text="index.html-122" ng-html-wrap=" angular.js"></pre>
+<script type="text/ng-template" id="index.html-122">
+   Click me: <input type="checkbox" ng-model="checked"><br/>
+   Show: <span ng-show="checked">I show up when your checkbox is checked.</span> <br/>
+   Hide: <span ng-hide="checked">I hide when your checkbox is checked.</span>
+</script>
+</div>
+<div class="tab-pane" title="End to end test">
+<pre class="prettyprint linenums" ng-set-text="scenario.js-123"></pre>
+<script type="text/ng-template" id="scenario.js-123">
+  it('should check ng-show / ng-hide', function() {
+    expect(element('.doc-example-live span:first:hidden').count()).toEqual(1);
+    expect(element('.doc-example-live span:last:visible').count()).toEqual(1);
+
+    input('checked').check();
+
+    expect(element('.doc-example-live span:first:visible').count()).toEqual(1);
+    expect(element('.doc-example-live span:last:hidden').count()).toEqual(1);
+  });
+</script>
+</div>
+</div><h3>Demo</h3>
+<div class="well doc-example-live" ng-embed-app="" ng-set-html="index.html-122" ng-eval-javascript=""></div></div>
+</div>
