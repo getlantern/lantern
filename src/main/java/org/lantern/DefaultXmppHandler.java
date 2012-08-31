@@ -99,7 +99,7 @@ public class DefaultXmppHandler implements XmppHandler {
         SmackConfiguration.setPacketReplyTimeout(30 * 1000);
     }
 
-    private final Timer updateTimer = new Timer(true);
+    private final Timer updateTimer = LanternHub.timer();
 
     private volatile long lastInfoMessageScheduled = 0L;
     
@@ -165,6 +165,9 @@ public class DefaultXmppHandler implements XmppHandler {
                     final PortMappingProtocol arg0, int arg1, int arg2,
                     PortMapListener arg3) {
                     return -1;
+                }
+                @Override
+                public void shutdown() {
                 }
             };
         }
@@ -1243,12 +1246,25 @@ public class DefaultXmppHandler implements XmppHandler {
     
     @Override
     public void stop() {
-        if (this.upnpService != null) {
-            this.upnpService.shutdown();
-        }
-        if (this.client.get() != null) {
-            this.client.get().logout();
-        }
+        LOG.info("Stopping XMPP handler...");
+        final Thread stop = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                if (upnpService != null) {
+                    upnpService.shutdown();
+                }
+                if (client.get() != null) {
+                    client.get().logout();
+                }
+                if (natPmpService != null) {
+                    natPmpService.shutdown();
+                }
+            }
+            
+        }, getClass().getSimpleName()+"-Shutdown-Thread");
+        stop.setDaemon(true);
+        stop.start();
         //this.client.get().stop();
     }
 }

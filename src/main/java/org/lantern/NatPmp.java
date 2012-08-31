@@ -75,8 +75,8 @@ public class NatPmp implements NatPmpService {
                 request.getRequestedExternalPort(), 0, null);
         pmpDevice.enqueueMessage(remove);
         log.info("About to wait on queue");
-        pmpDevice.waitUntilQueueEmpty();
-        log.info("Finished waiting on queue");
+        //pmpDevice.waitUntilQueueEmpty();
+        //log.info("Finished waiting on queue");
     }
     
     @Override
@@ -143,6 +143,16 @@ public class NatPmp implements NatPmpService {
         // We have to add it whether it succeeded or not to keep the indeces 
         // in sync.
         requests.add(map);
+    }
+
+    @Override
+    public void shutdown() {
+        // The boolean flag specifies whether or not the generated thread
+        // should be a daemon.
+        log.info("Shutting down NAT-PMP");
+        //this.pmpDevice.shutdownAsync(true);
+        this.pmpDevice.shutdown();
+        log.info("Shut down NAT-PMP");
     }
 
 }
