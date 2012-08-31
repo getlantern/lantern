@@ -1,9 +1,11 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.net.URI;
 
+import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.junit.Test;
 import org.lantern.DefaultPeerProxyManager.ConnectionTimeSocket;
 
@@ -11,7 +13,12 @@ import org.lantern.DefaultPeerProxyManager.ConnectionTimeSocket;
 public class DefaultPeerProxyManagerTest {
 
     @Test public void testQueue() throws Exception {
-        final DefaultPeerProxyManager l = new DefaultPeerProxyManager(true);
+
+        final ChannelGroup channelGroup = 
+            new DefaultChannelGroup("Local-HTTP-Proxy-Server");
+        
+        final DefaultPeerProxyManager l = 
+            new DefaultPeerProxyManager(true, channelGroup);
         
         final URI peerUri = new URI("http://test.com");
         final ConnectionTimeSocket cts1 = l.new ConnectionTimeSocket(peerUri);

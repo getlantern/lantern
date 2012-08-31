@@ -12,6 +12,7 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
@@ -41,8 +42,12 @@ public class PeerChannelHttpRequestProcessor implements HttpRequestProcessor {
     private volatile PeerSocketChannel peerChannel;
     private volatile PeerSink peerSink;
 
-    public PeerChannelHttpRequestProcessor(final Socket sock) {
+    private final ChannelGroup channelGroup;
+
+    public PeerChannelHttpRequestProcessor(final Socket sock, 
+        final ChannelGroup channelGroup) {
         this.sock = sock;
+        this.channelGroup = channelGroup;
         peerSink = new PeerSink();
     }
 
@@ -101,15 +106,23 @@ public class PeerChannelHttpRequestProcessor implements HttpRequestProcessor {
     // seems sufficient.
     private class RelayToBrowserHandler extends SimpleChannelUpstreamHandler {
         
-        Channel browserToProxyChannel;
+        private final Channel browserToProxyChannel;
         
-        public RelayToBrowserHandler(Channel browserToProxyChannel) {
+        public RelayToBrowserHandler(final Channel browserToProxyChannel) {
             this.browserToProxyChannel = browserToProxyChannel;
         }
 
         @Override
         public void messageReceived(ChannelHandlerContext ctx, MessageEvent me) {
             browserToProxyChannel.write(me.getMessage());
+        }
+        
+        @Override
+        public void channelOpen(final ChannelHandlerContext ctx, 
+            final ChannelStateEvent cse) throws Exception {
+            final Channel ch = cse.getChannel();
+            log.info("New channel opened: {}", ch);
+            channelGroup.add(ch);
         }
         
         @Override

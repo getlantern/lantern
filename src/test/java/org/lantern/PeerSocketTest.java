@@ -27,8 +27,12 @@ public class PeerSocketTest {
         // framework that simulates things like unpredictable network latency
         // and doesn't require live tests over the network.
         final XmppHandler xmpp = LanternHub.xmppHandler();
-        final String email = LanternHub.settings().getEmail();
-        final String pwd = LanternHub.settings().getPassword();
+        //final String email = LanternHub.settings().getEmail();
+        //final String pwd = LanternHub.settings().getPassword();
+        
+        final String email = "lanternuser@gmail.com";
+        final String pwd = "aKD13DAWd82";
+        
         if (StringUtils.isBlank(email) || StringUtils.isBlank(pwd)) {
             log.info("user name and password not configured");
             return;

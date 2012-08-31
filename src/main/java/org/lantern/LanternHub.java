@@ -15,6 +15,9 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.widgets.Display;
+import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.InMemoryCookieTracker;
 import org.lantern.httpseverywhere.HttpsEverywhere;
@@ -120,6 +123,14 @@ public class LanternHub {
         new AtomicReference<Settings>();
     
     private static final Configurator configurator = new Configurator();
+
+    private static org.jboss.netty.util.Timer nettyTimer;
+    
+    private static ServerSocketChannelFactory serverChannelFactory;
+    
+    private static ClientSocketChannelFactory clientChannelFactory;
+    
+    private static ChannelGroup channelGroup;
 
     static {
         // start with an UNSET settings object until loaded
@@ -260,7 +271,8 @@ public class LanternHub {
     public static PeerProxyManager trustedPeerProxyManager() {
         synchronized (trustedPeerProxyManager) {
             if (trustedPeerProxyManager.get() == null) {
-                resetTrustedPeerProxyManager();
+                trustedPeerProxyManager.set(
+                    new DefaultPeerProxyManager(false, channelGroup));
             }
             return trustedPeerProxyManager.get();
         }
@@ -271,17 +283,13 @@ public class LanternHub {
         if (trustedPeerProxyManager.get() != null) {
             trustedPeerProxyManager.get().closeAll();
         }
-        final PeerProxyManager eppl =
-            new DefaultPeerProxyManager(false);
-        trustedPeerProxyManager.set(eppl);
     }
     
     public static PeerProxyManager anonymousPeerProxyManager() {
         synchronized (anonymousPeerProxyManager) {
             if (anonymousPeerProxyManager.get() == null) {
-                final PeerProxyManager eppl =
-                    new DefaultPeerProxyManager(true);
-                anonymousPeerProxyManager.set(eppl);
+                anonymousPeerProxyManager.set(
+                    new DefaultPeerProxyManager(true, channelGroup));
             }
             return anonymousPeerProxyManager.get();
         }
@@ -352,7 +360,41 @@ public class LanternHub {
         }
     }
 
-   
+
+    public static void setNettyTimer(final org.jboss.netty.util.Timer timer) {
+        nettyTimer = timer;
+    }
+    
+    public static org.jboss.netty.util.Timer getNettyTimer() {
+        return nettyTimer;
+    }
+
+    public static ChannelGroup getChannelGroup() {
+        return channelGroup;
+    }
+
+    public static void setChannelGroup(final ChannelGroup channelGroup) {
+        LanternHub.channelGroup = channelGroup;
+    }
+    
+    public static ServerSocketChannelFactory getServerChannelFactory() {
+        return serverChannelFactory;
+    }
+
+    public static void setServerChannelFactory(
+        final ServerSocketChannelFactory serverChannelFactory) {
+        LanternHub.serverChannelFactory = serverChannelFactory;
+    }
+
+    public static ClientSocketChannelFactory getClientChannelFactory() {
+        return clientChannelFactory;
+    }
+
+    public static void setClientChannelFactory(
+        final ClientSocketChannelFactory clientChannelFactory) {
+        LanternHub.clientChannelFactory = clientChannelFactory;
+    }
+    
     public static Whitelist whitelist() {
         return settings().getWhitelist();
     }

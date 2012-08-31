@@ -3,6 +3,7 @@ package org.lantern;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+import java.util.concurrent.Executors;
 import java.io.IOException;
 import javax.net.SocketFactory;
 
@@ -11,8 +12,16 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.channel.group.DefaultChannelGroup;
+import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.util.HashedWheelTimer;
+import org.jboss.netty.util.Timer;
 
 import static org.lantern.TestingUtils.*;
 import org.lantern.cookie.CookieTracker;
@@ -61,8 +70,25 @@ class MockTrustedConnection extends MockConnection {
                                                        ChannelHandlerContext ctx,
                                                        MessageEvent me) throws IOException {
                 // bypass chit-chat, just connect.
+                final Timer timer = new HashedWheelTimer();
+                final ServerSocketChannelFactory serverChannelFactory = 
+                        new NioServerSocketChannelFactory(
+                            Executors.newCachedThreadPool(),
+                            Executors.newCachedThreadPool());
+                final ClientSocketChannelFactory clientChannelFactory = 
+                    new NioClientSocketChannelFactory(
+                            Executors.newCachedThreadPool(),
+                            Executors.newCachedThreadPool());
+                final ChannelGroup channelGroup = 
+                    new DefaultChannelGroup("Local-HTTP-Proxy-Server");
+                
+                LanternHub.setNettyTimer(timer);
+                LanternHub.setServerChannelFactory(serverChannelFactory);
+                LanternHub.setClientChannelFactory(clientChannelFactory);
+                LanternHub.setChannelGroup(channelGroup);
                 Socket sock = socketFactory.createSocket("127.0.0.1", peerPort);
-                HttpRequestProcessor proc = new PeerChannelHttpRequestProcessor(sock);
+                final HttpRequestProcessor proc = 
+                    new PeerChannelHttpRequestProcessor(sock, channelGroup);
                 proc.processRequest(browserToProxyChannel, ctx, me);
                 return proc;
             }

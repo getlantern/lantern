@@ -1,7 +1,6 @@
 package org.lantern;
 
 import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
 
 import javax.net.ssl.SSLEngine;
 
@@ -16,8 +15,8 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
-import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.ProxyUtils;
@@ -42,12 +41,11 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final ProxyStatusListener proxyStatusListener;
     
-    private final ClientSocketChannelFactory clientSocketChannelFactory =
-        new NioClientSocketChannelFactory(
-            Executors.newCachedThreadPool(),
-            Executors.newCachedThreadPool());
+    private final ClientSocketChannelFactory clientSocketChannelFactory;
 
     private final KeyStoreManager keyStoreManager;
+
+    private final ChannelGroup channelGroup;
 
     
     /**
@@ -60,13 +58,18 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
      * status.
      * @param keyStoreManager Determines whether the proxy should be trusted.
      * This can be <code>null</code> in some cases.
+     * @param channelGroup Keeps track of channels to close on shutdown.
      */
     public ProxyRelayHandler(final InetSocketAddress proxyAddress, 
         final ProxyStatusListener proxyStatusListener, 
-        final KeyStoreManager keyStoreManager) {
+        final KeyStoreManager keyStoreManager,
+        final ClientSocketChannelFactory clientSocketChannelFactory,
+        final ChannelGroup channelGroup) {
         this.proxyAddress = proxyAddress;
         this.proxyStatusListener = proxyStatusListener;
         this.keyStoreManager = keyStoreManager;
+        this.clientSocketChannelFactory = clientSocketChannelFactory;
+        this.channelGroup = channelGroup;
     }
     
     @Override
@@ -85,7 +88,8 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
         }
         this.inboundChannel = e.getChannel();
         inboundChannel.setReadable(false);
-
+        this.channelGroup.add(inboundChannel);
+        
         // Start the connection attempt.
         final ClientBootstrap cb = 
             new ClientBootstrap(this.clientSocketChannelFactory);
@@ -102,12 +106,12 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
             pipeline.addLast("ssl", new SslHandler(engine));
         }
         
-        pipeline.addLast("handler", 
-            new OutboundHandler(e.getChannel()));
+        pipeline.addLast("handler", new OutboundHandler(e.getChannel()));
         final ChannelFuture cf = cb.connect(this.proxyAddress);
 
         this.outboundChannel = cf.getChannel();
         cf.addListener(new ChannelFutureListener() {
+            @Override
             public void operationComplete(final ChannelFuture future) 
                 throws Exception {
                 if (future.isSuccess()) {
@@ -137,33 +141,41 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
         ProxyUtils.closeOnFlush(this.inboundChannel);
     }
     
-    private static class OutboundHandler extends SimpleChannelUpstreamHandler {
+    private class OutboundHandler extends SimpleChannelUpstreamHandler {
 
-        private final Logger log = LoggerFactory.getLogger(getClass());
+        private final Logger localLog = LoggerFactory.getLogger(getClass());
         
-        private final Channel inboundChannel;
+        private final Channel localInboundChannel;
 
         OutboundHandler(final Channel inboundChannel) {
-            this.inboundChannel = inboundChannel;
+            this.localInboundChannel = inboundChannel;
         }
 
         @Override
         public void messageReceived(final ChannelHandlerContext ctx, 
             final MessageEvent e) throws Exception {
             final ChannelBuffer msg = (ChannelBuffer) e.getMessage();
-            inboundChannel.write(msg);
+            localInboundChannel.write(msg);
         }
 
         @Override
+        public void channelOpen(final ChannelHandlerContext ctx, 
+            final ChannelStateEvent cse) throws Exception {
+            final Channel ch = cse.getChannel();
+            localLog.info("New channel opened: {}", ch);
+            channelGroup.add(ch);
+        }
+        
+        @Override
         public void channelClosed(final ChannelHandlerContext ctx, 
             final ChannelStateEvent e) throws Exception {
-            ProxyUtils.closeOnFlush(inboundChannel);
+            ProxyUtils.closeOnFlush(localInboundChannel);
         }
 
         @Override
         public void exceptionCaught(final ChannelHandlerContext ctx, 
             final ExceptionEvent e) throws Exception {
-            log.error("Caught exception on OUTBOUND channel", e.getCause());
+            localLog.error("Caught exception on OUTBOUND channel", e.getCause());
             ProxyUtils.closeOnFlush(e.getChannel());
         }
     }

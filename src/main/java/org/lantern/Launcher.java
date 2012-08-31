@@ -12,6 +12,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
+import java.util.concurrent.Executors;
 
 import javax.security.auth.login.CredentialException;
 
@@ -32,8 +33,16 @@ import org.apache.log4j.spi.LoggingEvent;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.widgets.Display;
+import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.channel.group.DefaultChannelGroup;
+import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.util.HashedWheelTimer;
+import org.jboss.netty.util.Timer;
 import org.json.simple.JSONObject;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.cookie.CookieTracker;
@@ -593,6 +602,25 @@ public class Launcher {
         final HttpRequestFilter publicOnlyRequestFilter = 
             new PublicIpsOnlyRequestFilter();
         
+        final Timer timer = new HashedWheelTimer();
+        
+        final ServerSocketChannelFactory serverChannelFactory = 
+                new NioServerSocketChannelFactory(
+                    Executors.newCachedThreadPool(),
+                    Executors.newCachedThreadPool());
+        final ClientSocketChannelFactory clientChannelFactory = 
+            new NioClientSocketChannelFactory(
+                    Executors.newCachedThreadPool(),
+                    Executors.newCachedThreadPool());
+        final ChannelGroup channelGroup = 
+            new DefaultChannelGroup("Local-HTTP-Proxy-Server");
+        
+        LanternHub.setNettyTimer(timer);
+        LanternHub.setServerChannelFactory(serverChannelFactory);
+        LanternHub.setClientChannelFactory(clientChannelFactory);
+        LanternHub.setChannelGroup(channelGroup);
+        
+        
         // Note that just passing in the keystore manager triggers this to 
         // become an SSL proxy server.
         final int staticRandomPort = LanternHub.settings().getServerPort();
@@ -603,7 +631,8 @@ public class Launcher {
                 public HttpFilter getFilter(String arg0) {
                     return null;
                 }
-            }, null, publicOnlyRequestFilter);
+            }, null, publicOnlyRequestFilter, clientChannelFactory, timer, 
+            serverChannelFactory);
         LOG.debug("SSL port is {}", staticRandomPort);
         //final org.littleshoot.proxy.HttpProxyServer sslProxy = 
         //    new DefaultHttpProxyServer(LanternHub.randomSslPort());
@@ -617,7 +646,8 @@ public class Launcher {
         final org.littleshoot.proxy.HttpProxyServer plainTextProxy = 
             new DefaultHttpProxyServer(
                 LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT,
-                publicOnlyRequestFilter);
+                publicOnlyRequestFilter, clientChannelFactory, timer, 
+                serverChannelFactory);
         plainTextProxy.start(true, false);
         
         LOG.info("About to start Lantern server on port: "+
@@ -654,7 +684,8 @@ public class Launcher {
             new LanternHttpProxyServer(
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
                 //null, sslRandomPort,
-                cookieObserver, cookieFilterFactory);
+                cookieObserver, cookieFilterFactory, serverChannelFactory, 
+                clientChannelFactory, timer, channelGroup);
         server.start();
         
         // 
