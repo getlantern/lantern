@@ -10,6 +10,7 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +26,12 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
 
     private final Socket sock;
 
-    public PeerHttpConnectRequestProcessor(final Socket sock) {
+    private final ChannelGroup channelGroup;
+
+    public PeerHttpConnectRequestProcessor(final Socket sock,
+        final ChannelGroup channelGroup) {
         this.sock = sock;
+        this.channelGroup = channelGroup;
     }
 
     @Override
@@ -41,8 +46,7 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
             // a SocketHttpConnectRelayingHandler and the normal 
             // encoder that records stats is removed from the 
             // browserToProxyChannel pipeline.
-            LanternUtils.startReading(this.sock,
-                browserToProxyChannel, true);
+            LanternUtils.startReading(this.sock, browserToProxyChannel, true);
             
             log.info("Got an outbound socket on request handler hash {} to {}", 
                 hashCode(), this.sock);
@@ -55,8 +59,8 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
             
             
             browserPipeline.addLast("handler", 
-                new SocketHttpConnectRelayingHandler(this.sock));
-                //new HttpConnectRelayingHandler(cf.getChannel(), null));
+                new SocketHttpConnectRelayingHandler(this.sock, 
+                    this.channelGroup));
             browserToProxyChannel.setReadable(true);
         }
 

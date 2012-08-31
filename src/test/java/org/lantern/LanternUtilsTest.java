@@ -215,8 +215,11 @@ public class LanternUtilsTest {
         //    LanternHub.trustManager().getTruststorePath());
         
         LanternUtils.configureXmpp();
-        final String email = LanternHub.settings().getEmail();
-        final String pwd = LanternHub.settings().getPassword();
+        //final String email = LanternHub.settings().getEmail();
+        //final String pwd = LanternHub.settings().getPassword();
+        
+        final String email = "lanternuser@gmail.com";
+        final String pwd = "aKD13DAWd82";
         if (StringUtils.isBlank(email) || StringUtils.isBlank(pwd)) {
             LOG.info("user name and password not configured");
             return;
@@ -254,8 +257,10 @@ public class LanternUtilsTest {
     
     @Test 
     public void testGoogleStunServers() throws Exception {
-        final String email = LanternHub.settings().getEmail();
-        final String pwd = LanternHub.settings().getPassword();
+        //final String email = LanternHub.settings().getEmail();
+        //final String pwd = LanternHub.settings().getPassword();
+        final String email = "lanternuser@gmail.com";
+        final String pwd = "aKD13DAWd82";
         if (StringUtils.isBlank(email) || StringUtils.isBlank(pwd)) {
             LOG.info("user name and password not configured");
             return;
@@ -297,8 +302,10 @@ public class LanternUtilsTest {
     
     @Test 
     public void testOtrMode() throws Exception {
-        final String email = LanternHub.settings().getEmail();
-        final String pwd = LanternHub.settings().getPassword();
+        //final String email = LanternHub.settings().getEmail();
+        //final String pwd = LanternHub.settings().getPassword();
+        final String email = "lanternuser@gmail.com";
+        final String pwd = "aKD13DAWd82";
         if (StringUtils.isBlank(email) || StringUtils.isBlank(pwd)) {
             LOG.info("Not testing with no credentials");
             return;

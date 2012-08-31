@@ -2,12 +2,9 @@ package org.lantern;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.security.NoSuchAlgorithmException;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.Executors;
 
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
@@ -18,13 +15,12 @@ import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
-import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
 import org.jboss.netty.handler.ssl.SslHandler;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.ProxyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,10 +31,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
     
     private ChannelFuture cf;
     
-    private static final ClientSocketChannelFactory clientSocketChannelFactory =
-        new NioClientSocketChannelFactory(
-            Executors.newCachedThreadPool(),
-            Executors.newCachedThreadPool());
+    private final ClientSocketChannelFactory clientSocketChannelFactory;
 
     /**
      * These need to be synchronized with HTTP responses in the case where we
@@ -58,14 +51,20 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
 
     private final Proxy proxy;
 
+    private final ChannelGroup channelGroup;
+
     public DefaultHttpRequestProcessor( 
         final ProxyStatusListener proxyStatusListener, 
         final HttpRequestTransformer transformer, final boolean isLae, 
-        final Proxy proxy) {
+        final Proxy proxy, 
+        final ClientSocketChannelFactory clientSocketChannelFactory,
+        final ChannelGroup channelGroup) {
         this.proxyStatusListener = proxyStatusListener;
         this.transformer = transformer;
         this.isLae = isLae;
         this.proxy = proxy;
+        this.clientSocketChannelFactory = clientSocketChannelFactory;
+        this.channelGroup = channelGroup;
     }
     
     private boolean hasProxy() {
@@ -150,7 +149,8 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         pipeline.addLast("decoder", new HttpResponseDecoder());
         pipeline.addLast("encoder", new HttpRequestEncoder());
         pipeline.addLast("handler", 
-            new ChunkedProxyDownloader(request, browserToProxyChannel, httpRequests));
+            new ChunkedProxyDownloader(request, browserToProxyChannel, 
+                httpRequests, channelGroup));
         //this.proxyHost = proxyAddress.getHostName();
         
         log.info("Connecting to proxy at: {}", proxyAddress);

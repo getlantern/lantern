@@ -4,8 +4,6 @@ import static org.jboss.netty.channel.Channels.pipeline;
 
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
@@ -15,13 +13,14 @@ import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
+import org.jboss.netty.util.Timer;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.cookie.SetCookieObserver;
 import org.lantern.cookie.SetCookieObserverHandler;
 import org.lantern.cookie.UpstreamCookieFilterHandler;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,35 +31,41 @@ public class LanternHttpProxyServer implements HttpProxyServer {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private final ChannelGroup allChannels = 
-        new DefaultChannelGroup("Local-HTTP-Proxy-Server");
+    private final ChannelGroup channelGroup;
             
     private final int httpLocalPort;
 
     private final SetCookieObserver setCookieObserver;
     private final CookieFilter.Factory cookieFilterFactory;
 
-    //private final int httpsLocalPort;
+    private final ServerSocketChannelFactory serverChannelFactory;
 
-    //private final ProxyProvider proxyProvider;
-    //private final ProxyStatusListener proxyStatusListener;
-    //private final XmppP2PClient p2pClient;
+    private final ClientSocketChannelFactory clientChannelFactory;
 
+    private final Timer timer;
 
     /**
      * Creates a new proxy server.
      * 
      * @param httpLocalPort The port the HTTP server should run on.
-     * @param filters HTTP filters to apply.
-     * @param xmpp The class dealing with all XMPP interaction with the server.
+     * @param timer 
+     * @param clientChannelFactory 
+     * @param serverChannelFactory 
      */
     public LanternHttpProxyServer(final int httpLocalPort, 
         final SetCookieObserver setCookieObserver, 
-        final CookieFilter.Factory cookieFilterFactory) {
+        final CookieFilter.Factory cookieFilterFactory, 
+        final ServerSocketChannelFactory serverChannelFactory, 
+        final ClientSocketChannelFactory clientChannelFactory, 
+        final Timer timer, final ChannelGroup channelGroup) {
             
         this.httpLocalPort = httpLocalPort;
         this.setCookieObserver = setCookieObserver;
         this.cookieFilterFactory = cookieFilterFactory;
+        this.serverChannelFactory = serverChannelFactory;
+        this.clientChannelFactory = clientChannelFactory;
+        this.timer = timer;
+        this.channelGroup = channelGroup;
 
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
@@ -98,33 +103,15 @@ public class LanternHttpProxyServer implements HttpProxyServer {
     
     private ServerBootstrap newServerBootstrap(
         final ChannelPipelineFactory pipelineFactory, final int port) {
-        final ServerBootstrap bootstrap = new ServerBootstrap(
-            new NioServerSocketChannelFactory(
-                Executors.newCachedThreadPool(new ThreadFactory() {
-                    @Override
-                    public Thread newThread(final Runnable r) {
-                        final Thread t = 
-                            new Thread(r, "Daemon-Netty-Boss-Executor");
-                        t.setDaemon(true);
-                        return t;
-                    }
-                }),
-                Executors.newCachedThreadPool(new ThreadFactory() {
-                    @Override
-                    public Thread newThread(final Runnable r) {
-                        final Thread t = 
-                            new Thread(r, "Daemon-Netty-Worker-Executor");
-                        t.setDaemon(true);
-                        return t;
-                    }
-                })));
+        final ServerBootstrap bootstrap = 
+            new ServerBootstrap(this.serverChannelFactory);
 
         bootstrap.setPipelineFactory(pipelineFactory);
         
         // We always only bind to localhost here for better security.
         final Channel channel = 
             bootstrap.bind(new InetSocketAddress("127.0.0.1", port));
-        allChannels.add(channel);
+        channelGroup.add(channel);
         
         return bootstrap;
     }
@@ -135,8 +122,8 @@ public class LanternHttpProxyServer implements HttpProxyServer {
             public ChannelPipeline getPipeline() throws Exception {
                 
                 final SimpleChannelUpstreamHandler dispatcher = 
-                    new DispatchingProxyRelayHandler();
-                                                     
+                    new DispatchingProxyRelayHandler(clientChannelFactory, 
+                        channelGroup);
                 
                 final ChannelPipeline pipeline = pipeline();
                 pipeline.addLast("decoder", 
@@ -145,12 +132,14 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                     new LanternHttpResponseEncoder(LanternHub.statsTracker()));
                 
                 if (setCookieObserver != null) {
-                    final ChannelHandler watchCookies = new SetCookieObserverHandler(setCookieObserver);
+                    final ChannelHandler watchCookies = 
+                        new SetCookieObserverHandler(setCookieObserver);
                     pipeline.addLast("setCookieObserver", watchCookies);
                 }
                 
                 if (cookieFilterFactory != null) {
-                    final ChannelHandler filterCookies = new UpstreamCookieFilterHandler(cookieFilterFactory);
+                    final ChannelHandler filterCookies =
+                        new UpstreamCookieFilterHandler(cookieFilterFactory);
                     pipeline.addLast("cookieFilter", filterCookies);
                 }
 
@@ -159,8 +148,5 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                 return pipeline;
             }
         };
-
     }
-
-
 }

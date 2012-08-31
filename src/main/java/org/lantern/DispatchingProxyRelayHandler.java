@@ -18,6 +18,8 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
@@ -63,11 +65,23 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private boolean readingChunks;
 
+    private final ClientSocketChannelFactory clientChannelFactory;
+
+    private final ChannelGroup channelGroup;
+
     /**
      * Creates a new handler that reads incoming HTTP requests and dispatches
      * them to proxies as appropriate.
+     * 
+     * @param clientChannelFactory The factory for creating outgoing channels
+     * to external sites.
+     * @param channelGroup Keeps track of channels to close on shutdown.
      */
-    public DispatchingProxyRelayHandler() {
+    public DispatchingProxyRelayHandler(
+        final ClientSocketChannelFactory clientChannelFactory,
+        final ChannelGroup channelGroup) {
+        this.clientChannelFactory = clientChannelFactory;
+        this.channelGroup = channelGroup;
         this.proxyRequestProcessor =
             new DefaultHttpRequestProcessor(LanternHub.getProxyStatusListener(),
                 new HttpRequestTransformer() {
@@ -87,7 +101,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     public InetSocketAddress getProxy() {
                         return LanternHub.getProxyProvider().getProxy();
                     }
-                });
+                }, this.clientChannelFactory, this.channelGroup);
         this.laeRequestProcessor =
             new DefaultHttpRequestProcessor(LanternHub.getProxyStatusListener(),
                 new LaeHttpRequestTransformer(), true,
@@ -101,7 +115,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     public InetSocketAddress getProxy() {
                         return LanternHub.getProxyProvider().getLaeProxy();
                     }
-            });
+            }, this.clientChannelFactory, this.channelGroup);
     }
 
     @Override
@@ -316,6 +330,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final ChannelStateEvent e) {
         log.debug("Got incoming channel");
         this.browserToProxyChannel = e.getChannel();
+        this.channelGroup.add(this.browserToProxyChannel);
     }
     
     private ChannelFuture openOutgoingRelayChannel(final HttpRequest request) 
@@ -324,7 +339,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
         // Start the connection attempt.
         final ClientBootstrap cb = 
-            new ClientBootstrap(LanternConstants.clientSocketChannelFactory);
+            new ClientBootstrap(this.clientChannelFactory);
         
         final ChannelPipeline pipeline = cb.getPipeline();
         

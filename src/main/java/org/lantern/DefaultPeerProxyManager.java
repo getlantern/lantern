@@ -19,14 +19,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.group.ChannelGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Class the keeps track of P2P connections to peers, dispatching them and
  * creating new ones as needed.
- * 
- * TODO: Reuse sockets better?
  */
 public class DefaultPeerProxyManager implements PeerProxyManager {
     
@@ -70,9 +69,13 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
      * Online peers we've exchanged certs with.
      */
     private final Collection<URI> certPeers = new HashSet<URI>();
+
+    private final ChannelGroup channelGroup;
     
-    public DefaultPeerProxyManager(final boolean anon) {
+    public DefaultPeerProxyManager(final boolean anon, 
+        final ChannelGroup channelGroup) {
         this.anon = anon;
+        this.channelGroup = channelGroup;
     }
 
     @Override
@@ -225,15 +228,15 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             this.peerUri = peerUri;
         }
 
-        private void onSocket(final Socket sock) {
+        private void onSocket(final Socket socket) {
             this.elapsed = System.currentTimeMillis() - this.startTime;
-            this.sock = sock;
+            this.sock = socket;
             if (anon) {
                 this.requestProcessor = 
-                    new PeerHttpConnectRequestProcessor(sock);
+                    new PeerHttpConnectRequestProcessor(sock, channelGroup);
             } else {
                 this.requestProcessor = 
-                    new PeerChannelHttpRequestProcessor(sock);
+                    new PeerChannelHttpRequestProcessor(sock, channelGroup);
                     //new PeerHttpRequestProcessor(sock);
             }
         }

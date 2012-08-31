@@ -33,6 +33,11 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.DefaultChannelConfig;
 import org.jboss.netty.channel.DefaultChannelFuture;
 import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.channel.group.DefaultChannelGroup;
+import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
+import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.CookieDecoder;
 import org.jboss.netty.handler.codec.http.Cookie;
@@ -46,6 +51,9 @@ import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder; 
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.ssl.SslHandler;
+import org.jboss.netty.util.HashedWheelTimer;
+import org.jboss.netty.util.Timer;
+
 import static org.junit.Assert.*;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.cookie.CookieTracker;
@@ -235,11 +243,30 @@ class TestingUtils {
             public void onCouldNotConnectToLae(InetSocketAddress proxyAddress) {}
         };
         
+        final Timer timer = new HashedWheelTimer();
+        
+        final ServerSocketChannelFactory serverChannelFactory = 
+                new NioServerSocketChannelFactory(
+                    Executors.newCachedThreadPool(),
+                    Executors.newCachedThreadPool());
+        final ClientSocketChannelFactory clientChannelFactory = 
+            new NioClientSocketChannelFactory(
+                    Executors.newCachedThreadPool(),
+                    Executors.newCachedThreadPool());
+        final ChannelGroup channelGroup = 
+            new DefaultChannelGroup("Local-HTTP-Proxy-Server");
+        
+        LanternHub.setNettyTimer(timer);
+        LanternHub.setServerChannelFactory(serverChannelFactory);
+        LanternHub.setClientChannelFactory(clientChannelFactory);
+        LanternHub.setChannelGroup(channelGroup);
+        
         final SetCookieObserver co = new WhitelistSetCookieObserver(ct);
         final CookieFilter.Factory cf = new DefaultCookieFilterFactory(ct);
         LanternHub.setProxyProvider(pp);
         LanternHub.setProxyStatusListener(psl);
-        LanternHttpProxyServer server = new LanternHttpProxyServer(port, co, cf);
+        final LanternHttpProxyServer server = new LanternHttpProxyServer(port, 
+            co, cf, serverChannelFactory, clientChannelFactory, timer, channelGroup);
         server.start();
         return server;
     }

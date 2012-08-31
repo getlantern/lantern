@@ -9,6 +9,7 @@ import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.handler.codec.http.DefaultHttpChunk;
 import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
@@ -33,6 +34,8 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
 
     private final HttpRequest originalRequest;
 
+    private final ChannelGroup channelGroup;
+
     /**
      * Creates a new chunked downloader.
      * 
@@ -43,10 +46,19 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
      */
     public ChunkedProxyDownloader(final HttpRequest request, 
         final Channel browserToProxyChannel,
-        final Queue<HttpRequest> httpRequests) {
+        final Queue<HttpRequest> httpRequests, final ChannelGroup channelGroup){
         this.originalRequest = request;
         this.browserToProxyChannel = browserToProxyChannel;
         this.httpRequests = httpRequests;
+        this.channelGroup = channelGroup;
+    }
+    
+    @Override
+    public void channelOpen(final ChannelHandlerContext ctx, 
+        final ChannelStateEvent cse) throws Exception {
+        final Channel ch = cse.getChannel();
+        log.info("New channel opened: {}", ch);
+        this.channelGroup.add(ch);
     }
     
     @Override

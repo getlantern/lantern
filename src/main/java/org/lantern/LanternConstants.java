@@ -138,8 +138,6 @@ public class LanternConstants {
     
     public static File LOG_DIR;
     
-    public static ClientSocketChannelFactory clientSocketChannelFactory;
-
     public static final boolean ON_APP_ENGINE;
 
     static {
@@ -148,7 +146,6 @@ public class LanternConstants {
             Class.forName("org.lantern.LanternControllerUtils");
             DATA_DIR = null;
             LOG_DIR = null;
-            clientSocketChannelFactory = null;
             tempAppEngine = true;
         } catch (final ClassNotFoundException e) {
             // Only load these if we're not on app engine.
@@ -184,12 +181,7 @@ public class LanternConstants {
                         CONFIG_DIR);
                 }
             }
-            
-            // This is initialized here because we don't want to load it on
-            // App Engine -- DO NOT MOVE.
-            clientSocketChannelFactory = new NioClientSocketChannelFactory(
-                    Executors.newCachedThreadPool(),
-                    Executors.newCachedThreadPool());
+
             tempAppEngine = false;
         }
         

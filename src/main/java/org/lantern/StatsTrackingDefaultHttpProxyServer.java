@@ -4,17 +4,19 @@ import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Map;
-import java.util.concurrent.Executors;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFactory;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.ChannelGroupFuture;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
+import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.util.Timer;
 import org.littleshoot.proxy.ChainProxyManager;
 import org.littleshoot.proxy.DefaultProxyAuthorizationManager;
 import org.littleshoot.proxy.DefaultRelayPipelineFactoryFactory;
@@ -58,11 +60,18 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
 
     private final HttpResponseFilters responseFilters;
 
+    private ChannelFactory serverChannelFactory;
+
+    private Timer timer;
+
+    private ClientSocketChannelFactory clientChannelFactory;
+
     /**
      * Creates a new proxy server.
      *
      * @param port The port the server should run on.
      */
+    /*
     public StatsTrackingDefaultHttpProxyServer(final int port) {
         this(port, new HttpResponseFilters() {
             public HttpFilter getFilter(String hostAndPort) {
@@ -70,6 +79,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
             }
         });
     }
+    */
 
     /**
      * Creates a new proxy server.
@@ -79,10 +89,12 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
      * with associated {@link HttpFilter}s for filtering responses to
      * those requests.
      */
+    /*
     public StatsTrackingDefaultHttpProxyServer(final int port,
         final HttpResponseFilters responseFilters) {
         this(port, responseFilters, null, null);
     }
+    */
 
     /**
      * Creates a new proxy server.
@@ -91,11 +103,13 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
      * @param requestFilter The filter for HTTP requests.
      * @param responseFilters HTTP filters to apply.
      */
+    /*
     public StatsTrackingDefaultHttpProxyServer(final int port,
         final HttpRequestFilter requestFilter,
         final HttpResponseFilters responseFilters) {
         this(port, responseFilters, null, requestFilter);
     }
+    */
 
     /**
      * Creates a new proxy server.
@@ -109,15 +123,25 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
      * @param ksm The key manager if running the proxy over SSL.
      * @param requestFilter Optional filter for modifying incoming requests.
      * Often <code>null</code>.
+     * @param clientChannelFactory The factory for creating outgoing client
+     * connections.
+     * @param timer The idle timeout timer. 
+     * @param serverChannelFactory The factory for creating listening channels.
      */
     public StatsTrackingDefaultHttpProxyServer(final int port,
         final HttpResponseFilters responseFilters,
         final ChainProxyManager chainProxyManager,
-        final HttpRequestFilter requestFilter) {
+        final HttpRequestFilter requestFilter, 
+        final ClientSocketChannelFactory clientChannelFactory, 
+        final Timer timer,
+        final ServerSocketChannelFactory serverChannelFactory) {
         this.port = port;
         this.responseFilters = responseFilters;
         this.requestFilter = requestFilter;
         this.chainProxyManager = chainProxyManager;
+        this.clientChannelFactory = clientChannelFactory;
+        this.timer = timer;
+        this.serverChannelFactory = serverChannelFactory;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
@@ -125,10 +149,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
             }
         });
 
-        this.serverBootstrap = new ServerBootstrap(
-            new NioServerSocketChannelFactory(
-                Executors.newCachedThreadPool(),
-                Executors.newCachedThreadPool()));
+        this.serverBootstrap = new ServerBootstrap(this.serverChannelFactory);
     }
 
     @Override
@@ -143,7 +164,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                 this.allChannels, this.chainProxyManager, 
                 new StatsTrackingDefaultRelayPipelineFactoryFactory(chainProxyManager,
                     this.responseFilters, this.requestFilter,
-                    this.allChannels));
+                    this.allChannels, this.timer), this.clientChannelFactory, 
+                    this.timer);
         serverBootstrap.setPipelineFactory(factory);
 
         // Binding only to localhost can significantly improve the security of
@@ -171,15 +193,6 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                 stop();
             }
         }));
-
-        /*
-        final ServerBootstrap sslBootstrap = new ServerBootstrap(
-            new NioServerSocketChannelFactory(
-                Executors.newCachedThreadPool(),
-                Executors.newCachedThreadPool()));
-        sslBootstrap.setPipelineFactory(new HttpsServerPipelineFactory());
-        sslBootstrap.bind(new InetSocketAddress("127.0.0.1", 8443));
-        */
     }
 
     public void stop() {
@@ -202,9 +215,12 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
             final ProxyAuthorizationManager authorizationManager, 
             final ChannelGroup channelGroup, 
             final ChainProxyManager chainProxyManager, 
-            final RelayPipelineFactoryFactory relayPipelineFactoryFactory) {
+            final RelayPipelineFactoryFactory relayPipelineFactoryFactory,
+            final ClientSocketChannelFactory clientChannelFactory, 
+            final Timer timer) {
             super(authorizationManager, channelGroup, chainProxyManager, 
-                LanternHub.getKeyStoreManager(), relayPipelineFactoryFactory);
+                LanternHub.getKeyStoreManager(), relayPipelineFactoryFactory, 
+                timer, clientChannelFactory);
         }
 
         @Override
@@ -229,8 +245,9 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
             final ChainProxyManager chainProxyManager, 
             final HttpResponseFilters responseFilters, 
             final HttpRequestFilter requestFilter, 
-            final ChannelGroup channelGroup) {
-            super(chainProxyManager, responseFilters, requestFilter, channelGroup);
+            final ChannelGroup channelGroup,
+            final Timer timer) {
+            super(chainProxyManager, responseFilters, requestFilter, channelGroup, timer);
         }
         
         @Override
