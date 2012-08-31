@@ -36,7 +36,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
     private final int httpLocalPort;
 
     private final SetCookieObserver setCookieObserver;
-    private final CookieFilter.Factory cookieFilterFactory;
+    //private final CookieFilter.Factory cookieFilterFactory;
 
     private final ServerSocketChannelFactory serverChannelFactory;
 
@@ -48,9 +48,11 @@ public class LanternHttpProxyServer implements HttpProxyServer {
      * Creates a new proxy server.
      * 
      * @param httpLocalPort The port the HTTP server should run on.
-     * @param timer 
-     * @param clientChannelFactory 
-     * @param serverChannelFactory 
+     * @param clientChannelFactory The factory for creating outgoing client
+     * connections.
+     * @param timer The idle timeout timer. 
+     * @param serverChannelFactory The factory for creating listening channels.
+     * @param channelGroup The group of all channels for convenient closing.
      */
     public LanternHttpProxyServer(final int httpLocalPort, 
         final SetCookieObserver setCookieObserver, 
@@ -61,7 +63,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
             
         this.httpLocalPort = httpLocalPort;
         this.setCookieObserver = setCookieObserver;
-        this.cookieFilterFactory = cookieFilterFactory;
+        //this.cookieFilterFactory = cookieFilterFactory;
         this.serverChannelFactory = serverChannelFactory;
         this.clientChannelFactory = clientChannelFactory;
         this.timer = timer;
@@ -131,6 +133,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                 pipeline.addLast("encoder", 
                     new LanternHttpResponseEncoder(LanternHub.statsTracker()));
                 
+                /*
                 if (setCookieObserver != null) {
                     final ChannelHandler watchCookies = 
                         new SetCookieObserverHandler(setCookieObserver);
@@ -142,6 +145,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                         new UpstreamCookieFilterHandler(cookieFilterFactory);
                     pipeline.addLast("cookieFilter", filterCookies);
                 }
+                */
 
                 pipeline.addLast("handler", dispatcher);
 
