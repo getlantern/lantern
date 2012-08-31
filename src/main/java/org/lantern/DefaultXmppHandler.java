@@ -137,6 +137,10 @@ public class DefaultXmppHandler implements XmppHandler {
     private String lastUserName;
 
     private String lastPass;
+    
+    private final NatPmpService natPmpService;
+
+    private final UpnpService upnpService = new Upnp();
 
     /**
      * Creates a new XMPP handler.
@@ -144,6 +148,28 @@ public class DefaultXmppHandler implements XmppHandler {
     public DefaultXmppHandler() {
         // This just links connectivity with Google Talk login status when 
         // running in give mode.
+        NatPmpService temp = null;
+        try {
+            temp = new NatPmp();
+        } catch (final NatPmpException e) {
+            // This will happen when NAT-PMP is not supported on the local 
+            // network.
+            LOG.info("Could not map", e);
+            // We just use a dummy one in this case.
+            temp = new NatPmpService() {
+                @Override
+                public void removeNatPmpMapping(int arg0) {
+                }
+                @Override
+                public int addNatPmpMapping(
+                    final PortMappingProtocol arg0, int arg1, int arg2,
+                    PortMapListener arg3) {
+                    return -1;
+                }
+            };
+        }
+        natPmpService = temp;
+        
         new GiveModeConnectivityHandler();
         LanternUtils.configureXmpp();
         prepopulateProxies();
@@ -234,28 +260,6 @@ public class DefaultXmppHandler implements XmppHandler {
             new InetSocketAddress("127.0.0.1", 
                 LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT);
         
-        NatPmpService natPmpService = null;
-        try {
-            natPmpService = new NatPmp();
-        } catch (final NatPmpException e) {
-            // This will happen when NAT-PMP is not supported on the local 
-            // network.
-            LOG.info("Could not map", e);
-            // We just use a dummy one in this case.
-            natPmpService = new NatPmpService() {
-                @Override
-                public void removeNatPmpMapping(int arg0) {
-                }
-                @Override
-                public int addNatPmpMapping(
-                    final PortMappingProtocol arg0, int arg1, int arg2,
-                    PortMapListener arg3) {
-                    return -1;
-                }
-            };
-        }
-        
-        final UpnpService upnpService = new Upnp();
         final SessionSocketListener sessionListener = new SessionSocketListener() {
             
             @Override
@@ -1235,5 +1239,16 @@ public class DefaultXmppHandler implements XmppHandler {
         } catch (final NotCompliantMBeanException e) {
             LOG.error("Could not set up JMX", e);
         }
+    }
+    
+    @Override
+    public void stop() {
+        if (this.upnpService != null) {
+            this.upnpService.shutdown();
+        }
+        if (this.client.get() != null) {
+            this.client.get().logout();
+        }
+        //this.client.get().stop();
     }
 }

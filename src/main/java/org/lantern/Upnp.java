@@ -1,6 +1,8 @@
 package org.lantern;
 
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.Collection;
 
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
@@ -15,6 +17,9 @@ import org.teleal.cling.transport.spi.InitializationException;
 public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
+    
+    private final static Collection<UpnpService> allServices =
+            new ArrayList<UpnpService>();
     
     public Upnp() {
         final String HACK_STREAM_HANDLER_SYSTEM_PROPERTY = 
@@ -79,6 +84,7 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
             upnpService = new UpnpServiceImpl(
                 new UpnpPortMappingListener(portMapListener, desiredMapping)
             );
+            allServices.add(upnpService);
         } catch (final InitializationException e) {
             final String msg = e.getMessage();
             if (msg.contains("no Inet4Address associated")) {
@@ -99,4 +105,20 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
         upnpService.getControlPoint().search();
     }
 
+    @Override
+    public void shutdown() {
+        final Runnable shutdown = new Runnable() {
+            
+            @Override
+            public void run() {
+                for (final UpnpService service : allServices) {
+                    log.info("Shutting down UPNP service: {}", service);
+                    service.shutdown();
+                }
+            }
+        };
+        final Thread t = new Thread(shutdown, "Lantern-UPNP-Shutdown-Thread");
+        t.setDaemon(true);
+        t.start();
+    }
 }

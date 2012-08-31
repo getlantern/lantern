@@ -4,8 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
 import java.net.InetSocketAddress;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.security.GeneralSecurityException;
 import java.security.Security;
 import java.util.Arrays;
@@ -39,14 +37,9 @@ import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.jboss.netty.handler.codec.http.Cookie;
-import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timer;
 import org.json.simple.JSONObject;
-import org.lantern.cookie.CookieFilter;
-import org.lantern.cookie.CookieTracker;
-import org.lantern.cookie.SetCookieObserver;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.privacy.InvalidKeyException;
@@ -71,6 +64,8 @@ public class Launcher {
 
     private static Logger LOG;
     private static boolean lanternStarted = false;
+    private static LanternHttpProxyServer localProxy;
+    private static DefaultHttpProxyServer plainTextAnsererRelayProxy;
     
     
     /**
@@ -643,12 +638,12 @@ public class Launcher {
         // only on the answerer side. The answerer "client" socket relays
         // its data to the local proxy.
         // See http://cdn.getlantern.org/IMAG0210.jpg
-        final org.littleshoot.proxy.HttpProxyServer plainTextProxy = 
+        Launcher.plainTextAnsererRelayProxy = 
             new DefaultHttpProxyServer(
                 LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT,
                 publicOnlyRequestFilter, clientChannelFactory, timer, 
                 serverChannelFactory);
-        plainTextProxy.start(true, false);
+        plainTextAnsererRelayProxy.start(true, false);
         
         LOG.info("About to start Lantern server on port: "+
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
@@ -682,13 +677,13 @@ public class Launcher {
         final SetCookieObserver cookieObserver = new WhitelistSetCookieObserver(hubTracker);
         final CookieFilter.Factory cookieFilterFactory = new DefaultCookieFilterFactory(hubTracker);
         */
-        final HttpProxyServer server = 
+        Launcher.localProxy = 
             new LanternHttpProxyServer(
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
                 //null, sslRandomPort,
                 null, null, serverChannelFactory, 
                 clientChannelFactory, timer, channelGroup);
-        server.start();
+        localProxy.start();
         
         // 
         AutoConnector ac = new AutoConnector(); 
@@ -854,6 +849,17 @@ public class Launcher {
         if (exit) {
             LOG.info("Exiting Lantern");
             System.exit(1);
+        }
+    }
+
+    public static void stop() {
+        LanternHub.jettyLauncher().stop();
+        LanternHub.xmppHandler().stop();
+        if (Launcher.plainTextAnsererRelayProxy != null) {
+            Launcher.plainTextAnsererRelayProxy.stop();
+        }
+        if (Launcher.localProxy != null) {
+            Launcher.localProxy.stop();
         }
     }
 }
