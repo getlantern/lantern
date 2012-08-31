@@ -85,4 +85,5 @@ public interface XmppHandler extends ProxyStatusListener, ProxyProvider {
 
     String getLastPass();
 
+    void stop();
 }

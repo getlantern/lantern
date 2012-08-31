@@ -153,4 +153,10 @@ public class LanternHttpProxyServer implements HttpProxyServer {
             }
         };
     }
+
+
+    public void stop() {
+        // TODO Auto-generated method stub
+        
+    }
 }
