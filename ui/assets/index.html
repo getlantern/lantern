@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app>
+<html ng-app="dashboard">
   <head>
     <meta charset="utf-8">
     <title>Lantern Dashboard</title>
@@ -24,27 +24,47 @@
     <script src="lib/prettify.js"></script>
     <script src="lib/underscore.js"></script>
     <script src="dashboard.js"></script>
+    <script src="controllers.js"></script>
+    <script src="services.js"></script>
 
     <link rel="shortcut icon" href="img/favicon.ico">
   </head>
 
   <body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Lantern Dashboard</a>
+          <div class="nav-collapse collapse">
+            <ul class="nav">
+              <li><a href="#/status">Status</a></li>
+              <li><a href="#/settings">Settings</a></li>
+              <li><a href="#/roster">Roster</a></li>
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
     <div class="container">
-      <h1>Lantern Dashboard</h1>
-
-      <div class="container" id="settings-container" ng-controller="SettingsCtrl">
-        <h3>Settings State</h3>
-        <div>nsyncs: {{nsyncs}}</div>
-        <pre class="prettyprint"><code ng:show="state">{{state | json}}</code><code ng:show="!state">waiting for data...</code></pre>
-      </div>
-
-      <div class="container" id="roster-container" ng-controller="RosterCtrl">
-        <h3>Roster State</h3>
-        <div>nsyncs: {{nsyncs}}</div>
-        <!-- too slow to prettify when this is big: -->
-        <pre><code ng:show="state">{{state | json}}</code><code ng:show="!state">waiting for data...</code></pre>
-      </div>
-
+      <div class="row">
+        <div class="span2">
+          <div class="well sidebar-nav">
+            <ul class="nav nav-list">
+              <li><a href="#/status">Status</a></li>
+              <li><a href="#/settings">Settings</a></li>
+              <li><a href="#/roster">Roster</a></li>
+            </ul>
+          </div><!--/well -->
+        </div><!--/span -->
+        <div class="span10" ng-view></div>
+      </div><!--/row -->
     </div> <!-- /container -->
 
     <script src="lib/bootstrap/js/bootstrap.js"></script>
