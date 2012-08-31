@@ -654,6 +654,7 @@ public class Launcher {
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
 
 
+        /*
         // Delegate all calls to the current hub cookie tracker.
         final CookieTracker hubTracker = new CookieTracker() {
 
@@ -680,11 +681,12 @@ public class Launcher {
 
         final SetCookieObserver cookieObserver = new WhitelistSetCookieObserver(hubTracker);
         final CookieFilter.Factory cookieFilterFactory = new DefaultCookieFilterFactory(hubTracker);
+        */
         final HttpProxyServer server = 
             new LanternHttpProxyServer(
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
                 //null, sslRandomPort,
-                cookieObserver, cookieFilterFactory, serverChannelFactory, 
+                null, null, serverChannelFactory, 
                 clientChannelFactory, timer, channelGroup);
         server.start();
         

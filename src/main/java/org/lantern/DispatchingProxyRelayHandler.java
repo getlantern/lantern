@@ -375,7 +375,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         pipeline.addLast("ssl", new SslHandler(engine));
         pipeline.addLast("encoder", new HttpRequestEncoder());
         pipeline.addLast("handler", 
-            new HttpConnectRelayingHandler(this.browserToProxyChannel, null));
+            new HttpConnectRelayingHandler(this.browserToProxyChannel, 
+                this.channelGroup));
         final InetSocketAddress isa = LanternHub.getProxyProvider().getProxy();
         if (isa == null) {
             log.error("NO PROXY AVAILABLE?");
@@ -392,7 +393,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         browserPipeline.remove("decoder");
         browserPipeline.remove("handler");
         browserPipeline.addLast("handler", 
-            new HttpConnectRelayingHandler(cf.getChannel(), null));
+            new HttpConnectRelayingHandler(cf.getChannel(), 
+                this.channelGroup));
         
         // This is handy, as set readable to false while the channel is 
         // connecting ensures we won't get any incoming messages until

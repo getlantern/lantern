@@ -196,11 +196,11 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
     }
 
     public void stop() {
-        log.info("Shutting down proxy");
-        final ChannelGroupFuture future = allChannels.close();
-        future.awaitUninterruptibly(6*1000);
-        serverBootstrap.releaseExternalResources();
-        log.info("Done shutting down proxy");
+        //log.info("Shutting down proxy");
+        //final ChannelGroupFuture future = allChannels.close();
+        //future.awaitUninterruptibly(6*1000);
+        //serverBootstrap.releaseExternalResources();
+        //log.info("Done shutting down proxy");
     }
 
     public void addProxyAuthenticationHandler(
