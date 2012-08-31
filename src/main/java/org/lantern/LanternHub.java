@@ -354,7 +354,7 @@ public class LanternHub {
     public static Timer timer() {
         synchronized (timer) {
             if (timer.get() == null) {
-                timer.set(new Timer());
+                timer.set(new Timer("Lantern-Timer", true));
             }
             return timer.get();
         }

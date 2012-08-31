@@ -167,6 +167,14 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             log.info("Ingoring peer when we're in give mode");
             return;
         }
+        if (this.anon && !LanternHub.settings().isUseAnonymousPeers()) {
+            log.info("Ignoring anonymous peer");
+            return;
+        }
+        if (!this.anon && !LanternHub.settings().isUseTrustedPeers()) {
+            log.info("Ignoring trusted peer");
+            return;
+        }
         log.info("Received peer URI {}...attempting {} connections...", 
             peerUri, sockets);
         
