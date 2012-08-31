@@ -1,5 +1,5 @@
-README
-======
+Lantern [![Build Status](https://secure.travis-ci.org/getlantern/lantern.png)](https://secure.travis-ci.org/getlantern/lantern)
+=======
 
 Lantern allows you to give or get access to the internet through other users
 around the world connected by a peer-to-peer network.

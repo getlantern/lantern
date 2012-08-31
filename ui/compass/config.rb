@@ -1,12 +1,12 @@
 require 'compass_twitter_bootstrap'
 
 http_path = '/'
-assets_path = '../assets/'
-css_dir = assets_path + 'css'
-images_dir = assets_path + 'img'
-javascripts_dir = assets_path + 'js'
-sass_dir = '.'
-#output_style = :compressed
-environment = :production
+project_path = '../assets'
+sass_dir = '../compass'
+css_dir = 'css-compiled'
+images_dir = 'img'
+javascripts_dir = 'js'
+output_style = :expanded
+environment = :development
 relative_assets = true
 preferred_syntax = :sass

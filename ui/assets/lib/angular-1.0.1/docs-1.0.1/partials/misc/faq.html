@@ -1,0 +1,79 @@
+<h1><code ng:non-bindable=""></code>
+<span class="hint"></span>
+</h1>
+<div><h2>FAQ</h2>
+
+<h4>Why is this project called "angular"? Why is the namespace called "ng"?</h4>
+
+<p>Because HTML has angular brackets and "ng" sounds like "angular".</p>
+
+<h4>Is <angular/> an HTML5 tag?</h4>
+
+<p>No, <angular/> is not an HTML5 tag. angular is an orthogonal project to HTML5; you can use the two
+together.</p>
+
+<h4>Is angular a {library, framework, DOM manipulation library, widget library, native plugin}?</h4>
+
+<p>No, angular is none of these. You don't call its functions, it does not call your functions,
+it does not provide a way to manipulate DOM, but does provide primitives to create UI projections
+of your data. There are lots of existing widget libraries which you can integrate with angular.
+It is 100% JavaScript, 100% client side and compatible with both desktop and mobile browsers.</p>
+
+<h4>Do I need to worry about security holes in angular?</h4>
+
+<p>Like with any technology, angular is not impervious to attack. angular does, however, provide
+built-in protection from basic security holes including cross-site scripting and HTML injection
+attacks. angular does round-trip escaping on all strings for you.</p>
+
+<h4>Can I download the source, build, and host the angular environment locally?</h4>
+
+<p>Yes. See instructions in <a href="misc/downloading">downloading</a>.</p>
+
+<h4>Is angular a templating system?</h4>
+
+<p>At the highest level, angular does look like a just another templating system. But there is one
+important reason why angular templating system is different and makes it very good fit for
+application development: bidirectional data binding. The template is compiled on the browser and
+the compilation step produces a live view. This means you, the developer, don't need to write
+code to constantly sync the view with the model and the model with the view as in other
+templating systems.</p>
+
+<h4>What browsers does angular work with?</h4>
+
+<p>Webkit-based browsers (Safari, Chrome, iPhone, Android, WebOS, BlackBerry 6), Firefox, IE6 and
+above. Note that CSS only works on IE7 and above.</p>
+
+<h4>What's angular's performance like?</h4>
+
+<p>angular takes ~300ms to load, render, and compile. In Chrome it uses about 2-5MB of memory. Your
+app's performance will vary depending on how many bindings you use.</p>
+
+<h4>How big is the angular bootstrap JS file that I need to include?</h4>
+
+<p>The size of the library itself is &lt; 50KB compressed and obfuscated.</p>
+
+<h4>Can I use the open-source Closure Library with angular?</h4>
+
+<p>Yes, you can use widgets from the <a href="http://code.google.com/closure/library">Closure Library</a>
+in angular.</p>
+
+<h4>Does angular use the jQuery library?</h4>
+
+<p>Yes, angular uses <a href="http://jquery.com/">jQuery</a>, the open source DOM manipulation library.
+If jQuery is not present in your script path, angular falls back on its own implementation of
+<a href="api/angular.element"><code>jQuery lite</code></a>. If jQuery is present in the path, angular uses it to
+manipulate the DOM.</p>
+
+<h4>What is testability like in angular?</h4>
+
+<p>Very testable. It has an integrated dependency injection framework. See
+<a href="api/ng">service</a> for details.</p>
+
+<h4>How can I learn more about angular?</h4>
+
+<p>Watch the July 28, 2010 talk
+"<a href="http://www.youtube.com/watch?v=elvcgVSynRg|">Angular: A Radically Different Way of Building AJAX Apps</a>".</p>
+
+<h4>How is angular licensed?</h4>
+
+<p>The MIT License.</p></div>

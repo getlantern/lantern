@@ -1,0 +1,154 @@
+<h1><code ng:non-bindable=""></code>
+<span class="hint"></span>
+</h1>
+<div><h2>Hello World!</h2>
+
+<p>A great way for you to get started with AngularJS is to create the tradtional
+"Hello World!" app:</p>
+
+<ol>
+<li>In your favorite text editor, create an HTML file
+(for example, <code>helloworld.html</code>).</li>
+<li>From the <strong>Source</strong> box below, copy and paste the code into your HTML file.
+(Double-click on the source to easily select all.)</li>
+<li>Open the file in your web browser.</li>
+</ol>
+
+<h2>Source</h2>
+<div source-edit="" source-edit-deps="angular.js" source-edit-html="index.html-57" source-edit-css="" source-edit-js="" source-edit-unit="" source-edit-scenario=""></div>
+<div class="tabbable"><div class="tab-pane" title="index.html">
+<pre class="prettyprint linenums" ng-set-text="index.html-57" ng-html-wrap=" angular.js"></pre>
+<script type="text/ng-template" id="index.html-57">
+        Hello {{'World'}}!
+    </script>
+</div>
+</div><h2>Demo</h2>
+<div class="well doc-example-live" ng-embed-app="" ng-set-html="index.html-57" ng-eval-javascript=""></div>
+
+<p>The resulting web page should look something like the following:</p>
+
+<p><img class="center" src="img/helloworld.png" border="1"></p>
+
+<p>Now let's take a closer look at that code, and see what is going on behind
+the scenes.</p>
+
+<p>The <code>ng-app</code> tags tells angular to process the entire HTML page and bootstrap the app when the page
+is loaded:</p>
+
+<pre class="prettyprint linenums">
+    &lt;html ng-app&gt;
+</pre>
+
+<p>The next line downloads the angular script:</p>
+
+<pre class="prettyprint linenums">
+    &lt;script src="http://code.angularjs.org/angular-?.?.?.min.js"&gt;&lt;/script&gt;
+</pre>
+
+<p>(For details on what happens when angular processes an HTML page,
+see <a href="guide/bootstrap">Bootstrap</a>.)</p>
+
+<p>Finally, this line in the <code>&lt;body&gt;</code> of the page is the template that describes
+how to display our greeting in the UI:</p>
+
+<pre class="prettyprint linenums">
+    Hello {{'World'}}!
+</pre>
+
+<p>Note the use of the double curly brace markup (<code>{{ }}</code>) to bind the expression to
+the greeting text. Here the expression is the string literal 'World'.</p>
+
+<p>Next let's look at a more interesting example, that uses AngularJS to
+bind a dynamic expression to our greeting text.</p>
+
+<h2>Hello AngularJS World!</h2>
+
+<p>This example demonstrates angular's two-way data binding:</p>
+
+<ol>
+<li>Edit the HTML file you created in the "Hello World!" example above.</li>
+<li>Replace the contents of <code>&lt;body&gt;</code> with the code from the <strong>Source</strong> box below.</li>
+<li>Refresh your browser window.</li>
+</ol>
+
+<h2>Source</h2>
+<div source-edit="" source-edit-deps="angular.js" source-edit-html="index.html-58" source-edit-css="" source-edit-js="" source-edit-unit="" source-edit-scenario=""></div>
+<div class="tabbable"><div class="tab-pane" title="index.html">
+<pre class="prettyprint linenums" ng-set-text="index.html-58" ng-html-wrap=" angular.js"></pre>
+<script type="text/ng-template" id="index.html-58">
+  Your name: <input type="text" ng-model="yourname" placeholder="World">
+  <hr>
+  Hello {{yourname || 'World'}}!
+ </script>
+</div>
+</div><h2>Demo</h2>
+<div class="well doc-example-live" ng-embed-app="" ng-set-html="index.html-58" ng-eval-javascript=""></div>
+
+<p>After the refresh, the page should look something like this:</p>
+
+<p><img class="left" src="img/helloworld_2way.png" border="1" ></p>
+
+<p>These are some of the important points to note from this example:</p>
+
+<ul>
+<li>The text input <a href="guide/directive">directive</a>
+is bound to a model variable called <code>yourname</code>.</li>
+<li><p>The double curly braces notation binds the <code>yourname</code> model to the greeting text.</p></li>
+<li><p>You did not need to explicitly register an event listener or define an event handler for events!</p></li>
+</ul>
+
+<p>Now try typing your name into the input box, and notice the immediate change to
+the displayed greeting. This demonstrates the concept of angular's
+<a href="guide/dev_guide.templates.databinding">bi-directional data binding</a>. Any changes to the input
+field are immediately
+reflected in the model (one direction), and any changes to the model are
+reflected in the greeting text (the other direction).</p>
+
+<h2>Anatomy Of An Angular App</h2>
+
+<p>This section describes the 3 parts of an angular app, and explains how they map to the
+Model-View-Controller design pattern:</p>
+
+<h3>Templates</h3>
+
+<p>Templates, which you write in HTML and CSS, serve as the View. You add elements, attributes, and
+markup to HTML, which serve as instructions to the angular compiler. The angular compiler is fully
+extensible, meaning that with angular you can build your own declarative language on top of HTML!</p>
+
+<h3>Application Logic and Behavior</h3>
+
+<p>Application Logic and Behavior, which you define in JavaScript, serve as the Controller. With
+angular (unlike with standard AJAX applications) you don't need to write additional listeners or
+DOM manipulators, because they are built-in. This feature makes your application logic very easy to
+write, test, maintain, and understand.</p>
+
+<h3>Data</h3>
+
+<p>The Model is referenced from properties on <a href="guide/scope">angular scope objects</a>.
+The data in your model could be Javascript objects, arrays, or primitives, it doesn't matter.  What
+matters is that these are all referenced by the scope object.</p>
+
+<p>Angular employs scopes to keep your data model and your UI in sync.  Whenever something occurs to
+change the state of the model, angular immediately reflects that change in the UI, and vice versa.</p>
+
+<p>The following illustration shows the parts of an angular application and how they work together:</p>
+
+<p><img class="left" src="img/angular_parts.png" border="0" /></p>
+
+<p>In addition, angular comes with a set of Services, which have the following properties:</p>
+
+<ul>
+<li>The services provided are very useful for building web applications.</li>
+<li>You can extend and add application-specific behavior to services.</li>
+<li>Services include Dependency-Injection, XHR, caching, URL routing, and browser abstraction.</li>
+</ul>
+
+<h2>Where To Go Next</h2>
+
+<ul>
+<li><p>If you like what you've learned so far, you should definitely check out our awesome <a href="tutorial/index">Tutorial</a>, which walks you through the process of building real apps with AngularJS.</p></li>
+<li><p>For further explanations and examples of the AngularJS concepts presented on this page, see the
+<a href="guide/index">Developer Guide</a>.</p></li>
+<li><p>For additional hands-on examples of using AngularJS, including more source  code that you can
+copy and paste into your own pages, take a look through the <a href="cookbook/index">Cookbook</a>.</p></li>
+</ul></div>
