@@ -1,11 +1,8 @@
 package org.lantern;
 
 import java.io.File;
-import java.util.concurrent.Executors;
 
 import org.apache.commons.lang.SystemUtils;
-import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
-import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.lantern.exceptional4j.ExceptionalUtils;
 
 /**

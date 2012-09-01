@@ -56,6 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 
 /**
@@ -602,48 +603,21 @@ public class Launcher {
         
         final ServerSocketChannelFactory serverChannelFactory = 
             new NioServerSocketChannelFactory(
-                Executors.newCachedThreadPool(new ThreadFactory() {
-                    private int threadNumber = 0;
-                    @Override
-                    public Thread newThread(Runnable r) {
-                        final Thread t = new Thread(r, 
-                            "Lantern-Netty-Server-First-Thread-"+threadNumber++);
-                        t.setDaemon(true);
-                        return t;
-                    }
-                }),
-                Executors.newCachedThreadPool(new ThreadFactory() {
-                    private int threadNumber = 0;
-                    @Override
-                    public Thread newThread(Runnable r) {
-                        final Thread t = new Thread(r, 
-                            "Lantern-Netty-Server-Second-Thread-"+threadNumber++);
-                        t.setDaemon(true);
-                        return t;
-                    }
-                }));
+                Executors.newCachedThreadPool(
+                    new ThreadFactoryBuilder().setNameFormat(
+                        "Lantern-Netty-Server-Boss-Thread-%d").build()),
+                Executors.newCachedThreadPool(
+                    new ThreadFactoryBuilder().setNameFormat(
+                        "Lantern-Netty-Server-Worker-Thread-%d").build()));
         final ClientSocketChannelFactory clientChannelFactory = 
             new NioClientSocketChannelFactory(
-                Executors.newCachedThreadPool(new ThreadFactory() {
-                    private int threadNumber = 0;
-                    @Override
-                    public Thread newThread(Runnable r) {
-                        final Thread t = new Thread(r, 
-                            "Lantern-Netty-Client-First-Thread-"+threadNumber++);
-                        t.setDaemon(true);
-                        return t;
-                    }
-                }),
-                Executors.newCachedThreadPool(new ThreadFactory() {
-                    private int threadNumber = 0;
-                    @Override
-                    public Thread newThread(Runnable r) {
-                        final Thread t = new Thread(r, 
-                            "Lantern-Netty-Client-Second-Thread-"+threadNumber++);
-                        t.setDaemon(true);
-                        return t;
-                    }
-                }));
+                Executors.newCachedThreadPool(
+                    new ThreadFactoryBuilder().setNameFormat(
+                        "Lantern-Netty-Client-Boss-Thread-%d").build()),
+                Executors.newCachedThreadPool(
+                    new ThreadFactoryBuilder().setNameFormat(
+                        "Lantern-Netty-Client-Worker-Thread-%d").build()));
+        
         final ChannelGroup channelGroup = 
             new DefaultChannelGroup("Local-HTTP-Proxy-Server");
         

@@ -19,14 +19,47 @@ import org.slf4j.LoggerFactory;
  */
 public class LanternProxyingTest {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = 
+        LoggerFactory.getLogger(LanternProxyingTest.class);
+    
+    public static void main(final String[] args) throws Exception {
+        //int port = 9090;
+        //HttpProxyServer proxyServer = new DefaultHttpProxyServer(port);
+        //proxyServer.start();
+        Launcher.main(new String[]{"--disable-trusted-peers", "--disable-anon-peers", "--disable-ui", "--force-get", "--user", "lanternuser@gmail.com", "--pass", "aKD13DAWd82"});
+        
+        
+        Proxy proxy = new Proxy();
+        proxy.setProxyType(Proxy.ProxyType.MANUAL);
+        String proxyStr = String.format("localhost:%d", 
+            LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
+        proxy.setHttpProxy(proxyStr);
+        proxy.setSslProxy(proxyStr);
+
+        final DesiredCapabilities capability = DesiredCapabilities.firefox();
+        capability.setCapability(CapabilityType.PROXY, proxy);
+
+        final String urlString = "http://www.facebook.com";
+        final WebDriver driver = new FirefoxDriver(capability);
+        driver.manage().timeouts().pageLoadTimeout(30, TimeUnit.SECONDS);
+
+        driver.get(urlString);
+
+        driver.close();
+        log.info("Driver closed");
+
+        //proxyServer.stop();
+        log.info("Proxy stopped");
+        Launcher.stop();
+        log.info("Finished with stop!!");
+    }
     
     @Test
     public void test() throws Exception {
         final String[] urls = getUrls();
         final int port = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
-        //Launcher.main(new String[]{"--disable-ui", "--disable-lae", "--force-get", "--user", "lanternuser@gmail.com", "--pass", "aKD13DAWd82"});
-        Launcher.main(new String[]{"--disable-ui", "--force-get", "--user", "lanternuser@gmail.com", "--pass", "aKD13DAWd82"});
+        Launcher.main(new String[]{"--disable-ui", "--disable-lae", "--force-get", "--user", "lanternuser@gmail.com", "--pass", "aKD13DAWd82"});
+        //Launcher.main(new String[]{"--disable-ui", "--force-get", "--user", "lanternuser@gmail.com", "--pass", "aKD13DAWd82"});
         
         // Give it a second to start up.
         Thread.sleep(3000);
@@ -57,7 +90,7 @@ public class LanternProxyingTest {
             // Just make sure it got something within reason.
             assertTrue(source.length() > 100);
         }
-
+        log.info("Finished with test");
         //proxyServer.stop();
     }
 
@@ -73,6 +106,7 @@ public class LanternProxyingTest {
             "http://advar-news.biz/spip.php?page=boutonstexte-print.css",
             "http://advar-news.biz/local/cache-css/habillage.f9d4_rtl.css",
             "http://advar-news.biz/local/cache-css/impression.10b6_rtl.css",
+            /*
             "http://advar-news.biz/prive/javascript/jquery.js",
             "http://advar-news.biz/prive/javascript/jquery.form.js",
             "http://advar-news.biz/prive/javascript/ajaxCallback.js",
@@ -86,6 +120,8 @@ public class LanternProxyingTest {
             "http://advar-news.biz/lib/jquery.fancybox-1.3.4/fancybox/jquery.fancybox-1.3.4.js",
             "http://advar-news.biz/plugins/auto/fancybox/javascript/fancybox.js",
             "http://advar-news.biz/lib/jquery.fancybox-1.3.4/fancybox/jquery.fancybox-1.3.4.css",
+            */
+            /*
             "http://advar-news.biz/local/cache-vignettes/L800xH80/siteon0-dc90f.gif",
             "http://advar-news.biz/squelettes-dist/feed.png",
             "http://advar-news.biz/plugins/auto/outils_article/img_pack/textLarger.gif",
@@ -122,6 +158,7 @@ public class LanternProxyingTest {
             "http://advar-news.biz/local/cache-vignettes/L80xH60/arton13499-9bb74.jpg",
             "http://advar-news.biz/local/cache-vignettes/L80xH64/arton13497-63dea.jpg",
             "http://advar-news.biz/local/cache-vignettes/L53xH80/arton13514-80265.jpg",
+            */
         };
     }
 
