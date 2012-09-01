@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.maxmind.geoip.LookupService;
 
 /**
@@ -42,7 +43,9 @@ public class LanternHub {
     private static final EventBus eventBus = new EventBus();
     
     private static final AsyncEventBus asyncEventBus =
-        new AsyncEventBus("Async-Event-Bus", Executors.newCachedThreadPool());
+        new AsyncEventBus("Async-Event-Bus", Executors.newCachedThreadPool(
+            new ThreadFactoryBuilder().setDaemon(true).setNameFormat(
+                "Async-Event-Thread-%d").build()));
     
     private static final AtomicReference<SecureRandom> secureRandom =
         new AtomicReference<SecureRandom>(new SecureRandom());

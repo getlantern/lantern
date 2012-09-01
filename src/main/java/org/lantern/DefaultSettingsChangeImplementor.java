@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 
 import javax.security.auth.login.CredentialException;
 
@@ -14,6 +13,8 @@ import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 
 /**
  * Class that does the dirty work of executing changes to the various settings 
@@ -25,15 +26,9 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
     
     private final File launchdPlist;
     
-    private final Executor proxyQueue = 
-        Executors.newSingleThreadExecutor(new ThreadFactory() {
-            @Override
-            public Thread newThread(final Runnable r) {
-                final Thread t = new Thread(r, "System-Proxy-Thread");
-                t.setDaemon(true);
-                return t;
-            }
-        });
+    private final Executor proxyQueue = Executors.newSingleThreadExecutor(
+        new ThreadFactoryBuilder().setDaemon(true).setNameFormat(
+            "System-Proxy-Thread-%d").build());
 
     private final File gnomeAutostart;
 

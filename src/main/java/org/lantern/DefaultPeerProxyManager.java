@@ -12,7 +12,6 @@ import java.util.Map;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -23,6 +22,8 @@ import org.jboss.netty.channel.group.ChannelGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
+
 /**
  * Class the keeps track of P2P connections to peers, dispatching them and
  * creating new ones as needed.
@@ -32,19 +33,8 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final Executor exec = Executors.newCachedThreadPool(
-        new ThreadFactory() {
-        
-        private int threadNumber = 0;
-        
-        @Override
-        public Thread newThread(final Runnable r) {
-            final Thread t = 
-                new Thread(r, "P2P-Socket-Creation-Thread-"+threadNumber);
-            threadNumber++;
-            t.setDaemon(true);
-            return t;
-        }
-    });
+        new ThreadFactoryBuilder().setDaemon(true).setNameFormat(
+            "P2P-Socket-Creation-Thread-%d").build());
     
     /**
      * Priority queue of sockets ordered by how long it took them to be 

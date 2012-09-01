@@ -31,8 +31,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CommandLine {
+    private final Logger log = LoggerFactory.getLogger(getClass());
   private static final Method JDK6_CAN_EXECUTE = findJdk6CanExecuteMethod();
   private final String[] commandAndArgs;
   private volatile StreamDrainer drainer;
@@ -151,18 +154,19 @@ public class CommandLine {
       }
     }.start();
 
-    cleanup = new Thread() {
-      @Override
-      public void run() {
-        if (proc != null) {
-          try {
-            proc.exitValue();
-          } catch (IllegalThreadStateException e) {
-            proc.destroy();
+    cleanup = new Thread(new Runnable() {
+        @Override
+        public void run() {
+          if (proc != null) {
+            try {
+              proc.exitValue();
+            } catch (IllegalThreadStateException e) {
+              proc.destroy();
+            }
           }
+          log.info("Finished CommandLine process...");
         }
-      }
-    };
+    }, "CommandLine-Process-Cleanup-Thread");
     Runtime.getRuntime().addShutdownHook(cleanup);
 
     return proc;
