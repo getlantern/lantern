@@ -102,9 +102,13 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
                 // we're about to remove it.
                 final String cr = 
                     response.getHeader(HttpHeaders.Names.CONTENT_RANGE);
+                final boolean hasRange = hasExpectedRangeFormat(cr);
+                
+                final long rangeEnd = parseRangeEnd(cr);
                 final long cl = parseFullContentLength(cr);
                 
-                if (isFirstChunk(cr)) {
+                final boolean rangeComplete = rangeEnd == cl;
+                if (hasRange && isFirstChunk(cr)) {
                     // If this is the *first* partial response to this 
                     // request, we need to build a new HTTP response as if 
                     // it were a normal, non-partial 200 OK. We need to 
@@ -112,14 +116,28 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
                     // however.
                     response.setStatus(HttpResponseStatus.OK);
                     
-                    log.info("Setting Content Length to: "+cl+" from "+cr);
-                    
-                    // We need to set the appropriate total content length 
-                    // here. This should be the final value of the Content-Range
-                    // as the Content-Length header is just the length of the
-                    // content for this single response, not the full entity.
-                    response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, cl);
-                    response.removeHeader(HttpHeaders.Names.CONTENT_RANGE);
+                    // App Engine will automatically gzip responses if it can.
+                    // Unfortunately it will gzip the content and set the 
+                    // content-length but won't adjust the content range,
+                    // causing browsers to not load files correctly. We need
+                    // to check for cases where the response is gzipped and 
+                    // where the content range returned is bigger than the
+                    // content length. We also check for the range specified
+                    // being the full length of the content (it's essentially
+                    // a 200 response for the entire content). In that case
+                    // we just strip the range entirely.
+                    if (isGzipped(response) && rangeComplete) {
+                        log.info("Looks like auto-gzipped");
+                        response.removeHeader(HttpHeaders.Names.CONTENT_RANGE);
+                    } else {
+                        log.info("Setting Content Length to: "+cl+" from "+cr);
+                        // We need to set the appropriate total content length 
+                        // here. This should be the final value of the 
+                        // Content-Range as the Content-Length header is just 
+                        // the length of the content for this single response, 
+                        // not the full entity.
+                        response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, cl);
+                    }
                     browserToProxyChannel.write(response);
                 } else {
                     // We need to grab the body of the partial response
@@ -130,11 +148,36 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
                 }
                 
                 // Spin up additional requests on a new thread.
-                requestRange(request, cr, cl, ctx.getChannel());
+                if (!rangeComplete) {
+                    requestRange(request, cr, cl, ctx.getChannel(), rangeEnd);
+                }
             }
         }
     }
     
+
+    private boolean hasExpectedRangeFormat(final String cr) {
+        if (StringUtils.isBlank(cr)) {
+            return false;
+        }
+        // We require this format: bytes 0-4854/4855
+        return cr.contains("-") && cr.contains("/");
+    }
+
+    private long parseRangeEnd(final String cr) {
+        // For example: bytes 0-4854/4855
+        final String rangeEnd = StringUtils.substringBetween(cr, "-", "/");
+        return Long.parseLong(rangeEnd) + 1;
+    }
+
+    private boolean isGzipped(final HttpResponse response) {
+        final String val = 
+            response.getHeader(HttpHeaders.Names.CONTENT_ENCODING);
+        if (val == null) {
+            return false;
+        }
+        return "gzip".equalsIgnoreCase(val);
+    }
 
     private boolean isFirstChunk(final String contentRange) {
         return contentRange.trim().startsWith("bytes 0-");
@@ -148,34 +191,16 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
 
     private void requestRange(final HttpRequest request, 
         final String contentRange, final long fullContentLength, 
-        final Channel channel) {
+        final Channel channel, final long rangeEnd) {
         log.info("Queuing request based on Content-Range: {}", contentRange);
-        // Note we don't need to thread this since it's all asynchronous 
-        // anyway.
-        final String body = 
-            StringUtils.substringAfter(contentRange, "bytes ");
-        if (StringUtils.isBlank(body)) {
-            log.error("Blank bytes body: "+contentRange);
-            return;
-        }
-        //final long contentLength = HttpHeaders.getContentLength(response);
-        final String startPlus = StringUtils.substringAfter(body, "-");
-        final String startString = StringUtils.substringBefore(startPlus, "/");
-        final long start = Long.parseLong(startString) + 1;
-        
-        // This means the last response provided the final range, so we don't
-        // want to request another one.
-        if (start == fullContentLength) {
-            log.info("Received full length...not requesting new range");
-            return;
-        }
+
         final long end;
-        if (fullContentLength - start > LanternConstants.CHUNK_SIZE) {
-            end = start + LanternConstants.CHUNK_SIZE;
+        if (fullContentLength - rangeEnd > LanternConstants.CHUNK_SIZE) {
+            end = rangeEnd + LanternConstants.CHUNK_SIZE;
         } else {
             end = fullContentLength - 1;
         }
-        request.setHeader(HttpHeaders.Names.RANGE, "bytes="+start+"-"+end);
+        request.setHeader(HttpHeaders.Names.RANGE, "bytes="+rangeEnd+"-"+end);
         request.setHeader(LanternConstants.LANTERN_VERSION_HTTP_HEADER_NAME, 
             LanternConstants.LANTERN_VERSION_HTTP_HEADER_VALUE);
         writeRequest(request, channel);
