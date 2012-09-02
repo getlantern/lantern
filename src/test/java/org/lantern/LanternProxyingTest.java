@@ -1,13 +1,28 @@
 package org.lantern;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
+import org.apache.http.Header;
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.junit.Test;
+import org.littleshoot.proxy.DefaultHttpProxyServer;
+import org.littleshoot.proxy.HttpProxyServer;
+import org.littleshoot.proxy.HttpRequestFilter;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.firefox.FirefoxDriver;
+import org.openqa.selenium.htmlunit.HtmlUnitDriver;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
 import org.slf4j.Logger;
@@ -27,7 +42,6 @@ public class LanternProxyingTest {
         //HttpProxyServer proxyServer = new DefaultHttpProxyServer(port);
         //proxyServer.start();
         Launcher.main(new String[]{"--disable-trusted-peers", "--disable-anon-peers", "--disable-ui", "--force-get", "--user", "lanternuser@gmail.com", "--pass", "aKD13DAWd82"});
-        
         
         Proxy proxy = new Proxy();
         proxy.setProxyType(Proxy.ProxyType.MANUAL);
@@ -53,13 +67,68 @@ public class LanternProxyingTest {
         Launcher.stop();
         log.info("Finished with stop!!");
     }
+
+    @Test
+    public void testWithHttpClient() throws Exception {
+        final String url = "http://www.yahoo.com";
+            //"https://rlanternz.appspot.com/http/advar-news.biz/local/cache-css/spip_formulaires.34a0_rtl.css";
+                //"http://localhost:8080/http/advar-news.biz/local/cache-css/spip_formulaires.34a0_rtl.css";
+            //    "http://advar-news.biz/local/cache-css/spip_formulaires.34a0_rtl.css";
+        
+        final int PROXY_PORT = 10200;
+        final HttpClient client = new DefaultHttpClient();
+
+        final HttpGet get = new HttpGet(url);
+        //get.setHeader(HttpHeaders.Names.CONTENT_RANGE, "Range: bytes=0-1999999");
+        //get.setHeader(HttpHeaders.Names.HOST, "rlanternz.appspot.com");
+//        get.setHeader("Lantern-Version", "lantern_version_tok");
+//        get.setHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:15.0) Gecko/20100101 Firefox/15.0");
+//        get.setHeader("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+//        get.setHeader("Accept-Language", "en-us,en;q=0.5");
+//        get.setHeader("Accept-Encoding", "gzip, deflate");
+//        get.setHeader("Proxy-Connection", "keep-alive");
+//        get.setHeader("Host", "rlanternz.appspot.com");
+//        get.setHeader("Lantern-Version", "lantern_version_tok");
+//        get.setHeader("Range", "bytes=0-1999999");
+        
+        HttpResponse response = client.execute(get);
+        
+        final Header[] headers = response.getAllHeaders();
+        for (final Header h : headers) {
+            System.out.println(h.getName() + ": "+h.getValue());
+        }
+        //assertEquals(200, response.getStatusLine().getStatusCode());
+        EntityUtils.consume(response.getEntity());
+
+        final HttpProxyServer proxy = 
+            new DefaultHttpProxyServer(PROXY_PORT, new HttpRequestFilter() {
+            @Override
+            public void filter(final HttpRequest httpRequest) {
+                System.out.println("Request went through proxy");
+            }
+        });
+
+        proxy.start();
+        client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, 
+            new HttpHost("localhost", PROXY_PORT));
+        response = client.execute(get);
+        assertEquals(200, response.getStatusLine().getStatusCode());
+        
+        log.info("Consuming entity");
+        EntityUtils.consume(response.getEntity());
+        
+        log.info("Stopping proxy");
+        proxy.stop();
+    }
     
     @Test
     public void test() throws Exception {
+        //final String[] urls = {"https://rlanternz.appspot.com/http/advar-news.biz/local/cache-css/spip_formulaires.34a0_rtl.css"};//getUrls();
         final String[] urls = getUrls();
+        //final String[] urls = {"http://www.yahoo.com/"};
         final int port = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
-        Launcher.main(new String[]{"--disable-ui", "--disable-lae", "--force-get", "--user", "lanternuser@gmail.com", "--pass", "aKD13DAWd82"});
-        //Launcher.main(new String[]{"--disable-ui", "--force-get", "--user", "lanternuser@gmail.com", "--pass", "aKD13DAWd82"});
+        //Launcher.main(new String[]{"--disable-ui", "--disable-lae", "--force-get", "--user", "lanternuser@gmail.com", "--pass", "aKD13DAWd82"});
+        Launcher.main(new String[]{"--disable-ui", "--force-get", "--user", "lanternuser@gmail.com", "--pass", "aKD13DAWd82"});
         
         // Give it a second to start up.
         Thread.sleep(3000);
@@ -68,7 +137,7 @@ public class LanternProxyingTest {
         proxy.setProxyType(Proxy.ProxyType.MANUAL);
         String proxyStr = String.format("localhost:%d", port);
         proxy.setHttpProxy(proxyStr);
-        proxy.setSslProxy(proxyStr);
+        //proxy.setSslProxy(proxyStr);
 
         final DesiredCapabilities capability = DesiredCapabilities.firefox();
         capability.setCapability(CapabilityType.PROXY, proxy);
@@ -77,10 +146,11 @@ public class LanternProxyingTest {
         
         
         for (final String url : urls) {
-            System.out.println("TESTING URL: "+url);
+            log.info("TESTING URL: "+url);
             // Note this will actually launch a browser!!
             final WebDriver driver = new FirefoxDriver(capability);
-            driver.manage().timeouts().pageLoadTimeout(10, TimeUnit.SECONDS);
+            //final WebDriver driver = new HtmlUnitDriver(capability);
+            driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
             driver.get(url);
             final String source = driver.getPageSource();
             //System.out.println(logs.);
@@ -92,6 +162,7 @@ public class LanternProxyingTest {
         }
         log.info("Finished with test");
         //proxyServer.stop();
+        //Launcher.stop();
     }
 
     private String[] getUrls() {

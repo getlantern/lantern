@@ -129,6 +129,9 @@ public class SystemTrayImpl implements SystemTray {
                     display.dispose();
                     LanternHub.xmppHandler().disconnect();
                     LanternHub.jettyLauncher().stop();
+                    
+                    // We should just call Launcher.stop here, but it
+                    // still have issues with not killing everything.
                     System.exit(0);
                 }
             });
