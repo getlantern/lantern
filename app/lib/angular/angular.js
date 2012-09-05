@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.1
+ * @license AngularJS v1.0.2
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -1178,7 +1178,7 @@ function setupModuleLoader(window) {
            * @param {Function} directiveFactory Factory function for creating new instance of
            * directives.
            * @description
-           * See {@link ng.$compileProvider.directive $compileProvider.directive()}.
+           * See {@link ng.$compileProvider#directive $compileProvider.directive()}.
            */
           directive: invokeLater('$compileProvider', 'directive'),
 
@@ -1247,11 +1247,11 @@ function setupModuleLoader(window) {
  * - `codeName` – `{string}` – Code name of the release, such as "jiggling-armfat".
  */
 var version = {
-  full: '1.0.1',    // all of these placeholder strings will be replaced by rake's
+  full: '1.0.2',    // all of these placeholder strings will be replaced by rake's
   major: 1,    // compile task
   minor: 0,
-  dot: 1,
-  codeName: 'thorium-shielding'
+  dot: 2,
+  codeName: 'debilitating-awesomeness'
 };
 
 
@@ -1529,7 +1529,7 @@ function JQLite(element) {
     var div = document.createElement('div');
     // Read about the NoScope elements here:
     // http://msdn.microsoft.com/en-us/library/ms533897(VS.85).aspx
-    div.innerHTML = '<div>&nbsp;</div>' + element; // IE insanity to make NoScope elements work!
+    div.innerHTML = '<div>&#160;</div>' + element; // IE insanity to make NoScope elements work!
     div.removeChild(div.firstChild); // remove the superfluous div
     JQLiteAddNodes(this, div.childNodes);
     this.remove(); // detach the elements from the temporary DOM div.
@@ -3441,7 +3441,7 @@ var NON_ASSIGNABLE_MODEL_EXPRESSION = 'Non-assignable model expression: ';
  * can then be used to link {@link ng.$rootScope.Scope scope} and the template together.
  *
  * The compilation is a process of walking the DOM tree and trying to match DOM elements to
- * {@link ng.$compileProvider.directive directives}. For each match it
+ * {@link ng.$compileProvider#directive directives}. For each match it
  * executes corresponding template function and collects the
  * instance functions into a single template function which is then returned.
  *
@@ -3559,20 +3559,6 @@ var NON_ASSIGNABLE_MODEL_EXPRESSION = 'Non-assignable model expression: ';
  *
  * @description
  */
-
-/**
- * @ngdoc function
- * @name ng.$compileProvider#directive
- * @methodOf ng.$compileProvider
- * @function
- *
- * @description
- * Register a new directive with compiler
- *
- * @param {string} name name of the directive.
- * @param {function} directiveFactory An injectable directive factory function.
- * @returns {ng.$compileProvider} Self for chaining.
- */
 $CompileProvider.$inject = ['$provide'];
 function $CompileProvider($provide) {
   var hasDirectives = {},
@@ -3584,17 +3570,18 @@ function $CompileProvider($provide) {
 
   /**
    * @ngdoc function
-   * @name ng.$compileProvider.directive
+   * @name ng.$compileProvider#directive
    * @methodOf ng.$compileProvider
    * @function
    *
    * @description
-   * Register directives with the compiler.
+   * Register a new directives with the compiler.
    *
    * @param {string} name Name of the directive in camel-case. (ie <code>ngBind</code> which will match as
    *                <code>ng-bind</code>).
    * @param {function} directiveFactory An injectable directive factroy function. See {@link guide/directive} for more
    *                info.
+   * @returns {ng.$compileProvider} Self for chaining.
    */
    this.directive = function registerDirective(name, directiveFactory) {
     if (isString(name)) {
@@ -3720,6 +3707,15 @@ function $CompileProvider($provide) {
       }
     };
 
+    var startSymbol = $interpolate.startSymbol(),
+        endSymbol = $interpolate.endSymbol(),
+        denormalizeTemplate = (startSymbol == '{{' || endSymbol  == '}}')
+            ? identity
+            : function denormalizeTemplate(template) {
+              return template.replace(/\{\{/g, startSymbol).replace(/}}/g, endSymbol);
+            };
+
+
     return compile;
 
     //================================
@@ -3733,7 +3729,7 @@ function $CompileProvider($provide) {
       // not be able to attach scope data to them, so we will wrap them in <span>
       forEach($compileNode, function(node, index){
         if (node.nodeType == 3 /* text node */) {
-          $compileNode[index] = jqLite(node).wrap('<span>').parent()[0];
+          $compileNode[index] = jqLite(node).wrap('<span></span>').parent()[0];
         }
       });
       var compositeLinkFn = compileNodes($compileNode, transcludeFn, $compileNode, maxPriority);
@@ -3999,14 +3995,17 @@ function $CompileProvider($provide) {
           }
         }
 
-        if (directiveValue = directive.template) {
+        if ((directiveValue = directive.template)) {
           assertNoDuplicate('template', templateDirective, directive, $compileNode);
           templateDirective = directive;
-
-          $template = jqLite('<div>' + trim(directiveValue) + '</div>').contents();
-          compileNode = $template[0];
+          directiveValue = denormalizeTemplate(directiveValue);
 
           if (directive.replace) {
+            $template = jqLite('<div>' +
+                                 trim(directiveValue) +
+                               '</div>').contents();
+            compileNode = $template[0];
+
             if ($template.length != 1 || compileNode.nodeType !== 1) {
               throw new Error(MULTI_ROOT_TEMPLATE_ERROR + directiveValue);
             }
@@ -4318,6 +4317,8 @@ function $CompileProvider($provide) {
       $http.get(origAsyncDirective.templateUrl, {cache: $templateCache}).
         success(function(content) {
           var compileNode, tempTemplateAttrs, $template;
+
+          content = denormalizeTemplate(content);
 
           if (replace) {
             $template = jqLite('<div>' + trim(content) + '</div>').contents();
@@ -4663,13 +4664,13 @@ function $ExceptionHandlerProvider() {
 }
 
 /**
- * @ngdoc function
+ * @ngdoc object
  * @name ng.$interpolateProvider
  * @function
  *
  * @description
  *
- * Used for configuring the interpolation markup. Deafults to `{{` and `}}`.
+ * Used for configuring the interpolation markup. Defaults to `{{` and `}}`.
  */
 function $InterpolateProvider() {
   var startSymbol = '{{';
@@ -4682,7 +4683,8 @@ function $InterpolateProvider() {
    * @description
    * Symbol to denote start of expression in the interpolated string. Defaults to `{{`.
    *
-   * @prop {string=} value new value to set the starting symbol to.
+   * @param {string=} value new value to set the starting symbol to.
+   * @returns {string|self} Returns the symbol when used as getter and self if used as setter.
    */
   this.startSymbol = function(value){
     if (value) {
@@ -4700,14 +4702,15 @@ function $InterpolateProvider() {
    * @description
    * Symbol to denote the end of expression in the interpolated string. Defaults to `}}`.
    *
-   * @prop {string=} value new value to set the ending symbol to.
+   * @param {string=} value new value to set the ending symbol to.
+   * @returns {string|self} Returns the symbol when used as getter and self if used as setter.
    */
   this.endSymbol = function(value){
     if (value) {
       endSymbol = value;
       return this;
     } else {
-      return startSymbol;
+      return endSymbol;
     }
   };
 
@@ -4749,7 +4752,7 @@ function $InterpolateProvider() {
      *      against.
      *
      */
-    return function(text, mustHaveExpression) {
+    function $interpolate(text, mustHaveExpression) {
       var startIndex,
           endIndex,
           index = 0,
@@ -4801,7 +4804,43 @@ function $InterpolateProvider() {
         fn.parts = parts;
         return fn;
       }
-    };
+    }
+
+
+    /**
+     * @ngdoc method
+     * @name ng.$interpolate#startSymbol
+     * @methodOf ng.$interpolate
+     * @description
+     * Symbol to denote the start of expression in the interpolated string. Defaults to `{{`.
+     *
+     * Use {@link ng.$interpolateProvider#startSymbol $interpolateProvider#startSymbol} to change
+     * the symbol.
+     *
+     * @returns {string} start symbol.
+     */
+    $interpolate.startSymbol = function() {
+      return startSymbol;
+    }
+
+
+    /**
+     * @ngdoc method
+     * @name ng.$interpolate#endSymbol
+     * @methodOf ng.$interpolate
+     * @description
+     * Symbol to denote the end of expression in the interpolated string. Defaults to `}}`.
+     *
+     * Use {@link ng.$interpolateProvider#endSymbol $interpolateProvider#endSymbol} to change
+     * the symbol.
+     *
+     * @returns {string} start symbol.
+     */
+    $interpolate.endSymbol = function() {
+      return endSymbol;
+    }
+
+    return $interpolate;
   }];
 }
 
@@ -5433,27 +5472,25 @@ function $LocationProvider(){
  * The main purpose of this service is to simplify debugging and troubleshooting.
  *
  * @example
-    <doc:example>
-      <doc:source>
-         <script>
-           function LogCtrl($log) {
-             this.$log = $log;
-             this.message = 'Hello World!';
-           }
-         </script>
-         <div ng-controller="LogCtrl">
-           <p>Reload this page with open console, enter text and hit the log button...</p>
-           Message:
-           <input type="text" ng-model="message"/>
-           <button ng-click="$log.log(message)">log</button>
-           <button ng-click="$log.warn(message)">warn</button>
-           <button ng-click="$log.info(message)">info</button>
-           <button ng-click="$log.error(message)">error</button>
-         </div>
-      </doc:source>
-      <doc:scenario>
-      </doc:scenario>
-    </doc:example>
+   <example>
+     <file name="script.js">
+       function LogCtrl($scope, $log) {
+         $scope.$log = $log;
+         $scope.message = 'Hello World!';
+       }
+     </file>
+     <file name="index.html">
+       <div ng-controller="LogCtrl">
+         <p>Reload this page with open console, enter text and hit the log button...</p>
+         Message:
+         <input type="text" ng-model="message"/>
+         <button ng-click="$log.log(message)">log</button>
+         <button ng-click="$log.warn(message)">warn</button>
+         <button ng-click="$log.info(message)">info</button>
+         <button ng-click="$log.error(message)">error</button>
+       </div>
+     </file>
+   </example>
  */
 
 function $LogProvider(){
@@ -6810,8 +6847,9 @@ function $RouteProvider(){
    *
    *    Object properties:
    *
-   *    - `controller` – `{function()=}` – Controller fn that should be associated with newly
-   *      created scope.
+   *    - `controller` – `{(string|function()=}` – Controller fn that should be associated with newly
+   *      created scope or the name of a {@link angular.Module#controller registered controller} 
+   *      if passed as a string.
    *    - `template` – `{string=}` –  html template as a string that should be used by
    *      {@link ng.directive:ngView ngView} or
    *      {@link ng.directive:ngInclude ngInclude} directives.
@@ -6821,7 +6859,7 @@ function $RouteProvider(){
    *    - `resolve` - `{Object.<string, function>=}` - An optional map of dependencies which should
    *      be injected into the controller. If any of these dependencies are promises, they will be
    *      resolved and converted to a value before the controller is instantiated and the
-   *      `$aftreRouteChange` event is fired. The map object is:
+   *      `$afterRouteChange` event is fired. The map object is:
    *
    *      - `key` – `{string}`: a name of a dependency to be injected into the controller.
    *      - `factory` - `{string|function}`: If `string` then it is an alias for a service.
@@ -7587,9 +7625,9 @@ function $RootScopeProvider(){
        *
        * Usually you don't call `$digest()` directly in
        * {@link ng.directive:ngController controllers} or in
-       * {@link ng.$compileProvider.directive directives}.
+       * {@link ng.$compileProvider#directive directives}.
        * Instead a call to {@link ng.$rootScope.Scope#$apply $apply()} (typically from within a
-       * {@link ng.$compileProvider.directive directives}) will force a `$digest()`.
+       * {@link ng.$compileProvider#directive directives}) will force a `$digest()`.
        *
        * If you want to be notified whenever `$digest()` is called,
        * you can register a `watchExpression` function  with {@link ng.$rootScope.Scope#$watch $watch()}
@@ -7875,8 +7913,8 @@ function $RootScopeProvider(){
        * @param {function(event)} listener Function to call when the event is emitted.
        * @returns {function()} Returns a deregistration function for this listener.
        *
-       * The event listener function format is: `function(event)`. The `event` object passed into the
-       * listener has the following attributes
+       * The event listener function format is: `function(event, args...)`. The `event` object
+       * passed into the listener has the following attributes:
        *
        *   - `targetScope` - {Scope}: the scope on which the event was `$emit`-ed or `$broadcast`-ed.
        *   - `currentScope` - {Scope}: the current scope which is handling the event.
@@ -10105,7 +10143,12 @@ function ngDirective(directive) {
   return valueFn(directive);
 }
 
-/*
+/**
+ * @ngdoc directive
+ * @name ng.directive:a
+ * @restrict E
+ *
+ * @description
  * Modifies the default behavior of html A tag, so that the default action is prevented when href
  * attribute is empty.
  *
@@ -10673,41 +10716,65 @@ function FormController(element, attrs) {
       </doc:scenario>
     </doc:example>
  */
-var formDirectiveDir = {
-  name: 'form',
-  restrict: 'E',
-  controller: FormController,
-  compile: function() {
-    return {
-      pre: function(scope, formElement, attr, controller) {
-        if (!attr.action) {
-          formElement.bind('submit', function(event) {
-            event.preventDefault();
-          });
-        }
+var formDirectiveFactory = function(isNgForm) {
+  return ['$timeout', function($timeout) {
+    var formDirective = {
+      name: 'form',
+      restrict: 'E',
+      controller: FormController,
+      compile: function() {
+        return {
+          pre: function(scope, formElement, attr, controller) {
+            if (!attr.action) {
+              // we can't use jq events because if a form is destroyed during submission the default
+              // action is not prevented. see #1238
+              //
+              // IE 9 is not affected because it doesn't fire a submit event and try to do a full
+              // page reload if the form was destroyed by submission of the form via a click handler
+              // on a button in the form. Looks like an IE9 specific bug.
+              var preventDefaultListener = function(event) {
+                event.preventDefault
+                  ? event.preventDefault()
+                  : event.returnValue = false; // IE
+              };
 
-        var parentFormCtrl = formElement.parent().controller('form'),
-            alias = attr.name || attr.ngForm;
+              addEventListenerFn(formElement[0], 'submit', preventDefaultListener);
 
-        if (alias) {
-          scope[alias] = controller;
-        }
-        if (parentFormCtrl) {
-          formElement.bind('$destroy', function() {
-            parentFormCtrl.$removeControl(controller);
-            if (alias) {
-              scope[alias] = undefined;
+              // unregister the preventDefault listener so that we don't not leak memory but in a
+              // way that will achieve the prevention of the default action.
+              formElement.bind('$destroy', function() {
+                $timeout(function() {
+                  removeEventListenerFn(formElement[0], 'submit', preventDefaultListener);
+                }, 0, false);
+              });
             }
-            extend(controller, nullFormCtrl); //stop propagating child destruction handlers upwards
-          });
-        }
+
+            var parentFormCtrl = formElement.parent().controller('form'),
+                alias = attr.name || attr.ngForm;
+
+            if (alias) {
+              scope[alias] = controller;
+            }
+            if (parentFormCtrl) {
+              formElement.bind('$destroy', function() {
+                parentFormCtrl.$removeControl(controller);
+                if (alias) {
+                  scope[alias] = undefined;
+                }
+                extend(controller, nullFormCtrl); //stop propagating child destruction handlers upwards
+              });
+            }
+          }
+        };
       }
     };
-  }
+
+    return isNgForm ? extend(copy(formDirective), {restrict: 'EAC'}) : formDirective;
+  }];
 };
 
-var formDirective = valueFn(formDirectiveDir);
-var ngFormDirective = valueFn(extend(copy(formDirectiveDir), {restrict: 'EAC'}));
+var formDirective = formDirectiveFactory();
+var ngFormDirective = formDirectiveFactory(true);
 
 var URL_REGEXP = /^(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?$/;
 var EMAIL_REGEXP = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}$/;
@@ -11928,7 +11995,7 @@ var ngListDirective = function() {
 
       ctrl.$parsers.push(parse);
       ctrl.$formatters.push(function(value) {
-        if (isArray(value) && !equals(parse(ctrl.$viewValue), value)) {
+        if (isArray(value)) {
           return value.join(', ');
         }
 
@@ -13045,11 +13112,14 @@ var ngPluralizeDirective = ['$locale', '$interpolate', function($locale, $interp
           whenExp = element.attr(attr.$attr.when), // this is because we have {{}} in attrs
           offset = attr.offset || 0,
           whens = scope.$eval(whenExp),
-          whensExpFns = {};
+          whensExpFns = {},
+          startSymbol = $interpolate.startSymbol(),
+          endSymbol = $interpolate.endSymbol();
 
       forEach(whens, function(expression, key) {
         whensExpFns[key] =
-          $interpolate(expression.replace(BRACE, '{{' + numberExp + '-' + offset + '}}'));
+          $interpolate(expression.replace(BRACE, startSymbol + numberExp + '-' +
+            offset + endSymbol));
       });
 
       scope.$watch(function() {
@@ -14273,7 +14343,6 @@ var optionDirective = ['$interpolate', function($interpolate) {
   return {
     restrict: 'E',
     priority: 100,
-    require: '^select',
     compile: function(element, attr) {
       if (isUndefined(attr.value)) {
         var interpolateFn = $interpolate(element.text(), true);
@@ -14282,8 +14351,13 @@ var optionDirective = ['$interpolate', function($interpolate) {
         }
       }
 
-      return function (scope, element, attr, selectCtrl) {
-        if (selectCtrl.databound) {
+      return function (scope, element, attr) {
+        var selectCtrlName = '$selectController',
+            parent = element.parent(),
+            selectCtrl = parent.data(selectCtrlName) ||
+              parent.parent().data(selectCtrlName); // in case we are in optgroup
+
+        if (selectCtrl && selectCtrl.databound) {
           // For some reason Opera defaults to true and if not overridden this messes up the repeater.
           // We don't want the view to drive the initialization of the model anyway.
           element.prop('selected', false);

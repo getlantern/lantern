@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.1
+ * @license AngularJS v1.0.2
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -433,6 +433,9 @@ angular.module('ngSanitize').directive('ngBindHtml', ['$sanitize', function($san
  *
  * @param {string} text Input text.
  * @returns {string} Html-linkified text.
+ *
+ * @usage
+   <span ng-bind-html="linky_expression | linky"></span>
  *
  * @example
    <doc:example module="ngSanitize">
