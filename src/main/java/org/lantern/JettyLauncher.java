@@ -12,6 +12,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.SystemUtils;
 import org.cometd.server.CometdServlet;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
@@ -24,6 +26,7 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,9 +76,9 @@ public class JettyLauncher {
             new SelectChannelConnector();
         log.info("Setting connector port for API to: {}", port);
         connector.setPort(port);
-        connector.setMaxIdleTime(120000);
-        connector.setLowResourcesMaxIdleTime(60000);
-        connector.setLowResourcesConnections(20000);
+        connector.setMaxIdleTime(60 * 1000);
+        connector.setLowResourcesMaxIdleTime(30 * 1000);
+        connector.setLowResourcesConnections(2000);
         connector.setAcceptQueueSize(5000);
         //connector.setThreadPool(new QueuedThreadPool(20));
         
@@ -163,7 +166,42 @@ public class JettyLauncher {
         }
         
         
-        final ServletHolder ds = new ServletHolder(new DefaultServlet());
+        final ServletHolder ds = new ServletHolder(new DefaultServlet() {
+
+            private static final long serialVersionUID = 4335271390548389540L;
+
+            @Override
+            protected void doGet(final HttpServletRequest req, 
+                final HttpServletResponse resp) throws ServletException, 
+                IOException {
+                final String userAgent = req.getParameter(HttpHeaders.Names.USER_AGENT);
+                if (StringUtils.isNotBlank(userAgent) && userAgent.contains("MSIE 6")) {
+                    // If the user is running IE6, we want to close the dashboard and
+                    // pop up a message telling them to download a newer version.
+                    
+                    // NOTE: The above will match older Opera versions too, but we don't
+                    // support those either.
+                    final String url;
+                    if (SystemUtils.IS_OS_WINDOWS_XP) {
+                        url = "http://windows.microsoft.com/en-US/internet-explorer/downloads/ie-8";
+                    } else {
+                        url = "http://windows.microsoft.com/en-US/internet-explorer/downloads/ie";
+                    }
+                    
+                    LanternHub.jettyLauncher().stop();
+                    
+                    LanternHub.dashboard().showMessage("Unsupported Browser", 
+                        "We're sorry, but Lantern requires Internet Explorer 8 or " +
+                        "above. Lantern will open the download page for you " +
+                        "automatically. After downloading and installing Internet " +
+                        "Explorer 8, you can restart Lantern.");
+                    
+                    LanternUtils.browseUrl(url);
+                    System.exit(0);
+                }
+                super.doGet(req, resp);
+            }
+        });
         if (LanternHub.settings().isCache()) {
             ds.setInitParameter("cacheControl", "public");
         } else {
