@@ -253,7 +253,6 @@ function LDCtrl(){
   };
 
   self._logging_in = false;
-  self._login_failed = false;
 
   self.resetshowsignin = function() {
     self._showsignin = self.logged_out() && !self.state.passwordSaved;
@@ -308,7 +307,10 @@ function LDCtrl(){
   bindprops('connectivity', {'DISCONNECTED':0, 'CONNECTING':0, 'CONNECTED':0});
   bindprops('googleTalkState', {'LOGGING_OUT':0, 'LOGGING_IN':0, 'LOGGED_IN':0, 'LOGIN_FAILED':0});
   self.logged_out = function(){ var gts = self.state.googleTalkState; return gts === 'LOGGED_OUT' || gts === 'LOGIN_FAILED'; };
-  self.badcredentials = null;
+  self.signinexc = null;
+  self.BADCREDENTIALS = 'Bad username or password';
+  self.NOTINBETA = 'Access denied';
+  self.CONNECTIONERROR = 'Connection error';
 
   self.conncaption = function(){
     var c = self.state.connectivity;
@@ -420,8 +422,7 @@ function LDCtrl(){
     }
     // XXX control this state ourselves due to synchronization issues with backend (#252)
     self._logging_in = true;
-    self._login_failed = false;
-    self.badcredentials = null;
+    self.signinexc = null;
     self.$digest();
     console.log('Signing in with:', data);
     $.post('/api/signin', data).done(function(state){
@@ -440,15 +441,17 @@ function LDCtrl(){
       var code = jqXHR.status;
       switch(code){
       case 401:
-        self.badcredentials = true;
+        self.signinexc = self.BADCREDENTIALS;
+        break;
+      case 403:
+        self.signinexc = self.NOTINBETA;
         break;
       case 500:
-        self.badcredentials = false;
+        self.signinexc = self.CONNECTIONERROR;
         break;
       default:
         console.log('unexpected signin response status code:', code);
       }
-      self._login_failed = true;
       if(self.state.initialSetupComplete)
         self.showsignin(true);
       console.log('signin failed:', code);
