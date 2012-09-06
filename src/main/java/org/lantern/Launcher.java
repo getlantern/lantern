@@ -38,6 +38,8 @@ import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.util.HashedWheelTimer;
+import org.jboss.netty.util.ThreadNameDeterminer;
+import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.jboss.netty.util.Timer;
 import org.json.simple.JSONObject;
 import org.lantern.exceptional4j.ExceptionalAppender;
@@ -75,6 +77,7 @@ public class Launcher {
      * @param args Any command line arguments.
      */
     public static void main(final String... args) {
+        Thread.currentThread().setName("Lantern-Main-Thread");
         configureLogger();
         LOG = LoggerFactory.getLogger(Launcher.class);
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
@@ -593,7 +596,8 @@ public class Launcher {
 
     public static void launchLantern() {
         LOG.debug("Launching Lantern...");
-        //final KeyStoreManager proxyKeyStore = LanternHub.getKeyStoreManager();
+        ThreadRenamingRunnable.setThreadNameDeterminer(
+            ThreadNameDeterminer.CURRENT);
         
         final HttpRequestFilter publicOnlyRequestFilter = 
             new PublicIpsOnlyRequestFilter();

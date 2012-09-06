@@ -125,13 +125,19 @@ public class SystemTrayImpl implements SystemTray {
                 @Override
                 public void handleEvent (final Event event) {
                     System.out.println("Got exit call");
-                    LanternHub.eventBus().post(new QuitEvent());
-                    display.dispose();
-                    LanternHub.xmppHandler().disconnect();
-                    LanternHub.jettyLauncher().stop();
                     
-                    // We should just call Launcher.stop here, but it
-                    // still have issues with not killing everything.
+                    // This tells things like the Proxifier to stop proxying.
+                    LanternHub.eventBus().post(new QuitEvent());
+                    
+                    display.dispose();
+                    
+                    // We call this primarily because we need to make sure to
+                    // remove any UPnP and NAT-PMP port mappings.
+                    LanternHub.xmppHandler().disconnect();
+                    //LanternHub.jettyLauncher().stop();
+                    
+                    // We don't need to actively close all open resources --
+                    // System.exit will cleanly shutdown the JVM.
                     System.exit(0);
                 }
             });

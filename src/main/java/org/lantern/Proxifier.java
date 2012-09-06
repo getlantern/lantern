@@ -180,7 +180,6 @@ public class Proxifier {
         } catch (final IOException e) {
             LOG.error("Could not create proxy file?", e);
         }
-        LanternHub.eventBus().post(new ProxyingEvent(true));
     }
     
     public static void interactiveUnproxy() {
@@ -234,6 +233,7 @@ public class Proxifier {
         }
 
         LOG.info("Unproxying Lantern");
+        LANTERN_PROXYING_FILE.delete();
         if (SystemUtils.IS_OS_MAC_OSX) {
             unproxyOsx();
         } else if (SystemUtils.IS_OS_WINDOWS) {
@@ -241,8 +241,6 @@ public class Proxifier {
         } else if (SystemUtils.IS_OS_LINUX) {
             unproxyLinux();
         }
-        LANTERN_PROXYING_FILE.delete();
-        LanternHub.eventBus().post(new ProxyingEvent(false));
     }
 
     public static boolean isProxying() {
