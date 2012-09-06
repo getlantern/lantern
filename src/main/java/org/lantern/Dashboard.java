@@ -79,9 +79,9 @@ public class Dashboard {
             // asynchronous under the hood.
             try {
                 log.debug("Sleeping for browser...");
-                Thread.sleep(100);
+                Thread.sleep(600);
                 log.debug("Waking");
-            } catch (InterruptedException e1) {
+            } catch (final InterruptedException e1) {
             }
         }
         if (this.shell != null && !this.shell.isDisposed()) {
