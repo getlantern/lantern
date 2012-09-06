@@ -73,9 +73,9 @@ public class JettyLauncher {
             new SelectChannelConnector();
         log.info("Setting connector port for API to: {}", port);
         connector.setPort(port);
-        connector.setMaxIdleTime(120000);
-        connector.setLowResourcesMaxIdleTime(60000);
-        connector.setLowResourcesConnections(20000);
+        connector.setMaxIdleTime(60 * 1000);
+        connector.setLowResourcesMaxIdleTime(30 * 1000);
+        connector.setLowResourcesConnections(2000);
         connector.setAcceptQueueSize(5000);
         //connector.setThreadPool(new QueuedThreadPool(20));
         
