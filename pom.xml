@@ -147,6 +147,12 @@
         <artifactId>selenium-java</artifactId>
         <version>2.25.0</version>
         <scope>test</scope>
+        <exclusions>
+          <exclusion>
+            <groupId>org.webbitserver</groupId>
+            <artifactId>webbit</artifactId>
+          </exclusion>
+        </exclusions>
     </dependency>
 
     <dependency>

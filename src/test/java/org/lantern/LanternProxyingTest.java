@@ -64,7 +64,7 @@ public class LanternProxyingTest {
 
         //proxyServer.stop();
         log.info("Proxy stopped");
-        Launcher.stop();
+        //Launcher.stop();
         log.info("Finished with stop!!");
     }
 

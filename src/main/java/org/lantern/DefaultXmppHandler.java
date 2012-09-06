@@ -1248,21 +1248,12 @@ public class DefaultXmppHandler implements XmppHandler {
     public void stop() {
         LOG.info("Stopping XMPP handler...");
         disconnect();
-        final Thread stop = new Thread(new Runnable() {
-
-            @Override
-            public void run() {
-                if (upnpService != null) {
-                    upnpService.shutdown();
-                }
-                if (natPmpService != null) {
-                    natPmpService.shutdown();
-                }
-            }
-            
-        }, getClass().getSimpleName()+"-Shutdown-Thread");
-        stop.setDaemon(true);
-        stop.start();
-        //this.client.get().stop();
+        if (upnpService != null) {
+            upnpService.shutdown();
+        }
+        if (natPmpService != null) {
+            natPmpService.shutdown();
+        }
+        LOG.info("Finished stoppeding XMPP handler...");
     }
 }
