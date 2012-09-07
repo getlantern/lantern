@@ -109,6 +109,11 @@ import com.google.common.io.Files;
  */
 public class LanternUtils {
 
+    public static boolean isDevMode() {
+        // TODO make this more robust
+        return LanternConstants.VERSION.equals("lantern_version_tok");
+    }
+
     private static String MAC_ADDRESS;
     
     private static final Logger LOG = 
