@@ -41,12 +41,25 @@ public class JettyLauncher {
         //"/"+String.valueOf(LanternHub.secureRandom().nextLong());
 
     private final int port = LanternHub.settings().getApiPort();
-    
+
     private final String fullBasePath = 
         "http://localhost:"+port+secureBase;
     
-    private Server server = new Server();
+    private final Server server = new Server();
 
+    private final File resourceBaseFile;
+
+    public JettyLauncher() {
+        final File staticdir = 
+            new File(LanternHub.settings().getUiDir(), "assets");
+        
+        if (staticdir.isDirectory()) {
+            this.resourceBaseFile = staticdir;
+        } else {
+            this.resourceBaseFile = new File("assets");
+        }
+    }
+    
     public void start() {
         final QueuedThreadPool qtp = new QueuedThreadPool();
         qtp.setMinThreads(5);
@@ -60,14 +73,7 @@ public class JettyLauncher {
         //final ServletContextHandler api = newContext(secureBase, apiName);
         contexts.addHandler(contextHandler);
 
-        final File staticdir = 
-            new File(LanternHub.settings().getUiDir(), "assets");
-        if (staticdir.isDirectory()) {
-            contextHandler.setResourceBase(staticdir.toString());
-        } else {
-            contextHandler.setResourceBase("assets");
-        }
-        
+        contextHandler.setResourceBase(this.resourceBaseFile.toString());
         
         server.setHandler(contexts);
         server.setStopAtShutdown(true);
@@ -199,7 +205,16 @@ public class JettyLauncher {
                     LanternUtils.browseUrl(url);
                     System.exit(0);
                 }
-                super.doGet(req, resp);
+                final String uri = req.getRequestURI();
+                final String onPath = "/proxy_on.pac";
+                final String offPath = "/proxy_off.pac";
+                if (uri.startsWith("/proxy_on") && !uri.equals(onPath)) {
+                    resp.sendRedirect(onPath);
+                } else if (uri.startsWith("/proxy_off") && !uri.equals(offPath)) {
+                    resp.sendRedirect(offPath);
+                } else {
+                    super.doGet(req, resp);
+                }
             }
         });
         if (LanternHub.settings().isCache()) {
@@ -305,6 +320,14 @@ public class JettyLauncher {
         }
         log.info("Server is running. Opening browser...");
         LanternHub.dashboard().openBrowser();
+    }
+    
+    public File getResourceBaseFile() {
+        return resourceBaseFile;
+    }
+    
+    public int getPort() {
+        return port;
     }
 }
 
