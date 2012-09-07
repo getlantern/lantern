@@ -261,9 +261,10 @@ public class Launcher {
             LanternHub.settings().setGetMode(true);
         }
         
-        if (cmd.hasOption(OPTION_NO_CACHE)) {
+        //LanternHub.settings().setCache(!LanternUtils.isDevMode());
+        //if (cmd.hasOption(OPTION_NO_CACHE)) {
             LanternHub.settings().setCache(false);
-        } 
+        //}
         if (cmd.hasOption(OPTION_NEW_UI)) {
             LanternHub.settings().setUiDir("ui");
         }
