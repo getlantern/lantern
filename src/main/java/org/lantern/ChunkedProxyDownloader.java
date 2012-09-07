@@ -88,7 +88,8 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
             final int code = response.getStatus().getCode();
             if (code != 206) {
                 if (code >= 500 && code < 600) {
-                    log.warn("Server error response: {}",response.getHeaders());
+                    log.warn("Server error response: {}\n{}", 
+                        response.getStatus().getCode(), response.getHeaders());
                     browserToProxyChannel.write(response);
                     browserToProxyChannel.close();
                     return;
@@ -227,7 +228,8 @@ public class ChunkedProxyDownloader extends SimpleChannelUpstreamHandler {
     @Override
     public void exceptionCaught(final ChannelHandlerContext ctx, 
         final ExceptionEvent e) throws Exception {
-        log.error("Caught exception on OUTBOUND channel", e.getCause());
+        // This can happen when we quit lantern, for example.
+        log.info("Caught exception on OUTBOUND channel", e.getCause());
         ProxyUtils.closeOnFlush(e.getChannel());
     }
 }

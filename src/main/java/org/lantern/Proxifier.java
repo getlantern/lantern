@@ -165,12 +165,14 @@ public class Proxifier {
         }
         
         LOG.info("Autoconfiguring local to proxy Lantern");
+        final String url = pacFileUrl(pacFile);
+        
         if (SystemUtils.IS_OS_MAC_OSX) {
-            proxyOsx(pacFile);
+            proxyOsx(url);
         } else if (SystemUtils.IS_OS_WINDOWS) {
-            proxyWindows(pacFile);
+            proxyWindows(url);
         } else if (SystemUtils.IS_OS_LINUX) {
-            proxyLinux(pacFile);
+            proxyLinux(url);
         }
         // success
         try {
@@ -248,9 +250,9 @@ public class Proxifier {
         return LANTERN_PROXYING_FILE.isFile();
     }
     
-    private static void proxyLinux(final File pacFile) 
+    private static void proxyLinux(final String url) 
         throws ProxyConfigurationError {
-        final String path = pacFile.toURI().toASCIIString();
+        //final String path = url.toURI().toASCIIString();
 
         // TODO: what if the user has spaces in their user name? does the 
         // URL-encoding of the path make the pac file config fail?
@@ -261,7 +263,7 @@ public class Proxifier {
             LOG.info("Result of Ubuntu gsettings mode call: {}", result1);
             final String result2 = 
                 mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
-                    "autoconfig-url", path);
+                    "autoconfig-url", url);
             LOG.info("Result of Ubuntu gsettings pac file call: {}", result2);
         } catch (final IOException e) {
             LOG.warn("Error calling Ubuntu proxy script!", e);
@@ -269,13 +271,13 @@ public class Proxifier {
         }
     }
     
-    private static void proxyOsx(final File pacFile) 
+    private static void proxyOsx(final String url) 
         throws ProxyConfigurationError {
-        configureOsxProxyViaScript(true, pacFile);
+        configureOsxProxyViaScript(true, url);
     }
     
     private static void configureOsxProxyViaScript(final boolean proxy,
-        final File pacFile) throws ProxyConfigurationError {
+        final String url) throws ProxyConfigurationError {
         final String onOrOff;
         if (proxy) {
             onOrOff = "on";
@@ -293,9 +295,7 @@ public class Proxifier {
         // We create a random string for the pac file name to make sure all
         // browsers reload it.
         String applescriptCommand = 
-            "do shell script \"./configureNetworkServices.bash "+
-            onOrOff +" "+pacFile.getName()+"-"+RandomUtils.nextInt()+ " "+
-                LanternHub.jettyLauncher().getPort();
+            "do shell script \"./configureNetworkServices.bash "+ onOrOff + " "+url;
         
         if (locked) {
             applescriptCommand +="\" with administrator privileges without altering line endings";
@@ -323,15 +323,13 @@ public class Proxifier {
         }
     }
 
-    private static void proxyWindows(final File pacFile) {
+    private static void proxyWindows(final String url) {
         if (!SystemUtils.IS_OS_WINDOWS) {
             LOG.info("Not running on Windows");
             return;
         }
         
-        final String url = 
-            "http://127.0.0.1:"+LanternHub.jettyLauncher().getPort()+"/"+
-                pacFile.getName();
+
         // Note we don't use toURI().toASCIIString here because the URL encoding
         // of spaces causes problems.
         //final String url = "file://"+pacFile.getAbsolutePath();
@@ -362,9 +360,16 @@ public class Proxifier {
         // Note that this is a bit of overkill in that we both turn of the
         // PAC file-based proxying and set the PAC file to one that doesn't
         // proxy anything.
-        configureOsxProxyViaScript(false, PROXY_OFF);
+        configureOsxProxyViaScript(false, pacFileUrl(PROXY_OFF));
     }
     
+    private static String pacFileUrl(final File pacFile) {
+        final String url = 
+            "http://127.0.0.1:"+LanternHub.jettyLauncher().getPort()+"/"+
+                pacFile.getName()+"-"+RandomUtils.nextInt();
+        return url;
+    }
+
     /**
      * Calls out to AppleScript to check if the user has the security setting
      * checked to require an administrator password to unlock preferences.
