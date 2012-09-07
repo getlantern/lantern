@@ -218,7 +218,8 @@ public class JettyLauncher {
             }
         });
         if (LanternHub.settings().isCache()) {
-            ds.setInitParameter("cacheControl", "public");
+            ds.setInitParameter("cacheControl", "private, max-age=" +
+                LanternConstants.DASHCACHE_MAXAGE);
         } else {
             ds.setInitParameter("cacheControl", "no-cache");
         }

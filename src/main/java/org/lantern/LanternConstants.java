@@ -11,7 +11,9 @@ import org.lantern.exceptional4j.ExceptionalUtils;
 public class LanternConstants {
     
     static final long START_TIME = System.currentTimeMillis();
-    
+
+    static final int DASHCACHE_MAXAGE = 60 * 5;
+
     /**
      * This is the version of Lantern we're running. This is automatically
      * replaced when we push new releases.
