@@ -449,7 +449,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void exceptionCaught(final ChannelHandlerContext ctx, 
         final ExceptionEvent e) throws Exception {
-        log.error("Caught exception on INBOUND channel", e.getCause());
+        log.info("Caught exception on INBOUND channel", e.getCause());
         ProxyUtils.closeOnFlush(this.browserToProxyChannel);
     }
     
