@@ -5,6 +5,7 @@ import java.io.IOException;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.eclipse.swt.SWT;
 import org.lantern.win.WinProxy;
 import org.slf4j.Logger;
@@ -37,11 +38,11 @@ public class Proxifier {
         new MacProxyManager("testId", 4291);
     
     private static final File PROXY_ON = 
-        new File(LanternConstants.CONFIG_DIR, "proxy_on.pac");
+        new File(LanternHub.jettyLauncher().getResourceBaseFile(), "proxy_on.pac");
     private static final File PROXY_OFF = 
-        new File(LanternConstants.CONFIG_DIR, "proxy_off.pac");
+        new File(LanternHub.jettyLauncher().getResourceBaseFile(), "proxy_off.pac");
     private static final File PROXY_ALL = 
-        new File(LanternConstants.CONFIG_DIR, "proxy_all.pac");
+        new File(LanternHub.jettyLauncher().getResourceBaseFile(), "proxy_all.pac");
     
     static {
         copyFromLocal(PROXY_ON);
@@ -289,9 +290,12 @@ public class Proxifier {
             locked = false;
         }
         
+        // We create a random string for the pac file name to make sure all
+        // browsers reload it.
         String applescriptCommand = 
             "do shell script \"./configureNetworkServices.bash "+
-            onOrOff +" "+pacFile.getName();
+            onOrOff +" "+pacFile.getName()+"-"+RandomUtils.nextInt()+ " "+
+                LanternHub.jettyLauncher().getPort();
         
         if (locked) {
             applescriptCommand +="\" with administrator privileges without altering line endings";

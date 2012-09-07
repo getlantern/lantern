@@ -9,11 +9,12 @@ function log() {
 log "Configuring network services"
 onOff=$1
 name=$2
+port=$3
 log "Setting to on or off: $onOff"
 while read s; 
 do
     log "Configuring network: $s"
-    networksetup -setautoproxyurl "$s" file://localhost$HOME/.lantern/$name || log "Could not set auto proxy URL for $s"
+    networksetup -setautoproxyurl "$s" http://127.0.0.1:$port/$name || log "Could not set auto proxy URL for $s"
     networksetup -setautoproxystate "$s" "$onOff" || log "Could not turn auto proxy on for $s"
     log "Configured network: $s"
 done < <(networksetup -listallnetworkservices | tail +2)
