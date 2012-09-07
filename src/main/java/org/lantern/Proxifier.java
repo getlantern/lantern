@@ -329,9 +329,12 @@ public class Proxifier {
             return;
         }
         
+        final String url = 
+            "http://127.0.0.1:"+LanternHub.jettyLauncher().getPort()+"/"+
+                pacFile.getName();
         // Note we don't use toURI().toASCIIString here because the URL encoding
         // of spaces causes problems.
-        final String url = "file://"+pacFile.getAbsolutePath();
+        //final String url = "file://"+pacFile.getAbsolutePath();
             //ACTIVE_PAC.toURI().toASCIIString().replace("file:/", "file://");
         LOG.info("Using pac path: {}", url);
         
