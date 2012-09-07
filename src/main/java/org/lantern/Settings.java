@@ -184,6 +184,8 @@ public class Settings implements MutableSettings {
     
     private String uiDir = "dashboard";
     
+    private boolean inClosedBeta = false;
+    
     /**
      * Locally-stored set of users we've invited.
      */
@@ -771,6 +773,15 @@ public class Settings implements MutableSettings {
         return cache;
     }
 
+    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    public boolean isInClosedBeta() {
+        return inClosedBeta;
+    }
+
+    public void setInClosedBeta(boolean inClosedBeta) {
+        this.inClosedBeta = inClosedBeta;
+    }
+    
     @Override
     public String toString() {
         return "Settings [" 
