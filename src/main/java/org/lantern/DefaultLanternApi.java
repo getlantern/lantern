@@ -234,7 +234,7 @@ public class DefaultLanternApi implements LanternApi {
         // important: keep in this order, changing email 
         // discards user settings associated with the old 
         // address (eg saved password if desired) -- 
-        // the saved password is purposely not examined util
+        // the saved password is purposely not examined until
         // this setting has been changed (or not changed)
         changeSetting(resp, "email", email, false, false);
         
