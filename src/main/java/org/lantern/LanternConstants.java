@@ -136,6 +136,8 @@ public class LanternConstants {
     public static File DATA_DIR;
     
     public static File LOG_DIR;
+
+    public static String IN_CLOSED_BETA = "in_beta";
     
     public static final boolean ON_APP_ENGINE;
 
