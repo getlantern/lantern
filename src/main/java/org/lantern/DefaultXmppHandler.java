@@ -626,6 +626,8 @@ public class DefaultXmppHandler implements XmppHandler {
         //    LOG.info("Not reporting any stats in get mode");
         //}
         
+        forHub.setProperty(LanternConstants.VERSION_KEY, LanternConstants.VERSION);
+        
         conn.sendPacket(forHub);
     }
 
