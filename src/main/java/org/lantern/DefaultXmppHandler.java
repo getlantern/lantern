@@ -483,6 +483,15 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.debug("Body: {}", body);
         final Object obj = JSONValue.parse(body);
         final JSONObject json = (JSONObject) obj;
+        
+        final Boolean inClosedBeta = 
+            (Boolean) json.get(LanternConstants.IN_CLOSED_BETA);
+        
+        if (inClosedBeta != null) {
+            LanternHub.settings().setInClosedBeta(inClosedBeta);
+            LanternHub.asyncEventBus().post(new ClosedBetaEvent());
+        }
+                
         final JSONArray servers = 
             (JSONArray) json.get(LanternConstants.SERVERS);
         final Long delay = 
@@ -528,7 +537,7 @@ public class DefaultXmppHandler implements XmppHandler {
                     final Map<String, Object> event = 
                         new HashMap<String, Object>();
                     event.putAll(update);
-                    LanternHub.eventBus().post(new UpdateEvent(event));
+                    LanternHub.asyncEventBus().post(new UpdateEvent(event));
                 }
             });
         }
@@ -616,6 +625,8 @@ public class DefaultXmppHandler implements XmppHandler {
         //} else {
         //    LOG.info("Not reporting any stats in get mode");
         //}
+        
+        forHub.setProperty(LanternConstants.VERSION_KEY, LanternConstants.VERSION);
         
         conn.sendPacket(forHub);
     }

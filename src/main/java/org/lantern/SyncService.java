@@ -96,6 +96,11 @@ public class SyncService {
         rosterSync();
     }
     
+    @Subscribe 
+    public void closedBeta(final ClosedBetaEvent betaEvent) {
+        sync(true);
+    }
+    
     private void rosterSync() {
         sync(false, LanternConstants.ROSTER_SYNC_CHANNEL);
     }
