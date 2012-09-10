@@ -78,6 +78,7 @@ public class Launcher {
      */
     public static void main(final String... args) {
         Thread.currentThread().setName("Lantern-Main-Thread");
+        //Connection.DEBUG_ENABLED = true;
         configureLogger();
         LOG = LoggerFactory.getLogger(Launcher.class);
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {

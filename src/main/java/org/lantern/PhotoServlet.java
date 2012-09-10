@@ -54,6 +54,7 @@ public final class PhotoServlet extends HttpServlet {
     public PhotoServlet() {
         mimeUtil.registerMimeDetector(
             "eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
+        //Connection.DEBUG_ENABLED = true;
     }
     
     @Override

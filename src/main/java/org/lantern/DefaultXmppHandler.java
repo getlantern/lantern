@@ -485,7 +485,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final JSONObject json = (JSONObject) obj;
         
         final Boolean inClosedBeta = 
-            (Boolean) json.get(LanternConstants.IN_CLOSED_BETA);
+            (Boolean) json.get(LanternConstants.INVITED);
         
         if (inClosedBeta != null) {
             LanternHub.settings().setInClosedBeta(inClosedBeta);
@@ -597,7 +597,6 @@ public class DefaultXmppHandler implements XmppHandler {
             return;
         }
         
-        
         final XMPPConnection conn = this.client.get().getXmppConnection();
 
         LOG.info("Sending presence available");
@@ -625,8 +624,6 @@ public class DefaultXmppHandler implements XmppHandler {
         //} else {
         //    LOG.info("Not reporting any stats in get mode");
         //}
-        
-        forHub.setProperty(LanternConstants.VERSION_KEY, LanternConstants.VERSION);
         
         conn.sendPacket(forHub);
     }
@@ -1088,19 +1085,28 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         final XMPPConnection conn = this.client.get().getXmppConnection();
         final Roster rost = conn.getRoster();
-        final RosterEntry entry = rost.getEntry(email);
         
         final Presence pres = new Presence(Presence.Type.available);
         pres.setTo(LanternConstants.LANTERN_JID);
-        pres.setProperty(LanternConstants.INVITE_KEY, email);
+        
+        // "emails" of the form xxx@public.talk.google.com aren't really
+        // e-mail addresses at all, so don't send 'em.
+        // In theory we might be able to use the Google Plus API to get 
+        // actual e-mail addresses -- see:
+        // https://github.com/getlantern/lantern/issues/432
+        if (email.contains("public.talk.google.com")) {
+            pres.setProperty(LanternConstants.INVITE_KEY, "");
+        } else {
+            pres.setProperty(LanternConstants.INVITE_KEY, email);
+        }
+        
+        final RosterEntry entry = rost.getEntry(email);
         if (entry != null) {
             final String name = entry.getName();
             if (StringUtils.isNotBlank(name)) {
                 pres.setProperty(LanternConstants.INVITE_NAME, name);
             }
         }
-        conn.sendPacket(pres);
-        
         invited.add(email);
         
         final Runnable runner = new Runnable() {
