@@ -1,0 +1,68 @@
+<h1><code ng:non-bindable=""></code>
+<span class="hint"></span>
+</h1>
+<div><h2>Including angular scripts from the angular server</h2>
+
+<p>The quickest way to get started is to point your html <code>&lt;script&gt;</code> tag to a
+<a href="http://code.angularjs.org/">http://code.angularjs.org/</a> URL.  This way, you don't have to download anything or maintain a
+local copy.</p>
+
+<p>There are two types of angular script URLs you can point to, one for development and one for
+production:</p>
+
+<ul>
+<li><strong>angular-<version>.js</strong> — This is the human-readable, non-minified version, suitable for web
+development.</li>
+<li><strong>angular-<version>.min.js</strong> — This is the minified version, which we strongly suggest you use in
+production.</li>
+</ul>
+
+<p>To point your code to an angular script on the angular server, use the following template.  This
+example points to (non-minified) version 0.10.6:</p>
+
+<pre class="prettyprint linenums">
+  &lt;!doctype html&gt;
+  &lt;html ng-app&gt;
+    &lt;head&gt;
+      &lt;title&gt;My Angular App&lt;/title&gt;
+      &lt;script src="http://code.angularjs.org/angular-0.10.6.js"&gt;&lt;/script&gt;
+    &lt;/head&gt;
+    &lt;body&gt;
+    &lt;/body&gt;
+  &lt;/html&gt;
+</pre>
+
+<h2>Downloading and hosting angular files locally</h2>
+
+<p>This option is for those who want to work with angular offline, or those who want to host the
+angular files on their own servers.</p>
+
+<p>If you navigate to <a href="http://code.angularjs.org/">http://code.angularjs.org/</a>, you'll see a directory listing with all of the
+angular versions since we started releasing versioned build artifacts (quite late in the project
+lifetime).  Each directory contains all artifacts that we released for a particular version.
+Download the version you want and have fun.</p>
+
+<p>Each directory under <a href="http://code.angularjs.org/">http://code.angularjs.org/</a> includes the following set of files:</p>
+
+<ul>
+<li><p><strong><code>angular-&lt;version&gt;.js</code></strong> — This file is non-obfuscated, non-minified, and human-readable by
+opening it it any editor or browser. In order to get better error messages during development, you
+should always use this non-minified angular script.</p></li>
+<li><p><strong><code>angular-&lt;version&gt;.min.js</code></strong> — This is a minified and obfuscated version of
+<code>angular-&lt;version&gt;.js</code> created with the Closure compiler. Use this version for production in order
+to minimize the size of the application that is downloaded by your user's browser.</p></li>
+<li><p><strong><code>angular-&lt;version&gt;.tgz</code></strong> — This is a tarball archive that contains all of the files released
+for this angular version. Use this file to get everything in a single download.</p></li>
+<li><p><strong><code>angular-ie-compat-&lt;version&gt;.js</code></strong> — This is a special file that contains code and data
+specifically tailored for getting Internet Explorer to work with angular. If you host your own copy
+of angular files, make sure that this file is available for download, and that it resides under the
+same parent path as <code>angular-&lt;version&gt;.js</code> or <code>angular-&lt;version&gt;.min.js</code>.</p></li>
+<li><p><strong><code>angular-mocks-&lt;version&gt;.js</code></strong> — This file contains an implementation of mocks that makes
+testing angular apps even easier. Your unit/integration test harness should load this file after
+<code>angular-&lt;version&gt;.js</code> is loaded.</p></li>
+<li><p><strong><code>angular-scenario-&lt;version&gt;.js</code></strong> — This file is a very nifty JavaScript file that allows you
+to write and execute end-to-end tests for angular applications.</p></li>
+<li><p><strong><code>docs-&lt;version&gt;</code></strong> — this directory contains all the files that compose the
+<a href="http://docs.angularjs.org/">http://docs.angularjs.org/</a> documentation app. These files are handy to see the older version of
+our docs, or even more importantly, view the docs offline.</p></li>
+</ul></div>

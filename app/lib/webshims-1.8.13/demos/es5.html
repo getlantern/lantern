@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<link href="../css/styles.css" rel="stylesheet" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="../js-webshim/minified/extras/modernizr-custom.js"></script>
+	<script>
+		// set options for html5shiv
+		if(!window.html5){
+			window.html5 = {}; 
+		}
+		window.html5.shivMethods = false;
+	</script>
+	<script src="../js-webshim/minified/polyfiller.js"></script>
+	
+	<script class="example">
+		$.webshims.setOptions({
+			//we do not use any DOM-/JS-APIs on DOM-ready, so we do not need to delay the ready event <- good against fouc
+			waitReady: false
+		});
+		//load all polyfill features
+		//or load only a specific feature with $.webshims.polyfill('feature-name');
+		$.webshims.polyfill();
+	</script>
+	<script src="../demo-js/demo.js"></script>
+	<title>ES5 : webshims lib - the polyfilling capability based loading JS library</title>
+</head>
+
+<body>
+	<header>
+		<hgroup>
+			<h1>Webshims Lib</h1>
+			<h2>Polyfill only the incapable browsers</h2>
+		</hgroup>
+		<nav>
+			<ul>
+				<li><a href="../index.html">home</a></li>
+			</ul>
+		</nav>
+	</header>
+	<div class="main">
+		<nav>
+			<ul>
+				<li><a href="shiv.html">HTML5 shiv and innerShiv</a></li>
+				<li><strong>ES5/JavaScript 1.8.5</strong></li>
+				<li><a href="webforms.html">constraint validation and input widgets</a></li>
+				<li><a href="canvas.html">canvas</a></li>
+				<li><a href="mediaelement.html">mediaelement</a></li>
+				<li><a href="json-storage.html">storage and JSON</a></li>
+				<li><a href="geolocation.html">geolocation API</a></li>
+				<li><a href="details.html">details &amp; summary</a></li>
+			</ul>
+		</nav>
+		<div class="main-box">
+		<section>
+			<h2>Demo/About/Documentation ES5</h2>
+			<p>The <code>es5</code> feature of Webshims Lib uses the <a href="http://github.com/kriskowal/es5-shim/">ES5 shim</a> by <a href="http://askawizard.blogspot.com/">Kris Kowal</a> (all object methods, which can't be used cross-browser are removed.).</p>
+			<p>The script implements the following methods:</p>
+			<ul>
+				<li><strong>Object</strong>: <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/keys">keys</a></li>
+				<li><strong>Array</strong>: <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray">isArray</a></li>
+				<li><strong>Array.prototype</strong>: <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/forEach">forEach</a>, <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/map">map</a>, <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/filter">filter</a>, <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/every">every</a>, <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/some">some</a>, <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/Reduce">reduce</a>, <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/ReduceRight">reduceRight</a>, <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf">indexOf</a>, <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/lastIndexOf">lastIndexOf</a></li>
+				<li><strong>Date</strong>: <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/now">now</a> <!--, <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/parse">parse</a> --></li>
+				<li><strong>Date.prototype</strong>: <a href="http://msdn.microsoft.com/en-us/library/ff925953%28v=vs.94%29.aspx#Y72">toISOString</a>, <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Date/toJSON">toJSON</a></li>
+				<li><strong>Function.prototype</strong>: <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Function/bind">bind</a></li>
+				<li><strong>String.prototype</strong>: <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/String/Trim">trim</a></li>
+			</ul>
+			
+			
+			<p>Note: All methods added to the prototype object are visible inside of a for in loop, while native implementations aren't enumerable. (use hasOwnProperty)</p>
+<code class="block">
+$.webshims.ready('es5', function(){
+	[1, 2, 3].forEach(function(){
+		//do stuff
+	});
+});
+</code>
+			<h3>Abstractions</h3>
+			<p>Webshims Lib adds the following methods: <code>$.webshims.objectCreate</code>, <code>$.webshims.defineProperty</code>, <code>$.webshims.defineProperties</code>, <code>$.webshims.getOwnPropertyDescriptor</code> and corresponding support flags: <code>Modernizr.objectAccessor</code> (true in all modern Browsers including IE9, getters and setters can be used on all objects) and <code>Modernizr.advancedObjectProperties</code> (true in FF4, IE9, Chrome 10..., the full ES5 specification of defineProperty is implemented (including writeable, enumerable and configurable).</p>
+			<h4>$.webshims.objectCreate(proto [, propertiesObject, options ])</h4>
+			<p><code>$.webshims.objectCreate</code> works very similar to <a href="https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Object/create">Object.create</a></p>
+			<p>If <code>propertiesObject</code> is defined, the method goes through this object and sets writeable, enumerable and configurable to true, if the corresponding property is undefined.</p>
+			<p>After this, it will pass <code>proto</code> and <code>propertiesObject</code> to Object.create (if defined) or will use Crockfords <code>begetObject</code>-Method on the <code>proto</code>-object and then calls <code>$.webshims.defineProperties</code> with the returned object and the <code>propertiesObject</code>.</p>
+			<p>If you pass the options parameter and the Object already has a Options-property. The options-property on the object will be deeply extended otherwise an new options-property will be created.</p>
+			<p>If the object has a method called <code>_create</code>, it will call this method with options as first argument.</p>
+			<p>After this, the created object will be returned.</p>
+<code class="block">
+var carProto = {
+	options: {
+		foo: 'bar',
+		baz: 'boom'
+	},
+	wheels: 4, 
+	drive: function(){
+		this.isDriving = true;
+	}
+};
+
+var myCar = Object.create(carProto, {
+	_create: {
+		value: function(){
+			this.drive();
+		}
+	},
+	jumps: {
+		value: function(){
+			//implements jumping
+		}
+	},
+	{baz: 'jo'}
+);
+
+//myCar will look like this:
+
+{
+	//own property:
+	options: { 
+		foo: 'bar',
+		baz: 'jo'
+	},
+	
+	//prototype:
+	wheels: 4, 
+	
+	//prototype
+	drive: function(){
+		this.isDriving = true;
+	},
+	
+	//own property:
+	_create: function(){
+		this.drive();
+	},
+	
+	//own property:
+	jumps: function(){
+		//implements jumping
+	},
+	
+	//own property:
+	isDriving: true
+}
+</code>
+			<h4>$.webshims.defineProperties (object, props)</h4>
+			<p><code>$.webshims.defineProperties</code> works similar to <a href="https://developer.mozilla.org/en/JavaScript/Reference/global_objects/object/defineproperties">Object.defineProperties</a></p>
+			<p>It will go through the props properties and will set writeable, enumerable and configurable to true, if they are undefined.</p>
+			<p>After this either Object.defineProperties will be invoked or legacy code is used.</p>
+			
+			
+			<aside>
+				<h3>Links about ES5</h3>
+				<ul>
+					<li><a href="http://github.com/kriskowal/es5-shim/">ES5 shim</a></li>
+				</ul>
+			</aside>
+		</section>
+	</div>
+	</div>
+	<footer>			
+		<small>
+			<strong>Note</strong>: every polyfill is a hack! innovative frontend development is hacky and always will be hacky!
+		</small>
+	</footer>
+<!--[if lte IE 7]>
+	<div class="browser-support"> 			
+		<div class="browser-support-box"> 				
+			Webshims Lib really cares about cross browser support and supports all A-Graded Browsers including IE6 and newest Opera. But I don't care about Styling/Layout issues in IE7- on this demo page.
+		</div> 		
+	</div>
+<![endif]-->
+</body>
+</html>   

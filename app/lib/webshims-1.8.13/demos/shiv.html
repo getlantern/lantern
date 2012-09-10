@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<link href="../css/styles.css" rel="stylesheet" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="../js-webshim/minified/extras/modernizr-custom.js"></script>
+	<script>
+		// set options for html5shiv
+		if(!window.html5){
+			window.html5 = {}; 
+		}
+		window.html5.shivMethods = false;
+	</script>
+	<script src="../js-webshim/minified/polyfiller.js"></script>
+	
+    <script class="example">
+    	$.webshims.setOptions({
+			//we do not use any DOM-/JS-APIs on DOM-ready, so we do not need to delay the ready event <- good against fouc
+			waitReady: false
+		});
+		//load all polyfill features
+		//or load only a specific feature with $.webshims.polyfill('feature-name');
+		$.webshims.polyfill();
+        
+    </script>
+	<script src="../demo-js/demo.js"></script>
+	<title>HTML5 shiv and dynamic shiv : webshims lib - the polyfilling capability based loading JS library</title>
+	    
+</head>
+
+<body>
+	<header>
+		<hgroup>
+			<h1>Webshims Lib</h1>
+			<h2>Polyfill only the incapable browsers</h2>
+		</hgroup>
+		<nav>
+			<ul>
+				<li><a href="../index.html">home</a></li>
+			</ul>
+		</nav>
+	</header>
+	<div class="main">
+		<nav>
+			<ul>
+				<li><strong>HTML5 shiv and innerShiv</strong></li>
+				<li><a href="es5.html">ES5/JavaScript 1.8.5</a></li>
+				<li><a href="webforms.html">constraint validation and input widgets</a></li>
+				<li><a href="canvas.html">canvas</a></li>
+				<li><a href="mediaelement.html">mediaelement</a></li>
+				<li><a href="json-storage.html">storage and JSON</a></li>
+				<li><a href="geolocation.html">geolocation API</a></li>
+				<li><a href="details.html">details &amp; summary</a></li>
+			</ul>
+		</nav>
+		<div class="main-box">
+		<section>
+			<h2>Demo/About/Documentation HTML5 shiv</h2>
+			<p>IE8- isn't capable of rendering HTML5 elements. Webshims lib in combination with Modernizr automatically fixes this issue and adds WAI-ARIA landmarks to enable accessibility of HTML5.</p>
+			<h3 id="dynamic">Dynamically adding HTML5 markup</h3>
+			<p>Additionally it implements the following manipulation methods <code>.htmlPolyfill()</code>, <code>.appendPolyfill()</code>, <code>.prependPolyfill()</code>, <code>.afterPolyfill()</code>, <code>.beforePolyfill()</code> and <code>.replaceWithPolyfill()</code> to also allow dynamic creation of HTML5 elements.</p>
+<code class="block run-once">
+$('#my-id').appendPolyfill('&lt;section&gt;&lt;form action="#"&gt;&lt;input type="text" placeholder="hello this is required" required="required" name="test" /&gt;&lt;input type="date" required="required" name="test2" /&gt;&lt;input type="submit" /&gt;&lt;/form&gt;&lt;/section&gt;');
+</code>
+			<div id="my-id"></div>
+			
+			<h3>jQuery 1.7+ features</h3>
+			<p>Starting with jQuery 1.7 webshims lib also supports the following manipulation methods: <code>.appendPolyfillTo()</code>, <code>.prependPolyfillTo()</code>, <code>.insertPolyfillAfter()</code>, <code>.insertPolyfillBefore()</code> and <code>.replacePolyfillAll()</code>.</p>
+			<p>If a plugin is used, which uses a "normal" jQuery manipulation method instead of the corresponding webshims enhanced manipulation method to generate new HTML5 content  (i.e.: <code>.html()</code> instead of <code>.htmlPolyfill()</code>), the method <code>.updatePolyfill()</code> can be used:</p>
+<code class="block">
+$('#my-dynamic-container').load('ajax/test.html', function(){
+	$(this).updatePolyfill();
+});
+</code>		
+			<h3 id="#shivMethods">html5.shivMethods config</h3>
+			<p>The <a href="https://github.com/aFarkas/html5shiv">html5shiv</a> also fixes dynamically creating HTML5 elements in IE6/7/8. In case you do not create HTML5 elements dynamically using JavaScript or you are using jQuery 1.7+ manipulation methods for creating HTML5 elements, you should set html5.shivMethods to false:</p>
+
+<code class="block">
+&lt;script&gt;
+	// set options for html5shiv *before* embeding html5shiv
+	window.html5 = {
+		shivMethods: false
+	};
+&lt;/script&gt;
+&lt;script src="modernizr-with-shiv.js"&gt;&lt;/script&gt;
+</code>	
+
+<code class="block">
+&lt;script src="modernizr-with-shiv.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+	// set options for html5shiv *after* embeding html5shiv
+	window.html5.shivMethods = false;
+&lt;/script&gt;
+</code>	
+
+<code class="block">
+&lt;script&gt;
+	// set options for html5shiv
+	if(!window.html5){
+		window.html5 = {}; 
+	}
+	window.html5.shivMethods = false;
+&lt;/script&gt;
+</code>	
+
+			<aside>
+				<h3>Links about shiv</h3>
+				<ul>
+					<li><a href="http://www.nczonline.net/blog/2011/03/22/using-html5-semantic-elements-today/">Using HTML5 semantic elements today by Nicholas C. Zakas</a></li>
+					<li><a href="http://remysharp.com/2009/01/07/html5-enabling-script/">HTML5 enabling script by Remy Sharp</a></li>
+					<li><a href="http://remysharp.com/2009/01/07/html5-enabling-script/">HTML5 Shiv by John Resig</a></li>
+					<li><a href="http://jdbartlett.github.com/innershiv/">innerShiv by Joe Bartlett</a></li>
+				</ul>
+			</aside>
+		</section>
+		</div>
+	</div>
+	<footer>	
+		<small>
+			<strong>Note</strong>: every polyfill is a hack! innovative frontend development is hacky and always will be hacky!
+		</small>
+	</footer>
+   
+<!--[if lte IE 7]>
+	<div class="browser-support"> 			
+		<div class="browser-support-box"> 				
+			Webshims Lib really cares about cross browser support and supports all A-Graded Browsers including IE6 and newest Opera. But I don't care about Styling/Layout issues in IE7- on this demo page.
+		</div> 		
+	</div>
+<![endif]-->
+</body>
+</html>   

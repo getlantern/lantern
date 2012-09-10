@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<link href="../css/styles.css" rel="stylesheet" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="../js-webshim/minified/extras/modernizr-custom.js"></script>
+	<script>
+		// set options for html5shiv
+		if(!window.html5){
+			window.html5 = {}; 
+		}
+		window.html5.shivMethods = false;
+	</script>
+	<script src="../js-webshim/minified/polyfiller.js"></script>
+	
+	<script class="example">
+		window.FlashCanvasOptions = {
+			disableContextMenu: true
+		};
+		$.webshims.setOptions({
+			//we do not use any DOM-/JS-APIs on DOM-ready, so we do not need to delay the ready event <- good against fouc
+			waitReady: false
+		});
+		
+		//load all polyfill features
+		//or load only a specific feature with $.webshims.polyfill('feature-name');
+		$.webshims.polyfill();
+
+	</script>
+	<script src="../demo-js/demo.js"></script>
+	<title>HTML5 canvas : webshims lib - the polyfilling capability based loading JS library</title>
+	    
+</head>
+
+<body>
+		<header>
+			<hgroup>
+				<h1>Webshims Lib</h1>
+				<h2>Polyfill only the incapable browsers</h2>
+			</hgroup>
+			<nav>
+				<ul>
+					<li><a href="../index.html">home</a></li>
+				</ul>
+			</nav>
+		</header>
+		<div class="main">
+		<nav>
+			<ul>
+				<li><a href="shiv.html">HTML5 shiv and innerShiv</a></li>
+				<li><a href="es5.html">ES5/JavaScript 1.8.5</a></li>
+				<li><a href="webforms.html">constraint validation and input widgets</a></li>
+				<li><strong>canvas</strong></li>
+				<li><a href="mediaelement.html">mediaelement</a></li>
+				<li><a href="json-storage.html">storage and JSON</a></li>
+				<li><a href="geolocation.html">geolocation API</a></li>
+				<li><a href="details.html">details &amp; summary</a></li>
+			</ul>
+		</nav>
+		<div class="main-box">
+		<section>
+			
+			<h2>Demo/About/Documentation HTML5 canvas</h2>
+			<p>Webshim Lib for the feature <code>canvas</code> implements one simple jQuery-method <code>.getContext()</code>.</p>
+			
+			
+			<canvas id="my-canvas" width="80" height="80"></canvas>
+<code class="block run-once">
+var ctx = $('#my-canvas').getContext('2d');
+ctx.fillStyle = "rgb(200,0,0)";  
+ctx.fillRect (10, 10, 55, 50);  
+ 
+ctx.fillStyle = "rgba(0, 0, 200, 0.5)";  
+ctx.fillRect (30, 30, 55, 50);
+</code>
+			<p>Webshim Lib can implement <a href="http://code.google.com/p/explorercanvas/">excanvas</a> or <a href="http://flashcanvas.net/">FlashCanvas (default)/FlashCanvas Pro</a>:</p>
+<code class="block">
+//always run configuration before calling $.webshims.polyfill();
+window.FlashCanvasOptions = {
+	disableContextMenu: true
+};
+$.webshims.setOptions('canvas', {
+	type: 'flashpro' //excanvas | flash | flashpro
+});
+</code>
+			<h3>Options for the <code>canvas</code> feature</h3>
+			<ul>
+				<li><strong>type</strong>: <code>"flash"</code> | <code>"falshpro"</code> | <code>"excanvas"</code></li>
+			</ul>
+			
+			<aside>
+				<h3>Links about canvas</h3>
+				<ul>
+					<li><a href="http://dev.w3.org/html5/canvas-api/canvas-2d-api.html">Canvas 2D API (W3C)</a></li>
+					<li><a href="https://developer.mozilla.org/en/Canvas_tutorial">Canvas tutorial (MDC)</a></li>
+					<li><a href="http://www.peterkroener.de/eine-kleine-canvas-einfuehrung/">Eine kleine Canvas-Einführung by Peter Kröner (german)</a></li>
+				</ul>
+			</aside>
+		</section>
+		</div>
+		</div>
+	<footer>	
+		<small>
+			<strong>Note</strong>: every polyfill is a hack! innovative frontend development is hacky and always will be hacky!
+		</small>
+	</footer>
+<!--[if lte IE 7]>
+	<div class="browser-support"> 			
+		<div class="browser-support-box"> 				
+			Webshims Lib really cares about cross browser support and supports all A-Graded Browsers including IE6 and newest Opera. But I don't care about Styling/Layout issues in IE7- on this demo page.
+		</div> 		
+	</div>
+<![endif]-->
+</body>
+</html>   

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<link href="../css/styles.css" rel="stylesheet" />
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="../js-webshim/minified/extras/modernizr-custom.js"></script>
+	<script>
+		// set options for html5shiv
+		if(!window.html5){
+			window.html5 = {}; 
+		}
+		window.html5.shivMethods = false;
+	</script>
+	<script src="../js-webshim/minified/polyfiller.js"></script>
+	
+	<script class="example">
+		$.webshims.setOptions({
+			//we do not use any DOM-/JS-APIs on DOM-ready, so we do not need to delay the ready event <- good against fouc
+			waitReady: false,
+			geolocation: {
+				confirmText: '{location} wants to know your position. It is Ok to press Ok.'
+			}
+		});
+		//load all polyfill features
+		//or load only a specific feature with $.webshims.polyfill('feature-name');
+		$.webshims.polyfill();
+	</script>
+	<script src="../demo-js/demo.js"></script>
+	<title>geolocation API : webshims lib - the polyfilling capability based loading JS library</title>
+</head>
+
+<body>
+	<header>
+		<hgroup>
+			<h1>Webshims Lib</h1>
+			<h2>Polyfill only the incapable browsers</h2>
+		</hgroup>
+		<nav>
+			<ul>
+				<li><a href="../index.html">home</a></li>
+			</ul>
+		</nav>
+	</header>
+	<div class="main">
+		<nav>
+			<ul>
+				<li><a href="shiv.html">HTML5 shiv and innerShiv</a></li>
+				<li><a href="es5.html">ES5/JavaScript 1.8.5</a></li>
+				<li><a href="webforms.html">constraint validation and input widgets</a></li>
+				<li><a href="canvas.html">canvas</a></li>
+				<li><a href="mediaelement.html">mediaelement</a></li>
+				<li><a href="json-storage.html">storage and JSON</a></li>
+				<li><strong>geolocation API</strong></li>
+				<li><a href="details.html">details &amp; summary</a></li>
+			</ul>
+		</nav>
+		<div class="main-box">
+		<section>
+			<h2>Demo/About/Documentation geolocation API</h2>
+			<p>The <code>geolocation</code>-feature implements the navigator.geolocation API. The following methods are available:</p>
+			
+			<ul>
+				<li>navigator.getCurrentPosition: successCallback, errorCallback and options ({timeout: number}) are supported</li>
+				<li>navigator.watchPosition: in shim identical to getCurrentPosition, except it returns an useless ID</li>
+				<li>navigator.clearWatch: is noop in shim</li>
+			</ul>
+			
+			<p>The shim uses the geolocation information provided by <a href="http://freegeoip.net">http://freegeoip.net</a> and/or <a href="http://code.google.com/intl/de-DE/apis/ajax/documentation/#ClientLocation">googles API-Loader</a></p>
+			
+			<h3>Options for geolocation</h3>
+			<ul>
+				<li><strong>confirmText</strong> (string): confirm text for requesting access to geo data.</li>
+			</ul>
+<code class="block">
+$.webshims.setOptions('geolocation', {
+	confirmText: '{location} wants to know your position. It is Ok to press Ok.'
+});
+</code>			
+<code class="block run-once">
+navigator.geolocation.getCurrentPosition(function(pos){
+	alert("Thx, you are @ latitude: "+ pos.coords.latitude +"/longitude: " + pos.coords.longitude);
+});
+</code>
+			<aside>
+				<h3>Links about geolocation</h3>
+				<ul>
+					<li><a href="http://dev.w3.org/geo/api/spec-source.html">Geolocation API Specification (W3C)</a></li>
+					<li><a href="https://developer.mozilla.org/En/Using_geolocation">Using geolocation</a></li>
+				</ul>
+			</aside>
+		</section>
+		</div>
+	</div>
+	<footer>	
+		<small>
+			<strong>Note</strong>: every polyfill is a hack! innovative frontend development is hacky and always will be hacky!
+		</small>
+    </footer> 
+<!--[if lte IE 7]>
+	<div class="browser-support"> 			
+		<div class="browser-support-box"> 				
+			Webshims Lib really cares about cross browser support and supports all A-Graded Browsers including IE6 and newest Opera. But I don't care about Styling/Layout issues in IE7- on this demo page.
+		</div> 		
+	</div>
+<![endif]-->
+</body>
+</html>   

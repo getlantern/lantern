@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+	<meta charset="utf-8"/>
+	<link href="../../css/styles.css" rel="stylesheet" />
+	
+	<style>
+		
+		fieldset div {
+			overflow: hidden;
+			zoom: 1;
+			padding: 5px;
+			border: 1px solid #000;
+			margin: 5px 0;
+		}
+	</style>
+	
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="../../js-webshim/minified/extras/mousepress.js"></script>
+	<script src="../../js-webshim/minified/extras/modernizr-custom.js"></script>
+	<script>
+		// set options for html5shiv
+		if(!window.html5){
+			window.html5 = {}; 
+		}
+		window.html5.shivMethods = false;
+	</script>
+	<script src="../../js-webshim/minified/polyfiller.js"></script>
+	<script src="../../js-webshim/minified/extras/custom-validity.js"></script>
+	
+	<script class="example">
+		$.webshims.setOptions({
+			//we do not use any DOM-/JS-APIs on DOM-ready, so we do not need to delay the ready event <- good against fouc
+			waitReady: false
+		});
+//		$.webshims.debug = true;
+		//load all polyfill features
+		//or load only a specific feature with $.webshims.polyfill('feature-name');
+		$.webshims.polyfill();
+	</script>
+	
+	<script src="../../demo-js/demo.js"></script>
+	<title>configuring HTML5 forms/Web Forms 2.0 widgets: webshims lib - the polyfilling capability based loading loading JS library</title>
+</head>
+
+<body>
+	<header>
+		<hgroup>
+			<h1>Webshims Lib</h1>
+			<h2>Polyfill only the incapable browsers</h2>
+		</hgroup>
+		<nav>
+			<ul>
+				<li><a href="../../index.html">home</a></li>
+			</ul>
+		</nav>
+	</header>
+	<div class="main">
+		<nav>
+			<ul>
+				<li><a href="../shiv.html">HTML5 shiv and innerShiv</a></li>
+				<li><a href="../es5.html">ES5/JavaScript 1.8.5</a></li>
+				<li><a href="../webforms.html" class="active">constraint validation and input widgets</a></li>
+				<li><a href="../canvas.html">canvas</a></li>
+				<li><a href="../mediaelement.html">mediaelement</a></li>
+				<li><a href="../json-storage.html">storage and JSON</a></li>
+				<li><a href="../geolocation.html">geolocation API</a></li>
+				<li><a href="../details.html">details &amp; summary</a></li>
+			</ul>
+		</nav>
+		<div class="main-box">
+		<section>
+			<h2>Adding new validation constraints/dynamically changing constraints of HTML5 form elements</h2>
+			<p>There are 3 ways to add/use custom validation constraints with HTML5.</p>
+			<ul>
+				<li>pattern attribute (see also <a href="http://html5pattern.com">html5pattern.com</a>)</li>
+				<li>dynamically changing constraints depending on a value/checkedness of another form-control</li>
+				<li>setCustomValidity</li>
+			</ul>
+			<h3>Customvalidity Helper</h3>
+			<p>Webshim Lib comes with a simple custom validity helper located in the extras-folder (custom-validity.js). This script is an extension and it works with and without Webshim Lib.</p>
+			<p>The custom-validity adds a new method called <code>$.webshims.addCustomValidityRule</code>.</p>
+<code class="block">
+//$.webshims.addCustomValidityRule(name of constraint, test-function, default error message); 
+$.webshims.addCustomValidityRule('testname', function(elem, value){
+	if(value && $(elem).hasClass('test-class') && value != 'foo bar baz'){
+		return true; //means yes, it's not valid
+	} else {
+		return false; //no, it is valid
+	}
+}, 'you have to enter foo bar baz');
+
+
+//changing default message
+$.webshims.customErrorMessages.testname[''] = "you really have to enter 'foo bar baz'";
+//adding new languages
+$.webshims.customErrorMessages.testname['de'] = 'Sie müßen "foo bar baz" eingeben';
+</code>
+
+<code class="block">
+&lt;!-- changing validation message for a specific element, using x-moz-errormessage--&gt;
+&lt;input class="creditcard-input" x-moz-errormessage="Please, enter a valid creditcard number" type="number" /&gt;
+&lt;!-- changing validation message for a specific element, using data-errormessage--&gt;
+&lt;input class="creditcard-input" data-errormessage="Please, enter a valid creditcard number" type="number" /&gt;
+</code>
+			<p>In case of changing a property, which effects the custom validity of the field, simply trigger the 'refreshCustomValidityRules' event on this field:</p>
+<code class="block">
+$('input[data-minlength]').val('some value').trigger('refreshCustomValidityRules');
+</code>			
+			<h3>Predefined custom validity attributes</h3>
+			<h4>creditcard</h4>
+			<p>All elements with the class 'creditcard-input' should have a creditcard number.</p>
+			<h4>tooShort</h4>
+			<p>All elements with the attribute data-minlength have a minimum value length</p>
+<code class="block">
+//the minimum length is 6
+&lt;input data-minlength="6" /&gt;
+</code>
+			
+			<h4>group-required</h4>
+			<p>If a checkbox has the class 'group-required' at least one of the checkboxes with the same name inside the form/document has to be checked.</p>
+			<h4>dependent</h4>
+			<p>Dependent validation dynamically changes the validation constraints depending on another elements value.</p>
+			<p>The attribute data-dependent-validation either takes an IDREF or a JSON-String with the dependency options.</p>
+			<p>The options are as follows:</p>
+			<ul>
+				<li>from (required): IDREF (ID or name of the element)</li>
+				<li>prop (optional): property, which should be changed | default: value/disabled (depends on type of from-element disabled, if from-element is a checkbox/radiobutton, value otherwise)</li>
+				<li>from-prop (optional): default value/checked (depends on type)</li>
+				<li>toggle (optional): reverts the prop-state (only if from-prop equals checked)</li>
+			</ul>
+<code class="block">
+&lt;!-- equals code would look like this --&gt;
+&lt;input type="password" id="password" /&gt;
+&lt;input data-dependent-validation="password" type="password" id="repeat-password" /&gt;
+</code>
+
+<code class="block">
+&lt;!-- if checkbox is checked, the field is required --&gt;
+&lt;input type="checkbox" id="checkbox" /&gt;
+&lt;input data-dependent-validation='{"from": "checkbox", "prop": "required"}' /&gt;
+</code>
+
+<code class="block">
+&lt;!-- if checkbox is unchecked, the field is required --&gt;
+&lt;input type="checkbox" id="checkbox" /&gt;
+&lt;input data-dependent-validation='{"from": "checkbox", "prop": "required", "toggle": true}' /&gt;
+</code>
+
+
+<code class="block">
+&lt;!-- max of the first date equals value of the second --&gt;
+&lt;!-- mmin of the second date equals value of the first --&gt;
+&lt;input data-dependent-validation='{"from": "date-to", "prop": "max"}' type="date" id="date-from" /&gt;
+&lt;input data-dependent-validation='{"from": "date-from", "prop": "min"}' name="date-to" type="date" id="date-to" /&gt;
+</code>
+			<section>
+				<h3>Simple Demo</h3>
+				<form action="#">
+					<p class="required"><span>*</span> Required fields</p>
+					<fieldset>
+						
+						<div class="form-element">
+							<label for="creditcard">
+								creditcard:
+							</label>
+						<input name="creditcard" class="creditcard-input" type="number" id="creditcard" />
+						</div>
+						
+						<div class="form-element">
+							<label for="data-minlength">
+								data-minlength (5):
+							</label>
+							<input data-minlength="5" name="data-minlength" type="text" id="data-minlength" />
+						</div>
+						
+						
+						<div class="form-element">
+							<label for="date">
+								data-partial-pattern (foo): 
+							</label>
+							
+							<input data-partial-pattern="foo" name="data-partial-pattern" type="text" id="data-partial-pattern" />
+						</div>
+						
+						<div class="form-element">
+							<label for="email">
+								email: 
+							</label>
+							<input name="email" type="email" id="email" />
+						</div>
+						<div class="form-element">
+							<label for="email-repeat">
+								repeat email (dependent-validation="email"): 
+							</label>
+							<input data-errormessage='{"dependent": "Please repeat the email field", "typeMismatch": "Please enter a valid email address"}' data-dependent-validation="email" name="email-repeat" type="email" id="email-repeat" />
+						</div>
+						
+						<div class="form-element">
+							<label for="checkbox-group-id">
+								checkbox-group: 
+							</label>
+							<input name="checkbox-group" type="checkbox" class="group-required" id="checkbox-group-id" />
+							<input name="checkbox-group" type="checkbox" />
+							<input name="checkbox-group" type="checkbox" />
+							<input name="checkbox-group" type="checkbox" />
+							<input name="checkbox-group" type="checkbox" />
+						</div>
+						
+						<div class="form-element">
+							<label for="checkbox">
+								checkbox: (used as from-prop) 
+							</label>
+							<input name="checkbox" type="checkbox" id="checkbox" />
+							<br />
+							 <label for="checkbox-fill">
+								dependent-validation="checkbox": 
+							</label>
+							<input data-dependent-validation="checkbox" name="checkbox-fill" type="text" required="required" id="checkbox-fill" />
+						</div>
+						
+						
+						<div class="form-element">
+							<label for="checkbox2">
+								checkbox2: (used as from-prop)
+							</label>
+							<input name="checkbox2" type="checkbox" id="checkbox2" />
+							<br />
+							<label for="checkbox-fill2">
+								dependent-validation='{"from": "checkbox2", "toggle": true}': 
+							</label>
+							<input data-dependent-validation='{"from": "checkbox2", "toggle": true}' name="checkbox-fill2" type="text" required="required" id="checkbox-fill2" />
+						</div>
+						
+						
+						<div class="form-element">
+							<label for="date-from">
+								date-from (dependent-validation='{"from": "date-to", "prop": "max"}'): 
+							</label>
+							<input data-dependent-validation='{"from": "date-to", "prop": "max"}' name="date-from" type="date" id="date-from" />
+							<br />
+							<label for="date-to">
+								date-to (dependent-validation='{"from": "date-from", "prop": "min"}'): 
+							</label>
+							<input data-dependent-validation='{"from": "date-from", "prop": "min"}' name="date-to" type="date" id="date-to" />
+						</div>
+						
+						
+						<div class="form-element">
+							<label for="special1">
+								special1: 
+							</label>
+							<select name="special1" id="special1">
+								<option value="test1">test1 (requires special2)</option>
+								<option value="test 2">test 2 (requires special2)</option>
+								<option value="test 3">test 3 (does not require special2)</option>
+							</select>
+							<br />
+							<label for="special2" >
+								special2 (dependent-validation='{"from": "special1", "prop": "required", "from-prop": "value:test1||test 2"}'): 
+							</label>
+							<input data-dependent-validation='{"from": "special1", "prop": "required", "from-prop": "value:test1||test 2"}' name="special2" type="text" id="special2" />
+						</div>
+						
+						
+						<div class="button-wrapper">
+							<input type="submit" value="Send" />
+						</div>
+					</fieldset>
+				</form>
+				
+			</section>
+	</section>
+	</div>
+</div>
+	<footer>			
+		<small>
+			<strong>Note</strong>: every polyfill is a hack! innovative frontend development is hacky and always will be hacky!
+		</small>
+	</footer>
+<!--[if lte IE 7]>
+	<div class="browser-support"> 			
+		<div class="browser-support-box"> 				
+			Webshims Lib really cares about cross browser support and supports all A-Graded Browsers including IE6 and newest Opera. But I don't care about Styling/Layout issues in IE7- on this demo page.
+		</div> 		
+	</div>
+<![endif]-->
+</body>
+</html>   
