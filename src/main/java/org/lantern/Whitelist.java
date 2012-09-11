@@ -16,7 +16,126 @@ public class Whitelist {
 
     private final Logger log = LoggerFactory.getLogger(Whitelist.class);
     
-    private Collection<String> requiredEntries = new HashSet<String>();
+    private final Collection<String> requiredEntries = new HashSet<String>();
+    
+    private final String[] sites = {
+        // optional
+        "avaaz.org",
+        "bittorrent.com",
+        "bloglines.com",
+        "blogspot.com",
+        "bloomberg.com",
+        "box.com",
+        "box.net",
+        "change.org",
+        "dailymotion.com",
+        "docstoc.com",
+        "dropbox.com",
+        "eff.org",
+        "facebook.com",
+        "flickr.com",
+        "friendfeed.com",
+        "freedomhouse.org",
+        "hrw.org", // Human Rights Watch
+        "ifconfig.me",
+        "igfw.net",
+        "linkedin.com",
+        "littleshoot.org",
+        "livejournal.com",
+        "myspace.com",
+        "orkut.com",
+        "paypal.com",
+        "plurk.com",
+        "posterous.com",
+        "reddit.com",
+        "rsf.org",
+        "scribd.com",
+        "stumbleupon.com",
+        "torproject.org",
+        "tumblr.com",
+        "twitter.com",
+        "vimeo.com",
+        "whatismyip.com",
+        "wikileaks.org",
+        "wordpress.org",
+        "wordpress.com",
+        "youtube.com",
+        
+        // Iran-focused sites
+        "30mail.net",
+        "advar-news.biz",
+        "balatarin.com",
+        "bbc.co.uk",
+        "bia2.com",
+        "enghelabe-eslami.com",
+        "gooya.com",
+        "irangreenvoice.com",
+        "iranian.com",
+        "mardomak.org",
+        "radiofarda.com",
+        "radiozamaneh.com",
+        "Roozonline.com",
+        "voanews.com",
+        
+        
+        // China (with various sub-categories below)
+        "appledaily.com.tw",
+        "boxun.com",
+        "fc2.com",
+        "hk.nextmedia.com",
+        "inmediahk.net",
+        "pchome.com.tw",
+        "idv.tw",
+        "pixnet.net",
+        "roodo.com",
+        "wretch.cc",
+
+        // Forums
+        "canadameet.me",
+        "chinasmile.net",
+        "discuss.com.hk",
+        "dolc.de",
+        "oursteps.com.au",
+        "qoos.com",
+        "sgchinese.net",
+        "student.tw",
+        "twbbs.tw",
+        "uwants.com",
+        
+
+        // Cloud Storage (often porn, heavy load, so ignored for now).
+        //https://www.rapidshare.com
+        //http://www.4shared.com
+        //https://www.sugarsync.com
+
+        // News and Political
+        "881903.com",
+        "aboluowang.com",
+        "am730.com.hk",
+        "boxun.com",
+        "bullogger.com",
+        "canyu.org",
+        "chinadigitaltimes.net",
+        "chinainperspective.com",
+        "dw.de",
+        "epochtimes.com",
+        "etaiwannews.com",
+        "hrichina.org", 
+        "globalvoicesonline.org",
+        "libertytimes.com.tw",
+        "mingpao.com",
+        "molihua.org",
+        "newcenturynews.com",
+        "nextmedia.com",
+        "ntdtv.com",
+        "rfa.org",
+        "rfi.fr",
+        "rthk.hk",
+        "singtao.com",
+        "taiwandaily.net",
+        "on.cc",
+        "yzzk.com",
+    };
     
     private Collection<WhitelistEntry> whitelist = 
         new TreeSet<WhitelistEntry>();
@@ -26,123 +145,9 @@ public class Whitelist {
         addDefaultEntry("getlantern.org", true);
         addDefaultEntry("google.com", true);
         addDefaultEntry("exceptional.io", true);
-
-        // optional
-        addDefaultEntry("avaaz.org");
-        addDefaultEntry("bittorrent.com");
-        addDefaultEntry("bloglines.com");
-        addDefaultEntry("blogspot.com");
-        addDefaultEntry("bloomberg.com");
-        addDefaultEntry("box.com");
-        addDefaultEntry("box.net");
-        addDefaultEntry("change.org");
-        addDefaultEntry("dailymotion.com");
-        addDefaultEntry("docstoc.com");
-        addDefaultEntry("dropbox.com");
-        addDefaultEntry("eff.org");
-        addDefaultEntry("facebook.com");
-        addDefaultEntry("flickr.com");
-        addDefaultEntry("friendfeed.com");
-        addDefaultEntry("freedomhouse.org");
-        addDefaultEntry("hrw.org"); // Human Rights Watch
-        addDefaultEntry("ifconfig.me");
-        addDefaultEntry("igfw.net");
-        addDefaultEntry("linkedin.com");
-        addDefaultEntry("littleshoot.org");
-        addDefaultEntry("livejournal.com");
-        addDefaultEntry("myspace.com");
-        addDefaultEntry("orkut.com");
-        addDefaultEntry("paypal.com");
-        addDefaultEntry("plurk.com");
-        addDefaultEntry("posterous.com");
-        addDefaultEntry("reddit.com");
-        addDefaultEntry("rsf.org");
-        addDefaultEntry("scribd.com");
-        addDefaultEntry("stumbleupon.com");
-        addDefaultEntry("torproject.org");
-        addDefaultEntry("tumblr.com");
-        addDefaultEntry("twitter.com");
-        addDefaultEntry("vimeo.com");
-        addDefaultEntry("whatismyip.com");
-        addDefaultEntry("wikileaks.org");
-        addDefaultEntry("wordpress.org");
-        addDefaultEntry("wordpress.com");
-        addDefaultEntry("youtube.com");
-        
-        // Iran-focused sites
-        addDefaultEntry("30mail.net");
-        addDefaultEntry("advar-news.biz");
-        addDefaultEntry("balatarin.com");
-        addDefaultEntry("bbc.co.uk");
-        addDefaultEntry("bia2.com");
-        addDefaultEntry("enghelabe-eslami.com");
-        addDefaultEntry("gooya.com");
-        addDefaultEntry("irangreenvoice.com");
-        addDefaultEntry("iranian.com");
-        addDefaultEntry("mardomak.org");
-        addDefaultEntry("radiofarda.com");
-        addDefaultEntry("radiozamaneh.com");
-        addDefaultEntry("Roozonline.com");
-        addDefaultEntry("voanews.com");
-        
-        
-        // China (with various sub-categories below)
-        addDefaultEntry("appledaily.com.tw");
-        addDefaultEntry("boxun.com");
-        addDefaultEntry("fc2.com");
-        addDefaultEntry("hk.nextmedia.com");
-        addDefaultEntry("inmediahk.net");
-        addDefaultEntry("pchome.com.tw");
-        addDefaultEntry("idv.tw");
-        addDefaultEntry("pixnet.net");
-        addDefaultEntry("roodo.com");
-        addDefaultEntry("wretch.cc");
-
-        // Forums
-        addDefaultEntry("canadameet.me");
-        addDefaultEntry("chinasmile.net");
-        addDefaultEntry("discuss.com.hk");
-        addDefaultEntry("dolc.de");
-        addDefaultEntry("oursteps.com.au");
-        addDefaultEntry("qoos.com");
-        addDefaultEntry("sgchinese.net");
-        addDefaultEntry("student.tw");
-        addDefaultEntry("twbbs.tw");
-        addDefaultEntry("uwants.com");
-        
-
-        // Cloud Storage (often porn, heavy load, so ignored for now).
-        //https://www.rapidshare.com
-        //http://www.4shared.com
-        //https://www.sugarsync.com
-
-        // News and Political
-        addDefaultEntry("881903.com");
-        addDefaultEntry("aboluowang.com");
-        addDefaultEntry("am730.com.hk");
-        addDefaultEntry("boxun.com");
-        addDefaultEntry("bullogger.com");
-        addDefaultEntry("canyu.org");
-        addDefaultEntry("chinadigitaltimes.net");
-        addDefaultEntry("chinainperspective.com");
-        addDefaultEntry("dw.de");
-        addDefaultEntry("epochtimes.com");
-        addDefaultEntry("etaiwannews.com");
-        addDefaultEntry("hrichina.org"); 
-        addDefaultEntry("globalvoicesonline.org");
-        addDefaultEntry("libertytimes.com.tw");
-        addDefaultEntry("mingpao.com");
-        addDefaultEntry("molihua.org");
-        addDefaultEntry("newcenturynews.com");
-        addDefaultEntry("nextmedia.com");
-        addDefaultEntry("ntdtv.com");
-        addDefaultEntry("rfa.org");
-        addDefaultEntry("rfi.fr");
-        addDefaultEntry("rthk.hk");
-        addDefaultEntry("singtao.com");
-        addDefaultEntry("taiwandaily.net");
-        addDefaultEntry("on.cc");
-        addDefaultEntry("yzzk.com");
+        for (final String site : sites) {
+            addDefaultEntry(site);
+        }
     }
     
     public boolean isWhitelisted(final String uri,
