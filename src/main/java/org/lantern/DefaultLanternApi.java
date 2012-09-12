@@ -247,6 +247,10 @@ public class DefaultLanternApi implements LanternApi {
             log.info("CredentialException, clearing password");
             changeSetting(resp, "password", "", false, false);
             sendError(resp, HttpStatus.SC_UNAUTHORIZED, e.getMessage());
+        } catch (final NotInClosedBetaException e) {
+            log.info("NotInClosedBetaException, clearing password");
+            changeSetting(resp, "password", "", false, false);
+            sendError(resp, HttpStatus.SC_FORBIDDEN, e.getMessage());
         }
     }
 

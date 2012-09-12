@@ -142,6 +142,10 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final UpnpService upnpService = new Upnp();
 
+    private ClosedBetaEvent closedBetaEvent;
+    
+    private final Object closedBetaLock = new Object();
+
     /**
      * Creates a new XMPP handler.
      */
@@ -219,7 +223,8 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     @Override
-    public void connect() throws IOException, CredentialException {
+    public void connect() throws IOException, CredentialException, 
+        NotInClosedBetaException {
         if (!LanternUtils.isConfigured() && LanternHub.settings().isUiEnabled()) {
             LOG.info("Not connecting when not configured");
             return;
@@ -255,7 +260,7 @@ public class DefaultXmppHandler implements XmppHandler {
     
     @Override
     public void connect(final String email, final String pwd) 
-        throws IOException, CredentialException {
+        throws IOException, CredentialException, NotInClosedBetaException {
         LOG.debug("Connecting to XMPP servers with user name and password...");
         this.lastUserName = email;
         this.lastPass = pwd;
@@ -374,7 +379,7 @@ public class DefaultXmppHandler implements XmppHandler {
                         packet.setFrom(pack.getTo());
                         connection.sendPacket(packet);
                     } else {
-                        LOG.info("Non-subscribed packet from hub? {}", 
+                        LOG.info("Non-subscribe packet from hub? {}", 
                             pres.toXML());
                     }
                 } else {
@@ -422,8 +427,40 @@ public class DefaultXmppHandler implements XmppHandler {
         
         gTalkSharedStatus();
         updatePresence();
+        if (LanternHub.settings().isInClosedBeta()) {
+            LOG.debug("Already in closed beta...");
+            return;
+        }
+        
+        synchronized (this.closedBetaLock) {
+            if (this.closedBetaEvent == null) {
+                try {
+                    this.closedBetaLock.wait(60 * 1000);
+                } catch (final InterruptedException e) {
+                    LOG.info("Interrupted? Maybe on shutdown?", e);
+                }
+            }
+        }
+        if (this.closedBetaEvent != null) {
+            if(!this.closedBetaEvent.isInClosedBeta()) {
+                LOG.debug("Not in closed beta...");
+                notInClosedBeta("Not in closed beta");
+            } else {
+                LOG.info("Server notified us we're in the closed beta!");
+            }
+        } else {
+            LOG.warn("No closed beta event -- timed out!!");
+            notInClosedBeta("No closed beta event!!");
+        }
     }
     
+
+    private void notInClosedBeta(final String msg) 
+        throws NotInClosedBetaException {
+        //connectivityEvent(ConnectivityStatus.DISCONNECTED);
+        disconnect();
+        throw new NotInClosedBetaException(msg);
+    }
 
     private Set<String> toStringServers(
         final Collection<InetSocketAddress> googleStunServers) {
@@ -489,7 +526,14 @@ public class DefaultXmppHandler implements XmppHandler {
         
         if (inClosedBeta != null) {
             LanternHub.settings().setInClosedBeta(inClosedBeta);
-            LanternHub.asyncEventBus().post(new ClosedBetaEvent());
+            LanternHub.asyncEventBus().post(new ClosedBetaEvent(inClosedBeta));
+            if (!inClosedBeta) {
+                return;
+            }
+        } else {
+            LanternHub.settings().setInClosedBeta(false);
+            LanternHub.asyncEventBus().post(new ClosedBetaEvent(false));
+            return;
         }
                 
         final JSONArray servers = 
@@ -547,6 +591,16 @@ public class DefaultXmppHandler implements XmppHandler {
         if (invites != null) {
             LOG.info("Setting invites to: {}", invites);
             LanternHub.settings().setInvites(invites.intValue());
+        }
+    }
+    
+    @Subscribe
+    public void onClosedBetaEvent(final ClosedBetaEvent cbe) {
+        LOG.debug("Got closed beta event!!");
+        this.closedBetaEvent = cbe;
+        
+        synchronized (this.closedBetaLock) {
+            this.closedBetaLock.notifyAll();
         }
     }
 

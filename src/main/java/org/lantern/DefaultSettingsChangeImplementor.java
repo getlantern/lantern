@@ -215,6 +215,11 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
                 if (LanternHub.settings().isInitialSetupComplete()) {
                     Proxifier.stopProxying();
                 }
+            } catch (final NotInClosedBetaException e) {
+                log.info("Not in beta!!");
+                if (LanternHub.settings().isInitialSetupComplete()) {
+                    Proxifier.stopProxying();
+                }
             }
         } catch (final Proxifier.ProxyConfigurationError e) {
             log.info("Proxy auto-configuration failed: {}", e);
