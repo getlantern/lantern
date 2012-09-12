@@ -85,11 +85,16 @@ you to write your tests with jasmine-like BDD syntax.
 
 Requires a webserver, node.js or your backend server that hosts the angular static files.
 
-Check out the [end-to-end runner's documentation](http://goo.gl/e8n06) for more info.
+Check out the
+[end-to-end runner's documentation](http://docs.angularjs.org/guide/dev_guide.e2e-testing) for more
+info.
 
 * create your end-to-end tests in `test/e2e/scenarios.js`
 * serve your project directory with your http/backend server or node.js + `scripts/web-server.js`
-* open `http://localhost:port/test/e2e/runner.html` in your browser
+* to run do one of:
+  * open `http://localhost:port/test/e2e/runner.html` in your browser
+  * run the tests from console with [Testacular](vojtajina.github.com/testacular) via
+    `scripts/e2e-test.sh` or `script/e2e-test.bat`
 
 
 ### Receiving updates from upstream
@@ -125,6 +130,8 @@ fetch the changes and merge them into your project with git.
     logs/               --> JSTD and other logs go here (git-ignored)
 
     scripts/            --> handy shell/js/ruby scripts
+      e2e-test.sh       --> runs end-to-end tests with Testacular (*nix)
+      e2e-test.bat      --> runs end-to-end tests with Testacular (windows)
       test-server.bat   --> starts JSTD server (windows)
       test-server.sh    --> starts JSTD server (*nix)
       test.bat          --> runs all unit tests (windows)

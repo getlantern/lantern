@@ -7,7 +7,4 @@ REM Requirements:
 REM - Java (http://www.java.com)
 
 set BASE_DIR=%~dp0
-java -jar "%BASE_DIR%\..\test\lib\jstestdriver\JsTestDriver.jar" ^
-     --config "%BASE_DIR%\..\config\jsTestDriver-scenario.conf" ^
-     --basePath "%BASE_DIR%\.." ^
-     --tests all --reset
+testacular start "%BASE_DIR%\..\config\testacular-e2e.conf.js"
