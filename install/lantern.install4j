@@ -264,6 +264,9 @@
                       <void property="failIfNotObtainedMac">
                         <boolean>false</boolean>
                       </void>
+                      <void property="obtainIfNormalWin">
+                        <boolean>true</boolean>
+                      </void>
                     </object>
                   </java>
                 </serializedBean>
@@ -562,7 +565,7 @@ Lantern requires your Google Account credentials to access the Internet. What yo
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.misc.CheckRunningProcessesAction">
                       <void property="closeStrategy">
-                        <object class="com.install4j.runtime.beans.actions.misc.CloseStrategy" field="ASK_ONLY" />
+                        <object class="com.install4j.runtime.beans.actions.misc.CloseStrategy" field="TERMINATE" />
                       </void>
                       <void property="timeOut">
                         <int>25000</int>
@@ -1369,8 +1372,8 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
     </linuxDeb>
   </mediaSets>
   <buildIds buildAll="false">
-    <mediaSet refId="157" />
+    <mediaSet refId="26" />
   </buildIds>
-  <buildOptions verbose="true" faster="true" disableSigning="false" debug="true" />
+  <buildOptions verbose="true" faster="true" disableSigning="false" debug="false" />
 </install4j>
 
