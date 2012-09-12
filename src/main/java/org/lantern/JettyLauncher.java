@@ -64,6 +64,8 @@ public class JettyLauncher {
         final QueuedThreadPool qtp = new QueuedThreadPool();
         qtp.setMinThreads(5);
         qtp.setMaxThreads(200);
+        qtp.setName("Lantern-Jetty-Thread");
+        qtp.setDaemon(true);
         server.setThreadPool(qtp);
         final String apiName = "Lantern-API";
         final ContextHandlerCollection contexts = 

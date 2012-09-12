@@ -50,6 +50,8 @@ public final class PhotoServlet extends HttpServlet {
     private final byte[] noImage = loadNoImage();
     
     private final MimeUtil2 mimeUtil = new MimeUtil2();
+    
+    private final Object CONNECTION_LOCK = new Object();
 
     public PhotoServlet() {
         mimeUtil.registerMimeDetector(
@@ -132,19 +134,25 @@ public final class PhotoServlet extends HttpServlet {
 
     private XMPPConnection establishConnection() throws CredentialException, 
         XMPPException, IOException {
-        if (conn != null && conn.isConnected()) {
+        // The browser will send a bunch of requests for photos, and we don't
+        // want to hammer the Google Talk servers, so we synchronize to 
+        // create a single connection.
+        synchronized (CONNECTION_LOCK) {
+            if (conn != null && conn.isConnected()) {
+                return conn;
+            }
+            final String user = LanternHub.xmppHandler().getLastUserName();
+            final String pass = LanternHub.xmppHandler().getLastPass();
+            if (StringUtils.isBlank(user)) {
+                throw new IOException("No user name!!");
+            }
+            if (StringUtils.isBlank(user)) {
+                throw new IOException("No password!!");
+            }
+            conn = XmppUtils.simpleGoogleTalkConnection(user, pass, 
+                "vcard-connection");
             return conn;
         }
-        final String user = LanternHub.xmppHandler().getLastUserName();
-        final String pass = LanternHub.xmppHandler().getLastPass();
-        if (StringUtils.isBlank(user)) {
-            throw new IOException("No user name!!");
-        }
-        if (StringUtils.isBlank(user)) {
-            throw new IOException("No password!!");
-        }
-        conn = XmppUtils.simpleGoogleTalkConnection(user, pass, "vcard-connection");
-        return conn;
     }
 
     private void sendError(final HttpServletResponse resp, final int errorCode, 
