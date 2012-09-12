@@ -693,7 +693,10 @@ public class DefaultXmppHandler implements XmppHandler {
             XmppMessageConstants.ERROR_TYPE);
         final String errorMessage = "Error: "+message+" with host: "+isa;
         msg.setProperty(XmppMessageConstants.MESSAGE, errorMessage);
-        this.client.get().getXmppConnection().sendPacket(msg);
+        if (isLoggedIn()) {
+            final XMPPConnection conn = this.client.get().getXmppConnection();
+            conn.sendPacket(msg);
+        }
     }
     
     private void processTypedMessage(final Message msg, final Integer type) {
@@ -1108,6 +1111,7 @@ public class DefaultXmppHandler implements XmppHandler {
             }
         }
         invited.add(email);
+        //pres.setProperty(LanternConstants.INVITER_NAME, value);
         
         final Runnable runner = new Runnable() {
             
