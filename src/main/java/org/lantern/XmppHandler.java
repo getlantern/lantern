@@ -19,8 +19,10 @@ public interface XmppHandler extends ProxyStatusListener, ProxyProvider {
      * 
      * @throws IOException If we cannot connect to the server.
      * @throws CredentialException If the credentials are incorrect.
+     * @throws NotInClosedBetaException Exception for when the user is not
+     * in the closed beta.
      */
-    void connect() throws IOException, CredentialException;
+    void connect() throws IOException, CredentialException, NotInClosedBetaException;
 
     XmppP2PClient getP2PClient();
 
@@ -33,9 +35,11 @@ public interface XmppHandler extends ProxyStatusListener, ProxyProvider {
      * @param pwd The user's password.
      * @throws IOException If we cannot connect to the server.
      * @throws CredentialException If the credentials are incorrect.
+     * @throws NotInClosedBetaException Exception for when the user is not
+     * in the closed beta.
      */
     void connect(String email, String pwd) throws IOException, 
-        CredentialException;
+        CredentialException, NotInClosedBetaException;
 
     void clearProxies();
 

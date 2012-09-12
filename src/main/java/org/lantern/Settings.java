@@ -95,8 +95,7 @@ public class Settings implements MutableSettings {
     
     private boolean autoConnectToPeers = true;
     
-    private GoogleTalkState googleTalkState = 
-        GoogleTalkState.LOGGED_OUT;
+    private GoogleTalkState googleTalkState = GoogleTalkState.LOGGED_OUT;
     
     private boolean proxyAllSites;
     
@@ -778,7 +777,7 @@ public class Settings implements MutableSettings {
         return inClosedBeta;
     }
 
-    public void setInClosedBeta(boolean inClosedBeta) {
+    public void setInClosedBeta(final boolean inClosedBeta) {
         this.inClosedBeta = inClosedBeta;
     }
     

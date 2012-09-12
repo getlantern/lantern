@@ -759,6 +759,8 @@ public class Launcher {
                             LOG.info("Could not login", e);
                         } catch (final CredentialException e) {
                             LOG.info("Bad credentials");
+                        } catch (final NotInClosedBetaException e) {
+                            LOG.warn("Not in closed beta!!");
                         }
                     }
                 };

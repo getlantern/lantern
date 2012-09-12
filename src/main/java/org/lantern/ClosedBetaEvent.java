@@ -6,4 +6,13 @@ package org.lantern;
  */
 public class ClosedBetaEvent {
 
+    private final boolean inClosedBeta;
+
+    public ClosedBetaEvent(final boolean inClosedBeta) {
+        this.inClosedBeta = inClosedBeta;
+    }
+
+    public boolean isInClosedBeta() {
+        return inClosedBeta;
+    }
 }
