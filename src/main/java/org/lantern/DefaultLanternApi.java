@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
+import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.slf4j.Logger;
@@ -234,14 +235,14 @@ public class DefaultLanternApi implements LanternApi {
                 // TODO: We actually should not start proxying here since the
                 // user doesn't necessarily have proxies to connect to. We
                 // should only start proxying upon connecting to proxies!!
-                //Proxifier.startProxying();
+                Proxifier.startProxying();
             }
             returnSettings(resp);
         } catch (final IOException e) {
             sendServerError(resp, "Could not connect: "+e.getMessage());
-        //} catch (final Proxifier.ProxyConfigurationError e) {
-        //    log.error("Proxy configuration failed: {}", e);
-        //    sendServerError(resp, "Proxy configuration failed");
+        } catch (final Proxifier.ProxyConfigurationError e) {
+            log.error("Proxy configuration failed: {}", e);
+            sendServerError(resp, "Proxy configuration failed");
         } catch (final CredentialException e) {
             log.info("CredentialException, clearing password");
             changeSetting(resp, "password", "", false, false);

@@ -701,8 +701,13 @@ public class Launcher {
                 clientChannelFactory, timer, channelGroup);
         localProxy.start();
         
-        // 
-        AutoConnector ac = new AutoConnector(); 
+        new AutoConnector(); 
+
+        try {
+            LanternHub.configurator().copyFireFoxExtension();
+        } catch (final IOException e) {
+            LOG.error("Could not copy extension", e);
+        }
         
         lanternStarted = true;
     }
@@ -743,14 +748,13 @@ public class Launcher {
             // This won't connect in the case where the user hasn't entered 
             // their user name and password and the user is running with a UI.
             // Otherwise, it will connect.
-            final XmppHandler xmpp = LanternHub.xmppHandler();
             if (LanternHub.settings().isConnectOnLaunch() &&
                 (LanternUtils.isConfigured() || !LanternHub.settings().isUiEnabled())) {
                 final Runnable runner = new Runnable() {
                     @Override
                     public void run() {
                         try {
-                            xmpp.connect();
+                            LanternHub.xmppHandler().connect();
                         } catch (final IOException e) {
                             LOG.info("Could not login", e);
                         } catch (final CredentialException e) {
@@ -765,12 +769,6 @@ public class Launcher {
             } else {
                 LOG.info("Not auto-logging in with settings:\n{}",
                     LanternHub.settings());
-            }
-
-            try {
-                LanternHub.configurator().copyFireFoxExtension();
-            } catch (final IOException e) {
-                LOG.error("Could not copy extension", e);
             }
         }
     }
