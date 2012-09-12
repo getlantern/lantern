@@ -86,7 +86,7 @@ public class Configurator {
         final File dest = new File(dir, extName);
         final File ffDir = new File("firefox/"+extName);
         if (dest.exists() && !FileUtils.isFileNewer(ffDir, dest)) {
-            LOG.info("Extension appears to already exist and ours is not newer");
+            LOG.info("Extension already exists and ours is not newer");
             return;
         }
         if (!ffDir.isDirectory()) {
