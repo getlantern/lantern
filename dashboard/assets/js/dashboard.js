@@ -608,6 +608,16 @@ function LDCtrl(){
       'our settings will be erased.';
     if(confirm(msg)){
       $.post('/api/reset').done(function(state){
+        self.inputemail = null;
+        self.inputpassword = null;
+        self.peerfilterinput = null;
+        self.peers = null;
+        self.subreqs = null;
+        self.whitelist = null;
+        self.pm = null;
+        self.pmsendfrom = true;
+        self.pmfromemail = null;
+        self.signinexc = null;
         self.state = {};
         self.update(state);
         showid('#welcome');
