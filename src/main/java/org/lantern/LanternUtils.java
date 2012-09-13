@@ -1334,6 +1334,11 @@ public class LanternUtils {
             return false;
         }
     }
+
+    public static String toEmail(final XMPPConnection conn) {
+        final String jid = conn.getUser().trim();
+        return XmppUtils.jidToUser(jid);
+    }
 }
 
 
