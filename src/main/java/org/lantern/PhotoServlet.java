@@ -33,25 +33,25 @@ import eu.medsea.mimeutil.MimeUtil2;
  */
 public final class PhotoServlet extends HttpServlet {
 
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = LoggerFactory.getLogger(PhotoServlet.class);
     
-    private XMPPConnection conn;
+    private static XMPPConnection conn;
     
-    private final int CACHE_DURATION_IN_SECOND = 60 * 60 * 24 * 4; 
-    private final long CACHE_DURATION_IN_MS = CACHE_DURATION_IN_SECOND  * 1000;
+    private static final int CACHE_DURATION_IN_SECOND = 60 * 60 * 24 * 4; 
+    private static final long CACHE_DURATION_IN_MS = CACHE_DURATION_IN_SECOND  * 1000;
     
     /**
      * Generated serial ID.
      */
     private static final long serialVersionUID = -8442913539662036158L;
     
-    private final Map<String, VCard> cache = new HashMap<String, VCard>();
+    private static final Map<String, VCard> cache = new HashMap<String, VCard>();
     
-    private final byte[] noImage = loadNoImage();
+    private static final byte[] noImage = loadNoImage();
     
-    private final MimeUtil2 mimeUtil = new MimeUtil2();
+    private static final MimeUtil2 mimeUtil = new MimeUtil2();
     
-    private final Object CONNECTION_LOCK = new Object();
+    private static final Object CONNECTION_LOCK = new Object();
 
     public PhotoServlet() {
         mimeUtil.registerMimeDetector(
@@ -65,27 +65,20 @@ public final class PhotoServlet extends HttpServlet {
         IOException {
         log.debug("Got photo request: "+req.getRequestURI());
         final String email = req.getParameter("email");
-        byte[] raw = null;
         if (StringUtils.isBlank(email)) {
-            //sendError(resp, HttpStatus.SC_BAD_REQUEST, "email required");
-            
-        } else {
-            if (cache.containsKey(email)) {
-                raw = cache.get(email).getAvatar();
-            } else {
-                final VCard vcard;
-                try {
-                    vcard = XmppUtils.getVCard(establishConnection(), email);
-                    raw = vcard.getAvatar();
-                    cache.put(email, vcard);
-                } catch (final XMPPException e) {
-                    log.debug("Exception accessing vcard for "+email, e);
-                } catch (final CredentialException e) {
-                    sendError(resp, HttpStatus.SC_UNAUTHORIZED, 
-                        "Could not authorize Google Talk connection");
-                    return;
-                }
-            }
+            sendError(resp, HttpStatus.SC_BAD_REQUEST, "email required");
+            return;
+        }
+        
+        byte[] raw = null;
+        try {
+            raw = getVCard(email).getAvatar();
+        } catch (final CredentialException e) {
+            sendError(resp, HttpStatus.SC_UNAUTHORIZED, 
+                "Could not authorize Google Talk connection");
+            return;
+        } catch (final XMPPException e) {
+            log.debug("Exception accessing vcard for "+email, e);
         }
         
         final byte[] imageData;
@@ -110,8 +103,25 @@ public final class PhotoServlet extends HttpServlet {
         resp.getOutputStream().write(imageData);
         //resp.getOutputStream().close();
     }
+    
+    public static VCard getVCard(final String email) 
+        throws CredentialException, XMPPException, IOException {
+        
+        if (StringUtils.isBlank(email)) {
+            //sendError(resp, HttpStatus.SC_BAD_REQUEST, "email required");
+            throw new NullPointerException("No email!");
+        } else {
+            if (cache.containsKey(email)) {
+                return cache.get(email);
+            } else {
+                final VCard vcard = XmppUtils.getVCard(establishConnection(), email);
+                cache.put(email, vcard);
+                return vcard;
+            }
+        }
+    }
 
-    private byte[] loadNoImage() {
+    private static byte[] loadNoImage() {
         final File none;
         final File installed = new File("default-profile-image.png");
         if (installed.isFile()) {
@@ -132,7 +142,7 @@ public final class PhotoServlet extends HttpServlet {
         return new byte[0];
     }
 
-    private XMPPConnection establishConnection() throws CredentialException, 
+    private static XMPPConnection establishConnection() throws CredentialException, 
         XMPPException, IOException {
         // The browser will send a bunch of requests for photos, and we don't
         // want to hammer the Google Talk servers, so we synchronize to 

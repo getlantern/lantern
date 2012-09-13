@@ -42,6 +42,7 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Presence.Type;
+import org.jivesoftware.smackx.packet.VCard;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -528,12 +529,12 @@ public class DefaultXmppHandler implements XmppHandler {
             LanternHub.settings().setInClosedBeta(inClosedBeta);
             LanternHub.asyncEventBus().post(new ClosedBetaEvent(inClosedBeta));
             if (!inClosedBeta) {
-                return;
+                //return;
             }
         } else {
             LanternHub.settings().setInClosedBeta(false);
             LanternHub.asyncEventBus().post(new ClosedBetaEvent(false));
-            return;
+            //return;
         }
                 
         final JSONArray servers = 
@@ -844,6 +845,7 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         final String jid = 
             this.client.get().getXmppConnection().getUser().trim();
+        
         final String emailId = XmppUtils.jidToUser(jid);
         LOG.info("We are: {}", jid);
         LOG.info("Service name: {}",
@@ -1152,17 +1154,36 @@ public class DefaultXmppHandler implements XmppHandler {
         // actual e-mail addresses -- see:
         // https://github.com/getlantern/lantern/issues/432
         if (email.contains("public.talk.google.com")) {
-            pres.setProperty(LanternConstants.INVITE_KEY, "");
+            pres.setProperty(LanternConstants.INVITED_EMAIL, "");
         } else {
-            pres.setProperty(LanternConstants.INVITE_KEY, email);
+            pres.setProperty(LanternConstants.INVITED_EMAIL, email);
         }
         
         final RosterEntry entry = rost.getEntry(email);
         if (entry != null) {
             final String name = entry.getName();
             if (StringUtils.isNotBlank(name)) {
-                pres.setProperty(LanternConstants.INVITE_NAME, name);
+                pres.setProperty(LanternConstants.INVITEE_NAME, name);
             }
+        }
+        
+        
+        try {
+            final VCard vcard = PhotoServlet.getVCard(LanternUtils.toEmail(conn));
+            if (vcard != null) {
+                final String fullName = vcard.getField("FN");
+                if (StringUtils.isNotBlank(fullName)) {
+                    pres.setProperty(LanternConstants.INVITER_NAME, fullName);
+                } else {
+                    pres.setProperty(LanternConstants.INVITER_NAME, "");
+                }
+            }
+        } catch (final CredentialException e) {
+            LOG.warn("Bad credentials?", e);
+        } catch (final XMPPException e) {
+            LOG.warn("XMPP Error?", e);
+        } catch (final IOException e) {
+            LOG.warn("IO Error?", e);
         }
         invited.add(email);
         //pres.setProperty(LanternConstants.INVITER_NAME, value);
