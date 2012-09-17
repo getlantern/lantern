@@ -492,17 +492,16 @@ public class DefaultXmppHandler implements XmppHandler {
     
     @Override
     public void disconnect() {
-        if (this.client.get() == null) {
-            LOG.info("Not disconnecting since we're not yet connected");
-            return;
-        }
         LOG.info("Disconnecting!!");
         lastJson = "";
         LanternHub.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.LOGGING_OUT));
         
-        this.client.get().logout();
-        this.client.set(null);
+        final XmppP2PClient cl = this.client.get();
+        if (cl != null) {
+            this.client.get().logout();
+            this.client.set(null);
+        }
         
         if (this.proxies.isEmpty()) {
             connectivityEvent(ConnectivityStatus.DISCONNECTED);
