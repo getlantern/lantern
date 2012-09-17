@@ -13,3 +13,4 @@ dependency-reduced-pom.xml
 /Lantern
 log.txt*
 target/
+dashboard/assets/*.pac
