@@ -3,7 +3,9 @@ package org.lantern;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
+import java.net.InetSocketAddress;
 import java.security.GeneralSecurityException;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -282,7 +284,9 @@ public class DefaultLanternApi implements LanternApi {
         try {
             LanternHub.xmppHandler().clearProxies();
             signout();
-            
+            final Settings set = LanternHub.settings();
+            set.setInClosedBeta(false);
+            set.setPeerProxies(new HashSet<InetSocketAddress>());
             LanternHub.destructiveFullReset();
             
             returnSettings(resp);
