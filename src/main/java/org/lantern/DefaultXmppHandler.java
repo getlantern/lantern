@@ -429,7 +429,8 @@ public class DefaultXmppHandler implements XmppHandler {
         
         gTalkSharedStatus();
         updatePresence();
-        if (LanternHub.settings().isInClosedBeta()) {
+        
+        if (LanternUtils.isInClosedBeta(email)) {
             LOG.debug("Already in closed beta...");
             return;
         }
@@ -517,6 +518,7 @@ public class DefaultXmppHandler implements XmppHandler {
     private void processLanternHubMessage(final Message msg) {
         LOG.debug("Lantern controlling agent response");
         this.hubAddress = msg.getFrom();
+        final String to = XmppUtils.jidToUser(msg.getTo());
         LOG.debug("Set hub address to: {}", hubAddress);
         final String body = msg.getBody();
         LOG.debug("Body: {}", body);
@@ -527,14 +529,12 @@ public class DefaultXmppHandler implements XmppHandler {
             (Boolean) json.get(LanternConstants.INVITED);
         
         if (inClosedBeta != null) {
-            LanternHub.settings().setInClosedBeta(inClosedBeta);
-            LanternHub.asyncEventBus().post(new ClosedBetaEvent(inClosedBeta));
+            LanternHub.asyncEventBus().post(new ClosedBetaEvent(to, inClosedBeta));
             if (!inClosedBeta) {
                 //return;
             }
         } else {
-            LanternHub.settings().setInClosedBeta(false);
-            LanternHub.asyncEventBus().post(new ClosedBetaEvent(false));
+            LanternHub.asyncEventBus().post(new ClosedBetaEvent(to, false));
             //return;
         }
                 
@@ -600,9 +600,24 @@ public class DefaultXmppHandler implements XmppHandler {
     public void onClosedBetaEvent(final ClosedBetaEvent cbe) {
         LOG.debug("Got closed beta event!!");
         this.closedBetaEvent = cbe;
-        
+        if (this.closedBetaEvent.isInClosedBeta()) {
+            LanternUtils.addToClosedBeta(cbe.getTo());
+        }
         synchronized (this.closedBetaLock) {
-            this.closedBetaLock.notifyAll();
+            // We have to make sure that this event is actually intended for
+            // the user we're currently logged in as!
+            final String to = this.closedBetaEvent.getTo();
+            LOG.debug("Analyzing closed beta event for: {}", to);
+            if (isLoggedIn()) {
+                final String user = LanternUtils.toEmail(
+                    this.client.get().getXmppConnection());
+                if (user.equals(to)) {
+                    LOG.debug("Users match!");
+                    this.closedBetaLock.notifyAll();
+                } else {
+                    LOG.debug("Users don't match {}, {}", user, to);
+                }
+            }
         }
     }
 

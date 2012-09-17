@@ -285,7 +285,7 @@ public class DefaultLanternApi implements LanternApi {
             LanternHub.xmppHandler().clearProxies();
             signout();
             final Settings set = LanternHub.settings();
-            set.setInClosedBeta(false);
+            set.setInClosedBeta(new HashSet<String>());
             set.setPeerProxies(new HashSet<InetSocketAddress>());
             LanternHub.destructiveFullReset();
             
