@@ -265,6 +265,7 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.debug("Connecting to XMPP servers with user name and password...");
         this.lastUserName = email;
         this.lastPass = pwd;
+        this.closedBetaEvent = null;
         final InetSocketAddress plainTextProxyRelayAddress = 
             new InetSocketAddress("127.0.0.1", 
                 LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT);
@@ -510,6 +511,7 @@ public class DefaultXmppHandler implements XmppHandler {
             new GoogleTalkStateEvent(GoogleTalkState.LOGGED_OUT));
         
         peerProxySet.clear();
+        this.closedBetaEvent = null;
     }
 
     private void processLanternHubMessage(final Message msg) {
