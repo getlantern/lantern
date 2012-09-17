@@ -7,12 +7,18 @@ package org.lantern;
 public class ClosedBetaEvent {
 
     private final boolean inClosedBeta;
+    private final String to;
 
-    public ClosedBetaEvent(final boolean inClosedBeta) {
+    public ClosedBetaEvent(final String to, final boolean inClosedBeta) {
+        this.to = to;
         this.inClosedBeta = inClosedBeta;
     }
 
     public boolean isInClosedBeta() {
         return inClosedBeta;
+    }
+
+    public String getTo() {
+        return to;
     }
 }

@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.common.eventbus.Subscribe;
 
 /**
@@ -183,7 +184,7 @@ public class Settings implements MutableSettings {
     
     private String uiDir = "dashboard";
     
-    private boolean inClosedBeta = false;
+    private Set<String> inClosedBeta = new HashSet<String>();
     
     /**
      * Locally-stored set of users we've invited.
@@ -772,13 +773,13 @@ public class Settings implements MutableSettings {
         return cache;
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
-    public boolean isInClosedBeta() {
-        return inClosedBeta;
+    @JsonView({PersistentSettings.class})
+    public Set<String> getInClosedBeta() {
+        return Sets.newHashSet(this.inClosedBeta);
     }
 
-    public void setInClosedBeta(final boolean inClosedBeta) {
-        this.inClosedBeta = inClosedBeta;
+    public void setInClosedBeta(final Set<String> inClosedBeta) {
+        this.inClosedBeta = ImmutableSet.copyOf(inClosedBeta);
     }
     
     @Override

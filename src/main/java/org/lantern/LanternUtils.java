@@ -1339,6 +1339,17 @@ public class LanternUtils {
         final String jid = conn.getUser().trim();
         return XmppUtils.jidToUser(jid);
     }
+
+    public static boolean isInClosedBeta(final String email) {
+        final Set<String> in = LanternHub.settings().getInClosedBeta();
+        return in.contains(email);
+    }
+
+    public static void addToClosedBeta(final String to) {
+        final Set<String> in = LanternHub.settings().getInClosedBeta();
+        in.add(to);
+        LanternHub.settings().setInClosedBeta(in);
+    }
 }
 
 
