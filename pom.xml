@@ -170,7 +170,7 @@
     <dependency>
       <groupId>commons-codec</groupId>
       <artifactId>commons-codec</artifactId>
-      <version>1.5</version>
+      <version>1.7</version>
     </dependency>
 
     <dependency>
@@ -235,13 +235,13 @@
     <dependency>
 	<groupId>org.codehaus.jackson</groupId>
 	<artifactId>jackson-jaxrs</artifactId>
-	<version>1.9.5</version>
+	<version>1.9.9</version>
     </dependency>
 
     <dependency>
 	<groupId>org.codehaus.jackson</groupId>
 	<artifactId>jackson-mrbean</artifactId>
-	<version>1.9.6</version>
+	<version>1.9.9</version>
     </dependency>
 
     <dependency>
