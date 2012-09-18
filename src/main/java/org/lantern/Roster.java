@@ -108,7 +108,9 @@ public class Roster implements RosterListener {
     }
 
     private void addEntry(final LanternRosterEntry pres) {
-        rosterEntries.put(pres.getEmail(), pres);
+        if (LanternUtils.isNotJid(pres.getEmail())) {
+            rosterEntries.put(pres.getEmail(), pres);
+        }
     }
     
     public Collection<LanternRosterEntry> getEntries() {
@@ -156,8 +158,6 @@ public class Roster implements RosterListener {
 
     @Override
     public void entriesUpdated(final Collection<String> entries) {
-        // Not sure what to do with this one -- initiate a request for updated
-        // info about each entry in the list?
         log.debug("Entries updated: {} for roster: {}", entries, this);
         for (final String entry : entries) {
             final Presence pres = 
@@ -183,17 +183,6 @@ public class Roster implements RosterListener {
         this.incomingSubscriptionRequests.clear();
         this.rosterEntries.clear();
         this.populated = false;
-    }
-    
-    @Override
-    public String toString() {
-        String id = "";
-        final XmppP2PClient client = this.xmppHandler.getP2PClient();
-        if (client != null) {
-            final XMPPConnection conn = client.getXmppConnection();
-            id = conn.getUser();
-        }
-        return "Roster for "+id+" [rosterEntries=" + rosterEntries + "]";
     }
 
     /**
@@ -236,5 +225,17 @@ public class Roster implements RosterListener {
         // Otherwise only auto-allow subscription requests if we've requested
         // to subscribe to them.
         return subscriptionStatus.equalsIgnoreCase("subscribe");
+    }
+    
+    
+    @Override
+    public String toString() {
+        String id = "";
+        final XmppP2PClient client = this.xmppHandler.getP2PClient();
+        if (client != null) {
+            final XMPPConnection conn = client.getXmppConnection();
+            id = conn.getUser();
+        }
+        return "Roster for "+id+" [rosterEntries=" + rosterEntries + "]";
     }
 }
