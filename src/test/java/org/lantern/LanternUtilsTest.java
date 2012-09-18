@@ -57,6 +57,18 @@ public class LanternUtilsTest {
     private final AtomicReference<String> readOnServer = 
         new AtomicReference<String>("");
     
+    @Test
+    public void testIsJid() throws Exception {
+        String id = "2bgg8h04men25@id.talk.google.com";
+        assertTrue(!LanternUtils.isNotJid(id));
+        
+        id = "2bgg8h04men25@public.talk.google.com";
+        assertTrue(!LanternUtils.isNotJid(id));
+        
+        id = "lanternuser@gmail.com";
+        assertTrue(LanternUtils.isNotJid(id));
+    }
+    
     @Test 
     public void testRosterEntries() throws Exception {
         final String email = "lanternuser@gmail.com";
