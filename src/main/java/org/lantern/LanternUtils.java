@@ -1029,7 +1029,11 @@ public class LanternUtils {
         final ConnectionConfiguration config = 
             new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
         config.setExpiredCertificatesCheckEnabled(true);
-        config.setNotMatchingDomainCheckEnabled(true);
+        
+        // We don't check for matching domains because Google Talk uses the
+        // same cert for Google Apps domains, and this would always fail in
+        // those cases.
+        //config.setNotMatchingDomainCheckEnabled(true);
         config.setSendPresence(false);
         
         config.setCompressionEnabled(true);
