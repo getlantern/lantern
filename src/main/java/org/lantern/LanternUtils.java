@@ -1358,7 +1358,7 @@ public class LanternUtils {
     }
 
     public static boolean isNotJid(final String email) {
-        final boolean isEmail = !email.contains("public.talk.google.com");
+        final boolean isEmail = !email.contains(".talk.google.com");
         if (isEmail) {
             LOG.info("Allowing email {}", email);
         } else {
