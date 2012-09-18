@@ -415,7 +415,9 @@ public class LanternUtils {
             new ConcurrentSkipListMap<String, LanternRosterEntry>();
         for (final RosterEntry entry : unordered) {
             final LanternRosterEntry lp = new LanternRosterEntry(entry);
-            entries.put(lp.getEmail(), lp);
+            if (isNotJid(lp.getEmail())) {
+                entries.put(lp.getEmail(), lp);
+            }
         }
         return entries;
     }
@@ -1353,6 +1355,16 @@ public class LanternUtils {
         final Set<String> in = LanternHub.settings().getInClosedBeta();
         in.add(to);
         LanternHub.settings().setInClosedBeta(in);
+    }
+
+    public static boolean isNotJid(final String email) {
+        final boolean isEmail = !email.contains("public.talk.google.com");
+        if (isEmail) {
+            LOG.info("Allowing email {}", email);
+        } else {
+            LOG.info("Is a JID {}", email);
+        }
+        return isEmail;
     }
 }
 
