@@ -424,7 +424,7 @@ function LDCtrl(){
     self._logging_in = true;
     self.signinexc = null;
     self.$digest();
-    console.log('Signing in with:', data);
+    //console.log('Signing in with:', data);
     $.post('/api/signin', data).done(function(state){
       console.log('signin succeeded');
       self.inputemail = '';
@@ -490,9 +490,9 @@ function LDCtrl(){
       return;
     }
     var url = '/api/invite?email=' + encodeURIComponent(email);
-    $.post(url).done(function(){
+    $.post(url).done(function(state){
       console.log('successfully invited ' + email); 
-      self.$digest();
+      self.update(state);
       $('.invites-remaining').css('color', '#f00').animate({color: '#666'}, 2000);
       if(self.state.initialSetupComplete){
         $('.flashmsg').hide();
