@@ -670,9 +670,12 @@ function LDCtrl(){
         return;
       }
       if(!self._validatewhitelistentry(newsite))return;
+      self.block = true;
+      self.$digest();
       $.post('/api/removefromwhitelist?site=' + site).done(function(r1){
         $.post('/api/addtowhitelist?site=' + newsite).done(function(r2){
           self.whitelist = r2.entries;
+          self.block = false;
           self.$digest();
           console.log('/api/addtowhitelist?site='+newsite+' succeeded');
 
@@ -687,13 +690,17 @@ function LDCtrl(){
           // show flash msg with undo
           if(!noundo){
             self._undo = function(){
-              self.updatewhitelist(newsite, site, true);
+              self.updatewhitelist(newsite, site);
             };
             $('.flashmsg').hide();
             $('#flash-main .content').addClass('success').removeClass('error')
               .html('Changed ' + site + ' to ' + newsite + '. <a onclick=getscope().undo()>Undo</a>').parent('#flash-main').fadeIn();
           }
         }).fail(function(){
+          if(self.block){
+            self.block = false;
+            self.$digest();
+          }
           console.log('/api/addtowhitelist?site='+newsite+' failed');
           $('.flashmsg').hide();
           $('#flash-main .content').addClass('error').removeClass('success')
@@ -702,6 +709,10 @@ function LDCtrl(){
         self.whitelist = r1.entries;
         console.log('/api/removefromwhitelist?site='+site+' succeeded');
       }).fail(function(){
+        if(self.block){
+          self.block = false;
+          self.$digest();
+        }
         console.log('/api/removefromwhitelist?site='+site+' failed');
         $('.flashmsg').hide();
         $('#flash-main .content').addClass('error').removeClass('success')
@@ -710,9 +721,21 @@ function LDCtrl(){
     }else if(typeof newsite === 'boolean'){
       if(newsite && !self._validatewhitelistentry(site))return;
       var url = '/api/' + (newsite ? 'addtowhitelist' : 'removefromwhitelist') + '?site=' + site;
+      self.block = true;
+      self.$digest();
       $.post(url).done(function(r){
+        self.whitelist = r.entries;
+        self.block = false;
+        self.$digest();
         if(newsite){ // site added
           $('#sitetoadd').val('');
+          // show flash msg with undo
+          self._undo = function(){
+            self.updatewhitelist(site, false);
+          };
+          $('.flashmsg').hide();
+          $('#flash-main .content').addClass('success').removeClass('error')
+            .html('Added ' + site + '. <a onclick=getscope().undo()>Undo</a>').parent('#flash-main').fadeIn();
         }else{ // site removed
           // show flash msg with undo
           self._undo = function(){
@@ -722,8 +745,6 @@ function LDCtrl(){
           $('#flash-main .content').addClass('success').removeClass('error')
             .html('Removed ' + site + '. <a onclick=getscope().undo()>Undo</a>').parent('#flash-main').fadeIn();
         }
-        self.whitelist = r.entries;
-        self.$digest();
         console.log(url+' succeeded');
         if(newsite){
           var $newentry = $('.whitelistentry[value="'+site+'"]').parents('li');
@@ -735,6 +756,11 @@ function LDCtrl(){
         }
       }).fail(function(){
         console.log(url+' failed');
+      }).always(function(){
+        if(self.block){
+          self.block = false;
+          self.$digest();
+        }
       });
     }
   };
