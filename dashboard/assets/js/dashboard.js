@@ -424,7 +424,7 @@ function LDCtrl(){
     self._logging_in = true;
     self.signinexc = null;
     self.$digest();
-    console.log('Signing in with:', data);
+    //console.log('Signing in with:', data);
     $.post('/api/signin', data).done(function(state){
       console.log('signin succeeded');
       self.inputemail = '';
@@ -490,9 +490,9 @@ function LDCtrl(){
       return;
     }
     var url = '/api/invite?email=' + encodeURIComponent(email);
-    $.post(url).done(function(){
+    $.post(url).done(function(state){
       console.log('successfully invited ' + email); 
-      self.$digest();
+      self.update(state);
       $('.invites-remaining').css('color', '#f00').animate({color: '#666'}, 2000);
       if(self.state.initialSetupComplete){
         $('.flashmsg').hide();
@@ -670,9 +670,12 @@ function LDCtrl(){
         return;
       }
       if(!self._validatewhitelistentry(newsite))return;
+      self.block = true;
+      self.$digest();
       $.post('/api/removefromwhitelist?site=' + site).done(function(r1){
         $.post('/api/addtowhitelist?site=' + newsite).done(function(r2){
           self.whitelist = r2.entries;
+          self.block = false;
           self.$digest();
           console.log('/api/addtowhitelist?site='+newsite+' succeeded');
 
@@ -687,13 +690,17 @@ function LDCtrl(){
           // show flash msg with undo
           if(!noundo){
             self._undo = function(){
-              self.updatewhitelist(newsite, site, true);
+              self.updatewhitelist(newsite, site);
             };
             $('.flashmsg').hide();
             $('#flash-main .content').addClass('success').removeClass('error')
               .html('Changed ' + site + ' to ' + newsite + '. <a onclick=getscope().undo()>Undo</a>').parent('#flash-main').fadeIn();
           }
         }).fail(function(){
+          if(self.block){
+            self.block = false;
+            self.$digest();
+          }
           console.log('/api/addtowhitelist?site='+newsite+' failed');
           $('.flashmsg').hide();
           $('#flash-main .content').addClass('error').removeClass('success')
@@ -702,6 +709,10 @@ function LDCtrl(){
         self.whitelist = r1.entries;
         console.log('/api/removefromwhitelist?site='+site+' succeeded');
       }).fail(function(){
+        if(self.block){
+          self.block = false;
+          self.$digest();
+        }
         console.log('/api/removefromwhitelist?site='+site+' failed');
         $('.flashmsg').hide();
         $('#flash-main .content').addClass('error').removeClass('success')
@@ -710,9 +721,21 @@ function LDCtrl(){
     }else if(typeof newsite === 'boolean'){
       if(newsite && !self._validatewhitelistentry(site))return;
       var url = '/api/' + (newsite ? 'addtowhitelist' : 'removefromwhitelist') + '?site=' + site;
+      self.block = true;
+      self.$digest();
       $.post(url).done(function(r){
+        self.whitelist = r.entries;
+        self.block = false;
+        self.$digest();
         if(newsite){ // site added
           $('#sitetoadd').val('');
+          // show flash msg with undo
+          self._undo = function(){
+            self.updatewhitelist(site, false);
+          };
+          $('.flashmsg').hide();
+          $('#flash-main .content').addClass('success').removeClass('error')
+            .html('Added ' + site + '. <a onclick=getscope().undo()>Undo</a>').parent('#flash-main').fadeIn();
         }else{ // site removed
           // show flash msg with undo
           self._undo = function(){
@@ -722,8 +745,6 @@ function LDCtrl(){
           $('#flash-main .content').addClass('success').removeClass('error')
             .html('Removed ' + site + '. <a onclick=getscope().undo()>Undo</a>').parent('#flash-main').fadeIn();
         }
-        self.whitelist = r.entries;
-        self.$digest();
         console.log(url+' succeeded');
         if(newsite){
           var $newentry = $('.whitelistentry[value="'+site+'"]').parents('li');
@@ -735,6 +756,11 @@ function LDCtrl(){
         }
       }).fail(function(){
         console.log(url+' failed');
+      }).always(function(){
+        if(self.block){
+          self.block = false;
+          self.$digest();
+        }
       });
     }
   };
