@@ -1224,20 +1224,38 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.files.DeleteFileAction">
                       <void property="files">
-                        <array class="java.io.File" length="1">
+                        <array class="java.io.File" length="4">
                           <void index="0">
                             <object class="java.io.File">
                               <string>./log.txt</string>
                             </object>
                           </void>
+                          <void index="1">
+                            <object class="java.io.File">
+                              <string>winproxy4j.dll</string>
+                            </object>
+                          </void>
+                          <void index="2">
+                            <object class="java.io.File">
+                              <string>GeoIP.dat</string>
+                            </object>
+                          </void>
+                          <void index="3">
+                            <object class="java.io.File">
+                              <string>logs</string>
+                            </object>
+                          </void>
                         </array>
+                      </void>
+                      <void property="recursive">
+                        <boolean>true</boolean>
                       </void>
                     </object>
                   </java>
                 </serializedBean>
                 <condition />
               </action>
-              <action name="" id="17" customizedId="" beanClass="com.install4j.runtime.beans.actions.UninstallFilesAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="1" errorMessage="">
+              <action name="" id="17" customizedId="" beanClass="com.install4j.runtime.beans.actions.UninstallFilesAction" enabled="true" commentSet="false" comment="" actionElevationType="elevated" rollbackBarrier="false" multiExec="false" failureStrategy="4" errorMessage="Lantern could not uninstall successfully. Can you try quitting it from your system tray (Windows) or menu item (OSX) and restarting?">
                 <serializedBean>
                   <java class="java.beans.XMLDecoder">
                     <object class="com.install4j.runtime.beans.actions.UninstallFilesAction" />
