@@ -134,15 +134,10 @@ public class Proxifier {
         if (LanternHub.settings().isProxyAllSites()) {
             // If we were previously configured to proxy all sites, then we
             // need to force the override.
-            startProxying(true);
+            startProxying(true, PROXY_ALL);
         } else {
-            startProxying(false);
+            startProxying(false, PROXY_ON);
         }
-    }
-    
-    private static void startProxying(final boolean force) 
-        throws ProxyConfigurationError {
-        startProxying(force, PROXY_ON);
     }
     
     private static void startProxying(final boolean force, final File pacFile) 
@@ -413,10 +408,20 @@ public class Proxifier {
      */
     public static void refresh() {
         if (isProxying()) {
-            try {
-                startProxying(true);
-            } catch (final ProxyConfigurationError e) {
-                LOG.error("Could not configure proxy!!", e);
+            if (LanternHub.settings().isProxyAllSites()) {
+                // If we were previously configured to proxy all sites, then we
+                // need to force the override.
+                try {
+                    startProxying(true, PROXY_ALL);
+                } catch (final ProxyConfigurationError e) {
+                    LOG.warn("Could not proxy", e);
+                }
+            } else {
+                try {
+                    startProxying(true, PROXY_ON);
+                } catch (final ProxyConfigurationError e) {
+                    LOG.warn("Could not proxy", e);
+                }
             }
         }
     }
