@@ -210,10 +210,13 @@ public class JettyLauncher {
                 final String uri = req.getRequestURI();
                 final String onPath = "/proxy_on.pac";
                 final String offPath = "/proxy_off.pac";
+                final String allPath = "/proxy_all.pac";
                 if (uri.startsWith("/proxy_on") && !uri.equals(onPath)) {
                     resp.sendRedirect(onPath);
                 } else if (uri.startsWith("/proxy_off") && !uri.equals(offPath)) {
                     resp.sendRedirect(offPath);
+                } else if (uri.startsWith("/proxy_all") && !uri.equals(allPath)) {
+                    resp.sendRedirect(allPath);
                 } else {
                     super.doGet(req, resp);
                 }
