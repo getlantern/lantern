@@ -23,8 +23,13 @@ echo "Also available at $url"
 
 pushd install/$dir || die "Could not change directories"
 perl -pi -e "s;url_token;$url;g" $latestName || die "Could not replace URL token"
+
+# Makes sure it actually was replaced
+grep $url $latestName || die "Something went wrong with creating latest dummy file"
+
 # Here's the trick -- send a custom mime type that's html instead of the mime type for the file extension
 aws -putpm $bucket $latestName text/html || die "Could not upload latest?"
+
 git checkout $latestName || die "Could not checkout"
 popd
 
