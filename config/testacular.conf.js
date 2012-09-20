@@ -13,3 +13,8 @@ files = [
 autoWatch = true;
 
 browsers = ['Chrome'];
+
+junitReporter = {
+  outputFile: 'test_out/unit.xml',
+  suite: 'unit'
+};
