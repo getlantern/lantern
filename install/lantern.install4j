@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<install4j version="5.1.2" transformSequenceNumber="4">
+<install4j version="5.1.3" transformSequenceNumber="4">
   <directoryPresets config="../proxy_all.pac" />
-  <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Team Lantern" publisherWeb="http://www.getlantern.org" version="0.97" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
+  <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Team Lantern" publisherWeb="http://www.getlantern.org" version="0.20.0" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
       <additionalLanguages />
@@ -90,7 +90,7 @@
     <components />
   </files>
   <launchers>
-    <launcher name="lantern-osx-gui" id="27" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="Lantern" icnsFile="./common/lantern.icns" customMacBundleIdentifier="false" macBundleIdentifier="" swtApp="true" fileset="147">
+    <launcher name="lantern-osx-gui" id="27" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="Lantern" icnsFile="./common/lantern.icns" customMacBundleIdentifier="false" macBundleIdentifier="" swtApp="true" fileset="147" macBundleBinary="JavaApplicationStub" addMacEntitlements="false" macEntitlementsFile="">
       <executable name="lantern" type="1" iconSet="true" iconFile="" executableDir="." redirectStderr="true" stderrFile="${installer:sys.userHome}/Library/Logs/Lantern/stderr.log" stderrMode="overwrite" redirectStdout="true" stdoutFile="${installer:sys.userHome}/Library/Logs/Lantern/stdout.log" stdoutMode="overwrite" failOnStderrOutput="false" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="true" globalSingleInstance="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
@@ -125,7 +125,7 @@
         <file path="./common/64on.png" />
       </iconImageFiles>
     </launcher>
-    <launcher name="Lantern" id="224" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="Lantern" icnsFile="" customMacBundleIdentifier="false" macBundleIdentifier="" swtApp="true" fileset="145">
+    <launcher name="Lantern" id="224" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="Lantern" icnsFile="" customMacBundleIdentifier="false" macBundleIdentifier="" swtApp="true" fileset="145" macBundleBinary="JavaApplicationStub" addMacEntitlements="false" macEntitlementsFile="">
       <executable name="Lantern" type="1" iconSet="true" iconFile="" executableDir="" redirectStderr="true" stderrFile="error.log" stderrMode="overwrite" redirectStdout="false" stdoutFile="output.log" stdoutMode="overwrite" failOnStderrOutput="false" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
@@ -158,7 +158,7 @@
         <file path="./common/64on.png" />
       </iconImageFiles>
     </launcher>
-    <launcher name="lantern" id="580" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="lantern" icnsFile="" customMacBundleIdentifier="false" macBundleIdentifier="" swtApp="true" fileset="788">
+    <launcher name="lantern" id="580" customizedId="" external="false" excludeFromMenu="false" unixMode="755" menuName="lantern" icnsFile="" customMacBundleIdentifier="false" macBundleIdentifier="" swtApp="true" fileset="788" macBundleBinary="JavaApplicationStub" addMacEntitlements="false" macEntitlementsFile="">
       <executable name="lantern" type="1" iconSet="true" iconFile="" executableDir="" redirectStderr="true" stderrFile="lantern-stderr.log" stderrMode="overwrite" redirectStdout="true" stdoutFile="lantern-stdout.log" stdoutMode="overwrite" failOnStderrOutput="false" executableMode="1" changeWorkingDirectory="true" workingDirectory="." singleInstance="true" serviceStartType="2" serviceDependencies="" serviceDescription="" jreLocation="" executionLevel="asInvoker" checkConsoleParameter="false" globalSingleInstance="false">
         <versionInfo include="false" fileVersion="" fileDescription="" legalCopyright="" internalName="" productName="" />
       </executable>
@@ -199,7 +199,7 @@
       <customAttributes />
     </autoUpdate>
     <applications>
-      <application name="" id="installer" customizedId="" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="none" fileset="" customIcnsFile="./common/lantern.icns" customIcoFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
+      <application name="" id="installer" customizedId="" beanClass="com.install4j.runtime.beans.applications.InstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="none" fileset="" customIcnsFile="./common/lantern.icns" customIcoFile="" macEntitlementsFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
         <serializedBean>
           <java class="java.beans.XMLDecoder">
             <object class="com.install4j.runtime.beans.applications.InstallerApplication">
@@ -1122,7 +1122,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
           </screen>
         </screens>
       </application>
-      <application name="" id="uninstaller" customizedId="" beanClass="com.install4j.runtime.beans.applications.UninstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="none" fileset="" customIcnsFile="./common/lantern.icns" customIcoFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
+      <application name="" id="uninstaller" customizedId="" beanClass="com.install4j.runtime.beans.applications.UninstallerApplication" enabled="true" commentSet="false" comment="" actionElevationType="none" fileset="" customIcnsFile="./common/lantern.icns" customIcoFile="" macEntitlementsFile="" automaticLauncherIntegration="false" launchMode="startupFirstWindow" launchInNewProcess="false" launchSchedule="updateSchedule" allLaunchers="true">
         <serializedBean>
           <java class="java.beans.XMLDecoder">
             <object class="com.install4j.runtime.beans.applications.UninstallerApplication">
@@ -1316,7 +1316,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <excludedComponents />
       <includedDownloadableComponents />
     </windows>
-    <macos name="Mac OS X Single Bundle" id="157" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" appleJre="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" launcherId="27">
+    <macos name="Mac OS X Single Bundle" id="157" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="" manualJREEntry="false" bundleType="1" jreURL="" jreShared="false" directDownload="false" installOnlyIfNecessary="false" appleJre="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" signLaunchers="false" launcherId="27">
       <excludedBeans />
       <overriddenPrincipalLanguage id="en" customLocalizationFile="" />
       <exclude>
