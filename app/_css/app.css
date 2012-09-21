@@ -2,3 +2,11 @@
 body {
   padding: 50px;
 }
+/* line 14, ../../sass/app.sass */
+body.connected {
+  background-color: #ccffcc;
+}
+/* line 16, ../../sass/app.sass */
+body.notconnected {
+  background-color: #ffcccc;
+}

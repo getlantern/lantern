@@ -41,26 +41,36 @@ function HttpServer(handlers) {
   this.server = http.createServer(this.handleRequest_.bind(this));
   this.bayeux = new faye.NodeAdapter({mount: '/cometd', timeout: 45});
   this.bayeux.attach(this.server);
-
 }
 
 HttpServer.prototype.start = function(port) {
   this.port = port;
   this.server.listen(port);
-  sys.puts('Http Server running at http://localhost:' + port + '/');
+  sys.puts('Bayeux-attached http Server running at http://localhost:' + port);
 
-  var initialState = {
-      userid: "user@gmail.com"
-    };
   var bayeux = this.bayeux;
-
   bayeux.bind('handshake', function(clientId) {
     sys.puts('[bayeux] handshake: client ' + clientId);
   });
   bayeux.bind('subscribe', function(clientId, channel) {
     sys.puts('[bayeux] subscribe: client ' + clientId + ', channel ' + channel);
-    bayeux._server._engine.publish({channel: channel, data: initialState});
-    sys.puts('[bayeux] published [channel='+channel+']: '+sys.inspect(initialState));
+    var msg = {
+      path:  '',
+      value: {
+        foo: 'bar',
+        baz: 'fleem'
+        }
+      };
+    bayeux._server._engine.publish({channel: channel, data: msg});
+    sys.puts('[bayeux] published [channel='+channel+']: '+sys.inspect(msg));
+
+    /*
+    setInterval(function() {
+      state.userid += 1;
+      bayeux._server._engine.publish({channel:channel, data:state});
+    }, 500);
+    */
+
   });
   bayeux.bind('unsubscribe', function(clientId, channel) {
     sys.puts('[bayeux] unsubscribe: client ' + clientId + ', channel ' + channel);
@@ -80,13 +90,14 @@ HttpServer.prototype.parseUrl_ = function(urlString) {
 };
 
 HttpServer.prototype.handleRequest_ = function(req, res) {
-  var logEntry = req.method + ' ' + req.url;
   /*
+  var logEntry = req.method + ' ' + req.url;
   if (req.headers['user-agent']) {
     logEntry += ' ' + req.headers['user-agent'];
   }
-  */ logEntry = '[http] ' + logEntry;
+  logEntry = '[http] ' + logEntry;
   sys.puts(logEntry);
+  */
   req.url = this.parseUrl_(req.url);
   var handler = this.handlers[req.method];
   if (!handler) {

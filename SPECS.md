@@ -27,13 +27,13 @@ attempting to reconnect to the bayeux server if the connection is lost.
 ### Subscription
 
 Upon successful connection to the bayeux server, the frontend will request
-subscription to the top-level channel `/sync/`, and may request subscriptions
+subscription to the top-level channel `/sync`, and may request subscriptions
 to additional channels like `/sync/viz`, `/sync/settings`, and `/sync/roster`.
 Each channel corresponds to a section of the UI; updates to the state of each
 section of UI are sent over the corresponding channel. The `/sync/viz` channel
 carries state for the map visualization, the `/sync/settings` channel carries
 state for the settings UI, and the `/sync/roster` channel carries state to
-display the user's Google Talk contacts. The top-level `/sync/` channel carries
+display the user's Google Talk contacts. The top-level `/sync` channel carries
 global application state, and may additionally carry state for any of its
 sub-channels by merging it into the top-level state object (explained below).
 
@@ -43,7 +43,7 @@ sub-channels by merging it into the top-level state object (explained below).
 When the bayeux server honors a client's subscription request to a given
 channel, it should immediately publish a message to that channel with the
 necessary state to initialize that portion of the model. So after processing
-a subscription request for the top-level channel `/sync/`, it should
+a subscription request for the top-level channel `/sync`, it should
 immediately publish a message to that channel like
 
 ```json
@@ -115,12 +115,12 @@ not send any update to the frontend if it isn't subscribed to the
 `/sync/roster` channel.
 
 If desired, rather than sending a state update over e.g. the `/sync/viz`
-sub-channel, the server can instead send it over the top-level `/sync/`
+sub-channel, the server can instead send it over the top-level `/sync`
 channel, merging it into the `"viz"` field of a top-level object that can also
 carry additional state in other fields, and the frontend will merge this all
 into its `model` object in a single update. So multiple messages over several
 sub-channels can alternatively be merged into a single message over the
-top-level `/sync/` channel, if it is ever preferable.
+top-level `/sync` channel, if it is ever preferable.
 
 
 ### Subsequent publications: Updating the frontend model
@@ -385,7 +385,7 @@ the backend maintains on the frontend through comet publications:
 
 ### Questions / Comments
 
-* does cometd allow a top-level `/sync/` channel?
+* does cometd allow sub-channels under `/sync`?
 
 * implement delete field via comet update? (see above)
 

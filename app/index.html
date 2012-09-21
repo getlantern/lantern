@@ -7,10 +7,12 @@
     <meta name="description" content="Lantern Dashboard">
     <meta name="author" content="Team Lantern">
 
-    <link href="lib/prettify.css" rel="stylesheet">
     <link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet">
     <link href="_css/app.css" rel="stylesheet">
-    <!--link href="lib/bootstrap/css/bootstrap-responsive.css" rel="stylesheet"-->
+    <!--
+    <link href="lib/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="lib/angular-ui/angular-ui.css">
+    -->
 
     <script src="lib/angular-1.0.2/docs/js/jquery.js"></script>
     <script src="lib/webshims-1.8.13/js-webshim/dev/extras/modernizr-custom.js"></script>
@@ -25,9 +27,8 @@
     <!--
     <script src="lib/angular-1.0.2/i18n/angular-locale_zh-cn.js"></script>
     <script src="lib/angular-1.0.2/i18n/angular-locale_fa-ir.js"></script>
-    -->
-    <script src="lib/prettify.js"></script>
-    <!--
+    <script src="lib/angular-ui/angular-ui.js"></script>
+    <script src="lib/angular-ui/angular-ui-ieshiv.js"></script>
     <script src="lib/lodash.js"></script>
     -->
     <script src="js/app.js"></script>
@@ -37,37 +38,17 @@
     <link rel="shortcut icon" href="img/favicon.ico">
   </head>
 
-  <body>
+  <body ng-controller="RootCtrl"
+        ng-class="{connected: connected(), notconnected: !connected()}">
 
-    <div id="main" ng-controller="StatusCtrl">
-      <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="navbar-inner">
-          <ul class="nav">
-            <li class="active"><a href=#>{{state.userid}}</a></li>
-          </ul>
-          <ul class="nav pull-right">
-            <li><a href=#>Getting Access <i class="icon-off icon-white"></i></a></li>
-          </ul>
-        </div>
-      </div>
+    <dl class="dl-horizontal">
+      <dt>comet connected</dt>
+      <dd>{{connected()}}</dd>
+      <dt>model</dt>
+      <dd><pre>{{model | json}}</pre></dd>
+    </dl>
 
-      <div class="container">
-        <div class="row">
-          <div id="viz">
-            <p class="muted">(map visualization here)</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="navbar navbar-fixed-bottom">
-        <div class="navbar-inner">
-          <ul class="nav pull-right">
-            <li><a href="#"><i class="icon-globe" title="Status"></i></a></li>
-            <li><a href="#"><i class="icon-cog" title="Settings"></i></a></li>
-            <li><a href="#"><i class="icon-user" title="Contacts"></i></a></li>
-          </ul>
-        </div>
-      </div>
+    <div id="mo-disconnected" ng-show="false">
     </div>
 
     <script src="lib/bootstrap/js/bootstrap.js"></script>
