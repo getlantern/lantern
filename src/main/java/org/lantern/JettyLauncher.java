@@ -319,7 +319,7 @@ public class JettyLauncher {
     public void openBrowserWhenReady() {
         while(!server.isStarted()) {
             try {
-                Thread.sleep(100);
+                Thread.sleep(250);
             } catch (final InterruptedException e) {
                 log.info("Interrupted?");
             }
