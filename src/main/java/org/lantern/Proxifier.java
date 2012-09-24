@@ -94,9 +94,11 @@ public class Proxifier {
         final Thread hook = new Thread(new Runnable() {
             @Override
             public void run() {
+                LOG.info("Unproxying on shutdown...");
                 interactiveUnproxy();
+                LOG.info("Finished unproxying on shutdown...");
             }
-        }, "Unset-Web-Proxy-Thread");
+        }, "Unset-Web-Proxy-Shutdown-Thread");
         Runtime.getRuntime().addShutdownHook(hook);
     }
     
