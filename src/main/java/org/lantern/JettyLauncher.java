@@ -1,7 +1,10 @@
 package org.lantern;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Map;
 
 import javax.servlet.GenericServlet;
@@ -12,6 +15,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.cometd.server.CometdServlet;
@@ -212,11 +216,14 @@ public class JettyLauncher {
                 final String offPath = "/proxy_off.pac";
                 final String allPath = "/proxy_all.pac";
                 if (uri.startsWith("/proxy_on") && !uri.equals(onPath)) {
-                    resp.sendRedirect(onPath);
+                    writeFileToResponse(resp, Proxifier.PROXY_ON);
+                    //resp.sendRedirect(onPath);
                 } else if (uri.startsWith("/proxy_off") && !uri.equals(offPath)) {
-                    resp.sendRedirect(offPath);
+                    writeFileToResponse(resp, Proxifier.PROXY_OFF);
+                    //resp.sendRedirect(offPath);
                 } else if (uri.startsWith("/proxy_all") && !uri.equals(allPath)) {
-                    resp.sendRedirect(allPath);
+                    writeFileToResponse(resp, Proxifier.PROXY_ALL);
+                    //resp.sendRedirect(allPath);
                 } else {
                     super.doGet(req, resp);
                 }
@@ -288,7 +295,24 @@ public class JettyLauncher {
         serve.setDaemon(true);
         serve.start();
     }
-    
+
+
+    private void writeFileToResponse(final HttpServletResponse resp,
+        final File file) {
+        InputStream is = null;
+        OutputStream os = null;
+        try {
+            is = new FileInputStream(file);
+            os = resp.getOutputStream();
+            resp.setContentLength((int) file.length());
+            IOUtils.copyLarge(is, os);
+        } catch (final IOException e) {
+            log.error("Could not write response?", e);
+        } finally {
+            IOUtils.closeQuietly(is);
+            IOUtils.closeQuietly(os);
+        }
+    }
 
     public void stop() {
         log.info("Stopping Jetty server...");
