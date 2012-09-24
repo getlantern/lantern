@@ -102,11 +102,15 @@ public class Proxifier {
     
     
     private static void copyFromLocal(final File dest) {
-        final File all = new File(dest.getName());
+        final File local = new File(dest.getName());
+        if (!local.isFile()) {
+            LOG.error("No file at: {}", local);
+            return;
+        }
         try {
-            Files.copy(all, dest);
+            Files.copy(local, dest);
         } catch (final IOException e) {
-            LOG.error("Could not copy from {} to {}", all, dest);
+            LOG.error("Error copying file from "+local+" to "+ dest, e);
         }
     }
     
