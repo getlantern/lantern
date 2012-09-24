@@ -517,6 +517,9 @@ public class DefaultXmppHandler implements XmppHandler {
         
         peerProxySet.clear();
         this.closedBetaEvent = null;
+        
+        // This is mostly logged for debugging thorny shutdown issues...
+        LOG.info("Finished disconnecting XMPP...");
     }
 
     private void processLanternHubMessage(final Message msg) {
