@@ -37,12 +37,12 @@ public class Proxifier {
     private static final MacProxyManager mpm = 
         new MacProxyManager("testId", 4291);
     
-    private static final File PROXY_ON = 
-        new File(LanternHub.jettyLauncher().getResourceBaseFile(), "proxy_on.pac");
-    private static final File PROXY_OFF = 
-        new File(LanternHub.jettyLauncher().getResourceBaseFile(), "proxy_off.pac");
-    private static final File PROXY_ALL = 
-        new File(LanternHub.jettyLauncher().getResourceBaseFile(), "proxy_all.pac");
+    public static final File PROXY_ON = 
+        new File(LanternConstants.CONFIG_DIR, "proxy_on.pac");
+    public static final File PROXY_OFF = 
+        new File(LanternConstants.CONFIG_DIR, "proxy_off.pac");
+    public static final File PROXY_ALL = 
+        new File(LanternConstants.CONFIG_DIR, "proxy_all.pac");
     
     static {
         copyFromLocal(PROXY_ON);
@@ -105,6 +105,10 @@ public class Proxifier {
         final File local = new File(dest.getName());
         if (!local.isFile()) {
             LOG.error("No file at: {}", local);
+            return;
+        }
+        if (!dest.getParentFile().isDirectory()) {
+            LOG.error("No directory at: {}", dest.getParentFile());
             return;
         }
         try {
