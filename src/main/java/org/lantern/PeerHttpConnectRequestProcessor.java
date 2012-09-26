@@ -37,7 +37,7 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
     @Override
     public boolean processRequest(final Channel browserToProxyChannel,
         final ChannelHandlerContext ctx, final MessageEvent me) 
-        throws IOException {
+        {
         
         if (!configured.getAndSet(true)) {
             browserToProxyChannel.setReadable(false);
@@ -67,16 +67,20 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
         log.info("Processing request...");
         // Lantern's a transparent proxy here, so we forward the HTTP CONNECT
         // message to the remote peer.
-        final OutputStream os = this.sock.getOutputStream();
         final HttpRequest request = (HttpRequest) me.getMessage();
         try {
+            final OutputStream os = this.sock.getOutputStream();
             final byte[] data = LanternUtils.toByteBuffer(request, ctx);
             log.info("Writing data on peer socket: {}", new String(data, "UTF-8"));
             os.write(data);
             // shady, hard to know if it's really been done
             LanternHub.statsTracker().addUpBytesViaProxies(data.length, this.sock);
+        } catch (final IOException e) {
+            log.error("Could not write to stream?", e);
+            return false;
         } catch (final Exception e) {
             log.error("Could not encode request?", e);
+            return false;
         }
         return true;
     }
