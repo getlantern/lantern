@@ -188,7 +188,7 @@ public class JettyLauncher {
                 IOException {
                 final String userAgent = req.getParameter(HttpHeaders.Names.USER_AGENT);
                 if (StringUtils.isNotBlank(userAgent) && (userAgent.contains("MSIE 6")
-                        || userAgent.contains("MSIE 7")) {
+                        || userAgent.contains("MSIE 7"))) {
                     // If the user is running IE6 or 7, we want to close the dashboard and
                     // pop up a message telling them to download a newer version.
                     
