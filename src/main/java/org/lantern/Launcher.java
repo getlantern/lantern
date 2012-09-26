@@ -610,18 +610,18 @@ public class Launcher {
             new NioServerSocketChannelFactory(
                 Executors.newCachedThreadPool(
                     new ThreadFactoryBuilder().setNameFormat(
-                        "Lantern-Netty-Server-Boss-Thread-%d").build()),
+                        "Lantern-Netty-Server-Boss-Thread-%d").setDaemon(true).build()),
                 Executors.newCachedThreadPool(
                     new ThreadFactoryBuilder().setNameFormat(
-                        "Lantern-Netty-Server-Worker-Thread-%d").build()));
+                        "Lantern-Netty-Server-Worker-Thread-%d").setDaemon(true).build()));
         final ClientSocketChannelFactory clientChannelFactory = 
             new NioClientSocketChannelFactory(
                 Executors.newCachedThreadPool(
                     new ThreadFactoryBuilder().setNameFormat(
-                        "Lantern-Netty-Client-Boss-Thread-%d").build()),
+                        "Lantern-Netty-Client-Boss-Thread-%d").setDaemon(true).build()),
                 Executors.newCachedThreadPool(
                     new ThreadFactoryBuilder().setNameFormat(
-                        "Lantern-Netty-Client-Worker-Thread-%d").build()));
+                        "Lantern-Netty-Client-Worker-Thread-%d").setDaemon(true).build()));
         
         final ChannelGroup channelGroup = 
             new DefaultChannelGroup("Local-HTTP-Proxy-Server");

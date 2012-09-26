@@ -37,12 +37,12 @@ public class Proxifier {
     private static final MacProxyManager mpm = 
         new MacProxyManager("testId", 4291);
     
-    private static final File PROXY_ON = 
-        new File(LanternHub.jettyLauncher().getResourceBaseFile(), "proxy_on.pac");
-    private static final File PROXY_OFF = 
-        new File(LanternHub.jettyLauncher().getResourceBaseFile(), "proxy_off.pac");
-    private static final File PROXY_ALL = 
-        new File(LanternHub.jettyLauncher().getResourceBaseFile(), "proxy_all.pac");
+    public static final File PROXY_ON = 
+        new File(LanternConstants.CONFIG_DIR, "proxy_on.pac");
+    public static final File PROXY_OFF = 
+        new File(LanternConstants.CONFIG_DIR, "proxy_off.pac");
+    public static final File PROXY_ALL = 
+        new File(LanternConstants.CONFIG_DIR, "proxy_all.pac");
     
     static {
         copyFromLocal(PROXY_ON);
@@ -94,19 +94,29 @@ public class Proxifier {
         final Thread hook = new Thread(new Runnable() {
             @Override
             public void run() {
+                LOG.info("Unproxying on shutdown...");
                 interactiveUnproxy();
+                LOG.info("Finished unproxying on shutdown...");
             }
-        }, "Unset-Web-Proxy-Thread");
+        }, "Unset-Web-Proxy-Shutdown-Thread");
         Runtime.getRuntime().addShutdownHook(hook);
     }
     
     
     private static void copyFromLocal(final File dest) {
-        final File all = new File(dest.getName());
+        final File local = new File(dest.getName());
+        if (!local.isFile()) {
+            LOG.error("No file at: {}", local);
+            return;
+        }
+        if (!dest.getParentFile().isDirectory()) {
+            LOG.error("No directory at: {}", dest.getParentFile());
+            return;
+        }
         try {
-            Files.copy(all, dest);
+            Files.copy(local, dest);
         } catch (final IOException e) {
-            LOG.error("Could not copy from {} to {}", all, dest);
+            LOG.error("Error copying file from "+local+" to "+ dest, e);
         }
     }
     

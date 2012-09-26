@@ -9,7 +9,13 @@ desktop systems.
 
 ![screenshot](https://www.getlantern.org/static/img/dl-mac_setup.png)
 
-To run Lantern from source, you need Maven and Java installed. To install maven on OSX with MacPorts installed, you can run:
+To run Lantern from source, you need Maven and Java installed. To install maven on OSX with HomeBrew or MacPorts installed, you can run:
+
+```
+brew install maven
+```
+
+or 
 
 ```
 sudo port install maven3
