@@ -72,7 +72,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     public HttpRequestProcessor processRequest(
         final Channel browserToProxyChannel, final ChannelHandlerContext ctx, 
         final MessageEvent me) throws IOException {
-        log.info("Processing request...sockets in queue {} on this {}", 
+        log.debug("Processing request...sockets in queue {} on this {}", 
             this.timedSockets.size(), this);
         
         final ConnectionTimeSocket cts;
@@ -82,7 +82,15 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             // This means there's no socket available.
             return null;
         }
-        cts.requestProcessor.processRequest(browserToProxyChannel, ctx, me);
+        if (!cts.requestProcessor.processRequest(browserToProxyChannel, ctx, me)) {
+            log.info("Peer could not process the request...");
+            // We return null here because that's how the dispatcher knows of
+            // failures on peers.
+            
+            // TODO: We could also move on to other peers in this case instead
+            // of falling back to centralized nodes.
+            return null;
+        }
         
         // When we use sockets we replace them.
         final int socketsToFetch;
