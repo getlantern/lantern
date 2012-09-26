@@ -183,8 +183,9 @@ public class JettyLauncher {
                 final HttpServletResponse resp) throws ServletException, 
                 IOException {
                 final String userAgent = req.getParameter(HttpHeaders.Names.USER_AGENT);
-                if (StringUtils.isNotBlank(userAgent) && userAgent.contains("MSIE 6")) {
-                    // If the user is running IE6, we want to close the dashboard and
+                if (StringUtils.isNotBlank(userAgent) && (userAgent.contains("MSIE 6")
+                        || userAgent.contains("MSIE 7")) {
+                    // If the user is running IE6 or 7, we want to close the dashboard and
                     // pop up a message telling them to download a newer version.
                     
                     // NOTE: The above will match older Opera versions too, but we don't
