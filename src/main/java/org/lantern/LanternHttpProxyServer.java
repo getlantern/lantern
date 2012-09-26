@@ -91,7 +91,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
             public void run() {
                 stop();
             }
-        }));
+        }, "LanternHttpProxyServer-Shutdown-Thread"));
         /*
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
             public void run() {
@@ -187,9 +187,11 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         }
         log.info("Stopping timer");
         timer.stop();
-        serverChannelFactory.releaseExternalResources();
-        clientChannelFactory.releaseExternalResources();
         
+        log.info("Releasing server channel external resources...");
+        serverChannelFactory.releaseExternalResources();
+        log.info("Releasing client channel external resources...");
+        clientChannelFactory.releaseExternalResources();
         log.info("Done shutting down proxy");
     }
 }
