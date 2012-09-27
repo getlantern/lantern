@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('app', ['app.services']).
+angular.module('app', ['app.services', 'app.directives']).
   constant('debug', true);
 /*
   config(['$routeProvider', function($routeProvider) {

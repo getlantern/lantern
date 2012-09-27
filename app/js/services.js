@@ -1,3 +1,5 @@
+'use strict';
+
 angular.module('app.services', [])
   // more flexible log service
   // @see https://groups.google.com/d/msg/angular/vgMF3i3Uq2Y/q1fY_iIvkhUJ
@@ -66,8 +68,8 @@ angular.module('app.services', [])
 
     function subscribe(channel, syncHandler) {
       log.debug('subscribing to channel', channel);
-      sub = cometd.subscribe(channel, syncHandler);
-      key = {sub: sub, chan: channel, cb: syncHandler};
+      var sub = cometd.subscribe(channel, syncHandler),
+          key = {sub: sub, chan: channel, cb: syncHandler};
       subscriptions[key] = true;
       return key;
     }
