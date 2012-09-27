@@ -1,0 +1,45 @@
+/**
+ * import components to builds angular-ui.css
+ */
+
+/* ui-reset */
+
+.ui-resetwrap {
+  position: relative;
+  display: inline-block;
+}
+
+.ui-reset {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 2;
+  display: none;
+  height: 100%;
+  cursor: pointer;
+}
+
+.ui-resetwrap:hover .ui-reset {
+  display: block;
+}
+
+/* ui-currency */
+
+.ui-currency-pos {
+  color: green;
+}
+
+.ui-currency-neg {
+  color: red;
+}
+
+.ui-currency-zero {
+  color: blue;
+}
+
+/* highlight */
+
+.ui-match {
+  background: yellow;
+}
+

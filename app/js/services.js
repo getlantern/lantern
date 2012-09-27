@@ -109,13 +109,17 @@ angular.module('app.services', [])
 
     cometd.handshake();
 
-    return {
-      subscribe: subscribe
-      };
-  })
-  .factory('syncedModel', function($rootScope, logFactory, cometd) {
-    //var log = logFactory(...);
+    function publish(channel, msg) {
+      log.debug('publishing on channel', channel, ':', msg);
+      cometd.publish(channel, msg);
+    }
 
+    return {
+      publish: publish,
+      subscribe: subscribe
+    };
+  })
+  .factory('syncedModel', function($rootScope, cometd, SETTINGS_STATE) {
     var model = {};
     var connected = false;
 

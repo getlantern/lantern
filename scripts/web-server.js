@@ -14,7 +14,8 @@ var DEFAULT_PORT = 8000;
 function main(argv) {
   new HttpServer({
     'GET': createServlet(StaticServlet),
-    'HEAD': createServlet(StaticServlet)
+    'HEAD': createServlet(StaticServlet),
+    'POST': createServlet(ApiServlet)
   }).start(Number(argv[2]) || DEFAULT_PORT);
 }
 
@@ -30,6 +31,9 @@ function createServlet(Class) {
   return servlet.handleRequest.bind(servlet);
 }
 
+// XXX
+var bayeux;
+
 /**
  * An Http server implementation that uses a map of methods to decide
  * action routing.
@@ -39,16 +43,16 @@ function createServlet(Class) {
 function HttpServer(handlers) {
   this.handlers = handlers;
   this.server = http.createServer(this.handleRequest_.bind(this));
-  this.bayeux = new faye.NodeAdapter({mount: '/cometd', timeout: 45});
-  this.bayeux.attach(this.server);
+  bayeux = new faye.NodeAdapter({mount: '/cometd', timeout: 45});
+  bayeux.attach(this.server);
 }
 
 HttpServer.prototype.start = function(port) {
   this.port = port;
   this.server.listen(port);
-  sys.puts('Bayeux-attached http Server running at http://localhost:' + port);
+  sys.puts('Bayeux-attached http server running at http://localhost:'+port);
+  sys.puts('Lantern UI running at http://localhost:'+port+'/app/index.html');
 
-  var bayeux = this.bayeux;
   bayeux.bind('handshake', function(clientId) {
     sys.puts('[bayeux] handshake: client ' + clientId);
   });
@@ -57,27 +61,20 @@ HttpServer.prototype.start = function(port) {
     var msg = {
       path:  '',
       value: {
+        lang: 'en',
         settings: {
-          lang: 'en'
+          state: 'locked'
         }
       }
     };
     bayeux._server._engine.publish({channel: channel, data: msg});
     sys.puts('[bayeux] published [channel='+channel+']: '+sys.inspect(msg));
-
-    /*
-    setInterval(function() {
-      state.userid += 1;
-      bayeux._server._engine.publish({channel:channel, data:state});
-    }, 500);
-    */
-
   });
   bayeux.bind('unsubscribe', function(clientId, channel) {
     sys.puts('[bayeux] unsubscribe: client ' + clientId + ', channel ' + channel);
   });
   bayeux.bind('publish', function(clientId, channel, data) {
-    sys.puts('[bayeux] publish: client ' + clientId + ', channel ' + channel + ', data ' + data);
+    sys.puts('[bayeux] publish: client ' + clientId + ', channel ' + channel + ', data ' + sys.inspect(data));
   });
   bayeux.bind('disconnect', function(clientId) {
     sys.puts('[bayeux] disconnect: client ' + clientId);
@@ -107,6 +104,37 @@ HttpServer.prototype.handleRequest_ = function(req, res) {
   } else {
     handler.call(this, req, res);
   }
+};
+
+/**
+ * Mock Dashboard API
+ */
+function ApiServlet() {}
+
+ApiServlet.HandlerMap = {
+  '/api/unlockSettings': function(req, res, parsed) {
+      if (parsed.query.password == 'password') {
+        res.writeHead(200);
+        bayeux._server._engine.publish({channel: '/sync', data: {
+          path: 'settings.state',
+          value: 'unlocked'
+        }});
+      } else {
+        res.writeHead(403);
+      }
+    }
+};
+
+ApiServlet.prototype.handleRequest = function(req, res) {
+  var self = this,
+      parsed = url.parse(req.url, true),
+      handler = ApiServlet.HandlerMap[parsed.pathname];
+  if (handler) {
+    handler(req, res, parsed);
+  } else {
+    res.writeHead(404);
+  }
+  res.end();
 };
 
 /**

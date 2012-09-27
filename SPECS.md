@@ -191,6 +191,13 @@ within the following state document, corresponding to the `model` object which
 the backend maintains on the frontend through comet publications:
 <table>
   <tr>
+    <td><strong>lang</strong><br><em>string</em></td>
+    <td>The system's language setting as a two-letter ISO 639-1 code.
+      <br><br>Determines the language the UI is displayed in when the
+      user's <strong>lang</strong> setting (under <strong>settings</strong>
+      below) is not available (e.g. settings are locked).</td>
+  </tr>
+  <tr>
     <td><strong>setupScreen</strong><br>"welcome" | "signin" | "sysproxy" |
       "finished" | null
     </td>
@@ -317,7 +324,7 @@ the backend maintains on the frontend through comet publications:
         </tr>
         <tr>
           <td><strong>lang</strong><br><em>string</em></td>
-          <td>The UI's language setting as a two-letter ISO 639-1 code.</td>
+          <td>The user's language setting as a two-letter ISO 639-1 code.</td>
         </tr>
         <tr>
           <td><strong>startAtLogin</strong><br><em>boolean</em></td>

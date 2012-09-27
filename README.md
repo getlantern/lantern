@@ -56,11 +56,10 @@ the stylesheets:
 Start up the Node.js server simulating the Lantern backend:
 
     $ scripts/web-server.js
-    Http Server running at http://localhost:8000/
+    Bayeux-attached http server running at http://localhost:8000
 
 1. The new UI should now be available at
    [http://localhost:8000/app/index.html](http://localhost:8000/app/index.html)
-
 
 The UI is implemented as an [AngularJS](http://angularjs.org) app. As
 recommended, this repo was started with the

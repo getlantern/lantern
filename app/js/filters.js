@@ -5,8 +5,8 @@ angular.module('app.filters', [])
   // @see https://groups.google.com/d/msg/angular/641c1ykOX4k/hcXI5HsSD5MJ
   .filter('i18n', function(syncedModel, defaultLang, translations) {
     return function(key) {
-      var lang = syncedModel.connected() ?
-                 syncedModel.model.settings.lang :
+      var lang = (syncedModel.model.settings || {}).lang ||
+                 syncedModel.model.lang ||
                  defaultLang;
       return translations[lang][key] ||
              translations[defaultLang][key] ||

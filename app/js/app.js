@@ -1,7 +1,12 @@
 'use strict';
 
-angular.module('app', ['app.i18n', 'app.filters', 'app.services', 'app.directives'])
-  .constant('debug', true);
+angular.module('app', ['app.i18n', 'app.filters', 'app.services', 'app.directives', 'ui'])
+  .constant('debug', true)
+  .constant('SETTINGS_STATE', {
+    LOCKED: 'locked',
+    UNLOCKED: 'unlocked',
+    CORRUPT: 'corrupt'
+  });
 /*
   config(['$routeProvider', function($routeProvider) {
   $routeProvider.
