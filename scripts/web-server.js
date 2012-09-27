@@ -57,10 +57,11 @@ HttpServer.prototype.start = function(port) {
     var msg = {
       path:  '',
       value: {
-        foo: 'bar',
-        baz: 'fleem'
+        settings: {
+          lang: 'en'
         }
-      };
+      }
+    };
     bayeux._server._engine.publish({channel: channel, data: msg});
     sys.puts('[bayeux] published [channel='+channel+']: '+sys.inspect(msg));
 

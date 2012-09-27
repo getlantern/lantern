@@ -34,10 +34,9 @@
     <script src="js/app.js"></script>
     <script src="js/services.js"></script>
     <script src="js/controllers.js"></script>
-    <!--
     <script src="js/filters.js"></script>
-    -->
     <script src="js/directives.js"></script>
+    <script src="js/i18n.js"></script>
 
     <link rel="shortcut icon" href="img/favicon.ico">
   </head>
@@ -45,7 +44,7 @@
   <body ng-controller="RootCtrl" ng-cloak>
 
     <div x-block-input ng-hide="connected()">
-      Waiting for Lantern...<br>
+      <div>{{ 'WAITINGFORLANTERN' | i18n }}</div>
       <img src="lib/webshims/css/polyfill-loader.gif">
     </div>
 

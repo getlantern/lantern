@@ -127,7 +127,9 @@ angular.module('app.services', [])
         if (name) {
           lastObj = obj;
           obj = obj[property=name];
-          obj || lastObj[property] = obj = {};
+          if (!obj) {
+            lastObj[property] = obj = {};
+          }
         }
       });
       lastObj[property] = angular.copy(value);
