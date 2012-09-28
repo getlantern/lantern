@@ -49,8 +49,8 @@
       <img src="lib/webshims/css/polyfill-loader.gif">
     </div>
 
-    <div ng-controller="UnlockSettingsCtrl" ui-modal ng-model="show"
-         class="fade" data-backdrop="static" data-keyboard="false">
+    <div id="unlock" ng-controller="UnlockSettingsCtrl" ng-model="show"
+         ui-modal class="fade" data-backdrop="static" data-keyboard="false">
       <div class="modal-header">
         <h3>{{ 'UNLOCK_SETTINGS_TITLE' | i18n }}</h3>
       </div>
@@ -59,7 +59,7 @@
           <span class="help-block">{{ 'UNLOCK_SETTINGS_PROMPT' | i18n }}</span>
           <br>
           <div class="control-group" ng-class="{error: unlockForm.password.$pristine && unlockForm.password.$error.invalid}">
-            <div class="controls">
+            <div class="controls pagination-centered">
               <div class="input-append">
                 <input type="password" ng-model="password" autofocus required
                        name="password" placeholder="{{ 'PASSWORD' | i18n }}">
@@ -71,6 +71,27 @@
           </div>
         </div>
       </form>
+    </div>
+
+    <div id="corrupt" ng-controller="CorruptSettingsCtrl" ng-model="show"
+         ui-modal class="fade" data-backdrop="static" data-keyboard="false">
+      <div class="modal-header">
+        <h3>{{ 'CORRUPT_SETTINGS_TITLE' | i18n }}</h3>
+      </div>
+      <div class="modal-body">
+        <span class="help-block">{{ 'CORRUPT_SETTINGS_PROMPT' | i18n }}</span>
+        <form class="form-inline pagination-centered">
+          <label class="checkbox">
+            <input type="checkbox" ng-model="notifyLanternDevs">
+            {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
+          </label>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <span class="pull-left text-error" ui-toggle="error">{{ 'UNEXPECTED_ERROR' | i18n }}</span>
+        <button ng-click="maybeNotify(); reset()" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
+        <button ng-click="maybeNotify(); quit()" class="btn btn-primary">{{ 'QUIT' | i18n }}</button>
+      </div>
     </div>
 
     <div id="debug" ng-controller="DebugCtrl" ng-show="debug">

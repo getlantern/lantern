@@ -11,19 +11,18 @@
 }
 
 /* line 21, ../../sass/app.sass */
-form[name=unlockForm] .modal-body .controls {
-  text-align: center;
-}
-
-/* line 24, ../../sass/app.sass */
 #debug {
   position: fixed;
+  left: 0;
+  right: 0;
   bottom: 0;
   max-height: 20%;
-  width: 100%;
   overflow: scroll;
-  background-color: white;
-  border-top: 1px #cccccc dotted;
   padding: 20px;
   z-index: 5000;
+}
+
+/* line 31, ../../sass/app.sass */
+#debug-content {
+  background-color: white;
 }

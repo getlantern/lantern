@@ -25,6 +25,43 @@ function UnlockSettingsCtrl($scope, $http, logFactory, SETTINGS_STATE) {
   };
 }
 
+function CorruptSettingsCtrl($scope, $http, logFactory, SETTINGS_STATE) {
+  var log = logFactory('CorruptSettingsCtrl');
+  $scope.notifyLanternDevs = true;
+  $scope.show = false;
+  $scope.$watch('model.settings.state', function(val) {
+    $scope.show = val == SETTINGS_STATE.CORRUPT;
+  });
+
+  $scope.maybeNotify = function() {
+    if ($scope.notifyLanternDevs) {
+      log.warn('Notify Lantern developers not yet implemented');
+    }
+  };
+
+  function handleError(data, status, headers, config) {
+    $scope.error = true;
+  }
+
+  $scope.reset = function() {
+    $scope.error = false;
+    $http.post('/api/resetSettings')
+      .success(function(data, status, headers, config) {
+        log.debug('reset settings');
+      })
+      .error(handleError);
+  };
+
+  $scope.quit = function() {
+    $scope.error = false;
+    $http.post('/api/quit')
+      .success(function(data, status, headers, config) {
+        log.debug('quit');
+      })
+      .error(handleError);
+  };
+}
+
 function DebugCtrl($scope, debug, logFactory) {
   var log = logFactory('DebugCtrl');
   $scope.debug = debug;
