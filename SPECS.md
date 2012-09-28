@@ -319,7 +319,7 @@ the backend maintains on the frontend through comet publications:
           <td>Whether the user's Google Talk password has been saved.</td>
         </tr>
         <tr>
-          <td><strong>ninvites</strong><br><em>integer</em></td>
+          <td><strong>invites</strong><br><em>integer</em></td>
           <td>The number of private beta invites the user has remaining.</td>
         </tr>
         <tr>

@@ -11,18 +11,37 @@
 }
 
 /* line 21, ../../sass/app.sass */
-#debug {
+#sanity {
+  z-index: 5002;
+}
+
+/* line 24, ../../sass/app.sass */
+#developer {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  max-height: 20%;
+  max-height: 30%;
   overflow: scroll;
-  padding: 20px;
   z-index: 5000;
 }
 
-/* line 31, ../../sass/app.sass */
-#debug-content {
+/* line 33, ../../sass/app.sass */
+#developer-content {
   background-color: white;
+  border-top: 1px #333333 solid;
+}
+/* line 36, ../../sass/app.sass */
+#developer-content * {
+  font-size: 10pt;
+}
+/* line 38, ../../sass/app.sass */
+#developer-content pre {
+  font-size: 7pt;
+  max-height: 80px;
+  overflow: scroll;
+}
+/* line 42, ../../sass/app.sass */
+#developer-content .controls.row .span-4:first-child {
+  margin-left: 0;
 }

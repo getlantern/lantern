@@ -18,15 +18,26 @@ $experimental-support-for-opera: false
 //body
   padding: 50px
 
-#debug
+#sanity
+  z-index: 5002
+
+#developer
   position: fixed
   left: 0
   right: 0
   bottom: 0
-  max-height: 20%
+  max-height: 30%
   overflow: scroll
-  padding: 20px
   z-index: 5000
 
-#debug-content
+#developer-content
   background-color: #fff
+  border-top: 1px rgb(51, 51, 51) solid
+  *
+    font-size: 10pt
+  pre
+    font-size: 7pt
+    max-height: 80px
+    overflow: scroll
+  .controls.row .span-4:first-child
+    margin-left: 0

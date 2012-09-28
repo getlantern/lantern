@@ -33,6 +33,25 @@ function createServlet(Class) {
 
 // XXX
 var bayeux;
+var model = {settings: {}};
+function sync(obj, path, value){
+  var lastObj = obj;
+  var property;
+  path.split('.').forEach(function(name) {
+    if (name) {
+      lastObj = obj;
+      obj = obj[property=name];
+      if (!obj) {
+        lastObj[property] = obj = {};
+      }
+    }
+  });
+  if (typeof property != 'undefined') {
+    lastObj[property] = value;
+  } else {
+    lastObj = value;
+  }
+}
 
 /**
  * An Http server implementation that uses a map of methods to decide
@@ -54,27 +73,25 @@ HttpServer.prototype.start = function(port) {
   sys.puts('Lantern UI running at http://localhost:'+port+'/app/index.html');
 
   bayeux.bind('handshake', function(clientId) {
-    sys.puts('[bayeux] handshake: client ' + clientId);
+    sys.puts('[bayeux] handshake: client: ' + clientId);
   });
   bayeux.bind('subscribe', function(clientId, channel) {
-    sys.puts('[bayeux] subscribe: client ' + clientId + ', channel ' + channel);
-    var msg = {
-      path:  '',
-      value: {
-        lang: 'en',
-        settings: {
-          state: 'locked'
-        }
-      }
-    };
-    bayeux._server._engine.publish({channel: channel, data: msg});
-    sys.puts('[bayeux] published [channel='+channel+']: '+sys.inspect(msg));
+    sys.puts('[bayeux] subscribe: client: ' + clientId + ', channel: ' + channel);
+    if (channel == '/sync') {
+      var data = {path:  '', value: model},
+           msg = {channel: channel, clientId: clientId, data: data};
+      //sys.puts('[bayeux] subscribe: calling publish with msg:\n' + sys.inspect(msg));
+      bayeux._server._engine.publish(msg);
+    }
   });
   bayeux.bind('unsubscribe', function(clientId, channel) {
     sys.puts('[bayeux] unsubscribe: client ' + clientId + ', channel ' + channel);
   });
   bayeux.bind('publish', function(clientId, channel, data) {
-    sys.puts('[bayeux] publish: client ' + clientId + ', channel ' + channel + ', data ' + sys.inspect(data));
+    //sys.puts('[bayeux] publish: client: ' + clientId + ', channel: ' + channel + ', data:\n' + sys.inspect(data));
+    if (channel == '/sync') {
+      sync(model, data.path, data.value);
+    }
   });
   bayeux.bind('disconnect', function(clientId) {
     sys.puts('[bayeux] disconnect: client ' + clientId);
@@ -115,6 +132,7 @@ ApiServlet.HandlerMap = {
   '/api/unlockSettings': function(req, res, parsed) {
       if (parsed.query.password == 'password') {
         res.writeHead(200);
+        model.settings.state = 'unlocked';
         bayeux._server._engine.publish({channel: '/sync', data: {
           path: 'settings.state',
           value: 'unlocked'
