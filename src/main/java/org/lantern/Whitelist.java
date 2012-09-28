@@ -85,7 +85,7 @@ public class Whitelist {
         "hk.nextmedia.com",
         "inmediahk.net",
         "pchome.com.tw",
-        "idv.tw",
+        "blog.idv.tw",
         "pixnet.net",
         "roodo.com",
         "wretch.cc",
