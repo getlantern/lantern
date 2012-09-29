@@ -389,9 +389,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         
         final ChannelPipeline browserPipeline = 
             browserToProxyChannel.getPipeline();
-        browserPipeline.remove("encoder");
-        browserPipeline.remove("decoder");
-        browserPipeline.remove("handler");
+        remove(browserPipeline, "encoder");
+        remove(browserPipeline, "decoder");
+        remove(browserPipeline, "handler");
+        remove(browserPipeline, "encoder");
         browserPipeline.addLast("handler", 
             new HttpConnectRelayingHandler(cf.getChannel(), 
                 this.channelGroup));
@@ -431,6 +432,13 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         });
         
         return cf;
+    }
+
+    private void remove(final ChannelPipeline cp, final String name) {
+        final ChannelHandler ch = cp.get(name);
+        if (ch != null) {
+            cp.remove(name);
+        }
     }
 
     @Override 
