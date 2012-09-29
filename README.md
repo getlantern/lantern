@@ -15,7 +15,9 @@ desktop systems.
 1. Ensure you have the requirements installed:
 
     * [git](http://git-scm.com/) (`brew install git`, `port install git-core`, etc.)
+    
     * [Java 1.6+](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+    
     * [Maven](http://maven.apache.org/download.html) (`brew install maven`, `port install maven3`, etc.)
 
 2. Clone the repository:
