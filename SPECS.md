@@ -198,10 +198,11 @@ the backend maintains on the frontend through comet publications:
       below) is not available (e.g. settings are locked).</td>
   </tr>
   <tr>
-    <td><strong>setupScreen</strong><br>"welcome" | "signin" | "sysproxy" |
-      "finished"
+    <td><strong>setupScreen</strong><br>"setPassword" | "welcome" | "signin" |
+      "sysproxy" | "finished" | ""
     </td>
-    <td>If present, the UI will display the corresponding modal setup screen.
+    <td>Instructs the UI to display the corresponding modal setup screen.
+      A value of empty string means no setup screen should be displayed.
       <br><br><em>Replaces the boolean <code>initialSetupComplete</code>
         in the old UI, shifting the logic of determining which setup screen
         to display to the backend.</em>
@@ -245,9 +246,9 @@ the backend maintains on the frontend through comet publications:
           </td>
         </tr>
         <tr>
-          <td><strong>protocol</strong><br><em>array</em></td>
-          <td>The major, minor, and patch revisions of the update protocol
-            version, maintained
+          <td><strong>api</strong><br><em>array</em></td>
+          <td>The major, minor, and patch revisions of the http
+            api version, maintained
             <a href="http://semver.org/">semantically</a>, e.g.
             <code>[0, 1, 2]</code>.
           </td>
@@ -297,11 +298,12 @@ the backend maintains on the frontend through comet publications:
     <td>
       <table>
         <tr>
-          <td><strong>state</strong><br>"locked" | "unlocked" | "corrupt"</td>
-          <td>If "locked", the frontend will prompt the user for her Lantern
-            password to unlock her encrypted settings. If "corrupt", the
-            frontend will notify the user and block all user interaction
-            besides quit and reset.
+          <td><strong>state</strong><br>"locked" | "unlocked" | "couldNotLoad"</td>
+          <td>If "locked", the UI will prompt the user for her Lantern
+            password to unlock her encrypted settings. If "couldNotLoad",
+            the UI will notify the user and block all user interaction besides
+            quit and reset. Otherwise, the settings state is "unlocked" and
+            Lantern can proceed.
           </td>
         </tr>
         <tr>

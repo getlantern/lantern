@@ -129,7 +129,15 @@ HttpServer.prototype.handleRequest_ = function(req, res) {
 function ApiServlet() {}
 
 ApiServlet.HandlerMap = {
-  '/api/unlockSettings': function(req, res, parsed) {
+  '/api/0.0.1/settings/secure': function(req, res, parsed) {
+      res.writeHead(200);
+      model.settings.state = 'unlocked';
+      bayeux._server._engine.publish({channel: '/sync', data: {
+        path: 'setupScreen',
+        value: 'welcome'
+      }});
+    },
+  '/api/0.0.1/settings/unlock': function(req, res, parsed) {
       if (parsed.query.password == 'password') {
         res.writeHead(200);
         model.settings.state = 'unlocked';

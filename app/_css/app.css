@@ -10,12 +10,17 @@
   opacity: 0;
 }
 
-/* line 21, ../../sass/app.sass */
+/* line 22, ../../sass/app.sass */
+.modal form {
+  margin-bottom: 0;
+}
+
+/* line 28, ../../sass/app.sass */
 #sanity {
   z-index: 5002;
 }
 
-/* line 24, ../../sass/app.sass */
+/* line 31, ../../sass/app.sass */
 #developer {
   position: fixed;
   left: 0;
@@ -26,22 +31,22 @@
   z-index: 5000;
 }
 
-/* line 33, ../../sass/app.sass */
+/* line 40, ../../sass/app.sass */
 #developer-content {
   background-color: white;
   border-top: 1px #333333 solid;
 }
-/* line 36, ../../sass/app.sass */
+/* line 43, ../../sass/app.sass */
 #developer-content * {
   font-size: 10pt;
 }
-/* line 38, ../../sass/app.sass */
+/* line 45, ../../sass/app.sass */
 #developer-content pre {
   font-size: 7pt;
   max-height: 80px;
   overflow: scroll;
 }
-/* line 42, ../../sass/app.sass */
+/* line 49, ../../sass/app.sass */
 #developer-content .controls.row .span-4:first-child {
   margin-left: 0;
 }

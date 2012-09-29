@@ -47,6 +47,8 @@
       <img src="lib/webshims/css/polyfill-loader.gif">
     </div>
 
+    <!-- modal dialogs -->
+
     <div id="sanity" ng-controller="SanityCtrl" ng-model="show"
          ui-modal class="fade" data-backdrop="static" data-keyboard="false">
       <div class="modal-header">
@@ -68,12 +70,12 @@
       </div>
     </div>
 
-    <div id="unlock" ng-controller="UnlockSettingsCtrl" ng-model="show"
-         ui-modal class="fade" data-backdrop="static" data-keyboard="false">
+    <div id="settings-locked" ng-controller="SettingsLockedCtrl" ui-modal
+         ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
       <div class="modal-header">
         <h3>{{ 'UNLOCK_SETTINGS_TITLE' | i18n }}</h3>
       </div>
-      <form name="unlockForm" ng-submit="unlockForm.$valid && submit(password)">
+      <form name="unlockForm" ng-submit="submit(password)">
         <div class="modal-body">
           <span class="help-block">{{ 'UNLOCK_SETTINGS_PROMPT' | i18n }}</span>
           <br>
@@ -92,13 +94,13 @@
       </form>
     </div>
 
-    <div id="corrupt" ng-controller="CorruptSettingsCtrl" ng-model="show"
-         ui-modal class="fade" data-backdrop="static" data-keyboard="false">
+    <div id="settings-couldNotLoad" ng-controller="SettingsCouldNotLoadCtrl" ui-modal
+         ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
       <div class="modal-header">
-        <h3>{{ 'CORRUPT_SETTINGS_TITLE' | i18n }}</h3>
+        <h3>{{ 'COULDNOTLOAD_SETTINGS_TITLE' | i18n }}</h3>
       </div>
       <div class="modal-body">
-        <span class="help-block">{{ 'CORRUPT_SETTINGS_PROMPT' | i18n }}</span>
+        <span class="help-block">{{ 'COULDNOTLOAD_SETTINGS_PROMPT' | i18n }}</span>
         <form class="form-inline pagination-centered">
           <label class="checkbox">
             <input type="checkbox" ng-model="notifyLanternDevs">
@@ -113,6 +115,38 @@
       </div>
     </div>
 
+    <!-- setup screens -->
+
+    <div id="setup-setpassword" ng-controller="SetupSetPasswordCtrl" ui-modal
+         ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+      <div class="modal-header">
+        <h3>{{ 'SETPASSWORD_TITLE' | i18n }}</h3>
+      </div>
+      <form name="setPasswordForm" ng-submit="setPasswordForm.$valid && submit(password)">
+        <div class="modal-body">
+          <span class="help-block">{{ 'SETPASSWORD_PROMPT' | i18n }}</span>
+          <br>
+          <div class="control-group">
+            <div class="controls pagination-centered">
+              <input type="password" ng-model="password1" autofocus required
+                     name="password1" placeholder="{{ 'PASSWORD' | i18n }}">
+            </div>
+          </div>
+          <div class="control-group" ng-class="{error: setPasswordForm.password2.$dirty && setPasswordForm.password2.$invalid}">
+            <div class="controls pagination-centered">
+              <input type="password" ng-model="password2" name="password2"
+                     required placeholder="{{ 'PASSWORD_CONFIRM' | i18n }}">
+              <span class="help-block" ui-toggle="setPasswordForm.password2.$dirty && setPasswordForm.password2.$invalid">{{ 'PASSWORDS_MUST_MATCH' | i18n }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" ng-disabled="!setPasswordForm.$valid"
+                  class="btn btn-primary">{{ 'SET' | i18n }}</button>
+        </div>
+      </form>
+    </div>
+
     <div id="developer" ng-controller="DevCtrl" ng-show="show">
       <button class="btn" data-toggle="collapse" data-target="#developer-content">Developer</button>
       <div id="developer-content" class="collapse in">
@@ -124,7 +158,7 @@
               <label class="control-label">settings</label>
               <div class="controls row">
                 <div class="span-4">
-                  <label><input type="text" ng-model="model.settings.state" placeholder="locked, unlocked, corrupt"> state</label>
+                  <label><input type="text" ng-model="model.settings.state" placeholder="locked, unlocked, couldNotLoad"> state</label>
                   <label><input type="text" ng-model="model.settings.userid" placeholder="user@example.com"> userid</label>
                   <label><input type="text" placeholder="0" ng-model="model.settings.invites"> invites</label>
                   <label><input type="text" ng-model="model.settings.lang" placeholder="en"> lang</label>
@@ -149,7 +183,7 @@
             <div class="control-group">
               <label class="control-label">setupScreen</label>
               <div class="controls">
-                <input type="text" ng-model="model.setupScreen" placeholder="welcome, signin, sysproxy, finished">
+                <input type="text" ng-model="model.setupScreen" placeholder="setPassword, welcome, signin, sysproxy, finished">
               </div>
             </div>
             <div class="control-group">
@@ -170,7 +204,7 @@
               <label class="control-label">version</label>
               <div class="controls">
                 <label><input type="text" placeholder="0.20.3-sha1 beta" ng-model="model.version.app"> app</label>
-                <label><input type="text" placeholder="x.y.z" ng-model="model.version.protocol"> protocol</label>
+                <label><input type="text" placeholder="[0, 0, 1]" ng-model="model.version.api"> api</label>
               </div>
             </div>
             <div class="control-group">

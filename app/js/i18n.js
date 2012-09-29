@@ -12,12 +12,17 @@ angular.module('app.i18n', [])
       UNLOCK_SETTINGS_TITLE: 'Unlock Settings',
       UNLOCK_SETTINGS_PROMPT: 'Enter your Lantern password to unlock your settings.',
       PASSWORD: 'password',
+      PASSWORD_CONFIRM: 'confirm password',
+      SET: 'Set',
+      PASSWORDS_MUST_MATCH: 'Passwords must match',
       PASSWORD_INVALID: 'Password invalid',
       UNLOCK: 'Unlock',
-      CORRUPT_SETTINGS_TITLE: 'Couldn’t Load Settings',
-      CORRUPT_SETTINGS_PROMPT: 'Your settings could not be loaded and may be corrupt. Choose Reset to make a backup and then start over, or choose Quit to try to resolve the problem later.', // XXX we currently don't back up settings before wiping them
+      COULDNOTLOAD_SETTINGS_TITLE: 'Couldn’t Load Settings',
+      COULDNOTLOAD_SETTINGS_PROMPT: 'Your settings could not be loaded and may be corrupt. Choose Reset to make a backup and then start over, or choose Quit to try to resolve the problem later.', // XXX we currently don't back up settings before wiping them
       NOTIFY_LANTERN_DEVS: 'Notify Lantern developers',
       UNEXPECTED_ERROR: 'An unexpected error has occurred.',
-      QUIT: 'Quit'
+      QUIT: 'Quit',
+      SETPASSWORD_TITLE: 'Set Password',
+      SETPASSWORD_PROMPT: 'Set your Lantern password so your information can be stored securely.',
     }
   });

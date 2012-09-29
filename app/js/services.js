@@ -1,23 +1,26 @@
 'use strict';
 
 angular.module('app.services', [])
+  .constant('apiVersion', '0.0.1')
   // enums
   .constant('SETTINGS_STATE', {
     locked: 'locked',
     unlocked: 'unlocked',
-    corrupt: 'corrupt'
+    couldNotLoad: 'couldNotLoad'
   })
-  .constant('SETUP_SCREENS', {
+  .constant('SETUP_SCREEN', {
+    setPassword: 'setPassword',
     welcome: 'welcome',
     signin: 'signin',
     sysproxy: 'sysproxy',
-    finished: 'finished'
+    finished: 'finished',
+    '': ''
   })
   // enum service
-  .factory('enums', function(SETTINGS_STATE, SETUP_SCREENS) {
+  .factory('enums', function(SETTINGS_STATE, SETUP_SCREEN) {
     return {
       SETTINGS_STATE: SETTINGS_STATE,
-      SETUP_SCREENS: SETUP_SCREENS
+      SETUP_SCREEN: SETUP_SCREEN
     };
   })
   // more flexible log service
@@ -157,7 +160,7 @@ angular.module('app.services', [])
         setupScreen: {
           type: 'string',
           description: 'If present, Lantern UI displays the corresponding setup screen.',
-          'enum': Object.keys(enums.SETUP_SCREENS)
+          'enum': Object.keys(enums.SETUP_SCREEN)
         }
       }
     };
@@ -248,5 +251,15 @@ angular.module('app.services', [])
       get: function(path) { return get(model, path); },
       sane: function(){ return _.all(sanityMap); },
       connected: function(){ return connected; }
+    };
+  })
+  .service('apiSrvc', function(apiVersion) {
+    return {
+      urlfor: function(endpoint, params) {
+          var query = _.reduce(params, function(acc, val, key) {
+              return acc+encodeURIComponent(key)+'='+encodeURIComponent(val)+'&';
+            }, '?');
+          return '/api/'+apiVersion+'/'+endpoint+query;
+        }
     };
   });

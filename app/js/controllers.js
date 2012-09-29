@@ -50,22 +50,22 @@ function SanityCtrl($scope, modelSrvc) {
   });
 }
 
-function CorruptSettingsCtrl($scope, modelSrvc, SETTINGS_STATE) {
+function SettingsCouldNotLoadCtrl($scope, SETTINGS_STATE) {
   $scope.show = false;
   $scope.$watch('model.settings.state', function(val) {
-    $scope.show = val == SETTINGS_STATE.corrupt;
+    $scope.show = val == SETTINGS_STATE.couldNotLoad;
   });
 }
 
-function UnlockSettingsCtrl($scope, $http, logFactory, SETTINGS_STATE) {
-  var log = logFactory('UnlockSettingsCtrl');
+function SettingsLockedCtrl($scope, $http, apiSrvc, logFactory, SETTINGS_STATE) {
+  var log = logFactory('SettingsLockedCtrl');
   $scope.show = false;
   $scope.$watch('model.settings.state', function(val) {
     $scope.show = val == SETTINGS_STATE.locked;
   });
 
   $scope.submit = function(password) {
-    $http.post('/api/unlockSettings?password='+encodeURIComponent(password))
+    $http.post(apiSrvc.urlfor('settings/unlock', {password: password}))
       .success(function(data, status, headers, config) {
         log.debug('password valid');
         // XXX need to reset any form state?
@@ -76,6 +76,35 @@ function UnlockSettingsCtrl($scope, $http, logFactory, SETTINGS_STATE) {
       });
   };
 }
+
+function SetupSetPasswordCtrl($scope, $http, apiSrvc, logFactory, SETUP_SCREEN) {
+  var log = logFactory('SetupSetPasswordCtrl');
+  $scope.show = false;
+  $scope.$watch('model.setupScreen', function(val) {
+    $scope.show = val == SETUP_SCREEN.setPassword;
+  });
+
+  function validate() {
+    var pw1 = $scope.setPasswordForm.password1,
+        pw2 = $scope.setPasswordForm.password2;
+    $scope.setPasswordForm.$valid = pw2.$valid = pw1.$viewValue == pw2.$viewValue;
+    $scope.setPasswordForm.$invalid = pw2.$invalid = !pw2.$valid;
+  }
+  $scope.$watch('setPasswordForm.password2.$viewValue', validate);
+  $scope.$watch('setPasswordForm.password1.$viewValue', validate);
+
+  $scope.submit = function(password) {
+    $http.post(apiSrvc.urlfor('settings/secure', {password: password}))
+      .success(function(data, status, headers, config) {
+        log.debug('password set');
+        // XXX need to reset any form state?
+      })
+      .error(function(data, status, headers, config) {
+        log.debug('password set failed');
+      });
+  };
+}
+
 
 function DevCtrl($scope, debug, logFactory, cometdSrvc, modelSrvc) {
   var log = logFactory('DevCtrl'),
