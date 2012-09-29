@@ -22,7 +22,11 @@ angular.module('app.i18n', [])
       NOTIFY_LANTERN_DEVS: 'Notify Lantern developers',
       UNEXPECTED_ERROR: 'An unexpected error has occurred.',
       QUIT: 'Quit',
-      SETPASSWORD_TITLE: 'Set Password',
-      SETPASSWORD_PROMPT: 'Set your Lantern password so your information can be stored securely.',
+      SETUP_SETPASSWORD_TITLE: 'Set Password',
+      SETUP_SETPASSWORD_PROMPT: 'Set your Lantern password so your information can be stored securely.',
+      SETUP_WELCOME_TITLE: 'Welcome to Lantern',
+      SETUP_WELCOME_PROMPT: 'Internet freedom for everyone.',
+      GIVE_ACCESS: 'Give Access',
+      GET_ACCESS: 'Get Access'
     }
   });

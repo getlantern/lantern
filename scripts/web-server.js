@@ -148,6 +148,27 @@ ApiServlet.HandlerMap = {
       } else {
         res.writeHead(403);
       }
+    },
+  '/api/0.0.1/settings/': function(req, res, parsed) {
+      var mode = parsed.query.mode;
+      if (mode) {
+        if (mode != 'give' && mode != 'get') {
+          res.writeHead(400);
+        } else {
+          res.writeHead(200);
+          model.settings.mode = mode;
+          bayeux._server._engine.publish({channel: '/sync', data: {
+            path: 'settings.mode',
+            value: mode
+          }});
+          bayeux._server._engine.publish({channel: '/sync', data: {
+            path: 'setupScreen',
+            value: 'signin'
+          }});
+        }
+      } else {
+        res.writeHead(404);
+      }
     }
 };
 

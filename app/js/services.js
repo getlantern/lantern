@@ -3,6 +3,10 @@
 angular.module('app.services', [])
   .constant('apiVersion', '0.0.1')
   // enums
+  .constant('MODE', {
+    give: 'give',
+    get: 'get'
+  })
   .constant('SETTINGS_STATE', {
     locked: 'locked',
     unlocked: 'unlocked',
@@ -17,8 +21,9 @@ angular.module('app.services', [])
     '': ''
   })
   // enum service
-  .factory('enums', function(SETTINGS_STATE, SETUP_SCREEN) {
+  .factory('enums', function(MODE, SETTINGS_STATE, SETUP_SCREEN) {
     return {
+      MODE: MODE,
       SETTINGS_STATE: SETTINGS_STATE,
       SETUP_SCREEN: SETUP_SCREEN
     };
@@ -154,6 +159,10 @@ angular.module('app.services', [])
             state: {
               type: 'string',
               'enum': Object.keys(enums.SETTINGS_STATE)
+            },
+            mode: {
+              type: 'string',
+              'enum': Object.keys(enums.MODE)
             }
           }
         },
@@ -194,7 +203,7 @@ angular.module('app.services', [])
       validate: validate
     };
   })
-  .factory('modelSrvc', function($rootScope, cometdSrvc, logFactory, modelValidatorSrvc) {
+  .factory('modelSrvc', function($rootScope, cometdSrvc, logFactory, modelValidatorSrvc, MODE) {
     var log = logFactory('modelSrvc'),
         model = {},
         connected = false,
@@ -248,7 +257,9 @@ angular.module('app.services', [])
 
     return {
       model: model,
-      get: function(path) { return get(model, path); },
+      get: function(path){ return get(model, path); },
+      inGiveMode: function(){ return model.settings.mode == MODE.give; },
+      inGetMode: function(){ return model.settings.mode == MODE.get; },
       sane: function(){ return _.all(sanityMap); },
       connected: function(){ return connected; }
     };

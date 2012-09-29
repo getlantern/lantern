@@ -105,6 +105,28 @@ function SetupSetPasswordCtrl($scope, $http, apiSrvc, logFactory, SETUP_SCREEN) 
   };
 }
 
+function SetupWelcomeCtrl($scope, $http, apiSrvc, logFactory, SETUP_SCREEN) {
+  var log = logFactory('SetupWelcomeCtrl');
+  $scope.show = false;
+  $scope.$watch('model.setupScreen', function(val) {
+    $scope.show = val == SETUP_SCREEN.welcome;
+  });
+
+  function makeSetModeFunc(mode) {
+    return function() {
+      $http.post(apiSrvc.urlfor('settings/', {mode: mode}))
+        .success(function(data, status, headers, config) {
+          log.debug('set', mode, 'mode');
+        })
+        .error(function(data, status, headers, config) {
+          log.debug('set', mode, 'mode failed');
+        });
+    };
+  }
+
+  $scope.setGiveMode = makeSetModeFunc('give');
+  $scope.setGetMode = makeSetModeFunc('get');
+}
 
 function DevCtrl($scope, debug, logFactory, cometdSrvc, modelSrvc) {
   var log = logFactory('DevCtrl'),

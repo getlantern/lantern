@@ -120,11 +120,11 @@
     <div id="setup-setpassword" ng-controller="SetupSetPasswordCtrl" ui-modal
          ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
       <div class="modal-header">
-        <h3>{{ 'SETPASSWORD_TITLE' | i18n }}</h3>
+        <h3>{{ 'SETUP_SETPASSWORD_TITLE' | i18n }}</h3>
       </div>
       <form name="setPasswordForm" ng-submit="setPasswordForm.$valid && submit(password)">
         <div class="modal-body">
-          <span class="help-block">{{ 'SETPASSWORD_PROMPT' | i18n }}</span>
+          <span class="help-block">{{ 'SETUP_SETPASSWORD_PROMPT' | i18n }}</span>
           <br>
           <div class="control-group">
             <div class="controls pagination-centered">
@@ -147,6 +147,22 @@
       </form>
     </div>
 
+    <div id="setup-welcome" ng-controller="SetupWelcomeCtrl" ui-modal
+         ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+      <div class="modal-header">
+        <h3>{{ 'SETUP_WELCOME_TITLE' | i18n }}</h3>
+      </div>
+      <div class="modal-body">
+        <span class="help-block">{{ 'SETUP_WELCOME_PROMPT' | i18n }}</span>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn" ng-click="setGiveMode()">{{ 'GIVE_ACCESS' | i18n }}</button>
+        <button type="submit" class="btn" ng-click="setGetMode()">{{ 'GET_ACCESS' | i18n }}</button>
+      </div>
+    </div>
+
+    <!-- developer panel -->
+
     <div id="developer" ng-controller="DevCtrl" ng-show="show">
       <button class="btn" data-toggle="collapse" data-target="#developer-content">Developer</button>
       <div id="developer-content" class="collapse in">
@@ -159,13 +175,13 @@
               <div class="controls row">
                 <div class="span-4">
                   <label><input type="text" ng-model="model.settings.state" placeholder="locked, unlocked, couldNotLoad"> state</label>
+                  <label><input type="text" ng-model="model.settings.mode" placeholder="give, get"> mode</label>
                   <label><input type="text" ng-model="model.settings.userid" placeholder="user@example.com"> userid</label>
                   <label><input type="text" placeholder="0" ng-model="model.settings.invites"> invites</label>
                   <label><input type="text" ng-model="model.settings.lang" placeholder="en"> lang</label>
                   <label><input type="text" ng-model="model.settings.proxyPort" placeholder="8787"> proxyPort</label>
                 </div>
                 <div class="span-4">
-                  <label class="checkbox"><input type="checkbox" ng-model="model.settings.getMode"> getMode</label>
                   <label class="checkbox"><input type="checkbox" ng-model="model.settings.systemProxy"> systemProxy</label>
                   <label class="checkbox"><input type="checkbox" ng-model="model.settings.proxyAllSites"> proxyAllSites</label>
                   <label class="checkbox"><input type="checkbox" ng-model="model.settings.savePassword"> savePassword</label>

@@ -340,8 +340,8 @@ the backend maintains on the frontend through comet publications:
           </td>
         </tr>
         <tr>
-          <td><strong>getMode</strong><br><em>boolean</em></td>
-          <td>Whether we're in Get Mode.</td>
+          <td><strong>mode</strong><br><em>"give" | "get"</em></td>
+          <td>Whether we're in Give Mode or Get Mode.</td>
         </tr>
         <tr>
           <td><strong>proxyPort</strong><sup>1</sup><br><em>integer</em></td>
