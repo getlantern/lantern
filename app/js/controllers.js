@@ -1,44 +1,48 @@
 'use strict';
 
-function RootCtrl($scope, logFactory, modelSrvc, $http) {
+function RootCtrl($scope, logFactory, modelSrvc, $http, apiSrvc, MODE) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
       connected = $scope.connected = modelSrvc.connected;
   $scope.modelSrvc = modelSrvc;
 
-  $scope.notifyLanternDevs = true;
+  $scope.inGiveMode = function() {
+    return model.settings.mode == MODE.give;
+  };
+
+  $scope.inGetMode = function() {
+    return model.settings.mode == MODE.get;
+  };
+
+  $scope.notifyLanternDevs = true; // XXX find a better place for this?
   $scope.maybeNotify = function() {
     if ($scope.notifyLanternDevs) {
       log.warn('Notify Lantern developers not yet implemented');
     }
   };
 
-  // sub-controllers can override this
-  $scope.errorHandler = function() {
-    //log.debug('Got error:', arguments);
-    $scope.error = true;
-  }
-
   $scope.refresh = function() {
     location.reload(true);
   };
 
   $scope.reset = function() {
-    $scope.error = false;
-    $http.post('/api/resetSettings')
+    $http.post(apiSrvc.urlfor('reset'))
       .success(function(data, status, headers, config) {
-        log.debug('Reset settings');
+        log.debug('Reset');
       })
-      .error($scope.errorHandler);
+      .error(function(data, status, headers, config) {
+        log.debug('Reset failed'); // XXX
+      });
   };
 
   $scope.quit = function() {
-    $scope.error = false;
-    $http.post('/api/quit')
+    $http.post(apiSrvc.urlfor('quit'))
       .success(function(data, status, headers, config) {
         log.debug('Quit');
       })
-      .error($scope.errorHandler);
+      .error(function(data, status, headers, config) {
+        log.debug('Quit failed'); // XXX
+      });
   };
 }
 
@@ -57,44 +61,52 @@ function SettingsCouldNotLoadCtrl($scope, SETTINGS_STATE) {
   });
 }
 
-function SettingsLockedCtrl($scope, $http, apiSrvc, logFactory, SETTINGS_STATE) {
-  var log = logFactory('SettingsLockedCtrl');
+function SettingsLockedCtrl($scope, modelSrvc, $http, apiSrvc, logFactory, SETTINGS_STATE) {
+  var log = logFactory('SettingsLockedCtrl'),
+      model = $scope.model = modelSrvc.model;
   $scope.show = false;
   $scope.$watch('model.settings.state', function(val) {
     $scope.show = val == SETTINGS_STATE.locked;
   });
 
-  $scope.submit = function(password) {
-    $http.post(apiSrvc.urlfor('settings/unlock', {password: password}))
+  $scope.password = '';
+
+  $scope.submit = function() {
+    $scope.error = false;
+    $http.post(apiSrvc.urlfor('settings/unlock', {password: $scope.password}))
       .success(function(data, status, headers, config) {
         log.debug('password valid');
         // XXX need to reset any form state?
       })
       .error(function(data, status, headers, config) {
-        $scope.unlockForm.password.$error = {invalid: true};
+        $scope.error = true;
         $scope.unlockForm.password.$pristine = true;
       });
   };
 }
 
-function SetupSetPasswordCtrl($scope, $http, apiSrvc, logFactory, SETUP_SCREEN) {
+function SetupSetPasswordCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
   var log = logFactory('SetupSetPasswordCtrl');
   $scope.show = false;
-  $scope.$watch('model.setupScreen', function(val) {
-    $scope.show = val == SETUP_SCREEN.setPassword;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.setPassword;
   });
 
+  $scope.password1 = '';
+  $scope.password2 = '';
   function validate() {
-    var pw1 = $scope.setPasswordForm.password1,
-        pw2 = $scope.setPasswordForm.password2;
-    $scope.setPasswordForm.$valid = pw2.$valid = pw1.$viewValue == pw2.$viewValue;
-    $scope.setPasswordForm.$invalid = pw2.$invalid = !pw2.$valid;
+    // XXX find out the right way to do this
+    var pw1ctrl = $scope.setPasswordForm.password1,
+        pw2ctrl = $scope.setPasswordForm.password2,
+        valid = $scope.password1 == $scope.password2;
+    $scope.setPasswordForm.$valid = pw2ctrl.$valid = valid;
+    $scope.setPasswordForm.$invalid = pw2ctrl.$invalid = !valid;
   }
-  $scope.$watch('setPasswordForm.password2.$viewValue', validate);
-  $scope.$watch('setPasswordForm.password1.$viewValue', validate);
+  $scope.$watch('password1', validate);
+  $scope.$watch('password2', validate);
 
-  $scope.submit = function(password) {
-    $http.post(apiSrvc.urlfor('settings/secure', {password: password}))
+  $scope.submit = function() {
+    $http.post(apiSrvc.urlfor('settings/secure', {password: $scope.password1}))
       .success(function(data, status, headers, config) {
         log.debug('password set');
         // XXX need to reset any form state?
@@ -105,11 +117,12 @@ function SetupSetPasswordCtrl($scope, $http, apiSrvc, logFactory, SETUP_SCREEN) 
   };
 }
 
-function SetupWelcomeCtrl($scope, $http, apiSrvc, logFactory, SETUP_SCREEN) {
-  var log = logFactory('SetupWelcomeCtrl');
+function SetupWelcomeCtrl($scope, modelSrvc, $http, apiSrvc, logFactory, MODAL) {
+  var log = logFactory('SetupWelcomeCtrl'),
+      model = $scope.model = modelSrvc.model;
   $scope.show = false;
-  $scope.$watch('model.setupScreen', function(val) {
-    $scope.show = val == SETUP_SCREEN.welcome;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.welcome;
   });
 
   function makeSetModeFunc(mode) {
@@ -126,6 +139,58 @@ function SetupWelcomeCtrl($scope, $http, apiSrvc, logFactory, SETUP_SCREEN) {
 
   $scope.setGiveMode = makeSetModeFunc('give');
   $scope.setGetMode = makeSetModeFunc('get');
+}
+
+function SigninCtrl($scope, modelSrvc, $http, apiSrvc, logFactory, MODAL) {
+  var log = logFactory('SetupWelcomeCtrl'),
+      model = $scope.model = modelSrvc.model;
+  $scope.show = false;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.signin;
+  });
+
+  $scope.userid = '';
+  $scope.password = '';
+  $scope.savePassword = '';
+  $scope.signinError = false;
+  $scope.$watch('model.settings.userid', function(val) {
+    $scope.userid = val;
+  });
+  $scope.$watch('model.settings.savePassword', function(val) {
+    $scope.savePassword = !!val;
+  });
+  function hideSigninStatus() {
+    $scope.showSigninStatus = false;
+  }
+  $scope.$watch('userid', hideSigninStatus);
+  $scope.$watch('password', hideSigninStatus);
+
+  $scope.submit = function() {
+    $scope.signinError = false;
+    $scope.showSigninStatus = true;
+    $scope.signinStatusKey = 'SIGNIN_STATUS_SIGNING_IN';
+    var params = {userid: $scope.userid, password: $scope.password};
+    if ($scope.savePassword) params['savePassword'] = 1;
+    $http.post(apiSrvc.urlfor('signin', params))
+      .success(function(data, status, headers, config) {
+        log.debug('signin');
+        hideSigninStatus();
+      })
+      .error(function(data, status, headers, config) {
+        log.debug('signin failed');
+        $scope.signinError = true;
+        switch (status) {
+          case 401:
+            $scope.signinStatusKey = 'SIGNIN_STATUS_BAD_CREDENTIALS';
+            break;
+          case 403:
+            $scope.signinStatusKey = 'SIGNIN_STATUS_NOT_AUTHORIZED';
+            break;
+          default:
+            $scope.signinStatusKey = 'UNEXPECTED_ERROR';
+        }
+      });
+  };
 }
 
 function DevCtrl($scope, debug, logFactory, cometdSrvc, modelSrvc) {

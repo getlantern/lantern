@@ -32,9 +32,12 @@ Install required dependencies (sudo as necessary):
 
 * [Faye](http://faye.jcoglan.com/): `npm install -g faye`
 
-  (We assume this installs Faye to
-  `/usr/local/share/npm/lib/node_modules/faye`, which is where the symlink
-  `node_modules/faye` points. Adjust as necessary.)
+* [node-sleep](https://github.com/ErikDubbelboer/node-sleep): `npm install -g
+  sleep`
+
+  (We assume `npm install -g` installs node modules to
+  `/usr/local/share/npm/lib/node_modules/`, which is where symlinks under
+  `node_modules/` point. Adjust as necessary.)
 
 * [Compass](http://compass-style.org/): `gem install compass`
   
@@ -58,8 +61,8 @@ Start up the Node.js server simulating the Lantern backend:
     $ scripts/web-server.js
     Bayeux-attached http server running at http://localhost:8000
 
-1. The new UI should now be available at
-   [http://localhost:8000/app/index.html](http://localhost:8000/app/index.html)
+The new UI should now be available at
+[http://localhost:8000/app/index.html](http://localhost:8000/app/index.html)
 
 The UI is implemented as an [AngularJS](http://angularjs.org) app. As
 recommended, this repo was started with the

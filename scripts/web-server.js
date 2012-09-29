@@ -5,6 +5,7 @@ var sys = require('sys'),
     fs = require('fs'),
     url = require('url'),
     events = require('events'),
+    usleep = require('sleep').usleep, // npm install -g sleep
     faye = require('../node_modules/faye'); // npm install -g faye
 
 //faye.Logging.logLevel = faye.Logging.LOG_LEVELS.info;
@@ -129,11 +130,19 @@ HttpServer.prototype.handleRequest_ = function(req, res) {
 function ApiServlet() {}
 
 ApiServlet.HandlerMap = {
+  '/api/0.0.1/reset': function(req, res, parsed) {
+      res.writeHead(200);
+      model = {modal: 'welcome', settings: {}};
+      bayeux._server._engine.publish({channel: '/sync', data: {
+        path: '',
+        value: model
+      }});
+    },
   '/api/0.0.1/settings/secure': function(req, res, parsed) {
       res.writeHead(200);
       model.settings.state = 'unlocked';
       bayeux._server._engine.publish({channel: '/sync', data: {
-        path: 'setupScreen',
+        path: 'modal',
         value: 'welcome'
       }});
     },
@@ -162,12 +171,37 @@ ApiServlet.HandlerMap = {
             value: mode
           }});
           bayeux._server._engine.publish({channel: '/sync', data: {
-            path: 'setupScreen',
+            path: 'modal',
             value: 'signin'
           }});
         }
       } else {
         res.writeHead(404);
+      }
+    },
+  '/api/0.0.1/signin': function(req, res, parsed) {
+      var userid = parsed.query.userid,
+          password = parsed.query.password,
+          savePassword = parsed.query.savePassword != '0' && parsed.query.savePassword != 'false';
+      usleep(500000); // sleep for .5 seconds to simulate latency
+      if (!userid || !password) {
+        res.writeHead(400);
+      } else {
+        if (password != 'password') {
+          res.writeHead(401);
+          model.settings.passwordSaved = false;
+        } else if (userid == 'notinbeta@example.com') {
+          res.writeHead(403);
+        } else {
+          res.writeHead(200);
+          model.settings.userid = userid;
+          model.settings.passwordSaved = !!savePassword;
+          //model.modal = model.mode == 'get' ? 'sysproxy' : 'finished';
+        }
+        bayeux._server._engine.publish({channel: '/sync', data: {
+          path: '',
+          value: model
+        }});
       }
     }
 };
@@ -176,6 +210,7 @@ ApiServlet.prototype.handleRequest = function(req, res) {
   var self = this,
       parsed = url.parse(req.url, true),
       handler = ApiServlet.HandlerMap[parsed.pathname];
+  sys.puts('[api] ' + req.url.href);
   if (handler) {
     handler(req, res, parsed);
   } else {

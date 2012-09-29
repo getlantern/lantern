@@ -15,9 +15,11 @@ $experimental-support-for-opera: false
 .ui-hide
   opacity: 0
 
-//.ng-invalid.ng-dirty
-  border-color: #f00
-  border-width: 1px
+// type a@b.co, colors change from red to blue to red to blue without this
+input[type=email].ng-invalid.ng-dirty
+  color: #b94a48
+  border-color: #b94a48
+  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(255, 0, 0, 0.6)
 
 .modal form
   margin-bottom: 0
@@ -25,8 +27,13 @@ $experimental-support-for-opera: false
 //body
   padding: 50px
 
+.tooltip
+  z-index: 10000
+
 #sanity
   z-index: 5002
+  form
+    margin: 15px 0
 
 #developer
   position: fixed

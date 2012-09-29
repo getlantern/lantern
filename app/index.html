@@ -55,7 +55,7 @@
         <h3>{{ 'UNEXPECTED_STATE_TITLE' | i18n }}</h3>
       </div>
       <div class="modal-body">
-        <span class="help-block">{{ 'UNEXPECTED_STATE_PROMPT' | i18n }}</span>
+        <div>{{ 'UNEXPECTED_STATE_PROMPT' | i18n }}</div>
         <form class="form-inline pagination-centered">
           <label class="checkbox">
             <input type="checkbox" ng-model="notifyLanternDevs">
@@ -64,7 +64,6 @@
         </form>
       </div>
       <div class="modal-footer">
-        <span class="pull-left text-error" ui-toggle="error">{{ 'UNEXPECTED_ERROR' | i18n }}</span>
         <button ng-click="maybeNotify(); reset()" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
         <button ng-click="maybeNotify(); refresh()" class="btn btn-primary">{{ 'REFRESH' | i18n }}</button>
       </div>
@@ -72,22 +71,24 @@
 
     <div id="settings-locked" ng-controller="SettingsLockedCtrl" ui-modal
          ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
-      <div class="modal-header">
-        <h3>{{ 'UNLOCK_SETTINGS_TITLE' | i18n }}</h3>
-      </div>
-      <form name="unlockForm" ng-submit="submit(password)">
+      <form name="unlockForm" ng-submit="submit()">
+        <div class="modal-header">
+          <h3>{{ 'UNLOCK_SETTINGS_TITLE' | i18n }}</h3>
+        </div>
         <div class="modal-body">
-          <span class="help-block">{{ 'UNLOCK_SETTINGS_PROMPT' | i18n }}</span>
+          <div>{{ 'UNLOCK_SETTINGS_PROMPT' | i18n }}</div>
           <br>
-          <div class="control-group" ng-class="{error: unlockForm.password.$pristine && unlockForm.password.$error.invalid}">
+          <div class="control-group" ng-class="{error: error}">
             <div class="controls pagination-centered">
               <div class="input-append">
                 <input type="password" ng-model="password" autofocus required
                        name="password" placeholder="{{ 'PASSWORD' | i18n }}">
-                <button type="submit" ng-disabled="!unlockForm.$valid"
+                <button type="submit" ng-disabled="unlockForm.$invalid"
                         class="btn btn-primary">{{ 'UNLOCK' | i18n }}</button>
               </div>
-              <span class="help-block" ui-toggle="unlockForm.password.$pristine && unlockForm.password.$error.invalid">{{ 'PASSWORD_INVALID' | i18n }}</span>
+              <div class="text-error" ui-toggle="error && unlockForm.password.$pristine">
+                {{ 'PASSWORD_INVALID' | i18n }}
+              </div>
             </div>
           </div>
         </div>
@@ -100,7 +101,7 @@
         <h3>{{ 'COULDNOTLOAD_SETTINGS_TITLE' | i18n }}</h3>
       </div>
       <div class="modal-body">
-        <span class="help-block">{{ 'COULDNOTLOAD_SETTINGS_PROMPT' | i18n }}</span>
+        <div>{{ 'COULDNOTLOAD_SETTINGS_PROMPT' | i18n }}</div>
         <form class="form-inline pagination-centered">
           <label class="checkbox">
             <input type="checkbox" ng-model="notifyLanternDevs">
@@ -109,7 +110,6 @@
         </form>
       </div>
       <div class="modal-footer">
-        <span class="pull-left text-error" ui-toggle="error">{{ 'UNEXPECTED_ERROR' | i18n }}</span>
         <button ng-click="maybeNotify(); reset()" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
         <button ng-click="maybeNotify(); quit()" class="btn btn-primary">{{ 'QUIT' | i18n }}</button>
       </div>
@@ -119,29 +119,26 @@
 
     <div id="setup-setpassword" ng-controller="SetupSetPasswordCtrl" ui-modal
          ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
-      <div class="modal-header">
-        <h3>{{ 'SETUP_SETPASSWORD_TITLE' | i18n }}</h3>
-      </div>
-      <form name="setPasswordForm" ng-submit="setPasswordForm.$valid && submit(password)">
+      <form name="setPasswordForm" ng-submit="submit()">
+        <div class="modal-header">
+          <h3>{{ 'SETUP_SETPASSWORD_TITLE' | i18n }}</h3>
+        </div>
         <div class="modal-body">
-          <span class="help-block">{{ 'SETUP_SETPASSWORD_PROMPT' | i18n }}</span>
+          <div>{{ 'SETUP_SETPASSWORD_PROMPT' | i18n }}</div>
           <br>
-          <div class="control-group">
+          <div class="control-group" ng-class="{error: setPasswordForm.password2.$dirty && setPasswordForm.password2.$invalid}">
             <div class="controls pagination-centered">
               <input type="password" ng-model="password1" autofocus required
                      name="password1" placeholder="{{ 'PASSWORD' | i18n }}">
-            </div>
-          </div>
-          <div class="control-group" ng-class="{error: setPasswordForm.password2.$dirty && setPasswordForm.password2.$invalid}">
-            <div class="controls pagination-centered">
+              <br>
               <input type="password" ng-model="password2" name="password2"
                      required placeholder="{{ 'PASSWORD_CONFIRM' | i18n }}">
-              <span class="help-block" ui-toggle="setPasswordForm.password2.$dirty && setPasswordForm.password2.$invalid">{{ 'PASSWORDS_MUST_MATCH' | i18n }}</span>
+              <div class="text-error" ui-toggle="setPasswordForm.password2.$dirty && setPasswordForm.password2.$invalid">{{ 'PASSWORDS_MUST_MATCH' | i18n }}</div>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="submit" ng-disabled="!setPasswordForm.$valid"
+          <button type="submit" ng-disabled="setPasswordForm.$invalid"
                   class="btn btn-primary">{{ 'SET' | i18n }}</button>
         </div>
       </form>
@@ -153,11 +150,75 @@
         <h3>{{ 'SETUP_WELCOME_TITLE' | i18n }}</h3>
       </div>
       <div class="modal-body">
-        <span class="help-block">{{ 'SETUP_WELCOME_PROMPT' | i18n }}</span>
+        <div>{{ 'SETUP_WELCOME_PROMPT' | i18n }}</div>
       </div>
       <div class="modal-footer">
-        <button type="submit" class="btn" ng-click="setGiveMode()">{{ 'GIVE_ACCESS' | i18n }}</button>
-        <button type="submit" class="btn" ng-click="setGetMode()">{{ 'GET_ACCESS' | i18n }}</button>
+        <button type="submit" class="btn btn-success" ng-click="setGiveMode()">{{ 'GIVE_ACCESS' | i18n }}</button>
+        <button type="submit" class="btn btn-primary" ng-click="setGetMode()">{{ 'GET_ACCESS' | i18n }}</button>
+      </div>
+    </div>
+
+    <!-- used both during initial setup and after (when !passwordSaved) -->
+    <div id="signin" ng-controller="SigninCtrl" ui-modal ng-model="show" class="fade"
+         data-backdrop="{{ model.setupComplete && inGetMode() || 'static' }}"
+         data-keyboard="{{ model.setupComplete && inGetMode() }}">
+      <!-- only allow closing in Get Mode when setupComplete -->
+      <form name="signinForm" class="form-horizontal" ng-submit="submit()">
+        <div class="modal-header">
+          <button type="button" ui-if="model.setupComplete && inGetMode()"
+                  class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+          <h3>{{ 'SETUP_SIGNIN_TITLE' | i18n }}</h3>
+        </div>
+        <div class="modal-body">
+          <div ui-if="!model.setupComplete">{{ 'SETUP_SIGNIN_PROMPT' | i18n }}</div>
+          <div ui-if="model.setupComplete && inGetMode()">{{ 'SIGNIN_DISCOVER_PROXIES_PROMPT' | i18n }}</div>
+          <br>
+          <div class="control-group">
+            <label class="control-label">{{ 'GTALK_USERID' | i18n }}</label>
+            <div class="controls">
+              <input type="email" autofocus required ng-model="userid"
+                     name="userid" placeholder="{{ 'EMAIL_PLACEHOLDER' | i18n }}">
+            </div>
+          </div>
+          <div class="control-group">
+            <label class="control-label">{{ 'GTALK_PASSWORD' | i18n }}</label>
+            <div class="controls">
+              <input type="password" name="password" ng-model="password"
+                     required placeholder="{{ 'PASSWORD' | i18n }}">
+              <a rel="tooltip" data-original-title="{{ 'SIGNIN_TIP_SECURE' | i18n }}" ui-jq="tooltip">
+                <i class="icon-lock"></i>
+              </a>
+            </div>
+          </div>
+          <div class="control-group">
+            <div class="controls">
+              <label class="checkbox inline clearfix" style="width: 203px"><!-- XXX -->
+                <input type="checkbox" name="savePassword" ng-model="savePassword">
+                {{ 'SAVE_PASSWORD' | i18n }}
+              </label>
+              <a rel="tooltip" data-original-title="{{ 'SIGNIN_TIP_SAVE_PASSWORD' | i18n }}" ui-jq="tooltip">
+                <i class="icon-info-sign"></i>
+              </a>
+            </div>
+          </div>
+          <div class="control-group">
+            <div class="controls">
+              <div ng-class="{'text-error': signinError}" ui-toggle="showSigninStatus">{{ signinStatusKey | i18n }}&nbsp;</div>
+              <!-- XXX show spinner while signing in -->
+            </div>
+          </div>
+        </div>
+        <!-- XXX (hidden) submit input so pressing enter triggers form submission -->
+        <input type="submit" style="height: 1px; width: 1px; visibility: hidden; float: left" value="">
+      </form>
+      <div class="modal-footer">
+        <!-- buttons outside the form so reset doesn't get triggered when sign in is disabled on pressing enter -->
+        <button type="submit" ui-if="!model.setupComplete" class="btn btn-danger pull-left" ng-click="reset()">
+          <i class="icon-backward icon-white"></i> {{ 'START_OVER' | i18n }}
+        </button>
+        <button type="submit" class="btn btn-primary" ng-disabled="signinForm.$invalid" ng-click="submit()">
+          {{ 'SIGN_IN' | i18n }}
+        </button>
       </div>
     </div>
 
@@ -170,6 +231,18 @@
         <pre>{{model | json}}</pre>
         <div>
           <form class="form-horizontal">
+            <div class="control-group">
+              <label class="control-label"></label>
+              <div class="controls">
+                <label class="checkbox"><input type="checkbox" ng-model="model.setupComplete"> setupComplete</label>
+              </div>
+            </div>
+            <div class="control-group">
+              <label class="control-label">modal</label>
+              <div class="controls">
+                <input type="text" ng-model="model.modal" placeholder="setPassword, welcome, signin, sysproxy, finished">
+              </div>
+            </div>
             <div class="control-group">
               <label class="control-label">settings</label>
               <div class="controls row">
@@ -194,12 +267,6 @@
                   <textarea placeholder="google.com
                     twitter.com">{{ model.settings.proxiedSitesList.join('\n') }}</textarea>
                 </div>
-              </div>
-            </div>
-            <div class="control-group">
-              <label class="control-label">setupScreen</label>
-              <div class="controls">
-                <input type="text" ng-model="model.setupScreen" placeholder="setPassword, welcome, signin, sysproxy, finished">
               </div>
             </div>
             <div class="control-group">

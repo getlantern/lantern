@@ -27,6 +27,20 @@ angular.module('app.i18n', [])
       SETUP_WELCOME_TITLE: 'Welcome to Lantern',
       SETUP_WELCOME_PROMPT: 'Internet freedom for everyone.',
       GIVE_ACCESS: 'Give Access',
-      GET_ACCESS: 'Get Access'
+      GET_ACCESS: 'Get Access',
+      SETUP_SIGNIN_TITLE: 'Sign in to Google Talk',
+      SETUP_SIGNIN_PROMPT: 'Lantern works by connecting users around the world together in a peer-to-peer network. Signing into Google Talk allows you to connect through users you know and trust, and not just anyone.',
+      SIGNIN_TIP_SECURE: 'Your Google password is sent over a secure connection and is used only to sign into Google Talk.',
+      SIGNIN_TIP_SAVE_PASSWORD: 'Securely save your password in Lantern’s encrypted settings file.',
+      SIGNIN_STATUS_SIGNING_IN: 'Signing in...',
+      SIGNIN_STATUS_BAD_CREDENTIALS: 'Invalid user and password combination',
+      SIGNIN_STATUS_NOT_AUTHORIZED: 'User does not have Lantern access.',
+      GTALK_USERID: 'Google Talk userid',
+      EMAIL_PLACEHOLDER: 'email@example.com',
+      GTALK_PASSWORD: 'Google Talk password',
+      SAVE_PASSWORD: 'Save password',
+      START_OVER: 'Start over',
+      SIGN_IN: 'Sign in',
+      SIGNIN_DISCOVER_PROXIES_PROMPT: 'Lantern can connect to known proxies but will be unable to discover new ones until signed into Google Talk.'
     }
   });

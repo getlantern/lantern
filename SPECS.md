@@ -198,14 +198,17 @@ the backend maintains on the frontend through comet publications:
       below) is not available (e.g. settings are locked).</td>
   </tr>
   <tr>
-    <td><strong>setupScreen</strong><br>"setPassword" | "welcome" | "signin" |
+    <td><strong>modal</strong><br>"setPassword" | "welcome" | "signin" |
       "sysproxy" | "finished" | ""
     </td>
-    <td>Instructs the UI to display the corresponding modal setup screen.
-      A value of empty string means no setup screen should be displayed.
-      <br><br><em>Replaces the boolean <code>initialSetupComplete</code>
-        in the old UI, shifting the logic of determining which setup screen
-        to display to the backend.</em>
+    <td>Instructs the UI to display the corresponding modal dialog.
+      A value of empty string means no modal dialog should be displayed.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>setupComplete</strong><br><em>boolean</em></td>
+    <td>Whether the user has completed initial setup of Lantern.
+      <br><br><em>Formerly <code>initialSetupComplete</code> in the old UI</em>
     </td>
   </tr>
   <tr>

@@ -12,7 +12,7 @@ angular.module('app.services', [])
     unlocked: 'unlocked',
     couldNotLoad: 'couldNotLoad'
   })
-  .constant('SETUP_SCREEN', {
+  .constant('MODAL', {
     setPassword: 'setPassword',
     welcome: 'welcome',
     signin: 'signin',
@@ -21,11 +21,11 @@ angular.module('app.services', [])
     '': ''
   })
   // enum service
-  .factory('enums', function(MODE, SETTINGS_STATE, SETUP_SCREEN) {
+  .factory('enums', function(MODE, SETTINGS_STATE, MODAL) {
     return {
       MODE: MODE,
       SETTINGS_STATE: SETTINGS_STATE,
-      SETUP_SCREEN: SETUP_SCREEN
+      MODAL: MODAL
     };
   })
   // more flexible log service
@@ -166,10 +166,10 @@ angular.module('app.services', [])
             }
           }
         },
-        setupScreen: {
+        modal: {
           type: 'string',
-          description: 'If present, Lantern UI displays the corresponding setup screen.',
-          'enum': Object.keys(enums.SETUP_SCREEN)
+          description: 'Instructs the UI to display the corresponding modal dialog.',
+          'enum': Object.keys(enums.MODAL)
         }
       }
     };
@@ -203,7 +203,7 @@ angular.module('app.services', [])
       validate: validate
     };
   })
-  .factory('modelSrvc', function($rootScope, cometdSrvc, logFactory, modelValidatorSrvc, MODE) {
+  .factory('modelSrvc', function($rootScope, cometdSrvc, logFactory, modelValidatorSrvc) {
     var log = logFactory('modelSrvc'),
         model = {},
         connected = false,
@@ -258,8 +258,6 @@ angular.module('app.services', [])
     return {
       model: model,
       get: function(path){ return get(model, path); },
-      inGiveMode: function(){ return model.settings.mode == MODE.give; },
-      inGetMode: function(){ return model.settings.mode == MODE.get; },
       sane: function(){ return _.all(sanityMap); },
       connected: function(){ return connected; }
     };
@@ -268,7 +266,7 @@ angular.module('app.services', [])
     return {
       urlfor: function(endpoint, params) {
           var query = _.reduce(params, function(acc, val, key) {
-              return acc+encodeURIComponent(key)+'='+encodeURIComponent(val)+'&';
+              return acc+key+'='+encodeURIComponent(val)+'&';
             }, '?');
           return '/api/'+apiVersion+'/'+endpoint+query;
         }

@@ -6,7 +6,7 @@ angular.module('app.directives', []).
       elm.css({
         'text-align': 'center',
         'background-color': 'rgba(255, 255, 255, 0.8)',
-        'z-index': 5001,
+        'z-index': 10000,
         position: 'fixed',
         top: 0,
         bottom: 0,
