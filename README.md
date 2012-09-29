@@ -9,61 +9,47 @@ desktop systems.
 
 ![screenshot](https://www.getlantern.org/static/img/dl-mac_setup.png)
 
-To run Lantern from source, you first need to check it out of course, with:
+
+## Setting up a development environment
+
+1. Ensure you have the requirements installed:
+
+  * [git](http://git-scm.com/) (`brew install git`, `port install git-core`, etc.)
+  * [Java 1.6+](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+  * [Maven](http://maven.apache.org/download.html) (`brew install maven`, `port install maven3`, etc.)
+
+1. Clone the repository:
 
 ```
-git@github.com:getlantern/lantern.git
+$ git clone git@github.com:getlantern/lantern.git
 ```
 
-If you don't have git, you should be able to install it with:
-
-```
-brew install git
-```
-
-You then need Maven and Java installed. To install maven on OSX with HomeBrew or MacPorts installed, you can run:
-
-```
-brew install maven
-```
-
-or 
-
-```
-sudo port install maven3
-```
-
-Otherwise you'll have to download and install it from http://maven.apache.org/download.html.
-
-The source code is compatible with Java 1.6 and above.
-
-Then you can run:
+1. Run the build-and-run script:
 
 ```
 $ ./run.bash
 ```
 
-That's actually a "build and run" script that'll grab dependencies, build and
-then run Lantern. There's also a `quickRun.bash` script that will just run it
+That script will fetch the required Java libraries, build, and
+run Lantern. There's also a `quickRun.bash` script that will run Lantern
 when already built.
 
 Lantern binds its HTTP API to a random port for security. You can pass
 `--api-port=xyz` to override this. This is helpful for pointing external
 browsers at Lantern for development.
 
-If you want to run Lantern in headless mode, you can pass `--disable-ui`. That
-can be useful if you want to just keep Lantern running all the time on a
-server, for example.
+If you want to run Lantern in headless mode, pass `--disable-ui`. This
+is useful for running Lantern on a server without an X environment.
 
 If you're running Linux, note that Lantern's UI currently targets the
 Ubuntu 12.04 desktop environment (i.e. Unity). Other environments may work as
-well but are untested and unmaintained.
+well but are currently untested and unmaintained.
 
 
 Further Reading
 ---------------
 
-* http://www.getlantern.org
+* https://www.getlantern.org
 * https://github.com/getlantern/lantern/wiki
 * https://github.com/getlantern/lantern/issues
 * https://groups.google.com/forum/#!forum/lantern-devel
