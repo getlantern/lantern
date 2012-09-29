@@ -199,9 +199,9 @@ the backend maintains on the frontend through comet publications:
   </tr>
   <tr>
     <td><strong>setupScreen</strong><br>"welcome" | "signin" | "sysproxy" |
-      "finished" | null
+      "finished"
     </td>
-    <td>Tells the frontend which modal setup screen to display, if any.
+    <td>If present, the UI will display the corresponding modal setup screen.
       <br><br><em>Replaces the boolean <code>initialSetupComplete</code>
         in the old UI, shifting the logic of determining which setup screen
         to display to the backend.</em>

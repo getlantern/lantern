@@ -3,10 +3,10 @@
 angular.module('app.filters', [])
   // basic i18n filter
   // @see https://groups.google.com/d/msg/angular/641c1ykOX4k/hcXI5HsSD5MJ
-  .filter('i18n', function(syncedModel, defaultLang, translations) {
+  .filter('i18n', function(modelSrvc, defaultLang, translations) {
     return function(key) {
-      var lang = (syncedModel.model.settings || {}).lang ||
-                 syncedModel.model.lang ||
+      var lang = (modelSrvc.model.settings || {}).lang ||
+                 modelSrvc.model.lang ||
                  defaultLang;
       return translations[lang][key] ||
              translations[defaultLang][key] ||
