@@ -14,21 +14,17 @@ desktop systems.
 
 1. Ensure you have the requirements installed:
 
-  * [git](http://git-scm.com/) (`brew install git`, `port install git-core`, etc.)
-  * [Java 1.6+](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
-  * [Maven](http://maven.apache.org/download.html) (`brew install maven`, `port install maven3`, etc.)
+    * [git](http://git-scm.com/) (`brew install git`, `port install git-core`, etc.)
+    * [Java 1.6+](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
+    * [Maven](http://maven.apache.org/download.html) (`brew install maven`, `port install maven3`, etc.)
 
-1. Clone the repository:
+2. Clone the repository:
 
-```
-$ git clone git@github.com:getlantern/lantern.git
-```
+    $ git clone git@github.com:getlantern/lantern.git
 
-1. Run the build-and-run script:
+3. Run the build-and-run script:
 
-```
-$ ./run.bash
-```
+    $ ./run.bash
 
 That script will fetch the required Java libraries, build, and
 run Lantern. There's also a `quickRun.bash` script that will run Lantern
