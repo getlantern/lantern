@@ -69,14 +69,14 @@
       </div>
     </div>
 
-    <div id="settings-locked" ng-controller="SettingsLockedCtrl" ui-modal
+    <div id="settings-unlock" ng-controller="SettingsUnlockCtrl" ui-modal
          ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
       <form name="unlockForm" ng-submit="submit()">
         <div class="modal-header">
-          <h3>{{ 'UNLOCK_SETTINGS_TITLE' | i18n }}</h3>
+          <h3>{{ 'SETTINGS_UNLOCK_TITLE' | i18n }}</h3>
         </div>
         <div class="modal-body">
-          <div>{{ 'UNLOCK_SETTINGS_PROMPT' | i18n }}</div>
+          <div>{{ 'SETTINGS_UNLOCK_PROMPT' | i18n }}</div>
           <br>
           <div class="control-group" ng-class="{error: error}">
             <div class="controls pagination-centered">
@@ -95,13 +95,13 @@
       </form>
     </div>
 
-    <div id="settings-couldNotLoad" ng-controller="SettingsCouldNotLoadCtrl" ui-modal
+    <div id="settings-load-failure" ng-controller="SettingsLoadFailureCtrl" ui-modal
          ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
       <div class="modal-header">
-        <h3>{{ 'COULDNOTLOAD_SETTINGS_TITLE' | i18n }}</h3>
+        <h3>{{ 'SETTINGS_LOAD_FAILURE_TITLE' | i18n }}</h3>
       </div>
       <div class="modal-body">
-        <div>{{ 'COULDNOTLOAD_SETTINGS_PROMPT' | i18n }}</div>
+        <div>{{ 'SETTINGS_LOAD_FAILURE_PROMPT' | i18n }}</div>
         <form class="form-inline pagination-centered">
           <label class="checkbox">
             <input type="checkbox" ng-model="notifyLanternDevs">
@@ -117,39 +117,39 @@
 
     <!-- setup screens -->
 
-    <div id="setup-setpassword" ng-controller="SetupSetPasswordCtrl" ui-modal
+    <div id="password-create" ng-controller="PasswordCreateCtrl" ui-modal
          ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
-      <form name="setPasswordForm" ng-submit="submit()">
+      <form name="passwordCreateForm" ng-submit="submit()">
         <div class="modal-header">
-          <h3>{{ 'SETUP_SETPASSWORD_TITLE' | i18n }}</h3>
+          <h3>{{ 'PASSWORD_CREATE_TITLE' | i18n }}</h3>
         </div>
         <div class="modal-body">
-          <div>{{ 'SETUP_SETPASSWORD_PROMPT' | i18n }}</div>
+          <div>{{ 'PASSWORD_CREATE_PROMPT' | i18n }}</div>
           <br>
-          <div class="control-group" ng-class="{error: setPasswordForm.password2.$dirty && setPasswordForm.password2.$invalid}">
+          <div class="control-group" ng-class="{error: passwordCreateForm.password2.$dirty && passwordCreateForm.password2.$invalid}">
             <div class="controls pagination-centered">
               <input type="password" ng-model="password1" autofocus required
                      name="password1" placeholder="{{ 'PASSWORD' | i18n }}">
               <br>
               <input type="password" ng-model="password2" name="password2"
                      required placeholder="{{ 'PASSWORD_CONFIRM' | i18n }}">
-              <div class="text-error" ui-toggle="setPasswordForm.password2.$dirty && setPasswordForm.password2.$invalid">{{ 'PASSWORDS_MUST_MATCH' | i18n }}</div>
+              <div class="text-error" ui-toggle="passwordCreateForm.password2.$dirty && passwordCreateForm.password2.$invalid">{{ 'PASSWORDS_MUST_MATCH' | i18n }}</div>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="submit" ng-disabled="setPasswordForm.$invalid"
+          <button type="submit" ng-disabled="passwordCreateForm.$invalid"
                   class="btn btn-primary">{{ 'SET' | i18n }}</button>
         </div>
       </form>
     </div>
 
-    <div id="setup-welcome" ng-controller="SetupWelcomeCtrl" ui-modal
-         ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
-      <div class="modal-header">
+    <div id="welcome" ng-controller="WelcomeCtrl" ui-modal ng-model="show"
+         class="fade" data-backdrop="static" data-keyboard="false">
+      <div class="modal-header pagination-centered">
         <h3>{{ 'SETUP_WELCOME_TITLE' | i18n }}</h3>
       </div>
-      <div class="modal-body">
+      <div class="modal-body pagination-centered">
         <div>{{ 'SETUP_WELCOME_PROMPT' | i18n }}</div>
       </div>
       <div class="modal-footer">
@@ -240,14 +240,13 @@
             <div class="control-group">
               <label class="control-label">modal</label>
               <div class="controls">
-                <input type="text" ng-model="model.modal" placeholder="setPassword, welcome, signin, sysproxy, finished">
+                <input type="text" ng-model="model.modal" placeholder="passwordCreate, settingsUnlock, settingsLoadFailure, welcome, signin, sysproxy, finished">
               </div>
             </div>
             <div class="control-group">
               <label class="control-label">settings</label>
               <div class="controls row">
                 <div class="span-4">
-                  <label><input type="text" ng-model="model.settings.state" placeholder="locked, unlocked, couldNotLoad"> state</label>
                   <label><input type="text" ng-model="model.settings.mode" placeholder="give, get"> mode</label>
                   <label><input type="text" ng-model="model.settings.userid" placeholder="user@example.com"> userid</label>
                   <label><input type="text" placeholder="0" ng-model="model.settings.invites"> invites</label>

@@ -15,6 +15,11 @@ function RootCtrl($scope, logFactory, modelSrvc, $http, apiSrvc, MODE) {
   };
 
   $scope.notifyLanternDevs = true; // XXX find a better place for this?
+  $scope.$watch('model.settings.autoReport', function(val) {
+    if (typeof val == 'boolean') {
+      $scope.notifyLanternDevs = val;
+    }
+  });
   $scope.maybeNotify = function() {
     if ($scope.notifyLanternDevs) {
       log.warn('Notify Lantern developers not yet implemented');
@@ -54,19 +59,19 @@ function SanityCtrl($scope, modelSrvc) {
   });
 }
 
-function SettingsCouldNotLoadCtrl($scope, SETTINGS_STATE) {
+function SettingsLoadFailureCtrl($scope, MODAL) {
   $scope.show = false;
-  $scope.$watch('model.settings.state', function(val) {
-    $scope.show = val == SETTINGS_STATE.couldNotLoad;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.settingsLoadFailure;
   });
 }
 
-function SettingsLockedCtrl($scope, modelSrvc, $http, apiSrvc, logFactory, SETTINGS_STATE) {
-  var log = logFactory('SettingsLockedCtrl'),
+function SettingsUnlockCtrl($scope, modelSrvc, $http, apiSrvc, logFactory, MODAL) {
+  var log = logFactory('SettingsUnlockCtrl'),
       model = $scope.model = modelSrvc.model;
   $scope.show = false;
-  $scope.$watch('model.settings.state', function(val) {
-    $scope.show = val == SETTINGS_STATE.locked;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.settingsUnlock;
   });
 
   $scope.password = '';
@@ -85,28 +90,28 @@ function SettingsLockedCtrl($scope, modelSrvc, $http, apiSrvc, logFactory, SETTI
   };
 }
 
-function SetupSetPasswordCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
-  var log = logFactory('SetupSetPasswordCtrl');
+function PasswordCreateCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
+  var log = logFactory('PasswordCreateCtrl');
   $scope.show = false;
   $scope.$watch('model.modal', function(val) {
-    $scope.show = val == MODAL.setPassword;
+    $scope.show = val == MODAL.passwordCreate;
   });
 
   $scope.password1 = '';
   $scope.password2 = '';
   function validate() {
     // XXX find out the right way to do this
-    var pw1ctrl = $scope.setPasswordForm.password1,
-        pw2ctrl = $scope.setPasswordForm.password2,
+    var pw1ctrl = $scope.passwordCreateForm.password1,
+        pw2ctrl = $scope.passwordCreateForm.password2,
         valid = $scope.password1 == $scope.password2;
-    $scope.setPasswordForm.$valid = pw2ctrl.$valid = valid;
-    $scope.setPasswordForm.$invalid = pw2ctrl.$invalid = !valid;
+    $scope.passwordCreateForm.$valid = pw2ctrl.$valid = valid;
+    $scope.passwordCreateForm.$invalid = pw2ctrl.$invalid = !valid;
   }
   $scope.$watch('password1', validate);
   $scope.$watch('password2', validate);
 
   $scope.submit = function() {
-    $http.post(apiSrvc.urlfor('settings/secure', {password: $scope.password1}))
+    $http.post(apiSrvc.urlfor('passwordCreate', {password: $scope.password1}))
       .success(function(data, status, headers, config) {
         log.debug('password set');
         // XXX need to reset any form state?
@@ -117,8 +122,8 @@ function SetupSetPasswordCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
   };
 }
 
-function SetupWelcomeCtrl($scope, modelSrvc, $http, apiSrvc, logFactory, MODAL) {
-  var log = logFactory('SetupWelcomeCtrl'),
+function WelcomeCtrl($scope, modelSrvc, $http, apiSrvc, logFactory, MODAL) {
+  var log = logFactory('WelcomeCtrl'),
       model = $scope.model = modelSrvc.model;
   $scope.show = false;
   $scope.$watch('model.modal', function(val) {
@@ -142,7 +147,7 @@ function SetupWelcomeCtrl($scope, modelSrvc, $http, apiSrvc, logFactory, MODAL) 
 }
 
 function SigninCtrl($scope, modelSrvc, $http, apiSrvc, logFactory, MODAL) {
-  var log = logFactory('SetupWelcomeCtrl'),
+  var log = logFactory('SigninCtrl'),
       model = $scope.model = modelSrvc.model;
   $scope.show = false;
   $scope.$watch('model.modal', function(val) {

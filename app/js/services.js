@@ -7,13 +7,10 @@ angular.module('app.services', [])
     give: 'give',
     get: 'get'
   })
-  .constant('SETTINGS_STATE', {
-    locked: 'locked',
-    unlocked: 'unlocked',
-    couldNotLoad: 'couldNotLoad'
-  })
   .constant('MODAL', {
-    setPassword: 'setPassword',
+    passwordCreate: 'passwordCreate',
+    settingsUnlock: 'settingsUnlock',
+    settingsLoadFailure: 'settingsLoadFailure',
     welcome: 'welcome',
     signin: 'signin',
     sysproxy: 'sysproxy',
@@ -21,10 +18,9 @@ angular.module('app.services', [])
     '': ''
   })
   // enum service
-  .factory('enums', function(MODE, SETTINGS_STATE, MODAL) {
+  .factory('enums', function(MODE, MODAL) {
     return {
       MODE: MODE,
-      SETTINGS_STATE: SETTINGS_STATE,
       MODAL: MODAL
     };
   })
@@ -156,10 +152,6 @@ angular.module('app.services', [])
           type: 'object',
           description: 'User-specific state and configuration',
           properties: {
-            state: {
-              type: 'string',
-              'enum': Object.keys(enums.SETTINGS_STATE)
-            },
             mode: {
               type: 'string',
               'enum': Object.keys(enums.MODE)

@@ -15,11 +15,14 @@ $experimental-support-for-opera: false
 .ui-hide
   opacity: 0
 
-// type a@b.co, colors change from red to blue to red to blue without this
-input[type=email].ng-invalid.ng-dirty
+=inputInvalid
   color: #b94a48
   border-color: #b94a48
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(255, 0, 0, 0.6)
+  +box-shadow(inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(255, 0, 0, 0.6))
+
+// as you type a@b.c.d, colors change from red to blue to red to blue without this
+input[type=email].ng-invalid
+  +inputInvalid
 
 .modal form
   margin-bottom: 0
@@ -29,6 +32,9 @@ input[type=email].ng-invalid.ng-dirty
 
 .tooltip
   z-index: 10000
+
+#welcome .modal-body
+  margin: 10px 0 100px 0
 
 #sanity
   z-index: 5002

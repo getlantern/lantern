@@ -198,8 +198,9 @@ the backend maintains on the frontend through comet publications:
       below) is not available (e.g. settings are locked).</td>
   </tr>
   <tr>
-    <td><strong>modal</strong><br>"setPassword" | "welcome" | "signin" |
-      "sysproxy" | "finished" | ""
+    <td><strong>modal</strong><br>"passwordCreate" | "settingsUnlock" |
+      "settingsLoadFailure" | "welcome" | "signin" | "sysproxy" | "finished"
+      | ""
     </td>
     <td>Instructs the UI to display the corresponding modal dialog.
       A value of empty string means no modal dialog should be displayed.
@@ -301,15 +302,6 @@ the backend maintains on the frontend through comet publications:
     <td>
       <table>
         <tr>
-          <td><strong>state</strong><br>"locked" | "unlocked" | "couldNotLoad"</td>
-          <td>If "locked", the UI will prompt the user for her Lantern
-            password to unlock her encrypted settings. If "couldNotLoad",
-            the UI will notify the user and block all user interaction besides
-            quit and reset. Otherwise, the settings state is "unlocked" and
-            Lantern can proceed.
-          </td>
-        </tr>
-        <tr>
           <td><strong>userid</strong><br><em>string</em></td>
           <td>The user's Google Talk/Lantern userid.</td>
         </tr>
@@ -343,7 +335,7 @@ the backend maintains on the frontend through comet publications:
           </td>
         </tr>
         <tr>
-          <td><strong>mode</strong><br><em>"give" | "get"</em></td>
+          <td><strong>mode</strong><br>"give" | "get"</td>
           <td>Whether we're in Give Mode or Get Mode.</td>
         </tr>
         <tr>
@@ -397,18 +389,7 @@ the backend maintains on the frontend through comet publications:
 
 ### Questions / Comments
 
-* does cometd allow sub-channels under `/sync`?
-
 * implement delete field via comet update? (see above)
-
-* necessary to send revision number in each comet message? à la:
-
-    > The `revision` field allows the frontend to ensure it's always merging
-    in up-to-date state. It remembers the highest revision it's seen and
-    ignores messages with a lower revision number.
-
-    Would need to maintain separate revision for each channel because they're
-    async
 
 * should frontend refuse to connect to backend reporting incompatible version
     of update protocol?
@@ -417,7 +398,7 @@ the backend maintains on the frontend through comet publications:
 
 * `proxiedSitesList` is displayed in sorted order, but can be stored out of
     order and sorted on the fly by angular to take advantage of the more
-    efficient elementwise update capability.
+    efficient elementwise array update capability.
 
     As for `roster`, the frontend doesn't ever modify or re-order it, it simply
     displays what the backend sends it in the same order, so the backend can

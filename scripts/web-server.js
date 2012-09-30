@@ -34,7 +34,27 @@ function createServlet(Class) {
 
 // XXX
 var bayeux;
-var model = {settings: {}};
+var model;
+function resetModel() {
+  model = {
+    modal: 'welcome',
+    lang: 'en',
+    settings: {
+      savePassword: true,
+      passwordSaved: false,
+      startAtLogin: true,
+      autoReport: true,
+      proxyPort: 8787,
+      systemProxy: true,
+      proxyAllSites: false,
+      proxiedSitesList: [
+        'google.com',
+        'twitter.com'
+        ]
+    }
+  };
+}
+resetModel();
 function sync(obj, path, value){
   var lastObj = obj;
   var property;
@@ -132,15 +152,15 @@ function ApiServlet() {}
 ApiServlet.HandlerMap = {
   '/api/0.0.1/reset': function(req, res, parsed) {
       res.writeHead(200);
-      model = {modal: 'welcome', settings: {}};
+      resetModel();
       bayeux._server._engine.publish({channel: '/sync', data: {
         path: '',
         value: model
       }});
     },
-  '/api/0.0.1/settings/secure': function(req, res, parsed) {
+  '/api/0.0.1/passwordCreate': function(req, res, parsed) {
       res.writeHead(200);
-      model.settings.state = 'unlocked';
+      model.modal = 'welcome';
       bayeux._server._engine.publish({channel: '/sync', data: {
         path: 'modal',
         value: 'welcome'
@@ -149,10 +169,10 @@ ApiServlet.HandlerMap = {
   '/api/0.0.1/settings/unlock': function(req, res, parsed) {
       if (parsed.query.password == 'password') {
         res.writeHead(200);
-        model.settings.state = 'unlocked';
+        model.modal = '';
         bayeux._server._engine.publish({channel: '/sync', data: {
-          path: 'settings.state',
-          value: 'unlocked'
+          path: 'modal',
+          value: ''
         }});
       } else {
         res.writeHead(403);
