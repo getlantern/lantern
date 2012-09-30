@@ -12,7 +12,8 @@
     <!--
     <link href="lib/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
     -->
-    <link href="lib/angular-ui/angular-ui.css">
+    <link href="lib/angular-ui/angular-ui.css" rel="stylesheet">
+    <link href="lib/select2/select2.css" rel="stylesheet">
 
     <script src="lib/angular/docs/js/jquery.js"></script>
     <script src="lib/webshims/js-webshim/dev/extras/modernizr-custom.js"></script>
@@ -29,6 +30,7 @@
     <script src="lib/angular/i18n/angular-locale_fa-ir.js"></script>
     -->
     <script src="lib/angular-ui/angular-ui.js"></script>
+    <script src="lib/select2/select2.js"></script>
     <script src="lib/lodash.js"></script>
     <script src="js/app.js"></script>
     <script src="js/services.js"></script>
@@ -240,7 +242,19 @@
             <div class="control-group">
               <label class="control-label">modal</label>
               <div class="controls">
+                <select ui-select2="{allowClear: true}" ng-model="model.modal" data-placeholder="choose value">
+                  <option value=""></option>
+                  <option value="passwordCreate">passwordCreate</option>
+                  <option value="settingsUnlock">settingsUnlock</option>
+                  <option value="settingsLoadFailure">settingsLoadFailure</option>
+                  <option value="welcome">welcome</option>
+                  <option value="signin">signin</option>
+                  <option value="sysproxy">sysproxy</option>
+                  <option value="finished">finished</option>
+                </select>
+                <!--
                 <input type="text" ng-model="model.modal" placeholder="passwordCreate, settingsUnlock, settingsLoadFailure, welcome, signin, sysproxy, finished">
+                -->
               </div>
             </div>
             <div class="control-group">
