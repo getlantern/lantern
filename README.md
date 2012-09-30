@@ -20,6 +20,10 @@ desktop systems.
 2. Clone the repository:
 
     $ git clone git@github.com:getlantern/lantern.git
+    
+3. Change to the lantern directory:
+
+    $ cd lantern
 
 3. Run the build-and-run script:
 
