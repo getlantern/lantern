@@ -45,8 +45,10 @@
   <body ng-controller="RootCtrl" ng-cloak>
 
     <div x-block-input ng-hide="connected()">
-      <div>{{ 'WAITING_FOR_LANTERN' | i18n }}</div>
-      <img src="lib/webshims/css/polyfill-loader.gif">
+      <div id="waiting-container">
+        <div>{{ 'WAITING_FOR_LANTERN' | i18n }}</div>
+        <img src="lib/webshims/css/polyfill-loader.gif">
+      </div>
     </div>
 
     <!-- modal dialogs -->

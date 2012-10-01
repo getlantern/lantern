@@ -35,21 +35,29 @@ input:disabled {
 }
 
 /* line 37, ../../sass/app.sass */
+#waiting-container {
+  position: fixed;
+  top: 100px;
+  width: 100%;
+  line-height: 50px;
+}
+
+/* line 43, ../../sass/app.sass */
 #welcome .modal-body {
   margin: 10px 0 100px 0;
 }
 
-/* line 40, ../../sass/app.sass */
+/* line 46, ../../sass/app.sass */
 #sanity {
   z-index: 5002;
 }
 
-/* line 44, ../../sass/app.sass */
+/* line 50, ../../sass/app.sass */
 #sanity form, #settings-load-failure form {
   margin: 15px 0;
 }
 
-/* line 47, ../../sass/app.sass */
+/* line 53, ../../sass/app.sass */
 #developer {
   position: fixed;
   left: 0;
@@ -60,22 +68,22 @@ input:disabled {
   z-index: 5000;
 }
 
-/* line 56, ../../sass/app.sass */
+/* line 62, ../../sass/app.sass */
 #developer-content {
   background-color: white;
   border-top: 1px #333333 solid;
 }
-/* line 59, ../../sass/app.sass */
+/* line 65, ../../sass/app.sass */
 #developer-content * {
   font-size: 10pt;
 }
-/* line 61, ../../sass/app.sass */
+/* line 67, ../../sass/app.sass */
 #developer-content pre {
   font-size: 7pt;
   max-height: 80px;
   overflow: scroll;
 }
-/* line 65, ../../sass/app.sass */
+/* line 71, ../../sass/app.sass */
 #developer-content .controls.row .span-4:first-child {
   margin-left: 0;
 }
