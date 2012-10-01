@@ -19,7 +19,7 @@ desktop systems.
 
 2. Clone the repository:
 
-    $ git clone git@github.com:getlantern/lantern.git
+    $ git clone git://github.com/getlantern/lantern.git 
     
 3. Change to the lantern directory:
 
