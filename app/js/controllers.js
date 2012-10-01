@@ -14,7 +14,8 @@ function RootCtrl($scope, logFactory, modelSrvc, $http, apiSrvc, MODE) {
     return model.settings.mode == MODE.get;
   };
 
-  $scope.notifyLanternDevs = true; // XXX find a better place for this?
+  // XXX find a better place for these?
+  $scope.notifyLanternDevs = true;
   $scope.$watch('model.settings.autoReport', function(val) {
     if (typeof val == 'boolean') {
       $scope.notifyLanternDevs = val;
@@ -47,6 +48,18 @@ function RootCtrl($scope, logFactory, modelSrvc, $http, apiSrvc, MODE) {
       })
       .error(function(data, status, headers, config) {
         log.debug('Quit failed'); // XXX
+      });
+  };
+
+  $scope.changeSetting = function(key) {
+    var params = {}, val = modelSrvc.get('settings.' + key);
+    params[key] = val;
+    $http.post(apiSrvc.urlfor('settings/', params))
+      .success(function(data, status, headers, config) {
+        log.debug('Changed setting', key, 'to', val);
+      })
+      .error(function(data, status, headers, config) {
+        log.debug('Changed setting', key, 'to', val, 'failed');
       });
   };
 }
@@ -154,28 +167,33 @@ function SigninCtrl($scope, modelSrvc, $http, apiSrvc, logFactory, MODAL) {
     $scope.show = val == MODAL.signin;
   });
 
-  $scope.userid = '';
+  $scope.userid = null;
   $scope.password = '';
-  $scope.savePassword = '';
   $scope.signinError = false;
   $scope.$watch('model.settings.userid', function(val) {
-    $scope.userid = val;
+    if ($scope.userid == null && val)
+      $scope.userid = val;
   });
-  $scope.$watch('model.settings.savePassword', function(val) {
-    $scope.savePassword = !!val;
-  });
+
   function hideSigninStatus() {
     $scope.showSigninStatus = false;
   }
   $scope.$watch('userid', hideSigninStatus);
   $scope.$watch('password', hideSigninStatus);
+  $scope.needPassword = function() {
+    return !modelSrvc.get('settings.passwordSaved') ||
+           !modelSrvc.get('settings.savePassword') ||
+           $scope.userid != modelSrvc.get('settings.userid'); // support changing users
+  };
 
   $scope.submit = function() {
     $scope.signinError = false;
     $scope.showSigninStatus = true;
     $scope.signinStatusKey = 'SIGNIN_STATUS_SIGNING_IN';
-    var params = {userid: $scope.userid, password: $scope.password};
-    if ($scope.savePassword) params['savePassword'] = 1;
+    var params = {userid: $scope.userid};
+    if ($scope.needPassword()) {
+      params['password'] = $scope.password;
+    }
     $http.post(apiSrvc.urlfor('signin', params))
       .success(function(data, status, headers, config) {
         log.debug('signin');

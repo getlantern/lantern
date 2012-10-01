@@ -128,11 +128,12 @@
         <div class="modal-body">
           <div>{{ 'PASSWORD_CREATE_PROMPT' | i18n }}</div>
           <br>
-          <div class="control-group" ng-class="{error: passwordCreateForm.password2.$dirty && passwordCreateForm.password2.$invalid}">
-            <div class="controls pagination-centered">
+          <div class="control-group pagination-centered" ng-class="{error: passwordCreateForm.password2.$dirty && passwordCreateForm.password2.$invalid}">
+            <div class="controls">
               <input type="password" ng-model="password1" autofocus required
                      name="password1" placeholder="{{ 'PASSWORD' | i18n }}">
-              <br>
+            </div>
+            <div class="controls">
               <input type="password" ng-model="password2" name="password2"
                      required placeholder="{{ 'PASSWORD_CONFIRM' | i18n }}">
               <div class="text-error" ui-toggle="passwordCreateForm.password2.$dirty && passwordCreateForm.password2.$invalid">{{ 'PASSWORDS_MUST_MATCH' | i18n }}</div>
@@ -141,7 +142,7 @@
         </div>
         <div class="modal-footer">
           <button type="submit" ng-disabled="passwordCreateForm.$invalid"
-                  class="btn btn-primary">{{ 'SET' | i18n }}</button>
+                  class="btn btn-primary">{{ 'CREATE' | i18n }}</button>
         </div>
       </form>
     </div>
@@ -185,8 +186,8 @@
           <div class="control-group">
             <label class="control-label">{{ 'GTALK_PASSWORD' | i18n }}</label>
             <div class="controls">
-              <input type="password" name="password" ng-model="password"
-                     required placeholder="{{ 'PASSWORD' | i18n }}">
+              <input type="password" name="password" ng-model="password" ng-disabled="!needPassword()"
+                     ng-required="needPassword()" placeholder="{{ needPassword() && 'PASSWORD' || 'PASSWORD_SAVED' | i18n }}">
               <a rel="tooltip" data-original-title="{{ 'SIGNIN_TIP_SECURE' | i18n }}" ui-jq="tooltip">
                 <i class="icon-lock"></i>
               </a>
@@ -195,7 +196,8 @@
           <div class="control-group">
             <div class="controls">
               <label class="checkbox inline clearfix" style="width: 203px"><!-- XXX -->
-                <input type="checkbox" name="savePassword" ng-model="savePassword">
+                <input type="checkbox" ng-model="model.settings.savePassword"
+                       ng-change="changeSetting('savePassword')">
                 {{ 'SAVE_PASSWORD' | i18n }}
               </label>
               <a rel="tooltip" data-original-title="{{ 'SIGNIN_TIP_SAVE_PASSWORD' | i18n }}" ui-jq="tooltip">
@@ -242,7 +244,7 @@
             <div class="control-group">
               <label class="control-label">modal</label>
               <div class="controls">
-                <select ui-select2="{allowClear: true}" ng-model="model.modal" data-placeholder="choose value">
+                <select ui-select2="{allowClear: true}" ng-model="model.modal" data-placeholder="choose value" style="width: 220px">
                   <option value=""></option>
                   <option value="passwordCreate">passwordCreate</option>
                   <option value="settingsUnlock">settingsUnlock</option>

@@ -159,50 +159,67 @@ ApiServlet.HandlerMap = {
       }});
     },
   '/api/0.0.1/passwordCreate': function(req, res, parsed) {
-      res.writeHead(200);
-      model.modal = 'welcome';
-      bayeux._server._engine.publish({channel: '/sync', data: {
-        path: 'modal',
-        value: 'welcome'
-      }});
+      if (!parsed.query.password) {
+        res.writeHead(400);
+      } else {
+        res.writeHead(200);
+      }
     },
   '/api/0.0.1/settings/unlock': function(req, res, parsed) {
-      if (parsed.query.password == 'password') {
+      var password = parsed.query.password;
+      if (!parsed.query.password) {
+        res.writeHead(400);
+      } else if (parsed.query.password == 'password') {
         res.writeHead(200);
-        model.modal = '';
-        bayeux._server._engine.publish({channel: '/sync', data: {
-          path: 'modal',
-          value: ''
-        }});
       } else {
         res.writeHead(403);
       }
     },
   '/api/0.0.1/settings/': function(req, res, parsed) {
-      var mode = parsed.query.mode;
-      if (mode) {
-        if (mode != 'give' && mode != 'get') {
-          res.writeHead(400);
-        } else {
-          res.writeHead(200);
-          model.settings.mode = mode;
-          bayeux._server._engine.publish({channel: '/sync', data: {
-            path: 'settings.mode',
-            value: mode
-          }});
-          bayeux._server._engine.publish({channel: '/sync', data: {
-            path: 'modal',
-            value: 'signin'
-          }});
-        }
+      var mode = parsed.query.mode,
+          savePassword = parsed.query.savePassword,
+          badRequest = false;
+      if ('undefined' == typeof mode &&
+          'undefined' == typeof savePassword) {
+        badRequest = true;
       } else {
-        res.writeHead(404);
+        if (mode) {
+          if (mode != 'give' && mode != 'get') {
+            badRequest = true;
+            sys.puts('invalid value of mode: ' + mode);
+          } else {
+            model.settings.mode = mode;
+          }
+        }
+        if (savePassword) {
+          if (savePassword != 'true' && savePassword != 'false') {
+            badRequest = true;
+            sys.puts('invalid value of savePassword: ' + savePassword);
+          } else {
+            savePassword = savePassword == 'true';
+            model.settings.savePassword = savePassword;
+          }
+        }
       }
+      if (badRequest) {
+        res.writeHead(400);
+      } else {
+        res.writeHead(200);
+      }
+      // publish all settings even on bad request so UI can revert
+      // aspirational state
+      bayeux._server._engine.publish({channel: '/sync', data: {
+        path: 'settings',
+        value: model.settings
+      }});
     },
   '/api/0.0.1/signin': function(req, res, parsed) {
       var userid = parsed.query.userid,
-          password = parsed.query.password,
-          savePassword = parsed.query.savePassword != '0' && parsed.query.savePassword != 'false';
+          password = typeof parsed.query.password != 'undefined' ?
+                     parsed.query.password :
+                     (model.settings.passwordSaved ? 'password' : '');
+      sys.puts('userid ' + userid);
+      sys.puts('password ' + password);
       usleep(500000); // sleep for .5 seconds to simulate latency
       if (!userid || !password) {
         res.writeHead(400);
@@ -215,7 +232,9 @@ ApiServlet.HandlerMap = {
         } else {
           res.writeHead(200);
           model.settings.userid = userid;
-          model.settings.passwordSaved = !!savePassword;
+          if (model.settings.savePassword) {
+            model.settings.passwordSaved = true;
+          }
           //model.modal = model.mode == 'get' ? 'sysproxy' : 'finished';
         }
         bayeux._server._engine.publish({channel: '/sync', data: {
@@ -237,6 +256,7 @@ ApiServlet.prototype.handleRequest = function(req, res) {
     res.writeHead(404);
   }
   res.end();
+  sys.puts(res.statusCode);
 };
 
 /**

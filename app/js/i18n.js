@@ -13,7 +13,7 @@ angular.module('app.i18n', [])
       SETTINGS_UNLOCK_PROMPT: 'Enter your Lantern password to unlock your settings.',
       PASSWORD: 'password',
       PASSWORD_CONFIRM: 'confirm password',
-      SET: 'Set',
+      CREATE: 'Create',
       PASSWORDS_MUST_MATCH: 'Passwords must match',
       PASSWORD_INVALID: 'Password invalid',
       UNLOCK: 'Unlock',
@@ -39,6 +39,7 @@ angular.module('app.i18n', [])
       EMAIL_PLACEHOLDER: 'email@example.com',
       GTALK_PASSWORD: 'Google Talk password',
       SAVE_PASSWORD: 'Save password',
+      PASSWORD_SAVED: 'password saved',
       START_OVER: 'Start over',
       SIGN_IN: 'Sign in',
       SIGNIN_DISCOVER_PROXIES_PROMPT: 'Lantern can connect to known proxies but will be unable to discover new ones until signed into Google Talk.'

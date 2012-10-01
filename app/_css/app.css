@@ -10,40 +10,46 @@
   opacity: 0;
 }
 
-/* line 24, ../../sass/app.sass */
-input[type=email].ng-invalid {
+/* line 20, ../../sass/app.sass */
+input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
   color: #b94a48;
   border-color: #b94a48;
-  -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(255, 0, 0, 0.6);
-  -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(255, 0, 0, 0.6);
-  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(255, 0, 0, 0.6);
+  -webkit-box-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
+  -moz-box-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
+  box-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
 }
 
-/* line 27, ../../sass/app.sass */
+/* line 25, ../../sass/app.sass */
+input:disabled {
+  cursor: default;
+}
+
+/* line 28, ../../sass/app.sass */
 .modal form {
   margin-bottom: 0;
 }
 
-/* line 33, ../../sass/app.sass */
+/* line 34, ../../sass/app.sass */
 .tooltip {
   z-index: 10000;
 }
 
-/* line 36, ../../sass/app.sass */
+/* line 37, ../../sass/app.sass */
 #welcome .modal-body {
   margin: 10px 0 100px 0;
 }
 
-/* line 39, ../../sass/app.sass */
+/* line 40, ../../sass/app.sass */
 #sanity {
   z-index: 5002;
 }
-/* line 41, ../../sass/app.sass */
-#sanity form {
+
+/* line 44, ../../sass/app.sass */
+#sanity form, #settings-load-failure form {
   margin: 15px 0;
 }
 
-/* line 44, ../../sass/app.sass */
+/* line 47, ../../sass/app.sass */
 #developer {
   position: fixed;
   left: 0;
@@ -54,22 +60,22 @@ input[type=email].ng-invalid {
   z-index: 5000;
 }
 
-/* line 53, ../../sass/app.sass */
+/* line 56, ../../sass/app.sass */
 #developer-content {
   background-color: white;
   border-top: 1px #333333 solid;
 }
-/* line 56, ../../sass/app.sass */
+/* line 59, ../../sass/app.sass */
 #developer-content * {
   font-size: 10pt;
 }
-/* line 58, ../../sass/app.sass */
+/* line 61, ../../sass/app.sass */
 #developer-content pre {
   font-size: 7pt;
   max-height: 80px;
   overflow: scroll;
 }
-/* line 62, ../../sass/app.sass */
+/* line 65, ../../sass/app.sass */
 #developer-content .controls.row .span-4:first-child {
   margin-left: 0;
 }
