@@ -64,13 +64,16 @@ Start up the Node.js server simulating the Lantern backend:
 The new UI should now be available at
 [http://localhost:8000/app/index.html](http://localhost:8000/app/index.html)
 
-The UI is implemented as an [AngularJS](http://angularjs.org) app. As
-recommended, this repo was started with the
+The UI is implemented as an [AngularJS](http://angularjs.org) app. Using the
+[AngularJS Batarang](https://chrome.google.com/webstore/detail/ighdmehidhipcmcojjgiloacoafjmpfk)
+Chrome extension (especially the performance tab) is highly recommended for
+development. As recommended, this repo was started with the
 [angular-seed](https://github.com/angular/angular-seed). The
 `scripts/web-server.js` script has been modified to attach a bayeux server
-via Faye to simulate the Lantern backend.
+via Faye to simulate the Lantern cometd server, and has also been modified to
+provide a work-in-progress http API the frontend can call to notify the backend
+of user interactions.
 
-The bayeux server currently only pushes an initial dummy state to the frontend.
 [Specs](https://github.com/getlantern/lantern-ui/blob/master/SPECS.md) are
 currently being developed to represent the full state of the application at any
 given time, as well as transitions between states. Once the specs are set, the
