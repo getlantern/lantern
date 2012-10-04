@@ -5,15 +5,32 @@ $legacy-support-for-mozilla: false
 $experimental-support-for-opera: false
 //$experimental-support-for-svg: true
 
+
+
+//** libraries, utilities
+
 @import compass
+
+// we currently include all of bootstrap.css. in case we want to customize:
 //@import compass_twitter_bootstrap_awesome
 //@import compass_twitter_bootstrap_responsive
 
+// http://angular-ui.github.com/#directives-showhide
 .ui-hide, .ui-show
   +single-transition(all, 0.5s, ease)
 
 .ui-hide
   opacity: 0
+
+
+
+//** twitter bootstrap overrides
+
+input:disabled
+  cursor: default
+
+.tooltip
+  z-index: 10000
 
 // as you type a@b.c, outline and shadow change from red to blue to red to blue without this
 input[type=email]:focus
@@ -22,17 +39,12 @@ input[type=email]:focus
     border-color: #b94a48
     +box-shadow(0 0 8px rgba(255, 0, 0, 0.6) !important)
 
-input:disabled
-  cursor: default
+
+
+//** custom styles
 
 .modal form
   margin-bottom: 0
-
-//body
-  padding: 50px
-
-.tooltip
-  z-index: 10000
 
 #waiting-container
   position: fixed
@@ -42,6 +54,12 @@ input:disabled
 
 #welcome .modal-body
   margin: 10px 0 100px 0
+
+#sysproxy
+  .control-group
+    margin: 0 75px
+  .text-error
+    margin: 20px 75px
 
 #sanity
   z-index: 5002
@@ -55,7 +73,7 @@ input:disabled
   left: 0
   right: 0
   bottom: 0
-  max-height: 30%
+  max-height: 25%
   overflow: scroll
   z-index: 5000
 
@@ -70,3 +88,5 @@ input:disabled
     overflow: scroll
   .controls.row .span-4:first-child
     margin-left: 0
+  .select2-container
+    width: 220px

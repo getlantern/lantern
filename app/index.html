@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="app">
+<html ng-app="app"><!-- XXX add dir attribute based on current language -->
   <head>
     <meta charset="utf-8">
     <title>Lantern Dashboard</title>
@@ -44,7 +44,9 @@
 
   <body ng-controller="RootCtrl" ng-cloak>
 
-    <div x-block-input ng-hide="connected()">
+    <div x-block-input ng-controller="WaitingForLanternCtrl" ng-show="show">
+      <!-- ng-hide instead of ui-if so spinner image won't
+           be refetched and missing after server goes away -->
       <div id="waiting-container">
         <div>{{ 'WAITING_FOR_LANTERN' | i18n }}</div>
         <img src="lib/webshims/css/polyfill-loader.gif">
@@ -53,6 +55,7 @@
 
     <!-- modal dialogs -->
 
+    <!--
     <div id="sanity" ng-controller="SanityCtrl" ng-model="show"
          ui-modal class="fade" data-backdrop="static" data-keyboard="false">
       <div class="modal-header">
@@ -72,6 +75,7 @@
         <button ng-click="maybeNotify(); refresh()" class="btn btn-primary">{{ 'REFRESH' | i18n }}</button>
       </div>
     </div>
+    -->
 
     <div id="settings-unlock" ng-controller="SettingsUnlockCtrl" ui-modal
          ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
@@ -132,18 +136,18 @@
           <br>
           <div class="control-group pagination-centered" ng-class="{error: passwordCreateForm.password2.$dirty && passwordCreateForm.password2.$invalid}">
             <div class="controls">
-              <input type="password" ng-model="password1" autofocus required
+              <input type="password" ng-model="password1" autofocus required ng-disabled="disableSubmit"
                      name="password1" placeholder="{{ 'PASSWORD' | i18n }}">
             </div>
             <div class="controls">
-              <input type="password" ng-model="password2" name="password2"
+              <input type="password" ng-model="password2" name="password2" ng-disabled="disableSubmit"
                      required placeholder="{{ 'PASSWORD_CONFIRM' | i18n }}">
               <div class="text-error" ui-toggle="passwordCreateForm.password2.$dirty && passwordCreateForm.password2.$invalid">{{ 'PASSWORDS_MUST_MATCH' | i18n }}</div>
             </div>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="submit" ng-disabled="passwordCreateForm.$invalid"
+          <button type="submit" ng-disabled="passwordCreateForm.$invalid || disableSubmit"
                   class="btn btn-primary">{{ 'CREATE' | i18n }}</button>
         </div>
       </form>
@@ -158,38 +162,35 @@
         <div>{{ 'SETUP_WELCOME_PROMPT' | i18n }}</div>
       </div>
       <div class="modal-footer">
-        <button type="submit" class="btn btn-success" ng-click="setGiveMode()">{{ 'GIVE_ACCESS' | i18n }}</button>
-        <button type="submit" class="btn btn-primary" ng-click="setGetMode()">{{ 'GET_ACCESS' | i18n }}</button>
+        <button type="submit" class="btn btn-success" ng-click="changeSetting('mode', MODE.give)">{{ 'GIVE_ACCESS' | i18n }}</button>
+        <button type="submit" class="btn btn-primary" ng-click="changeSetting('mode', MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
       </div>
     </div>
 
-    <!-- used both during initial setup and after (when !passwordSaved) -->
+    <!-- XXX use both during initial setup and after (when !passwordSaved)? -->
     <div id="signin" ng-controller="SigninCtrl" ui-modal ng-model="show" class="fade"
-         data-backdrop="{{ model.setupComplete && inGetMode() || 'static' }}"
-         data-keyboard="{{ model.setupComplete && inGetMode() }}">
-      <!-- only allow closing in Get Mode when setupComplete -->
-      <form name="signinForm" class="form-horizontal" ng-submit="submit()">
-        <div class="modal-header">
-          <button type="button" ui-if="model.setupComplete && inGetMode()"
-                  class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
-          <h3>{{ 'SETUP_SIGNIN_TITLE' | i18n }}</h3>
-        </div>
-        <div class="modal-body">
-          <div ui-if="!model.setupComplete">{{ 'SETUP_SIGNIN_PROMPT' | i18n }}</div>
-          <div ui-if="model.setupComplete && inGetMode()">{{ 'SIGNIN_DISCOVER_PROXIES_PROMPT' | i18n }}</div>
+         data-backdrop="static" data-keyboard="false">
+      <div class="modal-header">
+        <h3>{{ 'SETUP_SIGNIN_TITLE' | i18n }}</h3>
+      </div>
+      <div class="modal-body">
+        <form name="signinForm" class="form-horizontal" ng-submit="submit()">
+          <div>{{ 'SETUP_SIGNIN_PROMPT' | i18n }}</div>
           <br>
           <div class="control-group">
             <label class="control-label">{{ 'GTALK_USERID' | i18n }}</label>
             <div class="controls">
-              <input type="email" autofocus required ng-model="userid"
-                     name="userid" placeholder="{{ 'EMAIL_PLACEHOLDER' | i18n }}">
+              <input type="email" autofocus required ng-model="userid" ng-disabled="model.settings.userid || disableSubmit"
+                     name="userid" placeholder="email@example.com">
+             <!--    name="userid" placeholder="{{ 'EMAIL_PLACEHOLDER' | i18n }}"> -->
+             <!-- XXX input[type=text] placeholder shim broken when used with Angular expression -->
             </div>
           </div>
           <div class="control-group">
             <label class="control-label">{{ 'GTALK_PASSWORD' | i18n }}</label>
             <div class="controls">
-              <input type="password" name="password" ng-model="password" ng-disabled="!needPassword()"
-                     ng-required="needPassword()" placeholder="{{ needPassword() && 'PASSWORD' || 'PASSWORD_SAVED' | i18n }}">
+              <input type="password" name="password" ng-model="password" ng-disabled="!needPassword || disableSubmit"
+                     ng-required="needPassword" placeholder="{{ needPassword && 'PASSWORD' || 'PASSWORD_SAVED' | i18n }}">
               <a rel="tooltip" data-original-title="{{ 'SIGNIN_TIP_SECURE' | i18n }}" ui-jq="tooltip">
                 <i class="icon-lock"></i>
               </a>
@@ -198,8 +199,8 @@
           <div class="control-group">
             <div class="controls">
               <label class="checkbox inline clearfix" style="width: 203px"><!-- XXX -->
-                <input type="checkbox" ng-model="model.settings.savePassword"
-                       ng-change="changeSetting('savePassword')">
+                <input type="checkbox" ng-model="savePassword" ng-disabled="disableSubmit"
+                       ng-change="changeSetting('savePassword', savePassword)">
                 {{ 'SAVE_PASSWORD' | i18n }}
               </label>
               <a rel="tooltip" data-original-title="{{ 'SIGNIN_TIP_SAVE_PASSWORD' | i18n }}" ui-jq="tooltip">
@@ -209,32 +210,78 @@
           </div>
           <div class="control-group">
             <div class="controls">
-              <div ng-class="{'text-error': signinError}" ui-toggle="showSigninStatus">{{ signinStatusKey | i18n }}&nbsp;</div>
-              <!-- XXX show spinner while signing in -->
+              <div ng-class="{'text-error': signinError}" ui-toggle="showSigninStatus">
+                {{ signinStatusKey | i18n }}&nbsp;
+              </div>
             </div>
           </div>
-        </div>
-        <!-- XXX (hidden) submit input so pressing enter triggers form submission -->
-        <input type="submit" style="height: 1px; width: 1px; visibility: hidden; float: left" value="">
-      </form>
+          <!-- XXX (hidden) submit input so pressing enter triggers form submission (make this a directive?) -->
+          <button type="submit" tabindex="-1" style="height: 0; width: 0; border: 0; filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0); opacity: 0"></button>
+        </form>
+      </div>
       <div class="modal-footer">
         <!-- buttons outside the form so reset doesn't get triggered when sign in is disabled on pressing enter -->
-        <button type="submit" ui-if="!model.setupComplete" class="btn btn-danger pull-left" ng-click="reset()">
+        <button type="button" ng-click="reset()" ui-if="!model.setupComplete"
+                class="btn btn-danger pull-left">
           <i class="icon-backward icon-white"></i> {{ 'START_OVER' | i18n }}
         </button>
-        <button type="submit" class="btn btn-primary" ng-disabled="signinForm.$invalid" ng-click="submit()">
-          {{ 'SIGN_IN' | i18n }}
+        <button type="submit" ng-click="submit()" class="btn btn-primary"
+                ng-disabled="signinForm.$invalid || disableSubmit">
+          {{ submitButtonLabelKey | i18n }}
         </button>
       </div>
     </div>
 
+    <div id="sysproxy" ng-controller="SystemProxyCtrl" ui-modal ng-model="show"
+         class="fade" data-backdrop="static" data-keyboard="false">
+      <div class="modal-header">
+        <h3>{{ 'SYSTEM_PROXY_TITLE' | i18n }}</h3>
+      </div>
+      <div class="modal-body">
+        <div>{{ 'SYSTEM_PROXY_PROMPT' | i18n }}</div>
+        <br>
+        <div class="control-group">
+          <div class="controls">
+            <label class="radio control-label">
+              <input type="radio" ng-model="systemProxy" ng-value="true">
+              {{ 'SYSTEM_PROXY_TRUE' | i18n }}
+            </label>
+          </div>
+          <div class="controls">
+            <label class="radio control-label">
+              <input type="radio" ng-model="systemProxy" ng-value="false">
+              {{ 'SYSTEM_PROXY_FALSE' | i18n }}
+            </label>
+          </div>
+        </div>
+        <div class="text-error" ui-toggle="sysproxyError">
+          {{ 'SYSTEM_PROXY_ERROR' | i18n }}&nbsp;
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" ng-click="reset()" ui-if="!model.setupComplete"
+                class="btn btn-danger pull-left">
+          <i class="icon-backward icon-white"></i> {{ 'START_OVER' | i18n }}
+        </button>
+        <button type="submit" class="btn btn-primary" ng-click="submit()">
+          {{ 'NEXT' | i18n }}
+        </button>
+      </div>
+    </div>
+
+
     <!-- developer panel -->
 
-    <div id="developer" ng-controller="DevCtrl" ng-show="show">
+    <div id="developer" ng-controller="DevCtrl" ng-show="debug">
       <button class="btn" data-toggle="collapse" data-target="#developer-content">Developer</button>
       <div id="developer-content" class="collapse in">
-        <a href="https://github.com/getlantern/lantern-ui/blob/master/SPECS.md#state-document-specification">(specs)</a>
-        <pre>{{model | json}}</pre>
+        <label class="checkbox inline">
+          Model
+          <a href="https://github.com/getlantern/lantern-ui/blob/master/SPECS.md#state-document-specification">(specs)</a>
+        </label>
+        <label class="checkbox inline"><input type="checkbox" ng-model="prettyPrint"> pretty print</label>
+        <pre ui-if="!prettyPrint">{{ model }}</pre>
+        <pre ui-if="prettyPrint">{{ model | json }}</pre>
         <div>
           <form class="form-horizontal">
             <div class="control-group">
@@ -246,7 +293,7 @@
             <div class="control-group">
               <label class="control-label">modal</label>
               <div class="controls">
-                <select ui-select2="{allowClear: true}" ng-model="model.modal" data-placeholder="choose value" style="width: 220px">
+                <select ui-select2 ng-model="model.modal" data-placeholder="choose value">
                   <option value=""></option>
                   <option value="passwordCreate">passwordCreate</option>
                   <option value="settingsUnlock">settingsUnlock</option>
@@ -256,16 +303,20 @@
                   <option value="sysproxy">sysproxy</option>
                   <option value="finished">finished</option>
                 </select>
-                <!--
-                <input type="text" ng-model="model.modal" placeholder="passwordCreate, settingsUnlock, settingsLoadFailure, welcome, signin, sysproxy, finished">
-                -->
               </div>
             </div>
             <div class="control-group">
               <label class="control-label">settings</label>
               <div class="controls row">
                 <div class="span-4">
-                  <label><input type="text" ng-model="model.settings.mode" placeholder="give, get"> mode</label>
+                  <label>
+                    <select ui-select2 ng-model="model.settings.mode" data-placeholder="mode">
+                      <option value=""></option>
+                      <option value="give">give</option>
+                      <option value="get">get</option>
+                    </select>
+                    mode
+                  </label>
                   <label><input type="text" ng-model="model.settings.userid" placeholder="user@example.com"> userid</label>
                   <label><input type="text" placeholder="0" ng-model="model.settings.invites"> invites</label>
                   <label><input type="text" ng-model="model.settings.lang" placeholder="en"> lang</label>
@@ -281,8 +332,7 @@
                 </div>
                 <div class="span-4">
                   <label>proxiedSitesList</label>
-                  <textarea placeholder="google.com
-                    twitter.com">{{ model.settings.proxiedSitesList.join('\n') }}</textarea>
+                  <textarea placeholder="google.com,twitter.com" ng-model="model.settings.proxiedSitesList"></textarea>
                 </div>
               </div>
             </div>
@@ -295,8 +345,8 @@
             <div class="control-group">
               <label class="control-label">connectivity</label>
               <div class="controls">
-                <label class="checkbox"><input type="checkbox" ng-model="model.connectivity.network"> network</label>
-                <label class="checkbox"><input type="checkbox" ng-model="model.connectivity.gtalk"> gtalk</label>
+                <label class="checkbox"><input type="checkbox" ng-model="model.connectivity.internet"> internet</label>
+                <label><input type="text" ng-model="model.connectivity.gtalk"> gtalk</label>
                 <label><input type="text" placeholder="0" ng-model="model.connectivity.peers"> peers</label>
               </div>
             </div>

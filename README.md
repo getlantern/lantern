@@ -12,10 +12,6 @@ independently of Lantern's Java backend with a lightweight node.js http server
 using [Faye](http://faye.jcoglan.com/) to implement Lantern's bayeux server
 ([CometD](http://cometd.org/)).
 
-If we can eventually record the state the real Lantern backend pushes to the
-frontend, we can have the mock backend replay the captured states, so the full
-behavior of the frontend can be tested independently.
-
 See [SPECS.md](https://github.com/getlantern/lantern-ui/blob/master/SPECS.md)
 for specifications of the state and the state transitions developed for the new
 UI (work in progress).
@@ -65,7 +61,7 @@ The new UI should now be available at
 [http://localhost:8000/app/index.html](http://localhost:8000/app/index.html)
 
 The UI is implemented as an [AngularJS](http://angularjs.org) app. Using the
-[AngularJS Batarang](https://chrome.google.com/webstore/detail/ighdmehidhipcmcojjgiloacoafjmpfk)
+[AngularJS Batarang](https://github.com/angular/angularjs-batarang)
 Chrome extension (especially the performance tab) is highly recommended for
 development. As recommended, this repo was started with the
 [angular-seed](https://github.com/angular/angular-seed). The
@@ -76,8 +72,6 @@ of user interactions.
 
 [Specs](https://github.com/getlantern/lantern-ui/blob/master/SPECS.md) are
 currently being developed to represent the full state of the application at any
-given time, as well as transitions between states. Once the specs are set, the
-real Lantern backend can implement them alongside its old implementation, and
-the new UI can be coded to conform to the new specs. To make testing easier, we
-could record sample logs of the updates sent by the real backend and then have
-the mock backend replay them in unit tests and even live on demand.
+given time, as well as transitions between states. The specs are being
+developed in parallel to the new UI and for now are frequently changing to
+meet its needs.

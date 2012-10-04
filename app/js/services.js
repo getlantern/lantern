@@ -7,6 +7,11 @@ angular.module('app.services', [])
     give: 'give',
     get: 'get'
   })
+  .constant('STATUS_GTALK', {
+    notConnected: 'notConnected',
+    connecting: 'connecting',
+    connected: 'connected'
+  })
   .constant('MODAL', {
     passwordCreate: 'passwordCreate',
     settingsUnlock: 'settingsUnlock',
@@ -18,14 +23,15 @@ angular.module('app.services', [])
     '': ''
   })
   // enum service
-  .factory('enums', function(MODE, MODAL) {
+  .factory('enums', function(MODE, STATUS_GTALK, MODAL) {
     return {
       MODE: MODE,
+      STATUS_GTALK: STATUS_GTALK,
       MODAL: MODAL
     };
   })
   // more flexible log service
-  // @see https://groups.google.com/d/msg/angular/vgMF3i3Uq2Y/q1fY_iIvkhUJ
+  // https://groups.google.com/d/msg/angular/vgMF3i3Uq2Y/q1fY_iIvkhUJ
   .value('logWhiteList', /.*Ctrl|.*Srvc/)
   .factory('logFactory', function($log, debug, logWhiteList) {
     return function(prefix) {
@@ -55,12 +61,33 @@ angular.module('app.services', [])
   .factory('cometdSrvc', function(cometdUrl, logFactory, $rootScope, $window) {
     var log = logFactory('cometdSrvc');
     // boilerplate cometd setup
-    // @see http://cometd.org/documentation/cometd-javascript/subscription
+    // http://cometd.org/documentation/cometd-javascript/subscription
     var cometd = $.cometd,
         connected = false,
-        subscriptions = {};
-    cometd.configure({url: cometdUrl/*, logLevel: 'debug'*/});
-    //cometd.websocketEnabled = true; // XXX re-enable in Lantern
+        clientId,
+        subscriptions = [];
+    cometd.configure({
+      url: cometdUrl,
+      backoffIncrement: 50,
+      maxBackoff: 500,
+      //logLevel: 'debug',
+      // XXX necessary to work with Faye backend when browser lacks websockets:
+      // https://groups.google.com/d/msg/faye-users/8cr_4QZ-7cU/sKVLbCFDkEUJ
+      appendMessageTypeToURL: false
+    });
+    //cometd.websocketsEnabled = false; // XXX can we re-enable in Lantern?
+
+    // http://cometd.org/documentation/cometd-javascript/subscription
+    cometd.onListenerException = function(exception, subscriptionHandle, isListener, message) {
+      log.error('Uncaught exception for subscription', subscriptionHandle, ':', exception, 'message:', message);
+      if (isListener) {
+        cometd.removeListener(subscriptionHandle);
+        log.error('removed listener');
+      } else {
+        cometd.unsubscribe(subscriptionHandle);
+        log.error('unsubscribed');
+      }
+    };
 
     cometd.addListener('/meta/connect', function(msg) {
       if (cometd.isDisconnected()) {
@@ -72,57 +99,65 @@ angular.module('app.services', [])
       connected = msg.successful;
       if (!wasConnected && connected) { // reconnected
         log.debug('connection established');
-        $rootScope.$broadcast('cometdConnEstablished');
+        $rootScope.$broadcast('cometdConnected');
+        // XXX why do docs put this in successful handshake callback?
+        cometd.batch(function(){ refresh(); });
       } else if (wasConnected && !connected) {
         log.warn('connection broken');
-        $rootScope.$broadcast('cometdConnBroken');
+        $rootScope.$broadcast('cometdDisconnected');
       }
     });
 
-    // XXX backend should never send a disconnect message
+    // backend doesn't send disconnects, but just in case
     cometd.addListener('/meta/disconnect', function(msg) {
       log.debug('got disconnect');
       if (msg.successful) {
         connected = false;
         log.debug('connection closed');
-        // XXX broadcast event, handle where necessary
+        $rootScope.$broadcast('cometdDisconnected');
+        // XXX handle disconnect
       }
     });
 
-    function subscribe(channel, syncHandler) {
-      log.debug('subscribing to channel', channel);
-      var sub = cometd.subscribe(channel, syncHandler),
-          key = {sub: sub, chan: channel, cb: syncHandler};
-      subscriptions[key] = true;
-      return key;
+    function subscribe(channel, callback) {
+      var sub = null;
+      if (connected) {
+        sub = cometd.subscribe(channel, callback);
+        log.debug('subscribed to channel', channel);
+      } else {
+        log.debug('queuing subscription request for channel', channel)
+      }
+      var key = {sub: sub, chan: channel, cb: callback};
+      subscriptions.push(key);
     }
 
-    function unsubscribe(key) {
-      if (subscriptions[key]) {
-        log.debug('unsubscribing', key);
-        cometd.unsubscribe(key.sub);
-        delete subscriptions[key];
-      } else {
-        log.error('no such subscription', key);
-      }
+    function unsubscribe(subscription) {
+      cometd.unsubscribe(subscription);
+      log.debug('unsubscribed', subscription);
     }
 
     function refresh() {
-      angular.forEach(angular.copy(subscriptions), function(_, key) {
-        unsubscribe(key);
-        subscribe(key.chan, key.cb);
+      log.debug('refreshing subscriptions');
+      angular.forEach(subscriptions, function(key) {
+        if (key.sub)
+          unsubscribe(key.sub);
       });
+      var tmp = subscriptions;
+      subscriptions = [];
+      angular.forEach(tmp, function(key) {
+        subscribe(key.chan, key.cb);
+      })
     }
 
     cometd.addListener('/meta/handshake', function(handshake) {
       if (handshake.successful) {
-        log.debug('successful handshake');
-        cometd.batch(function() {
-          refresh();
-        });
+        log.debug('successful handshake', handshake);
+        clientId = handshake.clientId;
+        //cometd.batch(function(){ refresh(); }); // XXX moved to connect callback
       }
       else {
         log.warn('unsuccessful handshake');
+        clientId = null;
       }
     });
 
@@ -132,14 +167,10 @@ angular.module('app.services', [])
 
     cometd.handshake();
 
-    function publish(channel, msg) {
-      log.debug('publishing on channel', channel, ':', msg);
-      cometd.publish(channel, msg);
-    }
-
     return {
-      publish: publish,
-      subscribe: subscribe
+      subscribe: subscribe,
+      // just for the developer panel:
+      publish: function(channel, data){ cometd.publish(channel, data); }
     };
   })
   .factory('modelSchema', function(enums) {
@@ -155,6 +186,26 @@ angular.module('app.services', [])
             mode: {
               type: 'string',
               'enum': Object.keys(enums.MODE)
+            }
+          }
+        },
+        connectivity: {
+          type: 'object',
+          description: 'Connectivity status of various services',
+          properties: {
+            internet: {
+              type: 'boolean',
+              description: 'Whether the system has internet connectivity'
+            },
+            gtalk: {
+              type: 'string',
+              description: 'Google Talk connection status',
+              'enum': Object.keys(enums.STATUS_GTALK)
+            },
+            peers: {
+              type: 'integer',
+              minimum: 0,
+              description: 'The number of peers online'
             }
           }
         },
@@ -182,7 +233,6 @@ angular.module('app.services', [])
     function validate(path, value) {
       var schema = getSchema(path);
       if (!schema) return true;
-      if (typeof value != schema.type) return false;
       var enum_ = schema['enum'];
       if (enum_) {
         var pat = new RegExp('^('+enum_.join('|')+')$');
@@ -198,8 +248,8 @@ angular.module('app.services', [])
   .factory('modelSrvc', function($rootScope, cometdSrvc, logFactory, modelValidatorSrvc) {
     var log = logFactory('modelSrvc'),
         model = {},
-        connected = false,
-        sanityMap = {};
+        lastModel = {};
+        //sanityMap = {};
 
     function get(obj, path) {
       var val = obj;
@@ -217,7 +267,7 @@ angular.module('app.services', [])
         if (name) {
           lastObj = obj;
           obj = obj[property=name];
-          if (!obj) {
+          if (typeof obj == 'undefined') {
             lastObj[property] = obj = {};
           }
         }
@@ -226,32 +276,30 @@ angular.module('app.services', [])
     }
 
     function handleSync(msg) {
-      var data = msg.data;
-      if (modelValidatorSrvc.validate(data.path, data.value)) {
+      var data = msg.data,
+          valid = true;
+       // valid = modelValidatorSrvc.validate(data.path, data.value); // XXX
+      if (valid) {
+        //sanityMap[data.path] = true;
         set(model, data.path, data.value);
-        sanityMap[data.path] = true;
+        set(lastModel, data.path, data.value);
+        $rootScope.sharedModel = model;
+        $rootScope.$apply();
+        log.debug('handleSync: applied sync:', model);
       } else {
-        log.debug('handleSync rejecting invalid value:', data.value);
-        sanityMap[data.path] = false;
+        //sanityMap[data.path] = false;
+        log.debug('handleSync: rejected sync, invalid model:', data);
       }
-      $rootScope.$apply();
     }
 
-    $rootScope.$on('cometdConnEstablished', function() {
-      cometdSrvc.subscribe('/sync', handleSync);
-      connected = true;
-    });
-
-    $rootScope.$on('cometdConnBroken', function() {
-      connected = false;
-      $rootScope.$apply();
-    });
+    cometdSrvc.subscribe('/sync', handleSync);
 
     return {
       model: model,
       get: function(path){ return get(model, path); },
-      sane: function(){ return _.all(sanityMap); },
-      connected: function(){ return connected; }
+      // just for the developer panel
+      lastModel: lastModel
+    //sane: function(){ return _.all(sanityMap); }, // XXX
     };
   })
   .service('apiSrvc', function(apiVersion) {

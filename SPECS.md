@@ -217,15 +217,16 @@ the backend maintains on the frontend through comet publications:
     <td>
       <table>
         <tr>
-          <td><strong>network</strong><br><em>boolean</em></td>
+          <td><strong>internet</strong><br><em>boolean</em></td>
           <td>Whether the system is connected to the internet. If not, the
             frontend should indicate this and block user interaction which
             requires network connectivity.
           </td>
         </tr>
         <tr>
-          <td><strong>gtalk</strong><br><em>boolean</em></td>
-          <td>Whether we have signed in to Google Talk. If not, the frontend
+          <td><strong>gtalk</strong><br>"notConnected" | "connecting" |
+            "connected" </td>
+          <td>Google Talk connection status. If not connected, the frontend
             should indicate this and block user interaction which requires
             Google Talk connectivity.
           </td>

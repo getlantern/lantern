@@ -1,16 +1,26 @@
-/* line 12, ../../sass/app.sass */
+/* line 19, ../../sass/app.sass */
 .ui-hide, .ui-show {
   -webkit-transition: all 0.5s ease;
   -moz-transition: all 0.5s ease;
   transition: all 0.5s ease;
 }
 
-/* line 15, ../../sass/app.sass */
+/* line 22, ../../sass/app.sass */
 .ui-hide {
   opacity: 0;
 }
 
-/* line 20, ../../sass/app.sass */
+/* line 29, ../../sass/app.sass */
+input:disabled {
+  cursor: default;
+}
+
+/* line 32, ../../sass/app.sass */
+.tooltip {
+  z-index: 10000;
+}
+
+/* line 37, ../../sass/app.sass */
 input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
   color: #b94a48;
   border-color: #b94a48;
@@ -19,22 +29,12 @@ input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
   box-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
 }
 
-/* line 25, ../../sass/app.sass */
-input:disabled {
-  cursor: default;
-}
-
-/* line 28, ../../sass/app.sass */
+/* line 46, ../../sass/app.sass */
 .modal form {
   margin-bottom: 0;
 }
 
-/* line 34, ../../sass/app.sass */
-.tooltip {
-  z-index: 10000;
-}
-
-/* line 37, ../../sass/app.sass */
+/* line 49, ../../sass/app.sass */
 #waiting-container {
   position: fixed;
   top: 100px;
@@ -42,48 +42,61 @@ input:disabled {
   line-height: 50px;
 }
 
-/* line 43, ../../sass/app.sass */
+/* line 55, ../../sass/app.sass */
 #welcome .modal-body {
   margin: 10px 0 100px 0;
 }
 
-/* line 46, ../../sass/app.sass */
+/* line 59, ../../sass/app.sass */
+#sysproxy .control-group {
+  margin: 0 75px;
+}
+/* line 61, ../../sass/app.sass */
+#sysproxy .text-error {
+  margin: 20px 75px;
+}
+
+/* line 64, ../../sass/app.sass */
 #sanity {
   z-index: 5002;
 }
 
-/* line 50, ../../sass/app.sass */
+/* line 68, ../../sass/app.sass */
 #sanity form, #settings-load-failure form {
   margin: 15px 0;
 }
 
-/* line 53, ../../sass/app.sass */
+/* line 71, ../../sass/app.sass */
 #developer {
   position: fixed;
   left: 0;
   right: 0;
   bottom: 0;
-  max-height: 30%;
+  max-height: 25%;
   overflow: scroll;
   z-index: 5000;
 }
 
-/* line 62, ../../sass/app.sass */
+/* line 80, ../../sass/app.sass */
 #developer-content {
   background-color: white;
   border-top: 1px #333333 solid;
 }
-/* line 65, ../../sass/app.sass */
+/* line 83, ../../sass/app.sass */
 #developer-content * {
   font-size: 10pt;
 }
-/* line 67, ../../sass/app.sass */
+/* line 85, ../../sass/app.sass */
 #developer-content pre {
   font-size: 7pt;
   max-height: 80px;
   overflow: scroll;
 }
-/* line 71, ../../sass/app.sass */
+/* line 89, ../../sass/app.sass */
 #developer-content .controls.row .span-4:first-child {
   margin-left: 0;
+}
+/* line 91, ../../sass/app.sass */
+#developer-content .select2-container {
+  width: 220px;
 }
