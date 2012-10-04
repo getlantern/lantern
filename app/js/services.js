@@ -281,11 +281,11 @@ angular.module('app.services', [])
        // valid = modelValidatorSrvc.validate(data.path, data.value); // XXX
       if (valid) {
         //sanityMap[data.path] = true;
+        log.debug('syncing: path:', data.path, 'value:', data.value);
         set(model, data.path, data.value);
         set(lastModel, data.path, data.value);
-        $rootScope.sharedModel = model;
         $rootScope.$apply();
-        log.debug('handleSync: applied sync:', model);
+        log.debug('handleSync: applied sync: path:', data.path, 'value:', data.value);
       } else {
         //sanityMap[data.path] = false;
         log.debug('handleSync: rejected sync, invalid model:', data);

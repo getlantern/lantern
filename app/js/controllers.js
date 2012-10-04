@@ -270,9 +270,8 @@ function DevCtrl($scope, debug, logFactory, cometdSrvc, modelSrvc) {
       lastModel = modelSrvc.lastModel;
   $scope.debug = debug;
 
-  $scope.$watch('sharedModel', function() {
-    log.debug('syncing');
-    syncObject('', modelSrvc.model, modelSrvc.lastModel);
+  $scope.$watch('model', function() {
+    syncObject('', model, lastModel);
   }, true);
 
   function syncObject(parent, src, dst) {
