@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('app.services', [])
-  .constant('apiVersion', '0.0.1')
+  .constant('APIVER', '0.0.1')
   // enums
   .constant('MODE', {
     give: 'give',
@@ -18,12 +18,12 @@ angular.module('app.services', [])
     settingsLoadFailure: 'settingsLoadFailure',
     welcome: 'welcome',
     signin: 'signin',
+    gtalkUnreachable: 'gtalkUnreachable',
     sysproxy: 'sysproxy',
     finished: 'finished',
     '': ''
   })
-  // enum service
-  .factory('enums', function(MODE, STATUS_GTALK, MODAL) {
+  .service('ENUMS', function(MODE, STATUS_GTALK, MODAL) {
     return {
       MODE: MODE,
       STATUS_GTALK: STATUS_GTALK,
@@ -54,11 +54,8 @@ angular.module('app.services', [])
       };
     }
   })
-  .factory('cometdUrl', function($location) {
-    return $location.protocol()+'://'+$location.host()+':'+$location.port()+
-      '/cometd';
-  })
-  .factory('cometdSrvc', function(cometdUrl, logFactory, $rootScope, $window) {
+  .constant('COMETDURL', location.protocol+'//'+location.host+'/cometd')
+  .service('cometdSrvc', function(COMETDURL, logFactory, $rootScope, $window) {
     var log = logFactory('cometdSrvc');
     // boilerplate cometd setup
     // http://cometd.org/documentation/cometd-javascript/subscription
@@ -67,7 +64,7 @@ angular.module('app.services', [])
         clientId,
         subscriptions = [];
     cometd.configure({
-      url: cometdUrl,
+      url: COMETDURL,
       backoffIncrement: 50,
       maxBackoff: 500,
       //logLevel: 'debug',
@@ -173,7 +170,7 @@ angular.module('app.services', [])
       publish: function(channel, data){ cometd.publish(channel, data); }
     };
   })
-  .factory('modelSchema', function(enums) {
+  .service('modelSchema', function(ENUMS) {
     return {
       // XXX finish populating this from SPECS.md
       description: 'Lantern UI data model',
@@ -185,7 +182,7 @@ angular.module('app.services', [])
           properties: {
             mode: {
               type: 'string',
-              'enum': Object.keys(enums.MODE)
+              'enum': Object.keys(ENUMS.MODE)
             }
           }
         },
@@ -200,7 +197,7 @@ angular.module('app.services', [])
             gtalk: {
               type: 'string',
               description: 'Google Talk connection status',
-              'enum': Object.keys(enums.STATUS_GTALK)
+              'enum': Object.keys(ENUMS.STATUS_GTALK)
             },
             peers: {
               type: 'integer',
@@ -212,12 +209,12 @@ angular.module('app.services', [])
         modal: {
           type: 'string',
           description: 'Instructs the UI to display the corresponding modal dialog.',
-          'enum': Object.keys(enums.MODAL)
+          'enum': Object.keys(ENUMS.MODAL)
         }
       }
     };
   })
-  .factory('modelValidatorSrvc', function(modelSchema, logFactory) {
+  .service('modelValidatorSrvc', function(modelSchema, logFactory) {
     var log = logFactory('modelValidatorSrvc');
 
     function getSchema(path) {
@@ -245,7 +242,7 @@ angular.module('app.services', [])
       validate: validate
     };
   })
-  .factory('modelSrvc', function($rootScope, cometdSrvc, logFactory, modelValidatorSrvc) {
+  .service('modelSrvc', function($rootScope, cometdSrvc, logFactory, modelValidatorSrvc) {
     var log = logFactory('modelSrvc'),
         model = {},
         lastModel = {};
@@ -302,13 +299,13 @@ angular.module('app.services', [])
     //sane: function(){ return _.all(sanityMap); }, // XXX
     };
   })
-  .service('apiSrvc', function(apiVersion) {
+  .service('apiSrvc', function(APIVER) {
     return {
       urlfor: function(endpoint, params) {
           var query = _.reduce(params, function(acc, val, key) {
               return acc+key+'='+encodeURIComponent(val)+'&';
             }, '?');
-          return '/api/'+apiVersion+'/'+endpoint+query;
+          return '/api/'+APIVER+'/'+endpoint+query;
         }
     };
   });

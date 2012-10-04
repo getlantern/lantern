@@ -173,14 +173,38 @@ ApiServlet.HandlerMap = {
         res.writeHead(403);
       }
     },
+  '/api/0.0.1/continue': function(req, res, parsed) {
+      switch (model.modal) {
+        case 'gtalkUnreachable':
+          model.modal = model.setupComplete ?
+                          '' :
+                          (model.settings.mode == 'give' ?
+                            'finished' :
+                            'sysproxy');
+          bayeux._server._engine.publish({channel:'/sync', data:{path:'modal', value:model.modal}});
+          res.writeHead(200);
+          break;
+        case 'finished':
+          model.modal = '';
+          model.setupComplete = true;
+          bayeux._server._engine.publish({channel:'/sync', data:{path:'', value:model}});
+          res.writeHead(200);
+          break;
+        
+        default:
+          res.writeHead(400);
+      }
+    },
   '/api/0.0.1/settings/': function(req, res, parsed) {
       var mode = parsed.query.mode,
           savePassword = parsed.query.savePassword,
           systemProxy = parsed.query.systemProxy,
+          lang = parsed.query.lang,
           badRequest = false;
       if ('undefined' == typeof mode
        && 'undefined' == typeof savePassword
        && 'undefined' == typeof systemProxy
+       && 'undefined' == typeof lang
           ) {
         badRequest = true;
       } else {
@@ -211,6 +235,17 @@ ApiServlet.HandlerMap = {
             sleep.usleep(750000);
             systemProxy = systemProxy == 'true';
             model.settings.systemProxy = systemProxy;
+            if (model.modal == 'sysproxy' && !model.setupComplete) {
+              model.modal = 'finished';
+            }
+          }
+        }
+        if (lang) {
+          if (lang != 'en' && lang != 'zh' && lang != 'fa') {
+            badRequest = true;
+            sys.puts('invalid value of lang: ' + lang);
+          } else {
+            model.settings.lang = lang;
           }
         }
       }
@@ -240,6 +275,7 @@ ApiServlet.HandlerMap = {
           model.settings.passwordSaved = false;
         } else if (userid == 'offline@example.com') {
           res.writeHead(503);
+          model.modal = 'gtalkUnreachable';
           model.connectivity.gtalk = 'notConnected';
         } else if (userid == 'notinbeta@example.com') {
           res.writeHead(403);

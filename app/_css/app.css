@@ -47,26 +47,77 @@ input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
   margin: 10px 0 100px 0;
 }
 
-/* line 59, ../../sass/app.sass */
+/* line 58, ../../sass/app.sass */
+#langchooser {
+  position: fixed;
+  top: 5px;
+  right: 15px;
+  font-size: 8pt;
+  z-index: 4999;
+}
+/* line 64, ../../sass/app.sass */
+#langchooser ul {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+}
+/* line 60, ../../../../.rvm/gems/ruby-1.9.2-p290/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/typography/lists/_horizontal-list.scss */
+#langchooser ul li {
+  list-style-image: none;
+  list-style-type: none;
+  margin-left: 0;
+  white-space: nowrap;
+  display: inline;
+  float: left;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+/* line 48, ../../../../.rvm/gems/ruby-1.9.2-p290/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/typography/lists/_horizontal-list.scss */
+#langchooser ul li:first-child, #langchooser ul li.first {
+  padding-left: 0;
+}
+/* line 49, ../../../../.rvm/gems/ruby-1.9.2-p290/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/typography/lists/_horizontal-list.scss */
+#langchooser ul li:last-child {
+  padding-right: 0;
+}
+/* line 50, ../../../../.rvm/gems/ruby-1.9.2-p290/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/typography/lists/_horizontal-list.scss */
+#langchooser ul li.last {
+  padding-right: 0;
+}
+/* line 67, ../../sass/app.sass */
+#langchooser ul li a {
+  color: #aaaaaa;
+}
+/* line 69, ../../sass/app.sass */
+#langchooser ul li.active a {
+  color: white;
+}
+/* line 71, ../../sass/app.sass */
+#langchooser ul li.active a:hover {
+  text-decoration: none;
+}
+
+/* line 75, ../../sass/app.sass */
 #sysproxy .control-group {
   margin: 0 75px;
 }
-/* line 61, ../../sass/app.sass */
+/* line 77, ../../sass/app.sass */
 #sysproxy .text-error {
   margin: 20px 75px;
 }
 
-/* line 64, ../../sass/app.sass */
+/* line 80, ../../sass/app.sass */
 #sanity {
   z-index: 5002;
 }
 
-/* line 68, ../../sass/app.sass */
+/* line 84, ../../sass/app.sass */
 #sanity form, #settings-load-failure form {
   margin: 15px 0;
 }
 
-/* line 71, ../../sass/app.sass */
+/* line 87, ../../sass/app.sass */
 #developer {
   position: fixed;
   left: 0;
@@ -77,26 +128,26 @@ input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
   z-index: 5000;
 }
 
-/* line 80, ../../sass/app.sass */
+/* line 96, ../../sass/app.sass */
 #developer-content {
   background-color: white;
   border-top: 1px #333333 solid;
 }
-/* line 83, ../../sass/app.sass */
+/* line 99, ../../sass/app.sass */
 #developer-content * {
   font-size: 10pt;
 }
-/* line 85, ../../sass/app.sass */
+/* line 101, ../../sass/app.sass */
 #developer-content pre {
   font-size: 7pt;
   max-height: 80px;
   overflow: scroll;
 }
-/* line 89, ../../sass/app.sass */
+/* line 105, ../../sass/app.sass */
 #developer-content .controls.row .span-4:first-child {
   margin-left: 0;
 }
-/* line 91, ../../sass/app.sass */
+/* line 107, ../../sass/app.sass */
 #developer-content .select2-container {
   width: 220px;
 }

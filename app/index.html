@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="app"><!-- XXX add dir attribute based on current language -->
+<html ng-app="app">
   <head>
     <meta charset="utf-8">
     <title>Lantern Dashboard</title>
@@ -42,7 +42,7 @@
     <link rel="shortcut icon" href="img/favicon.ico">
   </head>
 
-  <body ng-controller="RootCtrl" ng-cloak>
+  <body ng-controller="RootCtrl" ng-cloak lang="{{ lang() }}" dir="{{ direction() }}">
 
     <div x-block-input ng-controller="WaitingForLanternCtrl" ng-show="show">
       <!-- ng-hide instead of ui-if so spinner image won't
@@ -79,7 +79,7 @@
 
     <div id="settings-unlock" ng-controller="SettingsUnlockCtrl" ui-modal
          ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
-      <form name="unlockForm" ng-submit="submit()">
+      <form name="unlockForm" ng-submit="settingsUnlock()">
         <div class="modal-header">
           <h3>{{ 'SETTINGS_UNLOCK_TITLE' | i18n }}</h3>
         </div>
@@ -127,7 +127,7 @@
 
     <div id="password-create" ng-controller="PasswordCreateCtrl" ui-modal
          ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
-      <form name="passwordCreateForm" ng-submit="submit()">
+      <form name="passwordCreateForm" ng-submit="passwordCreate()">
         <div class="modal-header">
           <h3>{{ 'PASSWORD_CREATE_TITLE' | i18n }}</h3>
         </div>
@@ -156,10 +156,10 @@
     <div id="welcome" ng-controller="WelcomeCtrl" ui-modal ng-model="show"
          class="fade" data-backdrop="static" data-keyboard="false">
       <div class="modal-header pagination-centered">
-        <h3>{{ 'SETUP_WELCOME_TITLE' | i18n }}</h3>
+        <h3>{{ 'WELCOME_TITLE' | i18n }}</h3>
       </div>
       <div class="modal-body pagination-centered">
-        <div>{{ 'SETUP_WELCOME_PROMPT' | i18n }}</div>
+        <div>{{ 'WELCOME_PROMPT' | i18n }}</div>
       </div>
       <div class="modal-footer">
         <button type="submit" class="btn btn-success" ng-click="changeSetting('mode', MODE.give)">{{ 'GIVE_ACCESS' | i18n }}</button>
@@ -167,15 +167,23 @@
       </div>
     </div>
 
+    <div id="langchooser" ng-controller="LangChooserCtrl" ng-show="show">
+      <ul class="pull-right">
+        <li ng-class="{active: lang() == 'en'}"><a ng-click="lang() != 'en' && changeSetting('lang', 'en')">English</a></li>
+        <li ng-class="{active: lang() == 'zh'}"><a ng-click="lang() != 'zh' && changeSetting('lang', 'zh')">中文</a></li>
+        <li ng-class="{active: lang() == 'fa'}"><a ng-click="lang() != 'fa' && changeSetting('lang', 'fa')">‫پارسی‬</a></li>
+      </ul>
+    </div>
+
     <!-- XXX use both during initial setup and after (when !passwordSaved)? -->
     <div id="signin" ng-controller="SigninCtrl" ui-modal ng-model="show" class="fade"
          data-backdrop="static" data-keyboard="false">
       <div class="modal-header">
-        <h3>{{ 'SETUP_SIGNIN_TITLE' | i18n }}</h3>
+        <h3>{{ 'SIGNIN_TITLE' | i18n }}</h3>
       </div>
       <div class="modal-body">
-        <form name="signinForm" class="form-horizontal" ng-submit="submit()">
-          <div>{{ 'SETUP_SIGNIN_PROMPT' | i18n }}</div>
+        <form name="signinForm" class="form-horizontal" ng-submit="signin()">
+          <div>{{ 'SIGNIN_PROMPT' | i18n }}</div>
           <br>
           <div class="control-group">
             <label class="control-label">{{ 'GTALK_USERID' | i18n }}</label>
@@ -225,10 +233,24 @@
                 class="btn btn-danger pull-left">
           <i class="icon-backward icon-white"></i> {{ 'START_OVER' | i18n }}
         </button>
-        <button type="submit" ng-click="submit()" class="btn btn-primary"
+        <button type="submit" ng-click="signin()" class="btn btn-primary"
                 ng-disabled="signinForm.$invalid || disableSubmit">
           {{ submitButtonLabelKey | i18n }}
         </button>
+      </div>
+    </div>
+
+    <div id="gtalkUnreachable" ng-controller="GtalkUnreachableCtrl" ui-modal
+         ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+      <div class="modal-header">
+        <h3>{{ 'GTALK_UNREACHABLE_TITLE' | i18n }}</h3>
+      </div>
+      <div class="modal-body">
+        <div>{{ 'GTALK_UNREACHABLE_PROMPT' | i18n }}</div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-success" ng-click="model.modal = MODAL.signin">{{ 'RETRY_NOW' | i18n }}</button>
+        <button type="submit" class="btn btn-primary" ng-click="continue_()">{{ 'RETRY_LATER' | i18n }}</button>
       </div>
     </div>
 
@@ -263,18 +285,40 @@
                 class="btn btn-danger pull-left">
           <i class="icon-backward icon-white"></i> {{ 'START_OVER' | i18n }}
         </button>
-        <button type="submit" class="btn btn-primary" ng-click="submit()">
-          {{ 'NEXT' | i18n }}
+        <button type="submit" class="btn btn-primary" ng-click="sysproxySet()">
+          {{ 'CONTINUE' | i18n }}
         </button>
+      </div>
+    </div>
+
+    <div id="finished" ng-controller="FinishedCtrl" ui-modal
+         ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+      <div class="modal-header">
+        <h3>{{ 'FINISHED_TITLE' | i18n }}</h3>
+      </div>
+      <div class="modal-body pagination-centered">
+        <div>{{ 'FINISHED_PROMPT' | i18n }}</div>
+        <br>
+        <div>
+          <small>{{ 'AUTOREPORT_PROMPT' | i18n }}</small>
+          <label class="checkbox inline">
+            <input type="checkbox" ng-model="notifyLanternDevs"
+                   ng-change="changeSetting('autoReport', notifyLanternDevs)">
+            <small>{{ 'AUTOREPORT_ENABLE' | i18n }}</small>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="submit" class="btn btn-{{ inGetMode && 'primary' || 'success' }}" ng-click="continue_()">{{ 'FINISH' | i18n }}</button>
       </div>
     </div>
 
 
     <!-- developer panel -->
 
-    <div id="developer" ng-controller="DevCtrl" ng-show="debug">
+    <div id="developer" ng-controller="DevCtrl" ng-show="debug" lang="en" dir="ltr">
       <button class="btn" data-toggle="collapse" data-target="#developer-content">Developer</button>
-      <div id="developer-content" class="collapse in">
+      <div id="developer-content" class="collapse">
         <label class="checkbox inline">
           Model
           <a href="https://github.com/getlantern/lantern-ui/blob/master/SPECS.md#state-document-specification">(specs)</a>
@@ -300,6 +344,7 @@
                   <option value="settingsLoadFailure">settingsLoadFailure</option>
                   <option value="welcome">welcome</option>
                   <option value="signin">signin</option>
+                  <option value="gtalkUnreachable">gtalkUnreachable</option>
                   <option value="sysproxy">sysproxy</option>
                   <option value="finished">finished</option>
                 </select>

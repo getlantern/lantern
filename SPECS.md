@@ -199,8 +199,8 @@ the backend maintains on the frontend through comet publications:
   </tr>
   <tr>
     <td><strong>modal</strong><br>"passwordCreate" | "settingsUnlock" |
-      "settingsLoadFailure" | "welcome" | "signin" | "sysproxy" | "finished"
-      | ""
+      "settingsLoadFailure" | "welcome" | "signin" | "gtalkUnreachable" |
+      "sysproxy" | "finished" | ""
     </td>
     <td>Instructs the UI to display the corresponding modal dialog.
       A value of empty string means no modal dialog should be displayed.
@@ -389,6 +389,12 @@ the backend maintains on the frontend through comet publications:
 <hr>
 
 ### Questions / Comments
+
+* can password create happen as last step of setup?
+
+* if google talk could not be reached on initial signin, can setup proceed
+  anyway? 'lantern will continue to try to connect with the username and
+  password you provided'
 
 * implement delete field via comet update? (see above)
 

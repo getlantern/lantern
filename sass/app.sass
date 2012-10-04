@@ -55,6 +55,22 @@ input[type=email]:focus
 #welcome .modal-body
   margin: 10px 0 100px 0
 
+#langchooser
+  position: fixed
+  top: 5px
+  right: 15px
+  font-size: 8pt
+  z-index: 4999
+  ul
+    +horizontal-list
+    li
+      a
+        color: #aaa
+      &.active a
+        color: #fff
+        &:hover
+          text-decoration: none
+
 #sysproxy
   .control-group
     margin: 0 75px

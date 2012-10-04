@@ -1,13 +1,21 @@
 'use strict';
 
-function RootCtrl($scope, logFactory, modelSrvc, cometdSrvc, $http, apiSrvc, MODE, STATUS_GTALK) {
+function RootCtrl($scope, logFactory, modelSrvc, cometdSrvc, langSrvc, $http, apiSrvc, ENUMS) {
   var log = logFactory('RootCtrl'),
-      model = $scope.model = modelSrvc.model;
+      model = $scope.model = modelSrvc.model,
+      MODE = ENUMS.MODE,
+      STATUS_GTALK = ENUMS.STATUS_GTALK;
   $scope.modelSrvc = modelSrvc;
   $scope.cometdSrvc = cometdSrvc;
-  $scope.MODE = MODE;
+
+  angular.forEach(ENUMS, function(val, key) {
+    $scope[key] = val;
+  });
 
   // XXX better place for these?
+
+  $scope.lang = langSrvc.lang;
+  $scope.direction = langSrvc.direction;
 
   $scope.$watch('model.settings.mode', function modeChanged(val) {
     $scope.inGiveMode = val == MODE.give;
@@ -43,6 +51,16 @@ function RootCtrl($scope, logFactory, modelSrvc, cometdSrvc, $http, apiSrvc, MOD
       })
       .error(function(data, status, headers, config) {
         log.debug('Reset failed'); // XXX
+      });
+  };
+
+  $scope.continue_ = function() {
+    $http.post(apiSrvc.urlfor('continue'))
+      .success(function(data, status, headers, config) {
+        log.debug('Continue');
+      })
+      .error(function(data, status, headers, config) {
+        log.debug('Continue failed'); // XXX
       });
   };
 
@@ -111,7 +129,7 @@ function SettingsUnlockCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
 
   $scope.password = '';
 
-  $scope.submit = function() {
+  $scope.settingsUnlock = function() {
     $scope.error = false;
     $http.post(apiSrvc.urlfor('settings/unlock', {password: $scope.password}))
       .success(function(data, status, headers, config) {
@@ -135,7 +153,7 @@ function PasswordCreateCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
   $scope.password1 = '';
   $scope.password2 = '';
   function validate() {
-    // XXX find out the right way to do this
+    // XXX Angular way of doing this?
     var pw1ctrl = $scope.passwordCreateForm.password1,
         pw2ctrl = $scope.passwordCreateForm.password2,
         valid = $scope.password1 == $scope.password2;
@@ -145,23 +163,30 @@ function PasswordCreateCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
   $scope.$watch('password1', validate);
   $scope.$watch('password2', validate);
 
-  $scope.submit = function() {
+  $scope.passwordCreate = function() {
     $http.post(apiSrvc.urlfor('passwordCreate', {password: $scope.password1}))
       .success(function(data, status, headers, config) {
-        log.debug('password set');
+        log.debug('Password create');
       })
       .error(function(data, status, headers, config) {
-        log.debug('password set failed');
+        log.debug('Password create failed'); // XXX
       });
   };
 }
 
-function WelcomeCtrl($scope, modelSrvc, $http, apiSrvc, logFactory, MODAL) {
+function WelcomeCtrl($scope, modelSrvc, logFactory, MODAL) {
   var log = logFactory('WelcomeCtrl'),
       model = $scope.model = modelSrvc.model;
   $scope.show = false;
   $scope.$watch('model.modal', function modalChanged(val) {
     $scope.show = val == MODAL.welcome;
+  });
+}
+
+function LangChooserCtrl($scope) {
+  $scope.show = false;
+  $scope.$watch('model.setupComplete', function(val) {
+    $scope.show = !val;
   });
 }
 
@@ -218,7 +243,7 @@ function SigninCtrl($scope, $http, modelSrvc, apiSrvc, logFactory, MODAL, STATUS
     $scope.needPassword = !(val && $scope.savePassword);
   });
 
-  $scope.submit = function() {
+  $scope.signin = function() {
     $scope.signinError = false;
     $scope.showSigninStatus = false;
     $scope.disableSubmit = true;
@@ -240,6 +265,14 @@ function SigninCtrl($scope, $http, modelSrvc, apiSrvc, logFactory, MODAL, STATUS
   };
 }
 
+function GtalkUnreachableCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
+  var log = logFactory('GtalkUnreachableCtrl');
+  $scope.show = false;
+  $scope.$watch('model.modal', function modalChanged(val) {
+    $scope.show = val == MODAL.gtalkUnreachable;
+  });
+}
+
 function SystemProxyCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
   var log = logFactory('SystemProxyCtrl');
 
@@ -250,7 +283,7 @@ function SystemProxyCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
 
   $scope.systemProxy = true;
 
-  $scope.submit = function() {
+  $scope.sysproxySet = function() {
     $scope.sysproxyError = false;
     var params = {systemProxy: $scope.systemProxy};
     $http.post(apiSrvc.urlfor('settings/', params))
@@ -262,6 +295,13 @@ function SystemProxyCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
         $scope.sysproxyError = true;
       });
   };
+}
+
+function FinishedCtrl($scope, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function modalChanged(val) {
+    $scope.show = val == MODAL.finished;
+  });
 }
 
 function DevCtrl($scope, debug, logFactory, cometdSrvc, modelSrvc) {
