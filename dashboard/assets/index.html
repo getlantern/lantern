@@ -298,7 +298,7 @@
               <span id=dd-conn ng:class="['iconlabel', state.connectivity, state.getMode && 'get' || 'give']"><span class="iconlabel-icon connlight"></span><span class=iconlabel-label>{{conncaption()}}
               <a class=actionlink ng:click="!(state.savePassword && state.passwordSaved) && showsignin(true) || signin()" ng:show=logged_out()>Sign in to Google</a></span>
               </span>
-              <p class=smallnote ng:show="state.getMode && connected() && logged_out()">Lantern can connect to known proxies but will be unable<br/>to discover new ones until signed into Google.</p>
+              <p class=smallnote ng:show="state.getMode && connected() && logged_out()">Lantern can connect to known proxies but will be unable<br/>to discover new ones until signed in to Google.</p>
             </dd>
             <dt ng:show=connected()>Transfers</dt>
             <dd ng:show=connected()>
@@ -556,14 +556,13 @@
       <div class=overlay data-cls=overlay id=doc-overlay>
         <a class=close>×</a>
         <div class=doc id=why-google>
-          <p>Lantern works by connecting users around the world together in a
-          peer-to-peer network. Signing into Google Talk allows you to connect
-          through users you know and trust, and not just anyone.
+          <p>Lantern connects users all over the world together in a trust
+          network. Signing in to Google Talk allows you to connect through
+          users you know, and not just anyone.
           </p>
-          <p>Your password is sent over a secure connection and is used
-          only to sign into Google Talk. If you save your password to your
-          computer so you don’t have to type it in the future, it will be
-          encrypted in a file that only Lantern can read.
+          <p>Your Google password is sent over a secure connection and is used
+          only to sign in to Google Talk. If you choose Save Password,
+          it will be stored securely in Lantern’s encrypted settings file.
           </p>
         </div>
         <!--
