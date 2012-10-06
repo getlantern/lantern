@@ -20,7 +20,8 @@ angular.module('app.i18n', [])
   .constant('LANGDIRECTIONS', {
     en: 'ltr',
     zh: 'ltr',
-    fa: 'rtl'
+    fa: 'rtl',
+    ar: 'rtl'
   })
   .constant('TRANSLATIONS', {
     zh: {
@@ -34,6 +35,12 @@ angular.module('app.i18n', [])
       WELCOME_PROMPT: '‫آزادی اینترنت برای همه.‬',
       GIVE_ACCESS: '‫دسترسی‬',
       GET_ACCESS: '‫دسترسی‬'
+    },
+    ar: {
+      WELCOME_TITLE: '‫مرحبا بكم في ‬‪Lantern‬',
+      WELCOME_PROMPT: '‫حرية الإنترنت للجميع.‬',
+      GIVE_ACCESS: '‫منح حق الوصول‬',
+      GET_ACCESS: '‫احصل على دخول‬'
     },
     en: {
       WAITING_FOR_LANTERN: 'Waiting for Lantern...',
@@ -64,6 +71,7 @@ angular.module('app.i18n', [])
       GET_ACCESS: 'Get Access',
       SIGNIN_TITLE: 'Sign in to Google Talk',
       SIGNIN_PROMPT: 'Lantern connects users all over the world together in a trust network. Signing in to Google Talk allows you to connect through users you know, and not just anyone.',
+      SIGNIN_TIP_GTALK: 'If you have a Gmail account, you already have Google Talk. It’s the service that lets you chat with your contacts when they’re online. Your Google Talk userid is the same as your Gmail userid.',
       SIGNIN_TIP_SECURE: 'Your Google password is sent over a secure connection and is used only to sign in to Google Talk.',
       SIGNIN_TIP_SAVE_PASSWORD: 'Securely save your password in Lantern’s encrypted settings file.',
       SIGNIN_STATUS_BAD_CREDENTIALS: 'Invalid user and password combination',
@@ -77,9 +85,10 @@ angular.module('app.i18n', [])
       START_OVER: 'Start over',
       CANCEL: 'Cancel',
       SIGN_IN: 'Sign in',
-      SIGNING_IN: 'Signing in',
+      SIGNING_IN: 'Signing in...',
       SIGNED_IN: 'Signed in',
       CONTINUE: 'Continue',
+      CONFIGURING: 'Configuring...',
       GTALK_UNREACHABLE_TITLE: 'Could not connect to Google Talk',
       GTALK_UNREACHABLE_PROMPT: 'Lantern could not connect to Google Talk. An active Google Talk connection is required to facilitate connecting with other users. Lantern will keep trying to connect to Google Talk using the userid and password you provided.',
       RETRY_NOW: 'Retry now',
@@ -87,11 +96,11 @@ angular.module('app.i18n', [])
       SYSTEM_PROXY_TITLE: 'System Proxy',
       SYSTEM_PROXY_PROMPT: 'Lantern can be configured as your system proxy so your browser will use it automatically.',
       SYSTEM_PROXY_TRUE: 'Set Lantern as my system proxy (recommended)',
-      SYSTEM_PROXY_FALSE: 'I will manually configure my browser to use Lantern',
+      SYSTEM_PROXY_FALSE: 'I will manually configure my browser to use Lantern.',
       SYSTEM_PROXY_ERROR: 'Proxy configuration failed',
-      FINISHED_TITLE: 'Finished',
+      FINISHED_TITLE: 'Finished!',
       FINISHED_PROMPT: 'Thank you for joining Lantern. Your participation at this early stage is invaluable.',
-      AUTOREPORT_PROMPT: 'Help improve Lantern even more. Securely report usage events to Lantern developers automatically.',
+      AUTOREPORT_PROMPT: 'Help improve Lantern even more. Securely report usage events (e.g. when Lantern experiences a problem) to Lantern developers automatically.',
       AUTOREPORT_ENABLE: 'Enable automatic reporting',
       FINISH: 'Finish',
       SIGNIN_DISCOVER_PROXIES_PROMPT: 'Lantern can connect to known proxies but will be unable to discover new ones until signed in to Google Talk.',

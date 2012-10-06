@@ -232,8 +232,8 @@ ApiServlet.HandlerMap = {
             badRequest = true;
             sys.puts('invalid value of systemProxy: ' + systemProxy);
           } else {
-            sleep.usleep(750000);
             systemProxy = systemProxy == 'true';
+            if (systemProxy) sleep.usleep(750000);
             model.settings.systemProxy = systemProxy;
             if (model.modal == 'sysproxy' && !model.setupComplete) {
               model.modal = 'finished';
@@ -241,7 +241,7 @@ ApiServlet.HandlerMap = {
           }
         }
         if (lang) {
-          if (lang != 'en' && lang != 'zh' && lang != 'fa') {
+          if (lang != 'en' && lang != 'zh' && lang != 'fa' && lang != 'ar') {
             badRequest = true;
             sys.puts('invalid value of lang: ' + lang);
           } else {
@@ -287,7 +287,9 @@ ApiServlet.HandlerMap = {
           if (model.settings.savePassword) {
             model.settings.passwordSaved = true;
           }
-          if (!model.setupComplete)
+          if (model.setupComplete)
+            model.modal = '';
+          else
             model.modal = model.settings.mode == 'get' ? 'sysproxy' : 'finished';
         }
       }

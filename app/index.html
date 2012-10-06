@@ -28,6 +28,7 @@
     <!--
     <script src="lib/angular/i18n/angular-locale_zh-cn.js"></script>
     <script src="lib/angular/i18n/angular-locale_fa-ir.js"></script>
+    <script src="lib/angular/i18n/angular-locale_ar.js"></script>
     -->
     <script src="lib/angular-ui/angular-ui.js"></script>
     <script src="lib/select2/select2.js"></script>
@@ -50,6 +51,7 @@
       <div id="waiting-container">
         <div>{{ 'WAITING_FOR_LANTERN' | i18n }}</div>
         <img src="lib/webshims/css/polyfill-loader.gif">
+        <!-- XXX something entertaining here -->
       </div>
     </div>
 
@@ -172,6 +174,7 @@
         <li ng-class="{active: lang() == 'en'}"><a ng-click="lang() != 'en' && changeSetting('lang', 'en')">English</a></li>
         <li ng-class="{active: lang() == 'zh'}"><a ng-click="lang() != 'zh' && changeSetting('lang', 'zh')">中文</a></li>
         <li ng-class="{active: lang() == 'fa'}"><a ng-click="lang() != 'fa' && changeSetting('lang', 'fa')">‫پارسی‬</a></li>
+        <li ng-class="{active: lang() == 'ar'}"><a ng-click="lang() != 'ar' && changeSetting('lang', 'ar')">‫العربية‬</a></li>
       </ul>
     </div>
 
@@ -192,6 +195,9 @@
                      name="userid" placeholder="email@example.com">
              <!--    name="userid" placeholder="{{ 'EMAIL_PLACEHOLDER' | i18n }}"> -->
              <!-- XXX input[type=text] placeholder shim broken when used with Angular expression -->
+              <a rel="tooltip" data-original-title="{{ 'SIGNIN_TIP_GTALK' | i18n }}" ui-jq="tooltip">
+                <i class="icon-info-sign"></i>
+              </a>
             </div>
           </div>
           <div class="control-group">
@@ -265,13 +271,15 @@
         <div class="control-group">
           <div class="controls">
             <label class="radio control-label">
-              <input type="radio" ng-model="systemProxy" ng-value="true">
+              <input type="radio" ng-model="systemProxy" ng-value="true"
+                     ng-disabled="disableSubmit">
               {{ 'SYSTEM_PROXY_TRUE' | i18n }}
             </label>
           </div>
           <div class="controls">
             <label class="radio control-label">
-              <input type="radio" ng-model="systemProxy" ng-value="false">
+              <input type="radio" ng-model="systemProxy" ng-value="false"
+                     ng-disabled="disableSubmit">
               {{ 'SYSTEM_PROXY_FALSE' | i18n }}
             </label>
           </div>
@@ -285,8 +293,9 @@
                 class="btn btn-danger pull-left">
           <i class="icon-backward icon-white"></i> {{ 'START_OVER' | i18n }}
         </button>
-        <button type="submit" class="btn btn-primary" ng-click="sysproxySet()">
-          {{ 'CONTINUE' | i18n }}
+        <button type="submit" class="btn btn-primary" ng-click="sysproxySet()"
+                ng-disabled="disableSubmit">
+          {{ submitButtonLabelKey | i18n }}
         </button>
       </div>
     </div>
@@ -300,11 +309,13 @@
         <div>{{ 'FINISHED_PROMPT' | i18n }}</div>
         <br>
         <div>
-          <small>{{ 'AUTOREPORT_PROMPT' | i18n }}</small>
           <label class="checkbox inline">
             <input type="checkbox" ng-model="notifyLanternDevs"
                    ng-change="changeSetting('autoReport', notifyLanternDevs)">
             <small>{{ 'AUTOREPORT_ENABLE' | i18n }}</small>
+            <a rel="tooltip" data-original-title="{{ 'AUTOREPORT_PROMPT' | i18n }}" ui-jq="tooltip">
+              <i class="icon-info-sign"></i>
+            </a>
           </label>
         </div>
       </div>

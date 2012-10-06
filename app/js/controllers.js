@@ -185,8 +185,8 @@ function WelcomeCtrl($scope, modelSrvc, logFactory, MODAL) {
 
 function LangChooserCtrl($scope) {
   $scope.show = false;
-  $scope.$watch('model.setupComplete', function(val) {
-    $scope.show = !val;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = !!val;
   });
 }
 
@@ -213,7 +213,7 @@ function SigninCtrl($scope, $http, modelSrvc, apiSrvc, logFactory, MODAL, STATUS
   $scope.signinError = false;
   $scope.submitButtonLabelKey = 'SIGN_IN';
   $scope.$watch('model.connectivity.gtalk', function gtalkChanged(val) {
-    if (val == STATUS_GTALK.notConnected || val == STATUS_GTALK.failed) {
+    if (val == STATUS_GTALK.notConnected) {
       $scope.submitButtonLabelKey = 'SIGN_IN';
       $scope.disableSubmit = false;
     } else if (val == STATUS_GTALK.connecting) {
@@ -282,9 +282,13 @@ function SystemProxyCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
   });
 
   $scope.systemProxy = true;
+  $scope.submitButtonLabelKey = 'CONTINUE';
+  $scope.disableSubmit = false;
 
   $scope.sysproxySet = function() {
     $scope.sysproxyError = false;
+    $scope.disableSubmit = true;
+    $scope.submitButtonLabelKey = 'CONFIGURING';
     var params = {systemProxy: $scope.systemProxy};
     $http.post(apiSrvc.urlfor('settings/', params))
       .success(function(data, status, headers, config) {
@@ -293,6 +297,9 @@ function SystemProxyCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
       .error(function(data, status, headers, config) {
         log.debug('set systemProxy failed');
         $scope.sysproxyError = true;
+      }).then(function(){
+        $scope.submitButtonLabelKey = 'CONTINUE';
+        $scope.disableSubmit = false;
       });
   };
 }

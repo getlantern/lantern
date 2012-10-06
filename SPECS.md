@@ -396,6 +396,9 @@ the backend maintains on the frontend through comet publications:
   anyway? 'lantern will continue to try to connect with the username and
   password you provided'
 
+* ok to not allow switching google accounts without full reset once you
+  successfully sign in?
+
 * implement delete field via comet update? (see above)
 
 * should frontend refuse to connect to backend reporting incompatible version
