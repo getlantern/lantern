@@ -1774,3 +1774,16 @@ func TestTo(t *testing.T) {
 		Is(value, int64(1))
 	}
 }
+
+func TestShouldError(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`raise:
+		xyzzy
+			throw new TypeError("Nothing happens.")
+	`, "ReferenceError: xyzzy is not defined")
+
+
+
+}
