@@ -461,14 +461,78 @@ func newContext() *_runtime {
 			date.SetTime(ecmaTime.goTime())
 			return date.Value()
 		},
-		// setSeconds
-		// setUTCSeconds
-		// setMinutes
-		// setUTCMinutes
-		// setHours
-		// setUTCHours
-		// setDate
-		// setUTCDate
+		"setSeconds", 1, func(call FunctionCall) Value {
+			date, ecmaTime := _builtinDate_set(call, 1, true)
+			if ecmaTime == nil {
+				return NaNValue()
+			}
+			ecmaTime.second = int(toInteger(call.Argument(0)))
+			date.SetTime(ecmaTime.goTime())
+			return date.Value()
+		},
+		"setUTCSeconds", 1, func(call FunctionCall) Value {
+			date, ecmaTime := _builtinDate_set(call, 1, false)
+			if ecmaTime == nil {
+				return NaNValue()
+			}
+			ecmaTime.second = int(toInteger(call.Argument(0)))
+			date.SetTime(ecmaTime.goTime())
+			return date.Value()
+		},
+		"setMinutes", 1, func(call FunctionCall) Value {
+			date, ecmaTime := _builtinDate_set(call, 1, true)
+			if ecmaTime == nil {
+				return NaNValue()
+			}
+			ecmaTime.minute = int(toInteger(call.Argument(0)))
+			date.SetTime(ecmaTime.goTime())
+			return date.Value()
+		},
+		"setUTCMinutes", 1, func(call FunctionCall) Value {
+			date, ecmaTime := _builtinDate_set(call, 1, false)
+			if ecmaTime == nil {
+				return NaNValue()
+			}
+			ecmaTime.minute = int(toInteger(call.Argument(0)))
+			date.SetTime(ecmaTime.goTime())
+			return date.Value()
+		},
+		"setHours", 1, func(call FunctionCall) Value {
+			date, ecmaTime := _builtinDate_set(call, 1, true)
+			if ecmaTime == nil {
+				return NaNValue()
+			}
+			ecmaTime.hour = int(toInteger(call.Argument(0)))
+			date.SetTime(ecmaTime.goTime())
+			return date.Value()
+		},
+		"setUTCHours", 1, func(call FunctionCall) Value {
+			date, ecmaTime := _builtinDate_set(call, 1, false)
+			if ecmaTime == nil {
+				return NaNValue()
+			}
+			ecmaTime.hour = int(toInteger(call.Argument(0)))
+			date.SetTime(ecmaTime.goTime())
+			return date.Value()
+		},
+		"setDate", 1, func(call FunctionCall) Value {
+			date, ecmaTime := _builtinDate_set(call, 1, true)
+			if ecmaTime == nil {
+				return NaNValue()
+			}
+			ecmaTime.day = int(toInteger(call.Argument(0)))
+			date.SetTime(ecmaTime.goTime())
+			return date.Value()
+		},
+		"setUTCDate", 1, func(call FunctionCall) Value {
+			date, ecmaTime := _builtinDate_set(call, 1, false)
+			if ecmaTime == nil {
+				return NaNValue()
+			}
+			ecmaTime.day = int(toInteger(call.Argument(0)))
+			date.SetTime(ecmaTime.goTime())
+			return date.Value()
+		},
 		"setMonth", 1, func(call FunctionCall) Value {
 			date, ecmaTime := _builtinDate_set(call, 1, true)
 			if ecmaTime == nil {

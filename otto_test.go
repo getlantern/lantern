@@ -580,9 +580,20 @@ func TestDate(t *testing.T) {
 	test(`+(new Date(2009, 9, 25))`, "1.2564288e+12")
 
 	test(`abc = new Date(12564504e5); abc.setMilliseconds(2001); abc.toString()`, "Sun, 25 Oct 2009 06:00:02 UTC")
+
+	test(`abc = new Date(12564504e5); abc.setSeconds("61"); abc.toString()`, "Sun, 25 Oct 2009 06:01:01 UTC")
+
+	test(`abc = new Date(12564504e5); abc.setMinutes("61"); abc.toString()`, "Sun, 25 Oct 2009 07:01:00 UTC")
+
+	test(`abc = new Date(12564504e5); abc.setHours("5"); abc.toString()`, "Sat, 24 Oct 2009 12:00:00 UTC")
+
+	test(`abc = new Date(12564504e5); abc.setDate("26"); abc.toString()`, "Tue, 27 Oct 2009 06:00:00 UTC")
+
 	test(`abc = new Date(12564504e5); abc.setMonth(9); abc.toString()`, "Sun, 25 Oct 2009 06:00:00 UTC")
 	test(`abc = new Date(12564504e5); abc.setMonth("09"); abc.toString()`, "Sun, 25 Oct 2009 06:00:00 UTC")
 	test(`abc = new Date(12564504e5); abc.setMonth("10"); abc.toString()`, "Wed, 25 Nov 2009 07:00:00 UTC")
+
+	test(`abc = new Date(12564504e5); abc.setFullYear(2010); abc.toString()`, "Mon, 25 Oct 2010 06:00:00 UTC")
 }
 
 func TestComparison(t *testing.T) {
