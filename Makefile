@@ -33,7 +33,7 @@ fixme:
 	ack -l FIXME *.go
 
 otto:
-	cd otto && go build
+	cd otto && go build -a
 
 run:
 	go run -a ./otto/main.go ./otto.js
