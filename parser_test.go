@@ -629,6 +629,15 @@ func TestParseSuccess(t *testing.T) {
 	---
 	{ @ { <var> = abc { <call> { <call> 1 { <function> _ } } _ } } }
 	`)
+
+	test(`
+			xyzzy
+
+	throw new TypeError("Nothing happens.")
+	---
+	{ @ xyzzy { <throw> { <new> TypeError "Nothing happens." } } }
+	`)
+
 }
 
 func TestParseFailure(t *testing.T) {

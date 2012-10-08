@@ -283,7 +283,7 @@ func newThrowNode(argument _node) *_throwNode {
 }
 
 func (self _throwNode) String() string {
-	return fmt.Sprintf("{ <return> %s }", self.Argument)
+	return fmt.Sprintf("{ <throw> %s }", self.Argument)
 }
 
 type _tryCatchNode struct {
