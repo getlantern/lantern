@@ -88,7 +88,7 @@ func dateObjectOf(_dateObject *_object) *_dateObject {
 	return _dateObject.Date
 }
 
-// JavaScript is 0-based, Go is 1-based
+// JavaScript is 0-based, Go is 1-based (15.9.1.4)
 func dateToGoMonth(month int) tme.Month {
 	return tme.Month(month + 1)
 }

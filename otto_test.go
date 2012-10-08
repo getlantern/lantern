@@ -578,6 +578,10 @@ func TestDate(t *testing.T) {
 	test(`new Date(12564504e5).toString()`, "Sun, 25 Oct 2009 06:00:00 UTC")
 	test(`new Date(2009, 9, 25).toString()`, "Sun, 25 Oct 2009 00:00:00 UTC")
 	test(`+(new Date(2009, 9, 25))`, "1.2564288e+12")
+
+	test(`abc = new Date(12564504e5); abc.setMonth(9); abc.toString()`, "Sun, 25 Oct 2009 06:00:00 UTC")
+	test(`abc = new Date(12564504e5); abc.setMonth("09"); abc.toString()`, "Sun, 25 Oct 2009 06:00:00 UTC")
+	test(`abc = new Date(12564504e5); abc.setMonth("10"); abc.toString()`, "Wed, 25 Nov 2009 07:00:00 UTC")
 }
 
 func TestComparison(t *testing.T) {

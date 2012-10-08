@@ -499,8 +499,54 @@ func newContext() *_runtime {
 		// setUTCHours
 		// setDate
 		// setUTCDate
-		// setMonth
-		// setUTCMonth
+		"setMonth", 1, func(call FunctionCall) Value {
+			date := dateObjectOf(call.thisObject())
+			if date.isNaN {
+				return NaNValue()
+			}
+			value := call.Argument(0)
+			if value.IsNaN() {
+				date.SetNaN()
+				return NaNValue()
+			}
+			baseTime := date.Time().Local()
+			setTime := time_.Date(
+				baseTime.Year(),
+				dateToGoMonth(int(toInteger(value))),
+				baseTime.Day(),
+				baseTime.Hour(),
+				baseTime.Minute(),
+				baseTime.Second(),
+				baseTime.Nanosecond(),
+				baseTime.Location(),
+			)
+			date.SetTime(setTime)
+			return date.Value()
+		},
+		"setUTCMonth", 1, func(call FunctionCall) Value {
+			date := dateObjectOf(call.thisObject())
+			if date.isNaN {
+				return NaNValue()
+			}
+			value := call.Argument(0)
+			if value.IsNaN() {
+				date.SetNaN()
+				return NaNValue()
+			}
+			baseTime := date.Time().UTC()
+			setTime := time_.Date(
+				baseTime.Year(),
+				dateToGoMonth(int(toInteger(value))),
+				baseTime.Day(),
+				baseTime.Hour(),
+				baseTime.Minute(),
+				baseTime.Second(),
+				baseTime.Nanosecond(),
+				baseTime.Location(),
+			)
+			date.SetTime(setTime)
+			return date.Value()
+		},
 		"setFullYear", 1, func(call FunctionCall) Value {
 			date := dateObjectOf(call.thisObject())
 			if date.isNaN {
