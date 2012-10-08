@@ -108,7 +108,7 @@ func (self *_runtime) evaluate(node _node) Value {
 		return self.evaluateArray(node)
 
 	case *_newNode:
-		return self.evaluatenew(node)
+		return self.evaluateNew(node)
 
 	case *_conditionalNode:
 		return self.evaluateConditional(node)

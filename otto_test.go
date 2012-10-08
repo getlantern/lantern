@@ -1783,7 +1783,4 @@ func TestShouldError(t *testing.T) {
 		xyzzy
 			throw new TypeError("Nothing happens.")
 	`, "ReferenceError: xyzzy is not defined")
-
-
-
 }

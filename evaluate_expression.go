@@ -14,7 +14,7 @@ func (self *_runtime) evaluateConditional(node *_conditionalNode) Value {
 	return self.evaluate(node.Alternate)
 }
 
-func (self *_runtime) evaluatenew(node *_newNode) Value {
+func (self *_runtime) evaluateNew(node *_newNode) Value {
 	callee := self.evaluate(node.Callee)
 	calleeValue := self.GetValue(callee)
 	argumentList := []Value{}
