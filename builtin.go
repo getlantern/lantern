@@ -1222,6 +1222,26 @@ func builtinDate_setTime(call FunctionCall) Value {
 	return date.Value()
 }
 
+func _builtinDate_set(call FunctionCall, argumentCap int, dateLocal bool) (*_dateObject, *_ecmaTime) {
+	date := dateObjectOf(call.thisObject())
+	if date.isNaN {
+		return nil, nil
+	}
+	for index := 0; index < len(call.ArgumentList) && index < argumentCap; index++ {
+		value := call.Argument(index)
+		if value.IsNaN() {
+			date.SetNaN()
+			return date, nil
+		}
+	}
+	baseTime := date.Time()
+	if dateLocal {
+		baseTime = baseTime.Local()
+	}
+	ecmaTime := ecmaTime(baseTime)
+	return date, &ecmaTime
+}
+
 // Error
 
 func builtinError(call FunctionCall) Value {

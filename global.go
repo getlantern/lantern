@@ -444,51 +444,21 @@ func newContext() *_runtime {
 		// setTime, ...
 		"setTime", 1, builtinDate_setTime,
 		"setMilliseconds", 1, func(call FunctionCall) Value {
-			date := dateObjectOf(call.thisObject())
-			if date.isNaN {
+			date, ecmaTime := _builtinDate_set(call, 1, true)
+			if ecmaTime == nil {
 				return NaNValue()
 			}
-			value := call.Argument(0)
-			if value.IsNaN() {
-				date.SetNaN()
-				return NaNValue()
-			}
-			baseTime := date.Time().Local()
-			setTime := time_.Date(
-				baseTime.Year(),
-				baseTime.Month(),
-				baseTime.Day(),
-				baseTime.Hour(),
-				baseTime.Minute(),
-				baseTime.Second(),
-				int(toInteger(value)) * 100 * 100 * 100,
-				baseTime.Location(),
-			)
-			date.SetTime(setTime)
+			ecmaTime.millisecond = int(toInteger(call.Argument(0)))
+			date.SetTime(ecmaTime.goTime())
 			return date.Value()
 		},
 		"setUTCMilliseconds", 1, func(call FunctionCall) Value {
-			date := dateObjectOf(call.thisObject())
-			if date.isNaN {
+			date, ecmaTime := _builtinDate_set(call, 1, false)
+			if ecmaTime == nil {
 				return NaNValue()
 			}
-			value := call.Argument(0)
-			if value.IsNaN() {
-				date.SetNaN()
-				return NaNValue()
-			}
-			baseTime := date.Time().UTC()
-			setTime := time_.Date(
-				baseTime.Year(),
-				baseTime.Month(),
-				baseTime.Day(),
-				baseTime.Hour(),
-				baseTime.Minute(),
-				baseTime.Second(),
-				int(toInteger(value)) * 100 * 100 * 100,
-				baseTime.Location(),
-			)
-			date.SetTime(setTime)
+			ecmaTime.millisecond = int(toInteger(call.Argument(0)))
+			date.SetTime(ecmaTime.goTime())
 			return date.Value()
 		},
 		// setSeconds
@@ -500,99 +470,39 @@ func newContext() *_runtime {
 		// setDate
 		// setUTCDate
 		"setMonth", 1, func(call FunctionCall) Value {
-			date := dateObjectOf(call.thisObject())
-			if date.isNaN {
+			date, ecmaTime := _builtinDate_set(call, 1, true)
+			if ecmaTime == nil {
 				return NaNValue()
 			}
-			value := call.Argument(0)
-			if value.IsNaN() {
-				date.SetNaN()
-				return NaNValue()
-			}
-			baseTime := date.Time().Local()
-			setTime := time_.Date(
-				baseTime.Year(),
-				dateToGoMonth(int(toInteger(value))),
-				baseTime.Day(),
-				baseTime.Hour(),
-				baseTime.Minute(),
-				baseTime.Second(),
-				baseTime.Nanosecond(),
-				baseTime.Location(),
-			)
-			date.SetTime(setTime)
+			ecmaTime.month = int(toInteger(call.Argument(0)))
+			date.SetTime(ecmaTime.goTime())
 			return date.Value()
 		},
 		"setUTCMonth", 1, func(call FunctionCall) Value {
-			date := dateObjectOf(call.thisObject())
-			if date.isNaN {
+			date, ecmaTime := _builtinDate_set(call, 1, false)
+			if ecmaTime == nil {
 				return NaNValue()
 			}
-			value := call.Argument(0)
-			if value.IsNaN() {
-				date.SetNaN()
-				return NaNValue()
-			}
-			baseTime := date.Time().UTC()
-			setTime := time_.Date(
-				baseTime.Year(),
-				dateToGoMonth(int(toInteger(value))),
-				baseTime.Day(),
-				baseTime.Hour(),
-				baseTime.Minute(),
-				baseTime.Second(),
-				baseTime.Nanosecond(),
-				baseTime.Location(),
-			)
-			date.SetTime(setTime)
+			ecmaTime.month = int(toInteger(call.Argument(0)))
+			date.SetTime(ecmaTime.goTime())
 			return date.Value()
 		},
 		"setFullYear", 1, func(call FunctionCall) Value {
-			date := dateObjectOf(call.thisObject())
-			if date.isNaN {
+			date, ecmaTime := _builtinDate_set(call, 1, true)
+			if ecmaTime == nil {
 				return NaNValue()
 			}
-			value := call.Argument(0)
-			if value.IsNaN() {
-				date.SetNaN()
-				return NaNValue()
-			}
-			baseTime := date.Time().Local()
-			setTime := time_.Date(
-				int(toInteger(value)),
-				baseTime.Month(),
-				baseTime.Day(),
-				baseTime.Hour(),
-				baseTime.Minute(),
-				baseTime.Second(),
-				baseTime.Nanosecond(),
-				baseTime.Location(),
-			)
-			date.SetTime(setTime)
+			ecmaTime.year = int(toInteger(call.Argument(0)))
+			date.SetTime(ecmaTime.goTime())
 			return date.Value()
 		},
 		"setUTCFullYear", 1, func(call FunctionCall) Value {
-			date := dateObjectOf(call.thisObject())
-			if date.isNaN {
+			date, ecmaTime := _builtinDate_set(call, 1, false)
+			if ecmaTime == nil {
 				return NaNValue()
 			}
-			value := call.Argument(0)
-			if value.IsNaN() {
-				date.SetNaN()
-				return NaNValue()
-			}
-			baseTime := date.Time().UTC()
-			setTime := time_.Date(
-				int(toInteger(value)),
-				baseTime.Month(),
-				baseTime.Day(),
-				baseTime.Hour(),
-				baseTime.Minute(),
-				baseTime.Second(),
-				baseTime.Nanosecond(),
-				baseTime.Location(),
-			)
-			date.SetTime(setTime)
+			ecmaTime.year = int(toInteger(call.Argument(0)))
+			date.SetTime(ecmaTime.goTime())
 			return date.Value()
 		},
 		// toUTCString

@@ -13,6 +13,43 @@ type _dateObject struct {
 	isNaN bool
 }
 
+type _ecmaTime struct {
+	year int
+	month int
+	day int
+	hour int
+	minute int
+	second int
+	millisecond int
+	location *tme.Location // Basically, either local or UTC
+}
+
+func ecmaTime(goTime tme.Time) _ecmaTime {
+	return _ecmaTime{
+		goTime.Year(),
+		dateFromGoMonth(goTime.Month()),
+		goTime.Day(),
+		goTime.Hour(),
+		goTime.Minute(),
+		goTime.Second(),
+		goTime.Nanosecond() / (100 * 100 * 100),
+		goTime.Location(),
+	}
+}
+
+func (self *_ecmaTime) goTime() tme.Time {
+	return tme.Date(
+		self.year,
+		dateToGoMonth(self.month),
+		self.day,
+		self.hour,
+		self.minute,
+		self.second,
+		self.millisecond * (100 * 100 * 100),
+		self.location,
+	)
+}
+
 func (self *_dateObject) Time() tme.Time {
 	return self.time
 }
