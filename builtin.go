@@ -1203,6 +1203,14 @@ func builtinDate_toString(call FunctionCall) Value {
 	if date.isNaN {
 		return toValue("Invalid Date")
 	}
+	return toValue(date.Time().Local().Format(time_.RFC1123))
+}
+
+func builtinDate_toUTCString(call FunctionCall) Value {
+	date := dateObjectOf(call.thisObject())
+	if date.isNaN {
+		return toValue("Invalid Date")
+	}
 	return toValue(date.Time().Format(time_.RFC1123))
 }
 
