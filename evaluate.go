@@ -9,7 +9,11 @@ func (self *_runtime) evaluateBody(list []_node) Value {
 	for _, child := range list {
 		result := self.evaluate(child)
 		if !result.isEmpty() {
-			value = result
+			// We have GetValue here to (for example) trigger a
+			// ReferenceError (of the not defined variety)
+			// Not sure if this is the best way to error out early
+			// for such errors or if there is a better way
+			value = self.GetValue(result)
 		}
 	}
 	return value

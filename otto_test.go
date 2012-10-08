@@ -1438,7 +1438,7 @@ func TestWith(t *testing.T) {
 	test := runTest()
 
 	test(`
-		def
+		var def
 		with({ abc: 9 }) {
 			def = abc
 		}
@@ -1446,7 +1446,7 @@ func TestWith(t *testing.T) {
 	`, "9")
 
 	test(`
-		def
+		var def
 		with({ abc: function(){
 			return 11
 		} }) {
