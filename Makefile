@@ -42,4 +42,4 @@ test-all:
 	go test .
 
 README:
-	godoc . > README
+	godoc . | godocdown > README.md
