@@ -40,10 +40,6 @@ Package otto is a JavaScript parser and interpreter written natively in Go.
 		...
 	}
 
-AUTHOR
-
-	Robert Krimen <robertkrimen@gmail.com>
-
 */
 package otto
 
