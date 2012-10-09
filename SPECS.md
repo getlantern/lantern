@@ -200,6 +200,7 @@ the backend maintains on the frontend through comet publications:
   <tr>
     <td><strong>modal</strong><br>"passwordCreate" | "settingsUnlock" |
       "settingsLoadFailure" | "welcome" | "signin" | "gtalkUnreachable" |
+      "notInvited" | "requestInvite" | "requestSent" | "firstInviteReceived" |
       "sysproxy" | "finished" | ""
     </td>
     <td>Instructs the UI to display the corresponding modal dialog.
@@ -390,11 +391,17 @@ the backend maintains on the frontend through comet publications:
 
 ### Questions / Comments
 
-* can password create happen as last step of setup?
+* can password create happen as last step of initial setup? currently happens
+  before anything else because Lantern needs a password before it can save
+  the encrypted settings file. can't settings just be stored in memory until
+  this step? nicer to show welcome screen first.
 
-* if google talk could not be reached on initial signin, can setup proceed
-  anyway? 'lantern will continue to try to connect with the username and
-  password you provided'
+* if google talk could not be reached on initial signin, or user is not yet in
+  the beta, can setup proceed anyway? 'lantern will continue to try to connect
+  with the username and password you provided. in the meantime, feel free to
+  explore or leave running in the background.' better to stay running than to
+  force quit? can show the visualization with dummy data as a simulation to
+  build excitement.
 
 * ok to not allow switching google accounts without full reset once you
   successfully sign in?

@@ -19,6 +19,10 @@ angular.module('app.services', [])
     welcome: 'welcome',
     signin: 'signin',
     gtalkUnreachable: 'gtalkUnreachable',
+    notInvited: 'notInvited',
+    requestInvite: 'requestInvite',
+    requestSent: 'requestSent',
+    firstInviteReceived: 'firstInviteReceived',
     sysproxy: 'sysproxy',
     finished: 'finished',
     '': ''

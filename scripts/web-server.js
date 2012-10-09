@@ -184,6 +184,18 @@ ApiServlet.HandlerMap = {
           bayeux._server._engine.publish({channel:'/sync', data:{path:'modal', value:model.modal}});
           res.writeHead(200);
           break;
+
+        case 'firstInviteReceived':
+          model.modal = model.settings.mode == 'get' ? 'sysproxy' : 'finished';
+          bayeux._server._engine.publish({channel:'/sync', data:{path:'model.modal', value:model.modal}});
+          res.writeHead(200);
+          break;
+
+        case 'requestSent':
+          model.modal = '';
+          bayeux._server._engine.publish({channel:'/sync', data:{path:'model.modal', value:model.modal}});
+          res.writeHead(200);
+
         case 'finished':
           model.modal = '';
           model.setupComplete = true;
@@ -279,6 +291,7 @@ ApiServlet.HandlerMap = {
           model.connectivity.gtalk = 'notConnected';
         } else if (userid == 'notinbeta@example.com') {
           res.writeHead(403);
+          model.modal = 'notInvited';
           model.connectivity.gtalk = 'notConnected';
         } else {
           res.writeHead(200);
@@ -294,6 +307,18 @@ ApiServlet.HandlerMap = {
         }
       }
       bayeux._server._engine.publish({channel:'/sync', data:{path:'', value:model}});
+    },
+  '/api/0.0.1/requestInvite': function(req, res, parsed) {
+      var lanternDevs = parsed.query.lanternDevs;
+      if (typeof lanternDevs != 'undefined'
+          && lanternDevs != 'true'
+          && lanternDevs != 'false') {
+        res.writeHead(400);
+      }
+      sleep.usleep(750000);
+      model.modal = 'requestSent';
+      bayeux._server._engine.publish({channel:'/sync', data:{path:'modal', value:model.modal}});
+      res.writeHead(200);
     }
 };
 

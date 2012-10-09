@@ -88,7 +88,7 @@ function RootCtrl($scope, logFactory, modelSrvc, cometdSrvc, langSrvc, $http, ap
 }
 
 function WaitingForLanternCtrl($scope, logFactory) {
-  var log = logFactory('SettingsUnlockCtrl');
+  var log = logFactory('WaitingForLanternCtrl');
   $scope.show = true;
   $scope.$on('cometdConnected', function() {
     log.debug('cometdConnected');
@@ -152,6 +152,7 @@ function PasswordCreateCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
 
   $scope.password1 = '';
   $scope.password2 = '';
+  // XXX don't allow weak passwords?
   function validate() {
     // XXX Angular way of doing this?
     var pw1ctrl = $scope.passwordCreateForm.password1,
@@ -215,13 +216,13 @@ function SigninCtrl($scope, $http, modelSrvc, apiSrvc, logFactory, MODAL, STATUS
   $scope.$watch('model.connectivity.gtalk', function gtalkChanged(val) {
     if (val == STATUS_GTALK.notConnected) {
       $scope.submitButtonLabelKey = 'SIGN_IN';
-      $scope.disableSubmit = false;
+      $scope.disableForm = false;
     } else if (val == STATUS_GTALK.connecting) {
       $scope.submitButtonLabelKey = 'SIGNING_IN';
-      $scope.disableSubmit = true;
+      $scope.disableForm = true;
     } else if (val == STATUS_GTALK.connected) {
       $scope.submitButtonLabelKey = 'SIGNED_IN';
-      $scope.disableSubmit = true;
+      $scope.disableForm = true;
     }
   });
 
@@ -246,7 +247,7 @@ function SigninCtrl($scope, $http, modelSrvc, apiSrvc, logFactory, MODAL, STATUS
   $scope.signin = function() {
     $scope.signinError = false;
     $scope.showSigninStatus = false;
-    $scope.disableSubmit = true;
+    $scope.disableForm = true;
     var params = {userid: $scope.userid};
     if ($scope.needPassword) {
       params['password'] = $scope.password;
@@ -259,7 +260,7 @@ function SigninCtrl($scope, $http, modelSrvc, apiSrvc, logFactory, MODAL, STATUS
         log.debug('signin failed');
         $scope.signinError = true;
         $scope.showSigninStatus = true;
-        $scope.disableSubmit = false;
+        $scope.disableForm = false;
         $scope.signinStatusKey = signinStatusMap[status] || 'UNEXPECTED_ERROR';
       });
   };
@@ -273,6 +274,64 @@ function GtalkUnreachableCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
   });
 }
 
+function NotInvitedCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
+  var log = logFactory('NotInvitedCtrl');
+  $scope.show = false;
+  $scope.$watch('model.modal', function modalChanged(val) {
+    $scope.show = val == MODAL.notInvited;
+  });
+}
+
+function RequestInviteCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
+  var log = logFactory('RequestInviteCtrl');
+  $scope.show = false;
+  $scope.$watch('model.modal', function modalChanged(val) {
+    $scope.show = val == MODAL.requestInvite;
+  });
+
+  $scope.sendToLanternDevs = false;
+  $scope.disableForm = false;
+  $scope.submitButtonLabelKey = 'SEND_REQUEST';
+
+  function resetForm() {
+    $scope.disableForm = false;
+    $scope.submitButtonLabelKey = 'SEND_REQUEST';
+  }
+
+  $scope.requestInvite = function() {
+    $scope.disableForm = true;
+    $scope.requestError = false;
+    $scope.submitButtonLabelKey = 'SENDING_REQUEST';
+    var params = {lanternDevs: $scope.sendToLanternDevs};
+    $http.post(apiSrvc.urlfor('requestInvite', params))
+      .success(function(data, status, headers, config) {
+        log.debug('sent invite request');
+        resetForm();
+      })
+      .error(function(data, status, headers, config) {
+        log.debug('send invite request failed');
+        $scope.requestError = true;
+        resetForm();
+      });
+  };
+}
+
+function RequestSentCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
+  var log = logFactory('RequestSentCtrl');
+  $scope.show = false;
+  $scope.$watch('model.modal', function modalChanged(val) {
+    $scope.show = val == MODAL.requestSent;
+  });
+}
+
+function FirstInviteReceivedCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
+  var log = logFactory('FirstInviteReceivedCtrl');
+  $scope.show = false;
+  $scope.$watch('model.modal', function modalChanged(val) {
+    $scope.show = val == MODAL.firstInviteReceived;
+  });
+}
+
 function SystemProxyCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
   var log = logFactory('SystemProxyCtrl');
 
@@ -282,24 +341,28 @@ function SystemProxyCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
   });
 
   $scope.systemProxy = true;
+  $scope.disableForm = false;
   $scope.submitButtonLabelKey = 'CONTINUE';
-  $scope.disableSubmit = false;
+
+  function resetForm() {
+    $scope.disableForm = false;
+    $scope.submitButtonLabelKey = 'CONTINUE';
+  }
 
   $scope.sysproxySet = function() {
     $scope.sysproxyError = false;
-    $scope.disableSubmit = true;
+    $scope.disableForm = true;
     $scope.submitButtonLabelKey = 'CONFIGURING';
     var params = {systemProxy: $scope.systemProxy};
     $http.post(apiSrvc.urlfor('settings/', params))
       .success(function(data, status, headers, config) {
         log.debug('set systemProxy to', $scope.systemProxy);
+        resetForm();
       })
       .error(function(data, status, headers, config) {
         log.debug('set systemProxy failed');
         $scope.sysproxyError = true;
-      }).then(function(){
-        $scope.submitButtonLabelKey = 'CONTINUE';
-        $scope.disableSubmit = false;
+        resetForm();
       });
   };
 }
