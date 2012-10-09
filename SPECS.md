@@ -10,7 +10,9 @@ Lantern's user interface is implemented as a web application, rendered inside
 a browser embedded inside a native desktop application. This document describes
 the specifications for the representation of the state the web frontend expects
 to receive from the backend to be able to display a correctly behaving user
-interface, as well as for the protocol for sending the state and updates to it.
+interface, the protocol for sending the state and updates to it, and the http
+API the frontend expects to be able to call to notify the backend of user
+interactions.
 
 ## State transport protocol
 
@@ -27,7 +29,7 @@ attempting to reconnect to the bayeux server if the connection is lost.
 ### Subscription
 
 Upon successful connection to the bayeux server, the frontend will request
-subscription to the top-level channel `/sync`, and may request subscriptions
+subscription to the top-level channel `/sync`[, and may request subscriptions
 to additional channels like `/sync/viz`, `/sync/settings`, and `/sync/roster`.
 Each channel corresponds to a section of the UI; updates to the state of each
 section of UI are sent over the corresponding channel. The `/sync/viz` channel
@@ -35,7 +37,8 @@ carries state for the map visualization, the `/sync/settings` channel carries
 state for the settings UI, and the `/sync/roster` channel carries state to
 display the user's Google Talk contacts. The top-level `/sync` channel carries
 global application state, and may additionally carry state for any of its
-sub-channels by merging it into the top-level state object (explained below).
+sub-channels by merging it into the top-level state object (explained below).]
+-- *may ditch sub-channel architecture*
 
 
 ### Initial publication: Initializing the frontend model
@@ -182,6 +185,8 @@ This requires the elements of an array to be maintained with the same ordering
 on the frontend as the backend, but this should be true anyway for faithful
 synchronization. For arrays that are maintained in sorted order, the efficiency
 gain of this capability is much lower.
+
+<hr>
 
 
 ## State document specification
@@ -386,8 +391,15 @@ the backend maintains on the frontend through comet publications:
   </tr>
 </table>
 
+<hr>
+
+
+## HTTP API
+
+[TODO]
 
 <hr>
+
 
 ### Questions / Comments
 

@@ -9,8 +9,7 @@ This is the proposed repository for the future UI of
 visualization](http://vizzuality.github.com/lantern/). It is maintained as
 a separate repository to facilitate development. This code can be run
 independently of Lantern's Java backend with a lightweight node.js http server
-using [Faye](http://faye.jcoglan.com/) to implement Lantern's bayeux server
-([CometD](http://cometd.org/)).
+using [Faye](http://faye.jcoglan.com/) to implement Lantern's bayeux server.
 
 See [SPECS.md](https://github.com/getlantern/lantern-ui/blob/master/SPECS.md)
 for specifications of the state and the state transitions developed for the new
@@ -66,12 +65,10 @@ Chrome extension (especially the performance tab) is highly recommended for
 development. As recommended, this repo was started with the
 [angular-seed](https://github.com/angular/angular-seed). The
 `scripts/web-server.js` script has been modified to attach a bayeux server
-via Faye to simulate the Lantern cometd server, and has also been modified to
-provide a work-in-progress http API the frontend can call to notify the backend
-of user interactions.
+and a work-in-progress http API to simulate the Lantern backend.
 
 [Specs](https://github.com/getlantern/lantern-ui/blob/master/SPECS.md) are
 currently being developed to represent the full state of the application at any
 given time, as well as transitions between states. The specs are being
-developed in parallel to the new UI and for now are frequently changing to
+developed in parallel to the new UI and are currently changing frequently to
 meet its needs.
