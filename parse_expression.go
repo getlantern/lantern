@@ -21,7 +21,9 @@ func (self *_parser) ParsePrimaryExpression() _node {
 		return self.ParseFunction(false)
 	case "this":
 		self.Next()
-		return newThisNode()
+		node := newThisNode()
+		self.markNode(node)
+		return node
 	case "{":
 		return self.ParseObjectLiteral()
 	case "[":
@@ -56,7 +58,9 @@ func (self *_parser) ParseObjectProperty() *_objectPropertyNode {
 	self.Expect(":")
 	value := self.ParseAssignmentExpression()
 
-	return newObjectPropertyNode(key, value)
+	node := newObjectPropertyNode(key, value)
+	self.markNode(node)
+	return node
 }
 
 func (self *_parser) ParseRegExpLiteral(token _token) *_regExpNode {
@@ -74,12 +78,15 @@ func (self *_parser) ParseRegExpLiteral(token _token) *_regExpNode {
 		panic(token.newSyntaxError("Invalid regular expression"))
 	}
 
-	return newRegExpNode(pattern_, flags)
+	node := newRegExpNode(pattern_, flags)
+	self.markNode(node)
+	return node
 }
 
 func (self *_parser) ParseObjectLiteral() *_objectNode {
 
 	node := newObjectNode()
+	self.markNode(node)
 
 	self.Expect("{")
 	for !self.Match("}") {
@@ -111,7 +118,9 @@ func (self *_parser) ParseArrayLiteral() *_arrayNode {
 	}
 	self.Expect("]")
 
-	return newArrayNode(nodeList)
+	node := newArrayNode(nodeList)
+	self.markNode(node)
+	return node
 }
 
 func (self *_parser) ParseArgumentList() (argumentList []_node) {
@@ -131,6 +140,7 @@ func (self *_parser) ParseArgumentList() (argumentList []_node) {
 
 func (self *_parser) ParseCallExpression(left _node) _node {
 	left = newCallNode(left)
+	self.markNode(left)
 	left.(*_callNode).ArgumentList = self.ParseArgumentList()
 	return left
 }
@@ -138,19 +148,24 @@ func (self *_parser) ParseCallExpression(left _node) _node {
 func (self *_parser) ParseDotMember(left _node) _node {
 	self.Expect(".")
 	member := self.ConsumeIdentifier().Value
-	return newDotMemberNode(left, member)
+	node := newDotMemberNode(left, member)
+	self.markNode(node)
+	return node
 }
 
 func (self *_parser) ParseBracketMember(left _node) _node {
 	self.Expect("[")
 	member := self.ParseExpression()
 	self.Expect("]")
-	return newBracketMemberNode(left, member)
+	node := newBracketMemberNode(left, member)
+	self.markNode(node)
+	return node
 }
 
 func (self *_parser) ParseNewExpression() _node {
 	self.Expect("new")
 	node := newnewNode(self.ParseLeftHandSideExpression())
+	self.markNode(node)
 	if self.Match("(") {
 		node.ArgumentList = self.ParseArgumentList()
 	}
@@ -219,7 +234,9 @@ func (self *_parser) ParsePostfixExpression() _node {
 		default:
 			panic(self.History(-1).newSyntaxError("Invalid left-hand side in assignment"))
 		}
-		return newUnaryOperationNode("=" + self.Consume(), left)
+		node := newUnaryOperationNode("=" + self.Consume(), left)
+		self.markNode(node)
+		return node
 	}
 
 	return left
@@ -232,7 +249,9 @@ func (self *_parser) ParseUnaryExpression() _node {
 
 	switch token := self.Peek(); token.Kind {
 	case "+", "-", "!", "~":
-		return newUnaryOperationNode(self.Consume(), self.ParseUnaryExpression())
+		node := newUnaryOperationNode(self.Consume(), self.ParseUnaryExpression())
+		self.markNode(node)
+		return node
 	case "++", "--": // Prefix, either ++= or --=
 		operation := self.Consume()
 		left := self.ParseUnaryExpression()
@@ -241,9 +260,13 @@ func (self *_parser) ParseUnaryExpression() _node {
 		default:
 			panic(self.History(-1).newSyntaxError("Invalid left-hand side in assignment"))
 		}
-		return newUnaryOperationNode(operation + "=", left)
+		node := newUnaryOperationNode(operation + "=", left)
+		self.markNode(node)
+		return node
 	case "delete", "void", "typeof":
-		return newUnaryOperationNode(self.Consume(), self.ParseUnaryExpression())
+		node := newUnaryOperationNode(self.Consume(), self.ParseUnaryExpression())
+		self.markNode(node)
+		return node
 	}
 
 	return self.ParsePostfixExpression()
@@ -256,6 +279,7 @@ REPEAT:
 	switch self.Peek().Kind {
 	case "*", "/", "%":
 		left = newBinaryOperationNode(self.Consume(), left, self.ParseUnaryExpression())
+		self.markNode(left)
 		goto REPEAT
 	}
 
@@ -269,6 +293,7 @@ REPEAT:
 	switch self.Peek().Kind {
 	case "+", "-":
 		left = newBinaryOperationNode(self.Consume(), left, self.ParseMultiplicativeExpression())
+		self.markNode(left)
 		goto REPEAT
 	}
 
@@ -282,6 +307,7 @@ REPEAT:
 	switch self.Peek().Kind {
 	case "<<", ">>", ">>>":
 		left = newBinaryOperationNode(self.Consume(), left, self.ParseAdditiveExpression())
+		self.markNode(left)
 		goto REPEAT
 	}
 	return left
@@ -295,14 +321,20 @@ func (self *_parser) ParseRelationalExpression() _node {
 
 	switch self.Peek().Kind {
 	case "<", ">", "<=", ">=":
-		return newComparisonNode(self.Consume(), left, self.ParseRelationalExpression())
+		node := newComparisonNode(self.Consume(), left, self.ParseRelationalExpression())
+		self.markNode(node)
+		return node
 	case "instanceof":
-		return newBinaryOperationNode(self.Consume(), left, self.ParseRelationalExpression())
+		node := newBinaryOperationNode(self.Consume(), left, self.ParseRelationalExpression())
+		self.markNode(node)
+		return node
 	case "in":
 		if !self.Scope().AllowIn {
 			return left
 		}
-		return newBinaryOperationNode(self.Consume(), left, self.ParseRelationalExpression())
+		node := newBinaryOperationNode(self.Consume(), left, self.ParseRelationalExpression())
+		self.markNode(node)
+		return node
 
 	}
 
@@ -316,6 +348,7 @@ REPEAT:
 	switch self.Peek().Kind {
 	case "==", "!=", "===", "!==":
 		left = newComparisonNode(self.Consume(), left, self.ParseRelationalExpression())
+		self.markNode(left)
 		goto REPEAT
 	}
 
@@ -327,6 +360,7 @@ func (self *_parser) ParseBitwiseANDExpression() _node {
 
 	for self.Match("&") {
 		left = newBinaryOperationNode(self.Consume(), left, self.ParseEqualityExpression())
+		self.markNode(left)
 	}
 
 	return left
@@ -337,6 +371,7 @@ func (self *_parser) ParseBitwiseXORExpression() _node {
 
 	for self.Match("^") {
 		left = newBinaryOperationNode(self.Consume(), left, self.ParseBitwiseANDExpression())
+		self.markNode(left)
 	}
 
 	return left
@@ -347,6 +382,7 @@ func (self *_parser) ParseBitwiseORExpression() _node {
 
 	for self.Match("|") {
 		left = newBinaryOperationNode(self.Consume(), left, self.ParseBitwiseXORExpression())
+		self.markNode(left)
 	}
 
 	return left
@@ -357,6 +393,7 @@ func (self *_parser) ParseLogicalANDExpression() _node {
 
 	for self.Match("&&") {
 		left = newBinaryOperationNode(self.Consume(), left, self.ParseBitwiseORExpression())
+		self.markNode(left)
 	}
 
 	return left
@@ -367,6 +404,7 @@ func (self *_parser) ParseLogicalORExpression() _node {
 
 	for self.Match("||") {
 		left = newBinaryOperationNode(self.Consume(), left, self.ParseLogicalANDExpression())
+		self.markNode(left)
 	}
 
 	return left
@@ -378,7 +416,9 @@ func (self *_parser) ParseConditionlExpression() _node {
 	if self.Accept("?") {
 		consequent := self.ParseAssignmentExpression()
 		self.Expect(":");
-		return newConditionalNode(left, consequent, self.ParseAssignmentExpression())
+		node := newConditionalNode(left, consequent, self.ParseAssignmentExpression())
+		self.markNode(node)
+		return node
 	}
 
 	return left
@@ -393,6 +433,7 @@ func (self *_parser) ParseAssignmentExpression() _node {
 			panic(self.History(-1).newSyntaxError("Invalid left-hand side in assignment"))
 		}
 		left = newAssignmentNode(self.Consume(), left, self.ParseAssignmentExpression())
+		self.markNode(left)
 	}
 	return left
 }
@@ -408,7 +449,9 @@ func (self *_parser) ParseExpression() _node {
 			}
 			nodeList = append(nodeList, self.ParseAssignmentExpression())
 		}
-		return newCommaNode(nodeList)
+		node := newCommaNode(nodeList)
+		self.markNode(node)
+		return node
 	}
 
 	return left

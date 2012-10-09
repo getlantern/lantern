@@ -7,6 +7,7 @@ import (
 
 type _arrayNode struct {
 	_nodeType
+	_node_
 	nodeList []_node
 }
 
@@ -26,6 +27,7 @@ func (self *_arrayNode) String() string {
 
 type _assignmentNode struct {
 	_nodeType
+	_node_
 	Assignment string
 	Operator string
 	Left _node
@@ -48,6 +50,7 @@ func (self _assignmentNode) String() string {
 
 type _binaryOperationNode struct {
 	_nodeType
+	_node_
 	Operator string
 	Left _node
 	Right _node
@@ -68,6 +71,7 @@ func (self _binaryOperationNode) String() string {
 
 type _callNode struct {
 	_nodeType
+	_node_
 	Callee _node
 	ArgumentList []_node
 }
@@ -86,6 +90,7 @@ func (self _callNode) String() string {
 
 type _commaNode struct {
 	_nodeType
+	_node_
 	Sequence []_node
 }
 
@@ -102,6 +107,7 @@ func (self _commaNode) String() string {
 
 type _comparisonNode struct {
 	_nodeType
+	_node_
 	Comparator string
 	Left _node
 	Right _node
@@ -122,6 +128,7 @@ func (self _comparisonNode) String() string {
 
 type _conditionalNode struct {
 	_nodeType
+	_node_
 	Test _node
 	Consequent _node
 	Alternate _node
@@ -141,6 +148,7 @@ func (self _conditionalNode) String() string {
 
 type _functionNode struct {
 	_nodeType
+	_node_
 	_declaration bool
 	ParameterList []string
 	Body []_node
@@ -165,6 +173,7 @@ func (self *_functionNode) AddParameter(identifier string) {
 
 type _identifierNode struct {
 	_nodeType
+	_node_
 	Value string
 }
 
@@ -181,6 +190,7 @@ func (self *_identifierNode) String() string {
 
 type _dotMemberNode struct {
 	_nodeType
+	_node_
 	Target _node
 	Member string
 }
@@ -199,6 +209,7 @@ func (self *_dotMemberNode) String() string {
 
 type _bracketMemberNode struct {
 	_nodeType
+	_node_
 	Target _node
 	Member _node
 }
@@ -217,6 +228,7 @@ func (self *_bracketMemberNode) String() string {
 
 type _newNode struct {
 	_nodeType
+	_node_
 	Callee _node
 	ArgumentList []_node
 }
@@ -235,6 +247,7 @@ func (self _newNode) String() string {
 
 type _objectNode struct {
 	_nodeType
+	_node_
 	propertyList []*_objectPropertyNode
 }
 
@@ -257,6 +270,7 @@ func (self *_objectNode) String() string {
 
 type _objectPropertyNode struct {
 	_nodeType
+	_node_
 	Key string
 	Value _node
 }
@@ -275,6 +289,7 @@ func (self *_objectPropertyNode) String() string {
 
 type _regExpNode struct {
 	_nodeType
+	_node_
 	Pattern string
 	Flags string
 }
@@ -293,6 +308,7 @@ func (self *_regExpNode) String() string {
 
 type _thisNode struct {
 	_nodeType
+	_node_
 }
 
 func newThisNode() *_thisNode {
@@ -307,6 +323,7 @@ func (self *_thisNode) String() string {
 
 type _unaryOperationNode struct {
 	_nodeType
+	_node_
 	Operator string
 	Target _node
 }
@@ -334,6 +351,7 @@ const (
 
 type _valueNode struct {
 	_nodeType
+	_node_
 	Value Value
 	Text string
 	Kind _valueNodeType

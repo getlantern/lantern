@@ -18,6 +18,7 @@ TEST := -v --run _eval
 TEST := -v --run Broken
 TEST := -v --run ParseSuccess 
 TEST := .
+TEST := -v --run OttoError 
 
 test:
 	go test $(TEST)

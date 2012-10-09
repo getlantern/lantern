@@ -21,4 +21,12 @@ func TestOttoError(t *testing.T) {
 
 	_, err = ToValue([]byte{})
 	Is(err, "TypeError: Unable to convert value: [] ([]uint8)")
+
+	_, err = Otto.Run(`
+		(function(){
+			return abcdef.length
+		})()
+	`)
+	Is(err, "ReferenceError: abcdef is not defined (line 2)")
+
 }

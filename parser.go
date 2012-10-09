@@ -280,3 +280,8 @@ func (self *_parser) Unexpected(token _token) *_syntaxError {
 	}
 	return token.newSyntaxError("Unexpected token %s", token.Text)
 }
+
+func (self *_parser) markNode(node _node) {
+	node.setPosition(self.lexer.Line)
+}
+

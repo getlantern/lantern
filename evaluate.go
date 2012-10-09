@@ -20,6 +20,21 @@ func (self *_runtime) evaluateBody(list []_node) Value {
 }
 
 func (self *_runtime) evaluate(node _node) Value {
+	defer func() {
+		// This defer is lame (unecessary overhead)
+		// It would be better to mark the errors at the source
+		if caught := recover(); caught != nil {
+			switch caught := caught.(type) {
+			case _error:
+				if caught.Line == -1 {
+					caught.Line = node.position()
+				}
+				panic(caught) // Panic the modified _error
+			}
+			panic(caught)
+		}
+	}()
+
     switch node := node.(type) {
 
     case *_variableDeclarationListNode:

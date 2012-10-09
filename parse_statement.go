@@ -8,7 +8,9 @@ func (self *_parser) ParseStatement() _node {
 	switch self.Peek().Kind {
 	case ";":
 		self.Next()
-		return newEmptyNode()
+		node := newEmptyNode()
+		self.markNode(node)
+		return node
 	case "if":
 		return self.ParseIf()
 	case "do":
@@ -30,7 +32,9 @@ func (self *_parser) ParseStatement() _node {
 	case "function":
 		self.ParseFunctionDeclaration()
 		// TODO Should be FunctionDeclarationStatement
-		return newEmptyNode()
+		node := newEmptyNode()
+		self.markNode(node)
+		return node
 	case "switch":
 		return self.ParseSwitch()
 	case "return":
@@ -234,6 +238,7 @@ func (self *_parser) parseStatementUntil(stop func() bool) []_node {
 
 func (self *_parser) ParseBlock() *_blockNode {
 	node := newBlockNode()
+	self.markNode(node)
 
 	self.Expect("{")
 	node.Body = self.parseStatementUntil(func() bool {
@@ -250,11 +255,12 @@ func (self *_parser) ParseReturnStatement() _node {
 		panic(self.History(-1).newSyntaxError("Illegal return statement"))
 	}
 
-	if self.Match("\n") {
-		return newReturnNode()
-	}
-
 	node := newReturnNode()
+	self.markNode(node)
+
+	if self.Match("\n") {
+		return node
+	}
 
 	if !self.Match(";") {
 		if !self.Match("}") && !self.Match("EOF") {
@@ -276,6 +282,7 @@ func (self *_parser) ParseThrow() _node {
 	}
 
 	node := newThrowNode(self.ParseExpression())
+	self.markNode(node)
 
 	self.ConsumeSemicolon()
 
@@ -289,7 +296,8 @@ func (self *_parser) ParseSwitch() _node {
 	discriminant := self.ParseExpression()
 	self.Expect(")")
 
-	_switchNode := newSwitchNode(discriminant)
+	switchNode := newSwitchNode(discriminant)
+	self.markNode(switchNode)
 
 	self.Expect("{")
 
@@ -301,17 +309,17 @@ func (self *_parser) ParseSwitch() _node {
 
 			result := self.ParseCase()
 			if result.Test == nil {
-				if _switchNode.Default != -1 {
+				if switchNode.Default != -1 {
 					panic(hereBeDragons("Already saw a default:"))
 				}
-				_switchNode.Default = i
+				switchNode.Default = i
 			}
-			_switchNode.AddCase(result)
+			switchNode.AddCase(result)
 		}
 		return nil
 	})
 
-	return _switchNode
+	return switchNode
 }
 
 func (self *_parser) ParseCase() *_caseNode {
@@ -319,9 +327,11 @@ func (self *_parser) ParseCase() *_caseNode {
 	var node *_caseNode
 	if self.Accept("default") {
 		node = newDefaultCaseNode()
+		self.markNode(node)
 	} else {
 		self.Expect("case")
 		node = newCaseNode(self.ParseExpression())
+		self.markNode(node)
 	}
 	self.Expect(":")
 
@@ -338,6 +348,7 @@ func (self *_parser) ParseCase() *_caseNode {
 
 func (self *_parser) ParseVariable() *_variableDeclarationNode {
 	node := newVariableDeclarationNode(self.ConsumeIdentifier().Value)
+	self.markNode(node)
 
 	for _, value := range []string{"=", ":="} {
 		if self.Accept(value) {
@@ -354,6 +365,7 @@ func (self *_parser) ParseVariableDeclaration() *_variableDeclarationListNode {
 	self.Expect("var")
 
 	node := newVariableDeclarationListNode()
+	self.markNode(node)
 
 	for {
 		variable := self.ParseVariable()
@@ -381,12 +393,13 @@ func (self *_parser) ParseFunction(declare bool) _node {
 
 	self.Expect("function")
 
-	_functionNode := newFunctionNode()
+	functionNode := newFunctionNode()
+	self.markNode(functionNode)
 
 	if self.Match("identifier") {
 		identifier := self.ConsumeIdentifier()
 		if declare {
-			self.Scope().AddFunction(identifier.Value, _functionNode)
+			self.Scope().AddFunction(identifier.Value, functionNode)
 		}
 	}
 
@@ -398,9 +411,9 @@ func (self *_parser) ParseFunction(declare bool) _node {
 	self.Expect("(")
 	for !self.Accept(")") {
 		identifier := self.ConsumeIdentifier().Value
-		_functionNode.AddParameter(identifier)
+		functionNode.AddParameter(identifier)
 		if identifier == "arguments" {
-			_functionNode.ArgumentsIsParameter = true
+			functionNode.ArgumentsIsParameter = true
 		}
 		if !self.Match(")") {
 			self.Expect(",")
@@ -411,14 +424,14 @@ func (self *_parser) ParseFunction(declare bool) _node {
 		self.EnterScope()
 		defer self.LeaveScope()
 		self.parseInFunction(func() _node {
-			_functionNode.Body = self.ParseBlock().Body
+			functionNode.Body = self.ParseBlock().Body
 			return nil
 		})
-		_functionNode.VariableList = self.Scope().VariableList
-		_functionNode.FunctionList = self.Scope().FunctionList
+		functionNode.VariableList = self.Scope().VariableList
+		functionNode.FunctionList = self.Scope().FunctionList
 	}
 
-	return _functionNode;
+	return functionNode;
 }
 
 /*func (self *_parser) ParseFunctionParameterList() []string {*/
@@ -448,6 +461,7 @@ func (self *_parser) parseForIn(into _node) *_forInNode {
 	})
 
 	node := newForInNode(into, source, body)
+	self.markNode(node)
 	node._labelSet[""] = true
 	return node
 }
@@ -473,6 +487,7 @@ func (self *_parser) parseFor(initial _node) *_forNode {
 	})
 
 	node := newForNode(initial, test, update, body)
+	self.markNode(node)
 	node._labelSet[""] = true
 	return node
 }

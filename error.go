@@ -8,6 +8,8 @@ import (
 type _error struct {
 	Name string
 	Message string
+
+	Line int // Hackish -- line where the error/exception occurred
 }
 
 var messageDetail map[string]string = map[string]string{
@@ -48,6 +50,7 @@ func newError(name string, argumentList... interface{}) _error {
 	return _error{
 		Name: name,
 		Message: messageFromDescription(description, argumentList...),
+		Line: -1,
 	}
 }
 
@@ -86,7 +89,11 @@ func catchPanic(function func()) (err error) {
 				err = errors.New(caught.String())
 				return
 			case _error:
-				err = errors.New(caught.String())
+				if caught.Line == -1 {
+					err = errors.New(caught.String())
+				} else {
+					err = errors.New(fmt.Sprintf("%s (line %d)", caught.String(), caught.Line))
+				}
 				return
 			case _result:
 				if caught.Kind == resultThrow {

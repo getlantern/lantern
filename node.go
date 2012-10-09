@@ -10,12 +10,27 @@ import (
 type _node interface {
 	Type() _nodeType
 	String() string
+	setPosition(int)
+	position() int
 }
 
 type _nodeType int
 
 func (self _nodeType) Type() _nodeType {
 	return self
+}
+
+type _node_ struct {
+	_nodeType
+	Line int // Line in the source
+}
+
+func (self *_node_) setPosition(Line int) {
+	self.Line = Line
+}
+
+func (self *_node_) position() int {
+	return self.Line
 }
 
 const (

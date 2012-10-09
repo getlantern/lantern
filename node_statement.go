@@ -6,6 +6,7 @@ import (
 
 type _blockNode struct {
 	_nodeType
+	_node_
 	Body []_node
 }
 
@@ -24,6 +25,7 @@ func (self _blockNode) String() string {
 
 type _breakNode struct {
 	_nodeType
+	_node_
 	Target string
 }
 
@@ -40,6 +42,7 @@ func (self _breakNode) String() string {
 
 type _continueNode struct {
 	_nodeType
+	_node_
 	Target string
 }
 
@@ -56,6 +59,7 @@ func (self _continueNode) String() string {
 
 type _doWhileNode struct {
 	_nodeType
+	_node_
 	Test _node
 	Body _node
 	_labelSet _labelSet
@@ -77,6 +81,7 @@ func (self _doWhileNode) String() string {
 
 type _emptyNode struct {
 	_nodeType
+	_node_
 }
 
 func newEmptyNode() *_emptyNode {
@@ -91,6 +96,7 @@ func (self _emptyNode) String() string {
 
 type _forNode struct {
 	_nodeType
+	_node_
 	Initial _node
 	Test _node
 	Update _node
@@ -122,6 +128,7 @@ func (self _forNode) String() string {
 
 type _forInNode struct {
 	_nodeType
+	_node_
 	Into _node
 	Source _node
 	Body _node
@@ -150,6 +157,7 @@ func (self _forInNode) String() string {
 
 type _ifNode struct {
 	_nodeType
+	_node_
 	Test _node
 	Consequent _node
 	Alternate _node
@@ -180,6 +188,7 @@ func (self _ifNode) String() string {
 
 type _programNode struct {
 	_nodeType
+	_node_
 	Body []_node
 	VariableList []_declaration
 	FunctionList []_declaration
@@ -206,6 +215,7 @@ func (self _programNode) toFunction(parameterList []string) *_functionNode {
 
 type _returnNode struct {
 	_nodeType
+	_node_
 	Argument _node
 }
 
@@ -224,6 +234,7 @@ func (self _returnNode) String() string {
 
 type _switchNode struct {
 	_nodeType
+	_node_
 	Discriminant _node
 	Default int
 	CaseList [](*_caseNode)
@@ -247,6 +258,7 @@ func (self _switchNode) String() string {
 
 type _caseNode struct {
 	_nodeType
+	_node_
 	Test _node
 	Body []_node
 }
@@ -272,6 +284,7 @@ func (self _caseNode) String() string {
 
 type _throwNode struct {
 	_nodeType
+	_node_
 	Argument _node
 }
 
@@ -288,6 +301,7 @@ func (self _throwNode) String() string {
 
 type _tryCatchNode struct {
 	_nodeType
+	_node_
 	Try _node
 	Catch *_catchNode
 	Finally *_blockNode
@@ -320,6 +334,7 @@ func (self *_tryCatchNode) AddCatch(identifier string, body *_blockNode) {
 
 type _catchNode struct {
 	_nodeType
+	_node_
 	Identifier string
 	Body *_blockNode
 }
@@ -338,6 +353,7 @@ func (self _catchNode) String() string {
 
 type _variableDeclarationListNode struct {
 	_nodeType
+	_node_
 	VariableList []*_variableDeclarationNode
 }
 
@@ -353,6 +369,7 @@ func (self _variableDeclarationListNode) String() string {
 
 type _variableDeclarationNode struct {
 	_nodeType
+	_node_
 	Identifier string
 	Operator string
 	Initializer _node
@@ -374,6 +391,7 @@ func (self _variableDeclarationNode) String() string {
 
 type _whileNode struct {
 	_nodeType
+	_node_
 	Test _node
 	Body _node
 	_labelSet _labelSet
@@ -395,6 +413,7 @@ func (self _whileNode) String() string {
 
 type _withNode struct {
 	_nodeType
+	_node_
 	Object _node
 	Body _node
 }
