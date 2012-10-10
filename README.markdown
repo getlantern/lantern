@@ -62,9 +62,7 @@ Embedding a Go function in JavaScript:
 		result = twoPlus(2.0) // 4
 	`)
 
-### otto
-
-You can run (Go) JavaScript from the commandline with **otto**: http://github.com/robertkrimen/otto/tree/master/otto
+You can run (Go) JavaScript from the commandline with: http://github.com/robertkrimen/otto/tree/master/otto
 
 	$ go get -v github.com/robertkrimen/otto/otto
 
@@ -81,7 +79,6 @@ type FunctionCall struct {
 	This Value
 
 	ArgumentList []Value
-	// contains filtered or unexported fields
 }
 ```
 
@@ -100,7 +97,6 @@ If no such argument exists, undefined is returned.
 
 ```go
 type Object struct {
-	// contains filtered or unexported fields
 }
 ```
 
@@ -161,7 +157,6 @@ read-only), or there is an error during conversion of the given value.
 
 ```go
 type Otto struct {
-	// contains filtered or unexported fields
 }
 ```
 
@@ -246,7 +241,6 @@ If the top-level binding does not exist, it will be created.
 
 ```go
 type Value struct {
-	// contains filtered or unexported fields
 }
 ```
 
@@ -489,4 +483,5 @@ ToString will convert the value to a string (string).
 If there is an error during the conversion process (like an uncaught exception),
 then the result will be the empty string ("") and an error.
 
-
+--
+**godocdown** http://github.com/robertkrimen/godocdown

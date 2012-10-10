@@ -42,8 +42,8 @@ run:
 test-all:
 	go test .
 
-release: test-synopsis
-	godocdown > README.markdown
+release: test-all test-synopsis
+	godocdown --signature > README.markdown
 
 test-synopsis:
 	cd .test && go test -v
