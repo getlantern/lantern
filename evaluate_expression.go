@@ -507,7 +507,7 @@ func (self *_runtime) evaluateFunction(node *_functionNode) Value {
 func (self *_runtime) evaluateDotMember(node *_dotMemberNode) Value {
 	target := self.evaluate(node.Target)
 	targetValue := self.GetValue(target)
-	return toValue(newObjectReference(self.toObject(targetValue), node.Member, false))
+	return toValue(newObjectReference(self.toObject(targetValue), node.Member, false, node))
 }
 
 func (self *_runtime) evaluateBracketMember(node *_bracketMemberNode) Value {
@@ -516,12 +516,14 @@ func (self *_runtime) evaluateBracketMember(node *_bracketMemberNode) Value {
 	member := self.evaluate(node.Member)
 	memberValue := self.GetValue(member)
 
-	return toValue(newObjectReference(self.toObject(targetValue), toString(memberValue), false))
+	return toValue(newObjectReference(self.toObject(targetValue), toString(memberValue), false, node))
 }
 
 func (self *_runtime) evaluateIdentifier(node *_identifierNode) Value {
 	name := node.Value
 	// TODO Should be true or false (strictness) depending on context
+	// TODO Associate the node with reference... how?
+	// TODO Can/Will getIdentifierReference ever return nil?
 	reference := getIdentifierReference(self.LexicalEnvironment(), name, false)
 	if reference == nil {
 		panic("referenceError: " + name)

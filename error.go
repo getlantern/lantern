@@ -44,14 +44,26 @@ func (self _error) String() string {
 
 func newError(name string, argumentList... interface{}) _error {
 	description := ""
-	if len(argumentList) > 0 {
-		description, argumentList = argumentList[0].(string), argumentList[1:]
+	var node _node = nil
+	length := len(argumentList)
+	if length > 0 {
+		if node, _ = argumentList[length-1].(_node); node != nil  || argumentList[length-1] == nil {
+			argumentList = argumentList[0:length-1]
+			length -= 1
+		}
+		if length > 0 {
+			description, argumentList = argumentList[0].(string), argumentList[1:]
+		}
 	}
-	return _error{
+	error := _error{
 		Name: name,
 		Message: messageFromDescription(description, argumentList...),
 		Line: -1,
 	}
+	if node != nil {
+		error.Line = node.position()
+	}
+	return error
 }
 
 func newReferenceError(argumentList... interface{}) _error {

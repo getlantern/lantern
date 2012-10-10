@@ -114,7 +114,7 @@ func (self *_objectEnvironment) ImplicitThisValue() *_object {
 
 func getIdentifierReference(environment _environment, name string, strict bool) _reference {
 	if environment == nil {
-		return newObjectReference(nil, name, strict)
+		return newObjectReference(nil, name, strict, nil)
 	}
 	if environment.HasBinding(name) {
 		return environment.newReference(name, strict)
@@ -140,7 +140,7 @@ func (self *_objectEnvironment) newDeclarativeEnvironment() _environment {
 }
 
 func (self *_objectEnvironment) newReference(name string, strict bool) _reference {
-	return newObjectReference(self.Object, name, strict)
+	return newObjectReference(self.Object, name, strict, nil)
 }
 
 func (self *_objectEnvironment) GetReference(name string) _reference {

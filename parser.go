@@ -162,7 +162,9 @@ func (self *_parser) matchAssignment() bool {
 }
 
 func (self *_parser) ConsumeNull() *_valueNode {
-	return newNullNode(self.Next().Text)
+	node := newNullNode(self.Next().Text)
+	self.markNode(node)
+	return node
 }
 
 func (self *_parser) ConsumeIdentifier() *_identifierNode {
@@ -170,19 +172,27 @@ func (self *_parser) ConsumeIdentifier() *_identifierNode {
 	if token.Kind != "identifier" {
 		panic(token.newSyntaxError("Unexpected token %s", token.Kind))
 	}
-	return newIdentifierNode(token.Text)
+	node := newIdentifierNode(token.Text)
+	self.markNode(node)
+	return node
 }
 
 func (self *_parser) ConsumeString() *_valueNode {
-	return newStringNode(self.Next().Text)
+	node := newStringNode(self.Next().Text)
+	self.markNode(node)
+	return node
 }
 
 func (self *_parser) ConsumeBoolean() *_valueNode {
-	return newBooleanNode(self.Next().Text)
+	node := newBooleanNode(self.Next().Text)
+	self.markNode(node)
+	return node
 }
 
 func (self *_parser) ConsumeNumber() *_valueNode {
-	return newNumberNode(self.Next().Text)
+	node := newNumberNode(self.Next().Text)
+	self.markNode(node)
+	return node
 }
 
 func (self *_parser) ConsumeSemicolon() {

@@ -29,4 +29,21 @@ func TestOttoError(t *testing.T) {
 	`)
 	Is(err, "ReferenceError: abcdef is not defined (line 2)")
 
+	_, err = Otto.Run(`
+	function start() {
+	}
+
+	start()
+
+		xyzzy()
+	`)
+	Is(err, "ReferenceError: xyzzy is not defined (line 6)")
+
+	_, err = Otto.Run(`
+		// Just a comment
+
+		xyzzy
+	`)
+	Is(err, "ReferenceError: xyzzy is not defined (line 3)")
+
 }

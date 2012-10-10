@@ -83,13 +83,13 @@ func (self Object) Call(this Value, argumentList ...interface{}) (Value, error)
 Call the object as a function with the given this value and argument list and
 return the result of invocation. It is essentially equivalent to:
 
-		self.apply(thisValue, argumentList)
+    self.apply(thisValue, argumentList)
 
 An undefined value and an error will result if:
 
-		1. There is an error during conversion of the argument list
-		2. The object is not actually a function
-		3. An (uncaught) exception is thrown
+    1. There is an error during conversion of the argument list
+    2. The object is not actually a function
+    3. An (uncaught) exception is thrown
 
 #### func (Object) Class
 
@@ -100,14 +100,14 @@ Class will return the class string of the object.
 
 The return value will (generally) be one of:
 
-		Object
-		Function
-		Array
-		String
-		Number
-		Boolean
-		Date
-		RegExp
+    Object
+    Function
+    Array
+    String
+    Number
+    Boolean
+    Date
+    RegExp
 
 #### func (Object) Get
 
@@ -123,8 +123,8 @@ func (self Object) Set(name string, value interface{}) error
 ```
 Set the property of the given name to the given value.
 
-An error will result if the setting the property triggers an exception (i.e. read-only),
-or there is an error during conversion of the given value.
+An error will result if the setting the property triggers an exception (i.e.
+read-only), or there is an error during conversion of the given value.
 
 #### type Otto
 
@@ -134,7 +134,8 @@ type Otto struct {
 }
 ```
 
-Otto is the representation of the JavaScript runtime. Each instance of Otto has a self-contained namespace.
+Otto is the representation of the JavaScript runtime. Each instance of Otto has
+a self-contained namespace.
 
 #### func  New
 
@@ -148,9 +149,8 @@ New will allocate a new JavaScript runtime
 ```go
 func Run(source string) (*Otto, Value, error)
 ```
-Run will allocate a new JavaScript runtime, run the given source
-on the allocated runtime, and return the runtime, resulting value, and
-error (if any).
+Run will allocate a new JavaScript runtime, run the given source on the
+allocated runtime, and return the runtime, resulting value, and error (if any).
 
 #### func (Otto) Get
 
@@ -159,8 +159,8 @@ func (self Otto) Get(name string) (Value, error)
 ```
 Get the value of the top-level binding of the given name.
 
-If there is an error (like the binding not existing), then the value
-will be undefined.
+If there is an error (like the binding not existing), then the value will be
+undefined.
 
 #### func (Otto) Object
 
@@ -171,29 +171,30 @@ Object will run the given source and return the result as an object.
 
 For example, accessing an existing object:
 
-		object, _ := Otto.Object(`Number`)
+    object, _ := Otto.Object(`Number`)
 
 Or, creating a new object:
 
-		object, _ := Otto.Object(`{ xyzzy: "Nothing happens." }`)
+    object, _ := Otto.Object(`{ xyzzy: "Nothing happens." }`)
 
 Or, creating and assigning an object:
 
-		object, _ := Otto.Object(`xyzzy = {}`)
-		object.Set("volume", 11)
+    object, _ := Otto.Object(`xyzzy = {}`)
+    object.Set("volume", 11)
 
-If there is an error (like the source does not result in an object), then
-nil and an error is returned.
+If there is an error (like the source does not result in an object), then nil
+and an error is returned.
 
 #### func (Otto) Run
 
 ```go
 func (self Otto) Run(source string) (Value, error)
 ```
-Run will run the given source (parsing it first), returning the resulting value and error (if any)
+Run will run the given source (parsing it first), returning the resulting value
+and error (if any)
 
-If the runtime is unable to parse the source, then this function will return undefined and the parse error (nothing
-will be evaluated in this case).
+If the runtime is unable to parse the source, then this function will return
+undefined and the parse error (nothing will be evaluated in this case).
 
 #### func (Otto) Set
 
@@ -202,11 +203,11 @@ func (self Otto) Set(name string, value interface{}) error
 ```
 Set the top-level binding of the given name to the given value.
 
-Set will automatically apply ToValue to the given value in order
-to convert it to a JavaScript value (type Value).
+Set will automatically apply ToValue to the given value in order to convert it
+to a JavaScript value (type Value).
 
-If there is an error (like the binding being read-only, or the ToValue conversion
-failing), then an error is returned.
+If there is an error (like the binding being read-only, or the ToValue
+conversion failing), then an error is returned.
 
 If the top-level binding does not exist, it will be created.
 
@@ -229,7 +230,7 @@ FalseValue will return a value represting false.
 
 It is equivalent to:
 
-		ToValue(false)
+    ToValue(false)
 
 #### func  NaNValue
 
@@ -240,7 +241,7 @@ NaNValue will return a value representing NaN.
 
 It is equivalent to:
 
-		ToValue(math.NaN())
+    ToValue(math.NaN())
 
 #### func  NullValue
 
@@ -264,7 +265,7 @@ TrueValue will return a value represting true.
 
 It is equivalent to:
 
-		ToValue(true)
+    ToValue(true)
 
 #### func  UndefinedValue
 
@@ -281,31 +282,32 @@ func (value Value) Call(this Value, argumentList ...interface{}) (Value, error)
 Call the value as a function with the given this value and argument list and
 return the result of invocation. It is essentially equivalent to:
 
-		value.apply(thisValue, argumentList)
+    value.apply(thisValue, argumentList)
 
 An undefined value and an error will result if:
 
-		1. There is an error during conversion of the argument list
-		2. The value is not actually a function
-		3. An (uncaught) exception is thrown
+    1. There is an error during conversion of the argument list
+    2. The value is not actually a function
+    3. An (uncaught) exception is thrown
 
 #### func (Value) Class
 
 ```go
 func (value Value) Class() string
 ```
-Class will return the class string of the value or the empty string if value is not an object.
+Class will return the class string of the value or the empty string if value is
+not an object.
 
 The return value will (generally) be one of:
 
-		Object
-		Function
-		Array
-		String
-		Number
-		Boolean
-		Date
-		RegExp
+    Object
+    Function
+    Array
+    String
+    Number
+    Boolean
+    Date
+    RegExp
 
 #### func (Value) IsBoolean
 
@@ -384,7 +386,8 @@ func (value Value) Object() *Object
 ```
 Object will return the object of the value, or nil if value is not an object.
 
-This method will not do any implicit conversion. For example, calling this method on a string primitive value will not return a String object.
+This method will not do any implicit conversion. For example, calling this
+method on a string primitive value will not return a String object.
 
 #### func (Value) String
 
@@ -402,13 +405,14 @@ func (value Value) ToBoolean() (bool, error)
 ```
 ToBoolean will convert the value to a boolean (bool).
 
-		ToValue(0).ToBoolean() => false
-		ToValue("").ToBoolean() => false
-		ToValue(true).ToBoolean() => true
-		ToValue(1).ToBoolean() => true
-		ToValue("Nothing happens").ToBoolean() => true
+    ToValue(0).ToBoolean() => false
+    ToValue("").ToBoolean() => false
+    ToValue(true).ToBoolean() => true
+    ToValue(1).ToBoolean() => true
+    ToValue("Nothing happens").ToBoolean() => true
 
-If there is an error during the conversion process (like an uncaught exception), then the result will be false and an error.
+If there is an error during the conversion process (like an uncaught exception),
+then the result will be false and an error.
 
 #### func (Value) ToFloat
 
@@ -417,11 +421,12 @@ func (value Value) ToFloat() (float64, error)
 ```
 ToFloat will convert the value to a number (float64).
 
-		ToValue(0).ToFloat() => 0.
-		ToValue(1.1).ToFloat() => 1.1
-		ToValue("11").ToFloat() => 11.
+    ToValue(0).ToFloat() => 0.
+    ToValue(1.1).ToFloat() => 1.1
+    ToValue("11").ToFloat() => 11.
 
-If there is an error during the conversion process (like an uncaught exception), then the result will be 0 and an error.
+If there is an error during the conversion process (like an uncaught exception),
+then the result will be 0 and an error.
 
 #### func (Value) ToInteger
 
@@ -430,11 +435,12 @@ func (value Value) ToInteger() (int64, error)
 ```
 ToInteger will convert the value to a number (int64).
 
-		ToValue(0).ToInteger() => 0
-		ToValue(1.1).ToInteger() => 1
-		ToValue("11").ToInteger() => 11
+    ToValue(0).ToInteger() => 0
+    ToValue(1.1).ToInteger() => 1
+    ToValue("11").ToInteger() => 11
 
-If there is an error during the conversion process (like an uncaught exception), then the result will be 0 and an error.
+If there is an error during the conversion process (like an uncaught exception),
+then the result will be 0 and an error.
 
 #### func (Value) ToString
 
@@ -443,12 +449,13 @@ func (value Value) ToString() (string, error)
 ```
 ToString will convert the value to a string (string).
 
-		ToValue(0).ToString() => "0"
-		ToValue(false).ToString() => "false"
-		ToValue(1.1).ToString() => "1.1"
-		ToValue("11").ToString() => "11"
-		ToValue('Nothing happens.').ToString() => "Nothing happens."
+    ToValue(0).ToString() => "0"
+    ToValue(false).ToString() => "false"
+    ToValue(1.1).ToString() => "1.1"
+    ToValue("11").ToString() => "11"
+    ToValue('Nothing happens.').ToString() => "Nothing happens."
 
-If there is an error during the conversion process (like an uncaught exception), then the result will be the empty string ("") and an error.
+If there is an error during the conversion process (like an uncaught exception),
+then the result will be the empty string ("") and an error.
 
 

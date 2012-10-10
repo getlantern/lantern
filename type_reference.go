@@ -64,15 +64,17 @@ func (self *_argumentReference) PutValue(value Value) bool {
 type _objectReference struct {
 	_referenceBase
     Base *_object
+	node _node
 }
 
-func newObjectReference(base *_object, name string, strict bool) *_objectReference {
+func newObjectReference(base *_object, name string, strict bool, node _node) *_objectReference {
 	return &_objectReference{
 		Base: base,
 		_referenceBase: _referenceBase{
 			name: name,
 			strict: strict,
 		},
+		node: node,
 	}
 }
 
@@ -82,7 +84,7 @@ func (self *_objectReference) GetBase() *_object {
 
 func (self *_objectReference) GetValue() Value {
 	if self.Base == nil {
-		panic(newReferenceError("notDefined", self.name))
+		panic(newReferenceError("notDefined", self.name, self.node))
 	}
 	return self.Base.GetValue(self.name)
 }
