@@ -1,5 +1,13 @@
+/*
+Package underscore contains the source for the underscore utility-belt library for JavaScript.
+
+http://underscorejs.org
+
+https://github.com/documentcloud/underscore
+*/
 package underscore
 
+// Source returns the underscore source.
 func Source() string {
 	return string(underscore())
 }
