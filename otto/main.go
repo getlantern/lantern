@@ -6,7 +6,10 @@ import (
 	"io/ioutil"
 	"os"
 	"github.com/robertkrimen/otto"
+	"github.com/robertkrimen/otto/underscore"
 )
+
+var underscoreFlag *bool = flag.Bool("underscore", true, "Load underscore into the runtime environment")
 
 func main() {
 	flag.Parse()
@@ -25,6 +28,9 @@ func main() {
 			fmt.Printf("Can't open file \"%v\": %v\n", filename, err)
 			os.Exit(64)
 		}
+	}
+	if !*underscoreFlag {
+		underscore.Disable()
 	}
 	Otto := otto.New()
 	_, err = Otto.Run(string(script))
