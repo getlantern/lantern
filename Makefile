@@ -1,4 +1,4 @@
-.PHONY: test assets todo fixme otto run test-all release
+.PHONY: test assets todo fixme otto run test-all release test-synopsis
 
 export TERST_BASE=$(PWD)
 
@@ -42,5 +42,8 @@ run:
 test-all:
 	go test .
 
-release:
+release: test-synopsis
 	godocdown > README.markdown
+
+test-synopsis:
+	cd .test && go test -v

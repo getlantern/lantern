@@ -41,6 +41,27 @@ Package otto is a JavaScript parser and interpreter written natively in Go.
 		...
 	}
 
+Embedding a Go function in JavaScript:
+
+	Otto.Set("sayHello", func(call otto.FunctionCall) otto.Value {
+		fmt.Printf("Hello, %s.\n", call.Argument(0).String())
+		return otto.UndefinedValue()
+	})
+
+	Otto.Set("twoPlus", func(call otto.FunctionCall) otto.Value {
+		right, _ := call.Argument(0).ToInteger()
+		result, _ := otto.ToValue(2 + right)
+		return result
+	})
+
+	result, _ = Otto.Run(`
+		// First, say a greeting
+		sayHello("Xyzzy") // Hello, Xyzzy.
+		sayHello() // Hello, undefined
+
+		result = twoPlus(2.0) // 4
+	`)
+
 ## Usage
 
 #### type FunctionCall
