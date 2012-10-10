@@ -61,6 +61,16 @@ Embedding a Go function in JavaScript:
 		result = twoPlus(2.0) // 4
 	`)
 
+otto
+
+You can run (Go) JavaScript from the commandline with **otto**: http://github.com/robertkrimen/otto/tree/master/otto
+
+	$ go get -v github.com/robertkrimen/otto/otto
+
+Run JavaScript by entering some source on stdin or by giving otto a filename:
+
+	$ otto example.js
+
 */
 package otto
 

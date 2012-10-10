@@ -47,3 +47,4 @@ release: test-synopsis
 
 test-synopsis:
 	cd .test && go test -v
+	cd .test && otto example.js
