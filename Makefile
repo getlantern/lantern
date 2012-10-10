@@ -46,7 +46,7 @@ test-all: test-i
 	go test .
 
 release: test-all test-synopsis
-	godocdown --signature > README.markdown
+	for package in . underscore registry; do (cd $$package && godocdown --signature > README.markdown); done
 
 test-synopsis: test-i
 	cd .test && go test -v
