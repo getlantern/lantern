@@ -23,17 +23,6 @@ Install required dependencies (sudo as necessary):
 * [Node.js](http://nodejs.org/): `brew install node` or equivalent for your
   system
 
-* [NPM](http://npmjs.org/): `curl http://npmjs.org/install.sh | sh`
-
-* [Faye](http://faye.jcoglan.com/): `npm install -g faye`
-
-* [node-sleep](https://github.com/ErikDubbelboer/node-sleep): `npm install -g
-  sleep`
-
-  (We assume `npm install -g` installs node modules to
-  `/usr/local/share/npm/lib/node_modules/`, which is where symlinks under
-  `node_modules/` point. Adjust as necessary.)
-
 * [Compass](http://compass-style.org/): `gem install compass`
   
 * [Compass Twitter Bootstrap](https://github.com/vwall/compass-twitter-bootstrap):

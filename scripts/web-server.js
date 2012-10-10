@@ -5,8 +5,8 @@ var sys = require('sys'),
     fs = require('fs'),
     url = require('url'),
     events = require('events'),
-    sleep = require('sleep'), // npm install -g sleep
-    faye = require('../node_modules/faye'); // npm install -g faye
+    sleep = require('../node_modules/sleep'),
+    faye = require('../node_modules/faye');
 
 //faye.Logging.logLevel = faye.Logging.LOG_LEVELS.info;
 
