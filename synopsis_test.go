@@ -43,7 +43,7 @@ func TestSynopsis(t *testing.T) {
 
 	{
 		value, err := Otto.Run("abcdefghijlmnopqrstuvwxyz.length")
-		Is(err, "ReferenceError: abcdefghijlmnopqrstuvwxyz is not defined (line 0)")
+		Is(err, "ReferenceError: abcdefghijlmnopqrstuvwxyz is not defined (line 1)")
 		if err != nil {
 			IsTrue(value.IsUndefined())
 		}
