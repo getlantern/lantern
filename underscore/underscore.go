@@ -1,5 +1,5 @@
 /*
-Package underscore contains the source for the underscore utility-belt library for JavaScript.
+Package underscore contains the source for the JavaScript utility-belt library.
 
 	import (
 		_ "github.com/robertkrimen/otto/underscore"

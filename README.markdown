@@ -70,6 +70,14 @@ Run JavaScript by entering some source on stdin or by giving otto a filename:
 
 	$ otto example.js
 
+Caveat Emptor
+
+* For now, otto is a hybrid ECMA3/ECMA5 interpreter. Parts of the specification are still works in progress.
+* For example, "use strict" will parse, but does nothing.
+* Error reporting needs to be improved.
+* Number.prototype.{toFixed,toExponential,toPrecision} are missing.
+* Really, error reporting could use some improvement.
+
 ## Usage
 
 #### type FunctionCall
