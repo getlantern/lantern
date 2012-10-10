@@ -3,11 +3,12 @@ package otto
 import (
     "testing"
     . "github.com/robertkrimen/terst"
+    "github.com/robertkrimen/otto/underscore"
 )
 
 func underscoreTest() func(string, ... interface{}) Value {
 	Otto, test := runTestWithOtto()
-	Otto.Run(string(underscore_js()))
+	Otto.Run(underscore.Source())
 
 	Otto.Set("assert", func(call FunctionCall) Value {
 		if !toBoolean(call.Argument(0)) {
