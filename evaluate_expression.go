@@ -522,11 +522,12 @@ func (self *_runtime) evaluateBracketMember(node *_bracketMemberNode) Value {
 func (self *_runtime) evaluateIdentifier(node *_identifierNode) Value {
 	name := node.Value
 	// TODO Should be true or false (strictness) depending on context
-	// TODO Associate the node with reference... how?
-	// TODO Can/Will getIdentifierReference ever return nil?
+	// getIdentifierReference should not return nil, but we check anyway and panic
+	// so as not to propagate the nil into something else
 	reference := getIdentifierReference(self.LexicalEnvironment(), name, false, node)
 	if reference == nil {
-		panic("referenceError: " + name)
+		// Should never get here!
+		panic(hereBeDragons("referenceError == nil: " + name))
 	}
 	return toValue(reference)
 }
