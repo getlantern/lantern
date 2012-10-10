@@ -1,4 +1,4 @@
-.PHONY: test assets todo fixme otto run test-all release test-synopsis
+.PHONY: test assets todo fixme otto run test-all release test-synopsis test-i
 
 export TERST_BASE=$(PWD)
 
@@ -20,8 +20,10 @@ TEST := -v --run ParseSuccess
 TEST := -v --run OttoError 
 TEST := .
 
-test:
+test-i:
 	go test -i
+
+test: test-i
 	go test $(TEST)
 
 assets:
@@ -40,12 +42,12 @@ otto:
 run:
 	go run -a ./otto/main.go ./otto.js
 
-test-all:
+test-all: test-i
 	go test .
 
 release: test-all test-synopsis
 	godocdown --signature > README.markdown
 
-test-synopsis:
+test-synopsis: test-i
 	cd .test && go test -v
 	cd .test && otto example.js
