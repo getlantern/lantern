@@ -104,7 +104,8 @@ func catchPanic(function func()) (err error) {
 				if caught.Line == -1 {
 					err = errors.New(caught.String())
 				} else {
-					err = errors.New(fmt.Sprintf("%s (line %d)", caught.String(), caught.Line))
+					// We're 0-based (for now), hence the + 1
+					err = errors.New(fmt.Sprintf("%s (line %d)", caught.String(), caught.Line + 1))
 				}
 				return
 			case _result:

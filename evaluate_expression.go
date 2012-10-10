@@ -524,7 +524,7 @@ func (self *_runtime) evaluateIdentifier(node *_identifierNode) Value {
 	// TODO Should be true or false (strictness) depending on context
 	// TODO Associate the node with reference... how?
 	// TODO Can/Will getIdentifierReference ever return nil?
-	reference := getIdentifierReference(self.LexicalEnvironment(), name, false)
+	reference := getIdentifierReference(self.LexicalEnvironment(), name, false, node)
 	if reference == nil {
 		panic("referenceError: " + name)
 	}

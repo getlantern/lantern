@@ -112,14 +112,14 @@ func (self *_objectEnvironment) ImplicitThisValue() *_object {
 	return nil
 }
 
-func getIdentifierReference(environment _environment, name string, strict bool) _reference {
+func getIdentifierReference(environment _environment, name string, strict bool, node _node) _reference {
 	if environment == nil {
-		return newObjectReference(nil, name, strict, nil)
+		return newObjectReference(nil, name, strict, node)
 	}
 	if environment.HasBinding(name) {
 		return environment.newReference(name, strict)
 	}
-	return getIdentifierReference(environment.Outer(), name, strict)
+	return getIdentifierReference(environment.Outer(), name, strict, node)
 }
 
 // ---
@@ -144,7 +144,7 @@ func (self *_objectEnvironment) newReference(name string, strict bool) _referenc
 }
 
 func (self *_objectEnvironment) GetReference(name string) _reference {
-	return getIdentifierReference(self, name, false)
+	return getIdentifierReference(self, name, false, nil)
 }
 
 func (self *_objectEnvironment) GetValue(name string, throw bool) Value {

@@ -34,7 +34,7 @@ func (self *_runtime) evaluateVariableDeclarationList(node *_variableDeclaration
 func (self *_runtime) evaluateVariableDeclaration(node *_variableDeclarationNode) Value {
 	if node.Operator != "" {
 		// FIXME If reference is nil
-		left := getIdentifierReference(self.LexicalEnvironment(), node.Identifier, false)
+		left := getIdentifierReference(self.LexicalEnvironment(), node.Identifier, false, node)
 		right := self.evaluate(node.Initializer)
 		rightValue := self.GetValue(right)
 
@@ -192,7 +192,7 @@ func (self *_runtime) evaluateForIn(node *_forInNode) Value {
 				if into.reference() == nil {
 					identifier := toString(into)
 					// TODO Should be true or false (strictness) depending on context
-					into = toValue(getIdentifierReference(self.LexicalEnvironment(), identifier, false))
+					into = toValue(getIdentifierReference(self.LexicalEnvironment(), identifier, false, node))
 				}
 				self.PutValue(into.reference(), toValue(name))
 				value, _ := self.continueEvaluate(body, _labelSet)
