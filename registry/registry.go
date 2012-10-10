@@ -1,0 +1,42 @@
+package registry
+
+var registry []*Entry = make([]*Entry, 0)
+
+type Entry struct {
+	active bool
+	source string
+}
+
+func newEntry(source string) *Entry {
+	return &Entry{
+		active: true,
+		source: source,
+	}
+}
+
+func (self *Entry) Enable() {
+	self.active = true
+}
+
+func (self *Entry) Disable() {
+	self.active = false
+}
+
+func (self Entry) Source() string {
+	return self.source
+}
+
+func Apply(callback func(Entry)) {
+	for _, entry := range registry {
+		if !entry.active {
+			continue
+		}
+		callback(*entry)
+	}
+}
+
+func Register(source string) *Entry {
+	entry := newEntry(source)
+	registry = append(registry, entry)
+	return entry
+}

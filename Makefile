@@ -21,6 +21,7 @@ TEST := -v --run OttoError
 TEST := .
 
 test:
+	go test -i
 	go test $(TEST)
 
 assets:

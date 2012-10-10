@@ -6,6 +6,10 @@ import (
     "github.com/robertkrimen/otto/underscore"
 )
 
+func init() {
+	underscore.Disable()
+}
+
 func underscoreTest() func(string, ... interface{}) Value {
 	Otto, test := runTestWithOtto()
 	Otto.Run(underscore.Source())

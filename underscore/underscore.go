@@ -7,6 +7,20 @@ https://github.com/documentcloud/underscore
 */
 package underscore
 
+import (
+	"github.com/robertkrimen/otto/registry"
+)
+
+var entry *registry.Entry = registry.Register(Source())
+
+func Enable() {
+	entry.Enable()
+}
+
+func Disable() {
+	entry.Disable()
+}
+
 // Source returns the underscore source.
 func Source() string {
 	return string(underscore())

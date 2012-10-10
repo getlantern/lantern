@@ -74,6 +74,7 @@ package otto
 
 import (
 	"fmt"
+	"github.com/robertkrimen/otto/registry"
 )
 
 // Otto is the representation of the JavaScript runtime. Each instance of Otto has a self-contained namespace.
@@ -87,6 +88,11 @@ func New() *Otto {
 		runtime: newContext(),
 	}
 	self.Set("console", self.runtime.newConsole())
+
+	registry.Apply(func(entry registry.Entry){
+		self.Run(entry.Source())
+	})
+
 	return self
 }
 
