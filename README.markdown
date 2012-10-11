@@ -76,7 +76,7 @@ Optionally include the JavaScript utility-belt library, underscore, with this im
 
 	import (
 		"github.com/robertkrimen/otto"
-		"github.com/robertkrimen/otto/underscore"
+		_ "github.com/robertkrimen/otto/underscore"
 	)
 
 	// Now every otto runtime will come loaded with underscore
