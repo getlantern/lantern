@@ -69,6 +69,17 @@ Run JavaScript by entering some source on stdin or by giving otto a filename:
 
 	$ otto example.js
 
+Optionally include the JavaScript utility-belt library, underscore, with this import:
+
+	import (
+		"github.com/robertkrimen/otto"
+		"github.com/robertkrimen/otto/underscore"
+	)
+
+	// Now every otto runtime will come loaded with underscore 
+
+For more information: http://github.com/robertkrimen/otto/tree/master/underscore
+
 Caveat Emptor
 
 * For now, otto is a hybrid ECMA3/ECMA5 interpreter. Parts of the specification are still works in progress.
