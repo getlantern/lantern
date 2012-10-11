@@ -1,5 +1,7 @@
 # underscore
 --
+    import "github.com/robertkrimen/otto/underscore"
+
 Package underscore contains the source for the JavaScript utility-belt library.
 
 	import (

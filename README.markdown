@@ -1,5 +1,7 @@
 # otto
 --
+    import "github.com/robertkrimen/otto"
+
 Package otto is a JavaScript parser and interpreter written natively in Go.
 
 	// Create a new runtime
