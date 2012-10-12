@@ -126,17 +126,17 @@ Object is the representation of a JavaScript object.
 #### func (Object) Call
 
 ```go
-func (self Object) Call(this Value, argumentList ...interface{}) (Value, error)
+func (self Object) Call(name string, argumentList ...interface{}) (Value, error)
 ```
-Call the object as a function with the given this value and argument list and
-return the result of invocation. It is essentially equivalent to:
+Call the method specified by the given name, using self as the this value. It is
+essentially equivalent to:
 
-    self.apply(thisValue, argumentList)
+    return self.Get(name).Call(self, argumentList)
 
 An undefined value and an error will result if:
 
     1. There is an error during conversion of the argument list
-    2. The object is not actually a function
+    2. The property is not actually a function
     3. An (uncaught) exception is thrown
 
 #### func (Object) Class
@@ -173,6 +173,13 @@ Set the property of the given name to the given value.
 
 An error will result if the setting the property triggers an exception (i.e.
 read-only), or there is an error during conversion of the given value.
+
+#### func (Object) Value
+
+```go
+func (self Object) Value() Value
+```
+Value will return self as a value.
 
 #### type Otto
 

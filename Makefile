@@ -18,13 +18,14 @@ TEST := -v --run _eval
 TEST := -v --run Broken
 TEST := -v --run ParseSuccess 
 TEST := -v --run OttoError 
+TEST := -v --run API
 TEST := .
-
-test-i:
-	go test -i
 
 test: test-i
 	go test $(TEST)
+
+test-i:
+	go test -i
 
 assets:
 	mkdir -p .assets

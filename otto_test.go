@@ -1800,3 +1800,30 @@ func TestShouldError(t *testing.T) {
 			throw new TypeError("Nothing happens.")
 	`, "ReferenceError: xyzzy is not defined")
 }
+
+func TestAPI(t *testing.T) {
+	Terst(t)
+
+	Otto, test := runTestWithOtto()
+	test(`
+		String.prototype.xyzzy = function(){
+			console.log(this)
+			return this.length + 11 + (arguments[0] || 0)
+		}
+		abc = new String("xyzzy")
+		def = "Nothing happens."
+		abc.xyzzy()
+	`, "16")
+	abc, _ := Otto.Get("abc")
+	def, _ := Otto.Get("def")
+	object := abc.Object()
+	result, _ := object.Call("xyzzy")
+	Is(result, "16")
+	result, _ = object.Call("xyzzy", 1)
+	Is(result, "17")
+	value, _ := object.Get("xyzzy")
+	result, _ = value.Call(def)
+	Is(result, "27")
+	result, _ = value.Call(def, 3)
+	Is(result, "30")
+}

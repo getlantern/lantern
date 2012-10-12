@@ -240,23 +240,28 @@ func _newObject(object *_object) *Object {
 	}
 }
 
-// Call the object as a function with the given this value and argument list and
-// return the result of invocation. It is essentially equivalent to:
+// Call the method specified by the given name, using self as the this value.
+// It is essentially equivalent to:
 //
-//		self.apply(thisValue, argumentList)
+//		return self.Get(name).Call(self, argumentList)
 //
 // An undefined value and an error will result if:
 //
 //		1. There is an error during conversion of the argument list
-//		2. The object is not actually a function
+//		2. The property is not actually a function
 //		3. An (uncaught) exception is thrown
 //
-func (self Object) Call(this Value, argumentList... interface{}) (Value, error) {
-	result := UndefinedValue()
-	err := catchPanic(func(){
-		result = self.object.Call(this, argumentList...)
-	})
-	return result, err
+func (self Object) Call(name string, argumentList... interface{}) (Value, error) {
+	function, err := self.Get(name)
+	if err != nil {
+		return UndefinedValue(), err
+	}
+	return function.Call(self.Value(), argumentList...)
+}
+
+// Value will return self as a value.
+func (self Object) Value() Value {
+	return toValue(self.object)
 }
 
 // Get the value of the property with the given name.
