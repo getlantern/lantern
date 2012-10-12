@@ -97,8 +97,8 @@ func catchPanic(function func()) (err error) {
 	defer func(){
 		if caught := recover(); caught != nil {
 			switch caught := caught.(type) {
-			case _syntaxError:
-				err = errors.New(caught.String())
+			case *_syntaxError:
+				err = errors.New(fmt.Sprintf("%s (line %d)", caught.String(), caught.Line + 0))
 				return
 			case _error:
 				if caught.Line == -1 {
