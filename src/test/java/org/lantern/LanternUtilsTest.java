@@ -3,7 +3,6 @@ package org.lantern;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,7 +18,6 @@ import java.security.cert.TrustAnchor;
 import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -27,8 +25,6 @@ import javax.net.ServerSocketFactory;
 import javax.net.SocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLSocket;
-import javax.swing.ImageIcon;
-import javax.swing.JOptionPane;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
@@ -42,8 +38,6 @@ import org.lastbamboo.common.offer.answer.IceConfig;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import eu.medsea.mimeutil.MimeUtil2;
 
 /**
  * Test for Lantern utilities.
@@ -103,6 +97,7 @@ public class LanternUtilsTest {
         assertTrue(photo != null);
         assertTrue(!(photo.length == 0));
         
+        /*
         final MimeUtil2 mimeUtil = new MimeUtil2();
         mimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
         
@@ -111,7 +106,7 @@ public class LanternUtilsTest {
         final Collection types = mimeUtil.getMimeTypes(is);
         assertTrue(!types.isEmpty());
         assertEquals(types.iterator().next(), "image/jpeg");
-
+    */
     }
     
     @Test
