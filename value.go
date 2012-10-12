@@ -379,9 +379,9 @@ func (value Value) _object() *_object {
 //
 // This method will not do any implicit conversion. For example, calling this method on a string primitive value will not return a String object.
 func (value Value) Object() *Object {
-	switch value := value.value.(type) {
+	switch object := value.value.(type) {
 	case *_object:
-		return _newObject(value)
+		return _newObject(object, value)
 	}
     return nil
 }

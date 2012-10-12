@@ -232,11 +232,14 @@ func (self Otto) Object(source string) (*Object, error) {
 // Object is the representation of a JavaScript object.
 type Object struct {
 	object *_object
+	value Value
 }
 
-func _newObject(object *_object) *Object {
+func _newObject(object *_object, value Value) *Object {
+	// value MUST contain object!
 	return &Object{
 		object: object,
+		value: value,
 	}
 }
 
@@ -261,7 +264,7 @@ func (self Object) Call(name string, argumentList... interface{}) (Value, error)
 
 // Value will return self as a value.
 func (self Object) Value() Value {
-	return toValue(self.object)
+	return self.value
 }
 
 // Get the value of the property with the given name.

@@ -1826,4 +1826,7 @@ func TestAPI(t *testing.T) {
 	Is(result, "27")
 	result, _ = value.Call(def, 3)
 	Is(result, "30")
+	object = value.Object() // Object xyzzy
+	result, _ = object.Value().Call(def, 3)
+	Is(result, "30")
 }
