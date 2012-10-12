@@ -89,6 +89,7 @@ Caveat Emptor
 * For example, "use strict" will parse, but does nothing.
 * Error reporting needs to be improved.
 * Number.prototype.{toFixed,toExponential,toPrecision} are missing.
+* Does not support the (?!) or (?=) regular expression syntax (because Go does not).
 * Really, error reporting could use some improvement.
 
 ## Usage
