@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -25,8 +24,8 @@ import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import eu.medsea.mimeutil.MimeType;
-import eu.medsea.mimeutil.MimeUtil2;
+//import eu.medsea.mimeutil.MimeType;
+//import eu.medsea.mimeutil.MimeUtil2;
 
 /**
  * Servlet for sending photo data for a given user.
@@ -49,13 +48,15 @@ public final class PhotoServlet extends HttpServlet {
     
     private static final byte[] noImage = loadNoImage();
     
-    private static final MimeUtil2 mimeUtil = new MimeUtil2();
+    //private static final MimeUtil2 mimeUtil = new MimeUtil2();
     
     private static final Object CONNECTION_LOCK = new Object();
 
     public PhotoServlet() {
+        /*
         mimeUtil.registerMimeDetector(
             "eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
+            */
         //Connection.DEBUG_ENABLED = true;
     }
     
@@ -86,12 +87,14 @@ public final class PhotoServlet extends HttpServlet {
             imageData = noImage;
         } else {
             imageData = raw;
+            /*
             final Collection<MimeType> types = mimeUtil.getMimeTypes(imageData);
             if (types != null && !types.isEmpty()) {
                 final String ct = types.iterator().next().toString();
                 resp.setContentType(ct);
                 log.debug("Set content type to {}", ct);
             }
+            */
         }
         
         resp.addHeader(HttpHeaders.Names.CACHE_CONTROL, 
