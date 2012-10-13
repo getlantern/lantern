@@ -57,6 +57,20 @@ func TestTransformRegExp(t *testing.T) {
 	Is(transformRegExp(`\\|'|\r|\n|\t|\u2028|\u2029`), `\\|'|\r|\n|\t|\x{2028}|\x{2029}`)
 }
 
+func TestIsValidRegExp(t *testing.T) {
+	Terst(t)
+
+	IsTrue(isValidRegExp(""))
+	IsTrue(isValidRegExp("[0-9]"))
+	IsTrue(isValidRegExp("[(?=(?!]"))
+	IsTrue(isValidRegExp("\\(?="))
+	IsTrue(isValidRegExp("(\\?!"))
+	IsTrue(isValidRegExp("(?\\="))
+	IsFalse(isValidRegExp("(?="))
+	IsFalse(isValidRegExp("\\((?!"))
+	IsFalse(isValidRegExp("[0-9](?!"))
+}
+
 func TestOtto(t *testing.T) {
 	Terst(t)
 

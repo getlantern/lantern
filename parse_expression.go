@@ -75,7 +75,7 @@ func (self *_parser) ParseRegExpLiteral(token _token) *_regExpNode {
 	pattern_ := transformRegExp(pattern)
 	_, err := regexp.Compile(pattern_)
 	if err != nil {
-		panic(token.newSyntaxError("Invalid regular expression"))
+		panic(token.newSyntaxError("Invalid regular expression: %s", err.Error()[22:])) // Skip redundant "parse regexp error"
 	}
 
 	node := newRegExpNode(pattern_, flags)

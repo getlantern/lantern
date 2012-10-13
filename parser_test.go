@@ -760,11 +760,7 @@ Unexpected token ILLEGAL ()
 1:2:2
 	`)
 
-	test(`var x = /(s/g
----
-Invalid regular expression
-1:9:9
-	`)
+	test("var x = /(s/g", "---\nInvalid regular expression: missing closing ): `(s`\n1:9:9\n")
 
 	test(`/
 ---
@@ -1371,6 +1367,8 @@ while (apple) {
 Label '_' has already been declared
 3:5:9
 	`)
+
+	test("/Xyzzy(?!Nothing happens)/", "---\nInvalid regular expression: invalid or unsupported Perl syntax: `(?!`\n1:1:1")
 }
 
 func TestParseComment(t *testing.T) {

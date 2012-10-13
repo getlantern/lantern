@@ -13,12 +13,13 @@ TEST := -v --run Date
 TEST := -v .
 TEST := -v --run Lexer
 TEST := -v --run Synopsis
-TEST := -v --run ParseFailure
 TEST := -v --run _eval 
 TEST := -v --run Broken
 TEST := -v --run ParseSuccess 
 TEST := -v --run OttoError 
 TEST := -v --run API
+TEST := -v --run IsValidRegExp
+TEST := -v --run ParseFailure
 TEST := .
 
 test: test-i

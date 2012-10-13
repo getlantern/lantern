@@ -101,6 +101,51 @@ func transformRegExp(ecmaRegExp string) (goRegExp string) {
 	return transformRegExp_matchSlashU.ReplaceAllString(ecmaRegExp, `\x{$1}`)
 }
 
+func isValidRegExp(ecmaRegExp string) bool {
+	shibboleth := 0 // The shibboleth in this case is (?
+					// Since we're looking for (?! / (?=
+	inSet := false // In a bracketed set, e.g. [0-9]
+	escape := false
+	for _, chr := range ecmaRegExp {
+		if escape {
+			escape = false
+			shibboleth = 0
+			continue
+		}
+		if chr == '\\' {
+			escape = true
+			continue
+		}
+		if inSet {
+			if chr == ']' {
+				inSet = false
+				shibboleth = 0
+			}
+			continue
+		}
+		switch chr {
+		case '[':
+			inSet = true
+			continue
+		case '(':
+			shibboleth = 1
+			continue
+		case '?':
+			if shibboleth == 1 {
+				shibboleth = 2
+			}
+			continue
+		case '=', '!':
+			if shibboleth == 2 {
+				return false
+			}
+		}
+		shibboleth = 0
+	}
+
+	return true
+}
+
 // _regExpStash
 
 type _regExpStash struct {
