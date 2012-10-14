@@ -150,17 +150,21 @@ func (self *_runtime) evaluateFor(node *_forNode) Value {
 	return self.breakEvaluate(_labelSet, func() Value {
 		result := emptyValue()
 		for {
-			testResult := self.evaluate(test)
-			testResultValue := self.GetValue(testResult)
-			if (toBoolean(testResultValue) == false) {
-				break
+			if test != nil {
+				testResult := self.evaluate(test)
+				testResultValue := self.GetValue(testResult)
+				if (toBoolean(testResultValue) == false) {
+					break
+				}
 			}
 			value, _ := self.continueEvaluate(body, _labelSet)
 			if !value.isEmpty() {
 				result = value
 			}
-			updateResult := self.evaluate(update)
-			self.GetValue(updateResult) // Side-effect trigger
+			if update != nil {
+				updateResult := self.evaluate(update)
+				self.GetValue(updateResult) // Side-effect trigger
+			}
 		}
 		return result
 	})

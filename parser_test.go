@@ -637,7 +637,6 @@ func TestParseSuccess(t *testing.T) {
 	---
 	{ @ xyzzy { <throw> { <new> TypeError "Nothing happens." } } }
 	`)
-
 }
 
 func TestParseFailure(t *testing.T) {

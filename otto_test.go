@@ -773,6 +773,34 @@ func TestFor(t *testing.T) {
 		}
 	`)
 	test("result", "9")
+
+	test(`
+		abc = 0
+		for (;;) {
+			abc += 1
+			if (abc == 3)
+				break
+		}
+		abc
+	`, "3")
+
+	test(`
+		for (abc = 0; ;) {
+			abc += 1
+			if (abc == 3)
+				break
+		}
+		abc
+	`, "3")
+
+	test(`
+		for (abc = 0; ; abc+=1) {
+			abc += 1
+			if (abc == 3)
+				break
+		}
+		abc
+	`, "3")
 }
 
 func TestArguments(t *testing.T) {
@@ -1844,3 +1872,4 @@ func TestAPI(t *testing.T) {
 	result, _ = object.Value().Call(def, 3)
 	Is(result, "30")
 }
+
