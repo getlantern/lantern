@@ -2,7 +2,6 @@
 
 export TERST_BASE=$(PWD)
 
-TEST := -v --run RegExp 
 TEST := -v --run Otto 
 TEST := -v --run underscore 
 TEST := -v --run underscoreCollection
@@ -20,6 +19,7 @@ TEST := -v --run OttoError
 TEST := -v --run API
 TEST := -v --run IsValidRegExp
 TEST := -v --run ParseFailure
+TEST := -v --run RegExp 
 TEST := .
 
 test: test-i

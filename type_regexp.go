@@ -89,7 +89,11 @@ func execResultToArray(runtime *_runtime, target string, result []int) *_object 
 	valueArray := make([]Value, captureCount)
 	for index := 0; index < captureCount; index++ {
 		offset := 2 * index
-		valueArray[index] = toValue(target[result[offset]:result[offset+1]])
+		if result[offset] != -1 {
+			valueArray[index] = toValue(target[result[offset]:result[offset+1]])
+		} else {
+			valueArray[index] = UndefinedValue()
+		}
 	}
 	return runtime.newArray(valueArray)
 }

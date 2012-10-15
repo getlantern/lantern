@@ -1468,6 +1468,17 @@ func TestRegExp(t *testing.T) {
 	test(`/abc/.toString()`, "/abc/")
 	test(`/abc/gim.toString()`, "/abc/gim")
 	test(`""+/abc/gi`, "/abc/gi")
+
+	result := test(`/(a)?/.exec('b')`, ",")
+	Is(result._object().Get("0"), "")
+	Is(result._object().Get("1"), "undefined")
+	Is(result._object().Get("length"), "2")
+
+	result = test(`/(a)?(b)?/.exec('b')`, "b,,b")
+	Is(result._object().Get("0"), "b")
+	Is(result._object().Get("1"), "undefined")
+	Is(result._object().Get("2"), "b")
+	Is(result._object().Get("length"), "3")
 }
 
 func TestnewFunction(t *testing.T) {
