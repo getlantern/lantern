@@ -186,6 +186,8 @@ public class Settings implements MutableSettings {
     
     private Set<String> inClosedBeta = new HashSet<String>();
     
+    private String nodeId = String.valueOf(LanternHub.secureRandom().nextLong());
+    
     /**
      * Locally-stored set of users we've invited.
      */
@@ -780,6 +782,16 @@ public class Settings implements MutableSettings {
 
     public void setInClosedBeta(final Set<String> inClosedBeta) {
         this.inClosedBeta = ImmutableSet.copyOf(inClosedBeta);
+    }
+    
+
+    @JsonView({PersistentSettings.class})
+    public String getNodeId() {
+        return nodeId;
+    }
+
+    public void setNodeId(final String nodeId) {
+        this.nodeId = nodeId;
     }
     
     @Override
