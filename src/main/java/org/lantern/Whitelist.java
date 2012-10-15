@@ -18,7 +18,7 @@ public class Whitelist {
     
     private final Collection<String> requiredEntries = new HashSet<String>();
     
-    private final String[] sites = {
+    public static final String[] SITES = {
         // optional
         "avaaz.org",
         "bittorrent.com",
@@ -145,7 +145,7 @@ public class Whitelist {
         addDefaultEntry("getlantern.org", true);
         addDefaultEntry("google.com", true);
         addDefaultEntry("exceptional.io", true);
-        for (final String site : sites) {
+        for (final String site : SITES) {
             addDefaultEntry(site);
         }
     }
