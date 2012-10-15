@@ -1558,6 +1558,11 @@ func TestString_replace(t *testing.T) {
 	`, "_undefined_undefined_")
 
 	test(`"b".replace(/(a)?(b)?/, "_$1_")`, "__")
+	test(`
+		"b".replace(/(a)?(b)?/, function(a, b, c, d, e, f){
+			return [a, b, c, d, e, f]
+		})
+	`, "b,,b,0,b,")
 }
 
 func TestString_search(t *testing.T) {

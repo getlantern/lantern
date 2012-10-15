@@ -412,7 +412,11 @@ func builtinString_replace(call FunctionCall) Value {
 				argumentList := make([]Value, matchCount + 2)
 				for index := 0; index < matchCount; index++ {
 					offset := 2 * index
-					argumentList[index] = toValue(target[match[offset]:match[offset+1]])
+					if match[offset] != -1 {
+						argumentList[index] = toValue(target[match[offset]:match[offset+1]])
+					} else {
+						argumentList[index] = UndefinedValue()
+					}
 				}
 				argumentList[matchCount + 0] = toValue(match[0])
 				argumentList[matchCount + 1] = toValue(target)
@@ -432,9 +436,11 @@ func builtinString_replace(call FunctionCall) Value {
 		if lastIndex != len(target) {
 			result = append(result, target[lastIndex:]...)
 		}
+
 		if global && searchObject != nil {
 			searchObject.Put("lastIndex", toValue(lastIndex), true)
 		}
+
 		return toValue(string(result))
 	}
 
