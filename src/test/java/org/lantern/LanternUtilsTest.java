@@ -70,7 +70,7 @@ public class LanternUtilsTest {
         final XMPPConnection conn = 
             XmppUtils.simpleGoogleTalkConnection(email, pwd, "test");
         final Collection<LanternRosterEntry> entries = 
-            LanternUtils.getRosterEntries(conn);
+            LanternHub.xmppHandler().getRoster().getRosterEntries(conn);
         
         // This user doesn't necessarily have any contacts.
         assertTrue(entries != null);
@@ -233,7 +233,7 @@ public class LanternUtilsTest {
         }
         
         // Just make sure no exceptions are thrown for now.
-        LanternUtils.getRosterEntries(email, pwd, 1);
+        LanternHub.xmppHandler().getRoster().getRosterEntries(email, pwd, 1);
         
     }
     

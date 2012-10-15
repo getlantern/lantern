@@ -46,6 +46,11 @@ import org.jivesoftware.smackx.packet.VCard;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import org.kaleidoscope.BasicTrustGraphAdvertisement;
+import org.kaleidoscope.BasicTrustGraphNodeId;
+import org.kaleidoscope.TrustGraphNode;
+import org.kaleidoscope.TrustGraphNodeId;
+import org.lantern.ksope.LanternTrustGraphNode;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.lastbamboo.common.p2p.P2PConnectionListener;
 import org.lastbamboo.common.p2p.P2PConstants;
@@ -434,11 +439,47 @@ public class DefaultXmppHandler implements XmppHandler {
         gTalkSharedStatus();
         updatePresence();
         
+        final boolean inClosedBeta = handleClosedBeta(email);
+
+        // If we're in the closed beta and are an uncensored node, we want to
+        // advertise ourselves through the kaleidoscope trust network.
+        if (inClosedBeta) {
+            final TimerTask tt = new TimerTask() {
+                
+                @Override
+                public void run() {
+                    if (!LanternHub.censored().isCensored()) {
+                        final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
+                            LanternHub.settings().getNodeId());
+                        final String payload = connection.getUser();
+                        LOG.info("Sending kscope payload: {}", payload);
+                        final BasicTrustGraphAdvertisement message =
+                            new BasicTrustGraphAdvertisement(tgnid, payload, 0);
+                        
+                        final TrustGraphNode tgn = new LanternTrustGraphNode();
+                        tgn.advertiseSelf(message);
+                    }
+                    
+                }
+            };
+            // We delay this to make sure we've successfully loaded all roster
+            // updates and presence notifications before sending out our
+            // advertisement.
+            LanternHub.timer().schedule(tt, 20000);
+        }
+    }
+
+    private boolean handleClosedBeta(final String email) 
+        throws NotInClosedBetaException {
         if (LanternUtils.isInClosedBeta(email)) {
             LOG.debug("Already in closed beta...");
-            return;
+            return true;
         }
         
+        // The following is necessary because the call to login needs to either
+        // succeed or fail for the UI to work properly, but we don't know if
+        // a user is able to log in until we get an asynchronous XMPP message
+        // back from the server.
         synchronized (this.closedBetaLock) {
             if (this.closedBetaEvent == null) {
                 try {
@@ -454,13 +495,14 @@ public class DefaultXmppHandler implements XmppHandler {
                 notInClosedBeta("Not in closed beta");
             } else {
                 LOG.info("Server notified us we're in the closed beta!");
+                return true;
             }
         } else {
             LOG.warn("No closed beta event -- timed out!!");
             notInClosedBeta("No closed beta event!!");
         }
+        return false;
     }
-    
 
     private void notInClosedBeta(final String msg) 
         throws NotInClosedBetaException {
