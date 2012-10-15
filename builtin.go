@@ -345,6 +345,7 @@ func builtinString_findAndReplaceString(input []byte, lastIndex int, match []int
 		output = append(output, target[lastIndex:match[0]]...)
 	}
 	replacement := builtinString_replace_Regexp.ReplaceAllFunc(replaceValue, func(part []byte) []byte{
+		// TODO Check if match[0] or match[1] can be -1 in this scenario
 		switch part[1] {
 		case '$':
 			return []byte{'$'}
@@ -361,7 +362,10 @@ func builtinString_findAndReplaceString(input []byte, lastIndex int, match []int
 			return []byte{}
 		}
 		offset := 2 * matchNumber
-		return target[match[offset]:match[offset+1]]
+		if match[offset] != -1 {
+			return target[match[offset]:match[offset+1]]
+		}
+		return []byte{} // The empty string
 	})
 	output = append(output, replacement...)
 	return output
@@ -373,6 +377,7 @@ func builtinString_replace(call FunctionCall) Value {
 	searchValue := call.Argument(0)
 	searchObject := searchValue._object()
 
+	// TODO If a capture is -1?
 	var search *regexp.Regexp
 	global := false
 	find := 1

@@ -1481,7 +1481,7 @@ func TestRegExp(t *testing.T) {
 	Is(result._object().Get("length"), "3")
 }
 
-func TestnewFunction(t *testing.T) {
+func TestNewFunction(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
@@ -1556,6 +1556,8 @@ func TestString_replace(t *testing.T) {
 		"_abc_abd_".replace(/ab(c|d)/g, function(){
 		})
 	`, "_undefined_undefined_")
+
+	test(`"b".replace(/(a)?(b)?/, "_$1_")`, "__")
 }
 
 func TestString_search(t *testing.T) {
