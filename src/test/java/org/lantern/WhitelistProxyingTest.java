@@ -28,7 +28,7 @@ public class WhitelistProxyingTest {
         Launcher.main(new String[]{"--disable-ui", "--force-get", 
             "--user", "lanternftw@gmail.com", "--pass", "fjdl520208FD31"});
         
-        Thread.sleep(6000);
+        Thread.sleep(20000);
         /*
         final int proxyPort = 10200;
         final HttpProxyServer proxy = 
