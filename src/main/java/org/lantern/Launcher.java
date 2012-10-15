@@ -88,11 +88,19 @@ public class Launcher {
             }
         });
         
-        try {
-            launch(args);
-        } catch (final Throwable t) {
-            handleError(t, true);
-        }
+        final Runnable runner = new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    launch(args);
+                } catch (final Throwable t) {
+                    handleError(t, true);
+                }
+            }
+        };
+        final Thread main = new Thread(runner, "Lantern-Launch-Thread");
+        main.start();
     }
 
     // the following are command line options 

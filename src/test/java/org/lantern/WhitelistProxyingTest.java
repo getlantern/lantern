@@ -15,7 +15,6 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
-import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,6 +28,7 @@ public class WhitelistProxyingTest {
         Launcher.main(new String[]{"--disable-ui", "--force-get", 
             "--user", "lanternftw@gmail.com", "--pass", "fjdl520208FD31"});
         
+        Thread.sleep(6000);
         /*
         final int proxyPort = 10200;
         final HttpProxyServer proxy = 
