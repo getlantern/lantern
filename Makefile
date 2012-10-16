@@ -1,4 +1,4 @@
-.PHONY: test assets todo fixme otto run test-all release test-synopsis test-i
+.PHONY: test assets todo fixme otto run test-all release test-synopsis test-i test262
 
 export TERST_BASE=$(PWD)
 
@@ -53,3 +53,6 @@ release: test-all test-synopsis
 test-synopsis: test-i
 	cd .test && go test -v
 	cd .test && otto example.js
+
+test262:
+	$(MAKE) -C .test262 test
