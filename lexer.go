@@ -534,7 +534,7 @@ func isIdentifierStart(rune rune) bool {
 
 func isWhiteSpace(chr rune) bool {
 	switch chr {
-	case ' ', '\t':
+	case ' ', '\t', '\u00a0':
 		return true
 	}
 	return false
