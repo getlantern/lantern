@@ -401,6 +401,10 @@ func (self *_parser) ParseFunction(declare bool) _node {
 		if declare {
 			self.Scope().AddFunction(identifier.Value, functionNode)
 		}
+	} else if declare {
+		// Trigger a panic, because we really should see
+		// an identifier here
+		self.Expect("identifier")
 	}
 
 	token := self.Peek()

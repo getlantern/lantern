@@ -1368,6 +1368,12 @@ Label '_' has already been declared
 	`)
 
 	test("/Xyzzy(?!Nothing happens)/", "---\nInvalid regular expression: invalid or unsupported Perl syntax: `(?!`\n1:1:1")
+
+	test(`
+	function(){}
+	---
+	Unexpected token ( 2:10:11
+	`)
 }
 
 func TestParseComment(t *testing.T) {
