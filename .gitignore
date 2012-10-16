@@ -1,2 +1,4 @@
 /otto/otto
 /.test262/data
+/.test262/test.v8
+/.test262/test.otto

@@ -16,3 +16,16 @@ If you do update to a newer revision you may have to change the test
 harness adapter code since it uses internal functionality from the
 harness that comes bundled with the tests.  You will most likely also
 have to update the test expectation file.
+---
+
+First, check out the test data (described above):
+
+    $ make data
+
+Then, cull to a sane set suite via v8 (you need v8 installed):
+
+    $ make cull
+
+Now you can test:
+
+    $ make test

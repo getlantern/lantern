@@ -1,0 +1,26 @@
+#!/bin/bash
+
+if [ ! -d data/test/suite.base ]
+then
+    if [ -d data/test/suite ]
+    then
+        mv data/test/suite data/test/suite.base
+    else
+        echo "Can't cull because \"./data/test/suite.base\" is missing"
+        exit 64
+    fi
+fi
+
+if [ ! -s test.v8 ]
+then
+    echo "Can't cull because \"./test.v8\" is missing (or empty)"
+    exit 64
+fi
+
+rm -rf data/test/suite
+
+for test in `grep passed test.v8 | awk '{ print $1 }'`
+do
+    mkdir -p `dirname data/test/suite/$test`
+    cp data/test/suite.base/$test.js data/test/suite/$test.js
+done
