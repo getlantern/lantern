@@ -161,7 +161,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
      */
     private void waitForFile(final File file) {
         int i = 0;
-        while (!file.isFile() && i < 20) {
+        while (!file.isFile() && i < 100) {
             try {
                 Thread.sleep(80);
                 i++;
