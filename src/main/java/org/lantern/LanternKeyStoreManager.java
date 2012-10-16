@@ -169,6 +169,11 @@ public class LanternKeyStoreManager implements KeyStoreManager {
                 log.error("Interrupted?", e);
             }
         }
+        if (!file.isFile()) {
+            log.error("Still could not create file at: {}", file);
+        } else {
+            log.info("Successfully created file at: {}", file);
+        }
     }
 
     public String getBase64Cert() {
