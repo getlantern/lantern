@@ -11,7 +11,7 @@ import org.apache.commons.io.IOUtils;
 public class TestUtils {
 
     private static final File propsFile = 
-        new File("src/main/resources/test.properties");
+        new File("src/test/resources/test.properties");
     
     private static final Properties props = new Properties();
     
