@@ -29,7 +29,8 @@ uncull:
 	./uncull
 
 gauntlet:
-	$(TEST) $(WITH_otto) 2>/dev/null | ./gauntlet
+	-$(TEST) $(WITH_otto) 2>/dev/null | ./gauntlet
+	@[ -f .failing ] && head .failing
 
 try: .failing
 	head $<
