@@ -647,9 +647,7 @@ public class LanternUtils {
     public static String readLineCLI() throws IOException {
         Console console = System.console();
         if (console == null) {
-            LOG.info("No console -- using System.in...");
-            final Scanner sc = new Scanner(System.in);
-            return sc.nextLine();
+            return readLineCliNoConsole();
         }
         try {
             return console.readLine();
@@ -658,6 +656,14 @@ public class LanternUtils {
         }
     }
         
+    public static String readLineCliNoConsole() {
+        LOG.info("No console -- using System.in...");
+        final Scanner sc = new Scanner(System.in, "UTF-8");
+        //sc.useDelimiter("\n");
+        //return sc.next();
+        return sc.nextLine();
+    }
+
     public static InputStream localDecryptInputStream(final InputStream in) 
         throws IOException, GeneralSecurityException {
         Cipher cipher = 
@@ -1064,10 +1070,11 @@ public class LanternUtils {
             @Override
             public Socket createSocket(final InetAddress host, final int port) 
                 throws IOException {
-                LOG.info("Creating socket");
+                final SocketAddress isa = new InetSocketAddress(host, port);
+                LOG.info("Creating socket to {}", isa);
                 final Socket sock = new Socket();
-                sock.connect(new InetSocketAddress(host, port), 40000);
-                LOG.info("Socket connected");
+                sock.connect(isa, 40000);
+                LOG.info("Socket connected to {}",isa);
                 return sock;
             }
             
