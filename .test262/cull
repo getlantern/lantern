@@ -19,7 +19,7 @@ fi
 
 rm -rf data/test/suite
 
-for test in `grep passed test.v8 | awk '{ print $1 }'`
+for test in `grep "passed\|as expected$" test.v8 | awk '{ print $1 }'`
 do
     mkdir -p `dirname data/test/suite/$test`
     cp data/test/suite.base/$test.js data/test/suite/$test.js
