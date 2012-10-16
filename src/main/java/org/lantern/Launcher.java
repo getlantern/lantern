@@ -100,7 +100,8 @@ public class Launcher {
             }
         };
         final Thread main = new Thread(runner, "Lantern-Launch-Thread");
-        main.start();
+        //main.start();
+        runner.run();
     }
 
     // the following are command line options 
