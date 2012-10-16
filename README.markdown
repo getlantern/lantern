@@ -83,7 +83,7 @@ Optionally include the JavaScript utility-belt library, underscore, with this im
 
 For more information: http://github.com/robertkrimen/otto/tree/master/underscore
 
-Caveat Emptor
+### Caveat Emptor
 
 * For now, otto is a hybrid ECMA3/ECMA5 interpreter. Parts of the specification are still works in progress.
 * For example, "use strict" will parse, but does nothing.
@@ -92,7 +92,7 @@ Caveat Emptor
 * Does not support the (?!) or (?=) regular expression syntax (because Go does not)
 * Really, error reporting could use some improvement.
 
-Regular Expression Syntax
+### Regular Expression Syntax
 
 Go translates JavaScript-style regular expressions into something that is regexp package compatible.
 

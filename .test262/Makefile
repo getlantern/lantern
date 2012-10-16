@@ -1,8 +1,9 @@
-.PHONY: build test data otto v8 cull uncull
+.PHONY: build test data otto v8 cull uncull gauntlet try
 
+otto := ./otto -underscore=false
 TEST := python ./data/tools/packaging/test262.py --test=data --non_strict_only
 WITH_v8 := --command v8
-WITH_otto := --command "./otto -underscore=false"
+WITH_otto := --command "$(otto)"
 
 test:
 	$(TEST) $(WITH_otto)
@@ -26,3 +27,14 @@ cull: test.v8
 
 uncull:
 	./uncull
+
+gauntlet:
+	$(TEST) $(WITH_otto) 2>/dev/null | ./gauntlet
+
+try: .failing
+	head $<
+	$(otto) $<
+
+look: .failing
+	cat $<
+
