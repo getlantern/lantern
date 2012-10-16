@@ -1501,6 +1501,19 @@ func TestNewFunction(t *testing.T) {
 	`, "13")
 }
 
+func TestNewPrototype(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+		abc = { 'xyzzy': 'Nothing happens.' }
+		function Xyzzy(){}
+		Xyzzy.prototype = abc;
+		(new Xyzzy()).xyzzy
+	`, "Nothing happens.")
+}
+
 func TestWith(t *testing.T) {
 	Terst(t)
 

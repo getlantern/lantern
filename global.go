@@ -736,7 +736,7 @@ func (runtime *_runtime) newNodeFunction(node *_functionNode, scopeEnvironment _
 	self := runtime.newNodeFunctionObject(node, scopeEnvironment)
 	self.Prototype = runtime.Global.FunctionPrototype
 	prototype := runtime.newObject()
-	self.define(_propertyMode(0), "prototype", toValue(prototype))
+	self.define(_propertyMode(propertyModeWrite), "prototype", toValue(prototype))
 	prototype.define(
 		_propertyMode(propertyModeWrite | propertyModeConfigure),
 		"constructor", toValue(self),
