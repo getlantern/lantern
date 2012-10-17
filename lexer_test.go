@@ -167,4 +167,13 @@ Second line \
 		"EOF",
 	)
 
+	test("var abc = \"abc\uFFFFabc\"",
+		"var",
+		"identifier abc",
+		"=",
+		"string abc\uFFFFabc",
+		"EOF",
+	)
+
+
 }

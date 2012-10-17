@@ -21,6 +21,7 @@ TEST := -v --run IsValidRegExp
 TEST := -v --run ParseFailure
 TEST := -v --run RegExp 
 TEST := -v --run SwitchBreak 
+TEST := -v --run Unicode 
 TEST := .
 
 test: test-i

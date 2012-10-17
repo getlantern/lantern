@@ -6,6 +6,8 @@ import (
     . "github.com/robertkrimen/terst"
 	"math"
 	"strings"
+	"unicode/utf16"
+	"unicode/utf8"
 )
 
 func runTestWithOtto() (*Otto, func(string, ... interface{}) Value) {
@@ -2002,5 +2004,21 @@ func TestAPI(t *testing.T) {
 	object = value.Object() // Object xyzzy
 	result, _ = object.Value().Call(def, 3)
 	Is(result, "30")
+}
+
+func TestUnicode(t *testing.T) {
+	Terst(t)
+
+	if false {
+		// TODO This test will fail because we handle strings internally the
+		// same way Go does, UTF-8
+		test := runTest()
+		test(`var abc = eval("\"a\uFFFFa\"");`)
+		test(`abc.length`, "3")
+		test(`abc != "aa"`, "true")
+		test("abc[1] === \"\uFFFF\"", "true")
+		dbg(utf8.RuneLen('\u000a'))
+		dbg(len(utf16.Encode([]rune("a\uFFFFa"))))
+	}
 }
 

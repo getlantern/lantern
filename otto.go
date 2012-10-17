@@ -88,6 +88,7 @@ Caveat Emptor
 * Number.prototype.{toFixed,toExponential,toPrecision} are missing.
 * Does not support the (?!) or (?=) regular expression syntax (because Go does not)
 * Really, error reporting could use some improvement.
+* For now, otto handles strings as UTF-8 rather than UTF-16.
 
 Regular Expression Syntax
 
@@ -96,6 +97,11 @@ Go translates JavaScript-style regular expressions into something that is regexp
 Unfortunately, JavaScript has positive and negative lookahead, which is not supported by Go's re2-like engine: https://code.google.com/p/re2/wiki/Syntax
 
 A brief discussion of this limitation: "Regexp (?!re)" https://groups.google.com/forum/?fromgroups=#!topic/golang-nuts/7qgSDWPIh_E
+
+UTF-8 UTF-16
+
+Internally, otto stores strings as Go does, which is UTF-8. JavaScript calls for strings to be handled as UTF-16.
+This leads to some strange edge cases, such as a UTF-8 string having a length of 5, while the "same" string as UTF-16 has a length of 3.
 
 */
 package otto
