@@ -24,3 +24,10 @@ do
     mkdir -p `dirname data/test/suite/$test`
     cp data/test/suite.base/$test.js data/test/suite/$test.js
 done
+
+# Skip this UTF-16-centric test, for now
+rm -f data/test/suite/ch07/7.3/7.3-15.js
+# Skip this UTF-16-centric test, for now
+rm -f data/test/suite/ch07/7.3/7.3-5.js
+# Skip this UTF-16-centric test, for now
+rm -f data/test/suite/ch07/7.3/7.3-6.js
