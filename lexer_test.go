@@ -164,5 +164,7 @@ Second line \
 
 	test("/",
 		"/",
-		"EOF")
+		"EOF",
+	)
+
 }

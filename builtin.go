@@ -20,12 +20,12 @@ func builtinGlobal_eval(call FunctionCall) Value {
 	}
 	program, err := parse(toString(source))
 	if err != nil {
+		//panic(call.runtime.newError("SyntaxError", UndefinedValue()))
 		panic(&_syntaxError{Message: fmt.Sprintf("%v", err)})
 	}
 	runtime := call.runtime
 	runtime.EnterEvalExecutionContext(call)
 	defer runtime.LeaveExecutionContext()
-	// TODO Catch syntax error and convert to... SyntaxError
 	returnValue := runtime.evaluate(program)
 	if returnValue.isEmpty() {
 		return UndefinedValue()

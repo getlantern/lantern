@@ -1797,12 +1797,15 @@ func Test_eval(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+
 	test(`
 		abc = 1
 	`)
+
 	test(`
 		eval("abc += 1")
 	`, "2")
+
 	test(`
 		(function(){
 			var abc = 11
@@ -1811,6 +1814,22 @@ func Test_eval(t *testing.T) {
 		})()
 	`, "12")
 	test(`abc`, "2")
+
+	test(`
+		var ghi;
+		(function(){
+			try {
+				eval("var prop = \\u2029;");
+				return false;
+			} catch (abc) {
+				ghi = abc.toString()
+				return abc instanceof SyntaxError;
+			}
+		})()
+	`, "true")
+	// TODO Make this a sane result
+	// Lightning bolt, lightning bolt, lightning bolt, ...
+	test(`ghi`, "SyntaxError: SyntaxError: SyntaxError: Unexpected token ILLEGAL ()")
 }
 
 func Test_isNaN(t *testing.T) {
