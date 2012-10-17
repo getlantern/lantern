@@ -25,6 +25,7 @@ func builtinGlobal_eval(call FunctionCall) Value {
 	runtime := call.runtime
 	runtime.EnterEvalExecutionContext(call)
 	defer runtime.LeaveExecutionContext()
+	// TODO Catch syntax error and convert to... SyntaxError
 	returnValue := runtime.evaluate(program)
 	if returnValue.isEmpty() {
 		return UndefinedValue()

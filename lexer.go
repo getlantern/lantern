@@ -95,8 +95,8 @@ func (self *_lexer) scanEndOfLine(chr rune, consume bool) bool {
 	if consume {
 		self.Next()
 	}
-	if chr == '\r' && self.Next() != '\n' {
-		self.Back() // Back because the next character was NOT \n
+	if chr == '\r' && self.Peek() == '\n' {
+		self.Next() // Consume \n
 	}
 	self.Line += 1
 	return true
