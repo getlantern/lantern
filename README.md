@@ -51,7 +51,6 @@ If you want to load the Lantern source code in Eclipse, you can do the following
     $ mvn eclipse:eclipse
 
 2. Load them into Eclipse using File->Import->General->Existing Projects into Workspace
-
 Select the directory where you ran mvn eclipse:eclipse, and you should see the "lantern" project loaded into Eclipse.
 
 3. Define the "M2_REPO" classpath variable. The steps to do this on OSX are as follows, with other OSes being very similar:
