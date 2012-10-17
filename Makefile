@@ -20,8 +20,8 @@ TEST := -v --run API
 TEST := -v --run IsValidRegExp
 TEST := -v --run ParseFailure
 TEST := -v --run RegExp 
-TEST := .
 TEST := -v --run SwitchBreak 
+TEST := .
 
 test: test-i
 	go test $(TEST)

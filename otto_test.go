@@ -472,7 +472,7 @@ func TestSwitchBreak(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
-//echo "var x = true; while (x) {switch('a') {case 'a': break;} console.log('a'); x = false;}" | otto
+
 	test(`
 		var abc = true;
 		var ghi = "Xyzzy";
@@ -486,6 +486,67 @@ func TestSwitchBreak(t *testing.T) {
 		}
 		ghi
 	`, "Nothing happens.")
+
+	test(`
+		var abc = true;
+		var ghi = "Xyzzy";
+		WHILE:
+		while (abc) {
+			switch ('def') {
+			case 'def':
+				break WHILE;
+			}
+			ghi = "Nothing happens."
+			abc = false
+		}
+		ghi
+	`, "Xyzzy")
+
+	test(`
+		var ghi = "Xyzzy";
+		FOR:
+		for (;;) {
+			switch ('def') {
+			case 'def':
+				break FOR;
+				ghi = ""
+			}
+			ghi = "Nothing happens."
+		}
+		ghi
+	`, "Xyzzy")
+
+	test(`
+		var ghi = "Xyzzy";
+		FOR:
+		for (var jkl in {}) {
+			switch ('def') {
+			case 'def':
+				break FOR;
+				ghi = "Something happens."
+			}
+			ghi = "Nothing happens."
+		}
+		ghi
+	`, "Xyzzy")
+
+	test(`
+		var ghi = "Xyzzy";
+		function jkl() {
+			switch ('def') {
+			case 'def':
+				break;
+				ghi = ""
+			}
+			ghi = "Nothing happens."
+		}
+		while (abc) {
+			jkl()
+			abc = false
+			ghi = "Something happens."
+		}
+		ghi
+	`, "Something happens.")
 }
 
 func TestTryFinally(t *testing.T) {

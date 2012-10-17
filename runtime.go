@@ -158,6 +158,9 @@ func (self *_runtime) _callNode(environment *_functionEnvironment, node *_functi
 func (self *_runtime) Call(function *_object, this Value, argumentList []Value) (returnValue Value) {
 	_functionEnvironment := self.EnterFunctionExecutionContext(function, this)
 	defer func(){
+		// TODO Catch any errant break/continue, etc. here?
+		//		They should never get here, but we want to be
+		//		very vocal if they do.
 		self.LeaveExecutionContext();
 		if caught := recover(); caught != nil {
 			if result, ok := caught.(_result); ok {

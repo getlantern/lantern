@@ -63,6 +63,12 @@ func (self *_parser) ParseStatement() _node {
 				_labelSet = node._labelSet
 			case *_whileNode:
 				_labelSet = node._labelSet
+			case *_switchNode:
+				_labelSet = node._labelSet
+			case *_forNode:
+				_labelSet = node._labelSet
+			case *_forInNode:
+				_labelSet = node._labelSet
 			}
 			if _labelSet != nil {
 				_labelSet[label] = true
