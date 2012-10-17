@@ -468,6 +468,26 @@ func TestContinueBreak(t *testing.T) {
 	test("result", "0")
 }
 
+func TestSwitchBreak(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+//echo "var x = true; while (x) {switch('a') {case 'a': break;} console.log('a'); x = false;}" | otto
+	test(`
+		var abc = true;
+		var ghi = "Xyzzy";
+		while (abc) {
+			switch ('def') {
+			case 'def':
+				break;
+			}
+			ghi = "Nothing happens."
+			abc = false
+		}
+		ghi
+	`, "Nothing happens.")
+}
+
 func TestTryFinally(t *testing.T) {
 	Terst(t)
 

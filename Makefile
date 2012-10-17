@@ -21,6 +21,7 @@ TEST := -v --run IsValidRegExp
 TEST := -v --run ParseFailure
 TEST := -v --run RegExp 
 TEST := .
+TEST := -v --run SwitchBreak 
 
 test: test-i
 	go test $(TEST)

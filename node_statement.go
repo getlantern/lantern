@@ -238,6 +238,7 @@ type _switchNode struct {
 	Discriminant _node
 	Default int
 	CaseList [](*_caseNode)
+	_labelSet _labelSet
 }
 
 func newSwitchNode(discriminant _node) *_switchNode {
@@ -245,6 +246,7 @@ func newSwitchNode(discriminant _node) *_switchNode {
 		_nodeType: nodeSwitch,
 		Discriminant: discriminant,
 		Default: -1,
+		_labelSet: _labelSet{},
 	}
 }
 

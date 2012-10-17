@@ -214,23 +214,27 @@ func (self *_runtime) evaluateSwitch(node *_switchNode) Value {
 
 	discriminantResult := self.evaluate(node.Discriminant)
 
-	target := node.Default
-	for index, clause := range node.CaseList {
-		test := clause.Test
-		if test != nil {
-			testResult := self.evaluate(test)
-			if self.calculateComparison("===", discriminantResult, testResult) {
-				target = index
-				break
+	_labelSet := node._labelSet
+
+	return self.breakEvaluate(_labelSet, func() Value {
+		target := node.Default
+		for index, clause := range node.CaseList {
+			test := clause.Test
+			if test != nil {
+				testResult := self.evaluate(test)
+				if self.calculateComparison("===", discriminantResult, testResult) {
+					target = index
+					break
+				}
 			}
 		}
-	}
 
-	if target != -1 {
-		for _, clause := range node.CaseList[target:] {
-			self.evaluateBody(clause.Body)
+		if target != -1 {
+			for _, clause := range node.CaseList[target:] {
+				self.evaluateBody(clause.Body)
+			}
 		}
-	}
 
-	return emptyValue()
+		return emptyValue()
+	})
 }

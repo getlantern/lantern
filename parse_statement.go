@@ -319,6 +319,7 @@ func (self *_parser) ParseSwitch() _node {
 		return nil
 	})
 
+	switchNode._labelSet[""] = true
 	return switchNode
 }
 
