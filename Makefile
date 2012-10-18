@@ -22,7 +22,8 @@ TEST := -v --run RegExp
 TEST := -v --run SwitchBreak 
 TEST := -v --run Unicode 
 TEST := -v --run Lexer
-TEST := -v --run Test_issue 
+TEST := -v --run _issue
+TEST := -v --run String_fromCharCode
 TEST := .
 
 test: test-i

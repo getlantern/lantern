@@ -10,6 +10,7 @@ import (
 	"math/rand"
 	time_ "time"
 	"net/url"
+	"unicode/utf16"
 )
 
 // Global
@@ -225,6 +226,14 @@ func builtinString(call FunctionCall) Value {
 
 func builtinNewString(self *_object, _ Value, argumentList []Value) Value {
 	return toValue(self.runtime.newString(stringValueFromStringArgumentList(argumentList)))
+}
+
+func builtinString_fromCharCode(call FunctionCall) Value {
+	chrList := make([]uint16, len(call.ArgumentList))
+	for index, value := range call.ArgumentList {
+		chrList[index] = toUI16(value)
+	}
+	return toValue(string(utf16.Decode(chrList)))
 }
 
 func builtinString_charAt(call FunctionCall) Value {

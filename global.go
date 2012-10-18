@@ -238,6 +238,10 @@ func newContext() *_runtime {
 		"toLowerCase", 0, builtinString_toLowerCase,
 		"toUpperCase", 0, builtinString_toUpperCase,
 	)
+	// TODO Maybe streamline this redundancy?
+	self.Global.String.Define(
+		"fromCharCode", 1, builtinString_fromCharCode,
+	)
 
 	self.Global.Boolean = self.newGlobalFunction(
 		1,
