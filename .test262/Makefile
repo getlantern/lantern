@@ -30,12 +30,12 @@ uncull:
 
 gauntlet:
 	-$(TEST) $(WITH_otto) 2>/dev/null | ./gauntlet
-	@[ -f .failing ] && head .failing
+	@[ -f .fail ] && head .fail
 
-try: .failing
+try: .fail
 	head $<
-	$(otto) $<
+	cat shim.js $< | $(otto)
 
-look: .failing
+look: .fail
 	cat $<
 

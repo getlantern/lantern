@@ -11,8 +11,8 @@ while (<STDIN>) {
         print "$_\n";
         my $test = "data/test/suite/$1.js";
         print "$test\n";
-        unlink ".failing";
-        symlink $test, ".failing";
+        unlink ".fail";
+        symlink $test, ".fail";
         exit 64;
     } elsif (m/passed|as expected$/) {
         $passed += 1

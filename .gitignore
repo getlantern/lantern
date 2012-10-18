@@ -2,4 +2,4 @@
 /.test262/data
 /.test262/test.v8
 /.test262/test.otto
-/.test262/.failing
+/.test262/.fail
