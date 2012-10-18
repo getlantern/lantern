@@ -36,6 +36,9 @@ try: .fail
 	head $<
 	cat shim.js $< | $(otto)
 
+try-tmp: tmp
+	cat shim.js $< | $(otto)
+
 look: .fail
 	cat $<
 

@@ -32,25 +32,96 @@ func lexerCollectAndTest(input string, arguments... string){
 	}
 }
 
+func testLexerRead(lexer *_lexer, count int, wantRead []rune, wantWord string, wantWidth, wantFound int) {
+	haveRead, haveWord, haveWidth, haveFound := lexer.read(count)
+	Is(haveRead, wantRead)
+	Is(haveWord, wantWord)
+	Is(haveWidth, wantWidth)
+	Is(haveFound, wantFound)
+}
+
 func TestLexer(t *testing.T) {
+	Terst(t)
+
+	{
+		lexer := newLexer("")
+		token := lexer.Scan()
+		Is(token.Kind, "EOF")
+
+		lexer = newLexer("1")
+		token = lexer.Scan()
+		Is(token.Kind, "number")
+	}
+
+	{
+		test := testLexerRead
+
+		lexer := newLexer("")
+		test(&lexer, 1, []rune{-1}, "", 0, 0)
+		lexer.next()
+		test(&lexer, 1, []rune{-1}, "", 0, 0)
+
+		lexer = newLexer("1")
+		test(&lexer, 1, []rune{49}, "1", 1, 1)
+		lexer.next()
+		test(&lexer, 1, []rune{-1}, "", 0, 0)
+		lexer.next()
+		test(&lexer, 1, []rune{-1}, "", 0, 0)
+
+		lexer = newLexer("abc")
+		test(&lexer, 2, []rune{97, 98}, "ab", 2, 2)
+		lexer.next()
+		test(&lexer, 2, []rune{98, 99}, "bc", 2, 2)
+		lexer.next()
+		test(&lexer, 2, []rune{99, -1}, "c", 1, 1)
+		lexer.next()
+		test(&lexer, 2, []rune{-1, -1}, "", 0, 0)
+
+		lexer = newLexer("abcdef")
+		lexer.next()
+		lexer.next()
+		test(&lexer, 8, []rune{99, 100, 101, 102, -1, -1, -1, -1}, "cdef", 4, 4)
+		lexer.back()
+		test(&lexer, 8, []rune{98, 99, 100, 101, 102, -1, -1, -1}, "bcdef", 5, 5)
+		for limit := 8; limit > 0; limit-- {
+			lexer.back()
+		}
+		test(&lexer, 2, []rune{97, 98}, "ab", 2, 2)
+		// Should get the same thing twice.
+		test(&lexer, 2, []rune{97, 98}, "ab", 2, 2)
+		lexer.next()
+		test(&lexer, 2, []rune{98, 99}, "bc", 2, 2)
+		lexer.skip(1)
+		test(&lexer, 2, []rune{99, 100}, "cd", 2, 2)
+		lexer.skip(3)
+		test(&lexer, 2, []rune{102, -1}, "f", 1, 1)
+	}
+}
+
+
+func TestParserLexer(t *testing.T) {
 	Terst(t)
 
 	test := lexerCollectAndTest
 
 	test("",
-		"EOF")
+		"EOF",
+	)
 
 	test("1",
 		"number 1",
-		"EOF")
+		"EOF",
+	)
 
 	test(".0",
 		"number .0",
-		"EOF")
+		"EOF",
+	)
 
 	test("xyzzy",
 		"identifier xyzzy",
-		"EOF")
+		"EOF",
+	)
 
 	test("xyzzy(1)",
 		"identifier xyzzy",
@@ -179,6 +250,22 @@ Second line \
 		"string \t",
 		"===",
 		"string \r",
+		"EOF",
+	)
+
+	test("\"Hello\nWorld\"",
+		"illegal \"Hello",
+	)
+
+	test("\u203f = 10",
+		"illegal",
+	)
+
+	test(`var \u0024 = 1`,
+		"var",
+		"identifier $",
+		"=",
+		"number 1",
 		"EOF",
 	)
 

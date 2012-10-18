@@ -57,9 +57,11 @@ type _parser struct {
 }
 
 func newParser() *_parser {
-	return &_parser{
+	self := &_parser{
 		history: make([]_token, 0, 4),
 	}
+	self.lexer.readIn = make([]rune, 0)
+	return self
 }
 
 func (self *_parser) Consume() string {
@@ -292,6 +294,6 @@ func (self *_parser) Unexpected(token _token) *_syntaxError {
 }
 
 func (self *_parser) markNode(node _node) {
-	node.setPosition(self.lexer.Line)
+	node.setPosition(self.lexer.lineCount)
 }
 
