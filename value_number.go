@@ -5,18 +5,40 @@ import (
     "strconv"
 	"fmt"
 	"strings"
+	"regexp"
 )
+
+var stringToNumberParseInteger = regexp.MustCompile(`^(?:0[xX])`)
 
 func stringToFloat(value string) float64 {
 	value = strings.TrimSpace(value)
+
 	if value == "" {
 		return 0
 	}
-	number, error := strconv.ParseFloat(value, 64)
-	if error != nil {
+
+	parseFloat := false
+	if strings.IndexRune(value, '.') != -1 {
+		parseFloat = true
+	} else if stringToNumberParseInteger.MatchString(value) {
+		parseFloat = false
+	} else {
+		parseFloat = true
+	}
+
+	if (parseFloat) {
+		number, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return math.NaN()
+		}
+		return number
+	}
+
+	number, err := strconv.ParseInt(value, 0, 64)
+	if err != nil {
 		return math.NaN()
 	}
-	return number
+	return float64(number)
 }
 
 func toNumber(value Value) Value {
