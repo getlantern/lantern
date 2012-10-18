@@ -175,5 +175,11 @@ Second line \
 		"EOF",
 	)
 
+	test(`'\t' === '\r'`,
+		"string \t",
+		"===",
+		"string \r",
+		"EOF",
+	)
 
 }

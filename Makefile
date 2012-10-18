@@ -10,7 +10,6 @@ TEST := -v --run underscoreUtility
 TEST := -v --run Array_slice
 TEST := -v --run Date
 TEST := -v .
-TEST := -v --run Lexer
 TEST := -v --run Synopsis
 TEST := -v --run _eval 
 TEST := -v --run Broken
@@ -22,6 +21,8 @@ TEST := -v --run ParseFailure
 TEST := -v --run RegExp 
 TEST := -v --run SwitchBreak 
 TEST := -v --run Unicode 
+TEST := -v --run Lexer
+TEST := -v --run Test_issue 
 TEST := .
 
 test: test-i
