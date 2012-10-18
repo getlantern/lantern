@@ -105,11 +105,11 @@ fetch the changes and merge them into your project with git.
         services.js     --> custom angular services
       lib/              --> angular and 3rd party javascript libraries
         angular/
-          angular.js            --> the latest angular js
-          angular.min.js        --> the latest minified angular js
-          angular-*.js  --> angular add-on modules
-          version.txt           --> version number
-      partials/         --> angular view partials (partial html templates)
+          angular.js        --> the latest angular js
+          angular.min.js    --> the latest minified angular js
+          angular-*.js      --> angular add-on modules
+          version.txt       --> version number
+      partials/             --> angular view partials (partial html templates)
         partial1.html
         partial2.html
 
@@ -134,6 +134,9 @@ fetch the changes and merge them into your project with git.
           version.txt           --> version file
       unit/                     --> unit level specs/tests
         controllersSpec.js      --> specs for controllers
+        directivessSpec.js      --> specs for directives
+        filtersSpec.js          --> specs for filters
+        servicesSpec.js         --> specs for services
 
 ## Contact
 
