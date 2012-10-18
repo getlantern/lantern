@@ -37,6 +37,8 @@ var keywordTable map[string]bool = boolFields(`
 	while
 	with
 	void
+
+	debugger
 `)
 
 var punctuatorTable map[string]bool
