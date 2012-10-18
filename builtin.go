@@ -1209,6 +1209,11 @@ func builtinMath_random(call FunctionCall) Value {
 	return toValue(rand.Float64())
 }
 
+func builtinMath_pow(call FunctionCall) Value {
+	// TODO Make sure this works according to the specification (15.8.2.13)
+	return toValue(math.Pow(toFloat(call.Argument(0)), toFloat(call.Argument(1))))
+}
+
 // Date
 
 func builtinDate(call FunctionCall) Value {

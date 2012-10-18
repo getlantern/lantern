@@ -294,6 +294,7 @@ func newContext() *_runtime {
 		"ceil", 1, builtinMath_ceil,
 		"floor", 1, builtinMath_floor,
 		"random", 0, builtinMath_random,
+		"pow", 2, builtinMath_pow,
 	)
 
 	self.Global.Date = self.newGlobalFunction(
