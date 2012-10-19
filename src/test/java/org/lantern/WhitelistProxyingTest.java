@@ -25,8 +25,10 @@ public class WhitelistProxyingTest {
     
     @Test
     public void testWithHttpClient() throws Exception {
+        final String email = TestUtils.loadTestEmail();
+        final String pass = TestUtils.loadTestPassword();
         Launcher.main(new String[]{"--disable-ui", "--force-get", 
-            "--user", "lanternftw@gmail.com", "--pass", "fjdl520208FD31"});
+            "--user", email, "--pass", pass});
         
         Thread.sleep(20000);
         /*
@@ -52,6 +54,7 @@ public class WhitelistProxyingTest {
         
         //log.info("Stopping proxy");
         //proxy.stop();
+        Launcher.stop();
     }
     
     private void testWhitelistedSite(final String url, final HttpClient client, 

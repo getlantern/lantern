@@ -23,8 +23,8 @@ public class DefaultXmppHandlerTest {
      * @throws Exception If anything goes wrong.
      */
     @Test public void testControllerMessages() throws Exception {
-        final String email = "lanternuser@gmail.com";
-        final String pwd = "aKD13DAWd82";
+        final String email = TestUtils.loadTestEmail();
+        final String pwd = TestUtils.loadTestPassword();
         
         LanternHub.resetSettings(true);
         final Settings settings = LanternHub.settings();

@@ -21,6 +21,8 @@ public class TestUtils {
             is = new FileInputStream(propsFile);
             props.load(is);
         } catch (final IOException e) {
+            System.err.println("PLEASE ENTER email AND pass FIELDS IN "+
+                propsFile.getAbsolutePath());
             e.printStackTrace();
         } finally {
             IOUtils.closeQuietly(is);

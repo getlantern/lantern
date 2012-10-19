@@ -39,7 +39,11 @@ public class LanternProxyingTest {
         //int port = 9090;
         //HttpProxyServer proxyServer = new DefaultHttpProxyServer(port);
         //proxyServer.start();
-        Launcher.main(new String[]{"--disable-trusted-peers", "--disable-anon-peers", "--disable-ui", "--force-get", "--user", "lanternuser@gmail.com", "--pass", "aKD13DAWd82"});
+        
+        Launcher.main(new String[]{"--disable-trusted-peers", 
+            "--disable-anon-peers", "--disable-ui", "--force-get", 
+            "--user", TestUtils.loadTestEmail(), "--pass", 
+            TestUtils.loadTestPassword()});
         
         Proxy proxy = new Proxy();
         proxy.setProxyType(Proxy.ProxyType.MANUAL);
@@ -125,8 +129,8 @@ public class LanternProxyingTest {
         final String[] urls = getUrls();
         //final String[] urls = {"http://www.yahoo.com/"};
         final int port = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
-        //Launcher.main(new String[]{"--disable-ui", "--disable-lae", "--force-get", "--user", "lanternuser@gmail.com", "--pass", "aKD13DAWd82"});
-        Launcher.main(new String[]{"--disable-ui", "--force-get", "--user", "lanternuser@gmail.com", "--pass", "aKD13DAWd82"});
+        Launcher.main(new String[]{"--disable-ui", "--force-get", "--user", 
+            TestUtils.loadTestEmail(), "--pass", TestUtils.loadTestPassword()});
         
         // Give it a second to start up.
         Thread.sleep(3000);

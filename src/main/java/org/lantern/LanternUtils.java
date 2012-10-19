@@ -370,8 +370,8 @@ public class LanternUtils {
             return false;
         }
         final String un = LanternHub.settings().getEmail();
-        final String pwd = LanternHub.settings().getPassword();
-        return (StringUtils.isNotBlank(un) && StringUtils.isNotBlank(pwd));
+        final String pass = LanternHub.settings().getPassword();
+        return (StringUtils.isNotBlank(un) && StringUtils.isNotBlank(pass));
     }
     
 
@@ -390,10 +390,10 @@ public class LanternUtils {
         return false;
     }
     
-    public static void writeCredentials(final String email, final String pwd) {
+    public static void writeCredentials(final String email, final String pass) {
         LOG.info("Writing credentials...");
         LanternHub.settings().setEmail(email);
-        LanternHub.settings().setPassword(pwd);
+        LanternHub.settings().setPassword(pass);
         LanternHub.settings().getSettings().setState(State.SET);
         LanternHub.settingsIo().write();
     }

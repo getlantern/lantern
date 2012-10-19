@@ -59,16 +59,16 @@ public class LanternUtilsTest {
         id = "2bgg8h04men25@public.talk.google.com";
         assertTrue(!LanternUtils.isNotJid(id));
         
-        id = "lanternuser@gmail.com";
+        id = "testuser@gmail.com";
         assertTrue(LanternUtils.isNotJid(id));
     }
     
     @Test 
     public void testRosterEntries() throws Exception {
-        final String email = "lanternuser@gmail.com";
-        final String pwd = "aKD13DAWd82";
+        final String email = TestUtils.loadTestEmail();
+        final String pass = TestUtils.loadTestPassword();
         final XMPPConnection conn = 
-            XmppUtils.simpleGoogleTalkConnection(email, pwd, "test");
+            XmppUtils.simpleGoogleTalkConnection(email, pass, "test");
         final Collection<LanternRosterEntry> entries = 
             LanternHub.xmppHandler().getRoster().getRosterEntries(conn);
         
@@ -78,8 +78,8 @@ public class LanternUtilsTest {
     
     @Test 
     public void testVCard() throws Exception {
-        final String email = "lanternuser@gmail.com";
-        final String pwd = "aKD13DAWd82";
+        final String email = TestUtils.loadTestEmail();
+        final String pass = TestUtils.loadTestPassword();
         
         LanternHub.resetSettings(true);
         //final Settings settings = LanternHub.settings();
@@ -87,12 +87,12 @@ public class LanternUtilsTest {
         //settings.setProxies(new HashSet<String>());
         //final XmppHandler handler = new DefaultXmppHandler();
         
-        //handler.connect(email, pwd);
+        //handler.connect(email, pass);
         
         //final XMPPConnection conn = handler.getP2PClient().getXmppConnection();
         
         final XMPPConnection conn = 
-            XmppUtils.simpleGoogleTalkConnection(email, pwd, "test");
+            XmppUtils.simpleGoogleTalkConnection(email, pass, "test");
         final byte[] photo = XmppUtils.getVCard(conn, email).getAvatar();
         assertTrue(photo != null);
         assertTrue(!(photo.length == 0));
@@ -223,17 +223,17 @@ public class LanternUtilsTest {
         
         LanternUtils.configureXmpp();
         //final String email = LanternHub.settings().getEmail();
-        //final String pwd = LanternHub.settings().getPassword();
+        //final String pass = LanternHub.settings().getPassword();
         
-        final String email = "lanternuser@gmail.com";
-        final String pwd = "aKD13DAWd82";
-        if (StringUtils.isBlank(email) || StringUtils.isBlank(pwd)) {
+        final String email = TestUtils.loadTestEmail();
+        final String pass = TestUtils.loadTestPassword();
+        if (StringUtils.isBlank(email) || StringUtils.isBlank(pass)) {
             LOG.info("user name and password not configured");
             return;
         }
         
         // Just make sure no exceptions are thrown for now.
-        LanternHub.xmppHandler().getRoster().getRosterEntries(email, pwd, 1);
+        LanternHub.xmppHandler().getRoster().getRosterEntries(email, pass, 1);
         
     }
     
@@ -265,15 +265,15 @@ public class LanternUtilsTest {
     @Test 
     public void testGoogleStunServers() throws Exception {
         //final String email = LanternHub.settings().getEmail();
-        //final String pwd = LanternHub.settings().getPassword();
-        final String email = "lanternuser@gmail.com";
-        final String pwd = "aKD13DAWd82";
-        if (StringUtils.isBlank(email) || StringUtils.isBlank(pwd)) {
+        //final String pass = LanternHub.settings().getPassword();
+        final String email = TestUtils.loadTestEmail();
+        final String pass = TestUtils.loadTestPassword();
+        if (StringUtils.isBlank(email) || StringUtils.isBlank(pass)) {
             LOG.info("user name and password not configured");
             return;
         }
         final XMPPConnection conn = XmppUtils.persistentXmppConnection(
-            email, pwd, "dfalj;", 2);
+            email, pass, "dfalj;", 2);
         
         final Collection<InetSocketAddress> servers = 
             XmppUtils.googleStunServers(conn);
@@ -310,15 +310,15 @@ public class LanternUtilsTest {
     @Test 
     public void testOtrMode() throws Exception {
         //final String email = LanternHub.settings().getEmail();
-        //final String pwd = LanternHub.settings().getPassword();
-        final String email = "lanternuser@gmail.com";
-        final String pwd = "aKD13DAWd82";
-        if (StringUtils.isBlank(email) || StringUtils.isBlank(pwd)) {
+        //final String pass = LanternHub.settings().getPassword();
+        final String email = TestUtils.loadTestEmail();
+        final String pass = TestUtils.loadTestPassword();
+        if (StringUtils.isBlank(email) || StringUtils.isBlank(pass)) {
             LOG.info("Not testing with no credentials");
             return;
         }
         final XMPPConnection conn = XmppUtils.persistentXmppConnection(
-            email, pwd, "jqiq", 2);
+            email, pass, "jqiq", 2);
         final String activateResponse = LanternUtils.activateOtr(conn).toXML();
         LOG.info("Got response: {}", activateResponse);
         
