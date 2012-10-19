@@ -44,6 +44,21 @@ If you're running Linux, note that Lantern's UI currently targets the
 Ubuntu 12.04 desktop environment (i.e. Unity). Other environments may work as
 well but are currently untested and unmaintained.
 
+If you want to load the Lantern source code in Eclipse, you can do the following:
+
+1. Build the Eclipse project and classpath files:
+
+    $ mvn eclipse:eclipse
+
+2. Load them into Eclipse using File->Import->General->Existing Projects into Workspace
+Select the directory where you ran mvn eclipse:eclipse, and you should see the "lantern" project loaded into Eclipse.
+
+3. Define the "M2_REPO" classpath variable. The steps to do this on OSX are as follows, with other OSes being very similar:
+    * Open Eclipse->Preferences->Java->Build Path->Classpath Variables 
+    * Hit the "New..." button. 
+    * Enter M2_REPO as the name and /Users/YOUR_USER_NAME_HERE/.m2 as the path
+
+That should get Lantern building successfully in Eclipse.
 
 Further Reading
 ---------------
