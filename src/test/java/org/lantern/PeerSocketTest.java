@@ -30,14 +30,14 @@ public class PeerSocketTest {
         //final String email = LanternHub.settings().getEmail();
         //final String pwd = LanternHub.settings().getPassword();
         
-        final String email = "lanternuser@gmail.com";
-        final String pwd = "aKD13DAWd82";
+        final String email = TestUtils.loadTestEmail();
+        final String pass = TestUtils.loadTestPassword();
         
-        if (StringUtils.isBlank(email) || StringUtils.isBlank(pwd)) {
+        if (StringUtils.isBlank(email) || StringUtils.isBlank(pass)) {
             log.info("user name and password not configured");
             return;
         }
-        xmpp.connect(email, pwd);
+        xmpp.connect(email, pass);
 
         // ENTER A PEER TO RUN LIVE TESTS -- THEY NEED TO BE ON THE NETWORK.
         final String peer = "";
