@@ -1,4 +1,4 @@
-.PHONY: build test data otto v8 cull uncull gauntlet try
+.PHONY: build test data otto v8 cull uncull gauntlet try test-v8 test-otto
 
 otto := ./otto -underscore=false
 TEST := python ./data/tools/packaging/test262.py --test=data --non_strict_only
@@ -8,7 +8,9 @@ WITH_otto := --command "$(otto)"
 test:
 	$(TEST) $(WITH_otto)
 
-otto: test
+test-otto: test
+
+otto: build
 
 build:
 	$(MAKE) -C .. otto
@@ -16,7 +18,7 @@ build:
 data:
 	hg clone -r 334 http://hg.ecmascript.org/tests/test262 data
 
-v8:
+v8 test-v8:
 	$(TEST) $(WITH_v8)
 
 test.v8:
