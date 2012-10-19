@@ -2,7 +2,6 @@ package otto
 
 import (
 	"fmt"
-	"strconv"
 )
 
 type _arrayNode struct {
@@ -384,10 +383,12 @@ func newBooleanNode(text string) *_valueNode {
 }
 
 func newNumberNode(text string) *_valueNode {
-	value, error := strconv.ParseFloat(text, 64)
-	if error != nil {
-		throwHereBeDragons(error)
-	}
+	// TODO Can there be an error here? Is NaN a good catch-all?
+	value := stringToFloat(text)
+	//value, err := strconv.ParseFloat(text, 64)
+	//if err != nil {
+	//    throwHereBeDragons(error)
+	//}
 	return &_valueNode{
 		_nodeType: nodeValue,
 		Text: text,
