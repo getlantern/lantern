@@ -433,18 +433,19 @@ func (self *_lexer) scanIdentifierKeyword() (token _token) {
 					chr := convertHexadecimalRune(string(read[2:]))
 					if chr == utf8.RuneError {
 						word = append(word, 'u')
-						self.skip(2)
+						self.skip(2) // Skip \u
 					} else {
 						if chr == '\\' || !identifierCheck(chr) {
 							return
 						}
 						word = append(word, chr)
-						self.skip(6)
+						self.skip(6) // Skip \u????
 					}
 				} else {
 					return
 				}
 			} else {
+				// Basically a skip of 1
 				word = append(word, self.next())
 			}
 		default:
@@ -467,6 +468,7 @@ func (self *_lexer) scanIdentifierKeyword() (token _token) {
 		// Now we're looking at the body of the identiifer
 		identifierCheck = isIdentifierPart
 	}
+
 	return
 }
 

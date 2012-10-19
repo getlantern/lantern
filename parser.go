@@ -297,3 +297,10 @@ func (self *_parser) markNode(node _node) {
 	node.setPosition(self.lexer.lineCount)
 }
 
+func isIdentifierName(token _token) bool {
+	switch token.Kind {
+	case "identifier", "boolean":
+		return true
+	}
+	return keywordTable[token.Kind]
+}

@@ -49,7 +49,11 @@ func (self *_parser) ParseObjectPropertyKey() string {
 	} else if self.Match("string") {
 		return toString(self.ConsumeString().Value)
 	}
-	panic(self.Unexpected(self.Peek()))
+	token := self.Next()
+	if !isIdentifierName(token) {
+		panic(self.Unexpected(token))
+	}
+	return token.Text
 }
 
 func (self *_parser) ParseObjectProperty() *_objectPropertyNode {
@@ -147,7 +151,11 @@ func (self *_parser) ParseCallExpression(left _node) _node {
 
 func (self *_parser) ParseDotMember(left _node) _node {
 	self.Expect(".")
-	member := self.ConsumeIdentifier().Value
+	token := self.Next()
+	member := token.Text
+	if !isIdentifierName(token) {
+		panic(token.newSyntaxError("Unexpected token %s", token.Kind))
+	}
 	node := newDotMemberNode(left, member)
 	self.markNode(node)
 	return node

@@ -2022,3 +2022,29 @@ func TestUnicode(t *testing.T) {
 	}
 }
 
+func TestDotMember(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+		abc = {
+			ghi: 11,
+		}
+		abc.def = "Xyzzy"
+		abc.null = "Nothing happens."
+	`)
+	test(`abc.def`, "Xyzzy")
+	test(`abc.null`, "Nothing happens.")
+	test(`abc.ghi`, "11")
+
+	test(`
+		abc = {
+			null: 11,
+		}
+	`)
+	test(`abc.def`, "undefined")
+	test(`abc.null`, "11")
+	test(`abc.ghi`, "undefined")
+}
+
