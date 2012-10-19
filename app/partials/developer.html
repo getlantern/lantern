@@ -19,7 +19,7 @@
         <div class="control-group">
           <label class="control-label">modal</label>
           <div class="controls">
-            <select ui-select2 ng-model="model.modal" data-placeholder="choose value">
+            <select ui-select2="{allowClear: true}" ng-model="model.modal" data-placeholder="modal">
               <option value=""></option>
               <option value="passwordCreate">passwordCreate</option>
               <option value="settingsUnlock">settingsUnlock</option>
@@ -27,6 +27,10 @@
               <option value="welcome">welcome</option>
               <option value="signin">signin</option>
               <option value="gtalkUnreachable">gtalkUnreachable</option>
+              <option value="notInvited">notInvited</option>
+              <option value="requestInvite">requestInvite</option>
+              <option value="requestSent">requestSent</option>
+              <option value="firstInviteReceived">firstInviteReceived</option>
               <option value="sysproxy">sysproxy</option>
               <option value="finished">finished</option>
             </select>
@@ -37,7 +41,7 @@
           <div class="controls row">
             <div class="span-4">
               <label>
-                <select ui-select2 ng-model="model.settings.mode" data-placeholder="mode">
+                <select ui-select2="{allowClear: true}" ng-model="model.settings.mode" data-placeholder="mode">
                   <option value=""></option>
                   <option value="give">give</option>
                   <option value="get">get</option>
@@ -73,7 +77,15 @@
           <label class="control-label">connectivity</label>
           <div class="controls">
             <label class="checkbox"><input type="checkbox" ng-model="model.connectivity.internet"> internet</label>
-            <label><input type="text" ng-model="model.connectivity.gtalk"> gtalk</label>
+            <label>
+              <select ui-select2="{allowClear: true}" ng-model="model.connectivity.gtalk" data-placeholder="gtalk">
+                <option value=""></option>
+                <option value="notConnected">notConnected</option>
+                <option value="connecting">connecting</option>
+                <option value="connnected">connnected</option>
+              </select>
+              gtalk
+            </label>
             <label><input type="text" placeholder="0" ng-model="model.connectivity.peers"> peers</label>
           </div>
         </div>

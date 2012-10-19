@@ -15,6 +15,13 @@ $experimental-support-for-opera: false
 //@import compass_twitter_bootstrap_awesome
 //@import compass_twitter_bootstrap_responsive
 
+// XXX are these defined by compass_twitter_bootstrap?
+=small
+  font-size: 85%
+
+=centered
+  text-align: center
+
 // http://angular-ui.github.com/#directives-showhide
 .ui-hide, .ui-show
   +single-transition(all, 0.5s, ease)
@@ -43,6 +50,16 @@ input[type=email]:focus
 
 //** custom styles
 
+.control-extra
+  margin-left: 30px
+  +small
+
+#signin
+  .prompt-extra
+    margin: 5px 0
+    +small
+    +centered
+
 #request-invite
   form
     margin: 20px 38px
@@ -50,6 +67,10 @@ input[type=email]:focus
       margin-top: 5px
     .indented
       margin-left: 30px
+
+#sysproxy
+  .controls
+    margin-top: 10px
 
 .modal form
   margin-bottom: 0

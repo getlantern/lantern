@@ -1,26 +1,26 @@
-/* line 19, ../../sass/app.sass */
+/* line 26, ../../sass/app.sass */
 .ui-hide, .ui-show {
   -webkit-transition: all 0.5s ease;
   -moz-transition: all 0.5s ease;
   transition: all 0.5s ease;
 }
 
-/* line 22, ../../sass/app.sass */
+/* line 29, ../../sass/app.sass */
 .ui-hide {
   opacity: 0;
 }
 
-/* line 29, ../../sass/app.sass */
+/* line 36, ../../sass/app.sass */
 input:disabled {
   cursor: default;
 }
 
-/* line 32, ../../sass/app.sass */
+/* line 39, ../../sass/app.sass */
 .tooltip {
   z-index: 10000;
 }
 
-/* line 37, ../../sass/app.sass */
+/* line 44, ../../sass/app.sass */
 input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
   color: #b94a48;
   border-color: #b94a48;
@@ -29,25 +29,43 @@ input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
   box-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
 }
 
-/* line 47, ../../sass/app.sass */
+/* line 53, ../../sass/app.sass */
+.control-extra {
+  margin-left: 30px;
+  font-size: 85%;
+}
+
+/* line 58, ../../sass/app.sass */
+#signin .prompt-extra {
+  margin: 5px 0;
+  font-size: 85%;
+  text-align: center;
+}
+
+/* line 64, ../../sass/app.sass */
 #request-invite form {
   margin: 20px 38px;
 }
-/* line 49, ../../sass/app.sass */
+/* line 66, ../../sass/app.sass */
 #request-invite form input[type=email] {
   margin-top: 5px;
 }
-/* line 51, ../../sass/app.sass */
+/* line 68, ../../sass/app.sass */
 #request-invite form .indented {
   margin-left: 30px;
 }
 
-/* line 54, ../../sass/app.sass */
+/* line 72, ../../sass/app.sass */
+#sysproxy .controls {
+  margin-top: 10px;
+}
+
+/* line 75, ../../sass/app.sass */
 .modal form {
   margin-bottom: 0;
 }
 
-/* line 57, ../../sass/app.sass */
+/* line 78, ../../sass/app.sass */
 #waiting-container {
   position: fixed;
   top: 100px;
@@ -55,12 +73,12 @@ input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
   line-height: 50px;
 }
 
-/* line 63, ../../sass/app.sass */
+/* line 84, ../../sass/app.sass */
 #welcome .modal-body {
   margin: 10px 0 100px 0;
 }
 
-/* line 66, ../../sass/app.sass */
+/* line 87, ../../sass/app.sass */
 #langchooser {
   position: fixed;
   top: 5px;
@@ -68,7 +86,7 @@ input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
   font-size: 8pt;
   z-index: 4999;
 }
-/* line 72, ../../sass/app.sass */
+/* line 93, ../../sass/app.sass */
 #langchooser ul {
   margin: 0;
   padding: 0;
@@ -98,39 +116,39 @@ input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
 #langchooser ul li.last {
   padding-right: 0;
 }
-/* line 75, ../../sass/app.sass */
+/* line 96, ../../sass/app.sass */
 #langchooser ul li a {
   color: #aaaaaa;
 }
-/* line 77, ../../sass/app.sass */
+/* line 98, ../../sass/app.sass */
 #langchooser ul li.active a {
   color: white;
 }
-/* line 79, ../../sass/app.sass */
+/* line 100, ../../sass/app.sass */
 #langchooser ul li.active a:hover {
   text-decoration: none;
 }
 
-/* line 83, ../../sass/app.sass */
+/* line 104, ../../sass/app.sass */
 #sysproxy .control-group {
   margin: 0 75px;
 }
-/* line 85, ../../sass/app.sass */
+/* line 106, ../../sass/app.sass */
 #sysproxy .text-error {
   margin: 20px 75px;
 }
 
-/* line 88, ../../sass/app.sass */
+/* line 109, ../../sass/app.sass */
 #sanity {
   z-index: 5002;
 }
 
-/* line 92, ../../sass/app.sass */
+/* line 113, ../../sass/app.sass */
 #sanity form, #settings-load-failure form {
   margin: 15px 0;
 }
 
-/* line 95, ../../sass/app.sass */
+/* line 116, ../../sass/app.sass */
 #developer {
   position: fixed;
   left: 0;
@@ -141,26 +159,26 @@ input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
   z-index: 5000;
 }
 
-/* line 104, ../../sass/app.sass */
+/* line 125, ../../sass/app.sass */
 #developer-content {
   background-color: white;
   border-top: 1px #333333 solid;
 }
-/* line 107, ../../sass/app.sass */
+/* line 128, ../../sass/app.sass */
 #developer-content * {
   font-size: 10pt;
 }
-/* line 109, ../../sass/app.sass */
+/* line 130, ../../sass/app.sass */
 #developer-content pre {
   font-size: 7pt;
   max-height: 80px;
   overflow: scroll;
 }
-/* line 113, ../../sass/app.sass */
+/* line 134, ../../sass/app.sass */
 #developer-content .controls.row .span-4:first-child {
   margin-left: 0;
 }
-/* line 115, ../../sass/app.sass */
+/* line 136, ../../sass/app.sass */
 #developer-content .select2-container {
   width: 220px;
 }

@@ -187,13 +187,13 @@ ApiServlet.HandlerMap = {
 
         case 'firstInviteReceived':
           model.modal = model.settings.mode == 'get' ? 'sysproxy' : 'finished';
-          bayeux._server._engine.publish({channel:'/sync', data:{path:'model.modal', value:model.modal}});
+          bayeux._server._engine.publish({channel:'/sync', data:{path:'modal', value:model.modal}});
           res.writeHead(200);
           break;
 
         case 'requestSent':
           model.modal = '';
-          bayeux._server._engine.publish({channel:'/sync', data:{path:'model.modal', value:model.modal}});
+          bayeux._server._engine.publish({channel:'/sync', data:{path:'modal', value:model.modal}});
           res.writeHead(200);
 
         case 'finished':

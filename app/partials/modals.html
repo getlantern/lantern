@@ -128,6 +128,10 @@
   <div class="modal-body">
     <form name="signinForm" class="form-horizontal" ng-submit="signin()">
       <div>{{ 'SIGNIN_PROMPT' | i18n }}</div>
+      <div class="prompt-extra">
+        {{ 'NO_GOOG_ACCOUNT' | i18n }}
+        <a href="https://mail.google.com/mail/signup" target="_blank">{{ 'CREATE_ONE' | i18n }}</a>
+      </div>
       <br>
       <!-- XXX accounts.google.com/SignUp -->
       <div class="control-group">
@@ -229,21 +233,17 @@
                ng-model="sendToLanternDevs" ng-value="false">
         {{ 'SOMEONE_I_KNOW_LABEL' | i18n }}
       </label>
-      <div class="indented">
+      <div class="control-extra">
         <input type="email" autofocus ng-required="!sendToLanternDevs"
                ng-disabled="disableForm || sendToLanternDevs"
                ng-model="sendRequestTo" placeholder="email@example.com">
-        <div class=>
-          <small>{{ 'SOMEONE_I_KNOW_INFO' | i18n }}</small>
-        </div>
+        <div>{{ 'SOMEONE_I_KNOW_INFO' | i18n }}</div>
       </div>
       <br>
       <label class="radio">
         <input type="radio" ng-disabled="disableForm" ng-model="sendToLanternDevs" ng-value="true"> {{ 'LANTERN_DEVS_LABEL' | i18n }}
       </label>
-      <div class="indented">
-        <small>{{ 'LANTERN_DEVS_INFO' | i18n }}</small>
-      </div>
+      <div class="control-extra">{{ 'LANTERN_DEVS_INFO' | i18n }}</div>
       <br>
       <div class="text-error" ui-toggle="requestError">
         {{ 'ERROR' | i18n }}&nbsp;
@@ -277,8 +277,10 @@
   </div>
   <div class="modal-body">
     <div>{{ 'FIRST_INVITE_RECEIVED_INTRO' | i18n }}</div>
+    <!-- XXX
     <div>{{ 'FIRST_INVITE_RECEIVED_SENDER' | i18n }}</div>
-    <div>{{ sender }}</div>
+    <div>{{ sender }}&nbsp;</div>
+    -->
     <div>{{ 'FIRST_INVITE_RECEIVED_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
@@ -301,6 +303,7 @@
                  ng-disabled="disableForm">
           {{ 'SYSTEM_PROXY_TRUE' | i18n }}
         </label>
+        <div class="control-extra">{{ 'SYSTEM_PROXY_TRUE_INFO' | i18n }}</div>
       </div>
       <div class="controls">
         <label class="radio control-label">
@@ -308,6 +311,7 @@
                  ng-disabled="disableForm">
           {{ 'SYSTEM_PROXY_FALSE' | i18n }}
         </label>
+        <div class="control-extra">{{ 'SYSTEM_PROXY_FALSE_INFO' | i18n }}</div>
       </div>
     </div>
     <div class="text-error" ui-toggle="sysproxyError">
