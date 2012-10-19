@@ -237,6 +237,7 @@ func newContext() *_runtime {
 		"substring", 2, builtinString_substring,
 		"toLowerCase", 0, builtinString_toLowerCase,
 		"toUpperCase", 0, builtinString_toUpperCase,
+		"substr", 2, builtinString_substr,
 	)
 	// TODO Maybe streamline this redundancy?
 	self.Global.String.Define(

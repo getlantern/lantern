@@ -25,6 +25,7 @@ TEST := -v --run String_fromCharCode
 TEST := -v --run ParseFailure
 TEST := -v --run Lexer\|Parse
 TEST := -v --run Lexer
+TEST := -v --run String_
 TEST := .
 
 test: test-i

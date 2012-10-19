@@ -589,7 +589,7 @@ func builtinString_slice(call FunctionCall) Value {
 	target := toString(call.This)
 
 	length := uint(len(target))
-	start, end := sliceStartEnd(call.ArgumentList, length)
+	start, end := rangeStartEnd(call.ArgumentList, length)
 	if 0 >= end - start {
 		return toValue("")
 	}
@@ -600,13 +600,38 @@ func builtinString_substring(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
 	target := toString(call.This)
 
-	length := uint(len(target))
-	start := valueToArrayIndex(call.Argument(0), length, false)
-	end := valueToArrayIndex(call.Argument(1), length, false)
+	size := uint(len(target))
+	start := valueToArrayIndex(call.Argument(0), size, false)
+	end := valueToArrayIndex(call.Argument(1), size, false)
 	if start > end {
 		start, end = end, start
 	}
 	return toValue(target[start:end])
+}
+
+func builtinString_substr(call FunctionCall) Value {
+	target := toString(call.This)
+
+	size := int64(len(target))
+	start, length := rangeStartLength(call.ArgumentList, uint(size))
+
+	if start >= size {
+		return toValue("")
+	}
+
+	if length <= 0 {
+		return toValue("")
+	}
+
+	if start + length >= size {
+		// Cap length to be to the end of the string
+		// start = 3, length = 5, size = 4 [0, 1, 2, 3]
+		// 4 - 3 = 1 
+		// target[3:4]
+		length = size - start
+	}
+
+	return toValue(target[start:start+length])
 }
 
 func builtinString_toLowerCase(call FunctionCall) Value {
@@ -789,17 +814,38 @@ func builtinArray_joinNative(valueArray []Value, separator string) string {
 	return strings.Join(stringList, separator)
 }
 
-func sliceStartEnd(source []Value, length uint) (start, end uint) {
-	start = valueToArrayIndex(valueOfArrayIndex(source, 0), length, true)
+func rangeStartEnd(source []Value, size uint) (start, end uint) {
+	start = valueToArrayIndex(valueOfArrayIndex(source, 0), size, true)
 	if len(source) == 1 {
-		end = length
+		// If there is only the start argument, then end = size
+		end = size
 		return
 	}
 
-	end = length
+	// Assuming the argument is undefined...
+	end = size
 	endValue := valueOfArrayIndex(source, 1)
 	if !endValue.IsUndefined() {
-		end = valueToArrayIndex(endValue, length, true)
+		// Which it is not, so get the value as an array index
+		end = valueToArrayIndex(endValue, size, true)
+	}
+	return
+}
+
+func rangeStartLength(source []Value, size uint) (start, length int64) {
+	start = int64(valueToArrayIndex(valueOfArrayIndex(source, 0), size, true))
+
+	// Assume the second argument is missing or undefined
+	length = int64(size)
+	if len(source) == 1 {
+		// If there is only the start argument, then length = size
+		return
+	}
+
+	lengthValue := valueOfArrayIndex(source, 1)
+	if !lengthValue.IsUndefined() {
+		// Which it is not, so get the value as an array index
+		length = toInteger(lengthValue)
 	}
 	return
 }
@@ -884,7 +930,7 @@ func builtinArray_slice(call FunctionCall) Value {
 	thisObject := call.thisObject()
 
 	length := uint(toUI32(thisObject.Get("length")))
-	start, end := sliceStartEnd(call.ArgumentList, length)
+	start, end := rangeStartEnd(call.ArgumentList, length)
 
 	if start >= end {
 		// Always an empty array
