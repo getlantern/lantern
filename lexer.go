@@ -286,6 +286,8 @@ func (self *_lexer) scanQuoteLiteral() _token {
 				text.WriteRune('\f')
 			case 'v':
 				text.WriteRune('\v')
+			case '0':
+				text.WriteRune(0)
 			default:
 				text.WriteRune(value)
 			case 'u':
