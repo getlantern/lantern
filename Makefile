@@ -13,7 +13,6 @@ TEST := -v .
 TEST := -v --run Synopsis
 TEST := -v --run _eval 
 TEST := -v --run Broken
-TEST := -v --run ParseSuccess 
 TEST := -v --run OttoError 
 TEST := -v --run API
 TEST := -v --run IsValidRegExp
@@ -21,11 +20,13 @@ TEST := -v --run SwitchBreak
 TEST := -v --run Unicode 
 TEST := -v --run _issue
 TEST := -v --run String_fromCharCode
-TEST := -v --run ParseFailure
 TEST := -v --run Lexer\|Parse
 TEST := -v --run Lexer
 TEST := -v --run String_
 TEST := -v --run RegExp 
+TEST := -v --run ParseSuccess 
+TEST := -v --run Parse
+TEST := -v --run ParseFailure
 TEST := .
 
 test: test-i

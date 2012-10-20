@@ -159,12 +159,16 @@ func (self *_lexer) ScanSkip() int {
 		chr := self.peek()
 		switch {
 		case chr == '/':
-			read, _, _, _ := self.read(3)
+			read, _, found, width := self.read(2)
 			switch read[1] {
 			case '/':
+				self.tail += found
+				self.tailOffset += width
 				self.ScanLineComment()
 				lineCount += 1
 			case '*':
+				self.tail += found
+				self.tailOffset += width
 				lineCount += self.ScanBlockComment()
 			default:
 				goto RETURN

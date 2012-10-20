@@ -653,6 +653,12 @@ func TestParseSuccess(t *testing.T) {
 	---
 	{ @ xyzzy { <throw> { <new> TypeError "Nothing happens." } } }
 	`)
+
+	test(`
+	/abc/.source
+	---
+	{ @ { . { /abc/ } source } }
+	`)
 }
 
 func TestParseFailure(t *testing.T) {
@@ -1392,6 +1398,20 @@ Label '_' has already been declared
 	function(){}
 	---
 	Unexpected token ( 2:-:-
+	`)
+
+	test(`
+	/*/
+	---
+	Unexpected token ILLEGAL
+	0:0:0
+	`)
+
+	test(`
+	/*/.source
+	---
+	Unexpected token ILLEGAL
+	0:0:0
 	`)
 }
 
