@@ -1413,6 +1413,8 @@ Label '_' has already been declared
 	Unexpected token ILLEGAL
 	0:0:0
 	`)
+
+	test("/\\1/.source", "---\nInvalid regular expression: invalid escape sequence: `\\1`\n-:-:-")
 }
 
 func TestParseComment(t *testing.T) {
