@@ -328,7 +328,7 @@ func convertHexadecimalRune(word string) rune {
 }
 
 func (self *_lexer) scanHexadecimalRune(size int) rune {
-	_, word, width, found := self.read(size)
+	_, word, found, width := self.read(size)
 	chr := convertHexadecimalRune(word)
 	if chr == utf8.RuneError {
 		return chr
@@ -545,7 +545,7 @@ func (self *_lexer) read(count int) ([]rune, string, int, int) {
 		word = string(read[:found])
 	}
 
-	return read, word, width, found
+	return read, word, found, width
 }
 
 func (self *_lexer) next() rune {

@@ -32,12 +32,12 @@ func lexerCollectAndTest(input string, arguments... string){
 	}
 }
 
-func testLexerRead(lexer *_lexer, count int, wantRead []rune, wantWord string, wantWidth, wantFound int) {
-	haveRead, haveWord, haveWidth, haveFound := lexer.read(count)
+func testLexerRead(lexer *_lexer, count int, wantRead []rune, wantWord string, wantFound, wantWidth int) {
+	haveRead, haveWord, haveFound, haveWidth := lexer.read(count)
 	Is(haveRead, wantRead)
 	Is(haveWord, wantWord)
-	Is(haveWidth, wantWidth)
 	Is(haveFound, wantFound)
+	Is(haveWidth, wantWidth)
 }
 
 func TestLexer(t *testing.T) {
