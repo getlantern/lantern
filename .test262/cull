@@ -25,9 +25,44 @@ do
     cp data/test/suite.base/$test.js data/test/suite/$test.js
 done
 
+pushd data/test/suite
 # Skip this UTF-16-centric test, for now
-rm -f data/test/suite/ch07/7.3/7.3-15.js
+rm -f ch07/7.3/7.3-15.js
 # Skip this UTF-16-centric test, for now
-rm -f data/test/suite/ch07/7.3/7.3-5.js
+rm -f ch07/7.3/7.3-5.js
 # Skip this UTF-16-centric test, for now
-rm -f data/test/suite/ch07/7.3/7.3-6.js
+rm -f ch07/7.3/7.3-6.js
+# Skip set/get, for now
+rm -f ch07/7.6/7.6.1/7.6.1-4-1.js
+rm -f ch07/7.6/7.6.1/7.6.1-4-10.js
+rm -f ch07/7.6/7.6.1/7.6.1-4-11.js
+rm -f ch07/7.6/7.6.1/7.6.1-4-12.js
+rm -f ch07/7.6/7.6.1/7.6.1-4-13.js
+rm -f ch07/7.6/7.6.1/7.6.1-4-14.js
+rm -f ch07/7.6/7.6.1/7.6.1-4-15.js
+rm -f ch07/7.6/7.6.1/7.6.1-4-16.js
+rm -f ch07/7.6/7.6.1/7.6.1-4-2.js
+rm -f ch07/7.6/7.6.1/7.6.1-4-3.js
+rm -f ch07/7.6/7.6.1/7.6.1-4-4.js
+rm -f ch07/7.6/7.6.1/7.6.1-4-5.js
+rm -f ch07/7.6/7.6.1/7.6.1-4-6.js
+rm -f ch07/7.6/7.6.1/7.6.1-4-7.js
+rm -f ch07/7.6/7.6.1/7.6.1-4-8.js
+rm -f ch07/7.6/7.6.1/7.6.1-4-9.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-1.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-10.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-11.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-12.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-13.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-14.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-15.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-16.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-2.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-3.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-4.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-5.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-6.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-7.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-8.js
+rm -f ch07/7.6/7.6.1/7.6.1-8-9.js
+popd

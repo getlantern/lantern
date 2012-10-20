@@ -15,7 +15,8 @@ while (<STDIN>) {
         symlink $test, ".fail";
         exit 64;
     } elsif (m/passed|as expected$/) {
-        $passed += 1
+        $passed += 1;
+        print "$_\n";
     }
 }
 
