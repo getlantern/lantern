@@ -44,7 +44,7 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 		}
 	}
 
-	re2pattern := pattern // Uhh, ...
+	re2pattern := transformRegExp(pattern)
 	if len(re2flags) > 0 {
 		re2pattern = fmt.Sprintf("(?%s:%s)", re2flags, re2pattern)
 	}

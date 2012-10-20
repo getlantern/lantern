@@ -37,9 +37,11 @@ gauntlet:
 try: .fail
 	head $<
 	cat shim.js $< | $(otto)
+	@echo PASS
 
 try-tmp: tmp
 	cat shim.js $< | $(otto)
+	@echo PASS
 
 look: .fail
 	cat $<

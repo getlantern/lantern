@@ -1562,6 +1562,8 @@ func TestRegExp(t *testing.T) {
 	Is(result._object().Get("1"), "undefined")
 	Is(result._object().Get("2"), "b")
 	Is(result._object().Get("length"), "3")
+
+	test(`/\u0041/.source`, "\\u0041")
 }
 
 func TestNewFunction(t *testing.T) {

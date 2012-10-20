@@ -17,7 +17,6 @@ TEST := -v --run ParseSuccess
 TEST := -v --run OttoError 
 TEST := -v --run API
 TEST := -v --run IsValidRegExp
-TEST := -v --run RegExp 
 TEST := -v --run SwitchBreak 
 TEST := -v --run Unicode 
 TEST := -v --run _issue
@@ -26,6 +25,7 @@ TEST := -v --run ParseFailure
 TEST := -v --run Lexer\|Parse
 TEST := -v --run Lexer
 TEST := -v --run String_
+TEST := -v --run RegExp 
 TEST := .
 
 test: test-i

@@ -3,6 +3,8 @@
 use strict;
 use warnings;
 
+$| = 1;
+
 my $passed = 0;
 while (<STDIN>) {
     chomp;

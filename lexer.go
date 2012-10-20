@@ -288,8 +288,6 @@ func (self *_lexer) scanQuoteLiteral() _token {
 				text.WriteRune('\v')
 			case '0':
 				text.WriteRune(0)
-			default:
-				text.WriteRune(value)
 			case 'u':
 				result := self.scanHexadecimalRune(4)
 				if result != utf8.RuneError {
@@ -305,6 +303,8 @@ func (self *_lexer) scanQuoteLiteral() _token {
 				} else {
 					text.WriteRune(value)
 				}
+			default:
+				text.WriteRune(value)
 			}
 			// TODO Octal escaping
 		default:
