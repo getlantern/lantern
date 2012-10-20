@@ -1564,6 +1564,9 @@ func TestRegExp(t *testing.T) {
 	Is(result._object().Get("length"), "3")
 
 	test(`/\u0041/.source`, "\\u0041")
+	test(`/\a/.source`, "\\a")
+	test(`/\;/.source`, "\\;")
+	test(`/\ /.source`, "\\ ")
 }
 
 func TestNewFunction(t *testing.T) {
