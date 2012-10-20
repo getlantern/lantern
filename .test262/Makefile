@@ -1,4 +1,4 @@
-.PHONY: build test otto v8 cull uncull gauntlet try test-v8 test-otto
+.PHONY: build test otto v8 cull uncull gauntlet try test-v8 test-otto tmp
 
 otto := ./otto -underscore=false
 TEST := python ./data/tools/packaging/test262.py --test=data --non_strict_only
@@ -32,7 +32,7 @@ uncull:
 
 gauntlet:
 	-$(TEST) $(WITH_otto) 2>/dev/null | ./gauntlet
-	@[ -f .fail ] && head .fail
+	@[ -f .fail ] && { cp .fail tmp; head .fail; }
 
 try: .fail
 	head $<
@@ -45,4 +45,3 @@ try-tmp: tmp
 
 look: .fail
 	cat $<
-
