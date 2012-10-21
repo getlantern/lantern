@@ -57,6 +57,7 @@ func TestTransformRegExp(t *testing.T) {
 	Terst(t)
 
 	Is(transformRegExp(`\\|'|\r|\n|\t|\u2028|\u2029`), `\\|'|\r|\n|\t|\x{2028}|\x{2029}`)
+	Is(transformRegExp(`\x`), `x`)
 }
 
 func TestIsValidRegExp(t *testing.T) {
@@ -1567,6 +1568,20 @@ func TestRegExp(t *testing.T) {
 	test(`/\a/.source`, "\\a")
 	test(`/\;/.source`, "\\;")
 	test(`/\ /.source`, "\\ ")
+
+	// Start sanity check...
+	test("eval(\"/abc/\").source", "abc")
+	test("eval(\"/\u0023/\").source", "#")
+	test("eval(\"/\u0058/\").source", "X")
+	test("eval(\"/\\\u0023/\").source == \"\\\u0023\"", "true")
+	test("'0x' + '0058'", "0x0058")
+	test("'\\\\' + '0x' + '0058'", "\\0x0058")
+	// ...stop sanity check
+
+	test(`abc = '\\' + String.fromCharCode('0x' + '0058'); eval('/' + abc + '/').source`, "\\X")
+	test(`abc = '\\' + String.fromCharCode('0x0058'); eval('/' + abc + '/').source == "\\\u0058"`, "true")
+	test(`abc = '\\' + String.fromCharCode('0x0023'); eval('/' + abc + '/').source == "\\\u0023"`, "true")
+	test(`abc = '\\' + String.fromCharCode('0x0078'); eval('/' + abc + '/').source == "\\\u0078"`, "true")
 }
 
 func TestNewFunction(t *testing.T) {

@@ -45,3 +45,4 @@ try-tmp: tmp
 
 look: .fail
 	cat $<
+	@echo `readlink $<`
