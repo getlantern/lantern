@@ -1567,7 +1567,10 @@ func TestRegExp(t *testing.T) {
 	test(`/\u0041/.source`, "\\u0041")
 	test(`/\a/.source`, "\\a")
 	test(`/\;/.source`, "\\;")
-	test(`/\ /.source`, "\\ ")
+
+	test(`/a\a/.source`, "a\\a")
+	test(`/,\;/.source`, ",\\;")
+	test(`/ \ /.source`, " \\ ")
 
 	// Start sanity check...
 	test("eval(\"/abc/\").source", "abc")
