@@ -4,19 +4,17 @@ var sys = require('sys'),
     http = require('http'),
     fs = require('fs'),
     url = require('url'),
-    events = require('events'),
-    sleep = require('../node_modules/sleep'),
-    faye = require('../node_modules/faye');
-
-//faye.Logging.logLevel = faye.Logging.LOG_LEVELS.info;
+    events = require('events');
+var BayeuxBackend = require('../mock/bayeux_backend').BayeuxBackend
+  , ApiServlet = require('../mock/http_api').ApiServlet
+  ;
 
 var DEFAULT_PORT = 8000;
 
 function main(argv) {
   new HttpServer({
     'GET': createServlet(StaticServlet),
-    'HEAD': createServlet(StaticServlet),
-    'POST': createServlet(ApiServlet)
+    'HEAD': createServlet(StaticServlet)
   }).start(Number(argv[2]) || DEFAULT_PORT);
 }
 
@@ -32,52 +30,6 @@ function createServlet(Class) {
   return servlet.handleRequest.bind(servlet);
 }
 
-// XXX
-var bayeux,
-    model;
-function resetModel() {
-  model = {
-    modal: 'welcome',
-    lang: 'en',
-    connectivity: {
-      internet: true,
-      gtalk: 'notConnected',
-      peers: 0
-    },
-    settings: {
-      savePassword: true,
-      passwordSaved: false,
-      startAtLogin: true,
-      autoReport: true,
-      proxyPort: 8787,
-      proxyAllSites: false,
-      proxiedSitesList: [
-        'google.com',
-        'twitter.com'
-        ]
-    }
-  };
-}
-resetModel();
-function sync(obj, path, value){
-  var lastObj = obj;
-  var property;
-  path.split('.').forEach(function(name) {
-    if (name) {
-      lastObj = obj;
-      obj = obj[property=name];
-      if (!obj) {
-        lastObj[property] = obj = {};
-      }
-    }
-  });
-  if (typeof property != 'undefined') {
-    lastObj[property] = value;
-  } else {
-    lastObj = value;
-  }
-}
-
 /**
  * An Http server implementation that uses a map of methods to decide
  * action routing.
@@ -86,9 +38,11 @@ function sync(obj, path, value){
  */
 function HttpServer(handlers) {
   this.handlers = handlers;
+  this.bayeuxBackend = new BayeuxBackend();
+  var apiServlet = new ApiServlet(this.bayeuxBackend);
+  this.handlers['POST'] = apiServlet.handleRequest.bind(apiServlet);
   this.server = http.createServer(this.handleRequest_.bind(this));
-  bayeux = new faye.NodeAdapter({mount: '/cometd', timeout: 45});
-  bayeux.attach(this.server);
+  this.bayeuxBackend.attachServer(this.server);
 }
 
 HttpServer.prototype.start = function(port) {
@@ -97,27 +51,6 @@ HttpServer.prototype.start = function(port) {
   sys.puts('Bayeux-attached http server running at http://0.0.0.0:'+port);
   sys.puts('Lantern UI running at http://0.0.0.0:'+port+'/app/index.html');
 
-  bayeux.bind('handshake', function(clientId) {
-    sys.puts('[bayeux] handshake: client: ' + clientId);
-  });
-  bayeux.bind('subscribe', function(clientId, channel) {
-    sys.puts('[bayeux] subscribe: client: ' + clientId + ', channel: ' + channel);
-    sys.puts('[bayeux]            publishing entire state to /sync channel');
-    bayeux._server._engine.publish({channel:'/sync', data:{path:'', value:model}});
-  });
-  bayeux.bind('unsubscribe', function(clientId, channel) {
-    sys.puts('[bayeux] unsubscribe: client ' + clientId + ', channel ' + channel);
-  });
-  bayeux.bind('publish', function(clientId, channel, data) {
-    sys.puts('[bayeux] got publish: ' + clientId + ' ' + channel + ' ' + sys.inspect(data));
-    if (channel == '/sync' && typeof clientId != 'undefined') {
-      sys.puts('[bayeux] syncing client publication: client:' + clientId + ', data:\n' + sys.inspect(data));
-      sync(model, data.path, data.value);
-    }
-  });
-  bayeux.bind('disconnect', function(clientId) {
-    sys.puts('[bayeux] disconnect: client ' + clientId);
-  });
 };
 
 HttpServer.prototype.parseUrl_ = function(urlString) {
@@ -127,14 +60,13 @@ HttpServer.prototype.parseUrl_ = function(urlString) {
 };
 
 HttpServer.prototype.handleRequest_ = function(req, res) {
-  /*
   var logEntry = req.method + ' ' + req.url;
+  /*
   if (req.headers['user-agent']) {
     logEntry += ' ' + req.headers['user-agent'];
   }
-  logEntry = '[http] ' + logEntry;
-  sys.puts(logEntry);
   */
+  sys.puts(logEntry);
   req.url = this.parseUrl_(req.url);
   var handler = this.handlers[req.method];
   if (!handler) {
@@ -143,196 +75,6 @@ HttpServer.prototype.handleRequest_ = function(req, res) {
   } else {
     handler.call(this, req, res);
   }
-};
-
-/**
- * Mock Dashboard API
- */
-function ApiServlet() {}
-
-ApiServlet.HandlerMap = {
-  '/api/0.0.1/reset': function(req, res, parsed) {
-      res.writeHead(200);
-      resetModel();
-      bayeux._server._engine.publish({channel:'/sync', data:{path:'', value:model}});
-    },
-  '/api/0.0.1/passwordCreate': function(req, res, parsed) {
-      if (!parsed.query.password) {
-        res.writeHead(400);
-      } else {
-        res.writeHead(200);
-      }
-    },
-  '/api/0.0.1/settings/unlock': function(req, res, parsed) {
-      var password = parsed.query.password;
-      if (!parsed.query.password) {
-        res.writeHead(400);
-      } else if (parsed.query.password == 'password') {
-        res.writeHead(200);
-      } else {
-        res.writeHead(403);
-      }
-    },
-  '/api/0.0.1/continue': function(req, res, parsed) {
-      switch (model.modal) {
-        case 'gtalkUnreachable':
-          model.modal = model.setupComplete ?
-                          '' :
-                          (model.settings.mode == 'give' ?
-                            'finished' :
-                            'sysproxy');
-          bayeux._server._engine.publish({channel:'/sync', data:{path:'modal', value:model.modal}});
-          res.writeHead(200);
-          break;
-
-        case 'firstInviteReceived':
-          model.modal = model.settings.mode == 'get' ? 'sysproxy' : 'finished';
-          bayeux._server._engine.publish({channel:'/sync', data:{path:'modal', value:model.modal}});
-          res.writeHead(200);
-          break;
-
-        case 'requestSent':
-          model.modal = '';
-          bayeux._server._engine.publish({channel:'/sync', data:{path:'modal', value:model.modal}});
-          res.writeHead(200);
-
-        case 'finished':
-          model.modal = '';
-          model.setupComplete = true;
-          bayeux._server._engine.publish({channel:'/sync', data:{path:'', value:model}});
-          res.writeHead(200);
-          break;
-        
-        default:
-          res.writeHead(400);
-      }
-    },
-  '/api/0.0.1/settings/': function(req, res, parsed) {
-      var mode = parsed.query.mode,
-          savePassword = parsed.query.savePassword,
-          systemProxy = parsed.query.systemProxy,
-          lang = parsed.query.lang,
-          badRequest = false;
-      if ('undefined' == typeof mode
-       && 'undefined' == typeof savePassword
-       && 'undefined' == typeof systemProxy
-       && 'undefined' == typeof lang
-          ) {
-        badRequest = true;
-      } else {
-        if (mode) {
-          if (mode != 'give' && mode != 'get') {
-            badRequest = true;
-            sys.puts('invalid value of mode: ' + mode);
-          } else {
-            model.settings.mode = mode;
-            if (!model.settings.setupComplete)
-              model.modal = 'signin';
-          }
-        }
-        if (savePassword) {
-          if (savePassword != 'true' && savePassword != 'false') {
-            badRequest = true;
-            sys.puts('invalid value of savePassword: ' + savePassword);
-          } else {
-            savePassword = savePassword == 'true';
-            model.settings.savePassword = savePassword;
-          }
-        }
-        if (systemProxy) {
-          if (systemProxy != 'true' && systemProxy != 'false') {
-            badRequest = true;
-            sys.puts('invalid value of systemProxy: ' + systemProxy);
-          } else {
-            systemProxy = systemProxy == 'true';
-            if (systemProxy) sleep.usleep(750000);
-            model.settings.systemProxy = systemProxy;
-            if (model.modal == 'sysproxy' && !model.setupComplete) {
-              model.modal = 'finished';
-            }
-          }
-        }
-        if (lang) {
-          if (lang != 'en' && lang != 'zh' && lang != 'fa' && lang != 'ar') {
-            badRequest = true;
-            sys.puts('invalid value of lang: ' + lang);
-          } else {
-            model.settings.lang = lang;
-          }
-        }
-      }
-      if (badRequest) {
-        res.writeHead(400);
-      } else {
-        res.writeHead(200);
-        bayeux._server._engine.publish({channel:'/sync', data:{path:'', value:model}});
-      }
-    },
-  '/api/0.0.1/signin': function(req, res, parsed) {
-      var userid = parsed.query.userid,
-          password = typeof parsed.query.password != 'undefined' ?
-                     parsed.query.password :
-                     (model.settings.passwordSaved ? 'password' : '');
-      model.connectivity.gtalk = 'connecting';
-      bayeux._server._engine.publish({channel:'/sync', data:{path:'connectivity.gtalk', value:model.connectivity.gtalk}});
-      model.modal = 'signin';
-      sleep.usleep(750000);
-      if (!userid || !password) {
-        res.writeHead(400);
-        model.connectivity.gtalk = 'notConnected';
-      } else {
-        if (password != 'password') {
-          res.writeHead(401);
-          model.connectivity.gtalk = 'notConnected';
-          model.settings.passwordSaved = false;
-        } else if (userid == 'offline@example.com') {
-          res.writeHead(503);
-          model.modal = 'gtalkUnreachable';
-          model.connectivity.gtalk = 'notConnected';
-        } else if (userid == 'notinbeta@example.com') {
-          res.writeHead(403);
-          model.modal = 'notInvited';
-          model.connectivity.gtalk = 'notConnected';
-        } else {
-          res.writeHead(200);
-          model.connectivity.gtalk = 'connected';
-          model.settings.userid = userid;
-          if (model.settings.savePassword) {
-            model.settings.passwordSaved = true;
-          }
-          if (model.setupComplete)
-            model.modal = '';
-          else
-            model.modal = model.settings.mode == 'get' ? 'sysproxy' : 'finished';
-        }
-      }
-      bayeux._server._engine.publish({channel:'/sync', data:{path:'', value:model}});
-    },
-  '/api/0.0.1/requestInvite': function(req, res, parsed) {
-      var lanternDevs = parsed.query.lanternDevs;
-      if (typeof lanternDevs != 'undefined'
-          && lanternDevs != 'true'
-          && lanternDevs != 'false') {
-        res.writeHead(400);
-      }
-      sleep.usleep(750000);
-      model.modal = 'requestSent';
-      bayeux._server._engine.publish({channel:'/sync', data:{path:'modal', value:model.modal}});
-      res.writeHead(200);
-    }
-};
-
-ApiServlet.prototype.handleRequest = function(req, res) {
-  var self = this,
-      parsed = url.parse(req.url, true),
-      handler = ApiServlet.HandlerMap[parsed.pathname];
-  if (handler) {
-    handler(req, res, parsed);
-  } else {
-    res.writeHead(404);
-  }
-  res.end();
-  sys.puts('[api] ' + req.url.href + ' ' + res.statusCode);
 };
 
 /**

@@ -1,0 +1,21 @@
+{
+  "modal":"welcome",
+  "lang":"en",
+  "connectivity":{
+    "internet":true,
+    "gtalk":"notConnected",
+    "peers":0
+  },
+  "settings":{
+    "savePassword":true,
+    "passwordSaved":false,
+    "startAtLogin":true,
+    "autoReport":true,
+    "proxyPort":8787,
+    "proxyAllSites":false,
+    "proxiedSitesList":[
+      "google.com",
+      "twitter.com"
+    ]
+  }
+}
