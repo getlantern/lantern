@@ -17,7 +17,7 @@ type _regExpObject struct {
 
 func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object {
 	self := runtime.newObject()
-	self.Class = "RegExp"
+	self.class = "RegExp"
 
 	global := false
 	ignoreCase := false
@@ -50,7 +50,7 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 		re2pattern = fmt.Sprintf("(?%s:%s)", re2flags, re2pattern)
 	}
 
-	self.RegExp = &_regExpObject{
+	self._RegExp = &_regExpObject{
 		RegularExpression: regexp.MustCompile(re2pattern),
 		Global: global,
 		IgnoreCase: ignoreCase,
@@ -58,29 +58,29 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 		Source: pattern,
 		LastIndex: toValue(0),
 	}
-	self._propertyStash = newRegExpStash(self.RegExp, self._propertyStash)
+	self.stash = newRegExpStash(self._RegExp, self.stash)
 	return self
 }
 
 func execRegExp(this *_object, target string) (match bool, result []int) {
-	lastIndex := toInteger(this.Get("lastIndex"))
+	lastIndex := toInteger(this.get("lastIndex"))
 	index := lastIndex
-	global := toBoolean(this.Get("global"))
+	global := toBoolean(this.get("global"))
 	if !global {
 		index = 0
 	}
 	if 0 > index || index > int64(len(target)) {
 	} else {
-		result = this.RegExp.RegularExpression.FindStringSubmatchIndex(target[index:])
+		result = this._RegExp.RegularExpression.FindStringSubmatchIndex(target[index:])
 	}
 	if result == nil {
-		this.WriteValue("lastIndex", toValue(0), true)
+		this.set("lastIndex", toValue(0), true)
 		return // !match
 	}
 	match = true
 	endIndex := result[len(result)-1]
 	if global {
-		this.WriteValue("lastIndex", toValue(endIndex), true)
+		this.set("lastIndex", toValue(endIndex), true)
 	}
 	return // match
 }
@@ -230,15 +230,15 @@ func newRegExpStash(_regExpObject *_regExpObject, stash _stash) *_regExpStash {
 	return self
 }
 
-func (self *_regExpStash) CanRead(name string) bool {
+func (self *_regExpStash) test(name string) bool {
 	switch name {
 	case "global", "ignoreCase", "multiline", "lastIndex", "source":
 		return true
 	}
-	return self._stash.CanRead(name)
+	return self._stash.test(name)
 }
 
-func (self *_regExpStash) Read(name string) Value {
+func (self *_regExpStash) get(name string) Value {
 	switch name {
 	case "global":
 		return toValue(self._regExpObject.Global)
@@ -251,10 +251,10 @@ func (self *_regExpStash) Read(name string) Value {
 	case "source":
 		return toValue(self._regExpObject.Source)
 	}
-	return self._stash.Read(name)
+	return self._stash.get(name)
 }
 
-func (self *_regExpStash) Write(name string, value Value) {
+func (self *_regExpStash) put(name string, value Value) {
 	switch name {
 	case "global", "ignoreCase", "multiline", "source":
 		// TODO Is this good enough? Check DefineOwnProperty
@@ -263,7 +263,7 @@ func (self *_regExpStash) Write(name string, value Value) {
 		self._regExpObject.LastIndex = value
 		return
 	}
-	self._stash.Write(name, value)
+	self._stash.put(name, value)
 }
 
 func (self *_regExpStash) property(name string) *_property {
@@ -282,7 +282,7 @@ func (self *_regExpStash) property(name string) *_property {
 	return self._stash.property(name)
 }
 
-func (self *_regExpStash) Enumerate(each func(string)) {
+func (self *_regExpStash) enumerate(each func(string)) {
 	// Skip global, ignoreCase, multiline, source, & lastIndex
-	self._stash.Enumerate(each)
+	self._stash.enumerate(each)
 }

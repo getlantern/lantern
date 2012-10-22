@@ -81,13 +81,13 @@ func _builtinGlobal_encodeURI(call FunctionCall, characterRegexp *regexp.Regexp)
 	return toValue(string(value))
 }
 
-var encodeURI_Regexp *regexp.Regexp = regexp.MustCompile(`([^~!@#$&*()=:/,;?+'])`)
+var encodeURI_Regexp = regexp.MustCompile(`([^~!@#$&*()=:/,;?+'])`)
 
 func builtinGlobal_encodeURI(call FunctionCall) Value {
 	return _builtinGlobal_encodeURI(call, encodeURI_Regexp)
 }
 
-var encodeURIComponent_Regexp *regexp.Regexp = regexp.MustCompile(`([^~!*()'])`)
+var encodeURIComponent_Regexp = regexp.MustCompile(`([^~!*()'])`)
 
 func builtinGlobal_encodeURIComponent(call FunctionCall) Value {
 	return _builtinGlobal_encodeURI(call, encodeURIComponent_Regexp)
@@ -124,7 +124,7 @@ func builtinObject_toString(call FunctionCall) Value {
 	} else if call.This.IsNull() {
 		result = "[object Null]"
 	} else {
-		result = fmt.Sprintf("[object %s]", call.thisObject().Class)
+		result = fmt.Sprintf("[object %s]", call.thisObject().class)
 	}
 	return toValue(result)
 }
@@ -177,10 +177,10 @@ func builtinFunction_apply(call FunctionCall) Value {
 
 	arrayObject := argumentList._object()
 	thisObject := call.thisObject()
-	length := uint(toUI32(arrayObject.Get("length")))
+	length := uint(toUI32(arrayObject.get("length")))
 	valueArray := make([]Value, length)
 	for index := uint(0); index < length; index++ {
-		valueArray[index] = arrayObject.Get(arrayIndexToString(index))
+		valueArray[index] = arrayObject.get(arrayIndexToString(index))
 	}
 	return thisObject.Call(this, valueArray)
 }
@@ -317,10 +317,10 @@ func builtinString_match(call FunctionCall) Value {
 	target := toString(call.This)
 	matcherValue := call.Argument(0)
 	matcher := matcherValue._object()
-	if !matcherValue.IsObject() || matcher.Class != "RegExp" {
+	if !matcherValue.IsObject() || matcher.class != "RegExp" {
 		matcher = call.runtime.newRegExp(matcherValue, UndefinedValue())
 	}
-	global := toBoolean(matcher.Get("global"))
+	global := toBoolean(matcher.get("global"))
 	if !global {
 		match, result := execRegExp(matcher, target)
 		if !match {
@@ -330,10 +330,10 @@ func builtinString_match(call FunctionCall) Value {
 	}
 
 	{
-		result := matcher.RegExp.RegularExpression.FindAllStringIndex(target, -1)
+		result := matcher._RegExp.RegularExpression.FindAllStringIndex(target, -1)
 		matchCount := len(result)
 		if result == nil {
-			matcher.WriteValue("lastIndex", toValue(0), true)
+			matcher.set("lastIndex", toValue(0), true)
 			return UndefinedValue() // !match
 		}
 		matchCount = len(result)
@@ -341,12 +341,12 @@ func builtinString_match(call FunctionCall) Value {
 		for index := 0; index < matchCount; index++ {
 			valueArray[index] = toValue(target[result[index][0]:result[index][1]])
 		}
-		matcher.WriteValue("lastIndex", toValue(result[matchCount-1][1]), true)
+		matcher.set("lastIndex", toValue(result[matchCount-1][1]), true)
 		return toValue(call.runtime.newArray(valueArray))
 	}
 }
 
-var builtinString_replace_Regexp *regexp.Regexp = regexp.MustCompile("\\$(?:[\\$\\&\\'\\`1-9]|0[1-9]|[1-9][0-9])")
+var builtinString_replace_Regexp = regexp.MustCompile("\\$(?:[\\$\\&\\'\\`1-9]|0[1-9]|[1-9][0-9])")
 
 func builtinString_findAndReplaceString(input []byte, lastIndex int, match []int, target []byte, replaceValue []byte) (output []byte) {
 	matchCount := len(match) / 2
@@ -391,9 +391,9 @@ func builtinString_replace(call FunctionCall) Value {
 	var search *regexp.Regexp
 	global := false
 	find := 1
-	if searchValue.IsObject() && searchObject.Class == "RegExp" {
-		search = searchObject.RegExp.RegularExpression
-		global = toBoolean(searchObject.Get("global"))
+	if searchValue.IsObject() && searchObject.class == "RegExp" {
+		search = searchObject._RegExp.RegularExpression
+		global = toBoolean(searchObject.get("global"))
 		if global {
 			find = -1
 		}
@@ -448,7 +448,7 @@ func builtinString_replace(call FunctionCall) Value {
 		}
 
 		if global && searchObject != nil {
-			searchObject.Put("lastIndex", toValue(lastIndex), true)
+			searchObject.put("lastIndex", toValue(lastIndex), true)
 		}
 
 		return toValue(string(result))
@@ -462,10 +462,10 @@ func builtinString_search(call FunctionCall) Value {
 	target := toString(call.This)
 	searchValue := call.Argument(0)
 	search := searchValue._object()
-	if !searchValue.IsObject() || search.Class != "RegExp" {
+	if !searchValue.IsObject() || search.class != "RegExp" {
 		search = call.runtime.newRegExp(searchValue, UndefinedValue())
 	}
-	result := search.RegExp.RegularExpression.FindStringIndex(target)
+	result := search._RegExp.RegularExpression.FindStringIndex(target)
 	if result == nil {
 		return toValue(-1)
 	}
@@ -504,7 +504,7 @@ func builtinString_split(call FunctionCall) Value {
 
 	if separatorValue.isRegExp() {
 		targetLength := len(target)
-		search := separatorValue._object().RegExp.RegularExpression
+		search := separatorValue._object()._RegExp.RegularExpression
 		valueArray := []Value{}
 		result := search.FindAllStringSubmatchIndex(target, -1)
 		lastIndex := 0
@@ -697,8 +697,8 @@ func builtinArray_concat(call FunctionCall) Value {
 		switch item._valueType {
 		case valueObject:
 			value := item._object()
-			if value.Class == "Array" {
-				itemValueArray := value._propertyStash.(*_arrayStash).valueArray
+			if value.class == "Array" {
+				itemValueArray := value.stash.(*_arrayStash).valueArray
 				for _, item := range itemValueArray {
 					if item._valueType == valueEmpty {
 						continue
@@ -717,50 +717,50 @@ func builtinArray_concat(call FunctionCall) Value {
 
 func builtinArray_shift(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := uint(toUI32(thisObject.Get("length")))
+	length := uint(toUI32(thisObject.get("length")))
 	if 0 == length {
-		thisObject.Put("length", toValue(length), true)
+		thisObject.put("length", toValue(length), true)
 		return UndefinedValue()
 	}
-	first := thisObject.Get("0")
+	first := thisObject.get("0")
 	for index := uint(1); index < length; index++ {
 		from := arrayIndexToString(index)
 		to := arrayIndexToString(index - 1)
-		if thisObject.HasProperty(from) {
-			thisObject.Put(to, thisObject.Get(from), true)
+		if thisObject.hasProperty(from) {
+			thisObject.put(to, thisObject.get(from), true)
 		} else {
-			thisObject.Delete(to, true)
+			thisObject.delete(to, true)
 		}
 	}
-	thisObject.Delete(arrayIndexToString(length - 1), true)
-	thisObject.Put("length", toValue(length - 1), true)
+	thisObject.delete(arrayIndexToString(length - 1), true)
+	thisObject.put("length", toValue(length - 1), true)
 	return first
 }
 
 func builtinArray_push(call FunctionCall) Value {
 	thisObject := call.thisObject()
 	itemList := call.ArgumentList
-	index := uint(toUI32(thisObject.Get("length")))
+	index := uint(toUI32(thisObject.get("length")))
 	for len(itemList) > 0 {
-		thisObject.Put(arrayIndexToString(index), itemList[0], true)
+		thisObject.put(arrayIndexToString(index), itemList[0], true)
 		itemList = itemList[1:]
 		index += 1
 	}
 	length := toValue(index)
-	thisObject.Put("length", length, true)
+	thisObject.put("length", length, true)
 	return length
 }
 
 func builtinArray_pop(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := uint(toUI32(thisObject.Get("length")))
+	length := uint(toUI32(thisObject.get("length")))
 	if 0 == length {
-		thisObject.Put("length", toValue(length), true)
+		thisObject.put("length", toValue(length), true)
 		return UndefinedValue()
 	}
-	last := thisObject.Get(arrayIndexToString(length - 1))
-	thisObject.Delete(arrayIndexToString(length - 1), true)
-	thisObject.Put("length", toValue(length - 1), true)
+	last := thisObject.get(arrayIndexToString(length - 1))
+	thisObject.delete(arrayIndexToString(length - 1), true)
+	thisObject.put("length", toValue(length - 1), true)
 	return last
 }
 
@@ -773,17 +773,17 @@ func builtinArray_join(call FunctionCall) Value {
 		}
 	}
 	thisObject := call.thisObject()
-	if stash, isArray := thisObject._propertyStash.(*_arrayStash); isArray {
+	if stash, isArray := thisObject.stash.(*_arrayStash); isArray {
 		return toValue(builtinArray_joinNative(stash.valueArray, separator))
 	}
 	// Generic .join
-	length := uint(toUI32(thisObject.Get("length")))
+	length := uint(toUI32(thisObject.get("length")))
 	if length == 0 {
 		return toValue("")
 	}
 	stringList := make([]string, 0, length)
 	for index := uint(0); index < length; index += 1 {
-		value := thisObject.Get(arrayIndexToString(index))
+		value := thisObject.get(arrayIndexToString(index))
 		stringValue := ""
 		switch value._valueType {
 		case valueEmpty, valueUndefined, valueNull:
@@ -852,7 +852,7 @@ func rangeStartLength(source []Value, size uint) (start, length int64) {
 
 func builtinArray_splice(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := uint(toUI32(thisObject.Get("length")))
+	length := uint(toUI32(thisObject.get("length")))
 
 	start := valueToArrayIndex(call.Argument(0), length, true)
 	deleteCount := valueToArrayIndex(call.Argument(1), length - start, false)
@@ -860,8 +860,8 @@ func builtinArray_splice(call FunctionCall) Value {
 
 	for index := uint(0); index < deleteCount; index++ {
 		indexString := arrayIndexToString(start + index)
-		if thisObject.HasProperty(indexString) {
-			valueArray[index] = thisObject.Get(indexString)
+		if thisObject.hasProperty(indexString) {
+			valueArray[index] = thisObject.get(indexString)
 		}
 	}
 
@@ -887,17 +887,17 @@ func builtinArray_splice(call FunctionCall) Value {
 		for index := start; index < stop; index++ {
 			from := arrayIndexToString(index + deleteCount) // Position just after deletion
 			to := arrayIndexToString(index + itemCount) // Position just after splice (insertion)
-			if thisObject.HasProperty(from) {
-				thisObject.Put(to, thisObject.Get(from), true)
+			if thisObject.hasProperty(from) {
+				thisObject.put(to, thisObject.get(from), true)
 			} else {
-				thisObject.Delete(to, true)
+				thisObject.delete(to, true)
 			}
 		}
 		// Delete off the end
 		// We don't bother to delete below <stop + itemCount> (if any) since those
 		// will be overwritten anyway
 		for index := length; index > (stop + itemCount); index-- {
-			thisObject.Delete(arrayIndexToString(index - 1), true)
+			thisObject.delete(arrayIndexToString(index - 1), true)
 		}
 	} else if itemCount > deleteCount {
 		// The Object/Array is growing
@@ -910,18 +910,18 @@ func builtinArray_splice(call FunctionCall) Value {
 		for index := length - deleteCount; index > start; index-- {
 			from := arrayIndexToString(index + deleteCount - 1)
 			to := arrayIndexToString(index + itemCount - 1)
-			if thisObject.HasProperty(from) {
-				thisObject.Put(to, thisObject.Get(from), true)
+			if thisObject.hasProperty(from) {
+				thisObject.put(to, thisObject.get(from), true)
 			} else {
-				thisObject.Delete(to, true)
+				thisObject.delete(to, true)
 			}
 		}
 	}
 
 	for index := uint(0); index < itemCount; index++ {
-		thisObject.Put(arrayIndexToString(index + start), itemList[index], true)
+		thisObject.put(arrayIndexToString(index + start), itemList[index], true)
 	}
-	thisObject.Put("length", toValue(length + itemCount - deleteCount), true)
+	thisObject.put("length", toValue(length + itemCount - deleteCount), true)
 
 	return toValue(call.runtime.newArray(valueArray))
 }
@@ -929,7 +929,7 @@ func builtinArray_splice(call FunctionCall) Value {
 func builtinArray_slice(call FunctionCall) Value {
 	thisObject := call.thisObject()
 
-	length := uint(toUI32(thisObject.Get("length")))
+	length := uint(toUI32(thisObject.get("length")))
 	start, end := rangeStartEnd(call.ArgumentList, length)
 
 	if start >= end {
@@ -940,13 +940,13 @@ func builtinArray_slice(call FunctionCall) Value {
 	sliceValueArray := make([]Value, sliceLength)
 
 	// Native slicing if a "real" array
-	if _arrayStash, ok := thisObject._propertyStash.(*_arrayStash); ok {
+	if _arrayStash, ok := thisObject.stash.(*_arrayStash); ok {
 		copy(sliceValueArray, _arrayStash.valueArray[start:start+sliceLength])
 	} else {
 		for index := uint(0); index < sliceLength; index++ {
 			from := arrayIndexToString(index + start)
-			if thisObject.HasProperty(from) {
-				sliceValueArray[index] = thisObject.Get(from)
+			if thisObject.hasProperty(from) {
+				sliceValueArray[index] = thisObject.get(from)
 			}
 		}
 	}
@@ -956,32 +956,32 @@ func builtinArray_slice(call FunctionCall) Value {
 
 func builtinArray_unshift(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := uint(toUI32(thisObject.Get("length")))
+	length := uint(toUI32(thisObject.get("length")))
 	itemList := call.ArgumentList
 	itemCount := uint(len(itemList))
 
 	for index := length; index > 0; index-- {
 		from := arrayIndexToString(index - 1)
 		to := arrayIndexToString(index + itemCount - 1)
-		if thisObject.HasProperty(from) {
-			thisObject.Put(to, thisObject.Get(from), true)
+		if thisObject.hasProperty(from) {
+			thisObject.put(to, thisObject.get(from), true)
 		} else {
-			thisObject.Delete(to, true)
+			thisObject.delete(to, true)
 		}
 	}
 
 	for index := uint(0); index < itemCount; index++ {
-		thisObject.Put(arrayIndexToString(index), itemList[index], true)
+		thisObject.put(arrayIndexToString(index), itemList[index], true)
 	}
 
 	newLength := toValue(length + itemCount)
-	thisObject.Put("length", newLength, true)
+	thisObject.put("length", newLength, true)
 	return newLength
 }
 
 func builtinArray_reverse(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := uint(toUI32(thisObject.Get("length")))
+	length := uint(toUI32(thisObject.get("length")))
 
 	lower := struct {
 		name string
@@ -998,22 +998,22 @@ func builtinArray_reverse(call FunctionCall) Value {
 		upper.index = length - lower.index - 1
 		upper.name = arrayIndexToString(upper.index)
 
-		lower.exists = thisObject.HasProperty(lower.name)
-		upper.exists = thisObject.HasProperty(upper.name)
+		lower.exists = thisObject.hasProperty(lower.name)
+		upper.exists = thisObject.hasProperty(upper.name)
 
 		if lower.exists && upper.exists {
-			lowerValue := thisObject.Get(lower.name)
-			upperValue := thisObject.Get(upper.name)
-			thisObject.Put(lower.name, upperValue, true)
-			thisObject.Put(upper.name, lowerValue, true)
+			lowerValue := thisObject.get(lower.name)
+			upperValue := thisObject.get(upper.name)
+			thisObject.put(lower.name, upperValue, true)
+			thisObject.put(upper.name, lowerValue, true)
 		} else if !lower.exists && upper.exists {
-			value := thisObject.Get(upper.name)
-			thisObject.Delete(upper.name, true)
-			thisObject.Put(lower.name, value, true)
+			value := thisObject.get(upper.name)
+			thisObject.delete(upper.name, true)
+			thisObject.put(lower.name, value, true)
 		} else if lower.exists && !upper.exists {
-			value := thisObject.Get(lower.name)
-			thisObject.Delete(lower.name, true)
-			thisObject.Put(upper.name, value, true)
+			value := thisObject.get(lower.name)
+			thisObject.delete(lower.name, true)
+			thisObject.put(upper.name, value, true)
 		} else {
 			// Nothing happens.
 		}
@@ -1033,9 +1033,9 @@ func sortCompare(thisObject *_object, index0, index1 uint, compare *_object) int
 	}{}
 	k := j
 	j.name = arrayIndexToString(index0)
-	j.exists = thisObject.HasProperty(j.name)
+	j.exists = thisObject.hasProperty(j.name)
 	k.name = arrayIndexToString(index1)
-	k.exists = thisObject.HasProperty(k.name)
+	k.exists = thisObject.hasProperty(k.name)
 
 	if !j.exists && !k.exists {
 		return 0
@@ -1045,8 +1045,8 @@ func sortCompare(thisObject *_object, index0, index1 uint, compare *_object) int
 		return -1
 	}
 
-	x := thisObject.Get(j.name)
-	y := thisObject.Get(k.name)
+	x := thisObject.get(j.name)
+	y := thisObject.get(k.name)
 	j.defined = x.IsDefined()
 	k.defined = y.IsDefined()
 
@@ -1083,23 +1083,23 @@ func arraySortSwap(thisObject *_object, index0, index1 uint) {
 	k := j
 
 	j.name = arrayIndexToString(index0)
-	j.exists = thisObject.HasProperty(j.name)
+	j.exists = thisObject.hasProperty(j.name)
 	k.name = arrayIndexToString(index1)
-	k.exists = thisObject.HasProperty(k.name)
+	k.exists = thisObject.hasProperty(k.name)
 
 	if j.exists && k.exists {
-		jValue := thisObject.Get(j.name)
-		kValue := thisObject.Get(k.name)
-		thisObject.Put(j.name, kValue, true)
-		thisObject.Put(k.name, jValue, true)
+		jValue := thisObject.get(j.name)
+		kValue := thisObject.get(k.name)
+		thisObject.put(j.name, kValue, true)
+		thisObject.put(k.name, jValue, true)
 	} else if !j.exists && k.exists {
-		value := thisObject.Get(k.name)
-		thisObject.Delete(k.name, true)
-		thisObject.Put(j.name, value, true)
+		value := thisObject.get(k.name)
+		thisObject.delete(k.name, true)
+		thisObject.put(j.name, value, true)
 	} else if j.exists && !k.exists {
-		value := thisObject.Get(j.name)
-		thisObject.Delete(j.name, true)
-		thisObject.Put(k.name, value, true)
+		value := thisObject.get(j.name)
+		thisObject.delete(j.name, true)
+		thisObject.put(k.name, value, true)
 	} else {
 		// Nothing happens.
 	}
@@ -1131,7 +1131,7 @@ func arraySortQuickSort(thisObject *_object, left, right uint, compare *_object)
 
 func builtinArray_sort(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := uint(toUI32(thisObject.Get("length")))
+	length := uint(toUI32(thisObject.get("length")))
 	compareValue := call.Argument(0)
 	compare := compareValue._object()
 	if compareValue.IsUndefined() {
@@ -1156,15 +1156,15 @@ func builtinNewRegExp(self *_object, _ Value, argumentList []Value) Value {
 
 func builtinRegExp_toString(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	source := toString(thisObject.Get("source"))
+	source := toString(thisObject.get("source"))
 	flags := []byte{}
-	if toBoolean(thisObject.Get("global")) {
+	if toBoolean(thisObject.get("global")) {
 		flags = append(flags, 'g')
 	}
-	if toBoolean(thisObject.Get("ignoreCase")) {
+	if toBoolean(thisObject.get("ignoreCase")) {
 		flags = append(flags, 'i')
 	}
-	if toBoolean(thisObject.Get("multiline")) {
+	if toBoolean(thisObject.get("multiline")) {
 		flags = append(flags, 'm')
 	}
 	return toValue(fmt.Sprintf("/%s/%s", source, flags))
@@ -1339,13 +1339,13 @@ func builtinError_toString(call FunctionCall) Value {
 	}
 
 	name := "Error"
-	nameValue := thisObject.Get("name")
+	nameValue := thisObject.get("name")
 	if nameValue.IsDefined() {
 		name = toString(nameValue)
 	}
 
 	message := ""
-	messageValue := thisObject.Get("message")
+	messageValue := thisObject.get("message")
 	if messageValue.IsDefined() {
 		message = toString(messageValue)
 	}

@@ -61,7 +61,7 @@ func (self *_runtime) _executionContext(depth int) *_executionContext {
 }
 
 func (self *_runtime) EnterFunctionExecutionContext(function *_object, this Value) *_functionEnvironment {
-	scopeEnvironment := function.Function.Call.ScopeEnvironment()
+	scopeEnvironment := function._Function.Call.ScopeEnvironment()
 	if scopeEnvironment == nil {
 		scopeEnvironment = self.GlobalEnvironment
 	}
@@ -112,7 +112,7 @@ func (self *_runtime) PutValue(reference _reference, value Value) {
 	if !reference.PutValue(value) {
 		// Why? -- If reference.Base == nil
 		strict := false
-		self.GlobalObject.WriteValue(reference.Name(), value, strict)
+		self.GlobalObject.set(reference.Name(), value, strict)
 	}
 }
 
@@ -173,7 +173,7 @@ func (self *_runtime) Call(function *_object, this Value, argumentList []Value) 
 		}
 	}()
 
-    returnValue = function.Function.Call.Dispatch(_functionEnvironment, self, this, argumentList)
+    returnValue = function._Function.Call.Dispatch(_functionEnvironment, self, this, argumentList)
 	return
 }
 
@@ -307,9 +307,9 @@ func testObjectCoercible(value Value) (isObject bool, mustCoerce bool) {
 func (self *_runtime) toValue(value interface{}) Value {
 	switch value := value.(type) {
 	case func(FunctionCall) Value:
-		return toValue(self.newNativeFunction(value, 0))
+		return toValue(self.newNativeFunction(value, 0, "nativeFunction"))
 	case _nativeFunction:
-		return toValue(self.newNativeFunction(value, 0))
+		return toValue(self.newNativeFunction(value, 0, "nativeFunction"))
 	}
 	return toValue(value)
 }

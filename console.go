@@ -32,7 +32,7 @@ func builtinConsole_placeholder(call FunctionCall) Value {
 func (runtime *_runtime) newConsole() *_object {
 
 	self := runtime.newObject()
-	self.Define(
+	self.write(
 		"log", builtinConsole_log,
 		"debug", builtinConsole_log,
 		"info", builtinConsole_log,

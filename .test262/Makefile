@@ -8,6 +8,8 @@ WITH_otto := --command "$(otto)"
 test:
 	$(TEST) $(WITH_otto)
 
+release: otto gauntlet
+
 test-otto: test
 
 otto: build

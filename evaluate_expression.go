@@ -46,7 +46,7 @@ func (self *_runtime) evaluateObject(node *_objectNode) Value {
 	result := self.newObject()
 
 	for _, property := range node.propertyList {
-		result.WriteValue(property.Key, self.GetValue(self.evaluate(property.Value)), false)
+		result.set(property.Key, self.GetValue(self.evaluate(property.Value)), false)
 	}
 
 	return toValue(result)
@@ -118,7 +118,7 @@ func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
 		case valueString:
 			return toValue("string")
 		case valueObject:
-			if targetValue._object().Function != nil {
+			if targetValue._object()._Function != nil {
 				return toValue("function")
 			}
 			return toValue("object")
@@ -256,7 +256,7 @@ func (self *_runtime) calculateBinaryOperation(operator string, left Value, righ
 		if !rightValue.IsObject() {
 			panic(newTypeError())
 		}
-		return toValue(rightValue._object().HasProperty(toString(leftValue)))
+		return toValue(rightValue._object().hasProperty(toString(leftValue)))
 	}
 
 	panic(hereBeDragons(operator))

@@ -75,7 +75,7 @@ func (value Value) IsNull() bool {
 func (value Value) isCallable() bool {
 	switch value := value.value.(type) {
     case *_object:
-		return value.Function != nil
+		return value._Function != nil
     }
     return false
 }
@@ -157,7 +157,7 @@ func (value Value) IsFunction() bool {
 	if value._valueType != valueObject {
 		return false
 	}
-	return value.value.(*_object).Class == "Function"
+	return value.value.(*_object).class == "Function"
 }
 
 // Class will return the class string of the value or the empty string if value is not an object.
@@ -177,56 +177,56 @@ func (value Value) Class() string {
 	if value._valueType != valueObject {
 		return ""
 	}
-	return value.value.(*_object).Class
+	return value.value.(*_object).class
 }
 
 func (value Value) isArray() bool {
 	if value._valueType != valueObject {
 		return false
 	}
-	return value.value.(*_object).Class == "Array"
+	return value.value.(*_object).class == "Array"
 }
 
 func (value Value) isStringObject() bool {
 	if value._valueType != valueObject {
 		return false
 	}
-	return value.value.(*_object).Class == "String"
+	return value.value.(*_object).class == "String"
 }
 
 func (value Value) isBooleanObject() bool {
 	if value._valueType != valueObject {
 		return false
 	}
-	return value.value.(*_object).Class == "Boolean"
+	return value.value.(*_object).class == "Boolean"
 }
 
 func (value Value) isNumberObject() bool {
 	if value._valueType != valueObject {
 		return false
 	}
-	return value.value.(*_object).Class == "Number"
+	return value.value.(*_object).class == "Number"
 }
 
 func (value Value) isDate() bool {
 	if value._valueType != valueObject {
 		return false
 	}
-	return value.value.(*_object).Class == "Date"
+	return value.value.(*_object).class == "Date"
 }
 
 func (value Value) isRegExp() bool {
 	if value._valueType != valueObject {
 		return false
 	}
-	return value.value.(*_object).Class == "RegExp"
+	return value.value.(*_object).class == "RegExp"
 }
 
 func (value Value) isError() bool {
 	if value._valueType != valueObject {
 		return false
 	}
-	return value.value.(*_object).Class == "Error"
+	return value.value.(*_object).class == "Error"
 }
 
 // ---

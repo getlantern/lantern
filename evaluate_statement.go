@@ -190,7 +190,7 @@ func (self *_runtime) evaluateForIn(node *_forInNode) Value {
 		result := emptyValue()
 		object := sourceObject
 		for object != nil {
-			object.Enumerate(func(name string){
+			object.enumerate(func(name string){
 				into := self.evaluate(into)
 				// In the case of: for (var abc in def) ...
 				if into.reference() == nil {
@@ -204,7 +204,7 @@ func (self *_runtime) evaluateForIn(node *_forInNode) Value {
 					result = value
 				}
 			})
-			object = object.Prototype
+			object = object.prototype
 		}
 		return result
 	})

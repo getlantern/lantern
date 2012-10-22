@@ -948,7 +948,7 @@ func TestObjectLiteral(t *testing.T) {
 	Otto.Run(`
 		result = { xyzzy: "Nothing happens.", 0: 1 }
 	`)
-	Is(Otto.getValue("result")._object().GetValue("xyzzy"), "Nothing happens.")
+	Is(Otto.getValue("result")._object().get("xyzzy"), "Nothing happens.")
 }
 
 func TestArrayLiteral(t *testing.T) {
@@ -963,7 +963,7 @@ func TestArrayLiteral(t *testing.T) {
 	test(`
 		result = [ "Nothing happens.", 0, 1 ]
 	`)
-	Is(test("result")._object().GetValue("0"), "Nothing happens.")
+	Is(test("result")._object().get("0"), "Nothing happens.")
 
 	test(`
 		xyzzy = [ "Nothing happens.", 0, 1 ]
@@ -1554,15 +1554,15 @@ func TestRegExp(t *testing.T) {
 	test(`""+/abc/gi`, "/abc/gi")
 
 	result := test(`/(a)?/.exec('b')`, ",")
-	Is(result._object().Get("0"), "")
-	Is(result._object().Get("1"), "undefined")
-	Is(result._object().Get("length"), "2")
+	Is(result._object().get("0"), "")
+	Is(result._object().get("1"), "undefined")
+	Is(result._object().get("length"), "2")
 
 	result = test(`/(a)?(b)?/.exec('b')`, "b,,b")
-	Is(result._object().Get("0"), "b")
-	Is(result._object().Get("1"), "undefined")
-	Is(result._object().Get("2"), "b")
-	Is(result._object().Get("length"), "3")
+	Is(result._object().get("0"), "b")
+	Is(result._object().get("1"), "undefined")
+	Is(result._object().get("2"), "b")
+	Is(result._object().get("length"), "3")
 
 	test(`/\u0041/.source`, "\\u0041")
 	test(`/\a/.source`, "\\a")

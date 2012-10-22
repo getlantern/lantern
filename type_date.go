@@ -110,19 +110,19 @@ func timeToEpoch(time tme.Time) float64 {
 
 func (runtime *_runtime) newDateObject(epoch float64) *_object {
 	self := runtime.newObject()
-	self.Class = "Date"
+	self.class = "Date"
 
 	// TODO Fix this, redundant arguments, etc.
-	self.Date = &_dateObject{}
-	self.Date.Set(epoch)
+	self._Date = &_dateObject{}
+	self._Date.Set(epoch)
 	return self
 }
 
 func dateObjectOf(_dateObject *_object) *_dateObject {
-	if _dateObject == nil || _dateObject.Class != "Date" {
+	if _dateObject == nil || _dateObject.class != "Date" {
 		panic(newTypeError())
 	}
-	return _dateObject.Date
+	return _dateObject._Date
 }
 
 // JavaScript is 0-based, Go is 1-based (15.9.1.4)

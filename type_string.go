@@ -6,7 +6,7 @@ import (
 
 func (runtime *_runtime) newStringObject(value Value) *_object {
 	self := runtime.newPrimitiveObject("String", toValue(toString(value)))
-	self._propertyStash = newStringStash(toString(value), self._propertyStash)
+	self.stash = newStringStash(toString(value), self.stash)
 	return self
 }
 
@@ -23,7 +23,7 @@ func newStringStash(value string, stash _stash) *_stringStash {
 	return self
 }
 
-func (self *_stringStash) CanRead(name string) bool {
+func (self *_stringStash) test(name string) bool {
 	// .length
 	if name == "length" {
 		return true
@@ -35,10 +35,10 @@ func (self *_stringStash) CanRead(name string) bool {
 		return true
 	}
 
-	return self._stash.CanRead(name)
+	return self._stash.test(name)
 }
 
-func (self *_stringStash) Read(name string) Value {
+func (self *_stringStash) get(name string) Value {
 	// .length
 	if name == "length" {
 		return toValue(len(string(self.value)))
@@ -50,7 +50,7 @@ func (self *_stringStash) Read(name string) Value {
 		return toValue(string(self.value[index]))
 	}
 
-	return self._stash.Read(name)
+	return self._stash.get(name)
 }
 
 func (self *_stringStash) property(name string) *_property {
@@ -74,11 +74,11 @@ func (self *_stringStash) property(name string) *_property {
 	return self._stash.property(name)
 }
 
-func (self *_stringStash) Enumerate(each func(string)) {
+func (self *_stringStash) enumerate(each func(string)) {
 	// .0, .1, .2, ...
 	for index, _ := range self.value {
 		name := strconv.FormatInt(int64(index), 10)
 		each(name)
 	}
-	self._stash.Enumerate(each)
+	self._stash.enumerate(each)
 }

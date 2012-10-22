@@ -53,11 +53,11 @@ func (self *_argumentReference) GetBase() *_object {
 }
 
 func (self *_argumentReference) GetValue() Value {
-	return self.Base.GetValue(self.name)
+	return self.Base.get(self.name)
 }
 
 func (self *_argumentReference) PutValue(value Value) bool {
-	self.Base.WriteValue(self.name, value, self._referenceBase.strict)
+	self.Base.set(self.name, value, self._referenceBase.strict)
 	return true
 }
 
@@ -86,14 +86,14 @@ func (self *_objectReference) GetValue() Value {
 	if self.Base == nil {
 		panic(newReferenceError("notDefined", self.name, self.node))
 	}
-	return self.Base.GetValue(self.name)
+	return self.Base.get(self.name)
 }
 
 func (self *_objectReference) PutValue(value Value) bool {
 	if self.Base == nil {
 		return false
 	}
-	self.Base.WriteValue(self.name, value, self.Strict())
+	self.Base.set(self.name, value, self.Strict())
 	return true
 }
 
@@ -101,7 +101,7 @@ func (self *_objectReference) Delete() {
 	if self.Base == nil {
 		return
 	}
-	self.Base.Delete(self.name, self.Strict())
+	self.Base.delete(self.name, self.Strict())
 }
 
 type _primitiveReference struct {
@@ -130,11 +130,11 @@ func (self *_primitiveReference) baseAsObject() *_object {
 }
 
 func (self *_primitiveReference) GetValue() Value {
-	return self.baseAsObject().GetValue(self.name)
+	return self.baseAsObject().get(self.name)
 }
 
 func (self *_primitiveReference) PutValue(value Value) bool {
-	self.baseAsObject().WriteValue(self.name, value, self.Strict())
+	self.baseAsObject().set(self.name, value, self.Strict())
 	return true
 }
 

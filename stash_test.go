@@ -8,19 +8,19 @@ import (
 func TestStash(t *testing.T) {
     Terst(t)
 
-	stash := newPropertyStash(true)
-	IsTrue(stash.CanWrite("xyzzy"))
+	stash := newObjectStash(true)
+	IsTrue(stash.canPut("xyzzy"))
 
-	stash.Define("xyzzy", _defineProperty{
+	stash.define("xyzzy", _defineProperty{
 		Value: toValue("Nothing happens."),
 	})
-	IsTrue(stash.CanRead("xyzzy"))
-	IsTrue(stash.CanWrite("xyzzy"))
+	IsTrue(stash.test("xyzzy"))
+	IsTrue(stash.canPut("xyzzy"))
 
-	stash.Define("xyzzy", _defineProperty{
+	stash.define("xyzzy", _defineProperty{
 		Value: toValue("Something else happens."),
 		Write: propertyAttributeFalse,
 	})
-	IsTrue(stash.CanRead("xyzzy"))
-	IsFalse(stash.CanWrite("xyzzy"))
+	IsTrue(stash.test("xyzzy"))
+	IsFalse(stash.canPut("xyzzy"))
 }

@@ -58,7 +58,7 @@ func (self *_functionEnvironment) HasBinding(name string) bool {
 	if exists {
 		return true
 	}
-	return self.Object.HasProperty(name)
+	return self.Object.hasProperty(name)
 }
 
 type _objectEnvironment struct {
@@ -77,23 +77,23 @@ func (runtime *_runtime) newObjectEnvironment() *_objectEnvironment {
 }
 
 func (self *_objectEnvironment) HasBinding(name string) bool {
-	return self.Object.HasProperty(name)
+	return self.Object.hasProperty(name)
 }
 
 func (self *_objectEnvironment) CreateMutableBinding(name string, configure bool) {
-	if self.Object.HasProperty(name) {
+	if self.Object.hasProperty(name) {
 		panic(hereBeDragons())
 	}
-	self.Object._propertyStash.Write(name, UndefinedValue())
+	self.Object.stash.put(name, UndefinedValue())
 }
 
 func (self *_objectEnvironment) SetMutableBinding(name string, value Value, strict bool) {
-	self.Object.WriteValue(name, value, strict)
+	self.Object.set(name, value, strict)
 }
 
 func (self *_objectEnvironment) GetBindingValue(name string, strict bool) Value {
-	if self.Object.HasProperty(name) {
-		return self.Object.Get(name)
+	if self.Object.hasProperty(name) {
+		return self.Object.get(name)
 	}
 	if strict {
 		panic(newReferenceError("Not Defined", name))
@@ -102,7 +102,7 @@ func (self *_objectEnvironment) GetBindingValue(name string, strict bool) Value 
 }
 
 func (self *_objectEnvironment) DeleteBinding(name string) bool {
-	return self.Object.Delete(name, false)
+	return self.Object.delete(name, false)
 }
 
 func (self *_objectEnvironment) ImplicitThisValue() *_object {

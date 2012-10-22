@@ -10,45 +10,43 @@ type _globalConstructFunction _constructFunction
 
 func (self *_runtime) newGlobalFunction(
 	length int,
-	callFunction _globalCallFunction,
+	name string, callFunction _globalCallFunction,
 	constructFunction _globalConstructFunction,
 	prototype *_object,
-	nameAndValue... interface{}) *_object {
-//
+	definition... interface{}) *_object {
+
 	// TODO We're overwriting the prototype of newNativeFunction with this one, 
 	// what is going on?
-	target := self.newNativeFunction(_nativeFunction(callFunction), length) 
-	target.Function.Construct = _constructFunction(constructFunction)
-	target.define(_propertyMode(0), "prototype", toValue(prototype))
-	nameAndValue = append(
-		[]interface{}{
+	functionObject := self.newNativeFunction(_nativeFunction(callFunction), length, "native" + name)
+	functionObject._Function.Construct = _constructFunction(constructFunction)
+	functionObject.stash.set("prototype", toValue(prototype), _propertyMode(0))
+
+	prototype.write(append([]interface{}{
 			_functionSignature("builtin"),
-			_propertyMode(propertyModeWrite | propertyModeConfigure),
-			"constructor", toValue(target),
+			_propertyMode(0101), // Write | Configure
+			"constructor", toValue(functionObject),
 		},
-		nameAndValue...,
-	)
-	// This actually may be slower than Define
-	// Benchmark?
-	prototype.define(nameAndValue...)
-	return target
+		definition...,
+	)...)
+
+	return functionObject
 }
 
 func (self *_runtime) newGlobalObject(
 	class string,
 	nameAndValue... interface{}) *_object {
-//
+
 	target := self.newClassObject(class)
 	nameAndValue = append(
 		[]interface{}{
 			_functionSignature("builtin"),
-			_propertyMode(propertyModeWrite | propertyModeConfigure),
+			_propertyMode(0101), // Write | Configure
 		},
 		nameAndValue...,
 	)
 	// This actually may be slower than Define
 	// Benchmark?
-	target.define(nameAndValue...)
+	target.write(nameAndValue...)
 	return target
 }
 
@@ -56,11 +54,11 @@ func builtinDefine(target *_object, nameAndValue... interface{}) {
 	nameAndValue = append(
 		[]interface{}{
 			_functionSignature("builtin"),
-			_propertyMode(propertyModeWrite | propertyModeConfigure),
+			_propertyMode(0101), // Write | Configure
 		},
 		nameAndValue...,
 	)
-	target.define(nameAndValue)
+	target.write(nameAndValue)
 }
 
 func newContext() *_runtime {
@@ -76,63 +74,63 @@ func newContext() *_runtime {
 
 	{
 		ObjectPrototype := self.newObject()
-		ObjectPrototype.Prototype = nil
+		ObjectPrototype.prototype = nil
 		self.Global.ObjectPrototype = ObjectPrototype
 	}
 
 	{
 		FunctionPrototype := self.newNativeFunctionObject(func(FunctionCall) Value {
 			return UndefinedValue()
-		}, 0)
-		FunctionPrototype.Prototype = self.Global.ObjectPrototype
+		}, 0, "nativeFunction_")
+		FunctionPrototype.prototype = self.Global.ObjectPrototype
 		self.Global.FunctionPrototype = FunctionPrototype
 	}
 
 	{
 		ArrayPrototype := self.newArray([]Value{})
-		ArrayPrototype.Prototype = self.Global.ObjectPrototype
+		ArrayPrototype.prototype = self.Global.ObjectPrototype
 		self.Global.ArrayPrototype = ArrayPrototype
 	}
 
 	{
 		StringPrototype := self.newString(toValue(""))
-		StringPrototype.Prototype = self.Global.ObjectPrototype
+		StringPrototype.prototype = self.Global.ObjectPrototype
 		self.Global.StringPrototype = StringPrototype
 	}
 
 	{
 		BooleanPrototype := self.newBoolean(FalseValue())
-		BooleanPrototype.Prototype = self.Global.ObjectPrototype
+		BooleanPrototype.prototype = self.Global.ObjectPrototype
 		self.Global.BooleanPrototype = BooleanPrototype
 	}
 
 	{
 		NumberPrototype := self.newNumber(toValue(0))
-		NumberPrototype.Prototype = self.Global.ObjectPrototype
+		NumberPrototype.prototype = self.Global.ObjectPrototype
 		self.Global.NumberPrototype = NumberPrototype
 	}
 
 	{
 		DatePrototype := self.newDate(0)
-		DatePrototype.Prototype = self.Global.ObjectPrototype
+		DatePrototype.prototype = self.Global.ObjectPrototype
 		self.Global.DatePrototype = DatePrototype
 	}
 
 	{
 		RegExpPrototype := self.newRegExp(UndefinedValue(), UndefinedValue())
-		RegExpPrototype.Prototype = self.Global.ObjectPrototype
+		RegExpPrototype.prototype = self.Global.ObjectPrototype
 		self.Global.RegExpPrototype = RegExpPrototype
 	}
 
 	{
 		ErrorPrototype := self.newErrorObject(UndefinedValue())
-		ErrorPrototype.Prototype = self.Global.ObjectPrototype
+		ErrorPrototype.prototype = self.Global.ObjectPrototype
 		self.Global.ErrorPrototype = ErrorPrototype
 	}
 
 	self.Global.Object = self.newGlobalFunction(
 		1,
-		builtinObject,
+		"Object", builtinObject,
 		builtinNewObject,
 		self.Global.ObjectPrototype,
 		"valueOf", func(call FunctionCall) Value {
@@ -142,27 +140,27 @@ func newContext() *_runtime {
 		"hasOwnProperty", func(call FunctionCall) Value {
 			propertyName := toString(call.Argument(0))
 			thisObject := call.thisObject()
-			return toValue(thisObject.HasOwnProperty(propertyName))
+			return toValue(thisObject.hasOwnProperty(propertyName))
 		},
 		"isPrototypeOf", func(call FunctionCall) Value {
 			value := call.Argument(0)
 			if !value.IsObject() {
 				return FalseValue()
 			}
-			prototype := call.toObject(value).Prototype
+			prototype := call.toObject(value).prototype
 			thisObject := call.thisObject()
 			for prototype != nil {
 				if thisObject == prototype {
 					return TrueValue()
 				}
-				prototype = prototype.Prototype
+				prototype = prototype.prototype
 			}
 			return FalseValue()
 		},
 		"propertyIsEnumerable", func(call FunctionCall) Value {
 			propertyName := toString(call.Argument(0))
 			thisObject := call.thisObject()
-			property := thisObject.GetOwnProperty(propertyName)
+			property := thisObject.getOwnProperty(propertyName)
 			if property != nil && property.CanEnumerate() {
 				return TrueValue()
 			}
@@ -172,7 +170,7 @@ func newContext() *_runtime {
 
 	self.Global.Function = self.newGlobalFunction(
 		1,
-		builtinFunction,
+		"Function", builtinFunction,
 		builtinNewFunction,
 		self.Global.FunctionPrototype,
 		"toString", func(FunctionCall) Value {
@@ -184,16 +182,16 @@ func newContext() *_runtime {
 
 	self.Global.Array = self.newGlobalFunction(
 		1,
-		builtinArray,
+		"Array", builtinArray,
 		builtinNewArray,
 		self.Global.ArrayPrototype,
 		"toString", func(call FunctionCall) Value {
 			thisObject := call.thisObject()
-			join := thisObject.Get("join")
+			join := thisObject.get("join")
 			if join.isCallable() {
 				join := join._object()
-				if join.Function.Call.Signature() == "builtin" {
-					if stash, isArray := thisObject._propertyStash.(*_arrayStash); isArray {
+				if join._Function.Call.name() == "nativeArray_join" {
+					if stash, isArray := thisObject.stash.(*_arrayStash); isArray {
 						return toValue(builtinArray_joinNative(stash.valueArray, ","))
 					}
 				}
@@ -215,14 +213,14 @@ func newContext() *_runtime {
 
 	self.Global.String = self.newGlobalFunction(
 		1,
-		builtinString,
+		"String", builtinString,
 		builtinNewString,
 		self.Global.StringPrototype,
 		"toString", func(call FunctionCall) Value {
-			return *call.thisClassObject("String").Primitive
+			return *call.thisClassObject("String").primitive
 		},
 		"valueOf", func(call FunctionCall) Value {
-			return *call.thisClassObject("String").Primitive
+			return *call.thisClassObject("String").primitive
 		},
 		"charAt", 1, builtinString_charAt,
 		"charCodeAt", 1, builtinString_charCodeAt,
@@ -240,27 +238,27 @@ func newContext() *_runtime {
 		"substr", 2, builtinString_substr,
 	)
 	// TODO Maybe streamline this redundancy?
-	self.Global.String.Define(
+	self.Global.String.write(
 		"fromCharCode", 1, builtinString_fromCharCode,
 	)
 
 	self.Global.Boolean = self.newGlobalFunction(
 		1,
-		builtinBoolean,
+		"Boolean", builtinBoolean,
 		builtinNewBoolean,
 		self.Global.BooleanPrototype,
 		"toString", func(call FunctionCall) Value {
 			value := call.This
 			if !value.IsBoolean() {
 				// Will throw a TypeError if ThisObject is not a Boolean
-				value = call.thisClassObject("Boolean").PrimitiveValue()
+				value = call.thisClassObject("Boolean").primitiveValue()
 			}
 			return toValue(toString(value))
 		},
 		"valueOf", func(call FunctionCall) Value {
 			value := call.This
 			if !value.IsBoolean() {
-				value = call.thisClassObject("Boolean").PrimitiveValue()
+				value = call.thisClassObject("Boolean").primitiveValue()
 			}
 			return value
 		},
@@ -268,18 +266,18 @@ func newContext() *_runtime {
 
 	self.Global.Number = self.newGlobalFunction(
 		1,
-		builtinNumber,
+		"Number", builtinNumber,
 		builtinNewNumber,
 		self.Global.NumberPrototype,
 		"valueOf", func(call FunctionCall) Value {
-			return *call.thisClassObject("Number").Primitive
+			return *call.thisClassObject("Number").primitive
 		},
 		// TODO toFixed
 		// TODO toExponential
 		// TODO toPrecision
 	)
 
-	self.Global.Number.Define(
+	self.Global.Number.write(
 		_propertyMode(0),
 		"MAX_VALUE", toValue(math.MaxFloat64),
 		"MIN_VALUE", toValue(math.SmallestNonzeroFloat64),
@@ -300,7 +298,7 @@ func newContext() *_runtime {
 
 	self.Global.Date = self.newGlobalFunction(
 		7,
-		builtinDate,
+		"Date", builtinDate,
 		builtinNewDate,
 		self.Global.DatePrototype,
 		"toString", 0, builtinDate_toString,
@@ -584,7 +582,7 @@ func newContext() *_runtime {
 
 	self.Global.RegExp = self.newGlobalFunction(
 		2,
-		builtinRegExp,
+		"RegExp", builtinRegExp,
 		builtinNewRegExp,
 		self.Global.RegExpPrototype,
 		"toString", 0, builtinRegExp_toString,
@@ -594,14 +592,14 @@ func newContext() *_runtime {
 
 	self.Global.Error = self.newGlobalFunction(
 		1,
-		builtinError,
+		"Error", builtinError,
 		builtinNewError,
 		self.Global.ErrorPrototype,
 		"name", toValue("Error"),
 		"toString", 0, builtinError_toString,
 	)
 
-	self.GlobalObject.Define(
+	self.GlobalObject.write(
 		"Object", toValue(self.Global.Object),
 		"Function", toValue(self.Global.Function),
 		"Array", toValue(self.Global.Array),
@@ -651,37 +649,37 @@ func (runtime *_runtime) newClassObject(class string) *_object {
 
 func (runtime *_runtime) newPrimitiveObject(class string, value Value) *_object {
 	self := runtime.newClassObject(class)
-	self.Primitive = &value
+	self.primitive = &value
 	return self
 }
 
 func (runtime *_runtime) newObject() *_object {
 	self := runtime.newClassObject("Object")
-	self.Prototype = runtime.Global.ObjectPrototype
+	self.prototype = runtime.Global.ObjectPrototype
 	return self
 }
 
 func (runtime *_runtime) newArray(valueArray []Value) *_object {
 	self := runtime.newArrayObject(valueArray)
-	self.Prototype = runtime.Global.ArrayPrototype
+	self.prototype = runtime.Global.ArrayPrototype
 	return self
 }
 
 func (runtime *_runtime) newString(value Value) *_object {
 	self := runtime.newStringObject(value)
-	self.Prototype = runtime.Global.StringPrototype
+	self.prototype = runtime.Global.StringPrototype
 	return self
 }
 
 func (runtime *_runtime) newBoolean(value Value) *_object {
 	self := runtime.newBooleanObject(value)
-	self.Prototype = runtime.Global.BooleanPrototype
+	self.prototype = runtime.Global.BooleanPrototype
 	return self
 }
 
 func (runtime *_runtime) newNumber(value Value) *_object {
 	self := runtime.newNumberObject(value)
-	self.Prototype = runtime.Global.NumberPrototype
+	self.prototype = runtime.Global.NumberPrototype
 	return self
 }
 
@@ -699,14 +697,14 @@ func (runtime *_runtime) newRegExp(patternValue Value, flagsValue Value) *_objec
 
 func (runtime *_runtime) _newRegExp(pattern string, flags string) *_object {
 	self := runtime.newRegExpObject(pattern, flags)
-	self.Prototype = runtime.Global.RegExpPrototype
+	self.prototype = runtime.Global.RegExpPrototype
 	return self
 }
 
 // TODO Should (probably) be one argument, right? This is redundant
 func (runtime *_runtime) newDate(epoch float64) *_object {
 	self := runtime.newDateObject(epoch)
-	self.Prototype = runtime.Global.DatePrototype
+	self.prototype = runtime.Global.DatePrototype
 	return self
 }
 
@@ -717,43 +715,37 @@ func (runtime *_runtime) newError(name string, message Value) *_object {
 		self = _newError(message)
 	} else {
 		self = runtime.newErrorObject(message)
-		self.Prototype = runtime.Global.ErrorPrototype
+		self.prototype = runtime.Global.ErrorPrototype
 		if name != "" {
-			self.WriteValue("name", toValue(name), false)
+			self.set("name", toValue(name), false)
 		}
 	}
 	return self
 }
 
-func (runtime *_runtime) newNativeFunction(_nativeFunction _nativeFunction, length int) *_object {
-	self := runtime.newNativeFunctionObject(_nativeFunction, length)
-	self.Prototype = runtime.Global.FunctionPrototype
+func (runtime *_runtime) newNativeFunction(_nativeFunction _nativeFunction, length int, name string) *_object {
+	self := runtime.newNativeFunctionObject(_nativeFunction, length, name)
+	self.prototype = runtime.Global.FunctionPrototype
 	prototype := runtime.newObject()
-	self.define(_propertyMode(0), "prototype", toValue(prototype))
-	prototype.define(
-		_propertyMode(propertyModeWrite | propertyModeConfigure),
-		"constructor", toValue(self),
-	)
+	self.stash.set("prototype", toValue(prototype), _propertyMode(0100))
+	prototype.stash.set("constructor", toValue(self), _propertyMode(0101))
 	return self
 }
 
 func (runtime *_runtime) newNodeFunction(node *_functionNode, scopeEnvironment _environment) *_object {
 	// TODO Implement 13.2 fully
 	self := runtime.newNodeFunctionObject(node, scopeEnvironment)
-	self.Prototype = runtime.Global.FunctionPrototype
+	self.prototype = runtime.Global.FunctionPrototype
 	prototype := runtime.newObject()
-	self.define(_propertyMode(propertyModeWrite), "prototype", toValue(prototype))
-	prototype.define(
-		_propertyMode(propertyModeWrite | propertyModeConfigure),
-		"constructor", toValue(self),
-	)
+	self.stash.set("prototype", toValue(prototype), _propertyMode(0100))
+	prototype.stash.set("constructor", toValue(self), _propertyMode(0101))
 	return self
 }
 
 func (runtime *_runtime) newErrorPrototype(name string) *_object {
 	prototype := runtime.newClassObject("Error")
-	prototype.WriteValue("name", toValue(name), false)
-	prototype.Prototype = runtime.Global.ErrorPrototype
+	prototype.set("name", toValue(name), false)
+	prototype.prototype = runtime.Global.ErrorPrototype
 	return prototype
 }
 
@@ -762,13 +754,14 @@ func (runtime *_runtime) defineError(name string) func(Value) *_object {
 
 	errorFunction := func(message Value) *_object {
 		error := runtime.newErrorObject(message)
-		error.Prototype = prototype
+		error.prototype = prototype
 		return error
 	}
 
-	runtime.GlobalObject.WriteValue(name, toValue(runtime.newGlobalFunction(
+	runtime.GlobalObject.set(name, toValue(runtime.newGlobalFunction(
 		1,
 		// e.g. TypeError( ... )
+		name,
 		func (call FunctionCall) Value { // TypeError( ... )
 			return toValue(errorFunction(call.Argument(0)))
 		},

@@ -289,7 +289,7 @@ func (self Object) Value() Value {
 func (self Object) Get(name string) (Value, error) {
 	result := UndefinedValue()
 	err := catchPanic(func(){
-		result = self.object.Get(name)
+		result = self.object.get(name)
 	})
 	return result, err
 }
@@ -300,7 +300,7 @@ func (self Object) Get(name string) (Value, error) {
 // or there is an error during conversion of the given value.
 func (self Object) Set(name string, value interface{}) (error) {
 	err := catchPanic(func(){
-		self.object.Put(name, self.object.runtime.toValue(value), true)
+		self.object.put(name, self.object.runtime.toValue(value), true)
 	})
 	return err
 }
@@ -319,5 +319,5 @@ func (self Object) Set(name string, value interface{}) (error) {
 //		RegExp
 //
 func (self Object) Class() string {
-	return self.object.Class
+	return self.object.class
 }

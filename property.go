@@ -5,63 +5,62 @@ package otto
 type _propertyMode int
 
 const (
-	propertyModeEmpty _propertyMode = 1
-	propertyModeWrite = 2
-	propertyModeEnumerate = 4
-	propertyModeConfigure = 8
-)
-
-const (
-	propertyModeWriteEnumerateConfigure _propertyMode = propertyModeWrite | propertyModeEnumerate | propertyModeConfigure
+	propertyModeWrite     _propertyMode = 0100
+	propertyModeEnumerate               = 0010
+	propertyModeConfigure               = 0001
 )
 
 type _propertyGetSet [2]*_object
 
 type _property struct {
 	Value interface{}
-	Mode _propertyMode
+	Mode  _propertyMode
 }
 
 func (self _property) CanWrite() bool {
-	return self.Mode & propertyModeWrite != 0
+	return self.Mode&propertyModeWrite != 0
 }
 
 func (self _property) CanEnumerate() bool {
-	return self.Mode & propertyModeEnumerate != 0
+	return self.Mode&propertyModeEnumerate != 0
 }
 
 func (self _property) CanConfigure() bool {
-	return self.Mode & propertyModeConfigure != 0
+	return self.Mode&propertyModeConfigure != 0
 }
 
 func (self _property) toDefineProperty() _defineProperty {
 	property := _defineProperty{
 		Value: self.Value,
 	}
-	mode := self.Mode
-	if mode & propertyModeEmpty != 0 {
-		return property
+
+	{
+		mode := self.Mode
+
+		if mode&propertyModeWrite != 0 {
+			property.Write = propertyAttributeTrue
+		} else {
+			property.Write = propertyAttributeFalse
+		}
+
+		if mode&propertyModeEnumerate != 0 {
+			property.Enumerate = propertyAttributeTrue
+		} else {
+			property.Enumerate = propertyAttributeFalse
+		}
+
+		if mode&propertyModeConfigure != 0 {
+			property.Configure = propertyAttributeTrue
+		} else {
+			property.Configure = propertyAttributeFalse
+		}
 	}
-	if mode & propertyModeWrite != 0 {
-		property.Write = propertyAttributeTrue
-	} else {
-		property.Write = propertyAttributeFalse
-	}
-	if mode & propertyModeEnumerate != 0 {
-		property.Enumerate = propertyAttributeTrue
-	} else {
-		property.Enumerate = propertyAttributeFalse
-	}
-	if mode & propertyModeConfigure != 0 {
-		property.Configure = propertyAttributeTrue
-	} else {
-		property.Configure = propertyAttributeFalse
-	}
+
 	return property
 }
 
-func (self *_property) Copy() *_property {
-	property := *self
+func (self _property) Copy() *_property {
+	property := self
 	return &property
 }
 
@@ -69,7 +68,7 @@ func (self *_property) Copy() *_property {
 
 type _valueProperty struct {
 	Value Value
-	Mode _propertyMode
+	Mode  _propertyMode
 }
 
 // _defineProperty
@@ -83,8 +82,8 @@ const (
 )
 
 type _defineProperty struct {
-	Value interface{}
-	Write _propertyAttributeBoolean
+	Value     interface{}
+	Write     _propertyAttributeBoolean
 	Enumerate _propertyAttributeBoolean
 	Configure _propertyAttributeBoolean
 }
@@ -130,9 +129,9 @@ func (self _defineProperty) IsGenericDescriptor() bool {
 
 func (self _defineProperty) isEmpty() bool {
 	return self.IsGenericDescriptor() &&
-			self.Write == propertyAttributeNotSet &&
-			self.Enumerate == propertyAttributeNotSet &&
-			self.Configure == propertyAttributeNotSet
+		self.Write == propertyAttributeNotSet &&
+		self.Enumerate == propertyAttributeNotSet &&
+		self.Configure == propertyAttributeNotSet
 }
 
 func (self _defineProperty) CopyInto(other *_property) {
@@ -161,4 +160,3 @@ func (self _defineProperty) CopyInto(other *_property) {
 		other.Value = self.Value
 	}
 }
-

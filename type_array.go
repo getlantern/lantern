@@ -6,8 +6,8 @@ import (
 
 func (runtime *_runtime) newArrayObject(valueArray []Value) *_object {
 	self := runtime.newObject()
-	self.Class = "Array"
-	self._propertyStash = newArrayStash(valueArray, self._propertyStash)
+	self.class = "Array"
+	self.stash = newArrayStash(valueArray, self.stash)
 	return self
 }
 
@@ -26,7 +26,7 @@ func newArrayStash(valueArray []Value, stash _stash) *_arrayStash {
 	return self
 }
 
-func (self *_arrayStash) CanWrite(name string) bool {
+func (self *_arrayStash) canPut(name string) bool {
 	// length
 	if name == "length" {
 		return true
@@ -38,10 +38,10 @@ func (self *_arrayStash) CanWrite(name string) bool {
 		return true
 	}
 
-	return self._stash.CanWrite(name)
+	return self._stash.canPut(name)
 }
 
-func (self *_arrayStash) CanRead(name string) bool {
+func (self *_arrayStash) test(name string) bool {
 	// length
 	if name == "length" {
 		return true
@@ -53,10 +53,10 @@ func (self *_arrayStash) CanRead(name string) bool {
 		return index < int64(len(self.valueArray)) && self.valueArray[index]._valueType != valueEmpty
 	}
 
-	return self._stash.CanRead(name)
+	return self._stash.test(name)
 }
 
-func (self *_arrayStash) Read(name string) Value {
+func (self *_arrayStash) get(name string) Value {
 	// length
 	if name == "length" {
 		return toValue(len(self.valueArray))
@@ -74,10 +74,10 @@ func (self *_arrayStash) Read(name string) Value {
 		return UndefinedValue()
 	}
 
-	return self._stash.Read(name)
+	return self._stash.get(name)
 }
 
-func (self *_arrayStash) Write(name string, value Value) {
+func (self *_arrayStash) put(name string, value Value) {
 	// length
 	if name == "length" {
 		value := uint(toUI32(value))
@@ -109,7 +109,7 @@ func (self *_arrayStash) Write(name string, value Value) {
 		return
 	}
 
-	self._stash.Write(name, value)
+	self._stash.put(name, value)
 }
 
 func (self *_arrayStash) property(name string) *_property {
@@ -130,14 +130,14 @@ func (self *_arrayStash) property(name string) *_property {
 		}
 		return &_property{
 			Value: value,
-			Mode: propertyModeWriteEnumerateConfigure, // +Write +Enumerate +Configure
+			Mode: 0111, // +Write +Enumerate +Configure
 		}
 	}
 
 	return self._stash.property(name)
 }
 
-func (self *_arrayStash) Enumerate(each func(string)) {
+func (self *_arrayStash) enumerate(each func(string)) {
 	// .0, .1, .2, ...
 	for index, _ := range self.valueArray {
 		if self.valueArray[index]._valueType == valueEmpty {
@@ -146,5 +146,5 @@ func (self *_arrayStash) Enumerate(each func(string)) {
 		name := strconv.FormatInt(int64(index), 10)
 		each(name)
 	}
-	self._stash.Enumerate(each)
+	self._stash.enumerate(each)
 }
