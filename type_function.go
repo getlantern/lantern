@@ -29,11 +29,17 @@ func (runtime *_runtime) newNodeFunctionObject(node *_functionNode, scopeEnviron
 }
 
 func (self *_object) Call(this Value, argumentList... interface{}) Value {
+	if self.Function == nil {
+		panic(newTypeError("%v is not a function", toValue(self)))
+	}
 	return self.runtime.Call(self, this, toValueArray(argumentList...))
 	// ... -> runtime -> self.Function.Call.Dispatch -> ...
 }
 
 func (self *_object) Construct(this Value, argumentList... interface{}) Value {
+	if self.Function == nil {
+		panic(newTypeError("%v is not a function", toValue(self)))
+	}
 	return self.Function.Construct(self, this, toValueArray(argumentList...))
 }
 

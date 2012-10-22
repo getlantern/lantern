@@ -22,6 +22,9 @@ func (self *_runtime) evaluateNew(node *_newNode) Value {
 		argumentList = append(argumentList, self.GetValue(self.evaluate(argumentNode)))
 	}
 	this := UndefinedValue()
+	if !calleeValue.IsFunction() {
+		panic(newTypeError("%v is not a function", calleeValue))
+	}
 	return calleeValue._object().Construct(this, argumentList)
 }
 

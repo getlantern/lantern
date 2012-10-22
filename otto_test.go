@@ -1605,6 +1605,19 @@ func TestNewFunction(t *testing.T) {
 	test(`
 		new Function("a", "b", "c", "return b + 2")(10, 11, 12)
 	`, "13")
+
+	test(`raise:
+		new 1
+	`, "TypeError: 1 is not a function")
+
+	// TODO Report something sane.
+	test(`raise:
+		new this
+	`, "TypeError:  is not a function")
+
+	test(`raise:
+		new {}
+	`, "TypeError: [object Object] is not a function")
 }
 
 func TestNewPrototype(t *testing.T) {
