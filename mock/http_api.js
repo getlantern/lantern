@@ -206,11 +206,12 @@ ApiServlet.HandlerMap = {
 
 ApiServlet.prototype.handleRequest = function(req, res) {
   var parsed = url.parse(req.url)
+    , prefix = parsed.pathname.substring(0, API_PREFIX.length)
     , endpoint = parsed.pathname.substring(API_PREFIX.length)
     , handler = ApiServlet.HandlerMap[endpoint]
     ;
   util.puts('[api] ' + req.url.href);
-  if (handler) {
+  if (prefix == API_PREFIX && handler) {
     handler.call(this, req, res);
   } else {
     res.writeHead(404);
