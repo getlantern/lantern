@@ -30,6 +30,9 @@ import javax.security.auth.login.CredentialException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.Chat;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.PacketListener;
@@ -496,15 +499,13 @@ public class DefaultXmppHandler implements XmppHandler {
                         // that should be mapped on the user's router.
                         final LanternKscopeAdvertisement ad;
                         if (mappedServer.isPortMapped()) {
-                            final InetSocketAddress ina = 
-                                new InetSocketAddress(address, 
-                                    mappedServer.getMappedPort());
-                            ad = new LanternKscopeAdvertisement(user, ina);
+                            ad = new LanternKscopeAdvertisement(user, address, 
+                                mappedServer.getMappedPort());
                         } else {
                             ad = new LanternKscopeAdvertisement(user);
                         }
                         
-                        // Now turn the ad into JSON.
+                        // Now turn the advertisement into JSON.
                         final String payload = LanternUtils.jsonify(ad);
                         
                         LOG.info("Sending kscope payload: {}", payload);
@@ -514,7 +515,6 @@ public class DefaultXmppHandler implements XmppHandler {
                         final TrustGraphNode tgn = new LanternTrustGraphNode();
                         tgn.advertiseSelf(message);
                     }
-                    
                 }
             };
             // We delay this to make sure we've successfully loaded all roster
@@ -907,7 +907,27 @@ public class DefaultXmppHandler implements XmppHandler {
     }
     
     private void processKscopePayload(final String payload) {
-        
+        final ObjectMapper mapper = new ObjectMapper();
+        try {
+            final LanternKscopeAdvertisement ad = 
+                mapper.readValue(payload, LanternKscopeAdvertisement.class);
+            
+            // If the ad includes a mapped port, include it as straight proxy.
+            if (ad.hasMappedEndpoint()) {
+                final String proxy = ad.getAddress() + ":" + ad.getPort();
+                addGeneralProxy(proxy);
+            }
+            addPeerProxy(new URI(ad.getJid()));
+            
+        } catch (final JsonParseException e) {
+            LOG.warn("Could not parse JSON", e);
+        } catch (final JsonMappingException e) {
+            LOG.warn("Could not map JSON", e);
+        } catch (final IOException e) {
+            LOG.warn("IO error parsing JSON", e);
+        } catch (final URISyntaxException e) {
+            LOG.error("Syntax exception with URI?", e);
+        }
     }
 
     private void sendInfoResponse(final String from) {
