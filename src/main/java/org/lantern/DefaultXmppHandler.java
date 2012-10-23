@@ -2,6 +2,7 @@ package org.lantern;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
@@ -50,7 +51,10 @@ import org.kaleidoscope.BasicTrustGraphAdvertisement;
 import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.TrustGraphNode;
 import org.kaleidoscope.TrustGraphNodeId;
+import org.lantern.ksope.LanternKscopeAdvertisement;
 import org.lantern.ksope.LanternTrustGraphNode;
+import org.lastbamboo.common.ice.MappedServerSocket;
+import org.lastbamboo.common.ice.MappedTcpAnswererServer;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.lastbamboo.common.p2p.P2PConnectionListener;
 import org.lastbamboo.common.p2p.P2PConstants;
@@ -58,6 +62,7 @@ import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
+import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
@@ -152,6 +157,8 @@ public class DefaultXmppHandler implements XmppHandler {
     
     private final Object closedBetaLock = new Object();
 
+    private final MappedServerSocket mappedServer;
+
     /**
      * Creates a new XMPP handler.
      */
@@ -182,6 +189,34 @@ public class DefaultXmppHandler implements XmppHandler {
             };
         }
         natPmpService = temp;
+        
+        MappedServerSocket tempMapper;
+        try {
+            tempMapper =
+                new MappedTcpAnswererServer(natPmpService, upnpService, 
+                    new InetSocketAddress(LanternHub.settings().getServerPort()));
+        } catch (final IOException e) {
+            LOG.info("Exception mapping TCP server", e);
+            tempMapper = new MappedServerSocket() {
+                
+                @Override
+                public boolean isPortMapped() {
+                    return false;
+                }
+                
+                @Override
+                public int getMappedPort() {
+                    return 1;
+                }
+                
+                @Override
+                public InetSocketAddress getHostAddress() {
+                    return new InetSocketAddress(getMappedPort());
+                }
+            };
+        }
+        
+        this.mappedServer = tempMapper;
         
         new GiveModeConnectivityHandler();
         LanternUtils.configureXmpp();
@@ -290,7 +325,7 @@ public class DefaultXmppHandler implements XmppHandler {
             }
         };
         this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService, 
-            upnpService, new InetSocketAddress(LanternHub.settings().getServerPort()), 
+            upnpService, this.mappedServer, 
             //newTlsSocketFactory(),ç SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
             LanternUtils.newTlsSocketFactory(), LanternUtils.newTlsServerSocketFactory(),
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
@@ -451,7 +486,27 @@ public class DefaultXmppHandler implements XmppHandler {
                     if (!LanternHub.censored().isCensored()) {
                         final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
                             LanternHub.settings().getNodeId());
-                        final String payload = connection.getUser();
+                        
+                        final InetAddress address = 
+                            new PublicIpAddress().getPublicIpAddress();
+                        
+                        final String user = connection.getUser();
+                        // The payload here is JSON with everything from the 
+                        // JID of the user to the public IP address and port
+                        // that should be mapped on the user's router.
+                        final LanternKscopeAdvertisement ad;
+                        if (mappedServer.isPortMapped()) {
+                            final InetSocketAddress ina = 
+                                new InetSocketAddress(address, 
+                                    mappedServer.getMappedPort());
+                            ad = new LanternKscopeAdvertisement(user, ina);
+                        } else {
+                            ad = new LanternKscopeAdvertisement(user);
+                        }
+                        
+                        // Now turn the ad into JSON.
+                        final String payload = LanternUtils.jsonify(ad);
+                        
                         LOG.info("Sending kscope payload: {}", payload);
                         final BasicTrustGraphAdvertisement message =
                             new BasicTrustGraphAdvertisement(tgnid, payload, 0);
@@ -465,7 +520,7 @@ public class DefaultXmppHandler implements XmppHandler {
             // We delay this to make sure we've successfully loaded all roster
             // updates and presence notifications before sending out our
             // advertisement.
-            LanternHub.timer().schedule(tt, 20000);
+            LanternHub.timer().schedule(tt, 30000);
         }
     }
 
@@ -825,13 +880,25 @@ public class DefaultXmppHandler implements XmppHandler {
         
         switch (type) {
             case (XmppMessageConstants.INFO_REQUEST_TYPE):
-                LOG.info("Handling INFO request from {}", from);
+                LOG.debug("Handling INFO request from {}", from);
                 processInfoData(msg);
                 sendInfoResponse(from);
                 break;
             case (XmppMessageConstants.INFO_RESPONSE_TYPE):
-                LOG.info("Handling INFO response from {}", from);
+                LOG.debug("Handling INFO response from {}", from);
                 processInfoData(msg);
+                break;
+                
+            case (LanternConstants.KSCOPE_ADVERTISEMENT):
+                LOG.debug("Handling KSCOPE ADVERTISEMENT");
+                final String payload = 
+                    (String) msg.getProperty(
+                        LanternConstants.KSCOPE_ADVERTISEMENT_KEY);
+                if (StringUtils.isNotBlank(payload)) {
+                    processKscopePayload(payload);
+                } else {
+                    LOG.error("kscope ad with no payload? "+msg.toXML());
+                }
                 break;
             default:
                 LOG.warn("Did not understand type: "+type);
@@ -839,6 +906,10 @@ public class DefaultXmppHandler implements XmppHandler {
         }
     }
     
+    private void processKscopePayload(final String payload) {
+        
+    }
+
     private void sendInfoResponse(final String from) {
         final Message msg = new Message();
         // The from becomes the to when we're responding.
