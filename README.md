@@ -1,5 +1,8 @@
 # lantern-ui
 
+[![Build
+Status](https://secure.travis-ci.org/getlantern/lantern-ui.png)](http://travis-ci.org/getlantern/lantern-ui)
+
 Replacement UI for [Lantern](https://github.com/getlantern/lantern).
 
 ## Overview
@@ -18,10 +21,12 @@ UI (work in progress).
 
 ## Getting Started
 
-Install required dependencies (sudo as necessary):
+Install required dependencies (`sudo` as necessary):
 
 * [Node.js](http://nodejs.org/): `brew install node` or equivalent for your
   system
+
+For working on the stylesheets:
 
 * [Compass](http://compass-style.org/): `gem install compass`
   
@@ -33,8 +38,9 @@ Install required dependencies (sudo as necessary):
   `app/lib/bootstrap/`, but we will switch to Compass Twitter Bootstrap if
   we need to do any customization.)
 
-Tell compass to watch for changes in the `sass` directory if you need to update
-the stylesheets:
+This tells compass to watch for changes in the sass stylesheets and it will
+automatically compile them into css in the directory specified by the compass
+config file (`config/compass.rb`):
 
     $ scripts/start-compass.sh &
     >>> Compass is watching for changes. Press Ctrl-C to Stop.
@@ -43,10 +49,25 @@ the stylesheets:
 Start up the Node.js server simulating the Lantern backend:
 
     $ scripts/web-server.js
-    Bayeux-attached http server running at http://localhost:8000
+    Bayeux-attached http server running at...
 
 The new UI should now be available at
 [http://localhost:8000/app/index.html](http://localhost:8000/app/index.html)
+
+
+## Running tests
+
+Globally install required Node.js packages (`sudo` as necessary):
+
+    npm install -g testacular
+
+Check out `.travis.yml` and referenced files for examples of running the
+unit tests and end-to-end tests.
+
+**TODO**: *expand this*
+
+
+## Further Reading
 
 The UI is implemented as an [AngularJS](http://angularjs.org) app. Using the
 [AngularJS Batarang](https://github.com/angular/angularjs-batarang)

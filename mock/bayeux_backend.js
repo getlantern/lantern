@@ -76,7 +76,7 @@ BayeuxBackend.prototype._bindCallbacks = function() {
 
 function _sync(obj, path, value) {
   var lastObj = obj;
-  var property = undefined;
+  var property;
   path.split('.').forEach(function(name) {
     if (name) {
       lastObj = obj;

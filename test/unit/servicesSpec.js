@@ -1,14 +1,17 @@
 'use strict';
 
-/* jasmine specs for services go here */
+describe('test test', function() {
+  it('true should equal true', function() {
+    expect(true).toEqual(true);
+  });
+});
 
 describe('service', function() {
-  beforeEach(module('myApp.services'));
+  beforeEach(module('app.services'));
 
-
-  describe('version', function() {
-    it('should return current version', inject(function(version) {
-      expect(version).toEqual('0.1');
+  describe('api version', function() {
+    it('should return current API version', inject(function(APIVER) {
+      expect(APIVER).toEqual('0.0.1');
     }));
   });
 });
