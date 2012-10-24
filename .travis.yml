@@ -1,0 +1,14 @@
+language: node_js
+node_js:
+  - 0.8
+
+before_script:
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - npm install --quiet -g testacular
+  - ./scripts/web-server.js > /dev/null &
+  - sleep 1 # give server time to start
+
+script:
+  - testacular start config/testacular.conf.js --no-auto-watch --single-run --reporters=dots --browsers=Firefox
+  - testacular start config/testacular-e2e.conf.js --reporters=dots --browsers=Firefox
