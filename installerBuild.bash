@@ -13,6 +13,9 @@ then
     die "$0: Received $# args... version required"
 fi
 
+which install4jc || die "No install4jc on PATH -- ABORTING"
+printenv | grep INSTALL4J_KEY || die "Must have INSTALL4J_KEY defined with the Install4J license key to use"
+
 VERSION=$1
 INTERNAL_VERSION=$1-`git rev-parse HEAD | cut -c1-10`
 MVN_ARGS=$2
