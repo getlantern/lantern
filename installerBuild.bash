@@ -15,6 +15,8 @@ fi
 
 which install4jc || die "No install4jc on PATH -- ABORTING"
 printenv | grep INSTALL4J_KEY || die "Must have INSTALL4J_KEY defined with the Install4J license key to use"
+printenv | grep INSTALL4J_MAC_PASS || die "Must have OSX signing key password defined in INSTALL4J_MAC_PASS"
+printenv | grep INSTALL4J_WIN_PASS || die "Must have windows signing key password defined in INSTALL4J_WIN_PASS"
 
 VERSION=$1
 INTERNAL_VERSION=$1-`git rev-parse HEAD | cut -c1-10`
