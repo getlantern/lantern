@@ -207,6 +207,15 @@ public class LanternTrustManager implements X509TrustManager {
                     log.warn("No matching cert for: "+alias);
                     throw new CertificateException("No cert for "+ alias);
                 }
+                
+                // Verifies that this certificate was signed using the private 
+                // key that corresponds to the specified public key.
+                // In this case the local cert was added through a TLS 
+                // connection to Google Talk, and that connection *only* 
+                // accepts certificates that are signed by Google's root signing
+                // cert from equifax. Note this should of course verify because
+                // it should be the exact same cert we learned about through 
+                // the secure connection to Google Talk.
                 local.verify(cert.getPublicKey());
                 if (!local.equals(cert)) {
                     log.warn("Certs not equal:\n"+local+"\n and:\n"+cert);
