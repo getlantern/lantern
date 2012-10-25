@@ -94,7 +94,7 @@ public class Whitelist {
         "canadameet.me",
         "chinasmile.net",
         "discuss.com.hk",
-        "dolc.de",
+        //"dolc.de",
         "oursteps.com.au",
         "qoos.com",
         "sgchinese.net",
@@ -111,7 +111,7 @@ public class Whitelist {
         // News and Political
         "881903.com",
         "aboluowang.com",
-        "am730.com.hk",
+        "www.am730.com.hk",
         "boxun.com",
         "bullogger.com",
         "canyu.org",
