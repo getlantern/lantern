@@ -5,6 +5,8 @@ Status](https://secure.travis-ci.org/getlantern/lantern-ui.png)](http://travis-c
 
 Replacement UI for [Lantern](https://github.com/getlantern/lantern).
 
+Live Demo: http://lantern-ui.jit.su/app/index.html
+
 ## Overview
 
 This is the proposed repository for the future UI of
