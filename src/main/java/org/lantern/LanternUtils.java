@@ -44,6 +44,9 @@ import java.util.Queue;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.crypto.Cipher;
@@ -225,6 +228,19 @@ public class LanternUtils {
         }
     }
     
+    private static final ExecutorService threadPool = 
+        Executors.newCachedThreadPool(new ThreadFactory() {
+        private volatile int threadNumber = 0;
+        
+        @Override
+        public Thread newThread(final Runnable r) {
+            final Thread t = new Thread(r, "Peer-Reading-Thread-"+threadNumber);
+            t.setDaemon(true);
+            threadNumber++;
+            return t;
+        }
+    });
+    
     public static void startReading(final Socket sock, final Channel channel, 
         final boolean recordStats) {
         final Runnable runner = new Runnable() {
@@ -258,7 +274,7 @@ public class LanternUtils {
                     ProxyUtils.closeOnFlush(channel);
 
                 } catch (final IOException e) {
-                    LOG.info("Exception relaying peer data back to browser",e);
+                    LOG.info("Exception relaying peer data back to browser", e);
                     ProxyUtils.closeOnFlush(channel);
                     
                     // The other side probably just closed the connection!!
@@ -269,10 +285,13 @@ public class LanternUtils {
                 }
             }
         };
+        /*
         final Thread peerReadingThread = 
             new Thread(runner, "Peer-Data-Reading-Thread");
         peerReadingThread.setDaemon(true);
         peerReadingThread.start();
+        */
+        threadPool.execute(runner);
     }
     
     public static String getMacAddress() {
