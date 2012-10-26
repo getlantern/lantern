@@ -4,12 +4,13 @@ type _stash interface {
 	test(string) bool
 	get(string) Value
 	property(string) *_property
+	index(string) (_property, bool)
 	enumerate(func(string))
 
 	canPut(string) bool
 	put(string, Value)
 	set(string, Value, _propertyMode)
-	define(string, _defineProperty) bool
+	defineProperty(string, interface{}, _propertyMode)
 
 	delete(string)
 
@@ -116,69 +117,9 @@ func (self *_objectStash) set(name string, value Value, mode _propertyMode) {
 	self.propertyMap[name] = _property{value, mode}
 }
 
-// FIME This is wrong, and doesn't work like you think
-func (self *_objectStash) define(name string, define _defineProperty) bool {
-	property, exists := self.index(name)
-	if !exists {
-		if !self.extensible() {
-			return false
-		}
-		self.propertyMap[name] = _property{
-			Value: define.Value,
-			Mode:  define.Mode(),
-		}
-		return true
-	}
-	if define.isEmpty() {
-		return true
-	}
-
-	// TODO Per 8.12.9.6 - We should shortcut here (returning true) if
-	// the current and new (define) properties are the same
-
-	// TODO Use the other stash methods so we write to special properties properly?
-
-	canConfigure := property.CanConfigure()
-	if !canConfigure {
-		if define.CanConfigure() {
-			return false
-		}
-		if define.Enumerate != propertyAttributeNotSet && define.CanEnumerate() != property.CanEnumerate() {
-			return false
-		}
-	}
-	value, isDataDescriptor := property.Value.(Value)
-	getSet, _ := property.Value.(_propertyGetSet)
-	if define.IsGenericDescriptor() {
-		// GenericDescriptor
-	} else if isDataDescriptor != define.IsDataDescriptor() {
-		var interface_ interface{}
-		if isDataDescriptor {
-			property.Mode = property.Mode & ^propertyModeWrite
-			property.Value = interface_
-		} else {
-			property.Mode |= propertyModeWrite
-			property.Value = interface_
-		}
-	} else if isDataDescriptor && define.IsDataDescriptor() {
-		if !canConfigure {
-			if property.CanWrite() != define.CanWrite() {
-				return false
-			} else if !sameValue(value, define.Value.(Value)) {
-				return false
-			}
-		}
-	} else {
-		if !canConfigure {
-			defineGetSet, _ := define.Value.(_propertyGetSet)
-			if getSet[0] != defineGetSet[0] || getSet[1] != defineGetSet[1] {
-				return false
-			}
-		}
-	}
-	define.CopyInto(&property)
-	self.propertyMap[name] = property
-	return true
+func (self *_objectStash) defineProperty(name string, value interface{}, mode _propertyMode) {
+	// TODO Sanity check value?
+	self.propertyMap[name] = _property{value, mode}
 }
 
 func (self *_objectStash) delete(name string) {
