@@ -129,6 +129,83 @@ func builtinObject_toString(call FunctionCall) Value {
 	return toValue(result)
 }
 
+func toPropertyDescriptor(value Value) (descriptor _defineProperty) {
+	objectDescriptor := value._object()
+	if objectDescriptor == nil {
+		panic(newTypeError())
+	}
+
+	if objectDescriptor.hasProperty("enumerable") {
+		if objectDescriptor.get("enumerarable").toBoolean() {
+			descriptor.Enumerate = propertyAttributeTrue
+		} else {
+			descriptor.Enumerate = propertyAttributeFalse
+		}
+	}
+	if objectDescriptor.hasProperty("configureable") {
+		if objectDescriptor.get("configureable").toBoolean() {
+			descriptor.Configure = propertyAttributeTrue
+		} else {
+			descriptor.Configure = propertyAttributeFalse
+		}
+	}
+	if objectDescriptor.hasProperty("writeable") {
+		if objectDescriptor.get("writeable").toBoolean() {
+			descriptor.Write = propertyAttributeTrue
+		} else {
+			descriptor.Write = propertyAttributeFalse
+		}
+	}
+
+	var set, get *_object
+
+	if objectDescriptor.hasProperty("get") {
+		value := objectDescriptor.get("get")
+		if value.IsDefined() {
+			if !value.isCallable() {
+				panic(newTypeError())
+			}
+			get = value._object()
+		}
+	}
+	if objectDescriptor.hasProperty("set") {
+		value := objectDescriptor.get("set")
+		if value.IsDefined() {
+			if !value.isCallable() {
+				panic(newTypeError())
+			}
+			set = value._object()
+		}
+	}
+	if (set != nil || get != nil) {
+		if descriptor.Write != propertyAttributeNotSet {
+			panic(newTypeError())
+		}
+		descriptor.Value = _propertyGetSet{get, set}
+	}
+
+	if objectDescriptor.hasProperty("value") {
+		if (set != nil || get != nil) {
+			panic(newTypeError())
+		}
+		descriptor.Value = objectDescriptor.get("value")
+	}
+
+	return
+}
+
+func builtinObject_defineProperty(call FunctionCall) Value {
+	objectValue := call.Argument(0)
+	object := objectValue._object()
+	if object == nil {
+		panic(newTypeError())
+	}
+	name := toString(call.Argument(1))
+	descriptor := toPropertyDescriptor(call.Argument(2))
+	object.defineOwnProperty(name, descriptor, true)
+	return objectValue
+}
+
 // Function
 
 func builtinFunction(call FunctionCall) Value {
