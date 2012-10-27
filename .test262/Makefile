@@ -1,4 +1,4 @@
-.PHONY: build test otto v8 cull uncull gauntlet try test-v8 test-otto tmp
+.PHONY: build test otto v8 cull uncull gauntlet try test-v8 test-otto tmp copy
 
 otto := ./otto -underscore=false
 TEST := python ./data/tools/packaging/test262.py --test=data --non_strict_only
@@ -48,3 +48,7 @@ try-tmp: tmp
 look: .fail
 	cat $<
 	@echo `readlink $<`
+
+copy: .fail
+	@echo `readlink $<` | pbcopy
+

@@ -169,6 +169,8 @@ func newContext() *_runtime {
 	)
 	self.Global.Object.write(
 		"defineProperty", 3, builtinObject_defineProperty,
+		"defineProperties", 2, builtinObject_defineProperties,
+		"create", 2, builtinObject_create,
 	)
 
 	self.Global.Function = self.newGlobalFunction(

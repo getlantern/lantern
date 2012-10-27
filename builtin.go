@@ -214,6 +214,43 @@ func builtinObject_defineProperty(call FunctionCall) Value {
 	return objectValue
 }
 
+func builtinObject_defineProperties(call FunctionCall) Value {
+	objectValue := call.Argument(0)
+	object := objectValue._object()
+	if object == nil {
+		panic(newTypeError())
+	}
+
+	properties := call.runtime.toObject(call.Argument(1))
+	properties.enumerate(func(name string) {
+		descriptor := toPropertyDescriptor(properties.get(name))
+		object.defineOwnProperty(name, descriptor, true)
+	})
+
+	return objectValue
+}
+
+func builtinObject_create(call FunctionCall) Value {
+	prototypeValue := call.Argument(0)
+	prototype := prototypeValue._object()
+	if prototype == nil {
+		panic(newTypeError())
+	}
+
+	object := call.runtime.newObject()
+
+	propertiesValue := call.Argument(1)
+	if propertiesValue.IsDefined() {
+		properties := call.runtime.toObject(propertiesValue)
+		properties.enumerate(func(name string) {
+			descriptor := toPropertyDescriptor(properties.get(name))
+			object.defineOwnProperty(name, descriptor, true)
+		})
+	}
+
+	return toValue(object)
+}
+
 // Function
 
 func builtinFunction(call FunctionCall) Value {
