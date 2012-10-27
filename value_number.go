@@ -97,6 +97,7 @@ const (
 	float_2_16 float64 = 65536.0
 	integer_2_32 int64 = 4294967296
 	integer_2_31 int64 = 2146483648
+	sqrt1_2 float64 = math.Sqrt2/2
 )
 
 func toIntegerFloat(value Value) float64 {

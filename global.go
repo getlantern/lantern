@@ -299,6 +299,15 @@ func newContext() *_runtime {
 		"floor", 1, builtinMath_floor,
 		"random", 0, builtinMath_random,
 		"pow", 2, builtinMath_pow,
+		_propertyMode(0),
+		"E", toValue(math.E),
+		"LN10", toValue(math.Ln10),
+		"LN2", toValue(math.Ln2),
+		"LOG2E", toValue(math.Log2E),
+		"LOG10E", toValue(math.Log10E),
+		"PI", toValue(math.Pi),
+		"SQRT1_2", toValue(sqrt1_2),
+		"SQRT2", toValue(math.Sqrt2),
 	)
 
 	self.Global.Date = self.newGlobalFunction(
