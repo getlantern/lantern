@@ -39,7 +39,7 @@ func (self *_object) delete(name string, throw bool) bool {
 	if property_ == nil {
 		return true
 	}
-	if property_.configureable() {
+	if property_.configurable() {
 		self.stash.delete(name)
 		return true
 	}
@@ -93,7 +93,7 @@ func (self *_object) canPut(name string) bool {
 	if property != nil {
 		switch value := property.value.(type) {
 		case Value:
-			return property.writeable()
+			return property.writable()
 		case _propertyGetSet:
 			return value[1] != nil
 		default:
@@ -113,7 +113,7 @@ func (self *_object) canPut(name string) bool {
 		if !self.extensible() {
 			return false
 		}
-		return property.writeable()
+		return property.writable()
 	case _propertyGetSet:
 		return value[1] != nil
 	}
@@ -205,9 +205,9 @@ func (self *_object) defineOwnProperty(name string, descriptor _property, throw 
 
 		// TODO Use the other stash methods so we write to special properties properly?
 
-		configureable := property.configureable()
-		if !configureable {
-			if descriptor.configureable() {
+		configurable := property.configurable()
+		if !configurable {
+			if descriptor.configurable() {
 				return false
 			}
 			// Test that, if enumerable is set on the property descriptor, then it should
@@ -230,15 +230,15 @@ func (self *_object) defineOwnProperty(name string, descriptor _property, throw 
 				property.value = interface_
 			}
 		} else if isDataDescriptor && descriptor.isDataDescriptor() {
-			if !configureable {
-				if property.writeable() != descriptor.writeable() {
+			if !configurable {
+				if property.writable() != descriptor.writable() {
 					return false
 				} else if !sameValue(value, descriptor.value.(Value)) {
 					return false
 				}
 			}
 		} else {
-			if !configureable {
+			if !configurable {
 				defineGetSet, _ := descriptor.value.(_propertyGetSet)
 				if getSet[0] != defineGetSet[0] || getSet[1] != defineGetSet[1] {
 					return false

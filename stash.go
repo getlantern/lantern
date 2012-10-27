@@ -87,7 +87,7 @@ func (self *_objectStash) canPut(name string) bool {
 	}
 	switch propertyValue := property.value.(type) {
 	case Value:
-		return property.writeable()
+		return property.writable()
 	case _propertyGetSet:
 		return propertyValue[1] != nil
 	}
@@ -99,7 +99,7 @@ func (self *_objectStash) put(name string, value Value) {
 	if exists {
 		switch propertyValue := property.value.(type) {
 		case Value:
-			if property.writeable() {
+			if property.writable() {
 				property.value = value
 				self.propertyMap[name] = property
 			}

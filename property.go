@@ -17,7 +17,7 @@ type _property struct {
 	mode  _propertyMode
 }
 
-func (self _property) writeable() bool {
+func (self _property) writable() bool {
 	return self.mode & 0700 == 0100
 }
 
@@ -25,7 +25,7 @@ func (self _property) enumerable() bool {
 	return self.mode & 0070 == 0010
 }
 
-func (self _property) configureable() bool {
+func (self _property) configurable() bool {
 	return self.mode & 0007 == 0001
 }
 
@@ -64,23 +64,23 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 	{
 		mode := _propertyMode(0)
 		if objectDescriptor.hasProperty("enumerable") {
-			if objectDescriptor.get("enumerarable").toBoolean() {
+			if objectDescriptor.get("enumerable").toBoolean() {
 				mode |= 0010
 			}
 		} else {
 			mode |= 0020
 		}
 
-		if objectDescriptor.hasProperty("configureable") {
-			if objectDescriptor.get("configureable").toBoolean() {
+		if objectDescriptor.hasProperty("configurable") {
+			if objectDescriptor.get("configurable").toBoolean() {
 				mode |= 0001
 			}
 		} else {
 			mode |= 0002
 		}
 
-		if objectDescriptor.hasProperty("writeable") {
-			if objectDescriptor.get("enumerarable").toBoolean() {
+		if objectDescriptor.hasProperty("writable") {
+			if objectDescriptor.get("writable").toBoolean() {
 				mode |= 0100
 			}
 		} else {
@@ -116,7 +116,7 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 	}
 
 	if (getterSetter) {
-		// If writeable is set on the descriptor, ...
+		// If writable is set on the descriptor, ...
 		if descriptor.mode & 0200 != 0 {
 			panic(newTypeError())
 		}
@@ -137,13 +137,13 @@ func (self *_runtime) fromPropertyDescriptor(descriptor _property) *_object {
 	object := self.newObject()
 	if descriptor.isDataDescriptor() {
 		object.stash.set("value", descriptor.value.(Value), 0111)
-		object.stash.set("writable", toValue(descriptor.writeable()), 0111)
+		object.stash.set("writable", toValue(descriptor.writable()), 0111)
 	} else if descriptor.isAccessorDescriptor() {
 		getSet := descriptor.value.(_propertyGetSet)
 		object.stash.set("get", toValue(getSet[0]), 0111)
 		object.stash.set("set", toValue(getSet[1]), 0111)
 	}
 	object.stash.set("enumerable", toValue(descriptor.enumerable()), 0111)
-	object.stash.set("configureable", toValue(descriptor.configureable()), 0111)
+	object.stash.set("configurable", toValue(descriptor.configurable()), 0111)
 	return object
 }
