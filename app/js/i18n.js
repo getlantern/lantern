@@ -123,7 +123,7 @@ angular.module('app.i18n', [])
       SYSTEM_PROXY_ERROR: 'Proxy configuration failed',
       FINISHED_TITLE: 'Finished!',
       FINISHED_PROMPT: 'Thank you for joining Lantern. Your participation at this early stage is invaluable.',
-      AUTOREPORT_PROMPT: 'Securely report diagnostics and usage information to Lantern developers to aid in its development.', // XXX link to privacy policy?
+      AUTOREPORT_PROMPT: 'Securely report diagnostics and usage statistics to Lantern developers to aid in its development.', // XXX link to more info?
       AUTOREPORT_ENABLE: 'Enable automatic reporting',
       FINISH: 'Finish',
       SIGNIN_DISCOVER_PROXIES_PROMPT: 'Lantern can connect to known proxies but will be unable to discover new ones until signed in to Google Talk.',
