@@ -161,7 +161,7 @@ func newContext() *_runtime {
 			propertyName := toString(call.Argument(0))
 			thisObject := call.thisObject()
 			property := thisObject.getOwnProperty(propertyName)
-			if property != nil && property.CanEnumerate() {
+			if property != nil && property.enumerable() {
 				return TrueValue()
 			}
 			return FalseValue()

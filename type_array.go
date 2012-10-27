@@ -116,8 +116,8 @@ func (self *_arrayStash) property(name string) *_property {
 	// length
 	if name == "length" {
 		return &_property{
-			toValue(len(self.valueArray)),
-			propertyModeWrite, // +Write -Enumerate -Configure
+			value: toValue(len(self.valueArray)),
+			mode: 0100, // +Write -Enumerate -Configure
 		}
 	}
 
@@ -129,8 +129,8 @@ func (self *_arrayStash) property(name string) *_property {
 			value = self.valueArray[index]
 		}
 		return &_property{
-			Value: value,
-			Mode: 0111, // +Write +Enumerate +Configure
+			value: value,
+			mode: 0111, // +Write +Enumerate +Configure
 		}
 	}
 

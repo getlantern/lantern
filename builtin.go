@@ -129,33 +129,40 @@ func builtinObject_toString(call FunctionCall) Value {
 	return toValue(result)
 }
 
-func toPropertyDescriptor(value Value) (descriptor _defineProperty) {
+func toPropertyDescriptor(value Value) (descriptor _property) {
 	objectDescriptor := value._object()
 	if objectDescriptor == nil {
 		panic(newTypeError())
 	}
 
-	if objectDescriptor.hasProperty("enumerable") {
-		if objectDescriptor.get("enumerarable").toBoolean() {
-			descriptor.Enumerate = propertyAttributeTrue
+	{
+		mode := _propertyMode(0)
+		if objectDescriptor.hasProperty("enumerable") {
+			if objectDescriptor.get("enumerarable").toBoolean() {
+				mode |= 0010
+			}
 		} else {
-			descriptor.Enumerate = propertyAttributeFalse
+			mode |= 0020
 		}
-	}
-	if objectDescriptor.hasProperty("configureable") {
-		if objectDescriptor.get("configureable").toBoolean() {
-			descriptor.Configure = propertyAttributeTrue
+
+		if objectDescriptor.hasProperty("configureable") {
+			if objectDescriptor.get("configureable").toBoolean() {
+				mode |= 0001
+			}
 		} else {
-			descriptor.Configure = propertyAttributeFalse
+			mode |= 0002
 		}
-	}
-	if objectDescriptor.hasProperty("writeable") {
-		if objectDescriptor.get("writeable").toBoolean() {
-			descriptor.Write = propertyAttributeTrue
+
+		if objectDescriptor.hasProperty("writeable") {
+			if objectDescriptor.get("enumerarable").toBoolean() {
+				mode |= 0100
+			}
 		} else {
-			descriptor.Write = propertyAttributeFalse
+			mode |= 0200
 		}
+		descriptor.mode = mode
 	}
+
 
 	var set, get *_object
 
@@ -178,17 +185,18 @@ func toPropertyDescriptor(value Value) (descriptor _defineProperty) {
 		}
 	}
 	if (set != nil || get != nil) {
-		if descriptor.Write != propertyAttributeNotSet {
+		// If writeable is set on the descriptor, ...
+		if descriptor.mode & 0200 != 0 {
 			panic(newTypeError())
 		}
-		descriptor.Value = _propertyGetSet{get, set}
+		descriptor.value = _propertyGetSet{get, set}
 	}
 
 	if objectDescriptor.hasProperty("value") {
 		if (set != nil || get != nil) {
 			panic(newTypeError())
 		}
-		descriptor.Value = objectDescriptor.get("value")
+		descriptor.value = objectDescriptor.get("value")
 	}
 
 	return

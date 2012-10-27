@@ -39,7 +39,7 @@ func (self *_object) delete(name string, throw bool) bool {
 	if property_ == nil {
 		return true
 	}
-	if property_.CanConfigure() {
+	if property_.configureable() {
 		self.stash.delete(name)
 		return true
 	}
@@ -91,9 +91,9 @@ func (self *_object) canPut(name string) bool {
 
 	property := self.stash.property(name)
 	if property != nil {
-		switch value := property.Value.(type) {
+		switch value := property.value.(type) {
 		case Value:
-			return property.CanWrite()
+			return property.writeable()
 		case _propertyGetSet:
 			return value[1] != nil
 		default:
@@ -108,12 +108,12 @@ func (self *_object) canPut(name string) bool {
 		return self.extensible()
 	}
 
-	switch value := property.Value.(type) {
+	switch value := property.value.(type) {
 	case Value:
 		if !self.extensible() {
 			return false
 		}
-		return property.CanWrite()
+		return property.writeable()
 	case _propertyGetSet:
 		return value[1] != nil
 	}
@@ -186,64 +186,68 @@ func (self *_object) String() string {
 }
 
 // 8.12.9
-func (self *_object) defineOwnProperty(name string, define _defineProperty, throw bool) bool {
+func (self *_object) defineOwnProperty(name string, descriptor _property, throw bool) bool {
 	property, exists := self.stash.index(name)
-	if !exists {
-		if !self.extensible() {
-			return false
+	{
+		if !exists {
+			if !self.extensible() {
+				return false
+			}
+			self.stash.defineProperty(name, descriptor.value, descriptor.mode)
+			return true
 		}
-		self.stash.defineProperty(name, define.Value, define.Mode())
-		return true
-	}
-	if define.isEmpty() {
-		return true
-	}
-
-	// TODO Per 8.12.9.6 - We should shortcut here (returning true) if
-	// the current and new (define) properties are the same
-
-	// TODO Use the other stash methods so we write to special properties properly?
-
-	canConfigure := property.CanConfigure()
-	if !canConfigure {
-		if define.CanConfigure() {
-			return false
+		if descriptor.isEmpty() {
+			return true
 		}
-		if define.Enumerate != propertyAttributeNotSet && define.CanEnumerate() != property.CanEnumerate() {
-			return false
+
+		// TODO Per 8.12.9.6 - We should shortcut here (returning true) if
+		// the current and new (define) properties are the same
+
+		// TODO Use the other stash methods so we write to special properties properly?
+
+		configureable := property.configureable()
+		if !configureable {
+			if descriptor.configureable() {
+				return false
+			}
+			// Test that, if enumerable is set on the property descriptor, then it should
+			// be the same as the existing property
+			if descriptor.mode & 0020 == 0 && descriptor.enumerable() != property.enumerable() {
+				return false
+			}
 		}
-	}
-	value, isDataDescriptor := property.Value.(Value)
-	getSet, _ := property.Value.(_propertyGetSet)
-	if define.IsGenericDescriptor() {
-		// GenericDescriptor
-	} else if isDataDescriptor != define.IsDataDescriptor() {
-		var interface_ interface{}
-		if isDataDescriptor {
-			property.Mode = property.Mode & ^propertyModeWrite
-			property.Value = interface_
+		value, isDataDescriptor := property.value.(Value)
+		getSet, _ := property.value.(_propertyGetSet)
+		if descriptor.isGenericDescriptor() {
+			// GenericDescriptor
+		} else if isDataDescriptor != descriptor.isDataDescriptor() {
+			var interface_ interface{}
+			if isDataDescriptor {
+				property.mode = property.mode & ^propertyMode_write
+				property.value = interface_
+			} else {
+				property.mode |= propertyMode_write
+				property.value = interface_
+			}
+		} else if isDataDescriptor && descriptor.isDataDescriptor() {
+			if !configureable {
+				if property.writeable() != descriptor.writeable() {
+					return false
+				} else if !sameValue(value, descriptor.value.(Value)) {
+					return false
+				}
+			}
 		} else {
-			property.Mode |= propertyModeWrite
-			property.Value = interface_
-		}
-	} else if isDataDescriptor && define.IsDataDescriptor() {
-		if !canConfigure {
-			if property.CanWrite() != define.CanWrite() {
-				return false
-			} else if !sameValue(value, define.Value.(Value)) {
-				return false
+			if !configureable {
+				defineGetSet, _ := descriptor.value.(_propertyGetSet)
+				if getSet[0] != defineGetSet[0] || getSet[1] != defineGetSet[1] {
+					return false
+				}
 			}
 		}
-	} else {
-		if !canConfigure {
-			defineGetSet, _ := define.Value.(_propertyGetSet)
-			if getSet[0] != defineGetSet[0] || getSet[1] != defineGetSet[1] {
-				return false
-			}
-		}
+		self.stash.defineProperty(name, descriptor.value, descriptor.mode)
+		return true
 	}
-	self.stash.defineProperty(name, define.Value, define.Mode())
-	return true
 }
 
 func (self *_object) hasOwnProperty(name string) bool {

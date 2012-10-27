@@ -43,7 +43,7 @@ func (self *_objectStash) get(name string) Value {
 		return UndefinedValue()
 	}
 
-	switch value := property.Value.(type) {
+	switch value := property.value.(type) {
 	case Value:
 		return value
 	case _propertyGetSet:
@@ -74,7 +74,7 @@ func (self _objectStash) index(name string) (_property, bool) {
 
 func (self *_objectStash) enumerate(each func(string)) {
 	for name, property := range self.propertyMap {
-		if property.CanEnumerate() {
+		if property.enumerable() {
 			each(name)
 		}
 	}
@@ -85,9 +85,9 @@ func (self *_objectStash) canPut(name string) bool {
 	if !exists {
 		return self.extensible()
 	}
-	switch propertyValue := property.Value.(type) {
+	switch propertyValue := property.value.(type) {
 	case Value:
-		return property.CanWrite()
+		return property.writeable()
 	case _propertyGetSet:
 		return propertyValue[1] != nil
 	}
@@ -97,10 +97,10 @@ func (self *_objectStash) canPut(name string) bool {
 func (self *_objectStash) put(name string, value Value) {
 	property, exists := self.propertyMap[name]
 	if exists {
-		switch propertyValue := property.Value.(type) {
+		switch propertyValue := property.value.(type) {
 		case Value:
-			if property.CanWrite() {
-				property.Value = value
+			if property.writeable() {
+				property.value = value
 				self.propertyMap[name] = property
 			}
 		case _propertyGetSet:

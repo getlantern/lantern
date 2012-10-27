@@ -269,15 +269,15 @@ func (self *_regExpStash) put(name string, value Value) {
 func (self *_regExpStash) property(name string) *_property {
 	switch name {
 	case "global":
-		return &_property{Value: toValue(self._regExpObject.Global), Mode: 0} // -Write -Enumerate -Configure
+		return &_property{value: toValue(self._regExpObject.Global), mode: 0} // -Write -Enumerate -Configure
 	case "ignoreCase":
-		return &_property{Value: toValue(self._regExpObject.IgnoreCase), Mode: 0} // -Write -Enumerate -Configure
+		return &_property{value: toValue(self._regExpObject.IgnoreCase), mode: 0} // -Write -Enumerate -Configure
 	case "multiline":
-		return &_property{Value: toValue(self._regExpObject.Multiline), Mode: 0} // -Write -Enumerate -Configure
+		return &_property{value: toValue(self._regExpObject.Multiline), mode: 0} // -Write -Enumerate -Configure
 	case "lastIndex":
-		return &_property{Value: (self._regExpObject.LastIndex), Mode: propertyModeWrite} // +Write -Enumerate -Configure
+		return &_property{value: (self._regExpObject.LastIndex), mode: 0100} // +Write -Enumerate -Configure
 	case "source":
-		return &_property{Value: toValue(self._regExpObject.Source), Mode: 0} // -Write -Enumerate -Configure
+		return &_property{value: toValue(self._regExpObject.Source), mode: 0} // -Write -Enumerate -Configure
 	}
 	return self._stash.property(name)
 }
