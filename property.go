@@ -53,4 +53,83 @@ func (self _property) isEmpty() bool {
 }
 
 // _enumerableValue, _enumerableTrue, _enumerableFalse?
-// .enumerableValue()
+// .enumerableValue() .enumerableExists()
+
+func toPropertyDescriptor(value Value) (descriptor _property) {
+	objectDescriptor := value._object()
+	if objectDescriptor == nil {
+		panic(newTypeError())
+	}
+
+	{
+		mode := _propertyMode(0)
+		if objectDescriptor.hasProperty("enumerable") {
+			if objectDescriptor.get("enumerarable").toBoolean() {
+				mode |= 0010
+			}
+		} else {
+			mode |= 0020
+		}
+
+		if objectDescriptor.hasProperty("configureable") {
+			if objectDescriptor.get("configureable").toBoolean() {
+				mode |= 0001
+			}
+		} else {
+			mode |= 0002
+		}
+
+		if objectDescriptor.hasProperty("writeable") {
+			if objectDescriptor.get("enumerarable").toBoolean() {
+				mode |= 0100
+			}
+		} else {
+			mode |= 0200
+		}
+		descriptor.mode = mode
+	}
+
+
+	var getter, setter *_object
+	getterSetter := false
+
+	if objectDescriptor.hasProperty("get") {
+		value := objectDescriptor.get("get")
+		if value.IsDefined() {
+			if !value.isCallable() {
+				panic(newTypeError())
+			}
+			getter = value._object()
+			getterSetter = getterSetter || getter != nil
+		}
+	}
+
+	if objectDescriptor.hasProperty("set") {
+		value := objectDescriptor.get("set")
+		if value.IsDefined() {
+			if !value.isCallable() {
+				panic(newTypeError())
+			}
+			setter = value._object()
+			getterSetter = getterSetter || setter != nil
+		}
+	}
+
+	if (getterSetter) {
+		// If writeable is set on the descriptor, ...
+		if descriptor.mode & 0200 != 0 {
+			panic(newTypeError())
+		}
+		descriptor.value = _propertyGetSet{getter, setter}
+	}
+
+	if objectDescriptor.hasProperty("value") {
+		if (getterSetter) {
+			panic(newTypeError())
+		}
+		descriptor.value = objectDescriptor.get("value")
+	}
+
+	return
+}
+
