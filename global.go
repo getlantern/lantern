@@ -168,6 +168,7 @@ func newContext() *_runtime {
 		},
 	)
 	self.Global.Object.write(
+		"getOwnPropertyDescriptor", 2, builtinObject_getOwnPropertyDescriptor,
 		"defineProperty", 3, builtinObject_defineProperty,
 		"defineProperties", 2, builtinObject_defineProperties,
 		"create", 2, builtinObject_create,

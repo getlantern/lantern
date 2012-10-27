@@ -129,6 +129,21 @@ func builtinObject_toString(call FunctionCall) Value {
 	return toValue(result)
 }
 
+func builtinObject_getOwnPropertyDescriptor(call FunctionCall) Value {
+	objectValue := call.Argument(0)
+	object := objectValue._object()
+	if object == nil {
+		panic(newTypeError())
+	}
+
+	name := toString(call.Argument(1))
+	descriptor := object.getOwnProperty(name)
+	if descriptor == nil {
+		return UndefinedValue()
+	}
+	return toValue(call.runtime.fromPropertyDescriptor(*descriptor))
+}
+
 func builtinObject_defineProperty(call FunctionCall) Value {
 	objectValue := call.Argument(0)
 	object := objectValue._object()

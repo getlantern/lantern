@@ -133,3 +133,17 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 	return
 }
 
+func (self *_runtime) fromPropertyDescriptor(descriptor _property) *_object {
+	object := self.newObject()
+	if descriptor.isDataDescriptor() {
+		object.stash.set("value", descriptor.value.(Value), 0111)
+		object.stash.set("writable", toValue(descriptor.writeable()), 0111)
+	} else if descriptor.isAccessorDescriptor() {
+		getSet := descriptor.value.(_propertyGetSet)
+		object.stash.set("get", toValue(getSet[0]), 0111)
+		object.stash.set("set", toValue(getSet[1]), 0111)
+	}
+	object.stash.set("enumerable", toValue(descriptor.enumerable()), 0111)
+	object.stash.set("configureable", toValue(descriptor.configureable()), 0111)
+	return object
+}
