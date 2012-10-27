@@ -9,29 +9,29 @@ type _reference interface {
 	Delete()
 }
 
-type _referenceBase struct {
+type _reference_ struct {
     name string
 	strict bool
 }
 
-func (self _referenceBase) GetBase() *_object {
+func (self _reference_) GetBase() *_object {
 	return nil
 }
 
-func (self _referenceBase) Name() string {
+func (self _reference_) Name() string {
 	return self.name
 }
 
-func (self _referenceBase) Strict() bool {
+func (self _reference_) Strict() bool {
 	return self.strict
 }
 
-func (self _referenceBase) Delete() {
+func (self _reference_) Delete() {
 	// TODO Does nothing, for now?
 }
 
 type _argumentReference struct {
-	_referenceBase
+	_reference_
     Base *_object
 }
 
@@ -41,7 +41,7 @@ func newArgumentReference(base *_object, name string, strict bool) *_argumentRef
 	}
 	return &_argumentReference{
 		Base: base,
-		_referenceBase: _referenceBase{
+		_reference_: _reference_{
 			name: name,
 			strict: strict,
 		},
@@ -57,12 +57,12 @@ func (self *_argumentReference) GetValue() Value {
 }
 
 func (self *_argumentReference) PutValue(value Value) bool {
-	self.Base.set(self.name, value, self._referenceBase.strict)
+	self.Base.set(self.name, value, self._reference_.strict)
 	return true
 }
 
 type _objectReference struct {
-	_referenceBase
+	_reference_
     Base *_object
 	node _node
 }
@@ -70,7 +70,7 @@ type _objectReference struct {
 func newObjectReference(base *_object, name string, strict bool, node _node) *_objectReference {
 	return &_objectReference{
 		Base: base,
-		_referenceBase: _referenceBase{
+		_reference_: _reference_{
 			name: name,
 			strict: strict,
 		},
@@ -105,7 +105,7 @@ func (self *_objectReference) Delete() {
 }
 
 type _primitiveReference struct {
-	_referenceBase
+	_reference_
     Base Value
 	toObject func(Value) *_object
 	baseObject *_object
@@ -115,7 +115,7 @@ func newPrimitiveReference(base Value, toObject func(Value) *_object, name strin
 	return &_primitiveReference{
 		Base: base,
 		toObject: toObject,
-		_referenceBase: _referenceBase{
+		_reference_: _reference_{
 			name: name,
 			strict: strict,
 		},
