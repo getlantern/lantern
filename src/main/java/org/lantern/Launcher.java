@@ -102,6 +102,15 @@ public class Launcher {
         final Thread main = new Thread(runner, "Lantern-Launch-Thread");
         //main.start();
         runner.run();
+        if (SystemUtils.IS_OS_LINUX) {
+            synchronized (runner) {
+                try {
+                    runner.wait();
+                } catch (final InterruptedException e) {
+                    LOG.info("Interrupted", e);
+                }
+            }
+        }
     }
 
     // the following are command line options 
