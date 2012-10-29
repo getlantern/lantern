@@ -401,3 +401,10 @@ function DevCtrl($scope, debug, logFactory, cometdSrvc, modelSrvc) {
     }
   }
 }
+
+function DashCtrl($scope, logFactory) {
+  var log = logFactory('DashCtrl');
+  $scope.startVis = function() {
+    startVis();
+  };
+}
