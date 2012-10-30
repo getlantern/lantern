@@ -4,6 +4,9 @@
 =small
   font-size: $baseFontSize * .85
 
+=smaller
+  font-size: $baseFontSize * .75
+
 =size($width: false, $height: $width)
   @if $width
     width: $width
@@ -27,3 +30,11 @@
   margin-top: -1 * $height / 2
   width: $width
   height: $height
+
+=never-underlined
+  text-decoration: none
+  &:active, &:visited, &:hover
+    text-decoration: none
+
+=indented($amount: 20px)
+  margin-left: $amount

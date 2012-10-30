@@ -2,6 +2,7 @@
 
 angular.module('app.i18n', [])
   .constant('DEFAULTLANG', 'en')
+  .constant('NBSP', ' ') // unicode no-break space
   .service('langSrvc', function(modelSrvc, DEFAULTLANG, LANGDIRECTIONS) {
     var DEFAULTDIRECTION = 'ltr';
     function lang() {
@@ -71,8 +72,9 @@ angular.module('app.i18n', [])
       GIVE_ACCESS: 'Give Access',
       GET_ACCESS: 'Get Access',
       SIGNIN_TITLE: 'Sign in to Google Talk',
-      SIGNIN_PROMPT: 'Lantern connects users all over the world together in a trust network. Signing in to Google Talk allows you to connect through users you know, and not just anyone.',
-      SIGNIN_TIP_GTALK: 'If you have a Gmail account, you already have Google Talk. It’s the service that lets you chat with your contacts when they’re online. Your Google Talk userid is the same as your Gmail address.',
+      SIGNIN_PROMPT: 'Lantern connects users around the world together in a trust network. Signing in to Google Talk allows you to connect through users you know, and not just anyone.',
+      HELP: 'Help',
+      SIGNIN_TIP_GTALK: 'If you have a Gmail account, you already have Google Talk. Your Google Talk userid is the same as your Gmail address. If you don’t, you can create one at google.com.',
       SIGNIN_TIP_SECURE: 'Your Google password is sent over a secure connection and is used only to sign in to Google Talk.',
       SIGNIN_TIP_SAVE_PASSWORD: 'Securely save your password in Lantern’s encrypted settings file.',
       SIGNIN_STATUS_BAD_CREDENTIALS: 'Invalid user and password combination',
@@ -83,8 +85,6 @@ angular.module('app.i18n', [])
       GTALK_PASSWORD: 'Google Talk password',
       SAVE_PASSWORD: 'Save password',
       PASSWORD_SAVED: 'password saved',
-      NO_GOOG_ACCOUNT: 'Don’t have a Google account?',
-      CREATE_ONE: 'Create one here.',
       START_OVER: 'Start over',
       CANCEL: 'Cancel',
       SIGN_IN: 'Sign in',
@@ -123,19 +123,38 @@ angular.module('app.i18n', [])
       SYSTEM_PROXY_ERROR: 'Proxy configuration failed',
       FINISHED_TITLE: 'Finished!',
       FINISHED_PROMPT: 'Thank you for joining Lantern. Your participation at this early stage is invaluable.',
-      AUTOREPORT_PROMPT: 'Securely report diagnostics and usage statistics to Lantern developers to aid in its development.', // XXX link to more info?
+      AUTOREPORT_PROMPT: 'Securely report diagnostics and anonymous usage statistics to contribute to Lantern.', // XXX link to more info?
       AUTOREPORT_ENABLE: 'Enable automatic reporting',
       FINISH: 'Finish',
       SIGNIN_DISCOVER_PROXIES_PROMPT: 'Lantern can connect to known proxies but will be unable to discover new ones until signed in to Google Talk.',
+      SETTINGS: 'Settings',
+      MODE: 'Mode',
+      PROXY: 'Proxy',
+      MANAGE_PROXIED_SITES: 'Manage proxied sites...',
+      HTTPS_EVERYWHERE_LABEL: 'For your security, http requests will automatically be converted to https requests using rulesets from HTTPS Everywhere',
+      ADVANCED: 'Advanced',
+      CARET_COLLAPSED: '▸',
+      CARET_EXPANDED: '▾',
+      PROXY_ALL_TRAFFIC: 'Proxy all traffic (not recommended)',
+      PORT: 'Port',
+      APP: 'App',
+      SAVE_GTALK_PASSWORD: 'Securely save Google Talk password',
+      START_AT_LOGIN: 'Run Lantern automatically on startup',
+      SET_AS_SYSTEM_PROXY: 'Set as system proxy (recommended)',
+      NO_AUTOREPORT_WARNING: 'Your usage will not contribute to global totals',
+      RESET_LANTERN: 'Reset Lantern',
+      CLOSE: 'Close'
     }
   })
   // https://groups.google.com/d/msg/angular/641c1ykOX4k/hcXI5HsSD5MJ
-  .filter('i18n', function(langSrvc, DEFAULTLANG, TRANSLATIONS) {
-    return function(key) {
+  .filter('i18n', function(langSrvc, DEFAULTLANG, TRANSLATIONS, NBSP) {
+    return function(key, nbsp) {
       if (typeof key == 'undefined') return '(translation key undefined. did you forget quotes?)';
       if (!key) return '';
-      return (TRANSLATIONS[langSrvc.lang()] || {})[key] ||
-             TRANSLATIONS[DEFAULTLANG][key] ||
-             '(translation key "'+key+'" not found)';
+      var translation =
+          (TRANSLATIONS[langSrvc.lang()] || {})[key] ||
+          TRANSLATIONS[DEFAULTLANG][key] ||
+          '(translation key "'+key+'" not found)';
+      return nbsp ? translation.replace(/ /g, NBSP) : translation;
     }
   });

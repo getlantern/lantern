@@ -1,9 +1,9 @@
 <div id="developer" ng-controller="DevCtrl" ng-show="debug" lang="en" dir="ltr">
-  <a class="btn btn-small"
+  <a class="btn btn-mini btn-warning"
      data-toggle="collapse" data-target="#developer-content"
      ui-jq="tooltip" rel="tooltip" data-original-title="Developer"
      ui-options="{placement: 'right'}">
-    <i class="icon-white icon-cogs"></i>
+    <i class="icon-cogs"></i>
   </a>
   <div id="developer-content" class="collapse">
     <label class="checkbox inline">
@@ -102,12 +102,19 @@
           </div>
         </div>
         <div class="control-group">
-          <label class="control-label">bytesTransferred</label>
+          <label class="control-label">transfers</label>
           <div class="controls">
-            <label><input type="text" placeholder="0" ng-model="model.bytesTransferred.current.up"> current.up</label>
-            <label><input type="text" placeholder="0" ng-model="model.bytesTransferred.current.dn"> current.dn</label>
-            <label><input type="text" placeholder="0" ng-model="model.bytesTransferred.lifetime.up"> lifetime.up</label>
-            <label><input type="text" placeholder="0" ng-model="model.bytesTransferred.lifetime.dn"> lifetime.dn</label>
+            <label><input type="text" placeholder="0" ng-model="model.transfers.current.ntransfers"> current.ntransfers</label>
+            <label><input type="text" placeholder="0" ng-model="model.transfers.current.bytesUp"> current.bytesUp</label>
+            <label><input type="text" placeholder="0" ng-model="model.transfers.current.bytesDn"> current.bytesDn</label>
+            <label><input type="text" placeholder="0" ng-model="model.transfers.current.bytesTotal"> current.bytesTotal</label>
+            <label><input type="text" placeholder="0" ng-model="model.transfers.current.npeers"> current.npeers</label>
+
+            <label><input type="text" placeholder="0" ng-model="model.transfers.lifetime.ntransfers"> lifetime.ntransfers</label>
+            <label><input type="text" placeholder="0" ng-model="model.transfers.lifetime.bytesUp"> lifetime.bytesUp</label>
+            <label><input type="text" placeholder="0" ng-model="model.transfers.lifetime.bytesDn"> lifetime.bytesDn</label>
+            <label><input type="text" placeholder="0" ng-model="model.transfers.lifetime.bytesTotal"> lifetime.bytesTotal</label>
+            <label><input type="text" placeholder="0" ng-model="model.transfers.lifetime.npeers"> lifetime.npeers</label>
           </div>
         </div>
       </form>

@@ -86,12 +86,16 @@ ApiServlet.HandlerMap = {
         , savePassword = qs.savePassword
         , systemProxy = qs.systemProxy
         , lang = qs.lang
+        , autoReport = qs.autoReport
+        , proxyAllSites = qs.proxyAllSites
         ;
       // XXX write this better
       if ('undefined' == typeof mode
        && 'undefined' == typeof savePassword
        && 'undefined' == typeof systemProxy
        && 'undefined' == typeof lang
+       && 'undefined' == typeof autoReport
+       && 'undefined' == typeof proxyAllSites
           ) {
         badRequest = true;
       } else {
@@ -100,8 +104,10 @@ ApiServlet.HandlerMap = {
             badRequest = true;
             util.puts('invalid value of mode: ' + mode);
           } else {
+            if (model.settings.mode == 'give' && mode == 'get')
+              sleep.usleep(750000);
             model.settings.mode = mode;
-            if (!model.settings.setupComplete)
+            if (!model.setupComplete)
               model.modal = 'signin';
           }
         }
@@ -133,6 +139,24 @@ ApiServlet.HandlerMap = {
             util.puts('invalid value of lang: ' + lang);
           } else {
             model.settings.lang = lang;
+          }
+        }
+        if (autoReport) {
+          if (autoReport != 'true' && autoReport != 'false') {
+            badRequest = true;
+            util.puts('invalid value of autoReport: ' + autoReport);
+          } else {
+            autoReport = autoReport == 'true';
+            model.settings.autoReport = autoReport;
+          }
+        }
+        if (proxyAllSites) {
+          if (proxyAllSites != 'true' && proxyAllSites != 'false') {
+            badRequest = true;
+            util.puts('invalid value of proxyAllSites: ' + proxyAllSites);
+          } else {
+            proxyAllSites = proxyAllSites == 'true';
+            model.settings.proxyAllSites = proxyAllSites;
           }
         }
       }

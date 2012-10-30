@@ -127,13 +127,17 @@
   </div>
   <div class="modal-body">
     <form name="signinForm" class="form-horizontal" ng-submit="signin()">
-      <div>{{ 'SIGNIN_PROMPT' | i18n }}</div>
-      <div class="prompt-extra">
-        {{ 'NO_GOOG_ACCOUNT' | i18n }}
-        <a href="https://mail.google.com/mail/signup" target="_blank">{{ 'CREATE_ONE' | i18n }}</a>
+      <div>{{ 'SIGNIN_PROMPT' | i18n }}&nbsp;<small
+           ><a ng-click="helpExpanded=!helpExpanded"
+             class="toggle">{{ 'HELP' | i18n }}&nbsp;{{ helpExpanded &&
+             'CARET_EXPANDED' || 'CARET_COLLAPSED' | i18n }}</a></small></div>
+      <div id="gtalk-tips" class="prompt-extra" ui-toggle="helpExpanded">
+        {{ 'SIGNIN_TIP_GTALK' | i18n }}
+        <a href="https://mail.google.com/mail/signup" target="_blank">
+          <i class="icon-external-link"></i>
+        </a>
       </div>
       <br>
-      <!-- XXX accounts.google.com/SignUp -->
       <div class="control-group">
         <label class="control-label">{{ 'GTALK_USERID' | i18n }}</label>
         <div class="controls">
@@ -141,9 +145,6 @@
                  name="userid" placeholder="email@example.com">
          <!--    name="userid" placeholder="{{ 'EMAIL_PLACEHOLDER' | i18n }}"> -->
          <!-- XXX input[type=text] placeholder shim broken when used with Angular expression -->
-          <a rel="tooltip" data-original-title="{{ 'SIGNIN_TIP_GTALK' | i18n }}" ui-jq="tooltip" tabindex="-1">
-            <i class="icon-info-sign"></i>
-          </a>
         </div>
       </div>
       <div class="control-group">
@@ -158,14 +159,17 @@
       </div>
       <div class="control-group">
         <div class="controls">
-          <label class="checkbox inline clearfix" style="width: 203px"><!-- XXX -->
+          <label class="checkbox inline">
             <input type="checkbox" ng-model="savePassword" ng-disabled="disableForm"
                    ng-change="changeSetting('savePassword', savePassword)">
-            {{ 'SAVE_PASSWORD' | i18n }}
+            <small>{{ 'SAVE_PASSWORD' | i18n:true }}</small>
           </label>
-          <a rel="tooltip" data-original-title="{{ 'SIGNIN_TIP_SAVE_PASSWORD' | i18n }}" ui-jq="tooltip" tabindex="-1">
-            <i class="icon-info-sign"></i>
-          </a>
+          <label class="checkbox inline" style="margin:0;padding-left:8px"><!-- XXX -->
+            <a rel="tooltip" ui-jq="tooltip" tabindex="-1"
+               data-original-title="{{ 'SIGNIN_TIP_SAVE_PASSWORD' | i18n }}">
+              <i class="icon-info-sign"></i>
+            </a>
+          </label>
         </div>
       </div>
       <div class="control-group">
@@ -182,8 +186,8 @@
   <div class="modal-footer">
     <!-- buttons outside the form so reset doesn't get triggered when sign in is disabled on pressing enter -->
     <button type="button" ng-click="reset()" ui-if="!model.setupComplete"
-            class="btn btn-danger pull-left" tabindex="-1">
-      <i class="icon-backward icon-white"></i> {{ 'START_OVER' | i18n }}
+            class="btn pull-left" tabindex="-1">
+      {{ 'START_OVER' | i18n }}
     </button>
     <button type="submit" ng-click="signin()" class="btn btn-primary"
             ng-disabled="signinForm.$invalid || disableForm">
@@ -323,8 +327,8 @@
   </div>
   <div class="modal-footer">
     <button type="button" ng-click="reset()" ui-if="!model.setupComplete"
-            class="btn btn-danger pull-left">
-      <i class="icon-backward icon-white"></i> {{ 'START_OVER' | i18n }}
+            class="btn pull-left">
+      {{ 'START_OVER' | i18n }}
     </button>
     <button type="submit" class="btn btn-primary" ng-click="sysproxySet()"
             ng-disabled="disableForm">
@@ -341,18 +345,22 @@
   <div class="modal-body">
     <div>{{ 'FINISHED_PROMPT' | i18n }}</div>
     <br>
-    <form class="form-inline>
+    <form class="form-inline">
       <label class="checkbox inline">
         <input type="checkbox" ng-model="notifyLanternDevs"
                ng-change="changeSetting('autoReport', notifyLanternDevs)">
         <small>{{ 'AUTOREPORT_ENABLE' | i18n }}</small>
       </label>
-      <a rel="tooltip" data-original-title="{{ 'AUTOREPORT_PROMPT' | i18n }}" ui-jq="tooltip">
-        <small><i class="icon-info-sign"></i></small>
-      </a>
+      <label class="checkbox inline" style="margin:0"><!-- XXX -->
+        <a rel="tooltip" data-original-title="{{ 'AUTOREPORT_PROMPT' | i18n }}"
+           ui-jq="tooltip">
+          <i class="icon-info-sign"></i>
+        </a>
+      </label>
     </form>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn btn-{{ inGetMode && 'primary' || 'success' }}" ng-click="continue_()">{{ 'FINISH' | i18n }}</button>
+    <button type="submit" class="btn btn-primary btn-{{ model.settings.mode }}-mode"
+            ng-click="continue_()">{{ 'FINISH' | i18n }}</button>
   </div>
 </div>

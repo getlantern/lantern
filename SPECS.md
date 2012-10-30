@@ -268,7 +268,7 @@ the backend maintains on the frontend through comet publications:
     </td>
   </tr>
   <tr>
-    <td><strong>bytesTransferred</strong><br><em>object</em></td>
+    <td><strong>transfers</strong><br><em>object</em></td>
     <td>
       <table>
         <tr>
@@ -276,12 +276,25 @@ the backend maintains on the frontend through comet publications:
           <td>
             <table>
               <tr>
-                <td><strong>up</strong><br><em>number</em></td>
+                <td><strong>ntransfers</strong><br><em>number</em></td>
+                <td>number of currently active transfers</td>
+              </tr>
+              <tr>
+                <td><strong>bytesUp</strong><br><em>number</em></td>
                 <td>instantaneous upload rate in bytes per second.</td>
               </tr>
               <tr>
-                <td><strong>dn</strong><br><em>number</em></td>
+                <td><strong>bytesDn</strong><br><em>number</em></td>
                 <td>instantaneous download rate in bytes per second.</td>
+              </tr>
+              <tr>
+                <td><strong>bytesTotal</strong><br><em>number</em></td>
+                <td>total instantaneous transfer rate in bytes per second.</td>
+              </tr>
+              <tr>
+                <td><strong>npeers</strong><br><em>number</em></td>
+                <td>the number of unique peers there are active
+                transfers with</td>
               </tr>
             </table>
           </td>
@@ -291,12 +304,24 @@ the backend maintains on the frontend through comet publications:
           <td>
             <table>
               <tr>
-                <td><strong>up</strong><br><em>number</em></td>
+                <td><strong>ntransfers</strong><br><em>number</em></td>
+                <td>total number of completed transfers since first signin.</td>
+              </tr>
+              <tr>
+                <td><strong>bytesUp</strong><br><em>number</em></td>
                 <td>total number of bytes uploaded since first signin.</td>
               </tr>
               <tr>
-                <td><strong>dn</strong><br><em>number</em></td>
+                <td><strong>bytesDn</strong><br><em>number</em></td>
                 <td>total number of bytes downloaded since first signin.</td>
+              </tr>
+              <tr>
+                <td><strong>bytesTotal</strong><br><em>number</em></td>
+                <td>total number of bytes transferred since first signin.</td>
+              </tr>
+              <tr>
+                <td><strong>npeers</strong><br><em>number</em></td>
+                <td>the number of unique peers we've ever transferred with</td>
               </tr>
             </table>
           </td>

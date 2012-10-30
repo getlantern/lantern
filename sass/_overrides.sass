@@ -18,10 +18,27 @@ html small
 .btn-get-mode
   +bootstrap-buttonBackground($getModeColor, $getModeColorAccent)
 
+a.never-underlined
+  +never-underlined
 
-// not provided in compass_twitter_bootstrap?
-.text-error
+a.toggle
+  +never-underlined
+
+a.disabled,
+a.disabled:hover
+  color: $grayLight
+  background-color: #fff
+  cursor: default
+
+=error-colored
   color: $errorText
+.error-colored, .text-error
+  +error-colored
+
+=warning-colored
+  color: $warningText
+.warning-colored, .text-warning
+  +warning-colored
 
 // http://angular-ui.github.com/#directives-showhide
 .ui-hide, .ui-show

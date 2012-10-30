@@ -5594,24 +5594,55 @@ html small {
   background-color: #004466 \9;
 }
 
-/* line 23, ../../sass/_overrides.sass */
-.text-error {
-  color: #b94a48;
+/* line 21, ../../sass/_overrides.sass */
+a.never-underlined {
+  text-decoration: none;
+}
+/* line 36, ../../sass/_helpers.sass */
+a.never-underlined:active, a.never-underlined:visited, a.never-underlined:hover {
+  text-decoration: none;
+}
+
+/* line 24, ../../sass/_overrides.sass */
+a.toggle {
+  text-decoration: none;
+}
+/* line 36, ../../sass/_helpers.sass */
+a.toggle:active, a.toggle:visited, a.toggle:hover {
+  text-decoration: none;
 }
 
 /* line 27, ../../sass/_overrides.sass */
+a.disabled,
+a.disabled:hover {
+  color: #999999;
+  background-color: white;
+  cursor: default;
+}
+
+/* line 35, ../../sass/_overrides.sass */
+.error-colored, .text-error {
+  color: #b94a48;
+}
+
+/* line 40, ../../sass/_overrides.sass */
+.warning-colored, .text-warning {
+  color: #c09853;
+}
+
+/* line 44, ../../sass/_overrides.sass */
 .ui-hide, .ui-show {
   -webkit-transition: all 0.5s ease;
   -moz-transition: all 0.5s ease;
   transition: all 0.5s ease;
 }
 
-/* line 30, ../../sass/_overrides.sass */
+/* line 47, ../../sass/_overrides.sass */
 .ui-hide {
   opacity: 0;
 }
 
-/* line 33, ../../sass/_overrides.sass */
+/* line 50, ../../sass/_overrides.sass */
 a[rel=tooltip] {
   color: inherit;
   text-decoration: inherit;
@@ -5621,22 +5652,22 @@ a[rel=tooltip] {
 a[rel=tooltip]:active, a[rel=tooltip]:focus {
   outline: none;
 }
-/* line 35, ../../sass/_overrides.sass */
+/* line 52, ../../sass/_overrides.sass */
 a[rel=tooltip]:focus, a[rel=tooltip]:active, a[rel=tooltip]:hover {
   text-decoration: none;
 }
-/* line 37, ../../sass/_overrides.sass */
+/* line 54, ../../sass/_overrides.sass */
 a[rel=tooltip]:hover {
   cursor: pointer;
   color: black;
 }
 
-/* line 41, ../../sass/_overrides.sass */
+/* line 58, ../../sass/_overrides.sass */
 input:disabled {
   cursor: default;
 }
 
-/* line 46, ../../sass/_overrides.sass */
+/* line 63, ../../sass/_overrides.sass */
 input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
   color: #b94a48;
   border-color: #b94a48;
@@ -5678,34 +5709,40 @@ input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
 
 /* line 24, ../../sass/_modals.sass */
 #signin .prompt-extra {
-  margin: 5px 0;
+  margin: 10px 0 5px 30px;
   font-size: 11.9px;
-  text-align: center;
 }
-/* line 28, ../../sass/_modals.sass */
+/* line 27, ../../sass/_modals.sass */
+#signin .prompt-extra.ui-hide {
+  height: 0;
+  -webkit-transition: none;
+  -moz-transition: none;
+  transition: none;
+}
+/* line 30, ../../sass/_modals.sass */
 #signin .control-label {
   font-size: 11.9px;
 }
 
-/* line 32, ../../sass/_modals.sass */
+/* line 34, ../../sass/_modals.sass */
 #request-invite form {
   margin: 20px 38px;
 }
-/* line 34, ../../sass/_modals.sass */
+/* line 36, ../../sass/_modals.sass */
 #request-invite form input[type=email] {
   margin-top: 5px;
 }
-/* line 36, ../../sass/_modals.sass */
+/* line 38, ../../sass/_modals.sass */
 #request-invite form .indented {
   margin-left: 30px;
 }
 
-/* line 40, ../../sass/_modals.sass */
+/* line 42, ../../sass/_modals.sass */
 #sysproxy .controls {
   margin-top: 10px;
 }
 
-/* line 43, ../../sass/_modals.sass */
+/* line 45, ../../sass/_modals.sass */
 #waiting-container {
   position: absolute;
   top: 100px;
@@ -5715,20 +5752,20 @@ input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
   line-height: 50px;
 }
 
-/* line 47, ../../sass/_modals.sass */
+/* line 49, ../../sass/_modals.sass */
 #welcome .modal-body {
   margin: 10px 0 100px 0;
 }
 
-/* line 50, ../../sass/_modals.sass */
+/* line 52, ../../sass/_modals.sass */
 #langchooser {
   position: absolute;
   top: 5px;
   right: 15px;
   font-size: 11.2px;
-  z-index: 1041;
+  z-index: 1051;
 }
-/* line 54, ../../sass/_modals.sass */
+/* line 56, ../../sass/_modals.sass */
 #langchooser ul {
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
@@ -5767,30 +5804,30 @@ input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
 #langchooser ul li.last {
   padding-right: 0;
 }
-/* line 61, ../../sass/_modals.sass */
+/* line 63, ../../sass/_modals.sass */
 #langchooser ul li a {
   color: #999999;
   text-shadow: black 1px 1px 2px;
 }
-/* line 64, ../../sass/_modals.sass */
+/* line 66, ../../sass/_modals.sass */
 #langchooser ul li.active a {
   color: white;
 }
-/* line 66, ../../sass/_modals.sass */
+/* line 68, ../../sass/_modals.sass */
 #langchooser ul li.active a:hover {
   text-decoration: none;
 }
 
-/* line 70, ../../sass/_modals.sass */
+/* line 72, ../../sass/_modals.sass */
 #sysproxy .control-group {
   margin: 0 75px;
 }
-/* line 72, ../../sass/_modals.sass */
+/* line 74, ../../sass/_modals.sass */
 #sysproxy .text-error {
   margin: 20px 75px;
 }
 
-/* line 76, ../../sass/_modals.sass */
+/* line 78, ../../sass/_modals.sass */
 #finished .modal-header, #finished .modal-body {
   text-align: center;
 }
@@ -5804,7 +5841,7 @@ input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
 
 /* line 9, ../../sass/_vis.sass */
 #vis {
-  background: url('../img/bg/vis.png?1351509638');
+  background: url('../img/bg/vis.png?1351597515');
   height: 100%;
 }
 
@@ -5895,17 +5932,56 @@ circle {
   text-align: center;
   font-size: 11.9px;
   color: #999999;
-  text-shadow: black 1px 1px 2px;
+  text-shadow: black 1px 1px 1px;
+  word-spacing: 0.3ex;
 }
-/* line 11, ../../sass/_footer.sass */
+/* line 12, ../../sass/_footer.sass */
 #footer .inner {
   margin: 12px 0 0 0;
 }
-/* line 13, ../../sass/_footer.sass */
+/* line 14, ../../sass/_footer.sass */
 #footer .btn-group {
   position: absolute;
   right: 15px;
   bottom: 15px;
+}
+/* line 16, ../../sass/_footer.sass */
+#footer strong {
+  color: #b3b3b3;
+  font-weight: normal;
+}
+
+/* line 2, ../../sass/_settings.sass */
+#settings dd {
+  margin-bottom: 24.5px;
+}
+
+/* line 5, ../../sass/_settings.sass */
+#autoreport-warning {
+  margin-left: 20px;
+  color: #c09853;
+  margin-top: 3px;
+}
+
+/* line 10, ../../sass/_settings.sass */
+#advanced {
+  margin: 10px 0 0 20px;
+}
+/* line 12, ../../sass/_settings.sass */
+#advanced * {
+  font-size: 10.5px;
+}
+/* line 14, ../../sass/_settings.sass */
+#advanced input[type=number] {
+  display: -moz-inline-stack;
+  display: inline-block;
+  vertical-align: middle;
+  *vertical-align: auto;
+  zoom: 1;
+  *display: inline;
+  width: 50px;
+  height: 14px;
+  padding: 0 2px 2px;
 }
 
 /* line 1, ../../sass/_developer.sass */

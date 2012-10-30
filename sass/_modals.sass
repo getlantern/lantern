@@ -22,9 +22,11 @@
 
 #signin
   .prompt-extra
-    margin: 5px 0
+    margin: 10px 0 5px 30px
     +small
-    +centered
+    &.ui-hide
+      height: 0
+      +transition(none)
   .control-label
     +small
 
@@ -50,7 +52,7 @@
 #langchooser
   +position(5px, 15px)
   font-size: $baseFontSize * .8
-  z-index: $zindexModalBackdrop + 1
+  z-index: $zindexModal + 1
   ul
     +border-radius(5px)
     +horizontal-list

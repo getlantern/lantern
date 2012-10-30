@@ -1,5 +1,8 @@
 'use strict';
 
+// XXX use data-loading-text instead of submitButtonLabelKey below?
+// see http://twitter.github.com/bootstrap/javascript.html#buttons
+
 function RootCtrl($scope, logFactory, modelSrvc, cometdSrvc, langSrvc, $http, apiSrvc, ENUMS) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
@@ -16,6 +19,19 @@ function RootCtrl($scope, logFactory, modelSrvc, cometdSrvc, langSrvc, $http, ap
 
   $scope.lang = langSrvc.lang;
   $scope.direction = langSrvc.direction;
+
+  $scope._showSettings = false;
+  $scope.$watch('model.setupComplete', function(val, oldVal) {
+    if (!val && oldVal)
+      $scope.hideSettings();
+  });
+  $scope.showSettings = function() {
+    $scope._showSettings = true;
+  };
+  $scope.hideSettings = function() {
+    $scope._showSettings = false;
+  };
+
 
   $scope.$watch('model.settings.mode', function modeChanged(val) {
     $scope.inGiveMode = val == MODE.give;
@@ -44,10 +60,12 @@ function RootCtrl($scope, logFactory, modelSrvc, cometdSrvc, langSrvc, $http, ap
     location.reload(true);
   };
 
-  $scope.reset = function() {
+  $scope.reset = function(confirm_) {
+    // XXX require confirmation if confirm_
     $http.post(apiSrvc.urlfor('reset'))
       .success(function(data, status, headers, config) {
         log.debug('Reset');
+        $scope.$broadcast('reset');
       })
       .error(function(data, status, headers, config) {
         log.debug('Reset failed'); // XXX
@@ -196,24 +214,32 @@ function SigninCtrl($scope, $http, modelSrvc, apiSrvc, logFactory, MODAL, STATUS
       model = modelSrvc.model;
 
   $scope.show = false;
-  $scope.$watch('model.modal', function modalChanged(val) {
+  $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.signin;
   });
 
-  $scope.userid = null;
-  $scope.password = '';
-  $scope.savePassword = true;
-  $scope.$watch('model.settings.savePassword', function savePasswordChanged(val) {
+  function _reset() {
+    $scope.userid = null;
+    $scope.password = ''
+    $scope.savePassword = true;
+  }
+  $scope.$on('reset', function() {
+    _reset();
+  });
+  _reset();
+
+  $scope.$watch('model.settings.savePassword', function(val) {
     if (typeof val == 'boolean')
       $scope.savePassword = val;
   });
-  $scope.$watch('model.settings.userid', function useridChanged(val) {
+  $scope.$watch('model.settings.userid', function(val) {
     if ($scope.userid == null && val)
       $scope.userid = val;
   });
+
   $scope.signinError = false;
   $scope.submitButtonLabelKey = 'SIGN_IN';
-  $scope.$watch('model.connectivity.gtalk', function gtalkChanged(val) {
+  $scope.$watch('model.connectivity.gtalk', function(val) {
     if (val == STATUS_GTALK.notConnected) {
       $scope.submitButtonLabelKey = 'SIGN_IN';
       $scope.disableForm = false;
@@ -413,4 +439,33 @@ function VisCtrl($scope, logFactory) {
   $scope.startVis = function() {
     startVis();
   };
+}
+
+function FooterCtrl($scope, logFactory) {
+  var log = logFactory('FooterCtrl');
+
+  $scope.show = false;
+  $scope.$watch('model.setupComplete', function(val) {
+    $scope.show = !!val;
+  });
+}
+
+function SettingsCtrl($scope, logFactory) {
+  var log = logFactory('SettingsCtrl');
+
+  $scope.$watch('model.settings.startAtLogin', function(val) {
+    $scope.startAtLogin = val;
+  });
+
+  $scope.$watch('model.settings.systemProxy', function(val) {
+    $scope.systemProxy = val;
+  });
+
+  $scope.$watch('model.settings.savePassword', function(val) {
+    $scope.savePassword = val;
+  });
+
+  $scope.$watch('model.settings.autoReport', function(val) {
+    $scope.autoReport = val;
+  });
 }
