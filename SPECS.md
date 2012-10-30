@@ -30,9 +30,9 @@ attempting to reconnect to the bayeux server if the connection is lost.
 
 Upon successful connection to the bayeux server, the frontend will request
 subscription to the top-level channel `/sync`[, and may request subscriptions
-to additional channels like `/sync/viz`, `/sync/settings`, and `/sync/roster`.
+to additional channels like `/sync/vis`, `/sync/settings`, and `/sync/roster`.
 Each channel corresponds to a section of the UI; updates to the state of each
-section of UI are sent over the corresponding channel. The `/sync/viz` channel
+section of UI are sent over the corresponding channel. The `/sync/vis` channel
 carries state for the map visualization, the `/sync/settings` channel carries
 state for the settings UI, and the `/sync/roster` channel carries state to
 display the user's Google Talk contacts. The top-level `/sync` channel carries
@@ -62,8 +62,8 @@ containing all the relevant state in the `value` field. The frontend will then
 merge `value` into its `model` object, and all the views bound to the updated
 fields will be updated automatically through AngularJS. The `path` value of
 `""` indicates that `value` should be merged into `model` at the top level,
-rather than into a nested object; if `path` were set to `"viz"`, then `value`
-would instead be merged into `model.viz`.
+rather than into a nested object; if `path` were set to `"vis"`, then `value`
+would instead be merged into `model.vis`.
 
 After the merge, `model` will look like:
 
@@ -74,13 +74,13 @@ After the merge, `model` will look like:
 }
 ```
 
-After receiving a subscription request for a sub-channel such as `/sync/viz`,
+After receiving a subscription request for a sub-channel such as `/sync/vis`,
 the server should similarly publish an initial message to that channel
-with all the state necessary for the visualization in the `viz` field, e.g.:
+with all the state necessary for the visualization in the `vis` field, e.g.:
 
 ```json
 {
-  "path":"viz",
+  "path":"vis",
   "value":{
     "user":{
       "loc":{
@@ -90,13 +90,13 @@ with all the state necessary for the visualization in the `viz` field, e.g.:
 }
 ```
 
-The frontend should then merge this into `model.viz`. So `model` will now look
+The frontend should then merge this into `model.vis`. So `model` will now look
 like:
 
 ```json
 {
   "foo":"bar",
-  "viz":{
+  "vis":{
     "user":{
       "loc":{
         "lat":1234.56,
@@ -105,7 +105,7 @@ like:
 }
 ```
 
-and any views with bindings into `model.viz` will get updated automatically
+and any views with bindings into `model.vis` will get updated automatically
 through AngularJS. The settings and roster channels behave similarly.
 
 The channels are designed this way so that when the frontend no longer needs to
@@ -117,9 +117,9 @@ For instance, if the backend processes a change to the user's roster, it need
 not send any update to the frontend if it isn't subscribed to the
 `/sync/roster` channel.
 
-If desired, rather than sending a state update over e.g. the `/sync/viz`
+If desired, rather than sending a state update over e.g. the `/sync/vis`
 sub-channel, the server can instead send it over the top-level `/sync`
-channel, merging it into the `"viz"` field of a top-level object that can also
+channel, merging it into the `"vis"` field of a top-level object that can also
 carry additional state in other fields, and the frontend will merge this all
 into its `model` object in a single update. So multiple messages over several
 sub-channels can alternatively be merged into a single message over the
@@ -135,7 +135,7 @@ a deeply-nested field with an atomic `value` payload:
 
 ```json
 {
-  "path":"viz.user.loc.lat",
+  "path":"vis.user.loc.lat",
   "value":3456.78
 }
 ```
@@ -144,7 +144,7 @@ And here is a coarser-grained update with a complex `value` payload:
 
 ```json
 {
-  "path":"viz.user.loc",
+  "path":"vis.user.loc",
   "value":{
     "lat":3456.78,
     "lon":1234.56
@@ -405,7 +405,7 @@ the backend maintains on the frontend through comet publications:
     </td>
   </tr>
   <tr>
-    <td><strong>viz</strong><br><em>object</em></td>
+    <td><strong>vis</strong><br><em>object</em></td>
     <td>
       <table>
         <tr>
