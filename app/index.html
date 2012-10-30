@@ -7,16 +7,8 @@
     <meta name="description" content="Lantern">
     <meta name="author" content="Team Lantern">
 
-    <link href="lib/bootstrap/css/bootstrap.css" rel="stylesheet">
-    <!--
-    <link href="lib/font-awesome/css/font-awesome.css" rel="stylesheet">
-    -->
-
     <link href="_css/app.css" rel="stylesheet">
-    <link href="_css/style.css" rel="stylesheet"><!-- XXX from vizzuality -->
-    <!--
-    <link href="lib/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
-    -->
+    <!--link href="_css/style.css" rel="stylesheet"--><!-- XXX from vizzuality -->
     <link href="lib/angular-ui/angular-ui.css" rel="stylesheet">
     <link href="lib/select2/select2.css" rel="stylesheet">
 
@@ -39,11 +31,10 @@
     <script src="lib/angular-ui/angular-ui.js"></script>
     <script src="lib/select2/select2.js"></script>
     <script src="lib/lodash.js"></script>
-    <!--
-    XXX vizzuality visualization used minified d3
     <script src="lib/d3.v2.min.js"></script>
-    -->
+    <!--
     <script src="lib/d3.v2.js"></script>
+    -->
 
     <script src="js/vis.js"></script>
 
@@ -70,8 +61,9 @@
     </div>
 
     <div ng-include src="'partials/modals.html'"></div>
-    <div ng-include src="'partials/dashboard.html'" style="height: 100%"
-         ng-controller="DashCtrl" onload="startVis()"></div>
+    <div ng-include src="'partials/vis.html'" style="height: 100%"
+         ng-controller="VisCtrl" ng-show="show" onload="startVis()"></div>
+    <div ng-include src="'partials/footer.html'"></div>
     <div ng-include src="'partials/developer.html'"></div>
 
     <script src="lib/bootstrap/js/bootstrap.js"></script>

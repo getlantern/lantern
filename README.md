@@ -35,12 +35,7 @@ For working on the stylesheets:
 * [Compass Twitter Bootstrap](https://github.com/vwall/compass-twitter-bootstrap):
   `gem install compass_twitter_bootstrap`
 
-  (We are currently just including the entire
-  [Twitter bootstrap](http://twitter.github.com/bootstrap/) library in
-  `app/lib/bootstrap/`, but we will switch to Compass Twitter Bootstrap if
-  we need to do any customization.)
-
-This tells compass to watch for changes in the sass stylesheets and it will
+Tell compass to watch for changes in the sass stylesheets and
 automatically compile them into css in the directory specified by the compass
 config file (`config/compass.rb`):
 

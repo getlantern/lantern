@@ -29,11 +29,14 @@ ApiServlet.HandlerMap = {
     },
   'settings/unlock': function(req, res) {
       var qs = url.parse(req.url, true).query 
+        , model = this._bayeuxBackend.model
         , password = qs.password
         ;
       if (!qs.password) {
         res.writeHead(400);
       } else if (qs.password == 'password') {
+        model.modal = model.setupComplete ? '' : 'welcome';
+        this._bayeuxBackend.publishSync('modal');
         res.writeHead(200);
       } else {
         res.writeHead(403);

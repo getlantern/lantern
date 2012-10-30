@@ -3,10 +3,10 @@
 var vis = {};
 
 // Slow down animations
-// XXX .frame_function not defined in non-minified version
-//d3.timer.frame_function(function(callback) {
-//    setTimeout(callback, 48); // FPS à la Peter Jackson
-//});
+// XXX .frame_function not defined in non-minified version of d3
+d3.timer.frame_function(function(callback) {
+  setTimeout(callback, 30); // FPS à la Peter Jackson
+});
 
 var CONFIG = {
 //scale: 500,
@@ -17,22 +17,13 @@ var CONFIG = {
   zoomContraints: [.5, 6], // min & max zoom levels
   zoomChangeSpeed: 500,
   beamSpeed: 500,
-  radialMenuFadeInSpeed: 200,
-  radialMenuFadeOutSpeed: 200,
   layers: {},
 
   // http://en.wikipedia.org/wiki/Censorship_by_country
+  // XXX factor out into a data source
   censoredCountries: [ "China", "Cuba", "Iran", "Myanmar", "Syria", "Turkmenistan", "Uzbekistan", "Vietnam", "Burma", "Bahrain", "Belarus", "Saudi Arabia", "N. Korea" ],
 
   parabolaDrawingStep: .03,
-
-  radialMenu: {
-    delay: 100,
-    speed: 100,
-    initialDeg: 120,
-    armWidth: 54,
-    armSpeed: 250
-  },
 
   styles: {
 
@@ -84,7 +75,6 @@ function VIS() {
   this.scale        = 1;
   this.currentScale = null;
   this.svg          = null;
-
 }
 
 
@@ -185,7 +175,7 @@ VIS.prototype.init = function() {
 
   this.startTimer();
 
-  $("#canvas").on("click", this.closeMenu);
+  //$("#canvas").on("click", this.closeMenu);
 
   this.setupProjection();
   this.setupZoom();
@@ -195,8 +185,7 @@ VIS.prototype.init = function() {
   .call(this.zoom)
   .append("g");
 
-  //this.setupFilters(svg);
-  this.setupFilters(); // svg arg not used?
+  this.setupFilters();
   this.setupLayers();
 
   this.loadCountries();
@@ -300,7 +289,7 @@ VIS.prototype.addUser = function(center) {
 }
 
 /*
-* Creates a node in the point define by *coordinates*
+* Creates a node in the point defined by `coordinates`
 */
 VIS.prototype.addNode = function(coordinates, id) {
 
@@ -346,56 +335,13 @@ VIS.prototype.addNode = function(coordinates, id) {
         x = (that.zoom.scale() * cx) + t[0],
         y = (that.zoom.scale() * cy) + t[1];
 
-    that.openMenu(x, y);
-
+    //that.openMenu(x, y);
   })
   .transition()
   .duration(500)
   .style("opacity", 1)
 
   this.updateLines(that.zoom.scale() + .2);
-}
-
-/*
-* Closes radial menu
-*/
-VIS.prototype.closeMenu = function() {
-  $(".radial-menu").fadeOut(CONFIG.radialMenuFadeOutSpeed, "easeOutQuad");
-}
-
-/*
-* Opens radial menu
-*/
-VIS.prototype.openMenu = function(cx, cy) {
-
-  var that = this;
-
-  var $circle = $(".radial-menu");
-
-  $circle.fadeOut(CONFIG.radialMenuFadeOutSpeed, function() {
-
-    $(this).removeClass("zoom");
-
-    $(this).find(".arm").remove();
-
-    // Generates several random thumbnails
-    var thumbCount = 3 + Math.round(Math.random() * 7);
-
-    for (var i = 0; i <= thumbCount; i++) {
-      var $arm = $("<div class='arm'><i></i></div>");
-      $(this).append($arm);
-    };
-
-    $(".arm").css("width", 0);
-    $(this).find("i").css("opacity", 0);
-    $(this).css({ top: cy + 20, left: cx - 40 });
-
-    $(this).fadeIn(CONFIG.radialMenuFadeInSpeed, "easeInQuad", function() {
-      $(this).addClass("zoom");
-      //that.showThumbs();
-    });
-
-  });
 }
 
 
@@ -412,35 +358,9 @@ $.fn.rotate = function(deg) {
   $(this).find("i").css("-o-transform", "rotate(" + -1 * deg + "deg)");
 }
 
-/*
-* Shows the radial menu thumbs
-*/
-VIS.prototype.showThumbs = function() {
-  var $circle    = $(".radial-menu"),
-      i          = 0,
-      delay      = CONFIG.radialMenu.delay,
-      speed      = CONFIG.radialMenu.speed,
-      initialDeg = CONFIG.radialMenu.initialDeg,
-      n = $circle.find(".arm").length;
-
-  $circle.find(".arm").each(function(i, c) {
-    i++;
-
-    var deg = (i * 360 / n) - initialDeg;
-
-    $(c).rotate(deg);
-    $(c).delay(i * delay).animate({ width: CONFIG.radialMenu.armWidth }, { duration: CONFIG.radialMenu.armSpeed, easing: "easeOutQuad" });
-
-    $(c).find("i").delay(i * delay).animate({
-      opacity: 1
-    },
-    { duration: speed, easing: "easeOutQuad" });
-
-  });
-}
 
 /*
-* Keeps the aspect of the lines & points consisten in every zoom level
+* Keeps the aspect of the lines & points consistent in every zoom level
 */
 VIS.prototype.updateLines = function(scale) {
 
@@ -585,7 +505,7 @@ VIS.prototype.transition = function(circle, parabola) {
       that.direction[parabola.id] = -1*that.direction[parabola.id]; // changes the direction
 
       if (that.direction[parabola.id] == 1) {
-        this.svg.select("#" + parabola.id + "_node")
+        that.svg.select("#" + parabola.id + "_node")
         .transition()
         .duration(500)
         .style("opacity", .5)
@@ -598,16 +518,8 @@ VIS.prototype.transition = function(circle, parabola) {
         });
       }
 
-
-
       that.transition(circle, parabola);
-
-
-
-
-
     });
-
   });
 }
 
@@ -675,7 +587,7 @@ VIS.prototype.drawParabola = function(p1, p2, c, animated) {
 */
 VIS.prototype.redraw = function() {
 
-  this.closeMenu();
+  //this.closeMenu();
 
   var scale     = d3.event.scale,
       translate = d3.event.translate;
@@ -852,7 +764,6 @@ VIS.prototype.loadCentroids = function() {
     // Draw some random parabolas
     that.drawParabolas(3);
 
-    /*
     // Draw the user's circle and connect it
     var center = that.getRandomCenter();
 
@@ -863,12 +774,9 @@ VIS.prototype.loadCentroids = function() {
     for (var i = 0; i<= 2 + Math.round(Math.random() * 3); i++) {
       that.connectUser();
     }
-    */
-
   });
 }
 
-//function start() {
 function startVis() {
   vis = new VIS();
 

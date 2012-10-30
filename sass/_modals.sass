@@ -1,0 +1,77 @@
+@import _helpers
+
+.modal form
+  margin-bottom: 0
+
+.control-extra
+  margin-left: 30px
+  +small
+
+#settings-unlock .controls
+  +centered
+
+#settings-load-failure form
+  +centered
+
+#password-create .control-group
+  +centered
+
+#welcome
+  .modal-header, .modal-body
+    +centered
+
+#signin
+  .prompt-extra
+    margin: 5px 0
+    +small
+    +centered
+  .control-label
+    +small
+
+#request-invite
+  form
+    margin: 20px 38px
+    input[type=email]
+      margin-top: 5px
+    .indented
+      margin-left: 30px
+
+#sysproxy
+  .controls
+    margin-top: 10px
+
+#waiting-container
+  +position(100px, 0, 0 , 0)
+  line-height: 50px
+
+#welcome .modal-body
+  margin: 10px 0 100px 0
+
+#langchooser
+  +position(5px, 15px)
+  font-size: $baseFontSize * .8
+  z-index: $zindexModalBackdrop + 1
+  ul
+    +border-radius(5px)
+    +horizontal-list
+    +box-shadow(0 0 20px $grayDarker)
+    background-color: $grayDark
+    padding: 3px 9px
+    li
+      a
+        color: $grayLight
+        +text-shadow($black 1px 1px 2px)
+      &.active a
+        color: $white
+        &:hover
+          text-decoration: none
+
+#sysproxy
+  .control-group
+    margin: 0 75px
+  .text-error
+    margin: 20px 75px
+
+#finished
+  .modal-header, .modal-body
+    +centered

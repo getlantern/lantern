@@ -1,4 +1,4 @@
-#require 'compass_twitter_bootstrap'
+require 'compass_twitter_bootstrap'
 
 BASEDIR = File.absolute_path(File.join(File.dirname(__FILE__), '..'))
 

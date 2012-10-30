@@ -184,7 +184,7 @@ function WelcomeCtrl($scope, modelSrvc, logFactory, MODAL) {
   });
 }
 
-function LangChooserCtrl($scope) {
+function LangChooserCtrl($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(val) {
     $scope.show = !!val;
@@ -402,8 +402,14 @@ function DevCtrl($scope, debug, logFactory, cometdSrvc, modelSrvc) {
   }
 }
 
-function DashCtrl($scope, logFactory) {
-  var log = logFactory('DashCtrl');
+function VisCtrl($scope, logFactory) {
+  var log = logFactory('VisCtrl');
+
+  $scope.show = false;
+  $scope.$watch('model.setupComplete', function(val) {
+    $scope.show = !!val;
+  });
+
   $scope.startVis = function() {
     startVis();
   };

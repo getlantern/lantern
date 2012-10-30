@@ -1,0 +1,29 @@
+=centered
+  text-align: center
+
+=small
+  font-size: $baseFontSize * .85
+
+=size($width: false, $height: $width)
+  @if $width
+    width: $width
+  @if $height
+    height: $height
+
+=position($top: false, $right: false, $bottom: false, $left: false)
+  position: absolute
+  @if $top
+    top: $top
+  @if $right
+    right: $right
+  @if $bottom
+    bottom: $bottom
+  @if $left
+    left: $left
+
+=absolute-center($width, $height)
+  +position(50%, false, false, 50%)
+  margin-left: -1 * $width / 2
+  margin-top: -1 * $height / 2
+  width: $width
+  height: $height

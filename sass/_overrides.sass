@@ -1,0 +1,49 @@
+@import _helpers
+
+html, body
+  height: 100%
+
+html small
+  +small
+
+.modal .tooltip
+  z-index: $zindexModal
+
+.tooltip-inner
+  font-size: $baseFontSize * .9
+
+.btn-give-mode
+  +bootstrap-buttonBackground($giveModeColor, $giveModeColorAccent)
+
+.btn-get-mode
+  +bootstrap-buttonBackground($getModeColor, $getModeColorAccent)
+
+
+// not provided in compass_twitter_bootstrap?
+.text-error
+  color: $errorText
+
+// http://angular-ui.github.com/#directives-showhide
+.ui-hide, .ui-show
+  +single-transition(all, 0.5s, ease)
+
+.ui-hide
+  opacity: 0
+
+a[rel=tooltip]
+  +unstyled-link
+  &:focus, &:active, &:hover
+    text-decoration: none
+  &:hover
+    cursor: pointer
+    color: $black
+
+input:disabled
+  cursor: default
+
+// as you type a@b.c, outline and shadow change from red to blue to red to blue without this
+input[type=email]:focus
+  &.ng-invalid, &:invalid
+    color: #b94a48
+    border-color: #b94a48
+    +box-shadow(0 0 8px rgba(255, 0, 0, 0.6) !important)

@@ -1,11 +1,16 @@
 <div id="developer" ng-controller="DevCtrl" ng-show="debug" lang="en" dir="ltr">
-  <button class="btn" data-toggle="collapse" data-target="#developer-content">Developer</button>
+  <a class="btn btn-small"
+     data-toggle="collapse" data-target="#developer-content"
+     ui-jq="tooltip" rel="tooltip" data-original-title="Developer"
+     ui-options="{placement: 'right'}">
+    <i class="icon-white icon-cogs"></i>
+  </a>
   <div id="developer-content" class="collapse">
     <label class="checkbox inline">
       Model
       <a href="https://github.com/getlantern/lantern-ui/blob/master/SPECS.md#state-document-specification">(specs)</a>
     </label>
-    <label class="checkbox inline"><input type="checkbox" ng-model="prettyPrint"> pretty print</label>
+    <label class="checkbox inline"><input type="checkbox" ng-model="prettyPrint"> prettyprint</label>
     <pre ui-if="!prettyPrint">{{ model }}</pre>
     <pre ui-if="prettyPrint">{{ model | json }}</pre>
     <div>

@@ -1,3 +1,12 @@
+<div id="langchooser" ng-controller="LangChooserCtrl" ng-show="show">
+  <ul class="pull-right">
+    <li ng-class="{active: lang() == 'en'}"><a ng-click="lang() != 'en' && changeSetting('lang', 'en')">English</a></li>
+    <li ng-class="{active: lang() == 'zh'}"><a ng-click="lang() != 'zh' && changeSetting('lang', 'zh')">中文</a></li>
+    <li ng-class="{active: lang() == 'fa'}"><a ng-click="lang() != 'fa' && changeSetting('lang', 'fa')">‫پارسی‬</a></li>
+    <li ng-class="{active: lang() == 'ar'}"><a ng-click="lang() != 'ar' && changeSetting('lang', 'ar')">‫العربية‬</a></li>
+  </ul>
+</div>
+
 <!--
 <div id="sanity" ng-controller="SanityCtrl" ng-model="show"
      ui-modal class="fade" data-backdrop="static" data-keyboard="false">
@@ -30,11 +39,11 @@
       <div>{{ 'SETTINGS_UNLOCK_PROMPT' | i18n }}</div>
       <br>
       <div class="control-group" ng-class="{error: error}">
-        <div class="controls pagination-centered">
+        <div class="controls">
           <div class="input-append">
             <input type="password" ng-model="password" autofocus required
-                   name="password" placeholder="{{ 'PASSWORD' | i18n }}">
-            <button type="submit" ng-disabled="unlockForm.$invalid"
+                   name="password" placeholder="{{ 'PASSWORD' | i18n }}"
+            ><button type="submit" ng-disabled="unlockForm.$invalid"
                     class="btn btn-primary">{{ 'UNLOCK' | i18n }}</button>
           </div>
           <div class="text-error" ui-toggle="error && unlockForm.password.$pristine">
@@ -53,7 +62,7 @@
   </div>
   <div class="modal-body">
     <div>{{ 'SETTINGS_LOAD_FAILURE_PROMPT' | i18n }}</div>
-    <form class="form-inline pagination-centered">
+    <form class="form-inline">
       <label class="checkbox">
         <input type="checkbox" ng-model="notifyLanternDevs">
         {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
@@ -77,7 +86,7 @@
     <div class="modal-body">
       <div>{{ 'PASSWORD_CREATE_PROMPT' | i18n }}</div>
       <br>
-      <div class="control-group pagination-centered" ng-class="{error: passwordCreateForm.password2.$dirty && passwordCreateForm.password2.$invalid}">
+      <div class="control-group" ng-class="{error: passwordCreateForm.password2.$dirty && passwordCreateForm.password2.$invalid}">
         <div class="controls">
           <input type="password" ng-model="password1" autofocus required ng-disabled="disableForm"
                  name="password1" placeholder="{{ 'PASSWORD' | i18n }}">
@@ -98,25 +107,16 @@
 
 <div id="welcome" ng-controller="WelcomeCtrl" ui-modal ng-model="show"
      class="fade" data-backdrop="static" data-keyboard="false">
-  <div class="modal-header pagination-centered">
+  <div class="modal-header">
     <h3>{{ 'WELCOME_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body pagination-centered">
+  <div class="modal-body">
     <div>{{ 'WELCOME_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn btn-success" ng-click="changeSetting('mode', MODE.give)">{{ 'GIVE_ACCESS' | i18n }}</button>
-    <button type="submit" class="btn btn-primary" ng-click="changeSetting('mode', MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
+    <button type="submit" class="btn btn-primary btn-give-mode" ng-click="changeSetting('mode', MODE.give)">{{ 'GIVE_ACCESS' | i18n }}</button>
+    <button type="submit" class="btn btn-primary btn-get-mode" ng-click="changeSetting('mode', MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
   </div>
-</div>
-
-<div id="langchooser" ng-controller="LangChooserCtrl" ng-show="show">
-  <ul class="pull-right">
-    <li ng-class="{active: lang() == 'en'}"><a ng-click="lang() != 'en' && changeSetting('lang', 'en')">English</a></li>
-    <li ng-class="{active: lang() == 'zh'}"><a ng-click="lang() != 'zh' && changeSetting('lang', 'zh')">中文</a></li>
-    <li ng-class="{active: lang() == 'fa'}"><a ng-click="lang() != 'fa' && changeSetting('lang', 'fa')">‫پارسی‬</a></li>
-    <li ng-class="{active: lang() == 'ar'}"><a ng-click="lang() != 'ar' && changeSetting('lang', 'ar')">‫العربية‬</a></li>
-  </ul>
 </div>
 
 <!-- XXX use both during initial setup and after (when !passwordSaved)? -->
@@ -238,6 +238,7 @@
                ng-disabled="disableForm || sendToLanternDevs"
                ng-model="sendRequestTo" placeholder="email@example.com">
         <div>{{ 'SOMEONE_I_KNOW_INFO' | i18n }}</div>
+        <!-- XXX "add a personal message" -->
       </div>
       <br>
       <label class="radio">
@@ -277,10 +278,12 @@
   </div>
   <div class="modal-body">
     <div>{{ 'FIRST_INVITE_RECEIVED_INTRO' | i18n }}</div>
-    <!-- XXX
-    <div>{{ 'FIRST_INVITE_RECEIVED_SENDER' | i18n }}</div>
-    <div>{{ sender }}&nbsp;</div>
-    -->
+    <br>
+    <div>
+      {{ 'FIRST_INVITE_RECEIVED_SENDER' | i18n }}
+      <strong>user@example.com ("Firstname Lastname")</strong><!-- XXX -->
+    </div>
+    <br>
     <div>{{ 'FIRST_INVITE_RECEIVED_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
@@ -335,19 +338,19 @@
   <div class="modal-header">
     <h3>{{ 'FINISHED_TITLE' | i18n }}</h3>
   </div>
-  <div class="modal-body pagination-centered">
+  <div class="modal-body">
     <div>{{ 'FINISHED_PROMPT' | i18n }}</div>
     <br>
-    <div>
+    <form class="form-inline>
       <label class="checkbox inline">
         <input type="checkbox" ng-model="notifyLanternDevs"
                ng-change="changeSetting('autoReport', notifyLanternDevs)">
         <small>{{ 'AUTOREPORT_ENABLE' | i18n }}</small>
-        <a rel="tooltip" data-original-title="{{ 'AUTOREPORT_PROMPT' | i18n }}" ui-jq="tooltip">
-          <i class="icon-info-sign"></i>
-        </a>
       </label>
-    </div>
+      <a rel="tooltip" data-original-title="{{ 'AUTOREPORT_PROMPT' | i18n }}" ui-jq="tooltip">
+        <small><i class="icon-info-sign"></i></small>
+      </a>
+    </form>
   </div>
   <div class="modal-footer">
     <button type="submit" class="btn btn-{{ inGetMode && 'primary' || 'success' }}" ng-click="continue_()">{{ 'FINISH' | i18n }}</button>
