@@ -5964,14 +5964,30 @@ circle {
 }
 
 /* line 10, ../../sass/_settings.sass */
+a.toggle.advanced {
+  display: -moz-inline-stack;
+  display: inline-block;
+  vertical-align: middle;
+  *vertical-align: auto;
+  zoom: 1;
+  *display: inline;
+  margin-top: 9px;
+  color: #333333;
+}
+/* line 14, ../../sass/_settings.sass */
+a.toggle.advanced:active, a.toggle.advanced:visited, a.toggle.advanced:hover {
+  color: #333333;
+}
+
+/* line 17, ../../sass/_settings.sass */
 #advanced {
   margin: 10px 0 0 20px;
 }
-/* line 12, ../../sass/_settings.sass */
+/* line 19, ../../sass/_settings.sass */
 #advanced * {
   font-size: 10.5px;
 }
-/* line 14, ../../sass/_settings.sass */
+/* line 21, ../../sass/_settings.sass */
 #advanced input[type=number] {
   display: -moz-inline-stack;
   display: inline-block;

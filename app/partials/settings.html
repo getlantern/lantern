@@ -14,6 +14,10 @@
             ng-click="inGetMode && changeSetting('mode', MODE.give)">{{ 'GIVE_ACCESS' | i18n }}</button>
           <button type="button" class="btn btn-mini" ng-class="{active: inGetMode}"
                   ng-click="inGiveMode && changeSetting('mode', MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
+          <!-- XXX
+               backend could keep track of whether we've ever been in get mode
+               before and if not set modal to 'sysproxy'
+          -->
         </div>
       </dd>
 
@@ -65,8 +69,7 @@
           </a>
         </small>
         -->
-        <br>
-        <a class="toggle" ng-click="advancedExpanded = !advancedExpanded">
+        <a class="toggle advanced" ng-click="advancedExpanded = !advancedExpanded">
           <small>
             {{ advancedExpanded && 'CARET_EXPANDED' || 'CARET_COLLAPSED' | i18n }}
             {{ 'ADVANCED' | i18n }}
