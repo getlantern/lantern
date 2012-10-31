@@ -5922,7 +5922,7 @@ circle {
 /* line 1, ../../sass/_footer.sass */
 #footer {
   width: 100%;
-  height: 60px;
+  height: 65px;
   position: absolute;
   right: 0;
   bottom: 0;
@@ -5937,18 +5937,24 @@ circle {
 }
 /* line 12, ../../sass/_footer.sass */
 #footer .inner {
-  margin: 12px 0 0 0;
+  margin: 10px 0 0 0;
 }
 /* line 14, ../../sass/_footer.sass */
 #footer .btn-group {
   position: absolute;
-  right: 15px;
-  bottom: 15px;
+  right: 20px;
+  bottom: 20px;
 }
 /* line 16, ../../sass/_footer.sass */
 #footer strong {
   color: #b3b3b3;
   font-weight: normal;
+}
+/* line 19, ../../sass/_footer.sass */
+#footer strong.version {
+  padding: 2px 12px 0;
+  color: #e6e6e6;
+  font-size: 10.5px;
 }
 
 /* line 2, ../../sass/_settings.sass */

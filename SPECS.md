@@ -255,9 +255,24 @@ the backend maintains on the frontend through comet publications:
     <td>
       <table>
         <tr>
-          <td><strong>app</strong><br><em>string</em></td>
-          <td>The string the frontend should display as the Lantern
-            version, e.g. <code>"0.98.2 beta"</code>
+          <td><strong>app</strong><br><em>object</em></td>
+          <td>
+            <table>
+              <tr>
+                <td><strong>current</strong><br><em>string</em></td>
+                <td>The string the frontend should display as the Lantern
+                    version, e.g. <code>"0.20.2-beta-SHA"</code></td>
+              </tr>
+              <tr>
+                <td><strong>latest</strong><br><em>string</em></td>
+                <td>The latest released version of Lantern available, if known
+                    </td>
+              </tr>
+              <tr>
+                <td><strong>updateAvailable</strong><br><em>boolean</em></td>
+                <td>whether there is a new release available</td>
+              </tr>
+            </table>
           </td>
         </tr>
         <tr>

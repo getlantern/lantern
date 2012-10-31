@@ -1,7 +1,11 @@
 {
   "dev":true,
   "version":{
-    "app":"mock app vX.Y.Z",
+    "app":{
+      "current":"mock app v0.0.1",
+      "latest":"mock app v0.0.1",
+      "updateAvailable":false
+    },
     "api":[0, 0, 1]
   },
   "modal":"welcome",

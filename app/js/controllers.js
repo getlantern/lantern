@@ -222,9 +222,7 @@ function SigninCtrl($scope, $http, modelSrvc, apiSrvc, logFactory, MODAL, STATUS
     $scope.password = ''
     $scope.savePassword = true;
   }
-  $scope.$on('reset', function() {
-    _reset();
-  });
+  $scope.$on('reset', _reset);
   _reset();
 
   $scope.$watch('model.settings.savePassword', function(val) {

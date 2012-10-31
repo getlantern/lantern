@@ -15,6 +15,17 @@
     18.3 M/s up ·
     35 M/s down ·
     2.4 G lifetime
+    <br>
+    <strong class="version">
+      Lantern {{ model.version.app.current }}
+      <span ng-show="model.version.app.updateAvailable">
+        <a href="#" class="error-colored never-underlined"
+           title="{{ model.version.app.latest }}">
+          <i class="icon-exclamation-sign"></i>
+          Update available
+        </a>
+      </span>
+    </strong>
     <a rel="tooltip" data-original-title="Enable Automatic Reporting to have your usage contribute to global totals" ui-jq="tooltip" ng-show="!model.settings.autoReport">
       <i class="icon-exclamation-sign text-error"></i>
     </a>

@@ -1,5 +1,5 @@
 #footer
-  $footerHeight: 60px
+  $footerHeight: 65px
   +size(100%, $footerHeight)
   +position(false, 0, 0, 0)
   outline: 1px solid rgba(0, 0, 0, .5)
@@ -10,9 +10,13 @@
   +text-shadow($black 1px 1px 1px)
   word-spacing: .3ex
   .inner
-    margin: 12px 0 0 0
+    margin: 10px 0 0 0
   .btn-group
-    +position(false, 15px, 15px)
+    +position(false, 20px, 20px)
   strong
     color: lighten($grayLight, 10%)
     font-weight: normal
+    &.version
+      padding: 2px 12px 0
+      color: lighten($grayLight, 30%)
+      +smaller
