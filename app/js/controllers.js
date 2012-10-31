@@ -21,9 +21,8 @@ function RootCtrl($scope, logFactory, modelSrvc, cometdSrvc, langSrvc, $http, ap
   $scope.direction = langSrvc.direction;
 
   $scope._showSettings = false;
-  $scope.$watch('model.setupComplete', function(val, oldVal) {
-    if (!val && oldVal)
-      $scope.hideSettings();
+  $scope.$watch('model.modal', function(val) {
+    if (val) $scope.hideSettings();
   });
   $scope.showSettings = function() {
     $scope._showSettings = true;
