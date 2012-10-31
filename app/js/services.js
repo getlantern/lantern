@@ -1,7 +1,8 @@
 'use strict';
 
 angular.module('app.services', [])
-  .constant('APIVER', '0.0.1')
+  // allows overriding model.dev
+  .value('dev', {value: false})
   // enums
   .constant('MODE', {
     give: 'give',
@@ -37,7 +38,7 @@ angular.module('app.services', [])
   // more flexible log service
   // https://groups.google.com/d/msg/angular/vgMF3i3Uq2Y/q1fY_iIvkhUJ
   .value('logWhiteList', /.*Ctrl|.*Srvc/)
-  .factory('logFactory', function($log, debug, logWhiteList) {
+  .factory('logFactory', function($log, dev, logWhiteList) {
     return function(prefix) {
       var match = prefix
         ? prefix.match(logWhiteList)
@@ -50,11 +51,12 @@ angular.module('app.services', [])
           $log[prop].apply($log, args);
         };
       }
+      var logLogger = extracted('log');
       return {
-        log:   extracted('log'),
+        log:   logLogger,
         warn:  extracted('warn'),
         error: extracted('error'),
-        debug: debug ? extracted('log') : angular.noop
+        debug: function() { if (dev.value) logLogger(arguments); }
       };
     }
   })
@@ -303,13 +305,33 @@ angular.module('app.services', [])
     //sane: function(){ return _.all(sanityMap); }, // XXX
     };
   })
-  .service('apiSrvc', function(APIVER) {
+  .constant('APIVER_REQUIRED', [0, 0])
+  .service('apiSrvc', function(APIVER_REQUIRED, modelSrvc, logFactory) {
+    var apiVerAvailable, apiVerStr, log = logFactory('apiSrvc');
     return {
       urlfor: function(endpoint, params) {
           var query = _.reduce(params, function(acc, val, key) {
               return acc+key+'='+encodeURIComponent(val)+'&';
             }, '?');
-          return '/api/'+APIVER+'/'+endpoint+query;
+
+          if (!apiVerAvailable) apiVerAvailable = modelSrvc.get('version.api');
+          if (!apiVerStr && apiVerAvailable) {
+            // verify version compatibility // XXX better place for this?
+            try {
+              var major = apiVerAvailable[0], minor = apiVerAvailable[1];
+              if (typeof major != 'number' || typeof minor != 'number' ||
+                  major != APIVER_REQUIRED[0] || minor != APIVER_REQUIRED[1]) {
+                throw Error('Incompatible API version');
+              } else {
+                apiVerStr = apiVerAvailable.join('.');
+              }
+            } catch(e) {
+              log.error('Available API version', apiVerAvailable,
+                'incompatible with required version', APIVER_REQUIRED);
+              throw e;
+            }
+          }
+          return '/api/'+apiVerStr+'/'+endpoint+query;
         }
     };
   });

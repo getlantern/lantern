@@ -1,4 +1,4 @@
-<div id="developer" ng-controller="DevCtrl" ng-show="debug" lang="en" dir="ltr">
+<div id="developer" ng-controller="DevCtrl" ng-show="dev" lang="en" dir="ltr">
   <a class="btn btn-mini btn-warning"
      data-toggle="collapse" data-target="#developer-content"
      ui-jq="tooltip" rel="tooltip" data-original-title="Developer"
@@ -16,6 +16,10 @@
     <div>
       <form class="form-horizontal">
         <div class="control-group">
+          <label class="control-label"></label>
+          <div class="controls">
+            <label class="checkbox"><input type="checkbox" ng-model="model.dev"> dev (unchecking hides dev panel and turns off debug logging!)</label>
+          </div>
           <label class="control-label"></label>
           <div class="controls">
             <label class="checkbox"><input type="checkbox" ng-model="model.setupComplete"> setupComplete</label>

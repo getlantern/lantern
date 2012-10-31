@@ -196,6 +196,10 @@ within the following state document, corresponding to the `model` object which
 the backend maintains on the frontend through comet publications:
 <table>
   <tr>
+    <td><strong>dev</strong><br><em>boolean</em></td>
+    <td>Whether Lantern is running in development mode</td>
+  </tr>
+  <tr>
     <td><strong>lang</strong><br><em>string</em></td>
     <td>The system's language setting as a two-letter ISO 639-1 code.
       <br><br>Determines the language the UI is displayed in when the

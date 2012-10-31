@@ -1,4 +1,9 @@
 {
+  "dev":true,
+  "version":{
+    "app":"mock app vX.Y.Z",
+    "api":[0, 0, 1]
+  },
   "modal":"welcome",
   "lang":"en",
   "connectivity":{

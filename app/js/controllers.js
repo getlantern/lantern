@@ -400,11 +400,14 @@ function FinishedCtrl($scope, MODAL) {
   });
 }
 
-function DevCtrl($scope, debug, logFactory, cometdSrvc, modelSrvc) {
+function DevCtrl($scope, dev, logFactory, cometdSrvc, modelSrvc) {
   var log = logFactory('DevCtrl'),
       model = modelSrvc.model,
       lastModel = modelSrvc.lastModel;
-  $scope.debug = debug;
+  $scope.dev = dev.value;
+  $scope.$watch('model.dev', function(val) {
+    dev.value = $scope.dev = !!val;
+  });
 
   $scope.$watch('model', function() {
     syncObject('', model, lastModel);
