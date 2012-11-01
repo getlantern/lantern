@@ -1,6 +1,6 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.util.HashSet;
@@ -11,6 +11,7 @@ import org.junit.Test;
 
 public class GoogleTalkTest {
 
+    
     @Test
     public void testGoogleTalk() throws Exception {
         LanternHub.settings().setUseAnonymousPeers(false);

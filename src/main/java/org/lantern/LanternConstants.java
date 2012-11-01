@@ -14,6 +14,12 @@ public class LanternConstants {
 
     static final int DASHCACHE_MAXAGE = 60 * 5;
 
+    public static final String FALLBACK_SERVER_HOST = "fallback_server_host_tok";
+    public static final int FALLBACK_SERVER_PORT = 80;
+    
+    public static final String FALLBACK_SERVER_USER = "fallback_server_user_tok";
+    public static final String FALLBACK_SERVER_PASS = "fallback_server_pass_tok";
+    
     /**
      * This is the version of Lantern we're running. This is automatically
      * replaced when we push new releases.
