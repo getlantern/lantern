@@ -43,6 +43,7 @@ public class Whitelist {
         "littleshoot.org",
         "livejournal.com",
         "myspace.com",
+        "nytimes.com",
         "orkut.com",
         "paypal.com",
         "plurk.com",
@@ -137,6 +138,9 @@ public class Whitelist {
         "yzzk.com",
     };
     
+    private Collection<WhitelistEntry> defaultWhitelist = 
+        new HashSet<WhitelistEntry>();
+    
     private Collection<WhitelistEntry> whitelist = 
         new TreeSet<WhitelistEntry>();
     
@@ -197,7 +201,9 @@ public class Whitelist {
     }
     
     private void addDefaultEntry(final String entry, final boolean required) {
-        whitelist.add(new WhitelistEntry(entry, required, true));
+        final WhitelistEntry we = new WhitelistEntry(entry, required, true);
+        whitelist.add(we);
+        defaultWhitelist.add(we);
         if (required) {
             this.requiredEntries.add(entry);
         }
