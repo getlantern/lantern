@@ -42,6 +42,7 @@ import org.jboss.netty.util.ThreadNameDeterminer;
 import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.jboss.netty.util.Timer;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.privacy.InvalidKeyException;
@@ -134,7 +135,9 @@ public class Launcher {
     private static final String OPTION_NO_CACHE = "no-cache";
     private static final String OPTION_VERSION = "version";
     private static final String OPTION_NEW_UI = "new-ui";
-    
+    private static final String OPTION_OAUTH2_CLIENT_SECRETS_FILE = "oauth2-client-secrets-file";
+    private static final String OPTION_OAUTH2_USER_CREDENTIALS_FILE = "oauth2-user-credentials-file";
+
     private static void launch(final String... args) {
         LOG.info("Starting Lantern...");
         configureCipherSuites();
@@ -172,13 +175,18 @@ public class Launcher {
         options.addOption(null, OPTION_PASS, true,
             "Google password -- WARNING INSECURE - ONLY USE THIS FOR TESTING!");
         options.addOption(null, OPTION_GET, false, "Force running in get mode");
-        options.addOption(null, OPTION_NO_CACHE, false, 
+        options.addOption(null, OPTION_GIVE, false, "Force running in give mode");
+        options.addOption(null, OPTION_NO_CACHE, false,
             "Don't allow caching of static files in the dashboard");
         options.addOption(null, OPTION_VERSION, false, 
             "Print the Lantern version");
         options.addOption(null, OPTION_NEW_UI, false,
             "Use the new UI under the 'ui' directory");
-        
+        options.addOption(null, OPTION_OAUTH2_CLIENT_SECRETS_FILE, true,
+            "read Google OAuth2 client secrets from the file specified");
+        options.addOption(null, OPTION_OAUTH2_USER_CREDENTIALS_FILE, true,
+            "read Google OAuth2 user credentials from the file specified");
+
         final CommandLineParser parser = new PosixParser();
         final CommandLine cmd;
         try {
@@ -234,7 +242,15 @@ public class Launcher {
         if (cmd.hasOption(OPTION_PASSWORD_FILE)) {
             loadLocalPasswordFile(cmd.getOptionValue(OPTION_PASSWORD_FILE));
         }
-        
+
+        if (cmd.hasOption(OPTION_OAUTH2_CLIENT_SECRETS_FILE)) {
+            loadOAuth2ClientSecretsFile(cmd.getOptionValue(OPTION_OAUTH2_CLIENT_SECRETS_FILE));
+        }
+
+        if (cmd.hasOption(OPTION_OAUTH2_USER_CREDENTIALS_FILE)) {
+            loadOAuth2UserCredentialsFile(cmd.getOptionValue(OPTION_OAUTH2_USER_CREDENTIALS_FILE));
+        }
+
         if (cmd.hasOption(OPTION_PUBLIC_API)) {
             set.setBindToLocalhost(false);
         }
@@ -568,7 +584,7 @@ public class Launcher {
             System.exit(1);
         }
         final File pwFile = new File(pwFilename);
-        if (!pwFile.exists() && pwFile.canRead()) {
+        if (!(pwFile.exists() && pwFile.canRead())) {
             LOG.error("Unable to read password from {}", pwFilename);
             System.exit(1);
         }
@@ -594,9 +610,75 @@ public class Launcher {
         catch (final IOException e) {
             LOG.error("Failed to initialize using password in file \"{}\": {}", pwFilename, e);
             System.exit(1);
-        }        
+        }
     }
-    
+
+    private static void loadOAuth2ClientSecretsFile(final String filename) {
+
+        if (StringUtils.isBlank(filename)) {
+            LOG.error("No filename specified to --{}", OPTION_OAUTH2_CLIENT_SECRETS_FILE);
+            System.exit(1);
+        }
+        final File file = new File(filename);
+        if (!(file.exists() && file.canRead())) {
+            LOG.error("Unable to read client secrets from {}", filename);
+            System.exit(1);
+        }
+        LOG.info("Reading client secrets from file \"{}\"", filename);
+        try {
+            final String json = FileUtils.readFileToString(file, "US-ASCII");
+            JSONObject obj = (JSONObject)JSONValue.parse(json);
+            JSONObject ins = (JSONObject)obj.get("installed");
+            final String clientID = (String)ins.get("client_id");
+            final String clientSecret = (String)ins.get("client_secret");
+            if (clientID == null || clientSecret == null) {
+                LOG.error("Failed to parse client secrets file \"{}\"", filename);
+                System.exit(1);
+            } else {
+                LanternHub.settings().setClientID(clientID);
+                LanternHub.settings().setClientSecret(clientSecret);
+            }
+        } catch (final IOException e) {
+            LOG.error("Failed to read file \"{}\"", filename);
+            System.exit(1);
+        }
+    }
+
+    private static void loadOAuth2UserCredentialsFile(final String filename) {
+        if (StringUtils.isBlank(filename)) {
+            LOG.error("No filename specified to --{}", OPTION_OAUTH2_USER_CREDENTIALS_FILE);
+            System.exit(1);
+        }
+        final File file = new File(filename);
+        if (!(file.exists() && file.canRead())) {
+            LOG.error("Unable to read user credentials from {}", filename);
+            System.exit(1);
+        }
+        LOG.info("Reading user credentials from file \"{}\"", filename);
+        try {
+            final String json = FileUtils.readFileToString(file, "US-ASCII");
+            JSONObject obj = (JSONObject)JSONValue.parse(json);
+            final String username = (String)obj.get("username");
+            final String accessToken = (String)obj.get("access_token");
+            final String refreshToken = (String)obj.get("refresh_token");
+            // Access token is not strictly necessary, so we allow it to be
+            // null.
+            if (username == null
+                || refreshToken == null) {
+                LOG.error("Failed to parse user credentials file \"{}\"", filename);
+                System.exit(1);
+            } else {
+                LanternHub.settings().setCommandLineEmail(username);
+                LanternHub.settings().setAccessToken(accessToken);
+                LanternHub.settings().setRefreshToken(refreshToken);
+                LanternHub.settings().setUseGoogleOAuth2(true);
+            }
+        } catch (final IOException e) {
+            LOG.error("Failed to read file \"{}\"", filename);
+            System.exit(1);
+        }
+    }
+
     private static void launchWithOrWithoutUi() {
         if (!LanternHub.settings().isUiEnabled()) {
             // We only run headless on Linux for now.

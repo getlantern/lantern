@@ -197,7 +197,13 @@ public class Settings implements MutableSettings {
         LanternHub.register(this);
         threadPublicIpLookup();
     }
-    
+
+    private boolean useGoogleOAuth2=false;
+    private String clientID;
+    private String clientSecret;
+    private String accessToken;
+    private String refreshToken;
+
     public Settings() {}
     
     public Settings(final Whitelist whitelist) {
@@ -460,6 +466,61 @@ public class Settings implements MutableSettings {
     @JsonView(PersistentSettings.class)
     public String getStoredPassword() {
         return storedPassword;
+    }
+
+    @JsonIgnore
+    public void setClientID(final String clientID) {
+        this.clientID = clientID;
+    }
+
+    @JsonIgnore
+    public void setUseGoogleOAuth2(boolean useGoogleOAuth2) {
+        this.useGoogleOAuth2 = useGoogleOAuth2;
+    }
+
+    @CommandLineOption
+    @JsonIgnore
+    public boolean isUseGoogleOAuth2() {
+        return useGoogleOAuth2;
+    }
+
+    @CommandLineOption
+    @JsonIgnore
+    public String getClientID() {
+        return clientID;
+    }
+
+    @JsonIgnore
+    public void setClientSecret(final String clientSecret) {
+        this.clientSecret = clientSecret;
+    }
+
+    @CommandLineOption
+    @JsonIgnore
+    public String getClientSecret() {
+        return clientSecret;
+    }
+
+    @JsonIgnore
+    public void setAccessToken(final String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    @CommandLineOption
+    @JsonIgnore
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    @JsonIgnore
+    public void setRefreshToken(final String password) {
+        this.refreshToken = password;
+    }
+
+    @CommandLineOption
+    @JsonIgnore
+    public String getRefreshToken() {
+        return refreshToken;
     }
 
     public void setUseCloudProxies(final boolean useCloudProxies) {
