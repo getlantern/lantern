@@ -549,9 +549,9 @@ public class DefaultXmppHandler implements XmppHandler {
             }
             LanternHub.eventBus().post(
                 new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
-            LanternHub.settings().setPasswordSaved(false);
-            LanternHub.settings().setStoredPassword("");
-            LanternHub.settings().setPassword("");
+            //LanternHub.settings().setPasswordSaved(false);
+            //LanternHub.settings().setStoredPassword("");
+            //LanternHub.settings().setPassword("");
             if (ioe == null) {
                 throw e;
             }
