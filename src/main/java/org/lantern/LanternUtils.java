@@ -1,5 +1,7 @@
 package org.lantern;
 
+import static org.junit.Assert.assertTrue;
+
 import java.awt.Desktop;
 import java.io.Console;
 import java.io.File;
@@ -88,6 +90,8 @@ import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
+import org.jivesoftware.smack.proxy.ProxyInfo;
+import org.jivesoftware.smack.proxy.ProxyInfo.ProxyType;
 import org.lantern.SettingsState.State;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
@@ -1003,10 +1007,29 @@ public class LanternUtils {
             Arrays.fill(array, (byte) 0);
         }
     }
-    
+
     public static ConnectionConfiguration xmppConfig() {
-        final ConnectionConfiguration config = 
-            new ConnectionConfiguration("talk.google.com", 5222, "gmail.com");
+        return xmppConfig(null);
+    }
+    
+    public static ConnectionConfiguration xmppProxyConfig() {
+        final ProxyInfo proxyInfo = 
+                new ProxyInfo(ProxyType.HTTP, LanternConstants.FALLBACK_SERVER_HOST, 
+                    LanternConstants.FALLBACK_SERVER_PORT, 
+                    LanternConstants.FALLBACK_SERVER_USER, 
+                    LanternConstants.FALLBACK_SERVER_PASS);
+        return xmppConfig(proxyInfo);
+    }
+    
+    public static ConnectionConfiguration xmppConfig(final ProxyInfo proxyInfo) {
+        final ConnectionConfiguration config;
+        if (proxyInfo == null) { 
+            config = new ConnectionConfiguration("talk.google.com", 5222, 
+                "gmail.com");
+        } else {
+            config = new ConnectionConfiguration("talk.google.com", 5222, 
+                "gmail.com", proxyInfo);
+        }
         config.setExpiredCertificatesCheckEnabled(true);
         
         // We don't check for matching domains because Google Talk uses the
@@ -1108,7 +1131,18 @@ public class LanternUtils {
     }
     
     public static void configureXmpp() {
-        XmppUtils.setGlobalConfig(xmppConfig());
+        XmppUtils.setGlobalConfig(xmppConfig(null));
+    }
+    
+
+    public static void configureXmppWithBackupProxy() {
+        final ProxyInfo proxyInfo = 
+            new ProxyInfo(ProxyType.HTTP, LanternConstants.FALLBACK_SERVER_HOST, 
+                LanternConstants.FALLBACK_SERVER_PORT, 
+                LanternConstants.FALLBACK_SERVER_USER, 
+                LanternConstants.FALLBACK_SERVER_PASS);
+        final ConnectionConfiguration config = xmppConfig(proxyInfo);
+        XmppUtils.setGlobalConfig(config);
     }
     
     public static SSLServerSocketFactory newTlsServerSocketFactory() {
@@ -1343,6 +1377,16 @@ public class LanternUtils {
             LOG.debug("Is a JID {}", email);
         }
         return isEmail;
+    }
+    
+    public static boolean isGoogleTalkReachable() {
+        final Socket sock = new Socket();
+        try {
+            sock.connect(new InetSocketAddress("talk.google.com", 5222), 40000);
+            return true;
+        } catch (final IOException e) {
+            return false;
+        }
     }
 }
 

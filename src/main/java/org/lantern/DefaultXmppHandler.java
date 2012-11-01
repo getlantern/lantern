@@ -34,6 +34,7 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.Chat;
+import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.Roster;
@@ -222,7 +223,6 @@ public class DefaultXmppHandler implements XmppHandler {
         this.mappedServer = tempMapper;
         
         new GiveModeConnectivityHandler();
-        LanternUtils.configureXmpp();
         prepopulateProxies();
         LanternHub.register(this);
         //setupJmx();
@@ -303,11 +303,22 @@ public class DefaultXmppHandler implements XmppHandler {
     }
     
     @Override
-    public void connect(final String email, final String pwd) 
+    public void connect(final String email, final String pass) 
+        throws IOException, CredentialException, NotInClosedBetaException {
+        connect(email, pass, null);
+    }
+    
+    private void connect(final String email, final String pass, 
+        final ConnectionConfiguration config) 
         throws IOException, CredentialException, NotInClosedBetaException {
         LOG.debug("Connecting to XMPP servers with user name and password...");
+        if (config == null) {
+            XmppUtils.setGlobalConfig(LanternUtils.xmppConfig());
+        } else {
+            XmppUtils.setGlobalConfig(config);
+        }
         this.lastUserName = email;
-        this.lastPass = pwd;
+        this.lastPass = pass;
         this.closedBetaEvent = null;
         final InetSocketAddress plainTextProxyRelayAddress = 
             new InetSocketAddress("127.0.0.1", 
@@ -365,19 +376,17 @@ public class DefaultXmppHandler implements XmppHandler {
         }
 
         try {
-            this.client.get().login(email, pwd, id);
+            this.client.get().login(email, pass, id);
             LanternHub.eventBus().post(
                 new GoogleTalkStateEvent(GoogleTalkState.LOGGED_IN));
         } catch (final IOException e) {
-            if (this.proxies.isEmpty()) {
-                connectivityEvent(ConnectivityStatus.DISCONNECTED);
-            }
-            LanternHub.eventBus().post(
-                new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
-            LanternHub.settings().setPasswordSaved(false);
-            LanternHub.settings().setStoredPassword("");
-            LanternHub.settings().setPassword("");
-            throw e;
+            // If we can't connect, we should try our backup proxy.
+            connectToBackup(email, pass, config, null, e);
+        } catch (final IllegalStateException e) {
+            // This happens in Smack internally when it tries to add a 
+            // connection listener to an unconnected XMPP connection.
+            // See Connection.java
+            connectToBackup(email, pass, config, e, null);
         } catch (final CredentialException e) {
             if (this.proxies.isEmpty()) {
                 connectivityEvent(ConnectivityStatus.DISCONNECTED);
@@ -524,6 +533,32 @@ public class DefaultXmppHandler implements XmppHandler {
         }
     }
 
+    private void connectToBackup(final String email, final String pass, 
+        final ConnectionConfiguration config, final IllegalStateException e,
+        final IOException ioe) 
+        throws CredentialException, IOException, NotInClosedBetaException {
+        
+        LOG.info("Connecting to backup proxy");
+        // If we can't login, we should try our backup proxy.
+        if (config == null) {
+            connect(email, pass, LanternUtils.xmppProxyConfig());
+            return;
+        } else {
+            if (this.proxies.isEmpty()) {
+                connectivityEvent(ConnectivityStatus.DISCONNECTED);
+            }
+            LanternHub.eventBus().post(
+                new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
+            LanternHub.settings().setPasswordSaved(false);
+            LanternHub.settings().setStoredPassword("");
+            LanternHub.settings().setPassword("");
+            if (ioe == null) {
+                throw e;
+            }
+            throw ioe;
+        }
+    }
+  
     private boolean handleClosedBeta(final String email) 
         throws NotInClosedBetaException {
         if (LanternUtils.isInClosedBeta(email)) {

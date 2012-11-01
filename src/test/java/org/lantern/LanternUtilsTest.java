@@ -51,6 +51,11 @@ public class LanternUtilsTest {
     private final AtomicReference<String> readOnServer = 
         new AtomicReference<String>("");
     
+    @Test 
+    public void testGoogleTalkReachable() throws Exception {
+        assertTrue(LanternUtils.isGoogleTalkReachable());
+    }
+    
     @Test
     public void testIsJid() throws Exception {
         String id = "2bgg8h04men25@id.talk.google.com";

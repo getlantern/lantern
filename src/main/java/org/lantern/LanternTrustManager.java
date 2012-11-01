@@ -280,6 +280,7 @@ public class LanternTrustManager implements X509TrustManager {
             }
             catch (final KeyStoreException e) {
                 log.warn("Exception accessing keystore!", e);
+                throw new CertificateException("No keystore!!");
             }
         }
     }
