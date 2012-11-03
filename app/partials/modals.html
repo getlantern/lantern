@@ -1,13 +1,15 @@
-<div id="langchooser" ng-controller="LangChooserCtrl" ng-show="show">
+<div id="langchooser"
+     ng-show="model.modal == MODAL.welcome || model.modal == MODAL.settings">
   <ul class="pull-right">
-    <li ng-class="{active: lang() == 'en'}"><a ng-click="lang() != 'en' && changeSetting('lang', 'en')">English</a></li>
-    <li ng-class="{active: lang() == 'zh'}"><a ng-click="lang() != 'zh' && changeSetting('lang', 'zh')">中文</a></li>
-    <li ng-class="{active: lang() == 'fa'}"><a ng-click="lang() != 'fa' && changeSetting('lang', 'fa')">‫پارسی‬</a></li>
-    <li ng-class="{active: lang() == 'ar'}"><a ng-click="lang() != 'ar' && changeSetting('lang', 'ar')">‫العربية‬</a></li>
+    <!-- XXX do this programatically -->
+    <li ng-class="{active: lang() == 'en'}"><a ng-click="lang() != 'en' && changeSetting(SETTING.lang, 'en')">English</a></li>
+    <li ng-class="{active: lang() == 'zh'}"><a ng-click="lang() != 'zh' && changeSetting(SETTING.lang, 'zh')">中文</a></li>
+    <li ng-class="{active: lang() == 'fa'}"><a ng-click="lang() != 'fa' && changeSetting(SETTING.lang, 'fa')">‫پارسی‬</a></li>
+    <li ng-class="{active: lang() == 'ar'}"><a ng-click="lang() != 'ar' && changeSetting(SETTING.lang, 'ar')">‫العربية‬</a></li>
+    <li><a target="_blank" href="{{ EXTERNAL_URL.helpTranslate }}">{{ 'HELP_TRANSLATE' | i18n }}<sup><i class="icon-external-link"></i></sup></a></li>
   </ul>
 </div>
 
-<!--
 <div id="sanity" ng-controller="SanityCtrl" ng-model="show"
      ui-modal class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
@@ -15,7 +17,7 @@
   </div>
   <div class="modal-body">
     <div>{{ 'UNEXPECTED_STATE_PROMPT' | i18n }}</div>
-    <form class="form-inline pagination-centered">
+    <form class="form-inline">
       <label class="checkbox">
         <input type="checkbox" ng-model="notifyLanternDevs">
         {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
@@ -27,9 +29,8 @@
     <button ng-click="maybeNotify(); refresh()" class="btn btn-primary">{{ 'REFRESH' | i18n }}</button>
   </div>
 </div>
--->
 
-<div id="settings-unlock" ng-controller="SettingsUnlockCtrl" ui-modal
+<div id="settingsUnlock" ng-controller="SettingsUnlockCtrl" ui-modal
      ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
   <form name="unlockForm" ng-submit="settingsUnlock()">
     <div class="modal-header">
@@ -55,7 +56,7 @@
   </form>
 </div>
 
-<div id="settings-load-failure" ng-controller="SettingsLoadFailureCtrl" ui-modal
+<div id="settingsLoadFailure" ng-controller="SettingsLoadFailureCtrl" ui-modal
      ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
     <h3>{{ 'SETTINGS_LOAD_FAILURE_TITLE' | i18n }}</h3>
@@ -77,7 +78,7 @@
 
 <!-- setup screens -->
 
-<div id="password-create" ng-controller="PasswordCreateCtrl" ui-modal
+<div id="passwordCreate" ng-controller="PasswordCreateCtrl" ui-modal
      ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
   <form name="passwordCreateForm" ng-submit="passwordCreate()">
     <div class="modal-header">
@@ -114,89 +115,62 @@
     <div>{{ 'WELCOME_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn btn-primary btn-give-mode" ng-click="changeSetting('mode', MODE.give)">{{ 'GIVE_ACCESS' | i18n }}</button>
-    <button type="submit" class="btn btn-primary btn-get-mode" ng-click="changeSetting('mode', MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
+    <button type="submit" class="btn btn-primary btn-give-mode" ng-click="interaction(MODE.give)">{{ 'GIVE_ACCESS' | i18n }}</button>
+    <button type="submit" class="btn btn-primary btn-get-mode" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
   </div>
 </div>
 
-<!-- XXX use both during initial setup and after (when !passwordSaved)? -->
-<div id="signin" ng-controller="SigninCtrl" ui-modal ng-model="show" class="fade"
+<div id="authorize" ng-controller="AuthorizeCtrl" ui-modal ng-model="show" class="fade"
      data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
-    <h3>{{ 'SIGNIN_TITLE' | i18n }}</h3>
+    <h3>{{ 'AUTHORIZE_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body">
-    <form name="signinForm" class="form-horizontal" ng-submit="signin()">
-      <div>{{ 'SIGNIN_PROMPT' | i18n }}&nbsp;<small
-           ><a ng-click="helpExpanded=!helpExpanded"
-             class="toggle">{{ 'HELP' | i18n }}&nbsp;{{ helpExpanded &&
-             'CARET_EXPANDED' || 'CARET_COLLAPSED' | i18n }}</a></small></div>
-      <div id="gtalk-tips" class="prompt-extra" ui-toggle="helpExpanded">
-        {{ 'SIGNIN_TIP_GTALK' | i18n }}
-        <a href="https://mail.google.com/mail/signup" target="_blank">
-          <i class="icon-external-link"></i>
-        </a>
-      </div>
-      <br>
-      <div class="control-group">
-        <label class="control-label">{{ 'GTALK_USERID' | i18n }}</label>
-        <div class="controls">
-          <input type="email" autofocus required ng-model="userid" ng-disabled="model.settings.userid || disableForm"
-                 name="userid" placeholder="email@example.com">
-         <!--    name="userid" placeholder="{{ 'EMAIL_PLACEHOLDER' | i18n }}"> -->
-         <!-- XXX input[type=text] placeholder shim broken when used with Angular expression -->
-        </div>
-      </div>
-      <div class="control-group">
-        <label class="control-label">{{ 'GTALK_PASSWORD' | i18n }}</label>
-        <div class="controls">
-          <input type="password" name="password" ng-model="password" ng-disabled="!needPassword || disableForm"
-                 ng-required="needPassword" placeholder="{{ needPassword && 'PASSWORD' || 'PASSWORD_SAVED' | i18n }}">
-          <a rel="tooltip" data-original-title="{{ 'SIGNIN_TIP_SECURE' | i18n }}" ui-jq="tooltip" tabindex="-1">
-            <i class="icon-lock"></i>
-          </a>
-        </div>
-      </div>
-      <div class="control-group">
-        <div class="controls">
-          <label class="checkbox inline">
-            <input type="checkbox" ng-model="savePassword" ng-disabled="disableForm"
-                   ng-change="changeSetting('savePassword', savePassword)">
-            <small>{{ 'SAVE_PASSWORD' | i18n:true }}</small>
-          </label>
-          <label class="checkbox inline" style="margin:0;padding-left:8px"><!-- XXX -->
-            <a rel="tooltip" ui-jq="tooltip" tabindex="-1"
-               data-original-title="{{ 'SIGNIN_TIP_SAVE_PASSWORD' | i18n }}">
-              <i class="icon-info-sign"></i>
-            </a>
-          </label>
-        </div>
-      </div>
-      <div class="control-group">
-        <div class="controls">
-          <div ng-class="{'text-error': signinError}" ui-toggle="showSigninStatus">
-            {{ signinStatusKey | i18n }}&nbsp;
-          </div>
-        </div>
-      </div>
-      <!-- XXX (hidden) submit input so pressing enter triggers form submission (make this a directive?) -->
-      <button type="submit" tabindex="-1" style="height: 0; width: 0; border: 0; filter: progid:DXImageTransform.Microsoft.Alpha(Opacity=0); opacity: 0"></button>
-    </form>
+    <div>
+      {{ 'AUTHORIZE_PROMPT' | i18n }}
+      <small><a ng-click="helpExpanded=!helpExpanded"
+                class="toggle">{{ 'WHY' | i18n }}</a></small>
+    </div>
+    <div class="prompt-extra" ui-toggle="helpExpanded">
+      {{ 'AUTHORIZE_TIP_GTALK' | i18n }}
+    </div>
   </div>
   <div class="modal-footer">
-    <!-- buttons outside the form so reset doesn't get triggered when sign in is disabled on pressing enter -->
-    <button type="button" ng-click="reset()" ui-if="!model.setupComplete"
-            class="btn pull-left" tabindex="-1">
-      {{ 'START_OVER' | i18n }}
-    </button>
-    <button type="submit" ng-click="signin()" class="btn btn-primary"
-            ng-disabled="signinForm.$invalid || disableForm">
-      {{ submitButtonLabelKey | i18n }}
-    </button>
+    <a type="submit" class="btn btn-primary" ng-click="doOauth()">
+      {{ 'AUTHORIZE_LANTERN' | i18n }}
+      &nbsp;<i class="icon-external-link"></i>
+    </a>
   </div>
 </div>
 
-<div id="gtalk-unreachable" ng-controller="GtalkUnreachableCtrl" ui-modal
+<div id="confirmReset" ng-controller="ConfirmResetCtrl" ui-modal
+     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+  <div class="modal-header">
+    <h3>{{ 'CONFIRM_RESET_TITLE' | i18n }}</h3>
+  </div>
+  <div class="modal-body">
+    <div>{{ 'CONFIRM_RESET_PROMPT' | i18n }}</div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" ng-click="interaction(INTERACTION.close)">{{ 'CANCEL' | i18n }}</button>
+    <button type="button" class="btn btn-danger" ng-click="reset()">{{ 'RESET' | i18n }}</button>
+  </div>
+</div>
+
+<div id="giveModeForbidden" ng-controller="GiveModeForbiddenCtrl" ui-modal
+     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+  <div class="modal-header">
+    <h3>{{ 'GIVE_MODE_FORBIDDEN_TITLE' | i18n }}</h3>
+  </div>
+  <div class="modal-body">
+    <div>{{ 'GIVE_MODE_FORBIDDEN_PROMPT' | i18n }}</div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn" ng-click="interaction(INTERACTION.cancel)">{{ 'CANCEL' | i18n }}</button>
+  </div>
+</div>
+
+<div id="gtalkUnreachable" ng-controller="GtalkUnreachableCtrl" ui-modal
      ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
     <h3>{{ 'GTALK_UNREACHABLE_TITLE' | i18n }}</h3>
@@ -205,12 +179,25 @@
     <div>{{ 'GTALK_UNREACHABLE_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn" ng-click="model.modal = MODAL.signin">{{ 'RETRY_NOW' | i18n }}</button>
-    <button type="submit" class="btn" ng-click="continue_()">{{ 'RETRY_LATER' | i18n }}</button>
+    <button type="submit" class="btn" ng-click="interaction(INTERACTION.retrySignInNow)">{{ 'RETRY_NOW' | i18n }}</button>
+    <button type="submit" class="btn" ng-click="interaction(INTERACTION.retrySignInLater)">{{ 'RETRY_LATER' | i18n }}</button>
   </div>
 </div>
 
-<div id="not-invited" ng-controller="NotInvitedCtrl" ui-modal
+<div id="authorizeLater" ng-controller="AuthorizeLaterCtrl" ui-modal
+     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+  <div class="modal-header">
+    <h3>{{ 'AUTHORIZE_LATER_TITLE' | i18n }}</h3>
+  </div>
+  <div class="modal-body">
+    <div>{{ 'AUTHORIZE_LATER_PROMPT' | i18n }}</div>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="btn" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
+  </div>
+</div>
+
+<div id="notInvited" ng-controller="NotInvitedCtrl" ui-modal
      ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
     <h3>{{ 'NOT_INVITED_TITLE' | i18n }}</h3>
@@ -219,12 +206,12 @@
     <div>{{ 'NOT_INVITED_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn" ng-click="model.modal = MODAL.signin">{{ 'TRY_ANOTHER_USER' | i18n }}</button>
-    <button type="submit" class="btn" ng-click="model.modal = MODAL.requestInvite">{{ 'REQUEST_INVITE' | i18n }}</button>
+    <button type="submit" class="btn" ng-click="interaction(INTERACTION.tryAnotherUser)">{{ 'TRY_ANOTHER_USER' | i18n }}</button>
+    <button type="submit" class="btn" ng-click="interaction(INTERACTION.requestInvite)">{{ 'REQUEST_INVITE' | i18n }}</button>
   </div>
 </div>
 
-<div id="request-invite" ng-controller="RequestInviteCtrl" ui-modal
+<div id="requestInvite" ng-controller="RequestInviteCtrl" ui-modal
      ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
     <h3>{{ 'REQUEST_INVITE_TITLE' | i18n }}</h3>
@@ -242,6 +229,7 @@
                ng-disabled="disableForm || sendToLanternDevs"
                ng-model="sendRequestTo" placeholder="email@example.com">
         <div>{{ 'SOMEONE_I_KNOW_INFO' | i18n }}</div>
+        <!-- XXX auto-complete from google contacts -->
         <!-- XXX "add a personal message" -->
       </div>
       <br>
@@ -257,12 +245,12 @@
     </form>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-danger" ng-click="model.modal = MODAL.signin" tabindex="-1">{{ 'CANCEL' | i18n }}</button>
+    <button type="button" class="btn" ng-click="interaction(INTERACTION.cancel)" tabindex="-1">{{ 'CANCEL' | i18n }}</button>
     <button type="submit" class="btn btn-primary" ng-disabled="sendRequestForm.$invalid || disableForm" ng-click="requestInvite()">{{ submitButtonLabelKey | i18n }}</button>
   </div>
 </div>
 
-<div id="request-sent" ng-controller="RequestSentCtrl" ui-modal
+<div id="requestSent" ng-controller="RequestSentCtrl" ui-modal
      ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
     <h3>{{ 'REQUEST_SENT_TITLE' | i18n }}</h3>
@@ -271,7 +259,7 @@
     <div>{{ 'REQUEST_SENT_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn btn-primary" ng-click="continue_()">{{ 'CONTINUE' | i18n }}</button>
+    <button type="submit" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
   </div>
 </div>
 
@@ -291,11 +279,11 @@
     <div>{{ 'FIRST_INVITE_RECEIVED_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn btn-primary" ng-click="continue_()">{{ 'CONTINUE' | i18n }}</button>
+    <button type="submit" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
   </div>
 </div>
 
-<div id="sysproxy" ng-controller="SystemProxyCtrl" ui-modal ng-model="show"
+<div id="systemProxy" ng-controller="SystemProxyCtrl" ui-modal ng-model="show"
      class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
     <h3>{{ 'SYSTEM_PROXY_TITLE' | i18n }}</h3>
@@ -326,14 +314,73 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="reset()" ui-if="!model.setupComplete"
-            class="btn pull-left">
-      {{ 'START_OVER' | i18n }}
-    </button>
-    <button type="submit" class="btn btn-primary" ng-click="sysproxySet()"
+    <button type="submit" class="btn btn-primary" ng-click="continue()"
             ng-disabled="disableForm">
       {{ submitButtonLabelKey | i18n }}
     </button>
+  </div>
+</div>
+
+<div id="proxiedSites" ng-controller="ProxiedSitesCtrl" ui-modal ng-model="show"
+     class="fade" data-backdrop="static" data-keyboard="false">
+  <div class="modal-header">
+    <h3>{{ 'PROXIED_SITES_TITLE' | i18n }}</h3>
+  </div>
+  <div class="modal-body">
+    <div>{{ 'PROXIED_SITES_PROMPT' | i18n }}</div>
+    <br>
+    <div>
+      <label>
+        {{ 'CONFIGURE_PROXIED_SITES' | i18n }}
+        <sup><a rel="tooltip" data-original-title="{{ 'PROXIED_SITES_TIP' | i18n }}"
+            ui-jq="tooltip"><i class="icon-info-sign"></i></a></sup>
+      </label>
+      <textarea ng-model="proxiedSites" ng-change="handleChange()"
+        style="width: 300px; height: 100px"></textarea><!-- XXX hook up to validator, etc -->
+    </div>
+    <small>
+      <!-- XXX spec and mock this -->
+      * {{ 'HTTPS_EVERYWHERE_LABEL' | i18n }}
+      <a target="_blank" href="{{ EXTERNAL_URL.httpsEverywhere }}">
+        <i class="icon-external-link"></i>
+      </a>
+    </small>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
+  </div>
+</div>
+
+<div id="inviteFriends" ng-controller="InviteFriendsCtrl" ui-modal ng-model="show"
+     class="fade" data-backdrop="static" data-keyboard="false">
+  <div class="modal-header">
+    <h3>{{ 'INVITE_FRIENDS_TITLE' | i18n }}</h3>
+  </div>
+  <div class="modal-body">
+    <div>
+      <p>{{ 'INVITE_FRIENDS_PROMPT' | i18n }}</p>
+      <div class="control-extra">{{ model.ninvites && 'INVITE_FRIENDS_PROMPT_INVITES_LEFT' ||
+         'INVITE_FRIENDS_PROMPT_NO_INVITES_LEFT' | i18n }}</div>
+    </div>
+    <br>
+    <form>
+      <input type="text" placeholder="{{ 'INVITE_INPUT_PLACEHOLDER' | i18n }}"
+        ng-disabled="!model.ninvites" style="width: 400px">
+        <div ui-toggle="model.ninvites"><small>{{ model.ninvites }}
+          {{ 'INVITES_REMAINING' | i18n }}</small></div>
+    </form>
+    <!-- XXX custom message -->
+    <br>
+    <form class="form-inline">
+      <label class="checkbox">
+        <input type="checkbox" ng-model="advertiseLantern"
+          ng-change="changeSetting(SETTING.advertiseLantern, advertiseLantern)">
+        {{ 'ADVERTISE_LANTERN' | i18n }}
+      </label>
+    </form>
+  </div>
+  <div class="modal-footer">
+    <button type="submit" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
   </div>
 </div>
 
@@ -348,7 +395,7 @@
     <form class="form-inline">
       <label class="checkbox inline">
         <input type="checkbox" ng-model="notifyLanternDevs"
-               ng-change="changeSetting('autoReport', notifyLanternDevs)">
+               ng-change="changeSetting(SETTING.autoReport, notifyLanternDevs)">
         <small>{{ 'AUTOREPORT_ENABLE' | i18n }}</small>
       </label>
       <label class="checkbox inline" style="margin:0"><!-- XXX -->
@@ -361,6 +408,157 @@
   </div>
   <div class="modal-footer">
     <button type="submit" class="btn btn-primary btn-{{ model.settings.mode }}-mode"
-            ng-click="continue_()">{{ 'FINISH' | i18n }}</button>
+            ng-click="interaction(INTERACTION.continue)">{{ 'FINISH' | i18n }}</button>
+  </div>
+</div>
+
+<div id="contactDevs" ng-controller="ContactDevsCtrl" ui-modal
+     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+  <div class="modal-header">
+    <h3>{{ 'CONTACT_DEVS_TITLE' | i18n }}</h3>
+  </div>
+  <div class="modal-body">
+    <div>{{ 'CONTACT_DEVS_PROMPT' | i18n }}</div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary"
+            ng-click="interaction(INTERACTION.continue)">{{ 'CLOSE' | i18n }}</button>
+  </div>
+</div>
+
+<div id="about" ng-controller="AboutCtrl" ui-modal ng-model="show"
+     class="fade" data-backdrop="static" data-keyboard="true"><!-- XXX data-keyboard=true not working? -->
+  <div class="modal-header">
+    <button type="button" class="close" ng-click="interaction(INTERACTION.close)" aria-hidden="true">×</button>
+    <h3>{{ 'ABOUT_TITLE' | i18n }}</h3>
+  </div>
+  <div class="modal-body">
+    <div>...</div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
+  </div>
+</div>
+
+<div id="settings" ng-controller="SettingsCtrl" ui-modal ng-model="show"
+     class="fade" data-backdrop="static" data-keyboard="true"><!-- XXX data-keyboard=true not working? -->
+  <div class="modal-header">
+    <button type="button" class="close" ng-click="interaction(INTERACTION.close)" aria-hidden="true">×</button>
+    <h3>{{ 'SETTINGS' | i18n }}</h3>
+  </div>
+  <div class="modal-body">
+    <dl class="dl-horizontal">
+      <dt>{{ 'MODE' | i18n }}</dt>
+      <dd>
+        <div class="btn-group" data-toggle="buttons-radio">
+          <button type="button" class="btn btn-mini"
+                  ng-class="{active: inGiveMode}"
+                  ng-disabled="inGiveMode"
+                  ng-click="interaction(MODE.give)">
+                  {{ 'GIVE_ACCESS' | i18n }}
+          </button>
+          <button type="button" class="btn btn-mini"
+                  ng-class="{active: inGetMode}"
+                  ng-disabled="inGetMode"
+                  ng-click="interaction(MODE.get)">
+                  {{ 'GET_ACCESS' | i18n }}
+          </button>
+        </div>
+      </dd>
+
+      <dt>{{ 'APP' | i18n }}</dt>
+      <dd>
+        <!--
+        <label>
+          <select ui-select2 ng-model="_lang" class="settings-selectlang"
+                  ng-change="changeSetting(SETTING.lang, _lang)"
+                  data-placeholder="{{ 'LANGUAGE' | i18n }}">
+            <option value=""></option>
+            <option value="en">English</option>
+            <option value="zh">中文</option>
+            <option value="fa">‫پارسی‬</option>
+            <option value="ar">‫العربية‬</option>
+          </select>
+          <small>
+            <a target="_blank" href="{{ EXTERNAL_URL.helpTranslate }}">
+              {{ 'HELP_TRANSLATE' | i18n }}
+              <i class="icon-external-link"></i>
+            </a>
+          </small>
+        </label>
+        -->
+
+        <label class="checkbox">
+          <input type="checkbox" ng-model="autoStart"
+                 ng-click="changeSetting(SETTING.autoStart, autoStart)">
+          {{ 'AUTO_START' | i18n }}
+        </label>
+
+        <!-- XXX
+        <label class="checkbox">
+          <input type="checkbox" ng-model="showInDock"
+                 ng-click="changeSetting(SETTING.showInDock, showInDock)">
+          {{ 'SHOW_IN_DOCK' | i18n }}
+        </label>
+        -->
+
+        <label class="checkbox inline" style="margin-top:-7px"><!-- XXX -->
+          <input type="checkbox" ng-model="autoReport"
+                 ng-click="changeSetting(SETTING.autoReport, autoReport)">
+          {{ 'AUTOREPORT_ENABLE' | i18n:true }}
+        </label>
+        <label class="checkbox inline" style="margin:0; padding:0 0 0 1px"><!-- XXX -->
+          <a rel="tooltip" data-original-title="{{ 'AUTOREPORT_PROMPT' | i18n }}"
+             ui-jq="tooltip">
+            <i class="icon-info-sign"></i>
+          </a>
+        </label>
+
+        <div id="autoreport-warning" ui-toggle="!model.settings.autoReport">
+          <i class="icon-exclamation-sign"></i>
+          <small>{{ 'NO_AUTOREPORT_WARNING' | i18n }}</small>
+        </div>
+
+      </dd>
+
+      <dt ui-toggle="inGetMode">{{ 'PROXY' | i18n }}</dt>
+      <dd ui-toggle="inGetMode">
+        <button type="button" class="btn btn-mini"
+                ng-click="interaction(INTERACTION.proxiedSites)">
+          {{ 'MANAGE_PROXIED_SITES' | i18n }}
+        </button>
+        <br>
+        <a class="toggle advanced" ng-click="advancedExpanded = !advancedExpanded">
+          <small>
+            {{ advancedExpanded && 'CARET_EXPANDED' || 'CARET_COLLAPSED' | i18n }}
+            {{ 'ADVANCED' | i18n }}
+          </small>
+        </a>
+        <div id="advanced" ui-toggle="advancedExpanded">
+          <label>
+            <i class="icon-bolt"></i>
+            {{ 'PORT' | i18n }}&nbsp;
+            <input type="number" ng-model="model.settings.proxyPort" disabled>
+          </label>
+          <label class="checkbox">
+            <input type="checkbox" ng-model="systemProxy"
+                   ng-click="changeSetting(SETTING.systemProxy, systemProxy)">
+            {{ 'SET_AS_SYSTEM_PROXY' | i18n }}
+          </label>
+          <label class="checkbox">
+            <input type="checkbox" ng-model="model.settings.proxyAllSites"
+                   ng-click="changeSetting(SETTING.proxyAllSites, proxyAllSites)">
+              {{'PROXY_ALL_TRAFFIC' | i18n }}
+          </label>
+        </div>
+      </dd>
+    </dl>
+  </div>
+  <div class="modal-footer">
+    <button type="button" ng-click="interaction(INTERACTION.confirmReset)"
+            class="btn btn-warning btn-small pull-left">
+      <i class="icon-warning-sign"></i> {{ 'RESET_LANTERN' | i18n }}
+    </button>
+    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
   </div>
 </div>

@@ -53,6 +53,7 @@ BayeuxBackend.prototype._bindCallbacks = function() {
     util.puts('[bayeux] subscribe: client: '+clientId+', channel: '+channel);
     util.puts('[bayeux]            publishing entire state to /sync channel');
     self.publishSync();
+    //util.puts(util.inspect(self.model));
   });
 
   bayeux.bind('unsubscribe', function(clientId, channel) {

@@ -2,21 +2,32 @@
   $footerHeight: 65px
   +size(100%, $footerHeight)
   +position(false, 0, 0, 0)
-  outline: 1px solid rgba(0, 0, 0, .5)
-  border-top: 1px solid rgba(255, 255, 255, .1)
   +centered
   +small
-  color: $grayLight
   +text-shadow($black 1px 1px 1px)
+  +box-sizing(border-box)
   word-spacing: .3ex
-  .inner
-    margin: 10px 0 0 0
-  .btn-group
-    +position(false, 20px, 20px)
+  padding: 47px 0 0
+  z-index: $zindexModal + 1
+
+body.showVis #footer
+  padding: 10px 0 0
+  outline: 1px solid rgba(0, 0, 0, .5)
+  border-top: 1px solid rgba(255, 255, 255, .1)
+  color: $grayLight
+  z-index: auto
+
+#global-nav
+  +position(false, 20px, 20px)
+
+#stats
   strong
     color: lighten($grayLight, 10%)
     font-weight: normal
-    &.version
-      padding: 2px 12px 0
-      color: lighten($grayLight, 30%)
-      +smaller
+
+#version
+  +smaller
+  z-index: $zindexModal + 1
+  color: $white
+  a
+    color: $white

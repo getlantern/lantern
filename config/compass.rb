@@ -9,6 +9,6 @@ css_dir = '_css'
 images_dir = 'img'
 javascripts_dir = 'js'
 output_style = :expanded
-environment = :development
+environment = :production
 relative_assets = true
 preferred_syntax = :sass

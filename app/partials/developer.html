@@ -1,127 +1,22 @@
-<div id="developer" ng-controller="DevCtrl" ng-show="dev" lang="en" dir="ltr">
-  <a class="btn btn-mini btn-warning"
-     data-toggle="collapse" data-target="#developer-content"
-     ui-jq="tooltip" rel="tooltip" data-original-title="Developer"
-     ui-options="{placement: 'right'}">
-    <i class="icon-cogs"></i>
-  </a>
-  <div id="developer-content" class="collapse">
-    <label class="checkbox inline">
-      Model
-      <a href="https://github.com/getlantern/lantern-ui/blob/master/SPECS.md#state-document-specification">(specs)</a>
-    </label>
-    <label class="checkbox inline"><input type="checkbox" ng-model="prettyPrint"> prettyprint</label>
-    <pre ui-if="!prettyPrint">{{ model }}</pre>
-    <pre ui-if="prettyPrint">{{ model | json }}</pre>
-    <div>
-      <form class="form-horizontal">
-        <div class="control-group">
-          <label class="control-label"></label>
-          <div class="controls">
-            <label class="checkbox"><input type="checkbox" ng-model="model.dev"> dev (unchecking hides dev panel and turns off debug logging!)</label>
-          </div>
-          <label class="control-label"></label>
-          <div class="controls">
-            <label class="checkbox"><input type="checkbox" ng-model="model.setupComplete"> setupComplete</label>
-          </div>
-        </div>
-        <div class="control-group">
-          <label class="control-label">modal</label>
-          <div class="controls">
-            <select ui-select2="{allowClear: true}" ng-model="model.modal" data-placeholder="modal">
-              <option value=""></option>
-              <option value="passwordCreate">passwordCreate</option>
-              <option value="settingsUnlock">settingsUnlock</option>
-              <option value="settingsLoadFailure">settingsLoadFailure</option>
-              <option value="welcome">welcome</option>
-              <option value="signin">signin</option>
-              <option value="gtalkUnreachable">gtalkUnreachable</option>
-              <option value="notInvited">notInvited</option>
-              <option value="requestInvite">requestInvite</option>
-              <option value="requestSent">requestSent</option>
-              <option value="firstInviteReceived">firstInviteReceived</option>
-              <option value="sysproxy">sysproxy</option>
-              <option value="finished">finished</option>
-            </select>
-          </div>
-        </div>
-        <div class="control-group">
-          <label class="control-label">settings</label>
-          <div class="controls row">
-            <div class="span-4">
-              <label>
-                <select ui-select2="{allowClear: true}" ng-model="model.settings.mode" data-placeholder="mode">
-                  <option value=""></option>
-                  <option value="give">give</option>
-                  <option value="get">get</option>
-                </select>
-                mode
-              </label>
-              <label><input type="text" ng-model="model.settings.userid" placeholder="user@example.com"> userid</label>
-              <label><input type="text" placeholder="0" ng-model="model.settings.invites"> invites</label>
-              <label><input type="text" ng-model="model.settings.lang" placeholder="en"> lang</label>
-              <label><input type="text" ng-model="model.settings.proxyPort" placeholder="8787"> proxyPort</label>
-            </div>
-            <div class="span-4">
-              <label class="checkbox"><input type="checkbox" ng-model="model.settings.systemProxy"> systemProxy</label>
-              <label class="checkbox"><input type="checkbox" ng-model="model.settings.proxyAllSites"> proxyAllSites</label>
-              <label class="checkbox"><input type="checkbox" ng-model="model.settings.savePassword"> savePassword</label>
-              <label class="checkbox"><input type="checkbox" ng-model="model.settings.passwordSaved"> passwordSaved</label>
-              <label class="checkbox"><input type="checkbox" ng-model="model.settings.startAtLogin"> startAtLogin</label>
-              <label class="checkbox"><input type="checkbox" ng-model="model.settings.autoReport"> autoReport</label>
-            </div>
-            <div class="span-4">
-              <label>proxiedSitesList</label>
-              <textarea placeholder="google.com,twitter.com" ng-model="model.settings.proxiedSitesList"></textarea>
-            </div>
-          </div>
-        </div>
-        <div class="control-group">
-          <label class="control-label">lang</label>
-          <div class="controls">
-            <input type="text" ng-model="model.lang" placeholder="en">
-          </div>
-        </div>
-        <div class="control-group">
-          <label class="control-label">connectivity</label>
-          <div class="controls">
-            <label class="checkbox"><input type="checkbox" ng-model="model.connectivity.internet"> internet</label>
-            <label>
-              <select ui-select2="{allowClear: true}" ng-model="model.connectivity.gtalk" data-placeholder="gtalk">
-                <option value=""></option>
-                <option value="notConnected">notConnected</option>
-                <option value="connecting">connecting</option>
-                <option value="connnected">connnected</option>
-              </select>
-              gtalk
-            </label>
-            <label><input type="text" placeholder="0" ng-model="model.connectivity.peers"> peers</label>
-          </div>
-        </div>
-        <div class="control-group">
-          <label class="control-label">version</label>
-          <div class="controls">
-            <label><input type="text" placeholder="0.20.3-sha1 beta" ng-model="model.version.app"> app</label>
-            <label><input type="text" placeholder="[0, 0, 1]" ng-model="model.version.api"> api</label>
-          </div>
-        </div>
-        <div class="control-group">
-          <label class="control-label">transfers</label>
-          <div class="controls">
-            <label><input type="text" placeholder="0" ng-model="model.transfers.current.ntransfers"> current.ntransfers</label>
-            <label><input type="text" placeholder="0" ng-model="model.transfers.current.bytesUp"> current.bytesUp</label>
-            <label><input type="text" placeholder="0" ng-model="model.transfers.current.bytesDn"> current.bytesDn</label>
-            <label><input type="text" placeholder="0" ng-model="model.transfers.current.bytesTotal"> current.bytesTotal</label>
-            <label><input type="text" placeholder="0" ng-model="model.transfers.current.npeers"> current.npeers</label>
+<a id="dev-toggle" class="btn btn-mini btn-warning" ng-show="dev.value"
+   data-toggle="collapse" data-target="#developer"
+   ui-jq="tooltip" rel="tooltip" data-original-title="Developer"
+   ui-options="{placement: 'right'}">
+  <i class="icon-cogs"></i>
+</a>
 
-            <label><input type="text" placeholder="0" ng-model="model.transfers.lifetime.ntransfers"> lifetime.ntransfers</label>
-            <label><input type="text" placeholder="0" ng-model="model.transfers.lifetime.bytesUp"> lifetime.bytesUp</label>
-            <label><input type="text" placeholder="0" ng-model="model.transfers.lifetime.bytesDn"> lifetime.bytesDn</label>
-            <label><input type="text" placeholder="0" ng-model="model.transfers.lifetime.bytesTotal"> lifetime.bytesTotal</label>
-            <label><input type="text" placeholder="0" ng-model="model.transfers.lifetime.npeers"> lifetime.npeers</label>
-          </div>
-        </div>
-      </form>
-    </div>
-  </div>
+<div id="developer" class="collapse" ng-init="prettyPrint = true"
+     ng-controller="DevCtrl" ng-show="dev.value" lang="en" dir="ltr">
+  <!--
+  <label class="checkbox inline">
+    <input type="checkbox" ng-model="model.dev">
+    dev
+    <a rel="tooltip" ui-jq="tooltip" class="warning-colored" ui-options="{placement: 'right'}"
+       data-original-title="unchecking turns off dev panel access, debug logging, and stops propagation of local model changes">
+      <i class="icon-warning-sign warning-colored"></i>
+    </a>
+  </label>
+  -->
+  <textarea ng-model="editableModel" x-update-on-blur
+            ng-change="handleUpdate()"></textarea>
 </div>

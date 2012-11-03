@@ -3,48 +3,36 @@
 // XXX use data-loading-text instead of submitButtonLabelKey below?
 // see http://twitter.github.com/bootstrap/javascript.html#buttons
 
-function RootCtrl($scope, logFactory, modelSrvc, cometdSrvc, langSrvc, $http, apiSrvc, ENUMS) {
+function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, $http, apiSrvc, ENUMS) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
       MODE = ENUMS.MODE,
       STATUS_GTALK = ENUMS.STATUS_GTALK;
   $scope.modelSrvc = modelSrvc;
   $scope.cometdSrvc = cometdSrvc;
+  $scope.dev = dev;
 
   angular.forEach(ENUMS, function(val, key) {
     $scope[key] = val;
   });
 
   // XXX better place for these?
-
   $scope.lang = langSrvc.lang;
   $scope.direction = langSrvc.direction;
 
-  $scope._showSettings = false;
-  $scope.$watch('model.modal', function(val) {
-    if (val) $scope.hideSettings();
-  });
-  $scope.showSettings = function() {
-    $scope._showSettings = true;
-  };
-  $scope.hideSettings = function() {
-    $scope._showSettings = false;
-  };
-
-
-  $scope.$watch('model.settings.mode', function modeChanged(val) {
+  $scope.$watch('model.settings.mode', function(val) {
     $scope.inGiveMode = val == MODE.give;
     $scope.inGetMode = val == MODE.get;
   });
 
-  $scope.$watch('connectivity.gtalk', function gtalkChanged(val) {
+  $scope.$watch('connectivity.gtalk', function(val) {
     $scope.gtalkNotConnected = val == STATUS_GTALK.notConnected;
     $scope.gtalkConnecting = val == STATUS_GTALK.connecting;
     $scope.gtalkConnected = val == STATUS_GTALK.connected;
   });
 
   $scope.notifyLanternDevs = true;
-  $scope.$watch('model.settings.autoReport', function autoReportChanged(val) {
+  $scope.$watch('model.settings.autoReport', function(val) {
     if (typeof val == 'boolean') {
       $scope.notifyLanternDevs = val;
     }
@@ -59,8 +47,11 @@ function RootCtrl($scope, logFactory, modelSrvc, cometdSrvc, langSrvc, $http, ap
     location.reload(true);
   };
 
-  $scope.reset = function(confirm_) {
-    // XXX require confirmation if confirm_
+  $scope.confirmReset = function() {
+    // XXX
+  };
+
+  $scope.reset = function() {
     $http.post(apiSrvc.urlfor('reset'))
       .success(function(data, status, headers, config) {
         log.debug('Reset');
@@ -71,13 +62,14 @@ function RootCtrl($scope, logFactory, modelSrvc, cometdSrvc, langSrvc, $http, ap
       });
   };
 
-  $scope.continue_ = function() {
-    $http.post(apiSrvc.urlfor('continue'))
+  $scope.interaction = function(interaction, extra) {
+    var params = angular.extend({interaction: interaction}, extra || {});
+    $http.post(apiSrvc.urlfor('interaction', params))
       .success(function(data, status, headers, config) {
-        log.debug('Continue');
+        log.debug('interaction');
       })
       .error(function(data, status, headers, config) {
-        log.debug('Continue failed'); // XXX
+        log.debug('interaction failed'); // XXX
       });
   };
 
@@ -119,19 +111,31 @@ function WaitingForLanternCtrl($scope, logFactory) {
   });
 }
 
-/*
-function SanityCtrl($scope, modelSrvc) {
+function SanityCtrl($scope, sanity, APIVER_REQUIRED, apiVerLabel, logFactory) {
+  var log = logFactory('SanityCtrl');
+  $scope.sanity = sanity;
+
   $scope.show = false;
-  $scope.modelSane = modelSrvc.sane;
-  $scope.$watch('modelSane()', function(sane) {
-    $scope.show = !sane;
+  $scope.$watch('sanity.value', function(val) {
+    $scope.show = !val;
+  });
+
+  $scope.$watch('model.version.current.api', function(val) {
+    if (!val) return;
+    if (val.major != APIVER_REQUIRED.major ||
+        val.minor != APIVER_REQUIRED.minor) {
+      sanity.value = false;
+      log.error('Available API version', val,
+        'incompatible with required version', APIVER_REQUIRED);
+    }
+    // XXX required by apiSrvc. Better place for this?
+    apiVerLabel.value = val.major+'.'+val.minor+'.'+val.patch;
   });
 }
-*/
 
 function SettingsLoadFailureCtrl($scope, MODAL) {
   $scope.show = false;
-  $scope.$watch('model.modal', function modalChanged(val) {
+  $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.settingsLoadFailure;
   });
 }
@@ -140,7 +144,7 @@ function SettingsUnlockCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
   var log = logFactory('SettingsUnlockCtrl');
 
   $scope.show = false;
-  $scope.$watch('model.modal', function modalChanged(val) {
+  $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.settingsUnlock;
   });
 
@@ -163,7 +167,7 @@ function PasswordCreateCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
   var log = logFactory('PasswordCreateCtrl');
 
   $scope.show = false;
-  $scope.$watch('model.modal', function modalChanged(val) {
+  $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.passwordCreate;
   });
 
@@ -182,7 +186,8 @@ function PasswordCreateCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
   $scope.$watch('password2', validate);
 
   $scope.passwordCreate = function() {
-    $http.post(apiSrvc.urlfor('passwordCreate', {password: $scope.password1}))
+    $http.post(apiSrvc.urlfor('passwordCreate',
+        {password1: $scope.password1, password2: $scope.password2}))
       .success(function(data, status, headers, config) {
         log.debug('Password create');
       })
@@ -196,103 +201,31 @@ function WelcomeCtrl($scope, modelSrvc, logFactory, MODAL) {
   var log = logFactory('WelcomeCtrl'),
       model = $scope.model = modelSrvc.model;
   $scope.show = false;
-  $scope.$watch('model.modal', function modalChanged(val) {
+  $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.welcome;
   });
 }
 
-function LangChooserCtrl($scope, MODAL) {
-  $scope.show = false;
-  $scope.$watch('model.modal', function(val) {
-    $scope.show = !!val;
-  });
-}
-
-function SigninCtrl($scope, $http, modelSrvc, apiSrvc, logFactory, MODAL, STATUS_GTALK) {
-  var log = logFactory('SigninCtrl'),
+function AuthorizeCtrl(dev, $scope, $http, modelSrvc, apiSrvc, logFactory, MODAL, STATUS_GTALK, EXTERNAL_URL, googOauthUrl, $window) {
+  var log = logFactory('AuthorizeCtrl'),
       model = modelSrvc.model;
 
   $scope.show = false;
   $scope.$watch('model.modal', function(val) {
-    $scope.show = val == MODAL.signin;
+    $scope.show = val == MODAL.authorize;
   });
 
-  function _reset() {
-    $scope.userid = null;
-    $scope.password = ''
-    $scope.savePassword = true;
-  }
-  $scope.$on('reset', _reset);
-  _reset();
-
-  $scope.$watch('model.settings.savePassword', function(val) {
-    if (typeof val == 'boolean')
-      $scope.savePassword = val;
-  });
-  $scope.$watch('model.settings.userid', function(val) {
-    if ($scope.userid == null && val)
-      $scope.userid = val;
-  });
-
-  $scope.signinError = false;
-  $scope.submitButtonLabelKey = 'SIGN_IN';
-  $scope.$watch('model.connectivity.gtalk', function(val) {
-    if (val == STATUS_GTALK.notConnected) {
-      $scope.submitButtonLabelKey = 'SIGN_IN';
-      $scope.disableForm = false;
-    } else if (val == STATUS_GTALK.connecting) {
-      $scope.submitButtonLabelKey = 'SIGNING_IN';
-      $scope.disableForm = true;
-    } else if (val == STATUS_GTALK.connected) {
-      $scope.submitButtonLabelKey = 'SIGNED_IN';
-      $scope.disableForm = true;
-    }
-  });
-
-  var signinStatusMap = {
-    401: 'SIGNIN_STATUS_BAD_CREDENTIALS',
-    403: 'SIGNIN_STATUS_NOT_AUTHORIZED',
-    503: 'SIGNIN_STATUS_SERVICE_UNAVAILABLE'
-  };
-  function hideSigninStatus() {
-    $scope.showSigninStatus = false;
-  }
-  $scope.$watch('userid', hideSigninStatus);
-  $scope.$watch('password', hideSigninStatus);
-  $scope.needPassword = true;
-  $scope.$watch('savePassword', function savePasswordChanged(val) {
-    $scope.needPassword = !(val && (model.settings || {}).passwordSaved);
-  });
-  $scope.$watch('model.settings.passwordSaved', function passwordSavedChanged(val) {
-    $scope.needPassword = !(val && $scope.savePassword);
-  });
-
-  $scope.signin = function() {
-    $scope.signinError = false;
-    $scope.showSigninStatus = false;
-    $scope.disableForm = true;
-    var params = {userid: $scope.userid};
-    if ($scope.needPassword) {
-      params['password'] = $scope.password;
-    }
-    $http.post(apiSrvc.urlfor('signin', params))
-      .success(function(data, status, headers, config) {
-        log.debug('signin');
-      })
-      .error(function(data, status, headers, config) {
-        log.debug('signin failed');
-        $scope.signinError = true;
-        $scope.showSigninStatus = true;
-        $scope.disableForm = false;
-        $scope.signinStatusKey = signinStatusMap[status] || 'UNEXPECTED_ERROR';
-      });
+  $scope.doOauth = function() {
+    var url = modelSrvc.get('version.current.api.mock') ?
+              EXTERNAL_URL.fakeOauth : googOauthUrl;
+    $window.open(url);
   };
 }
 
 function GtalkUnreachableCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
   var log = logFactory('GtalkUnreachableCtrl');
   $scope.show = false;
-  $scope.$watch('model.modal', function modalChanged(val) {
+  $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.gtalkUnreachable;
   });
 }
@@ -300,7 +233,7 @@ function GtalkUnreachableCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
 function NotInvitedCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
   var log = logFactory('NotInvitedCtrl');
   $scope.show = false;
-  $scope.$watch('model.modal', function modalChanged(val) {
+  $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.notInvited;
   });
 }
@@ -308,7 +241,7 @@ function NotInvitedCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
 function RequestInviteCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
   var log = logFactory('RequestInviteCtrl');
   $scope.show = false;
-  $scope.$watch('model.modal', function modalChanged(val) {
+  $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.requestInvite;
   });
 
@@ -342,7 +275,7 @@ function RequestInviteCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
 function RequestSentCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
   var log = logFactory('RequestSentCtrl');
   $scope.show = false;
-  $scope.$watch('model.modal', function modalChanged(val) {
+  $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.requestSent;
   });
 }
@@ -350,17 +283,17 @@ function RequestSentCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
 function FirstInviteReceivedCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
   var log = logFactory('FirstInviteReceivedCtrl');
   $scope.show = false;
-  $scope.$watch('model.modal', function modalChanged(val) {
+  $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.firstInviteReceived;
   });
 }
 
-function SystemProxyCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
+function SystemProxyCtrl($scope, $http, apiSrvc, logFactory, MODAL, SETTING, INTERACTION) {
   var log = logFactory('SystemProxyCtrl');
 
   $scope.show = false;
-  $scope.$watch('model.modal', function modalChanged(val) {
-    $scope.show = val == MODAL.sysproxy;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.systemProxy;
   });
 
   $scope.systemProxy = true;
@@ -372,11 +305,14 @@ function SystemProxyCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
     $scope.submitButtonLabelKey = 'CONTINUE';
   }
 
-  $scope.sysproxySet = function() {
+  $scope.continue = function() {
     $scope.sysproxyError = false;
     $scope.disableForm = true;
     $scope.submitButtonLabelKey = 'CONFIGURING';
     var params = {systemProxy: $scope.systemProxy};
+    $scope.interaction(INTERACTION.continue, params);
+    resetForm(); // XXX pass in a callback to be called when $scope.interaction(..) completes
+    /*
     $http.post(apiSrvc.urlfor('settings/', params))
       .success(function(data, status, headers, config) {
         log.debug('set systemProxy to', $scope.systemProxy);
@@ -387,28 +323,144 @@ function SystemProxyCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
         $scope.sysproxyError = true;
         resetForm();
       });
+    */
   };
 }
 
 function FinishedCtrl($scope, MODAL) {
   $scope.show = false;
-  $scope.$watch('model.modal', function modalChanged(val) {
+  $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.finished;
   });
 }
 
-function DevCtrl($scope, dev, logFactory, cometdSrvc, modelSrvc) {
+function VisCtrl($scope, logFactory) {
+  var log = logFactory('VisCtrl');
+  startVis();
+}
+
+function ContactDevsCtrl($scope, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.contactDevs;
+  });
+}
+
+function SettingsCtrl($scope, modelSrvc, logFactory, MODAL) {
+  var log = logFactory('SettingsCtrl');
+
+  $scope.show = false;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.settings;
+  });
+
+  $scope.$watch('model.settings.autoStart', function(val) {
+    $scope.autoStart = val;
+  });
+
+  $scope.$watch('model.settings.systemProxy', function(val) {
+    $scope.systemProxy = val;
+  });
+
+  /*
+  $scope.$watch('model.system.lang', function(val, oldVal) {
+    if (val && !$scope._lang)
+      $scope._lang = modelSrvc.get('settings.lang') || val;
+  });
+
+  $scope.$watch('model.settings.lang', function(val, oldVal) {
+    if (val) $scope._lang = val;
+  });
+  */
+
+  $scope.$watch('model.settings.autoReport', function(val) {
+    $scope.autoReport = val;
+  });
+}
+
+function ProxiedSitesCtrl($scope, logFactory, MODAL, SETTING) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.proxiedSites;
+  });
+  $scope.$watch('model.settings.proxiedSites', function(val) {
+    if (val) $scope.proxiedSites = val.join('\n');
+  });
+  $scope.handleChange = function() {
+    // XXX hook up to validator, only call when valid
+    $scope.changeSetting(SETTING.proxiedSites,
+      $scope.proxiedSites.split('\n'));
+  };
+}
+
+function InviteFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL) {
+  var log = logFactory('InviteFriendsCtrl');
+
+  $scope.show = false;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.inviteFriends;
+  });
+
+  $scope.$watch('model.settings.mode', function(val) {
+    if (val) $scope.advertiseLanternDefault = val == MODE.give;
+  });
+  $scope.$watch('advertiseLanternDefault', function(val) {
+    var configuredVal = modelSrvc.get('settings.advertiseLantern');
+    $scope.advertiseLantern = typeof configuredVal == 'undefined' ?
+      $scope.advertiseLanternDefault : configuredVal;
+  });
+}
+
+function AuthorizeLaterCtrl($scope, logFactory, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.authorizeLater;
+  });
+}
+
+function AboutCtrl($scope, logFactory, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.about;
+  });
+}
+
+function ConfirmResetCtrl($scope, logFactory, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.confirmReset;
+  });
+}
+
+function GiveModeForbiddenCtrl($scope, logFactory, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.giveModeForbidden;
+  });
+}
+
+function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, cometdSrvc, modelSrvc) {
   var log = logFactory('DevCtrl'),
       model = modelSrvc.model,
       lastModel = modelSrvc.lastModel;
-  $scope.dev = dev.value;
+
   $scope.$watch('model.dev', function(val) {
-    dev.value = $scope.dev = !!val;
+    dev.value = !!val;
   });
 
+  var locked = false;
   $scope.$watch('model', function() {
-    syncObject('', model, lastModel);
+    if (dev.value && !locked) {
+      syncObject('', model, lastModel);
+      $scope.editableModel = angular.toJson(model, true);
+    }
   }, true);
+
+  $scope.handleUpdate = function() {
+    locked = true;
+    syncObject('', angular.fromJson($scope.editableModel), model);
+    locked = false;
+  };
 
   function syncObject(parent, src, dst) {
     for (var name in src) {
@@ -421,51 +473,10 @@ function DevCtrl($scope, dev, logFactory, cometdSrvc, modelSrvc) {
         syncObject(path, src[name], dst[name]);
       } else {
         log.debug('publishing: path:', path, 'value:', src[name]);
-        cometdSrvc.publish('/sync', {path: path, value: src[name]});
+        // propagate local model changes to other clients
+        cometdSrvc.publish(MODEL_SYNC_CHANNEL, {path: path, value: src[name]});
         dst[name] = angular.copy(src[name]);
       }
     }
   }
-}
-
-function VisCtrl($scope, logFactory) {
-  var log = logFactory('VisCtrl');
-
-  $scope.show = false;
-  $scope.$watch('model.setupComplete', function(val) {
-    $scope.show = !!val;
-  });
-
-  $scope.startVis = function() {
-    startVis();
-  };
-}
-
-function FooterCtrl($scope, logFactory) {
-  var log = logFactory('FooterCtrl');
-
-  $scope.show = false;
-  $scope.$watch('model.setupComplete', function(val) {
-    $scope.show = !!val;
-  });
-}
-
-function SettingsCtrl($scope, logFactory) {
-  var log = logFactory('SettingsCtrl');
-
-  $scope.$watch('model.settings.startAtLogin', function(val) {
-    $scope.startAtLogin = val;
-  });
-
-  $scope.$watch('model.settings.systemProxy', function(val) {
-    $scope.systemProxy = val;
-  });
-
-  $scope.$watch('model.settings.savePassword', function(val) {
-    $scope.savePassword = val;
-  });
-
-  $scope.$watch('model.settings.autoReport', function(val) {
-    $scope.autoReport = val;
-  });
 }

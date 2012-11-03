@@ -1,28 +1,41 @@
 {
   "dev":true,
+  "showVis": false,
+  "system":{
+    "lang":"en",
+    "os":"osx"
+  },
+  "location":{
+    "lat":54,
+    "lon":-2,
+    "country":"gb"
+  },
   "version":{
-    "app":{
-      "current":"mock app v0.0.1",
-      "latest":"mock app v0.0.1",
-      "updateAvailable":false
-    },
-    "api":[0, 0, 1]
+    "current":{
+      "label":"0.0.1",
+      "api":{
+        "major":0,
+        "minor":0,
+        "patch":1,
+        "mock":true
+      }
+    }
   },
   "modal":"welcome",
-  "lang":"en",
+  "ninvites":0,
   "connectivity":{
-    "internet":true,
+    "ip":"79.168.34.28",
     "gtalk":"notConnected",
-    "peers":0
+    "gtalkAuthorized":false,
+    "peersCurrent":[],
+    "peersLifetime":[]
   },
   "settings":{
-    "savePassword":true,
-    "passwordSaved":false,
-    "startAtLogin":true,
+    "autoStart":true,
     "autoReport":true,
     "proxyPort":8787,
     "proxyAllSites":false,
-    "proxiedSitesList":[
+    "proxiedSites":[
       "google.com",
       "twitter.com"
     ]

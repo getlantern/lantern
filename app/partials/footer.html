@@ -1,50 +1,57 @@
 <!-- XXX i18n -->
-<div id="footer" ng-controller="FooterCtrl" ng-show="show">
-  <div class="inner">
-    <strong>global stats:</strong>
-    861 users online ·
-    1,031,235 users total ·
-    9,832,256,102 completed transfers ·
-    8.3 petabytes transferred
-    <br>
-    <strong>your stats:</strong>
-    {{ model.settings.userid }} ·
-    {{ model.connectivity.gtalk }} to Google Talk ·
-    7 friends online ·
-    23 active transfers with 5 peers ·
-    18.3 M/s up ·
-    35 M/s down ·
-    2.4 G lifetime
-    <br>
-    <strong class="version">
-      Lantern {{ model.version.app.current }}
-      <span ng-show="model.version.app.updateAvailable">
-        <a href="#" class="error-colored never-underlined"
-           title="{{ model.version.app.latest }}">
-          <i class="icon-exclamation-sign"></i>
-          Update available
-        </a>
-      </span>
-    </strong>
-    <a rel="tooltip" data-original-title="Enable Automatic Reporting to have your usage contribute to global totals" ui-jq="tooltip" ng-show="!model.settings.autoReport">
+<div id="footer">
+  <div id="stats" ng-show="model.showVis">
+    <div id="stats-global">
+      <strong>global stats:</strong>
+      861 users online ·
+      1,031,235 users total ·
+      9,832,256,102 completed transfers ·
+      8.3 petabytes transferred
+    </div>
+    <div id="stats-personal" ng-show="model.connectivity.peersLifetime.length">
+      <strong>your stats:</strong>
+      {{ model.settings.userid }} ·
+      {{ model.connectivity.gtalk }} to Google Talk ·
+      7 friends online ·
+      23 active transfers with 5 peers ·
+      18.3 M/s up ·
+      35 M/s down ·
+      2.4 G lifetime
+    </div>
+  </div>
+
+  <div id="version">
+    Lantern {{ model.version.current.api.mock && 'mock app' }} {{ model.version.current.label }}
+    <span ng-show="model.version.app.updated.available">
+      <a ng-click="interaction(INTERACTION.update)"
+         class="error-colored never-underlined">
+        <i class="icon-exclamation-sign"></i>
+        Update available<!-- XXX -->
+      </a>
+    </span>
+    <a rel="tooltip" data-original-title="{{ 'ENABLE_AUTOREPORT_SUGGESTION' | i18n }}" ui-jq="tooltip" ng-show="!model.settings.autoReport">
       <i class="icon-exclamation-sign text-error"></i>
     </a>
+    <span ng-show="model.showVis">
+      · <a ng-click="interaction(INTERACTION.about)">About</a>
+    </span>
   </div>
-  <div class="btn-group">
-    <a class="btn btn-small btn-inverse" ui-jq="tooltip"
-       rel="tooltip" data-original-title="Invite friends">
+
+  <div id="global-nav" class="btn-group" ng-show="model.showVis">
+    <a class="btn btn-small btn-inverse"
+       role="button" ng-click="interaction(INTERACTION.inviteFriends)"
+       ui-jq="tooltip" rel="tooltip" data-original-title="Invite friends">
       <i class="icon-user icon-white"></i>
     </a>
-    <a class="btn btn-small btn-inverse" ui-jq="tooltip"
-       rel="tooltip" data-original-title="Write Devs">
+    <a class="btn btn-small btn-inverse"
+       role="button" ng-click="interaction(INTERACTION.contactDevs)"
+       ui-jq="tooltip" rel="tooltip" data-original-title="Contact">
       <i class="icon-pencil icon-white"></i>
     </a>
     <a class="btn btn-small btn-inverse"
-       role="button" ng-click="showSettings()"
+       role="button" ng-click="interaction(INTERACTION.settings)"
        ui-jq="tooltip" rel="tooltip" data-original-title="Settings">
       <i class="icon-cog icon-white"></i>
     </a>
   </div>
 </div>
-
-<div ng-include src="'partials/settings.html'"></div>

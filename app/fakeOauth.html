@@ -1,0 +1,56 @@
+<head>
+  <title>Mock Google Oauth Page</title>
+  <link href="_css/app.css" rel="stylesheet">
+  <script src="lib/angular/docs/js/jquery.js"></script>
+  <script>
+    $(function() {
+      $('#allow').click(function() {
+        var userid = encodeURIComponent($('input[name=userid]:checked').val());
+        $.post('/api/0.0.1/oauthAuthorized?userid='+userid)
+          .done(function(){
+            window.close();
+          });
+        return false;
+      });
+    });
+  </script>
+  <style>
+    h1, p { margin: 30px 0 0 0; }
+    small { color: #999 }
+    #options { text-align: left; position: relative; left: 50%; width: 300px; margin: 20px 0 0 -125px; }
+  </style>
+<head>
+<body class="pagination-centered">
+  <h1>Mock Google Oauth Page</h1>
+
+  <p>
+    <small>
+      (If you weren't signed in you'd see the sign in/create account page
+      before being taken here.)
+    </small>
+  </p>
+
+  <p>
+    Choose a user to pretend to be signed in as:
+  </p>
+
+  <div id="options">
+    <label class="radio"><input name="userid" type="radio" value="user_invited@example.com" checked>
+      user_invited@example.com<br><small>a user with Lantern access</small>
+    </label>
+    <label class="radio"><input name="userid" type="radio" value="user_not_invited@example.com">
+      user_not_invited@example.com<br><small>a user who hasn't gotten an invite yet</small>
+    </label>
+    <label class="radio"><input name="userid" type="radio" value="user_cant_reach_gtalk@example.com">
+      user_cant_reach_gtalk@example.com<br><small>a user who can't reach google talk</small>
+    </label>
+  </div>
+
+  <p>
+    Lantern is requesting permission to access Google Talk on your behalf.
+  </p>
+
+  <br>
+
+  <a id="allow" href="#" class="btn btn-primary">Allow</a>
+</body>

@@ -1,22 +1,26 @@
-#developer
-  position: fixed
-  left: 0
-  right: 0
-  bottom: 0
-  max-height: 25%
-  overflow: scroll
+#dev-toggle
+  +position(0, false, false, 0)
   z-index: $zindexModal + 1
 
-#developer-content
+#developer
+  +position(20px, 0, 0, 0)
+  overflow: scroll
   background-color: #fff
-  border-top: 1px rgb(51, 51, 51) solid
+  z-index: $zindexModal + 1
   *
     font-size: $baseFontSize * .8
-  pre
-    font-size: $baseFontSize * .7
-    max-height: 80px
-    overflow: scroll
   .controls.row .span-4:first-child
     margin-left: 0
   .select2-container
     width: 220px
+  textarea
+    font-size: $baseFontSize * .7
+    overflow: scroll
+    font-family: $monoFontFamily
+    display: block
+    width: 100%
+    height: 100%
+    background-color: $formActionsBackground
+    border: 1px solid rgba(0, 0, 0, 0.15)
+    +border-radius(5px)
+    +box-sizing(border-box)

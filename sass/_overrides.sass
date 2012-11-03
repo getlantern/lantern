@@ -6,8 +6,10 @@ html, body
 html small
   +small
 
-.modal .tooltip
-  z-index: $zindexModal
+// XXX apparently fixed in http://blog.getbootstrap.com/2012/10/29/bootstrap-2-2-0-released/
+//.modal .tooltip
+.tooltip
+  z-index: $zindexModal + 1
 
 .tooltip-inner
   font-size: $baseFontSize * .9
@@ -22,6 +24,9 @@ a.never-underlined
   +never-underlined
 
 a.toggle
+  +never-underlined
+
+i[class^=icon-]
   +never-underlined
 
 a.disabled,

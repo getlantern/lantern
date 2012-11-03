@@ -17,4 +17,19 @@ angular.module('app.directives', []).
         opacity: 0.9
       });
     };
-  });
+  })
+  .directive('updateOnBlur', function() {
+    return {
+      restrict: 'EA',
+      require: 'ngModel',
+      link: function(scope, elm, attr, ngModelCtrl) {
+        elm.unbind('input').unbind('keydown').unbind('change');
+        elm.bind('blur', function() {
+          scope.$apply(function() {
+            ngModelCtrl.$setViewValue(elm.val());
+          });
+        });
+      }
+    };
+  })
+;

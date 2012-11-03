@@ -7,7 +7,7 @@ angular.module('app.i18n', [])
     var DEFAULTDIRECTION = 'ltr';
     function lang() {
       return modelSrvc.get('settings.lang') ||
-             modelSrvc.get('lang') ||
+             modelSrvc.get('system.lang') ||
              DEFAULTLANG;
     }
     function direction() {
@@ -44,6 +44,8 @@ angular.module('app.i18n', [])
       GET_ACCESS: '‫احصل على دخول‬'
     },
     en: {
+      HELP_TRANSLATE: 'Help translate',
+      LANGUAGE: 'Language',
       WAITING_FOR_LANTERN: 'Waiting for Lantern...',
       UNEXPECTED_STATE_TITLE: 'Unexpected State',
       UNEXPECTED_STATE_PROMPT: 'The application is in an unexpected state. You can try refreshing, restarting Lantern, or resetting your settings if it happens again.',
@@ -71,25 +73,14 @@ angular.module('app.i18n', [])
       WELCOME_PROMPT: 'Internet freedom for everyone.',
       GIVE_ACCESS: 'Give Access',
       GET_ACCESS: 'Get Access',
-      SIGNIN_TITLE: 'Sign in to Google Talk',
-      SIGNIN_PROMPT: 'Lantern connects users around the world together in a trust network. Signing in to Google Talk allows you to connect through users you know, and not just anyone.',
+      AUTHORIZE_TITLE: 'Authorize Lantern to Access Your Google Talk Account',
+      AUTHORIZE_PROMPT: 'Click below to be taken to google.com to give Lantern access to your Google Talk account.',
+      AUTHORIZE_TIP_GTALK: 'Lantern works best with a large network of users who trust one another to share internet connections. Authorizing Lantern to access your Google Talk account allows you to connect on Lantern through users you know, and not just anyone.',
       HELP: 'Help',
-      SIGNIN_TIP_GTALK: 'If you have a Gmail account, you already have Google Talk. Your Google Talk userid is the same as your Gmail address. If you don’t, you can create one at google.com.',
-      SIGNIN_TIP_SECURE: 'Your Google password is sent over a secure connection and is used only to sign in to Google Talk.',
-      SIGNIN_TIP_SAVE_PASSWORD: 'Securely save your password in Lantern’s encrypted settings file.',
-      SIGNIN_STATUS_BAD_CREDENTIALS: 'Invalid user and password combination',
-      SIGNIN_STATUS_NOT_AUTHORIZED: 'User does not have Lantern access.',
-      SIGNIN_STATUS_SERVICE_UNAVAILABLE: 'Could not connect to Google Talk.',
-      GTALK_USERID: 'Google Talk userid',
+      WHY: 'Why?',
+      AUTHORIZE_LANTERN: 'Authorize Lantern',
       EMAIL_PLACEHOLDER: 'email@example.com',
-      GTALK_PASSWORD: 'Google Talk password',
-      SAVE_PASSWORD: 'Save password',
-      PASSWORD_SAVED: 'password saved',
-      START_OVER: 'Start over',
       CANCEL: 'Cancel',
-      SIGN_IN: 'Sign in',
-      SIGNING_IN: 'Signing in...',
-      SIGNED_IN: 'Signed in',
       CONTINUE: 'Continue',
       CONFIGURING: 'Configuring...',
       GTALK_UNREACHABLE_TITLE: 'Could not connect to Google Talk',
@@ -114,6 +105,12 @@ angular.module('app.i18n', [])
       FIRST_INVITE_RECEIVED_INTRO: 'You have received an invitation to join Lantern!',
       FIRST_INVITE_RECEIVED_SENDER: 'The sender of this invitation was:',
       FIRST_INVITE_RECEIVED_PROMPT: 'You will now be able to complete Lantern setup.',
+      AUTHORIZE_LATER_TITLE: 'Authorize Later',
+      AUTHORIZE_LATER_PROMPT: 'Lantern will keep trying to reach Google and prompt you to authorize again when it becomes available. You can continue to use Lantern in demonstration mode in the meantime.',
+      PROXIED_SITES_TITLE: 'Proxied Sites',
+      CONFIGURE_PROXIED_SITES: 'Configure proxied sites:',
+      PROXIED_SITES_PROMPT: 'By default, Lantern only proxies your traffic to certain sites. Sites that you don’t need to proxy will be accessed directly, saving time and resources.',
+      PROXIED_SITES_TIP: 'Content on other hosts which is included in pages on these hosts will also be proxied automatically.',
       SYSTEM_PROXY_TITLE: 'System Proxy',
       SYSTEM_PROXY_PROMPT: 'Lantern can be configured as your system proxy so your browser will use it automatically.',
       SYSTEM_PROXY_TRUE: 'Set Lantern as my system proxy (recommended)',
@@ -126,12 +123,18 @@ angular.module('app.i18n', [])
       AUTOREPORT_PROMPT: 'Securely report diagnostics and anonymous usage statistics to contribute to Lantern.', // XXX link to more info?
       AUTOREPORT_ENABLE: 'Enable automatic reporting',
       FINISH: 'Finish',
-      SIGNIN_DISCOVER_PROXIES_PROMPT: 'Lantern can connect to known proxies but will be unable to discover new ones until signed in to Google Talk.',
+      INVITE_FRIENDS_TITLE: 'Invite Friends',
+      INVITE_FRIENDS_PROMPT: 'Lantern relies on a large network of users who trust one another to share internet connections. Inviting people you trust helps Lantern work better.',
+      INVITE_FRIENDS_PROMPT_INVITES_LEFT: 'Choose some trusted contacts to invite below.',
+      INVITE_FRIENDS_PROMPT_NO_INVITES_LEFT: 'You currently have no invites. As you continue to run Lantern, you will receive more invites so you can help grow the trust network.',
+      INVITES_REMAINING: 'invite(s) remaining',
+      INVITE_INPUT_PLACEHOLDER: 'Enter names or email addresses of trusted contacts to invite',
+      ADVERTISE_LANTERN: 'Allow trusted Lantern contacts to see when I’m running Lantern',
       SETTINGS: 'Settings',
       MODE: 'Mode',
       PROXY: 'Proxy',
       MANAGE_PROXIED_SITES: 'Manage proxied sites...',
-      HTTPS_EVERYWHERE_LABEL: 'For your security, http requests will automatically be converted to https requests using rulesets from HTTPS Everywhere',
+      HTTPS_EVERYWHERE_LABEL: 'For your security, http requests to this site will automatically be converted to https requests using rulesets from HTTPS Everywhere.',
       ADVANCED: 'Advanced',
       CARET_COLLAPSED: '▸',
       CARET_EXPANDED: '▾',
@@ -139,11 +142,18 @@ angular.module('app.i18n', [])
       PORT: 'Port',
       APP: 'App',
       SAVE_GTALK_PASSWORD: 'Securely save Google Talk password',
-      START_AT_LOGIN: 'Run Lantern automatically on startup',
+      AUTO_START: 'Run Lantern automatically on startup',
       SET_AS_SYSTEM_PROXY: 'Set as system proxy (recommended)',
       NO_AUTOREPORT_WARNING: 'Your usage will not contribute to global totals',
+      ENABLE_AUTOREPORT_SUGGESTION: 'Enable Automatic Reporting to have your usage contribute to global totals',
       RESET_LANTERN: 'Reset Lantern',
-      CLOSE: 'Close'
+      CLOSE: 'Close',
+      BACK: 'Back',
+      ABOUT_TITLE: 'About Lantern',
+      GIVE_MODE_FORBIDDEN_TITLE: 'Give Mode Forbidden',
+      GIVE_MODE_FORBIDDEN_PROMPT: 'You appear to be connecting to Lantern from a censoring country. Running Lantern in Give Mode may be undesirable for trusted contacts who would try to get access through you.',
+      CONFIRM_RESET_TITLE: 'Confirm Reset',
+      CONFIRM_RESET_PROMPT: 'Resetting Lantern will clear all saved information since it was set up.'
     }
   })
   // https://groups.google.com/d/msg/angular/641c1ykOX4k/hcXI5HsSD5MJ
@@ -155,6 +165,7 @@ angular.module('app.i18n', [])
           (TRANSLATIONS[langSrvc.lang()] || {})[key] ||
           TRANSLATIONS[DEFAULTLANG][key] ||
           '(translation key "'+key+'" not found)';
+      // XXX try using white-space: nowrap instead
       return nbsp ? translation.replace(/ /g, NBSP) : translation;
     }
   });

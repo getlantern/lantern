@@ -34,6 +34,7 @@
     <script src="lib/d3.v2.min.js"></script>
     <!--
     <script src="lib/d3.v2.js"></script>
+    <script src="lib/d3.v3.js"></script>
     -->
 
     <script src="js/vis.js"></script>
@@ -48,11 +49,10 @@
     <link rel="shortcut icon" href="img/favicon.ico">
   </head>
 
-  <body ng-controller="RootCtrl" ng-cloak lang="{{ lang() }}" dir="{{ direction() }}">
+  <body ng-controller="RootCtrl" ng-cloak lang="{{ lang() }}"
+        dir="{{ direction() }}" ng-class="{showVis: model.showVis}">
 
     <div x-block-input ng-controller="WaitingForLanternCtrl" ng-show="show">
-      <!-- ng-hide instead of ui-if so spinner image won't
-           be refetched and missing after server goes away -->
       <div id="waiting-container">
         <div>{{ 'WAITING_FOR_LANTERN' | i18n }}</div>
         <img src="lib/webshims/css/polyfill-loader.gif">
@@ -61,8 +61,10 @@
     </div>
 
     <div ng-include src="'partials/modals.html'"></div>
-    <div ng-include src="'partials/vis.html'" style="height: 100%"
-         ng-controller="VisCtrl" ng-show="show" onload="startVis()"></div>
+    <div id="vis" ng-controller="VisCtrl" ng-show="model.showVis">
+      <div id="lines"></div>
+      <div id="canvas"></div>
+    </div>
     <div ng-include src="'partials/footer.html'"></div>
     <div ng-include src="'partials/developer.html'"></div>
 

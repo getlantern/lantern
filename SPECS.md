@@ -1,8 +1,9 @@
 # Lantern state document and transport protocol specifications
 
-Draft 0.1.0
+Draft 0.0.1
 
 Status: incomplete
+
 
 ## Introduction
 
@@ -29,25 +30,14 @@ attempting to reconnect to the bayeux server if the connection is lost.
 ### Subscription
 
 Upon successful connection to the bayeux server, the frontend will request
-subscription to the top-level channel `/sync`[, and may request subscriptions
-to additional channels like `/sync/vis`, `/sync/settings`, and `/sync/roster`.
-Each channel corresponds to a section of the UI; updates to the state of each
-section of UI are sent over the corresponding channel. The `/sync/vis` channel
-carries state for the map visualization, the `/sync/settings` channel carries
-state for the settings UI, and the `/sync/roster` channel carries state to
-display the user's Google Talk contacts. The top-level `/sync` channel carries
-global application state, and may additionally carry state for any of its
-sub-channels by merging it into the top-level state object (explained below).]
--- *may ditch sub-channel architecture*
+subscription to a channel named `/sync`.
 
 
 ### Initial publication: Initializing the frontend model
 
-When the bayeux server honors a client's subscription request to a given
+When the bayeux server honors a client's subscription request to the `/sync`
 channel, it should immediately publish a message to that channel with the
-necessary state to initialize that portion of the model. So after processing
-a subscription request for the top-level channel `/sync`, it should
-immediately publish a message to that channel like
+necessary state to initialize the model like so:
 
 ```json
 {
@@ -58,12 +48,12 @@ immediately publish a message to that channel like
 }
 ```
 
-containing all the relevant state in the `value` field. The frontend will then
+All the relevant state is contained in the `value` field. The frontend will then
 merge `value` into its `model` object, and all the views bound to the updated
-fields will be updated automatically through AngularJS. The `path` value of
-`""` indicates that `value` should be merged into `model` at the top level,
-rather than into a nested object; if `path` were set to `"vis"`, then `value`
-would instead be merged into `model.vis`.
+fields will be updated. The `path` value of `""` indicates that `value` should
+be merged into `model` at the top level, rather than into a nested object;
+if `path` were instead set to `"foo"`, then `value` would instead be merged
+into a `model.foo` object.
 
 After the merge, `model` will look like:
 
@@ -74,80 +64,29 @@ After the merge, `model` will look like:
 }
 ```
 
-After receiving a subscription request for a sub-channel such as `/sync/vis`,
-the server should similarly publish an initial message to that channel
-with all the state necessary for the visualization in the `vis` field, e.g.:
-
-```json
-{
-  "path":"vis",
-  "value":{
-    "user":{
-      "loc":{
-        "lat":1234.56,
-        "lon":1234.56
-        ...
-}
-```
-
-The frontend should then merge this into `model.vis`. So `model` will now look
-like:
-
-```json
-{
-  "foo":"bar",
-  "vis":{
-    "user":{
-      "loc":{
-        "lat":1234.56,
-        "lon":1234.56
-        ...
-}
-```
-
-and any views with bindings into `model.vis` will get updated automatically
-through AngularJS. The settings and roster channels behave similarly.
-
-The channels are designed this way so that when the frontend no longer needs to
-display the UI for a particular section (e.g. the user closes the "contacts"
-UI), it can unsubscribe from the corresponding channel, and the backend can
-avoid sending the no-longer-relevant updates to the frontend until they are
-needed again, at which point the frontend will signal this by resubscribing.
-For instance, if the backend processes a change to the user's roster, it need
-not send any update to the frontend if it isn't subscribed to the
-`/sync/roster` channel.
-
-If desired, rather than sending a state update over e.g. the `/sync/vis`
-sub-channel, the server can instead send it over the top-level `/sync`
-channel, merging it into the `"vis"` field of a top-level object that can also
-carry additional state in other fields, and the frontend will merge this all
-into its `model` object in a single update. So multiple messages over several
-sub-channels can alternatively be merged into a single message over the
-top-level `/sync` channel, if it is ever preferable.
-
 
 ### Subsequent publications: Updating the frontend model
 
-After initial state is published in full over a given channel, updates to the
-state can be published a field at a time using the `path` variable at whatever
-granularity is desired. For instance, here is a fine-grained update to
-a deeply-nested field with an atomic `value` payload:
+After initial state is published in full, updates to the state can be published
+a field at a time using the `path` variable at whatever granularity is desired.
+For instance, here is a fine-grained update to a deeply-nested field with an
+atomic `value` payload:
 
 ```json
 {
-  "path":"vis.user.loc.lat",
+  "path":"foo.bar.baz",
   "value":3456.78
 }
 ```
 
-And here is a coarser-grained update with a complex `value` payload:
+And here is a coarser-grained update:
 
 ```json
 {
-  "path":"vis.user.loc",
+  "path":"foo.bar",
   "value":{
-    "lat":3456.78,
-    "lon":1234.56
+    "baz":3456.78,
+    "bux":1234.56
     }
 }
 ```
@@ -158,8 +97,8 @@ that must be serialized and deserialized to achieve a state synchronization.
 Note however that while adding a field which is not yet present can be
 represented in a very small message, removing a field can only be achieved by
 sending the whole containing object minus the field to be removed. In this
-case, setting the field to `null` may be a workable alternative, though we
-may prefer to support something like:
+case, setting the field to something falsy may be a workable alternative,
+though we may prefer to support something like:
 
 ```json
 {
@@ -169,22 +108,22 @@ may prefer to support something like:
 ```
 
 To update a field whose value is an array, of course a replacement array could
-be sent in full, but because JavaScript arrays work like objects, an update to
+be sent in full, but because JavaScript arrays are just objects, an update to
 just one of its elements could also be achieved simply by using the index as
 the last component of the path. For instance,
 
 ```json
 {
-  "path":"settings.proxiedSitesList.25",
+  "path":"settings.proxiedSites.25",
   "value":"twitter.com"
 }
 ```
 
-would cause `model.settings.proxiedSitesList[25]` to be set to `"twitter.com"`.
+would cause `model.settings.proxiedSites[25]` to be set to `"twitter.com"`.
 This requires the elements of an array to be maintained with the same ordering
 on the frontend as the backend, but this should be true anyway for faithful
-synchronization. For arrays that are maintained in sorted order, the efficiency
-gain of this capability is much lower.
+synchronization. The frontend can efficiently present such lists in sorted
+order via AngularJS without requiring them to be stored in sorted order.
 
 <hr>
 
@@ -196,30 +135,50 @@ within the following state document, corresponding to the `model` object which
 the backend maintains on the frontend through comet publications:
 <table>
   <tr>
-    <td><strong>dev</strong><br><em>boolean</em></td>
-    <td>Whether Lantern is running in development mode</td>
+    <td><strong>system</strong><br><em>object</em></td>
+    <td>
+      <table>
+        <tr><td><strong>os</strong><br>"windows" | "osx" | "ubuntu"</td>
+            <td>operating system</td></tr>
+        <tr><td><strong>lang</strong><br><em>string</em></td>
+          <td>The system's language setting as a two-letter ISO 639-1 code.
+          <br><br>Determines the language the UI is displayed in when the
+          user's <strong>lang</strong> setting (under <strong>settings</strong>
+          below) is not available (e.g. not yet set or settings are locked).
+          </td></tr>
+      </table>
+    </td>
   </tr>
   <tr>
-    <td><strong>lang</strong><br><em>string</em></td>
-    <td>The system's language setting as a two-letter ISO 639-1 code.
-      <br><br>Determines the language the UI is displayed in when the
-      user's <strong>lang</strong> setting (under <strong>settings</strong>
-      below) is not available (e.g. settings are locked).</td>
+    <td><strong>showVis</strong><br><em>boolean</em></td>
+    <td>Whether to show the visualization</td>
   </tr>
   <tr>
-    <td><strong>modal</strong><br>"passwordCreate" | "settingsUnlock" |
-      "settingsLoadFailure" | "welcome" | "signin" | "gtalkUnreachable" |
+    <td><strong>ninvites</strong><br><em>integer</em></td>
+    <td>The number of Lantern invites user has remaining</td>
+  </tr>
+  <tr>
+    <td><strong>location</strong><br><em>object</em></td>
+    <td>
+      <table>
+        <tr><td><strong>country</strong><br>two-letter country code</td>
+          <td>country connecting from (as reported by geoip lookup)</td></tr>
+        <tr><td><strong>lat</strong><br><em>float</em></td>
+          <td>latitude connecting from (as reported by geoip lookup)</td></tr>
+        <tr><td><strong>lon</strong><br><em>float</em></td>
+          <td>longitude connecting from (as reported by geoip lookup)</td></tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td><strong>modal</strong><br>"settingsUnlock" |
+      "settingsLoadFailure" | "welcome" | "authorize" | "gtalkUnreachable" |
       "notInvited" | "requestInvite" | "requestSent" | "firstInviteReceived" |
-      "sysproxy" | "finished" | ""
+      "proxiedSites" | "systemProxy" | "inviteFriends" | "finished" |
+      "settings" | "giveMode "about" | "updateAvailable" | ""
     </td>
     <td>Instructs the UI to display the corresponding modal dialog.
       A value of empty string means no modal dialog should be displayed.
-    </td>
-  </tr>
-  <tr>
-    <td><strong>setupComplete</strong><br><em>boolean</em></td>
-    <td>Whether the user has completed initial setup of Lantern.
-      <br><br><em>Formerly <code>initialSetupComplete</code> in the old UI</em>
     </td>
   </tr>
   <tr>
@@ -227,27 +186,48 @@ the backend maintains on the frontend through comet publications:
     <td>
       <table>
         <tr>
-          <td><strong>internet</strong><br><em>boolean</em></td>
-          <td>Whether the system is connected to the internet. If not, the
-            frontend should indicate this and block user interaction which
-            requires network connectivity.
-          </td>
+          <td><strong>ip</strong><br><em>string</em></td>
+          <td>The system's public IP address, if available. A value of
+            empty string indicates no internet connectivity, in which
+            case the UI should block user interaction which requires it.</td>
+        </tr>
+        <tr>
+          <td><strong>gtalkAuthorized</strong><br><em>boolean</em></td>
+          <td>Whether the user has authorized Lantern via Oauth to access
+            her Google Talk account.</td>
         </tr>
         <tr>
           <td><strong>gtalk</strong><br>"notConnected" | "connecting" |
             "connected" </td>
-          <td>Google Talk connection status. If not connected, the frontend
+          <td>Google Talk connectivity status. If notConnected, the frontend
             should indicate this and block user interaction which requires
             Google Talk connectivity.
           </td>
         </tr>
         <tr>
-          <td><strong>peers</strong><br><em>number</em></td>
-          <td>The number of peers we are connected to, <strong>including cloud
-            proxies</strong> if in Get Mode.
+          <td><strong>peersCurrent</strong><br><em>object[]</em></td>
+          <td>
+            <table>
+              <tr><td><strong>userid</strong><br><em>string</em></td>
+                  <td>userid of peer we're currently connected to</td></tr>
+              <tr><td><strong>ip</strong><br><em>string</em></td>
+                  <td>ip address of peer we're currently connected to</td></tr>
+              <tr><td><strong>lat</strong><br><em>float</em></td>
+                  <td>latitude of peer (as reported by geoip lookup)</td></tr>
+              <tr><td><strong>lon</strong><br><em>float</em></td>
+                  <td>longitude of peer (as reported by geoip lookup)</td></tr>
+              <tr><td><strong>country</strong><br>two-letter code</td>
+                  <td>country of peer (as reported by geoip lookup)</td></tr>
+            </table>
           </td>
         </tr>
-      </table>
+        <tr>
+          <td><strong>peersLifetime</strong><br><em>object[]</em></td>
+          <td><em>as in peersCurrent</em></td>
+        </tr>
+      </table><br><br>
+      <em>Peer lists should include Laeproxy and Lantern Amazon proxy instances,
+      which should have associated userids via kaleidoscope.</em>
     </td>
   </tr>
   <tr>
@@ -255,32 +235,45 @@ the backend maintains on the frontend through comet publications:
     <td>
       <table>
         <tr>
-          <td><strong>app</strong><br><em>object</em></td>
+          <td><strong>current</strong><br><em>object</em></td>
           <td>
             <table>
-              <tr>
-                <td><strong>current</strong><br><em>string</em></td>
-                <td>The string the frontend should display as the Lantern
-                    version, e.g. <code>"0.20.2-beta-SHA"</code></td>
-              </tr>
-              <tr>
-                <td><strong>latest</strong><br><em>string</em></td>
-                <td>The latest released version of Lantern available, if known
-                    </td>
-              </tr>
-              <tr>
-                <td><strong>updateAvailable</strong><br><em>boolean</em></td>
-                <td>whether there is a new release available</td>
-              </tr>
+              <tr><td><strong>label</strong><br><em>string</em></td>
+                <td>Currently-running Lantern app version to display,
+                    e.g. major.minor.patch-build-tag</td></tr>
+              <tr><td><strong>api</strong><br><em>object</em></td>
+                <td>
+                  <table>
+                    <tr><td><strong>major</strong><br><em>integer</em></td>
+                      <td>http api major version</td></tr>
+                    <tr><td><strong>minor</strong><br><em>integer</em></td>
+                      <td>http api minor version</td></tr>
+                    <tr><td><strong>patch</strong><br><em>integer</em></td>
+                      <td>http api patch version</td></tr>
+                    <tr><td><strong>mock</strong><br><em>boolean</em></td>
+                      <td>Whether running against mock backend</td></tr>
+                  </table><br><br>
+                  <em>Frontend will display an "unexpected state" error if
+                  its required http api version differs from the one published
+                  by the backend (either major or minor).</em>
+                </td></tr>
             </table>
           </td>
         </tr>
         <tr>
-          <td><strong>api</strong><br><em>array</em></td>
-          <td>The major, minor, and patch revisions of the http
-            api version, maintained
-            <a href="http://semver.org/">semantically</a>, e.g.
-            <code>[0, 1, 2]</code>.
+          <td><strong>updated</strong><a href="#note-updated"><sup>1</sup></a>
+              <br><em>object</em><br><br>
+              <small><a name="note-updated">1</a> The presence of this field
+                indicates the availability of an updated Lantern version</small></td>
+          <td>
+            <table>
+              <tr><td><strong>label</strong><br><em>string</em></td>
+                <td>e.g. major.minor.patch-build-tag</td></tr>
+              <tr><td><strong>released</strong><br><em>date</em></td>
+                <td>when it was released</td></tr>
+              <tr><td><strong>url</strong><br><em>url</em></td>
+                <td>download url</td></tr>
+            </table>
           </td>
         </tr>
       </table>
@@ -291,59 +284,36 @@ the backend maintains on the frontend through comet publications:
     <td>
       <table>
         <tr>
-          <td><strong>current</strong><br><em>object</em></td>
-          <td>
-            <table>
-              <tr>
-                <td><strong>ntransfers</strong><br><em>number</em></td>
-                <td>number of currently active transfers</td>
-              </tr>
-              <tr>
-                <td><strong>bytesUp</strong><br><em>number</em></td>
-                <td>instantaneous upload rate in bytes per second.</td>
-              </tr>
-              <tr>
-                <td><strong>bytesDn</strong><br><em>number</em></td>
-                <td>instantaneous download rate in bytes per second.</td>
-              </tr>
-              <tr>
-                <td><strong>bytesTotal</strong><br><em>number</em></td>
-                <td>total instantaneous transfer rate in bytes per second.</td>
-              </tr>
-              <tr>
-                <td><strong>npeers</strong><br><em>number</em></td>
-                <td>the number of unique peers there are active
-                transfers with</td>
-              </tr>
-            </table>
-          </td>
+          <td><strong>ncurrent</strong><br><em>number</em></td>
+          <td>number of currently active transfers</td>
         </tr>
         <tr>
-          <td><strong>lifetime</strong><br><em>object</em></td>
-          <td>
-            <table>
-              <tr>
-                <td><strong>ntransfers</strong><br><em>number</em></td>
-                <td>total number of completed transfers since first signin.</td>
-              </tr>
-              <tr>
-                <td><strong>bytesUp</strong><br><em>number</em></td>
-                <td>total number of bytes uploaded since first signin.</td>
-              </tr>
-              <tr>
-                <td><strong>bytesDn</strong><br><em>number</em></td>
-                <td>total number of bytes downloaded since first signin.</td>
-              </tr>
-              <tr>
-                <td><strong>bytesTotal</strong><br><em>number</em></td>
-                <td>total number of bytes transferred since first signin.</td>
-              </tr>
-              <tr>
-                <td><strong>npeers</strong><br><em>number</em></td>
-                <td>the number of unique peers we've ever transferred with</td>
-              </tr>
-            </table>
-          </td>
+          <td><strong>nlifetime</strong><br><em>number</em></td>
+          <td>total number of completed transfers since first signin</td>
+        </tr>
+        <tr>
+          <td><strong>bpsUp</strong><br><em>number</em></td>
+          <td>instantaneous upload rate in bytes per second</td>
+        </tr>
+        <tr>
+          <td><strong>bpsDn</strong><br><em>number</em></td>
+          <td>instantaneous download rate in bytes per second</td>
+        </tr>
+        <tr>
+          <td><strong>bpsTotal</strong><br><em>number</em></td>
+          <td>total instantaneous transfer rate in bytes per second</td>
+        </tr>
+        <tr>
+          <td><strong>bytesUpLifetime</strong><br><em>number</em></td>
+          <td>total number of bytes uploaded since first signin</td>
+        </tr>
+        <tr>
+          <td><strong>bytesDnLifetime</strong><br><em>number</em></td>
+          <td>total number of bytes downloaded since first signin</td>
+        </tr>
+        <tr>
+          <td><strong>bytesTotalLifetime</strong><br><em>number</em></td>
+          <td>total number of bytes transferred since first signin</td>
         </tr>
       </table>
     </td>
@@ -356,15 +326,6 @@ the backend maintains on the frontend through comet publications:
           <td><strong>userid</strong><br><em>string</em></td>
           <td>The user's Google Talk/Lantern userid.</td>
         </tr>
-        <tr>
-          <td><strong>savePassword</strong><br><em>boolean</em></td>
-          <td>Whether the user wants Lantern to securely store her Google
-            Talk password.
-          </td>
-        </tr>
-        <tr>
-          <td><strong>passwordSaved</strong><br><em>boolean</em></td>
-          <td>Whether the user's Google Talk password has been saved.</td>
         </tr>
         <tr>
           <td><strong>invites</strong><br><em>integer</em></td>
@@ -375,9 +336,9 @@ the backend maintains on the frontend through comet publications:
           <td>The user's language setting as a two-letter ISO 639-1 code.</td>
         </tr>
         <tr>
-          <td><strong>startAtLogin</strong><br><em>boolean</em></td>
+          <td><strong>autoStart</strong><br><em>boolean</em></td>
           <td>Whether Lantern should start up automatically when the user logs
-            into the system.
+            in to the system.
           </td>
         </tr>
         <tr>
@@ -390,46 +351,46 @@ the backend maintains on the frontend through comet publications:
           <td>Whether we're in Give Mode or Get Mode.</td>
         </tr>
         <tr>
-          <td><strong>proxyPort</strong><sup>1</sup><br><em>integer</em></td>
+          <td><strong>proxyPort</strong><a href="note-get-mode-only"><sup>1</sup></a><br><em>integer</em></td>
           <td>The port the Lantern http proxy is running on.</td>
         </tr>
         <tr>
-          <td><strong>systemProxy</strong><sup>1</sup><br><em>boolean</em></td>
+          <td><strong>systemProxy</strong><a href="note-get-mode-only"><sup>1</sup></a><br><em>boolean</em></td>
           <td>Whether to try to set Lantern as the system proxy.</td>
         </tr>
         <tr>
-          <td><strong>proxyAllSites</strong><sup>1</sup><br><em>boolean</em></td>
+          <td><strong>proxyAllSites</strong><a href="note-get-mode-only"><sup>1</sup></a><br><em>boolean</em></td>
           <td>Whether to proxy all sites or only those on
-            <code>proxiedSitesList</code>.
+            <code>proxiedSites</code>.
           </td>
         </tr>
         <tr>
-          <td><strong>proxiedSitesList</strong><sup>1</sup><br><em>string[]</em></td>
-          <td>List of domains to proxy traffic to.<br><br><em>Replaces
-            <code>whitelist</code> in the old UI.</em>
-          </td>
+          <td><strong>proxiedSites</strong><a href="note-get-mode-only"><sup>1</sup></a><br><em>string[]</em></td>
+          <td>List of domains to proxy traffic to.</td>
         </tr>
       </table>
-      <br><sup>1</sup> Only relevant in Get Mode
+      <br><small><a name="note-get-mode-only">1</a> Only present when in "get" mode</small>
     </td>
   </tr>
   <tr>
     <td><strong>roster</strong><br><em>object[]</em></td>
     <td>
       <table>
-        <tr>
-          <td><em>TODO</em></td>
-        </tr>
-      </table>
-    </td>
-  </tr>
-  <tr>
-    <td><strong>vis</strong><br><em>object</em></td>
-    <td>
-      <table>
-        <tr>
-          <td><em>TODO</em></td>
-        </tr>
+        <tr><td><strong>userid</strong><br><em>string</em></td>
+          <td>Google Talk userid of roster contact</td></tr>
+        <tr><td><strong>name</strong><br><em>string</em></td>
+          <td>Name of roster contact, if available</td></tr>
+        <tr><td><strong>avatarUrl</strong><br><em>string</em></td>
+          <td>Avatar url of roster contact, if available</td></tr>
+        <tr><td><strong>online</strong><br><em>boolean</em></td>
+          <td>Whether contact is currently logged in to Google Talk</td></tr>
+        <tr><td><strong>status</strong><br><em>string</em></td>
+          <td>Contact's status message, if available</td></tr>
+        <tr><td><strong>lanternRunning</strong><br><em>boolean</em></td>
+          <td>Whether contact is advertising that she is currently running Lantern</td></tr>
+        <tr><td><strong>lanternMode</strong><br><em>boolean</em></td>
+          <td>Mode contact is currently running Lantern in (only available
+            when contact is advertising she is running Lantern)</td></tr>
       </table>
     </td>
   </tr>
@@ -440,39 +401,79 @@ the backend maintains on the frontend through comet publications:
 
 ## HTTP API
 
-[TODO]
+
+<table>
+  <tr><td><strong>/reset</td>
+    <td>restore Lantern to clean install state</strong></td></tr>
+  <tr><td><strong>/changeSetting?<em>key</em>=<em>value</em></strong></td>
+    <td>change setting indiciated by <em>key</em> to <em>value</em></td></tr>
+  <tr><td><strong>/interaction?interaction=<em>key</em>[&amp;<em>param1</em>=<em>value1</em>[&amp;<em>param2</em>=<em>value2</em>[...]]]</strong></td>
+    <td>Notify backend of user interaction corresponding to <em>key</em> and
+      any associated parameters.</td></tr>
+  <tr><td><strong>TODO...</strong></td>
+    <td>For now please see <code>mock/http_api.js</code> in the code repository
+        for a work-in-progress mock implementation.</td></tr>
+</table>
 
 <hr>
 
 
-### Questions / Comments
+## Notes and Questions
 
-* can password create happen as last step of initial setup? currently happens
-  before anything else because Lantern needs a password before it can save
-  the encrypted settings file. can't settings just be stored in memory until
-  this step? nicer to show welcome screen first.
+* Frontend does not maintain any state outside of the state document, e.g. no
+  longer tries to keep track of which modal to display when, just does as it's
+  told via the `modal` field.
 
-* if google talk could not be reached on initial signin, or user is not yet in
-  the beta, can setup proceed anyway? 'lantern will continue to try to connect
-  with the username and password you provided. in the meantime, feel free to
-  explore or leave running in the background.' better to stay running than to
-  force quit? can show the visualization with dummy data as a simulation to
-  build excitement.
+* Frontend never modifies the state document; only notifies the backend of
+  user interactions via the `interaction` api and the backend responds by
+  updating the state document (and in some cases setting a non-200 response
+  code)
 
-* ok to not allow switching google accounts without full reset once you
-  successfully sign in?
+* Welcome modal now prompts for give/get mode choice
 
-* implement delete field via comet update? (see above)
+* Password create now happens after welcome modal (on ubuntu)
 
-* should frontend refuse to connect to backend reporting incompatible version
-    of update protocol?
+* Oauth modal happens next.
 
-* can we include the number of cloud proxies we can reach in the peer count?
+    * If Google cannot be reached, user is given option
+      to proceed in demonstration mode and is told that Lantern will keep trying to 
+      connect in the background. Once backend is able to reach Google, it can set
+      `modal` back to `authorize` to prompt user to try again.
 
-* `proxiedSitesList` is displayed in sorted order, but can be stored out of
-    order and sorted on the fly by angular to take advantage of the more
-    efficient elementwise array update capability.
+    * If Google can be reached, Lantern should just wait until it has been
+      given Gtalk authorization. Once it has, it should sign the user in to
+      Google Talk.
 
-    As for `roster`, the frontend doesn't ever modify or re-order it, it simply
-    displays what the backend sends it in the same order, so the backend can
-    determine how to send updates in whatever manner is most efficient.
+    * No longer allow switching Google accounts after a successful
+      sign in. Switching accounts should entail a full reset.
+
+    * Backend should then check if the user has a Lantern invite. If not,
+      it should notify the user via the `notInvited` modal and allow her to try
+      using a different userid (e.g. go back to `authorize` modal) or request
+      an invite via the `requestInvite` modal, and then proceed in
+      demonstration mode. When the user gets an invite, backend should discover
+      this and set modal to `firstInviteReceived`, and then take user back to
+      the remaining setup modals.
+
+* Next, get mode users are presented with the `proxiedSites` modal, introducing
+  the concept that Lantern only proxies traffic to certain sites. `systemProxy`
+  modal comes next, giving the user notice that an administrator password
+  propmt may appear before Lantern can proceed. Next setup modal is
+  `inviteFriends`.
+
+* Give mode users are taken directly from `authorize` modal to `inviteFriends`.
+  Backend should remember that the `proxiedSites` and `systemProxy` modals
+  have never been completed, so that if the give mode user ever switches to
+  get mode, the backend can take the user back there.
+
+* `inviteFriends` is now a setup modal, to introduce the important concept of
+  the trust network at the outset. User may not have any invites to give out
+  yet, but will be told to expect to receive more as she continues to run
+  Lantern.
+
+* `inviteFriends` dialog also introduces new `advertiseLantern` setting,
+   described as "allow trusted Lantern contacts to see when I'm running
+   Lantern".
+
+    * If set, can we make sure that only trusted Lantern contacts can tell, and
+      not *all* contacts on the user's roster?

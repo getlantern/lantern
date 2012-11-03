@@ -6,31 +6,38 @@
 .control-extra
   margin-left: 30px
   +small
+  +gray
 
-#settings-unlock .controls
+#sanity
+  z-index: $zindexModal * 2
+  form
+    +centered
+
+#settingsUnlock .controls
   +centered
 
-#settings-load-failure form
+#settingsLoadFailure form
   +centered
 
-#password-create .control-group
+#passwordCreate .control-group
   +centered
 
 #welcome
   .modal-header, .modal-body
     +centered
 
-#signin
+#authorize
   .prompt-extra
     margin: 10px 0 5px 30px
     +small
+    +gray
     &.ui-hide
       height: 0
       +transition(none)
   .control-label
     +small
 
-#request-invite
+#requestInvite
   form
     margin: 20px 38px
     input[type=email]
@@ -38,9 +45,10 @@
     .indented
       margin-left: 30px
 
-#sysproxy
-  .controls
-    margin-top: 10px
+#inviteFriends form
+  +centered
+  label
+    +small
 
 #waiting-container
   +position(100px, 0, 0 , 0)
@@ -68,12 +76,43 @@
         &:hover
           text-decoration: none
 
-#sysproxy
+#systemProxy
   .control-group
     margin: 0 75px
   .text-error
     margin: 20px 75px
+  .controls
+    margin-top: 10px
 
 #finished
   .modal-header, .modal-body
     +centered
+
+#settings
+  dd
+    margin-bottom: $baseFontSize * 1.75
+
+.settings-selectlang
+  margin-top: -6px
+
+#autoreport-warning
+  +indented
+  +warning-colored
+  margin-top: 3px
+
+a.toggle.advanced
+  +inline-block
+  margin-top: 9px
+  color: $textColor
+  &:active, &:visited, &:hover
+    color: $textColor
+
+#advanced
+  margin: 10px 0 0 20px
+  *
+    +smaller
+  input[type=number]
+    +inline-block
+    width: 50px
+    height: $baseFontSize
+    padding: 0 2px 2px

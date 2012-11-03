@@ -1,9 +1,36 @@
 'use strict';
 
 angular.module('app.services', [])
-  // allows overriding model.dev
-  .value('dev', {value: false})
+  // primitives wrapped in objects for mutatability
+  .value('dev', {value: true}) // controls debug logging and developer panel
+  .value('sanity', {value: true}) // triggers failure mode when false
+  .constant('MODEL_SYNC_CHANNEL', '/sync')
+  .constant('APIVER_REQUIRED', {major: 0, minor: 0})
+  .constant('googOauthUrl',
+    'https://accounts.google.com/o/oauth2/auth?'+
+    '&response_type=code'+
+    '&client_id=826174845383.apps.googleusercontent.com'+
+    '&redirect_uri='+encodeURIComponent('urn:ietf:wg:oauth:2.0:oob')+
+    '&scope='+encodeURIComponent('https://www.googleapis.com/auth/googletalk')+
+    '&approval_prompt=auto')
   // enums
+  .constant('EXTERNAL_URL', {
+    helpTranslate: 'https://github.com/getlantern/lantern/wiki/Contributing#wiki-other-languages',
+    httpsEverywhere: 'https://www.eff.org/https-everywhere',
+    fakeOauth: '/app/fakeOauth.html'
+  })
+   // XXX use some kind of Object.fromkeys function
+  .constant('SETTING', {
+    lang: 'lang',
+    mode: 'mode',
+    autoReport: 'autoReport',
+    autoStart: 'autoStart',
+    systemProxy: 'systemProxy',
+    proxyAllSites: 'proxyAllSites',
+    proxyPort: 'proxyPort',
+    proxiedSites: 'proxiedSites',
+    advertiseLantern: 'advertiseLantern'
+  })
   .constant('MODE', {
     give: 'give',
     get: 'get'
@@ -18,21 +45,48 @@ angular.module('app.services', [])
     settingsUnlock: 'settingsUnlock',
     settingsLoadFailure: 'settingsLoadFailure',
     welcome: 'welcome',
-    signin: 'signin',
+    authorize: 'authorize',
     gtalkUnreachable: 'gtalkUnreachable',
+    authorizeLater: 'authorizeLater',
     notInvited: 'notInvited',
     requestInvite: 'requestInvite',
     requestSent: 'requestSent',
     firstInviteReceived: 'firstInviteReceived',
-    sysproxy: 'sysproxy',
+    proxiedSites: 'proxiedSites',
+    systemProxy: 'systemProxy',
+    inviteFriends: 'inviteFriends',
     finished: 'finished',
-    '': ''
+    contactDevs: 'contactDevs',
+    settings: 'settings',
+    confirmReset: 'confirmReset',
+    giveModeForbidden: 'giveModeForbidden',
+    about: 'about',
+    none: ''
   })
-  .service('ENUMS', function(MODE, STATUS_GTALK, MODAL) {
+  .constant('INTERACTION', {
+    inviteFriends: 'inviteFriends',
+    contactDevs: 'contactDevs',
+    settings: 'settings',
+    confirmReset: 'confirmReset',
+    proxiedSites: 'proxiedSites',
+    about: 'about',
+    update: 'update',
+    tryAnotherUser: 'tryAnotherUser',
+    requestInvite: 'requestInvite',
+    retryNow: 'retryNow',
+    retryLater: 'retryLater',
+    cancel: 'cancel',
+    continue: 'continue',
+    close: 'close'
+  })
+  .service('ENUMS', function(MODE, STATUS_GTALK, MODAL, INTERACTION, SETTING, EXTERNAL_URL) {
     return {
       MODE: MODE,
       STATUS_GTALK: STATUS_GTALK,
-      MODAL: MODAL
+      MODAL: MODAL,
+      INTERACTION: INTERACTION,
+      SETTING: SETTING,
+      EXTERNAL_URL: EXTERNAL_URL
     };
   })
   // more flexible log service
@@ -56,7 +110,7 @@ angular.module('app.services', [])
         log:   logLogger,
         warn:  extracted('warn'),
         error: extracted('error'),
-        debug: function() { if (dev.value) logLogger(arguments); }
+        debug: function() { if (dev.value) logLogger.apply(logLogger, arguments); }
       };
     }
   })
@@ -172,87 +226,18 @@ angular.module('app.services', [])
 
     return {
       subscribe: subscribe,
-      // just for the developer panel:
-      publish: function(channel, data){ cometd.publish(channel, data); }
+      // just for the developer panel
+      publish: function(channel, data) { cometd.publish(channel, data); }
     };
   })
-  .service('modelSchema', function(ENUMS) {
-    return {
-      // XXX finish populating this from SPECS.md
-      description: 'Lantern UI data model',
-      type: 'object',
-      properties: {
-        settings: {
-          type: 'object',
-          description: 'User-specific state and configuration',
-          properties: {
-            mode: {
-              type: 'string',
-              'enum': Object.keys(ENUMS.MODE)
-            }
-          }
-        },
-        connectivity: {
-          type: 'object',
-          description: 'Connectivity status of various services',
-          properties: {
-            internet: {
-              type: 'boolean',
-              description: 'Whether the system has internet connectivity'
-            },
-            gtalk: {
-              type: 'string',
-              description: 'Google Talk connection status',
-              'enum': Object.keys(ENUMS.STATUS_GTALK)
-            },
-            peers: {
-              type: 'integer',
-              minimum: 0,
-              description: 'The number of peers online'
-            }
-          }
-        },
-        modal: {
-          type: 'string',
-          description: 'Instructs the UI to display the corresponding modal dialog.',
-          'enum': Object.keys(ENUMS.MODAL)
-        }
-      }
-    };
-  })
-  .service('modelValidatorSrvc', function(modelSchema, logFactory) {
-    var log = logFactory('modelValidatorSrvc');
-
-    function getSchema(path) {
-      var schema = modelSchema;
-      angular.forEach(path.split('.'), function(name) {
-        if (name && typeof schema != 'undefined')
-          schema = schema.properties[name];
-      });
-      return schema;
-    }
-
-    // XXX use real json schema validator
-    function validate(path, value) {
-      var schema = getSchema(path);
-      if (!schema) return true;
-      var enum_ = schema['enum'];
-      if (enum_) {
-        var pat = new RegExp('^('+enum_.join('|')+')$');
-        if (!pat.test(value)) return false;
-      }
-      return true;
-    }
-
-    return {
-      validate: validate
-    };
-  })
-  .service('modelSrvc', function($rootScope, cometdSrvc, logFactory, modelValidatorSrvc) {
+  /*
+  .service('modelSchema', function(ENUMS) {...})
+  .service('modelValidatorSrvc', function(modelSchema, logFactory) {...})
+  */
+  .service('modelSrvc', function($rootScope, MODEL_SYNC_CHANNEL, cometdSrvc, logFactory) {
     var log = logFactory('modelSrvc'),
         model = {},
         lastModel = {};
-        //sanityMap = {};
 
     function get(obj, path) {
       var val = obj;
@@ -279,59 +264,31 @@ angular.module('app.services', [])
     }
 
     function handleSync(msg) {
-      var data = msg.data,
-          valid = true;
-       // valid = modelValidatorSrvc.validate(data.path, data.value); // XXX
-      if (valid) {
-        //sanityMap[data.path] = true;
-        log.debug('syncing: path:', data.path, 'value:', data.value);
-        set(model, data.path, data.value);
-        set(lastModel, data.path, data.value);
-        $rootScope.$apply();
-        log.debug('handleSync: applied sync: path:', data.path, 'value:', data.value);
-      } else {
-        //sanityMap[data.path] = false;
-        log.debug('handleSync: rejected sync, invalid model:', data);
-      }
+      // XXX use modelValidatorSrvc to validate update before accepting
+      var data = msg.data;
+      set(model, data.path, data.value);
+      set(lastModel, data.path, data.value);
+      $rootScope.$apply();
+      log.debug('handleSync applied sync: path:', data.path || '""', 'value:', data.value);
     }
 
-    cometdSrvc.subscribe('/sync', handleSync);
+    cometdSrvc.subscribe(MODEL_SYNC_CHANNEL, handleSync);
 
     return {
       model: model,
       get: function(path){ return get(model, path); },
       // just for the developer panel
       lastModel: lastModel
-    //sane: function(){ return _.all(sanityMap); }, // XXX
     };
   })
-  .constant('APIVER_REQUIRED', [0, 0])
-  .service('apiSrvc', function(APIVER_REQUIRED, modelSrvc, logFactory) {
-    var apiVerAvailable, apiVerStr, log = logFactory('apiSrvc');
+  .value('apiVerLabel', {value: undefined})
+  .service('apiSrvc', function(apiVerLabel) {
     return {
       urlfor: function(endpoint, params) {
           var query = _.reduce(params, function(acc, val, key) {
               return acc+key+'='+encodeURIComponent(val)+'&';
             }, '?');
-
-          if (!apiVerAvailable) apiVerAvailable = modelSrvc.get('version.api');
-          if (!apiVerStr && apiVerAvailable) {
-            // verify version compatibility // XXX better place for this?
-            try {
-              var major = apiVerAvailable[0], minor = apiVerAvailable[1];
-              if (typeof major != 'number' || typeof minor != 'number' ||
-                  major != APIVER_REQUIRED[0] || minor != APIVER_REQUIRED[1]) {
-                throw Error('Incompatible API version');
-              } else {
-                apiVerStr = apiVerAvailable.join('.');
-              }
-            } catch(e) {
-              log.error('Available API version', apiVerAvailable,
-                'incompatible with required version', APIVER_REQUIRED);
-              throw e;
-            }
-          }
-          return '/api/'+apiVerStr+'/'+endpoint+query;
+          return '/api/'+apiVerLabel.value+'/'+endpoint+query;
         }
     };
   });
