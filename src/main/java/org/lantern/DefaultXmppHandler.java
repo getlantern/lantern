@@ -220,6 +220,9 @@ public class DefaultXmppHandler implements XmppHandler {
             };
         }
         
+        XmppUtils.setGlobalConfig(LanternUtils.xmppConfig());
+        XmppUtils.setGlobalProxyConfig(LanternUtils.xmppProxyConfig());
+        
         this.mappedServer = tempMapper;
         
         new GiveModeConnectivityHandler();
@@ -380,19 +383,15 @@ public class DefaultXmppHandler implements XmppHandler {
             LanternHub.eventBus().post(
                 new GoogleTalkStateEvent(GoogleTalkState.LOGGED_IN));
         } catch (final IOException e) {
-            // If we can't connect, we should try our backup proxy.
-            connectToBackup(email, pass, config, null, e);
+            // Note that the XMPP library will internally attempt to connect
+            // to our backup proxy if it can.
+            handleConnectionFailure();
+            throw e;
         } catch (final IllegalStateException e) {
-            // This happens in Smack internally when it tries to add a 
-            // connection listener to an unconnected XMPP connection.
-            // See Connection.java
-            connectToBackup(email, pass, config, e, null);
+            handleConnectionFailure();
+            throw e;
         } catch (final CredentialException e) {
-            if (this.proxies.isEmpty()) {
-                connectivityEvent(ConnectivityStatus.DISCONNECTED);
-            }
-            LanternHub.eventBus().post(
-                new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
+            handleConnectionFailure();
             throw e;
         }
         
@@ -532,33 +531,15 @@ public class DefaultXmppHandler implements XmppHandler {
             LanternHub.timer().schedule(tt, 30000);
         }
     }
-
-    private void connectToBackup(final String email, final String pass, 
-        final ConnectionConfiguration config, final IllegalStateException e,
-        final IOException ioe) 
-        throws CredentialException, IOException, NotInClosedBetaException {
-        
-        LOG.info("Connecting to backup proxy");
-        // If we can't login, we should try our backup proxy.
-        if (config == null) {
-            connect(email, pass, LanternUtils.xmppProxyConfig());
-            return;
-        } else {
-            if (this.proxies.isEmpty()) {
-                connectivityEvent(ConnectivityStatus.DISCONNECTED);
-            }
-            LanternHub.eventBus().post(
-                new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
-            //LanternHub.settings().setPasswordSaved(false);
-            //LanternHub.settings().setStoredPassword("");
-            //LanternHub.settings().setPassword("");
-            if (ioe == null) {
-                throw e;
-            }
-            throw ioe;
-        }
-    }
   
+    private void handleConnectionFailure() {
+        if (this.proxies.isEmpty()) {
+            connectivityEvent(ConnectivityStatus.DISCONNECTED);
+        }
+        LanternHub.eventBus().post(
+            new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
+    }
+
     private boolean handleClosedBeta(final String email) 
         throws NotInClosedBetaException {
         if (LanternUtils.isInClosedBeta(email)) {

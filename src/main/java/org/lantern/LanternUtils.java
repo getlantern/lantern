@@ -1,7 +1,5 @@
 package org.lantern;
 
-import static org.junit.Assert.assertTrue;
-
 import java.awt.Desktop;
 import java.io.Console;
 import java.io.File;
@@ -1026,9 +1024,11 @@ public class LanternUtils {
         if (proxyInfo == null) { 
             config = new ConnectionConfiguration("talk.google.com", 5222, 
                 "gmail.com");
+            config.setSocketFactory(new DirectSocketFactory());
         } else {
             config = new ConnectionConfiguration("talk.google.com", 5222, 
                 "gmail.com", proxyInfo);
+            config.setSocketFactory(new ProxySocketFactory(proxyInfo));
         }
         config.setExpiredCertificatesCheckEnabled(true);
         
@@ -1090,59 +1090,52 @@ public class LanternUtils {
             //"TLS_RSA_WITH_3DES_EDE_CBC_SHA",
         };
         config.setCipherSuites(cipherSuites);
-        
-        config.setSocketFactory(new SocketFactory() {
-            
-            @Override
-            public Socket createSocket(final InetAddress host, final int port, 
-                final InetAddress localHost, final int localPort) 
-                throws IOException {
-                // We ignore the local port binding.
-                return createSocket(host, port);
-            }
-            
-            @Override
-            public Socket createSocket(final String host, final int port, 
-                final InetAddress localHost, final int localPort)
-                throws IOException, UnknownHostException {
-                // We ignore the local port binding.
-                return createSocket(host, port);
-            }
-            
-            @Override
-            public Socket createSocket(final InetAddress host, final int port) 
-                throws IOException {
-                final SocketAddress isa = new InetSocketAddress(host, port);
-                LOG.info("Creating socket to {}", isa);
-                final Socket sock = new Socket();
-                sock.connect(isa, 40000);
-                LOG.info("Socket connected to {}",isa);
-                return sock;
-            }
-            
-            @Override
-            public Socket createSocket(final String host, final int port) 
-                throws IOException, UnknownHostException {
-                LOG.info("Creating socket");
-                return createSocket(InetAddress.getByName(host), port);
-            }
-        });
         return config;
+    }
+    
+    private static final class DirectSocketFactory extends SocketFactory {
+        
+        @Override
+        public Socket createSocket(final InetAddress host, final int port, 
+            final InetAddress localHost, final int localPort) 
+            throws IOException {
+            // We ignore the local port binding.
+            return createSocket(host, port);
+        }
+        
+        @Override
+        public Socket createSocket(final String host, final int port, 
+            final InetAddress localHost, final int localPort)
+            throws IOException, UnknownHostException {
+            // We ignore the local port binding.
+            return createSocket(host, port);
+        }
+        
+        @Override
+        public Socket createSocket(final InetAddress host, final int port) 
+            throws IOException {
+            final SocketAddress isa = new InetSocketAddress(host, port);
+            LOG.info("Creating socket to {}", isa);
+            final Socket sock = new Socket();
+            sock.connect(isa, 40000);
+            LOG.info("Socket connected to {}",isa);
+            return sock;
+        }
+        
+        @Override
+        public Socket createSocket(final String host, final int port) 
+            throws IOException, UnknownHostException {
+            LOG.info("Creating socket");
+            return createSocket(InetAddress.getByName(host), port);
+        }
     }
     
     public static void configureXmpp() {
         XmppUtils.setGlobalConfig(xmppConfig(null));
     }
-    
 
     public static void configureXmppWithBackupProxy() {
-        final ProxyInfo proxyInfo = 
-            new ProxyInfo(ProxyType.HTTP, LanternConstants.FALLBACK_SERVER_HOST, 
-                LanternConstants.FALLBACK_SERVER_PORT, 
-                LanternConstants.FALLBACK_SERVER_USER, 
-                LanternConstants.FALLBACK_SERVER_PASS);
-        final ConnectionConfiguration config = xmppConfig(proxyInfo);
-        XmppUtils.setGlobalConfig(config);
+        XmppUtils.setGlobalConfig(xmppProxyConfig());
     }
     
     public static SSLServerSocketFactory newTlsServerSocketFactory() {
