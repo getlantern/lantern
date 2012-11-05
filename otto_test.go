@@ -1821,6 +1821,8 @@ func Test_typeof(t *testing.T) {
 	test := runTest()
 	test(`typeof abc`, "undefined")
 	test(`typeof abc === 'undefined'`, "true")
+	test(`typeof {}`, "object")
+	test(`typeof null`, "object")
 }
 
 func Test_PrimitiveValueObjectValue(t *testing.T) {

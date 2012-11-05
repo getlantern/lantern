@@ -109,7 +109,7 @@ func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
 		case valueUndefined:
 			return toValue("undefined")
 		case valueNull:
-			return toValue("null")
+			return toValue("object")
 		case valueBoolean:
 			return toValue("boolean")
 		case valueNumber:
