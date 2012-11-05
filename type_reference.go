@@ -6,7 +6,7 @@ type _reference interface {
 	PutValue(Value) bool
 	Name() string
 	Strict() bool
-	Delete()
+	Delete() bool
 }
 
 // Reference
@@ -70,11 +70,12 @@ func (self *_propertyReference) PutValue(value Value) bool {
 	return true
 }
 
-func (self *_propertyReference) Delete() {
+func (self *_propertyReference) Delete() bool {
 	if self.Base == nil {
-		return
+		// ?
+		return false
 	}
-	self.Base.delete(self.name, self.Strict())
+	return self.Base.delete(self.name, self.Strict())
 }
 
 // ArgumentReference
