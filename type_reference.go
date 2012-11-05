@@ -9,6 +9,8 @@ type _reference interface {
 	Delete()
 }
 
+// Reference
+
 type _reference_ struct {
     name string
 	strict bool
@@ -30,36 +32,7 @@ func (self _reference_) Delete() {
 	panic(hereBeDragons())
 }
 
-type _argumentReference struct {
-	_reference_
-    Base *_object
-}
-
-func newArgumentReference(base *_object, name string, strict bool) *_argumentReference {
-	if base == nil {
-		panic(hereBeDragons())
-	}
-	return &_argumentReference{
-		Base: base,
-		_reference_: _reference_{
-			name: name,
-			strict: strict,
-		},
-	}
-}
-
-func (self *_argumentReference) GetBase() *_object {
-	return self.Base
-}
-
-func (self *_argumentReference) GetValue() Value {
-	return self.Base.get(self.name)
-}
-
-func (self *_argumentReference) PutValue(value Value) bool {
-	self.Base.set(self.name, value, self._reference_.strict)
-	return true
-}
+// PropertyReference
 
 type _propertyReference struct {
 	_reference_
@@ -102,4 +75,13 @@ func (self *_propertyReference) Delete() {
 		return
 	}
 	self.Base.delete(self.name, self.Strict())
+}
+
+// ArgumentReference
+
+func newArgumentReference(base *_object, name string, strict bool) *_propertyReference {
+	if base == nil {
+		panic(hereBeDragons())
+	}
+	return newPropertyReference(base, name, strict, nil)
 }
