@@ -86,3 +86,15 @@ func newArgumentReference(base *_object, name string, strict bool) *_propertyRef
 	}
 	return newPropertyReference(base, name, strict, nil)
 }
+
+// getIdentifierReference
+
+func getIdentifierReference(environment _environment, name string, strict bool, node _node) _reference {
+	if environment == nil {
+		return newPropertyReference(nil, name, strict, node)
+	}
+	if environment.HasBinding(name) {
+		return environment.newReference(name, strict)
+	}
+	return getIdentifierReference(environment.Outer(), name, strict, node)
+}

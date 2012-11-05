@@ -1,5 +1,7 @@
 package otto
 
+// _environment
+
 type _environment interface {
 	HasBinding(string) bool
 	CreateMutableBinding(string, bool)
@@ -21,14 +23,7 @@ type _environment interface {
 	newDeclarativeEnvironment() _environment
 }
 
-func (runtime *_runtime) newDeclarativeEnvironment(outer _environment) *_objectEnvironment {
-	// Just an _objectEnvironment (for now)
-	return &_objectEnvironment{
-		runtime: runtime,
-		outer: outer,
-		Object: runtime.newBaseObject(),
-	}
-}
+// _functionEnvironment
 
 type _functionEnvironment struct {
 	_objectEnvironment
@@ -60,6 +55,8 @@ func (self *_functionEnvironment) HasBinding(name string) bool {
 	}
 	return self.Object.hasProperty(name)
 }
+
+// _objectEnvironment
 
 type _objectEnvironment struct {
 	runtime *_runtime
@@ -112,18 +109,6 @@ func (self *_objectEnvironment) ImplicitThisValue() *_object {
 	return nil
 }
 
-func getIdentifierReference(environment _environment, name string, strict bool, node _node) _reference {
-	if environment == nil {
-		return newPropertyReference(nil, name, strict, node)
-	}
-	if environment.HasBinding(name) {
-		return environment.newReference(name, strict)
-	}
-	return getIdentifierReference(environment.Outer(), name, strict, node)
-}
-
-// ---
-
 func (self *_objectEnvironment) Outer() _environment {
 	return self.outer
 }
@@ -157,3 +142,15 @@ func (self *_objectEnvironment) SetValue(name string, value Value, throw bool) {
 	}
 	self.SetMutableBinding(name, value, throw)
 }
+
+// _declarativeEnvironment
+
+func (runtime *_runtime) newDeclarativeEnvironment(outer _environment) *_objectEnvironment {
+	// Just an _objectEnvironment (for now)
+	return &_objectEnvironment{
+		runtime: runtime,
+		outer: outer,
+		Object: runtime.newBaseObject(),
+	}
+}
+
