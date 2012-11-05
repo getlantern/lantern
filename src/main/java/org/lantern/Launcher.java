@@ -119,6 +119,7 @@ public class Launcher {
     private static final String OPTION_LAUNCHD = "launchd";
     private static final String OPTION_PUBLIC_API = "public-api";
     private static final String OPTION_API_PORT = "api-port";
+    private static final String OPTION_SERVER_PORT = "server-port";
     private static final String OPTION_DISABLE_KEYCHAIN = "disable-keychain";
     private static final String OPTION_PASSWORD_FILE = "password-file";
     private static final String OPTION_TRUSTED_PEERS = "disable-trusted-peers";
@@ -145,6 +146,8 @@ public class Launcher {
             "run without a graphical user interface.");
         options.addOption(null, OPTION_API_PORT, true,
             "the port to run the API server on.");
+        options.addOption(null, OPTION_SERVER_PORT, true,
+            "the port to run the give mode proxy server on.");
         options.addOption(null, OPTION_PUBLIC_API, false,
             "make the API server publicly accessible on non-localhost.");
         options.addOption(null, OPTION_HELP, false,
@@ -239,16 +242,28 @@ public class Launcher {
             set.setBindToLocalhost(false);
         }
         if (cmd.hasOption(OPTION_API_PORT)) {
-            final String portStr = 
+            final String apiPortStr =
                 cmd.getOptionValue(OPTION_API_PORT);
-            LOG.info("Using command-line port: "+portStr);
-            final int port = Integer.parseInt(portStr);
-            set.setApiPort(port);
+            LOG.info("Using command-line API port: "+apiPortStr);
+            final int apiPort = Integer.parseInt(apiPortStr);
+            set.setApiPort(apiPort);
         } else {
-            LOG.info("Using random port...");
+            LOG.info("Using random API port...");
             set.setApiPort(LanternUtils.randomPort());
         }
         LOG.info("Running API on port: {}", set.getApiPort());
+
+        if (cmd.hasOption(OPTION_SERVER_PORT)) {
+            final String serverPortStr =
+                cmd.getOptionValue(OPTION_SERVER_PORT);
+            LOG.info("Using command-line proxy port: "+serverPortStr);
+            final int serverPort = Integer.parseInt(serverPortStr);
+            set.setServerPort(serverPort);
+        } else {
+            LOG.info("Using random give mode proxy port...");
+            set.setServerPort(LanternUtils.randomPort());
+        }
+        LOG.info("Running give mode proxy on port: {}", set.getServerPort());
 
         if (cmd.hasOption(OPTION_LAUNCHD)) {
             LOG.info("Running from launchd or launchd set on command line");
