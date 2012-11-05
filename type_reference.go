@@ -27,7 +27,7 @@ func (self _reference_) Strict() bool {
 }
 
 func (self _reference_) Delete() {
-	// TODO Does nothing, for now?
+	panic("Here be dragons.")
 }
 
 type _argumentReference struct {
@@ -103,38 +103,3 @@ func (self *_objectReference) Delete() {
 	}
 	self.Base.delete(self.name, self.Strict())
 }
-
-type _primitiveReference struct {
-	_reference_
-    Base Value
-	toObject func(Value) *_object
-	baseObject *_object
-}
-
-func newPrimitiveReference(base Value, toObject func(Value) *_object, name string, strict bool) *_primitiveReference {
-	return &_primitiveReference{
-		Base: base,
-		toObject: toObject,
-		_reference_: _reference_{
-			name: name,
-			strict: strict,
-		},
-	}
-}
-
-func (self *_primitiveReference) baseAsObject() *_object {
-	if self.baseObject == nil {
-		self.baseObject = self.toObject(self.Base)
-	}
-	return self.baseObject
-}
-
-func (self *_primitiveReference) GetValue() Value {
-	return self.baseAsObject().get(self.name)
-}
-
-func (self *_primitiveReference) PutValue(value Value) bool {
-	self.baseAsObject().set(self.name, value, self.Strict())
-	return true
-}
-
