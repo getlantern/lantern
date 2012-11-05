@@ -27,7 +27,7 @@ func (self _reference_) Strict() bool {
 }
 
 func (self _reference_) Delete() {
-	panic("Here be dragons.")
+	panic(hereBeDragons())
 }
 
 type _argumentReference struct {
@@ -61,14 +61,14 @@ func (self *_argumentReference) PutValue(value Value) bool {
 	return true
 }
 
-type _objectReference struct {
+type _propertyReference struct {
 	_reference_
     Base *_object
 	node _node
 }
 
-func newObjectReference(base *_object, name string, strict bool, node _node) *_objectReference {
-	return &_objectReference{
+func newPropertyReference(base *_object, name string, strict bool, node _node) *_propertyReference {
+	return &_propertyReference{
 		Base: base,
 		_reference_: _reference_{
 			name: name,
@@ -78,18 +78,18 @@ func newObjectReference(base *_object, name string, strict bool, node _node) *_o
 	}
 }
 
-func (self *_objectReference) GetBase() *_object {
+func (self *_propertyReference) GetBase() *_object {
 	return self.Base
 }
 
-func (self *_objectReference) GetValue() Value {
+func (self *_propertyReference) GetValue() Value {
 	if self.Base == nil {
 		panic(newReferenceError("notDefined", self.name, self.node))
 	}
 	return self.Base.get(self.name)
 }
 
-func (self *_objectReference) PutValue(value Value) bool {
+func (self *_propertyReference) PutValue(value Value) bool {
 	if self.Base == nil {
 		return false
 	}
@@ -97,7 +97,7 @@ func (self *_objectReference) PutValue(value Value) bool {
 	return true
 }
 
-func (self *_objectReference) Delete() {
+func (self *_propertyReference) Delete() {
 	if self.Base == nil {
 		return
 	}

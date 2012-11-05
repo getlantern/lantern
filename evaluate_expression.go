@@ -510,7 +510,7 @@ func (self *_runtime) evaluateFunction(node *_functionNode) Value {
 func (self *_runtime) evaluateDotMember(node *_dotMemberNode) Value {
 	target := self.evaluate(node.Target)
 	targetValue := self.GetValue(target)
-	return toValue(newObjectReference(self.toObject(targetValue), node.Member, false, node))
+	return toValue(newPropertyReference(self.toObject(targetValue), node.Member, false, node))
 }
 
 func (self *_runtime) evaluateBracketMember(node *_bracketMemberNode) Value {
@@ -519,7 +519,7 @@ func (self *_runtime) evaluateBracketMember(node *_bracketMemberNode) Value {
 	member := self.evaluate(node.Member)
 	memberValue := self.GetValue(member)
 
-	return toValue(newObjectReference(self.toObject(targetValue), toString(memberValue), false, node))
+	return toValue(newPropertyReference(self.toObject(targetValue), toString(memberValue), false, node))
 }
 
 func (self *_runtime) evaluateIdentifier(node *_identifierNode) Value {
