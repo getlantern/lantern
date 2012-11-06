@@ -458,7 +458,7 @@ the backend maintains on the frontend through comet publications:
 * Next, get mode users are presented with the `proxiedSites` modal, introducing
   the concept that Lantern only proxies traffic to certain sites. `systemProxy`
   modal comes next, giving the user notice that an administrator password
-  propmt may appear before Lantern can proceed. Next setup modal is
+  prompt may appear before Lantern can proceed. Next setup modal is
   `inviteFriends`.
 
 * Give mode users are taken directly from `authorize` modal to `inviteFriends`.

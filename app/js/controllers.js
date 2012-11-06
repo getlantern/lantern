@@ -402,6 +402,8 @@ function InviteFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL) {
   });
 
   $scope.$watch('model.settings.mode', function(val) {
+    // XXX can default to true for get mode too if only
+    // trusted contacts can see
     if (val) $scope.advertiseLanternDefault = val == MODE.give;
   });
   $scope.$watch('advertiseLanternDefault', function(val) {
