@@ -8,7 +8,7 @@ import (
 
 type _dateObject struct {
 	time tme.Time // Time from the "time" package, a cached version of time
-	epoch float64
+	epoch int64
 	value Value
 	isNaN bool
 }
@@ -54,7 +54,7 @@ func (self *_dateObject) Time() tme.Time {
 	return self.time
 }
 
-func (self *_dateObject) Epoch() float64 {
+func (self *_dateObject) Epoch() int64 {
 	return self.epoch
 }
 
@@ -64,7 +64,7 @@ func (self *_dateObject) Value() Value {
 
 func (self *_dateObject) SetNaN() {
 	self.time = tme.Time{}
-	self.epoch = math.NaN()
+	self.epoch = -1
 	self.value = NaNValue()
 	self.isNaN = true
 }
@@ -75,7 +75,7 @@ func (self *_dateObject) SetTime(time tme.Time) {
 
 func (self *_dateObject) Set(epoch float64) {
 	// epoch
-	self.epoch = epoch
+	self.epoch = epochToInteger(epoch)
 
 	// time
 	time, err := epochToTime(epoch)
@@ -84,10 +84,18 @@ func (self *_dateObject) Set(epoch float64) {
 	// value & isNaN
 	if err != nil {
 		self.isNaN = true
+		self.epoch = -1
 		self.value = NaNValue()
 	} else {
-		self.value = toValue(epoch)
+		self.value = toValue(self.epoch)
 	}
+}
+
+func epochToInteger(value float64) int64 {
+	if value > 0 {
+		return int64(math.Floor(value))
+	}
+	return int64(math.Ceil(value))
 }
 
 func epochToTime(value float64) (time tme.Time, err error) {
