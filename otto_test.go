@@ -2086,3 +2086,9 @@ func TestDotMember(t *testing.T) {
 	test(`abc.ghi`, "undefined")
 }
 
+func Test_stringToFloat(t *testing.T) {
+	Terst(t)
+
+	Is(stringToFloat("10e10000"), math.Inf(1))
+	Is(stringToFloat("10e10_."), "NaN")
+}

@@ -269,4 +269,7 @@ Second line \
 		"EOF",
 	)
 
+	test("10e10000",
+		"number 10e10000",
+	)
 }

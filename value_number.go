@@ -28,7 +28,7 @@ func stringToFloat(value string) float64 {
 
 	if (parseFloat) {
 		number, err := strconv.ParseFloat(value, 64)
-		if err != nil {
+		if err != nil && err.(*strconv.NumError).Err != strconv.ErrRange {
 			return math.NaN()
 		}
 		return number
