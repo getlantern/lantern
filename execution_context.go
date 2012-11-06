@@ -4,6 +4,7 @@ type _executionContext struct {
     LexicalEnvironment _environment
     VariableEnvironment _environment
     this *_object
+	eval bool // Replace this with kind?
 }
 
 func newExecutionContext(lexical _environment, variable _environment, this *_object) *_executionContext {

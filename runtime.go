@@ -81,8 +81,10 @@ func (self *_runtime) EnterEvalExecutionContext(call FunctionCall) {
 	// Skip the current function lexical/variable environment, which is of the function execution context call
 	// to eval (the global execution context). Instead, execute in the context of where the eval was called,
 	// which is essentially dynamic scoping
-	_executionContext := self._executionContext(-1)
-	self.EnterExecutionContext(newExecutionContext(_executionContext.LexicalEnvironment, _executionContext.VariableEnvironment, nil))
+	parent := self._executionContext(-1)
+	new := newExecutionContext(parent.LexicalEnvironment, parent.VariableEnvironment, nil)
+	new.eval = true
+	self.EnterExecutionContext(new)
 }
 
 func (self *_runtime) Return(value Value) {
@@ -236,16 +238,18 @@ func (self *_runtime) continueEvaluate(node _node, _labelSet map[string]bool) (r
 }
 
 func (self *_runtime) declare(kind string, declarationList []_declaration) {
-	environment := self._executionContext(0).VariableEnvironment
+	executionContext := self._executionContext(0)
+	eval := executionContext.eval
+	environment := executionContext.VariableEnvironment
+
 	for _, _declaration := range declarationList {
 		name := _declaration.Name
-		//self.localSet(_declaration.Name, UndefinedValue())
 		if kind == "function" {
 			value := self.evaluate(_declaration.Definition)
 			self.localSet(_declaration.Name, value)
 		} else {
 			if !environment.HasBinding(name) {
-				environment.CreateMutableBinding(name, false) // TODO configurableBindings
+				environment.CreateMutableBinding(name, eval == true)
 				environment.SetMutableBinding(name, UndefinedValue(), false) // TODO strict
 			}
 		}
