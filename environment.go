@@ -77,11 +77,15 @@ func (self *_objectEnvironment) HasBinding(name string) bool {
 	return self.Object.hasProperty(name)
 }
 
-func (self *_objectEnvironment) CreateMutableBinding(name string, configure bool) {
+func (self *_objectEnvironment) CreateMutableBinding(name string, deletable bool) {
 	if self.Object.hasProperty(name) {
 		panic(hereBeDragons())
 	}
-	self.Object.stash.put(name, UndefinedValue())
+	mode := _propertyMode(0111)
+	if !deletable {
+		mode = _propertyMode(0110)
+	}
+	self.Object.stash.set(name, UndefinedValue(), mode)
 }
 
 func (self *_objectEnvironment) SetMutableBinding(name string, value Value, strict bool) {
@@ -129,15 +133,6 @@ func (self *_objectEnvironment) newReference(name string, strict bool) _referenc
 }
 
 // _declarativeEnvironment
-
-//func (runtime *_runtime) newDeclarativeEnvironment(outer _environment) *_objectEnvironment {
-//    // Just an _objectEnvironment (for now)
-//    return &_objectEnvironment{
-//        runtime: runtime,
-//        outer: outer,
-//        Object: runtime.newBaseObject(),
-//    }
-//}
 
 func (runtime *_runtime) newDeclarativeEnvironment(outer _environment) *_declarativeEnvironment {
 	return &_declarativeEnvironment{
