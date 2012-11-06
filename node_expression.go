@@ -342,7 +342,8 @@ func (self _unaryOperationNode) String() string {
 type _valueNodeType int
 
 const (
-	valueNodeNull _valueNodeType = iota
+	valueNodeUndefined _valueNodeType = iota
+	valueNodeNull
 	valueNodeBoolean
 	valueNodeString
 	valueNodeNumber
@@ -354,6 +355,15 @@ type _valueNode struct {
 	Value Value
 	Text string
 	Kind _valueNodeType
+}
+
+func newUndefinedNode() *_valueNode {
+	return &_valueNode{
+		_nodeType: nodeValue,
+		Text: "undefined",
+		Value: UndefinedValue(),
+		Kind: valueNodeUndefined,
+	}
 }
 
 func newNullNode(text string) *_valueNode {

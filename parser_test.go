@@ -659,6 +659,23 @@ func TestParseSuccess(t *testing.T) {
 	---
 	{ @ { . { /abc/ } source } }
 	`)
+
+	//test(`
+	///abc/.source
+	//--
+	//`)
+
+	test(`
+	[,]
+	---
+	{ @ [ undefined ] }
+	`)
+
+	test(`
+	[,,]
+	---
+	{ @ [ undefined undefined ] }
+	`)
 }
 
 func TestParseFailure(t *testing.T) {
@@ -842,7 +859,7 @@ Unexpected end of input
 
 	test(`[,
 ---
-Unexpected token ,
+Unexpected end of input
 1:-:-
 	`)
 

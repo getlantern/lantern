@@ -119,6 +119,10 @@ func (self *_parser) ParseArrayLiteral() *_arrayNode {
 	self.Expect("[")
 	nodeList := []_node{}
 	for !self.Match("]") {
+		if self.Accept(",") {
+			nodeList = append(nodeList, newUndefinedNode())
+			continue
+		}
 		nodeList = append(nodeList, self.ParseArrayValue())
 		if self.Accept(",") {
 			continue
