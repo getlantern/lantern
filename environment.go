@@ -4,20 +4,20 @@ package otto
 
 type _environment interface {
 	HasBinding(string) bool
+
 	CreateMutableBinding(string, bool)
 	SetMutableBinding(string, Value, bool)
+	// SetMutableBinding with Lazy CreateMutableBinding(..., true)
+	SetValue(string, Value, bool)
+
 	GetBindingValue(string, bool) Value
+	GetValue(string, bool) Value // GetBindingValue
 	DeleteBinding(string) bool
 	ImplicitThisValue() *_object
 
 	Outer() _environment
 
 	newReference(string, bool) _reference
-
-	// SetMutableBinding with Lazy CreateMutableBinding(..., true)
-	SetValue(string, Value, bool)
-	// Alias for GetBindingValue
-	GetValue(string, bool) Value
 }
 
 // _functionEnvironment
@@ -88,6 +88,13 @@ func (self *_objectEnvironment) SetMutableBinding(name string, value Value, stri
 	self.Object.set(name, value, strict)
 }
 
+func (self *_objectEnvironment) SetValue(name string, value Value, throw bool) {
+	if !self.HasBinding(name) {
+		self.CreateMutableBinding(name, true) // Configureable by default
+	}
+	self.SetMutableBinding(name, value, throw)
+}
+
 func (self *_objectEnvironment) GetBindingValue(name string, strict bool) Value {
 	if self.Object.hasProperty(name) {
 		return self.Object.get(name)
@@ -96,6 +103,10 @@ func (self *_objectEnvironment) GetBindingValue(name string, strict bool) Value 
 		panic(newReferenceError("Not Defined", name))
 	}
 	return UndefinedValue()
+}
+
+func (self *_objectEnvironment) GetValue(name string, throw bool) Value {
+	return self.GetBindingValue(name, throw)
 }
 
 func (self *_objectEnvironment) DeleteBinding(name string) bool {
@@ -117,21 +128,6 @@ func (self *_objectEnvironment) newReference(name string, strict bool) _referenc
 	return newPropertyReference(self.Object, name, strict, nil)
 }
 
-func (self *_objectEnvironment) GetReference(name string) _reference {
-	return getIdentifierReference(self, name, false, nil)
-}
-
-func (self *_objectEnvironment) GetValue(name string, throw bool) Value {
-	return self.GetBindingValue(name, throw)
-}
-
-func (self *_objectEnvironment) SetValue(name string, value Value, throw bool) {
-	if !self.HasBinding(name) {
-		self.CreateMutableBinding(name, true) // Configureable by default
-	}
-	self.SetMutableBinding(name, value, throw)
-}
-
 // _declarativeEnvironment
 
 func (runtime *_runtime) newDeclarativeEnvironment(outer _environment) *_objectEnvironment {
@@ -141,4 +137,14 @@ func (runtime *_runtime) newDeclarativeEnvironment(outer _environment) *_objectE
 		outer: outer,
 		Object: runtime.newBaseObject(),
 	}
+}
+type _declarativeProperty struct {
+	value Value
+	deletable bool
+}
+
+type _declarativeEnvironment struct {
+	runtime *_runtime
+    outer _environment
+	stash map[string]*_declarativeProperty
 }
