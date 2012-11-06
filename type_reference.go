@@ -87,6 +87,50 @@ func newArgumentReference(base *_object, name string, strict bool) *_propertyRef
 	return newPropertyReference(base, name, strict, nil)
 }
 
+type _environmentReference struct {
+	_reference_
+    Base _environment
+	node _node
+}
+
+func newEnvironmentReference(base _environment, name string, strict bool, node _node) *_environmentReference {
+	return &_environmentReference{
+		Base: base,
+		_reference_: _reference_{
+			name: name,
+			strict: strict,
+		},
+		node: node,
+	}
+}
+
+func (self *_environmentReference) GetBase() *_object {
+	return nil // FIXME
+}
+
+func (self *_environmentReference) GetValue() Value {
+	if self.Base == nil {
+		panic(newReferenceError("notDefined", self.name, self.node))
+	}
+	return self.Base.GetValue(self.name, self.Strict())
+}
+
+func (self *_environmentReference) PutValue(value Value) bool {
+	if self.Base == nil {
+		return false
+	}
+	self.Base.SetValue(self.name, value, self.Strict())
+	return true
+}
+
+func (self *_environmentReference) Delete() bool {
+	if self.Base == nil {
+		// ?
+		return false
+	}
+	return self.Base.DeleteBinding(self.name)
+}
+
 // getIdentifierReference
 
 func getIdentifierReference(environment _environment, name string, strict bool, node _node) _reference {

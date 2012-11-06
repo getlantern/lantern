@@ -130,16 +130,26 @@ func (self *_objectEnvironment) newReference(name string, strict bool) _referenc
 
 // _declarativeEnvironment
 
-func (runtime *_runtime) newDeclarativeEnvironment(outer _environment) *_objectEnvironment {
-	// Just an _objectEnvironment (for now)
-	return &_objectEnvironment{
+//func (runtime *_runtime) newDeclarativeEnvironment(outer _environment) *_objectEnvironment {
+//    // Just an _objectEnvironment (for now)
+//    return &_objectEnvironment{
+//        runtime: runtime,
+//        outer: outer,
+//        Object: runtime.newBaseObject(),
+//    }
+//}
+
+func (runtime *_runtime) newDeclarativeEnvironment(outer _environment) *_declarativeEnvironment {
+	return &_declarativeEnvironment{
 		runtime: runtime,
 		outer: outer,
-		Object: runtime.newBaseObject(),
+		stash: map[string]*_declarativeProperty{},
 	}
 }
+
 type _declarativeProperty struct {
 	value Value
+	mutable bool
 	deletable bool
 }
 
@@ -147,4 +157,80 @@ type _declarativeEnvironment struct {
 	runtime *_runtime
     outer _environment
 	stash map[string]*_declarativeProperty
+}
+
+func (self *_declarativeEnvironment) HasBinding(name string) bool {
+	_, exists := self.stash[name]
+	return exists
+}
+
+func (self *_declarativeEnvironment) CreateMutableBinding(name string, deletable bool) {
+	_, exists := self.stash[name]
+	if exists {
+		panic(hereBeDragons())
+	}
+	self.stash[name] = &_declarativeProperty{
+		value: UndefinedValue(),
+		mutable: true,
+		deletable: deletable,
+	}
+}
+
+func (self *_declarativeEnvironment) SetMutableBinding(name string, value Value, strict bool) {
+	property := self.stash[name]
+	if property == nil {
+		panic(hereBeDragons())
+	}
+	if property.mutable {
+		property.value = value
+	} else {
+		typeErrorResult(strict)
+	}
+}
+
+func (self *_declarativeEnvironment) SetValue(name string, value Value, throw bool) {
+	if !self.HasBinding(name) {
+		self.CreateMutableBinding(name, true) // Deletable by default
+	}
+	self.SetMutableBinding(name, value, throw)
+}
+
+func (self *_declarativeEnvironment) GetBindingValue(name string, strict bool) Value {
+	property := self.stash[name]
+	if property == nil {
+		panic(hereBeDragons())
+	}
+	if !property.mutable {
+		// TODO If uninitialized...
+	}
+	return property.value
+}
+
+func (self *_declarativeEnvironment) GetValue(name string, throw bool) Value {
+	return self.GetBindingValue(name, throw)
+}
+
+func (self *_declarativeEnvironment) DeleteBinding(name string) bool {
+	property := self.stash[name]
+	if property == nil {
+		delete(self.stash, name)
+		return false
+	}
+	if !property.deletable {
+		return false
+	}
+	delete(self.stash, name)
+	return true
+}
+
+func (self *_declarativeEnvironment) ImplicitThisValue() *_object {
+	return nil
+}
+
+func (self *_declarativeEnvironment) Outer() _environment {
+	return self.outer
+}
+
+func (self *_declarativeEnvironment) newReference(name string, strict bool) _reference {
+	return newEnvironmentReference(self, name, strict, nil)
 }
