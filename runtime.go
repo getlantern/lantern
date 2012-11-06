@@ -236,11 +236,18 @@ func (self *_runtime) continueEvaluate(node _node, _labelSet map[string]bool) (r
 }
 
 func (self *_runtime) declare(kind string, declarationList []_declaration) {
+	environment := self._executionContext(0).VariableEnvironment
 	for _, _declaration := range declarationList {
-		self.localSet(_declaration.Name, UndefinedValue())
+		name := _declaration.Name
+		//self.localSet(_declaration.Name, UndefinedValue())
 		if kind == "function" {
 			value := self.evaluate(_declaration.Definition)
 			self.localSet(_declaration.Name, value)
+		} else {
+			if !environment.HasBinding(name) {
+				environment.CreateMutableBinding(name, false) // TODO configurableBindings
+				environment.SetMutableBinding(name, UndefinedValue(), false) // TODO strict
+			}
 		}
 	}
 }
