@@ -18,9 +18,6 @@ type _environment interface {
 	SetValue(string, Value, bool)
 	// Alias for GetBindingValue
 	GetValue(string, bool) Value
-
-	newObjectEnvironment(object *_object) *_objectEnvironment
-	newDeclarativeEnvironment() _environment
 }
 
 // _functionEnvironment
@@ -65,11 +62,14 @@ type _objectEnvironment struct {
 	ProvideThis bool
 }
 
-func (runtime *_runtime) newObjectEnvironment() *_objectEnvironment {
+func (runtime *_runtime) newObjectEnvironment(object *_object, outer _environment) *_objectEnvironment {
+	if object == nil {
+		object = runtime.newBaseObject()
+	}
     return &_objectEnvironment{
 		runtime: runtime,
-		outer: nil,
-        Object: runtime.newBaseObject(),
+		outer: outer,
+        Object: object,
     }
 }
 
@@ -113,17 +113,6 @@ func (self *_objectEnvironment) Outer() _environment {
 	return self.outer
 }
 
-func (self *_objectEnvironment) newObjectEnvironment(object *_object) *_objectEnvironment {
-    return &_objectEnvironment{
-		outer: self,
-		Object: object,
-	}
-}
-
-func (self *_objectEnvironment) newDeclarativeEnvironment() _environment {
-    return self.runtime.newDeclarativeEnvironment(self)
-}
-
 func (self *_objectEnvironment) newReference(name string, strict bool) _reference {
 	return newPropertyReference(self.Object, name, strict, nil)
 }
@@ -153,4 +142,3 @@ func (runtime *_runtime) newDeclarativeEnvironment(outer _environment) *_objectE
 		Object: runtime.newBaseObject(),
 	}
 }
-

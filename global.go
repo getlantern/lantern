@@ -67,7 +67,7 @@ func newContext() *_runtime {
 
 	self._newError = make(map[string] func(Value) *_object)
 
-	self.GlobalEnvironment = self.newObjectEnvironment()
+	self.GlobalEnvironment = self.newObjectEnvironment(nil, nil)
 	self.GlobalObject = self.GlobalEnvironment.Object
 
 	self.EnterGlobalExecutionContext()

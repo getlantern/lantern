@@ -24,14 +24,16 @@ func (self *_executionContext) SetValue(name string, value Value, throw bool) {
 }
 
 func (self *_executionContext) newLexicalEnvironment(object *_object) (_environment, *_objectEnvironment) {
+	// Get runtime from the object (for now)
+	runtime := object.runtime
 	previousLexical := self.LexicalEnvironment
-	newLexical := self.LexicalEnvironment.newObjectEnvironment(object)
+	newLexical := runtime.newObjectEnvironment(object, self.LexicalEnvironment)
 	self.LexicalEnvironment = newLexical
 	return previousLexical, newLexical
 }
 
-func (self *_executionContext) newDeclarativeEnvironment() _environment {
+func (self *_executionContext) newDeclarativeEnvironment(runtime *_runtime) _environment {
 	previousLexical := self.LexicalEnvironment
-	self.LexicalEnvironment = self.LexicalEnvironment.newDeclarativeEnvironment()
+	self.LexicalEnvironment = runtime.newDeclarativeEnvironment(self.LexicalEnvironment)
 	return previousLexical
 }

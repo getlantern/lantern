@@ -4,7 +4,7 @@ func (self *_runtime) evaluateTryCatch(node *_tryCatchNode) Value {
 	tryValue, throw, throwValue := self.tryEvaluate(func() Value { return self.evaluate(node.Try) })
 
 	if throw != false && node.Catch != nil {
-		lexicalEnvironment := self._executionContext(0).newDeclarativeEnvironment()
+		lexicalEnvironment := self._executionContext(0).newDeclarativeEnvironment(self)
 		defer func(){
 			self._executionContext(0).LexicalEnvironment = lexicalEnvironment
 		}()
