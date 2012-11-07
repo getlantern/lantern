@@ -61,16 +61,17 @@ angular.module('app.services', [])
     confirmReset: 'confirmReset',
     giveModeForbidden: 'giveModeForbidden',
     about: 'about',
+    updateAvailable: 'updateAvailable',
     none: ''
   })
   .constant('INTERACTION', {
     inviteFriends: 'inviteFriends',
     contactDevs: 'contactDevs',
     settings: 'settings',
-    confirmReset: 'confirmReset',
+    reset: 'reset',
     proxiedSites: 'proxiedSites',
     about: 'about',
-    update: 'update',
+    updateAvailable: 'updateAvailable',
     tryAnotherUser: 'tryAnotherUser',
     requestInvite: 'requestInvite',
     retryNow: 'retryNow',

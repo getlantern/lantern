@@ -4742,6 +4742,11 @@ html small {
   font-size: 11.9px;
 }
 
+label.checkbox.inline, label.radio.inline {
+  white-space: nowrap;
+  margin-right: 5px;
+}
+
 .tooltip {
   z-index: 1051;
 }
@@ -5044,13 +5049,13 @@ a.toggle.advanced:active, a.toggle.advanced:visited, a.toggle.advanced:hover {
   color: #333333;
 }
 
-#advanced {
-  margin: 10px 0 0 20px;
+.advanced-container {
+  margin-left: 20px;
 }
-#advanced * {
+.advanced-container * {
   font-size: 10.5px;
 }
-#advanced input[type=number] {
+.advanced-container input[type=number] {
   display: -moz-inline-stack;
   display: inline-block;
   vertical-align: middle;
@@ -5060,6 +5065,23 @@ a.toggle.advanced:active, a.toggle.advanced:visited, a.toggle.advanced:hover {
   width: 50px;
   height: 14px;
   padding: 0 2px 2px;
+}
+#app-settings .advanced-container {
+  margin-top: 5px;
+}
+#proxy-settings .advanced-container {
+  margin-top: 10px;
+}
+
+#autoreport-warning.ui-hide {
+  height: 0;
+  -webkit-transition: height 0s;
+  -moz-transition: height 0s;
+  transition: height 0s;
+}
+
+button.reset {
+  margin: 0 0 -5px 50px;
 }
 
 #canvas, #canvas svg {
@@ -5181,6 +5203,9 @@ body.showVis #footer {
 }
 #version a {
   color: white;
+}
+#version a.update-available {
+  color: #c09853;
 }
 
 #dev-toggle {

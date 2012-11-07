@@ -175,7 +175,7 @@ the backend maintains on the frontend through comet publications:
       "settingsLoadFailure" | "welcome" | "authorize" | "gtalkUnreachable" |
       "notInvited" | "requestInvite" | "requestSent" | "firstInviteReceived" |
       "proxiedSites" | "systemProxy" | "inviteFriends" | "finished" |
-      "settings" | "giveMode "about" | "updateAvailable" | ""
+      "settings" | "giveMode" | "about" | "updateAvailable" | ""
     </td>
     <td>Instructs the UI to display the corresponding modal dialog.
       A value of empty string means no modal dialog should be displayed.

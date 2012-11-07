@@ -87,6 +87,7 @@ var MODAL = {
   confirmReset: 'confirmReset',
   giveModeForbidden: 'giveModeForbidden',
   about: 'about',
+  updateAvailable: 'updateAvailable',
   none: ''
 };
 var INTERACTION = {
@@ -94,9 +95,9 @@ var INTERACTION = {
   contactDevs: 'contactDevs',
   settings: 'settings',
   proxiedSites: 'proxiedSites',
-  confirmReset: 'confirmReset',
+  reset: 'reset',
   about: 'about',
-  update: 'update',
+  updateAvailable: 'updateAvailable',
   tryAnotherUser: 'tryAnotherUser',
   requestInvite: 'requestInvite',
   retryNow: 'retryNow',
@@ -364,6 +365,7 @@ ApiServlet.HandlerMap = {
               // otherwise fall through to no-sign-in-required cases:
 
             case INTERACTION.about:
+            case INTERACTION.updateAvailable:
             case INTERACTION.settings: // XXX check if signed in on clientside and only allow configuring settings accordingly
               model.modal = interaction;
               this._bayeuxBackend.publishSync('modal');
@@ -402,7 +404,7 @@ ApiServlet.HandlerMap = {
           } else if (interaction == INTERACTION.close) {
             model.modal = MODAL.none;
             this._bayeuxBackend.publishSync('modal');
-          } else if (interaction == INTERACTION.confirmReset) {
+          } else if (interaction == INTERACTION.reset) {
             model.modal = MODAL.confirmReset;
             this._bayeuxBackend.publishSync('modal');
           } else {
@@ -413,6 +415,7 @@ ApiServlet.HandlerMap = {
           return;
 
         case MODAL.about:
+        case MODAL.updateAvailable:
         case MODAL.confirmReset:
           if (interaction == INTERACTION.close) {
             model.modal = MODAL.none;

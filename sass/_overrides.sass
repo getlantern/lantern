@@ -6,8 +6,11 @@ html, body
 html small
   +small
 
+label.checkbox.inline, label.radio.inline
+  white-space: nowrap
+  margin-right: 5px
+
 // XXX apparently fixed in http://blog.getbootstrap.com/2012/10/29/bootstrap-2-2-0-released/
-//.modal .tooltip
 .tooltip
   z-index: $zindexModal + 1
 
@@ -15,9 +18,11 @@ html small
   font-size: $baseFontSize * .9
 
 .btn-give-mode
+  //+ctb-buttonBackground($giveModeColor, $giveModeColorAccent)
   +bootstrap-buttonBackground($giveModeColor, $giveModeColorAccent)
 
 .btn-get-mode
+  //+ctb-buttonBackground($getModeColor, $getModeColorAccent)
   +bootstrap-buttonBackground($getModeColor, $getModeColorAccent)
 
 a.never-underlined

@@ -427,6 +427,13 @@ function AboutCtrl($scope, logFactory, MODAL) {
   });
 }
 
+function UpdateAvailableCtrl($scope, logFactory, MODAL) {
+  $scope.show = false;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.updateAvailable;
+  });
+}
+
 function ConfirmResetCtrl($scope, logFactory, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(val) {

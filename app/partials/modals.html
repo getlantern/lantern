@@ -440,6 +440,20 @@
   </div>
 </div>
 
+<div id="updateAvailable" ng-controller="UpdateAvailableCtrl" ui-modal ng-model="show"
+     class="fade" data-backdrop="static" data-keyboard="true"><!-- XXX data-keyboard=true not working? -->
+  <div class="modal-header">
+    <button type="button" class="close" ng-click="interaction(INTERACTION.close)" aria-hidden="true">×</button>
+    <h3>{{ 'UPDATE_AVAILABLE_TITLE' | i18n }}</h3>
+  </div>
+  <div class="modal-body">
+    <div>...</div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
+  </div>
+</div>
+
 <div id="settings" ng-controller="SettingsCtrl" ui-modal ng-model="show"
      class="fade" data-backdrop="static" data-keyboard="true"><!-- XXX data-keyboard=true not working? -->
   <div class="modal-header">
@@ -467,7 +481,7 @@
       </dd>
 
       <dt>{{ 'APP' | i18n }}</dt>
-      <dd>
+      <dd id="app-settings">
         <!--
         <label>
           <select ui-select2 ng-model="_lang" class="settings-selectlang"
@@ -494,18 +508,10 @@
           {{ 'AUTO_START' | i18n }}
         </label>
 
-        <!-- XXX
-        <label class="checkbox">
-          <input type="checkbox" ng-model="showInDock"
-                 ng-click="changeSetting(SETTING.showInDock, showInDock)">
-          {{ 'SHOW_IN_DOCK' | i18n }}
-        </label>
-        -->
-
         <label class="checkbox inline" style="margin-top:-7px"><!-- XXX -->
           <input type="checkbox" ng-model="autoReport"
                  ng-click="changeSetting(SETTING.autoReport, autoReport)">
-          {{ 'AUTOREPORT_ENABLE' | i18n:true }}
+          {{ 'AUTOREPORT_ENABLE' | i18n }}
         </label>
         <label class="checkbox inline" style="margin:0; padding:0 0 0 1px"><!-- XXX -->
           <a rel="tooltip" data-original-title="{{ 'AUTOREPORT_PROMPT' | i18n }}"
@@ -519,24 +525,46 @@
           <small>{{ 'NO_AUTOREPORT_WARNING' | i18n }}</small>
         </div>
 
+        <div>
+          <a class="toggle advanced" ng-click="appAdvancedExpanded = !appAdvancedExpanded">
+            <small>
+              {{ appAdvancedExpanded && 'CARET_EXPANDED' || 'CARET_COLLAPSED' | i18n }}
+              {{ 'ADVANCED' | i18n }}
+            </small>
+          </a>
+        </div>
+        <div class="advanced-container" ui-toggle="appAdvancedExpanded">
+          <label class="checkbox inline">
+            <!-- XXX not yet implemented -->
+            <input type="checkbox" ng-model="showInDock"
+                   ng-click="changeSetting(SETTING.showInDock, showInDock)">
+            {{ 'SHOW_IN_DOCK' | i18n }}
+          </label>
+
+          <button type="button" ng-click="interaction(INTERACTION.reset)"
+                  class="btn btn-mini reset">
+            <i class="icon-warning-sign warning-colored"></i>
+            {{ 'RESET_ELLIPSIS' | i18n }}
+          </button>
+        </div>
+
       </dd>
 
       <dt ui-toggle="inGetMode">{{ 'PROXY' | i18n }}</dt>
-      <dd ui-toggle="inGetMode">
+      <dd ui-toggle="inGetMode" id="proxy-settings">
         <button type="button" class="btn btn-mini"
                 ng-click="interaction(INTERACTION.proxiedSites)">
           {{ 'MANAGE_PROXIED_SITES' | i18n }}
         </button>
         <br>
-        <a class="toggle advanced" ng-click="advancedExpanded = !advancedExpanded">
+        <a class="toggle advanced" ng-click="proxyAdvancedExpanded = !proxyAdvancedExpanded">
           <small>
-            {{ advancedExpanded && 'CARET_EXPANDED' || 'CARET_COLLAPSED' | i18n }}
+            {{ proxyAdvancedExpanded && 'CARET_EXPANDED' || 'CARET_COLLAPSED' | i18n }}
             {{ 'ADVANCED' | i18n }}
           </small>
         </a>
-        <div id="advanced" ui-toggle="advancedExpanded">
+        <div class="advanced-container" ui-toggle="proxyAdvancedExpanded">
           <label>
-            <i class="icon-bolt"></i>
             {{ 'PORT' | i18n }}&nbsp;
             <input type="number" ng-model="model.settings.proxyPort" disabled>
           </label>
@@ -555,10 +583,6 @@
     </dl>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="interaction(INTERACTION.confirmReset)"
-            class="btn btn-warning btn-small pull-left">
-      <i class="icon-warning-sign"></i> {{ 'RESET_LANTERN' | i18n }}
-    </button>
     <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
   </div>
 </div>

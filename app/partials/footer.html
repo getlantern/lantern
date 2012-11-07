@@ -10,6 +10,9 @@
     </div>
     <div id="stats-personal" ng-show="model.connectivity.peersLifetime.length">
       <strong>your stats:</strong>
+      <a rel="tooltip" data-original-title="{{ 'ENABLE_AUTOREPORT_SUGGESTION' | i18n }}" ui-jq="tooltip" ng-show="!model.settings.autoReport">
+        <i class="icon-info-sign"></i>
+      </a>
       {{ model.settings.userid }} ·
       {{ model.connectivity.gtalk }} to Google Talk ·
       7 friends online ·
@@ -22,18 +25,14 @@
 
   <div id="version">
     Lantern {{ model.version.current.api.mock && 'mock app' }} {{ model.version.current.label }}
-    <span ng-show="model.version.app.updated.available">
-      <a ng-click="interaction(INTERACTION.update)"
-         class="error-colored never-underlined">
-        <i class="icon-exclamation-sign"></i>
-        Update available<!-- XXX -->
-      </a>
-    </span>
-    <a rel="tooltip" data-original-title="{{ 'ENABLE_AUTOREPORT_SUGGESTION' | i18n }}" ui-jq="tooltip" ng-show="!model.settings.autoReport">
-      <i class="icon-exclamation-sign text-error"></i>
-    </a>
     <span ng-show="model.showVis">
       · <a ng-click="interaction(INTERACTION.about)">About</a>
+    </span>
+    <span ng-show="model.showVis && model.version.updated">
+      · <i class="icon-exclamation-sign warning-colored"></i>
+      <a ng-click="interaction(INTERACTION.updateAvailable)" class="update-available">
+        Update available<!-- XXX -->
+      </a>
     </span>
   </div>
 

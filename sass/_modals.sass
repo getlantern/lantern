@@ -107,8 +107,8 @@ a.toggle.advanced
   &:active, &:visited, &:hover
     color: $textColor
 
-#advanced
-  margin: 10px 0 0 20px
+.advanced-container
+  margin-left: 20px
   *
     +smaller
   input[type=number]
@@ -116,3 +116,14 @@ a.toggle.advanced
     width: 50px
     height: $baseFontSize
     padding: 0 2px 2px
+  #app-settings &
+    margin-top: 5px
+  #proxy-settings &
+    margin-top: 10px
+
+#autoreport-warning.ui-hide
+  height: 0
+  +single-transition(height, 0s)
+
+button.reset
+  margin: 0 0 -5px 50px

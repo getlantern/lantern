@@ -136,6 +136,7 @@ angular.module('app.i18n', [])
       MANAGE_PROXIED_SITES: 'Manage proxied sites...',
       HTTPS_EVERYWHERE_LABEL: 'For your security, http requests to this site will automatically be converted to https requests using rulesets from HTTPS Everywhere.',
       ADVANCED: 'Advanced',
+      SHOW_IN_DOCK: 'Show in dock', // XXX taskbar if windows
       CARET_COLLAPSED: '▸',
       CARET_EXPANDED: '▾',
       PROXY_ALL_TRAFFIC: 'Proxy all traffic (not recommended)',
@@ -145,11 +146,14 @@ angular.module('app.i18n', [])
       AUTO_START: 'Run Lantern automatically on startup',
       SET_AS_SYSTEM_PROXY: 'Set as system proxy (recommended)',
       NO_AUTOREPORT_WARNING: 'Your usage will not contribute to global totals',
-      ENABLE_AUTOREPORT_SUGGESTION: 'Enable Automatic Reporting to have your usage contribute to global totals',
-      RESET_LANTERN: 'Reset Lantern',
+      ENABLE_AUTOREPORT_SUGGESTION: 'Enable automatic reporting in Settings to have your usage contribute to global totals',
+      RESET_ELLIPSIS: 'Reset...',
       CLOSE: 'Close',
       BACK: 'Back',
       ABOUT_TITLE: 'About Lantern',
+      UPDATE_AVAILABLE_TITLE: 'Update Available',
+      CONTACT_DEVS_TITLE: 'Contact Lantern Developers',
+      CONTACT_DEVS_PROMPT: '...',
       GIVE_MODE_FORBIDDEN_TITLE: 'Give Mode Forbidden',
       GIVE_MODE_FORBIDDEN_PROMPT: 'You appear to be connecting to Lantern from a censoring country. Running Lantern in Give Mode may be undesirable for trusted contacts who would try to get access through you.',
       CONFIRM_RESET_TITLE: 'Confirm Reset',
@@ -157,15 +161,14 @@ angular.module('app.i18n', [])
     }
   })
   // https://groups.google.com/d/msg/angular/641c1ykOX4k/hcXI5HsSD5MJ
-  .filter('i18n', function(langSrvc, DEFAULTLANG, TRANSLATIONS, NBSP) {
-    return function(key, nbsp) {
+  .filter('i18n', function(langSrvc, DEFAULTLANG, TRANSLATIONS) {
+    return function(key) {
       if (typeof key == 'undefined') return '(translation key undefined. did you forget quotes?)';
       if (!key) return '';
       var translation =
           (TRANSLATIONS[langSrvc.lang()] || {})[key] ||
           TRANSLATIONS[DEFAULTLANG][key] ||
           '(translation key "'+key+'" not found)';
-      // XXX try using white-space: nowrap instead
-      return nbsp ? translation.replace(/ /g, NBSP) : translation;
+      return translation;
     }
   });
