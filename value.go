@@ -2,6 +2,7 @@ package otto
 
 import (
 	"math"
+	"fmt"
 )
 
 type _valueType int
@@ -496,4 +497,69 @@ func sameValue(x Value, y Value) bool {
 	}
 
 	return result
+}
+
+// Export will convert the value to its closest go representation
+//
+//      undefined -> nil, error undefined
+//      null    -> nil, nil
+//      boolean -> bool, nil
+//      number  -> float64, nil
+//      string  -> string, nil
+//      Array   -> []interface{}, nil
+//      Object  -> map[string]interface{}, nil
+
+func (value Value) Export() (interface{}, error) {
+
+	switch value._valueType {
+	case valueUndefined:
+		return nil, fmt.Errorf("undefined")
+	case valueNull:
+		return nil, nil
+	case valueNumber:
+		return value.toFloat(), nil
+	case valueString:
+		return value.toString(), nil
+	case valueBoolean:
+		return value.toBoolean(), nil
+	case valueObject:
+
+		// get the names of things inside
+		propNames := make([]string, 0)
+		value.value.(*_object).enumerate(func(name string) {
+			propNames = append(propNames, name)
+		})
+
+		if value.value.(*_object).class == "Array" {
+
+			// format non-undefined inner values in array
+			result := make([]interface{}, 0)
+			for _, v := range propNames {
+				inner_value := value.value.(*_object).get(v)
+				export_value, export_error := inner_value.Export()
+				if export_error == nil {
+					result = append(result, export_value)
+				}
+			}
+
+			return result, nil
+		} else {
+			// format non-undefined inner values in object
+			result := make(map[string]interface{})
+			for _, v := range propNames {
+				inner_value := value.value.(*_object).get(v)
+				export_value, export_error := inner_value.Export()
+				if export_error == nil {
+					result[v] = export_value
+				}
+			}
+
+			return result, nil
+		}
+
+	default:
+		panic(hereBeDragons())
+	}
+
+	return nil, nil
 }
