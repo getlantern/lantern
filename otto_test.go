@@ -583,7 +583,7 @@ func TestTryFinally(t *testing.T) {
 		}
 		while(!abc && def < 10)
 		def;
-	`, "10")
+	`, "1")
 }
 
 func TestTryCatch(t *testing.T) {

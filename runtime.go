@@ -179,14 +179,20 @@ func (self *_runtime) Call(function *_object, this Value, argumentList []Value) 
 	return
 }
 
-func (self *_runtime) tryEvaluate(inner func() Value) (tryValue Value, throw bool, throwValue Value) {
+func (self *_runtime) tryEvaluate(inner func() Value) (tryValue Value, throw bool, throwValue Value, other *_result) {
 	defer func(){
 		if caught := recover(); caught != nil {
 			switch caught := caught.(type) {
 			case _result:
-				if caught.Kind == resultThrow {
+				switch caught.Kind {
+				case resultThrow:
 					throw = true
 					throwValue = caught.Value
+					return
+				case resultReturn, resultBreak, resultContinue:
+					fallthrough
+				default:
+					other = &caught
 					return
 				}
 			case _error:

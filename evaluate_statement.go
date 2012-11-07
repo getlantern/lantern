@@ -1,7 +1,7 @@
 package otto
 
 func (self *_runtime) evaluateTryCatch(node *_tryCatchNode) Value {
-	tryValue, throw, throwValue := self.tryEvaluate(func() Value { return self.evaluate(node.Try) })
+	tryValue, throw, throwValue, other := self.tryEvaluate(func() Value { return self.evaluate(node.Try) })
 
 	if throw != false && node.Catch != nil {
 		lexicalEnvironment := self._executionContext(0).newDeclarativeEnvironment(self)
@@ -19,6 +19,10 @@ func (self *_runtime) evaluateTryCatch(node *_tryCatchNode) Value {
 		if throw {
 			self.Throw(throwValue)
 		}
+	}
+
+	if other != nil {
+		panic(*other) // Re-throw continue, break, return, etc.
 	}
 
 	return tryValue
