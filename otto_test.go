@@ -1629,6 +1629,21 @@ func TestRegExp(t *testing.T) {
 	test(`abc = '\\' + String.fromCharCode('0x0078'); eval('/' + abc + '/').source == "\\\u0078"`, "true")
 }
 
+func TestRegExp_exec(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`
+		abc = /./g;
+		def = '123456';
+		ghi = 0;
+		while (abc.exec(def) !== null) {
+			ghi += 1
+		}
+		[ ghi, def.length, ghi == def.length ];
+	`, "6,6,true")
+}
+
 func TestNewFunction(t *testing.T) {
 	Terst(t)
 
