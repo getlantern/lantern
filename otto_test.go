@@ -566,6 +566,24 @@ func TestTryFinally(t *testing.T) {
 		}
 	`)
 	test("result", "2")
+
+	test(`
+		var abc = false, def = 0;
+		do {
+			def += 1;
+			if (def > 100) {
+				break;
+			}
+			try {
+				continue;
+			}
+			finally {
+				abc = true;
+			}
+		}
+		while(!abc && def < 10)
+		def;
+	`, "10")
 }
 
 func TestTryCatch(t *testing.T) {

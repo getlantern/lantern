@@ -221,20 +221,19 @@ func (self *_runtime) breakEvaluate(_labelSet map[string]bool, inner func() Valu
 	return inner()
 }
 
-func (self *_runtime) continueEvaluate(node _node, _labelSet map[string]bool) (returnResult Value, skip bool) {
+func (self *_runtime) continueEvaluate(node _node, _labelSet map[string]bool) (returnResult Value) {
 	defer func(){
 		if caught := recover(); caught != nil {
 			if result, ok := caught.(_result); ok {
 					if result.Kind == resultContinue && _labelSet[result.Target] == true {
 						returnResult = emptyValue()
-						skip = true
 						return
 					}
 			}
 			panic(caught)
 		}
 	}()
-	return self.evaluate(node), false
+	return self.evaluate(node)
 }
 
 func (self *_runtime) declare(kind string, declarationList []_declaration) {

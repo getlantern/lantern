@@ -29,6 +29,7 @@ TEST := -v --run ParseFailure
 TEST := -v --run RegExp 
 TEST := -v --run stringToFloat 
 TEST := .
+TEST := -v --run TryFinally 
 
 test: test-i
 	go test $(TEST)

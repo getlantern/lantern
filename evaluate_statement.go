@@ -94,10 +94,7 @@ func (self *_runtime) evaluateDoWhile(node *_doWhileNode) Value {
 	return self.breakEvaluate(_labelSet, func() Value {
 		result := emptyValue()
 		for {
-			value, skip := self.continueEvaluate(body, _labelSet)
-			if skip {
-				continue
-			}
+			value := self.continueEvaluate(body, _labelSet)
 			if !value.isEmpty() {
 				result = value
 			}
@@ -125,7 +122,7 @@ func (self *_runtime) evaluateWhile(node *_whileNode) Value {
 			if (toBoolean(testResultValue) == false) {
 				break
 			}
-			value, _ := self.continueEvaluate(body, _labelSet)
+			value := self.continueEvaluate(body, _labelSet)
 			if !value.isEmpty() {
 				result = value
 			}
@@ -157,7 +154,7 @@ func (self *_runtime) evaluateFor(node *_forNode) Value {
 					break
 				}
 			}
-			value, _ := self.continueEvaluate(body, _labelSet)
+			value := self.continueEvaluate(body, _labelSet)
 			if !value.isEmpty() {
 				result = value
 			}
@@ -199,7 +196,7 @@ func (self *_runtime) evaluateForIn(node *_forInNode) Value {
 					into = toValue(getIdentifierReference(self.LexicalEnvironment(), identifier, false, node))
 				}
 				self.PutValue(into.reference(), toValue(name))
-				value, _ := self.continueEvaluate(body, _labelSet)
+				value := self.continueEvaluate(body, _labelSet)
 				if !value.isEmpty() {
 					result = value
 				}
