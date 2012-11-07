@@ -4734,6 +4734,10 @@ a.label:hover, a.badge:hover {
   visibility: hidden;
 }
 
+.ui-hide.noHeightWhenHidden {
+  height: 0 !important;
+}
+
 html, body {
   height: 100%;
 }
@@ -4865,7 +4869,7 @@ a[rel=tooltip]:hover {
   color: black;
 }
 
-input:disabled {
+input:disabled, textarea:disabled {
   cursor: default;
 }
 
@@ -4875,6 +4879,16 @@ input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
   -webkit-box-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
   -moz-box-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
   box-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
+}
+
+textarea {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+.ui-hide.noHeightWhenHidden {
+  height: 0 !important;
 }
 
 .modal form {
@@ -4887,11 +4901,16 @@ input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
   color: #999999;
 }
 
-#sanity {
-  z-index: 2100;
+#sanity form, #settingsLoadFailure form {
+  margin: 15px 30px 0 30px;
 }
-#sanity form {
-  text-align: center;
+#sanity form *, #settingsLoadFailure form * {
+  font-size: 11.9px;
+}
+
+textarea.bugReport {
+  width: 100%;
+  height: 100px;
 }
 
 #settingsUnlock .controls {
@@ -4914,12 +4933,6 @@ input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
   margin: 10px 0 5px 30px;
   font-size: 11.9px;
   color: #999999;
-}
-#authorize .prompt-extra.ui-hide {
-  height: 0;
-  -webkit-transition: none;
-  -moz-transition: none;
-  transition: none;
 }
 #authorize .control-label {
   font-size: 11.9px;
@@ -5071,13 +5084,6 @@ a.toggle.advanced:active, a.toggle.advanced:visited, a.toggle.advanced:hover {
 }
 #proxy-settings .advanced-container {
   margin-top: 10px;
-}
-
-#autoreport-warning.ui-hide {
-  height: 0;
-  -webkit-transition: height 0s;
-  -moz-transition: height 0s;
-  transition: height 0s;
 }
 
 button.reset {
@@ -5250,12 +5256,4 @@ body.showVis #footer {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-}
-
-#sanity {
-  z-index: 1051;
-}
-
-#sanity form, #settings-load-failure form {
-  margin: 15px 0;
 }

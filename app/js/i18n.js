@@ -62,7 +62,7 @@ angular.module('app.i18n', [])
       UNLOCK: 'Unlock',
       UNLOCKED: 'Unlocked',
       SETTINGS_LOAD_FAILURE_TITLE: 'Couldn’t Load Settings',
-      SETTINGS_LOAD_FAILURE_PROMPT: 'Your settings could not be loaded and may be corrupt. Choose Reset to make a backup and then start over, or choose Quit to try to resolve the problem later.', // XXX we currently don't back up settings before wiping them
+      SETTINGS_LOAD_FAILURE_PROMPT: 'Your settings could not be loaded and may be corrupt. Choose Reset to make a backup and then start over, or choose Quit to try again later.', // XXX we currently don't back up settings before wiping them
       NOTIFY_LANTERN_DEVS: 'Notify Lantern developers',
       UNEXPECTED_ERROR: 'An unexpected error has occurred.',
       ERROR: 'An error has occurred.',
@@ -157,7 +157,8 @@ angular.module('app.i18n', [])
       GIVE_MODE_FORBIDDEN_TITLE: 'Give Mode Forbidden',
       GIVE_MODE_FORBIDDEN_PROMPT: 'You appear to be connecting to Lantern from a censoring country. Running Lantern in Give Mode may be undesirable for trusted contacts who would try to get access through you.',
       CONFIRM_RESET_TITLE: 'Confirm Reset',
-      CONFIRM_RESET_PROMPT: 'Resetting Lantern will clear all saved information since it was set up.'
+      CONFIRM_RESET_PROMPT: 'Resetting Lantern will clear all saved information since it was set up.',
+      BUG_REPORT_PROMPT: 'Additional information describing what happened'
     }
   })
   // https://groups.google.com/d/msg/angular/641c1ykOX4k/hcXI5HsSD5MJ

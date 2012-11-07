@@ -17,15 +17,20 @@
   </div>
   <div class="modal-body">
     <div>{{ 'UNEXPECTED_STATE_PROMPT' | i18n }}</div>
-    <form class="form-inline">
-      <label class="checkbox">
-        <input type="checkbox" ng-model="notifyLanternDevs">
-        {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
-      </label>
+    <form>
+      <p>
+        <label class="checkbox inline">
+          <input type="checkbox" ng-model="notifyLanternDevs">
+          {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
+        </label>
+      </p>
+      <textarea class="bugReport" ng-disabled="!notifyLanternDevs"
+        ng-model="bugReport" placeholder="{{ 'BUG_REPORT_PROMPT' | i18n }}">
+      </textarea>
     </form>
   </div>
   <div class="modal-footer">
-    <button ng-click="maybeNotify(); reset()" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
+    <button ng-click="maybeNotify(); interaction(INTERACTION.reset)" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
     <button ng-click="maybeNotify(); refresh()" class="btn btn-primary">{{ 'REFRESH' | i18n }}</button>
   </div>
 </div>
@@ -63,16 +68,18 @@
   </div>
   <div class="modal-body">
     <div>{{ 'SETTINGS_LOAD_FAILURE_PROMPT' | i18n }}</div>
-    <form class="form-inline">
-      <label class="checkbox">
-        <input type="checkbox" ng-model="notifyLanternDevs">
-        {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
-      </label>
+    <form>
+      <p>
+        <label class="checkbox inline">
+          <input type="checkbox" ng-model="notifyLanternDevs">
+          {{ 'NOTIFY_LANTERN_DEVS' | i18n }}
+        </label>
+      </p>
     </form>
   </div>
   <div class="modal-footer">
-    <button ng-click="maybeNotify(); reset()" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
-    <button ng-click="maybeNotify(); quit()" class="btn btn-primary">{{ 'QUIT' | i18n }}</button>
+    <button ng-click="maybeNotify(); interaction(INTERACTION.reset)" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
+    <button ng-click="maybeNotify(); interaction(INTERACTION.quit)" class="btn btn-primary">{{ 'QUIT' | i18n }}</button>
   </div>
 </div>
 
@@ -131,7 +138,7 @@
       <small><a ng-click="helpExpanded=!helpExpanded"
                 class="toggle">{{ 'WHY' | i18n }}</a></small>
     </div>
-    <div class="prompt-extra" ui-toggle="helpExpanded">
+    <div class="prompt-extra noHeightWhenHidden" ui-toggle="helpExpanded">
       {{ 'AUTHORIZE_TIP_GTALK' | i18n }}
     </div>
   </div>
@@ -520,7 +527,8 @@
           </a>
         </label>
 
-        <div id="autoreport-warning" ui-toggle="!model.settings.autoReport">
+        <div id="autoreport-warning" ui-toggle="!model.settings.autoReport"
+             class="noHeightWhenHidden">
           <i class="icon-exclamation-sign"></i>
           <small>{{ 'NO_AUTOREPORT_WARNING' | i18n }}</small>
         </div>

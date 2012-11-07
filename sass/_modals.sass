@@ -8,10 +8,14 @@
   +small
   +gray
 
-#sanity
-  z-index: $zindexModal * 2
-  form
-    +centered
+#sanity form, #settingsLoadFailure form
+  margin: 15px 30px 0 30px
+  *
+    +small
+
+textarea.bugReport
+  width: 100%
+  height: 100px
 
 #settingsUnlock .controls
   +centered
@@ -31,9 +35,6 @@
     margin: 10px 0 5px 30px
     +small
     +gray
-    &.ui-hide
-      height: 0
-      +transition(none)
   .control-label
     +small
 
@@ -120,10 +121,6 @@ a.toggle.advanced
     margin-top: 5px
   #proxy-settings &
     margin-top: 10px
-
-#autoreport-warning.ui-hide
-  height: 0
-  +single-transition(height, 0s)
 
 button.reset
   margin: 0 0 -5px 50px

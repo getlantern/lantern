@@ -44,11 +44,7 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
   };
 
   $scope.refresh = function() {
-    location.reload(true);
-  };
-
-  $scope.confirmReset = function() {
-    // XXX
+    location.reload(true); // true to bypass cache and force request to server
   };
 
   $scope.reset = function() {
@@ -70,16 +66,6 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
       })
       .error(function(data, status, headers, config) {
         log.debug('interaction failed'); // XXX
-      });
-  };
-
-  $scope.quit = function() {
-    $http.post(apiSrvc.urlfor('quit'))
-      .success(function(data, status, headers, config) {
-        log.debug('Quit');
-      })
-      .error(function(data, status, headers, config) {
-        log.debug('Quit failed'); // XXX
       });
   };
 
@@ -111,17 +97,23 @@ function WaitingForLanternCtrl($scope, logFactory) {
   });
 }
 
-function SanityCtrl($scope, sanity, APIVER_REQUIRED, apiVerLabel, logFactory) {
+function SanityCtrl($scope, sanity, modelSrvc, cometdSrvc, APIVER_REQUIRED, MODAL, apiVerLabel, logFactory) {
   var log = logFactory('SanityCtrl');
   $scope.sanity = sanity;
 
   $scope.show = false;
   $scope.$watch('sanity.value', function(val) {
-    $scope.show = !val;
+    log.debug('sanity.value', val);
+    if (!val) {
+      log.warn('sanity false, disconnecting');
+      modelSrvc.disconnect();
+      modelSrvc.model.modal = MODAL.none;
+      $scope.show = true;
+    }
   });
 
   $scope.$watch('model.version.current.api', function(val) {
-    if (!val) return;
+    if (typeof val == 'undefined') return;
     if (val.major != APIVER_REQUIRED.major ||
         val.minor != APIVER_REQUIRED.minor) {
       sanity.value = false;
@@ -130,7 +122,7 @@ function SanityCtrl($scope, sanity, APIVER_REQUIRED, apiVerLabel, logFactory) {
     }
     // XXX required by apiSrvc. Better place for this?
     apiVerLabel.value = val.major+'.'+val.minor+'.'+val.patch;
-  });
+  }, true);
 }
 
 function SettingsLoadFailureCtrl($scope, MODAL) {
@@ -401,9 +393,10 @@ function InviteFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL) {
     $scope.show = val == MODAL.inviteFriends;
   });
 
+  // XXX can default to true if only trusted contacts can see
+  $scope.advertiseLantern = true;
+  /*
   $scope.$watch('model.settings.mode', function(val) {
-    // XXX can default to true for get mode too if only
-    // trusted contacts can see
     if (val) $scope.advertiseLanternDefault = val == MODE.give;
   });
   $scope.$watch('advertiseLanternDefault', function(val) {
@@ -411,6 +404,7 @@ function InviteFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL) {
     $scope.advertiseLantern = typeof configuredVal == 'undefined' ?
       $scope.advertiseLanternDefault : configuredVal;
   });
+  */
 }
 
 function AuthorizeLaterCtrl($scope, logFactory, MODAL) {
@@ -450,25 +444,18 @@ function GiveModeForbiddenCtrl($scope, logFactory, MODAL) {
 
 function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, cometdSrvc, modelSrvc) {
   var log = logFactory('DevCtrl'),
-      model = modelSrvc.model,
-      lastModel = modelSrvc.lastModel;
+      model = modelSrvc.model;
 
-  $scope.$watch('model.dev', function(val) {
-    dev.value = !!val;
-  });
-
-  var locked = false;
   $scope.$watch('model', function() {
-    if (dev.value && !locked) {
-      syncObject('', model, lastModel);
+    if (typeof 'model' != 'undefined' && dev.value) {
       $scope.editableModel = angular.toJson(model, true);
     }
   }, true);
 
   $scope.handleUpdate = function() {
-    locked = true;
-    syncObject('', angular.fromJson($scope.editableModel), model);
-    locked = false;
+    cometdSrvc.batch(function() {
+      syncObject('', angular.fromJson($scope.editableModel), model);
+    });
   };
 
   function syncObject(parent, src, dst) {

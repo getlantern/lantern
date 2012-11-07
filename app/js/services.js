@@ -78,7 +78,8 @@ angular.module('app.services', [])
     retryLater: 'retryLater',
     cancel: 'cancel',
     continue: 'continue',
-    close: 'close'
+    close: 'close',
+    quit: 'quit',
   })
   .service('ENUMS', function(MODE, STATUS_GTALK, MODAL, INTERACTION, SETTING, EXTERNAL_URL) {
     return {
@@ -115,8 +116,8 @@ angular.module('app.services', [])
       };
     }
   })
-  .constant('COMETDURL', location.protocol+'//'+location.host+'/cometd')
-  .service('cometdSrvc', function(COMETDURL, logFactory, $rootScope, $window) {
+  .constant('COMETD_URL', location.protocol+'//'+location.host+'/cometd')
+  .service('cometdSrvc', function(COMETD_URL, sanity, logFactory, $rootScope, $window) {
     var log = logFactory('cometdSrvc');
     // boilerplate cometd setup
     // http://cometd.org/documentation/cometd-javascript/subscription
@@ -125,7 +126,7 @@ angular.module('app.services', [])
         clientId,
         subscriptions = [];
     cometd.configure({
-      url: COMETDURL,
+      url: COMETD_URL,
       backoffIncrement: 50,
       maxBackoff: 500,
       //logLevel: 'debug',
@@ -145,6 +146,7 @@ angular.module('app.services', [])
         cometd.unsubscribe(subscriptionHandle);
         log.error('unsubscribed');
       }
+      sanity.value = false;
     };
 
     cometd.addListener('/meta/connect', function(msg) {
@@ -177,33 +179,36 @@ angular.module('app.services', [])
       }
     });
 
-    function subscribe(channel, callback) {
-      var sub = null;
+    function subscribe(key) {
       if (connected) {
-        sub = cometd.subscribe(channel, callback);
-        log.debug('subscribed to channel', channel);
+        key.sub = cometd.subscribe(key.chan, key.cb);
+        log.debug('subscribed', key);
       } else {
-        log.debug('queuing subscription request for channel', channel)
+        log.debug('queuing subscription request', key)
       }
-      var key = {sub: sub, chan: channel, cb: callback};
       subscriptions.push(key);
+      if (typeof key.renewOnReconnect == 'undefined')
+        key.renewOnReconnect = true;
     }
 
-    function unsubscribe(subscription) {
-      cometd.unsubscribe(subscription);
-      log.debug('unsubscribed', subscription);
+    function unsubscribe(key) {
+      cometd.unsubscribe(key.sub);
+      log.debug('unsubscribed', key);
+      key.renewOnReconnect = false;
     }
 
     function refresh() {
       log.debug('refreshing subscriptions');
+      var renew = [];
       angular.forEach(subscriptions, function(key) {
         if (key.sub)
-          unsubscribe(key.sub);
+          cometd.unsubscribe(key.sub);
+        if (key.renewOnReconnect)
+          renew.push(key);
       });
-      var tmp = subscriptions;
       subscriptions = [];
-      angular.forEach(tmp, function(key) {
-        subscribe(key.chan, key.cb);
+      angular.forEach(renew, function(key) {
+        subscribe(key);
       })
     }
 
@@ -227,7 +232,9 @@ angular.module('app.services', [])
 
     return {
       subscribe: subscribe,
-      // just for the developer panel
+      unsubscribe: unsubscribe,
+      // for DevCtrl
+      batch: function() { cometd.batch.apply(cometd, arguments); },
       publish: function(channel, data) { cometd.publish(channel, data); }
     };
   })
@@ -238,7 +245,7 @@ angular.module('app.services', [])
   .service('modelSrvc', function($rootScope, MODEL_SYNC_CHANNEL, cometdSrvc, logFactory) {
     var log = logFactory('modelSrvc'),
         model = {},
-        lastModel = {};
+        syncSubscriptionKey;
 
     function get(obj, path) {
       var val = obj;
@@ -268,18 +275,21 @@ angular.module('app.services', [])
       // XXX use modelValidatorSrvc to validate update before accepting
       var data = msg.data;
       set(model, data.path, data.value);
-      set(lastModel, data.path, data.value);
       $rootScope.$apply();
       log.debug('handleSync applied sync: path:', data.path || '""', 'value:', data.value);
     }
 
-    cometdSrvc.subscribe(MODEL_SYNC_CHANNEL, handleSync);
+    syncSubscriptionKey = {chan: MODEL_SYNC_CHANNEL, cb: handleSync};
+    cometdSrvc.subscribe(syncSubscriptionKey);
 
     return {
       model: model,
       get: function(path){ return get(model, path); },
-      // just for the developer panel
-      lastModel: lastModel
+      // for SanityCtrl
+      disconnect: function() {
+          log.debug('disconnecting');
+          cometdSrvc.unsubscribe(syncSubscriptionKey);
+        }
     };
   })
   .value('apiVerLabel', {value: undefined})

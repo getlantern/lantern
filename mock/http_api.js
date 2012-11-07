@@ -161,11 +161,13 @@ var _modalSeqGive = [MODAL.inviteFriends, MODAL.finished, MODAL.none],
  * Implemented like this since some modals can be skipped if the user is
  * unable to complete them, but should be returned to later.
  * */
-ApiServlet._advanceModal = function() {
+ApiServlet._advanceModal = function(backToIfNone) {
   var model = this._bayeuxBackend.model
     , modalSeq = inGiveMode(model) ? _modalSeqGive : _modalSeqGet
     , next;
   for (var i=0; this._internalState.modalsCompleted[next=modalSeq[i++]];);
+  if (backToIfNone && next == MODAL.none)
+    next = backToIfNone;
   model.modal = next;
   util.puts('next modal: ' + next);
   this._bayeuxBackend.publishSync('modal');
@@ -276,7 +278,7 @@ ApiServlet.HandlerMap = {
             return;
           }
           this._internalState.modalsCompleted[MODAL.proxiedSites] = true;
-          ApiServlet._advanceModal.call(this);
+          ApiServlet._advanceModal.call(this, MODAL.settings);
           return;
 
         case MODAL.systemProxy:
@@ -290,7 +292,7 @@ ApiServlet.HandlerMap = {
           model.settings.systemProxy = systemProxy;
           if (systemProxy) sleep.usleep(750000);
           this._internalState.modalsCompleted[MODAL.systemProxy] = true;
-          ApiServlet._advanceModal.call(this);
+          ApiServlet._advanceModal.call(this, MODAL.settings);
           return;
 
         case MODAL.inviteFriends:
@@ -393,11 +395,12 @@ ApiServlet.HandlerMap = {
               res.writeHead(400);
               return;
             }
-            if (inGiveMode(model) && interaction == MODE.get && model.settings.systemProxy)
+            var wasInGiveMode = inGiveMode(model);
+            if (wasInGiveMode && model.settings.systemProxy)
               sleep.usleep(750000);
             model.settings.mode = interaction;
             this._bayeuxBackend.publishSync('settings.mode');
-            ApiServlet._advanceModal.call(this);
+            ApiServlet._advanceModal.call(this, MODAL.settings);
           } else if (interaction == INTERACTION.proxiedSites) {
             model.modal = MODAL.proxiedSites;
             this._bayeuxBackend.publishSync('modal');

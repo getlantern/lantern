@@ -65,7 +65,7 @@ a[rel=tooltip]
     cursor: pointer
     color: $black
 
-input:disabled
+input:disabled, textarea:disabled
   cursor: default
 
 // as you type a@b.c, outline and shadow change from red to blue to red to blue without this
@@ -74,3 +74,6 @@ input[type=email]:focus
     color: #b94a48
     border-color: #b94a48
     +box-shadow(0 0 8px rgba(255, 0, 0, 0.6) !important)
+
+textarea
+  +box-sizing(border-box)
