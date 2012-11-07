@@ -584,6 +584,30 @@ func TestTryFinally(t *testing.T) {
 		while(!abc && def < 10)
 		def;
 	`, "1")
+
+	test(`
+		var abc = false, def = 0, ghi = 0;
+		do {
+			def += 1;
+			if (def > 100) {
+				break;
+			}
+			try {
+				throw 0;
+			}
+			catch (jkl) {
+				continue;
+			}
+			finally {
+				abc = true;
+				ghi = 11;
+			}
+			ghi -= 1;
+		}
+		while(!abc && def < 10)
+		ghi;
+	`, "0")
+	// TODO 11
 }
 
 func TestTryCatch(t *testing.T) {
@@ -1766,13 +1790,14 @@ func TestString_substring(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
-	test(`"abc".substring()`, "")
-	test(`"abc".substring(0)`, "")
+	test(`"abc".substring()`, "abc")
+	test(`"abc".substring(0)`, "abc")
 	test(`"abc".substring(0,11)`, "abc")
 	test(`"abc".substring(11,0)`, "abc")
 	test(`"abc".substring(0,-1)`, "")
 	test(`"abc".substring(-1,11)`, "abc")
 	test(`"abc".substring(11,1)`, "bc")
+	test(`"abc".substring(1)`, "bc")
 }
 
 func TestString_toCase(t *testing.T) {

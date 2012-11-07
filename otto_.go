@@ -60,9 +60,9 @@ func valueOfArrayIndex(list []Value, index int) Value {
 	return UndefinedValue()
 }
 
-func valueToArrayIndex(indexValue Value, length uint, negativeIndex bool) uint {
+func valueToArrayIndex(indexValue Value, length uint, negativeIsZero bool) uint {
 	index := toIntegerFloat(indexValue)
-	if negativeIndex {
+	if !negativeIsZero {
 		if 0 > length {
 			return uint(index)
 		}
