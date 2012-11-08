@@ -270,7 +270,7 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, COUNTRIES_CENSORED) {
                   .duration(500)
                   .style("opacity", 0)
                   .each("end", function() {
-                    direction[parabola.id] = -1*direction[parabola.id]; // changes the direction
+                    direction[parabola.id] = -direction[parabola.id]; // changes the direction
                     if (direction[parabola.id] == 1) {
                       svg.select("#" + parabola.id + "_node")
                          .transition()
@@ -305,7 +305,7 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, COUNTRIES_CENSORED) {
     parabola.points   = [{x: p1.x, y: p1.y}, {x: x, y: y}, {x: p2.x, y: p2.y}];
     parabola.line     = d3.svg.line().x(function(d) { return d.x; } ).y(function(d) { return d.y; } );
     parabola.orders   = d3.range(3, 4);
-    parabola.id       = counter.next();
+    parabola.id       = 'parabola' + counter.next();
     parabola.bezier   = [];
     parabola.c        = 'parabola_light'; // XXX
 
