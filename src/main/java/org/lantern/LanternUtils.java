@@ -1013,9 +1013,16 @@ public class LanternUtils {
     }
     
     public static ConnectionConfiguration xmppProxyConfig() {
+        final int proxyPort;
+        if (NumberUtils.isNumber(LanternConstants.FALLBACK_SERVER_PORT)) {
+            proxyPort = Integer.parseInt(LanternConstants.FALLBACK_SERVER_PORT);
+        } else {
+            proxyPort = 80;
+        }
         final ProxyInfo proxyInfo = 
-                new ProxyInfo(ProxyType.HTTP, LanternConstants.FALLBACK_SERVER_HOST, 
-                    LanternConstants.FALLBACK_SERVER_PORT, 
+                new ProxyInfo(ProxyType.HTTP, 
+                    LanternConstants.FALLBACK_SERVER_HOST, 
+                    proxyPort, 
                     LanternConstants.FALLBACK_SERVER_USER, 
                     LanternConstants.FALLBACK_SERVER_PASS);
         return xmppConfig(proxyInfo);

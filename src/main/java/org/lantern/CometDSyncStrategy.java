@@ -42,7 +42,13 @@ public class CometDSyncStrategy implements SyncStrategy {
                     syncer = LanternHub.settings();
                     break;
                 case transfers:
-                    syncer = new SyncData(channel.name(), LanternHub.settings().getTransfers());
+                    syncer = new SyncData(channel, LanternHub.settings().getTransfers());
+                    break;
+                case connectivity:
+                    syncer = new SyncData(channel, LanternHub.settings().getConnectivity());
+                    break;
+                case version:
+                    syncer = new SyncData(channel, LanternHub.settings().getVersion());
                     break;
                 default:
                     throw new Error("Bad channel: "+ channel);
@@ -66,10 +72,9 @@ public class CometDSyncStrategy implements SyncStrategy {
         private final String path;
         private final Object value; 
         
-        public SyncData(final String path, final Transfers transfers) {
-            this.path = path;
-            //this.value.put("value", transfers);
-            this.value = transfers;
+        public SyncData(final SyncChannel channel, final Object val) {
+            this.path = channel.name();
+            this.value = val;
         }
         
         public String getPath() {

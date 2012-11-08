@@ -77,17 +77,11 @@ public class SyncService {
     }
     
     @Subscribe
-    public void onUpdate(final UpdateEvent updateEvent) {
-        log.debug("Got update");
-        sync();
-    }
-    
-    @Subscribe
     public void onSync(final SyncEvent syncEvent) {
         log.debug("Got sync event");
         // We want to force a sync here regardless of whether or not we've 
         // recently synced.
-        sync(true);
+        sync(true, syncEvent.getChannel());
     }
 
     @Subscribe 
