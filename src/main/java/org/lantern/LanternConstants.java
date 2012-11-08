@@ -15,7 +15,7 @@ public class LanternConstants {
     static final int DASHCACHE_MAXAGE = 60 * 5;
 
     public static final String FALLBACK_SERVER_HOST = "fallback_server_host_tok";
-    public static final int FALLBACK_SERVER_PORT = 80;
+    public static final String FALLBACK_SERVER_PORT = "fallback_server_port_tok";;
     
     public static final String FALLBACK_SERVER_USER = "fallback_server_user_tok";
     public static final String FALLBACK_SERVER_PASS = "fallback_server_pass_tok";
@@ -26,6 +26,7 @@ public class LanternConstants {
      */
     public static final String VERSION = "lantern_version_tok";
     
+    public static final String BUILD_TIME = "build_time_tok";
     
     public static final String UNCENSORED_ID = "-lan-";
     

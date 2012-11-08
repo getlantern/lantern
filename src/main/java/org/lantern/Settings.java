@@ -84,7 +84,6 @@ public class Settings implements MutableSettings {
     
     private int port = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
     private int serverPort = LanternUtils.randomPort();
-    private String version = LanternConstants.VERSION;
     private boolean connectOnLaunch = true;
     private String language = Locale.getDefault().getLanguage();
     
@@ -191,6 +190,8 @@ public class Settings implements MutableSettings {
     private Transfers transfers = new Transfers();
     
     private Connectivity connectivity = new Connectivity();
+    
+    private final Version version = new Version();
 
     {
         LanternHub.register(this);
@@ -282,12 +283,6 @@ public class Settings implements MutableSettings {
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public int getServerPort() {
         return serverPort;
-    }
-
-
-    @JsonView(RuntimeSetting.class)
-    public String getVersion() {
-        return this.version;
     }
 
     @JsonView(RuntimeSetting.class)
@@ -731,8 +726,13 @@ public class Settings implements MutableSettings {
         return connectivity;
     }
 
-    public void setConnectivity(Connectivity connectivity) {
+    public void setConnectivity(final Connectivity connectivity) {
         this.connectivity = connectivity;
+    }
+
+    @JsonView(RuntimeSetting.class)
+    public Version getVersion() {
+        return version;
     }
 
     @JsonView({PersistentSetting.class})
@@ -749,7 +749,7 @@ public class Settings implements MutableSettings {
         return "Settings [update=" + update + ", platform=" + platform
                 + ", startAtLogin=" + startAtLogin + ", isSystemProxy="
                 + isSystemProxy + ", port=" + port + ", serverPort="
-                + serverPort + ", version=" + version + ", connectOnLaunch="
+                + serverPort + ", version=" + getVersion() + ", connectOnLaunch="
                 + connectOnLaunch + ", language=" + language + ", settings="
                 + settings + ", initialSetupComplete=" + initialSetupComplete
                 + ", autoConnectToPeers=" + autoConnectToPeers

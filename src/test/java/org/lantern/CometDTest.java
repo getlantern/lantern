@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -70,37 +71,53 @@ public class CometDTest {
         */
         
         final AtomicBoolean transferSync = new AtomicBoolean(false);
-        final AtomicReference<String> pathKey = new AtomicReference<String>("");
-        session.getChannel("/sync/transfers").subscribe(new MessageListener() {
+        final AtomicReference<String> transferPathKey = new AtomicReference<String>("");
+        subscribe (session, transferSync, "transfers", transferPathKey);
+        waitForBoolean("transfers", transferSync);
+        assertEquals("Unexpected path key", "transfers", transferPathKey.get());
+        
+        final AtomicBoolean versionSync = new AtomicBoolean(false);
+        final AtomicReference<String> versionPathKey = new AtomicReference<String>("");
+        subscribe (session, versionSync, "version", versionPathKey);
+        
+        final Map<String,Object> updateJson = 
+            new LinkedHashMap<String,Object>();
+        updateJson.put(LanternConstants.UPDATE_VERSION_KEY, 0.20);
+        updateJson.put(LanternConstants.UPDATE_RELEASED_KEY, 
+            "2012-10-31T11:15:00Z");
+        updateJson.put(LanternConstants.UPDATE_URL_KEY, 
+            "http://s3.amazonaws.com/lantern/latest.dmg");
+        updateJson.put(LanternConstants.UPDATE_MESSAGE_KEY, 
+            "test update");
+        
+        LanternHub.asyncEventBus().post(new UpdateEvent(updateJson));
+        
+        waitForBoolean("version", versionSync);
+        assertEquals("Unexpected path key", "version", versionPathKey.get());
+    }
+
+    private void subscribe(final ClientSession session, 
+        final AtomicBoolean bool, final String channelName, 
+        final AtomicReference<String> pathKey) {
+        session.getChannel("/sync/"+channelName).subscribe(new MessageListener() {
             
             @Override
             public void onMessage(final ClientSessionChannel channel, 
                 final Message message) {
                 System.err.println(message.getJSON());
-                transferSync.set(true);
-                /*
-                if (message.isSuccessful()) {
-                    System.err.println("SUCCESSFUL!!");
-                    transferSync.set(true);
-                } else {
-                    System.err.println("FAILURE!!");
-                    fail("Message not successful?");
-                }
-                */
                 final Map<String, Object> map = message.getDataAsMap();
                 final String path = (String) map.get("path");
+                System.err.println("Setting path key = "+path);
                 pathKey.set(path);
+                bool.set(true);
             }
         });
-        waitForBoolean("transfers", transferSync);
-        assertEquals("Unexpected path key", "transfers", pathKey.get());
-        //Thread.sleep(20000);
     }
 
     private void waitForBoolean(final String name, final AtomicBoolean bool) 
         throws InterruptedException {
         int tries = 0;
-        while (tries < 100) {
+        while (tries < 200) {
             if (bool.get()) {
                 break;
             }

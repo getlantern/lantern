@@ -23,6 +23,10 @@ INTERNAL_VERSION=$1-`git rev-parse HEAD | cut -c1-10`
 MVN_ARGS=$2
 echo "*******MAVEN ARGS*******: $MVN_ARGS"
 perl -pi -e "s/lantern_version_tok/$INTERNAL_VERSION/g" $CONSTANTS_FILE
+
+BUILD_TIME=`date +%s`
+perl -pi -e "s/build_time_tok/$BUILD_TIME/g" $CONSTANTS_FILE
+
 GE_API_KEY=`cat lantern_getexceptional.txt`
 if [ ! -n "$GE_API_KEY" ]
   then

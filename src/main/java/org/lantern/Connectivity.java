@@ -17,7 +17,7 @@ public class Connectivity {
 
     private String ip = "";
     
-    {
+    public Connectivity() {
         LanternHub.register(this);
     }
     
@@ -40,6 +40,7 @@ public class Connectivity {
     public void onAuthenticationStateChanged(
         final GoogleTalkStateEvent ase) {
         this.googleTalkState = ase.getState();
+        LanternHub.asyncEventBus().post(new SyncEvent(SyncChannel.connectivity));
     }
     
     @JsonView(RuntimeSetting.class)
@@ -51,6 +52,7 @@ public class Connectivity {
     public void onConnectivityStateChanged(
         final ConnectivityStatusChangeEvent csce) {
         this.connectivityStatus = csce.getConnectivityStatus();
+        LanternHub.asyncEventBus().post(new SyncEvent(SyncChannel.connectivity));
     }
 
 }

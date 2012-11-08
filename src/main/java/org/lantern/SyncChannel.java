@@ -8,4 +8,6 @@ public enum SyncChannel {
     settings,
     roster,
     transfers,
+    connectivity,
+    version,
 }
