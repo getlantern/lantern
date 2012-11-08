@@ -33,6 +33,7 @@ function inCensoringCountry(model) {
 }
 
 var peer1 = {
+    "guid": "guid1",
     "userid": "lantern_friend1@example.com",
     "ip":"74.120.12.135",
     "lat":51,
@@ -41,7 +42,8 @@ var peer1 = {
     "type":"desktop"
     }
 , peer2 = {
-    "userid": "lantern_friend2@example.com",
+    "guid": "guid2",
+    "userid": "lantern_power_user@example.com",
     "ip":"93.182.129.82",
     "lat":55.7,
     "lon":13.1833,
@@ -49,6 +51,7 @@ var peer1 = {
     "type":"lec2proxy"
   }
 , peer3 = {
+    "guid": "guid3",
     "userid": "lantern_power_user@example.com",
     "ip":"173.194.66.141",
     "lat":37.4192,
@@ -57,7 +60,8 @@ var peer1 = {
     "type":"laeproxy"
   }
 , peer4 = {
-    "userid": "lantern_friend2@example.com",
+    "guid": "guid4",
+    "userid": "lantern_power_user@example.com",
     "ip":"...",
     "lat":54,
     "lon":-2,

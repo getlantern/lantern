@@ -285,8 +285,10 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, COUNTRIES_CENSORED) {
           });
   }
 
+  /*
   var counter = {next: function() { return counter.next._val++; }};
   counter.next._val = 0;
+  */
 
   function addParabola(peer) {
     log.debug('adding parabola for peer', peer);
@@ -305,7 +307,7 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, COUNTRIES_CENSORED) {
     parabola.points   = [{x: p1.x, y: p1.y}, {x: x, y: y}, {x: p2.x, y: p2.y}];
     parabola.line     = d3.svg.line().x(function(d) { return d.x; } ).y(function(d) { return d.y; } );
     parabola.orders   = d3.range(3, 4);
-    parabola.id       = 'parabola' + counter.next();
+    parabola.id       = 'parabola_' + peer.guid;
     parabola.bezier   = [];
     parabola.c        = 'parabola_light'; // XXX
 
@@ -342,16 +344,16 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, COUNTRIES_CENSORED) {
   function updateParabolas(valNew, valOld) {
     var tmp = {};
     angular.forEach(valNew, function(peer) {
-      var el = tmp[peer.userid] || {};
+      var el = tmp[peer.guid] || {};
       el.value = peer;
       el.inNew = true;
-      tmp[peer.userid] = el;
+      tmp[peer.guid] = el;
     });
     angular.forEach(valOld, function(peer) {
-      var el = tmp[peer.userid] || {};
+      var el = tmp[peer.guid] || {};
       el.value = peer;
       el.inOld = true;
-      tmp[peer.userid] = el;
+      tmp[peer.guid] = el;
     });
     angular.forEach(tmp, function(el) {
       if (el.inOld && !el.inNew) {
