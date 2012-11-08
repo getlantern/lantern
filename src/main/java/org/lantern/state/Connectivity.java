@@ -1,6 +1,12 @@
-package org.lantern;
+package org.lantern.state;
 
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.lantern.ConnectivityStatus;
+import org.lantern.ConnectivityStatusChangeEvent;
+import org.lantern.GoogleTalkState;
+import org.lantern.GoogleTalkStateEvent;
+import org.lantern.LanternHub;
+import org.lantern.Settings;
 import org.lantern.Settings.RuntimeSetting;
 
 import com.google.common.eventbus.Subscribe;

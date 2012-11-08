@@ -1,10 +1,13 @@
-package org.lantern;
+package org.lantern.state;
 
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.lantern.LanternConstants;
+import org.lantern.LanternHub;
+import org.lantern.UpdateEvent;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -15,7 +18,7 @@ public class Version {
 
     private final Current current = new Current();
     
-    private Map<String, Object> update = new TreeMap<String, Object>();
+    private Map<String, Object> updated = new TreeMap<String, Object>();
     
     public Version() {
         LanternHub.register(this);
@@ -23,7 +26,7 @@ public class Version {
     
     @Subscribe
     public void onUpdate(final UpdateEvent updateEvent) {
-        this.update = updateEvent.getData();
+        this.updated = updateEvent.getData();
         LanternHub.asyncEventBus().post(new SyncEvent(SyncChannel.version));
     }
 
@@ -31,8 +34,8 @@ public class Version {
         return current;
     }
 
-    public Map<String, Object> getUpdate() {
-        return update;
+    public Map<String, Object> getUpdated() {
+        return updated;
     }
 
     public class Current {

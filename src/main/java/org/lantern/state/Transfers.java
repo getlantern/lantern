@@ -1,6 +1,8 @@
-package org.lantern;
+package org.lantern.state;
 
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.lantern.LanternHub;
+import org.lantern.Settings;
 import org.lantern.Settings.PersistentSetting;
 import org.lantern.Settings.RuntimeSetting;
 

@@ -1,8 +1,9 @@
-package org.lantern;
+package org.lantern.state;
 
 import java.util.Collection;
 import java.util.HashSet;
 
+import org.lantern.DefaultPeerProxyManager;
 import org.lantern.DefaultPeerProxyManager.ConnectionTimeSocket;
 
 import com.google.common.collect.ImmutableSet;

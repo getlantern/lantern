@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.state;
 
 /**
  * The available channels to sync on.
