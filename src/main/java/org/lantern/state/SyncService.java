@@ -11,9 +11,10 @@ import org.cometd.bayeux.Channel;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.cometd.bayeux.server.ServerSession;
-import org.lantern.ClosedBetaEvent;
 import org.lantern.LanternHub;
-import org.lantern.RosterStateChangedEvent;
+import org.lantern.event.ClosedBetaEvent;
+import org.lantern.event.RosterStateChangedEvent;
+import org.lantern.event.SyncEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

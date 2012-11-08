@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.event;
 
 import java.util.HashMap;
 import java.util.Map;

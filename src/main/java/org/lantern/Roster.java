@@ -21,6 +21,7 @@ import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.RandomRoutingTable;
 import org.kaleidoscope.TrustGraphNodeId;
+import org.lantern.event.RosterStateChangedEvent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;

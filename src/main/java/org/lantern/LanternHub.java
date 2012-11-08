@@ -20,6 +20,7 @@ import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.InMemoryCookieTracker;
+import org.lantern.event.SettingsStateEvent;
 import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.lantern.privacy.LocalCipherProvider;

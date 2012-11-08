@@ -7,7 +7,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.lantern.LanternConstants;
 import org.lantern.LanternHub;
-import org.lantern.UpdateEvent;
+import org.lantern.event.SyncEvent;
+import org.lantern.event.UpdateEvent;
 
 import com.google.common.eventbus.Subscribe;
 

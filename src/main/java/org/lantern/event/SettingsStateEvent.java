@@ -1,4 +1,6 @@
-package org.lantern; 
+package org.lantern.event; 
+
+import org.lantern.SettingsState;
 
 /**
  * Event for a change in the state of the settings

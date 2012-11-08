@@ -21,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.lantern.event.UpdateEvent;
 import org.lantern.state.Connectivity;
 import org.lantern.state.Transfers;
 import org.lantern.state.Version;

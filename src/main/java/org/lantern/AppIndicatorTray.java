@@ -3,6 +3,8 @@ package org.lantern;
 import java.io.File;
 import java.util.Map;
 
+import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.event.QuitEvent;
 import org.lantern.linux.AppIndicator;
 import org.lantern.linux.Glib;
 import org.lantern.linux.Gobject;

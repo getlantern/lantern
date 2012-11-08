@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.eclipse.swt.SWT;
+import org.lantern.event.QuitEvent;
 import org.lantern.win.WinProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

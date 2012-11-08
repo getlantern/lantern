@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.event;
 
 import org.jivesoftware.smack.packet.Presence;
 
