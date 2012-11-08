@@ -109,6 +109,12 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         */
     }
     
+
+    @Override
+    public void start(final boolean localOnly, final boolean anyAddress) {
+        start();
+    }
+    
     private ServerBootstrap newServerBootstrap(
         final ChannelPipelineFactory pipelineFactory, final int port) {
         final ServerBootstrap bootstrap = 
@@ -162,6 +168,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     private final AtomicBoolean stopped = new AtomicBoolean(false);
     
+    @Override
     public void stop() {
         log.info("Shutting down proxy");
         if (stopped.get()) {
@@ -194,4 +201,5 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         clientChannelFactory.releaseExternalResources();
         log.info("Done shutting down proxy");
     }
+
 }

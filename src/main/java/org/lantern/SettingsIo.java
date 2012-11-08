@@ -118,7 +118,7 @@ public class SettingsIo {
         OutputStream os = null;
         try {
             final String json = LanternUtils.jsonify(settings, 
-                Settings.PersistentSettings.class);
+                Settings.PersistentSetting.class);
             os = LanternUtils.localEncryptOutputStream(settingsFile);
             os.write(json.getBytes("UTF-8"));
         } catch (final IOException e) {

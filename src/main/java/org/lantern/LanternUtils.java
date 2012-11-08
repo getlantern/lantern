@@ -156,11 +156,13 @@ public class LanternUtils {
         }
     }
     
+    /*
     public static Socket openRawOutgoingPeerSocket(
         final URI uri, final P2PClient p2pClient,
         final Map<URI, AtomicInteger> peerFailureCount) throws IOException {
         return openOutgoingPeerSocket(uri, p2pClient, peerFailureCount, true);
     }
+    */
     
     public static Socket openOutgoingPeerSocket(
         final URI uri, final P2PClient p2pClient,
@@ -196,7 +198,7 @@ public class LanternUtils {
                 LOG.debug("Socket has ciphers {}", 
                     ((SSLSocket)sock).getEnabledCipherSuites());
             } else {
-                LOG.debug("Not an SSL socket...");
+                LOG.warn("Not an SSL socket...");
             }
             //startReading(sock, browserToProxyChannel, recordStats);
             return sock;

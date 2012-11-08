@@ -7,10 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
-import javax.servlet.GenericServlet;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,7 +22,6 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.FilterMapping;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
@@ -116,6 +112,7 @@ public class JettyLauncher {
         cometd.setInitOrder(1);
         contextHandler.addServlet(cometd, "/cometd/*");
         
+        /*
         final class ConfigServlet extends GenericServlet {
             private static final long serialVersionUID = -2633162671596490471L;
             @Override
@@ -123,13 +120,15 @@ public class JettyLauncher {
                 final ServletResponse res)
                 throws ServletException, IOException {
                 final Settings settings = LanternHub.settings();
-                final String json = LanternUtils.jsonify(settings, Settings.UIStateSettings.class);
+                final String json = LanternUtils.jsonify(settings, 
+                    Settings.RuntimeSetting.class);
                 final byte[] raw = json.getBytes("UTF-8");
                 res.setContentLength(raw.length);
                 res.setContentType("application/json; charset=UTF-8");
                 res.getOutputStream().write(raw);
             }
         }
+        */
         
         final class SettingsServlet extends HttpServlet {
 
@@ -253,9 +252,11 @@ public class JettyLauncher {
         photoServlet.setInitOrder(3);
         contextHandler.addServlet(photoServlet, "/photo/*");
         
+        /*
         final ServletHolder config = new ServletHolder(new ConfigServlet());
         config.setInitOrder(3);
         contextHandler.addServlet(config, "/config");
+        */
         
         final ServletHolder bayeux = new ServletHolder(BayeuxInitializer.class);
         bayeux.setInitParameter("jsonContext", 
@@ -268,6 +269,7 @@ public class JettyLauncher {
             final FilterHolder filterHolder = new FilterHolder(filter);
             //filterHolder.setInitParameter("allowedOrigins", "http://fiddle.jshell.net/");
             filterHolder.setInitParameter("allowedOrigins", "*");
+            /*
             contextHandler.addFilter(filterHolder, secureBase + "/cometd/*", 
                 FilterMapping.REQUEST);
             contextHandler.addFilter(filterHolder, secureBase + "/api/*", 
@@ -276,6 +278,7 @@ public class JettyLauncher {
                     FilterMapping.REQUEST);
             contextHandler.addFilter(filterHolder, secureBase + "/photo/*", 
                     FilterMapping.REQUEST);
+                    */
         }
         
         //new SyncService(new SwtJavaScriptSyncStrategy());

@@ -3,14 +3,14 @@ package org.lantern;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.cometd.annotation.Configure;
+import org.cometd.annotation.Listener;
+import org.cometd.annotation.Service;
+import org.cometd.annotation.Session;
 import org.cometd.bayeux.Channel;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.cometd.bayeux.server.ServerSession;
-import org.cometd.java.annotation.Configure;
-import org.cometd.java.annotation.Listener;
-import org.cometd.java.annotation.Service;
-import org.cometd.java.annotation.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -102,19 +102,20 @@ public class SyncService {
     }
     
     private void rosterSync() {
-        sync(false, LanternConstants.ROSTER_SYNC_CHANNEL);
+        sync(false, SyncChannel.roster);
     }
     
     private void sync(final boolean force) {
-        sync(force, LanternConstants.SETTINGS_SYNC_CHANNEL);
+        //sync(force, SyncChannel.settings);
+        sync(force, SyncChannel.transfers);
     }
     
     private void sync() {
         sync(false);
     }
     
-    private void sync(final boolean force, final String channelName) {
+    private void sync(final boolean force, final SyncChannel channel) {
         log.debug("In sync method");
-        this.strategy.sync(force, channelName, this.session);
+        this.strategy.sync(force, channel, this.session);
     }
 }

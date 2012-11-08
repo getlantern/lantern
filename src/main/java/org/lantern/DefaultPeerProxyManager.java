@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -49,9 +50,12 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             @Override
             public int compare(final ConnectionTimeSocket cts1, 
                 final ConnectionTimeSocket cts2) {
-                return cts1.elapsed.compareTo(cts2.elapsed);
+                return cts1.getConnectionTime().compareTo(cts2.getConnectionTime());
             }
         });
+    
+    private final Map<URI, Peer> peers = new TreeMap<URI, Peer>();
+    //private final Collection<Peer> peers = new ConcurrentSkipListSet<Peer>();
 
     private final boolean anon;
     
@@ -128,7 +132,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                 log.info("No peer sockets available!! TRUSTED: "+!anon);
                 return null;
             }
-            final Socket s = cts.sock;
+            final Socket s = cts.getSocket();
             if (s != null) {
                 if (!s.isClosed()) {
                     log.info("Found connected socket!");
@@ -147,9 +151,16 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         final Iterator<ConnectionTimeSocket> iter = this.timedSockets.iterator();
         while (iter.hasNext()) {
             final ConnectionTimeSocket cts = iter.next();
-            if (cts.sock != null) {
-                if (cts.sock.isClosed()) {
+            final Socket sock = cts.getSocket();
+            if (sock != null) {
+                if (sock.isClosed()) {
                     iter.remove();
+                    final Peer peer = this.peers.get(cts.peerUri);
+                    if (peer == null) {
+                        log.warn("Could not find matching peer data?");
+                    } else {
+                        peer.removeSocket(cts);
+                    }
                 }
             }
         }
@@ -189,15 +200,15 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                     // scenario the browser makes many connections to the proxy
                     // to open a single page.
                     for (int i = 0; i < sockets; i++) {
-                        final ConnectionTimeSocket ts = 
-                            new ConnectionTimeSocket(peerUri);
+                        final long now = System.currentTimeMillis();
+
 
                         final Socket sock = LanternUtils.openOutgoingPeerSocket(
                             peerUri, LanternHub.xmppHandler().getP2PClient(), 
                             peerFailureCount);
                         log.info("Got socket and adding it for peer: {}", peerUri);
-                        ts.onSocket(sock);
-                        timedSockets.add(ts);
+                        addSocket(peerUri, now, sock);
+
                         if (!gotConnected) {
                             LanternHub.eventBus().post(
                                     new ConnectivityStatusChangeEvent(
@@ -212,31 +223,49 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         });
     }
 
+    private void addSocket(final URI peerUri, final long startTime, 
+        final Socket sock) {
+        final ConnectionTimeSocket ts = 
+            new ConnectionTimeSocket(peerUri, startTime, sock);
+        
+        this.timedSockets.add(ts);
+        final Peer peer;
+        if (this.peers.containsKey(peerUri)) {
+            peer = this.peers.get(peerUri);
+        } else {
+            final String cc = 
+                LanternHub.getGeoIpLookup().getCountry(sock.getInetAddress()).getCode();
+            peer = new Peer(peerUri.toASCIIString(), ts, cc);
+            this.peers.put(peerUri, peer);
+        }
+        peer.addSocket(ts);
+    }
+
     /**
      * Class holding a socket and an HTTP request processor that also tracks
      * connection times.
      * 
      * Package-access for easier testing.
      */
-    final class ConnectionTimeSocket {
-        private final long startTime = System.currentTimeMillis();
-        Long elapsed;
+    public final class ConnectionTimeSocket {
+        private final Long connectionTime;
         
         /**
          * We only store the peer URI so we can create a new connection to the
          * peer when this one succeeds.
          */
         private final URI peerUri;
-        private HttpRequestProcessor requestProcessor;
-        private Socket sock;
-        
-        public ConnectionTimeSocket(final URI peerUri) {
-            this.peerUri = peerUri;
-        }
+        private final HttpRequestProcessor requestProcessor;
+        private final Socket sock;
 
-        private void onSocket(final Socket socket) {
-            this.elapsed = System.currentTimeMillis() - this.startTime;
-            this.sock = socket;
+        private final long startTime;
+
+        public ConnectionTimeSocket(final URI peerUri, final long startTime, 
+            final Socket sock) {
+            this.peerUri = peerUri;
+            this.sock = sock;
+            this.startTime = startTime;
+            this.connectionTime = System.currentTimeMillis() - startTime;
             if (anon) {
                 this.requestProcessor = 
                     new PeerHttpConnectRequestProcessor(sock, channelGroup);
@@ -245,6 +274,18 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                     new PeerChannelHttpRequestProcessor(sock, channelGroup);
                     //new PeerHttpRequestProcessor(sock);
             }
+        }
+
+        public Socket getSocket() {
+            return sock;
+        }
+
+        public Long getConnectionTime() {
+            return connectionTime;
+        }
+
+        public long getStartTime() {
+            return startTime;
         }
     }
 

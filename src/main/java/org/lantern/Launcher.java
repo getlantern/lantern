@@ -68,7 +68,7 @@ public class Launcher {
     private static Logger LOG;
     private static boolean lanternStarted = false;
     private static LanternHttpProxyServer localProxy;
-    private static DefaultHttpProxyServer plainTextAnsererRelayProxy;
+    private static HttpProxyServer plainTextAnsererRelayProxy;
     
     
     /**
@@ -649,10 +649,12 @@ public class Launcher {
         LanternHub.setClientChannelFactory(clientChannelFactory);
         LanternHub.setChannelGroup(channelGroup);
         
-        
-        // Note that just passing in the keystore manager triggers this to 
-        // become an SSL proxy server.
+
         final int staticRandomPort = LanternHub.settings().getServerPort();
+        
+        // Note that the keystore manager triggers the following to 
+        // become an SSL proxy server -- the constructor below looks up the
+        // keystore internally.
         final StatsTrackingDefaultHttpProxyServer sslProxy =
             new StatsTrackingDefaultHttpProxyServer(staticRandomPort,
             new HttpResponseFilters() {
@@ -661,8 +663,9 @@ public class Launcher {
                     return null;
                 }
             }, null, publicOnlyRequestFilter, clientChannelFactory, timer, 
-            serverChannelFactory);
-        LOG.debug("SSL port is {}", staticRandomPort);
+            serverChannelFactory, LanternHub.getKeyStoreManager());
+        LOG.debug("Long lived SSL port is {}", staticRandomPort);
+        
         //final org.littleshoot.proxy.HttpProxyServer sslProxy = 
         //    new DefaultHttpProxyServer(LanternHub.randomSslPort());
         sslProxy.start(false, false);
@@ -670,13 +673,31 @@ public class Launcher {
         // The reason this exists is complicated. It's for the case when the
         // offerer gets an incoming connection from the answerer, and then
         // only on the answerer side. The answerer "client" socket relays
-        // its data to the local proxy.
+        // its data to the local proxy to feed data to the offerer, i.e. the
+        // real "client" in a broader sense. The only reason we don't use the
+        // same proxy just created above is that this is all decrypted by
+        // it gets to the point, and the above server only accepts SSL. We
+        // could theoretically wrap new client connections in SSL however.
         // See http://cdn.getlantern.org/IMAG0210.jpg
+        
+        Launcher.plainTextAnsererRelayProxy =
+            new StatsTrackingDefaultHttpProxyServer(
+                LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT,
+                new HttpResponseFilters() {
+                    @Override
+                    public HttpFilter getFilter(String arg0) {
+                        return null;
+                    }
+                }, null, publicOnlyRequestFilter, clientChannelFactory, timer, 
+                serverChannelFactory, null);
+        
+        /*
         Launcher.plainTextAnsererRelayProxy = 
             new DefaultHttpProxyServer(
                 LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT,
                 publicOnlyRequestFilter, clientChannelFactory, timer, 
                 serverChannelFactory);
+                */
         plainTextAnsererRelayProxy.start(true, false);
         
         LOG.info("About to start Lantern server on port: "+

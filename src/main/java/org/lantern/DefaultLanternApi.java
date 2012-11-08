@@ -401,7 +401,7 @@ public class DefaultLanternApi implements LanternApi {
 
     private void returnSettings(final HttpServletResponse resp) {
         final String json = LanternUtils.jsonify(LanternHub.settings(), 
-            Settings.UIStateSettings.class);
+            Settings.RuntimeSetting.class);
         returnJson(resp, json);
     }
 

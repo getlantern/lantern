@@ -14,6 +14,8 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.socket.DefaultSocketChannelConfig;
 import org.jboss.netty.channel.socket.SocketChannel;
 import org.jboss.netty.channel.socket.SocketChannelConfig;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /**
@@ -22,15 +24,18 @@ import org.jboss.netty.channel.socket.SocketChannelConfig;
  * and org.jboss.netty.channel.socket.oio.OioClientSocketChannel
  * which are irritatingly non-public, much like this class.
  */ 
-class PeerSocketChannel extends AbstractChannel implements SocketChannel {
+public class PeerSocketChannel extends AbstractChannel implements SocketChannel {
+    
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     final Socket socket;
     final Object interestOpsLock = new Object();
     private final SocketChannelConfig config;
     volatile Thread workerThread;
     private volatile InetSocketAddress localAddress;
     private volatile InetSocketAddress remoteAddress;
-    volatile PushbackInputStream in;
-    volatile OutputStream out;
+    private volatile PushbackInputStream in;
+    private volatile OutputStream out;
 
     PeerSocketChannel(
         ChannelPipeline pipeline,
@@ -60,6 +65,7 @@ class PeerSocketChannel extends AbstractChannel implements SocketChannel {
             peerReadingThread.start();
         }
         catch (Throwable t) {
+            log.error("Error simulating connect", t);
             Channels.fireExceptionCaught(this, t);
         }
     }

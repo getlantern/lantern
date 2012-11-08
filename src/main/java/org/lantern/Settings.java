@@ -6,6 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collection;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +38,8 @@ public class Settings implements MutableSettings {
     
     // marker class used to indicate settings that are 
     // saved / loaded between runs of lantern.
-    public static class PersistentSettings {}
-    public static class UIStateSettings {}
+    public static class PersistentSetting {}
+    public static class RuntimeSetting {}
     
     /**
      * Settings that are not sent to the UI or persisted to disk.
@@ -73,8 +75,7 @@ public class Settings implements MutableSettings {
     }
     
     private Whitelist whitelist;
-    
-    private ConnectivityStatus connectivity = ConnectivityStatus.DISCONNECTED; 
+
     private Map<String, Object> update = new HashMap<String, Object>();
     
     private Platform platform = new Platform();
@@ -95,8 +96,6 @@ public class Settings implements MutableSettings {
     private boolean initialSetupComplete = false;
     
     private boolean autoConnectToPeers = true;
-    
-    private GoogleTalkState googleTalkState = GoogleTalkState.LOGGED_OUT;
     
     private boolean proxyAllSites;
     
@@ -136,10 +135,6 @@ public class Settings implements MutableSettings {
     private int apiPort;
     
     private boolean passwordSaved;
-    
-    // sum of past runs
-    private long historicalUpBytes = 0;
-    private long historicalDownBytes = 0;
     
     /**
      * Whether or not we're running from launchd. Not stored or sent to the 
@@ -192,6 +187,10 @@ public class Settings implements MutableSettings {
      * Locally-stored set of users we've invited.
      */
     private Set<String> invited = new HashSet<String>();
+    
+    private Transfers transfers = new Transfers();
+    
+    private Connectivity connectivity = new Connectivity();
 
     {
         LanternHub.register(this);
@@ -219,6 +218,13 @@ public class Settings implements MutableSettings {
                 // This performs the public IP lookup so by the time we set
                 // GET versus GIVE mode we already know the IP and don't have
                 // to wait.
+                
+                // We get the address here to set it in Connectivity.
+                final InetAddress ip = 
+                    new PublicIpAddress().getPublicIpAddress();
+                connectivity.setPublicIp(ip.getHostAddress());
+                
+                // The IP is cached at this point.
                 final Country count = LanternHub.censored().country();
                 if (countryDetected.get() == null) {
                     countryDetected.set(count);
@@ -240,7 +246,7 @@ public class Settings implements MutableSettings {
         thread.start();
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public boolean isSystemProxy() {
         return this.isSystemProxy;
     }
@@ -250,7 +256,7 @@ public class Settings implements MutableSettings {
         this.isSystemProxy = isSystemProxy;
     }
     
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public boolean isStartAtLogin() {
         return this.startAtLogin;
     }
@@ -258,9 +264,8 @@ public class Settings implements MutableSettings {
     public void setStartAtLogin(final boolean startAtLogin) {
         this.startAtLogin = startAtLogin;
     }
-    
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public int getPort() {
         return this.port;
     }
@@ -274,22 +279,18 @@ public class Settings implements MutableSettings {
         this.serverPort = serverPort;
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public int getServerPort() {
         return serverPort;
     }
-    
-    @JsonView(UIStateSettings.class)
-    public ConnectivityStatus getConnectivity() {
-        return connectivity;
-    }
 
-    @JsonView(UIStateSettings.class)
+
+    @JsonView(RuntimeSetting.class)
     public String getVersion() {
         return this.version;
     }
 
-    @JsonView(UIStateSettings.class)
+    @JsonView(RuntimeSetting.class)
     public Platform getPlatform() {
         return this.platform;
     }
@@ -298,7 +299,7 @@ public class Settings implements MutableSettings {
         this.connectOnLaunch = connectOnLaunch;
     }
     
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public boolean isConnectOnLaunch() {
         return this.connectOnLaunch;
     }
@@ -308,19 +309,12 @@ public class Settings implements MutableSettings {
         log.info("Got update event");
         this.update = ue.getData();
     }
-    
-    @Subscribe
-    public void onConnectivityStateChanged(
-        final ConnectivityStatusChangeEvent csce) {
-        log.info("Received connectivity changed event");
-        this.connectivity = csce.getConnectivityStatus();
-    }
 
     public void setLanguage(final String language) {
         this.language = language;
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public String getLanguage() {
         return language;
     }
@@ -329,7 +323,7 @@ public class Settings implements MutableSettings {
         this.update = update;
     }
     
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public Map<String, Object> getUpdate() {
         return update;
     }
@@ -338,12 +332,12 @@ public class Settings implements MutableSettings {
         this.settings = settings;
     }
 
-    @JsonView(UIStateSettings.class)
+    @JsonView(RuntimeSetting.class)
     public SettingsState getSettings() {
         return settings;
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public boolean isInitialSetupComplete() {
         return initialSetupComplete;
     }
@@ -363,7 +357,7 @@ public class Settings implements MutableSettings {
         return commandLineEmail;
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public String getEmail() {
         return email;
     }
@@ -373,22 +367,12 @@ public class Settings implements MutableSettings {
         this.email = email;
     }
 
-    @JsonView(UIStateSettings.class)
-    public GoogleTalkState getGoogleTalkState() {
-        return googleTalkState;
-    }
-    
-    @Subscribe
-    public void onAuthenticationStateChanged(
-        final GoogleTalkStateEvent ase) {
-        this.googleTalkState = ase.getState();
-    }
-
+    @Override
     public void setProxyAllSites(final boolean proxyAllSites) {
         this.proxyAllSites = proxyAllSites;
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public boolean isProxyAllSites() {
         return proxyAllSites;
     }
@@ -397,12 +381,12 @@ public class Settings implements MutableSettings {
         this.countryDetected.set(countryDetected);
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public Country getCountryDetected() {
         return countryDetected.get();
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public Country getCountry() {
         return this.country.get();
     }
@@ -417,7 +401,7 @@ public class Settings implements MutableSettings {
         this.manuallyOverrideCountry = manuallyOverrideCountry;
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public boolean isManuallyOverrideCountry() {
         return manuallyOverrideCountry;
     }
@@ -427,7 +411,7 @@ public class Settings implements MutableSettings {
         this.savePassword = savePassword;
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public boolean isSavePassword() {
         return savePassword;
     }
@@ -457,7 +441,7 @@ public class Settings implements MutableSettings {
         this.storedPassword = storedPassword;
     }
 
-    @JsonView(PersistentSettings.class)
+    @JsonView(PersistentSetting.class)
     public String getStoredPassword() {
         return storedPassword;
     }
@@ -466,8 +450,7 @@ public class Settings implements MutableSettings {
         this.useCloudProxies = useCloudProxies;
     }
 
-
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public boolean isUseCloudProxies() {
         return useCloudProxies;
     }
@@ -483,8 +466,7 @@ public class Settings implements MutableSettings {
         }
     }
 
-
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public boolean isGetMode() {
         synchronized (getModeLock) {
             if (getMode == null) {
@@ -498,7 +480,7 @@ public class Settings implements MutableSettings {
         this.bindToLocalhost = bindToLocalhost;
     }
 
-    @JsonView({UIStateSettings.class})
+    @JsonView({RuntimeSetting.class})
     @CommandLineOption
     public boolean isBindToLocalhost() {
         return bindToLocalhost;
@@ -508,62 +490,13 @@ public class Settings implements MutableSettings {
         this.apiPort = apiPort;
     }
 
-
-    @JsonView({UIStateSettings.class})
+    @JsonView({RuntimeSetting.class})
     @CommandLineOption
     public int getApiPort() {
         return apiPort;
     }
-
-    @JsonView(UIStateSettings.class)
-    public long getPeerCount() {
-        return LanternHub.statsTracker().getPeerCount();
-    }
-
-    @JsonView(UIStateSettings.class)
-    public long getPeerCountThisRun() {
-        return LanternHub.statsTracker().getPeerCountThisRun();
-    }
-
-    @JsonView(UIStateSettings.class)
-    public long getUpRate() {
-        return LanternHub.statsTracker().getUpBytesPerSecond();
-    }
     
-    @JsonView(UIStateSettings.class)
-    public long getDownRate() {
-        return LanternHub.statsTracker().getDownBytesPerSecond();
-    }
-    
-    @JsonView(UIStateSettings.class)
-    public long getUpTotalThisRun() {
-        return LanternHub.statsTracker().getUpBytesThisRun();
-    }
-    
-    @JsonView(UIStateSettings.class)
-    public long getDownTotalThisRun() {
-        return LanternHub.statsTracker().getDownBytesThisRun();
-    }
-    
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
-    public long getUpTotalLifetime() {
-        return getUpTotalThisRun() + historicalUpBytes;
-    }
-
-    public void setUpTotalLifetime(long value) {
-        historicalUpBytes = value;
-    }
-
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
-    public long getDownTotalLifetime() {
-        return getDownTotalThisRun() + historicalDownBytes;
-    }
-
-    public void setDownTotalLifetime(long value) {
-        historicalDownBytes = value;
-    }
-    
-    @JsonView(UIStateSettings.class)
+    @JsonView(RuntimeSetting.class)
     public boolean isProxying() {
         return Proxifier.isProxying();
     }
@@ -572,7 +505,7 @@ public class Settings implements MutableSettings {
         this.passwordSaved = passwordSaved;
     }
     
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public boolean isPasswordSaved() {
         return passwordSaved;
     }
@@ -588,7 +521,7 @@ public class Settings implements MutableSettings {
         this.whitelist = whitelist;
     }
 
-    @JsonView(PersistentSettings.class)
+    @JsonView(PersistentSetting.class)
     public Whitelist getWhitelist() {
         return whitelist;
     }
@@ -621,7 +554,7 @@ public class Settings implements MutableSettings {
         return keychainEnabled;
     }
 
-    @JsonView(UIStateSettings.class)
+    @JsonView(RuntimeSetting.class)
     public boolean isLocalPasswordInitialized() {
         return LanternHub.localCipherProvider().isInitialized();
     }
@@ -652,14 +585,14 @@ public class Settings implements MutableSettings {
         }
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public Set<String> getProxies() {
         synchronized (this.proxies) {
             return ImmutableSet.copyOf(this.proxies);
         }
     }
     
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public Set<InetSocketAddress> getPeerProxies() {
         synchronized (this.proxies) {
             return ImmutableSet.copyOf(this.peerProxies);
@@ -685,7 +618,7 @@ public class Settings implements MutableSettings {
         this.useTrustedPeers = useTrustedPeers;
     }
     
-    @JsonView({UIStateSettings.class})
+    @JsonView({RuntimeSetting.class})
     @CommandLineOption
     public boolean isUseTrustedPeers() {
         return useTrustedPeers;
@@ -695,7 +628,7 @@ public class Settings implements MutableSettings {
         this.useLaeProxies = useLaeProxies;
     }
 
-    @JsonView({UIStateSettings.class})
+    @JsonView({RuntimeSetting.class})
     @CommandLineOption
     public boolean isUseLaeProxies() {
         return useLaeProxies;
@@ -705,7 +638,7 @@ public class Settings implements MutableSettings {
         this.useAnonymousPeers = useAnonymousPeers;
     }
 
-    @JsonView({UIStateSettings.class})
+    @JsonView({RuntimeSetting.class})
     @CommandLineOption
     public boolean isUseAnonymousPeers() {
         return useAnonymousPeers;
@@ -715,7 +648,7 @@ public class Settings implements MutableSettings {
         this.useCentralProxies = useCentralProxies;
     }
 
-    @JsonView({UIStateSettings.class})
+    @JsonView({RuntimeSetting.class})
     @CommandLineOption
     public boolean isUseCentralProxies() {
         return useCentralProxies;
@@ -725,7 +658,7 @@ public class Settings implements MutableSettings {
         this.stunServers = stunServers;
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public Collection<String> getStunServers() {
         return stunServers;
     }
@@ -734,7 +667,7 @@ public class Settings implements MutableSettings {
         this.analytics = analytics;
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public boolean isAnalytics() {
         return analytics;
     }
@@ -743,7 +676,7 @@ public class Settings implements MutableSettings {
         this.invites = invites;
     }
 
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public int getInvites() {
         return invites;
     }
@@ -752,7 +685,7 @@ public class Settings implements MutableSettings {
         this.invited = invited;
     }
     
-    @JsonView({UIStateSettings.class, PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public Set<String> getInvited() {
         return invited;
     }
@@ -775,7 +708,7 @@ public class Settings implements MutableSettings {
         return cache;
     }
 
-    @JsonView({PersistentSettings.class})
+    @JsonView({PersistentSetting.class})
     public Set<String> getInClosedBeta() {
         return Sets.newHashSet(this.inClosedBeta);
     }
@@ -783,9 +716,26 @@ public class Settings implements MutableSettings {
     public void setInClosedBeta(final Set<String> inClosedBeta) {
         this.inClosedBeta = ImmutableSet.copyOf(inClosedBeta);
     }
-    
 
-    @JsonView({PersistentSettings.class})
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
+    public Transfers getTransfers() {
+        return transfers;
+    }
+
+    public void setTransfers(Transfers transfers) {
+        this.transfers = transfers;
+    }
+    
+    @JsonView({RuntimeSetting.class})
+    public Connectivity getConnectivity() {
+        return connectivity;
+    }
+
+    public void setConnectivity(Connectivity connectivity) {
+        this.connectivity = connectivity;
+    }
+
+    @JsonView({PersistentSetting.class})
     public String getNodeId() {
         return nodeId;
     }
@@ -796,27 +746,37 @@ public class Settings implements MutableSettings {
     
     @Override
     public String toString() {
-        return "Settings [" 
-                + "connectivity=" + connectivity + ", update=" + update
-                + ", platform=" + platform
+        return "Settings [update=" + update + ", platform=" + platform
                 + ", startAtLogin=" + startAtLogin + ", isSystemProxy="
-                + isSystemProxy + ", port=" + port + ", version=" + version
-                + ", connectOnLaunch=" + connectOnLaunch + ", language="
-                + language + ", settings=" + settings
-                + ", initialSetupComplete=" + initialSetupComplete
-                + ", googleTalkState=" + googleTalkState
+                + isSystemProxy + ", port=" + port + ", serverPort="
+                + serverPort + ", version=" + version + ", connectOnLaunch="
+                + connectOnLaunch + ", language=" + language + ", settings="
+                + settings + ", initialSetupComplete=" + initialSetupComplete
+                + ", autoConnectToPeers=" + autoConnectToPeers
                 + ", proxyAllSites=" + proxyAllSites + ", country=" + country
                 + ", countryDetected=" + countryDetected
                 + ", manuallyOverrideCountry=" + manuallyOverrideCountry
-                + ", savePassword=" + savePassword + ", useCloudProxies="
-                + useCloudProxies + ", getMode=" + getMode
-                + ", bindToLocalhost=" + bindToLocalhost + ", apiPort="
-                + apiPort + ", passwordSaved=" + passwordSaved
-                + ", historicalUpBytes=" + historicalUpBytes
-                + ", historicalDownBytes=" + historicalDownBytes + ", launchd="
-                + launchd + ", uiEnabled=" + uiEnabled + "]";
+                + ", email=" + email + ", commandLineEmail=" + commandLineEmail
+                + ", password=" + password + ", storedPassword="
+                + storedPassword + ", commandLinePassword="
+                + commandLinePassword + ", savePassword=" + savePassword
+                + ", useCloudProxies=" + useCloudProxies + ", getMode="
+                + getMode + ", bindToLocalhost=" + bindToLocalhost
+                + ", apiPort=" + apiPort + ", passwordSaved=" + passwordSaved
+                + ", launchd=" + launchd + ", uiEnabled=" + uiEnabled
+                + ", keychainEnabled=" + keychainEnabled + ", proxies="
+                + proxies + ", analytics=" + analytics + ", peerProxies="
+                + peerProxies + ", useTrustedPeers=" + useTrustedPeers
+                + ", useAnonymousPeers=" + useAnonymousPeers
+                + ", useLaeProxies=" + useLaeProxies + ", useCentralProxies="
+                + useCentralProxies + ", getModeLock=" + getModeLock
+                + ", stunServers=" + stunServers + ", invites=" + invites
+                + ", cache=" + cache + ", uiDir=" + uiDir + ", inClosedBeta="
+                + inClosedBeta + ", nodeId=" + nodeId + ", invited=" + invited
+                + ", transfers=" + transfers + ", connectivity=" + connectivity
+                + "]";
     }
-    
+
     /** 
      * copy properties annotated with the CommandLineOption setting 
      * from this Settings object to the Settings object given. 

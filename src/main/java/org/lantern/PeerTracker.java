@@ -1,9 +1,5 @@
 package org.lantern;
 
-import java.net.Socket;
-
-import javax.net.ssl.SSLSocket;
-
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -23,6 +23,7 @@ import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
 import org.littleshoot.proxy.HttpServerPipelineFactory;
+import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.NetworkUtils;
 import org.littleshoot.proxy.ProxyAuthorizationHandler;
 import org.littleshoot.proxy.ProxyAuthorizationManager;
@@ -37,7 +38,6 @@ import org.slf4j.LoggerFactory;
  *
  * DefaultHttpProxyServer is severely unfriendly to subclassing
  * so it is cargo culted in full with specific additions.
- *
  */
 public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
 
@@ -59,56 +59,13 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
 
     private final HttpResponseFilters responseFilters;
 
-    private ChannelFactory serverChannelFactory;
+    private final ChannelFactory serverChannelFactory;
 
-    private Timer timer;
+    private final Timer timer;
 
-    private ClientSocketChannelFactory clientChannelFactory;
+    private final ClientSocketChannelFactory clientChannelFactory;
 
-    /**
-     * Creates a new proxy server.
-     *
-     * @param port The port the server should run on.
-     */
-    /*
-    public StatsTrackingDefaultHttpProxyServer(final int port) {
-        this(port, new HttpResponseFilters() {
-            public HttpFilter getFilter(String hostAndPort) {
-                return null;
-            }
-        });
-    }
-    */
-
-    /**
-     * Creates a new proxy server.
-     *
-     * @param port The port the server should run on.
-     * @param responseFilters The {@link Map} of request domains to match
-     * with associated {@link HttpFilter}s for filtering responses to
-     * those requests.
-     */
-    /*
-    public StatsTrackingDefaultHttpProxyServer(final int port,
-        final HttpResponseFilters responseFilters) {
-        this(port, responseFilters, null, null);
-    }
-    */
-
-    /**
-     * Creates a new proxy server.
-     *
-     * @param port The port the server should run on.
-     * @param requestFilter The filter for HTTP requests.
-     * @param responseFilters HTTP filters to apply.
-     */
-    /*
-    public StatsTrackingDefaultHttpProxyServer(final int port,
-        final HttpRequestFilter requestFilter,
-        final HttpResponseFilters responseFilters) {
-        this(port, responseFilters, null, requestFilter);
-    }
-    */
+    private KeyStoreManager ksm;
 
     /**
      * Creates a new proxy server.
@@ -133,7 +90,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         final HttpRequestFilter requestFilter, 
         final ClientSocketChannelFactory clientChannelFactory, 
         final Timer timer,
-        final ServerSocketChannelFactory serverChannelFactory) {
+        final ServerSocketChannelFactory serverChannelFactory,
+        final KeyStoreManager ksm) {
         this.port = port;
         this.responseFilters = responseFilters;
         this.requestFilter = requestFilter;
@@ -141,6 +99,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         this.clientChannelFactory = clientChannelFactory;
         this.timer = timer;
         this.serverChannelFactory = serverChannelFactory;
+        this.ksm = ksm;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
@@ -156,6 +115,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         start(false, true);
     }
 
+    @Override
     public void start(final boolean localOnly, final boolean anyAddress) {
         log.info("Starting proxy on port: "+this.port);
         final HttpServerPipelineFactory factory =
@@ -164,7 +124,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                 new StatsTrackingDefaultRelayPipelineFactoryFactory(chainProxyManager,
                     this.responseFilters, this.requestFilter,
                     this.allChannels, this.timer), this.clientChannelFactory, 
-                    this.timer);
+                    this.timer, this.ksm);
         serverBootstrap.setPipelineFactory(factory);
 
         // Binding only to localhost can significantly improve the security of
@@ -194,6 +154,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         }));
     }
 
+    @Override
     public void stop() {
         //log.info("Shutting down proxy");
         //final ChannelGroupFuture future = allChannels.close();
@@ -210,25 +171,28 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
     private static class StatsTrackingHttpServerPipelineFactory 
         extends HttpServerPipelineFactory {
         
-        public StatsTrackingHttpServerPipelineFactory(
+        private StatsTrackingHttpServerPipelineFactory(
             final ProxyAuthorizationManager authorizationManager, 
             final ChannelGroup channelGroup, 
             final ChainProxyManager chainProxyManager, 
             final RelayPipelineFactoryFactory relayPipelineFactoryFactory,
             final ClientSocketChannelFactory clientChannelFactory, 
-            final Timer timer) {
+            final Timer timer,
+            final KeyStoreManager ksm) {
             super(authorizationManager, channelGroup, chainProxyManager, 
-                LanternHub.getKeyStoreManager(), relayPipelineFactoryFactory, 
+                ksm, relayPipelineFactoryFactory, 
                 timer, clientChannelFactory);
         }
 
         @Override
         public ChannelPipeline getPipeline() throws Exception {
-            ChannelPipeline pipeline = super.getPipeline();
+            final ChannelPipeline pipeline = super.getPipeline();
             pipeline.addFirst("stats", new StatsTrackingHandler() {
+                @Override
                 public void addUpBytes(long bytes, Channel channel) {
                     statsTracker().addUpBytesToPeers(bytes, channel);
                 }
+                @Override
                 public void addDownBytes(long bytes, Channel channel) {
                     statsTracker().addDownBytesFromPeers(bytes, channel);
                 }
@@ -240,7 +204,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
     private static class StatsTrackingDefaultRelayPipelineFactoryFactory 
         extends DefaultRelayPipelineFactoryFactory {
         
-        public StatsTrackingDefaultRelayPipelineFactoryFactory(
+        private StatsTrackingDefaultRelayPipelineFactoryFactory(
             final ChainProxyManager chainProxyManager, 
             final HttpResponseFilters responseFilters, 
             final HttpRequestFilter requestFilter, 

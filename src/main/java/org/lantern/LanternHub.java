@@ -534,12 +534,13 @@ public class LanternHub {
     
     public static void resetUserConfig() {
         // resets user specific configuration.
-        settings().setEmail("");
-        settings().setPassword("");
-        settings().setStoredPassword("");
-        settings().setPasswordSaved(false);
-        settings().setDownTotalLifetime(0);
-        settings().setUpTotalLifetime(0);
+        final Settings set = settings();
+        set.setEmail("");
+        set.setPassword("");
+        set.setStoredPassword("");
+        set.setPasswordSaved(false);
+        set.getTransfers().setDownTotalLifetime(0);
+        set.getTransfers().setUpTotalLifetime(0);
 
         TrustedContactsManager tcm = trustedContactsManager.get();
         if (tcm != null) {

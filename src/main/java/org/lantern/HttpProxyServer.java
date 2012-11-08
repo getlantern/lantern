@@ -10,4 +10,7 @@ public interface HttpProxyServer {
      */
     void start();
 
+    void start(boolean localOnly, boolean anyAddress);
+    
+    void stop();
 }
