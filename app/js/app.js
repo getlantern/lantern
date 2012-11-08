@@ -6,6 +6,7 @@ angular.module('app',
   , 'app.filters'
   , 'app.services'
   , 'app.directives'
+  , 'app.vis'
   , 'ui'
   ])
   ;

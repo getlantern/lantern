@@ -208,8 +208,14 @@ the backend maintains on the frontend through comet publications:
           <td><strong>peersCurrent</strong><br><em>object[]</em></td>
           <td>
             <table>
+              <tr><td><strong>guid</strong><br><em>string</em></td>
+                  <td>globally unique identifier for this peer</td></tr>
               <tr><td><strong>userid</strong><br><em>string</em></td>
-                  <td>userid of peer we're currently connected to</td></tr>
+                  <td>userid of currently-connected peer.<br>
+                  <strong>Should be anonymized by Lantern if this peer does
+                  does not trust the user.</strong></td></tr>
+              <tr><td><strong>type</strong><br>"desktop" | "laeproxy" | "lec2proxy"</td>
+                  <td>type of Lantern client the peer is running</td></tr>
               <tr><td><strong>ip</strong><br><em>string</em></td>
                   <td>ip address of peer we're currently connected to</td></tr>
               <tr><td><strong>lat</strong><br><em>float</em></td>
@@ -218,16 +224,53 @@ the backend maintains on the frontend through comet publications:
                   <td>longitude of peer (as reported by geoip lookup)</td></tr>
               <tr><td><strong>country</strong><br>two-letter code</td>
                   <td>country of peer (as reported by geoip lookup)</td></tr>
+              <tr><td><strong>bpsUp</strong><br><em>number</em></td>
+                  <td>instantaneous upload rate to this peer</td></tr>
+              <tr><td><strong>bpsDn</strong><br><em>number</em></td>
+                  <td>instantaneous download rate from this peer</td></tr>
+              <tr><td><strong>bpsTotal</strong><br><em>number</em></td>
+                  <td>instantaneous upload+download rate with this peer</td></tr>
             </table>
           </td>
         </tr>
         <tr>
           <td><strong>peersLifetime</strong><br><em>object[]</em></td>
-          <td><em>as in peersCurrent</em></td>
+          <td>
+            <table>
+              <tr><td><strong>guid</strong><br><em>string</em></td>
+                  <td>globally unique identifier for this peer</td></tr>
+              <tr><td><strong>userid</strong><br><em>string</em></td>
+                  <td>userid of peer.<br>
+                  <strong>Should be anonymized by Lantern if this peer does
+                  does not trust the user.</strong></td></tr>
+              <tr><td><strong>lastConnected</strong><br><em>date</em></td>
+                  <td>If not currently connected to this peer, the
+                  datetime of last connection. Leave blank or omit 
+                  if currently connected.</td></tr>
+              <tr><td><strong>ip</strong><br><em>string</em></td>
+                  <td>last seen ip address</td></tr>
+              <tr><td><strong>lat</strong><br><em>float</em></td>
+                  <td>last seen latitude (as reported by geoip lookup)</td></tr>
+              <tr><td><strong>lon</strong><br><em>float</em></td>
+                  <td>last seen longitude (as reported by geoip lookup)</td></tr>
+              <tr><td><strong>country</strong><br>two-letter code</td>
+                  <td>last seen country (as reported by geoip lookup)</td></tr>
+              <tr><td><strong>type</strong><br>"desktop" | "laeproxy" | "lec2proxy"</td>
+                  <td>last seen type of Lantern client</td></tr>
+              <tr><td><strong>bytesUp</strong><br><em>number</em></td>
+                  <td>lifetime bytes uploaded to this peer</td></tr>
+              <tr><td><strong>bytesDn</strong><br><em>number</em></td>
+                  <td>lifetime bytes downloaded from this peer</td></tr>
+              <tr><td><strong>bytesTotal</strong><br><em>number</em></td>
+                  <td>lifetime bytes transferred with this peer</td></tr>
+            </table>
+          </td>
         </tr>
       </table><br><br>
-      <em>Peer lists should include Laeproxy and Lantern Amazon proxy instances,
-      which should have associated userids via kaleidoscope.</em>
+      - Peer lists should include Laeproxy and Lantern Amazon proxy instances,
+        which should have associated userids via kaleidoscope.<br><br>
+      - Can have multiple peers in <code>peersCurrent</code> with the same
+        userid since someone could be logged in from several clients at once.
     </td>
   </tr>
   <tr>
@@ -241,6 +284,8 @@ the backend maintains on the frontend through comet publications:
               <tr><td><strong>label</strong><br><em>string</em></td>
                 <td>Currently-running Lantern app version to display,
                     e.g. major.minor.patch-build-tag</td></tr>
+              <tr><td><strong>released</strong><br><em>date</em></td>
+                <td>when it was released</td></tr>
               <tr><td><strong>api</strong><br><em>object</em></td>
                 <td>
                   <table>
@@ -271,7 +316,7 @@ the backend maintains on the frontend through comet publications:
                 <td>e.g. major.minor.patch-build-tag</td></tr>
               <tr><td><strong>released</strong><br><em>date</em></td>
                 <td>when it was released</td></tr>
-              <tr><td><strong>url</strong><br><em>url</em></td>
+              <tr><td><strong>downloadUrl</strong><br><em>url</em></td>
                 <td>download url</td></tr>
             </table>
           </td>
@@ -284,36 +329,28 @@ the backend maintains on the frontend through comet publications:
     <td>
       <table>
         <tr>
-          <td><strong>ncurrent</strong><br><em>number</em></td>
-          <td>number of currently active transfers</td>
-        </tr>
-        <tr>
-          <td><strong>nlifetime</strong><br><em>number</em></td>
-          <td>total number of completed transfers since first signin</td>
-        </tr>
-        <tr>
           <td><strong>bpsUp</strong><br><em>number</em></td>
-          <td>instantaneous upload rate in bytes per second</td>
+          <td>total instantaneous upload rate across all current peers</td>
         </tr>
         <tr>
           <td><strong>bpsDn</strong><br><em>number</em></td>
-          <td>instantaneous download rate in bytes per second</td>
+          <td>total instantaneous download rate across all current peers</td>
         </tr>
         <tr>
           <td><strong>bpsTotal</strong><br><em>number</em></td>
-          <td>total instantaneous transfer rate in bytes per second</td>
+          <td>total instantaneous upload+download rate across all current peers</td>
         </tr>
         <tr>
-          <td><strong>bytesUpLifetime</strong><br><em>number</em></td>
+          <td><strong>bytesUp</strong><br><em>number</em></td>
           <td>total number of bytes uploaded since first signin</td>
         </tr>
         <tr>
-          <td><strong>bytesDnLifetime</strong><br><em>number</em></td>
+          <td><strong>bytesDn</strong><br><em>number</em></td>
           <td>total number of bytes downloaded since first signin</td>
         </tr>
         <tr>
-          <td><strong>bytesTotalLifetime</strong><br><em>number</em></td>
-          <td>total number of bytes transferred since first signin</td>
+          <td><strong>bytesTotal</strong><br><em>number</em></td>
+          <td>total number of bytes uploaded+downloaded since first signin</td>
         </tr>
       </table>
     </td>
@@ -348,7 +385,7 @@ the backend maintains on the frontend through comet publications:
         </tr>
         <tr>
           <td><strong>mode</strong><br>"give" | "get"</td>
-          <td>Whether we're in Give Mode or Get Mode.</td>
+          <td>Whether in give mode or get mode.</td>
         </tr>
         <tr>
           <td><strong>proxyPort</strong><a href="note-get-mode-only"><sup>1</sup></a><br><em>integer</em></td>

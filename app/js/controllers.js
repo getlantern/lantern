@@ -103,7 +103,6 @@ function SanityCtrl($scope, sanity, modelSrvc, cometdSrvc, APIVER_REQUIRED, MODA
 
   $scope.show = false;
   $scope.$watch('sanity.value', function(val) {
-    log.debug('sanity.value', val);
     if (!val) {
       log.warn('sanity false, disconnecting');
       modelSrvc.disconnect();
@@ -324,11 +323,6 @@ function FinishedCtrl($scope, MODAL) {
   $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.finished;
   });
-}
-
-function VisCtrl($scope, logFactory) {
-  var log = logFactory('VisCtrl');
-  startVis();
 }
 
 function ContactDevsCtrl($scope, MODAL) {

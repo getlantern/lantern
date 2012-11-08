@@ -6,9 +6,9 @@
     "os":"osx"
   },
   "location":{
-    "lat":54,
-    "lon":-2,
-    "country":"gb"
+    "lat":39.904041,
+    "lon":116.407528,
+    "country":"cn"
   },
   "version":{
     "current":{
@@ -24,7 +24,7 @@
   "modal":"welcome",
   "ninvites":0,
   "connectivity":{
-    "ip":"79.168.34.28",
+    "ip":"...",
     "gtalk":"notConnected",
     "gtalkAuthorized":false,
     "peersCurrent":[],

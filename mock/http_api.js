@@ -32,26 +32,37 @@ function inCensoringCountry(model) {
   return model.location.country in CENSORING_COUNTRIES;
 }
 
-var _lanternFriend1 = {
+var peer1 = {
     "userid": "lantern_friend1@example.com",
     "ip":"74.120.12.135",
     "lat":51,
     "lon":9,
-    "country":"de"
+    "country":"de",
+    "type":"desktop"
     }
-, _lanternFriend2 = {
+, peer2 = {
     "userid": "lantern_friend2@example.com",
     "ip":"93.182.129.82",
-    "lat":13.1833,
-    "lon":55.7,
-    "country":"se"
+    "lat":55.7,
+    "lon":13.1833,
+    "country":"se",
+    "type":"lec2proxy"
   }
-, _laeproxy1 = {
-    "userid": "laeproxyhr1@appspot.com",
+, peer3 = {
+    "userid": "lantern_power_user@example.com",
     "ip":"173.194.66.141",
     "lat":37.4192,
     "lon":-122.0574,
-    "country":"us"
+    "country":"us",
+    "type":"laeproxy"
+  }
+, peer4 = {
+    "userid": "lantern_friend2@example.com",
+    "ip":"...",
+    "lat":54,
+    "lon":-2,
+    "country":"gb",
+    "type":"lec2proxy"
   }
 ;
 
@@ -179,8 +190,8 @@ ApiServlet._tryConnectPeers = function(model) {
   switch (userid) {
     case 'user_invited@example.com':
       // has access, so we can connect to peers
-      model.connectivity.peersCurrent = [_lanternFriend1, _laeproxy1];
-      model.connectivity.peersLifetime = [_lanternFriend1, _laeproxy1, _lanternFriend2];
+      model.connectivity.peersCurrent = [peer1, peer2, peer3, peer4];
+      model.connectivity.peersLifetime = [peer1, peer2, peer3, peer4];
       this._bayeuxBackend.publishSync('connectivity.peersCurrent');
       this._bayeuxBackend.publishSync('connectivity.peersLifetime');
       util.puts("user has access, connected her to peers: "+util.inspect(model.connectivity.peersCurrent));
