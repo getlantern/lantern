@@ -90,12 +90,13 @@ For more information: http://github.com/robertkrimen/otto/tree/master/underscore
 * Error reporting needs to be improved.
 * Number.prototype.{toFixed,toExponential,toPrecision} are missing.
 * Does not support the (?!) or (?=) regular expression syntax (because Go does not)
+* JavaScript considers a vertical tab (\000B <VT>) to be part of the whitespace class (\s), while RE2 does not.
 * Really, error reporting could use some improvement.
 * For now, otto handles strings as UTF-8 rather than UTF-16.
 
 ### Regular Expression Syntax
 
-Go translates JavaScript-style regular expressions into something that is regexp package compatible.
+Go translates JavaScript-style regular expressions into something that is "regexp" package compatible.
 
 Unfortunately, JavaScript has positive lookahead, negative lookahead, and backreferencing,
 all of which are not supported by Go's RE2-like engine: https://code.google.com/p/re2/wiki/Syntax
@@ -103,6 +104,8 @@ all of which are not supported by Go's RE2-like engine: https://code.google.com/
 A brief discussion of these limitations: "Regexp (?!re)" https://groups.google.com/forum/?fromgroups=#!topic/golang-nuts/7qgSDWPIh_E
 
 More information about RE2: https://code.google.com/p/re2/
+
+JavaScript considers a vertical tab (\000B <VT>) to be part of the whitespace class (\s), while RE2 does not.
 
 ### UTF-8 UTF-16
 
