@@ -10,6 +10,8 @@ import javax.servlet.UnavailableException;
 
 import org.cometd.annotation.ServerAnnotationProcessor;
 import org.cometd.bayeux.server.BayeuxServer;
+import org.lantern.state.CometDSyncStrategy;
+import org.lantern.state.SyncService;
 
 public class BayeuxInitializer extends GenericServlet {
     

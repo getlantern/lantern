@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.state;
 
 import org.cometd.bayeux.server.ServerSession;
 

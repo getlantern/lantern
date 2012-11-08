@@ -58,17 +58,7 @@ public class CometDTest {
 
         waitForBoolean("handshake", handshake);
         assertTrue("Could not handshake?", handshake.get());
-        
-        /*
-        session.getChannel("/sync/settings").subscribe(new MessageListener() {
-            
-            @Override
-            public void onMessage(final ClientSessionChannel channel, 
-                final Message message) {
-                System.err.println(message.getJSON());
-            }
-        });
-        */
+
         
         final AtomicBoolean transferSync = new AtomicBoolean(false);
         final AtomicReference<String> transferPathKey = new AtomicReference<String>("");
@@ -78,7 +68,8 @@ public class CometDTest {
         
         final AtomicBoolean versionSync = new AtomicBoolean(false);
         final AtomicReference<String> versionPathKey = new AtomicReference<String>("");
-        subscribe (session, versionSync, "version", versionPathKey);
+        final AtomicReference<Map<String, Object>> versionData =
+            subscribe (session, versionSync, "version", versionPathKey);
         
         final Map<String,Object> updateJson = 
             new LinkedHashMap<String,Object>();
@@ -94,11 +85,21 @@ public class CometDTest {
         
         waitForBoolean("version", versionSync);
         assertEquals("Unexpected path key", "version", versionPathKey.get());
+        
+        final Map<String, Object> versionValue = 
+            (Map<String, Object>) versionData.get().get("value");
+        final Map<String, Object> update = 
+            (Map<String, Object>) versionValue.get("updated");
+        assertEquals(updateJson, update);
     }
 
-    private void subscribe(final ClientSession session, 
+    private AtomicReference<Map<String, Object>> subscribe(final ClientSession session, 
         final AtomicBoolean bool, final String channelName, 
         final AtomicReference<String> pathKey) {
+        
+        final AtomicReference<Map<String, Object>> data = 
+            new AtomicReference<Map<String,Object>>();
+        
         session.getChannel("/sync/"+channelName).subscribe(new MessageListener() {
             
             @Override
@@ -106,12 +107,16 @@ public class CometDTest {
                 final Message message) {
                 System.err.println(message.getJSON());
                 final Map<String, Object> map = message.getDataAsMap();
+                data.set(map);
+                
                 final String path = (String) map.get("path");
                 System.err.println("Setting path key = "+path);
                 pathKey.set(path);
+                
                 bool.set(true);
             }
         });
+        return data;
     }
 
     private void waitForBoolean(final String name, final AtomicBoolean bool) 

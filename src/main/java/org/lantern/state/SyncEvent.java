@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.state;
 
 /**
  * An event indicating the state of the specified channel should be synced
