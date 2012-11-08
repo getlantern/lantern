@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
+import org.lantern.event.ConnectivityStatusChangeEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

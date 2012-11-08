@@ -1,4 +1,6 @@
-package org.lantern;
+package org.lantern.event;
+
+import org.lantern.GoogleTalkState;
 
 /**
  * Event for a change in authentication status.

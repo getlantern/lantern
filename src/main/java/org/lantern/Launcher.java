@@ -42,6 +42,7 @@ import org.jboss.netty.util.ThreadNameDeterminer;
 import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.jboss.netty.util.Timer;
 import org.json.simple.JSONObject;
+import org.lantern.event.SettingsStateEvent;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.privacy.InvalidKeyException;

@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.event;
 
 /**
  * Event created when we're shutting down.

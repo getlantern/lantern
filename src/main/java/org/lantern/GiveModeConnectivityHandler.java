@@ -1,5 +1,7 @@
 package org.lantern;
 
+import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.event.GoogleTalkStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

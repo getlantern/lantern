@@ -1,8 +1,7 @@
-package org.lantern;
+package org.lantern.state;
 
 import org.cometd.bayeux.server.ServerSession;
-import org.lantern.state.SyncChannel;
-import org.lantern.state.SyncStrategy;
+import org.lantern.LanternHub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

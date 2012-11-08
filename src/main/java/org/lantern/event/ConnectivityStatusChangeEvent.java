@@ -1,4 +1,6 @@
-package org.lantern;
+package org.lantern.event;
+
+import org.lantern.ConnectivityStatus;
 
 public class ConnectivityStatusChangeEvent {
 

@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.event;
 
 /**
  * Event thrown when the server tells gives us the status of whether or not

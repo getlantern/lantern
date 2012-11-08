@@ -16,10 +16,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
+import org.lantern.event.SyncEvent;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.SyncChannel;
-import org.lantern.state.SyncEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

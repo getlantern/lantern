@@ -20,6 +20,7 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.group.ChannelGroup;
+import org.lantern.event.ConnectivityStatusChangeEvent;
 import org.lantern.state.Peer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
