@@ -365,26 +365,29 @@
   </div>
   <div class="modal-body">
     <div>
-      <p>{{ 'INVITE_FRIENDS_PROMPT' | i18n }}</p>
-      <div class="control-extra">{{ model.ninvites && 'INVITE_FRIENDS_PROMPT_INVITES_LEFT' ||
-         'INVITE_FRIENDS_PROMPT_NO_INVITES_LEFT' | i18n }}</div>
+      <p>{{ 'INVITE_FRIENDS_INTRO' | i18n }}</p>
+      <div>{{ 'AUTOTRUSTED_PROMPT' | i18n }}</div>
+      <p ng-show="lanternContacts.length">
+        <ul>
+          <li ng-repeat="contact in lanternContacts">
+            {{ contact.name }} &lt;{{ contact.userid }}&gt;
+          </li>
+        </ul>
+      </p>
     </div>
     <br>
-    <form>
-      <input type="text" placeholder="{{ 'INVITE_INPUT_PLACEHOLDER' | i18n }}"
-        ng-disabled="!model.ninvites" style="width: 400px">
-        <div ui-toggle="model.ninvites"><small>{{ model.ninvites }}
-          {{ 'INVITES_REMAINING' | i18n }}</small></div>
+    <form ng-show="model.ninvites">
+      <label>{{ 'INVITE_FRIENDS_PROMPT' | i18n }}</label>
+      <!-- XXX change to select2 with tag autocomplete -->
+      <input type="text" placeholder="friend1@example.com, friend2@example.com, ..."
+           autofocus ng-disabled="!model.ninvites" style="width: 400px">
+      <div>{{ model.ninvites }} {{ 'INVITES_REMAINING' | i18n }}</div>
+      <!-- XXX allow writing custom invite message -->
     </form>
-    <!-- XXX custom message -->
-    <br>
-    <form class="form-inline">
-      <label class="checkbox">
-        <input type="checkbox" ng-model="advertiseLantern"
-          ng-change="changeSetting(SETTING.advertiseLantern, advertiseLantern)">
-        {{ 'ADVERTISE_LANTERN' | i18n }}
-      </label>
-    </form>
+    <div class="pagination-centered">
+      <div ng-hide="model.ninvites">{{ 'NO_INVITES' | i18n }}
+      {{ model.ninvites && 'MORE_INVITES' || 'SOME_INVITES' | i18n }}</div>
+    </div>
   </div>
   <div class="modal-footer">
     <button type="submit" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>

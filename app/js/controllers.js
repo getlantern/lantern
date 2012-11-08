@@ -380,25 +380,28 @@ function ProxiedSitesCtrl($scope, logFactory, MODAL, SETTING) {
 }
 
 function InviteFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL) {
-  var log = logFactory('InviteFriendsCtrl');
+  var log = logFactory('InviteFriendsCtrl'),
+      model = modelSrvc.model;
 
   $scope.show = false;
   $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.inviteFriends;
   });
 
-  // XXX can default to true if only trusted contacts can see
-  $scope.advertiseLantern = true;
-  /*
-  $scope.$watch('model.settings.mode', function(val) {
-    if (val) $scope.advertiseLanternDefault = val == MODE.give;
+  $scope.$watch('model.roster', function(val) {
+    if (typeof val == 'undefined') return;
+    log.debug('got roster', val);
+    $scope.lanternContacts = _.filter(
+      val,
+      function(contact) {
+        if (!(contact.peers || []).length) return false;
+        return _.intersection(contact.peers,
+          _.map(model.connectivity.peers.lifetime, function(peer) {
+            return peer.peerid;
+          })).length;
+      }
+    );
   });
-  $scope.$watch('advertiseLanternDefault', function(val) {
-    var configuredVal = modelSrvc.get('settings.advertiseLantern');
-    $scope.advertiseLantern = typeof configuredVal == 'undefined' ?
-      $scope.advertiseLanternDefault : configuredVal;
-  });
-  */
 }
 
 function AuthorizeLaterCtrl($scope, logFactory, MODAL) {

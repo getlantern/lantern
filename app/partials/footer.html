@@ -8,23 +8,23 @@
       9,832,256,102 completed transfers ·
       8.3 petabytes transferred
     </div>
-    <div id="stats-personal" ng-show="model.connectivity.peersLifetime.length">
+    <div id="stats-personal" ng-show="model.connectivity.peers.lifetime.length">
       <strong>your stats:</strong>
       <a rel="tooltip" data-original-title="{{ 'ENABLE_AUTOREPORT_SUGGESTION' | i18n }}" ui-jq="tooltip" ng-show="!model.settings.autoReport">
         <i class="icon-info-sign"></i>
       </a>
       {{ model.settings.userid }} ·
       {{ model.connectivity.gtalk }} to Google Talk ·
-      7 friends online ·
-      23 active transfers with 5 peers ·
-      18.3 M/s up ·
-      35 M/s down ·
-      2.4 G lifetime
+      ... Lantern friend(s) online ·
+      connected to {{ model.connectivity.peers.lifetime.length }} peer(s) ·
+      {{ model.transfers.bpsUp }} M/s up ·
+      {{ model.transfers.bpsDn }} M/s down ·
+      {{ model.transfers.bytesTotal || '0B' }} lifetime
     </div>
   </div>
 
   <div id="version">
-    Lantern {{ model.version.current.api.mock && 'mock app' }} {{ model.version.current.label }}
+    Lantern {{ model.version.current.api.mock && 'mock app' }} {{ model.version.current.label.split('-')[0] }}
     <span ng-show="model.showVis">
       · <a ng-click="interaction(INTERACTION.about)">About</a>
     </span>

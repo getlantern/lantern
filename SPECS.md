@@ -150,127 +150,16 @@ the backend maintains on the frontend through comet publications:
     </td>
   </tr>
   <tr>
-    <td><strong>showVis</strong><br><em>boolean</em></td>
-    <td>Whether to show the visualization</td>
-  </tr>
-  <tr>
-    <td><strong>ninvites</strong><br><em>integer</em></td>
-    <td>The number of Lantern invites user has remaining</td>
-  </tr>
-  <tr>
     <td><strong>location</strong><br><em>object</em></td>
     <td>
       <table>
         <tr><td><strong>country</strong><br>two-letter country code</td>
-          <td>country connecting from (as reported by geoip lookup)</td></tr>
+          <td>(last known) country connecting from (as reported by geoip lookup)</td></tr>
         <tr><td><strong>lat</strong><br><em>float</em></td>
-          <td>latitude connecting from (as reported by geoip lookup)</td></tr>
+          <td>(last known) latitude connecting from (as reported by geoip lookup)</td></tr>
         <tr><td><strong>lon</strong><br><em>float</em></td>
-          <td>longitude connecting from (as reported by geoip lookup)</td></tr>
+          <td>(last known) longitude connecting from (as reported by geoip lookup)</td></tr>
       </table>
-    </td>
-  </tr>
-  <tr>
-    <td><strong>modal</strong><br>"settingsUnlock" |
-      "settingsLoadFailure" | "welcome" | "authorize" | "gtalkUnreachable" |
-      "notInvited" | "requestInvite" | "requestSent" | "firstInviteReceived" |
-      "proxiedSites" | "systemProxy" | "inviteFriends" | "finished" |
-      "settings" | "giveMode" | "about" | "updateAvailable" | ""
-    </td>
-    <td>Instructs the UI to display the corresponding modal dialog.
-      A value of empty string means no modal dialog should be displayed.
-    </td>
-  </tr>
-  <tr>
-    <td><strong>connectivity</strong><br><em>object</em></td>
-    <td>
-      <table>
-        <tr>
-          <td><strong>ip</strong><br><em>string</em></td>
-          <td>The system's public IP address, if available. A value of
-            empty string indicates no internet connectivity, in which
-            case the UI should block user interaction which requires it.</td>
-        </tr>
-        <tr>
-          <td><strong>gtalkAuthorized</strong><br><em>boolean</em></td>
-          <td>Whether the user has authorized Lantern via Oauth to access
-            her Google Talk account.</td>
-        </tr>
-        <tr>
-          <td><strong>gtalk</strong><br>"notConnected" | "connecting" |
-            "connected" </td>
-          <td>Google Talk connectivity status. If notConnected, the frontend
-            should indicate this and block user interaction which requires
-            Google Talk connectivity.
-          </td>
-        </tr>
-        <tr>
-          <td><strong>peersCurrent</strong><br><em>object[]</em></td>
-          <td>
-            <table>
-              <tr><td><strong>guid</strong><br><em>string</em></td>
-                  <td>globally unique identifier for this peer</td></tr>
-              <tr><td><strong>userid</strong><br><em>string</em></td>
-                  <td>userid of currently-connected peer.<br>
-                  <strong>Should be anonymized by Lantern if this peer does
-                  does not trust the user.</strong></td></tr>
-              <tr><td><strong>type</strong><br>"desktop" | "laeproxy" | "lec2proxy"</td>
-                  <td>type of Lantern client the peer is running</td></tr>
-              <tr><td><strong>ip</strong><br><em>string</em></td>
-                  <td>ip address of peer we're currently connected to</td></tr>
-              <tr><td><strong>lat</strong><br><em>float</em></td>
-                  <td>latitude of peer (as reported by geoip lookup)</td></tr>
-              <tr><td><strong>lon</strong><br><em>float</em></td>
-                  <td>longitude of peer (as reported by geoip lookup)</td></tr>
-              <tr><td><strong>country</strong><br>two-letter code</td>
-                  <td>country of peer (as reported by geoip lookup)</td></tr>
-              <tr><td><strong>bpsUp</strong><br><em>number</em></td>
-                  <td>instantaneous upload rate to this peer</td></tr>
-              <tr><td><strong>bpsDn</strong><br><em>number</em></td>
-                  <td>instantaneous download rate from this peer</td></tr>
-              <tr><td><strong>bpsTotal</strong><br><em>number</em></td>
-                  <td>instantaneous upload+download rate with this peer</td></tr>
-            </table>
-          </td>
-        </tr>
-        <tr>
-          <td><strong>peersLifetime</strong><br><em>object[]</em></td>
-          <td>
-            <table>
-              <tr><td><strong>guid</strong><br><em>string</em></td>
-                  <td>globally unique identifier for this peer</td></tr>
-              <tr><td><strong>userid</strong><br><em>string</em></td>
-                  <td>userid of peer.<br>
-                  <strong>Should be anonymized by Lantern if this peer does
-                  does not trust the user.</strong></td></tr>
-              <tr><td><strong>lastConnected</strong><br><em>date</em></td>
-                  <td>If not currently connected to this peer, the
-                  datetime of last connection. Leave blank or omit 
-                  if currently connected.</td></tr>
-              <tr><td><strong>ip</strong><br><em>string</em></td>
-                  <td>last seen ip address</td></tr>
-              <tr><td><strong>lat</strong><br><em>float</em></td>
-                  <td>last seen latitude (as reported by geoip lookup)</td></tr>
-              <tr><td><strong>lon</strong><br><em>float</em></td>
-                  <td>last seen longitude (as reported by geoip lookup)</td></tr>
-              <tr><td><strong>country</strong><br>two-letter code</td>
-                  <td>last seen country (as reported by geoip lookup)</td></tr>
-              <tr><td><strong>type</strong><br>"desktop" | "laeproxy" | "lec2proxy"</td>
-                  <td>last seen type of Lantern client</td></tr>
-              <tr><td><strong>bytesUp</strong><br><em>number</em></td>
-                  <td>lifetime bytes uploaded to this peer</td></tr>
-              <tr><td><strong>bytesDn</strong><br><em>number</em></td>
-                  <td>lifetime bytes downloaded from this peer</td></tr>
-              <tr><td><strong>bytesTotal</strong><br><em>number</em></td>
-                  <td>lifetime bytes transferred with this peer</td></tr>
-            </table>
-          </td>
-        </tr>
-      </table><br><br>
-      - Peer lists should include Laeproxy and Lantern Amazon proxy instances,
-        which should have associated userids via kaleidoscope.<br><br>
-      - Can have multiple peers in <code>peersCurrent</code> with the same
-        userid since someone could be logged in from several clients at once.
     </td>
   </tr>
   <tr>
@@ -298,9 +187,11 @@ the backend maintains on the frontend through comet publications:
                     <tr><td><strong>mock</strong><br><em>boolean</em></td>
                       <td>Whether running against mock backend</td></tr>
                   </table><br><br>
-                  <em>Frontend will display an "unexpected state" error if
-                  its required http api version differs from the one published
-                  by the backend (either major or minor).</em>
+                  <strong><small> * UI will display an 'unexpected state' error
+                  and block all user interaction besides reporting the error,
+                  resetting, and restarting if its required http api major or
+                  minor version differs from the one published by the backend,
+                  as prescribed by semantic versioning.</small></strong>
                 </td></tr>
             </table>
           </td>
@@ -318,6 +209,100 @@ the backend maintains on the frontend through comet publications:
                 <td>when it was released</td></tr>
               <tr><td><strong>downloadUrl</strong><br><em>url</em></td>
                 <td>download url</td></tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td><strong>modal</strong><br>"settingsUnlock" |
+      "settingsLoadFailure" | "welcome" | "authorize" | "gtalkUnreachable" |
+      "notInvited" | "requestInvite" | "requestSent" | "firstInviteReceived" |
+      "proxiedSites" | "systemProxy" | "inviteFriends" | "finished" |
+      "settings" | "giveMode" | "about" | "updateAvailable" | ""
+    </td>
+    <td>Instructs the UI to display the corresponding modal dialog.
+      A value of empty string means no modal dialog should be displayed.
+    </td>
+  </tr>
+  <tr>
+    <td><strong>showVis</strong><br><em>boolean</em></td>
+    <td>Whether to show the visualization</td>
+  </tr>
+  <tr>
+    <td><strong>connectivity</strong><br><em>object</em></td>
+    <td>
+      <table>
+        <tr>
+          <td><strong>ip</strong><br><em>string</em></td>
+          <td>The system's public IP address, if available. A value of
+            empty string indicates no internet connectivity, in which
+            case the UI should block user interaction which requires it.</td>
+        </tr>
+        <tr>
+          <td><strong>gtalkAuthorized</strong><br><em>boolean</em></td>
+          <td>Whether the user has authorized Lantern via Oauth to access
+            her Google Talk account.</td>
+        </tr>
+        <tr>
+          <td><strong>gtalk</strong><br>"notConnected" | "connecting" |
+            "connected" </td>
+          <td>Google Talk connectivity status. If notConnected, the frontend
+            should indicate this and block user interaction which requires
+            Google Talk connectivity.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>peers</strong><br><em>object[]</em></td>
+          <td>
+            <table>
+              <tr><td><strong>current</strong><br><em>string[]</em></td>
+                  <td>list of peerids of currently connected peers</td></tr>
+              <tr><td><strong>lifetime</strong><br><em>object[]</em></td>
+                <td>
+                  <table>
+                    <tr><td><strong>userid</strong><br><em>string</em></td>
+                      <td>identifier for the user that owns this peer.<br><br>
+                      <strong><small>* Should be blank or omitted for users that
+                      do not trust <code>settings.userid</code>
+                      </small></strong></td></tr>
+                    <tr><td><strong>peerid</strong><br><em>string</em></td>
+                        <td>unique identifier for this peer<br><br>
+                            <strong><small>* Needed because multiple peers with
+                            the same userid are possible, since a user could be
+                            running Lantern from several personal computers and/or
+                            sponsoring cloud proxies</small></strong><br><br>
+                            <strong><small>* Should not reveal identity of
+                            associated user</small></strong></td></tr>
+                    <tr><td><strong>type</strong><br>"desktop" | "laeproxy" | "lec2proxy"</td>
+                        <td>type of Lantern client the peer is running<br><br>
+                        <strong><small>* laeproxy and lec2proxy instances will have
+                        userids associated with them via kaleidoscope</small>
+                        </strong></td></tr>
+                    <tr><td><strong>mode</strong><br>"give" | "get"</td>
+                        <td>(last known) mode this peer is running in</td></tr>
+                    <tr><td><strong>ip</strong><br><em>string</em></td>
+                        <td>(last known) ip address of peer</td></tr>
+                    <tr><td><strong>lat</strong><br><em>float</em></td>
+                        <td>(last known) latitude of peer (as reported by geoip lookup)</td></tr>
+                    <tr><td><strong>lon</strong><br><em>float</em></td>
+                        <td>(last known) longitude of peer (as reported by geoip lookup)</td></tr>
+                    <tr><td><strong>country</strong><br>two-letter code</td>
+                        <td>(last known) country of peer (as reported by geoip lookup)</td></tr>
+                    <tr><td><strong>bpsUp</strong><br><em>number</em></td>
+                        <td>instantaneous upload rate to this peer</td></tr>
+                    <tr><td><strong>bpsDn</strong><br><em>number</em></td>
+                        <td>instantaneous download rate from this peer</td></tr>
+                    <tr><td><strong>bpsTotal</strong><br><em>number</em></td>
+                        <td>instantaneous upload+download rate with this peer</td></tr>
+                    <tr><td><strong>bytesUp</strong><br><em>number</em></td>
+                        <td>lifetime bytes uploaded to this peer</td></tr>
+                    <tr><td><strong>bytesDn</strong><br><em>number</em></td>
+                        <td>lifetime bytes downloaded from this peer</td></tr>
+                    <tr><td><strong>bytesTotal</strong><br><em>number</em></td>
+                        <td>lifetime bytes transferred with this peer</td></tr>
+                  </table></td></tr>
             </table>
           </td>
         </tr>
@@ -356,6 +341,31 @@ the backend maintains on the frontend through comet publications:
     </td>
   </tr>
   <tr>
+    <td><strong>roster</strong><br><em>object[]</em></td>
+    <td>
+      <table>
+        <tr><td><strong>userid</strong><br><em>string</em></td>
+          <td>Google Talk userid of roster contact</td></tr>
+        <tr><td><strong>name</strong><br><em>string</em></td>
+          <td>Name of roster contact, if available</td></tr>
+        <tr><td><strong>avatarUrl</strong><br><em>string</em></td>
+          <td>Avatar url of roster contact, if available</td></tr>
+        <tr><td><strong>status</strong><br>"offline" | "away" | "idle" | "available"</td>
+          <td>Contact's status</td></tr>
+        <tr><td><strong>statusMessage</strong><br><em>string</em></td>
+          <td>Contact's status message, if available</td></tr>
+        <tr><td><strong>peers</strong><br><em>string[]</em></td>
+          <td>list of all known Lantern peerids owned by this contact<br><br>
+          <strong><small>* Used to tell if a roster contact is running
+          Lantern</small></strong></td></tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td><strong>ninvites</strong><br><em>integer</em></td>
+    <td>The number of Lantern invites user has remaining</td>
+  </tr>
+  <tr>
     <td><strong>settings</strong><br><em>object</em></td>
     <td>
       <table>
@@ -363,10 +373,6 @@ the backend maintains on the frontend through comet publications:
           <td><strong>userid</strong><br><em>string</em></td>
           <td>The user's Google Talk/Lantern userid.</td>
         </tr>
-        </tr>
-        <tr>
-          <td><strong>invites</strong><br><em>integer</em></td>
-          <td>The number of private beta invites the user has remaining.</td>
         </tr>
         <tr>
           <td><strong>lang</strong><br><em>string</em></td>
@@ -407,28 +413,6 @@ the backend maintains on the frontend through comet publications:
         </tr>
       </table>
       <br><small><a name="note-get-mode-only">1</a> Only present when in "get" mode</small>
-    </td>
-  </tr>
-  <tr>
-    <td><strong>roster</strong><br><em>object[]</em></td>
-    <td>
-      <table>
-        <tr><td><strong>userid</strong><br><em>string</em></td>
-          <td>Google Talk userid of roster contact</td></tr>
-        <tr><td><strong>name</strong><br><em>string</em></td>
-          <td>Name of roster contact, if available</td></tr>
-        <tr><td><strong>avatarUrl</strong><br><em>string</em></td>
-          <td>Avatar url of roster contact, if available</td></tr>
-        <tr><td><strong>online</strong><br><em>boolean</em></td>
-          <td>Whether contact is currently logged in to Google Talk</td></tr>
-        <tr><td><strong>status</strong><br><em>string</em></td>
-          <td>Contact's status message, if available</td></tr>
-        <tr><td><strong>lanternRunning</strong><br><em>boolean</em></td>
-          <td>Whether contact is advertising that she is currently running Lantern</td></tr>
-        <tr><td><strong>lanternMode</strong><br><em>boolean</em></td>
-          <td>Mode contact is currently running Lantern in (only available
-            when contact is advertising she is running Lantern)</td></tr>
-      </table>
     </td>
   </tr>
 </table>
@@ -508,9 +492,4 @@ the backend maintains on the frontend through comet publications:
   yet, but will be told to expect to receive more as she continues to run
   Lantern.
 
-* `inviteFriends` dialog also introduces new `advertiseLantern` setting,
-   described as "allow trusted Lantern contacts to see when I'm running
-   Lantern".
-
-    * If set, can we make sure that only trusted Lantern contacts can tell, and
-      not *all* contacts on the user's roster?
+* `advertiseLantern` setting?

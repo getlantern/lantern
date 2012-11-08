@@ -28,8 +28,7 @@ angular.module('app.services', [])
     systemProxy: 'systemProxy',
     proxyAllSites: 'proxyAllSites',
     proxyPort: 'proxyPort',
-    proxiedSites: 'proxiedSites',
-    advertiseLantern: 'advertiseLantern'
+    proxiedSites: 'proxiedSites'
   })
   .constant('MODE', {
     give: 'give',

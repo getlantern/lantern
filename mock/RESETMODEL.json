@@ -1,9 +1,7 @@
 {
-  "dev":true,
-  "showVis": false,
   "system":{
-    "lang":"en",
-    "os":"osx"
+    "os":"osx",
+    "lang":"en"
   },
   "location":{
     "lat":39.904041,
@@ -12,7 +10,8 @@
   },
   "version":{
     "current":{
-      "label":"0.0.1",
+      "label":"0.21.0-a72b3dc-tag",
+      "released":"2012-12-12",
       "api":{
         "major":0,
         "minor":0,
@@ -22,22 +21,75 @@
     }
   },
   "modal":"welcome",
-  "ninvites":0,
+  "showVis": false,
   "connectivity":{
     "ip":"...",
-    "gtalk":"notConnected",
     "gtalkAuthorized":false,
-    "peersCurrent":[],
-    "peersLifetime":[]
+    "gtalk":"notConnected",
+    "peers":{
+      "current":[],
+      "lifetime":[]
+    }
   },
+  "transfers":{
+    "bpsUp":0,
+    "bpsDn":0,
+    "bpsTotal":0,
+    "bytesUp":0,
+    "bytesDn":0,
+    "bytesTotal":0
+  },
+  "roster":[],
+  "ninvites":0,
   "settings":{
+    "userid":"",
+    "lang":"",
     "autoStart":true,
     "autoReport":true,
     "proxyPort":8787,
+    "systemProxy":true,
     "proxyAllSites":false,
     "proxiedSites":[
-      "google.com",
-      "twitter.com"
+      "avaaz.org",
+      "bittorrent.com",
+      "bloglines.com",
+      "blogspot.com",
+      "bloomberg.com",
+      "box.com",
+      "box.net",
+      "change.org",
+      "dailymotion.com",
+      "docstoc.com",
+      "dropbox.com",
+      "eff.org",
+      "facebook.com",
+      "flickr.com",
+      "friendfeed.com",
+      "freedomhouse.org",
+      "hrw.org",
+      "ifconfig.me",
+      "igfw.net",
+      "linkedin.com",
+      "littleshoot.org",
+      "livejournal.com",
+      "myspace.com",
+      "orkut.com",
+      "paypal.com",
+      "plurk.com",
+      "posterous.com",
+      "reddit.com",
+      "rsf.org",
+      "scribd.com",
+      "stumbleupon.com",
+      "torproject.org",
+      "tumblr.com",
+      "twitter.com",
+      "vimeo.com",
+      "whatismyip.com",
+      "wikileaks.org",
+      "wordpress.org",
+      "wordpress.com",
+      "youtube.com"
     ]
   }
 }

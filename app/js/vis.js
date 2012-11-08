@@ -233,7 +233,7 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, COUNTRIES_CENSORED) {
     setupLayers();
     loadCountries();
     addUser(model.location.lat, model.location.lon);
-    updateParabolas(model.connectivity.peersCurrent, []);
+    updateParabolas(model.connectivity.peers.current, []);
   });
 
   function translateAlong(id, path) {
@@ -307,7 +307,7 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, COUNTRIES_CENSORED) {
     parabola.points   = [{x: p1.x, y: p1.y}, {x: x, y: y}, {x: p2.x, y: p2.y}];
     parabola.line     = d3.svg.line().x(function(d) { return d.x; } ).y(function(d) { return d.y; } );
     parabola.orders   = d3.range(3, 4);
-    parabola.id       = 'parabola_' + peer.guid;
+    parabola.id       = 'parabola_' + peer.peerid;
     parabola.bezier   = [];
     parabola.c        = 'parabola_light'; // XXX
 
@@ -343,29 +343,29 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, COUNTRIES_CENSORED) {
 
   function updateParabolas(valNew, valOld) {
     var tmp = {};
-    angular.forEach(valNew, function(peer) {
-      var el = tmp[peer.guid] || {};
-      el.value = peer;
-      el.inNew = true;
-      tmp[peer.guid] = el;
+    angular.forEach(valNew.concat(valOld), function(peerid) {
+      tmp[peerid] = {};
     });
-    angular.forEach(valOld, function(peer) {
-      var el = tmp[peer.guid] || {};
-      el.value = peer;
-      el.inOld = true;
-      tmp[peer.guid] = el;
+    angular.forEach(valNew, function(peerid) {
+      tmp[peerid].inNew = true;
     });
-    angular.forEach(tmp, function(el) {
+    angular.forEach(valOld, function(peerid) {
+      tmp[peerid].inOld = true;
+    });
+    angular.forEach(tmp, function(el, peerid) {
+      var peer = _.find(model.connectivity.peers.lifetime, function(peer) {
+        return peer.peerid == peerid;
+      });
       if (el.inOld && !el.inNew) {
-        removeParabola(el.value);
+        removeParabola(peer);
       } else if (el.inNew && !el.inOld) {
-        addParabola(el.value);
+        addParabola(peer);
       } else {
-        log.debug('already added parabola for current peer', el.value);
+        log.debug('already added parabola for peer', peer);
       }
     });
   }
-  $scope.$watch('model.connectivity.peersCurrent', function(valNew, valOld) {
+  $scope.$watch('model.connectivity.peers.current', function(valNew, valOld) {
     if (!started || typeof valNew == 'undefined') return;
     if (typeof valNew != 'object') { throw 'expected array, not' + typeof valNew; } // XXX
     updateParabolas(valNew, valOld || []);

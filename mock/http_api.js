@@ -33,8 +33,9 @@ function inCensoringCountry(model) {
 }
 
 var peer1 = {
-    "guid": "guid1",
+    "peerid": "peerid1",
     "userid": "lantern_friend1@example.com",
+    "mode":"give",
     "ip":"74.120.12.135",
     "lat":51,
     "lon":9,
@@ -42,8 +43,9 @@ var peer1 = {
     "type":"desktop"
     }
 , peer2 = {
-    "guid": "guid2",
+    "peerid": "peerid2",
     "userid": "lantern_power_user@example.com",
+    "mode":"give",
     "ip":"93.182.129.82",
     "lat":55.7,
     "lon":13.1833,
@@ -51,8 +53,9 @@ var peer1 = {
     "type":"lec2proxy"
   }
 , peer3 = {
-    "guid": "guid3",
+    "peerid": "peerid3",
     "userid": "lantern_power_user@example.com",
+    "mode":"give",
     "ip":"173.194.66.141",
     "lat":37.4192,
     "lon":-122.0574,
@@ -60,15 +63,43 @@ var peer1 = {
     "type":"laeproxy"
   }
 , peer4 = {
-    "guid": "guid4",
+    "peerid": "peerid4",
     "userid": "lantern_power_user@example.com",
+    "mode":"give",
     "ip":"...",
     "lat":54,
     "lon":-2,
     "country":"gb",
     "type":"lec2proxy"
   }
+, peer5 = {
+    "peerid": "peerid5",
+    "userid": "lantern_power_user@example.com",
+    "mode":"get",
+    "ip":"...",
+    "lat":31.230381,
+    "lon":121.473684,
+    "country":"cn",
+    "type":"desktop"
+  }
 ;
+
+roster = [{
+  "userid":"lantern_friend1@example.com",
+  "name":"Lantern Friend1",
+  "avatarUrl":"",
+  "status":"available",
+  "statusMessage":"",
+  "peers":["peerid1"]
+  },{
+  "userid":"lantern_power_user@example.com",
+  "name":"Lantern Poweruser",
+  "avatarUrl":"",
+  "status":"available",
+  "statusMessage":"Shanghai!",
+  "peers":["peerid2", "peerid3", "peerid4", "peerid5"]
+  }
+];
 
 /*
 model.version.updated = {
@@ -188,30 +219,41 @@ ApiServlet._advanceModal = function(backToIfNone) {
   this._bayeuxBackend.publishSync('modal');
 };
 
-ApiServlet._tryConnectPeers = function(model) {
+ApiServlet._tryConnect = function(model) {
   var userid = model.settings.userid;
   // check for lantern access
   switch (userid) {
-    case 'user_invited@example.com':
-      // has access, so we can connect to peers
-      model.connectivity.peersCurrent = [peer1, peer2, peer3, peer4];
-      model.connectivity.peersLifetime = [peer1, peer2, peer3, peer4];
-      this._bayeuxBackend.publishSync('connectivity.peersCurrent');
-      this._bayeuxBackend.publishSync('connectivity.peersLifetime');
-      util.puts("user has access, connected her to peers: "+util.inspect(model.connectivity.peersCurrent));
-      return;
-
     case 'user_cant_reach_gtalk@example.com':
+      model.connectivity.gtalk = CONNECTIVITY.notConnected;
+      this._bayeuxBackend.publishSync('connectivity.gtalk');
       model.modal = MODAL.gtalkUnreachable;
       this._bayeuxBackend.publishSync('modal');
       util.puts("user can't reach google talk, set modal to "+MODAL.gtalkUnreachable);
+      return;
+
+    case 'user_invited@example.com':
+      // simulate connecting to google talk XXX show this is happening in UI
+      model.connectivity.gtalk = CONNECTIVITY.connecting;
+      this._bayeuxBackend.publishSync('connectivity.gtalk');
+      sleep.usleep(750000);
+      model.connectivity.gtalk = CONNECTIVITY.connected;
+      this._bayeuxBackend.publishSync('connectivity.gtalk');
+      // simulate getting roster XXX show this is happening in UI
+      model.roster = roster;
+      this._bayeuxBackend.publishSync('roster');
+      // simulate being notified of peers and connecting to them XXX show this is happening in UI
+      model.connectivity.peers.current = [peer1.peerid, peer2.peerid, peer3.peerid, peer4.peerid, peer5.peerid];
+      model.connectivity.peers.lifetime = [peer1, peer2, peer3, peer4, peer5];
+      this._bayeuxBackend.publishSync('connectivity.peers');
+      util.puts("user has access; connected to google talk, fetched roster:\n"+util.inspect(roster)+"\ndiscovered and connected to peers:\n"+util.inspect(model.connectivity.peers.current));
+      ApiServlet._advanceModal.call(this);
       return;
 
     default:
       // assume user does not have access
       model.modal = MODAL.notInvited;
       this._bayeuxBackend.publishSync('modal');
-      util.puts("user does not have access, set modal to "+MODAL.notInvited);
+      util.puts("user does not have Lantern access, set modal to "+MODAL.notInvited);
       return;
   }
 };
@@ -460,7 +502,6 @@ ApiServlet.HandlerMap = {
         , autoStart = qs.autoStart
         , proxyAllSites = qs.proxyAllSites
         , proxiedSites = qs.proxiedSites
-        , advertiseLantern = qs.advertiseLantern
         ;
       // XXX write this better
       if ('undefined' == typeof mode
@@ -470,7 +511,6 @@ ApiServlet.HandlerMap = {
        && 'undefined' == typeof autoStart
        && 'undefined' == typeof proxyAllSites
        && 'undefined' == typeof proxiedSites
-       && 'undefined' == typeof advertiseLantern
           ) {
         badRequest = true;
       } else {
@@ -547,16 +587,6 @@ ApiServlet.HandlerMap = {
             this._bayeuxBackend.publishSync('settings.proxiedSites');
           }
         }
-        if (advertiseLantern) {
-          if (advertiseLantern != 'true' && advertiseLantern != 'false') {
-            badRequest = true;
-            util.puts('invalid value of advertiseLantern: ' + advertiseLantern);
-          } else {
-            advertiseLantern = advertiseLantern == 'true';
-            model.settings.advertiseLantern = advertiseLantern;
-            this._bayeuxBackend.publishSync('settings.advertiseLantern');
-          }
-        }
       }
       if (badRequest) {
         res.writeHead(400);
@@ -571,13 +601,10 @@ ApiServlet.HandlerMap = {
         ;
       model.settings.userid = userid;
       this._bayeuxBackend.publishSync('settings.userid');
-      model.connectivity.gtalk = CONNECTIVITY.connected;
-      this._bayeuxBackend.publishSync('connectivity.gtalk');
       model.connectivity.gtalkAuthorized = true;
       this._bayeuxBackend.publishSync('connectivity.gtalkAuthorized');
       this._internalState.modalsCompleted[MODAL.authorize] = true;
-      ApiServlet._advanceModal.call(this);
-      ApiServlet._tryConnectPeers.call(this, model);
+      ApiServlet._tryConnect.call(this, model);
   },
   requestInvite: function(req, res) {
       var model = this._bayeuxBackend.model
