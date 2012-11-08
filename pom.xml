@@ -16,7 +16,7 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <slf4j.version>1.6.1</slf4j.version>
-    <cometd.version>2.4.0.RC3</cometd.version>
+    <cometd.version>2.5.0</cometd.version>
   </properties>
 
   <organization>
@@ -52,11 +52,9 @@
 -->
         <dependency>
             <groupId>javax.servlet</groupId>
-            <artifactId>servlet-api</artifactId>
-            <version>2.5</version>
-<!--
+            <artifactId>javax.servlet-api</artifactId>
+            <version>3.0.1</version>
             <scope>provided</scope>
--->
         </dependency>
         <dependency>
 	    <groupId>net.java.dev.jna</groupId>
@@ -91,14 +89,14 @@
          <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
-            <!--<version>8.1.5.v20120716</version>-->
-            <version>7.6.0.RC5</version>
+            <version>8.1.7.v20120910</version>
+            <!--<version>7.6.0.RC5</version>-->
         </dependency>
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
-            <!--<version>8.1.5.v20120716</version>-->
-            <version>7.6.0.RC5</version>
+            <version>8.1.7.v20120910</version>
+            <!--<version>7.6.0.RC5</version>-->
 <!--
             <exclusions>
                 <exclusion>
@@ -561,13 +559,17 @@
                 </excludes>
               </artifactSet>
 
-              <filter> 
-                <excludes> 
-                  <exclude>META-INF/*.SF</exclude> 
-                  <exclude>META-INF/*.DSA</exclude> 
-                  <exclude>META-INF/*.RSA</exclude> 
-                </excludes> 
-              </filter> 
+          <filters>
+            <filter>
+              <artifact>*:*</artifact>
+              <excludes>
+                <exclude>META-INF/*.SF</exclude>
+                <exclude>META-INF/*.DSA</exclude>
+                <exclude>META-INF/*.RSA</exclude>
+              </excludes>
+            </filter>
+          </filters>
+
               <transformers>
                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                   <manifestEntries>

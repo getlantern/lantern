@@ -9,31 +9,35 @@ import org.jboss.netty.channel.WriteCompletionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class StatsTrackingHandler extends SimpleChannelHandler {
+public abstract class StatsTrackingHandler extends SimpleChannelHandler {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
+    public StatsTrackingHandler() {}
+    
     @Override
-    public void writeComplete(ChannelHandlerContext ctx, WriteCompletionEvent e) {
-        long bytes = e.getWrittenAmount();
+    public void writeComplete(final ChannelHandlerContext ctx, 
+        final WriteCompletionEvent e) {
         addUpBytes(e.getWrittenAmount(), ctx.getChannel());
     }
     
     @Override
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-        Object msg = e.getMessage();
+    public void messageReceived(final ChannelHandlerContext ctx, 
+        final MessageEvent e) throws Exception {
+        final Object msg = e.getMessage();
         if (msg instanceof ChannelBuffer) {
-            ChannelBuffer cb = (ChannelBuffer) msg;
+            final ChannelBuffer cb = (ChannelBuffer) msg;
             addDownBytes(cb.readableBytes(), ctx.getChannel());
         }
         else {
-            log.warn("StatsTrackingHandler messageRecieved was not ChannelBuffer.  Mislocated?");
+            log.warn("StatsTrackingHandler messageRecieved was not " +
+                "ChannelBuffer. Mislocated?");
         }
         super.messageReceived(ctx, e);
     }
     
-    public void addUpBytes(long bytes, Channel channel) {}
-    public void addDownBytes(long bytes, Channel channel) {}
+    public abstract void addUpBytes(long bytes, Channel channel);
+    public abstract void addDownBytes(long bytes, Channel channel);
     
     protected StatsTracker statsTracker() {
         return LanternHub.statsTracker();

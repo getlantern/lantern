@@ -2,6 +2,7 @@ package org.lantern;
 
 import static org.junit.Assert.assertEquals;
 
+import java.net.Socket;
 import java.net.URI;
 
 import org.jboss.netty.channel.group.ChannelGroup;
@@ -21,14 +22,18 @@ public class DefaultPeerProxyManagerTest {
             new DefaultPeerProxyManager(true, channelGroup);
         
         final URI peerUri = new URI("http://test.com");
-        final ConnectionTimeSocket cts1 = l.new ConnectionTimeSocket(peerUri);
-        cts1.elapsed = 1000L;
-        final ConnectionTimeSocket cts2 = l.new ConnectionTimeSocket(peerUri);
-        cts2.elapsed = 2000L;
-        final ConnectionTimeSocket cts3 = l.new ConnectionTimeSocket(peerUri);
-        cts3.elapsed = 3000L;
-        final ConnectionTimeSocket cts4 = l.new ConnectionTimeSocket(peerUri);
-        cts4.elapsed = 4000L;
+        final long time1 = 0;
+        final long time2 = 1;
+        final long time3 = 2;
+        final long time4 = 3;
+        final ConnectionTimeSocket cts1 = 
+            l.new ConnectionTimeSocket(peerUri, time4, new Socket());
+        final ConnectionTimeSocket cts2 = 
+            l.new ConnectionTimeSocket(peerUri, time3, new Socket());
+        final ConnectionTimeSocket cts3 = 
+            l.new ConnectionTimeSocket(peerUri, time2, new Socket());
+        final ConnectionTimeSocket cts4 = 
+            l.new ConnectionTimeSocket(peerUri, time1, new Socket());
         
         l.timedSockets.add(cts1);
         l.timedSockets.add(cts2);

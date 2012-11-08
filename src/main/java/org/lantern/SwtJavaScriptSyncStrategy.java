@@ -15,7 +15,7 @@ public class SwtJavaScriptSyncStrategy implements SyncStrategy {
     private volatile long lastUpdateTime = System.currentTimeMillis();
     
     @Override
-    public void sync(final boolean force, final String channelName, 
+    public void sync(final boolean force, final SyncChannel channel, 
         final ServerSession session) {
         final long elapsed = System.currentTimeMillis() - lastUpdateTime;
         if (!force && elapsed < 100) {
@@ -24,13 +24,16 @@ public class SwtJavaScriptSyncStrategy implements SyncStrategy {
             return;
         }
 
-        if (channelName.equals(LanternConstants.ROSTER_SYNC_CHANNEL)) {
-            log.debug("Syncing roster...");
-            LanternHub.dashboard().rosterSync();
-        } else if (channelName.equals(LanternConstants.SETTINGS_SYNC_CHANNEL)) {
-            LanternHub.dashboard().settingsSync();
-        } else {
-            throw new Error("Bad channel name?");
+        switch (channel) {
+            case roster:
+                log.debug("Syncing roster...");
+                LanternHub.dashboard().rosterSync();
+                break;
+            case settings:
+                LanternHub.dashboard().settingsSync();
+                break;
+            default:
+                throw new Error("Bad channel? "+channel.name());
         }
         lastUpdateTime = System.currentTimeMillis();
         log.debug("Sync performed");

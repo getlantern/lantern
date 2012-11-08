@@ -133,7 +133,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         }
         engine.setUseClientMode(true);
         
-        ChannelHandler stats = new StatsTrackingHandler() {
+        final ChannelHandler stats = new StatsTrackingHandler() {
             @Override
             public void addUpBytes(long bytes, Channel channel) {
                 statsTracker().addUpBytesViaProxies(bytes, channel);

@@ -8,8 +8,8 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.UnavailableException;
 
+import org.cometd.annotation.ServerAnnotationProcessor;
 import org.cometd.bayeux.server.BayeuxServer;
-import org.cometd.java.annotation.ServerAnnotationProcessor;
 
 public class BayeuxInitializer extends GenericServlet {
     
@@ -18,10 +18,12 @@ public class BayeuxInitializer extends GenericServlet {
     @Override
     public void init() throws ServletException {
         super.init();
-        final BayeuxServer bayeux = (BayeuxServer) getServletContext()
-                .getAttribute(BayeuxServer.ATTRIBUTE);
-        if (bayeux==null)
+        final BayeuxServer bayeux = 
+            (BayeuxServer) getServletContext().getAttribute(
+                BayeuxServer.ATTRIBUTE);
+        if (bayeux==null) {
             throw new UnavailableException("No BayeuxServer!");
+        }
 
         // Create extensions
         //bayeux.addExtension(new TimesyncExtension());

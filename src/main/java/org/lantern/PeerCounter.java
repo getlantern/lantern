@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.eventbus.Subscribe;
 
 
-class PeerCounter extends TimeSeries1D {
+public class PeerCounter extends TimeSeries1D {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Set<String> peers; // this is always the current connected set of peers.
@@ -43,6 +43,7 @@ class PeerCounter extends TimeSeries1D {
         }, 0, bucketSizeMillis);
     }
     
+    @Override
     public void reset() {
         super.reset();
         peers.clear();

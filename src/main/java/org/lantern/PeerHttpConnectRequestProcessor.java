@@ -57,7 +57,6 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
             browserPipeline.remove("decoder");
             browserPipeline.remove("handler");
             
-            
             browserPipeline.addLast("handler", 
                 new SocketHttpConnectRelayingHandler(this.sock, 
                     this.channelGroup));
@@ -71,9 +70,14 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
         try {
             final OutputStream os = this.sock.getOutputStream();
             final byte[] data = LanternUtils.toByteBuffer(request, ctx);
-            log.info("Writing data on peer socket: {}", new String(data, "UTF-8"));
+            //log.info("Writing data on peer socket: {}", new String(data, "UTF-8"));
+            log.debug("Writing {} bytes on peer socket...", data.length);
             os.write(data);
-            // shady, hard to know if it's really been done
+            
+            // Remember this could be any kind of underlying socket here, 
+            // including a UDP socket with an OutputStream that might not
+            // have truly written then bytes even though it's theoretically
+            // blocking.
             LanternHub.statsTracker().addUpBytesViaProxies(data.length, this.sock);
         } catch (final IOException e) {
             log.error("Could not write to stream?", e);
