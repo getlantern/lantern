@@ -19,10 +19,12 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
 import org.apache.commons.beanutils.PropertyUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.event.UpdateEvent;
 import org.lantern.state.Connectivity;
+import org.lantern.state.Location;
 import org.lantern.state.Transfers;
 import org.lantern.state.Version;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
@@ -196,6 +198,8 @@ public class Settings implements MutableSettings {
     private Connectivity connectivity = new Connectivity();
     
     private final Version version = new Version();
+    
+    private final Location location = new Location();
 
     {
         LanternHub.register(this);
@@ -236,6 +240,9 @@ public class Settings implements MutableSettings {
                 }
                 if (country.get() == null) {
                     country.set(count);
+                }
+                if (StringUtils.isBlank(location.getCountry())) {
+                    location.setCountry(count.getCode());
                 }
                 
                 synchronized (getModeLock) {

@@ -56,8 +56,12 @@ public class Transfers {
     }
     
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
-    public long getBytesUpLifetime() {
+    public long getUpTotalLifetime() {
         return getUpTotalThisRun() + historicalUpBytes;
+    }
+    
+    public void setBytesUpLifetime(final long historicalUpBytes) {
+        this.historicalUpBytes = this.historicalUpBytes + historicalUpBytes;
     }
 
     public void setUpTotalLifetime(final long value) {
@@ -65,7 +69,7 @@ public class Transfers {
     }
 
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
-    public long getBytesDnLifetime() {
+    public long getDownTotalLifetime() {
         return getDownTotalThisRun() + historicalDownBytes;
     }
 
@@ -75,6 +79,6 @@ public class Transfers {
     
     @JsonView({RuntimeSetting.class})
     public long getBytesTotalLifetime() {
-        return getBytesDnLifetime() + getBytesUpLifetime();
+        return getDownTotalLifetime() + getUpTotalLifetime();
     }
 }

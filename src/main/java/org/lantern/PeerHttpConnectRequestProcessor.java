@@ -28,10 +28,13 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
 
     private final ChannelGroup channelGroup;
 
+    private final ByteTracker byteTracker;
+
     public PeerHttpConnectRequestProcessor(final Socket sock,
-        final ChannelGroup channelGroup) {
+        final ChannelGroup channelGroup, final ByteTracker byteTracker) {
         this.sock = sock;
         this.channelGroup = channelGroup;
+        this.byteTracker = byteTracker;
     }
 
     @Override
@@ -78,7 +81,7 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
             // including a UDP socket with an OutputStream that might not
             // have truly written then bytes even though it's theoretically
             // blocking.
-            LanternHub.statsTracker().addUpBytesViaProxies(data.length, this.sock);
+            byteTracker.addUpBytes(data.length);
         } catch (final IOException e) {
             log.error("Could not write to stream?", e);
             return false;

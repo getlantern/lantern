@@ -44,10 +44,13 @@ public class PeerChannelHttpRequestProcessor implements HttpRequestProcessor {
 
     private final ChannelGroup channelGroup;
 
+    private final ByteTracker byteTracker;
+
     public PeerChannelHttpRequestProcessor(final Socket sock, 
-        final ChannelGroup channelGroup) {
+        final ChannelGroup channelGroup, final ByteTracker byteTracker) {
         this.sock = sock;
         this.channelGroup = channelGroup;
+        this.byteTracker = byteTracker;
     }
 
     @Override
@@ -57,12 +60,12 @@ public class PeerChannelHttpRequestProcessor implements HttpRequestProcessor {
         if (!startedCopying) {
             final ChannelHandler stats = new StatsTrackingHandler() {
                 @Override
-                public void addUpBytes(long bytes, Channel channel) {
-                     statsTracker().addUpBytesViaProxies(bytes, channel);
+                public void addUpBytes(final long bytes) {
+                    byteTracker.addUpBytes(bytes);
                 }
                 @Override
-                public void addDownBytes(long bytes, Channel channel) {
-                    statsTracker().addDownBytesViaProxies(bytes, channel);
+                public void addDownBytes(final long bytes) {
+                    byteTracker.addDownBytes(bytes);
                 }
             };
             

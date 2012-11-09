@@ -8,7 +8,6 @@ import java.net.URI;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.junit.Test;
-import org.lantern.DefaultPeerProxyManager.ConnectionTimeSocket;
 
 
 public class DefaultPeerProxyManagerTest {
@@ -26,14 +25,14 @@ public class DefaultPeerProxyManagerTest {
         final long time2 = 1;
         final long time3 = 2;
         final long time4 = 3;
-        final ConnectionTimeSocket cts1 = 
-            l.new ConnectionTimeSocket(peerUri, time4, new Socket());
-        final ConnectionTimeSocket cts2 = 
-            l.new ConnectionTimeSocket(peerUri, time3, new Socket());
-        final ConnectionTimeSocket cts3 = 
-            l.new ConnectionTimeSocket(peerUri, time2, new Socket());
-        final ConnectionTimeSocket cts4 = 
-            l.new ConnectionTimeSocket(peerUri, time1, new Socket());
+        final PeerSocketWrapper cts1 = 
+            new PeerSocketWrapper(peerUri, time4, new Socket(), true, channelGroup);
+        final PeerSocketWrapper cts2 = 
+            new PeerSocketWrapper(peerUri, time3, new Socket(), true, channelGroup);
+        final PeerSocketWrapper cts3 = 
+            new PeerSocketWrapper(peerUri, time2, new Socket(), true, channelGroup);
+        final PeerSocketWrapper cts4 = 
+            new PeerSocketWrapper(peerUri, time1, new Socket(), true, channelGroup);
         
         l.timedSockets.add(cts1);
         l.timedSockets.add(cts2);

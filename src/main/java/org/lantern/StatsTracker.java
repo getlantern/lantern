@@ -39,7 +39,7 @@ public class StatsTracker implements Stats {
      * getXYZBytesPerSecond calls will be calculated using a moving 
      * window average of size DATA_RATE_SECONDS.
      */ 
-    private static final int DATA_RATE_SECONDS = 1;
+    public static final int DATA_RATE_SECONDS = 1;
     private static final long ONE_SECOND = 1000;
     private static final long ONE_MINUTE = 60*ONE_SECOND;
     private static final long ONE_HOUR = 60*ONE_MINUTE;
@@ -75,9 +75,6 @@ public class StatsTracker implements Stats {
     
     private boolean natpmp;
     
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getUptime()
-     */
     @Override
     public long getUptime() {
         return System.currentTimeMillis() - LanternConstants.START_TIME;
@@ -204,7 +201,7 @@ public class StatsTracker implements Stats {
         return getBytesPerSecond(upBytesPerSecondToPeers);
     }
     
-    private long getBytesPerSecond(TimeSeries1D ts) {
+    public static long getBytesPerSecond(final TimeSeries1D ts) {
         long now = System.currentTimeMillis();
         // prior second to the one we're still accumulating 
         long windowEnd = ((now / ONE_SECOND) * ONE_SECOND) - 1;
@@ -217,66 +214,32 @@ public class StatsTracker implements Stats {
     /**
      * request bytes this lantern proxy sent to other lanterns for proxying
      */
-    public void addUpBytesViaProxies(final long bp, final Channel channel) {
+    public void addUpBytesViaProxies(final long bp) {
         upBytesPerSecondViaProxies.addData(bp);
         log.debug("upBytesPerSecondViaProxies += {} up-rate {}", bp, getUpBytesPerSecond());
     }
 
     /**
-     * request bytes this lantern proxy sent to other lanterns for proxying
+     * response bytes downloaded by Peers for this lantern
      */
-    public void addUpBytesViaProxies(final long bp, final Socket sock) {
-        upBytesPerSecondViaProxies.addData(bp);
-        log.debug("upBytesPerSecondViaProxies += {} up-rate {}", bp, getUpBytesPerSecond());
+    public void addDownBytesViaProxies(final long bp) {
+        downBytesPerSecondViaProxies.addData(bp);
+        log.debug("downBytesPerSecondViaProxies += {} down-rate {}", bp, getDownBytesPerSecond());
     }
 
     /**
      * bytes sent upstream on behalf of another lantern by this
      * lantern
      */
-    public void addUpBytesForPeers(final long bp, final Channel channel) {
+    public void addUpBytesForPeers(final long bp) {
         upBytesPerSecondForPeers.addData(bp);
         log.debug("upBytesPerSecondForPeers += {} up-rate {}", bp, getUpBytesPerSecond());
     }
-
+    
     /**
-     * bytes sent upstream on behalf of another lantern by this
-     * lantern
+     * bytes downloaded on behalf of another lantern by this lantern
      */
-    public void addUpBytesForPeers(final long bp, final Socket sock) {
-        upBytesPerSecondForPeers.addData(bp);
-        log.debug("upBytesPerSecondForPeers += {} up-rate {}", bp, getUpBytesPerSecond());
-    }
-
-    /**
-     * response bytes downloaded by Peers for this lantern
-     */
-    public void addDownBytesViaProxies(final long bp, final Channel channel) {
-        downBytesPerSecondViaProxies.addData(bp);
-        log.debug("downBytesPerSecondViaProxies += {} down-rate {}", bp, getDownBytesPerSecond());
-    }
-
-    /**
-     * response bytes downloaded by Peers for this lantern
-     */
-    public void addDownBytesViaProxies(final long bp, final Socket sock) {
-        downBytesPerSecondViaProxies.addData(bp);
-        log.debug("downBytesPerSecondViaProxies += {} down-rate {}", bp, getDownBytesPerSecond());
-    }
-
-    /**
-     * bytes downloaded on behalf of another lantern by this
-     * lantern
-     */
-    public void addDownBytesForPeers(final long bp, final Channel channel) {
-        downBytesPerSecondForPeers.addData(bp);
-        log.debug("downBytesPerSecondForPeers += {} down-rate {}", bp, getDownBytesPerSecond());
-    }
-    /**
-     * bytes downloaded on behalf of another lantern by this
-     * lantern
-     */
-    public void addDownBytesForPeers(final long bp, final Socket sock) {
+    public void addDownBytesForPeers(final long bp) {
         downBytesPerSecondForPeers.addData(bp);
         log.debug("downBytesPerSecondForPeers += {} down-rate {}", bp, getDownBytesPerSecond());
     }
@@ -284,14 +247,7 @@ public class StatsTracker implements Stats {
     /**
      * request bytes sent by peers to this lantern
      */
-    public void addDownBytesFromPeers(final long bp, final Channel channel) {
-        downBytesPerSecondFromPeers.addData(bp);
-        log.debug("downBytesPerSecondFromPeers += {} down-rate {}", bp, getDownBytesPerSecond());
-    }
-    /**
-     * request bytes sent by peers to this lantern
-     */
-    public void addDownBytesFromPeers(final long bp, final Socket sock) {
+    public void addDownBytesFromPeers(final long bp) {
         downBytesPerSecondFromPeers.addData(bp);
         log.debug("downBytesPerSecondFromPeers += {} down-rate {}", bp, getDownBytesPerSecond());
     }
@@ -299,14 +255,7 @@ public class StatsTracker implements Stats {
     /** 
      * reply bytes send to peers by this lantern
      */
-    public void addUpBytesToPeers(final long bp, final Channel channel) {
-        upBytesPerSecondToPeers.addData(bp);
-        log.debug("upBytesPerSecondToPeers += {} up-rate {}", bp, getUpBytesPerSecond());
-    }
-    /** 
-     * reply bytes send to peers by this lantern
-     */
-    public void addUpBytesToPeers(final long bp, final Socket sock) {
+    public void addUpBytesToPeers(final long bp) {
         upBytesPerSecondToPeers.addData(bp);
         log.debug("upBytesPerSecondToPeers += {} up-rate {}", bp, getUpBytesPerSecond());
     }

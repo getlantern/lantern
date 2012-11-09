@@ -135,12 +135,12 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         
         final ChannelHandler stats = new StatsTrackingHandler() {
             @Override
-            public void addUpBytes(long bytes, Channel channel) {
-                statsTracker().addUpBytesViaProxies(bytes, channel);
+            public void addUpBytes(final long bytes) {
+                statsTracker().addUpBytesViaProxies(bytes);
             }
             @Override
-            public void addDownBytes(long bytes, Channel channel) {
-                statsTracker().addDownBytesViaProxies(bytes, channel);
+            public void addDownBytes(final long bytes) {
+                statsTracker().addDownBytesViaProxies(bytes);
             }
         };
 
