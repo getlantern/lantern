@@ -269,9 +269,7 @@ public class LanternUtils {
                             ChannelBuffers.copiedBuffer(buffer, 0, n);
                         channel.write(buf);
                         if (recordStats) {
-                            StatsTracker tracker = LanternHub.statsTracker();
-                            tracker.addBytesProxied(n, sock);
-                            tracker.addDownBytesViaProxies(n, sock);
+                            LanternHub.statsTracker().addDownBytesFromPeers(n);
                         }
                         
                     }
@@ -289,12 +287,6 @@ public class LanternUtils {
                 }
             }
         };
-        /*
-        final Thread peerReadingThread = 
-            new Thread(runner, "Peer-Data-Reading-Thread");
-        peerReadingThread.setDaemon(true);
-        peerReadingThread.start();
-        */
         threadPool.execute(runner);
     }
     

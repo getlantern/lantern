@@ -30,7 +30,7 @@ public class WhitelistProxyingTest {
         Launcher.main(new String[]{"--disable-ui", "--force-get", 
             "--user", email, "--pass", pass});
         
-        Thread.sleep(20000);
+        Thread.sleep(10000);
         /*
         final int proxyPort = 10200;
         final HttpProxyServer proxy = 
@@ -59,7 +59,6 @@ public class WhitelistProxyingTest {
     
     private void testWhitelistedSite(final String url, final HttpClient client, 
         final int proxyPort) throws Exception {
-    
         final HttpGet get = new HttpGet("http://"+url);
         //get.setHeader(HttpHeaders.Names.CONTENT_RANGE, "Range: bytes=0-1999999");
         //get.setHeader(HttpHeaders.Names.HOST, "rlanternz.appspot.com");

@@ -3,8 +3,7 @@ package org.lantern.state;
 import java.util.Collection;
 import java.util.HashSet;
 
-import org.lantern.DefaultPeerProxyManager;
-import org.lantern.DefaultPeerProxyManager.ConnectionTimeSocket;
+import org.lantern.PeerSocketWrapper;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -20,13 +19,12 @@ public class Peer {
     
     private final String country;
     
-    private final Collection<ConnectionTimeSocket> sockets = 
-        new HashSet<ConnectionTimeSocket>();
+    private final Collection<PeerSocketWrapper> sockets = 
+        new HashSet<PeerSocketWrapper>();
     
-    public Peer(final String userId, final ConnectionTimeSocket sock, 
-        final String country) {
+    public Peer(final String userId, final String ip, final String country) {
         this.userId = userId;
-        this.ip = sock.getSocket().getInetAddress().getHostAddress();
+        this.ip = ip;
         this.country = country;
     }
 
@@ -43,20 +41,19 @@ public class Peer {
         return country;
     }
 
-    public Collection<ConnectionTimeSocket> getSockets() {
+    public Collection<PeerSocketWrapper> getSockets() {
         synchronized (sockets) {
             return ImmutableSet.copyOf(sockets);
         }
     }
 
-    public void removeSocket(final ConnectionTimeSocket cts) {
+    public void removeSocket(final PeerSocketWrapper cts) {
         synchronized (sockets) {
             this.sockets.remove(cts);
         }
     }
 
-
-    public void addSocket(final ConnectionTimeSocket cts) {
+    public void addSocket(final PeerSocketWrapper cts) {
         synchronized (sockets) {
             this.sockets.add(cts);
         }

@@ -283,7 +283,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             log.debug("Opening HTTP CONNECT tunnel");
             try {
                 this.httpConnectChannelFuture = 
-                    openOutgoingRelayChannel(request);
+                    openHttpConnectChannelToCentralProxy(request);
             } catch (final IOException e) {
                 log.error("Could not open CONNECT channel", e);
             }
@@ -333,8 +333,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         this.channelGroup.add(this.browserToProxyChannel);
     }
     
-    private ChannelFuture openOutgoingRelayChannel(final HttpRequest request) 
-        throws IOException {
+    private ChannelFuture openHttpConnectChannelToCentralProxy(
+        final HttpRequest request) throws IOException {
         this.browserToProxyChannel.setReadable(false);
 
         // Start the connection attempt.
@@ -354,20 +354,16 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             sslFactory.getClientContext().createSSLEngine();
         engine.setUseClientMode(true);
         
-        ChannelHandler stats = new StatsTrackingHandler() {
+        final ChannelHandler stats = new StatsTrackingHandler() {
             @Override
-            public void addDownBytes(long bytes, Channel channel) {
-                // global bytes proxied statistic
-                //log.info("Recording proxied bytes through HTTP CONNECT: {}", bytes);
-                statsTracker().addBytesProxied(bytes, channel);
-                
+            public void addDownBytes(long bytes) {
                 // contributes to local download rate
-                statsTracker().addDownBytesViaProxies(bytes, channel);
+                statsTracker().addDownBytesViaProxies(bytes);
             }
 
             @Override
-            public void addUpBytes(long bytes, Channel channel) {
-                statsTracker().addUpBytesViaProxies(bytes, channel);
+            public void addUpBytes(long bytes) {
+                statsTracker().addUpBytesViaProxies(bytes);
             }
         };        
 

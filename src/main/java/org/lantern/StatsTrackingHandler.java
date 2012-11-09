@@ -1,7 +1,6 @@
 package org.lantern;
 
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
@@ -9,7 +8,8 @@ import org.jboss.netty.channel.WriteCompletionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class StatsTrackingHandler extends SimpleChannelHandler {
+public abstract class StatsTrackingHandler extends SimpleChannelHandler 
+    implements ByteTracker {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -18,7 +18,7 @@ public abstract class StatsTrackingHandler extends SimpleChannelHandler {
     @Override
     public void writeComplete(final ChannelHandlerContext ctx, 
         final WriteCompletionEvent e) {
-        addUpBytes(e.getWrittenAmount(), ctx.getChannel());
+        addUpBytes(e.getWrittenAmount());
     }
     
     @Override
@@ -27,7 +27,7 @@ public abstract class StatsTrackingHandler extends SimpleChannelHandler {
         final Object msg = e.getMessage();
         if (msg instanceof ChannelBuffer) {
             final ChannelBuffer cb = (ChannelBuffer) msg;
-            addDownBytes(cb.readableBytes(), ctx.getChannel());
+            addDownBytes(cb.readableBytes());
         }
         else {
             log.warn("StatsTrackingHandler messageRecieved was not " +
@@ -35,9 +35,6 @@ public abstract class StatsTrackingHandler extends SimpleChannelHandler {
         }
         super.messageReceived(ctx, e);
     }
-    
-    public abstract void addUpBytes(long bytes, Channel channel);
-    public abstract void addDownBytes(long bytes, Channel channel);
     
     protected StatsTracker statsTracker() {
         return LanternHub.statsTracker();

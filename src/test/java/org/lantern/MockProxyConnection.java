@@ -2,6 +2,7 @@ package org.lantern;
 
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.util.Map;
 import java.io.IOException;
 
 import org.jboss.netty.bootstrap.ServerBootstrap;
@@ -15,6 +16,7 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import static org.lantern.TestingUtils.*;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.InMemoryCookieTracker;
+import org.lantern.state.Peer;
 
 
 /** 
@@ -73,15 +75,14 @@ class MockProxyConnection extends MockConnection {
                        }
 
                     @Override
-                    public void closeAll() {
-                        // TODO Auto-generated method stub
-                        
-                    }
+                    public void closeAll() {}
 
                     @Override
-                    public void removePeer(URI uri) {
-                        // TODO Auto-generated method stub
-                        
+                    public void removePeer(URI uri) {}
+
+                    @Override
+                    public Map<String, Peer> getPeers() {
+                        return null;
                     }
                     
                 };

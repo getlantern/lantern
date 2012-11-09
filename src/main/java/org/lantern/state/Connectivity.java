@@ -1,11 +1,11 @@
 package org.lantern.state;
 
-import org.codehaus.jackson.map.annotate.JsonView;
+import java.util.Collection;
+
 import org.lantern.ConnectivityStatus;
 import org.lantern.GoogleTalkState;
 import org.lantern.LanternHub;
-import org.lantern.Settings;
-import org.lantern.Settings.RuntimeSetting;
+import org.lantern.PeerProxyManager;
 import org.lantern.event.ConnectivityStatusChangeEvent;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.SyncEvent;
@@ -28,7 +28,6 @@ public class Connectivity {
         LanternHub.register(this);
     }
     
-    @JsonView({RuntimeSetting.class})
     public String getPublicIp() {
         return this.ip;
     }
@@ -38,21 +37,30 @@ public class Connectivity {
         this.ip = ip;
     }
     
-    @JsonView(RuntimeSetting.class)
     public GoogleTalkState getGTalk() {
         return googleTalkState;
     }
     
-    @Subscribe
-    public void onAuthenticationStateChanged(
-        final GoogleTalkStateEvent ase) {
-        this.googleTalkState = ase.getState();
-        LanternHub.asyncEventBus().post(new SyncEvent(SyncChannel.connectivity));
-    }
-    
-    @JsonView(RuntimeSetting.class)
     public ConnectivityStatus getConnectivity() {
         return connectivityStatus;
+    }
+    
+    public Collection<Peer> getPeers() {
+        return peers(LanternHub.trustedPeerProxyManager());
+    }
+    
+    public Collection<Peer> getAnonymousPeers() {
+        return peers(LanternHub.anonymousPeerProxyManager());
+    }
+    
+    private Collection<Peer> peers(final PeerProxyManager ppm) {
+        return ppm.getPeers().values();
+    }
+
+    @Subscribe
+    public void onAuthenticationStateChanged(final GoogleTalkStateEvent ase) {
+        this.googleTalkState = ase.getState();
+        LanternHub.asyncEventBus().post(new SyncEvent(SyncChannel.connectivity));
     }
     
     @Subscribe

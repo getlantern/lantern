@@ -163,11 +163,6 @@ public class CometDTest {
             Thread.sleep(100);
             attempts++;
         }
-        if (connected) {
-            System.out.println("CONNECTED!!");
-        } else {
-            System.out.println("NOT CONNECTED!!");
-        }
     }
 
 }

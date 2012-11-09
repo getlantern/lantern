@@ -189,12 +189,12 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
             final ChannelPipeline pipeline = super.getPipeline();
             pipeline.addFirst("stats", new StatsTrackingHandler() {
                 @Override
-                public void addUpBytes(long bytes, Channel channel) {
-                    statsTracker().addUpBytesToPeers(bytes, channel);
+                public void addUpBytes(long bytes) {
+                    statsTracker().addUpBytesToPeers(bytes);
                 }
                 @Override
-                public void addDownBytes(long bytes, Channel channel) {
-                    statsTracker().addDownBytesFromPeers(bytes, channel);
+                public void addDownBytes(long bytes) {
+                    statsTracker().addDownBytesFromPeers(bytes);
                 }
             });
             return pipeline;
@@ -218,7 +218,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
             final HttpRequest httpRequest,final Channel browserToProxyChannel,
             final RelayListener relayListener) {
             final ChannelPipelineFactory innerFactory =
-                    super.getRelayPipelineFactory(httpRequest, browserToProxyChannel, relayListener);
+                super.getRelayPipelineFactory(httpRequest, 
+                    browserToProxyChannel, relayListener);
 
             return new ChannelPipelineFactory() {
                 @Override
@@ -226,12 +227,12 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                     ChannelPipeline pipeline = innerFactory.getPipeline();
                     pipeline.addFirst("stats", new StatsTrackingHandler() {
                         @Override
-                        public void addUpBytes(final long bytes, final Channel channel) {
-                            statsTracker().addUpBytesForPeers(bytes, browserToProxyChannel);
+                        public void addUpBytes(final long bytes) {
+                            statsTracker().addUpBytesForPeers(bytes);
                         }
                         @Override
-                        public void addDownBytes(final long bytes, final Channel channel) {
-                            statsTracker().addDownBytesForPeers(bytes, browserToProxyChannel);
+                        public void addDownBytes(final long bytes) {
+                            statsTracker().addDownBytesForPeers(bytes);
                         }
                     });
                     return pipeline;

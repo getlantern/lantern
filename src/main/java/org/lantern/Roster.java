@@ -67,6 +67,11 @@ public class Roster implements RosterListener {
                 final XMPPConnection conn = 
                     xmppHandler.getP2PClient().getXmppConnection();
                 
+                if (conn == null) {
+                    // Probably testing...
+                    log.warn("No connection?");
+                    return;
+                }
                 final org.jivesoftware.smack.Roster roster = conn.getRoster();
                 roster.setSubscriptionMode(
                     org.jivesoftware.smack.Roster.SubscriptionMode.manual);
