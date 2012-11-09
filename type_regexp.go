@@ -78,7 +78,7 @@ func execRegExp(this *_object, target string) (match bool, result []int) {
 		return // !match
 	}
 	match = true
-	endIndex := int(lastIndex) + result[len(result)-1]
+	endIndex := int(lastIndex) + result[1]
 	if global {
 		this.set("lastIndex", toValue(endIndex), true)
 	}
