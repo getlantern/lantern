@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -156,6 +157,9 @@ public class Whitelist {
     
     public boolean isWhitelisted(final String uri,
         final Collection<WhitelistEntry> wl) {
+        if (StringUtils.isBlank(uri)) {
+            return false;
+        }
         final String toMatch = toBaseUri(uri);
         return wl.contains(new WhitelistEntry(toMatch));
     }
@@ -182,18 +186,8 @@ public class Whitelist {
         log.debug("Checking whitelist for request");
         final String uri = request.getUri();
         log.debug("URI is: {}", uri);
-
-        final String referer = request.getHeader("referer");
-        
-        final String uriToCheck;
-        log.debug("Referer: "+referer);
-        if (!StringUtils.isBlank(referer)) {
-            uriToCheck = referer;
-        } else {
-            uriToCheck = uri;
-        }
-
-        return isWhitelisted(uriToCheck);
+        final String referer = request.getHeader(HttpHeaders.Names.REFERER);
+        return isWhitelisted(referer) || isWhitelisted(uri);
     }
     
     private void addDefaultEntry(final String entry) {
