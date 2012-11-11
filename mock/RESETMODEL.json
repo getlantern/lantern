@@ -8,6 +8,20 @@
     "lon":116.407528,
     "country":"cn"
   },
+  "countries":{
+    "cn":{"censors": true},
+    "cu":{"censors": true},
+    "ir":{"censors": true},
+    "mm":{"censors": true},
+    "sy":{"censors": true},
+    "tm":{"censors": true},
+    "uz":{"censors": true},
+    "vn":{"censors": true},
+    "bh":{"censors": true},
+    "by":{"censors": true},
+    "sa":{"censors": true},
+    "kp":{"censors": true}
+  },
   "version":{
     "current":{
       "label":"0.21.0-a72b3dc-tag",

@@ -8,18 +8,25 @@
       9,832,256,102 completed transfers ·
       8.3 petabytes transferred
     </div>
-    <div id="stats-personal" ng-show="model.connectivity.peers.lifetime.length">
+    <div id="stats-personal">
       <strong>your stats:</strong>
-      <a rel="tooltip" data-original-title="{{ 'ENABLE_AUTOREPORT_SUGGESTION' | i18n }}" ui-jq="tooltip" ng-show="!model.settings.autoReport">
-        <i class="icon-info-sign"></i>
-      </a>
-      {{ model.settings.userid }} ·
-      {{ model.connectivity.gtalk }} to Google Talk ·
-      ... Lantern friend(s) online ·
-      connected to {{ model.connectivity.peers.lifetime.length }} peer(s) ·
-      {{ model.transfers.bpsUp }} M/s up ·
-      {{ model.transfers.bpsDn }} M/s down ·
-      {{ model.transfers.bytesTotal || '0B' }} lifetime
+      <span ng-show="model.connectivity.peers.lifetime.length">
+        <a rel="tooltip" data-original-title="{{ 'ENABLE_AUTOREPORT_SUGGESTION' | i18n }}" ui-jq="tooltip" ng-show="!model.settings.autoReport">
+          <i class="icon-info-sign"></i>
+        </a>
+        {{ model.settings.userid }} ·
+        {{ model.connectivity.gtalk }} to Google Talk ·
+        ... Lantern friend(s) online ·
+        connected to {{ model.connectivity.peers.lifetime.length }} peer(s) ·
+        {{ model.transfers.bpsUp }} M/s up ·
+        {{ model.transfers.bpsDn }} M/s down ·
+        {{ model.transfers.bytesTotal || '0B' }} lifetime
+      </span>
+      <span ng-hide="model.connectivity.peers.lifetime.length">
+        {{ model.connectivity.gtalk }} to Google Talk ·
+        <i class="icon-info-sign warning-colored"></i>
+        Lantern will be able to display your stats once you have connected to some peers.
+      </span>
     </div>
   </div>
 

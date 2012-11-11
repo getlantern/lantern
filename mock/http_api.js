@@ -13,23 +13,9 @@ ApiServlet.VERSION = [0, 0, 1];
 VERSION_STR = ApiServlet.VERSION.join('.');
 MOUNT_POINT = '/api/';
 API_PREFIX = MOUNT_POINT + VERSION_STR + '/';
-CENSORING_COUNTRIES = {
-    cn: 'China'
-  , cu: 'Cuba'
-  , ir: 'Iran'
-  , mm: 'Myanmar'
-  , sy: 'Syria'
-  , tm: 'Turkmenistan'
-  , uz: 'Uzbekistan'
-  , vn: 'Vietnam'
-  , bh: 'Bahrain'
-  , by: 'Belarus'
-  , sa: 'Saudi Arabia'
-  , kp: 'North Korea'
-  };
 
 function inCensoringCountry(model) {
-  return model.location.country in CENSORING_COUNTRIES;
+  return model.countries[model.location.country].censors;
 }
 
 var peer1 = {
@@ -91,7 +77,9 @@ roster = [{
   "status":"available",
   "statusMessage":"",
   "peers":["peerid1"]
-  },{
+  }
+  /* say lantern_power_user not on roster, discovered via advertisement instead
+ ,{
   "userid":"lantern_power_user@example.com",
   "name":"Lantern Poweruser",
   "avatarUrl":"",
@@ -99,6 +87,7 @@ roster = [{
   "statusMessage":"Shanghai!",
   "peers":["peerid2", "peerid3", "peerid4", "peerid5"]
   }
+  */
 ];
 
 /*
@@ -117,6 +106,7 @@ var MODAL = {
   settingsLoadFailure: 'settingsLoadFailure',
   welcome: 'welcome',
   authorize: 'authorize',
+  gtalkConnecting: 'gtalkConnecting',
   gtalkUnreachable: 'gtalkUnreachable',
   authorizeLater: 'authorizeLater',
   notInvited: 'notInvited',
@@ -144,7 +134,6 @@ var INTERACTION = {
   reset: 'reset',
   about: 'about',
   updateAvailable: 'updateAvailable',
-  tryAnotherUser: 'tryAnotherUser',
   requestInvite: 'requestInvite',
   retryNow: 'retryNow',
   retryLater: 'retryLater',
@@ -199,79 +188,75 @@ ApiServlet._resetInternalState = function() {
   this._internalState = JSON.parse(JSON.stringify(RESET_INTERNAL_STATE));
 };
 
-var _modalSeqGive = [MODAL.inviteFriends, MODAL.finished, MODAL.none],
-    _modalSeqGet = [MODAL.proxiedSites, MODAL.systemProxy].concat(_modalSeqGive);
+var MODALSEQ_GIVE = [MODAL.welcome, MODAL.authorize, MODAL.inviteFriends, MODAL.finished, MODAL.none],
+     MODALSEQ_GET = [MODAL.welcome, MODAL.authorize, MODAL.proxiedSites, MODAL.systemProxy, MODAL.inviteFriends, MODAL.finished, MODAL.none];
 /*
- * Show next modal that should be shown, or stop showing modal if none should
- * be shown. Only called after authorize modal has been completed.
- * Implemented like this since some modals can be skipped if the user is
+ * Show next modal that should be shown, including possibly MODAL.none.
+ * Useful because some modals can be skipped if the user is
  * unable to complete them, but should be returned to later.
  * */
 ApiServlet._advanceModal = function(backToIfNone) {
   var model = this._bayeuxBackend.model
-    , modalSeq = inGiveMode(model) ? _modalSeqGive : _modalSeqGet
+    , modalSeq = inGiveMode(model) ? MODALSEQ_GIVE : MODALSEQ_GET
     , next;
   for (var i=0; this._internalState.modalsCompleted[next=modalSeq[i++]];);
   if (backToIfNone && next == MODAL.none)
     next = backToIfNone;
   model.modal = next;
+  util.puts('modalsCompleted: ' + util.inspect(this._internalState.modalsCompleted));
   util.puts('next modal: ' + next);
   this._bayeuxBackend.publishSync('modal');
 };
 
 ApiServlet._tryConnect = function(model) {
   var userid = model.settings.userid;
-  // check for lantern access
-  switch (userid) {
-    case 'user_cant_reach_gtalk@example.com':
-      model.connectivity.gtalk = CONNECTIVITY.notConnected;
-      this._bayeuxBackend.publishSync('connectivity.gtalk');
-      model.modal = MODAL.gtalkUnreachable;
-      this._bayeuxBackend.publishSync('modal');
-      util.puts("user can't reach google talk, set modal to "+MODAL.gtalkUnreachable);
-      return;
 
-    case 'user_invited@example.com':
-      // simulate connecting to google talk XXX show this is happening in UI
-      model.connectivity.gtalk = CONNECTIVITY.connecting;
-      this._bayeuxBackend.publishSync('connectivity.gtalk');
-      sleep.usleep(750000);
-      model.connectivity.gtalk = CONNECTIVITY.connected;
-      this._bayeuxBackend.publishSync('connectivity.gtalk');
-      // simulate getting roster XXX show this is happening in UI
-      model.roster = roster;
-      this._bayeuxBackend.publishSync('roster');
-      // simulate being notified of peers and connecting to them XXX show this is happening in UI
-      model.connectivity.peers.current = [peer1.peerid, peer2.peerid, peer3.peerid, peer4.peerid, peer5.peerid];
-      model.connectivity.peers.lifetime = [peer1, peer2, peer3, peer4, peer5];
-      this._bayeuxBackend.publishSync('connectivity.peers');
-      util.puts("user has access; connected to google talk, fetched roster:\n"+util.inspect(roster)+"\ndiscovered and connected to peers:\n"+util.inspect(model.connectivity.peers.current));
-      ApiServlet._advanceModal.call(this);
-      return;
-
-    default:
-      // assume user does not have access
-      model.modal = MODAL.notInvited;
-      this._bayeuxBackend.publishSync('modal');
-      util.puts("user does not have Lantern access, set modal to "+MODAL.notInvited);
-      return;
+  // connect to google talk
+  model.connectivity.gtalk = CONNECTIVITY.connecting;
+  this._bayeuxBackend.publishSync('connectivity.gtalk');
+  model.modal = MODAL.gtalkConnecting;
+  this._bayeuxBackend.publishSync('modal');
+  sleep.usleep(3000000);
+  if (userid ==  'user_cant_reach_gtalk@example.com') {
+    model.connectivity.gtalk = CONNECTIVITY.notConnected;
+    this._bayeuxBackend.publishSync('connectivity.gtalk');
+    model.modal = MODAL.gtalkUnreachable;
+    this._bayeuxBackend.publishSync('modal');
+    util.puts("user can't reach google talk, set modal to "+MODAL.gtalkUnreachable);
+    return;
   }
+  model.connectivity.gtalk = CONNECTIVITY.connected;
+  this._bayeuxBackend.publishSync('connectivity.gtalk');
+
+  // refresh roster
+  model.roster = roster;
+  this._bayeuxBackend.publishSync('roster');
+  sleep.usleep(250000);
+
+  // check for lantern access
+  if (userid != 'user_invited@example.com') {
+    model.modal = MODAL.notInvited;
+    this._bayeuxBackend.publishSync('modal');
+    util.puts("user does not have Lantern access, set modal to "+MODAL.notInvited);
+    return;
+  }
+
+  // try connecting to known peers
+  // (advertised by online Lantern friends or remembered from previous connection)
+  model.connectivity.peers.current = [peer1.peerid, peer2.peerid, peer3.peerid, peer4.peerid, peer5.peerid];
+  model.connectivity.peers.lifetime = [peer1, peer2, peer3, peer4, peer5];
+  this._bayeuxBackend.publishSync('connectivity.peers');
+  util.puts("user has access; connected to google talk, fetched roster:\n"+util.inspect(roster)+"\ndiscovered and connected to peers:\n"+util.inspect(model.connectivity.peers.current));
+  ApiServlet._advanceModal.call(this);
 };
 
 ApiServlet.HandlerMap = {
-  reset: function(req, res) {
-      ApiServlet._resetInternalState.call(this);
-      this._bayeuxBackend.resetModel();
-      this._bayeuxBackend.publishSync();
-      res.writeHead(200);
-    },
   passwordCreate: function(req, res) {
       var model = this._bayeuxBackend.model
         , qs = url.parse(req.url, true).query;
       if (!validatePasswords(qs.password1, qs.password2)) {
         res.writeHead(400);
       } else {
-        res.writeHead(200);
         model.modal = MODAL.authorize;
         this._internalState.modalsCompleted[MODAL.passwordCreate] = true;
         this._bayeuxBackend.publishSync('modal');
@@ -287,7 +272,6 @@ ApiServlet.HandlerMap = {
       } else if (qs.password == 'password') {
         model.modal = model.setupComplete ? MODAL.none : MODAL.welcome;
         this._bayeuxBackend.publishSync('modal');
-        res.writeHead(200);
       } else {
         res.writeHead(403);
       }
@@ -315,18 +299,22 @@ ApiServlet.HandlerMap = {
           this._bayeuxBackend.publishSync('settings.mode');
           this._bayeuxBackend.publishSync('modal');
           this._internalState.modalsCompleted[MODAL.welcome] = true;
-          res.writeHead(200);
           return;
 
         case MODAL.giveModeForbidden:
-          if (interaction != INTERACTION.cancel) {
-            res.writeHead(400);
+          if (interaction == INTERACTION.continue) {
+            model.settings.mode = MODE.get;
+            this._bayeuxBackend.publishSync('settings.mode');
+            this._internalState.modalsCompleted[MODAL.welcome] = true;
+            ApiServlet._advanceModal.call(this, MODAL.settings);
             return;
           }
-          model.modal = this._internalState.modalsCompleted[MODAL.welcome] ?
-                          MODAL.settings : MODAL.welcome;
-          this._bayeuxBackend.publishSync('modal');
-          res.writeHead(200);
+          if (interaction == INTERACTION.cancel && !this._internalState.modalsCompleted[MODAL.welcome]) {
+            model.modal = MODAL.welcome;
+            this._bayeuxBackend.publishSync('modal');
+            return;
+          }
+          res.writeHead(400);
           return;
 
         case MODAL.proxiedSites:
@@ -363,8 +351,7 @@ ApiServlet.HandlerMap = {
 
         case MODAL.gtalkUnreachable:
           if (interaction == INTERACTION.retryNow) {
-            model.modal = MODAL.authorize;
-            this._bayeuxBackend.publishSync('modal');
+            ApiServlet._tryConnect.call(this, model);
           } else if (interaction == INTERACTION.retryLater) {
             model.modal = MODAL.authorizeLater;
             this._bayeuxBackend.publishSync('modal');
@@ -372,7 +359,6 @@ ApiServlet.HandlerMap = {
             res.writeHead(400);
             return;
           }
-          res.writeHead(200);
           return;
 
         case MODAL.authorizeLater:
@@ -386,19 +372,33 @@ ApiServlet.HandlerMap = {
           this._bayeuxBackend.publishSync('showVis');
           return;
 
-        /*
-        XXX
-        case MODAL.firstInviteReceived:
-          model.modal = model.settings.mode == 'get' ? 'sysproxy' : 'finished';
+        case MODAL.notInvited:
+          if (interaction != INTERACTION.requestInvite) {
+            res.writeHead(400);
+            return;
+          }
+          model.modal = MODAL.requestInvite;
           this._bayeuxBackend.publishSync('modal');
-          res.writeHead(200);
-          break;
+          return;
 
         case MODAL.requestSent:
+          if (interaction != INTERACTION.continue) {
+            res.writeHead(400);
+            return;
+          }
           model.modal = MODAL.none;
           this._bayeuxBackend.publishSync('modal');
-          res.writeHead(200);
-        */
+          model.showVis = true;
+          this._bayeuxBackend.publishSync('showVis');
+          return;
+
+        case MODAL.firstInviteReceived:
+          if (interaction != INTERACTION.continue) {
+            res.writeHead(400);
+            return;
+          }
+          ApiServlet._advanceModal.call(this);
+          break;
 
         case MODAL.finished:
           if (interaction != INTERACTION.continue) {
@@ -407,6 +407,8 @@ ApiServlet.HandlerMap = {
           }
           this._internalState.modalsCompleted[MODAL.finished] = true;
           ApiServlet._advanceModal.call(this);
+          model.setupComplete = true;
+          this._bayeuxBackend.publishSync('setupComplete');
           model.showVis = true;
           this._bayeuxBackend.publishSync('showVis');
           return;
@@ -471,7 +473,6 @@ ApiServlet.HandlerMap = {
             res.writeHead(400);
             return;
           }
-          res.writeHead(200);
           return;
 
         case MODAL.about:
@@ -480,7 +481,11 @@ ApiServlet.HandlerMap = {
           if (interaction == INTERACTION.close) {
             model.modal = MODAL.none;
             this._bayeuxBackend.publishSync('modal');
-            res.writeHead(200);
+            return;
+          } else if (interaction == INTERACTION.reset) {
+            ApiServlet._resetInternalState.call(this);
+            this._bayeuxBackend.resetModel();
+            this._bayeuxBackend.publishSync();
             return;
           }
           res.writeHead(400);
@@ -590,8 +595,6 @@ ApiServlet.HandlerMap = {
       }
       if (badRequest) {
         res.writeHead(400);
-      } else {
-        res.writeHead(200);
       }
     },
   oauthAuthorized: function(req, res) {
@@ -619,7 +622,6 @@ ApiServlet.HandlerMap = {
       sleep.usleep(750000);
       model.modal = 'requestSent';
       this._bayeuxBackend.publishSync('modal');
-      res.writeHead(200);
     }
 };
 

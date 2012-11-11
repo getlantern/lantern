@@ -1,4 +1,4 @@
-@import _helpers
+@import helpers
 
 .modal form
   margin-bottom: 0
@@ -61,7 +61,7 @@ textarea.bugReport
 #langchooser
   +position(5px, 15px)
   font-size: $baseFontSize * .8
-  z-index: $zindexModal + 1
+  +aboveModal
   ul
     +border-radius(5px)
     +horizontal-list

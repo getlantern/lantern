@@ -34,7 +34,7 @@ angular.module('app.services', [])
     give: 'give',
     get: 'get'
   })
-  .constant('STATUS_GTALK', {
+  .constant('CONNECTIVITY', {
     notConnected: 'notConnected',
     connecting: 'connecting',
     connected: 'connected'
@@ -45,6 +45,7 @@ angular.module('app.services', [])
     settingsLoadFailure: 'settingsLoadFailure',
     welcome: 'welcome',
     authorize: 'authorize',
+    gtalkConnecting: 'gtalkConnecting',
     gtalkUnreachable: 'gtalkUnreachable',
     authorizeLater: 'authorizeLater',
     notInvited: 'notInvited',
@@ -71,7 +72,6 @@ angular.module('app.services', [])
     proxiedSites: 'proxiedSites',
     about: 'about',
     updateAvailable: 'updateAvailable',
-    tryAnotherUser: 'tryAnotherUser',
     requestInvite: 'requestInvite',
     retryNow: 'retryNow',
     retryLater: 'retryLater',
@@ -80,10 +80,10 @@ angular.module('app.services', [])
     close: 'close',
     quit: 'quit',
   })
-  .service('ENUMS', function(MODE, STATUS_GTALK, MODAL, INTERACTION, SETTING, EXTERNAL_URL) {
+  .service('ENUMS', function(MODE, CONNECTIVITY, MODAL, INTERACTION, SETTING, EXTERNAL_URL) {
     return {
       MODE: MODE,
-      STATUS_GTALK: STATUS_GTALK,
+      CONNECTIVITY: CONNECTIVITY,
       MODAL: MODAL,
       INTERACTION: INTERACTION,
       SETTING: SETTING,

@@ -1,9 +1,21 @@
 'use strict';
 
 angular.module('app.vis', [])
-  // http://en.wikipedia.org/wiki/Censorship_by_country
-  // XXX factor out into a data source?
-  .constant('COUNTRIES_CENSORED', ["China", "Cuba", "Iran", "Myanmar", "Syria", "Turkmenistan", "Uzbekistan", "Vietnam", "Burma", "Bahrain", "Belarus", "Saudi Arabia", "N. Korea"])
+  // XXX data/countries.json doesn't have two-letter country codes
+  .constant('_COUNTRY_NAME_TO_CODE', {
+    'China': 'cn',
+    'Cuba': 'cu',
+    'Iran': 'ir',
+    'Myanmar': 'mm',
+    'Syria': 'sy',
+    'Turkmenistan': 'tm',
+    'Uzbekistan': 'uz',
+    'Vietnam': 'vn',
+    'Bahrain': 'bh',
+    'Belarus': 'by',
+    'Saudi Arabia': 'sa',
+    'N. Korea': 'kp'
+  })
   .constant('CONFIG', {
     scale: 1000,
     translate: [500, 350],
@@ -12,14 +24,17 @@ angular.module('app.vis', [])
     beamSpeed: 500,
     parabolaDrawingStep: .03,
     styles: {
-      // opacity
+      strokeColorCensored: '#fff',
+      strokeColorUncensored: 'none',
+
       countriesOpacity: .3,
       censoredCountriesOpacity: .45,
       censoredCountriesStrokeOpacity: .45,
-      // parabolas
+      uncensoredCountriesStrokeOpacity: 0,
+
       parabolaLightStrokeWidth: 1,
       parabolaStrokeWidth: 1,
-      // radius
+
       userRadiusWidth: 3.7,
       userStrokeWidth: 1.5,
       beamRadiusWidth: 3,
@@ -29,12 +44,11 @@ angular.module('app.vis', [])
       citiesGlowRadiusWidth: 2.5
     },
     sources: {
-      countries: "data/countries.json",
-      centroids: "data/centroids.csv"
+      countries: "data/countries.json"
     }
   });
 
-function VisCtrl($scope, logFactory, modelSrvc, CONFIG, COUNTRIES_CENSORED) {
+function VisCtrl($scope, logFactory, modelSrvc, CONFIG, _COUNTRY_NAME_TO_CODE) {
   var log = logFactory('VisCtrl'),
       model = modelSrvc.model,
       projection   = null,
@@ -168,6 +182,12 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, COUNTRIES_CENSORED) {
     layers.nodes      = svg.append("g").attr("id", "nodes");
   }
 
+  function censors(d) {
+    var code = _COUNTRY_NAME_TO_CODE[d.properties.name],
+        country = model.countries[code];
+    return country ? country.censors : false; // XXX country will always be defined once backend populates model.countries completely
+  }
+
   function loadCountries() {
     d3.json(CONFIG.sources.countries, function(collection) {
       geoPath = d3.geo.path().projection(projection);
@@ -179,19 +199,16 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, COUNTRIES_CENSORED) {
          .transition()
          .duration(700)
          .style("stroke", function(d) {
-           if (_.contains(COUNTRIES_CENSORED, d.properties.name))
-             return "#fff"; // XXX move to CONFIG
-           return "none";
+           return CONFIG.styles[censors(d) ?
+             'strokeColorCensored' : 'strokeColorUncensored'];
          })
          .style("stroke-opacity", function(d) {
-           if (_.contains(COUNTRIES_CENSORED, d.properties.name))
-             return CONFIG.styles.censoredCountriesStrokeOpacity;
-           return 0;
+           return CONFIG.styles[censors(d) ? 'censoredCountriesStrokeOpacity' :
+             'uncensoredCountriesStrokeOpacity'];
          })
          .style("opacity", function(d) {
-           if (_.contains(COUNTRIES_CENSORED, d.properties.name))
-             return CONFIG.styles.censoredCountriesOpacity;
-           return CONFIG.styles.countriesOpacity;
+           return CONFIG.styles[censors(d) ?
+             'censoredCountriesOpacity' : 'countriesOpacity'];
          })
          /* XXX ???
          .style("fill", function(d) {

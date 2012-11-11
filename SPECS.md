@@ -163,6 +163,21 @@ the backend maintains on the frontend through comet publications:
     </td>
   </tr>
   <tr>
+    <td><strong>countries</strong><br><em>object</em></td>
+    <td>
+      <table>
+        <tr><td>"ir" | "cn" | ...</td>
+          <td>
+            <table>
+              <tr><td><strong>censors</strong><br><em>boolean</em></td>
+                <td>whether this country employs pervasive censorship,
+                  as reported by (SOURCE) # XXX</td></tr>
+            </table>
+          </td></tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
     <td><strong>version</strong><br><em>object</em></td>
     <td>
       <table>
@@ -217,7 +232,8 @@ the backend maintains on the frontend through comet publications:
   </tr>
   <tr>
     <td><strong>modal</strong><br>"settingsUnlock" |
-      "settingsLoadFailure" | "welcome" | "authorize" | "gtalkUnreachable" |
+      "settingsLoadFailure" | "welcome" | "giveModeForbidden" | "authorize" |
+      "gtalkConnecting" | "gtalkUnreachable" |
       "notInvited" | "requestInvite" | "requestSent" | "firstInviteReceived" |
       "proxiedSites" | "systemProxy" | "inviteFriends" | "finished" |
       "settings" | "giveMode" | "about" | "updateAvailable" | ""
@@ -225,6 +241,10 @@ the backend maintains on the frontend through comet publications:
     <td>Instructs the UI to display the corresponding modal dialog.
       A value of empty string means no modal dialog should be displayed.
     </td>
+  </tr>
+  <tr>
+    <td><strong>setupComplete</strong><br><em>boolean</em></td>
+    <td>Whether the user has completed Lantern setup</td>
   </tr>
   <tr>
     <td><strong>showVis</strong><br><em>boolean</em></td>
@@ -452,6 +472,12 @@ the backend maintains on the frontend through comet publications:
 
 * Welcome modal now prompts for give/get mode choice
 
+* Backend now checks country user is connecting from and only allows Get Mode
+  if censoring
+
+    * Hide Give Mode choice if censoring country detected or display
+      giveModeForbidden modal?
+
 * Password create now happens after welcome modal (on ubuntu)
 
 * Oauth modal happens next.
@@ -493,3 +519,5 @@ the backend maintains on the frontend through comet publications:
   Lantern.
 
 * `advertiseLantern` setting?
+
+* update connectivity.ip and location on reconnect to internet

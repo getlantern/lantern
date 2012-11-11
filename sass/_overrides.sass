@@ -1,4 +1,4 @@
-@import _helpers
+@import helpers
 
 html, body
   height: 100%
@@ -10,9 +10,12 @@ label.checkbox.inline, label.radio.inline
   white-space: nowrap
   margin-right: 5px
 
+.centered
+  +centered
+
 // XXX apparently fixed in http://blog.getbootstrap.com/2012/10/29/bootstrap-2-2-0-released/
 .tooltip
-  z-index: $zindexModal + 1
+  +aboveModal
 
 .tooltip-inner
   font-size: $baseFontSize * .9
@@ -53,6 +56,10 @@ a.disabled:hover
 // http://angular-ui.github.com/#directives-showhide
 .ui-hide, .ui-show
   +single-transition(all, 0.5s, ease)
+
+.ui-hide.noHeightWhenHidden
+  height: 0 !important
+  //+transition(none)
 
 .ui-hide
   opacity: 0

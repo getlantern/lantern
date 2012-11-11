@@ -122,7 +122,10 @@
     <div>{{ 'WELCOME_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn btn-primary btn-give-mode" ng-click="interaction(MODE.give)">{{ 'GIVE_ACCESS' | i18n }}</button>
+    <button type="submit" ng-click="interaction(MODE.give)"
+      class="btn btn-primary btn-{{inCensoringCountry && 'warning' || 'give-mode' }}">
+      <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
+      {{ 'GIVE_ACCESS' | i18n }}</button>
     <button type="submit" class="btn btn-primary btn-get-mode" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
   </div>
 </div>
@@ -150,6 +153,24 @@
   </div>
 </div>
 
+<div id="gtalkConnecting" ng-controller="GtalkConnectingCtrl" ui-modal ng-model="show" class="fade"
+     data-backdrop="static" data-keyboard="false">
+  <div class="modal-header">
+    <h3>{{ 'GTALK_CONNECTING_TITLE' | i18n }}</h3>
+  </div>
+  <div class="modal-body">
+    <p>
+      Connecting to Google Talk as {{ model.settings.userid }}...<!-- XXX i18n -->
+      <span ng-show="gtalkConnected">{{ 'CONNECTED' | i18n }}</span>
+    </p>
+    <p class="centered" ng-show="gtalkConnecting">
+      <!-- XXX progress bar would be nice here -->
+      <img alt="{{ 'CONNECTING' | i18n }}"
+           src="lib/webshims/css/polyfill-loader.gif">
+    </p>
+  </div>
+</div>
+
 <div id="confirmReset" ng-controller="ConfirmResetCtrl" ui-modal
      ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
@@ -160,7 +181,7 @@
   </div>
   <div class="modal-footer">
     <button type="button" class="btn" ng-click="interaction(INTERACTION.close)">{{ 'CANCEL' | i18n }}</button>
-    <button type="button" class="btn btn-danger" ng-click="reset()">{{ 'RESET' | i18n }}</button>
+    <button type="button" class="btn btn-danger" ng-click="interaction(INTERACTION.reset)">{{ 'RESET' | i18n }}</button>
   </div>
 </div>
 
@@ -173,7 +194,8 @@
     <div>{{ 'GIVE_MODE_FORBIDDEN_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn" ng-click="interaction(INTERACTION.cancel)">{{ 'CANCEL' | i18n }}</button>
+    <button type="button" class="btn" ng-hide="model.setupComplete" ng-click="interaction(INTERACTION.cancel)">{{ 'BACK' | i18n }}</button>
+    <button type="button" class="btn btn-primary btn-get-mode" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE_IN_GET_MODE' | i18n }}</button>
   </div>
 </div>
 
@@ -186,8 +208,8 @@
     <div>{{ 'GTALK_UNREACHABLE_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn" ng-click="interaction(INTERACTION.retrySignInNow)">{{ 'RETRY_NOW' | i18n }}</button>
-    <button type="submit" class="btn" ng-click="interaction(INTERACTION.retrySignInLater)">{{ 'RETRY_LATER' | i18n }}</button>
+    <button type="submit" class="btn" ng-click="interaction(INTERACTION.retryNow)">{{ 'RETRY_NOW' | i18n }}</button>
+    <button type="submit" class="btn" ng-click="interaction(INTERACTION.retryLater)">{{ 'RETRY_LATER' | i18n }}</button>
   </div>
 </div>
 
@@ -213,7 +235,7 @@
     <div>{{ 'NOT_INVITED_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn" ng-click="interaction(INTERACTION.tryAnotherUser)">{{ 'TRY_ANOTHER_USER' | i18n }}</button>
+    <button type="submit" class="btn" ng-click="doOauth()">{{ 'TRY_ANOTHER_USER' | i18n }}</button>
     <button type="submit" class="btn" ng-click="interaction(INTERACTION.requestInvite)">{{ 'REQUEST_INVITE' | i18n }}</button>
   </div>
 </div>
@@ -270,7 +292,7 @@
   </div>
 </div>
 
-<div id="first-invite-received" ng-controller="FirstInviteReceivedCtrl" ui-modal
+<div id="firstInviteReceived" ng-controller="FirstInviteReceivedCtrl" ui-modal
      ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
     <h3>{{ 'FIRST_INVITE_RECEIVED_TITLE' | i18n }}</h3>
@@ -279,8 +301,11 @@
     <div>{{ 'FIRST_INVITE_RECEIVED_INTRO' | i18n }}</div>
     <br>
     <div>
+      <!-- XXX will we have this data? -->
       {{ 'FIRST_INVITE_RECEIVED_SENDER' | i18n }}
-      <strong>user@example.com ("Firstname Lastname")</strong><!-- XXX -->
+      <div class="centered">
+        user@example.com ("Name here")
+      </div>
     </div>
     <br>
     <div>{{ 'FIRST_INVITE_RECEIVED_PROMPT' | i18n }}</div>

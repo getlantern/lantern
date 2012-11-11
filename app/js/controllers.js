@@ -1,13 +1,16 @@
 'use strict';
 
+// XXX have modal controllers inherit from a base class to be more DRY?
+
 // XXX use data-loading-text instead of submitButtonLabelKey below?
 // see http://twitter.github.com/bootstrap/javascript.html#buttons
 
-function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, $http, apiSrvc, ENUMS) {
+function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, $http, apiSrvc, ENUMS, $window) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
       MODE = ENUMS.MODE,
-      STATUS_GTALK = ENUMS.STATUS_GTALK;
+      CONNECTIVITY = ENUMS.CONNECTIVITY,
+      EXTERNAL_URL = ENUMS.EXTERNAL_URL;
   $scope.modelSrvc = modelSrvc;
   $scope.cometdSrvc = cometdSrvc;
   $scope.dev = dev;
@@ -25,10 +28,14 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
     $scope.inGetMode = val == MODE.get;
   });
 
-  $scope.$watch('connectivity.gtalk', function(val) {
-    $scope.gtalkNotConnected = val == STATUS_GTALK.notConnected;
-    $scope.gtalkConnecting = val == STATUS_GTALK.connecting;
-    $scope.gtalkConnected = val == STATUS_GTALK.connected;
+  $scope.$watch('model.location.country', function(val) {
+    if (val) $scope.inCensoringCountry = model.countries[val].censors;
+  });
+
+  $scope.$watch('model.connectivity.gtalk', function(val) {
+    $scope.gtalkNotConnected = val == CONNECTIVITY.notConnected;
+    $scope.gtalkConnecting = val == CONNECTIVITY.connecting;
+    $scope.gtalkConnected = val == CONNECTIVITY.connected;
   });
 
   $scope.notifyLanternDevs = true;
@@ -47,15 +54,10 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
     location.reload(true); // true to bypass cache and force request to server
   };
 
-  $scope.reset = function() {
-    $http.post(apiSrvc.urlfor('reset'))
-      .success(function(data, status, headers, config) {
-        log.debug('Reset');
-        $scope.$broadcast('reset');
-      })
-      .error(function(data, status, headers, config) {
-        log.debug('Reset failed'); // XXX
-      });
+  $scope.doOauth = function() {
+    var url = modelSrvc.get('version.current.api.mock') ?
+              EXTERNAL_URL.fakeOauth : googOauthUrl;
+    $window.open(url);
   };
 
   $scope.interaction = function(interaction, extra) {
@@ -197,20 +199,21 @@ function WelcomeCtrl($scope, modelSrvc, logFactory, MODAL) {
   });
 }
 
-function AuthorizeCtrl(dev, $scope, $http, modelSrvc, apiSrvc, logFactory, MODAL, STATUS_GTALK, EXTERNAL_URL, googOauthUrl, $window) {
-  var log = logFactory('AuthorizeCtrl'),
-      model = modelSrvc.model;
+function AuthorizeCtrl($scope, logFactory, MODAL) {
+  var log = logFactory('AuthorizeCtrl');
 
   $scope.show = false;
   $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.authorize;
   });
+}
 
-  $scope.doOauth = function() {
-    var url = modelSrvc.get('version.current.api.mock') ?
-              EXTERNAL_URL.fakeOauth : googOauthUrl;
-    $window.open(url);
-  };
+function GtalkConnectingCtrl($scope, logFactory, MODAL) {
+  var log = logFactory('GtalkConnectingCtrl');
+  $scope.show = false;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.gtalkConnecting;
+  });
 }
 
 function GtalkUnreachableCtrl($scope, apiSrvc, $http, logFactory, MODAL) {

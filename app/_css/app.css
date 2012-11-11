@@ -4734,10 +4734,6 @@ a.label:hover, a.badge:hover {
   visibility: hidden;
 }
 
-.ui-hide.noHeightWhenHidden {
-  height: 0 !important;
-}
-
 html, body {
   height: 100%;
 }
@@ -4749,6 +4745,10 @@ html small {
 label.checkbox.inline, label.radio.inline {
   white-space: nowrap;
   margin-right: 5px;
+}
+
+.centered {
+  text-align: center;
 }
 
 .tooltip {
@@ -4849,6 +4849,10 @@ a.disabled:hover {
   transition: all 0.5s ease;
 }
 
+.ui-hide.noHeightWhenHidden {
+  height: 0 !important;
+}
+
 .ui-hide {
   opacity: 0;
 }
@@ -4885,10 +4889,6 @@ textarea {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
-}
-
-.ui-hide.noHeightWhenHidden {
-  height: 0 !important;
 }
 
 .modal form {
@@ -5232,7 +5232,7 @@ body.showVis #footer {
   z-index: 1051;
 }
 #developer * {
-  font-size: 11.2px;
+  font-size: 11.9px;
 }
 #developer .controls.row .span-4:first-child {
   margin-left: 0;
@@ -5241,7 +5241,7 @@ body.showVis #footer {
   width: 220px;
 }
 #developer textarea {
-  font-size: 9.8px;
+  font-size: 10.5px;
   overflow: scroll;
   font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
   display: block;

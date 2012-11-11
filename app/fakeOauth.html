@@ -7,9 +7,13 @@
       $('#allow').click(function() {
         var userid = encodeURIComponent($('input[name=userid]:checked').val());
         $.post('/api/0.0.1/oauthAuthorized?userid='+userid)
+        /*
           .done(function(){
             window.close();
-          });
+          })
+        */
+          ;
+        window.setTimeout(function() { window.close(); }, 100);
         return false;
       });
     });

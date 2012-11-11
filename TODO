@@ -8,27 +8,7 @@ about
     - what we don’t collect
     - ...and why, for all of the above.
 
-- reset -> confirm reset dialog
-- trigger settings and edit whitelist via model.modal
-- vet start over buttons for setupComplete condition, danger class
-- add set up proxied sites step to initial setup
-
--strip referer header
--block give mode in censored region?
--explain value of web of trust
 -queue tcp connections so they don't get dropped e.g. under heavy load
  look at tcp accelerators for satellite modems
-
 -Developers link on e.g. invite email
 -proxied sites list for give mode? (or optionally at least for non-direct peers?)
-
-
-
-        <tr><td><strong>arch</strong><br>"x86" | "x86_64"</td>
-            <td>architecture</td></tr>
-
-        <tr><td><strong>version</strong><br><em>string</em></td>
-            <td>viz. "xp" | "vista" | "7" | "8" for Windows,
-                "10.5.x" | "10.6.x" | "10.7.x" | "10.8.x" for
-                OS X (where <em>x</em> is the patch version),
-                "12.04" | "12.10" for Ubuntu</td></tr>
