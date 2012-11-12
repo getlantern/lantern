@@ -1637,11 +1637,24 @@ func TestRegExp_exec(t *testing.T) {
 		abc = /./g;
 		def = '123456';
 		ghi = 0;
-		while (abc.exec(def) !== null) {
-			ghi += 1
+		while (ghi < 100 && abc.exec(def) !== null) {
+			ghi += 1;
 		}
 		[ ghi, def.length, ghi == def.length ];
 	`, "6,6,true")
+
+	test(`
+		abc = /[abc](\d)?/g;
+		def = 'a0 b c1 d3';
+		ghi = 0;
+		lastIndex = 0;
+		while (ghi < 100 && abc.exec(def) !== null) {
+			lastIndex = abc.lastIndex;
+			ghi += 1;
+
+		}
+		[ ghi, lastIndex ];
+	`, "3,7")
 }
 
 func TestNewFunction(t *testing.T) {
