@@ -1,0 +1,72 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Modern::Perl;
+
+use JSON;
+my $json = JSON->new->pretty;
+
+my ($test, $pass, @output, $read);
+my @digest;
+
+sub commit {
+    return unless defined $test;
+    push @digest, {
+        test => $test,
+        pass => $pass,
+        output => [@output],
+    };
+    undef $test;
+    undef $pass;
+    undef @output;
+}
+
+while (<STDIN>) {
+    chomp;
+    if (m/^=== (\S+)/) {
+        $test = $1;
+        commit();
+    } elsif (m/^(\S+) passed|as expected$/) {
+        $test = $1;
+        $pass = 1;
+        commit();
+    } elsif (m/^--- (errors|output) ---/) {
+        $read = 1;
+    } elsif (m/^===$/) {
+        $read = 0;
+    } elsif (m/^#/) {
+        next;
+    } else {
+        if ($read) {
+            push @output, $_;
+        }
+    }
+}
+
+say $json->encode(\@digest);
+
+#ch10/10.1/S10.1.1_A1_T3 passed in non-strict mode
+#=== ch10/10.1/S10.1.1_A2_T1 failed in non-strict mode ===
+#--- output ---
+#TypeError: undefined is not a function (line 931)
+#===
+#=== ch10/10.1/S10.1.6_A1_T1 failed in non-strict mode ===
+#--- output ---
+#Test262 Error: #1: Function parameter was deleted
+#===
+#ch10/10.1/S10.1.6_A1_T2 passed in non-strict mode
+#=== ch10/10.1/S10.1.6_A1_T3 failed in non-strict mode ===
+#--- output ---
+#ReferenceError: arguments is not defined (line 931)
+#===
+#=== ch10/10.1/S10.1.7_A1_T1 failed in non-strict mode ===
+#--- errors ---
+#panic: (otto._result) (0x13eb78,0xf8401d5750) [recovered]
+#    panic: (otto._result) (0x13eb78,0xf8401cb5d0) [recovered]
+#    panic: (otto._result) (0x13eb78,0xf8401cb8a0) [recovered]
+#    panic: (otto._result) (0x13eb78,0xf8401cbc00) [recovered]
+#    panic: (otto._result) (0x13eb78,0xf8401cbf60) [recovered]
+#    panic: (otto._result) (0x13eb78,0xf8401682d0) [recovered]
+#    panic: (otto._result) (0x13eb78,0xf840168630) [recovered]
