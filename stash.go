@@ -118,7 +118,9 @@ func (self *_objectStash) set(name string, value Value, mode _propertyMode) {
 }
 
 func (self *_objectStash) defineProperty(name string, value interface{}, mode _propertyMode) {
-	// TODO Sanity check value?
+	if value == nil {
+		value = UndefinedValue()
+	}
 	self.propertyMap[name] = _property{value, mode}
 }
 

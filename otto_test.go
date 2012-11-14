@@ -2173,3 +2173,26 @@ func Test_delete(t *testing.T) {
 		delete 42;
 	`, "true")
 }
+
+func TestObject_defineOwnProperty(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+        var object = {};
+
+        var descriptor = new Boolean(false);
+        descriptor.configurable = true;
+
+        Object.defineProperties(object, {
+            property: descriptor
+        });
+
+        var abc = object.hasOwnProperty("property");
+        delete object.property;
+        var def = object.hasOwnProperty("property");
+
+		abc == true && def == false;
+	`, "true")
+}
