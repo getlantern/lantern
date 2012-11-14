@@ -2,4 +2,5 @@
 /.test262/data
 /.test262/test.v8
 /.test262/test.otto
+/.test262/digest.json
 /.test262/.fail

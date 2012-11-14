@@ -13,10 +13,16 @@ my @digest;
 
 sub commit {
     return unless defined $test;
+    my $output = join "\n", @output, "";
+    my $panic = JSON::false;
+    if ($output =~ m/^panic/) {
+        $panic = JSON::true;
+    }
     push @digest, {
         test => $test,
         pass => $pass,
-        output => [@output],
+        output => $output,
+        panic => $panic,
     };
     undef $test;
     undef $pass;

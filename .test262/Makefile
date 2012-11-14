@@ -1,4 +1,4 @@
-.PHONY: build test otto v8 cull uncull gauntlet try test-v8 test-otto copy test.otto
+.PHONY: build test otto v8 cull uncull gauntlet try test-v8 test-otto copy test.otto clean
 
 otto := ./otto -underscore=false
 TEST := python ./data/tools/packaging/test262.py --test=data --non_strict_only
@@ -7,6 +7,9 @@ WITH_otto := --command "$(otto)"
 
 test:
 	$(TEST) $(WITH_otto)
+
+digest.json:
+	./digest < test.otto > $@
 
 release: otto gauntlet
 
@@ -55,3 +58,5 @@ look: .fail
 copy: .fail
 	@echo `readlink $<` | pbcopy
 
+clean:
+	rm -f test.otto digest.json
