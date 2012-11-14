@@ -1,36 +1,54 @@
-.PHONY: build test otto v8 cull uncull gauntlet try test-v8 test-otto copy test.otto clean
+.PHONY: test build otto test-otto test-v8 release clean
+.PHONY: cull uncull 
+.PHONY: test.otto- test.v8- digest.json- report
+.PHONY: release gauntlet try try-tmp look copy
 
 otto := ./otto -underscore=false
 TEST := python ./data/tools/packaging/test262.py --test=data --non_strict_only
 WITH_v8 := --command v8
 WITH_otto := --command "$(otto)"
 
-test:
-	$(TEST) $(WITH_otto)
-
-digest.json:
-	./digest < test.otto > $@
-
-release: otto gauntlet
-
-test-otto: test
-
-otto: build
+test: test-otto
 
 build:
 	$(MAKE) -C .. otto
 
-data:
-	hg clone -r 334 http://hg.ecmascript.org/tests/test262 data
+otto: build
+
+test-otto:
+	$(TEST) $(WITH_otto)
 
 test.otto: otto
 	$(TEST) $(WITH_otto) | tee $@
 
-v8 test-v8:
+test.otto-: 
+	$(MAKE) -B test.otto
+
+test-v8:
 	$(TEST) $(WITH_v8)
 
 test.v8:
-	$(TEST) $(WITH_v8) > $@
+	$(TEST) $(WITH_v8) | tee $@
+
+test.v8-:
+	$(MAKE) -B test.v8
+
+release: otto gauntlet
+
+clean:
+	rm -f test.otto digest.json
+
+digest.json:
+	./digest < test.otto > $@
+
+digest.json-:
+	$(MAKE) -B digest.json
+
+report: digest.json
+	@./report < digest.json
+
+data:
+	hg clone -r 334 http://hg.ecmascript.org/tests/test262 data
 
 cull: test.v8
 	./cull
@@ -57,6 +75,3 @@ look: .fail
 
 copy: .fail
 	@echo `readlink $<` | pbcopy
-
-clean:
-	rm -f test.otto digest.json

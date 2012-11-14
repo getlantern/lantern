@@ -1,0 +1,36 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Modern::Perl;
+
+use JSON;
+my $json = JSON->new->pretty;
+
+my $digest = $json->decode(join '', <STDIN>);
+
+my %tally = (
+    pass => 0,
+    fail => 0,
+    panic => 0,
+    total => 0,
+);
+
+for my $test (@$digest) {
+    $tally{total} += 1;
+    if ($test->{pass}) {
+        $tally{pass} += 1;
+    } else {
+        $tally{fail} += 1;
+        if ($test->{panic}) {
+            $tally{panic} += 1;
+        }
+    }
+}
+
+my $pass_percentage = sprintf "%.2f", 100 * ($tally{pass} / $tally{total});
+
+print <<_END_;
+Passing $pass_percentage%: $tally{pass} / $tally{total} ($tally{panic}!)
+_END_

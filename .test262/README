@@ -29,3 +29,6 @@ Then, cull to a sane set suite via v8 (you need v8 installed):
 Now you can test:
 
     $ make test
+
+---
+http://hg.ecmascript.org/tests/test262/raw-file/53c4ade82d14/test/suite/ch07/7.3/7.3-2.js
