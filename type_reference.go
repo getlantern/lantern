@@ -2,6 +2,7 @@ package otto
 
 type _reference interface {
 	GetBase() *_object
+	CanResolve() bool
 	GetValue() Value
 	PutValue(Value) bool
 	Name() string
@@ -16,20 +17,12 @@ type _reference_ struct {
 	strict bool
 }
 
-func (self _reference_) GetBase() *_object {
-	return nil
-}
-
 func (self _reference_) Name() string {
 	return self.name
 }
 
 func (self _reference_) Strict() bool {
 	return self.strict
-}
-
-func (self _reference_) Delete() {
-	panic(hereBeDragons())
 }
 
 // PropertyReference
@@ -55,6 +48,10 @@ func (self *_propertyReference) GetBase() *_object {
 	return self.Base
 }
 
+func (self *_propertyReference) CanResolve() bool {
+	return self.Base != nil
+}
+
 func (self *_propertyReference) GetValue() Value {
 	if self.Base == nil {
 		panic(newReferenceError("notDefined", self.name, self.node))
@@ -73,7 +70,8 @@ func (self *_propertyReference) PutValue(value Value) bool {
 func (self *_propertyReference) Delete() bool {
 	if self.Base == nil {
 		// ?
-		return false
+		// TODO Throw an error if strict
+		return true
 	}
 	return self.Base.delete(self.name, self.Strict())
 }
@@ -106,6 +104,10 @@ func newEnvironmentReference(base _environment, name string, strict bool, node _
 
 func (self *_environmentReference) GetBase() *_object {
 	return nil // FIXME
+}
+
+func (self *_environmentReference) CanResolve() bool {
+	return true // FIXME
 }
 
 func (self *_environmentReference) GetValue() Value {

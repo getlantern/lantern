@@ -2163,3 +2163,13 @@ func Test_stringToFloat(t *testing.T) {
 	Is(stringToFloat("10e10000"), math.Inf(1))
 	Is(stringToFloat("10e10_."), "NaN")
 }
+
+func Test_delete(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+
+	test(`
+		delete 42;
+	`, "true")
+}

@@ -103,6 +103,10 @@ func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
 	case "void":
 		return UndefinedValue()
 	case "delete":
+		reference := target.reference()
+		if reference == nil {
+			return TrueValue()
+		}
 		return toValue(target.reference().Delete())
 	case "typeof":
 		switch targetValue._valueType {
