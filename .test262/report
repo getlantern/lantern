@@ -17,6 +17,8 @@ my %tally = (
     total => 0,
 );
 
+my @panic;
+
 for my $test (@$digest) {
     $tally{total} += 1;
     if ($test->{pass}) {
@@ -25,6 +27,7 @@ for my $test (@$digest) {
         $tally{fail} += 1;
         if ($test->{panic}) {
             $tally{panic} += 1;
+            push @panic, $test->{test};
         }
     }
 }
@@ -34,3 +37,10 @@ my $pass_percentage = sprintf "%.2f", 100 * ($tally{pass} / $tally{total});
 print <<_END_;
 Passing $pass_percentage%: $tally{pass} / $tally{total} ($tally{panic}!)
 _END_
+
+if (@panic) {
+    print <<_END_;
+Panicking:
+_END_
+    say join "\n", @panic;
+}
