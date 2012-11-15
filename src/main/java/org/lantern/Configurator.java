@@ -28,7 +28,7 @@ public class Configurator {
      * Creates a new configurator.
      */
     public Configurator() {
-        LanternHub.register(this);
+        Events.register(this);
     }
     
     @Subscribe

@@ -29,12 +29,17 @@ public class CometDSyncStrategy implements SyncStrategy {
             return;
         }
         if (channel != null) {
-            final String channelName = "/sync/"+channel.name();
+            //final String channelName = "/sync/"+channel.name();
+            
+            // We send all updates over the same channel.
             final ClientSessionChannel ch = 
-                session.getLocalSession().getChannel(channelName);
+                session.getLocalSession().getChannel("/sync");
         
             final Object syncer;
             switch(channel) {
+                case model:
+                    syncer = LanternHub.getModel();
+                    break;
                 case roster:
                     log.debug("Syncing roster...");
                     syncer = LanternHub.xmppHandler().getRoster();
@@ -58,7 +63,7 @@ public class CometDSyncStrategy implements SyncStrategy {
             
             // Need to specify the full path here somehow...
             ch.publish(syncer);
-            log.debug("Sync performed on {}", channelName);
+            log.debug("Sync performed");
         };
     }
     

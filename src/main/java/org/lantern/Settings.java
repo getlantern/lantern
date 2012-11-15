@@ -66,7 +66,7 @@ public class Settings implements MutableSettings {
     // such as the current api port and availability flags for
     // features (ui, keychain, peer types etc) that may preceed 
     // or affect the way settings are loaded and are generally 
-    // not expected to change during a single run.  They are 
+    // not expected to change during a single run. They are 
     // generally orthogonal to the persistent settings. 
     //
     // The overrides field may be specified to force overlay 
@@ -202,7 +202,7 @@ public class Settings implements MutableSettings {
     private final Location location = new Location();
 
     {
-        LanternHub.register(this);
+        Events.register(this);
         threadPublicIpLookup();
     }
     
@@ -231,7 +231,11 @@ public class Settings implements MutableSettings {
                 // We get the address here to set it in Connectivity.
                 final InetAddress ip = 
                     new PublicIpAddress().getPublicIpAddress();
-                connectivity.setPublicIp(ip.getHostAddress());
+                if (ip == null) {
+                    log.info("No IP -- possibly no internet connection");
+                    return;
+                }
+                connectivity.setIp(ip.getHostAddress());
                 
                 // The IP is cached at this point.
                 final Country count = LanternHub.censored().country();

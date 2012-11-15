@@ -231,7 +231,7 @@ public class DefaultXmppHandler implements XmppHandler {
         
         new GiveModeConnectivityHandler();
         prepopulateProxies();
-        LanternHub.register(this);
+        Events.register(this);
         //setupJmx();
     }
     
@@ -239,7 +239,7 @@ public class DefaultXmppHandler implements XmppHandler {
     public void onAuthStatus(final GoogleTalkStateEvent ase) {
         this.state = ase.getState();
         switch (state) {
-        case LOGGED_IN:
+        case connected:
             // We wait until we're logged in before creating our roster.
             this.roster.loggedIn();
             //LanternHub.asyncEventBus().post(new SyncEvent());
@@ -247,12 +247,10 @@ public class DefaultXmppHandler implements XmppHandler {
                 this.rosterLock.notifyAll();
             }
             break;
-        case LOGGED_OUT:
+        case notConnected:
             this.roster.reset();
             break;
-        case LOGGING_IN:
-            break;
-        case LOGGING_OUT:
+        case connecting:
             break;
         case LOGIN_FAILED:
             this.roster.reset();
@@ -357,7 +355,7 @@ public class DefaultXmppHandler implements XmppHandler {
             @Override
             public void onConnectivityEvent(final P2PConnectionEvent event) {
                 LOG.info("Got connectivity event: {}", event);
-                LanternHub.asyncEventBus().post(event);
+                Events.asyncEventBus().post(event);
             }
         });
         
@@ -371,8 +369,8 @@ public class DefaultXmppHandler implements XmppHandler {
         if (this.proxies.isEmpty()) {
             connectivityEvent(ConnectivityStatus.CONNECTING);
         }
-        LanternHub.eventBus().post(
-            new GoogleTalkStateEvent(GoogleTalkState.LOGGING_IN));
+        Events.eventBus().post(
+            new GoogleTalkStateEvent(GoogleTalkState.connecting));
         final String id;
         if (LanternHub.settings().isGetMode()) {
             LOG.info("Setting ID for get mode...");
@@ -384,8 +382,8 @@ public class DefaultXmppHandler implements XmppHandler {
 
         try {
             this.client.get().login(email, pass, id);
-            LanternHub.eventBus().post(
-                new GoogleTalkStateEvent(GoogleTalkState.LOGGED_IN));
+            Events.eventBus().post(
+                new GoogleTalkStateEvent(GoogleTalkState.connected));
         } catch (final IOException e) {
             // Note that the XMPP library will internally attempt to connect
             // to our backup proxy if it can.
@@ -540,7 +538,7 @@ public class DefaultXmppHandler implements XmppHandler {
         if (this.proxies.isEmpty()) {
             connectivityEvent(ConnectivityStatus.DISCONNECTED);
         }
-        LanternHub.eventBus().post(
+        Events.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
     }
 
@@ -597,7 +595,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private void connectivityEvent(final ConnectivityStatus cs) {
         if (LanternHub.settings().isGetMode()) {
-            LanternHub.eventBus().post(
+            Events.eventBus().post(
                 new ConnectivityStatusChangeEvent(cs));
         } else {
             LOG.info("Ignoring connectivity event in give mode..");
@@ -617,8 +615,10 @@ public class DefaultXmppHandler implements XmppHandler {
     public void disconnect() {
         LOG.info("Disconnecting!!");
         lastJson = "";
+        /*
         LanternHub.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.LOGGING_OUT));
+        */
         
         final XmppP2PClient cl = this.client.get();
         if (cl != null) {
@@ -629,8 +629,8 @@ public class DefaultXmppHandler implements XmppHandler {
         if (this.proxies.isEmpty()) {
             connectivityEvent(ConnectivityStatus.DISCONNECTED);
         }
-        LanternHub.eventBus().post(
-            new GoogleTalkStateEvent(GoogleTalkState.LOGGED_OUT));
+        Events.eventBus().post(
+            new GoogleTalkStateEvent(GoogleTalkState.notConnected));
         
         peerProxySet.clear();
         this.closedBetaEvent = null;
@@ -653,12 +653,12 @@ public class DefaultXmppHandler implements XmppHandler {
             (Boolean) json.get(LanternConstants.INVITED);
         
         if (inClosedBeta != null) {
-            LanternHub.asyncEventBus().post(new ClosedBetaEvent(to, inClosedBeta));
+            Events.asyncEventBus().post(new ClosedBetaEvent(to, inClosedBeta));
             if (!inClosedBeta) {
                 //return;
             }
         } else {
-            LanternHub.asyncEventBus().post(new ClosedBetaEvent(to, false));
+            Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
             //return;
         }
                 
@@ -707,7 +707,7 @@ public class DefaultXmppHandler implements XmppHandler {
                     final Map<String, Object> event = 
                         new HashMap<String, Object>();
                     event.putAll(update);
-                    LanternHub.asyncEventBus().post(new UpdateEvent(event));
+                    Events.asyncEventBus().post(new UpdateEvent(event));
                 }
             });
         }

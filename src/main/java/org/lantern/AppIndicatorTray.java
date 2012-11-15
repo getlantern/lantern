@@ -163,7 +163,7 @@ public class AppIndicatorTray implements SystemTray {
         changeIcon(ICON_DISCONNECTED, LABEL_DISCONNECTED);
         libappindicator.app_indicator_set_status(appIndicator, AppIndicator.STATUS_ACTIVE);
     
-        LanternHub.register(this);
+        Events.register(this);
         this.active = true;
     }
 
@@ -190,7 +190,7 @@ public class AppIndicatorTray implements SystemTray {
 
     private void quit() {
         LOG.debug("quit called.");
-        LanternHub.eventBus().post(new QuitEvent());
+        Events.eventBus().post(new QuitEvent());
         LanternHub.display().dispose();
         LanternHub.xmppHandler().disconnect();
         LanternHub.jettyLauncher().stop();

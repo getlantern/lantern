@@ -5,9 +5,14 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.net.SocketAddress;
 import java.util.Map;
 
+import javax.servlet.GenericServlet;
 import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -27,6 +32,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +81,8 @@ public class JettyLauncher {
         //final ServletContextHandler api = newContext(secureBase, apiName);
         contexts.addHandler(contextHandler);
 
-        contextHandler.setResourceBase(this.resourceBaseFile.toString());
+        //contextHandler.setResourceBase(this.resourceBaseFile.toString());
+        contextHandler.setResourceBase("/Users/afisk/lantern-ui/app");
         
         server.setHandler(contexts);
         server.setStopAtShutdown(true);
@@ -112,23 +119,21 @@ public class JettyLauncher {
         cometd.setInitOrder(1);
         contextHandler.addServlet(cometd, "/cometd/*");
         
-        /*
-        final class ConfigServlet extends GenericServlet {
+        final class ModelServlet extends GenericServlet {
             private static final long serialVersionUID = -2633162671596490471L;
             @Override
             public void service(final ServletRequest req, 
-                final ServletResponse res)
+                final javax.servlet.ServletResponse res)
                 throws ServletException, IOException {
-                final Settings settings = LanternHub.settings();
-                final String json = LanternUtils.jsonify(settings, 
-                    Settings.RuntimeSetting.class);
+                final Model model = LanternHub.getModel();
+                final String json = 
+                    LanternUtils.jsonify(model, Model.Run.class);
                 final byte[] raw = json.getBytes("UTF-8");
                 res.setContentLength(raw.length);
                 res.setContentType("application/json; charset=UTF-8");
                 res.getOutputStream().write(raw);
             }
         }
-        */
         
         final class SettingsServlet extends HttpServlet {
 
@@ -252,11 +257,11 @@ public class JettyLauncher {
         photoServlet.setInitOrder(3);
         contextHandler.addServlet(photoServlet, "/photo/*");
         
-        /*
-        final ServletHolder config = new ServletHolder(new ConfigServlet());
-        config.setInitOrder(3);
-        contextHandler.addServlet(config, "/config");
-        */
+        
+        final ServletHolder model = new ServletHolder(new ModelServlet());
+        model.setInitOrder(3);
+        contextHandler.addServlet(model, "/model");
+        
         
         final ServletHolder bayeux = new ServletHolder(BayeuxInitializer.class);
         bayeux.setInitParameter("jsonContext", 
@@ -345,6 +350,7 @@ public class JettyLauncher {
     }
 
     public void openBrowserWhenReady() {
+        /*
         while(!server.isStarted()) {
             try {
                 Thread.sleep(250);
@@ -352,8 +358,32 @@ public class JettyLauncher {
                 log.info("Interrupted?");
             }
         }
+        */
+        waitForServer(this.port);
         log.info("Server is running. Opening browser...");
         LanternHub.dashboard().openBrowser();
+    }
+    
+    private void waitForServer(final int serverPort) {
+        int attempts = 0;
+        while (attempts < 10000) {
+            final Socket sock = new Socket();
+            try {
+                final SocketAddress isa = 
+                    new InetSocketAddress("127.0.0.1", serverPort);
+                sock.connect(isa, 2000);
+                return;
+            } catch (final IOException e) {
+            }
+            try {
+                Thread.sleep(100);
+            } catch (final InterruptedException e) {
+                log.info("Interrupted?");
+            }
+            attempts++;
+        }
+        log.error("Never able to connect with local server! " +
+            "Maybe couldn't bind?");
     }
     
     public File getResourceBaseFile() {

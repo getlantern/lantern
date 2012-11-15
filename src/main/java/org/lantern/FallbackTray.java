@@ -17,7 +17,7 @@ class FallbackTray implements SystemTray {
     private SystemTray tray;
     
     public FallbackTray() {
-        LanternHub.register(this);
+        Events.register(this);
     }
 
     @Override

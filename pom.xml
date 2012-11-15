@@ -17,6 +17,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <slf4j.version>1.6.1</slf4j.version>
     <cometd.version>2.5.0</cometd.version>
+    <!--<cometd.version>2.4.1</cometd.version>-->
   </properties>
 
   <organization>
@@ -118,27 +119,6 @@
                 </exclusion>
             </exclusions>
         </dependency>
--->
-
-<!--
-    <dependency>
-      <groupId>bouncycastle</groupId>
-      <artifactId>bcprov-jdk16</artifactId>
-      <version>140</version>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.api.client</groupId>
-      <artifactId>google-api-client</artifactId>
-      <version>1.4.1-beta</version>
-    </dependency>
-
-
-    <dependency>
-      <groupId>com.google.gdata</groupId>
-      <artifactId>gdata</artifactId>
-      <version>2.2.1-alpha</version>
-    </dependency>
 -->
 
     <dependency>

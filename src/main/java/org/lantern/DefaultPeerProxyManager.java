@@ -1,6 +1,7 @@
 package org.lantern;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.util.Collection;
@@ -212,9 +213,9 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                         addSocket(peerUri, now, sock);
 
                         if (!gotConnected) {
-                            LanternHub.eventBus().post(
-                                    new ConnectivityStatusChangeEvent(
-                                        ConnectivityStatus.CONNECTED));
+                            Events.eventBus().post(
+                                new ConnectivityStatusChangeEvent(
+                                    ConnectivityStatus.CONNECTED));
                         }
                         gotConnected = true;
                     }
@@ -238,8 +239,11 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         } else {
             final String cc = 
                 LanternHub.getGeoIpLookup().getCountry(sock.getInetAddress()).getCode();
-            final String ip = ts.getSocket().getInetAddress().getHostAddress();
-            peer = new Peer(userId, ip, cc);
+            final InetSocketAddress isa = 
+                (InetSocketAddress) ts.getSocket().getRemoteSocketAddress();
+            final String ip = isa.getAddress().getHostAddress();
+            final int port = isa.getPort();
+            peer = new Peer(userId, ip, port, cc, false, false, false);
             this.peers.put(userId, peer);
         }
         peer.addSocket(ts);

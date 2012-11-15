@@ -15,7 +15,7 @@ public class PeerTracker {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     {
-        LanternHub.register(this);
+        Events.register(this);
     }
 
     @Subscribe

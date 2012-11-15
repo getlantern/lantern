@@ -128,6 +128,9 @@ public class LanternConstants {
     public static final File DEFAULT_SETTINGS_FILE = 
         new File(CONFIG_DIR, "settings.json");
     
+    public static final File DEFAULT_MODEL_FILE = 
+            new File(CONFIG_DIR, "model");
+    
     /**
      * Note that we don't include the "X-" for experimental headers here. See:
      * the draft that appears likely to become an RFC at:

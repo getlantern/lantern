@@ -326,12 +326,16 @@ public class Launcher {
                 // let them know we can't start Lantern until they have a 
                 // connection.
                 // TODO: i18n
+                
+                /*
                 final String msg = 
                     "We're sorry, but you cannot configure Lantern without " +
                     "an active connection to the internet. Please try again " +
                     "when you have an internet connection.";
                 LanternHub.dashboard().showMessage("No Internet", msg);
                 System.exit(0);
+                */
+                launchWithOrWithoutUi();
             }
         }
 
@@ -763,7 +767,7 @@ public class Launcher {
         public AutoConnector() {
             checkAutoConnect();
             if (!done) {
-                LanternHub.register(this);
+                Events.register(this);
             }
         }
         

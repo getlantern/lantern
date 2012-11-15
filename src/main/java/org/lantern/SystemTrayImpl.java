@@ -60,7 +60,7 @@ public class SystemTrayImpl implements SystemTray {
      * @param display The SWT display. 
      */
     public SystemTrayImpl() {
-        LanternHub.register(this);
+        Events.register(this);
     }
 
     public static boolean isSupported() {
@@ -129,7 +129,7 @@ public class SystemTrayImpl implements SystemTray {
                     System.out.println("Got exit call");
                     
                     // This tells things like the Proxifier to stop proxying.
-                    LanternHub.eventBus().post(new QuitEvent());
+                    Events.eventBus().post(new QuitEvent());
                     
                     display.dispose();
                     
