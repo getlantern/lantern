@@ -21,7 +21,7 @@ install4jc -L $INSTALL4J_KEY --win-keystore-password=$INSTALL4J_WIN_PASS -m wind
 name=lantern-$VERSION.exe
 mv install/Lantern.exe $name
 
-./installMetaRefresh.bash win $name latest.exe
+./installMetaRefresh.bash win $name latest.exe false
 
 cp $name ~/Desktop/virtual-machine-files/
 
