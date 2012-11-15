@@ -63,4 +63,3 @@ func TestString_substr(t *testing.T) {
 
 	test(`"abcd".substr(3, 5)`, "d")
 }
-

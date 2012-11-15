@@ -50,7 +50,7 @@ func builtinGlobal_parseInt(call FunctionCall) Value {
 	radix := call.Argument(1)
 	radixValue := 0
 	if radix.IsDefined() {
-		radixValue = int(toInteger(radix))
+		radixValue = int(toI32(radix))
 	}
 	value, err := strconv.ParseInt(string_, radixValue, 64)
 	if err != nil {

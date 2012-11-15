@@ -1983,6 +1983,7 @@ func Test_parseInt(t *testing.T) {
 		// TODO parseInt should return 10 in this scenario
 		test(`parseInt("0x0aXyzzy")`, "10")
 	}
+	test(`parseInt("0x0a", Infinity)`, "10")
 }
 
 func Test_parseFloat(t *testing.T) {
