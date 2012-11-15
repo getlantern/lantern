@@ -22,12 +22,33 @@ angular.module('app.directives', []).
     return {
       restrict: 'EA',
       require: 'ngModel',
-      link: function(scope, elm, attr, ngModelCtrl) {
-        elm.unbind('input').unbind('keydown').unbind('change');
-        elm.bind('blur', function() {
+      link: function(scope, element, attrs, ctrl) {
+        element.unbind('input').unbind('keydown').unbind('change');
+        element.bind('blur', function() {
           scope.$apply(function() {
-            ngModelCtrl.$setViewValue(elm.val());
+            ctrl.$setViewValue(element.val());
           });
+        });
+      }
+    };
+  })
+  // https://groups.google.com/d/msg/angular/-p794x5BklI/ifpdt2n60hkJ
+  .directive('genericValidator', function() {
+    return {
+      restrict: 'A',
+      require: '?ngModel',
+      link: function(scope, element, attrs, ctrl) {
+        var validationFunction = scope[attrs.genericValidator];
+        ctrl.$parsers.unshift(function (viewValue) {
+          if (validationFunction(viewValue)) {
+            // it is valid
+            ctrl.$setValidity('generic', true);
+            return viewValue;
+          } else {
+            // it is invalid, return undefined (no model update)
+            ctrl.$setValidity('generic', false);
+            return undefined;
+          }
         });
       }
     };

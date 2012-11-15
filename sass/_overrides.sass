@@ -76,10 +76,17 @@ input:disabled, textarea:disabled
   cursor: default
 
 // as you type a@b.c, outline and shadow change from red to blue to red to blue without this
-input[type=email]:focus
+//input[type=email]:focus
   &.ng-invalid, &:invalid
     color: #b94a48
     border-color: #b94a48
+    +box-shadow(0 0 8px rgba(255, 0, 0, 0.6) !important)
+
+input, textarea
+  &.ng-invalid, &:invalid
+    color: #b94a48
+    border-color: #b94a48
+  &:focus.ng-invalid, &:focus:invalid
     +box-shadow(0 0 8px rgba(255, 0, 0, 0.6) !important)
 
 textarea

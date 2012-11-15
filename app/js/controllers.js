@@ -351,34 +351,65 @@ function SettingsCtrl($scope, modelSrvc, logFactory, MODAL) {
     $scope.systemProxy = val;
   });
 
-  /*
-  $scope.$watch('model.system.lang', function(val, oldVal) {
-    if (val && !$scope._lang)
-      $scope._lang = modelSrvc.get('settings.lang') || val;
-  });
-
-  $scope.$watch('model.settings.lang', function(val, oldVal) {
-    if (val) $scope._lang = val;
-  });
-  */
-
   $scope.$watch('model.settings.autoReport', function(val) {
     $scope.autoReport = val;
   });
 }
 
-function ProxiedSitesCtrl($scope, logFactory, MODAL, SETTING) {
+function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, NPROXIEDSITES_MAX, INPUT_PATS) {
+  var log = logFactory('ProxiedSitesCtrl'),
+      DOMAIN = INPUT_PATS.DOMAIN,
+      IPV4 = INPUT_PATS.IPV4,
+      IPV6 = INPUT_PATS.IPV6,
+      original,
+      filtered;
+
   $scope.show = false;
   $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.proxiedSites;
   });
+
   $scope.$watch('model.settings.proxiedSites', function(val) {
-    if (val) $scope.proxiedSites = val.join('\n');
+    if (val) {
+      original = val;
+      $scope.input = val.join('\n');
+    }
   });
-  $scope.handleChange = function() {
-    // XXX hook up to validator, only call when valid
-    $scope.changeSetting(SETTING.proxiedSites,
-      $scope.proxiedSites.split('\n'));
+
+
+  $scope.validate = function(value) {
+    var split = value.split('\n');
+    filtered = [];
+    for (var i=0, line=split[i], l=split.length; i<l; line=split[++i]) {
+      if (!(line = line.trim())) continue;
+      if (!(DOMAIN.test(line) ||
+            IPV4.test(line) /*||
+            IPV6.test(line) XXX not yet supported*/)) {
+        log.debug('invalid line:', line);
+        return false;
+      }
+      log.debug('valid line:', line);
+      filtered.push(line);
+    }
+    log.debug('all lines valid');
+    if (filtered.length > NPROXIEDSITES_MAX) {
+      log.debug('maximum number of proxied sites exceeded:', filtered.length, '>', NPROXIEDSITES_MAX);
+      return false;
+    }
+    $timeout(function(){ $scope.input = filtered.join('\n'); });
+    return true;
+  };
+
+  $scope.handleUpdate = function() {
+    if ($scope.proxiedSitesForm.$invalid) {
+      log.debug('invalid input, not sending update');
+      return;
+    }
+    if (angular.equals(original, filtered)) {
+      log.debug('input matches original, not sending update');
+      return;
+    }
+    $scope.changeSetting(SETTING.proxiedSites, filtered);
   };
 }
 

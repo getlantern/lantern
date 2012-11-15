@@ -364,11 +364,13 @@
     <div>
       <label>
         {{ 'CONFIGURE_PROXIED_SITES' | i18n }}
-        <sup><a rel="tooltip" data-original-title="{{ 'PROXIED_SITES_TIP' | i18n }}"
-            ui-jq="tooltip"><i class="icon-info-sign"></i></a></sup>
+        <a rel="tooltip" data-original-title="{{ 'PROXIED_SITES_TIP' | i18n }}"
+            ui-jq="tooltip"><i class="icon-info-sign"></i></a>
       </label>
-      <textarea ng-model="proxiedSites" ng-change="handleChange()"
-        style="width: 300px; height: 100px"></textarea><!-- XXX hook up to validator, etc -->
+      <form name="proxiedSitesForm">
+        <textarea ng-model="input" name="input" x-update-on-blur x-generic-validator="validate" ng-change="handleUpdate()"></textarea>
+      </form>
+      <!-- XXX if invalid indicate what's wrong -->
     </div>
     <small>
       <!-- XXX spec and mock this -->
@@ -379,7 +381,8 @@
     </small>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
+    <button type="button" class="btn" ng-click="interaction(INTERACTION.reset)">{{ 'RESET' | i18n }}</button><!-- XXX hook this up -->
+    <button type="button" class="btn btn-primary" ng-disabled="proxiedSitesForm.$invalid" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
   </div>
 </div>
 
@@ -517,26 +520,6 @@
 
       <dt>{{ 'APP' | i18n }}</dt>
       <dd id="app-settings">
-        <!--
-        <label>
-          <select ui-select2 ng-model="_lang" class="settings-selectlang"
-                  ng-change="changeSetting(SETTING.lang, _lang)"
-                  data-placeholder="{{ 'LANGUAGE' | i18n }}">
-            <option value=""></option>
-            <option value="en">English</option>
-            <option value="zh">中文</option>
-            <option value="fa">‫پارسی‬</option>
-            <option value="ar">‫العربية‬</option>
-          </select>
-          <small>
-            <a target="_blank" href="{{ EXTERNAL_URL.helpTranslate }}">
-              {{ 'HELP_TRANSLATE' | i18n }}
-              <i class="icon-external-link"></i>
-            </a>
-          </small>
-        </label>
-        -->
-
         <label class="checkbox">
           <input type="checkbox" ng-model="autoStart"
                  ng-click="changeSetting(SETTING.autoStart, autoStart)">
@@ -578,7 +561,7 @@
           </label>
 
           <button type="button" ng-click="interaction(INTERACTION.reset)"
-                  class="btn btn-mini reset">
+                  class="btn btn-mini" style="margin: 0 0 -5px 50px"><!-- XXX -->
             <i class="icon-warning-sign warning-colored"></i>
             {{ 'RESET_ELLIPSIS' | i18n }}
           </button>

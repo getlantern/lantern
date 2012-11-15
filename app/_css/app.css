@@ -4877,9 +4877,11 @@ input:disabled, textarea:disabled {
   cursor: default;
 }
 
-input[type=email]:focus.ng-invalid, input[type=email]:focus:invalid {
+input.ng-invalid, input:invalid, textarea.ng-invalid, textarea:invalid {
   color: #b94a48;
   border-color: #b94a48;
+}
+input:focus.ng-invalid, input:focus:invalid, textarea:focus.ng-invalid, textarea:focus:invalid {
   -webkit-box-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
   -moz-box-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
   box-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
@@ -4919,53 +4921,6 @@ textarea.bugReport {
 
 #settingsLoadFailure form {
   text-align: center;
-}
-
-#passwordCreate .control-group {
-  text-align: center;
-}
-
-#welcome .modal-header, #welcome .modal-body {
-  text-align: center;
-}
-
-#authorize .prompt-extra {
-  margin: 10px 0 5px 30px;
-  font-size: 11.9px;
-  color: #999999;
-}
-#authorize .control-label {
-  font-size: 11.9px;
-}
-
-#requestInvite form {
-  margin: 20px 38px;
-}
-#requestInvite form input[type=email] {
-  margin-top: 5px;
-}
-#requestInvite form .indented {
-  margin-left: 30px;
-}
-
-#inviteFriends form {
-  text-align: center;
-}
-#inviteFriends form label {
-  font-size: 11.9px;
-}
-
-#waiting-container {
-  position: absolute;
-  top: 100px;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  line-height: 50px;
-}
-
-#welcome .modal-body {
-  margin: 10px 0 100px 0;
 }
 
 #langchooser {
@@ -5020,6 +4975,58 @@ textarea.bugReport {
   text-decoration: none;
 }
 
+#welcome .modal-header {
+  text-align: center;
+}
+#welcome .modal-body {
+  text-align: center;
+  margin: 10px 0 100px 0;
+}
+
+#passwordCreate .control-group {
+  text-align: center;
+}
+
+#authorize .prompt-extra {
+  margin: 10px 0 5px 30px;
+  font-size: 11.9px;
+  color: #999999;
+}
+#authorize .control-label {
+  font-size: 11.9px;
+}
+
+#requestInvite form {
+  margin: 20px 38px;
+}
+#requestInvite form input[type=email] {
+  margin-top: 5px;
+}
+#requestInvite form .indented {
+  margin-left: 30px;
+}
+
+#proxiedSites textarea {
+  width: 100%;
+  height: 150px;
+}
+
+#inviteFriends form {
+  text-align: center;
+}
+#inviteFriends form label {
+  font-size: 11.9px;
+}
+
+#waiting-container {
+  position: absolute;
+  top: 100px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  line-height: 50px;
+}
+
 #systemProxy .control-group {
   margin: 0 75px;
 }
@@ -5036,10 +5043,6 @@ textarea.bugReport {
 
 #settings dd {
   margin-bottom: 24.5px;
-}
-
-.settings-selectlang {
-  margin-top: -6px;
 }
 
 #autoreport-warning {
@@ -5084,10 +5087,6 @@ a.toggle.advanced:active, a.toggle.advanced:visited, a.toggle.advanced:hover {
 }
 #proxy-settings .advanced-container {
   margin-top: 10px;
-}
-
-button.reset {
-  margin: 0 0 -5px 50px;
 }
 
 #canvas, #canvas svg {

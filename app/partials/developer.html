@@ -5,18 +5,8 @@
   <i class="icon-cogs"></i>
 </a>
 
-<div id="developer" class="collapse" ng-init="prettyPrint = true"
+<div id="developer" class="collapse"
      ng-controller="DevCtrl" ng-show="dev.value" lang="en" dir="ltr">
-  <!--
-  <label class="checkbox inline">
-    <input type="checkbox" ng-model="model.dev">
-    dev
-    <a rel="tooltip" ui-jq="tooltip" class="warning-colored" ui-options="{placement: 'right'}"
-       data-original-title="unchecking turns off dev panel access, debug logging, and stops propagation of local model changes">
-      <i class="icon-warning-sign warning-colored"></i>
-    </a>
-  </label>
-  -->
   <textarea ng-model="editableModel" x-update-on-blur
             ng-change="handleUpdate()"></textarea>
 </div>

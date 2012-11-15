@@ -6,6 +6,7 @@ angular.module('app.services', [])
   .value('sanity', {value: true}) // triggers failure mode when false
   .constant('MODEL_SYNC_CHANNEL', '/sync')
   .constant('APIVER_REQUIRED', {major: 0, minor: 0})
+  .constant('NPROXIEDSITES_MAX', 1000)
   .constant('googOauthUrl',
     'https://accounts.google.com/o/oauth2/auth?'+
     '&response_type=code'+
@@ -19,7 +20,13 @@ angular.module('app.services', [])
     httpsEverywhere: 'https://www.eff.org/https-everywhere',
     fakeOauth: '/app/fakeOauth.html'
   })
-   // XXX use some kind of Object.fromkeys function
+  .constant('INPUT_PATS', {
+    // from http://html5pattern.com/
+    DOMAIN: /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/,
+    IPV4: /((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$/,
+    IPV6: /((^|:)([0-9a-fA-F]{0,4})){1,8}$/
+  })
+  // XXX use some kind of Object.fromkeys function
   .constant('SETTING', {
     lang: 'lang',
     mode: 'mode',
@@ -78,7 +85,7 @@ angular.module('app.services', [])
     cancel: 'cancel',
     continue: 'continue',
     close: 'close',
-    quit: 'quit',
+    quit: 'quit'
   })
   .service('ENUMS', function(MODE, CONNECTIVITY, MODAL, INTERACTION, SETTING, EXTERNAL_URL) {
     return {

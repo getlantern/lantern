@@ -23,41 +23,6 @@ textarea.bugReport
 #settingsLoadFailure form
   +centered
 
-#passwordCreate .control-group
-  +centered
-
-#welcome
-  .modal-header, .modal-body
-    +centered
-
-#authorize
-  .prompt-extra
-    margin: 10px 0 5px 30px
-    +small
-    +gray
-  .control-label
-    +small
-
-#requestInvite
-  form
-    margin: 20px 38px
-    input[type=email]
-      margin-top: 5px
-    .indented
-      margin-left: 30px
-
-#inviteFriends form
-  +centered
-  label
-    +small
-
-#waiting-container
-  +position(100px, 0, 0 , 0)
-  line-height: 50px
-
-#welcome .modal-body
-  margin: 10px 0 100px 0
-
 #langchooser
   +position(5px, 15px)
   font-size: $baseFontSize * .8
@@ -77,6 +42,45 @@ textarea.bugReport
         &:hover
           text-decoration: none
 
+#welcome
+  .modal-header
+    +centered
+  .modal-body
+    +centered
+    margin: 10px 0 100px 0
+
+#passwordCreate .control-group
+  +centered
+
+#authorize
+  .prompt-extra
+    margin: 10px 0 5px 30px
+    +small
+    +gray
+  .control-label
+    +small
+
+#requestInvite
+  form
+    margin: 20px 38px
+    input[type=email]
+      margin-top: 5px
+    .indented
+      margin-left: 30px
+
+#proxiedSites textarea
+  width: 100%
+  height: 150px
+
+#inviteFriends form
+  +centered
+  label
+    +small
+
+#waiting-container
+  +position(100px, 0, 0 , 0)
+  line-height: 50px
+
 #systemProxy
   .control-group
     margin: 0 75px
@@ -92,9 +96,6 @@ textarea.bugReport
 #settings
   dd
     margin-bottom: $baseFontSize * 1.75
-
-.settings-selectlang
-  margin-top: -6px
 
 #autoreport-warning
   +indented
@@ -121,6 +122,3 @@ a.toggle.advanced
     margin-top: 5px
   #proxy-settings &
     margin-top: 10px
-
-button.reset
-  margin: 0 0 -5px 50px
