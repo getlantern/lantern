@@ -61,7 +61,7 @@ public class Proxifier {
                 interactiveUnproxy();
             }
         }
-        LanternHub.register(new Subscriber());
+        Events.register(new Subscriber());
         
         if (SystemUtils.IS_OS_MAC_OSX) {
             final File Lantern = new File("Lantern");

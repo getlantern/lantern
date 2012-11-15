@@ -7,7 +7,6 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.security.SecureRandom;
 import java.util.Timer;
-import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.zip.GZIPInputStream;
 
@@ -26,12 +25,10 @@ import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.privacy.MacLocalCipherProvider;
 import org.lantern.privacy.WindowsLocalCipherProvider;
+import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.AsyncEventBus;
-import com.google.common.eventbus.EventBus;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.maxmind.geoip.LookupService;
 
 /**
@@ -40,13 +37,6 @@ import com.maxmind.geoip.LookupService;
 public class LanternHub {
 
     private static final Logger LOG = LoggerFactory.getLogger(LanternHub.class);
-    
-    private static final EventBus eventBus = new EventBus();
-    
-    private static final AsyncEventBus asyncEventBus =
-        new AsyncEventBus("Async-Event-Bus", Executors.newCachedThreadPool(
-            new ThreadFactoryBuilder().setDaemon(true).setNameFormat(
-                "Async-Event-Thread-%d").build()));
     
     private static final AtomicReference<SecureRandom> secureRandom =
         new AtomicReference<SecureRandom>(new SecureRandom());
@@ -135,6 +125,8 @@ public class LanternHub {
     private static ClientSocketChannelFactory clientChannelFactory;
     
     private static ChannelGroup channelGroup;
+    
+    private static final Model model = new Model();
 
     static {
         // start with an UNSET settings object until loaded
@@ -420,14 +412,6 @@ public class LanternHub {
     public static Settings settings() {
         return settings.get();
     }
-    
-    public static EventBus eventBus() {
-        return eventBus;
-    }
-    
-    public static AsyncEventBus asyncEventBus() {
-        return asyncEventBus;
-    }
 
     public static LanternApi api() {
         synchronized (lanternApi) {
@@ -477,7 +461,7 @@ public class LanternHub {
     }
    
     private static void postSettingsState() {
-        asyncEventBus().post(new SettingsStateEvent(settings().getSettings()));
+        Events.asyncEventBus().post(new SettingsStateEvent(settings().getSettings()));
     }
     
     public static ProxyProvider getProxyProvider() {
@@ -513,11 +497,6 @@ public class LanternHub {
     public static void setSettingsChangeImplementor(
         final SettingsChangeImplementor ssi) {
         settingsChangeImplementor.set(ssi);
-    }
-
-    public static void register(final Object toRegister) {
-        asyncEventBus().register(toRegister);
-        eventBus().register(toRegister);
     }
     
     public static Configurator configurator() {
@@ -563,5 +542,9 @@ public class LanternHub {
         }
         LanternHub.resetSettings(true); // does not affect command line though...
         LanternHub.resetUserConfig(); // among others, TrustedContacts...
+    }
+
+    public static Model getModel() {
+        return model;
     }
 }

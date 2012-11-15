@@ -2,9 +2,8 @@ package org.lantern.state;
 
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternHub;
-import org.lantern.Settings;
-import org.lantern.Settings.PersistentSetting;
-import org.lantern.Settings.RuntimeSetting;
+import org.lantern.state.Model.Persistent;
+import org.lantern.state.Model.Run;
 
 /**
  * Class representing all uploads and downloads data.
@@ -17,12 +16,12 @@ public class Transfers {
     private long historicalDownBytes = 0;
 
     /*
-    @JsonView(RuntimeSetting.class)
+    @JsonView(RunSetting.class)
     public long getPeerCount() {
         return LanternHub.statsTracker().getPeerCount();
     }
 
-    @JsonView(RuntimeSetting.class)
+    @JsonView(RunSetting.class)
     public long getPeerCountThisRun() {
         return LanternHub.statsTracker().getPeerCountThisRun();
     }
@@ -30,32 +29,32 @@ public class Transfers {
     
     // TODO: Add ncurrent and nlifetime
 
-    @JsonView(RuntimeSetting.class)
+    @JsonView({Run.class})
     public long getBpsUp() {
         return LanternHub.statsTracker().getUpBytesPerSecond();
     }
     
-    @JsonView(RuntimeSetting.class)
+    @JsonView({Run.class})
     public long getBpsDn() {
         return LanternHub.statsTracker().getDownBytesPerSecond();
     }
     
-    @JsonView(RuntimeSetting.class)
+    @JsonView({Run.class})
     public long getBpsTotal() {
         return getBpsDn() + getBpsUp();
     }
     
-    @JsonView(RuntimeSetting.class)
+    @JsonView({Run.class})
     public long getUpTotalThisRun() {
         return LanternHub.statsTracker().getUpBytesThisRun();
     }
     
-    @JsonView(RuntimeSetting.class)
+    @JsonView({Run.class})
     public long getDownTotalThisRun() {
         return LanternHub.statsTracker().getDownBytesThisRun();
     }
     
-    @JsonView({RuntimeSetting.class, PersistentSetting.class})
+    @JsonView({Run.class, Persistent.class})
     public long getUpTotalLifetime() {
         return getUpTotalThisRun() + historicalUpBytes;
     }
@@ -68,7 +67,7 @@ public class Transfers {
         historicalUpBytes = value;
     }
 
-    @JsonView({RuntimeSetting.class, PersistentSetting.class})
+    @JsonView({Run.class, Persistent.class})
     public long getDownTotalLifetime() {
         return getDownTotalThisRun() + historicalDownBytes;
     }
@@ -77,7 +76,7 @@ public class Transfers {
         historicalDownBytes = value;
     }
     
-    @JsonView({RuntimeSetting.class})
+    @JsonView({Run.class})
     public long getBytesTotalLifetime() {
         return getDownTotalLifetime() + getUpTotalLifetime();
     }

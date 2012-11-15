@@ -82,7 +82,7 @@ public class CometDTest {
         updateJson.put(LanternConstants.UPDATE_MESSAGE_KEY, 
             "test update");
         
-        LanternHub.asyncEventBus().post(new UpdateEvent(updateJson));
+        Events.asyncEventBus().post(new UpdateEvent(updateJson));
         
         waitForBoolean("version", versionSync);
         assertEquals("Unexpected path key", "version", versionPathKey.get());
@@ -92,6 +92,8 @@ public class CometDTest {
         final Map<String, Object> update = 
             (Map<String, Object>) versionValue.get("updated");
         assertEquals(updateJson, update);
+        
+        
     }
 
     private AtomicReference<Map<String, Object>> subscribe(final ClientSession session, 

@@ -92,7 +92,7 @@ public class Roster implements RosterListener {
                 populated = true;
                 log.debug("Finished populating roster");
                 log.info("kscope is: {}", kscopeRoutingTable);
-                LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
+                Events.asyncEventBus().post(new RosterStateChangedEvent());
             }
         };
         final Thread t = new Thread(r, "Roster-Populating-Thread");
@@ -193,13 +193,13 @@ public class Roster implements RosterListener {
 
     public void addIncomingSubscriptionRequest(final String from) {
         incomingSubscriptionRequests.add(from);
-        LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
+        Events.asyncEventBus().post(new RosterStateChangedEvent());
     }
     
 
     public void removeIncomingSubscriptionRequest(final String from) {
         incomingSubscriptionRequests.remove(from);
-        LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
+        Events.asyncEventBus().post(new RosterStateChangedEvent());
     }
 
     public Collection<String> getSubscriptionRequests() {
@@ -212,7 +212,7 @@ public class Roster implements RosterListener {
         for (final String entry : entries) {
             addEntry(new LanternRosterEntry(entry));
         }
-        LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
+        Events.asyncEventBus().post(new RosterStateChangedEvent());
     }
 
     @Override
@@ -225,7 +225,7 @@ public class Roster implements RosterListener {
             rosterEntries.remove(email);
             rosterEntries.remove(entry);
         }
-        LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
+        Events.asyncEventBus().post(new RosterStateChangedEvent());
     }
 
     @Override
@@ -236,7 +236,7 @@ public class Roster implements RosterListener {
                 this.xmppHandler.getP2PClient().getXmppConnection().getRoster().getPresence(entry);
             onPresence(pres);
         }
-        LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
+        Events.asyncEventBus().post(new RosterStateChangedEvent());
     }
 
     @Override

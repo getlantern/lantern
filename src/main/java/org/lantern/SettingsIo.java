@@ -128,6 +128,5 @@ public class SettingsIo {
         } finally {
             IOUtils.closeQuietly(os);
         }
-        
     }
 }

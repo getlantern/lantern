@@ -3,14 +3,21 @@ package org.lantern.state;
 import java.util.Timer;
 import java.util.TimerTask;
 
+/*
 import org.cometd.annotation.Configure;
 import org.cometd.annotation.Listener;
 import org.cometd.annotation.Service;
 import org.cometd.annotation.Session;
+*/
 import org.cometd.bayeux.Channel;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.cometd.bayeux.server.ServerSession;
+import org.cometd.java.annotation.Configure;
+import org.cometd.java.annotation.Listener;
+import org.cometd.java.annotation.Service;
+import org.cometd.java.annotation.Session;
+import org.lantern.Events;
 import org.lantern.LanternHub;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.RosterStateChangedEvent;
@@ -39,7 +46,7 @@ public class SyncService {
     public SyncService(final SyncStrategy strategy) {
         this.strategy = strategy;
         // Make sure the config class is added as a listener before this class.
-        LanternHub.register(this);
+        Events.register(this);
         
         final Timer timer = LanternHub.timer();
         timer.schedule(new TimerTask() {
@@ -60,7 +67,17 @@ public class SyncService {
     public void metaConnect(final ServerSession remote, final Message connect) {
         // Make sure we give clients the most recent data whenever they connect.
         log.debug("Got connection from client, calling sync");
-        sync();
+        
+        final Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                log.info("Syncing with frontend...");
+                sync();
+            }
+            
+        }, "CometD-Sync-OnConnect-Thread");
+        t.setDaemon(true);
+        t.start();
     }
 
     @Listener("/service/sync")
@@ -104,8 +121,8 @@ public class SyncService {
     }
     
     private void sync(final boolean force) {
-        //sync(force, SyncChannel.settings);
-        sync(force, SyncChannel.transfers);
+        sync(force, SyncChannel.model);
+        //sync(force, SyncChannel.transfers);
     }
     
     private void sync() {

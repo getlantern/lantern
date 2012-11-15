@@ -10,4 +10,10 @@ public enum SyncChannel {
     transfers,
     connectivity,
     version,
+    
+    /**
+     * This channel contains the entire state model, including all other
+     * sub-channels. 
+     */
+    model,
 }

@@ -525,7 +525,7 @@ public class DefaultLanternApi implements LanternApi {
         setProperty(LanternHub.settings(), key, val, true, resp, determineType);
         resp.setStatus(HttpStatus.SC_OK);
         if (sync) {
-            LanternHub.asyncEventBus().post(new SyncEvent(SyncChannel.settings));
+            Events.asyncEventBus().post(new SyncEvent(SyncChannel.settings));
             LanternHub.settingsIo().write();
         }
     }
