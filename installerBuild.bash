@@ -43,3 +43,5 @@ cp target/lantern*SNAPSHOT.jar install/common/lantern.jar || die "Could not copy
 
 git tag -f -a v$VERSION -m "Version $INTERNAL_VERSION release with MVN_ARGS $MVN_ARGS"
 git push --tags
+
+install4jc -L $INSTALL4J_KEY || die "Could not update license information?"
