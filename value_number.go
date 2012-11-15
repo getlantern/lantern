@@ -104,6 +104,8 @@ func toIntegerFloat(value Value) float64 {
 	floatValue := value.toFloat()
 	if math.IsNaN(floatValue) {
 		return 0
+	} else if math.IsInf(floatValue, 0) {
+		return floatValue
 	}
 	if floatValue > 0 {
 		return math.Floor(floatValue)
