@@ -54,14 +54,8 @@ public class JettyLauncher {
     private final File resourceBaseFile;
 
     public JettyLauncher() {
-        final File staticdir = 
-            new File(LanternHub.settings().getUiDir(), "assets");
-        
-        if (staticdir.isDirectory()) {
-            this.resourceBaseFile = staticdir;
-        } else {
-            this.resourceBaseFile = new File("assets");
-        }
+        final File staticdir = new File(LanternHub.settings().getUiDir());
+        this.resourceBaseFile = staticdir;
     }
     
     public void start() {

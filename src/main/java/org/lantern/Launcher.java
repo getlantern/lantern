@@ -300,7 +300,7 @@ public class Launcher {
             LanternHub.settings().setCache(false);
         //}
         if (cmd.hasOption(OPTION_NEW_UI)) {
-            LanternHub.settings().setUiDir("ui");
+            LanternHub.settings().setUiDir("lantern-ui/app");
         }
         
         gnomeAutoStart();
