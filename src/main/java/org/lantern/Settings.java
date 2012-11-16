@@ -182,7 +182,7 @@ public class Settings implements MutableSettings {
     
     private boolean cache = true;
     
-    private String uiDir = "dashboard";
+    private String uiDir = "dashboard/assets";
     
     private Set<String> inClosedBeta = new HashSet<String>();
     
