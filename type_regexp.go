@@ -50,8 +50,13 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 		re2pattern = fmt.Sprintf("(?%s:%s)", re2flags, re2pattern)
 	}
 
+	regularExpression, err := regexp.Compile(re2pattern)
+	if err != nil {
+		panic(newSyntaxError("Invalid regular expression: %s", err.Error()[22:]))
+	}
+
 	self._RegExp = &_regExpObject{
-		RegularExpression: regexp.MustCompile(re2pattern),
+		RegularExpression: regularExpression,
 		Global: global,
 		IgnoreCase: ignoreCase,
 		Multiline: multiline,

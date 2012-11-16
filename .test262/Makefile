@@ -18,7 +18,7 @@ otto: build
 test-otto:
 	$(TEST) $(WITH_otto)
 
-test.otto: otto
+test.otto:
 	$(TEST) $(WITH_otto) | tee $@
 
 test.otto-: 
@@ -36,9 +36,9 @@ test.v8-:
 release: otto gauntlet
 
 clean:
-	rm -f test.otto digest.json
+	rm -f test.otto digest.json .node.tmp.js
 
-digest.json:
+digest.json: test.otto
 	./digest < test.otto > $@
 
 digest.json-:
@@ -68,6 +68,10 @@ try: .fail
 try-tmp: tmp.js
 	cat shim.js $< | $(otto)
 	@echo PASS
+
+node-try-tmp: tmp.js
+	cat shim.js $< > .node.tmp.js
+	node ./.node.tmp.js
 
 look: .fail
 	cat $<
