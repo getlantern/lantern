@@ -376,7 +376,6 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, NPROXIED
     }
   });
 
-
   $scope.validate = function(value) {
     var split = value.split('\n');
     filtered = [];
@@ -386,17 +385,21 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, NPROXIED
             IPV4.test(line) /*||
             IPV6.test(line) XXX not yet supported*/)) {
         log.debug('invalid line:', line);
+        $scope.errorLabelKey = 'ERROR_INVALID_LINE';
+        $scope.errorCause = line;
         return false;
       }
-      log.debug('valid line:', line);
       filtered.push(line);
+      if (filtered.length > NPROXIEDSITES_MAX) {
+        log.debug('maximum number of proxied sites exceeded:', filtered.length, '>', NPROXIEDSITES_MAX);
+        $scope.errorLabelKey = 'ERROR_MAX_PROXIED_SITES_EXCEEDED';
+        $scope.errorCause = '';
+        return false;
+      }
     }
     log.debug('all lines valid');
-    if (filtered.length > NPROXIEDSITES_MAX) {
-      log.debug('maximum number of proxied sites exceeded:', filtered.length, '>', NPROXIEDSITES_MAX);
-      return false;
-    }
-    $timeout(function(){ $scope.input = filtered.join('\n'); });
+    $scope.errorLabelKey = '';
+    $scope.errorCause = '';
     return true;
   };
 

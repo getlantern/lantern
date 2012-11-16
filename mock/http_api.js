@@ -1,3 +1,5 @@
+'use strict';
+
 var url = require('url')
   , util = require('util')
   , sleep = require('./node_modules/sleep')
@@ -7,12 +9,14 @@ var url = require('url')
 function ApiServlet(bayeuxBackend) {
   this._bayeuxBackend = bayeuxBackend;
   ApiServlet._resetInternalState.call(this);
+  this._DEFAULT_PROXIED_SITES = bayeuxBackend.model.settings.proxiedSites.slice(0);
 }
 
 ApiServlet.VERSION = [0, 0, 1];
-VERSION_STR = ApiServlet.VERSION.join('.');
-MOUNT_POINT = '/api/';
-API_PREFIX = MOUNT_POINT + VERSION_STR + '/';
+var VERSION_STR = ApiServlet.VERSION.join('.')
+  , MOUNT_POINT = '/api/'
+  , API_PREFIX = MOUNT_POINT + VERSION_STR + '/'
+  ;
 
 function inCensoringCountry(model) {
   return model.countries[model.location.country].censors;
@@ -70,7 +74,7 @@ var peer1 = {
   }
 ;
 
-roster = [{
+var roster = [{
   "userid":"lantern_friend1@example.com",
   "name":"Lantern Friend1",
   "avatarUrl":"",
@@ -318,12 +322,17 @@ ApiServlet.HandlerMap = {
           return;
 
         case MODAL.proxiedSites:
-          if (interaction != INTERACTION.continue) {
-            res.writeHead(400);
+          if (interaction == INTERACTION.continue) {
+            this._internalState.modalsCompleted[MODAL.proxiedSites] = true;
+            ApiServlet._advanceModal.call(this, MODAL.settings);
             return;
           }
-          this._internalState.modalsCompleted[MODAL.proxiedSites] = true;
-          ApiServlet._advanceModal.call(this, MODAL.settings);
+          if (interaction == INTERACTION.reset) {
+            model.proxiedSites = this._DEFAULT_PROXIED_SITES;
+            this._bayeuxBackend.publishSync('proxiedSites');
+            return;
+          }
+          res.writeHead(400);
           return;
 
         case MODAL.systemProxy:

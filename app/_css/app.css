@@ -4747,6 +4747,14 @@ label.checkbox.inline, label.radio.inline {
   margin-right: 5px;
 }
 
+.small {
+  font-size: 11.9px;
+}
+
+.smaller {
+  font-size: 10.5px;
+}
+
 .centered {
   text-align: center;
 }
@@ -4877,14 +4885,16 @@ input:disabled, textarea:disabled {
   cursor: default;
 }
 
-input.ng-invalid, input:invalid, textarea.ng-invalid, textarea:invalid {
-  color: #b94a48;
-  border-color: #b94a48;
+input:focus, textarea:focus {
+  -webkit-box-shadow: 0 0 8px rgba(82, 168, 236, 0.6);
+  -moz-box-shadow: 0 0 8px rgba(82, 168, 236, 0.6);
+  box-shadow: 0 0 8px rgba(82, 168, 236, 0.6);
 }
-input:focus.ng-invalid, input:focus:invalid, textarea:focus.ng-invalid, textarea:focus:invalid {
-  -webkit-box-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
-  -moz-box-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
-  box-shadow: 0 0 8px rgba(255, 0, 0, 0.6) !important;
+input:focus.ng-invalid, textarea:focus.ng-invalid {
+  border-color: #e9322d;
+  -webkit-box-shadow: 0 0 6px #f8b9b7;
+  -moz-box-shadow: 0 0 6px #f8b9b7;
+  box-shadow: 0 0 6px #f8b9b7;
 }
 
 textarea {

@@ -10,6 +10,12 @@ label.checkbox.inline, label.radio.inline
   white-space: nowrap
   margin-right: 5px
 
+.small
+  +small
+
+.smaller
+  +smaller
+
 .centered
   +centered
 
@@ -75,19 +81,12 @@ a[rel=tooltip]
 input:disabled, textarea:disabled
   cursor: default
 
-// as you type a@b.c, outline and shadow change from red to blue to red to blue without this
-//input[type=email]:focus
-  &.ng-invalid, &:invalid
-    color: #b94a48
-    border-color: #b94a48
-    +box-shadow(0 0 8px rgba(255, 0, 0, 0.6) !important)
-
-input, textarea
-  &.ng-invalid, &:invalid
-    color: #b94a48
-    border-color: #b94a48
-  &:focus.ng-invalid, &:focus:invalid
-    +box-shadow(0 0 8px rgba(255, 0, 0, 0.6) !important)
+// taken from compass_twitter_bootstrap's _forms.sass
+input:focus, textarea:focus
+  +bootstrap-box-shadow(0 0 8px rgba(82,168,236,.6))
+  &.ng-invalid
+    border-color: darken(#ee5f5b, 10%)
+    +bootstrap-box-shadow(0 0 6px lighten(#ee5f5b, 20%))
 
 textarea
   +box-sizing(border-box)
