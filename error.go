@@ -79,7 +79,7 @@ func newRangeError(argumentList... interface{}) _error {
 }
 
 func newSyntaxError(argumentList... interface{}) _error {
-	return newError("URIError", argumentList...)
+	return newError("SyntaxError", argumentList...)
 }
 
 func newURIError(argumentList... interface{}) _error {
