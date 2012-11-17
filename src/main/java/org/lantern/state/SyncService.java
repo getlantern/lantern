@@ -3,20 +3,14 @@ package org.lantern.state;
 import java.util.Timer;
 import java.util.TimerTask;
 
-/*
 import org.cometd.annotation.Configure;
 import org.cometd.annotation.Listener;
 import org.cometd.annotation.Service;
 import org.cometd.annotation.Session;
-*/
 import org.cometd.bayeux.Channel;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.cometd.bayeux.server.ServerSession;
-import org.cometd.java.annotation.Configure;
-import org.cometd.java.annotation.Listener;
-import org.cometd.java.annotation.Service;
-import org.cometd.java.annotation.Session;
 import org.lantern.Events;
 import org.lantern.LanternHub;
 import org.lantern.event.ClosedBetaEvent;
@@ -26,6 +20,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+/*
+import org.cometd.annotation.Configure;
+import org.cometd.annotation.Listener;
+import org.cometd.annotation.Service;
+import org.cometd.annotation.Session;
+*/
 
 /**
  * Service for pushing updated Lantern state to the client.

@@ -3,6 +3,7 @@ package org.lantern.state;
 import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.bayeux.server.ServerSession;
 import org.lantern.LanternHub;
+import org.lantern.LanternUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,14 +39,14 @@ public class CometDSyncStrategy implements SyncStrategy {
             final Object syncer;
             switch(channel) {
                 case model:
-                    syncer = LanternHub.getModel();
+                    syncer = new SyncData("", LanternHub.getModel());
                     break;
                 case roster:
                     log.debug("Syncing roster...");
-                    syncer = LanternHub.xmppHandler().getRoster();
+                    syncer = new SyncData(channel, LanternHub.xmppHandler().getRoster());
                     break;
                 case settings:
-                    syncer = LanternHub.settings();
+                    syncer = new SyncData(channel, LanternHub.settings());
                     break;
                 case transfers:
                     syncer = new SyncData(channel, LanternHub.settings().getTransfers());
@@ -55,12 +56,15 @@ public class CometDSyncStrategy implements SyncStrategy {
                     break;
                 case version:
                     syncer = new SyncData(channel, LanternHub.settings().getVersion());
+                    
                     break;
                 default:
                     throw new Error("Bad channel: "+ channel);
             }
             lastUpdateTime = System.currentTimeMillis();
-            
+
+            final String json = LanternUtils.jsonify(syncer);
+            log.info("Syncing object: {}", json);
             // Need to specify the full path here somehow...
             ch.publish(syncer);
             log.debug("Sync performed");
@@ -79,10 +83,14 @@ public class CometDSyncStrategy implements SyncStrategy {
         private final Object value; 
         
         public SyncData(final SyncChannel channel, final Object val) {
-            this.path = channel.name();
-            this.value = val;
+            this(channel.name(), val);
         }
         
+        public SyncData(final String path, final Object val) {
+            this.path = path;
+            this.value = val;
+        }
+
         public String getPath() {
             return path;
         }
