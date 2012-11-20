@@ -10,4 +10,6 @@ public interface SyncStrategy {
 
     void sync(boolean force, SyncChannel channel, ServerSession session);
 
+    void sync(boolean force, ServerSession session, String path, Object value);
+
 }

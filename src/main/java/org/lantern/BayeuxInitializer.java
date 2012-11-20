@@ -9,15 +9,19 @@ import javax.servlet.ServletResponse;
 import javax.servlet.UnavailableException;
 
 import org.cometd.annotation.ServerAnnotationProcessor;
-//import org.cometd.annotation.ServerAnnotationProcessor;
 import org.cometd.bayeux.server.BayeuxServer;
-import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.SyncService;
+//import org.cometd.annotation.ServerAnnotationProcessor;
 
 public class BayeuxInitializer extends GenericServlet {
     
     private static final long serialVersionUID = -6884888598201660314L;
+    private final SyncService syncer;
 
+    public BayeuxInitializer(final SyncService syncer) {
+        this.syncer = syncer;
+    }
+    
     @Override
     public void init() throws ServletException {
         super.init();
@@ -33,7 +37,7 @@ public class BayeuxInitializer extends GenericServlet {
         //bayeux.addExtension(new AcknowledgedMessagesExtension());
         final ServerAnnotationProcessor processor = 
             new ServerAnnotationProcessor(bayeux);
-        processor.process(new SyncService(new CometDSyncStrategy()));
+        processor.process(this.syncer);
     }
 
     @Override

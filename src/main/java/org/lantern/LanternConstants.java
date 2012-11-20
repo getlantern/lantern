@@ -26,6 +26,8 @@ public class LanternConstants {
      */
     public static final String VERSION = "lantern_version_tok";
     
+    public static final String API_VERSION = "0.0.1";
+    
     public static final String BUILD_TIME = "build_time_tok";
     
     public static final String UNCENSORED_ID = "-lan-";

@@ -39,4 +39,11 @@ public class SwtJavaScriptSyncStrategy implements SyncStrategy {
         lastUpdateTime = System.currentTimeMillis();
         log.debug("Sync performed");
     }
+
+    @Override
+    public void sync(boolean force, ServerSession session, String path,
+            Object value) {
+        // TODO Auto-generated method stub
+        
+    }
 }

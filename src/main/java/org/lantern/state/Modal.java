@@ -5,6 +5,7 @@ package org.lantern.state;
  */
 public enum Modal {
 
+    /*
     settingsUnlock, 
     settingsLoadFailure, 
     welcome, 
@@ -21,5 +22,29 @@ public enum Modal {
     settings, 
     giveMode, 
     about, 
-    updateAvailable
+    updateAvailable,
+    none
+    */
+    
+    settingsLoadFailure,
+    welcome,
+    authorize,
+    gtalkUnreachable,
+    authorizeLater,
+    notInvited,
+    requestInvite,
+    requestSent,
+    firstInviteReceived,
+    proxiedSites,
+    systemProxy,
+    passwordCreate,
+    inviteFriends,
+    finished,
+    contactDevs,
+    settings,
+    confirmReset,
+    giveModeForbidden,
+    about,
+    updateAvailable,
+    none,
 }

@@ -15,6 +15,35 @@ public class CometDSyncStrategy implements SyncStrategy {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private volatile long lastUpdateTime = System.currentTimeMillis();
+
+    @Override
+    public void sync(final boolean force,
+        final ServerSession session, final String path, final Object value) {
+        if (session == null) {
+            log.debug("No session...not syncing");
+            return;
+        }
+        final long elapsed = System.currentTimeMillis() - lastUpdateTime;
+        if (!force && elapsed < 100) {
+            log.debug("Not pushing more than 10 times a second...{} ms elapsed", 
+                elapsed);
+            return;
+        }
+
+        //final String channelName = "/sync/"+channel.name();
+        
+        // We send all updates over the same channel.
+        final ClientSessionChannel ch = 
+            session.getLocalSession().getChannel("/sync");
+    
+        //final Object obj = getValueForPath(path);
+        final SyncData syncer = new SyncData(path, value);
+        lastUpdateTime = System.currentTimeMillis();
+
+        // Need to specify the full path here somehow...
+        ch.publish(syncer);
+        log.debug("Sync performed");
+    }
     
     @Override
     public void sync(final boolean force, final SyncChannel channel, 
@@ -36,9 +65,10 @@ public class CometDSyncStrategy implements SyncStrategy {
             final ClientSessionChannel ch = 
                 session.getLocalSession().getChannel("/sync");
         
-            final Object syncer;
+            final SyncData syncer;
             switch(channel) {
                 case model:
+                    log.debug("Syncing model...");
                     syncer = new SyncData("", LanternHub.getModel());
                     break;
                 case roster:
@@ -63,8 +93,6 @@ public class CometDSyncStrategy implements SyncStrategy {
             }
             lastUpdateTime = System.currentTimeMillis();
 
-            final String json = LanternUtils.jsonify(syncer);
-            log.info("Syncing object: {}", json);
             // Need to specify the full path here somehow...
             ch.publish(syncer);
             log.debug("Sync performed");

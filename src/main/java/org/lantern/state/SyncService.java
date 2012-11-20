@@ -133,4 +133,8 @@ public class SyncService {
         log.debug("In sync method");
         this.strategy.sync(force, channel, this.session);
     }
+
+    public void publishSync(final String path, final Object value) {
+        this.strategy.sync(true, this.session, path, value);
+    }
 }

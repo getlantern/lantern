@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.state;
 
 import java.io.File;
 import java.io.IOException;
@@ -7,9 +7,13 @@ import java.util.concurrent.Executors;
 
 import javax.security.auth.login.CredentialException;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
-import org.lantern.Proxifier.ProxyConfigurationError;
+import org.lantern.LanternConstants;
+import org.lantern.LanternHub;
+import org.lantern.LanternUtils;
+import org.lantern.NotInClosedBetaException;
+import org.lantern.Proxifier;
+import org.lantern.state.Settings.Mode;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +24,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
  * Class that does the dirty work of executing changes to the various settings 
  * users can configure.
  */
-public class DefaultSettingsChangeImplementor implements SettingsChangeImplementor {
+public class DefaultModelChangeImplementor implements ModelChangeImplementor {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -32,14 +36,17 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
 
     private final File gnomeAutostart;
 
-    public DefaultSettingsChangeImplementor() {
-        this(LanternConstants.LAUNCHD_PLIST, LanternConstants.GNOME_AUTOSTART);
+    private final Model model;
+
+    public DefaultModelChangeImplementor(final Model model) {
+        this(LanternConstants.LAUNCHD_PLIST, LanternConstants.GNOME_AUTOSTART, model);
     }
     
-    public DefaultSettingsChangeImplementor(final File launchdPlist, 
-        final File gnomeAutostart) {
+    public DefaultModelChangeImplementor(final File launchdPlist, 
+        final File gnomeAutostart, final Model model) {
         this.launchdPlist = launchdPlist;
         this.gnomeAutostart = gnomeAutostart;
+        this.model = model;
     }
     
     @Override
@@ -93,45 +100,11 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
     
     @Override
     public void setProxyAllSites(final boolean proxyAll) {
-        try {
-            Proxifier.proxyAllSites(proxyAll);
-        } catch (final ProxyConfigurationError e) {
-            throw new RuntimeException("Error proxying all sites!", e);
-        }
     }
 
     @Override
     public void setSystemProxy(final boolean isSystemProxy) {
-        if (isSystemProxy == LanternHub.settings().isSystemProxy()) {
-            log.info("System proxy setting is unchanged.");
-            return;
-        }
-        
         log.info("Setting system proxy");
-        
-        // go ahead and change the setting so that it will affect
-        // shouldProxy. it will be set again by the api, but that
-        // doesn't matter.
-        LanternHub.settings().setSystemProxy(isSystemProxy);
-        if (!LanternHub.settings().isInitialSetupComplete()) {
-            return;
-        }
-        
-        final Runnable proxyRunner = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    if (LanternUtils.shouldProxy() ) {
-                        Proxifier.startProxying();
-                    } else {
-                        Proxifier.stopProxying();
-                    }
-                } catch (final Proxifier.ProxyConfigurationError e) {
-                    log.error("Proxy reconfiguration failed: {}", e);
-                }
-            }
-        };
-        proxyQueue.execute(proxyRunner);
     }
     
     @Override
@@ -140,6 +113,7 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         log.warn("setPort not yet implemented");
     }
 
+    /*
     @Override
     public void setCountry(final Country country) {
         if (country.equals(LanternHub.settings().getCountry())) {
@@ -147,20 +121,11 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         }
         LanternHub.settings().setManuallyOverrideCountry(true);
     }
+    */
 
     @Override
     public void setEmail(final String email) {
         final String storedEmail = LanternHub.settings().getEmail();
-        if ((email == null && storedEmail == null)) {
-            log.info("Email is unchanged.");
-            return;
-        }
-        if (storedEmail != null && storedEmail.equals(email)) {
-            log.info("Email is unchanged.");
-            return;
-        }
-        log.info("Email address changed. Clearing user specific settings");
-        LanternHub.resetUserConfig();
     }
 
     @Override
@@ -171,7 +136,9 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         // We we move to get mode, we want to stop advertising our ID and to
         // stop accepting incoming connections.
 
-        if (getMode == LanternHub.settings().isGetMode()) {
+        final Settings set = this.model.getSettings();
+        final boolean inGet = set.getMode() == Mode.get;
+        if (getMode == inGet) {
             log.info("Mode is unchanged.");
             return;
         }
@@ -180,11 +147,18 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             return;
         }
         
+        final Mode newMode;
+        if (getMode) {
+            newMode = Mode.get;
+        } else {
+            newMode = Mode.give;
+        }
+        
         // Go ahead and set the setting although it will also be
         // updated by the api as well. We want to make sure the
         // state seen by the following calls is consistent with
         // this flag being aspirational vs. representational
-        LanternHub.settings().setGetMode(getMode);
+        set.setMode(newMode);
         
         // We disconnect and reconnect to create a new Jabber ID that will 
         // not advertise us as a connection point.
@@ -228,40 +202,17 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
 
     @Override
     public void setPassword(final String password) {
-        final Settings set = LanternHub.settings();
-        if (StringUtils.isBlank(password)) {
-            log.info("Clearing password");
-            set.setStoredPassword("");
-            set.setPasswordSaved(false);
-        } else {
-            log.info("Setting password");
-            if (set.isSavePassword()) {
-                set.setStoredPassword(password);
-                set.setPasswordSaved(true);
-            } else {
-                set.setStoredPassword("");
-                set.setPasswordSaved(false);
-            }
-        }
+        final org.lantern.Settings set = LanternHub.settings();
     }
     
     @Override
     public void setSavePassword(final boolean savePassword) {
         log.info("Setting savePassword to {}", savePassword);
-        final Settings set = LanternHub.settings();
-        if (savePassword) {
-            final String password = set.getPassword();
-            if (password != null && !password.equals("")) {
-                log.info("Restoring from current password");
-                set.setStoredPassword(password);
-                set.setPasswordSaved(true);
-            }
-        }
-        else {
-            log.info("Clearing existing stored password (if any)");
-            set.setStoredPassword("");
-            set.setPasswordSaved(false);
-        }
+    }
+
+    @Override
+    public Model getModel() {
+        return this.model;
     }
     
 }

@@ -123,7 +123,7 @@ public class ModelIo {
         // consider the settings to be "locked"
         if (LanternHub.localCipherProvider().requiresAdditionalUserInput()) {
             //s.getSettings().setState(State.LOCKED);
-            blank.setModal(Modal.settingsUnlock);
+            blank.setModal(Modal.authorize);
         }
         // otherwise, consider new settings to have been successfully loaded
         else {
