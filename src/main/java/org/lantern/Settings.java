@@ -180,7 +180,7 @@ public class Settings implements MutableSettings {
     
     private int invites = 0;
     
-    private boolean cache = true;
+    private boolean cache = false;
     
     private String uiDir = "dashboard";
     

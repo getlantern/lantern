@@ -17,6 +17,7 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
 import org.lantern.event.SyncEvent;
+import org.lantern.http.HttpUtils;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.SyncChannel;
@@ -140,7 +141,7 @@ public class DefaultLanternApi implements LanternApi {
 
     private void handleSubscribed(final HttpServletRequest req,
         final HttpServletResponse resp) {
-        final Map<String, String> params = LanternUtils.toParamMap(req);
+        final Map<String, String> params = HttpUtils.toParamMap(req);
         final String jid = params.remove("jid");
         if (StringUtils.isBlank(jid)) {
             sendClientError(resp, "No jid argument provided");
@@ -156,7 +157,7 @@ public class DefaultLanternApi implements LanternApi {
     
     private void handleUnsubscribed(final HttpServletRequest req,
         final HttpServletResponse resp) {
-        final Map<String, String> params = LanternUtils.toParamMap(req);
+        final Map<String, String> params = HttpUtils.toParamMap(req);
         final String jid = params.remove("jid");
         if (StringUtils.isBlank(jid)) {
             sendClientError(resp, "No jid argument provided");
@@ -168,7 +169,7 @@ public class DefaultLanternApi implements LanternApi {
 
     private void handleInvite(final HttpServletRequest req, 
         final HttpServletResponse resp) {
-        final Map<String, String> params = LanternUtils.toParamMap(req);
+        final Map<String, String> params = HttpUtils.toParamMap(req);
         final String email = params.remove("email");
         if (StringUtils.isBlank(email)) {
             sendClientError(resp, "No email argument provided");
@@ -194,7 +195,7 @@ public class DefaultLanternApi implements LanternApi {
         log.debug("Signing in...");
         final Settings set = LanternHub.settings();
         LanternHub.xmppHandler().disconnect();
-        final Map<String, String> params = LanternUtils.toParamMap(req);
+        final Map<String, String> params = HttpUtils.toParamMap(req);
 
         final String rawEmail = params.remove("email");
         if (StringUtils.isBlank(rawEmail)) {
@@ -490,7 +491,7 @@ public class DefaultLanternApi implements LanternApi {
     @Override
     public void changeSetting(final HttpServletRequest req, 
         final HttpServletResponse resp) {
-        final Map<String, String> params = LanternUtils.toParamMap(req);
+        final Map<String, String> params = HttpUtils.toParamMap(req);
         changeSetting(resp, params);
 
     }
@@ -553,7 +554,7 @@ public class DefaultLanternApi implements LanternApi {
     }
 
     private void handleContactForm(HttpServletRequest req, HttpServletResponse resp) {
-        final Map<String, String> params = LanternUtils.toParamMap(req);
+        final Map<String, String> params = HttpUtils.toParamMap(req);
         String message = params.get("message");
         String email = params.get("replyto");
         try {

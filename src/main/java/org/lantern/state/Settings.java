@@ -18,7 +18,7 @@ public class Settings {
 
     private boolean autoReport = true;
     
-    private String mode;
+    private Mode mode;
     
     private int proxyPort = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
     
@@ -30,6 +30,11 @@ public class Settings {
         new String[]{"google.com", "twitter.com"};
     
 
+    public enum Mode {
+        give,
+        get
+    }
+    
     @JsonView({Run.class, Persistent.class})
     public String getUserId() {
         return userId;
@@ -68,11 +73,11 @@ public class Settings {
     }
 
     @JsonView({Run.class, Persistent.class})
-    public String getMode() {
+    public Mode getMode() {
         return mode;
     }
 
-    public void setMode(final String mode) {
+    public void setMode(final Mode mode) {
         this.mode = mode;
     }
 

@@ -757,25 +757,6 @@ public class LanternUtils {
         }    
     }
 
-    /**
-     * Converts the request arguments to a map of parameter keys to single
-     * values, ignoring multiple values.
-     * 
-     * @param req The request.
-     * @return The mapped argument names and values.
-     */
-    public static Map<String, String> toParamMap(final ServletRequest req) {
-        final Map<String, String> map = new TreeMap<String, String>(
-                String.CASE_INSENSITIVE_ORDER);
-        final Map<String, String[]> paramMap = req.getParameterMap();
-        final Set<Entry<String, String[]>> entries = paramMap.entrySet();
-        for (final Entry<String, String[]> entry : entries) {
-            final String[] values = entry.getValue();
-            map.put(entry.getKey(), values[0]);
-        }
-        return map;
-    }
-
     public static String jsonify(final Object all) {
         
         final ObjectMapper mapper = new ObjectMapper();

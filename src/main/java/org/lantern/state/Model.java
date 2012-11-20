@@ -1,5 +1,7 @@
 package org.lantern.state;
 
+import org.codehaus.jackson.map.annotate.JsonView;
+
 
 /**
  * State model of the application for the UI to display.
@@ -29,6 +31,8 @@ public class Model {
     private Settings settings = new Settings();
     
     private Connectivity connectivity = new Connectivity();
+    
+    private int proxiedSitesMax = 2000;
 
     public SystemData getSystem() {
         return system;
@@ -46,7 +50,7 @@ public class Model {
         return modal;
     }
 
-    public void setModal(Modal modal) {
+    public void setModal(final Modal modal) {
         this.modal = modal;
     }
 
@@ -80,6 +84,15 @@ public class Model {
 
     public boolean isDev() {
         return dev;
+    }
+
+    @JsonView({Run.class})
+    public int getProxiedSitesMax() {
+        return proxiedSitesMax;
+    }
+
+    public void setProxiedSitesMax(int proxiedSitesMax) {
+        this.proxiedSitesMax = proxiedSitesMax;
     }
     
 }

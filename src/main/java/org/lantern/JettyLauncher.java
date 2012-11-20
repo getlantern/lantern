@@ -32,7 +32,13 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.lantern.http.InteractionServlet;
+import org.lantern.state.CometDSyncStrategy;
+import org.lantern.state.DefaultModelChangeImplementor;
 import org.lantern.state.Model;
+import org.lantern.state.ModelChangeImplementor;
+import org.lantern.state.ModelIo;
+import org.lantern.state.SyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,6 +60,14 @@ public class JettyLauncher {
     private final Server server = new Server();
 
     private final File resourceBaseFile;
+    
+    private final Model model = new ModelIo().getModel();
+    
+    private final ModelChangeImplementor changeImplementor = 
+        new DefaultModelChangeImplementor(model);
+    
+    private final SyncService syncer = 
+        new SyncService(new CometDSyncStrategy());
 
     public JettyLauncher() {
         final File staticdir = 
@@ -82,7 +96,7 @@ public class JettyLauncher {
         contexts.addHandler(contextHandler);
 
         //contextHandler.setResourceBase(this.resourceBaseFile.toString());
-        contextHandler.setResourceBase("/Users/afisk/lantern-ui/app");
+        contextHandler.setResourceBase("/Users/afisk/lantern-ui-temp/lantern-ui/app");
         
         server.setHandler(contexts);
         server.setStopAtShutdown(true);
@@ -249,21 +263,29 @@ public class JettyLauncher {
         settings.setInitOrder(3);
         contextHandler.addServlet(settings, "/settings/*");
         
+        /*
         final ServletHolder apiServlet = new ServletHolder(new ApiServlet());
         apiServlet.setInitOrder(3);
         contextHandler.addServlet(apiServlet, "/api/*");
+        */
+        
+        final ServletHolder interactionServlet = 
+            new ServletHolder(new InteractionServlet(this.changeImplementor,this.syncer));
+        interactionServlet.setInitOrder(2);
+        contextHandler.addServlet(interactionServlet, "/api/"+LanternConstants.API_VERSION+"/*");
         
         final ServletHolder photoServlet = new ServletHolder(new PhotoServlet());
         photoServlet.setInitOrder(3);
         contextHandler.addServlet(photoServlet, "/photo/*");
         
         
-        final ServletHolder model = new ServletHolder(new ModelServlet());
-        model.setInitOrder(3);
-        contextHandler.addServlet(model, "/model");
+        final ServletHolder modelHolder = new ServletHolder(new ModelServlet());
+        modelHolder.setInitOrder(3);
+        contextHandler.addServlet(modelHolder, "/model");
         
         
-        final ServletHolder bayeux = new ServletHolder(BayeuxInitializer.class);
+        final BayeuxInitializer bi = new BayeuxInitializer(this.syncer);
+        final ServletHolder bayeux = new ServletHolder(bi);
         bayeux.setInitParameter("jsonContext", 
             "org.cometd.server.JacksonJSONContextServer");
         bayeux.setInitOrder(2);
