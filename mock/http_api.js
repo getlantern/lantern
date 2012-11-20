@@ -491,9 +491,17 @@ ApiServlet.HandlerMap = {
 
         case MODAL.about:
         case MODAL.updateAvailable:
-        case MODAL.confirmReset:
           if (interaction == INTERACTION.close) {
             model.modal = MODAL.none;
+            publishSync('modal');
+            return;
+          }
+          res.writeHead(400);
+          return;
+
+        case MODAL.confirmReset:
+          if (interaction == INTERACTION.cancel) {
+            model.modal = MODAL.settings;
             publishSync('modal');
             return;
           } else if (interaction == INTERACTION.reset) {

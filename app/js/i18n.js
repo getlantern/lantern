@@ -120,9 +120,9 @@ angular.module('app.i18n', [])
       SYSTEM_PROXY_TITLE: 'System Proxy',
       SYSTEM_PROXY_PROMPT: 'Lantern can be configured as your system proxy so your browser will use it automatically.',
       SYSTEM_PROXY_TRUE: 'Set Lantern as my system proxy (recommended)',
-      SYSTEM_PROXY_TRUE_INFO: 'You may be prompted for an administrator password.',
+      ADMIN_PW_PROMPT: 'You may be prompted for an administrator password.',
       SYSTEM_PROXY_FALSE: 'I will manually configure my browser to use Lantern.',
-      SYSTEM_PROXY_FALSE_INFO: 'Lantern’s HTTP proxy runs on port 8787.', // XXX don't hardcode
+      HTTP_PROXY_PORT: 'Lantern’s HTTP proxy runs on port', // XXX interpolate the variable
       SYSTEM_PROXY_ERROR: 'Proxy configuration failed',
       FINISHED_TITLE: 'Finished!',
       FINISHED_PROMPT: 'Thank you for joining Lantern. Your participation at this early stage is invaluable.',

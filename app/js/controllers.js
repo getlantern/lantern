@@ -398,7 +398,8 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
   });
   $scope.$watch('model.nproxiedSitesMax', function(val) {
     nproxiedSitesMax = val;
-    $scope.validate($scope.input);
+    if ($scope.input)
+      $scope.validate($scope.input);
   });
 
   $scope.validate = function(value) {
