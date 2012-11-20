@@ -6,7 +6,6 @@ angular.module('app.services', [])
   .value('sanity', {value: true}) // triggers failure mode when false
   .constant('MODEL_SYNC_CHANNEL', '/sync')
   .constant('APIVER_REQUIRED', {major: 0, minor: 0})
-  .constant('NPROXIEDSITES_MAX', 1000)
   .constant('googOauthUrl',
     'https://accounts.google.com/o/oauth2/auth?'+
     '&response_type=code'+

@@ -386,6 +386,10 @@ the backend maintains on the frontend through comet publications:
     <td>The number of Lantern invites user has remaining</td>
   </tr>
   <tr>
+    <td><strong>nproxiedSitesMax</strong><br><em>integer</em></td>
+    <td>The maximum number of configured proxied sites allowed</td>
+  </tr>
+  <tr>
     <td><strong>settings</strong><br><em>object</em></td>
     <td>
       <table>

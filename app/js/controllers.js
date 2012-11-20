@@ -62,19 +62,19 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
 
   $scope.interaction = function(interaction, extra) {
     var params = angular.extend({interaction: interaction}, extra || {});
-    $http.post(apiSrvc.urlfor('interaction', params))
+    return $http.post(apiSrvc.urlfor('interaction', params))
       .success(function(data, status, headers, config) {
-        log.debug('interaction');
+        log.debug('interaction', interaction, 'successful');
       })
       .error(function(data, status, headers, config) {
-        log.debug('interaction failed'); // XXX
+        log.debug('interaction', interaction, 'failed'); // XXX
       });
   };
 
   $scope.changeSetting = function(key, val) {
     var params = {};
     params[key] = val;
-    $http.post(apiSrvc.urlfor('settings/', params))
+    return $http.post(apiSrvc.urlfor('settings/', params))
       .success(function(data, status, headers, config) {
         log.debug('Changed setting', key, 'to', val);
       })
@@ -356,11 +356,14 @@ function SettingsCtrl($scope, modelSrvc, logFactory, MODAL) {
   });
 }
 
-function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, NPROXIEDSITES_MAX, INPUT_PATS) {
+function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACTION, INPUT_PATS) {
   var log = logFactory('ProxiedSitesCtrl'),
       DOMAIN = INPUT_PATS.DOMAIN,
       IPV4 = INPUT_PATS.IPV4,
       IPV6 = INPUT_PATS.IPV6,
+      DELAY = 1000, // milliseconds
+      nproxiedSitesMax,
+      sendUpdatePromise,
       original,
       filtered;
 
@@ -369,50 +372,89 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, NPROXIED
     $scope.show = val == MODAL.proxiedSites;
   });
 
+  $scope.updating = false;
+  $scope.$watch('updating', function(val) {
+    $scope.submitButtonLabelKey = val ? 'UPDATING' : 'CONTINUE';
+  });
+
+  function updateComplete() {
+    $scope.updating = false;
+    $scope.dirty = false;
+  }
+
+  function makeValid() {
+    $scope.errorLabelKey = '';
+    $scope.errorCause = '';
+    $scope.proxiedSitesForm.input.$setValidity('generic', true);
+  }
+
   $scope.$watch('model.settings.proxiedSites', function(val) {
     if (val) {
       original = val;
       $scope.input = val.join('\n');
+      updateComplete();
+      makeValid();
     }
+  });
+  $scope.$watch('model.nproxiedSitesMax', function(val) {
+    nproxiedSitesMax = val;
+    $scope.validate($scope.input);
   });
 
   $scope.validate = function(value) {
-    var split = value.split('\n');
+    if (typeof value == 'string')
+      value = value.split('\n');
     filtered = [];
-    for (var i=0, line=split[i], l=split.length; i<l; line=split[++i]) {
+    var uniq = {};
+    $scope.errorLabelKey = '';
+    $scope.errorCause = '';
+    for (var i=0, line=value[i], l=value.length;
+         i<l && !$scope.errorLabelKey;
+         line=value[++i]) {
       if (!(line = line.trim())) continue;
       if (!(DOMAIN.test(line) ||
             IPV4.test(line) /*||
             IPV6.test(line) XXX not yet supported*/)) {
-        log.debug('invalid line:', line);
         $scope.errorLabelKey = 'ERROR_INVALID_LINE';
         $scope.errorCause = line;
-        return false;
-      }
-      filtered.push(line);
-      if (filtered.length > NPROXIEDSITES_MAX) {
-        log.debug('maximum number of proxied sites exceeded:', filtered.length, '>', NPROXIEDSITES_MAX);
-        $scope.errorLabelKey = 'ERROR_MAX_PROXIED_SITES_EXCEEDED';
-        $scope.errorCause = '';
-        return false;
+      } else if (!(line in uniq)) {
+        filtered.push(line);
+        uniq[line] = true;
       }
     }
-    log.debug('all lines valid');
-    $scope.errorLabelKey = '';
-    $scope.errorCause = '';
-    return true;
+    if (filtered.length > nproxiedSitesMax) {
+      $scope.errorLabelKey = 'ERROR_MAX_PROXIED_SITES_EXCEEDED';
+      $scope.errorCause = '';
+    }
+    return !$scope.errorLabelKey;
+  };
+
+  $scope.reset = function() {
+    $scope.updating = true;
+    $scope.interaction(INTERACTION.reset).then(updateComplete);
+    makeValid();
   };
 
   $scope.handleUpdate = function() {
-    if ($scope.proxiedSitesForm.$invalid) {
-      log.debug('invalid input, not sending update');
-      return;
+    $scope.dirty = true;
+    if (sendUpdatePromise) {
+      $timeout.cancel(sendUpdatePromise);
     }
-    if (angular.equals(original, filtered)) {
-      log.debug('input matches original, not sending update');
-      return;
-    }
-    $scope.changeSetting(SETTING.proxiedSites, filtered);
+    sendUpdatePromise = $timeout(function() {
+      sendUpdatePromise = null;
+      if ($scope.proxiedSitesForm.$invalid) {
+        log.debug('invalid input, not sending update');
+        return;
+      }
+      $scope.input = filtered.join('\n');
+      if (angular.equals(original, filtered)) { // order ignored
+        log.debug('input matches original, not sending update');
+        updateComplete();
+        return;
+      }
+      $scope.updating = true;
+      $scope.changeSetting(SETTING.proxiedSites, filtered).then(updateComplete);
+    }, DELAY);
   };
 }
 

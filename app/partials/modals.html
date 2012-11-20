@@ -368,20 +368,22 @@
       <form name="proxiedSitesForm">
         <!-- XXX add dir="ltr"? -->
         <textarea ng-model="input" name="input" x-generic-validator="validate"
-          ng-change="handleUpdate()"></textarea>
+          ng-disabled="updating" ng-change="handleUpdate()"></textarea>
       </form>
     </div>
     <div class="smaller">
       <i class="icon-info-sign"></i>
       {{ 'PROXIED_SITES_TIP' | i18n }}
     </div>
-    <div class="text-error" ui-toggle="errorLabelKey">
-      {{ errorLabelKey | i18n }} {{ errorCause }}
+    <div class="error" ui-toggle="errorLabelKey">
+      <i ng-show="errorLabelKey" class="icon-warning-sign"></i>
+      {{ errorLabelKey | i18n }}
+      <pre ui-toggle="errorCause">{{ errorCause | truncateAfter:20 }}</pre>
     </div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn" ng-click="interaction(INTERACTION.reset)">{{ 'RESET' | i18n }}</button>
-    <button type="button" class="btn btn-primary" ng-disabled="proxiedSitesForm.$invalid" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
+    <button type="button" class="btn" ng-click="reset()">{{ 'RESET' | i18n }}</button>
+    <button type="button" class="btn btn-primary" ng-disabled="dirty || updating || proxiedSitesForm.$invalid" ng-click="interaction(INTERACTION.continue)">{{ submitButtonLabelKey | i18n }}</button>
   </div>
 </div>
 

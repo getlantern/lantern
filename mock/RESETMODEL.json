@@ -55,6 +55,7 @@
   },
   "roster":[],
   "ninvites":0,
+  "nproxiedSitesMax":1000,
   "settings":{
     "userid":"",
     "lang":"",
@@ -80,6 +81,7 @@
       "flickr.com",
       "friendfeed.com",
       "freedomhouse.org",
+      "google.com",
       "hrw.org",
       "ifconfig.me",
       "igfw.net",

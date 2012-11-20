@@ -82,6 +82,7 @@ angular.module('app.i18n', [])
       EMAIL_PLACEHOLDER: 'email@example.com',
       CANCEL: 'Cancel',
       CONTINUE: 'Continue',
+      UPDATING: 'Updating...',
       CONFIGURING: 'Configuring...',
       CONNECTING: 'Connecting...',
       CONNECTED: 'Connected',

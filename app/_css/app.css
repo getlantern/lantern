@@ -5019,6 +5019,24 @@ textarea.bugReport {
 #proxiedSites textarea {
   width: 100%;
   height: 150px;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  font-size: 13px;
+}
+#proxiedSites .error {
+  text-align: center;
+  color: #b94a48;
+  margin: 10px 0;
+  height: 21px;
+}
+#proxiedSites .error pre {
+  display: -moz-inline-stack;
+  display: inline-block;
+  vertical-align: middle;
+  *vertical-align: auto;
+  zoom: 1;
+  *display: inline;
+  padding: 2px 4px;
+  margin: 0;
 }
 
 #inviteFriends form {

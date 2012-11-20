@@ -68,9 +68,21 @@ textarea.bugReport
     .indented
       margin-left: 30px
 
-#proxiedSites textarea
-  width: 100%
-  height: 150px
+#proxiedSites
+  textarea
+    width: 100%
+    height: 150px
+    +bootstrap-font-family-monospace
+    font-size: $baseFontSize - 1
+  .error
+    +centered
+    +error-colored
+    margin: 10px 0
+    height: $baseFontSize * 1.5
+    pre
+      +inline-block
+      padding: 2px 4px
+      margin: 0
 
 #inviteFriends form
   +centered

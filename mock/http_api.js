@@ -328,8 +328,8 @@ ApiServlet.HandlerMap = {
             return;
           }
           if (interaction == INTERACTION.reset) {
-            model.proxiedSites = this._DEFAULT_PROXIED_SITES;
-            this._bayeuxBackend.publishSync('proxiedSites');
+            model.settings.proxiedSites = this._DEFAULT_PROXIED_SITES.slice(0);
+            this._bayeuxBackend.publishSync('settings.proxiedSites');
             return;
           }
           res.writeHead(400);
