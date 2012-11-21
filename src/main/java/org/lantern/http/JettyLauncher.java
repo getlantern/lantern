@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.http;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,8 +32,11 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.lantern.http.InteractionServlet;
-import org.lantern.http.PhotoServlet;
+import org.lantern.BayeuxInitializer;
+import org.lantern.LanternConstants;
+import org.lantern.LanternHub;
+import org.lantern.LanternUtils;
+import org.lantern.Proxifier;
 import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.DefaultModelChangeImplementor;
 import org.lantern.state.Model;
