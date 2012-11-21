@@ -4881,7 +4881,7 @@ a[rel=tooltip]:hover {
   color: black;
 }
 
-input:disabled, textarea:disabled {
+input:disabled, input[readonly], textarea:disabled, textarea[readonly] {
   cursor: default;
 }
 
@@ -5115,6 +5115,20 @@ a.toggle.advanced:active, a.toggle.advanced:visited, a.toggle.advanced:hover {
 }
 #proxy-settings .advanced-container {
   margin-top: 10px;
+}
+
+#about {
+  font-size: 11.9px;
+}
+#about .modal-body {
+  text-align: center;
+}
+#about div {
+  margin-top: 10px;
+}
+#about textarea {
+  width: 100%;
+  font-size: 10.5px;
 }
 
 #canvas, #canvas svg {

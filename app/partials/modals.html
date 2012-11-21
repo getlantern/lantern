@@ -468,6 +468,7 @@
   </div>
 </div>
 
+<!-- XXX this is just a sketch -->
 <div id="about" ng-controller="AboutCtrl" ui-modal ng-model="show"
      class="fade" data-backdrop="static" data-keyboard="true"><!-- XXX data-keyboard=true not working? -->
   <div class="modal-header">
@@ -475,7 +476,39 @@
     <h3>{{ 'ABOUT_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body">
-    <div>...</div>
+    <div style="margin:0">
+      Lantern version {{ model.version.current.label.split('-')[0] }}
+      {{ model.version.current.api.mock && '(mock backend)' }}<br>
+      Frontend version {{ versionFrontend }}
+    </div>
+    <div>
+      <a href="https://www.getlantern.org/news" target="_blank">News</a> ·
+      <a href="https://groups.google.com/group/lantern-users-en" target="_blank">Forums</a> ·
+      <a href="https://github.com/getlantern/lantern/wiki" target="_blank">Docs</a> ·
+      <a href="https://github.com/getlantern/lantern" target="_blank">Developers</a>
+    </div>
+    <div>
+      <h5>Credits</h5>
+      <textarea readonly rows="2">                                     Myles Horton                      _pants                      aranhoide
+            Wm. Forkner             M. Messier           Collin A.           Jacob A.            Chris N.            Nancy</textarea>
+    </div>
+    <div>
+      <h5>Privacy</h5>
+      <textarea readonly rows="3">- what we collect and store...
+- what we collect and don’t store...
+- what we don’t collect...
+- ...and why, for all of the above.</textarea>
+    </div>
+    <div>
+      <h5>License</h5>
+      <textarea readonly rows="4">This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License (GPL) as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version. The full text of versions 2 and 3 of the GPL can be found respectively in the files LICENSE-GPLV2 and LICENSE-GPLV3.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</textarea>
+      <span class="smaller">© 2012 Team Lantern.</span>
+      <!-- XXX https://en.wikipedia.org/wiki/Copyright#Obtaining_and_enforcing_copyright -->
+    </div>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>

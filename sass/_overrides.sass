@@ -78,8 +78,9 @@ a[rel=tooltip]
     cursor: pointer
     color: $black
 
-input:disabled, textarea:disabled
-  cursor: default
+input, textarea
+  &:disabled, &[readonly]
+    cursor: default
 
 // taken from compass_twitter_bootstrap's _forms.sass
 input:focus, textarea:focus

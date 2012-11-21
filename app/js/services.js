@@ -6,6 +6,7 @@ angular.module('app.services', [])
   .value('sanity', {value: true}) // triggers failure mode when false
   .constant('MODEL_SYNC_CHANNEL', '/sync')
   .constant('APIVER_REQUIRED', {major: 0, minor: 0})
+  .constant('VER', [0, 0, 1]) // frontend version
   .constant('googOauthUrl',
     'https://accounts.google.com/o/oauth2/auth?'+
     '&response_type=code'+

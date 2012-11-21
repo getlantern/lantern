@@ -491,7 +491,8 @@ function AuthorizeLaterCtrl($scope, logFactory, MODAL) {
   });
 }
 
-function AboutCtrl($scope, logFactory, MODAL) {
+function AboutCtrl($scope, logFactory, MODAL, VER) {
+  $scope.versionFrontend = VER.join('.');
   $scope.show = false;
   $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.about;
