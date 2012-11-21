@@ -59,6 +59,7 @@ import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.ConnectivityStatusChangeEvent;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.UpdateEvent;
+import org.lantern.http.PhotoServlet;
 import org.lantern.ksope.LanternKscopeAdvertisement;
 import org.lantern.ksope.LanternTrustGraphNode;
 import org.lastbamboo.common.ice.MappedServerSocket;

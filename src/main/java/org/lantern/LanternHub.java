@@ -25,7 +25,6 @@ import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.privacy.MacLocalCipherProvider;
 import org.lantern.privacy.WindowsLocalCipherProvider;
-import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,8 +125,6 @@ public class LanternHub {
     
     private static ChannelGroup channelGroup;
     
-    private static final Model model = new Model();
-
     static {
         // start with an UNSET settings object until loaded
         settings.set(new Settings());
@@ -542,9 +539,5 @@ public class LanternHub {
         }
         LanternHub.resetSettings(true); // does not affect command line though...
         LanternHub.resetUserConfig(); // among others, TrustedContacts...
-    }
-
-    public static Model getModel() {
-        return model;
     }
 }

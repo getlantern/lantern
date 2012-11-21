@@ -20,12 +20,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
-/*
-import org.cometd.annotation.Configure;
-import org.cometd.annotation.Listener;
-import org.cometd.annotation.Service;
-import org.cometd.annotation.Session;
-*/
 
 /**
  * Service for pushing updated Lantern state to the client.
@@ -39,12 +33,18 @@ public class SyncService {
     private ServerSession session;
     
     private final SyncStrategy strategy;
+
+    private final Model model;
     
     /**
      * Creates a new sync service.
+     * 
+     * @param strategy The strategy to use for syncing
+     * @param model The model to use.
      */
-    public SyncService(final SyncStrategy strategy) {
+    public SyncService(final SyncStrategy strategy, final Model model) {
         this.strategy = strategy;
+        this.model = model;
         // Make sure the config class is added as a listener before this class.
         Events.register(this);
         
@@ -52,7 +52,7 @@ public class SyncService {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                sync();
+                //sync();
             }
         }, 3000, 4000);
     }
@@ -131,7 +131,9 @@ public class SyncService {
     
     private void sync(final boolean force, final SyncChannel channel) {
         log.debug("In sync method");
-        this.strategy.sync(force, channel, this.session);
+        //this.strategy.sync(force, channel, this.session);
+        
+        this.strategy.sync(force, this.session, "", this.model);
     }
 
     public void publishSync(final String path, final Object value) {
