@@ -75,6 +75,9 @@ import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
+import org.littleshoot.commom.xmpp.XmppCredentials;
+import org.littleshoot.commom.xmpp.PasswordCredentials;
+import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.p2p.P2P;
 import org.littleshoot.util.SessionSocketListener;
 import org.slf4j.Logger;
@@ -157,7 +160,9 @@ public class DefaultXmppHandler implements XmppHandler {
     private String lastUserName;
 
     private String lastPass;
-    
+
+    private XmppCredentials lastCredentials;
+
     private final NatPmpService natPmpService;
 
     private final UpnpService upnpService = new Upnp();
@@ -280,6 +285,26 @@ public class DefaultXmppHandler implements XmppHandler {
             return;
         }
         LOG.info("Connecting to XMPP servers...");
+        if (LanternHub.settings().isUseGoogleOAuth2()) {
+            connectViaOAuth2();
+        } else {
+            connectWithEmailAndPass();
+        }
+    }
+
+    private void connectViaOAuth2() throws IOException,
+            CredentialException, NotInClosedBetaException {
+        connect(new GoogleOAuth2Credentials(
+                        LanternHub.settings().getEmail(),
+                        LanternHub.settings().getClientID(),
+                        LanternHub.settings().getClientSecret(),
+                        LanternHub.settings().getAccessToken(),
+                        LanternHub.settings().getRefreshToken(),
+                        getResource()));
+    }
+
+    private void connectWithEmailAndPass() throws IOException,
+            CredentialException, NotInClosedBetaException {
         String email = LanternHub.settings().getEmail();
         String pwd = LanternHub.settings().getPassword();
         if (StringUtils.isBlank(email)) {
@@ -311,20 +336,25 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public void connect(final String email, final String pass) 
         throws IOException, CredentialException, NotInClosedBetaException {
-        connect(email, pass, null);
-    }
-    
-    private void connect(final String email, final String pass, 
-        final ConnectionConfiguration config) 
-        throws IOException, CredentialException, NotInClosedBetaException {
-        LOG.debug("Connecting to XMPP servers with user name and password...");
-        if (config == null) {
-            XmppUtils.setGlobalConfig(LanternUtils.xmppConfig());
-        } else {
-            XmppUtils.setGlobalConfig(config);
-        }
         this.lastUserName = email;
         this.lastPass = pass;
+        connect(new PasswordCredentials(email, pass, getResource()));
+    }
+
+    private String getResource() {
+        if (LanternHub.settings().isGetMode()) {
+            LOG.info("Setting ID for get mode...");
+            return "gmail.";
+        } else {
+            LOG.info("Setting ID for give mode");
+            return LanternConstants.UNCENSORED_ID;
+        }
+    }
+
+    public void connect(final XmppCredentials credentials)
+        throws IOException, CredentialException, NotInClosedBetaException {
+        LOG.debug("Connecting to XMPP servers with user name and password...");
+        this.lastCredentials = credentials;
         this.closedBetaEvent = null;
         final InetSocketAddress plainTextProxyRelayAddress = 
             new InetSocketAddress("127.0.0.1", 
@@ -372,17 +402,9 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         Events.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.connecting));
-        final String id;
-        if (LanternHub.settings().isGetMode()) {
-            LOG.info("Setting ID for get mode...");
-            id = "gmail.";
-        } else {
-            LOG.info("Setting ID for give mode");
-            id = LanternConstants.UNCENSORED_ID;
-        }
 
         try {
-            this.client.get().login(email, pass, id);
+            this.client.get().login(credentials);
             Events.eventBus().post(
                 new GoogleTalkStateEvent(GoogleTalkState.connected));
         } catch (final IOException e) {
@@ -487,8 +509,8 @@ public class DefaultXmppHandler implements XmppHandler {
         
         gTalkSharedStatus();
         updatePresence();
-        
-        final boolean inClosedBeta = handleClosedBeta(email);
+
+        final boolean inClosedBeta = handleClosedBeta(credentials.getUsername());
 
         // If we're in the closed beta and are an uncensored node, we want to
         // advertise ourselves through the kaleidoscope trust network.
