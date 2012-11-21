@@ -33,6 +33,7 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.lantern.http.InteractionServlet;
+import org.lantern.http.PhotoServlet;
 import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.DefaultModelChangeImplementor;
 import org.lantern.state.Model;
@@ -67,7 +68,7 @@ public class JettyLauncher {
         new DefaultModelChangeImplementor(model);
     
     private final SyncService syncer = 
-        new SyncService(new CometDSyncStrategy());
+        new SyncService(new CometDSyncStrategy(), model);
 
     public JettyLauncher() {
         final File staticdir = 
@@ -139,7 +140,7 @@ public class JettyLauncher {
             public void service(final ServletRequest req, 
                 final javax.servlet.ServletResponse res)
                 throws ServletException, IOException {
-                final Model model = LanternHub.getModel();
+                //final Model model = LanternHub.getModel();
                 final String json = 
                     LanternUtils.jsonify(model, Model.Run.class);
                 final byte[] raw = json.getBytes("UTF-8");

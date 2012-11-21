@@ -46,6 +46,7 @@ public class Model {
         return location;
     }
 
+    @JsonView({Run.class})
     public Modal getModal() {
         return modal;
     }

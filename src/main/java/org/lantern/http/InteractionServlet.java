@@ -70,13 +70,15 @@ public class InteractionServlet extends HttpServlet {
         log.info("Params: {}", params);
         final String interactionStr = params.get("interaction");
         if (StringUtils.isBlank(interactionStr)) {
+            log.info("No interaction!!");
             HttpUtils.sendClientError(resp, "interaction argument required!");
             return;
         }
         
         final Interaction inter = Interaction.valueOf(interactionStr);
         
-        switch (this.model.getModal()) {
+        final Modal modal = this.model.getModal();
+        switch (modal) {
         case welcome:
             switch (inter) {
             case get:
@@ -133,6 +135,8 @@ public class InteractionServlet extends HttpServlet {
             break;
         case passwordCreate:
             break;
+        default:
+            log.info("No matching modal for {}", modal);
         }
     }
 
