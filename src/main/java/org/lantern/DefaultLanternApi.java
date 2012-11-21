@@ -18,6 +18,7 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
 import org.lantern.event.SyncEvent;
 import org.lantern.http.HttpUtils;
+import org.lantern.http.LanternApi;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.SyncChannel;

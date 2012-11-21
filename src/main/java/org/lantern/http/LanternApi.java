@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.http;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;

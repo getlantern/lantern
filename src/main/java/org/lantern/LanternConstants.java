@@ -10,9 +10,9 @@ import org.lantern.exceptional4j.ExceptionalUtils;
  */
 public class LanternConstants {
     
-    static final long START_TIME = System.currentTimeMillis();
+    public static final long START_TIME = System.currentTimeMillis();
 
-    static final int DASHCACHE_MAXAGE = 60 * 5;
+    public static final int DASHCACHE_MAXAGE = 60 * 5;
 
     public static final String FALLBACK_SERVER_HOST = "fallback_server_host_tok";
     public static final String FALLBACK_SERVER_PORT = "fallback_server_port_tok";;
