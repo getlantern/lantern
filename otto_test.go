@@ -1655,6 +1655,11 @@ func TestRegExp_exec(t *testing.T) {
 		}
 		[ ghi, lastIndex ];
 	`, "3,7")
+
+	test(`raise:
+		var exec = RegExp.prototype.exec;
+		exec("Xyzzy");
+	`, "TypeError: Calling RegExp.exec on a non-RegExp object")
 }
 
 func TestNewFunction(t *testing.T) {

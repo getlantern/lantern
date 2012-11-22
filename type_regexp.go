@@ -68,6 +68,9 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 }
 
 func execRegExp(this *_object, target string) (match bool, result []int) {
+	if this.class != "RegExp" {
+		panic(newTypeError("Calling RegExp.exec on a non-RegExp object"))
+	}
 	lastIndex := toInteger(this.get("lastIndex"))
 	index := lastIndex
 	global := toBoolean(this.get("global"))
