@@ -156,7 +156,7 @@ public class Whitelist {
     
     public boolean isWhitelisted(final String uri,
         final Collection<WhitelistEntry> wl) {
-        final String toMatch = toBaseUri(uri);
+        final String toMatch = normalized(toBaseUri(uri));
         return wl.contains(new WhitelistEntry(toMatch));
     }
     
@@ -209,13 +209,20 @@ public class Whitelist {
         }
     }
     
+    private String normalized(final String entry) {
+        return entry.toLowerCase();
+    }
+
     public void addEntry(final String entry) {
-        whitelist.add(new WhitelistEntry(entry));
+        log.debug("Adding whitelist entry: {}", entry);
+        whitelist.add(new WhitelistEntry(normalized(entry)));
     }
 
     public void removeEntry(final String entry) {
-        if (!this.requiredEntries.contains(entry)) {
-            whitelist.remove(new WhitelistEntry(entry));
+        final String normalized = normalized(entry);
+        if (!this.requiredEntries.contains(normalized)) {
+            log.debug("Removing whitelist entry: {}", normalized);
+            whitelist.remove(new WhitelistEntry(normalized));
         }
     }
     
