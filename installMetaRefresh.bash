@@ -25,6 +25,7 @@ echo "Also available at $url"
 
 
 if $release ; then
+  echo "RELEASING!!!!!"
   pushd install/$dir || die "Could not change directories"
   perl -pi -e "s;url_token;$url;g" $latestName || die "Could not replace URL token"
 
@@ -39,4 +40,6 @@ if $release ; then
 
   shasum $name | cut -d " " -f 1 > $latestName.sha1
   aws -putp $bucket $latestName.sha1
+else
+  echo "NOT RELEASING!!!"
 fi
