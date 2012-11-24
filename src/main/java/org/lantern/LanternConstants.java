@@ -14,9 +14,18 @@ public class LanternConstants {
 
     static final int DASHCACHE_MAXAGE = 60 * 5;
 
-    public static final String FALLBACK_SERVER_HOST = "75.101.134.244";
-    public static final int FALLBACK_SERVER_PORT = 7777;
-    
+    public static final String FALLBACK_SERVER_HOST; 
+
+    public static int FALLBACK_SERVER_PORT; 
+
+    static {
+        /* At the time of this writing only AWS server installer injects these. */
+        String injectedHost = "fallback_server_host_tok";
+        String injectedPort = "fallback_server_port_tok";
+        FALLBACK_SERVER_HOST = injectedHost.startsWith("fallback") ? "75.101.134.244" : injectedHost;
+        FALLBACK_SERVER_PORT = injectedPort.startsWith("fallback") ? 7777 : Integer.parseInt(injectedPort);
+    }
+
     public static final String FALLBACK_SERVER_USER = "fallback_server_user_tok";
     public static final String FALLBACK_SERVER_PASS = "fallback_server_pass_tok";
     
