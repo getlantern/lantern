@@ -360,12 +360,11 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
   var log = logFactory('ProxiedSitesCtrl'),
       DOMAIN = INPUT_PATS.DOMAIN,
       IPV4 = INPUT_PATS.IPV4,
-      IPV6 = INPUT_PATS.IPV6,
       DELAY = 1000, // milliseconds
-      nproxiedSitesMax,
+      nproxiedSitesMax = 1000, // default value, should be overwritten below
       sendUpdatePromise,
       original,
-      filtered;
+      normalized;
 
   $scope.show = false;
   $scope.$watch('model.modal', function(val) {
@@ -402,28 +401,32 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
       $scope.validate($scope.input);
   });
 
+  function normalize(domain) {
+    return domain.trim().toLowerCase();
+  }
+
   $scope.validate = function(value) {
     if (typeof value == 'string')
       value = value.split('\n');
-    filtered = [];
+    normalized = [];
     var uniq = {};
     $scope.errorLabelKey = '';
     $scope.errorCause = '';
-    for (var i=0, line=value[i], l=value.length;
+    for (var i=0, line=value[i], l=value.length, normline;
          i<l && !$scope.errorLabelKey;
          line=value[++i]) {
-      if (!(line = line.trim())) continue;
-      if (!(DOMAIN.test(line) ||
-            IPV4.test(line) /*||
-            IPV6.test(line) XXX not yet supported*/)) {
+      normline = normalize(line);
+      if (!normline) continue;
+      if (!(DOMAIN.test(normline) ||
+            IPV4.test(normline))) {
         $scope.errorLabelKey = 'ERROR_INVALID_LINE';
         $scope.errorCause = line;
-      } else if (!(line in uniq)) {
-        filtered.push(line);
-        uniq[line] = true;
+      } else if (!(normline in uniq)) {
+        normalized.push(normline);
+        uniq[normline] = true;
       }
     }
-    if (filtered.length > nproxiedSitesMax) {
+    if (normalized.length > nproxiedSitesMax) {
       $scope.errorLabelKey = 'ERROR_MAX_PROXIED_SITES_EXCEEDED';
       $scope.errorCause = '';
     }
@@ -447,14 +450,14 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
         log.debug('invalid input, not sending update');
         return;
       }
-      $scope.input = filtered.join('\n');
-      if (angular.equals(original, filtered)) { // order ignored
+      $scope.input = normalized.join('\n');
+      if (angular.equals(original, normalized)) { // order ignored
         log.debug('input matches original, not sending update');
         updateComplete();
         return;
       }
       $scope.updating = true;
-      $scope.changeSetting(SETTING.proxiedSites, filtered).then(updateComplete);
+      $scope.changeSetting(SETTING.proxiedSites, normalized).then(updateComplete);
     }, DELAY);
   };
 }

@@ -23,8 +23,7 @@ angular.module('app.services', [])
   .constant('INPUT_PATS', {
     // from http://html5pattern.com/
     DOMAIN: /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/,
-    IPV4: /((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$/,
-    IPV6: /((^|:)([0-9a-fA-F]{0,4})){1,8}$/
+    IPV4: /((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$/
   })
   // XXX use some kind of Object.fromkeys function
   .constant('SETTING', {
