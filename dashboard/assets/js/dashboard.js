@@ -665,8 +665,12 @@ function LDCtrl(){
     self._undo();
     $('.flashmsg').hide();
   };
+  self._normalizewhitelistentry = function(site) {
+    return site.toLowerCase();
+  }
   self.updatewhitelist = function(site, newsite, noundo){
     if(typeof newsite === 'string'){
+      newsite = self._normalizewhitelistentry(newsite);
       if(newsite === site){
         console.log('site == newsite == ', site, 'ignoring');
         return;
@@ -721,6 +725,7 @@ function LDCtrl(){
           .html('Failed to remove ' + site).parent('#flash-main').fadeIn();
       });
     }else if(typeof newsite === 'boolean'){
+      site = self._normalizewhitelistentry(site);
       if(newsite && !self._validatewhitelistentry(site))return;
       var url = '/api/' + (newsite ? 'addtowhitelist' : 'removefromwhitelist') + '?site=' + site;
       self.block = true;
