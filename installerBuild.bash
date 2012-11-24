@@ -34,7 +34,7 @@ perl -pi -e "s/ExceptionalUtils.NO_OP_KEY/\"$GE_API_KEY\"/g" $CONSTANTS_FILE
 perl -pi -e "s/fallback_server_host_tok/$SERVER_HOST/g" $CONSTANTS_FILE || die "Could not set fallback server host"
 
 # Don't set the port to something that cannot be parsed as an int.
-if test -z $SERVER_PORT;
+if test -z $SERVER_PORT; then
     perl -pi -e "s/fallback_server_port_tok/$SERVER_PORT/g" $CONSTANTS_FILE || die "Could not set fallback server port";
 fi
 
