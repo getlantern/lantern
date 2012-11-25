@@ -7,18 +7,10 @@ angular.module('app.services', [])
   .constant('MODEL_SYNC_CHANNEL', '/sync')
   .constant('APIVER_REQUIRED', {major: 0, minor: 0})
   .constant('VER', [0, 0, 1]) // frontend version
-  .constant('googOauthUrl',
-    'https://accounts.google.com/o/oauth2/auth?'+
-    '&response_type=code'+
-    '&client_id=826174845383.apps.googleusercontent.com'+
-    '&redirect_uri='+encodeURIComponent('urn:ietf:wg:oauth:2.0:oob')+
-    '&scope='+encodeURIComponent('https://www.googleapis.com/auth/googletalk')+
-    '&approval_prompt=auto')
   // enums
   .constant('EXTERNAL_URL', {
     helpTranslate: 'https://github.com/getlantern/lantern/wiki/Contributing#wiki-other-languages',
-    httpsEverywhere: 'https://www.eff.org/https-everywhere',
-    fakeOauth: '/app/fakeOauth.html'
+    httpsEverywhere: 'https://www.eff.org/https-everywhere'
   })
   .constant('INPUT_PATS', {
     // from http://html5pattern.com/

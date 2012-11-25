@@ -37,7 +37,9 @@
   "modal":"welcome",
   "showVis": false,
   "connectivity":{
-    "ip":"...",
+    "internet":true,
+    "ip":"123.123.123.123",
+    "gtalkOauthUrl":"/app/fakeOauth.html",
     "gtalkAuthorized":false,
     "gtalk":"notConnected",
     "peers":{

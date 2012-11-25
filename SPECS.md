@@ -255,10 +255,17 @@ the backend maintains on the frontend through comet publications:
     <td>
       <table>
         <tr>
+          <td><strong>internet</strong><br><em>boolean</em></td>
+          <td>Whether the system has internet connectivity</td>
+        </tr>
+        <tr>
           <td><strong>ip</strong><br><em>string</em></td>
-          <td>The system's public IP address, if available. A value of
-            empty string indicates no internet connectivity, in which
-            case the UI should block user interaction which requires it.</td>
+          <td>The system's public IP address, if available</td>
+        </tr>
+        <tr>
+          <td><strong>gtalkOauthUrl</strong><br><em>url</em></td>
+          <td>Url to use to request authorization to access the user's
+            Google Talk account</td>
         </tr>
         <tr>
           <td><strong>gtalkAuthorized</strong><br><em>boolean</em></td>

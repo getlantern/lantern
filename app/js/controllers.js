@@ -55,8 +55,7 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
   };
 
   $scope.doOauth = function() {
-    var url = modelSrvc.get('version.current.api.mock') ?
-              EXTERNAL_URL.fakeOauth : googOauthUrl;
+    var url = modelSrvc.get('connectivity.gtalkOauthUrl');
     $window.open(url);
   };
 
