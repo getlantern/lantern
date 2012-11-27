@@ -1,6 +1,9 @@
 package org.lantern;
 
 import java.awt.Desktop;
+import java.awt.Dimension;
+import java.awt.Point;
+import java.awt.Toolkit;
 import java.io.Console;
 import java.io.File;
 import java.io.FileInputStream;
@@ -72,6 +75,8 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.codehaus.jackson.map.SerializationConfig.Feature;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Monitor;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -87,6 +92,8 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.proxy.ProxyInfo;
 import org.jivesoftware.smack.proxy.ProxyInfo.ProxyType;
+import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.lantern.SettingsState.State;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
@@ -383,7 +390,8 @@ public class LanternUtils {
         }
         final String un = LanternHub.settings().getEmail();
         final String pass = LanternHub.settings().getPassword();
-        return (StringUtils.isNotBlank(un) && StringUtils.isNotBlank(pass));
+        final boolean oauth = LanternHub.settings().isUseGoogleOAuth2();
+        return oauth || (StringUtils.isNotBlank(un) && StringUtils.isNotBlank(pass));
     }
     
 
@@ -1359,6 +1367,111 @@ public class LanternUtils {
         } catch (final IOException e) {
             return false;
         }
+    }
+    
+
+    public static void loadOAuth2ClientSecretsFile(final String filename) {
+        if (StringUtils.isBlank(filename)) {
+            LOG.error("No filename specified");
+            throw new NullPointerException("No filename specified!");
+        }
+        final File file = new File(filename);
+        if (!(file.exists() && file.canRead())) {
+            LOG.error("Unable to read user credentials from {}", filename);
+            throw new IllegalArgumentException("File does not exist! "+filename);
+        }
+        LOG.info("Reading client secrets from file \"{}\"", filename);
+        try {
+            final String json = FileUtils.readFileToString(file, "US-ASCII");
+            JSONObject obj = (JSONObject)JSONValue.parse(json);
+            final JSONObject ins;
+            final JSONObject temp = (JSONObject)obj.get("installed");
+            if (temp == null) {
+                ins = (JSONObject)obj.get("web");
+            } else {
+                ins = temp;
+            }
+            //JSONObject ins = (JSONObject)obj.get("installed");
+            final String clientID = (String)ins.get("client_id");
+            final String clientSecret = (String)ins.get("client_secret");
+            if (StringUtils.isBlank(clientID) || 
+                StringUtils.isBlank(clientSecret)) {
+                LOG.error("Failed to parse client secrets file \"{}\"", file);
+                throw new Error("Failed to parse client secrets file: "+ file);
+            } else {
+                LanternHub.settings().setClientID(clientID);
+                LanternHub.settings().setClientSecret(clientSecret);
+            }
+        } catch (final IOException e) {
+            LOG.error("Failed to read file \"{}\"", filename);
+            throw new Error("Could not load oauth file"+file, e);
+        }
+    }
+
+    public static void loadOAuth2UserCredentialsFile(final String filename) {
+        if (StringUtils.isBlank(filename)) {
+            LOG.error("No filename specified");
+            throw new NullPointerException("No filename specified!");
+        }
+        final File file = new File(filename);
+        if (!(file.exists() && file.canRead())) {
+            LOG.error("Unable to read user credentials from {}", filename);
+            throw new IllegalArgumentException("File does not exist! "+filename);
+        }
+        LOG.info("Reading user credentials from file \"{}\"", filename);
+        try {
+            final String json = FileUtils.readFileToString(file, "US-ASCII");
+            final JSONObject obj = (JSONObject)JSONValue.parse(json);
+            final String username = (String)obj.get("username");
+            final String accessToken = (String)obj.get("access_token");
+            final String refreshToken = (String)obj.get("refresh_token");
+            // Access token is not strictly necessary, so we allow it to be
+            // null.
+            if (StringUtils.isBlank(username) || 
+                StringUtils.isBlank(refreshToken)) {
+                LOG.error("Failed to parse user credentials file \"{}\"", filename);
+                throw new Error("Could not load username or refresh_token");
+            } else {
+                LanternHub.settings().setEmail(username);
+                //LanternHub.settings().setCommandLineEmail(username);
+                LanternHub.settings().setAccessToken(accessToken);
+                LanternHub.settings().setRefreshToken(refreshToken);
+                LanternHub.settings().setUseGoogleOAuth2(true);
+            }
+        } catch (final IOException e) {
+            LOG.error("Failed to read file \"{}\"", filename);
+            throw new Error("Could not load oauth credentials", e);
+        }
+    }
+
+    public static Point getScreenCenter(final int width, final int height) {
+        final Toolkit toolkit = Toolkit.getDefaultToolkit();
+        final Dimension screenSize = toolkit.getScreenSize();
+        final int x = (screenSize.width - width) / 2;
+        final int y = (screenSize.height - height) / 2;
+        return new Point(x, y);
+    }
+
+    public static void waitForServer(final int port) {
+        int attempts = 0;
+        while (attempts < 10000) {
+            final Socket sock = new Socket();
+            try {
+                final SocketAddress isa = 
+                    new InetSocketAddress("127.0.0.1", port);
+                sock.connect(isa, 2000);
+                return;
+            } catch (final IOException e) {
+            }
+            try {
+                Thread.sleep(100);
+            } catch (final InterruptedException e) {
+                LOG.info("Interrupted?");
+            }
+            attempts++;
+        }
+        LOG.error("Never able to connect with local server! " +
+            "Maybe couldn't bind?");
     }
 }
 

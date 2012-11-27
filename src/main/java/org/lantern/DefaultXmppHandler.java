@@ -294,13 +294,16 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private void connectViaOAuth2() throws IOException,
             CredentialException, NotInClosedBetaException {
-        connect(new GoogleOAuth2Credentials(
-                        LanternHub.settings().getEmail(),
-                        LanternHub.settings().getClientID(),
-                        LanternHub.settings().getClientSecret(),
-                        LanternHub.settings().getAccessToken(),
-                        LanternHub.settings().getRefreshToken(),
-                        getResource()));
+        final XmppCredentials credentials = new GoogleOAuth2Credentials(
+            LanternHub.settings().getEmail(),
+            LanternHub.settings().getClientID(),
+            LanternHub.settings().getClientSecret(),
+            LanternHub.settings().getAccessToken(),
+            LanternHub.settings().getRefreshToken(),
+            getResource());
+        
+        LOG.info("Logging in with credentials: {}", credentials);
+        connect(credentials);
     }
 
     private void connectWithEmailAndPass() throws IOException,

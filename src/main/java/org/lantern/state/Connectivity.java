@@ -1,8 +1,18 @@
 package org.lantern.state;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.StringUtils;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.Events;
 import org.lantern.GoogleTalkState;
@@ -12,7 +22,13 @@ import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.SyncEvent;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleBrowserClientRequestUrl;
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
+import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.common.eventbus.Subscribe;
 
 /**
@@ -20,14 +36,23 @@ import com.google.common.eventbus.Subscribe;
  */
 public class Connectivity {
     
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     private GoogleTalkState googleTalkState = GoogleTalkState.notConnected;
     
+    /**
+     * TODO: FIX THIS -- SEE OLD SETTINGS.
+     */
     private String ip = "79.168.34.28";
+    
+    private String gtalkOauthUrl;
     
     public Connectivity() {
         Events.register(this);
+        //gtalkOauthUrl = newGtalkOauthUrl();
     }
     
+
     @JsonView({Run.class})
     public GoogleTalkState getGTalk() {
         return googleTalkState;
@@ -83,6 +108,14 @@ public class Connectivity {
 
     public void setIp(String ip) {
         this.ip = ip;
+    }
+
+    @JsonView({Run.class})
+    public String getGtalkOauthUrl() {
+        if (StringUtils.isBlank(gtalkOauthUrl)) {
+            gtalkOauthUrl = "http://localhost:"+LanternHub.settings().getApiPort()+"/oauth/";
+        }
+        return gtalkOauthUrl;
     }
 
 }

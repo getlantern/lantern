@@ -5,9 +5,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
 import java.util.Map;
 
 import javax.servlet.GenericServlet;
@@ -153,6 +150,7 @@ public class JettyLauncher {
             }
         }
         
+        /*
         final class SettingsServlet extends HttpServlet {
 
             private static final long serialVersionUID = -2647134475684088881L;
@@ -198,6 +196,7 @@ public class JettyLauncher {
                 LanternHub.api().processCall(req, resp);
             }
         }
+        */
         
         
         final ServletHolder ds = new ServletHolder(new DefaultServlet() {
@@ -263,11 +262,16 @@ public class JettyLauncher {
         ds.setInitOrder(3);
         contextHandler.addServlet(ds, "/*");
         
+        final ServletHolder settings = new ServletHolder(new GoogleOauth2RedirectServlet());
+        settings.setInitOrder(3);
+        contextHandler.addServlet(settings, "/oauth/");
+        
+        /*
         final ServletHolder settings = new ServletHolder(new SettingsServlet());
         settings.setInitOrder(3);
         contextHandler.addServlet(settings, "/settings/*");
         
-        /*
+        
         final ServletHolder apiServlet = new ServletHolder(new ApiServlet());
         apiServlet.setInitOrder(3);
         contextHandler.addServlet(apiServlet, "/api/*");
@@ -385,31 +389,9 @@ public class JettyLauncher {
             }
         }
         */
-        waitForServer(this.port);
+        LanternUtils.waitForServer(this.port);
         log.info("Server is running. Opening browser...");
         LanternHub.dashboard().openBrowser();
-    }
-    
-    private void waitForServer(final int serverPort) {
-        int attempts = 0;
-        while (attempts < 10000) {
-            final Socket sock = new Socket();
-            try {
-                final SocketAddress isa = 
-                    new InetSocketAddress("127.0.0.1", serverPort);
-                sock.connect(isa, 2000);
-                return;
-            } catch (final IOException e) {
-            }
-            try {
-                Thread.sleep(100);
-            } catch (final InterruptedException e) {
-                log.info("Interrupted?");
-            }
-            attempts++;
-        }
-        log.error("Never able to connect with local server! " +
-            "Maybe couldn't bind?");
     }
     
     public File getResourceBaseFile() {
