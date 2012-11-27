@@ -1,8 +1,10 @@
 package org.lantern;
 
+import java.awt.Point;
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -23,7 +25,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
@@ -52,9 +53,22 @@ public class Dashboard {
         display.syncExec(new Runnable() {
             @Override
             public void run() {
-                buildBrowser();
+                //buildBrowser();
+                launchChrome();
             }
         });
+    }
+    private void launchChrome() {
+        try {
+            final ChromeRunner chrome = new ChromeRunner();
+            chrome.open();
+        } catch (IOException e1) {
+            // TODO Auto-generated catch block
+            e1.printStackTrace();
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
     }
     
     protected void buildBrowser() {
@@ -99,18 +113,24 @@ public class Dashboard {
         //this.shell.setSize(720, 540);
         // shell.setFullScreen(true);
 
+        
         final int minWidth = 970;
         final int minHeight = 630;
-
+        
+        
         log.debug("Centering on screen...");
-        final Monitor primary = display.getPrimaryMonitor();
-        final Rectangle bounds = primary.getBounds();
+       
+        //final Monitor primary = display.getPrimaryMonitor();
+        //final Rectangle bounds = primary.getBounds();
         final Rectangle rect = shell.getBounds();
 
-        final int x = bounds.x + (bounds.width - rect.width) / 2;
-        final int y = bounds.y + (bounds.height - rect.height) / 2;
+        //final int x = bounds.x + (bounds.width - rect.width) / 2;
+        //final int y = bounds.y + (bounds.height - rect.height) / 2;
 
-        shell.setLocation(x, y);
+        //shell.setLocation(x, y);
+        
+        final Point center = LanternUtils.getScreenCenter(rect.width, rect.height);
+        shell.setLocation((int)center.getX(), (int)center.getY());
         
         log.debug("Creating new browser...");
         final int browserType;
@@ -157,16 +177,16 @@ public class Dashboard {
             @Override
             public void changing(LocationEvent event) {
                 try {
-                    final URL url = new URL(event.location);
+                    final URI url = new URI(event.location);
                     final String localAuthority = "localhost:" + // XXX aliases should work too
                         LanternHub.settings().getApiPort();
-                    if (!url.getAuthority().equals(localAuthority)) {
+                    if (openExternal(url, localAuthority)) {
                         log.info("opening external browser to {}", event.location);
                         event.doit = false;
                         LanternUtils.browseUrl(event.location);
                     }
-                }
-                catch (MalformedURLException e) {
+                } catch (final URISyntaxException e) {
+                    log.warn("Bad URI?", e);
                     event.doit = false;
                 }
             }
@@ -279,6 +299,11 @@ public class Dashboard {
                 display.sleep();
         }
         hiddenShell.dispose();
+    }
+
+    private boolean openExternal(final URI url, final String localAuthority) {
+        return !url.toASCIIString().startsWith("https://accounts.google.com") && 
+           !url.getAuthority().equals(localAuthority);
     }
 
     private Image newImage(final String path) {

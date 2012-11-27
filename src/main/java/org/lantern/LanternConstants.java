@@ -1,6 +1,7 @@
 package org.lantern;
 
 import java.io.File;
+import java.nio.charset.Charset;
 
 import org.apache.commons.lang.SystemUtils;
 import org.lantern.exceptional4j.ExceptionalUtils;
@@ -152,6 +153,8 @@ public class LanternConstants {
 
     public static final int KSCOPE_ADVERTISEMENT = 0x2111;
     public static final String KSCOPE_ADVERTISEMENT_KEY = "ksak";
+
+    public static final Charset UTF8 = Charset.forName("UTF8");
 
     static {
         boolean tempAppEngine;

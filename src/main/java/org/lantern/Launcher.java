@@ -42,7 +42,6 @@ import org.jboss.netty.util.ThreadNameDeterminer;
 import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.jboss.netty.util.Timer;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.lantern.event.SettingsStateEvent;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
@@ -50,7 +49,6 @@ import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.stun.client.StunServerRepository;
-import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
@@ -136,8 +134,8 @@ public class Launcher {
     private static final String OPTION_NO_CACHE = "no-cache";
     private static final String OPTION_VERSION = "version";
     private static final String OPTION_NEW_UI = "new-ui";
-    private static final String OPTION_OAUTH2_CLIENT_SECRETS_FILE = "oauth2-client-secrets-file";
-    private static final String OPTION_OAUTH2_USER_CREDENTIALS_FILE = "oauth2-user-credentials-file";
+    public static final String OPTION_OAUTH2_CLIENT_SECRETS_FILE = "oauth2-client-secrets-file";
+    public static final String OPTION_OAUTH2_USER_CREDENTIALS_FILE = "oauth2-user-credentials-file";
 
     private static void launch(final String... args) {
         LOG.info("Starting Lantern...");
@@ -244,12 +242,16 @@ public class Launcher {
             loadLocalPasswordFile(cmd.getOptionValue(OPTION_PASSWORD_FILE));
         }
 
-        if (cmd.hasOption(OPTION_OAUTH2_CLIENT_SECRETS_FILE)) {
-            loadOAuth2ClientSecretsFile(cmd.getOptionValue(OPTION_OAUTH2_CLIENT_SECRETS_FILE));
+        final String secOpt = OPTION_OAUTH2_CLIENT_SECRETS_FILE;
+        if (cmd.hasOption(secOpt)) {
+            LanternUtils.loadOAuth2ClientSecretsFile(
+                cmd.getOptionValue(secOpt));
         }
 
-        if (cmd.hasOption(OPTION_OAUTH2_USER_CREDENTIALS_FILE)) {
-            loadOAuth2UserCredentialsFile(cmd.getOptionValue(OPTION_OAUTH2_USER_CREDENTIALS_FILE));
+        final String credOpt = OPTION_OAUTH2_USER_CREDENTIALS_FILE;
+        if (cmd.hasOption(credOpt)) {
+            LanternUtils.loadOAuth2UserCredentialsFile(
+                cmd.getOptionValue(credOpt));
         }
 
         if (cmd.hasOption(OPTION_PUBLIC_API)) {
@@ -614,72 +616,6 @@ public class Launcher {
         }
         catch (final IOException e) {
             LOG.error("Failed to initialize using password in file \"{}\": {}", pwFilename, e);
-            System.exit(1);
-        }
-    }
-
-    private static void loadOAuth2ClientSecretsFile(final String filename) {
-
-        if (StringUtils.isBlank(filename)) {
-            LOG.error("No filename specified to --{}", OPTION_OAUTH2_CLIENT_SECRETS_FILE);
-            System.exit(1);
-        }
-        final File file = new File(filename);
-        if (!(file.exists() && file.canRead())) {
-            LOG.error("Unable to read client secrets from {}", filename);
-            System.exit(1);
-        }
-        LOG.info("Reading client secrets from file \"{}\"", filename);
-        try {
-            final String json = FileUtils.readFileToString(file, "US-ASCII");
-            JSONObject obj = (JSONObject)JSONValue.parse(json);
-            JSONObject ins = (JSONObject)obj.get("installed");
-            final String clientID = (String)ins.get("client_id");
-            final String clientSecret = (String)ins.get("client_secret");
-            if (clientID == null || clientSecret == null) {
-                LOG.error("Failed to parse client secrets file \"{}\"", filename);
-                System.exit(1);
-            } else {
-                LanternHub.settings().setClientID(clientID);
-                LanternHub.settings().setClientSecret(clientSecret);
-            }
-        } catch (final IOException e) {
-            LOG.error("Failed to read file \"{}\"", filename);
-            System.exit(1);
-        }
-    }
-
-    private static void loadOAuth2UserCredentialsFile(final String filename) {
-        if (StringUtils.isBlank(filename)) {
-            LOG.error("No filename specified to --{}", OPTION_OAUTH2_USER_CREDENTIALS_FILE);
-            System.exit(1);
-        }
-        final File file = new File(filename);
-        if (!(file.exists() && file.canRead())) {
-            LOG.error("Unable to read user credentials from {}", filename);
-            System.exit(1);
-        }
-        LOG.info("Reading user credentials from file \"{}\"", filename);
-        try {
-            final String json = FileUtils.readFileToString(file, "US-ASCII");
-            JSONObject obj = (JSONObject)JSONValue.parse(json);
-            final String username = (String)obj.get("username");
-            final String accessToken = (String)obj.get("access_token");
-            final String refreshToken = (String)obj.get("refresh_token");
-            // Access token is not strictly necessary, so we allow it to be
-            // null.
-            if (username == null
-                || refreshToken == null) {
-                LOG.error("Failed to parse user credentials file \"{}\"", filename);
-                System.exit(1);
-            } else {
-                LanternHub.settings().setCommandLineEmail(username);
-                LanternHub.settings().setAccessToken(accessToken);
-                LanternHub.settings().setRefreshToken(refreshToken);
-                LanternHub.settings().setUseGoogleOAuth2(true);
-            }
-        } catch (final IOException e) {
-            LOG.error("Failed to read file \"{}\"", filename);
             System.exit(1);
         }
     }
