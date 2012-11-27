@@ -32,25 +32,4 @@ angular.module('app.directives', []).
       }
     };
   })
-  // https://groups.google.com/d/msg/angular/-p794x5BklI/ifpdt2n60hkJ
-  .directive('genericValidator', function() {
-    return {
-      restrict: 'A',
-      require: '?ngModel',
-      link: function(scope, element, attrs, ctrl) {
-        var validationFunction = scope[attrs.genericValidator];
-        ctrl.$parsers.unshift(function (viewValue) {
-          if (validationFunction(viewValue)) {
-            // it is valid
-            ctrl.$setValidity('generic', true);
-            return viewValue;
-          } else {
-            // it is invalid, return undefined (no model update)
-            ctrl.$setValidity('generic', false);
-            return undefined;
-          }
-        });
-      }
-    };
-  })
 ;

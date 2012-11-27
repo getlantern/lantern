@@ -407,6 +407,7 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
   }
 
   $scope.validate = function(value) {
+    if (typeof value == 'undefined') return;
     if (typeof value == 'string')
       value = value.split('\n');
     normalized = [];
