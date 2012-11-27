@@ -5,14 +5,9 @@
   <script>
     $(function() {
       $('#allow').click(function() {
-        var userid = encodeURIComponent($('input[name=userid]:checked').val());
-        $.post('/api/0.0.1/oauthAuthorized?userid='+userid)
-        /*
-          .done(function(){
-            window.close();
-          })
-        */
-          ;
+        var userid = encodeURIComponent($('input[name=userid]:checked').val()),
+            APIVER = '0.0'; // XXX don't hardcode
+        $.post('/api/'+APIVER+'/oauthAuthorized?userid='+userid);
         window.setTimeout(function() { window.close(); }, 100);
         return false;
       });
@@ -39,8 +34,8 @@
   </p>
 
   <div id="options">
-    <label class="radio"><input name="userid" type="radio" value="user_invited@example.com" checked>
-      user_invited@example.com<br><small>a user with Lantern access</small>
+    <label class="radio"><input name="userid" type="radio" value="user@example.com" checked>
+      user@example.com<br><small>a user with Lantern access</small>
     </label>
     <label class="radio"><input name="userid" type="radio" value="user_not_invited@example.com">
       user_not_invited@example.com<br><small>a user who hasn't gotten an invite yet</small>

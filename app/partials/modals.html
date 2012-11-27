@@ -370,8 +370,8 @@
       </label>
       <form name="proxiedSitesForm">
         <!-- XXX add dir="ltr"? -->
-        <textarea ng-model="input" name="input" x-generic-validator="validate"
-          ng-disabled="updating" ng-change="handleUpdate()"></textarea>
+        <textarea ng-model="input" name="input" placeholder="example.com" required
+          x-generic-validator="validate" ng-disabled="updating" ng-change="handleUpdate()"></textarea>
       </form>
     </div>
     <div class="smaller">
@@ -477,7 +477,7 @@
   </div>
   <div class="modal-body">
     <div style="margin:0">
-      Lantern version {{ model.version.current.label.split('-')[0] }}
+      Lantern version {{ model.version.installed | version:true }}
       {{ model.version.current.api.mock && '(mock backend)' }}<br>
       Frontend version {{ versionFrontend }}
     </div>

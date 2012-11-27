@@ -112,7 +112,7 @@ angular.module('app.i18n', [])
       AUTHORIZE_LATER_TITLE: 'Authorize Later',
       AUTHORIZE_LATER_PROMPT: 'Lantern will keep trying to reach Google and prompt you to authorize again when it becomes available. You can continue to use Lantern in demonstration mode in the meantime.',
       PROXIED_SITES_TITLE: 'Proxied Sites',
-      CONFIGURE_PROXIED_SITES: 'Configure proxied sites:',
+      CONFIGURE_PROXIED_SITES: 'Choose proxied sites:',
       PROXIED_SITES_PROMPT: 'By default, Lantern only proxies your traffic to certain sites. Sites that you don’t need to proxy will be accessed directly, saving time and resources.',
       PROXIED_SITES_TIP: 'Content on other sites included in pages on these sites will also be proxied automatically.',
       ERROR_INVALID_LINE: 'Invalid line:',

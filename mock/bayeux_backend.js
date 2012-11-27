@@ -3,6 +3,7 @@
 var fs = require('fs')
   , util = require('util')
   , faye = require('./node_modules/faye')
+  , ApiServlet = require('./http_api').ApiServlet
   ;
 
 
@@ -15,12 +16,21 @@ function BayeuxBackend() {
   this._bindCallbacks();
 }
 
+BayeuxBackend.VERSION = {
+  major: 0,
+  minor: 0,
+  patch: 1
+};
+
 BayeuxBackend.prototype.attachServer = function(http_server) {
   this._bayeux.attach(http_server);
 }
 
 BayeuxBackend.prototype.resetModel = function() {
   this.model = JSON.parse(JSON.stringify(RESETMODEL)); // quick and dirty clone
+  this.model.version.installed.bayeuxProtocol = BayeuxBackend.VERSION;
+  this.model.version.installed.httpApi = ApiServlet.VERSION;
+//this.model.version.installed.modelSchema = XXX
 };
 
 BayeuxBackend.prototype._getModelValue = function(path) {

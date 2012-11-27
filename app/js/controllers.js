@@ -98,7 +98,7 @@ function WaitingForLanternCtrl($scope, logFactory) {
   });
 }
 
-function SanityCtrl($scope, sanity, modelSrvc, cometdSrvc, APIVER_REQUIRED, MODAL, apiVerLabel, logFactory) {
+function SanityCtrl($scope, sanity, modelSrvc, cometdSrvc, MODAL, REQUIRED_VERSIONS, logFactory) {
   var log = logFactory('SanityCtrl');
   $scope.sanity = sanity;
 
@@ -112,16 +112,18 @@ function SanityCtrl($scope, sanity, modelSrvc, cometdSrvc, APIVER_REQUIRED, MODA
     }
   });
 
-  $scope.$watch('model.version.current.api', function(val) {
-    if (typeof val == 'undefined') return;
-    if (val.major != APIVER_REQUIRED.major ||
-        val.minor != APIVER_REQUIRED.minor) {
-      sanity.value = false;
-      log.error('Available API version', val,
-        'incompatible with required version', APIVER_REQUIRED);
+  $scope.$watch('model.version.installed', function(installed) {
+    if (typeof installed == 'undefined') return;
+    for (var module in REQUIRED_VERSIONS) {
+      for (var key in {major: 'major', minor: 'minor'}) {
+        if (installed[module][key] != REQUIRED_VERSIONS[module][key]) {
+          sanity.value = false;
+          log.error('Available version of', moduleName, installed[moduleName],
+           'incompatible with required version', requiredVer);
+           return;
+        }
+      }
     }
-    // XXX required by apiSrvc. Better place for this?
-    apiVerLabel.value = val.major+'.'+val.minor+'.'+val.patch;
   }, true);
 }
 

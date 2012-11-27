@@ -12,8 +12,13 @@ function ApiServlet(bayeuxBackend) {
   this._DEFAULT_PROXIED_SITES = bayeuxBackend.model.settings.proxiedSites.slice(0);
 }
 
-ApiServlet.VERSION = [0, 0, 1];
-var VERSION_STR = ApiServlet.VERSION.join('.')
+ApiServlet.VERSION = {
+  major: 0,
+  minor: 0,
+  patch: 1
+  };
+
+var VERSION_STR = ApiServlet.VERSION.major+'.'+ApiServlet.VERSION.minor
   , MOUNT_POINT = '/api/'
   , API_PREFIX = MOUNT_POINT + VERSION_STR + '/'
   ;
@@ -241,7 +246,7 @@ ApiServlet._tryConnect = function(model) {
   sleep.usleep(250000);
 
   // check for lantern access
-  if (userid != 'user_invited@example.com') {
+  if (userid != 'user@example.com') {
     model.modal = MODAL.notInvited;
     publishSync('modal');
     util.puts("user does not have Lantern access, set modal to "+MODAL.notInvited);

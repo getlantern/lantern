@@ -135,6 +135,18 @@ within the following state document, corresponding to the `model` object which
 the backend maintains on the frontend through comet publications:
 <table>
   <tr>
+    <td><strong>mock</strong><br><em>object</em></td>
+    <td>
+      <table>
+        <tr><td><strong>scenarios</strong><br><em>object</em></td>
+          <td>mapping from http api endpoints (which trigger simulated scenarios
+          when hit) to string descriptions</td></tr>
+      </table>
+      <small><strong>The <code>mock</code> field should only be sent by the
+      mock backend.</strong></small>
+    </td>
+  </tr>
+  <tr>
     <td><strong>system</strong><br><em>object</em></td>
     <td>
       <table>
@@ -182,15 +194,44 @@ the backend maintains on the frontend through comet publications:
     <td>
       <table>
         <tr>
-          <td><strong>current</strong><br><em>object</em></td>
+          <td><strong>installed</strong><br><em>object</em></td>
           <td>
             <table>
-              <tr><td><strong>label</strong><br><em>string</em></td>
-                <td>Currently-running Lantern app version to display,
-                    e.g. major.minor.patch-build-tag</td></tr>
-              <tr><td><strong>released</strong><br><em>date</em></td>
-                <td>when it was released</td></tr>
-              <tr><td><strong>api</strong><br><em>object</em></td>
+              <tr><td><strong>major</strong><br><em>int</em></td>
+                <td>major version of the currently-running Lantern
+                instance</td></tr>
+              <tr><td><strong>minor</strong><br><em>int</em></td>
+                <td>minor version of the currently-running Lantern
+                instance</td></tr>
+              <tr><td><strong>patch</strong><br><em>int</em></td>
+                <td>patch version of the currently-running Lantern
+                instance</td></tr>
+              <tr><td><strong>tag</strong><br><em>string</em></td>
+                <td>tag version of the currently-running Lantern
+                instance</td></tr>
+              <tr><td><strong>git</strong><br><em>string</em></td>
+                <td>git revision of the currently-running Lantern
+                instance</td></tr>
+              <tr><td><strong>releaseDate</strong><br><em>date</em>
+                <br>e.g. "2012-12-12"</td>
+                <td>release date of the currently-running Lantern
+                instance</td></tr>
+              <tr><td><strong>stateSchema</strong><br><em>object</em></td>
+                <td>
+                  <table>
+                    <tr><td><strong>major</strong><br><em>integer</em></td>
+                      <td>state schema major version</td></tr>
+                    <tr><td><strong>minor</strong><br><em>integer</em></td>
+                      <td>state schema minor version</td></tr>
+                    <tr><td><strong>patch</strong><br><em>integer</em></td>
+                      <td>state schema patch version</td></tr>
+                  </table><br><br>
+                  <strong><small>The UI should display an 'unexpected state' error
+                  if its required state schema version is incompatible with the
+                  version published by the backend according to semantic
+                  versioning (different major or minor)</small></strong>
+                </td></tr>
+              <tr><td><strong>httpApi</strong><br><em>object</em></td>
                 <td>
                   <table>
                     <tr><td><strong>major</strong><br><em>integer</em></td>
@@ -199,33 +240,41 @@ the backend maintains on the frontend through comet publications:
                       <td>http api minor version</td></tr>
                     <tr><td><strong>patch</strong><br><em>integer</em></td>
                       <td>http api patch version</td></tr>
-                    <tr><td><strong>mock</strong><br><em>boolean</em></td>
-                      <td>Whether running against mock backend</td></tr>
                   </table><br><br>
-                  <strong><small> * UI will display an 'unexpected state' error
-                  and block all user interaction besides reporting the error,
-                  resetting, and restarting if its required http api major or
-                  minor version differs from the one published by the backend,
-                  as prescribed by semantic versioning.</small></strong>
+                  <strong><small>The UI should display an 'unexpected state' error
+                  if its required http api version is incompatible with the
+                  version published by the backend according to semantic
+                  versioning (different major or minor)</small></strong>
+                </td></tr>
+              <tr><td><strong>bayeuxProtocol</strong><br><em>object</em></td>
+                <td>
+                  <table>
+                    <tr><td><strong>major</strong><br><em>integer</em></td>
+                      <td>bayeux protocol major version</td></tr>
+                    <tr><td><strong>minor</strong><br><em>integer</em></td>
+                      <td>bayeux protocol minor version</td></tr>
+                    <tr><td><strong>patch</strong><br><em>integer</em></td>
+                      <td>bayeux protocol patch version</td></tr>
+                  </table><br><br>
+                  <strong><small>The UI should display an 'unexpected state' error
+                  if its required bayeux protocol version is incompatible with
+                  the version published by the backend according to semantic
+                  versioning (different major or minor)</small></strong>
                 </td></tr>
             </table>
           </td>
         </tr>
         <tr>
-          <td><strong>updated</strong><a href="#note-updated"><sup>1</sup></a>
-              <br><em>object</em><br><br>
-              <small><a name="note-updated">1</a> The presence of this field
-                indicates the availability of an updated Lantern version</small></td>
-          <td>
-            <table>
-              <tr><td><strong>label</strong><br><em>string</em></td>
-                <td>e.g. major.minor.patch-build-tag</td></tr>
-              <tr><td><strong>released</strong><br><em>date</em></td>
-                <td>when it was released</td></tr>
-              <tr><td><strong>downloadUrl</strong><br><em>url</em></td>
-                <td>download url</td></tr>
-            </table>
-          </td>
+          <td><strong>latest</strong><br><em>object</em></td>
+          <td><em>as in</em><code>version.installed</code><em>, but referring to the
+          latest released version of Lantern rather than the currently-running
+          version.</em></td>
+        </tr>
+        <tr>
+          <td><strong>updateAvailable</strong><br><em>boolean</em></td>
+          <td>Whether the latest available version of Lantern is newer than the
+            currently-running version. The UI should prompt to update when
+            true.</td>
         </tr>
       </table>
     </td>

@@ -1,4 +1,7 @@
 {
+  "mock":{
+    "scenarios":{}
+  },
   "system":{
     "os":"osx",
     "lang":"en"
@@ -23,16 +26,22 @@
     "kp":{"censors": true}
   },
   "version":{
-    "current":{
-      "label":"0.21.0-a72b3dc-tag",
-      "released":"2012-12-12",
-      "api":{
+    "installed":{
+      "major":0,
+      "minor":22,
+      "patch":0,
+      "tag":"beta",
+      "git":"ac7de5f",
+      "releaseDate":"2012-12-12",
+      "modelSchema":{
         "major":0,
         "minor":0,
-        "patch":1,
-        "mock":true
-      }
-    }
+        "patch":1
+      },
+      "httpApi":{},
+      "bayeuxProtocol":{}
+    },
+    "updateAvailable":false
   },
   "modal":"welcome",
   "showVis": false,
@@ -66,15 +75,6 @@
     "proxyPort":8787,
     "systemProxy":true,
     "proxyAllSites":false,
-    "proxiedSites":[
-      "dropbox.com",
-      "facebook.com",
-      "google.com",
-      "tumblr.com",
-      "twitter.com",
-      "vimeo.com",
-      "wordpress.com",
-      "youtube.com"
-    ]
+    "proxiedSites":[]
   }
 }

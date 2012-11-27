@@ -5,8 +5,12 @@ angular.module('app.services', [])
   .value('dev', {value: true}) // controls debug logging and developer panel
   .value('sanity', {value: true}) // triggers failure mode when false
   .constant('MODEL_SYNC_CHANNEL', '/sync')
-  .constant('APIVER_REQUIRED', {major: 0, minor: 0})
-  .constant('VER', [0, 0, 1]) // frontend version
+  .constant('REQUIRED_VERSIONS', {
+    modelSchema: {major: 0, minor: 0},
+    httpApi: {major: 0, minor: 0},
+    bayeuxProtocol: {major: 0, minor: 0}
+  })
+  .constant('VER', [0, 0, 1]) // frontend version XXX pull from package.json or some such?
   // enums
   .constant('EXTERNAL_URL', {
     helpTranslate: 'https://github.com/getlantern/lantern/wiki/Contributing#wiki-other-languages',
@@ -289,14 +293,15 @@ angular.module('app.services', [])
         }
     };
   })
-  .value('apiVerLabel', {value: undefined})
-  .service('apiSrvc', function(apiVerLabel) {
+  .service('apiSrvc', function(REQUIRED_VERSIONS) {
+    var ver = REQUIRED_VERSIONS.httpApi.major + '.' +
+              REQUIRED_VERSIONS.httpApi.minor;
     return {
       urlfor: function(endpoint, params) {
           var query = _.reduce(params, function(acc, val, key) {
               return acc+key+'='+encodeURIComponent(val)+'&';
             }, '?');
-          return '/api/'+apiVerLabel.value+'/'+endpoint+query;
+          return '/api/'+ver+'/'+endpoint+query;
         }
     };
   });
