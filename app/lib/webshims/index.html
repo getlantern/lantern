@@ -3,8 +3,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 	<meta charset="utf-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
 	<link href="css/styles.css" rel="stylesheet" />
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
 	<script>
 		// set options for html5shiv
 		if(!window.html5){
@@ -114,7 +115,7 @@
 					</article>
 					
 					<article>
-						<h3><a href="demos/mediaelement.html">HTML5 mediaelements: audio/video</a></h3>
+						<h3><a href="demos/mediaelement.html">HTML5 mediaelements: audio/video/track</a></h3>
 					</article>
 										
 					<article>
@@ -160,7 +161,7 @@
 	});
 &lt;/script&gt;		
 </code>
-					<p><small>Note: Webshims do not need all Modernizr tests to work. Here you find <a href="http://www.modernizr.com/download/#-canvas-audio-video-input-inputtypes-localstorage-sessionstorage-geolocation-shiv-addtest-prefixed-testprop-testallprops-domprefixes-load">all Modernizr detections, which are used by webshims</a>.</small></p>
+					<p><small>Note: Webshims do not need all Modernizr tests to work. Here you find <a href="http://modernizr.com/download/#-canvas-audio-video-input-inputtypes-localstorage-sessionstorage-geolocation-shiv-cssclasses-addtest-prefixed-testprop-testallprops-prefixes-domprefixes-elem_track-load">all Modernizr detections, which are used by webshims</a>.</small></p>
 				</div>
 	
 				<h3 id="embed-polyfill" class="button">Embedding and configuring the script</h3>
@@ -172,7 +173,7 @@
 					</ul>
 				
 <code class="block">
-&lt;script src="js/jquery-1.7.1.js"&gt;&lt;/script&gt;
+&lt;script src="js/jquery-1.8.2.js"&gt;&lt;/script&gt;
 &lt;script src="js/modernizr-yepnope-custom.js"&gt;&lt;/script&gt;
 &lt;script src="js-webshim/minified/polyfiller.js"&gt;&lt;/script&gt;
 
@@ -198,6 +199,7 @@ $.webshims.polyfill('json-storage geolocation');
 							<li><code>forms</code></li>
 							<li><code>forms-ext</code></li>
 							<li><code>mediaelement</code></li>
+							<li><code>track</code></li>
 							<li><code>details</code></li>
 						</ul>
 						
@@ -210,7 +212,7 @@ $.webshims.polyfill('json-storage geolocation');
 </code>			
 					<p>If you dont want any log messsages, simply set <code>$.webshims.debug</code> explicitly to <code>false</code>.</p>
 					<h3>Custom Modernizr build</h3>
-					<p>Webshims lib does not need every Modernizr test and supports creating a <a href="http://www.modernizr.com/download/#-canvas-audio-video-input-inputtypes-localstorage-sessionstorage-geolocation-iepp-addtest-prefixed-testprop-testallprops-domprefixes-load">custom Modernizr build</a>. (Webshims lib uses <a href="http://requirejs.org/">requireJS</a> as a script loader, if this is included, if not it uses Modernizr.load/yepnope.) </p>
+					<p>Webshims lib does not need every Modernizr test and supports creating a <a href="http://modernizr.com/download/#-canvas-audio-video-input-inputtypes-localstorage-sessionstorage-geolocation-shiv-cssclasses-addtest-prefixed-testprop-testallprops-prefixes-domprefixes-elem_track-load">custom Modernizr build</a>. (Webshims lib uses <a href="http://requirejs.org/">requireJS</a> as a script loader, if this is included, if not it uses Modernizr.load/yepnope.) </p>
 					
 					<h3>changing Options path to shims folder</h3>
 					
@@ -364,6 +366,11 @@ $('datalist#list select').prependPolyfill('&lt;option value="new suggestion item
 //animate the width of all date - inputs to a width of 300
 $('input[type="date"]').getShadowElement().animate({width: 300});
 </code>
+							<p><strong>re-rendering shadowelements</strong>: On dynamic websites shadowelements dimensions and/or positions sometimes need to be updated, this can be achieved by triggering the <code>updateshadowdom</code>.</p>
+<code class="block">
+$.event.trigger('updateshadowdom');
+</code>
+							<p><small>Note: The <code>updateshadowdom</code> event is automatically (but 'lazily') triggered on window.resize/emchange events.</small></p>
 						</li>
 					</ul>
 					</div>
@@ -396,20 +403,32 @@ $.webshims.polyfill(polyfillFeatures);
 					<h3>Customize Webshims lib's polyfiller.js</h3>
 					<p>While webshims lib comes with a lot of files, the polyfiller.js file is the only file, which has to be embeded directly in the page. The following tool allows you to customize and minimize the polyfiller.js file. (Simply overwrite the polyfiller.js with your customized version. All other files from the download package should stay.):</p>
 					<form action="http://marijnhaverbeke.nl/uglifyjs" method="post" data-polyfillpath="js-webshim/dev/polyfiller.js">
-			    		<fieldset class="config">
-			    			<label><input type="checkbox" checked disabled /> es5</label> 
-							<label><input type="checkbox" checked id="canvas" /> canvas</label>
-							<label><input type="checkbox" checked id="forms" /> forms/forms-ext</label> 
-							<label><input type="checkbox" checked id="mediaelement" /> mediaelement</label> 
-							<label><input type="checkbox" checked id="localstorage" /> json-storage</label> 
-							<label><input type="checkbox" checked id="geolocation" data-dependent="localstorage" /> geolocation</label> 
+						<fieldset class="config">
+							<legend>webshims config</legend>
+							<label><input type="checkbox" checked disabled /> es5</label> 
+							<label><input type="checkbox" checked id="canvas" data-mod="canvas" /> canvas</label>
+							<label><input type="checkbox" checked id="forms" data-mod="input inputtypes" data-features='["forms", "forms-ext"]' /> forms/forms-ext</label> 
+							<label><input type="checkbox" checked id="mediaelement" data-mod="audio video elem_track" data-features='["mediaelement", "track"]' /> mediaelement/track</label> 
+							<label><input type="checkbox" checked id="localstorage" data-mod="localstorage sessionstorage" /> json-storage</label> 
+							<label><input type="checkbox" checked id="geolocation" data-mod="geolocation" data-dependent="localstorage" /> geolocation</label> 
 							<label><input type="checkbox" checked id="details" /> details</label> 
-			    		</fieldset>
-			    		
-			    		<textarea name="js_code" style="display: none;"></textarea>
+							<p>
+								<input type="submit" value="download custom polyfiller" />
+							</p>	
+						</fieldset>
+						<fieldset class="modernizr">
+							<legend>Modernizr build</legend>
+							<label><input type="checkbox" checked data-mod="shiv" /> HTML5shiv (you need HTML5shiv for sectioning elements in IE)</label>
+							<label><input type="checkbox" checked data-mod="load" /> Modernizr.load/yepnope (you need either yepnope or requirejs)</label> 
+							<p>
+								<a href="http://modernizr.com/download/#-canvas-audio-video-input-inputtypes-localstorage-sessionstorage-geolocation-shiv-cssclasses-addtest-prefixed-testprop-testallprops-prefixes-domprefixes-elem_track-load" data-base="http://modernizr.com/download/#-cssclasses-addtest-prefixed-testprop-testallprops-prefixes-domprefixes" class="modernizr-builder">Modernizr build link</a>
+								<br />
+								<code class="modernizr-output"></code>
+							</p>
+						</fieldset>
+						<textarea name="js_code" style="display: none;"></textarea>
 						<input type="hidden" name="download" value="polyfiller.js" />
-						<input type="submit" value="download custom polyfiller" />	
-			    	</form>
+					</form>	
 					<h3>Loading webshims async</h3>
 					<p>If webshims lib is loaded async, there are some configurations which have to be changed manually:</p>
 					<ul>

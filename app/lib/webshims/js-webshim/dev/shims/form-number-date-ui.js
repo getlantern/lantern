@@ -8,6 +8,9 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 	var adjustInputWithBtn = (function(){
 		var fns = {"padding-box": "innerWidth", "border-box": "outerWidth", "content-box": "width"};
 		var boxSizing = Modernizr.prefixed && Modernizr.prefixed("boxSizing");
+		if($.browser.msie && webshims.browserVersion < 8){
+			boxSizing = false;
+		}
 		var getWidth = function(input){
 			var widthFn = "width";
 			if(boxSizing){
@@ -35,14 +38,14 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 			}
 			//is inside
 			if( controlDim.mL <= (controlDim.w * -1) ){
-				button.css('marginRight',  Math.floor(Math.abs(controlDim.w + controlDim.mL) + inputDim.mR));
+				button.css('marginRight',  Math.floor(Math.abs(controlDim.w + controlDim.mL - 0.1) + inputDim.mR));
 				input.css('paddingRight', (parseInt(input.css('paddingRight'), 10) || 0) + Math.abs(controlDim.mL));
 				if(inputDim.add){
-					input.css('width', Math.floor(inputDim.w + controlDim.mL));
+					input.css('width', Math.floor(inputDim.w + controlDim.mL - (boxSizing ? 0.1 : 0.6)));
 				}
 			} else {
 				button.css('marginRight', inputDim.mR);
-				input.css('width',  Math.floor(inputDim.w - controlDim.mL - controlDim.w));
+				input.css('width',  Math.floor(inputDim.w - controlDim.mL - controlDim.w - (boxSizing ? 0.2 : 0.6)));
 			}
 		};
 	})();
@@ -77,11 +80,6 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 		}, 0));
 	};
 	
-	if(options.lazyDate === undefined){
-		try {
-			options.lazyDate = ($.browser.msie && webshims.browserVersion < 9) || ($(window).width() < 500 && $(window).height() < 500);
-		} catch(er){}
-	}
 	
 	var copyAttrs = {
 		tabindex: 1,
@@ -96,20 +94,32 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 	
 	webshims.extendUNDEFProp(options.copyAttrs, copyAttrs);
 	
-	
+	var getDimensions = function(orig){
+		return (options.calculateWidth) ? 
+			{
+				css: {
+					marginRight: orig.css('marginRight'),
+					marginLeft: orig.css('marginLeft')
+				},
+				outerWidth: orig.outerWidth()
+				
+			} :
+			{}
+		;
+	};
 	var focusAttrs = copyAttrs;
 	
 	replaceInputUI.common = function(orig, shim, methods){
 		if(Modernizr.formvalidation){
-			orig.bind('firstinvalid', function(e){
+			orig.on('firstinvalid', function(e){
 				if(!webshims.fromSubmit && isCheckValidity){return;}
-				orig.unbind('invalid.replacedwidgetbubble').bind('invalid.replacedwidgetbubble', function(evt){
+				orig.off('invalid.replacedwidgetbubble').on('invalid.replacedwidgetbubble', function(evt){
 					if(!e.isInvalidUIPrevented() && !evt.isDefaultPrevented()){
 						webshims.validityAlert.showFor( e.target );
 						e.preventDefault();
 						evt.preventDefault();
 					}
-					orig.unbind('invalid.replacedwidgetbubble');
+					orig.off('invalid.replacedwidgetbubble');
 				});
 			});
 		}
@@ -127,20 +137,10 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 		}
 		
 		var id = orig.attr('id'),
-			attr = (options.calculateWidth) ? 
-				{
-					css: {
-						marginRight: orig.css('marginRight'),
-						marginLeft: orig.css('marginLeft')
-					},
-					outerWidth: orig.outerWidth()
-					
-				} :
-				{},
-			curLabelID
+			label =  (id) ? $('label[for="'+ id +'"]', orig[0].form) : emptyJ
 		;
-		attr.label =  (id) ? $('label[for="'+ id +'"]', orig[0].form) : emptyJ
-		curLabelID =  webshims.getID(attr.label);
+		
+		
 		
 		shim.addClass(orig[0].className);
 		webshims.addShadowDom(orig, shim, {
@@ -149,26 +149,23 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 			shadowChilds: focusElement
 		});
 		
-		orig
-			.after(shim)
-			.hide()
-		;
+		orig.after(shim);
 		
 		if(orig[0].form){
-			$(orig[0].form).bind('reset', function(e){
+			$(orig[0].form).on('reset', function(e){
 				if(e.originalEvent && !e.isDefaultPrevented()){
 					setTimeout(function(){orig.prop( 'value', orig.prop('value') );}, 0);
 				}
 			});
 		}
-		if(shim.length == 1 && !$('*', shim)[0]){
-			shim.attr('aria-labelledby', curLabelID);
-			attr.label.bind('click', function(){
-				shim.focus();
+		
+		if(label[0]){
+			shim.getShadowFocusElement().attr('aria-labelledby', webshims.getID(label));
+			label.on('click', function(){
+				orig.getShadowFocusElement().focus();
 				return false;
 			});
 		}
-		return attr;
 	};
 	
 	if(Modernizr.formvalidation){
@@ -188,7 +185,6 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 	//date and datetime-local implement if we have to replace
 	if(!modernizrInputTypes['date'] /*||!modernizrInputTypes['datetime-local']*/ || options.replaceUI){
 		
-		
 		var datetimeFactor = {
 			trigger: [0.595,0.395],
 			normal: [0.565,0.425]
@@ -204,16 +200,18 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 				focusedOut = false;
 			};
 			var data = datePicker
-				.bind('focusin', function(){
-					resetFocusHandler();
-					data.dpDiv.unbind('mousedown.webshimsmousedownhandler').bind('mousedown.webshimsmousedownhandler', function(){
-						stopFocusout = true;
-					});
-				})
-				.bind('focusout blur', function(e){
-					if(stopFocusout){
-						focusedOut = true;
-						e.stopImmediatePropagation();
+				.on({
+					focusin: function(){
+						resetFocusHandler();
+						data.dpDiv.unbind('mousedown.webshimsmousedownhandler').bind('mousedown.webshimsmousedownhandler', function(){
+							stopFocusout = true;
+						});
+					},
+					'focusout blur': function(e){
+						if(stopFocusout){
+							focusedOut = true;
+							e.stopImmediatePropagation();
+						}
 					}
 				})
 				.datepicker($.extend({
@@ -227,7 +225,7 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 						}
 					}
 				}, defaultDatepicker, options.datepicker, elem.data('datepicker')))
-				.bind('change', change)
+				.on('change', change)
 				.data('datepicker')
 			;
 			data.dpDiv.addClass('input-date-datepicker-control');
@@ -235,12 +233,14 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 			if(_wrapper){
 				webshims.triggerDomUpdate(_wrapper[0]);	
 			}
-			['disabled', 'min', 'max', 'value', 'step'].forEach(function(name){
-				var val = elem.prop(name);
-				if(val !== "" && (name != 'disabled' || !val)){
-					elem.prop(name, val);
+			['disabled', 'min', 'max', 'value', 'step', 'data-placeholder'].forEach(function(name){
+				var fn = 'data-placeholder' ? 'attr' : 'prop';
+				var val = elem[fn](name);
+				if(val){
+					elem[fn](name, val);
 				}
 			});
+			
 			return data;
 		};
 		
@@ -394,7 +394,7 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 			
 			if(!$.fn.datepicker){return;}
 			var date = $('<input class="input-date" type="text" />'),
-				attr  = this.common(elem, date, replaceInputUI.date.attrs),
+				
 				change = function(e){
 					
 					replaceInputUI.date.blockAttr = true;
@@ -418,18 +418,39 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 					triggerInlineForm(elem[0], 'input');
 					triggerInlineForm(elem[0], 'change');
 				},
-				data = configureDatePicker(elem, date, change)
+				data
 				
 			;
-						
-			if(attr.css){
-				date.css(attr.css);
-				if(attr.outerWidth){
-					date.outerWidth(attr.outerWidth);
-				}
-				if(data.trigger[0]){
-					adjustInputWithBtn(date, data.trigger);
-				}
+			
+			this.common(elem, date, replaceInputUI.date.attrs);
+			
+			data = configureDatePicker(elem, date, change);
+			
+			$(elem)
+				.on('updateshadowdom', function(){
+					if (data.trigger[0]) {
+						elem.css({display: ''});
+						if(elem[0].offsetWidth || elem[0].offsetHeight){
+							var attr = getDimensions(elem);
+							if (attr.css) {
+								date.css(attr.css);
+								if (attr.outerWidth) {
+									date.outerWidth(attr.outerWidth);
+								}
+								adjustInputWithBtn(date, data.trigger);
+							}
+						}
+					}
+					elem.css({display: 'none'});
+				})
+				.triggerHandler('updateshadowdom')
+			;
+			if (data.trigger[0]) {
+				setTimeout(function(){
+					webshims.ready('WINDOWLOAD', function(){
+						$(elem).triggerHandler('updateshadowdom');
+					});
+				}, 9);
 			}
 			
 		};
@@ -455,6 +476,14 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 					$(shim).datepicker('option', 'maxDate', value);
 				}
 			},
+			'data-placeholder': function(orig, shim, value){
+				var hintValue = (value || '').split('-');
+				var dateFormat;
+				if(hintValue.length == 3){
+					value = $(shim).datepicker('option','dateFormat').replace('yy', hintValue[0]).replace('mm', hintValue[1]).replace('dd', hintValue[2]);
+				} 
+				$.prop(shim, 'placeholder', value);
+			},
 			value: function(orig, shim, value){
 				if(!replaceInputUI.date.blockAttr){
 					try {
@@ -474,36 +503,50 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 		replaceInputUI.range = function(elem){
 			if(!$.fn.slider){return;}
 			var range = $('<span class="input-range"><span class="ui-slider-handle" role="slider" tabindex="0" /></span>'),
-				attr  = this.common(elem, range, replaceInputUI.range.attrs),
 				change = function(e, ui){
 					if(e.originalEvent){
 						replaceInputUI.range.blockAttr = true;
 						elem.prop('value', ui.value);
 						replaceInputUI.range.blockAttr = false;
 						triggerInlineForm(elem[0], 'input');
-						triggerInlineForm(elem[0], 'change');
 					}
 				}
 			;
 			
-			$('span', range)
-				.attr('aria-labelledby', attr.label.attr('id'))
-			;
-			attr.label.bind('click', function(){
-				$('span', range).focus();
-				return false;
-			});
+			this.common(elem, range, replaceInputUI.range.attrs);
 			
-			if(attr.css){
-				range.css(attr.css);
-				if(attr.outerWidth){
-					range.outerWidth(attr.outerWidth);
-				}
-			}
-			range.slider($.extend(true, {}, options.slider, elem.data('slider'))).bind('slide', change);
+			
+			elem
+				.on('updateshadowdom', function(){
+					elem.css({display: ''});
+					if (elem[0].offsetWidth || elem[0].offsetHeight) {
+						var attr = getDimensions(elem);
+						if (attr.css) {
+							range.css(attr.css);
+							if (attr.outerWidth) {
+								range.outerWidth(attr.outerWidth);
+							}
+						}
+					}
+					elem.css({display: 'none'});
+				})
+				.triggerHandler('updateshadowdom')
+			;
+			
+			
+			range.slider($.extend(true, {}, options.slider, elem.data('slider')))
+				.on({
+					slide: change,
+					slidechange: function(e){
+						if(e.originalEvent){
+							triggerInlineForm(elem[0], 'change');
+						}
+					}
+				})
+			;
 			
 			['disabled', 'min', 'max', 'step', 'value'].forEach(function(name){
-				var val = elem.attr(name);
+				var val = elem.prop(name);
 				var shadow;
 				if(name == 'value' && !val){
 					
@@ -513,7 +556,7 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 					}
 				}
 				if(val != null){
-					elem.attr(name, val);
+					elem.prop(name, val);
 				}
 			});
 		};
@@ -555,7 +598,7 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 		};
 	}
 	
-	if(!webshims.bugs.valueAsNumberSet && (options.replaceUI || !Modernizr.inputtypes.date /*|| !Modernizr.inputtypes["datetime-local"]*/ || !Modernizr.inputtypes.range)){
+	if(options.replaceUI || !Modernizr.inputtypes.date /*|| !Modernizr.inputtypes["datetime-local"]*/ || !Modernizr.inputtypes.range){
 		var reflectFn = function(val){
 			if(webshims.data(this, 'hasShadow')){
 				$.prop(this, 'value', $.prop(this, 'value'));
@@ -566,7 +609,7 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 		webshims.onNodeNamesPropertyModify('input', 'valueAsDate', reflectFn);
 	}
 	
-	$.each(['disabled', 'min', 'max', 'value', 'step'], function(i, attr){
+	$.each(['disabled', 'min', 'max', 'value', 'step', 'data-placeholder'], function(i, attr){
 		webshims.onNodeNamesPropertyModify('input', attr, function(val){
 				var shadowData = webshims.data(this, 'shadowData');
 				if(shadowData && shadowData.data && shadowData.data[attr] && shadowData.nativeElement === this){
@@ -587,19 +630,26 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 			module: 'form-number-date-ui', 
 			callback: function(langObj){
 				var datepickerCFG = $.extend({}, defaultDatepicker, langObj, options.datepicker);
-				$.datepicker.setDefaults(datepickerCFG);
+				
+				
 				if(datepickerCFG.dateFormat && options.datepicker.dateFormat != datepickerCFG.dateFormat ){
 					$('input.hasDatepicker')
 						.filter('.input-date, .input-datetime-local-date')
 						.datepicker('option', 'dateFormat', datepickerCFG.dateFormat)
+						.getNativeElement()
+						.filter('[data-placeholder]')
+						.attr('data-placeholder', function(i, val){
+							return val;
+						})
 					;
 				}
+				$.datepicker.setDefaults(datepickerCFG);
 			}
 		});
 		$(document).unbind('jquery-uiReady.langchange input-widgetsReady.langchange');
 	};
 	
-	$(document).bind('jquery-uiReady.langchange input-widgetsReady.langchange', getDefaults);
+	$(document).on('jquery-uiReady.langchange input-widgetsReady.langchange', getDefaults);
 	getDefaults();
 	
 	//implement set/arrow controls
@@ -614,10 +664,14 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 		};
 	})();
 	
-	if(supportsType('number')/* && supportsType('time')*/){return;}
+	if(supportsType('number') && supportsType('time')){return;}
 	var doc = document;
 	var options = webshims.cfg["forms-ext"];
 	var typeModels = webshims.inputTypes;
+	var allowedChars = {
+		number: '0123456789.',
+		time: '0123456789:.'
+	};
 	
 	var getNextStep = function(input, upDown, cache){
 		
@@ -662,31 +716,6 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 	
 	webshims.modules["form-number-date-ui"].getNextStep = getNextStep;
 	
-	var doSteps = function(input, type, control){
-		if(input.disabled || input.readOnly || $(control).hasClass('step-controls')){return;}
-		$.prop(input, 'value',  typeModels[type].numberToString(getNextStep(input, ($(control).hasClass('step-up')) ? 1 : -1, {type: type})));
-		$(input).unbind('blur.stepeventshim');
-		triggerInlineForm(input, 'input');
-		
-		
-		if( doc.activeElement ){
-			if(doc.activeElement !== input){
-				try {input.focus();} catch(e){}
-			}
-			setTimeout(function(){
-				if(doc.activeElement !== input){
-					try {input.focus();} catch(e){}
-				}
-				$(input)
-					.one('blur.stepeventshim', function(){
-						triggerInlineForm(input, 'change');
-					})
-				;
-			}, 0);
-			
-		}
-	};
-	
 	
 	if(options.stepArrows){
 		var stepDisableEnable = {
@@ -705,6 +734,72 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 		38: 1,
 		40: -1
 	};
+	
+	var changeInput = function(elem, type){
+		var blockBlurChange = false;
+		var DELAY = 9;
+		var doChangeValue, blockChangeValue;
+
+		function step(dir){
+			if($.prop(elem, 'disabled') || elem.readOnly || !dir){return;}
+			doChangeValue = typeModels[type].numberToString(getNextStep(elem, dir, {type: type}));
+			$.prop(elem, 'value', doChangeValue);
+			triggerInlineForm(elem, 'input');
+		}
+
+		function setFocus(){
+			blockBlurChange = true;
+			setTimeout(function(){
+				blockBlurChange = false;
+			}, DELAY + 9);
+			setTimeout(function(){
+				if(!$(elem).is(':focus')){
+					try{
+						elem.focus();
+					} catch(e){}
+				}
+			}, 1);
+		}
+
+		function triggerChange(){
+			var curValue = $.prop(elem, 'value');
+			if(curValue == doChangeValue && curValue != blockChangeValue && typeof curValue == 'string'){
+				triggerInlineForm(elem, 'change');
+			}
+			blockChangeValue = curValue;
+		}
+
+		function init(){
+			blockChangeValue = $(elem)
+				.on({
+					'change.stepcontrol focus.stepcontrol': function(e){
+						if(!blockBlurChange || e.type != 'focus'){
+							blockChangeValue = $.prop(elem, 'value');
+						}
+					},
+					'blur.stepcontrol': function(){
+						if(!blockBlurChange){
+							setTimeout(function(){
+								if(!blockBlurChange && !$(elem).is(':focus')){
+									triggerChange();
+								}
+								doChangeValue = false;
+							}, DELAY);
+						}
+					}
+				})
+				.prop('value')
+			;
+		}
+
+		init();
+		return {
+			triggerChange: triggerChange,
+			step: step,
+			setFocus: setFocus
+		};
+	};
+	
 	webshims.addReady(function(context, contextElem){
 		//ui for numeric values
 		if(options.stepArrows){
@@ -712,23 +807,33 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 				var type = $.prop(this, 'type');
 				if(!typeModels[type] || !typeModels[type].asNumber || !options.stepArrows || (options.stepArrows !== true && !options.stepArrows[type]) || supportsType(type) || $(elem).hasClass('has-step-controls')){return;}
 				var elem = this;
+				var uiEvents = changeInput(elem, type);
 				var controls = $('<span class="step-controls" unselectable="on"><span class="step-up" /><span class="step-down" /></span>')	
 					.insertAfter(elem)
-					.bind('selectstart dragstart', function(){return false;})
-					.bind('mousedown mousepress', function(e){
-						doSteps(elem, type, e.target);
-						return false;
-					})
-					.bind('mousepressstart mousepressend', function(e){
-						$(e.target)[e.type == 'mousepressstart' ? 'addClass' : 'removeClass']('mousepress-ui');
+					.on({
+						'selectstart dragstart': function(){return false;},
+						'mousedown mousepress': function(e){
+							if(!$(e.target).hasClass('step-controls')){
+								uiEvents.step(($(e.target).hasClass('step-up')) ? 1 : -1);
+							}
+							uiEvents.setFocus();
+							return false;
+						},
+						'mousepressstart mousepressend': function(e){
+							if(e.type == 'mousepressend'){
+								uiEvents.triggerChange();
+							}
+							$(e.target)[e.type == 'mousepressstart' ? 'addClass' : 'removeClass']('mousepress-ui');
+						}
 					})
 				;
 				var mwheelUpDown = function(e, d){
-					if(elem.disabled || elem.readOnly){return;}
-					$.prop(elem, 'value',  typeModels[type].numberToString(getNextStep(elem, d, {type: type})));
-					triggerInlineForm(elem, 'input');
-					return false;
+					if(d){
+						uiEvents.step(d);
+						return false;
+					}
 				};
+				
 				var jElm = $(elem)
 					.addClass('has-step-controls')
 					.attr({
@@ -737,32 +842,57 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 						autocomplete: 'off',
 						role: 'spinbutton'
 					})
-					.bind(($.browser.msie) ? 'keydown' : 'keypress', function(e){
-						if(elem.disabled || elem.readOnly || !stepKeys[e.keyCode]){return;}
-						$.prop(elem, 'value',  typeModels[type].numberToString(getNextStep(elem, stepKeys[e.keyCode], {type: type})));
-						triggerInlineForm(elem, 'input');
-						return false;
+					.on('keyup', function(e){
+						var step = stepKeys[e.keyCode];
+						if(step){
+							uiEvents.triggerChange(step);
+						}
+					})
+					.on(($.browser.msie) ? 'keydown' : 'keypress', function(e){
+						var step = stepKeys[e.keyCode];
+						if(step){
+							uiEvents.step(step);
+							return false;
+						}
 					})
 				;
 				
-				if($.fn.mwheelIntent){
-					jElm.add(controls).bind('mwheelIntent', mwheelUpDown);
-				} else {
-					jElm
-						.bind('focus', function(){
-							jElm.add(controls).unbind('.mwhellwebshims')
-								.bind('mousewheel.mwhellwebshims', mwheelUpDown)
-							;
-						})
-						.bind('blur', function(){
-							$(elem).add(controls).unbind('.mwhellwebshims');
-						})
-					;
+				if(allowedChars[type]){
+					jElm.on('keypress', (function(){
+						var chars = allowedChars[type];
+						return function(event){
+							var chr = String.fromCharCode(event.charCode == null ? event.keyCode : event.charCode);
+							return event.ctrlKey || event.metaKey || (chr < ' ' || chars.indexOf(chr) > -1);
+						};
+					})());
 				}
+				
+				jElm
+					.on({
+						focus: function(){
+							jElm.add(controls).off('.mwhellwebshims')
+								.on('mousewheel.mwhellwebshims', mwheelUpDown)
+							;
+						},
+						blur: function(){
+							$(elem).add(controls).off('.mwhellwebshims');
+						}
+					})
+				;
+				
 				webshims.data(elem, 'step-controls', controls);
 				if(options.calculateWidth){
-					adjustInputWithBtn(jElm, controls);
-					controls.css('marginTop', (jElm.outerHeight() - controls.outerHeight())  / 2 );
+					var init;
+					jElm
+						.on('updateshadowdom', function(){
+							if(!init && (elem.offsetWidth || elem.offsetHeight)){
+								init = true;
+								adjustInputWithBtn(jElm, controls);
+								controls.css('marginTop', (jElm.outerHeight() - controls.outerHeight()) / 2);
+							}
+						})
+						.triggerHandler('updateshadowdom')
+					;
 				}
 			});
 		}
@@ -771,7 +901,7 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 
 	
 	webshims.addReady(function(context, elem){
-		$(document).bind('jquery-uiReady.initinputui input-widgetsReady.initinputui', function(e){
+		$(document).on('jquery-uiReady.initinputui input-widgetsReady.initinputui', function(e){
 			if($.datepicker || $.fn.slider){
 				if($.datepicker && !defaultDatepicker.dateFormat){
 					defaultDatepicker.dateFormat = $.datepicker._defaults.dateFormat;

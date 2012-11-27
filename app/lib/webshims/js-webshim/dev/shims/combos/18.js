@@ -1,664 +1,4 @@
-jQuery.webshims.register('form-datalist', function($, webshims, window, document, undefined){
-	var doc = document;	
-
-	/*
-	 * implement propType "element" currently only used for list-attribute (will be moved to dom-extend, if needed)
-	 */
-	webshims.propTypes.element = function(descs){
-		webshims.createPropDefault(descs, 'attr');
-		if(descs.prop){return;}
-		descs.prop = {
-			get: function(){
-				var elem = descs.attr.get.call(this);
-				if(elem){
-					elem = $('#'+elem)[0];
-					if(elem && descs.propNodeName && !$.nodeName(elem, descs.propNodeName)){
-						elem = null;
-					}
-				}
-				return elem || null;
-			},
-			writeable: false
-		};
-	};
-	
-	
-	/*
-	 * Implements datalist element and list attribute
-	 */
-	
-	(function(){
-		var formsCFG = $.webshims.cfg.forms;
-		var listSupport = Modernizr.input.list;
-		if(listSupport && !formsCFG.customDatalist){return;}
-		
-			var initializeDatalist =  function(){
-				
-				
-			if(!listSupport){
-				webshims.defineNodeNameProperty('datalist', 'options', {
-					prop: {
-						writeable: false,
-						get: function(){
-							var elem = this;
-							var select = $('select', elem);
-							var options;
-							if(select[0]){
-								options = select[0].options;
-							} else {
-								options = $('option', elem).get();
-								if(options.length){
-									webshims.warn('you should wrap you option-elements for a datalist in a select element to support IE and other old browsers.');
-								}
-							}
-							return options;
-						}
-					}
-				});
-			}
-				
-			var inputListProto = {
-				//override autocomplete
-				autocomplete: {
-					attr: {
-						get: function(){
-							var elem = this;
-							var data = $.data(elem, 'datalistWidget');
-							if(data){
-								return data._autocomplete;
-							}
-							return ('autocomplete' in elem) ? elem.autocomplete : elem.getAttribute('autocomplete');
-						},
-						set: function(value){
-							var elem = this;
-							var data = $.data(elem, 'datalistWidget');
-							if(data){
-								data._autocomplete = value;
-								if(value == 'off'){
-									data.hideList();
-								}
-							} else {
-								if('autocomplete' in elem){
-									elem.autocomplete = value;
-								} else {
-									elem.setAttribute('autocomplete', value);
-								}
-							}
-						}
-					}
-				}
-			};
-			
-			if(!listSupport || !('selectedOption') in $('<input />')[0]){
-				//currently not supported x-browser (FF4 has not implemented and is not polyfilled )
-				inputListProto.selectedOption = {
-					prop: {
-						writeable: false,
-						get: function(){
-							var elem = this;
-							var list = $.prop(elem, 'list');
-							var ret = null;
-							var value, options;
-							if(!list){return ret;}
-							value = $.attr(elem, 'value');
-							if(!value){return ret;}
-							options = $.prop(list, 'options');
-							if(!options.length){return ret;}
-							$.each(options, function(i, option){
-								if(value == $.prop(option, 'value')){
-									ret = option;
-									return false;
-								}
-							});
-							return ret;
-						}
-					}
-				};
-			}
-			
-			if(!listSupport){
-				inputListProto['list'] = {
-					attr: {
-						get: function(){
-							var val = webshims.contentAttr(this, 'list');
-							return (val == null) ? undefined : val;
-						},
-						set: function(value){
-							var elem = this;
-							webshims.contentAttr(elem, 'list', value);
-							webshims.objectCreate(shadowListProto, undefined, {input: elem, id: value, datalist: $.prop(elem, 'list')});
-						}
-					},
-					initAttr: true,
-					reflect: true,
-					propType: 'element',
-					propNodeName: 'datalist'
-				};
-			} else {
-				inputListProto['list'] = {
-					attr: {
-						get: function(){
-							var val = webshims.contentAttr(this, 'list');
-							if(val != null){
-								this.removeAttribute('list');
-							} else {
-								val = $.data(this, 'datalistListAttr');
-							}
-							
-							return (val == null) ? undefined : val;
-						},
-						set: function(value){
-							var elem = this;
-							$.data(elem, 'datalistListAttr', value);
-							webshims.objectCreate(shadowListProto, undefined, {input: elem, id: value, datalist: $.prop(elem, 'list')});
-						}
-					},
-					initAttr: true,
-					reflect: true,
-					propType: 'element',
-					propNodeName: 'datalist'
-				};
-			}
-				
-				
-			webshims.defineNodeNameProperties('input', inputListProto);
-			
-			if($.event.customEvent){
-				$.event.customEvent.updateDatalist = true;
-				$.event.customEvent.updateInput = true;
-				$.event.customEvent.datalistselect = true;
-			} 
-			webshims.addReady(function(context, contextElem){
-				contextElem
-					.filter('datalist > select, datalist, datalist > option, datalist > select > option')
-					.closest('datalist')
-					.triggerHandler('updateDatalist')
-				;
-				
-			});
-			
-			
-		};
-		
-		
-		/*
-		 * ShadowList
-		 */
-		var listidIndex = 0;
-		
-		var noDatalistSupport = {
-			submit: 1,
-			button: 1,
-			reset: 1, 
-			hidden: 1,
-			
-			//ToDo
-			range: 1,
-			date: 1
-		};
-		var lteie6 = ($.browser.msie && parseInt($.browser.version, 10) < 7);
-		var globStoredOptions = {};
-		var getStoredOptions = function(name){
-			if(!name){return [];}
-			if(globStoredOptions[name]){
-				return globStoredOptions[name];
-			}
-			var data;
-			try {
-				data = JSON.parse(localStorage.getItem('storedDatalistOptions'+name));
-			} catch(e){}
-			globStoredOptions[name] = data || [];
-			return data || [];
-		};
-		var storeOptions = function(name, val){
-			if(!name){return;}
-			val = val || [];
-			try {
-				localStorage.setItem( 'storedDatalistOptions'+name, JSON.stringify(val) );
-			} catch(e){}
-		};
-		
-		var getText = function(elem){
-			return (elem.textContent || elem.innerText || $.text([ elem ]) || '');
-		};
-		
-		var shadowListProto = {
-			_create: function(opts){
-				
-				if(noDatalistSupport[$.prop(opts.input, 'type')]){return;}
-				var datalist = opts.datalist;
-				var data = $.data(opts.input, 'datalistWidget');
-				if(datalist && data && data.datalist !== datalist){
-					data.datalist = datalist;
-					data.id = opts.id;
-					
-					data.shadowList.prop('className', 'datalist-polyfill '+ (data.datalist.className || '') + ' '+ data.datalist.id +'-shadowdom');
-					if(formsCFG.positionDatalist){
-						data.shadowList.insertAfter(opts.input);
-					} else {
-						data.shadowList.appendTo('body');
-					}
-					$(data.datalist)
-						.unbind('updateDatalist.datalistWidget')
-						.bind('updateDatalist.datalistWidget', $.proxy(data, '_resetListCached'))
-					;
-					data._resetListCached();
-					return;
-				} else if(!datalist){
-					if(data){
-						data.destroy();
-					}
-					return;
-				} else if(data && data.datalist === datalist){
-					return;
-				}
-				listidIndex++;
-				var that = this;
-				this.hideList = $.proxy(that, 'hideList');
-				this.timedHide = function(){
-					clearTimeout(that.hideTimer);
-					that.hideTimer = setTimeout(that.hideList, 9);
-				};
-				this.datalist = datalist;
-				this.id = opts.id;
-				this.hasViewableData = true;
-				this._autocomplete = $.attr(opts.input, 'autocomplete');
-				$.data(opts.input, 'datalistWidget', this);
-				this.shadowList = $('<div class="datalist-polyfill '+ (this.datalist.className || '') + ' '+ this.datalist.id +'-shadowdom' +'" />');
-				
-				if(formsCFG.positionDatalist){
-					this.shadowList.insertAfter(opts.input);
-				} else {
-					this.shadowList.appendTo('body');
-				}
-				
-				this.index = -1;
-				this.input = opts.input;
-				this.arrayOptions = [];
-				
-				this.shadowList
-					.delegate('li', 'mouseenter.datalistWidget mousedown.datalistWidget click.datalistWidget', function(e){
-						var items = $('li:not(.hidden-item)', that.shadowList);
-						var select = (e.type == 'mousedown' || e.type == 'click');
-						that.markItem(items.index(e.currentTarget), select, items);
-						if(e.type == 'click'){
-							that.hideList();
-							$(opts.input).trigger('datalistselect');
-						}
-						return (e.type != 'mousedown');
-					})
-					.bind('focusout', this.timedHide)
-				;
-				
-				opts.input.setAttribute('autocomplete', 'off');
-				
-				$(opts.input)
-					.attr({
-						//role: 'combobox',
-						'aria-haspopup': 'true'
-					})
-					.bind('input.datalistWidget', function(){
-						if(!that.triggeredByDatalist){
-							that.changedValue = false;
-							that.showHideOptions();
-						}
-					})
-					
-					.bind('keydown.datalistWidget', function(e){
-						var keyCode = e.keyCode;
-						var activeItem;
-						var items;
-						if(keyCode == 40 && !that.showList()){
-							that.markItem(that.index + 1, true);
-							return false;
-						}
-						
-						if(!that.isListVisible){return;}
-						
-						 
-						if(keyCode == 38){
-							that.markItem(that.index - 1, true);
-							return false;
-						} 
-						if(!e.shiftKey && (keyCode == 33 || keyCode == 36)){
-							that.markItem(0, true);
-							return false;
-						} 
-						if(!e.shiftKey && (keyCode == 34 || keyCode == 35)){
-							items = $('li:not(.hidden-item)', that.shadowList);
-							that.markItem(items.length - 1, true, items);
-							return false;
-						} 
-						if(keyCode == 13 || keyCode == 27){
-							if (keyCode == 13){
-								activeItem = $('li.active-item:not(.hidden-item)', that.shadowList);
-								that.changeValue( $('li.active-item:not(.hidden-item)', that.shadowList) );
-							}
-							that.hideList();
-							if(activeItem && activeItem[0]){
-								$(opts.input).trigger('datalistselect');
-							}
-							return false;
-						}
-					})
-					.bind('focus.datalistWidget', function(){
-						if($(this).hasClass('list-focus')){
-							that.showList();
-						}
-					})
-					.bind('mousedown.datalistWidget', function(){
-						if($(this).is(':focus')){
-							that.showList();
-						}
-					})
-					.bind('blur.datalistWidget', this.timedHide)
-				;
-				
-				
-				$(this.datalist)
-					.unbind('updateDatalist.datalistWidget')
-					.bind('updateDatalist.datalistWidget', $.proxy(this, '_resetListCached'))
-				;
-				
-				this._resetListCached();
-				
-				if(opts.input.form && (opts.input.name || opts.input.id)){
-					$(opts.input.form).bind('submit.datalistWidget'+opts.input.id, function(){
-						if(!$(opts.input).hasClass('no-datalist-cache')){
-							var val = $.prop(opts.input, 'value');
-							var name = (opts.input.name || opts.input.id) + $.prop(opts.input, 'type');
-							if(!that.storedOptions){
-								that.storedOptions = getStoredOptions( name );
-							}
-							if(val && that.storedOptions.indexOf(val) == -1){
-								that.storedOptions.push(val);
-								storeOptions(name, that.storedOptions );
-							}
-						}
-					});
-				}
-				$(window).bind('unload.datalist'+this.id+' beforeunload.datalist'+this.id, function(){
-					that.destroy();
-				});
-			},
-			destroy: function(){
-				var autocomplete = $.attr(this.input, 'autocomplete');
-				$(this.input)
-					.unbind('.datalistWidget')
-					.removeData('datalistWidget')
-				;
-				this.shadowList.remove();
-				$(document).unbind('.datalist'+this.id);
-				$(window).unbind('.datalist'+this.id);
-				if(this.input.form && this.input.id){
-					$(this.input.form).unbind('submit.datalistWidget'+this.input.id);
-				}
-				this.input.removeAttribute('aria-haspopup');
-				if(autocomplete === undefined){
-					this.input.removeAttribute('autocomplete');
-				} else {
-					$(this.input).attr('autocomplete', autocomplete);
-				}
-			},
-			_resetListCached: function(e){
-				var that = this;
-				var forceShow;
-				this.needsUpdate = true;
-				this.lastUpdatedValue = false;
-				this.lastUnfoundValue = '';
-
-				if(!this.updateTimer){
-					if(window.QUnit || (forceShow = (e && document.activeElement == that.input))){
-						that.updateListOptions(forceShow);
-					} else {
-						webshims.ready('WINDOWLOAD', function(){
-							that.updateTimer = setTimeout(function(){
-								that.updateListOptions();
-								that = null;
-								listidIndex = 1;
-							}, 200 + (100 * listidIndex));
-						});
-					}
-				}
-			},
-			updateListOptions: function(_forceShow){
-				this.needsUpdate = false;
-				clearTimeout(this.updateTimer);
-				this.updateTimer = false;
-				this.shadowList
-					.css({
-						fontSize: $.css(this.input, 'fontSize'),
-						fontFamily: $.css(this.input, 'fontFamily')
-					})
-				;
-				this.searchStart = $(this.input).hasClass('search-start');
-				
-				var list = [];
-				
-				var values = [];
-				var allOptions = [];
-				var rElem, rItem, rOptions, rI, rLen, item;
-				for(rOptions = $.prop(this.datalist, 'options'), rI = 0, rLen = rOptions.length; rI < rLen; rI++){
-					rElem = rOptions[rI];
-					if(rElem.disabled){return;}
-					rItem = {
-						value: $(rElem).val() || '',
-						text: $.trim($.attr(rElem, 'label') || getText(rElem)),
-						className: rElem.className || '',
-						style: $.attr(rElem, 'style') || ''
-					};
-					if(!rItem.text){
-						rItem.text = rItem.value;
-					} else if(rItem.text != rItem.value){
-						rItem.className += ' different-label-value';
-					}
-					values[rI] = rItem.value;
-					allOptions[rI] = rItem;
-				}
-				
-				if(!this.storedOptions){
-					this.storedOptions = ($(this.input).hasClass('no-datalist-cache')) ? [] : getStoredOptions((this.input.name || this.input.id) + $.prop(this.input, 'type'));
-				}
-				
-				this.storedOptions.forEach(function(val, i){
-					if(values.indexOf(val) == -1){
-						allOptions.push({value: val, text: val, className: 'stored-suggest', style: ''});
-					}
-				});
-				
-				for(rI = 0, rLen = allOptions.length; rI < rLen; rI++){
-					item = allOptions[rI];
-					list[rI] = '<li class="'+ item.className +'" style="'+ item.style +'" tabindex="-1" role="listitem"><span class="option-label">'+ item.text +'</span> <span class="option-value">'+item.value+'</span></li>';
-				}
-				
-				this.arrayOptions = allOptions;
-				this.shadowList.html('<div class="datalist-outer-box"><div class="datalist-box"><ul role="list">'+ list.join("\n") +'</ul></div></div>');
-				
-				if($.fn.bgIframe && lteie6){
-					this.shadowList.bgIframe();
-				}
-				
-				if(_forceShow || this.isListVisible){
-					this.showHideOptions();
-				}
-			},
-			showHideOptions: function(_fromShowList){
-				var value = $.prop(this.input, 'value').toLowerCase();
-				//first check prevent infinite loop, second creates simple lazy optimization
-				if(value === this.lastUpdatedValue || (this.lastUnfoundValue && value.indexOf(this.lastUnfoundValue) === 0)){
-					return;
-				}
-				
-				this.lastUpdatedValue = value;
-				var found = false;
-				var startSearch = this.searchStart;
-				var lis = $('li', this.shadowList);
-				if(value){
-					this.arrayOptions.forEach(function(item, i){
-						var search;
-						if(!('lowerText' in item)){
-							if(item.text != item.value){
-								item.lowerText = item.text.toLowerCase() +  item.value.toLowerCase();
-							} else {
-								item.lowerText = item.text.toLowerCase();
-							}
-						}
-						search = item.lowerText.indexOf(value);
-						search = startSearch ? !search : search !== -1;
-						if(search){
-							$(lis[i]).removeClass('hidden-item');
-							found = true;
-						} else {
-							$(lis[i]).addClass('hidden-item');
-						}
-					});
-				} else if(lis.length) {
-					lis.removeClass('hidden-item');
-					found = true;
-				}
-				
-				this.hasViewableData = found;
-				if(!_fromShowList && found){
-					this.showList();
-				}
-				if(!found){
-					this.lastUnfoundValue = value;
-					this.hideList();
-				}
-			},
-			setPos: function(){
-				this.shadowList.css({marginTop: 0, marginLeft: 0, marginRight: 0, marginBottom: 0});
-				var css = (formsCFG.positionDatalist) ? $(this.input).position() : webshims.getRelOffset(this.shadowList, this.input);
-				css.top += $(this.input).outerHeight();
-				css.width = $(this.input).outerWidth() - (parseInt(this.shadowList.css('borderLeftWidth'), 10)  || 0) - (parseInt(this.shadowList.css('borderRightWidth'), 10)  || 0);
-				this.shadowList.css({marginTop: '', marginLeft: '', marginRight: '', marginBottom: ''}).css(css);
-				return css;
-			},
-			showList: function(){
-				if(this.isListVisible){return false;}
-				if(this.needsUpdate){
-					this.updateListOptions();
-				}
-				this.showHideOptions(true);
-				if(!this.hasViewableData){return false;}
-				this.isListVisible = true;
-				var that = this;
-				var resizeTimer;
-				
-				that.setPos();
-				that.shadowList.addClass('datalist-visible').find('li.active-item').removeClass('active-item');
-				
-				$(document).unbind('.datalist'+that.id).bind('mousedown.datalist'+that.id +' focusin.datalist'+that.id, function(e){
-					if(e.target === that.input ||  that.shadowList[0] === e.target || $.contains( that.shadowList[0], e.target )){
-						clearTimeout(that.hideTimer);
-						setTimeout(function(){
-							clearTimeout(that.hideTimer);
-						}, 9);
-					} else {
-						that.timedHide();
-					}
-				});
-				$(window)
-					.unbind('.datalist'+that.id)
-					.bind('resize.datalist'+that.id +' orientationchange.datalist '+that.id +' emchange.datalist'+that.id, function(){
-						clearTimeout(resizeTimer);
-						resizeTimer = setTimeout(function(){
-							that.setPos();
-						}, 9);
-					})
-				;
-				clearTimeout(resizeTimer);
-				return true;
-			},
-			hideList: function(){
-				if(!this.isListVisible){return false;}
-				var that = this;
-				var triggerChange = function(e){
-					if(that.changedValue){
-						$(that.input).trigger('change');
-					}
-					that.changedValue = false;
-				};
-				
-				that.shadowList.removeClass('datalist-visible list-item-active');
-				that.index = -1;
-				that.isListVisible = false;
-				if(that.changedValue){
-					that.triggeredByDatalist = true;
-					webshims.triggerInlineForm && webshims.triggerInlineForm(that.input, 'input');
-					if($(that.input).is(':focus')){
-						$(that.input).one('blur', triggerChange);
-					} else {
-						triggerChange();
-					}
-					that.triggeredByDatalist = false;
-				}
-				$(document).unbind('.datalist'+that.id);
-				$(window)
-					.unbind('.datalist'+that.id)
-					.bind('resize.datalist'+that.id +' orientationchange.datalist '+that.id +' emchange.datalist'+that.id, function(){
-						that.shadowList.css({top: 0, left: 0});
-						$(window).unbind('.datalist'+that.id);
-					})
-				;
-				return true;
-			},
-			scrollIntoView: function(elem){
-				var ul = $('ul', this.shadowList);
-				var div = $('div.datalist-box', this.shadowList);
-				var elemPos = elem.position();
-				var containerHeight;
-				elemPos.top -=  (parseInt(ul.css('paddingTop'), 10) || 0) + (parseInt(ul.css('marginTop'), 10) || 0) + (parseInt(ul.css('borderTopWidth'), 10) || 0);
-				if(elemPos.top < 0){
-					div.scrollTop( div.scrollTop() + elemPos.top - 2);
-					return;
-				}
-				elemPos.top += elem.outerHeight();
-				containerHeight = div.height();
-				if(elemPos.top > containerHeight){
-					div.scrollTop( div.scrollTop() + (elemPos.top - containerHeight) + 2);
-				}
-			},
-			changeValue: function(activeItem){
-				if(!activeItem[0]){return;}
-				var newValue = $('span.option-value', activeItem).text();
-				var oldValue = $.prop(this.input, 'value');
-				if(newValue != oldValue){
-					$(this.input)
-						.prop('value', newValue)
-						.triggerHandler('updateInput')
-					;
-					this.changedValue = true;
-				}
-			},
-			markItem: function(index, doValue, items){
-				var activeItem;
-				var goesUp;
-				
-				items = items || $('li:not(.hidden-item)', this.shadowList);
-				if(!items.length){return;}
-				if(index < 0){
-					index = items.length - 1;
-				} else if(index >= items.length){
-					index = 0;
-				}
-				items.removeClass('active-item');
-				this.shadowList.addClass('list-item-active');
-				activeItem = items.filter(':eq('+ index +')').addClass('active-item');
-				
-				if(doValue){
-					this.changeValue(activeItem);
-					this.scrollIntoView(activeItem);
-				}
-				this.index = index;
-			}
-		};
-		
-		//init datalist update
-		initializeDatalist();
-	})();
-	
-});jQuery.webshims.register('form-extend', function($, webshims, window, doc, undefined, options){
+jQuery.webshims.register('form-native-extend', function($, webshims, window, doc, undefined, options){
 	"use strict";
 	var Modernizr = window.Modernizr;
 	var modernizrInputTypes = Modernizr.inputtypes;
@@ -913,26 +253,8 @@ jQuery.webshims.register('form-datalist', function($, webshims, window, document
 	});
 	
 	
-	//options only return options, if option-elements are rooted: but this makes this part of HTML5 less backwards compatible
-	if(Modernizr.input.list && !($('<datalist><select><option></option></select></datalist>').prop('options') || []).length ){
-		webshims.defineNodeNameProperty('datalist', 'options', {
-			prop: {
-				writeable: false,
-				get: function(){
-					var options = this.options || [];
-					if(!options.length){
-						var elem = this;
-						var select = $('select', elem);
-						if(select[0] && select[0].options && select[0].options.length){
-							options = select[0].options;
-						}
-					}
-					return options;
-				}
-			}
-		});
-	}
-});jQuery.webshims.register('form-number-date-api', function($, webshims, window, document, undefined){
+});
+jQuery.webshims.register('form-number-date-api', function($, webshims, window, document, undefined){
 	"use strict";
 	
 	//ToDo
@@ -986,7 +308,7 @@ jQuery.webshims.register('form-datalist', function($, webshims, window, document
 			return val;
 		},
 		EPS = 1e-7,
-		typeBugs = webshims.bugs.valueAsNumberSet || webshims.bugs.bustedValidity
+		typeBugs = webshims.bugs.bustedValidity
 	;
 	
 	webshims.addValidityRule('stepMismatch', function(input, val, cache, validityState){
@@ -1186,80 +508,80 @@ jQuery.webshims.register('form-datalist', function($, webshims, window, document
 			dateToString: function(date){
 				return (date && date.getFullYear) ? date.getUTCFullYear() +'-'+ addleadingZero(date.getUTCMonth()+1, 2) +'-'+ addleadingZero(date.getUTCDate(), 2) : false;
 			}
+		},
+		time: {
+			mismatch: function(val, _getParsed){
+				if(!val || !val.split || !(/\d$/.test(val))){return true;}
+				val = val.split(/\u003A/);
+				if(val.length < 2 || val.length > 3){return true;}
+				var ret = false,
+					sFraction;
+				if(val[2]){
+					val[2] = val[2].split(/\u002E/);
+					sFraction = parseInt(val[2][1], 10);
+					val[2] = val[2][0];
+				}
+				$.each(val, function(i, part){
+					if(!isDateTimePart(part) || part.length !== 2){
+						ret = true;
+						return false;
+					}
+				});
+				if(ret){return true;}
+				if(val[0] > 23 || val[0] < 0 || val[1] > 59 || val[1] < 0){
+					return true;
+				}
+				if(val[2] && (val[2] > 59 || val[2] < 0 )){
+					return true;
+				}
+				if(sFraction && isNaN(sFraction)){
+					return true;
+				}
+				if(sFraction){
+					if(sFraction < 100){
+						sFraction *= 100;
+					} else if(sFraction < 10){
+						sFraction *= 10;
+					}
+				}
+				return (_getParsed === true) ? [val, sFraction] : false;
+			},
+			step: 60,
+			stepBase: 0,
+			stepScaleFactor:  1000,
+			asDate: function(val){
+				val = new Date(this.asNumber(val));
+				return (isNaN(val)) ? null : val;
+			},
+			asNumber: function(val){
+				var ret = nan;
+				val = this.mismatch(val, true);
+				if(val !== true){
+					ret = Date.UTC('1970', 0, 1, val[0][0], val[0][1], val[0][2] || 0);
+					if(val[1]){
+						ret += val[1];
+					}
+				}
+				return ret;
+			},
+			dateToString: function(date){
+				if(date && date.getUTCHours){
+					var str = addleadingZero(date.getUTCHours(), 2) +':'+ addleadingZero(date.getUTCMinutes(), 2),
+						tmp = date.getSeconds()
+					;
+					if(tmp != "0"){
+						str += ':'+ addleadingZero(tmp, 2);
+					}
+					tmp = date.getUTCMilliseconds();
+					if(tmp != "0"){
+						str += '.'+ addleadingZero(tmp, 3);
+					}
+					return str;
+				} else {
+					return false;
+				}
+			}
 		}
-//		,time: {
-//			mismatch: function(val, _getParsed){
-//				if(!val || !val.split || !(/\d$/.test(val))){return true;}
-//				val = val.split(/\u003A/);
-//				if(val.length < 2 || val.length > 3){return true;}
-//				var ret = false,
-//					sFraction;
-//				if(val[2]){
-//					val[2] = val[2].split(/\u002E/);
-//					sFraction = parseInt(val[2][1], 10);
-//					val[2] = val[2][0];
-//				}
-//				$.each(val, function(i, part){
-//					if(!isDateTimePart(part) || part.length !== 2){
-//						ret = true;
-//						return false;
-//					}
-//				});
-//				if(ret){return true;}
-//				if(val[0] > 23 || val[0] < 0 || val[1] > 59 || val[1] < 0){
-//					return true;
-//				}
-//				if(val[2] && (val[2] > 59 || val[2] < 0 )){
-//					return true;
-//				}
-//				if(sFraction && isNaN(sFraction)){
-//					return true;
-//				}
-//				if(sFraction){
-//					if(sFraction < 100){
-//						sFraction *= 100;
-//					} else if(sFraction < 10){
-//						sFraction *= 10;
-//					}
-//				}
-//				return (_getParsed === true) ? [val, sFraction] : false;
-//			},
-//			step: 60,
-//			stepBase: 0,
-//			stepScaleFactor:  1000,
-//			asDate: function(val){
-//				val = new Date(this.asNumber(val));
-//				return (isNaN(val)) ? null : val;
-//			},
-//			asNumber: function(val){
-//				var ret = nan;
-//				val = this.mismatch(val, true);
-//				if(val !== true){
-//					ret = Date.UTC('1970', 0, 1, val[0][0], val[0][1], val[0][2] || 0);
-//					if(val[1]){
-//						ret += val[1];
-//					}
-//				}
-//				return ret;
-//			},
-//			dateToString: function(date){
-//				if(date && date.getUTCHours){
-//					var str = addleadingZero(date.getUTCHours(), 2) +':'+ addleadingZero(date.getUTCMinutes(), 2),
-//						tmp = date.getSeconds()
-//					;
-//					if(tmp != "0"){
-//						str += ':'+ addleadingZero(tmp, 2);
-//					}
-//					tmp = date.getUTCMilliseconds();
-//					if(tmp != "0"){
-//						str += '.'+ addleadingZero(tmp, 3);
-//					}
-//					return str;
-//				} else {
-//					return false;
-//				}
-//			}
-//		}
 //		,'datetime-local': {
 //			mismatch: function(val, _getParsed){
 //				if(!val || !val.split || (val+'special').split(/\u0054/).length !== 2){return true;}
@@ -1293,7 +615,7 @@ jQuery.webshims.register('form-datalist', function($, webshims, window, document
 	
 	if(typeBugs || !supportsType('range') || !supportsType('time')){
 		typeProtos.range = $.extend({}, typeProtos.number, typeProtos.range);
-//		typeProtos.time = $.extend({}, typeProtos.date, typeProtos.time);
+		typeProtos.time = $.extend({}, typeProtos.date, typeProtos.time);
 //		typeProtos['datetime-local'] = $.extend({}, typeProtos.date, typeProtos.time, typeProtos['datetime-local']);
 	}
 	
@@ -1307,15 +629,16 @@ jQuery.webshims.register('form-datalist', function($, webshims, window, document
 	if(typeBugs || !supportsType('date')){
 		webshims.addInputType('date', typeProtos.date);
 	}
-//	if(typeBugs || !supportsType('time')){
-//		webshims.addInputType('time', typeProtos.time);
-//	}
+	if(typeBugs || !supportsType('time')){
+		webshims.addInputType('time', typeProtos.time);
+	}
 
 //	if(typeBugs || !supportsType('datetime-local')){
 //		webshims.addInputType('datetime-local', typeProtos['datetime-local']);
 //	}
 		
-});/* number-date-ui */
+});
+/* number-date-ui */
 /* https://github.com/aFarkas/webshim/issues#issue/23 */
 jQuery.webshims.register('form-number-date-ui', function($, webshims, window, document, undefined, options){
 	"use strict";
@@ -1325,6 +648,9 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 	var adjustInputWithBtn = (function(){
 		var fns = {"padding-box": "innerWidth", "border-box": "outerWidth", "content-box": "width"};
 		var boxSizing = Modernizr.prefixed && Modernizr.prefixed("boxSizing");
+		if($.browser.msie && webshims.browserVersion < 8){
+			boxSizing = false;
+		}
 		var getWidth = function(input){
 			var widthFn = "width";
 			if(boxSizing){
@@ -1352,14 +678,14 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 			}
 			//is inside
 			if( controlDim.mL <= (controlDim.w * -1) ){
-				button.css('marginRight',  Math.floor(Math.abs(controlDim.w + controlDim.mL) + inputDim.mR));
+				button.css('marginRight',  Math.floor(Math.abs(controlDim.w + controlDim.mL - 0.1) + inputDim.mR));
 				input.css('paddingRight', (parseInt(input.css('paddingRight'), 10) || 0) + Math.abs(controlDim.mL));
 				if(inputDim.add){
-					input.css('width', Math.floor(inputDim.w + controlDim.mL));
+					input.css('width', Math.floor(inputDim.w + controlDim.mL - (boxSizing ? 0.1 : 0.6)));
 				}
 			} else {
 				button.css('marginRight', inputDim.mR);
-				input.css('width',  Math.floor(inputDim.w - controlDim.mL - controlDim.w));
+				input.css('width',  Math.floor(inputDim.w - controlDim.mL - controlDim.w - (boxSizing ? 0.2 : 0.6)));
 			}
 		};
 	})();
@@ -1394,11 +720,6 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 		}, 0));
 	};
 	
-	if(options.lazyDate === undefined){
-		try {
-			options.lazyDate = ($.browser.msie && webshims.browserVersion < 9) || ($(window).width() < 500 && $(window).height() < 500);
-		} catch(er){}
-	}
 	
 	var copyAttrs = {
 		tabindex: 1,
@@ -1413,20 +734,32 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 	
 	webshims.extendUNDEFProp(options.copyAttrs, copyAttrs);
 	
-	
+	var getDimensions = function(orig){
+		return (options.calculateWidth) ? 
+			{
+				css: {
+					marginRight: orig.css('marginRight'),
+					marginLeft: orig.css('marginLeft')
+				},
+				outerWidth: orig.outerWidth()
+				
+			} :
+			{}
+		;
+	};
 	var focusAttrs = copyAttrs;
 	
 	replaceInputUI.common = function(orig, shim, methods){
 		if(Modernizr.formvalidation){
-			orig.bind('firstinvalid', function(e){
+			orig.on('firstinvalid', function(e){
 				if(!webshims.fromSubmit && isCheckValidity){return;}
-				orig.unbind('invalid.replacedwidgetbubble').bind('invalid.replacedwidgetbubble', function(evt){
+				orig.off('invalid.replacedwidgetbubble').on('invalid.replacedwidgetbubble', function(evt){
 					if(!e.isInvalidUIPrevented() && !evt.isDefaultPrevented()){
 						webshims.validityAlert.showFor( e.target );
 						e.preventDefault();
 						evt.preventDefault();
 					}
-					orig.unbind('invalid.replacedwidgetbubble');
+					orig.off('invalid.replacedwidgetbubble');
 				});
 			});
 		}
@@ -1444,20 +777,10 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 		}
 		
 		var id = orig.attr('id'),
-			attr = (options.calculateWidth) ? 
-				{
-					css: {
-						marginRight: orig.css('marginRight'),
-						marginLeft: orig.css('marginLeft')
-					},
-					outerWidth: orig.outerWidth()
-					
-				} :
-				{},
-			curLabelID
+			label =  (id) ? $('label[for="'+ id +'"]', orig[0].form) : emptyJ
 		;
-		attr.label =  (id) ? $('label[for="'+ id +'"]', orig[0].form) : emptyJ
-		curLabelID =  webshims.getID(attr.label);
+		
+		
 		
 		shim.addClass(orig[0].className);
 		webshims.addShadowDom(orig, shim, {
@@ -1466,26 +789,23 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 			shadowChilds: focusElement
 		});
 		
-		orig
-			.after(shim)
-			.hide()
-		;
+		orig.after(shim);
 		
 		if(orig[0].form){
-			$(orig[0].form).bind('reset', function(e){
+			$(orig[0].form).on('reset', function(e){
 				if(e.originalEvent && !e.isDefaultPrevented()){
 					setTimeout(function(){orig.prop( 'value', orig.prop('value') );}, 0);
 				}
 			});
 		}
-		if(shim.length == 1 && !$('*', shim)[0]){
-			shim.attr('aria-labelledby', curLabelID);
-			attr.label.bind('click', function(){
-				shim.focus();
+		
+		if(label[0]){
+			shim.getShadowFocusElement().attr('aria-labelledby', webshims.getID(label));
+			label.on('click', function(){
+				orig.getShadowFocusElement().focus();
 				return false;
 			});
 		}
-		return attr;
 	};
 	
 	if(Modernizr.formvalidation){
@@ -1505,7 +825,6 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 	//date and datetime-local implement if we have to replace
 	if(!modernizrInputTypes['date'] /*||!modernizrInputTypes['datetime-local']*/ || options.replaceUI){
 		
-		
 		var datetimeFactor = {
 			trigger: [0.595,0.395],
 			normal: [0.565,0.425]
@@ -1521,16 +840,18 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 				focusedOut = false;
 			};
 			var data = datePicker
-				.bind('focusin', function(){
-					resetFocusHandler();
-					data.dpDiv.unbind('mousedown.webshimsmousedownhandler').bind('mousedown.webshimsmousedownhandler', function(){
-						stopFocusout = true;
-					});
-				})
-				.bind('focusout blur', function(e){
-					if(stopFocusout){
-						focusedOut = true;
-						e.stopImmediatePropagation();
+				.on({
+					focusin: function(){
+						resetFocusHandler();
+						data.dpDiv.unbind('mousedown.webshimsmousedownhandler').bind('mousedown.webshimsmousedownhandler', function(){
+							stopFocusout = true;
+						});
+					},
+					'focusout blur': function(e){
+						if(stopFocusout){
+							focusedOut = true;
+							e.stopImmediatePropagation();
+						}
 					}
 				})
 				.datepicker($.extend({
@@ -1544,7 +865,7 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 						}
 					}
 				}, defaultDatepicker, options.datepicker, elem.data('datepicker')))
-				.bind('change', change)
+				.on('change', change)
 				.data('datepicker')
 			;
 			data.dpDiv.addClass('input-date-datepicker-control');
@@ -1552,12 +873,14 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 			if(_wrapper){
 				webshims.triggerDomUpdate(_wrapper[0]);	
 			}
-			['disabled', 'min', 'max', 'value', 'step'].forEach(function(name){
-				var val = elem.prop(name);
-				if(val !== "" && (name != 'disabled' || !val)){
-					elem.prop(name, val);
+			['disabled', 'min', 'max', 'value', 'step', 'data-placeholder'].forEach(function(name){
+				var fn = 'data-placeholder' ? 'attr' : 'prop';
+				var val = elem[fn](name);
+				if(val){
+					elem[fn](name, val);
 				}
 			});
+			
 			return data;
 		};
 		
@@ -1711,7 +1034,7 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 			
 			if(!$.fn.datepicker){return;}
 			var date = $('<input class="input-date" type="text" />'),
-				attr  = this.common(elem, date, replaceInputUI.date.attrs),
+				
 				change = function(e){
 					
 					replaceInputUI.date.blockAttr = true;
@@ -1735,18 +1058,39 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 					triggerInlineForm(elem[0], 'input');
 					triggerInlineForm(elem[0], 'change');
 				},
-				data = configureDatePicker(elem, date, change)
+				data
 				
 			;
-						
-			if(attr.css){
-				date.css(attr.css);
-				if(attr.outerWidth){
-					date.outerWidth(attr.outerWidth);
-				}
-				if(data.trigger[0]){
-					adjustInputWithBtn(date, data.trigger);
-				}
+			
+			this.common(elem, date, replaceInputUI.date.attrs);
+			
+			data = configureDatePicker(elem, date, change);
+			
+			$(elem)
+				.on('updateshadowdom', function(){
+					if (data.trigger[0]) {
+						elem.css({display: ''});
+						if(elem[0].offsetWidth || elem[0].offsetHeight){
+							var attr = getDimensions(elem);
+							if (attr.css) {
+								date.css(attr.css);
+								if (attr.outerWidth) {
+									date.outerWidth(attr.outerWidth);
+								}
+								adjustInputWithBtn(date, data.trigger);
+							}
+						}
+					}
+					elem.css({display: 'none'});
+				})
+				.triggerHandler('updateshadowdom')
+			;
+			if (data.trigger[0]) {
+				setTimeout(function(){
+					webshims.ready('WINDOWLOAD', function(){
+						$(elem).triggerHandler('updateshadowdom');
+					});
+				}, 9);
 			}
 			
 		};
@@ -1772,6 +1116,14 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 					$(shim).datepicker('option', 'maxDate', value);
 				}
 			},
+			'data-placeholder': function(orig, shim, value){
+				var hintValue = (value || '').split('-');
+				var dateFormat;
+				if(hintValue.length == 3){
+					value = $(shim).datepicker('option','dateFormat').replace('yy', hintValue[0]).replace('mm', hintValue[1]).replace('dd', hintValue[2]);
+				} 
+				$.prop(shim, 'placeholder', value);
+			},
 			value: function(orig, shim, value){
 				if(!replaceInputUI.date.blockAttr){
 					try {
@@ -1791,36 +1143,50 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 		replaceInputUI.range = function(elem){
 			if(!$.fn.slider){return;}
 			var range = $('<span class="input-range"><span class="ui-slider-handle" role="slider" tabindex="0" /></span>'),
-				attr  = this.common(elem, range, replaceInputUI.range.attrs),
 				change = function(e, ui){
 					if(e.originalEvent){
 						replaceInputUI.range.blockAttr = true;
 						elem.prop('value', ui.value);
 						replaceInputUI.range.blockAttr = false;
 						triggerInlineForm(elem[0], 'input');
-						triggerInlineForm(elem[0], 'change');
 					}
 				}
 			;
 			
-			$('span', range)
-				.attr('aria-labelledby', attr.label.attr('id'))
-			;
-			attr.label.bind('click', function(){
-				$('span', range).focus();
-				return false;
-			});
+			this.common(elem, range, replaceInputUI.range.attrs);
 			
-			if(attr.css){
-				range.css(attr.css);
-				if(attr.outerWidth){
-					range.outerWidth(attr.outerWidth);
-				}
-			}
-			range.slider($.extend(true, {}, options.slider, elem.data('slider'))).bind('slide', change);
+			
+			elem
+				.on('updateshadowdom', function(){
+					elem.css({display: ''});
+					if (elem[0].offsetWidth || elem[0].offsetHeight) {
+						var attr = getDimensions(elem);
+						if (attr.css) {
+							range.css(attr.css);
+							if (attr.outerWidth) {
+								range.outerWidth(attr.outerWidth);
+							}
+						}
+					}
+					elem.css({display: 'none'});
+				})
+				.triggerHandler('updateshadowdom')
+			;
+			
+			
+			range.slider($.extend(true, {}, options.slider, elem.data('slider')))
+				.on({
+					slide: change,
+					slidechange: function(e){
+						if(e.originalEvent){
+							triggerInlineForm(elem[0], 'change');
+						}
+					}
+				})
+			;
 			
 			['disabled', 'min', 'max', 'step', 'value'].forEach(function(name){
-				var val = elem.attr(name);
+				var val = elem.prop(name);
 				var shadow;
 				if(name == 'value' && !val){
 					
@@ -1830,7 +1196,7 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 					}
 				}
 				if(val != null){
-					elem.attr(name, val);
+					elem.prop(name, val);
 				}
 			});
 		};
@@ -1872,7 +1238,7 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 		};
 	}
 	
-	if(!webshims.bugs.valueAsNumberSet && (options.replaceUI || !Modernizr.inputtypes.date /*|| !Modernizr.inputtypes["datetime-local"]*/ || !Modernizr.inputtypes.range)){
+	if(options.replaceUI || !Modernizr.inputtypes.date /*|| !Modernizr.inputtypes["datetime-local"]*/ || !Modernizr.inputtypes.range){
 		var reflectFn = function(val){
 			if(webshims.data(this, 'hasShadow')){
 				$.prop(this, 'value', $.prop(this, 'value'));
@@ -1883,7 +1249,7 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 		webshims.onNodeNamesPropertyModify('input', 'valueAsDate', reflectFn);
 	}
 	
-	$.each(['disabled', 'min', 'max', 'value', 'step'], function(i, attr){
+	$.each(['disabled', 'min', 'max', 'value', 'step', 'data-placeholder'], function(i, attr){
 		webshims.onNodeNamesPropertyModify('input', attr, function(val){
 				var shadowData = webshims.data(this, 'shadowData');
 				if(shadowData && shadowData.data && shadowData.data[attr] && shadowData.nativeElement === this){
@@ -1904,19 +1270,26 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 			module: 'form-number-date-ui', 
 			callback: function(langObj){
 				var datepickerCFG = $.extend({}, defaultDatepicker, langObj, options.datepicker);
-				$.datepicker.setDefaults(datepickerCFG);
+				
+				
 				if(datepickerCFG.dateFormat && options.datepicker.dateFormat != datepickerCFG.dateFormat ){
 					$('input.hasDatepicker')
 						.filter('.input-date, .input-datetime-local-date')
 						.datepicker('option', 'dateFormat', datepickerCFG.dateFormat)
+						.getNativeElement()
+						.filter('[data-placeholder]')
+						.attr('data-placeholder', function(i, val){
+							return val;
+						})
 					;
 				}
+				$.datepicker.setDefaults(datepickerCFG);
 			}
 		});
 		$(document).unbind('jquery-uiReady.langchange input-widgetsReady.langchange');
 	};
 	
-	$(document).bind('jquery-uiReady.langchange input-widgetsReady.langchange', getDefaults);
+	$(document).on('jquery-uiReady.langchange input-widgetsReady.langchange', getDefaults);
 	getDefaults();
 	
 	//implement set/arrow controls
@@ -1931,10 +1304,14 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 		};
 	})();
 	
-	if(supportsType('number')/* && supportsType('time')*/){return;}
+	if(supportsType('number') && supportsType('time')){return;}
 	var doc = document;
 	var options = webshims.cfg["forms-ext"];
 	var typeModels = webshims.inputTypes;
+	var allowedChars = {
+		number: '0123456789.',
+		time: '0123456789:.'
+	};
 	
 	var getNextStep = function(input, upDown, cache){
 		
@@ -1979,31 +1356,6 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 	
 	webshims.modules["form-number-date-ui"].getNextStep = getNextStep;
 	
-	var doSteps = function(input, type, control){
-		if(input.disabled || input.readOnly || $(control).hasClass('step-controls')){return;}
-		$.prop(input, 'value',  typeModels[type].numberToString(getNextStep(input, ($(control).hasClass('step-up')) ? 1 : -1, {type: type})));
-		$(input).unbind('blur.stepeventshim');
-		triggerInlineForm(input, 'input');
-		
-		
-		if( doc.activeElement ){
-			if(doc.activeElement !== input){
-				try {input.focus();} catch(e){}
-			}
-			setTimeout(function(){
-				if(doc.activeElement !== input){
-					try {input.focus();} catch(e){}
-				}
-				$(input)
-					.one('blur.stepeventshim', function(){
-						triggerInlineForm(input, 'change');
-					})
-				;
-			}, 0);
-			
-		}
-	};
-	
 	
 	if(options.stepArrows){
 		var stepDisableEnable = {
@@ -2022,6 +1374,72 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 		38: 1,
 		40: -1
 	};
+	
+	var changeInput = function(elem, type){
+		var blockBlurChange = false;
+		var DELAY = 9;
+		var doChangeValue, blockChangeValue;
+
+		function step(dir){
+			if($.prop(elem, 'disabled') || elem.readOnly || !dir){return;}
+			doChangeValue = typeModels[type].numberToString(getNextStep(elem, dir, {type: type}));
+			$.prop(elem, 'value', doChangeValue);
+			triggerInlineForm(elem, 'input');
+		}
+
+		function setFocus(){
+			blockBlurChange = true;
+			setTimeout(function(){
+				blockBlurChange = false;
+			}, DELAY + 9);
+			setTimeout(function(){
+				if(!$(elem).is(':focus')){
+					try{
+						elem.focus();
+					} catch(e){}
+				}
+			}, 1);
+		}
+
+		function triggerChange(){
+			var curValue = $.prop(elem, 'value');
+			if(curValue == doChangeValue && curValue != blockChangeValue && typeof curValue == 'string'){
+				triggerInlineForm(elem, 'change');
+			}
+			blockChangeValue = curValue;
+		}
+
+		function init(){
+			blockChangeValue = $(elem)
+				.on({
+					'change.stepcontrol focus.stepcontrol': function(e){
+						if(!blockBlurChange || e.type != 'focus'){
+							blockChangeValue = $.prop(elem, 'value');
+						}
+					},
+					'blur.stepcontrol': function(){
+						if(!blockBlurChange){
+							setTimeout(function(){
+								if(!blockBlurChange && !$(elem).is(':focus')){
+									triggerChange();
+								}
+								doChangeValue = false;
+							}, DELAY);
+						}
+					}
+				})
+				.prop('value')
+			;
+		}
+
+		init();
+		return {
+			triggerChange: triggerChange,
+			step: step,
+			setFocus: setFocus
+		};
+	};
+	
 	webshims.addReady(function(context, contextElem){
 		//ui for numeric values
 		if(options.stepArrows){
@@ -2029,23 +1447,33 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 				var type = $.prop(this, 'type');
 				if(!typeModels[type] || !typeModels[type].asNumber || !options.stepArrows || (options.stepArrows !== true && !options.stepArrows[type]) || supportsType(type) || $(elem).hasClass('has-step-controls')){return;}
 				var elem = this;
+				var uiEvents = changeInput(elem, type);
 				var controls = $('<span class="step-controls" unselectable="on"><span class="step-up" /><span class="step-down" /></span>')	
 					.insertAfter(elem)
-					.bind('selectstart dragstart', function(){return false;})
-					.bind('mousedown mousepress', function(e){
-						doSteps(elem, type, e.target);
-						return false;
-					})
-					.bind('mousepressstart mousepressend', function(e){
-						$(e.target)[e.type == 'mousepressstart' ? 'addClass' : 'removeClass']('mousepress-ui');
+					.on({
+						'selectstart dragstart': function(){return false;},
+						'mousedown mousepress': function(e){
+							if(!$(e.target).hasClass('step-controls')){
+								uiEvents.step(($(e.target).hasClass('step-up')) ? 1 : -1);
+							}
+							uiEvents.setFocus();
+							return false;
+						},
+						'mousepressstart mousepressend': function(e){
+							if(e.type == 'mousepressend'){
+								uiEvents.triggerChange();
+							}
+							$(e.target)[e.type == 'mousepressstart' ? 'addClass' : 'removeClass']('mousepress-ui');
+						}
 					})
 				;
 				var mwheelUpDown = function(e, d){
-					if(elem.disabled || elem.readOnly){return;}
-					$.prop(elem, 'value',  typeModels[type].numberToString(getNextStep(elem, d, {type: type})));
-					triggerInlineForm(elem, 'input');
-					return false;
+					if(d){
+						uiEvents.step(d);
+						return false;
+					}
 				};
+				
 				var jElm = $(elem)
 					.addClass('has-step-controls')
 					.attr({
@@ -2054,32 +1482,57 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 						autocomplete: 'off',
 						role: 'spinbutton'
 					})
-					.bind(($.browser.msie) ? 'keydown' : 'keypress', function(e){
-						if(elem.disabled || elem.readOnly || !stepKeys[e.keyCode]){return;}
-						$.prop(elem, 'value',  typeModels[type].numberToString(getNextStep(elem, stepKeys[e.keyCode], {type: type})));
-						triggerInlineForm(elem, 'input');
-						return false;
+					.on('keyup', function(e){
+						var step = stepKeys[e.keyCode];
+						if(step){
+							uiEvents.triggerChange(step);
+						}
+					})
+					.on(($.browser.msie) ? 'keydown' : 'keypress', function(e){
+						var step = stepKeys[e.keyCode];
+						if(step){
+							uiEvents.step(step);
+							return false;
+						}
 					})
 				;
 				
-				if($.fn.mwheelIntent){
-					jElm.add(controls).bind('mwheelIntent', mwheelUpDown);
-				} else {
-					jElm
-						.bind('focus', function(){
-							jElm.add(controls).unbind('.mwhellwebshims')
-								.bind('mousewheel.mwhellwebshims', mwheelUpDown)
-							;
-						})
-						.bind('blur', function(){
-							$(elem).add(controls).unbind('.mwhellwebshims');
-						})
-					;
+				if(allowedChars[type]){
+					jElm.on('keypress', (function(){
+						var chars = allowedChars[type];
+						return function(event){
+							var chr = String.fromCharCode(event.charCode == null ? event.keyCode : event.charCode);
+							return event.ctrlKey || event.metaKey || (chr < ' ' || chars.indexOf(chr) > -1);
+						};
+					})());
 				}
+				
+				jElm
+					.on({
+						focus: function(){
+							jElm.add(controls).off('.mwhellwebshims')
+								.on('mousewheel.mwhellwebshims', mwheelUpDown)
+							;
+						},
+						blur: function(){
+							$(elem).add(controls).off('.mwhellwebshims');
+						}
+					})
+				;
+				
 				webshims.data(elem, 'step-controls', controls);
 				if(options.calculateWidth){
-					adjustInputWithBtn(jElm, controls);
-					controls.css('marginTop', (jElm.outerHeight() - controls.outerHeight())  / 2 );
+					var init;
+					jElm
+						.on('updateshadowdom', function(){
+							if(!init && (elem.offsetWidth || elem.offsetHeight)){
+								init = true;
+								adjustInputWithBtn(jElm, controls);
+								controls.css('marginTop', (jElm.outerHeight() - controls.outerHeight()) / 2);
+							}
+						})
+						.triggerHandler('updateshadowdom')
+					;
 				}
 			});
 		}
@@ -2088,7 +1541,7 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 
 	
 	webshims.addReady(function(context, elem){
-		$(document).bind('jquery-uiReady.initinputui input-widgetsReady.initinputui', function(e){
+		$(document).on('jquery-uiReady.initinputui input-widgetsReady.initinputui', function(e){
 			if($.datepicker || $.fn.slider){
 				if($.datepicker && !defaultDatepicker.dateFormat){
 					defaultDatepicker.dateFormat = $.datepicker._defaults.dateFormat;
@@ -2105,3 +1558,686 @@ jQuery.webshims.register('form-number-date-ui', function($, webshims, window, do
 	
 });
 
+
+jQuery.webshims.register('form-datalist', function($, webshims, window, document, undefined){
+	"use strict";
+	var doc = document;	
+
+	/*
+	 * implement propType "element" currently only used for list-attribute (will be moved to dom-extend, if needed)
+	 */
+	webshims.propTypes.element = function(descs){
+		webshims.createPropDefault(descs, 'attr');
+		if(descs.prop){return;}
+		descs.prop = {
+			get: function(){
+				var elem = descs.attr.get.call(this);
+				if(elem){
+					elem = document.getElementById(elem);
+					if(elem && descs.propNodeName && !$.nodeName(elem, descs.propNodeName)){
+						elem = null;
+					}
+				}
+				return elem || null;
+			},
+			writeable: false
+		};
+	};
+	
+	
+	/*
+	 * Implements datalist element and list attribute
+	 */
+	
+	(function(){
+		var formsCFG = $.webshims.cfg.forms;
+		var listSupport = Modernizr.input.list;
+		if(listSupport && !formsCFG.customDatalist){return;}
+		
+			var initializeDatalist =  function(){
+				
+				
+			if(!listSupport){
+				webshims.defineNodeNameProperty('datalist', 'options', {
+					prop: {
+						writeable: false,
+						get: function(){
+							var elem = this;
+							var select = $('select', elem);
+							var options;
+							if(select[0]){
+								options = select[0].options;
+							} else {
+								options = $('option', elem).get();
+								if(options.length){
+									webshims.warn('you should wrap your option-elements for a datalist in a select element to support IE and other old browsers.');
+								}
+							}
+							return options;
+						}
+					}
+				});
+			}
+				
+			var inputListProto = {
+				//override autocomplete
+				autocomplete: {
+					attr: {
+						get: function(){
+							var elem = this;
+							var data = $.data(elem, 'datalistWidget');
+							if(data){
+								return data._autocomplete;
+							}
+							return ('autocomplete' in elem) ? elem.autocomplete : elem.getAttribute('autocomplete');
+						},
+						set: function(value){
+							var elem = this;
+							var data = $.data(elem, 'datalistWidget');
+							if(data){
+								data._autocomplete = value;
+								if(value == 'off'){
+									data.hideList();
+								}
+							} else {
+								if('autocomplete' in elem){
+									elem.autocomplete = value;
+								} else {
+									elem.setAttribute('autocomplete', value);
+								}
+							}
+						}
+					}
+				}
+			};
+			
+//			if(formsCFG.customDatalist && (!listSupport || !('selectedOption') in $('<input />')[0])){
+//				//currently not supported x-browser (FF4 has not implemented and is not polyfilled )
+//				inputListProto.selectedOption = {
+//					prop: {
+//						writeable: false,
+//						get: function(){
+//							var elem = this;
+//							var list = $.prop(elem, 'list');
+//							var ret = null;
+//							var value, options;
+//							if(!list){return ret;}
+//							value = $.prop(elem, 'value');
+//							if(!value){return ret;}
+//							options = $.prop(list, 'options');
+//							if(!options.length){return ret;}
+//							$.each(options, function(i, option){
+//								if(value == $.prop(option, 'value')){
+//									ret = option;
+//									return false;
+//								}
+//							});
+//							return ret;
+//						}
+//					}
+//				};
+//			}
+			
+			if(!listSupport){
+				inputListProto['list'] = {
+					attr: {
+						get: function(){
+							var val = webshims.contentAttr(this, 'list');
+							return (val == null) ? undefined : val;
+						},
+						set: function(value){
+							var elem = this;
+							webshims.contentAttr(elem, 'list', value);
+							webshims.objectCreate(shadowListProto, undefined, {input: elem, id: value, datalist: $.prop(elem, 'list')});
+						}
+					},
+					initAttr: true,
+					reflect: true,
+					propType: 'element',
+					propNodeName: 'datalist'
+				};
+			} else {
+				//options only return options, if option-elements are rooted: but this makes this part of HTML5 less backwards compatible
+				if(!($('<datalist><select><option></option></select></datalist>').prop('options') || []).length ){
+					webshims.defineNodeNameProperty('datalist', 'options', {
+						prop: {
+							writeable: false,
+							get: function(){
+								var options = this.options || [];
+								if(!options.length){
+									var elem = this;
+									var select = $('select', elem);
+									if(select[0] && select[0].options && select[0].options.length){
+										options = select[0].options;
+									}
+								}
+								return options;
+							}
+						}
+					});
+				}
+				inputListProto['list'] = {
+					attr: {
+						get: function(){
+							var val = webshims.contentAttr(this, 'list');
+							if(val != null){
+								this.removeAttribute('list');
+							} else {
+								val = $.data(this, 'datalistListAttr');
+							}
+							
+							return (val == null) ? undefined : val;
+						},
+						set: function(value){
+							var elem = this;
+							$.data(elem, 'datalistListAttr', value);
+							webshims.objectCreate(shadowListProto, undefined, {input: elem, id: value, datalist: $.prop(elem, 'list')});
+						}
+					},
+					initAttr: true,
+					reflect: true,
+					propType: 'element',
+					propNodeName: 'datalist'
+				};
+			}
+				
+				
+			webshims.defineNodeNameProperties('input', inputListProto);
+			
+			if($.event.customEvent){
+				$.event.customEvent.updateDatalist = true;
+				$.event.customEvent.updateInput = true;
+				$.event.customEvent.datalistselect = true;
+			} 
+			webshims.addReady(function(context, contextElem){
+				contextElem
+					.filter('datalist > select, datalist, datalist > option, datalist > select > option')
+					.closest('datalist')
+					.triggerHandler('updateDatalist')
+				;
+				
+			});
+			
+			
+		};
+		
+		
+		/*
+		 * ShadowList
+		 */
+		var listidIndex = 0;
+		
+		var noDatalistSupport = {
+			submit: 1,
+			button: 1,
+			reset: 1, 
+			hidden: 1,
+			
+			//ToDo
+			range: 1,
+			date: 1
+		};
+		var lteie6 = ($.browser.msie && parseInt($.browser.version, 10) < 7);
+		var globStoredOptions = {};
+		var getStoredOptions = function(name){
+			if(!name){return [];}
+			if(globStoredOptions[name]){
+				return globStoredOptions[name];
+			}
+			var data;
+			try {
+				data = JSON.parse(localStorage.getItem('storedDatalistOptions'+name));
+			} catch(e){}
+			globStoredOptions[name] = data || [];
+			return data || [];
+		};
+		var storeOptions = function(name, val){
+			if(!name){return;}
+			val = val || [];
+			try {
+				localStorage.setItem( 'storedDatalistOptions'+name, JSON.stringify(val) );
+			} catch(e){}
+		};
+		
+		var getText = function(elem){
+			return (elem.textContent || elem.innerText || $.text([ elem ]) || '');
+		};
+		
+		var shadowListProto = {
+			_create: function(opts){
+				
+				if(noDatalistSupport[$.prop(opts.input, 'type')]){return;}
+				var datalist = opts.datalist;
+				var data = $.data(opts.input, 'datalistWidget');
+				if(datalist && data && data.datalist !== datalist){
+					data.datalist = datalist;
+					data.id = opts.id;
+					
+					data.shadowList.prop('className', 'datalist-polyfill '+ (data.datalist.className || '') + ' '+ data.datalist.id +'-shadowdom');
+					if(formsCFG.positionDatalist){
+						data.shadowList.insertAfter(opts.input);
+					} else {
+						data.shadowList.appendTo('body');
+					}
+					$(data.datalist)
+						.off('updateDatalist.datalistWidget')
+						.on('updateDatalist.datalistWidget', $.proxy(data, '_resetListCached'))
+					;
+					data._resetListCached();
+					return;
+				} else if(!datalist){
+					if(data){
+						data.destroy();
+					}
+					return;
+				} else if(data && data.datalist === datalist){
+					return;
+				}
+				listidIndex++;
+				var that = this;
+				this.hideList = $.proxy(that, 'hideList');
+				this.timedHide = function(){
+					clearTimeout(that.hideTimer);
+					that.hideTimer = setTimeout(that.hideList, 9);
+				};
+				this.datalist = datalist;
+				this.id = opts.id;
+				this.hasViewableData = true;
+				this._autocomplete = $.attr(opts.input, 'autocomplete');
+				$.data(opts.input, 'datalistWidget', this);
+				this.shadowList = $('<div class="datalist-polyfill '+ (this.datalist.className || '') + ' '+ this.datalist.id +'-shadowdom' +'" />');
+				
+				if(formsCFG.positionDatalist || $(opts.input).hasClass('position-datalist')){
+					this.shadowList.insertAfter(opts.input);
+				} else {
+					this.shadowList.appendTo('body');
+				}
+				
+				this.index = -1;
+				this.input = opts.input;
+				this.arrayOptions = [];
+				
+				this.shadowList
+					.delegate('li', 'mouseenter.datalistWidget mousedown.datalistWidget click.datalistWidget', function(e){
+						var items = $('li:not(.hidden-item)', that.shadowList);
+						var select = (e.type == 'mousedown' || e.type == 'click');
+						that.markItem(items.index(e.currentTarget), select, items);
+						if(e.type == 'click'){
+							that.hideList();
+							if(formsCFG.customDatalist){
+								$(opts.input).trigger('datalistselect');
+							}
+						}
+						return (e.type != 'mousedown');
+					})
+					.on('focusout', this.timedHide)
+				;
+				
+				opts.input.setAttribute('autocomplete', 'off');
+				
+				$(opts.input)
+					.attr({
+						//role: 'combobox',
+						'aria-haspopup': 'true'
+					})
+					.on({
+						'input.datalistWidget': function(){
+							if(!that.triggeredByDatalist){
+								that.changedValue = false;
+								that.showHideOptions();
+							}
+						},
+						'keydown.datalistWidget': function(e){
+							var keyCode = e.keyCode;
+							var activeItem;
+							var items;
+							if(keyCode == 40 && !that.showList()){
+								that.markItem(that.index + 1, true);
+								return false;
+							}
+							
+							if(!that.isListVisible){return;}
+							
+							 
+							if(keyCode == 38){
+								that.markItem(that.index - 1, true);
+								return false;
+							} 
+							if(!e.shiftKey && (keyCode == 33 || keyCode == 36)){
+								that.markItem(0, true);
+								return false;
+							} 
+							if(!e.shiftKey && (keyCode == 34 || keyCode == 35)){
+								items = $('li:not(.hidden-item)', that.shadowList);
+								that.markItem(items.length - 1, true, items);
+								return false;
+							} 
+							if(keyCode == 13 || keyCode == 27){
+								if (keyCode == 13){
+									activeItem = $('li.active-item:not(.hidden-item)', that.shadowList);
+									that.changeValue( $('li.active-item:not(.hidden-item)', that.shadowList) );
+								}
+								that.hideList();
+								if(formsCFG.customDatalist && activeItem && activeItem[0]){
+									$(opts.input).trigger('datalistselect');
+								}
+								return false;
+							}
+						},
+						'focus.datalistWidget': function(){
+							if($(this).hasClass('list-focus')){
+								that.showList();
+							}
+						},
+						'mousedown.datalistWidget': function(){
+							if($(this).is(':focus')){
+								that.showList();
+							}
+						},
+						'blur.datalistWidget': this.timedHide
+					})
+				;
+				
+				
+				$(this.datalist)
+					.off('updateDatalist.datalistWidget')
+					.on('updateDatalist.datalistWidget', $.proxy(this, '_resetListCached'))
+				;
+				
+				this._resetListCached();
+				
+				if(opts.input.form && (opts.input.name || opts.input.id)){
+					$(opts.input.form).on('submit.datalistWidget'+opts.input.id, function(){
+						if(!$(opts.input).hasClass('no-datalist-cache') && that._autocomplete != 'off'){
+							var val = $.prop(opts.input, 'value');
+							var name = (opts.input.name || opts.input.id) + $.prop(opts.input, 'type');
+							if(!that.storedOptions){
+								that.storedOptions = getStoredOptions( name );
+							}
+							if(val && that.storedOptions.indexOf(val) == -1){
+								that.storedOptions.push(val);
+								storeOptions(name, that.storedOptions );
+							}
+						}
+					});
+				}
+				$(window).on('unload.datalist'+this.id+' beforeunload.datalist'+this.id, function(){
+					that.destroy();
+				});
+			},
+			destroy: function(){
+				var autocomplete = $.attr(this.input, 'autocomplete');
+				$(this.input)
+					.off('.datalistWidget')
+					.removeData('datalistWidget')
+				;
+				this.shadowList.remove();
+				$(document).off('.datalist'+this.id);
+				$(window).off('.datalist'+this.id);
+				if(this.input.form && this.input.id){
+					$(this.input.form).off('submit.datalistWidget'+this.input.id);
+				}
+				this.input.removeAttribute('aria-haspopup');
+				if(autocomplete === undefined){
+					this.input.removeAttribute('autocomplete');
+				} else {
+					$(this.input).attr('autocomplete', autocomplete);
+				}
+			},
+			_resetListCached: function(e){
+				var that = this;
+				var forceShow;
+				this.needsUpdate = true;
+				this.lastUpdatedValue = false;
+				this.lastUnfoundValue = '';
+
+				if(!this.updateTimer){
+					if(window.QUnit || (forceShow = (e && document.activeElement == that.input))){
+						that.updateListOptions(forceShow);
+					} else {
+						webshims.ready('WINDOWLOAD', function(){
+							that.updateTimer = setTimeout(function(){
+								that.updateListOptions();
+								that = null;
+								listidIndex = 1;
+							}, 200 + (100 * listidIndex));
+						});
+					}
+				}
+			},
+			maskHTML: function(str){
+				return str.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+			},
+			updateListOptions: function(_forceShow){
+				this.needsUpdate = false;
+				clearTimeout(this.updateTimer);
+				this.updateTimer = false;
+				this.shadowList
+					.css({
+						fontSize: $.css(this.input, 'fontSize'),
+						fontFamily: $.css(this.input, 'fontFamily')
+					})
+				;
+				this.searchStart = formsCFG.customDatalist && $(this.input).hasClass('search-start');
+				
+				var list = [];
+				
+				var values = [];
+				var allOptions = [];
+				var rElem, rItem, rOptions, rI, rLen, item;
+				for(rOptions = $.prop(this.datalist, 'options'), rI = 0, rLen = rOptions.length; rI < rLen; rI++){
+					rElem = rOptions[rI];
+					if(rElem.disabled){return;}
+					rItem = {
+						value: $(rElem).val() || '',
+						text: $.trim($.attr(rElem, 'label') || getText(rElem)),
+						className: rElem.className || '',
+						style: $.attr(rElem, 'style') || ''
+					};
+					if(!rItem.text){
+						rItem.text = rItem.value;
+					} else if(rItem.text != rItem.value){
+						rItem.className += ' different-label-value';
+					}
+					values[rI] = rItem.value;
+					allOptions[rI] = rItem;
+				}
+				
+				if(!this.storedOptions){
+					this.storedOptions = ($(this.input).hasClass('no-datalist-cache') || this._autocomplete == 'off') ? [] : getStoredOptions((this.input.name || this.input.id) + $.prop(this.input, 'type'));
+				}
+				
+				this.storedOptions.forEach(function(val, i){
+					if(values.indexOf(val) == -1){
+						allOptions.push({value: val, text: val, className: 'stored-suggest', style: ''});
+					}
+				});
+				
+				for(rI = 0, rLen = allOptions.length; rI < rLen; rI++){
+					item = allOptions[rI];
+					list[rI] = '<li class="'+ item.className +'" style="'+ item.style +'" tabindex="-1" role="listitem"><span class="option-label">'+ this.maskHTML(item.text) +'</span> <span class="option-value">'+ this.maskHTML(item.value) +'</span></li>';
+				}
+				
+				this.arrayOptions = allOptions;
+				this.shadowList.html('<div class="datalist-outer-box"><div class="datalist-box"><ul role="list">'+ list.join("\n") +'</ul></div></div>');
+				
+				if($.fn.bgIframe && lteie6){
+					this.shadowList.bgIframe();
+				}
+				
+				if(_forceShow || this.isListVisible){
+					this.showHideOptions();
+				}
+			},
+			showHideOptions: function(_fromShowList){
+				var value = $.prop(this.input, 'value').toLowerCase();
+				//first check prevent infinite loop, second creates simple lazy optimization
+				if(value === this.lastUpdatedValue || (this.lastUnfoundValue && value.indexOf(this.lastUnfoundValue) === 0)){
+					return;
+				}
+				
+				this.lastUpdatedValue = value;
+				var found = false;
+				var startSearch = this.searchStart;
+				var lis = $('li', this.shadowList);
+				if(value){
+					this.arrayOptions.forEach(function(item, i){
+						var search;
+						if(!('lowerText' in item)){
+							if(item.text != item.value){
+								item.lowerText = item.value.toLowerCase() + item.text.toLowerCase();
+							} else {
+								item.lowerText = item.text.toLowerCase();
+							}
+						}
+						search = item.lowerText.indexOf(value);
+						search = startSearch ? !search : search !== -1;
+						if(search){
+							$(lis[i]).removeClass('hidden-item');
+							found = true;
+						} else {
+							$(lis[i]).addClass('hidden-item');
+						}
+					});
+				} else if(lis.length) {
+					lis.removeClass('hidden-item');
+					found = true;
+				}
+				
+				this.hasViewableData = found;
+				if(!_fromShowList && found){
+					this.showList();
+				}
+				if(!found){
+					this.lastUnfoundValue = value;
+					this.hideList();
+				}
+			},
+			setPos: function(){
+				this.shadowList.css({marginTop: 0, marginLeft: 0, marginRight: 0, marginBottom: 0});
+				var css = (formsCFG.positionDatalist) ? $(this.input).position() : webshims.getRelOffset(this.shadowList, this.input);
+				css.top += $(this.input).outerHeight();
+				css.width = $(this.input).outerWidth() - (parseInt(this.shadowList.css('borderLeftWidth'), 10)  || 0) - (parseInt(this.shadowList.css('borderRightWidth'), 10)  || 0);
+				this.shadowList.css({marginTop: '', marginLeft: '', marginRight: '', marginBottom: ''}).css(css);
+				return css;
+			},
+			showList: function(){
+				if(this.isListVisible){return false;}
+				if(this.needsUpdate){
+					this.updateListOptions();
+				}
+				this.showHideOptions(true);
+				if(!this.hasViewableData){return false;}
+				this.isListVisible = true;
+				var that = this;
+				
+				that.setPos();
+				that.shadowList.addClass('datalist-visible').find('li.active-item').removeClass('active-item');
+				
+				$(window).unbind('.datalist'+that.id);
+				$(document)
+					.off('.datalist'+that.id)
+					.on('mousedown.datalist'+that.id +' focusin.datalist'+that.id, function(e){
+						if(e.target === that.input ||  that.shadowList[0] === e.target || $.contains( that.shadowList[0], e.target )){
+							clearTimeout(that.hideTimer);
+							setTimeout(function(){
+								clearTimeout(that.hideTimer);
+							}, 9);
+						} else {
+							that.timedHide();
+						}
+					})
+					.on('updateshadowdom.datalist'+that.id, function(){
+						that.setPos();
+					})
+				;
+				return true;
+			},
+			hideList: function(){
+				if(!this.isListVisible){return false;}
+				var that = this;
+				var triggerChange = function(e){
+					if(that.changedValue){
+						$(that.input).trigger('change');
+					}
+					that.changedValue = false;
+				};
+				
+				that.shadowList.removeClass('datalist-visible list-item-active');
+				that.index = -1;
+				that.isListVisible = false;
+				if(that.changedValue){
+					that.triggeredByDatalist = true;
+					webshims.triggerInlineForm && webshims.triggerInlineForm(that.input, 'input');
+					if($(that.input).is(':focus')){
+						$(that.input).one('blur', triggerChange);
+					} else {
+						triggerChange();
+					}
+					that.triggeredByDatalist = false;
+				}
+				$(document).unbind('.datalist'+that.id);
+				$(window)
+					.off('.datalist'+that.id)
+					.one('resize.datalist'+that.id, function(){
+						that.shadowList.css({top: 0, left: 0});
+					})
+				;
+				return true;
+			},
+			scrollIntoView: function(elem){
+				var ul = $('ul', this.shadowList);
+				var div = $('div.datalist-box', this.shadowList);
+				var elemPos = elem.position();
+				var containerHeight;
+				elemPos.top -=  (parseInt(ul.css('paddingTop'), 10) || 0) + (parseInt(ul.css('marginTop'), 10) || 0) + (parseInt(ul.css('borderTopWidth'), 10) || 0);
+				if(elemPos.top < 0){
+					div.scrollTop( div.scrollTop() + elemPos.top - 2);
+					return;
+				}
+				elemPos.top += elem.outerHeight();
+				containerHeight = div.height();
+				if(elemPos.top > containerHeight){
+					div.scrollTop( div.scrollTop() + (elemPos.top - containerHeight) + 2);
+				}
+			},
+			changeValue: function(activeItem){
+				if(!activeItem[0]){return;}
+				var newValue = $('span.option-value', activeItem).text();
+				var oldValue = $.prop(this.input, 'value');
+				if(newValue != oldValue){
+					$(this.input)
+						.prop('value', newValue)
+						.triggerHandler('updateInput')
+					;
+					this.changedValue = true;
+				}
+			},
+			markItem: function(index, doValue, items){
+				var activeItem;
+				var goesUp;
+				
+				items = items || $('li:not(.hidden-item)', this.shadowList);
+				if(!items.length){return;}
+				if(index < 0){
+					index = items.length - 1;
+				} else if(index >= items.length){
+					index = 0;
+				}
+				items.removeClass('active-item');
+				this.shadowList.addClass('list-item-active');
+				activeItem = items.filter(':eq('+ index +')').addClass('active-item');
+				
+				if(doValue){
+					this.changeValue(activeItem);
+					this.scrollIntoView(activeItem);
+				}
+				this.index = index;
+			}
+		};
+		
+		//init datalist update
+		initializeDatalist();
+	})();
+	
+});

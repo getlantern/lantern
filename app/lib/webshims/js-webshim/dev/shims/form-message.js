@@ -1,9 +1,10 @@
 jQuery.webshims.register('form-message', function($, webshims, window, document, undefined, options){
+	"use strict";
 	var validityMessages = webshims.validityMessages;
 	
 	var implementProperties = (options.overrideMessages || options.customMessages) ? ['customValidationMessage'] : [];
 	
-	validityMessages['en'] = validityMessages['en'] || validityMessages['en-US'] || {
+	validityMessages['en'] = $.extend(true, {
 		typeMismatch: {
 			email: 'Please enter an email address.',
 			url: 'Please enter a URL.',
@@ -27,7 +28,7 @@ jQuery.webshims.register('form-message', function($, webshims, window, document,
 			defaultMessage: 'Please fill out this field.',
 			checkbox: 'Please check this box if you want to proceed.'
 		}
-	};
+	}, (validityMessages['en'] || validityMessages['en-US'] || {}));
 	
 	
 	['select', 'radio'].forEach(function(type){
@@ -44,7 +45,7 @@ jQuery.webshims.register('form-message', function($, webshims, window, document,
 	validityMessages['en-US'] = validityMessages['en-US'] || validityMessages['en'];
 	validityMessages[''] = validityMessages[''] || validityMessages['en-US'];
 	
-	validityMessages['de'] = validityMessages['de'] || {
+	validityMessages['de'] = $.extend(true, {
 		typeMismatch: {
 			email: '{%value} ist keine zulässige E-Mail-Adresse',
 			url: '{%value} ist keine zulässige Webadresse',
@@ -67,7 +68,7 @@ jQuery.webshims.register('form-message', function($, webshims, window, document,
 			defaultMessage: 'Bitte geben Sie einen Wert ein',
 			checkbox: 'Bitte aktivieren Sie das Kästchen'
 		}
-	};
+	}, (validityMessages['de'] || {}));
 	
 	['select', 'radio'].forEach(function(type){
 		validityMessages['de'].valueMissing[type] = 'Bitte wählen Sie eine Option aus';
@@ -92,6 +93,9 @@ jQuery.webshims.register('form-message', function($, webshims, window, document,
 			['value', 'min', 'max', 'title', 'maxlength', 'label'].forEach(function(attr){
 				if(message.indexOf('{%'+attr) === -1){return;}
 				var val = ((attr == 'label') ? $.trim($('label[for="'+ elem.id +'"]', elem.form).text()).replace(/\*$|:$/, '') : $.attr(elem, attr)) || '';
+				if(name == 'patternMismatch' && attr == 'title' && !val){
+					webshims.error('no title for patternMismatch provided. Always add a title attribute.');
+				}
 				message = message.replace('{%'+ attr +'}', val);
 				if('value' == attr){
 					message = message.replace('{%valueLen}', val.length);
@@ -113,27 +117,6 @@ jQuery.webshims.register('form-message', function($, webshims, window, document,
 			currentValidationMessage = langObj;
 		}
 	});
-	//options only return options, if option-elements are rooted: but this makes this part of HTML5 less backwards compatible
-	if(Modernizr.input.list && !($('<datalist><select><option></option></select></datalist>').prop('options') || []).length ){
-		webshims.defineNodeNameProperty('datalist', 'options', {
-			prop: {
-				writeable: false,
-				get: function(){
-					var options = this.options || [];
-					if(!options.length){
-						var elem = this;
-						var select = $('select', elem);
-						if(select[0] && select[0].options && select[0].options.length){
-							options = select[0].options;
-						}
-					}
-					return options;
-				}
-			}
-		});
-	}
-	
-	
 	
 	implementProperties.forEach(function(messageProp){
 		webshims.defineNodeNamesProperty(['fieldset', 'output', 'button'], messageProp, {

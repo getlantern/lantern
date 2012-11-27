@@ -67,7 +67,6 @@
 	var remove;
 	var regStart = /\/\/<([A-Za-z]+)/;
 	var regEnd = /\/\/>/;
-	var regCombo = /combos\:\s([0-9,\,\s]+)/i;
 	var webshimsBuilder = {
 		data: null,
 		init: function(form){
@@ -80,20 +79,51 @@
 					var dependentUnChecked = function(id){
 						$('#'+id).prop('disabled', false);
 					};
+					var form = this;
 					$('fieldset.config', this)
 						.delegate('input[data-dependent]', 'click cfginit', function(){
 							$.attr(this, 'data-dependent').split(" ").forEach( $.prop(this, 'checked') ? dependentChecked : dependentUnChecked );
-							
 						})
+						
+					;
+					
+					$(this)
+						.delegate('input[type="checkbox"]', 'click cfginit', (function(){
+							var timer;
+							var modLink = $('a.modernizr-builder', form);
+							var base = modLink.data('base');
+							return function(){
+								clearTimeout(timer);
+								timer = setTimeout(function(){
+									var mods = [];
+									var add = '';
+									$('input[data-mod]:checked', form).each(function(){
+										$.merge(mods, ($(this).data('mod') || '').split(' '));
+									});
+									add = mods.length ? '-'+ (mods.join('-')) : '';
+									$('code.modernizr-output', form).html(add);
+									modLink.attr('href', base + add); 
+								}, 0);
+							};
+						})())
 						.find('input[data-dependent]')
 						.trigger('cfginit')
 					;
 					
 					$(this).bind('submit', function(e){
-						var features = $('fieldset.config input:checked:not(:disabled)[id]', this).get().map(function(checkbox){
-							return checkbox.id;
+						var buildFeatures = [];
+						var removeFeatures = [];
+						
+						$('fieldset.config input:not(:disabled)[id]', this).each(function(checkbox){
+							var id = $.prop(this, 'id');
+							if($.prop(this, 'checked')){
+								buildFeatures.push(id);
+							} else {
+								$.merge(removeFeatures, $(this).data('features') || [id]);
+							}
+							
 						});
-						webshimsBuilder.buildScript(features, $('textarea[name="js_code"]', this));
+						webshimsBuilder.buildScript(buildFeatures, removeFeatures, $('textarea[name="js_code"]', this));
 					});
 				});
 			});
@@ -107,10 +137,27 @@
 				}
 			});
 		},
-		buildScript: function(features, output){
-			var result = [];
+		getRemoveCombos: function(removeFeatures){
 			var combos = [];
+			var removeModules = [];
+			$.each(removeFeatures, function(i, feature){
+				$.merge(removeModules, $.webshims.features[feature]);
+			});
+			$.each($.webshims.c, function(c, modules){
+				$.each(modules, function(i, module){
+					if($.inArray(module, removeModules) !== -1){
+						combos.push(c);
+						return false;
+					}
+				});
+			});
+			return combos;
+		},
+		buildScript: function(features, removeFeatures, output){
+			var result = [];
+			var combos = webshimsBuilder.getRemoveCombos(removeFeatures);
 			var data = webshimsBuilder.data.replace(/\t/g, "").split(/[\n\r]/g);
+			
 			data.forEach(function(line){
 				var foundFeature;
 				var featureCombo;
@@ -120,18 +167,10 @@
 				} else if( !line || !(foundFeature = regStart.exec(line)) || $.inArray(foundFeature[1], features) !== -1 ){
 					if(combos.length && line.indexOf("removeCombos") != -1){
 						line = line.replace(/\/\/>removeCombos</, "removeCombos = removeCombos.concat(["+ combos.join(",") +"]);" );
-						combos = [];
 					}
 					result.push(line);
 				} else if(foundFeature){
-					if( (featureCombo = regCombo.exec(line)) ){
-						featureCombo[1].split(/,/).forEach(function(combo){
-							combo = combo.trim();
-							if($.inArray(combo, combos) == -1){
-								combos.push(combo);
-							}
-						});
-					} 
+					
 					remove = true;
 				}
 			});

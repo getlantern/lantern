@@ -1,43 +1,3 @@
-//innerShiv for IE8-
-(function($){
-	if(Modernizr.genericDOM){return;}
-	var webshims = $.webshims;
-	var doc = document;
-	var b;
-	var d;
-	var rtagName = /<([\w:]+)/;
-	var wrapMap = {
-		option: 1,
-		optgroup: 1,
-		legend: 1,
-		thead: 1,
-		tr: 1,
-		td: 1,
-		col: 1,
-		area: 1
-	};
-	
-	
-	var htmlExp = /^(?:[^<]*(<[\w\W]+>)[^>]*$)/;
-	
-	webshims.fixHTML5 = function(h) {
-			if(typeof h != 'string' || wrapMap[ (rtagName.exec(h) || ["", ""])[1].toLowerCase() ]){return h;}
-			if (!d) {
-				b = doc.body;
-				if(!b){return h;}
-				d = doc.createElement('div');
-				d.style.display = 'none';
-			}
-			var e = d.cloneNode(false);
-			b.appendChild(e);
-			e.innerHTML = h;
-			b.removeChild(e);
-			return e.childNodes;
-		}
-	;
-
-})(jQuery);
-
 //DOM-Extension helper
 jQuery.webshims.register('dom-extend', function($, webshims, window, document, undefined){
 	"use strict";
@@ -111,8 +71,6 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 			});
 		};
 	});
-	
-	
 	
 	
 	['removeAttr', 'prop', 'attr'].forEach(function(type){
@@ -370,6 +328,9 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 				}
 			};
 		}
+		if(!descs.attr){
+			descs.attr = {};
+		}
 	};
 	
 	$.extend(webshims, {
@@ -397,60 +358,155 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 		//http://www.w3.org/TR/html5/common-dom-interfaces.html#reflect
 		createPropDefault: createPropDefault,
 		data: elementData,
-		moveToFirstEvent: (function(){
-			var getData = $._data ? '_data' : 'data';
-			return function(elem, eventType, bindType){
-				var events = ($[getData](elem, 'events') || {})[eventType];
-				var fn;
-				
-				if(events && events.length > 1){
-					fn = events.pop();
-					if(!bindType){
-						bindType = 'bind';
-					}
-					if(bindType == 'bind' && events.delegateCount){
-						events.splice( events.delegateCount, 0, fn);
-					} else {
-						events.unshift( fn );
-					}
-					
-					
+		moveToFirstEvent: function(elem, eventType, bindType){
+			var events = ($._data(elem, 'events') || {})[eventType];
+			var fn;
+			
+			if(events && events.length > 1){
+				fn = events.pop();
+				if(!bindType){
+					bindType = 'bind';
 				}
-				elem = null;
+				if(bindType == 'bind' && events.delegateCount){
+					events.splice( events.delegateCount, 0, fn);
+				} else {
+					events.unshift( fn );
+				}
+				
+				
+			}
+			elem = null;
+		},
+		addShadowDom: (function(){
+			var resizeTimer;
+			var lastHeight;
+			var lastWidth;
+			
+			var docObserve = {
+				init: false,
+				runs: 0,
+				test: function(){
+					var height = docObserve.getHeight();
+					var width = docObserve.getWidth();
+					
+					if(height != docObserve.height || width != docObserve.width){
+						docObserve.height = height;
+						docObserve.width = width;
+						docObserve.handler({type: 'docresize'});
+						docObserve.runs++;
+						if(docObserve.runs < 9){
+							setTimeout(docObserve.test, 90);
+						}
+					} else {
+						docObserve.runs = 0;
+					}
+				},
+				handler: function(e){
+					clearTimeout(resizeTimer);
+					resizeTimer = setTimeout(function(){
+						if(e.type == 'resize'){
+							var width = $(window).width();
+							var height = $(window).width();
+							if(height == lastHeight && width == lastWidth){
+								return;
+							}
+							lastHeight = height;
+							lastWidth = width;
+							
+							docObserve.height = docObserve.getHeight();
+							docObserve.width = docObserve.getWidth();
+							
+						}
+						$.event.trigger('updateshadowdom');
+					}, (e.type == 'resize') ? 50 : 9);
+				},
+				_create: function(){
+					$.each({ Height: "getHeight", Width: "getWidth" }, function(name, type){
+						var body = document.body;
+						var doc = document.documentElement;
+						docObserve[type] = function(){
+							return Math.max(
+								body[ "scroll" + name ], doc[ "scroll" + name ],
+								body[ "offset" + name ], doc[ "offset" + name ],
+								doc[ "client" + name ]
+							);
+						};
+					});
+				},
+				start: function(){
+					if(!this.init && document.body){
+						this.init = true;
+						this._create();
+						this.height = docObserve.getHeight();
+						this.width = docObserve.getWidth();
+						setInterval(this.test, 600);
+						$(this.test);
+						webshims.ready('WINDOWLOAD', this.test);
+						$(window).bind('resize', this.handler);
+						(function(){
+							var oldAnimate = $.fn.animate;
+							var animationTimer;
+							
+							$.fn.animate = function(){
+								clearTimeout(animationTimer);
+								animationTimer = setTimeout(function(){
+									docObserve.test();
+								}, 99);
+								
+								return oldAnimate.apply(this, arguments);
+							};
+						})();
+					}
+				}
+			};
+			
+			
+			$.event.customEvent.updateshadowdom = true;
+			webshims.docObserve = function(){
+				webshims.ready('DOM', function(){
+					docObserve.start();
+				});
+			};
+			return function(nativeElem, shadowElem, opts){
+				opts = opts || {};
+				if(nativeElem.jquery){
+					nativeElem = nativeElem[0];
+				}
+				if(shadowElem.jquery){
+					shadowElem = shadowElem[0];
+				}
+				var nativeData = $.data(nativeElem, dataID) || $.data(nativeElem, dataID, {});
+				var shadowData = $.data(shadowElem, dataID) || $.data(shadowElem, dataID, {});
+				var shadowFocusElementData = {};
+				if(!opts.shadowFocusElement){
+					opts.shadowFocusElement = shadowElem;
+				} else if(opts.shadowFocusElement){
+					if(opts.shadowFocusElement.jquery){
+						opts.shadowFocusElement = opts.shadowFocusElement[0];
+					}
+					shadowFocusElementData = $.data(opts.shadowFocusElement, dataID) || $.data(opts.shadowFocusElement, dataID, shadowFocusElementData);
+				}
+				
+				nativeData.hasShadow = shadowElem;
+				shadowFocusElementData.nativeElement = shadowData.nativeElement = nativeElem;
+				shadowFocusElementData.shadowData = shadowData.shadowData = nativeData.shadowData = {
+					nativeElement: nativeElem,
+					shadowElement: shadowElem,
+					shadowFocusElement: opts.shadowFocusElement
+				};
+				if(opts.shadowChilds){
+					opts.shadowChilds.each(function(){
+						elementData(this, 'shadowData', shadowData.shadowData);
+					});
+				}
+				
+				if(opts.data){
+					shadowFocusElementData.shadowData.data = shadowData.shadowData.data = nativeData.shadowData.data = opts.data;
+				}
+				opts = null;
+				webshims.docObserve();
 			};
 		})(),
-		addShadowDom: function(nativeElem, shadowElem, opts){
-			opts = opts || {};
-			if(nativeElem.jquery){
-				nativeElem = nativeElem[0];
-			}
-			if(shadowElem.jquery){
-				shadowElem = shadowElem[0];
-			}
-			if(!opts.shadowFocusElement){
-				opts.shadowFocusElement = shadowElem;
-			}
-			var nativeData = $.data(nativeElem, dataID) || $.data(nativeElem, dataID, {});
-			var shadowData = $.data(shadowElem, dataID) || $.data(shadowElem, dataID, {});
-			nativeData.hasShadow = shadowElem;
-			shadowData.nativeElement = nativeElem;
-			shadowData.shadowData = nativeData.shadowData = {
-				nativeElement: nativeElem,
-				shadowElement: shadowElem,
-				shadowFocusElement: opts.shadowFocusElement
-			};
-			if(opts.shadowChilds){
-				opts.shadowChilds.each(function(){
-					elementData(this, 'shadowData', shadowData.shadowData);
-				});
-			}
-			
-			if(opts.data){
-				nativeData.shadowData.data = opts.data;
-				shadowData.shadowData.data = opts.data;
-			}
-			opts = null;
-		},
 		propTypes: {
 			standard: function(descs, name){
 				createPropDefault(descs);
@@ -481,9 +537,57 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 						return descs.attr.get.call(this) != null;
 					}
 				};
-			}
+			},
+			"src": (function(){
+				var anchor = document.createElement('a');
+				anchor.style.display = "none";
+				return function(descs, name){
+					
+					createPropDefault(descs);
+					if(descs.prop){return;}
+					descs.prop = {
+						set: function(val){
+							descs.attr.set.call(this, val);
+						},
+						get: function(){
+							var href = this.getAttribute(name);
+							var ret;
+							if(href == null){return '';}
+							
+							anchor.setAttribute('href', href+'' );
+							
+							if(!$.support.hrefNormalized){
+								try {
+									$(anchor).insertAfter(this);
+									ret = anchor.getAttribute('href', 4);
+								} catch(er){
+									ret = anchor.getAttribute('href', 4);
+								}
+								$(anchor).detach();
+							}
+							return ret || anchor.href;
+						}
+					};
+				};
+			})(),
+			enumarated: function(descs, name){
+					
+					createPropDefault(descs);
+					if(descs.prop){return;}
+					descs.prop = {
+						set: function(val){
+							descs.attr.set.call(this, val);
+						},
+						get: function(){
+							var val = (descs.attr.get.call(this) || '').toLowerCase();
+							if(!val || descs.limitedTo.indexOf(val) == -1){
+								val = descs.defaultValue;
+							}
+							return val;
+						}
+					};
+				}
 			
-//			,enumarated: $.noop
 //			,unsignedLong: $.noop
 //			,"doubble": $.noop
 //			,"long": $.noop
@@ -511,7 +615,7 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 			havePolyfill[prop] = true;
 						
 			if(descs.reflect){
-				webshims.propTypes[descs.propType || 'standard'](descs);
+				webshims.propTypes[descs.propType || 'standard'](descs, prop);
 			}
 			
 			['prop', 'attr', 'removeAttr'].forEach(function(type){
@@ -544,7 +648,7 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 				}
 				if(propType){
 					if(descs[prop][propType]){
-						webshims.log('override: '+ name +'['+prop +'] for '+ propType);
+						//webshims.log('override: '+ name +'['+prop +'] for '+ propType);
 					} else {
 						descs[prop][propType] = {};
 						['value', 'set', 'get'].forEach(function(copyProp){
@@ -656,8 +760,10 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 		},
 		contentAttr: function(elem, name, val){
 			if(!elem.nodeName){return;}
+			var attr;
 			if(val === undefined){
-				val = (elem.attributes[name] || {}).value;
+				attr = (elem.attributes[name] || {});
+				val = attr.specified ? attr.value : null;
 				return (val == null) ? undefined : val;
 			}
 			

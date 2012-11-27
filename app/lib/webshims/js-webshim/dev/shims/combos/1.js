@@ -64,7 +64,7 @@ var toString;
 // http://www.ecma-international.org/publications/files/drafts/tc39-2009-025.pdf
 
 if (!Function.prototype.bind) {
-    Function.prototype.bind = function bind(that) { // .length is 1
+    Function.prototype.bind = function (that) { // .length is 1
         // 1. Let Target be the this value.
         var target = this;
         // 2. If IsCallable(Target) is false, throw a TypeError exception.
@@ -177,7 +177,7 @@ owns = call.bind(prototypeOfObject.hasOwnProperty);
 
 // ES5 15.4.3.2
 if (!Array.isArray) {
-    Array.isArray = function isArray(obj) {
+    Array.isArray = function (obj) {
         return toString(obj) == "[object Array]";
     };
 }
@@ -197,7 +197,7 @@ if (!Array.isArray) {
 // ES5 15.4.4.18
 // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/array/foreach
 if (!Array.prototype.forEach) {
-    Array.prototype.forEach = function forEach(fun /*, thisp*/) {
+    Array.prototype.forEach = function (fun /*, thisp*/) {
         var self = toObject(this),
             thisp = arguments[1],
             i = 0,
@@ -222,7 +222,7 @@ if (!Array.prototype.forEach) {
 // ES5 15.4.4.19
 // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/map
 if (!Array.prototype.map) {
-    Array.prototype.map = function map(fun /*, thisp*/) {
+    Array.prototype.map = function (fun /*, thisp*/) {
         var self = toObject(this),
             length = self.length >>> 0,
             result = Array(length),
@@ -243,7 +243,7 @@ if (!Array.prototype.map) {
 
 // ES5 15.4.4.20
 if (!Array.prototype.filter) {
-    Array.prototype.filter = function filter(fun /*, thisp */) {
+    Array.prototype.filter = function (fun /*, thisp */) {
         var self = toObject(this),
             length = self.length >>> 0,
             result = [],
@@ -264,7 +264,7 @@ if (!Array.prototype.filter) {
 
 // ES5 15.4.4.16
 if (!Array.prototype.every) {
-    Array.prototype.every = function every(fun /*, thisp */) {
+    Array.prototype.every = function (fun /*, thisp */) {
         var self = toObject(this),
             length = self.length >>> 0,
             thisp = arguments[1];
@@ -285,7 +285,7 @@ if (!Array.prototype.every) {
 // ES5 15.4.4.17
 // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/some
 if (!Array.prototype.some) {
-    Array.prototype.some = function some(fun /*, thisp */) {
+    Array.prototype.some = function (fun /*, thisp */) {
         var self = toObject(this),
             length = self.length >>> 0,
             thisp = arguments[1];
@@ -306,7 +306,7 @@ if (!Array.prototype.some) {
 // ES5 15.4.4.21
 // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/reduce
 if (!Array.prototype.reduce) {
-    Array.prototype.reduce = function reduce(fun /*, initial*/) {
+    Array.prototype.reduce = function (fun /*, initial*/) {
         var self = toObject(this),
             length = self.length >>> 0;
 
@@ -348,7 +348,7 @@ if (!Array.prototype.reduce) {
 // ES5 15.4.4.22
 // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/reduceRight
 if (!Array.prototype.reduceRight) {
-    Array.prototype.reduceRight = function reduceRight(fun /*, initial*/) {
+    Array.prototype.reduceRight = function (fun /*, initial*/) {
         var self = toObject(this),
             length = self.length >>> 0;
 
@@ -389,7 +389,7 @@ if (!Array.prototype.reduceRight) {
 // ES5 15.4.4.14
 // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf
 if (!Array.prototype.indexOf) {
-    Array.prototype.indexOf = function indexOf(sought /*, fromIndex */ ) {
+    Array.prototype.indexOf = function (sought /*, fromIndex */ ) {
         var self = toObject(this),
             length = self.length >>> 0;
 
@@ -413,7 +413,7 @@ if (!Array.prototype.indexOf) {
 
 // ES5 15.4.4.15
 if (!Array.prototype.lastIndexOf) {
-    Array.prototype.lastIndexOf = function lastIndexOf(sought /*, fromIndex */) {
+    Array.prototype.lastIndexOf = function (sought /*, fromIndex */) {
         var self = toObject(this),
             length = self.length >>> 0;
 
@@ -429,6 +429,29 @@ if (!Array.prototype.lastIndexOf) {
                 return i;
         }
         return -1;
+    };
+}
+
+//
+// Array
+// =====
+//
+
+// ES5 15.4.4.12
+// http://es5.github.com/#x15.4.4.12
+// Default value for second param
+// [bugfix, ielt9, old browsers]
+// IE < 9 bug: [1,2].splice(0).join("") == "" but should be "12"
+if([1,2].splice(0).length != 2) {
+    var _origArraySplice = Array.prototype.splice;
+
+    Array.prototype.splice = function(start, deleteCount) {
+        if(!arguments.length)return [];
+
+        return _origArraySplice.apply(this, [
+                start === void 0 ? 0 : start,
+                deleteCount === void 0 ? (this.length - start) : deleteCount
+            ].concat(slice.call(arguments, 2)))
     };
 }
 
@@ -572,6 +595,36 @@ if (!String.prototype.trim || ws.trim()) {
     String.prototype.trim = function trim() {
         return String(this).replace(trimBeginRegexp, "").replace(trimEndRegexp, "");
     };
+}
+
+// ES5 15.5.4.14
+// http://es5.github.com/#x15.5.4.14
+// [bugfix, chrome]
+// If separator is undefined, then the result array contains just one String, which is the this value (converted to a String). If limit is not undefined, then the output array is truncated so that it contains no more than limit elements.
+// "0".split(undefined, 0) -> []
+if("0".split(void 0, 0).length) {
+    var oldSplit = String.prototype.split;
+    String.prototype.split = function(separator, limit) {
+        if(separator === void 0 && limit === 0)return [];
+        return oldSplit.apply(this, arguments);
+    }
+}
+
+// ECMA-262, 3rd B.2.3
+// Note an ECMAScript standart, although ECMAScript 3rd Edition has a non-normative section suggesting uniform semantics
+// and it should be normalized across all browsers
+// [bugfix, IE lt 9] IE < 9 substr() with negative value not working in IE
+if("".substr && "0b".substr(-1) !== "b") {
+    var oldSubstr = String.prototype.substr;
+    /**
+* Get the substring of a string
+* @param {integer} start where to start the substring
+* @param {integer} length how many characters to return
+* @return {string}
+*/
+    String.prototype.substr = function(start, length) {
+        return oldSubstr.call(this, start < 0 ? (start = this.length + start) < 0 ? 0 : start : start, length);
+    }
 }
 
 //
@@ -747,45 +800,6 @@ if((!advancedObjectProperties || !Object.create || !Object.defineProperties || !
 })(jQuery, jQuery.webshims);
 
 
-//innerShiv for IE8-
-(function($){
-	if(Modernizr.genericDOM){return;}
-	var webshims = $.webshims;
-	var doc = document;
-	var b;
-	var d;
-	var rtagName = /<([\w:]+)/;
-	var wrapMap = {
-		option: 1,
-		optgroup: 1,
-		legend: 1,
-		thead: 1,
-		tr: 1,
-		td: 1,
-		col: 1,
-		area: 1
-	};
-	
-	
-	var htmlExp = /^(?:[^<]*(<[\w\W]+>)[^>]*$)/;
-	
-	webshims.fixHTML5 = function(h) {
-			if(typeof h != 'string' || wrapMap[ (rtagName.exec(h) || ["", ""])[1].toLowerCase() ]){return h;}
-			if (!d) {
-				b = doc.body;
-				if(!b){return h;}
-				d = doc.createElement('div');
-				d.style.display = 'none';
-			}
-			var e = d.cloneNode(false);
-			b.appendChild(e);
-			e.innerHTML = h;
-			b.removeChild(e);
-			return e.childNodes;
-		}
-	;
-
-})(jQuery);
 
 //DOM-Extension helper
 jQuery.webshims.register('dom-extend', function($, webshims, window, document, undefined){
@@ -860,8 +874,6 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 			});
 		};
 	});
-	
-	
 	
 	
 	['removeAttr', 'prop', 'attr'].forEach(function(type){
@@ -1119,6 +1131,9 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 				}
 			};
 		}
+		if(!descs.attr){
+			descs.attr = {};
+		}
 	};
 	
 	$.extend(webshims, {
@@ -1146,60 +1161,155 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 		//http://www.w3.org/TR/html5/common-dom-interfaces.html#reflect
 		createPropDefault: createPropDefault,
 		data: elementData,
-		moveToFirstEvent: (function(){
-			var getData = $._data ? '_data' : 'data';
-			return function(elem, eventType, bindType){
-				var events = ($[getData](elem, 'events') || {})[eventType];
-				var fn;
-				
-				if(events && events.length > 1){
-					fn = events.pop();
-					if(!bindType){
-						bindType = 'bind';
-					}
-					if(bindType == 'bind' && events.delegateCount){
-						events.splice( events.delegateCount, 0, fn);
-					} else {
-						events.unshift( fn );
-					}
-					
-					
+		moveToFirstEvent: function(elem, eventType, bindType){
+			var events = ($._data(elem, 'events') || {})[eventType];
+			var fn;
+			
+			if(events && events.length > 1){
+				fn = events.pop();
+				if(!bindType){
+					bindType = 'bind';
 				}
-				elem = null;
+				if(bindType == 'bind' && events.delegateCount){
+					events.splice( events.delegateCount, 0, fn);
+				} else {
+					events.unshift( fn );
+				}
+				
+				
+			}
+			elem = null;
+		},
+		addShadowDom: (function(){
+			var resizeTimer;
+			var lastHeight;
+			var lastWidth;
+			
+			var docObserve = {
+				init: false,
+				runs: 0,
+				test: function(){
+					var height = docObserve.getHeight();
+					var width = docObserve.getWidth();
+					
+					if(height != docObserve.height || width != docObserve.width){
+						docObserve.height = height;
+						docObserve.width = width;
+						docObserve.handler({type: 'docresize'});
+						docObserve.runs++;
+						if(docObserve.runs < 9){
+							setTimeout(docObserve.test, 90);
+						}
+					} else {
+						docObserve.runs = 0;
+					}
+				},
+				handler: function(e){
+					clearTimeout(resizeTimer);
+					resizeTimer = setTimeout(function(){
+						if(e.type == 'resize'){
+							var width = $(window).width();
+							var height = $(window).width();
+							if(height == lastHeight && width == lastWidth){
+								return;
+							}
+							lastHeight = height;
+							lastWidth = width;
+							
+							docObserve.height = docObserve.getHeight();
+							docObserve.width = docObserve.getWidth();
+							
+						}
+						$.event.trigger('updateshadowdom');
+					}, (e.type == 'resize') ? 50 : 9);
+				},
+				_create: function(){
+					$.each({ Height: "getHeight", Width: "getWidth" }, function(name, type){
+						var body = document.body;
+						var doc = document.documentElement;
+						docObserve[type] = function(){
+							return Math.max(
+								body[ "scroll" + name ], doc[ "scroll" + name ],
+								body[ "offset" + name ], doc[ "offset" + name ],
+								doc[ "client" + name ]
+							);
+						};
+					});
+				},
+				start: function(){
+					if(!this.init && document.body){
+						this.init = true;
+						this._create();
+						this.height = docObserve.getHeight();
+						this.width = docObserve.getWidth();
+						setInterval(this.test, 600);
+						$(this.test);
+						webshims.ready('WINDOWLOAD', this.test);
+						$(window).bind('resize', this.handler);
+						(function(){
+							var oldAnimate = $.fn.animate;
+							var animationTimer;
+							
+							$.fn.animate = function(){
+								clearTimeout(animationTimer);
+								animationTimer = setTimeout(function(){
+									docObserve.test();
+								}, 99);
+								
+								return oldAnimate.apply(this, arguments);
+							};
+						})();
+					}
+				}
+			};
+			
+			
+			$.event.customEvent.updateshadowdom = true;
+			webshims.docObserve = function(){
+				webshims.ready('DOM', function(){
+					docObserve.start();
+				});
+			};
+			return function(nativeElem, shadowElem, opts){
+				opts = opts || {};
+				if(nativeElem.jquery){
+					nativeElem = nativeElem[0];
+				}
+				if(shadowElem.jquery){
+					shadowElem = shadowElem[0];
+				}
+				var nativeData = $.data(nativeElem, dataID) || $.data(nativeElem, dataID, {});
+				var shadowData = $.data(shadowElem, dataID) || $.data(shadowElem, dataID, {});
+				var shadowFocusElementData = {};
+				if(!opts.shadowFocusElement){
+					opts.shadowFocusElement = shadowElem;
+				} else if(opts.shadowFocusElement){
+					if(opts.shadowFocusElement.jquery){
+						opts.shadowFocusElement = opts.shadowFocusElement[0];
+					}
+					shadowFocusElementData = $.data(opts.shadowFocusElement, dataID) || $.data(opts.shadowFocusElement, dataID, shadowFocusElementData);
+				}
+				
+				nativeData.hasShadow = shadowElem;
+				shadowFocusElementData.nativeElement = shadowData.nativeElement = nativeElem;
+				shadowFocusElementData.shadowData = shadowData.shadowData = nativeData.shadowData = {
+					nativeElement: nativeElem,
+					shadowElement: shadowElem,
+					shadowFocusElement: opts.shadowFocusElement
+				};
+				if(opts.shadowChilds){
+					opts.shadowChilds.each(function(){
+						elementData(this, 'shadowData', shadowData.shadowData);
+					});
+				}
+				
+				if(opts.data){
+					shadowFocusElementData.shadowData.data = shadowData.shadowData.data = nativeData.shadowData.data = opts.data;
+				}
+				opts = null;
+				webshims.docObserve();
 			};
 		})(),
-		addShadowDom: function(nativeElem, shadowElem, opts){
-			opts = opts || {};
-			if(nativeElem.jquery){
-				nativeElem = nativeElem[0];
-			}
-			if(shadowElem.jquery){
-				shadowElem = shadowElem[0];
-			}
-			if(!opts.shadowFocusElement){
-				opts.shadowFocusElement = shadowElem;
-			}
-			var nativeData = $.data(nativeElem, dataID) || $.data(nativeElem, dataID, {});
-			var shadowData = $.data(shadowElem, dataID) || $.data(shadowElem, dataID, {});
-			nativeData.hasShadow = shadowElem;
-			shadowData.nativeElement = nativeElem;
-			shadowData.shadowData = nativeData.shadowData = {
-				nativeElement: nativeElem,
-				shadowElement: shadowElem,
-				shadowFocusElement: opts.shadowFocusElement
-			};
-			if(opts.shadowChilds){
-				opts.shadowChilds.each(function(){
-					elementData(this, 'shadowData', shadowData.shadowData);
-				});
-			}
-			
-			if(opts.data){
-				nativeData.shadowData.data = opts.data;
-				shadowData.shadowData.data = opts.data;
-			}
-			opts = null;
-		},
 		propTypes: {
 			standard: function(descs, name){
 				createPropDefault(descs);
@@ -1230,9 +1340,57 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 						return descs.attr.get.call(this) != null;
 					}
 				};
-			}
+			},
+			"src": (function(){
+				var anchor = document.createElement('a');
+				anchor.style.display = "none";
+				return function(descs, name){
+					
+					createPropDefault(descs);
+					if(descs.prop){return;}
+					descs.prop = {
+						set: function(val){
+							descs.attr.set.call(this, val);
+						},
+						get: function(){
+							var href = this.getAttribute(name);
+							var ret;
+							if(href == null){return '';}
+							
+							anchor.setAttribute('href', href+'' );
+							
+							if(!$.support.hrefNormalized){
+								try {
+									$(anchor).insertAfter(this);
+									ret = anchor.getAttribute('href', 4);
+								} catch(er){
+									ret = anchor.getAttribute('href', 4);
+								}
+								$(anchor).detach();
+							}
+							return ret || anchor.href;
+						}
+					};
+				};
+			})(),
+			enumarated: function(descs, name){
+					
+					createPropDefault(descs);
+					if(descs.prop){return;}
+					descs.prop = {
+						set: function(val){
+							descs.attr.set.call(this, val);
+						},
+						get: function(){
+							var val = (descs.attr.get.call(this) || '').toLowerCase();
+							if(!val || descs.limitedTo.indexOf(val) == -1){
+								val = descs.defaultValue;
+							}
+							return val;
+						}
+					};
+				}
 			
-//			,enumarated: $.noop
 //			,unsignedLong: $.noop
 //			,"doubble": $.noop
 //			,"long": $.noop
@@ -1260,7 +1418,7 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 			havePolyfill[prop] = true;
 						
 			if(descs.reflect){
-				webshims.propTypes[descs.propType || 'standard'](descs);
+				webshims.propTypes[descs.propType || 'standard'](descs, prop);
 			}
 			
 			['prop', 'attr', 'removeAttr'].forEach(function(type){
@@ -1293,7 +1451,7 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 				}
 				if(propType){
 					if(descs[prop][propType]){
-						webshims.log('override: '+ name +'['+prop +'] for '+ propType);
+						//webshims.log('override: '+ name +'['+prop +'] for '+ propType);
 					} else {
 						descs[prop][propType] = {};
 						['value', 'set', 'get'].forEach(function(copyProp){
@@ -1405,8 +1563,10 @@ jQuery.webshims.register('dom-extend', function($, webshims, window, document, u
 		},
 		contentAttr: function(elem, name, val){
 			if(!elem.nodeName){return;}
+			var attr;
 			if(val === undefined){
-				val = (elem.attributes[name] || {}).value;
+				attr = (elem.attributes[name] || {});
+				val = attr.specified ? attr.value : null;
 				return (val == null) ? undefined : val;
 			}
 			

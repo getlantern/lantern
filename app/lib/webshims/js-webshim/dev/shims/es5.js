@@ -64,7 +64,7 @@ var toString;
 // http://www.ecma-international.org/publications/files/drafts/tc39-2009-025.pdf
 
 if (!Function.prototype.bind) {
-    Function.prototype.bind = function bind(that) { // .length is 1
+    Function.prototype.bind = function (that) { // .length is 1
         // 1. Let Target be the this value.
         var target = this;
         // 2. If IsCallable(Target) is false, throw a TypeError exception.
@@ -177,7 +177,7 @@ owns = call.bind(prototypeOfObject.hasOwnProperty);
 
 // ES5 15.4.3.2
 if (!Array.isArray) {
-    Array.isArray = function isArray(obj) {
+    Array.isArray = function (obj) {
         return toString(obj) == "[object Array]";
     };
 }
@@ -197,7 +197,7 @@ if (!Array.isArray) {
 // ES5 15.4.4.18
 // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/array/foreach
 if (!Array.prototype.forEach) {
-    Array.prototype.forEach = function forEach(fun /*, thisp*/) {
+    Array.prototype.forEach = function (fun /*, thisp*/) {
         var self = toObject(this),
             thisp = arguments[1],
             i = 0,
@@ -222,7 +222,7 @@ if (!Array.prototype.forEach) {
 // ES5 15.4.4.19
 // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/map
 if (!Array.prototype.map) {
-    Array.prototype.map = function map(fun /*, thisp*/) {
+    Array.prototype.map = function (fun /*, thisp*/) {
         var self = toObject(this),
             length = self.length >>> 0,
             result = Array(length),
@@ -243,7 +243,7 @@ if (!Array.prototype.map) {
 
 // ES5 15.4.4.20
 if (!Array.prototype.filter) {
-    Array.prototype.filter = function filter(fun /*, thisp */) {
+    Array.prototype.filter = function (fun /*, thisp */) {
         var self = toObject(this),
             length = self.length >>> 0,
             result = [],
@@ -264,7 +264,7 @@ if (!Array.prototype.filter) {
 
 // ES5 15.4.4.16
 if (!Array.prototype.every) {
-    Array.prototype.every = function every(fun /*, thisp */) {
+    Array.prototype.every = function (fun /*, thisp */) {
         var self = toObject(this),
             length = self.length >>> 0,
             thisp = arguments[1];
@@ -285,7 +285,7 @@ if (!Array.prototype.every) {
 // ES5 15.4.4.17
 // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/some
 if (!Array.prototype.some) {
-    Array.prototype.some = function some(fun /*, thisp */) {
+    Array.prototype.some = function (fun /*, thisp */) {
         var self = toObject(this),
             length = self.length >>> 0,
             thisp = arguments[1];
@@ -306,7 +306,7 @@ if (!Array.prototype.some) {
 // ES5 15.4.4.21
 // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/reduce
 if (!Array.prototype.reduce) {
-    Array.prototype.reduce = function reduce(fun /*, initial*/) {
+    Array.prototype.reduce = function (fun /*, initial*/) {
         var self = toObject(this),
             length = self.length >>> 0;
 
@@ -348,7 +348,7 @@ if (!Array.prototype.reduce) {
 // ES5 15.4.4.22
 // https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Objects/Array/reduceRight
 if (!Array.prototype.reduceRight) {
-    Array.prototype.reduceRight = function reduceRight(fun /*, initial*/) {
+    Array.prototype.reduceRight = function (fun /*, initial*/) {
         var self = toObject(this),
             length = self.length >>> 0;
 
@@ -389,7 +389,7 @@ if (!Array.prototype.reduceRight) {
 // ES5 15.4.4.14
 // https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/indexOf
 if (!Array.prototype.indexOf) {
-    Array.prototype.indexOf = function indexOf(sought /*, fromIndex */ ) {
+    Array.prototype.indexOf = function (sought /*, fromIndex */ ) {
         var self = toObject(this),
             length = self.length >>> 0;
 
@@ -413,7 +413,7 @@ if (!Array.prototype.indexOf) {
 
 // ES5 15.4.4.15
 if (!Array.prototype.lastIndexOf) {
-    Array.prototype.lastIndexOf = function lastIndexOf(sought /*, fromIndex */) {
+    Array.prototype.lastIndexOf = function (sought /*, fromIndex */) {
         var self = toObject(this),
             length = self.length >>> 0;
 
@@ -429,6 +429,29 @@ if (!Array.prototype.lastIndexOf) {
                 return i;
         }
         return -1;
+    };
+}
+
+//
+// Array
+// =====
+//
+
+// ES5 15.4.4.12
+// http://es5.github.com/#x15.4.4.12
+// Default value for second param
+// [bugfix, ielt9, old browsers]
+// IE < 9 bug: [1,2].splice(0).join("") == "" but should be "12"
+if([1,2].splice(0).length != 2) {
+    var _origArraySplice = Array.prototype.splice;
+
+    Array.prototype.splice = function(start, deleteCount) {
+        if(!arguments.length)return [];
+
+        return _origArraySplice.apply(this, [
+                start === void 0 ? 0 : start,
+                deleteCount === void 0 ? (this.length - start) : deleteCount
+            ].concat(slice.call(arguments, 2)))
     };
 }
 
@@ -572,6 +595,36 @@ if (!String.prototype.trim || ws.trim()) {
     String.prototype.trim = function trim() {
         return String(this).replace(trimBeginRegexp, "").replace(trimEndRegexp, "");
     };
+}
+
+// ES5 15.5.4.14
+// http://es5.github.com/#x15.5.4.14
+// [bugfix, chrome]
+// If separator is undefined, then the result array contains just one String, which is the this value (converted to a String). If limit is not undefined, then the output array is truncated so that it contains no more than limit elements.
+// "0".split(undefined, 0) -> []
+if("0".split(void 0, 0).length) {
+    var oldSplit = String.prototype.split;
+    String.prototype.split = function(separator, limit) {
+        if(separator === void 0 && limit === 0)return [];
+        return oldSplit.apply(this, arguments);
+    }
+}
+
+// ECMA-262, 3rd B.2.3
+// Note an ECMAScript standart, although ECMAScript 3rd Edition has a non-normative section suggesting uniform semantics
+// and it should be normalized across all browsers
+// [bugfix, IE lt 9] IE < 9 substr() with negative value not working in IE
+if("".substr && "0b".substr(-1) !== "b") {
+    var oldSubstr = String.prototype.substr;
+    /**
+* Get the substring of a string
+* @param {integer} start where to start the substring
+* @param {integer} length how many characters to return
+* @return {string}
+*/
+    String.prototype.substr = function(start, length) {
+        return oldSubstr.call(this, start < 0 ? (start = this.length + start) < 0 ? 0 : start : start, length);
+    }
 }
 
 //

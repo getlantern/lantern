@@ -3,6 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head>
 	<meta charset="utf-8"/>
+	<meta http-equiv="X-UA-Compatible" content="IE=Edge" />
 	<link href="../../css/styles.css" rel="stylesheet" />
 	
 	<style>
@@ -22,7 +23,7 @@
 		}
 	</style>
 	
-	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.8/jquery.min.js"></script>
 	<script src="../../js-webshim/minified/extras/mousepress.js"></script>
 	<script src="../../js-webshim/minified/extras/modernizr-custom.js"></script>
 	<script>
@@ -37,6 +38,9 @@
 	<script class="example">
 //		$.webshims.debug = true;
 		
+		$.webshims.setOptions('forms', {
+			customDatalist: true
+		});
 		$.webshims.setOptions('forms-ext', {
 			replaceUI: true,
 			slider: {
@@ -49,10 +53,7 @@
 				changeYear: true
 			}
 		});
-		$.webshims.setOptions({
-			//we do use DOM-/JS-APIs on DOM-ready, so we need to delay the ready event
-//			waitReady: false
-		});
+		
 		//load all polyfill features
 		//or load only a specific feature with $.webshims.polyfill('feature-name');
 		$.webshims.polyfill();
@@ -68,23 +69,139 @@
 			
 			$('#range').each(function(){
 				var range = $(this);
-				var number = $('<input class="number" value="'+ range.prop('value') +'" min="0" max="100" type="number" />');
+				var number = $('<input class="number" min="0" max="100" type="number" />');
+				var updateNumber = function(){
+					number.prop('value', $(this).prop('value'));
+				};
+				var updateRange = function(){
+					range.prop('value', number.prop('value'));
+				};
+				
 				range.beforePolyfill(number);
 					
-				number.bind('input', function(){
-					range.attr('value', number.attr('value'));
-				});
+				number.bind('input', updateRange);
 				range
-					.bind('input', function(){
-						number.attr('value', $(this).attr('value'));
-					})
+					.bind('input', updateNumber)
+					.each(updateNumber)
 				;
+			});
+			$('#email').bind('datalistselect', function(){
+				if(window.console){
+					console.log('selected form datalist: '+ $.prop(this, 'value'));
+				}
 			});
 		});
 	</script>
 	<script src="../../demo-js/demo.js"></script>
+	<script>
+		if(!('cubicbezierrange' in Modernizr) && Modernizr._prefixes){
+			Modernizr.addTest('cubicbezierrange', function() {
+				var el = document.createElement('div');
+				el.style.cssText = Modernizr._prefixes.join('transition-timing-function' + ':cubic-bezier(1,0,0,1.1); ');
+				return !!el.style.length;
+			});
+		}
+	</script>
 	<title>configuring HTML5 forms/Web Forms 2.0 widgets: webshims lib - the polyfilling capability based loading JS library</title>
-		
+	<style>
+.datalist-polyfill {
+	overflow: hidden;
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 1000;
+	min-width: 90px;
+	margin: 1px 0 0 -10px;
+	padding: 0 10px 10px;
+	cursor: default;
+}
+
+.cubicbezierrange .datalist-polyfill {
+	display: block;
+	visibility: hidden;
+	-webkit-transition: visibility 400ms ease-in-out;
+	-moz-transition: visibility 400ms ease-in-out;
+	-ms-transition: visibility 400ms ease-in-out;
+	-o-transition: visibility 400ms ease-in-out;
+	transition: visibility 400ms ease-in-out;
+}
+
+.datalist-polyfill.datalist-visible {
+	visibility: visible;
+}
+
+.datalist-polyfill .datalist-outer-box {
+	position: static;
+}
+
+.cubicbezierrange .datalist-outer-box {
+	opacity: 0;
+	-webkit-transform: translate(0, -100%);
+	-moz-transform: translate(0, -100%);
+	-ms-transform: translate(0, -100%);
+	-o-transform: translate(0, -100%);
+	transform: translate(0, -100%);
+	-webkit-transition: all 400ms ease-in-out;
+	-moz-transition: all 400ms ease-in-out;
+	-ms-transition: all 400ms ease-in-out;
+	-o-transition: all 400ms ease-in-out;
+	transition: all 400ms ease-in-out;
+}
+
+.cubicbezierrange .datalist-visible .datalist-outer-box {
+	opacity: 1;
+	-webkit-transform: translate(0, 0);
+	-moz-transform: translate(0, 0);
+	-ms-transform: translate(0, 0);
+	-o-transform: translate(0, 0);
+	transform: translate(0, 0);
+}
+
+.datalist-polyfill .datalist-box {
+	border: 0;
+}
+
+.datalist-polyfill .datalist-outer-box {
+	position: relative;
+	margin-top: 9px;
+	border-radius: 6px;
+	padding: 6px 0;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+	color: #333;
+	background-color: #fff;
+}
+
+.datalist-polyfill .datalist-outer-box:after {
+	position: absolute;
+	top: -6px;
+	left: 50%;
+	z-index: 10;
+	width: 0;
+	height: 0;
+	margin-left: -6px;
+	border-top: 0;
+	border-right: 6px solid transparent;
+	border-bottom: 6px solid #fff;
+	border-left: 6px solid transparent;
+	content: "";
+}
+
+.datalist-polyfill li {
+	padding: 4px 10px;
+	outline: none;
+	cursor: pointer;
+	-webkit-transition: all 200ms linear;
+	-moz-transition: all 200ms linear;
+	-ms-transition: all 200ms linear;
+	-o-transition: all 200ms linear;
+	transition: all 200ms linear;
+}
+
+.datalist-polyfill .active-item {
+	color: #fff;
+	background-color: #0c4a66;
+}
+	</style>
 </head>
 
 <body>
@@ -115,9 +232,14 @@
 		</nav>
 		<div class="main-box">
 		<section>
-			<h2>Configuring of HTML5 input-widgets (input[type="range"], input[type="date"], input[type="datetime-local"] polyfills)</h2>
+			<h2>Configuring of HTML5 input-widgets (input[type="range"], input[type="date"], input[type="number"] polyfills)</h2>
 			<h3 id="replace-ui">Using custom widgets in all browsers</h3>
 <code class="block">
+//implement custom datalist in all browsers
+$.webshims.setOptions('forms', {
+	customDatalist: true
+});
+//implement custom [type="date"]/[type="range"] widgets in all browsers
 $.webshims.setOptions('forms-ext', {
 	replaceUI: true
 });
@@ -189,14 +311,14 @@ if(!Modernizr.inputtypes.range){
 							<label for="range">
 								range:
 							</label>
-						   	<input name="range" type="range" id="range" />
+							<input name="range" type="range" id="range" />
 						</div>
 						
 						<div class="form-element">
 							<label for="range-max">
 								range (with data attribute):
 							</label>
-						   	<input data-slider='{"range": "max"}' name="range-max" type="range" id="range-max" />
+							<input data-slider='{"range": "max"}' name="range-max" type="range" id="range-max" />
 						</div>
 						
 						
@@ -205,7 +327,7 @@ if(!Modernizr.inputtypes.range){
 								date: <dfn title="required">*</dfn>
 							</label>
 							
-						   	<input min="2010-12-10" max="2016-01-01" name="date" required="required" type="date" id="date" />
+							<input min="2010-12-10" max="2016-01-01" name="date" required="required" type="date" id="date" />
 							(min="2010-12-10" max="2016-01-01")
 						</div>
 						
@@ -214,14 +336,28 @@ if(!Modernizr.inputtypes.range){
 								date (with data attribute): <dfn title="required">*</dfn>
 							</label>
 							
-						   	<input data-datepicker='{"showOn": "button", "buttonImage": "../../css/calendar.gif", "buttonImageOnly": true}' name="date-data" required="required" type="date" id="date-data" />
+							<input data-datepicker='{"showOn": "button", "buttonImage": "../../css/calendar.gif", "buttonImageOnly": true}' name="date-data" required="required" type="date" id="date-data" />
+						</div>
+						<div class="form-element">
+							<label for="email">
+								E-Mail + datalist: <dfn title="required">*</dfn>
+							</label>
+							<input list="datalist" name="email" required="required" type="email" id="email" form="form" />
+							<datalist id="datalist">
+								<select>
+									<option value="yourmail@gmail.com"></option>
+									<option value="yourmail@yahoo.com"></option>
+									<option value="mail@some-example-domain.com"></option>
+									<option value="foo@bar.baz"></option>
+								</select>
+							</datalist>
 						</div>
 						<!--
 						<div class="form-element">
 							<label for="datetime-local">
 								datetime-local: 
 							</label>
-						   	<input value="2010-12-31T21:00" name="datetime-local" type="datetime-local" step="600" id="datetime-local" />
+							<input value="2010-12-31T21:00" name="datetime-local" type="datetime-local" step="600" id="datetime-local" />
 							(step=600)
 						</div>
 						
@@ -229,7 +365,7 @@ if(!Modernizr.inputtypes.range){
 							<label for="datetime-local-data">
 								datetime-local-data: 
 							</label>
-						   	<input data-datepicker='{"showOn": "both", "buttonImage": "../../css/calendar.gif", "buttonImageOnly": true}' name="datetime-local-data" type="datetime-local" step="900" id="datetime-local-data" />
+							<input data-datepicker='{"showOn": "both", "buttonImage": "../../css/calendar.gif", "buttonImageOnly": true}' name="datetime-local-data" type="datetime-local" step="900" id="datetime-local-data" />
 							(step=900)
 						</div>
 						-->			

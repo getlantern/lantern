@@ -146,32 +146,24 @@
 		return !(isValid[0]);
 	}, 'Please check one of these checkboxes.');
 	
-	//based on jörn zaefferes validiation plugin
-	// http://docs.jquery.com/Plugins/Validation/Methods/creditcard
-	// based on http://en.wikipedia.org/wiki/Luhn
-	var dashDigit = /[^0-9-]+/;
+	// based on https://sites.google.com/site/abapexamples/javascript/luhn-validation
 	addCustomValidityRule('creditcard', function(elem, value){
 		if(!value || !$(elem).hasClass('creditcard-input')){return;}
-		if (!dashDigit.test(value)){				
-			return true;
+		value = value.replace(/\-/g, "");
+		//if it's not numeric return true >- for invalid
+		if(value != value * 1){return true;}
+		var len = value.length;
+		var sum = 0;
+		var mul = 1;
+		var ca;
+	
+		while (len--) {
+			ca = parseInt(value.charAt(len),10) * mul;
+			sum += ca - (ca>9)*9;// sum += ca - (-(ca>9))|9
+			// 1 <--> 2 toggle.
+			mul ^= 3; // (mul = 3 - mul);
 		}
-		var nCheck = 0,
-			nDigit = 0,
-			bEven = false;
-
-		value = value.replace(/\D/g, "");
-
-		for (n = value.length - 1; n >= 0; n--) {
-			var cDigit = value.charAt(n);
-			nDigit = parseInt(cDigit, 10);
-			if (bEven && (nDigit *= 2) > 9) {
-				nDigit -= 9;
-			}
-			nCheck += nDigit;
-			bEven = !bEven;
-		}
-
-		return (nCheck % 10) !== 0;
+		return !((sum%10 === 0) && (sum > 0));
 	}, 'Please enter a valid credit card number');
 	
 	var dependentDefaults = {
@@ -243,7 +235,7 @@
 			} else {
 				$(data.masterElement).bind('change', function(){
 					$.webshims.refreshCustomValidityRules(elem);
-					if($(elem).is('.form-ui-invalid, .form-ui-valid')){
+					if($(elem).is('.user-error, .user-success')){
 						$(elem).trigger('refreshvalidityui');
 					}
 				});

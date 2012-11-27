@@ -91,8 +91,8 @@ jQuery.webshims.register('mediaelement-native-fix', function($, webshims, window
 	webshims.addReady(function(context, insertedElement){
 		$('video, audio', context)
 			.add(insertedElement.filter('video, audio'))
-			.bind('load progress', loadProgessListener)
-			.bind('emptied', removeProgress)
+			.on('load progress', loadProgessListener)
+			.on('emptied', removeProgress)
 		;
 	 });
 

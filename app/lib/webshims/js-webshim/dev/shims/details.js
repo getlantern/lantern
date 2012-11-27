@@ -62,45 +62,47 @@ jQuery.webshims.register('details', function($, webshims, window, doc, undefined
 		var tabindex = $.attr(this, 'tabIndex') || '0';
 		bindDetailsSummary(this, details);
 		$(this)
-			.bind('focus.summaryPolyfill', function(){
-				$(this).addClass('summary-has-focus');
-			})
-			.bind('blur.summaryPolyfill', function(){
-				$(this).removeClass('summary-has-focus');
-			})
-			.bind('mouseenter.summaryPolyfill', function(){
-				$(this).addClass('summary-has-hover');
-			})
-			.bind('mouseleave.summaryPolyfill', function(){
-				$(this).removeClass('summary-has-hover');
-			})
-			.bind('click.summaryPolyfill', function(e){
-				var details = isInterActiveSummary(this);
-				if(details){
-					if(!stopNativeClickTest && e.originalEvent){
+			.on({
+				'focus.summaryPolyfill': function(){
+					$(this).addClass('summary-has-focus');
+				},
+				'blur.summaryPolyfill': function(){
+					$(this).removeClass('summary-has-focus');
+				},
+				'mouseenter.summaryPolyfill': function(){
+					$(this).addClass('summary-has-hover');
+				},
+				'mouseleave.summaryPolyfill': function(){
+					$(this).removeClass('summary-has-hover');
+				},
+				'click.summaryPolyfill': function(e){
+					var details = isInterActiveSummary(this);
+					if(details){
+						if(!stopNativeClickTest && e.originalEvent){
+							stopNativeClickTest = true;
+							e.stopImmediatePropagation();
+							e.preventDefault();
+							$(this).trigger('click');
+							stopNativeClickTest = false;
+							return false;
+						} else {
+							clearTimeout(timer); 
+							
+							timer = setTimeout(function(){
+								if(!e.isDefaultPrevented()){
+									details.prop('open', !details.prop('open'));
+								}
+							}, 0);
+						}
+					}
+				},
+				'keydown.summaryPolyfill': function(e){
+					if( (e.keyCode == 13 || e.keyCode == 32) && !e.isDefaultPrevented()){
 						stopNativeClickTest = true;
-						e.stopImmediatePropagation();
 						e.preventDefault();
 						$(this).trigger('click');
 						stopNativeClickTest = false;
-						return false;
-					} else {
-						clearTimeout(timer); 
-						
-						timer = setTimeout(function(){
-							if(!e.isDefaultPrevented()){
-								details.prop('open', !details.prop('open'));
-							}
-						}, 0);
 					}
-				}
-			})
-			.bind('keydown.summaryPolyfill', function(e){
-				if( (e.keyCode == 13 || e.keyCode == 32) && !e.isDefaultPrevented()){
-					stopNativeClickTest = true;
-					e.preventDefault();
-					$(this).trigger('click');
-					stopNativeClickTest = false;
 				}
 			})
 			.attr({tabindex: tabindex, role: 'button'})

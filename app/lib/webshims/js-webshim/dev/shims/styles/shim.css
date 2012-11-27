@@ -1,11 +1,15 @@
 article,aside,canvas,details,figcaption,figure,
 footer,header,hgroup,menu,nav,section,summary { 
-    display:block;
+	display:block;
 }
 audio {
 	display: none;
 	height: 0;
 	width: 0;
+}
+audio,
+video {
+	overflow: hidden;
 }
 audio.webshims-controls,
 video {
@@ -18,13 +22,73 @@ audio[controls] {
 	min-height: 45px;
 	min-width: 40px;
 }
-video *,
-audio * {
-	display: none !important;
+video > *,
+audio > * {
+	visibility: hidden;
+}
+.no-swf video > *,
+.no-swf audio > * {
+	visibility: inherit;
 }
 .flashblocker-assumed {
 	min-height: 20px;
 	min-width: 20px;
+}
+.cue-display {
+	position: absolute !important;
+	margin: 0;
+	padding: 0px !important;
+	max-width: 100% !important;
+	max-height: 100% !important;
+	border: none !important;
+	background: none !important;
+	text-align: center;
+	visibility: hidden;
+	font-family: sans-serif;
+	font-size: 12px;
+	white-space: pre-wrap;
+	overflow: hidden;
+}
+.cue-display b {
+	font-weight: bold;
+}
+.cue-display i {
+	font-style: italic;
+}
+.cue-display u {
+	text-decoration: underline;
+}
+.cue-display span.cue-wrapper {
+	position: absolute;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	display: block;
+	padding: 0;
+	margin: 0;
+	width: 100%;
+	font-size: 160%;
+	color: #fff;
+	visibility: visible !important;
+}
+.cue-display .cue-line {
+	display: block;
+}
+.cue-display span.cue {
+	display: inline-block;
+	padding: 3px 5px;
+	background: #000;
+	background: rgba(0,0,0,0.8);
+	color: #fff;
+}
+.cue-display .description-cues {
+	position: absolute;
+	top: -99px;
+	left: -99px;
+	display: block;
+	width: 5px;
+	height: 5px;
+	overflow: hidden;
 }
 mark {
 	background-color: #ff9;
@@ -35,7 +99,6 @@ mark {
 
 /* reset */
 .input-range .ui-slider-range,
-.placeholder-box,
 .placeholder-box,
 .placeholder-text,
 .input-datetime-local,
@@ -55,6 +118,19 @@ output {
 	position: relative;
 }
 
+.webshims-visual-hide {
+	position: absolute !important;
+	top: 0 !important;
+	left: 0 !important;
+	visibility: hidden !important;
+	width: 0 !important;
+	height: 0 !important;
+	overflow: hidden !important;
+}
+
+.webshims-visual-hide * {
+	visibility: hidden !important;
+}
 
 /* placeholder */
 .placeholder-box {
@@ -65,7 +141,6 @@ output {
 .polyfill-important .placeholder-box {
 	position: relative !important;
 	display: inline-block !important;
-	overflow: hidden !important;
 	margin: 0 !important;
 	padding: 0 !important;
 	width: auto !important;
@@ -104,13 +179,15 @@ output {
 .placeholder-visible {
 	color: #999;
 }
-.placeholder-visible .placeholder-text {
+.placeholder-visible .placeholder-text,
+.placeholder-text.placeholder-visible {
 	display: inline-block;
 }
 .placeholder-focused.placeholder-visible {
 	color: #ccc;
 }
-.polyfill-important .placeholder-visible .placeholder-text {
+.polyfill-important .placeholder-visible .placeholder-text,
+.polyfill-important .placeholder-text.placeholder-visible {
 	display: inline-block !important;
 }
 
@@ -500,6 +577,7 @@ datalist {
 	position: absolute !important;
 	overflow: hidden;
 	padding: 0 6px 6px 0;
+	font: 12px/140% sans-serif;
 	z-index: 1000000000;
 	
 }
@@ -511,9 +589,10 @@ datalist {
 	display: inline-block !important;
 	background: #fafafa;
 	color: #000;
-	border: 1px solid #000;
+	border: 1px solid #ccc;
 	padding: 5px;
-	border-radius: 2px;
+	border-radius: 5px;
+	box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
 	zoom: 1 !important;
 	min-width: 60px;
 }
@@ -528,16 +607,18 @@ datalist {
 	border-left: 9px solid transparent;
 	border-right: 9px solid transparent;
 	
-	border-bottom: 7px solid #000;
+	border-bottom: 7px solid #ccc;
 	border-top: none;
 	zoom: 1;
 	font-size: 0;
 }
-html .validity-alert span.va-arrow {
+html .validity-alert span.va-arrow,
+html .validity-alert .va-arrow .va-arrow-box{
 	border-left-color: transparent;
 	border-right-color: transparent;
 }
-.polyfill-important .validity-alert span.va-arrow {
+.polyfill-important .validity-alert span.va-arrow,
+.polyfill-important .validity-alert .va-arrow .va-arrow-box {
 	border-left-color: transparent !important;
 	border-right-color: transparent !important;
 }
