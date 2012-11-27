@@ -1,6 +1,6 @@
 /**
  * AngularUI - The companion suite for AngularJS
- * @version v0.2.1 - 2012-09-22
+ * @version v0.3.0 - 2012-10-30
  * @link http://angular-ui.github.com
  * @license MIT License, http://www.opensource.org/licenses/MIT
  */
@@ -47,6 +47,72 @@ angular.module('ui.directives').directive('uiAnimate', ['ui.config', '$timeout',
   };
 }]);
 
+
+    /*
+*  Implementation of JQuery FullCalendar 
+*  inspired by http://arshaw.com/fullcalendar/ 
+*  
+*  Basic Angular Calendar Directive that takes in live events as the ng-model and watches that event array for changes, to update the view accordingly. 
+*  
+* Authors
+*  @andyjoslin
+*  @joshkurz
+*/
+
+angular.module('ui.directives').directive('uiCalendar',['ui.config', '$parse', function (uiConfig,$parse) {
+
+    uiConfig.uiCalendar = uiConfig.uiCalendar || {};    
+    //returns the calendar     
+    return {
+        require: 'ngModel',
+        restrict: 'A',
+        scope: {
+          eventChanged: "=changed",
+          events: "=ngModel"
+        },
+        link: function(scope, elm, $attrs) {
+            var ngModel = $parse($attrs.ngModel);
+            //update method that is called on load and whenever the events array is changed. 
+            function update() {
+            //Default View Options
+            var expression,
+              options = {
+                header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,agendaWeek,agendaDay'
+              },
+            // add event name to title attribute on mouseover. Would be nice if this was an angular popover. 
+            eventMouseover: function(event, jsEvent, view) {
+            if (view.name !== 'agendaDay') {
+              $(jsEvent.target).attr('title', event.title);
+             }
+            },
+        
+            // Calling the events from the scope through the ng-model binding attribute. 
+            events: ngModel(scope)
+            };          
+            //if attrs have been entered to directive, then create a relative expression. 
+            if ($attrs.uiCalendar)
+              expression = scope.$eval($attrs.uiCalendar);
+            else 
+              expression = {};
+              //extend the options to suite the custom directive.
+              angular.extend(options, uiConfig.uiCalendar, expression);
+              //call fullCalendar from an empty html tag, to keep angular happy.
+              elm.html('').fullCalendar(options);
+            }
+            //on load update call.
+            update();
+            //watch for changes to the eventChanged object passed into the directive, and update if changed. 
+            scope.$watch(function() {
+                return scope.eventChanged;
+            }, function() {
+                update();
+            },true);
+        }
+    };
+}]);
 
 /*global angular, CodeMirror, Error*/
 /**
@@ -191,7 +257,9 @@ angular.module('ui.directives').directive('uiCurrency', ['ui.config', 'currencyF
  @param [ui-date] {object} Options to pass to $.fn.datepicker() merged onto ui.config
  */
 
-angular.module('ui.directives').directive('uiDate', ['ui.config', function (uiConfig) {
+angular.module('ui.directives')
+
+.directive('uiDate', ['ui.config', function (uiConfig) {
   'use strict';
   var options;
   options = {};
@@ -211,7 +279,9 @@ angular.module('ui.directives').directive('uiDate', ['ui.config', function (uiCo
         if (controller) {
           var updateModel = function () {
             scope.$apply(function () {
-              controller.$setViewValue(element.datepicker("getDate"));
+              var date = element.datepicker("getDate");
+              element.datepicker("setDate", element.val());
+              controller.$setViewValue(date);
             });
           };
           if (opts.onSelect) {
@@ -231,11 +301,10 @@ angular.module('ui.directives').directive('uiDate', ['ui.config', function (uiCo
           // Update the date picker when the model changes
           controller.$render = function () {
             var date = controller.$viewValue;
-            element.datepicker("setDate", date);
-            // Update the model if we received a string
-            if (angular.isString(date)) {
-              controller.$setViewValue(element.datepicker("getDate"));
+            if ( angular.isDefined(date) && date !== null && !angular.isDate(date) ) {
+              throw new Error('ng-Model value must be a Date object - currently it is a ' + typeof date + ' - use ui-date-format to convert it from a string');
             }
+            element.datepicker("setDate", date);
           };
         }
         // If we don't destroy the old one it doesn't update properly when the config changes
@@ -250,7 +319,46 @@ angular.module('ui.directives').directive('uiDate', ['ui.config', function (uiCo
     }
   };
 }
-]);
+])
+
+.directive('uiDateFormat', [function() {
+  var directive = {
+    require:'ngModel',
+    link: function(scope, element, attrs, modelCtrl) {
+      if ( attrs.uiDateFormat === '' ) {
+        // Default to ISO formatting
+        modelCtrl.$formatters.push(function(value) {
+          if (angular.isString(value) ) {
+            return new Date(value);
+          }
+          return null;
+        });
+        modelCtrl.$parsers.push(function(value){
+          if (angular.isString(value) ) {
+            return value.toISOString();
+          }
+          return null;
+        });
+      } else {
+        var format = attrs.uiDateFormat;
+        // Use the datepicker with the attribute value as the format string to convert to and from a string
+        modelCtrl.$formatters.push(function(value) {
+          if (angular.isString(value) ) {
+            return $.datepicker.parseDate(format, value);
+          }
+          return null;
+        });
+        modelCtrl.$parsers.push(function(value){
+          if (angular.isString(value) ) {
+            return $.datepicker.formatDate(format, value);
+          }
+          return null;
+        });
+      }
+    }
+  };
+  return directive;
+}]);
 
 /**
  * General-purpose Event binding. Bind any event not natively supported by Angular
@@ -371,95 +479,116 @@ angular.module('ui.directives').directive('uiJq', ['ui.config', function (uiConf
   };
 }]);
 
+angular.module('ui.directives').factory('keypressHelper', ['$parse', function keypress($parse){
+  var keysByCode = {
+    8: 'backspace',
+    9: 'tab',
+    13: 'enter',
+    27: 'esc',
+    32: 'space',
+    33: 'pageup',
+    34: 'pagedown',
+    35: 'end',
+    36: 'home',
+    37: 'left',
+    38: 'up',
+    39: 'right',
+    40: 'down',
+    45: 'insert',
+    46: 'delete'
+  };
+
+  var capitaliseFirstLetter = function (string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+  };
+
+  return function(mode, scope, elm, attrs) {
+    var params, combinations = [];
+    params = scope.$eval(attrs['ui'+capitaliseFirstLetter(mode)]);
+
+    // Prepare combinations for simple checking
+    angular.forEach(params, function (v, k) {
+      var combination, expression;
+      expression = $parse(v);
+
+      angular.forEach(k.split(' '), function(variation) {
+        combination = {
+          expression: expression,
+          keys: {}
+        };
+        angular.forEach(variation.split('-'), function (value) {
+          combination.keys[value] = true;
+        });
+        combinations.push(combination);
+      });
+    });
+
+    // Check only matching of pressed keys one of the conditions
+    elm.bind(mode, function (event) {
+      // No need to do that inside the cycle
+      var altPressed = event.metaKey || event.altKey;
+      var ctrlPressed = event.ctrlKey;
+      var shiftPressed = event.shiftKey;
+      var keyCode = event.keyCode;
+
+      // normalize keycodes
+      if (mode === 'keypress' && !shiftPressed && keyCode >= 97 && keyCode <= 122) {
+        keyCode = keyCode - 32;
+      }
+
+      // Iterate over prepared combinations
+      angular.forEach(combinations, function (combination) {
+
+        var mainKeyPressed = (combination.keys[keysByCode[event.keyCode]] || combination.keys[event.keyCode.toString()]) || false;
+
+        var altRequired = combination.keys.alt || false;
+        var ctrlRequired = combination.keys.ctrl || false;
+        var shiftRequired = combination.keys.shift || false;
+
+        if (
+          mainKeyPressed &&
+          ( altRequired == altPressed ) &&
+          ( ctrlRequired == ctrlPressed ) &&
+          ( shiftRequired == shiftPressed )
+        ) {
+          // Run the function
+          scope.$apply(function () {
+            combination.expression(scope, { '$event': event });
+          });
+        }
+      });
+    });
+  };
+}]);
+
 /**
  * Bind one or more handlers to particular keys or their combination
  * @param hash {mixed} keyBindings Can be an object or string where keybinding expression of keys or keys combinations and AngularJS Exspressions are set. Object syntax: "{ keys1: expression1 [, keys2: expression2 [ , ... ]]}". String syntax: ""expression1 on keys1 [ and expression2 on keys2 [ and ... ]]"". Expression is an AngularJS Expression, and key(s) are dash-separated combinations of keys and modifiers (one or many, if any. Order does not matter). Supported modifiers are 'ctrl', 'shift', 'alt' and key can be used either via its keyCode (13 for Return) or name. Named keys are 'backspace', 'tab', 'enter', 'esc', 'space', 'pageup', 'pagedown', 'end', 'home', 'left', 'up', 'right', 'down', 'insert', 'delete'.
  * @example <input ui-keypress="{enter:'x = 1', 'ctrl-shift-space':'foo()', 'shift-13':'bar()'}" /> <input ui-keypress="foo = 2 on ctrl-13 and bar('hello') on shift-esc" />
  **/
-angular.module('ui.directives').directive('uiKeypress', ['$parse', function ($parse) {
+angular.module('ui.directives').directive('uiKeydown', ['keypressHelper', function(keypressHelper){
   return {
     link: function (scope, elm, attrs) {
-      var keysByCode = {
-        8: 'backspace',
-        9: 'tab',
-        13: 'enter',
-        27: 'esc',
-        32: 'space',
-        33: 'pageup',
-        34: 'pagedown',
-        35: 'end',
-        36: 'home',
-        37: 'left',
-        38: 'up',
-        39: 'right',
-        40: 'down',
-        45: 'insert',
-        46: 'delete'
-      };
-
-      var params, paramsParsed, expression, keys, combinations = [];
-      try {
-        params = scope.$eval(attrs.uiKeypress);
-        paramsParsed = true;
-      } catch (error) {
-        params = attrs.uiKeypress.split(/\s+and\s+/i);
-        paramsParsed = false;
-      }
-
-      // Prepare combinations for simple checking
-      angular.forEach(params, function (v, k) {
-        var combination = {};
-        if (paramsParsed) {
-          // An object passed
-          combination.expression = $parse(v);
-          combination.keys = k;
-        } else {
-          // A string passed
-          v = v.split(/\s+on\s+/i);
-          combination.expression = $parse(v[0]);
-          combination.keys = v[1];
-        }
-
-        keys = {};
-        angular.forEach(combination.keys.split('-'), function (value) {
-          keys[value] = true;
-        });
-        combination.keys = keys;
-        combinations.push(combination);
-      });
-
-      // Check only mathcing of pressed keys one of the conditions
-      elm.bind('keydown', function (event) {
-        // No need to do that inside the cycle
-        var altPressed = event.metaKey || event.altKey;
-        var ctrlPressed = event.ctrlKey;
-        var shiftPressed = event.shiftKey;
-
-        // Iterate over prepared combinations
-        angular.forEach(combinations, function (combination) {
-
-          var mainKeyPressed = (combination.keys[keysByCode[event.keyCode]] || combination.keys[event.keyCode.toString()]) || false;
-
-          var altRequired = combination.keys.alt || false;
-          var ctrlRequired = combination.keys.ctrl || false;
-          var shiftRequired = combination.keys.shift || false;
-
-          if (mainKeyPressed &&
-            ( altRequired == altPressed   ) &&
-            ( ctrlRequired == ctrlPressed  ) &&
-            ( shiftRequired == shiftPressed )
-            ) {
-            // Run the function
-            scope.$apply(function () {
-              combination.expression(scope, { '$event': event });
-            });
-          }
-        });
-      });
+      keypressHelper('keydown', scope, elm, attrs);
     }
   };
 }]);
 
+angular.module('ui.directives').directive('uiKeypress', ['keypressHelper', function(keypressHelper){
+  return {
+    link: function (scope, elm, attrs) {
+      keypressHelper('keypress', scope, elm, attrs);
+    }
+  };
+}]);
+
+angular.module('ui.directives').directive('uiKeyup', ['keypressHelper', function(keypressHelper){
+  return {
+    link: function (scope, elm, attrs) {
+      keypressHelper('keyup', scope, elm, attrs);
+    }
+  };
+}]);
 (function () {
   var app = angular.module('ui.directives');
 
@@ -587,39 +716,36 @@ angular.module('ui.directives').directive('uiKeypress', ['$parse', function ($pa
 })();
 /*
  Attaches jquery-ui input mask onto input element
-*/
-
+ */
 angular.module('ui.directives').directive('uiMask', [
-  function() {
+  function () {
     return {
-      require: 'ngModel',
-      scope: {
-        uiMask: '='
-      },
-      link: function($scope, element, attrs, controller) {
+      require:'ngModel',
+      link:function ($scope, element, attrs, controller) {
+
         /* We override the render method to run the jQuery mask plugin
-        */
-        controller.$render = function() {
-          var value;
-          value = controller.$viewValue || '';
+         */
+        controller.$render = function () {
+          var value = controller.$viewValue || '';
           element.val(value);
-          return element.mask($scope.uiMask);
+          element.mask($scope.$eval(attrs.uiMask));
         };
+
         /* Add a parser that extracts the masked value into the model but only if the mask is valid
-        */
-
-        controller.$parsers.push(function(value) {
-          var isValid;
-          isValid = element.data('mask-isvalid');
+         */
+        controller.$parsers.push(function (value) {
+          //the second check (or) is only needed due to the fact that element.isMaskValid() will keep returning undefined
+          //until there was at least one key event
+          var isValid = element.isMaskValid() || angular.isUndefined(element.isMaskValid()) && element.val().length>0;
           controller.$setValidity('mask', isValid);
-          return element.mask();
+          return isValid ? value : undefined;
         });
-        /* When keyup, update the viewvalue
-        */
 
-        return element.bind('keyup', function() {
-          return $scope.$apply(function() {
-            return controller.$setViewValue(element.mask());
+        /* When keyup, update the view value
+         */
+        element.bind('keyup', function () {
+          $scope.$apply(function () {
+            controller.$setViewValue(element.mask());
           });
         });
       }
@@ -635,6 +761,9 @@ angular.module('ui.directives')
     link: function(scope, elm, attrs, model) {
       //helper so you don't have to type class="modal hide"
       elm.addClass('modal hide');
+      elm.on( 'shown', function() {
+        elm.find( "[autofocus]" ).focus();
+      });
       scope.$watch(attrs.ngModel, function(value) {
         elm.modal(value && 'show' || 'hide');
       });
@@ -655,18 +784,23 @@ angular.module('ui.directives')
 /**
  * Add a clear button to form inputs to reset their value
  */
-angular.module('ui.directives').directive('uiReset', ['$parse', function ($parse) {
+angular.module('ui.directives').directive('uiReset', ['ui.config', function (uiConfig) {
+  var resetValue = null;
+  if (uiConfig.reset !== undefined)
+      resetValue = uiConfig.reset;
   return {
     require: 'ngModel',
     link: function (scope, elm, attrs, ctrl) {
-      var aElement = angular.element('<a class="ui-reset" />');
+      var aElement;
+      aElement = angular.element('<a class="ui-reset" />');
       elm.wrap('<span class="ui-resetwrap" />').after(aElement);
-
       aElement.bind('click', function (e) {
         e.preventDefault();
         scope.$apply(function () {
-          // This lets you SET the value of the 'parsed' model
-          ctrl.$setViewValue(null);
+          if (attrs.uiReset)
+            ctrl.$setViewValue(scope.$eval(attrs.uiReset));
+          else
+            ctrl.$setViewValue(resetValue);
           ctrl.$render();
         });
       });
@@ -731,14 +865,17 @@ angular.module('ui.directives').directive('uiSelect2', ['ui.config', '$http', fu
     compile: function (tElm, tAttrs) {
       var watch,
         repeatOption,
+		repeatAttr,
         isSelect = tElm.is('select'),
         isMultiple = (tAttrs.multiple !== undefined);
 
       // Enable watching of the options dataset if in use
       if (tElm.is('select')) {
-        repeatOption = tElm.find('option[ng-repeat]');
+        repeatOption = tElm.find('option[ng-repeat], option[data-ng-repeat]');
+		
         if (repeatOption.length) {
-          watch = repeatOption.attr('ng-repeat').split(' ').pop();
+		  repeatAttr = repeatOption.attr('ng-repeat') || repeatOption.attr('data-ng-repeat');
+          watch = repeatAttr.split('|')[0].trim().split(' ').pop();
         }
       }
 
@@ -804,6 +941,10 @@ angular.module('ui.directives').directive('uiSelect2', ['ui.config', '$http', fu
 
         attrs.$observe('disabled', function (value) {
           elm.select2(value && 'disable' || 'enable');
+        });
+
+        scope.$watch(attrs.ngMultiple, function(newVal) {
+          elm.select2(opts);
         });
 
         // Set initial value since Angular doesn't
@@ -946,7 +1087,8 @@ angular.module('ui.directives').directive('uiTinymce', ['ui.config', function (u
             if (inst.isDirty()) {
               inst.save();
               ngModel.$setViewValue(elm.val());
-              scope.$apply();
+              if (!scope.$$phase)
+                scope.$apply();
             }
           },
           // Update model on keypress
@@ -954,7 +1096,8 @@ angular.module('ui.directives').directive('uiTinymce', ['ui.config', function (u
             if (this.isDirty()) {
               this.save();
               ngModel.$setViewValue(elm.val());
-              scope.$apply();
+              if (!scope.$$phase)
+                scope.$apply();
             }
             return true; // Continue handling
           },
@@ -964,7 +1107,8 @@ angular.module('ui.directives').directive('uiTinymce', ['ui.config', function (u
               if (ed.isDirty()) {
                 ed.save();
                 ngModel.$setViewValue(elm.val());
-                scope.$apply();
+                if (!scope.$$phase)
+                  scope.$apply();
               }
             });
           }
