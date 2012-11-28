@@ -30,8 +30,8 @@
     </form>
   </div>
   <div class="modal-footer">
-    <button ng-click="maybeNotify(); interaction(INTERACTION.reset)" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
-    <button ng-click="maybeNotify(); refresh()" class="btn btn-primary">{{ 'REFRESH' | i18n }}</button>
+    <button type="button" ng-click="maybeNotify(); interaction(INTERACTION.reset)" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
+    <button type="button" ng-click="maybeNotify(); refresh()" class="btn btn-primary">{{ 'REFRESH' | i18n }}</button>
   </div>
 </div>
 
@@ -78,8 +78,8 @@
     </form>
   </div>
   <div class="modal-footer">
-    <button ng-click="maybeNotify(); interaction(INTERACTION.reset)" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
-    <button ng-click="maybeNotify(); interaction(INTERACTION.quit)" class="btn btn-primary">{{ 'QUIT' | i18n }}</button>
+    <button type="button" ng-click="maybeNotify(); interaction(INTERACTION.reset)" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
+    <button type="button" ng-click="maybeNotify(); interaction(INTERACTION.quit)" class="btn btn-primary">{{ 'QUIT' | i18n }}</button>
   </div>
 </div>
 
@@ -122,11 +122,11 @@
     <div>{{ 'WELCOME_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="submit" ng-click="interaction(MODE.give)"
+    <button type="button" ng-click="interaction(MODE.give)"
       class="btn btn-primary btn-{{inCensoringCountry && 'warning' || 'give-mode' }}">
       <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
       {{ 'GIVE_ACCESS' | i18n }}</button>
-    <button type="submit" class="btn btn-primary btn-get-mode" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
+    <button type="button" class="btn btn-primary btn-get-mode" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
   </div>
 </div>
 
@@ -208,8 +208,8 @@
     <div>{{ 'GTALK_UNREACHABLE_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn" ng-click="interaction(INTERACTION.retryNow)">{{ 'RETRY_NOW' | i18n }}</button>
-    <button type="submit" class="btn" ng-click="interaction(INTERACTION.retryLater)">{{ 'RETRY_LATER' | i18n }}</button>
+    <button type="button" class="btn" ng-click="interaction(INTERACTION.retryNow)">{{ 'RETRY_NOW' | i18n }}</button>
+    <button type="button" class="btn" ng-click="interaction(INTERACTION.retryLater)">{{ 'RETRY_LATER' | i18n }}</button>
   </div>
 </div>
 
@@ -222,7 +222,7 @@
     <div>{{ 'AUTHORIZE_LATER_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
+    <button type="button" class="btn" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
   </div>
 </div>
 
@@ -235,8 +235,8 @@
     <div>{{ 'NOT_INVITED_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn" ng-click="doOauth()">{{ 'TRY_ANOTHER_USER' | i18n }}</button>
-    <button type="submit" class="btn" ng-click="interaction(INTERACTION.requestInvite)">{{ 'REQUEST_INVITE' | i18n }}</button>
+    <button type="button" class="btn" ng-click="doOauth()">{{ 'TRY_ANOTHER_USER' | i18n }}</button>
+    <button type="button" class="btn" ng-click="interaction(INTERACTION.requestInvite)">{{ 'REQUEST_INVITE' | i18n }}</button>
   </div>
 </div>
 
@@ -288,7 +288,7 @@
     <div>{{ 'REQUEST_SENT_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
+    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
   </div>
 </div>
 
@@ -311,7 +311,7 @@
     <div>{{ 'FIRST_INVITE_RECEIVED_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
+    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
   </div>
 </div>
 
@@ -349,7 +349,7 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn btn-primary" ng-click="continue()"
+    <button type="button" class="btn btn-primary" ng-click="continue()"
             ng-disabled="disableForm">
       {{ submitButtonLabelKey | i18n }}
     </button>
@@ -415,13 +415,16 @@
       <div>{{ model.ninvites }} {{ 'INVITES_REMAINING' | i18n }}</div>
       <!-- XXX allow writing custom invite message -->
     </form>
-    <div class="pagination-centered">
-      <div ng-hide="model.ninvites">{{ 'NO_INVITES' | i18n }}
-      {{ model.ninvites && 'MORE_INVITES' || 'SOME_INVITES' | i18n }}</div>
+    <div class="centered">
+      <div ng-hide="model.ninvites">{{ 'NO_INVITES' | i18n }}</div>
+      <div class="smaller">{{ 'MORE_INVITES' | i18n }}</div>
+    </div>
+    <div>
+      <!-- XXX manage pending friend requests UI here -->
     </div>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
+    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
   </div>
 </div>
 
@@ -448,7 +451,7 @@
     </form>
   </div>
   <div class="modal-footer">
-    <button type="submit" class="btn btn-primary btn-{{ model.settings.mode }}-mode"
+    <button type="button" class="btn btn-primary btn-{{ model.settings.mode }}-mode"
             ng-click="interaction(INTERACTION.continue)">{{ 'FINISH' | i18n }}</button>
   </div>
 </div>
@@ -470,44 +473,39 @@
 <!-- XXX this is just a sketch -->
 <div id="about" ng-controller="AboutCtrl" ui-modal ng-model="show"
      class="fade" data-backdrop="static" data-keyboard="true"><!-- XXX data-keyboard=true not working? -->
-  <div class="modal-header">
-    <button type="button" class="close" ng-click="interaction(INTERACTION.close)" aria-hidden="true">×</button>
-    <h3>{{ 'ABOUT_TITLE' | i18n }}</h3>
-  </div>
   <div class="modal-body">
-    <div style="margin:0">
-      Lantern version {{ model.version.installed | version:true }}
-      {{ model.version.current.api.mock && '(mock backend)' }}<br>
-      Frontend version {{ versionFrontend }}
+    <div style="text-align:center; margin:0">
+      Lantern version {{ model.version.installed | version:true }}<br>
+      Frontend version {{ versionFrontend }}<br>
+      <span class="smaller">
+        <a href="https://www.getlantern.org/news" target="_blank">News</a> ·
+        <a href="https://groups.google.com/group/lantern-users-en" target="_blank">Forums</a> ·
+        <a href="https://github.com/getlantern/lantern/wiki" target="_blank">Docs</a> ·
+        <a href="https://github.com/getlantern/lantern" target="_blank">Developers</a>
+      </span>
     </div>
     <div>
-      <a href="https://www.getlantern.org/news" target="_blank">News</a> ·
-      <a href="https://groups.google.com/group/lantern-users-en" target="_blank">Forums</a> ·
-      <a href="https://github.com/getlantern/lantern/wiki" target="_blank">Docs</a> ·
-      <a href="https://github.com/getlantern/lantern" target="_blank">Developers</a>
-    </div>
-    <div>
-      <h5>Credits</h5>
+      Credits
       <textarea readonly rows="2">                                     Myles Horton                      _pants                      aranhoide
             Wm. Forkner             M. Messier           Collin A.           Jacob A.            Chris N.            Nancy</textarea>
     </div>
     <div>
-      <h5>Privacy</h5>
+      Privacy
       <textarea readonly rows="3">- what we collect and store...
 - what we collect and don’t store...
 - what we don’t collect...
 - ...and why, for all of the above.</textarea>
     </div>
     <div>
-      <h5>License</h5>
-      <textarea readonly rows="4">This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License (GPL) as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version. The full text of versions 2 and 3 of the GPL can be found respectively in the files LICENSE-GPLV2 and LICENSE-GPLV3.
+      License
+      <textarea readonly rows="4">This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License (GPL) as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version. The full text of version 3 of the GPL can be found in the file LICENSE.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</textarea>
-      <span class="smaller">© 2012 Team Lantern.</span>
-      <!-- XXX https://en.wikipedia.org/wiki/Copyright#Obtaining_and_enforcing_copyright -->
     </div>
+    <!-- XXX https://en.wikipedia.org/wiki/Copyright#Obtaining_and_enforcing_copyright -->
+    <div class="smaller gray centered" style="margin:0">© 2012 Team Lantern.</div>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
@@ -640,5 +638,23 @@ You should have received a copy of the GNU General Public License along with thi
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
+  </div>
+</div>
+
+<div id="scenario" ng-controller="ScenarioCtrl" ng-model="show"
+     ui-modal class="fade" data-backdrop="static" data-keyboard="false">
+  <div class="modal-header">
+    <h3>Choose a scenario</h3>
+  </div>
+  <div class="modal-body">
+    <select ui-select2 ng-model="scenario" placeholder="scenario" required
+      style="width: 450px">
+      <option value=""></option>
+      <option ng-repeat="(func, desc) in scenarios" value="{{ func }}">{{ desc }}</option>
+    </select> 
+  </div>
+  <div class="modal-footer">
+    <button type="button" ng-click="interaction(INTERACTION.cancel)" class="btn">Cancel</button>
+    <button type="button" ng-click="submit()" class="btn btn-dev">Continue</button>
   </div>
 </div>

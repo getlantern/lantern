@@ -64,6 +64,7 @@ angular.module('app.services', [])
     giveModeForbidden: 'giveModeForbidden',
     about: 'about',
     updateAvailable: 'updateAvailable',
+    scenario: 'scenario',
     none: ''
   })
   .constant('INTERACTION', {
@@ -80,7 +81,8 @@ angular.module('app.services', [])
     cancel: 'cancel',
     continue: 'continue',
     close: 'close',
-    quit: 'quit'
+    quit: 'quit',
+    scenarios: 'scenarios'
   })
   .service('ENUMS', function(MODE, CONNECTIVITY, MODAL, INTERACTION, SETTING, EXTERNAL_URL) {
     return {

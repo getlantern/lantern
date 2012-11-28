@@ -31,6 +31,7 @@ BayeuxBackend.prototype.resetModel = function() {
   this.model.version.installed.bayeuxProtocol = BayeuxBackend.VERSION;
   this.model.version.installed.httpApi = ApiServlet.VERSION;
 //this.model.version.installed.modelSchema = XXX
+  this.model.mock.scenarios.all = ApiServlet.SCENARIOS;
 };
 
 BayeuxBackend.prototype._getModelValue = function(path) {

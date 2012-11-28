@@ -1,11 +1,18 @@
-<a id="dev-toggle" class="btn btn-mini btn-warning" ng-show="dev.value"
-   data-toggle="collapse" data-target="#developer"
-   ui-jq="tooltip" rel="tooltip" data-original-title="Developer"
-   ui-options="{placement: 'right'}">
-  <i class="icon-cogs"></i>
-</a>
+<div id="dev-buttons" class="btn-group" ng-show="dev.value">
+  <button class="btn btn-mini btn-dev"
+          data-toggle="collapse" data-target="#model"
+          ui-jq="tooltip" rel="tooltip" data-original-title="Model"
+          ui-options="{placement: 'bottom'}">
+    <i class="icon-reorder"></i>
+  </button>
+  <button class="btn btn-mini btn-dev" ng-click="interaction(INTERACTION.scenarios)"
+          ui-jq="tooltip" rel="tooltip" data-original-title="Scenarios"
+          ui-options="{placement: 'bottom'}">
+    <i class="icon-magic"></i>
+  </button>
+</div>
 
-<div id="developer" class="collapse"
+<div id="model" class="collapse"
      ng-controller="DevCtrl" ng-show="dev.value" lang="en" dir="ltr">
   <textarea ng-model="editableModel" x-update-on-blur
             ng-change="handleUpdate()"></textarea>

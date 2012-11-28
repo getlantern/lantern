@@ -5,7 +5,7 @@
   <script>
     $(function() {
       $('#allow').click(function() {
-        var userid = encodeURIComponent($('input[name=userid]:checked').val()),
+        var userid = encodeURIComponent($('#userid').val()),
             APIVER = '0.0'; // XXX don't hardcode
         $.post('/api/'+APIVER+'/oauthAuthorized?userid='+userid);
         window.setTimeout(function() { window.close(); }, 100);
@@ -16,7 +16,6 @@
   <style>
     h1, p { margin: 30px 0 0 0; }
     small { color: #999 }
-    #options { text-align: left; position: relative; left: 50%; width: 300px; margin: 20px 0 0 -125px; }
   </style>
 <head>
 <body class="pagination-centered">
@@ -24,32 +23,26 @@
 
   <p>
     <small>
-      (If you weren't signed in you'd see the sign in/create account page
+      (If you weren't signed in you'd see Google's sign in/create account page
       before being taken here.)
     </small>
   </p>
 
-  <p>
-    Choose a user to pretend to be signed in as:
+  <form>
+    <p>
+      <label for="userid">Pretend to be signed in to Google as</label>
+      <input id="userid" type="email" value="user@example.com"
+             placeholder="email@example.com" required autofocus>
+    </p>
+
+    <p>
+      Lantern is requesting permission to access Google Talk on your behalf.
+    </p>
+
+    <button id="allow" type="submit" class="btn btn-primary">Allow</button>
   </p>
 
-  <div id="options">
-    <label class="radio"><input name="userid" type="radio" value="user@example.com" checked>
-      user@example.com<br><small>a user with Lantern access</small>
-    </label>
-    <label class="radio"><input name="userid" type="radio" value="user_not_invited@example.com">
-      user_not_invited@example.com<br><small>a user who hasn't gotten an invite yet</small>
-    </label>
-    <label class="radio"><input name="userid" type="radio" value="user_cant_reach_gtalk@example.com">
-      user_cant_reach_gtalk@example.com<br><small>a user who can't reach google talk</small>
-    </label>
-  </div>
-
-  <p>
-    Lantern is requesting permission to access Google Talk on your behalf.
-  </p>
 
   <br>
 
-  <a id="allow" href="#" class="btn btn-primary">Allow</a>
 </body>

@@ -132,7 +132,6 @@ angular.module('app.i18n', [])
       INVITE_FRIENDS_TITLE: 'Lantern Friends',
       INVITE_FRIENDS_INTRO: 'Lantern relies on a large network of users who trust one another to share internet connections. Inviting people you trust to join Lantern helps Lantern work better.',
       NO_INVITES: 'You currently have no invites.',
-      SOME_INVITES: 'As you continue to run Lantern, you will receive some invites so you can help grow the trust network.',
       MORE_INVITES: 'You will receive more invites as you continue to run Lantern.',
       INVITE_FRIENDS_PROMPT: 'Enter some contacts to invite:',
       AUTOTRUSTED_PROMPT: 'Lantern users in your Google Talk contacts will be trusted already.',

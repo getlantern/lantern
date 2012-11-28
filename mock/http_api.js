@@ -27,6 +27,52 @@ function inCensoringCountry(model) {
   return model.countries[model.location.country].censors;
 }
 
+ApiServlet.SCENARIOS = {
+  os_windows: {
+    desc: '[OS] running Windows',
+    func: make_simple_scenario({'system.os': 'windows'})
+  },
+  os_ubuntu: {
+    desc: '[OS] running Ubuntu',
+    func: make_simple_scenario({'system.os': 'ubuntu'})
+  },
+  os_osx: {
+    desc: '[OS] running OS X',
+    func: make_simple_scenario({'system.os': 'osx'})
+  },
+  conn_offline: {
+    desc: '[Connectivity] having no internet connection',
+    func: make_simple_scenario({'connectivity.internet': false})
+  },
+  loc_beijing: {
+    desc: '[Location] connecting from Beijing',
+    func: make_simple_scenario({
+            location: {lat:39.904041, lon:116.407528, country:'cn'},
+            'connectivity.ip': '123.123.123.123'
+          })
+  },
+  loc_paris: {
+    desc: '[Location] connecting from Paris',
+    func: make_simple_scenario({
+            location: {lat:48.8667, lon:2.3333, country:'fr'},
+            'connectivity.ip': '78.250.177.119'
+          })
+  }
+};
+
+function scenariosByPrefix(prefix) {
+  var matches = [], l = prefix.length;
+  for (var key in ApiServlet.SCENARIOS) {
+    if (key.substring(0, l) == prefix)
+      matches.push(key);
+  }
+  return matches;
+}
+
+function make_simple_scenario(state) {
+  return '';
+}
+
 var peer1 = {
     "peerid": "peerid1",
     "userid": "lantern_friend1@example.com",
@@ -133,6 +179,7 @@ var MODAL = {
   giveModeForbidden: 'giveModeForbidden',
   about: 'about',
   updateAvailable: 'updateAvailable',
+  scenario: 'scenario',
   none: ''
 };
 var INTERACTION = {
@@ -148,7 +195,9 @@ var INTERACTION = {
   retryLater: 'retryLater',
   cancel: 'cancel',
   continue: 'continue',
-  close: 'close'
+  close: 'close',
+  quit: 'quit',
+  scenarios: 'scenarios'
 };
 var CONNECTIVITY = {
   connected: 'connected',
@@ -297,6 +346,13 @@ ApiServlet.HandlerMap = {
         ;
       switch (model.modal) {
         case MODAL.welcome:
+          if (interaction == INTERACTION.scenarios) {
+            model.mock.scenarios.available = scenariosByPrefix('');
+            publishSync('mock.scenarios.available');
+            model.modal = MODAL.scenario;
+            publishSync('modal');
+            return;
+          }
           if (interaction != MODE.give && interaction != MODE.get) {
             res.writeHead(400);
             return;

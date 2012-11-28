@@ -19,6 +19,9 @@ label.checkbox.inline, label.radio.inline
 .centered
   +centered
 
+.gray
+  +gray
+
 // XXX apparently fixed in http://blog.getbootstrap.com/2012/10/29/bootstrap-2-2-0-released/
 .tooltip
   +aboveModal
@@ -33,6 +36,15 @@ label.checkbox.inline, label.radio.inline
 .btn-get-mode
   //+ctb-buttonBackground($getModeColor, $getModeColorAccent)
   +bootstrap-buttonBackground($getModeColor, $getModeColorAccent)
+
+.btn-dev
+  +bootstrap-buttonBackground($btnWarningBackground, $btnWarningBackgroundHighlight)
+
+.btn-give-mode,
+.btn-get-mode,
+.btn-dev
+  color: $white
+  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25)
 
 a.never-underlined
   +never-underlined

@@ -525,6 +525,29 @@ function GiveModeForbiddenCtrl($scope, logFactory, MODAL) {
   });
 }
 
+function ScenarioCtrl($scope, apiSrvc, logFactory, modelSrvc, dev, MODAL) {
+  var log = logFactory('DevCtrl'),
+      model = modelSrvc.model;
+
+  $scope.show = false;
+  $scope.$watch('model.modal', function(val) {
+    $scope.show = val == MODAL.scenario;
+  });
+
+  $scope.$watch('model.mock.scenarios.available', function(val) {
+    if (typeof val == 'undefined') return;
+    $scope.scenarios = {};
+    for (var i=0, s=val[i], l=val.length; i<l; s=val[++i]) {
+      $scope.scenarios[s] = modelSrvc.get('mock.scenarios.all.'+s).desc;
+    }
+  });
+
+  $scope.submit = function() {
+    log.debug('scenario:', $scope.scenario);
+    log.error('TODO');
+  };
+}
+
 function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, cometdSrvc, modelSrvc) {
   var log = logFactory('DevCtrl'),
       model = modelSrvc.model;
