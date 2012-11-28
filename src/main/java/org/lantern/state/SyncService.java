@@ -102,7 +102,8 @@ public class SyncService {
         log.debug("Got sync event");
         // We want to force a sync here regardless of whether or not we've 
         // recently synced.
-        sync(true, syncEvent.getChannel());
+        //sync(true, syncEvent.getChannel());
+        publishSync(syncEvent.getPath(), syncEvent.getValue());
     }
 
     @Subscribe 
@@ -117,19 +118,14 @@ public class SyncService {
     }
     
     private void rosterSync() {
-        sync(false, SyncChannel.roster);
-    }
-    
-    private void sync(final boolean force) {
-        sync(force, SyncChannel.model);
-        //sync(force, SyncChannel.transfers);
+        //sync(false, SyncPath.ROSTER);
     }
     
     private void sync() {
         sync(false);
     }
     
-    private void sync(final boolean force, final SyncChannel channel) {
+    private void sync(final boolean force) {
         log.debug("In sync method");
         //this.strategy.sync(force, channel, this.session);
         

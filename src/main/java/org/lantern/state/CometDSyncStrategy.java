@@ -48,7 +48,7 @@ public class CometDSyncStrategy implements SyncStrategy {
         private final String path;
         private final Object value; 
         
-        public SyncData(final SyncChannel channel, final Object val) {
+        public SyncData(final SyncPath channel, final Object val) {
             this(channel.name(), val);
         }
         

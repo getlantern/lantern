@@ -84,7 +84,6 @@ public class InteractionServlet extends HttpServlet {
             case get:
                 log.info("Setting get mode");
                 handleGiveGet(true);
-                this.changeImplementor.setGetMode(true);
                 break;
             case give:
                 log.info("Setting give mode");

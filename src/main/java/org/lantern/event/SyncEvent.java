@@ -1,6 +1,7 @@
 package org.lantern.event;
 
-import org.lantern.state.SyncChannel;
+import org.lantern.state.SyncPath;
+
 
 /**
  * An event indicating the state of the specified channel should be synced
@@ -8,14 +9,19 @@ import org.lantern.state.SyncChannel;
  */
 public class SyncEvent {
 
-    private final SyncChannel channel;
-
-    public SyncEvent(final SyncChannel channel) {
-        this.channel = channel;
+    private final String path;
+    private final Object value;
+    
+    public SyncEvent(final SyncPath path, final Object value) {
+        this.path = path.getEnumPath();
+        this.value = value;
+    }
+    
+    public String getPath() {
+        return path;
     }
 
-    public SyncChannel getChannel() {
-        return channel;
+    public Object getValue() {
+        return value;
     }
-
 }

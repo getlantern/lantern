@@ -75,8 +75,6 @@ import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.codehaus.jackson.map.SerializationConfig.Feature;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.widgets.Monitor;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
@@ -384,10 +382,12 @@ public class LanternUtils {
     }
     
     public static boolean isConfigured() {
+        /*
         if (!LanternConstants.DEFAULT_SETTINGS_FILE.isFile()) {
             LOG.info("No settings file");
             return false;
         }
+        */
         final String un = LanternHub.settings().getEmail();
         final String pass = LanternHub.settings().getPassword();
         final boolean oauth = LanternHub.settings().isUseGoogleOAuth2();

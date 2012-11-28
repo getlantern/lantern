@@ -1,7 +1,10 @@
 package org.lantern.state;
 
+import java.util.Collection;
+
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternConstants;
+import org.lantern.Whitelist;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 
@@ -26,10 +29,8 @@ public class Settings {
     
     private boolean proxyAllSites = false;
     
-    private String[] proxiedSites = 
-        new String[]{"google.com", "twitter.com"};
+    private Whitelist whitelist = new Whitelist();
     
-
     public enum Mode {
         give,
         get
@@ -44,8 +45,7 @@ public class Settings {
         this.userId = userId;
     }
 
-    //@JsonView({Runtime.class, Persistent.class})
-    //@JsonView(Runtime.class)
+    @JsonView(Run.class)
     public String getLang() {
         return lang;
     }
@@ -108,12 +108,21 @@ public class Settings {
         this.proxyAllSites = proxyAllSites;
     }
 
-    @JsonView({Run.class, Persistent.class})
-    public String[] getProxiedSites() {
-        return proxiedSites;
+    @JsonView({Run.class})
+    public Collection<String> getProxiedSites() {
+        return whitelist.getEntriesAsStrings();
     }
 
     public void setProxiedSites(final String[] proxiedSites) {
-        this.proxiedSites = proxiedSites;
+        whitelist.setStringEntries(proxiedSites);
+    }
+
+    @JsonView({Persistent.class})
+    public Whitelist getWhitelist() {
+        return whitelist;
+    }
+
+    public void setWhitelist(Whitelist whitelist) {
+        this.whitelist = whitelist;
     }
 }
