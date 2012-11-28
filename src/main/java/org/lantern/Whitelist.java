@@ -202,7 +202,19 @@ public class Whitelist {
             this.requiredEntries.add(entry);
         }
     }
+
+    public void setStringEntries(final String[] entries) {
+        setEntries(toEntries(entries));
+    }
     
+    private Collection<WhitelistEntry> toEntries(final String[] entries) {
+        final Collection<WhitelistEntry> wl = new TreeSet<WhitelistEntry>();
+        for (final String entry : entries) {
+            wl.add(new WhitelistEntry(entry));
+        }
+        return wl;
+    }
+
     public void addEntry(final String entry) {
         whitelist.add(new WhitelistEntry(entry));
     }
@@ -214,7 +226,9 @@ public class Whitelist {
     }
     
     public Collection<WhitelistEntry> getEntries() {
-        return whitelist;
+        synchronized (whitelist) {
+            return new TreeSet<WhitelistEntry>(whitelist);
+        }
     }
     
     public void setEntries(final Collection<WhitelistEntry> entries) {
@@ -222,7 +236,6 @@ public class Whitelist {
             this.whitelist = entries; 
         }
     }
-
 
     private String toBaseUri(final String uri) {
         log.debug("Parsing full URI: {}", uri);

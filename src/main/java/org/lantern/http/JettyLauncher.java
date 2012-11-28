@@ -10,7 +10,6 @@ import java.util.Map;
 import javax.servlet.GenericServlet;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -63,7 +62,7 @@ public class JettyLauncher {
     private final File resourceBaseFile;
     
     private final Model model = new ModelIo().getModel();
-    
+
     private final ModelChangeImplementor changeImplementor = 
         new DefaultModelChangeImplementor(model);
     
@@ -280,7 +279,7 @@ public class JettyLauncher {
         final ServletHolder interactionServlet = 
             new ServletHolder(new InteractionServlet(this.changeImplementor,this.syncer));
         interactionServlet.setInitOrder(2);
-        contextHandler.addServlet(interactionServlet, "/api/"+LanternConstants.API_VERSION+"/*");
+        contextHandler.addServlet(interactionServlet, apiPath());
         
         final ServletHolder photoServlet = new ServletHolder(new PhotoServlet());
         photoServlet.setInitOrder(3);
@@ -335,6 +334,10 @@ public class JettyLauncher {
         serve.start();
     }
 
+
+    private String apiPath() {
+        return "/api/"+StringUtils.substringBeforeLast(LanternConstants.API_VERSION, ".")+"/*";
+    }
 
     private void writeFileToResponse(final HttpServletResponse resp,
         final File file) {
@@ -400,6 +403,11 @@ public class JettyLauncher {
     
     public int getPort() {
         return port;
+    }
+    
+    
+    public Model getModel() {
+        return model;
     }
 }
 

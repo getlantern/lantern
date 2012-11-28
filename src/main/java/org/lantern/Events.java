@@ -2,6 +2,7 @@ package org.lantern;
 
 import java.util.concurrent.Executors;
 
+import org.lantern.event.SyncEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

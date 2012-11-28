@@ -34,7 +34,6 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.Chat;
-import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.Roster;
@@ -58,10 +57,14 @@ import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.ConnectivityStatusChangeEvent;
 import org.lantern.event.GoogleTalkStateEvent;
+import org.lantern.event.SyncEvent;
 import org.lantern.event.UpdateEvent;
 import org.lantern.http.PhotoServlet;
 import org.lantern.ksope.LanternKscopeAdvertisement;
 import org.lantern.ksope.LanternTrustGraphNode;
+import org.lantern.state.Modal;
+import org.lantern.state.Model;
+import org.lantern.state.SyncPath;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.ice.MappedTcpAnswererServer;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -73,11 +76,11 @@ import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.lastbamboo.common.stun.client.StunServerRepository;
+import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
+import org.littleshoot.commom.xmpp.PasswordCredentials;
+import org.littleshoot.commom.xmpp.XmppCredentials;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
-import org.littleshoot.commom.xmpp.XmppCredentials;
-import org.littleshoot.commom.xmpp.PasswordCredentials;
-import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.p2p.P2P;
 import org.littleshoot.util.SessionSocketListener;
 import org.slf4j.Logger;
@@ -303,6 +306,10 @@ public class DefaultXmppHandler implements XmppHandler {
             getResource());
         
         LOG.info("Logging in with credentials: {}", credentials);
+        
+        final Model model = LanternHub.jettyLauncher().getModel();
+        model.setModal(Modal.gtalkConnecting);
+        Events.eventBus().post(new SyncEvent(SyncPath.MODAL, model.getModal()));
         connect(credentials);
     }
 
@@ -513,44 +520,42 @@ public class DefaultXmppHandler implements XmppHandler {
         gTalkSharedStatus();
         updatePresence();
 
-        final boolean inClosedBeta = handleClosedBeta(credentials.getUsername());
+        final boolean inClosedBeta = waitForClosedBetaStatus(credentials.getUsername());
 
         // If we're in the closed beta and are an uncensored node, we want to
         // advertise ourselves through the kaleidoscope trust network.
-        if (inClosedBeta) {
+        if (inClosedBeta && !LanternHub.censored().isCensored()) {
             final TimerTask tt = new TimerTask() {
                 
                 @Override
                 public void run() {
-                    if (!LanternHub.censored().isCensored()) {
-                        final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
-                            LanternHub.settings().getNodeId());
-                        
-                        final InetAddress address = 
-                            new PublicIpAddress().getPublicIpAddress();
-                        
-                        final String user = connection.getUser();
-                        // The payload here is JSON with everything from the 
-                        // JID of the user to the public IP address and port
-                        // that should be mapped on the user's router.
-                        final LanternKscopeAdvertisement ad;
-                        if (mappedServer.isPortMapped()) {
-                            ad = new LanternKscopeAdvertisement(user, address, 
-                                mappedServer.getMappedPort());
-                        } else {
-                            ad = new LanternKscopeAdvertisement(user);
-                        }
-                        
-                        // Now turn the advertisement into JSON.
-                        final String payload = LanternUtils.jsonify(ad);
-                        
-                        LOG.info("Sending kscope payload: {}", payload);
-                        final BasicTrustGraphAdvertisement message =
-                            new BasicTrustGraphAdvertisement(tgnid, payload, 0);
-                        
-                        final TrustGraphNode tgn = new LanternTrustGraphNode();
-                        tgn.advertiseSelf(message);
+                    final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
+                        LanternHub.settings().getNodeId());
+                    
+                    final InetAddress address = 
+                        new PublicIpAddress().getPublicIpAddress();
+                    
+                    final String user = connection.getUser();
+                    // The payload here is JSON with everything from the 
+                    // JID of the user to the public IP address and port
+                    // that should be mapped on the user's router.
+                    final LanternKscopeAdvertisement ad;
+                    if (mappedServer.isPortMapped()) {
+                        ad = new LanternKscopeAdvertisement(user, address, 
+                            mappedServer.getMappedPort());
+                    } else {
+                        ad = new LanternKscopeAdvertisement(user);
                     }
+                    
+                    // Now turn the advertisement into JSON.
+                    final String payload = LanternUtils.jsonify(ad);
+                    
+                    LOG.info("Sending kscope payload: {}", payload);
+                    final BasicTrustGraphAdvertisement message =
+                        new BasicTrustGraphAdvertisement(tgnid, payload, 0);
+                    
+                    final TrustGraphNode tgn = new LanternTrustGraphNode();
+                    tgn.advertiseSelf(message);
                 }
             };
             // We delay this to make sure we've successfully loaded all roster
@@ -568,7 +573,7 @@ public class DefaultXmppHandler implements XmppHandler {
             new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
     }
 
-    private boolean handleClosedBeta(final String email) 
+    private boolean waitForClosedBetaStatus(final String email) 
         throws NotInClosedBetaException {
         if (LanternUtils.isInClosedBeta(email)) {
             LOG.debug("Already in closed beta...");
@@ -582,7 +587,7 @@ public class DefaultXmppHandler implements XmppHandler {
         synchronized (this.closedBetaLock) {
             if (this.closedBetaEvent == null) {
                 try {
-                    this.closedBetaLock.wait(60 * 1000);
+                    this.closedBetaLock.wait(80 * 1000);
                 } catch (final InterruptedException e) {
                     LOG.info("Interrupted? Maybe on shutdown?", e);
                 }

@@ -26,9 +26,11 @@ public enum Modal {
     none
     */
     
+    settingsUnlock,
     settingsLoadFailure,
     welcome,
     authorize,
+    gtalkConnecting,
     gtalkUnreachable,
     authorizeLater,
     notInvited,
@@ -47,4 +49,5 @@ public enum Modal {
     about,
     updateAvailable,
     none,
+
 }

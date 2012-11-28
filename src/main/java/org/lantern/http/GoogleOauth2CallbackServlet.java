@@ -3,7 +3,6 @@ package org.lantern.http;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
@@ -24,6 +24,7 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.lantern.LanternConstants;
 import org.lantern.LanternHub;
 import org.lantern.NotInClosedBetaException;
 import org.slf4j.Logger;
@@ -94,41 +95,44 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
                 new BasicNameValuePair("grant_type", "authorization_code")
                 );
             final HttpEntity entity = 
-                new UrlEncodedFormEntity(nvps, Charset.forName("UTF8"));
+                new UrlEncodedFormEntity(nvps, LanternConstants.UTF8);
             post.setEntity(entity);
             
             final DefaultHttpClient client = new DefaultHttpClient();
             log.debug("About to execute post!");
             final HttpResponse response = client.execute(post);
 
+            log.debug("Got response status: {}", response.getStatusLine());
+            final HttpEntity responseEntity = response.getEntity();
+            // do something useful with the response body
+            // and ensure it is fully consumed
+            final String body = IOUtils.toString(responseEntity.getContent());
+            EntityUtils.consume(responseEntity);
+            
+            final ObjectMapper om = new ObjectMapper();
+            final Map<String, String> oauthToks = 
+                om.readValue(body, Map.class);
+            log.debug("Got oath data: {}", oauthToks);
+            
+            final String accessToken = oauthToks.get("access_token");
+            final String refreshToken = oauthToks.get("refresh_token");
+            
             try {
-                log.debug("Got response status: {}", response.getStatusLine());
-                final HttpEntity responseEntity = response.getEntity();
-                // do something useful with the response body
-                // and ensure it is fully consumed
-                final String body = IOUtils.toString(responseEntity.getContent());
-                
-                final ObjectMapper om = new ObjectMapper();
-                final Map<String, String> oauthToks = 
-                    om.readValue(body, Map.class);
-                log.debug("Got oath data: {}", oauthToks);
-                
-                final String accessToken = oauthToks.get("access_token");
-                final String refreshToken = oauthToks.get("refresh_token");
-                
-                // Note the e-mail is actually ignored when we login to 
-                // Google Talk.
-                LanternHub.settings().setEmail("anon@getlantern.org");
-                LanternHub.settings().setClientID(clientId);
-                LanternHub.settings().setClientSecret(clientSecret);
-                LanternHub.settings().setAccessToken(accessToken);
-                LanternHub.settings().setRefreshToken(refreshToken);
-                LanternHub.settings().setUseGoogleOAuth2(true);
-                EntityUtils.consume(responseEntity);
-                LanternHub.xmppHandler().connect();
-                final String dashboard = 
-                    "http://localhost:"+LanternHub.settings().getApiPort();
-                resp.sendRedirect(dashboard);
+                if (StringUtils.isNotBlank(accessToken) &&
+                    StringUtils.isNotBlank(refreshToken)) {
+                    final String dashboard = 
+                        "http://localhost:"+LanternHub.settings().getApiPort();
+                    resp.sendRedirect(dashboard);
+                    // Note the e-mail is actually ignored when we login to 
+                    // Google Talk.
+                    LanternHub.settings().setEmail("anon@getlantern.org");
+                    LanternHub.settings().setClientID(clientId);
+                    LanternHub.settings().setClientSecret(clientSecret);
+                    LanternHub.settings().setAccessToken(accessToken);
+                    LanternHub.settings().setRefreshToken(refreshToken);
+                    LanternHub.settings().setUseGoogleOAuth2(true);
+                    LanternHub.xmppHandler().connect();
+                }
                 this.googleOauth2CallbackServer.stop();
             } catch (final CredentialException e) {
                 // Not sure what to do here. This *should* never happen.

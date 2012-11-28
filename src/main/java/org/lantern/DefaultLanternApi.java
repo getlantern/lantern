@@ -21,7 +21,7 @@ import org.lantern.http.HttpUtils;
 import org.lantern.http.LanternApi;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
-import org.lantern.state.SyncChannel;
+import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -527,7 +527,7 @@ public class DefaultLanternApi implements LanternApi {
         setProperty(LanternHub.settings(), key, val, true, resp, determineType);
         resp.setStatus(HttpStatus.SC_OK);
         if (sync) {
-            Events.asyncEventBus().post(new SyncEvent(SyncChannel.settings));
+            Events.asyncEventBus().post(new SyncEvent(SyncPath.SETTINGS, null));
             LanternHub.settingsIo().write();
         }
     }

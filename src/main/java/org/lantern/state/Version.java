@@ -30,7 +30,8 @@ public class Version {
     @Subscribe
     public void onUpdate(final UpdateEvent updateEvent) {
         this.updated = updateEvent.getData();
-        Events.asyncEventBus().post(new SyncEvent(SyncChannel.version));
+        Events.asyncEventBus().post(new SyncEvent(SyncPath.VERSION_UPDATED, 
+            updateEvent.getData()));
     }
 
     @JsonView({Run.class})

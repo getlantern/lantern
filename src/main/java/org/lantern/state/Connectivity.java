@@ -1,18 +1,9 @@
 package org.lantern.state;
 
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.Events;
 import org.lantern.GoogleTalkState;
@@ -25,10 +16,6 @@ import org.lantern.state.Model.Run;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleBrowserClientRequestUrl;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
-import com.google.api.client.json.jackson.JacksonFactory;
 import com.google.common.eventbus.Subscribe;
 
 /**
@@ -57,7 +44,7 @@ public class Connectivity {
     public GoogleTalkState getGTalk() {
         return googleTalkState;
     }
-
+    
     @JsonView({Run.class})
     public boolean getGtalkAuthorized() {
         return false;
@@ -90,7 +77,9 @@ public class Connectivity {
     @Subscribe
     public void onAuthenticationStateChanged(final GoogleTalkStateEvent ase) {
         this.googleTalkState = ase.getState();
-        Events.asyncEventBus().post(new SyncEvent(SyncChannel.connectivity));
+        Events.asyncEventBus().post(
+            new SyncEvent(SyncPath.CONNECTIVITY_GTALK, ase.getState()));
+        //Events.asyncEventBus().post(new SyncEvent(SyncChannel.connectivity));
     }
     
     /*
