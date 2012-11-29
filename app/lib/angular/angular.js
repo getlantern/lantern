@@ -14101,10 +14101,16 @@ var selectDirective = ['$compile', '$parse', function($compile,   $parse) {
         selectElement.bind('change', function() {
           scope.$apply(function() {
             var array = [];
-            forEach(selectElement.children(), function(option) {
+            function addIfSelected(option) {
               if (option.selected) {
                 array.push(option.value);
               }
+            }
+            forEach(selectElement.children(), function(child) {
+              if (child.tagName == 'OPTION')
+                addIfSelected(child);
+              else if (child.tagName == 'OPTGROUP')
+                forEach(child.getElementsByTagName('option'), addIfSelected);
             });
             ctrl.$setViewValue(array);
           });
