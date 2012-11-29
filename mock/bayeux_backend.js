@@ -4,6 +4,7 @@ var fs = require('fs')
   , util = require('util')
   , faye = require('./node_modules/faye')
   , ApiServlet = require('./http_api').ApiServlet
+  , getByPath = require('./helpers').getByPath
   ;
 
 
@@ -34,7 +35,7 @@ BayeuxBackend.prototype.resetModel = function() {
   this.model.mock.scenarios.all = ApiServlet.SCENARIOS;
 };
 
-BayeuxBackend.prototype._getModelValue = function(path) {
+BayeuxBackend.prototype.get = function(path) {
   var val = this.model;
   path.split('.').forEach(function(name) {
     if (name && typeof val != 'undefined')
@@ -45,7 +46,7 @@ BayeuxBackend.prototype._getModelValue = function(path) {
 
 BayeuxBackend.prototype.publishSync = function(path) {
   path = path || '';
-  var value = this._getModelValue(path);
+  var value = this.get(path); // XXX use getByPath
   // this._bayeux.getClient().publish({ // XXX why doesn't this work?
   this._bayeux._server._engine.publish({
     channel: '/sync',

@@ -3,12 +3,73 @@
 var url = require('url')
   , util = require('util')
   , sleep = require('./node_modules/sleep')
+  , helpers = require('./helpers')
+  , getByPath = helpers.getByPath
+  , merge = helpers.merge
   ;
+
+
+// enums
+var MODE = {give: 'give', get: 'get'};
+var MODAL = {
+  settingsUnlock: 'settingsUnlock',
+  settingsLoadFailure: 'settingsLoadFailure',
+  welcome: 'welcome',
+  authorize: 'authorize',
+  gtalkConnecting: 'gtalkConnecting',
+  gtalkUnreachable: 'gtalkUnreachable',
+  authorizeLater: 'authorizeLater',
+  notInvited: 'notInvited',
+  requestInvite: 'requestInvite',
+  requestSent: 'requestSent',
+  firstInviteReceived: 'firstInviteReceived',
+  proxiedSites: 'proxiedSites',
+  systemProxy: 'systemProxy',
+  passwordCreate: 'passwordCreate',
+  inviteFriends: 'inviteFriends',
+  finished: 'finished',
+  contactDevs: 'contactDevs',
+  settings: 'settings',
+  confirmReset: 'confirmReset',
+  giveModeForbidden: 'giveModeForbidden',
+  about: 'about',
+  updateAvailable: 'updateAvailable',
+  scenarios: 'scenarios',
+  none: ''
+};
+var INTERACTION = {
+  inviteFriends: 'inviteFriends',
+  contactDevs: 'contactDevs',
+  settings: 'settings',
+  proxiedSites: 'proxiedSites',
+  reset: 'reset',
+  about: 'about',
+  updateAvailable: 'updateAvailable',
+  requestInvite: 'requestInvite',
+  retryNow: 'retryNow',
+  retryLater: 'retryLater',
+  cancel: 'cancel',
+  continue: 'continue',
+  close: 'close',
+  quit: 'quit',
+  scenarios: 'scenarios'
+};
+var CONNECTIVITY = {
+  connected: 'connected',
+  connecting: 'connecting',
+  notConnected: 'notConnected'
+};
+var OS = {
+  windows: 'windows',
+  ubuntu: 'ubuntu',
+  osx: 'osx'
+};
 
 
 function ApiServlet(bayeuxBackend) {
   this._bayeuxBackend = bayeuxBackend;
-  ApiServlet._resetInternalState.call(this);
+  this._reset = ApiServlet._reset.bind(this);
+  this._reset();
   this._DEFAULT_PROXIED_SITES = bayeuxBackend.model.settings.proxiedSites.slice(0);
 }
 
@@ -28,49 +89,82 @@ function inCensoringCountry(model) {
 }
 
 ApiServlet.SCENARIOS = {
-  os_windows: {
-    desc: '[OS] running Windows',
-    func: make_simple_scenario({'system.os': 'windows'})
+  os: {
+    windows: {
+      desc: 'running Windows',
+      func: make_simple_scenario({'system.os': OS.windows})
+    },
+    ubuntu: {
+      desc: 'running Ubuntu',
+      func: make_simple_scenario({'system.os': OS.ubuntu})
+    },
+    osx: {
+      desc: 'running OS X',
+      func: make_simple_scenario({'system.os': OS.osx})
+    }
   },
-  os_ubuntu: {
-    desc: '[OS] running Ubuntu',
-    func: make_simple_scenario({'system.os': 'ubuntu'})
+  internet: {
+    connection: {
+      desc: 'internet connection',
+      func: make_simple_scenario({'connectivity.internet': true})
+    },
+    noConnection: {
+      desc: 'no internet connection',
+      func: make_simple_scenario({'connectivity.internet': false})
+    }
   },
-  os_osx: {
-    desc: '[OS] running OS X',
-    func: make_simple_scenario({'system.os': 'osx'})
+  gtalkAuthorization: {
+    notAuthorized: {
+      desc: 'not authorized to access Google Talk',
+      func: make_simple_scenario({'connectivity.gtalkAuthorized': false})
+    },
+    authorized: {
+      desc: 'authorized to access Google Talk',
+      func: make_simple_scenario({'connectivity.gtalkAuthorized': true})
+    },
   },
-  conn_offline: {
-    desc: '[Connectivity] having no internet connection',
-    func: make_simple_scenario({'connectivity.internet': false})
+  gtalkConnectivity: {
+    notConnected: {
+      desc: 'not connected to Google Talk',
+      func: make_simple_scenario({'connectivity.gtalk': CONNECTIVITY.notConnected})
+    },
+    connecting: {
+      desc: 'connecting to Google Talk',
+      func: make_simple_scenario({'connectivity.gtalk': CONNECTIVITY.connecting})
+    },
+    connected: {
+      desc: 'connected to Google Talk',
+      func: make_simple_scenario({'connectivity.gtalk': CONNECTIVITY.connected})
+    }
   },
-  loc_beijing: {
-    desc: '[Location] connecting from Beijing',
-    func: make_simple_scenario({
-            location: {lat:39.904041, lon:116.407528, country:'cn'},
-            'connectivity.ip': '123.123.123.123'
-          })
-  },
-  loc_paris: {
-    desc: '[Location] connecting from Paris',
-    func: make_simple_scenario({
-            location: {lat:48.8667, lon:2.3333, country:'fr'},
-            'connectivity.ip': '78.250.177.119'
-          })
+  location: {
+    beijing: {
+      desc: 'connecting from Beijing',
+      func: make_simple_scenario({
+              location: {lat:39.904041, lon:116.407528, country:'cn'},
+              'connectivity.ip': '123.123.123.123'
+            })
+    },
+    paris: {
+      desc: 'connecting from Paris',
+      func: make_simple_scenario({
+              location: {lat:48.8667, lon:2.3333, country:'fr'},
+              'connectivity.ip': '78.250.177.119'
+            })
+    }
   }
 };
 
-function scenariosByPrefix(prefix) {
-  var matches = [], l = prefix.length;
-  for (var key in ApiServlet.SCENARIOS) {
-    if (key.substring(0, l) == prefix)
-      matches.push(key);
-  }
-  return matches;
-}
-
 function make_simple_scenario(state) {
-  return '';
+  return function() {
+    var bayeux = this._bayeuxBackend
+      , publishSync = bayeux.publishSync.bind(bayeux)
+      ;
+    for (var path in state) {
+      merge(bayeux.model, path, state[path]);
+      publishSync(path);
+    }
+  };
 }
 
 var peer1 = {
@@ -154,63 +248,6 @@ model.version.updated = {
 */
 
 
-// enums
-var MODE = {give: 'give', get: 'get'};
-var MODAL = {
-  settingsUnlock: 'settingsUnlock',
-  settingsLoadFailure: 'settingsLoadFailure',
-  welcome: 'welcome',
-  authorize: 'authorize',
-  gtalkConnecting: 'gtalkConnecting',
-  gtalkUnreachable: 'gtalkUnreachable',
-  authorizeLater: 'authorizeLater',
-  notInvited: 'notInvited',
-  requestInvite: 'requestInvite',
-  requestSent: 'requestSent',
-  firstInviteReceived: 'firstInviteReceived',
-  proxiedSites: 'proxiedSites',
-  systemProxy: 'systemProxy',
-  passwordCreate: 'passwordCreate',
-  inviteFriends: 'inviteFriends',
-  finished: 'finished',
-  contactDevs: 'contactDevs',
-  settings: 'settings',
-  confirmReset: 'confirmReset',
-  giveModeForbidden: 'giveModeForbidden',
-  about: 'about',
-  updateAvailable: 'updateAvailable',
-  scenario: 'scenario',
-  none: ''
-};
-var INTERACTION = {
-  inviteFriends: 'inviteFriends',
-  contactDevs: 'contactDevs',
-  settings: 'settings',
-  proxiedSites: 'proxiedSites',
-  reset: 'reset',
-  about: 'about',
-  updateAvailable: 'updateAvailable',
-  requestInvite: 'requestInvite',
-  retryNow: 'retryNow',
-  retryLater: 'retryLater',
-  cancel: 'cancel',
-  continue: 'continue',
-  close: 'close',
-  quit: 'quit',
-  scenarios: 'scenarios'
-};
-var CONNECTIVITY = {
-  connected: 'connected',
-  connecting: 'connecting',
-  notConnected: 'notConnected'
-};
-var OS = {
-  windows: 'windows',
-  ubuntu: 'ubuntu',
-  osx: 'osx'
-};
-
-
 // XXX in demo mode interaction(something requiring sign in) should bring up sign in
 
 function inGiveMode(model) {
@@ -230,6 +267,7 @@ function validatePasswords(pw1, pw2) {
 }
 
 var RESET_INTERNAL_STATE = {
+  lastModal: MODAL.none,
   modalsCompleted: {
     welcome: false,
     passwordCreate: false,
@@ -238,12 +276,26 @@ var RESET_INTERNAL_STATE = {
     systemProxy: false,
     inviteFriends: false,
     finished: false
-  }
+  },
+  appliedScenarios: [
+    'os.osx',
+    'location.beijing',
+    'internet.connection',
+    'gtalkConnectivity.notConnected',
+    'gtalkAuthorization.notAuthorized'
+  ]
 };
 
-ApiServlet._resetInternalState = function() {
+ApiServlet._reset = function() {
   // quick and dirty clone
   this._internalState = JSON.parse(JSON.stringify(RESET_INTERNAL_STATE));
+  var model = this._bayeuxBackend.model, self = this;
+  this._internalState.appliedScenarios.forEach(
+    function(path) {
+      var scenario = getByPath(ApiServlet.SCENARIOS, path);
+      scenario.func.call(self);
+    }
+  );
 };
 
 var MODALSEQ_GIVE = [MODAL.welcome, MODAL.authorize, MODAL.inviteFriends, MODAL.finished, MODAL.none],
@@ -344,15 +396,28 @@ ApiServlet.HandlerMap = {
         , publishSync = this._bayeuxBackend.publishSync.bind(this._bayeuxBackend)
         , interaction = qs.interaction
         ;
+      if (interaction == INTERACTION.scenarios) {
+        this._internalState.lastModal = model.modal;
+        model.modal = MODAL.scenarios;
+        publishSync('modal');
+        return;
+      }
       switch (model.modal) {
-        case MODAL.welcome:
-          if (interaction == INTERACTION.scenarios) {
-            model.mock.scenarios.available = scenariosByPrefix('');
-            publishSync('mock.scenarios.available');
-            model.modal = MODAL.scenario;
-            publishSync('modal');
+        case MODAL.scenarios:
+          if (interaction != INTERACTION.continue) {
+            res.writeHead(400);
             return;
           }
+          var appliedScenarios = qs.appliedScenarios;
+          util.puts("appliedScenarios: " + util.inspect(appliedScenarios));
+          // XXX parse and validate
+          model.mock.scenarios.applied = appliedScenarios;
+          publishSync('mock.scenarios.applied');
+          model.modal = this._internalState.lastModal;
+          publishSync('modal');
+          return;
+
+        case MODAL.welcome:
           if (interaction != MODE.give && interaction != MODE.get) {
             res.writeHead(400);
             return;
@@ -566,8 +631,9 @@ ApiServlet.HandlerMap = {
             publishSync('modal');
             return;
           } else if (interaction == INTERACTION.reset) {
-            ApiServlet._resetInternalState.call(this);
             this._bayeuxBackend.resetModel();
+            //ApiServlet._reset.call(this);
+            this._reset(); // XXX check this works
             publishSync();
             return;
           }

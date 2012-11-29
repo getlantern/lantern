@@ -1,54 +1,11 @@
 {
-  "mock":{
-    "scenarios":{}
-  },
   "system":{
-    "os":"osx",
     "lang":"en"
   },
-  "location":{
-    "lat":39.904041,
-    "lon":116.407528,
-    "country":"cn"
-  },
-  "countries":{
-    "cn":{"censors": true},
-    "cu":{"censors": true},
-    "ir":{"censors": true},
-    "mm":{"censors": true},
-    "sy":{"censors": true},
-    "tm":{"censors": true},
-    "uz":{"censors": true},
-    "vn":{"censors": true},
-    "bh":{"censors": true},
-    "by":{"censors": true},
-    "sa":{"censors": true},
-    "kp":{"censors": true}
-  },
-  "version":{
-    "installed":{
-      "major":0,
-      "minor":22,
-      "patch":0,
-      "tag":"beta",
-      "git":"ac7de5f",
-      "releaseDate":"2012-12-12",
-      "modelSchema":{
-        "major":0,
-        "minor":0,
-        "patch":1
-      },
-      "httpApi":{},
-      "bayeuxProtocol":{}
-    },
-    "updateAvailable":false
-  },
+  "location":{},
   "modal":"welcome",
   "showVis": false,
   "connectivity":{
-    "internet":true,
-    "ip":"123.123.123.123",
-    "gtalkOauthUrl":"/app/fakeOauth.html",
     "gtalkAuthorized":false,
     "gtalk":"notConnected",
     "peers":{
@@ -76,5 +33,40 @@
     "systemProxy":true,
     "proxyAllSites":false,
     "proxiedSites":[]
+  },
+  "version":{
+    "installed":{
+      "major":0,
+      "minor":22,
+      "patch":0,
+      "tag":"beta",
+      "git":"ac7de5f",
+      "releaseDate":"2012-12-12",
+      "modelSchema":{
+        "major":0,
+        "minor":0,
+        "patch":1
+      },
+      "httpApi":{},
+      "bayeuxProtocol":{}
+    },
+    "updateAvailable":false
+  },
+  "countries":{
+    "cn":{"censors": true},
+    "cu":{"censors": true},
+    "ir":{"censors": true},
+    "mm":{"censors": true},
+    "sy":{"censors": true},
+    "tm":{"censors": true},
+    "uz":{"censors": true},
+    "vn":{"censors": true},
+    "bh":{"censors": true},
+    "by":{"censors": true},
+    "sa":{"censors": true},
+    "kp":{"censors": true}
+  },
+  "mock":{
+    "scenarios":{}
   }
 }

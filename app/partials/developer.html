@@ -1,14 +1,15 @@
 <div id="dev-buttons" class="btn-group" ng-show="dev.value">
+  <button class="btn btn-mini btn-dev" ng-click="interaction(INTERACTION.scenarios)"
+          ui-jq="tooltip" rel="tooltip" data-original-title="Scenarios"
+          ui-options="{placement: 'bottom'}">
+    <i class="icon-magic"></i>
+  </button>
   <button class="btn btn-mini btn-dev"
           data-toggle="collapse" data-target="#model"
           ui-jq="tooltip" rel="tooltip" data-original-title="Model"
           ui-options="{placement: 'bottom'}">
     <i class="icon-reorder"></i>
-  </button>
-  <button class="btn btn-mini btn-dev" ng-click="interaction(INTERACTION.scenarios)"
-          ui-jq="tooltip" rel="tooltip" data-original-title="Scenarios"
-          ui-options="{placement: 'bottom'}">
-    <i class="icon-magic"></i>
+    <span class="caret"></span>
   </button>
 </div>
 

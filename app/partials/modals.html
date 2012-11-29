@@ -122,7 +122,7 @@
     <div>{{ 'WELCOME_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="interaction(MODE.give)"
+    <button type="button" ui-if="!inCensoringCountry" ng-click="interaction(MODE.give)"
       class="btn btn-primary btn-{{inCensoringCountry && 'warning' || 'give-mode' }}">
       <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
       {{ 'GIVE_ACCESS' | i18n }}</button>
@@ -641,20 +641,23 @@ You should have received a copy of the GNU General Public License along with thi
   </div>
 </div>
 
-<div id="scenario" ng-controller="ScenarioCtrl" ng-model="show"
+<div id="scenarios" ng-controller="ScenariosCtrl" ng-model="show"
      ui-modal class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
-    <h3>Choose a scenario</h3>
+    <h3>Applied scenarios</h3>
   </div>
   <div class="modal-body">
-    <select ui-select2 ng-model="scenario" placeholder="scenario" required
-      style="width: 450px">
-      <option value=""></option>
-      <option ng-repeat="(func, desc) in scenarios" value="{{ func }}">{{ desc }}</option>
+    <div>{{ model.mock.scenarios.prompt }}</div>
+    <select ui-select2 multiple ng-multiple="multiple" ng-model="selected"
+            placeholder="Choose applied scenarios" required style="width: 530px">
+      <optgroup ng-repeat="(group, scenarios) in model.mock.scenarios.all" label="{{ group }}">
+        <option ng-repeat="(key, scen) in scenarios" value="{{ key }}">[{{ key }}] {{ scen.desc }}</option>
+      </optgroup>
     </select> 
+    <div><code>selected: {{ selected | json }}</code></div>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="interaction(INTERACTION.cancel)" class="btn">Cancel</button>
-    <button type="button" ng-click="submit()" class="btn btn-dev">Continue</button>
+    <button type="button" class="btn btn-primary" ng-click="submit()"
+            ng-disabled="invalid">Continue</button>
   </div>
 </div>

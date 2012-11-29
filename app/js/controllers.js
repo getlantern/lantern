@@ -525,25 +525,19 @@ function GiveModeForbiddenCtrl($scope, logFactory, MODAL) {
   });
 }
 
-function ScenarioCtrl($scope, apiSrvc, logFactory, modelSrvc, dev, MODAL) {
-  var log = logFactory('DevCtrl'),
+function ScenariosCtrl($scope, apiSrvc, logFactory, modelSrvc, dev, MODAL) {
+  var log = logFactory('ScenariosCtrl'),
       model = modelSrvc.model;
 
   $scope.show = false;
   $scope.$watch('model.modal', function(val) {
-    $scope.show = val == MODAL.scenario;
+    $scope.show = val == MODAL.scenarios;
   });
 
-  $scope.$watch('model.mock.scenarios.available', function(val) {
-    if (typeof val == 'undefined') return;
-    $scope.scenarios = {};
-    for (var i=0, s=val[i], l=val.length; i<l; s=val[++i]) {
-      $scope.scenarios[s] = modelSrvc.get('mock.scenarios.all.'+s).desc;
-    }
-  });
+  $scope.multiple = true; // XXX without this, ui-select2 with "multiple" attr causes an exception
 
   $scope.submit = function() {
-    log.debug('scenario:', $scope.scenario);
+    log.debug($scope.appliedScenarios);
     log.error('TODO');
   };
 }

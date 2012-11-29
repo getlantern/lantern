@@ -5083,34 +5083,31 @@ label.checkbox.inline, label.radio.inline {
 }
 
 .btn-dev {
-  background-color: #f9a732;
-  background-image: -moz-linear-gradient(top, #fbb450, #f89406);
-  background-image: -ms-linear-gradient(top, #fbb450, #f89406);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fbb450), to(#f89406));
-  background-image: -webkit-linear-gradient(top, #fbb450, #f89406);
-  background-image: -o-linear-gradient(top, #fbb450, #f89406);
-  background-image: linear-gradient(top, #fbb450, #f89406);
+  background-color: #fff12e;
+  background-image: -moz-linear-gradient(top, #fff343, #fff010);
+  background-image: -ms-linear-gradient(top, #fff343, #fff010);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#fff343), to(#fff010));
+  background-image: -webkit-linear-gradient(top, #fff343, #fff010);
+  background-image: -o-linear-gradient(top, #fff343, #fff010);
+  background-image: linear-gradient(top, #fff343, #fff010);
   background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fbb450', endColorstr='#f89406', GradientType=0);
-  border-color: #f89406 #f89406 #ad6704;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#fff343', endColorstr='#fff010', GradientType=0);
+  border-color: #fff010 #fff010 #c3b600;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) fadein(rgba(0, 0, 0, 0.1), 15%);
-  *background-color: #f89406;
+  *background-color: #fff010;
   /* Darken IE7 buttons by default so they stand out more given they won't have borders */
   filter: progid:DXImageTransform.Microsoft.gradient(enabled = false);
 }
 .btn-dev:hover, .btn-dev:active, .btn-dev.active, .btn-dev.disabled, .btn-dev[disabled] {
-  background-color: #f89406;
-  *background-color: #df8505;
+  background-color: #fff010;
+  *background-color: #f5e600;
 }
 .btn-dev:active, .btn-dev.active {
-  background-color: #c67605 \9;
+  background-color: #dcce00 \9;
 }
 
-.btn-give-mode,
-.btn-get-mode,
 .btn-dev {
-  color: white;
-  text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
+  color: #b3aa1e;
 }
 
 a.never-underlined {
@@ -5562,13 +5559,18 @@ body.showVis #footer {
 
 #model {
   position: absolute;
-  top: 20px;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  top: 41px;
+  bottom: 41px;
+  left: 20px;
+  width: 500px;
   overflow: scroll;
   background-color: white;
+  opacity: 0.9;
   z-index: 1051;
+  -webkit-border-radius: 5px;
+  -moz-border-radius: 5px;
+  -ms-border-radius: 5px;
+  border-radius: 5px;
 }
 #model * {
   font-size: 11.9px;
