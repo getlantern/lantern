@@ -5550,6 +5550,17 @@ body.showVis #footer {
   color: #c09853;
 }
 
+#dev-label {
+  position: absolute;
+  top: 2px;
+  left: 25px;
+  z-index: 1051;
+  font-size: 10.5px;
+  color: #fff343;
+  font-weight: 300;
+  text-shadow: 0 1px 0 black;
+}
+
 #dev-buttons {
   position: absolute;
   top: 20px;
@@ -5562,11 +5573,11 @@ body.showVis #footer {
   top: 41px;
   bottom: 41px;
   left: 20px;
+  z-index: 1051;
   width: 500px;
   overflow: scroll;
   background-color: white;
   opacity: 0.9;
-  z-index: 1051;
   -webkit-border-radius: 5px;
   -moz-border-radius: 5px;
   -ms-border-radius: 5px;

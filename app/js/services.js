@@ -96,7 +96,7 @@ angular.module('app.services', [])
   })
   // more flexible log service
   // https://groups.google.com/d/msg/angular/vgMF3i3Uq2Y/q1fY_iIvkhUJ
-  .value('logWhiteList', /ScenariosCtrl/)// /.*Ctrl|.*Srvc/)
+  .value('logWhiteList', /.*Ctrl|.*Srvc/)
   .factory('logFactory', function($log, dev, logWhiteList) {
     return function(prefix) {
       var match = prefix

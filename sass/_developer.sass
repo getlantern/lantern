@@ -1,16 +1,24 @@
 @import helpers
 
+#dev-label
+  +position(2px, false, false, 25px)
+  +aboveModal
+  +smaller
+  color: $devModeColor
+  font-weight: 300
+  text-shadow: 0 1px 0 #000
+
 #dev-buttons
   +position(20px, false, false, 20px)
   +aboveModal
 
 #model
   +position(41px, false, 41px, 20px)
+  +aboveModal
   width: 500px
   overflow: scroll
   background-color: #fff
   opacity: .9
-  +aboveModal
   +border-radius(5px)
   *
     +small

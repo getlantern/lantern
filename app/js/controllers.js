@@ -28,6 +28,11 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
     $scope.inGetMode = val == MODE.get;
   });
 
+  $scope.$watch('model.mock', function(val) {
+    $scope.mockBackend = !!val;
+  });
+
+
   $scope.$watch('model.location.country', function(val) {
     if (val) $scope.inCensoringCountry = model.countries[val].censors;
   });
@@ -553,11 +558,13 @@ function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, cometdSrvc, modelS
   }, true);
 
   $scope.handleUpdate = function() {
+    log.debug('in handleUpdate');
     cometdSrvc.batch(function() {
       syncObject('', angular.fromJson($scope.editableModel), model);
     });
   };
 
+  // XXX deleted fields ignored?
   function syncObject(parent, src, dst) {
     for (var name in src) {
       var path = (parent ? parent + '.' : '') + name;

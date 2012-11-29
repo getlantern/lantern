@@ -30,7 +30,7 @@
   </div>
 
   <div id="version">
-    Lantern {{ model.mock && 'mock app' }} {{ model.version.installed | version }}
+    Lantern {{ mockBackend && '(mock backend)' || '' }} {{ model.version.installed | version }}
     <span ng-show="model.showVis">
       · <a ng-click="interaction(INTERACTION.about)">About</a>
     </span>
