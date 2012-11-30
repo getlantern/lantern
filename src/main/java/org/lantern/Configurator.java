@@ -11,23 +11,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Configures Lantern. This can be either on the first run of the application
  * or through the user changing his or her configurations in the configuration
  * screen.
  */
+@Singleton
 public class Configurator {
     
     private final Logger LOG = 
         LoggerFactory.getLogger(Configurator.class);
     
     private volatile boolean configured = false;
+
+    private final Proxifier proxifier;
+
+    private final MessageService messageService;
     
     /**
      * Creates a new configurator.
      */
-    public Configurator() {
+    @Inject
+    public Configurator(final Proxifier proxifier, 
+        final MessageService messageService) {
+        this.proxifier = proxifier;
+        this.messageService = messageService;
         Events.register(this);
     }
     
@@ -128,7 +139,7 @@ public class Configurator {
             boolean finished = false;
             while (!finished) {
                 try {
-                    Proxifier.startProxying();
+                    proxifier.startProxying();
                     finished = true;
                 } catch (Proxifier.ProxyConfigurationError e) {
                     if (LanternHub.settings().isUiEnabled()) {
@@ -138,7 +149,7 @@ public class Configurator {
                             "your web traffic unless you manually configure your proxy settings.\n\n" +
                             "Try again?";
                         final int response = 
-                            LanternHub.dashboard().askQuestion("Proxy Settings", question,
+                            messageService.askQuestion("Proxy Settings", question,
                                 SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.RETRY | SWT.CANCEL);
                         if (response == SWT.CANCEL) {
                             finished = true;

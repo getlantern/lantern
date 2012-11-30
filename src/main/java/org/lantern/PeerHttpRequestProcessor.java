@@ -68,8 +68,12 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
 
     private final Socket sock;
 
-    public PeerHttpRequestProcessor(final Socket sock) {
+    private final LanternSocketsUtil socketsUtil;
+
+    public PeerHttpRequestProcessor(final Socket sock,
+        final LanternSocketsUtil socketsUtil) {
         this.sock = sock;
+        this.socketsUtil = socketsUtil;
     }
 
     @Override
@@ -81,7 +85,7 @@ public class PeerHttpRequestProcessor implements HttpRequestProcessor {
             // returning to the browser still goes through our encoder 
             // here (i.e. we haven't stripped the encoder to support 
             // CONNECT traffic).
-            LanternUtils.startReading(this.sock, browserToProxyChannel, false);
+            socketsUtil.startReading(this.sock, browserToProxyChannel, false);
             startedCopying = true;
         }
 

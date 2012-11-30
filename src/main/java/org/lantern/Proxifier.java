@@ -14,46 +14,50 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.common.io.Files;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Class that handles turning proxying on and off for all platforms.
  */
-public class Proxifier {
+@Singleton
+public class Proxifier implements LanternService {
     
-    public static class ProxyConfigurationError extends Exception {}
-    public static class ProxyConfigurationCancelled extends ProxyConfigurationError {};
+    public class ProxyConfigurationError extends Exception {}
+    public class ProxyConfigurationCancelled extends ProxyConfigurationError {};
     
-    private static final Logger LOG = 
+    private final Logger LOG = 
         LoggerFactory.getLogger(Proxifier.class);
     
     /**
      * File external processes can use to determine if Lantern is currently
      * proxying traffic. Useful for things like the FireFox extensions.
      */
-    private static final File LANTERN_PROXYING_FILE =
+    private final File LANTERN_PROXYING_FILE =
         new File(LanternConstants.CONFIG_DIR, "lanternProxying");
     
-    private static boolean interactiveUnproxyCalled;
+    private boolean interactiveUnproxyCalled;
 
-    private static final MacProxyManager mpm = 
+    private final MacProxyManager mpm = 
         new MacProxyManager("testId", 4291);
     
-    public static final File PROXY_ON = 
+    public final static File PROXY_ON = 
         new File(LanternConstants.CONFIG_DIR, "proxy_on.pac");
-    public static final File PROXY_OFF = 
+    public final static File PROXY_OFF = 
         new File(LanternConstants.CONFIG_DIR, "proxy_off.pac");
-    public static final File PROXY_ALL = 
+    public final static File PROXY_ALL = 
         new File(LanternConstants.CONFIG_DIR, "proxy_all.pac");
+
+    private final WinProxy WIN_PROXY = 
+        new WinProxy(LanternConstants.CONFIG_DIR);
     
-    static {
+    private final MessageService messageService;
+    
+    @Inject public Proxifier(final MessageService messageService) {
+        this.messageService = messageService;
         copyFromLocal(PROXY_ON);
         copyFromLocal(PROXY_ALL);
         copyFromLocal(PROXY_OFF);
-    }
-    private static final WinProxy WIN_PROXY = 
-        new WinProxy(LanternConstants.CONFIG_DIR);
-    
-    static {
         final class Subscriber {
             @Subscribe
             public void onQuit(final QuitEvent quit) {
@@ -88,23 +92,20 @@ public class Proxifier {
             throw new IllegalStateException(msg);
         }
         LOG.info("Both pac files are in their expected locations");
-
-        // We always want to stop proxying on shutdown -- doesn't hurt 
-        // anything in the case where we never proxied in the first place.
-        // If there is a UI we let the UI handle it. 
-        final Thread hook = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                LOG.info("Unproxying on shutdown...");
-                interactiveUnproxy();
-                LOG.info("Finished unproxying on shutdown...");
-            }
-        }, "Unset-Web-Proxy-Shutdown-Thread");
-        Runtime.getRuntime().addShutdownHook(hook);
     }
     
+
+    @Override
+    public void start() throws Exception {
+        // Nothing to do in this case;
+    }
+
+    @Override
+    public void stop() {
+        interactiveUnproxy();
+    }
     
-    private static void copyFromLocal(final File dest) {
+    private void copyFromLocal(final File dest) {
         final File local = new File(dest.getName());
         if (!local.isFile()) {
             LOG.error("No file at: {}", local);
@@ -129,7 +130,7 @@ public class Proxifier {
      * @throws ProxyConfigurationError If there's an error configuring the 
      * proxy.
      */
-    public static void proxyAllSites(final boolean proxyAll) 
+    public void proxyAllSites(final boolean proxyAll) 
         throws ProxyConfigurationError {
         if (proxyAll) {
             startProxying(true, PROXY_ALL);
@@ -141,7 +142,7 @@ public class Proxifier {
         }
     }
 
-    public static void startProxying() throws ProxyConfigurationError {
+    public void startProxying() throws ProxyConfigurationError {
         if (LanternHub.settings().isProxyAllSites()) {
             // If we were previously configured to proxy all sites, then we
             // need to force the override.
@@ -151,7 +152,7 @@ public class Proxifier {
         }
     }
     
-    private static void startProxying(final boolean force, final File pacFile) 
+    private void startProxying(final boolean force, final File pacFile) 
         throws ProxyConfigurationError {
         if (isProxying() && !force) {
             LOG.info("Already proxying!");
@@ -191,12 +192,12 @@ public class Proxifier {
         }
     }
     
-    public static void interactiveUnproxy() {
-        if (Proxifier.interactiveUnproxyCalled) {
+    public void interactiveUnproxy() {
+        if (interactiveUnproxyCalled) {
             LOG.info("Interactive unproxy already called!");
             return;
         }
-        Proxifier.interactiveUnproxyCalled = true;
+        interactiveUnproxyCalled = true;
         if (!LanternHub.settings().isUiEnabled()) {
             try {
                 stopProxying();
@@ -211,7 +212,7 @@ public class Proxifier {
             boolean finished = false;
             while (!finished) {
                 try {
-                    Proxifier.stopProxying();
+                    stopProxying();
                     finished = true;
                 } catch (final Proxifier.ProxyConfigurationError e) {
                     LOG.error("Failed to unconfigure proxy.");
@@ -222,7 +223,8 @@ public class Proxifier {
                     "in order to access the web.\n\nTry again?";
                     
                     // TODO: Don't think this will work on Linux.
-                    final int response = LanternHub.dashboard().askQuestion("Proxy Settings", question,
+                    final int response = 
+                        messageService.askQuestion("Proxy Settings", question,
                         SWT.APPLICATION_MODAL | SWT.ICON_WARNING | SWT.RETRY | SWT.CANCEL);
                     if (response == SWT.CANCEL) {
                         finished = true;
@@ -235,7 +237,7 @@ public class Proxifier {
         }
     }
 
-    public static void stopProxying() throws ProxyConfigurationError {
+    public void stopProxying() throws ProxyConfigurationError {
         if (!isProxying()) {
             LOG.info("Ignoring call since we're not proxying");
             return; 
@@ -252,11 +254,11 @@ public class Proxifier {
         }
     }
 
-    public static boolean isProxying() {
+    public boolean isProxying() {
         return LANTERN_PROXYING_FILE.isFile();
     }
     
-    private static void proxyLinux(final String url) 
+    private void proxyLinux(final String url) 
         throws ProxyConfigurationError {
         //final String path = url.toURI().toASCIIString();
 
@@ -277,12 +279,12 @@ public class Proxifier {
         }
     }
     
-    private static void proxyOsx(final String url) 
+    private void proxyOsx(final String url) 
         throws ProxyConfigurationError {
         configureOsxProxyViaScript(true, url);
     }
     
-    private static void configureOsxProxyViaScript(final boolean proxy,
+    private void configureOsxProxyViaScript(final boolean proxy,
         final String url) throws ProxyConfigurationError {
         final String onOrOff;
         if (proxy) {
@@ -329,7 +331,7 @@ public class Proxifier {
         }
     }
 
-    private static void proxyWindows(final String url) {
+    private void proxyWindows(final String url) {
         if (!SystemUtils.IS_OS_WINDOWS) {
             LOG.info("Not running on Windows");
             return;
@@ -345,12 +347,12 @@ public class Proxifier {
         WIN_PROXY.setPacFile(url);
     }
 
-    protected static void unproxyWindows() {
+    protected void unproxyWindows() {
         LOG.info("Unproxying windows");
         WIN_PROXY.unproxy();
     }
     
-    private static void unproxyLinux() throws ProxyConfigurationError {
+    private void unproxyLinux() throws ProxyConfigurationError {
         try {
             final String result1 = 
                 mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
@@ -362,16 +364,16 @@ public class Proxifier {
         }
     }
 
-    private static void unproxyOsx() throws ProxyConfigurationError {
+    private void unproxyOsx() throws ProxyConfigurationError {
         // Note that this is a bit of overkill in that we both turn of the
         // PAC file-based proxying and set the PAC file to one that doesn't
         // proxy anything.
         configureOsxProxyViaScript(false, pacFileUrl(PROXY_OFF));
     }
     
-    private static String pacFileUrl(final File pacFile) {
+    private String pacFileUrl(final File pacFile) {
         final String url = 
-            "http://127.0.0.1:"+LanternHub.jettyLauncher().getPort()+"/"+
+            "http://127.0.0.1:"+RuntimeSettings.getApiPort()+"/"+
                 pacFile.getName()+"-"+RandomUtils.nextInt();
         return url;
     }
@@ -385,7 +387,7 @@ public class Proxifier {
      * @throws IOException If there was a scripting error reading the 
      * preferences setting.
      */
-    public static boolean osxPrefPanesLocked() throws IOException {
+    public boolean osxPrefPanesLocked() throws IOException {
         final String script = 
             "tell application \"System Events\"\n"+
             "    tell security preferences\n"+
@@ -417,7 +419,7 @@ public class Proxifier {
      * This will refresh the proxy entries for things like new additions to
      * the whitelist.
      */
-    public static void refresh() {
+    public void refresh() {
         if (isProxying()) {
             if (LanternHub.settings().isProxyAllSites()) {
                 // If we were previously configured to proxy all sites, then we

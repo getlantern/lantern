@@ -35,8 +35,4 @@ public abstract class StatsTrackingHandler extends SimpleChannelHandler
         }
         super.messageReceived(ctx, e);
     }
-    
-    protected StatsTracker statsTracker() {
-        return LanternHub.statsTracker();
-    }
 }

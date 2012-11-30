@@ -33,7 +33,7 @@ public class ChromeRunner {
         commands.add("--user-data-dir="+LanternConstants.CONFIG_DIR.getAbsolutePath());
         commands.add("--window-size="+SCREEN_WIDTH+","+SCREEN_HEIGHT);
         commands.add("--window-position="+location.x+","+location.y);
-        commands.add("--app=http://localhost:"+LanternHub.settings().getApiPort());
+        commands.add("--app=http://localhost:"+RuntimeSettings.getApiPort());
 
         this.processBuilder = new ProcessBuilder(commands);
     }

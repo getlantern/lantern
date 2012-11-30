@@ -4,11 +4,14 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.Events;
 import org.lantern.GoogleTalkState;
 import org.lantern.LanternHub;
+import org.lantern.LanternUtils;
 import org.lantern.PeerProxyManager;
+import org.lantern.RuntimeSettings;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.SyncEvent;
 import org.lantern.state.Model.Persistent;
@@ -32,13 +35,14 @@ public class Connectivity {
      */
     private String ip = "79.168.34.28";
     
+    private int apiPort = LanternUtils.randomPort();
+
     private String gtalkOauthUrl;
     
     public Connectivity() {
         Events.register(this);
         //gtalkOauthUrl = newGtalkOauthUrl();
     }
-    
 
     @JsonView({Run.class})
     public GoogleTalkState getGTalk() {
@@ -52,7 +56,8 @@ public class Connectivity {
     
     @JsonView({Run.class})
     public Collection<Peer> getPeers() {
-        return peers(LanternHub.trustedPeerProxyManager());
+        //return peers(LanternHub.trustedPeerProxyManager());
+        return Collections.emptyList();
     }
     
     public Collection<Peer> getPeersCurrent() {
@@ -67,7 +72,8 @@ public class Connectivity {
     }
     
     public Collection<Peer> getAnonymousPeers() {
-        return peers(LanternHub.anonymousPeerProxyManager());
+        //return peers(LanternHub.anonymousPeerProxyManager());
+        return Collections.emptyList();
     }
     
     private Collection<Peer> peers(final PeerProxyManager ppm) {
@@ -102,7 +108,7 @@ public class Connectivity {
     @JsonView({Run.class})
     public String getGtalkOauthUrl() {
         if (StringUtils.isBlank(gtalkOauthUrl)) {
-            gtalkOauthUrl = "http://localhost:"+LanternHub.settings().getApiPort()+"/oauth/";
+            gtalkOauthUrl = RuntimeSettings.getLocalEndpoint()+"/oauth/";
         }
         return gtalkOauthUrl;
     }

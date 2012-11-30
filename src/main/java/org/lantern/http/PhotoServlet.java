@@ -155,6 +155,7 @@ public final class PhotoServlet extends HttpServlet {
             if (conn != null && conn.isConnected()) {
                 return conn;
             }
+            /*
             final String user = LanternHub.xmppHandler().getLastUserName();
             final String pass = LanternHub.xmppHandler().getLastPass();
             if (StringUtils.isBlank(user)) {
@@ -166,6 +167,8 @@ public final class PhotoServlet extends HttpServlet {
             conn = XmppUtils.simpleGoogleTalkConnection(user, pass, 
                 "vcard-connection");
             return conn;
+            */
+            return null;
         }
     }
 

@@ -556,20 +556,11 @@ public class Settings implements MutableSettings {
     public boolean isBindToLocalhost() {
         return bindToLocalhost;
     }
-
-    public void setApiPort(final int apiPort) {
-        this.apiPort = apiPort;
-    }
-
-    @JsonView({RuntimeSetting.class})
-    @CommandLineOption
-    public int getApiPort() {
-        return apiPort;
-    }
     
     @JsonView(RuntimeSetting.class)
     public boolean isProxying() {
-        return Proxifier.isProxying();
+        //return Proxifier.isProxying();
+        return false;
     }
 
     public void setPasswordSaved(boolean passwordSaved) {
@@ -627,7 +618,8 @@ public class Settings implements MutableSettings {
 
     @JsonView(RuntimeSetting.class)
     public boolean isLocalPasswordInitialized() {
-        return LanternHub.localCipherProvider().isInitialized();
+        //return LanternHub.localCipherProvider().isInitialized();
+        throw new UnsupportedOperationException("FIX ME - NEW UI");
     }
 
     public void setAutoConnectToPeers(final boolean autoConnectToPeers) {

@@ -65,7 +65,9 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
 
     private final ClientSocketChannelFactory clientChannelFactory;
 
-    private KeyStoreManager ksm;
+    private final KeyStoreManager ksm;
+
+    private final Stats stats;
 
     /**
      * Creates a new proxy server.
@@ -91,7 +93,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         final ClientSocketChannelFactory clientChannelFactory, 
         final Timer timer,
         final ServerSocketChannelFactory serverChannelFactory,
-        final KeyStoreManager ksm) {
+        final KeyStoreManager ksm,
+        final Stats stats) {
         this.port = port;
         this.responseFilters = responseFilters;
         this.requestFilter = requestFilter;
@@ -100,6 +103,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         this.timer = timer;
         this.serverChannelFactory = serverChannelFactory;
         this.ksm = ksm;
+        this.stats = stats;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
@@ -168,7 +172,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         this.authenticationManager.addHandler(pah);
     }
     
-    private static class StatsTrackingHttpServerPipelineFactory 
+    private class StatsTrackingHttpServerPipelineFactory 
         extends HttpServerPipelineFactory {
         
         private StatsTrackingHttpServerPipelineFactory(
@@ -190,18 +194,18 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
             pipeline.addFirst("stats", new StatsTrackingHandler() {
                 @Override
                 public void addUpBytes(long bytes) {
-                    statsTracker().addUpBytesToPeers(bytes);
+                    stats.addUpBytesToPeers(bytes);
                 }
                 @Override
                 public void addDownBytes(long bytes) {
-                    statsTracker().addDownBytesFromPeers(bytes);
+                    stats.addDownBytesFromPeers(bytes);
                 }
             });
             return pipeline;
         }
     }
     
-    private static class StatsTrackingDefaultRelayPipelineFactoryFactory 
+    private class StatsTrackingDefaultRelayPipelineFactoryFactory 
         extends DefaultRelayPipelineFactoryFactory {
         
         private StatsTrackingDefaultRelayPipelineFactoryFactory(
@@ -228,11 +232,11 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                     pipeline.addFirst("stats", new StatsTrackingHandler() {
                         @Override
                         public void addUpBytes(final long bytes) {
-                            statsTracker().addUpBytesForPeers(bytes);
+                            stats.addUpBytesForPeers(bytes);
                         }
                         @Override
                         public void addDownBytes(final long bytes) {
-                            statsTracker().addDownBytesForPeers(bytes);
+                            stats.addDownBytesForPeers(bytes);
                         }
                     });
                     return pipeline;

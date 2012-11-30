@@ -5,7 +5,6 @@ import org.kaleidoscope.TrustGraphAdvertisement;
 import org.kaleidoscope.TrustGraphNode;
 import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.LanternConstants;
-import org.lantern.LanternHub;
 import org.lantern.XmppHandler;
 import org.lastbamboo.common.p2p.P2PConstants;
 
@@ -16,7 +15,11 @@ import org.lastbamboo.common.p2p.P2PConstants;
  */
 public class LanternTrustGraphNode extends TrustGraphNode {
 
-    public LanternTrustGraphNode() {}
+    private final XmppHandler handler;
+
+    public LanternTrustGraphNode(final XmppHandler handler) {
+        this.handler = handler;
+    }
     
     @Override
     public void sendAdvertisement(final TrustGraphAdvertisement message,
@@ -25,7 +28,6 @@ public class LanternTrustGraphNode extends TrustGraphNode {
         final String id = neighbor.getNeighborId();
         final String payload = message.getPayload();
         
-        final XmppHandler handler = LanternHub.xmppHandler();
         final Message msg = new Message();
         msg.setProperty(P2PConstants.MESSAGE_TYPE, 
             LanternConstants.KSCOPE_ADVERTISEMENT);

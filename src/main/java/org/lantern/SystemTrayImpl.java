@@ -20,16 +20,21 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
+import org.lantern.di.WinOsxTray;
 import org.lantern.event.ConnectivityStatusChangeEvent;
 import org.lantern.event.QuitEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Class for handling all system tray interactions.
  */
+@Singleton
+@WinOsxTray
 public class SystemTrayImpl implements SystemTray {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -51,25 +56,30 @@ public class SystemTrayImpl implements SystemTray {
     private final static String ICON_DISCONNECTED  = "16off.png";
     private final static String ICON_CONNECTING    = "16off.png"; 
     private final static String ICON_CONNECTED     = "16on.png";
-    private final static String ICON_DISCONNECTING = "16off.png"; 
-
+    private final static String ICON_DISCONNECTING = "16off.png";
+    private final XmppHandler handler;
+    private final BrowserService browserService;
     
     /**
      * Creates a new system tray handler class.
      * 
      * @param display The SWT display. 
      */
-    public SystemTrayImpl() {
+    @Inject
+    public SystemTrayImpl(final XmppHandler handler, 
+        final BrowserService browserService) {
+        this.handler = handler;
+        this.browserService = browserService;
         Events.register(this);
     }
 
-    public static boolean isSupported() {
-        return LanternHub.display().getSystemTray() != null;
+    @Override
+    public boolean isSupported() {
+        return display.getSystemTray() != null;
     }
 
     @Override
     public void createTray() {
-        this.display = LanternHub.display();
         this.shell = new Shell(display);
         
         display.asyncExec (new Runnable () {
@@ -113,7 +123,7 @@ public class SystemTrayImpl implements SystemTray {
             dashboardItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
-                    LanternHub.jettyLauncher().openBrowserWhenReady();
+                    browserService.openBrowserWhenPortReady();
                 }
             });
             
@@ -135,7 +145,7 @@ public class SystemTrayImpl implements SystemTray {
                     
                     // We call this primarily because we need to make sure to
                     // remove any UPnP and NAT-PMP port mappings.
-                    LanternHub.xmppHandler().disconnect();
+                    handler.disconnect();
                     //LanternHub.jettyLauncher().stop();
                     
                     // We don't need to actively close all open resources --
@@ -166,7 +176,7 @@ public class SystemTrayImpl implements SystemTray {
                     @Override
                     public void widgetSelected(SelectionEvent se) {
                         log.debug("opening dashboard");
-                        LanternHub.jettyLauncher().openBrowserWhenReady();
+                        browserService.openBrowserWhenPortReady();
                     }
                     
                     @Override

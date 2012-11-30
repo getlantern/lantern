@@ -12,7 +12,7 @@ import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.cometd.bayeux.server.ServerSession;
 import org.lantern.Events;
-import org.lantern.LanternHub;
+import org.lantern.LanternService;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.RosterStateChangedEvent;
 import org.lantern.event.SyncEvent;
@@ -20,12 +20,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Service for pushing updated Lantern state to the client.
  */
 @Service("sync")
-public class SyncService {
+@Singleton
+public class SyncService implements LanternService {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -34,7 +37,11 @@ public class SyncService {
     
     private final SyncStrategy strategy;
 
-    private final Model model;
+    //private final Model model;
+
+    private final Timer timer;
+
+    private final ModelProvider modelProvider;
     
     /**
      * Creates a new sync service.
@@ -42,19 +49,31 @@ public class SyncService {
      * @param strategy The strategy to use for syncing
      * @param model The model to use.
      */
-    public SyncService(final SyncStrategy strategy, final Model model) {
+    @Inject
+    public SyncService(final SyncStrategy strategy, 
+        final ModelProvider modelProvider, final Timer timer) {
         this.strategy = strategy;
-        this.model = model;
+        this.modelProvider = modelProvider;
+        //this.model = model;
+        this.timer = timer;
         // Make sure the config class is added as a listener before this class.
         Events.register(this);
-        
-        final Timer timer = LanternHub.timer();
+    }
+    
+
+    @Override
+    public void start() throws Exception {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
                 //sync();
             }
         }, 3000, 4000);
+    }
+
+    @Override
+    public void stop() {
+        this.timer.cancel();
     }
     
     @SuppressWarnings("unused")
@@ -129,7 +148,7 @@ public class SyncService {
         log.debug("In sync method");
         //this.strategy.sync(force, channel, this.session);
         
-        this.strategy.sync(force, this.session, "", this.model);
+        this.strategy.sync(force, this.session, "", this.modelProvider.getModel());
     }
 
     public void publishSync(final String path, final Object value) {

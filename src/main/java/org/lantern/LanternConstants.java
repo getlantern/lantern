@@ -6,6 +6,9 @@ import java.nio.charset.Charset;
 import org.apache.commons.lang.SystemUtils;
 import org.lantern.exceptional4j.ExceptionalUtils;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 /**
  * Constants for Lantern.
  */
@@ -204,4 +207,6 @@ public class LanternConstants {
         ON_APP_ENGINE = tempAppEngine;
     }
 
+    public static final Injector INJECTOR = 
+        Guice.createInjector(new LanternModule());
 }

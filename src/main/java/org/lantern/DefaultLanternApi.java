@@ -25,12 +25,15 @@ import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
 /**
  * Default implementation of the Lantern API.
  */
+@Singleton
 public class DefaultLanternApi implements LanternApi {
     
-    private final Logger log = LoggerFactory.getLogger(getClass());
     
     /**
      * Enumeration of calls to the Lantern API.
@@ -55,7 +58,24 @@ public class DefaultLanternApi implements LanternApi {
         UNSUBSCRIBED,
         STATE
     }
+    
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    private final XmppHandler xmppHandler;
+    private final SettingsChangeImplementor settingsChangeImplementor;
+    private final  LocalCipherProvider lcp;
+    private final Proxifier proxifier;
 
+    @Inject
+    public DefaultLanternApi(final XmppHandler xmppHandler,
+        final SettingsChangeImplementor settingsChangeImplementor,
+        final LocalCipherProvider lcp,
+        final Proxifier proxifier) {
+        this.xmppHandler = xmppHandler;
+        this.settingsChangeImplementor = settingsChangeImplementor;
+        this.lcp = lcp;
+        this.proxifier = proxifier;
+    }
+    
     @Override
     public void processCall(final HttpServletRequest req, 
         final HttpServletResponse resp) {
@@ -79,16 +99,17 @@ public class DefaultLanternApi implements LanternApi {
             break;
         case ADDTOWHITELIST:
             LanternHub.whitelist().addEntry(req.getParameter("site"));
-            Proxifier.refresh();
+            proxifier.refresh();
             handleWhitelist(resp);
             LanternHub.settingsIo().write();
             break;
         case REMOVEFROMWHITELIST:
             LanternHub.whitelist().removeEntry(req.getParameter("site"));
-            Proxifier.refresh();
+            proxifier.refresh();
             handleWhitelist(resp);
             LanternHub.settingsIo().write();
             break;
+            /*
         case ADDTRUSTEDPEER:
             // TODO: Add data validation.
             LanternHub.getTrustedContactsManager().addTrustedContact(
@@ -101,6 +122,7 @@ public class DefaultLanternApi implements LanternApi {
                 req.getParameter("email"));
             handleRoster(resp);
             break;
+            */
         case ROSTER:
             handleRoster(resp);
             break;
@@ -148,11 +170,11 @@ public class DefaultLanternApi implements LanternApi {
             sendClientError(resp, "No jid argument provided");
             return;
         }
-        LanternHub.xmppHandler().subscribed(jid);
+        this.xmppHandler.subscribed(jid);
         
         // We also automatically subscribe to them in turn so we know about
         // their presence.
-        LanternHub.xmppHandler().subscribe(jid);
+        this.xmppHandler.subscribe(jid);
         returnSettings(resp);
     }
     
@@ -164,7 +186,7 @@ public class DefaultLanternApi implements LanternApi {
             sendClientError(resp, "No jid argument provided");
             return;
         }
-        LanternHub.xmppHandler().unsubscribed(jid);
+        this.xmppHandler.unsubscribed(jid);
         returnSettings(resp);
     }
 
@@ -176,7 +198,7 @@ public class DefaultLanternApi implements LanternApi {
             sendClientError(resp, "No email argument provided");
             return;
         }
-        LanternHub.xmppHandler().sendInvite(email);
+        this.xmppHandler.sendInvite(email);
         returnSettings(resp);
     }
 
@@ -195,7 +217,7 @@ public class DefaultLanternApi implements LanternApi {
         final HttpServletResponse resp) {
         log.debug("Signing in...");
         final Settings set = LanternHub.settings();
-        LanternHub.xmppHandler().disconnect();
+        this.xmppHandler.disconnect();
         final Map<String, String> params = HttpUtils.toParamMap(req);
 
         final String rawEmail = params.remove("email");
@@ -231,7 +253,7 @@ public class DefaultLanternApi implements LanternApi {
         // the subsequent connect call.
         LanternHub.settingsIo().write();
         try {
-            LanternHub.xmppHandler().connect();
+            this.xmppHandler.connect();
             if (LanternHub.settings().isInitialSetupComplete()) {
                 // We automatically start proxying upon connect if the 
                 // user's settings say they're in get mode and to use the 
@@ -240,7 +262,7 @@ public class DefaultLanternApi implements LanternApi {
                 // TODO: We actually should not start proxying here since the
                 // user doesn't necessarily have proxies to connect to. We
                 // should only start proxying upon connecting to proxies!!
-                Proxifier.startProxying();
+                proxifier.startProxying();
             }
             returnSettings(resp);
         } catch (final IOException e) {
@@ -269,10 +291,10 @@ public class DefaultLanternApi implements LanternApi {
     private void handleAutoproxy(final HttpServletResponse resp) {
         try {
             if (LanternUtils.shouldProxy()) {
-                Proxifier.startProxying();
+                proxifier.startProxying();
             }
             else {
-                Proxifier.stopProxying();
+                proxifier.stopProxying();
             }
         }
         catch (final Proxifier.ProxyConfigurationCancelled e) {
@@ -285,7 +307,7 @@ public class DefaultLanternApi implements LanternApi {
 
     private void handleReset(final HttpServletResponse resp) {
         try {
-            LanternHub.xmppHandler().clearProxies();
+            this.xmppHandler.clearProxies();
             signout();
             final Settings set = LanternHub.settings();
             set.setInClosedBeta(new HashSet<String>());
@@ -305,11 +327,11 @@ public class DefaultLanternApi implements LanternApi {
         // not logged in there's no sense in proxying. Could theoretically
         // use cached proxies, but definitely no peer proxies would work.
         try {
-            Proxifier.stopProxying();
+            proxifier.stopProxying();
         } catch (Proxifier.ProxyConfigurationError e) {
             log.error("failed to stop proxying: {}", e);
         }
-        LanternHub.xmppHandler().disconnect();
+        this.xmppHandler.disconnect();
         
         // clear user specific settings 
         // roster, trusted contacts, saved password
@@ -325,7 +347,7 @@ public class DefaultLanternApi implements LanternApi {
      */
     private void handleSetLocalPassword(final HttpServletRequest req, 
                                         final HttpServletResponse resp) {
-        final LocalCipherProvider lcp = LanternHub.localCipherProvider();
+        //final LocalCipherProvider lcp = LanternHub.localCipherProvider();
         if (lcp.isInitialized() == true) {
             sendClientError(resp, "Local password has already been set, must reset to change.");
             return;
@@ -363,7 +385,7 @@ public class DefaultLanternApi implements LanternApi {
      */
     private void handleUnlock(final HttpServletRequest req, 
                               final HttpServletResponse resp) {
-        final LocalCipherProvider lcp = LanternHub.localCipherProvider();
+        //final LocalCipherProvider lcp = LanternHub.localCipherProvider();
         if (lcp.isInitialized() == false) {
             sendClientError(resp, "Local password has not been set, must set first.");
             return;
@@ -417,11 +439,11 @@ public class DefaultLanternApi implements LanternApi {
 
     private void handleRoster(final HttpServletResponse resp) {
         log.info("Processing roster call.");
-        if (!LanternHub.xmppHandler().isLoggedIn()) {
+        if (!this.xmppHandler.isLoggedIn()) {
             sendClientError(resp, "Not logged in!");
             return;
         }
-        returnJson(resp, LanternHub.xmppHandler().getRoster());
+        returnJson(resp, this.xmppHandler.getRoster());
     }
 
     private void returnJson(final HttpServletResponse resp, final Object obj) {
@@ -522,7 +544,7 @@ public class DefaultLanternApi implements LanternApi {
 
     private void changeSetting(final HttpServletResponse resp, final String key, 
         final String val, final boolean determineType, final boolean sync) {
-        setProperty(LanternHub.settingsChangeImplementor(), key, val, false, 
+        setProperty(this.settingsChangeImplementor, key, val, false, 
             resp, determineType);
         setProperty(LanternHub.settings(), key, val, true, resp, determineType);
         resp.setStatus(HttpStatus.SC_OK);

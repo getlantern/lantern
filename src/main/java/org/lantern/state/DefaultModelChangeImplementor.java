@@ -8,6 +8,7 @@ import java.util.concurrent.Executors;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.lang.SystemUtils;
+import org.lantern.DefaultXmppHandler;
 import org.lantern.LanternConstants;
 import org.lantern.LanternHub;
 import org.lantern.LanternUtils;
@@ -19,11 +20,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Class that does the dirty work of executing changes to the various settings 
  * users can configure.
  */
+@Singleton
 public class DefaultModelChangeImplementor implements ModelChangeImplementor {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -36,17 +40,27 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
 
     private final File gnomeAutostart;
 
-    private final Model model;
+    //private final Model model;
 
-    public DefaultModelChangeImplementor(final Model model) {
-        this(LanternConstants.LAUNCHD_PLIST, LanternConstants.GNOME_AUTOSTART, model);
+    private final ModelProvider modelProvider;
+
+    private final Proxifier proxifier;
+
+    @Inject
+    public DefaultModelChangeImplementor(final ModelProvider modelProvider,
+        final Proxifier proxifier) {
+        this(LanternConstants.LAUNCHD_PLIST, LanternConstants.GNOME_AUTOSTART, 
+            modelProvider, proxifier);
     }
     
     public DefaultModelChangeImplementor(final File launchdPlist, 
-        final File gnomeAutostart, final Model model) {
+        final File gnomeAutostart, final ModelProvider modelProvider,
+        final Proxifier proxifier) {
         this.launchdPlist = launchdPlist;
         this.gnomeAutostart = gnomeAutostart;
-        this.model = model;
+        this.modelProvider = modelProvider;
+        //this.model = model;
+        this.proxifier = proxifier;
     }
     
     @Override
@@ -136,7 +150,7 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
         // We we move to get mode, we want to stop advertising our ID and to
         // stop accepting incoming connections.
 
-        final Settings set = this.model.getSettings();
+        final Settings set = this.modelProvider.getModel().getSettings();
         final boolean inGet = set.getMode() == Mode.get;
         if (getMode == inGet) {
             log.info("Mode is unchanged.");
@@ -162,10 +176,10 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
         
         // We disconnect and reconnect to create a new Jabber ID that will 
         // not advertise us as a connection point.
-        LanternHub.xmppHandler().disconnect();
+        LanternConstants.INJECTOR.getInstance(DefaultXmppHandler.class).disconnect();
         try {
             try {
-                LanternHub.xmppHandler().connect();
+                LanternConstants.INJECTOR.getInstance(DefaultXmppHandler.class).connect();
                 
                 // TODO: This isn't quite right. We don't necessarily have
                 // proxies to connect to at this point, and we shouldn't set
@@ -173,26 +187,26 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
                 if (LanternHub.settings().isInitialSetupComplete()) {
                     // may need to modify the proxying state
                     if (LanternUtils.shouldProxy()) {
-                        Proxifier.startProxying();
+                        proxifier.startProxying();
                     } else {
-                        Proxifier.stopProxying();
+                        proxifier.stopProxying();
                     }
                 }
             } catch (final IOException e) {
                 log.info("Could not connect to server", e);
                 // Don't proxy if there's some error connecting.
                 if (LanternHub.settings().isInitialSetupComplete()) {
-                    Proxifier.stopProxying();
+                    proxifier.stopProxying();
                 }
             } catch (final CredentialException e) {
                 log.info("Credentials are wrong!!");
                 if (LanternHub.settings().isInitialSetupComplete()) {
-                    Proxifier.stopProxying();
+                    proxifier.stopProxying();
                 }
             } catch (final NotInClosedBetaException e) {
                 log.info("Not in beta!!");
                 if (LanternHub.settings().isInitialSetupComplete()) {
-                    Proxifier.stopProxying();
+                    proxifier.stopProxying();
                 }
             }
         } catch (final Proxifier.ProxyConfigurationError e) {
@@ -210,9 +224,10 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
         log.info("Setting savePassword to {}", savePassword);
     }
 
+    /*
     @Override
     public Model getModel() {
         return this.model;
     }
-    
+    */
 }

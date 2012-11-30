@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -14,11 +15,14 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.maxmind.geoip.LookupService;
 
 /**
  * Class for tracking statistics about Lantern.
  */
+@Singleton
 public class StatsTracker implements Stats {
     
     private final static Logger log = 
@@ -67,13 +71,16 @@ public class StatsTracker implements Stats {
     /**
      * Peer count tracking, just tracks current for now. 
      */
-    private static final PeerCounter peersPerSecond = 
-        new PeerCounter(ONE_SECOND, ONE_SECOND*2);
-    
+    private final PeerCounter peersPerSecond;
     
     private boolean upnp;
     
     private boolean natpmp;
+    
+    @Inject
+    public StatsTracker(final Timer timer) {
+        peersPerSecond = new PeerCounter(ONE_SECOND, ONE_SECOND*2, timer);
+    }
     
     @Override
     public long getUptime() {
@@ -247,6 +254,7 @@ public class StatsTracker implements Stats {
     /**
      * request bytes sent by peers to this lantern
      */
+    @Override
     public void addDownBytesFromPeers(final long bp) {
         downBytesPerSecondFromPeers.addData(bp);
         log.debug("downBytesPerSecondFromPeers += {} down-rate {}", bp, getDownBytesPerSecond());
@@ -255,6 +263,7 @@ public class StatsTracker implements Stats {
     /** 
      * reply bytes send to peers by this lantern
      */
+    @Override
     public void addUpBytesToPeers(final long bp) {
         upBytesPerSecondToPeers.addData(bp);
         log.debug("upBytesPerSecondToPeers += {} up-rate {}", bp, getUpBytesPerSecond());
@@ -265,7 +274,8 @@ public class StatsTracker implements Stats {
         return bytesProxied.get();
     }
 
-    public void addDirectBytes(final int db) {
+    @Override
+    public void addDirectBytes(final long db) {
         directBytes.addAndGet(db);
     }
 
@@ -278,6 +288,7 @@ public class StatsTracker implements Stats {
         this.directRequests.incrementAndGet();
     }
 
+    @Override
     public void incrementProxiedRequests() {
         this.proxiedRequests.incrementAndGet();
     }
@@ -293,6 +304,7 @@ public class StatsTracker implements Stats {
     }
     
 
+    @Override
     public void addBytesProxied(final long bp, final Channel channel) {
         bytesProxied.addAndGet(bp);
         final CountryData cd = toCountryData(channel);
@@ -315,6 +327,7 @@ public class StatsTracker implements Stats {
         }
     }
 
+    @Override
     public void setUpnp(final boolean upnp) {
         this.upnp = upnp;
     }
@@ -324,6 +337,7 @@ public class StatsTracker implements Stats {
         return upnp;
     }
 
+    @Override
     public void setNatpmp(final boolean natpmp) {
         this.natpmp = natpmp;
     }
@@ -404,4 +418,5 @@ public class StatsTracker implements Stats {
             data.put("lantern", lanternData);
         }
     }
+
 }
