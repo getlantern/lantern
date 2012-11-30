@@ -16,26 +16,20 @@ import org.slf4j.LoggerFactory;
 
 public class ChromeRunner {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     private static final int SCREEN_WIDTH = 970;
     private static final int SCREEN_HEIGHT = 630;
-    private final Logger log = LoggerFactory.getLogger(getClass());
-    private final ProcessBuilder processBuilder;
-    private Process process;
+    private final Point location;
     
-    public ChromeRunner() throws IOException {
+    private volatile Process process;
+    
+    public ChromeRunner() {
         this(LanternUtils.getScreenCenter(SCREEN_WIDTH, SCREEN_HEIGHT));
     }
     
-    public ChromeRunner(final Point location) throws IOException {
-        final List<String> commands = new ArrayList<String>();
-        final String executable = determineExecutable();
-        commands.add(executable);
-        commands.add("--user-data-dir="+LanternConstants.CONFIG_DIR.getAbsolutePath());
-        commands.add("--window-size="+SCREEN_WIDTH+","+SCREEN_HEIGHT);
-        commands.add("--window-position="+location.x+","+location.y);
-        commands.add("--app=http://localhost:"+RuntimeSettings.getApiPort());
-
-        this.processBuilder = new ProcessBuilder(commands);
+    public ChromeRunner(final Point location) { 
+        this.location = location;
     }
 
     
@@ -65,18 +59,43 @@ public class ChromeRunner {
         throw new UnsupportedOperationException("This is an experimental feature!");
     }
 
-    public void open() throws InterruptedException, IOException {
+    public void open() throws IOException {
+
+        if (this.process != null) {
+            try {
+                final int exitValue = this.process.exitValue();
+                log.info("Got exit value from former process: ", exitValue);
+            } catch (final IllegalThreadStateException e) {
+                // This indicates the existing process is still running.
+                log.info("Ignoring open call since process is still running");
+                return;
+            }
+        }
+        final List<String> commands = new ArrayList<String>();
+        final String executable = determineExecutable();
+        commands.add(executable);
+        commands.add("--user-data-dir="+LanternConstants.CONFIG_DIR.getAbsolutePath());
+        commands.add("--window-size="+SCREEN_WIDTH+","+SCREEN_HEIGHT);
+        commands.add("--window-position="+location.x+","+location.y);
+        commands.add("--app=http://localhost:"+RuntimeSettings.getApiPort());
+
+        final ProcessBuilder processBuilder = new ProcessBuilder(commands);
         
-        this.process = this.processBuilder.start();
+        // Note we don't call waitFor on the process to avoid blocking the
+        // calling thread and because we don't care too much about the return
+        // value.
+        this.process = processBuilder.start();
         
         new Analyzer(process.getInputStream());
         new Analyzer(process.getErrorStream());
-        final int result = process.waitFor();
     }
     
     public void close() {
+        log.info("Closing Chrome browser...process is: {}", this.process);
         if (this.process != null) {
+            log.info("Really closing Chrome browser...");
             this.process.destroy();
+            this.process = null;
         }
     }
 

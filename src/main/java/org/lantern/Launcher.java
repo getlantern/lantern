@@ -384,13 +384,11 @@ public class Launcher {
         
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
-        /*
         if (display != null) {
             while (!display.isDisposed ()) {
                 if (!display.readAndDispatch ()) display.sleep ();
             }
         }
-        */
     }
 
     private static <T> T instance(Class<T> clazz) {

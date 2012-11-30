@@ -5,7 +5,7 @@ import java.util.Map;
 /**
  * Interface for system tray implementations.
  */
-public interface SystemTray {
+public interface SystemTray extends LanternService {
 
     void createTray();
 

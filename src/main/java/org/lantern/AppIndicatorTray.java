@@ -97,6 +97,17 @@ public class AppIndicatorTray implements SystemTray {
     public AppIndicatorTray(final BrowserService jettyLauncher) {
         this.browserService = jettyLauncher;
     }
+    
+
+    @Override
+    public void start() {
+        createTray();
+    }
+
+    @Override
+    public void stop() {
+        
+    }
 
     @Override
     public void createTray() {
@@ -192,7 +203,7 @@ public class AppIndicatorTray implements SystemTray {
 
     private void openDashboard() {
         LOG.debug("openDashboard called.");
-        this.browserService.openBrowserWhenPortReady();
+        this.browserService.reopenBrowser();
     }
 
     private void quit() {

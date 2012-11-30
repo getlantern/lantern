@@ -5,22 +5,19 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Singleton;
+
+@Singleton
 public class ChromeBrowserService implements BrowserService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private ChromeRunner chrome;
+    private final ChromeRunner chrome  = new ChromeRunner();
     
     /**
      * Opens the browser.
      */
     @Override
     public void openBrowser() {
-        try {
-            this.chrome = new ChromeRunner();
-        } catch (final IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
         final Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -35,12 +32,8 @@ public class ChromeBrowserService implements BrowserService {
     private void launchChrome() {
         try {
             this.chrome.open();
-        } catch (IOException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (final IOException e) {
+            log.error("Could not open chrome?", e);
         }
     }
     
@@ -51,7 +44,6 @@ public class ChromeBrowserService implements BrowserService {
     
     @Override
     public void openBrowserWhenPortReady(final int port) {
-        System.out.println("WAITING FOR BROWSER ON PORT: "+port);
         LanternUtils.waitForServer(port);
         log.info("Server is running. Opening browser...");
         openBrowser();
@@ -59,7 +51,6 @@ public class ChromeBrowserService implements BrowserService {
 
     @Override
     public void start() {
-        // Does nothing in this case...
     }
 
     @Override
@@ -67,5 +58,11 @@ public class ChromeBrowserService implements BrowserService {
         if (this.chrome != null) {
             this.chrome.close();
         }
+    }
+
+    @Override
+    public void reopenBrowser() {
+        stop();
+        openBrowser();
     }
 }

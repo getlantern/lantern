@@ -20,7 +20,6 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
-import org.lantern.di.WinOsxTray;
 import org.lantern.event.ConnectivityStatusChangeEvent;
 import org.lantern.event.QuitEvent;
 import org.slf4j.Logger;
@@ -34,7 +33,6 @@ import com.google.inject.Singleton;
  * Class for handling all system tray interactions.
  */
 @Singleton
-@WinOsxTray
 public class SystemTrayImpl implements SystemTray {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -73,6 +71,18 @@ public class SystemTrayImpl implements SystemTray {
         //this.display = display;
         this.display = DisplayWrapper.getDisplay();
         Events.register(this);
+    }
+    
+
+    @Override
+    public void start() {
+        createTray();
+    }
+
+    @Override
+    public void stop() {
+        // TODO Auto-generated method stub
+        
     }
 
     @Override
@@ -125,7 +135,7 @@ public class SystemTrayImpl implements SystemTray {
             dashboardItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
-                    browserService.openBrowserWhenPortReady();
+                    browserService.reopenBrowser();
                 }
             });
             
@@ -178,7 +188,7 @@ public class SystemTrayImpl implements SystemTray {
                     @Override
                     public void widgetSelected(SelectionEvent se) {
                         log.debug("opening dashboard");
-                        browserService.openBrowserWhenPortReady();
+                        browserService.reopenBrowser();
                     }
                     
                     @Override

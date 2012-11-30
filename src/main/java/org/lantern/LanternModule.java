@@ -11,7 +11,6 @@ import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.util.HashedWheelTimer;
-import org.lantern.di.WinOsxTray;
 import org.lantern.http.GoogleOauth2CallbackServer;
 import org.lantern.http.GoogleOauth2RedirectServlet;
 import org.lantern.http.InteractionServlet;
@@ -46,16 +45,13 @@ public class LanternModule extends AbstractModule {
         bind(org.jboss.netty.util.Timer.class).to(HashedWheelTimer.class);
         bind(HttpRequestFilter.class).to(PublicIpsOnlyRequestFilter.class);
         
-        // TODO: Make sure we always call dispose on the diplay.
-        //bind(Display.class).toInstance(new Display());
-        //bind(Display.class).toInstance(new Display());
         bind(Stats.class).to(StatsTracker.class);
         
         bind(LanternSocketsUtil.class);
         bind(LanternXmppUtil.class);
         
-        bind(SystemTray.class).annotatedWith(WinOsxTray.class).to(SystemTrayImpl.class);
-        bind(SystemTray.class).annotatedWith(Names.named("facade")).to(FallbackTray.class);
+        //bind(SystemTray.class).annotatedWith(WinOsxTray.class).to(SystemTrayImpl.class);
+        //bind(SystemTray.class).annotatedWith(Names.named("facade")).to(FallbackTray.class);
         bind(MessageService.class).to(Dashboard.class);
         bind(Proxifier.class);
         bind(Configurator.class);
@@ -87,6 +83,16 @@ public class LanternModule extends AbstractModule {
         bind(LanternApi.class).to(DefaultLanternApi.class);
         bind(SettingsChangeImplementor.class).to(DefaultSettingsChangeImplementor.class);
         bind(LanternHttpProxyServer.class);
+    }
+    
+    @Provides
+    SystemTray provideSystemTray(final XmppHandler handler, 
+        final BrowserService browserService) {
+        if (SystemUtils.IS_OS_LINUX) {
+            return new AppIndicatorTray(browserService);
+        } else {
+            return new SystemTrayImpl(handler, browserService);
+        }
     }
     
     @Provides
