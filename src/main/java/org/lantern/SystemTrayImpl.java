@@ -70,6 +70,8 @@ public class SystemTrayImpl implements SystemTray {
         final BrowserService browserService) {
         this.handler = handler;
         this.browserService = browserService;
+        //this.display = display;
+        this.display = DisplayWrapper.getDisplay();
         Events.register(this);
     }
 

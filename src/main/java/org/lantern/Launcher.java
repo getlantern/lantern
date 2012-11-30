@@ -69,6 +69,7 @@ public class Launcher {
     private static MessageService messageService;
     private static Injector injector;
     private static Configurator configurator;
+    private static FallbackTray fallbackTray;
     
     
     /**
@@ -276,20 +277,6 @@ public class Launcher {
             set.setLaunchd(false);
         }
         
-        final Display display;
-        if (set.isUiEnabled()) {
-            // We initialize this super early in case there are any errors 
-            // during startup we have to display to the user.
-            Display.setAppName("Lantern");
-            //display = new Display();//injector.getInstance(Display.class);;
-            // Also, We need the system tray to listen for events early on.
-            //LanternHub.systemTray().createTray();
-            
-        }
-        else {
-            display = null;
-        }
-        
         // TODO: Just load all the command line options after the settings to
         // avoid stupid state issues.
         loadSettings();
@@ -310,6 +297,21 @@ public class Launcher {
         
         
         injector = Guice.createInjector(new LanternModule());
+        final Display display;
+        if (set.isUiEnabled()) {
+            // We initialize this super early in case there are any errors 
+            // during startup we have to display to the user.
+            Display.setAppName("Lantern");
+            //display = injector.getInstance(Display.class);;
+            display = DisplayWrapper.getDisplay();
+            // Also, We need the system tray to listen for events early on.
+            //LanternHub.systemTray().createTray();
+            
+        }
+        else {
+            display = null;
+        }
+        
         //final ModelProvider model = injector.getInstance(ModelIo.class);
         //Display display = new Display();
         configurator = instance(Configurator.class);
@@ -320,8 +322,9 @@ public class Launcher {
         sslProxy = instance(SslHttpProxyServer.class);
         localCipherProvider = instance(LocalCipherProvider.class);
         plainTextAnsererRelayProxy = instance(PlainTestRelayHttpProxyServer.class);
-        
-        
+        fallbackTray = instance(FallbackTray.class);
+
+        fallbackTray.start();
         jettyLauncher.start();
         xmpp.start();
         sslProxy.start(false, false);
