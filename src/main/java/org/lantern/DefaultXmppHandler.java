@@ -57,13 +57,10 @@ import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.ConnectivityStatusChangeEvent;
 import org.lantern.event.GoogleTalkStateEvent;
-import org.lantern.event.SyncEvent;
 import org.lantern.event.UpdateEvent;
 import org.lantern.http.PhotoServlet;
 import org.lantern.ksope.LanternKscopeAdvertisement;
-import org.lantern.state.Modal;
 import org.lantern.state.Model;
-import org.lantern.state.SyncPath;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.ice.MappedTcpAnswererServer;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -360,10 +357,6 @@ public class DefaultXmppHandler implements XmppHandler {
         
         LOG.info("Logging in with credentials: {}", credentials);
         
-        //final Model model = LanternHub.jettyLauncher().getModel();
-        this.model.setModal(Modal.gtalkConnecting);
-        Events.eventBus().post(new SyncEvent(SyncPath.MODAL, 
-            this.model.getModal()));
         connect(credentials);
     }
 
