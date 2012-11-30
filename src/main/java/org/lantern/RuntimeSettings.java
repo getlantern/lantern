@@ -1,6 +1,5 @@
 package org.lantern;
 
-
 public class RuntimeSettings {
 
     

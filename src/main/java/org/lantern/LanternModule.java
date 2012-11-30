@@ -4,7 +4,6 @@ import java.util.Timer;
 import java.util.concurrent.Executors;
 
 import org.apache.commons.lang3.SystemUtils;
-import org.eclipse.swt.widgets.Display;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
@@ -48,7 +47,7 @@ public class LanternModule extends AbstractModule {
         bind(HttpRequestFilter.class).to(PublicIpsOnlyRequestFilter.class);
         
         // TODO: Make sure we always call dispose on the diplay.
-        bind(Display.class);
+        //bind(Display.class).toInstance(new Display());
         //bind(Display.class).toInstance(new Display());
         bind(Stats.class).to(StatsTracker.class);
         

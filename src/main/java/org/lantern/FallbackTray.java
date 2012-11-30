@@ -18,7 +18,7 @@ import com.google.inject.Singleton;
  * A SystemTray implementation that falls back among available alternatives. 
 */
 @Singleton @Named("facade")
-public class FallbackTray implements SystemTray {
+public class FallbackTray implements SystemTray, LanternService {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private SystemTray nonLinuxTray;
     private AppIndicatorTray linuxTray;
@@ -38,6 +38,17 @@ public class FallbackTray implements SystemTray {
                 fallback();
             }
         });
+    }
+    
+
+    @Override
+    public void start() {
+        createTray();
+    }
+
+    @Override
+    public void stop() {
+        
     }
     
     @Override
