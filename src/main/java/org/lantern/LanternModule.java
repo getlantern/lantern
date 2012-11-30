@@ -87,7 +87,7 @@ public class LanternModule extends AbstractModule {
         bind(LanternHttpProxyServer.class);
     }
     
-    @Provides
+    @Provides @Singleton
     SystemTray provideSystemTray(final XmppHandler handler, 
         final BrowserService browserService) {
         if (SystemUtils.IS_OS_LINUX) {
@@ -97,17 +97,17 @@ public class LanternModule extends AbstractModule {
         }
     }
     
-    @Provides
+    @Provides @Singleton
     ChannelGroup provideChannelGroup() {
         return new DefaultChannelGroup("LanternChannelGroup");
     }
     
-    @Provides
+    @Provides @Singleton
     Timer provideTimer() {
         return new Timer("Lantern-Timer", true);
     }
     
-    @Provides 
+    @Provides  @Singleton
     LocalCipherProvider provideLocalCipher(final MessageService messageService) {
         final LocalCipherProvider lcp; 
         
@@ -135,7 +135,7 @@ public class LanternModule extends AbstractModule {
     }
     
     
-    @Provides
+    @Provides @Singleton
     ServerSocketChannelFactory provideServerSocketChannelFactory() {
         return new NioServerSocketChannelFactory(
             Executors.newCachedThreadPool(
@@ -146,7 +146,7 @@ public class LanternModule extends AbstractModule {
                     "Lantern-Netty-Server-Worker-Thread-%d").setDaemon(true).build()));
     }
     
-    @Provides
+    @Provides @Singleton
     ClientSocketChannelFactory provideClientSocketChannelFactory() {
         return new NioClientSocketChannelFactory(
             Executors.newCachedThreadPool(
@@ -155,36 +155,5 @@ public class LanternModule extends AbstractModule {
             Executors.newCachedThreadPool(
                 new ThreadFactoryBuilder().setNameFormat(
                     "Lantern-Netty-Client-Worker-Thread-%d").setDaemon(true).build()));
-    }
-    
-    public static void main(final String[] args) throws Exception {
-        final Injector injector = Guice.createInjector(new LanternModule());
-        //final ModelProvider model = injector.getInstance(ModelIo.class);
-        
-        final LanternService xmpp = injector.getInstance(DefaultXmppHandler.class);
-        
-        final SystemTray sys = injector.getInstance(SystemTrayImpl.class);
-        final SystemTray sys2 = injector.getInstance(FallbackTray.class);
-        
-        System.out.println("CREATED SERVICE");
-        xmpp.start();
-        addShutdownHook(xmpp);
-        //System.out.println("Got model: "+model);
-        System.out.println("Got xmpp: "+xmpp);
-        
-        System.out.println("Got model: "+sys);
-        System.out.println("Got xmpp: "+sys2);
-    }
-
-    private static void addShutdownHook(final LanternService service) {
-        
-        // TODO: Add these all to a single list of things to do on shutdown.
-        final Thread serviceHook = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                service.stop();
-            }
-        }, "ShutdownHook-For-Service-"+service.getClass().getSimpleName());
-        Runtime.getRuntime().addShutdownHook(serviceHook);
     }
 }
