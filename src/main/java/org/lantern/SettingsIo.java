@@ -48,6 +48,8 @@ public class SettingsIo {
      * @return The {@link Settings} instance as read from disk.
      */
     public Settings read() {
+        return blankSettings();
+        /*
         if (!settingsFile.isFile()) {
             return blankSettings();
         }
@@ -83,12 +85,13 @@ public class SettingsIo {
         ss.setState(State.CORRUPTED);
         ss.setMessage("Could not read settings file.");
         return settings;
+        */
     }
     
 
     private Settings blankSettings() {
         final Settings s = new Settings(new Whitelist());
-        
+        /*
         // if some password initialization is required, 
         // consider the settings to be "locked"
         if (LanternHub.localCipherProvider().requiresAdditionalUserInput()) {
@@ -98,6 +101,7 @@ public class SettingsIo {
         else {
             s.getSettings().setState(State.SET);
         }
+        */
         return s;
     }
 
@@ -115,6 +119,7 @@ public class SettingsIo {
      * @param settings The settings to apply.
      */
     public void write(final Settings settings) {
+        /*
         OutputStream os = null;
         try {
             final String json = LanternUtils.jsonify(settings, 
@@ -128,5 +133,6 @@ public class SettingsIo {
         } finally {
             IOUtils.closeQuietly(os);
         }
+        */
     }
 }

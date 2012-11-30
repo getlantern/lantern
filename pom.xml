@@ -40,6 +40,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.google.inject</groupId>
+      <artifactId>guice</artifactId>
+      <version>3.0</version>
+    </dependency>
+    <dependency>
       <groupId>org.getlantern</groupId>
       <artifactId>kaleidoscope</artifactId>
       <version>1.0-SNAPSHOT</version>

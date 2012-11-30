@@ -31,12 +31,14 @@ public class Transfers {
 
     @JsonView({Run.class})
     public long getBpsUp() {
-        return LanternHub.statsTracker().getUpBytesPerSecond();
+        //return LanternHub.statsTracker().getUpBytesPerSecond();
+        return 0;
     }
     
     @JsonView({Run.class})
     public long getBpsDn() {
-        return LanternHub.statsTracker().getDownBytesPerSecond();
+        //return LanternHub.statsTracker().getDownBytesPerSecond();
+        return 0;
     }
     
     @JsonView({Run.class})
@@ -46,12 +48,14 @@ public class Transfers {
     
     @JsonView({Run.class})
     public long getUpTotalThisRun() {
-        return LanternHub.statsTracker().getUpBytesThisRun();
+        //return LanternHub.statsTracker().getUpBytesThisRun();
+        return 0;
     }
     
     @JsonView({Run.class})
     public long getDownTotalThisRun() {
-        return LanternHub.statsTracker().getDownBytesThisRun();
+        //return LanternHub.statsTracker().getDownBytesThisRun();
+        return 0;
     }
     
     @JsonView({Run.class, Persistent.class})

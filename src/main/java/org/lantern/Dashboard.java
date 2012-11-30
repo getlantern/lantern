@@ -9,6 +9,8 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.inject.Named;
+
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -30,10 +32,14 @@ import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
 /**
  * Browser dashboard for controlling lantern.
  */
-public class Dashboard {
+@Singleton
+public class Dashboard implements MessageService, BrowserService {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     private Shell shell;
@@ -44,11 +50,21 @@ public class Dashboard {
      * The display is pulled out into a separate instance variable because
      * the readAndDispatch method is called extremely frequently.
      */
-    private final Display display = LanternHub.display();
+    //private final Display display = LanternHub.display();
+    private final SystemTray systemTray;
+    private final Display display;
+    
+    @Inject
+    public Dashboard(@Named("facade") final SystemTray systemTray,
+        final Display display) {
+        this.systemTray = systemTray;
+        this.display = display;
+    }
     
     /**
      * Opens the browser.
      */
+    @Override
     public void openBrowser() {
         display.syncExec(new Runnable() {
             @Override
@@ -69,6 +85,19 @@ public class Dashboard {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
+    
+    
+    @Override
+    public void openBrowserWhenPortReady() {
+        openBrowserWhenPortReady(RuntimeSettings.getApiPort());
+    }
+    
+    @Override
+    public void openBrowserWhenPortReady(final int port) {
+        LanternUtils.waitForServer(port);
+        log.info("Server is running. Opening browser...");
+        openBrowser();
     }
     
     protected void buildBrowser() {
@@ -170,16 +199,14 @@ public class Dashboard {
         log.debug("Running browser: {}", browser.getBrowserType());
         browser.setSize(minWidth, minHeight);
         //browser.setBounds(0, 0, 800, 600);
-        browser.setUrl("http://localhost:"+
-            LanternHub.settings().getApiPort());
+        browser.setUrl(RuntimeSettings.getLocalEndpoint());
 
         browser.addLocationListener(new LocationListener() {
             @Override
             public void changing(LocationEvent event) {
                 try {
                     final URI url = new URI(event.location);
-                    final String localAuthority = "localhost:" + // XXX aliases should work too
-                        LanternHub.settings().getApiPort();
+                    final String localAuthority = RuntimeSettings.getLocalEndpoint();
                     if (openExternal(url, localAuthority)) {
                         log.info("opening external browser to {}", event.location);
                         event.doit = false;
@@ -226,7 +253,7 @@ public class Dashboard {
             public void handleEvent(final Event event) {
                 if (LanternHub.settings().getSettings().getState() == SettingsState.State.LOCKED &&
                     LanternHub.settings().isLocalPasswordInitialized()) {
-                    if (LanternHub.systemTray().isActive()) {
+                    if (systemTray.isActive()) {
                         // user presented with unlock screen and just hit close
                         final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
                         final MessageBox messageBox = new MessageBox (shell, style);
@@ -257,7 +284,7 @@ public class Dashboard {
                         }
                     }
                 } else if (LanternHub.settings().isInitialSetupComplete()) {
-                    if (LanternHub.systemTray().isActive()) {
+                    if (systemTray.isActive()) {
                         browser.stop();
                         browser.setUrl("about:blank");
                     }
@@ -403,5 +430,18 @@ public class Dashboard {
                 browser.evaluate(call);
             } 
         });
+    }
+
+    @Override
+    public void start() throws Exception {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void stop() {
+        if (display != null) {
+            display.dispose();
+        }
     }
 }

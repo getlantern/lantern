@@ -27,6 +27,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.LanternConstants;
 import org.lantern.LanternHub;
 import org.lantern.NotInClosedBetaException;
+import org.lantern.RuntimeSettings;
+import org.lantern.XmppHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,10 +42,14 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
     private static final long serialVersionUID = -957838028594747197L;
 
     private final GoogleOauth2CallbackServer googleOauth2CallbackServer;
+
+    private final XmppHandler xmppHandler;
     
     public GoogleOauth2CallbackServlet(
-        final GoogleOauth2CallbackServer googleOauth2CallbackServer) {
+        final GoogleOauth2CallbackServer googleOauth2CallbackServer,
+        final XmppHandler xmppHandler) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
+        this.xmppHandler = xmppHandler;
     }
     
     @Override
@@ -66,24 +72,39 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         final Map<String, String> params = HttpUtils.toParamMap(req);
         log.debug("Params: {}", params);
         
-        final String code = params.get("code");
+        // Redirect back to the dashboard right away to continue giving the
+        // user feedback. The UI will fetch the current state doc.
+        log.info("Redirecting from oauth back to dashboard...");
+        final String dashboard = RuntimeSettings.getLocalEndpoint();
+        try {
+            resp.sendRedirect(dashboard);
+            resp.flushBuffer();
+        } catch (final IOException e) {
+            log.info("Error redirecting to the dashboard?", e);
+        }
+
+        // Kill our temporary oauth callback server.
+        this.googleOauth2CallbackServer.stop();
         
-        
+        fetchOauthAndLoginToGoogleTalk(params.get("code"));
+    }
+
+    private void fetchOauthAndLoginToGoogleTalk(final String code) {
         // Now we need to do an HTTP post to obtain the refresh token and
         // the access token.
-        
+        final String redirectUrl = "http://localhost:7777/oauth2callback";
+        final DefaultHttpClient client = new DefaultHttpClient();
         InputStream is = null;
+        HttpPost post = null;
         try {
             is = new FileInputStream("client_secrets_installed.json");
             final GoogleClientSecrets secrets =
                 GoogleClientSecrets.load(new JacksonFactory(), is);
             log.debug("Secrets: {}", secrets);
-            final String redirectUrl = "http://localhost:7777/oauth2callback";
             
             final Map<String, String> installed = 
                 (Map<String, String>) secrets.get("installed");
-            final HttpPost post = 
-                new HttpPost("https://accounts.google.com/o/oauth2/token");
+            post = new HttpPost("https://accounts.google.com/o/oauth2/token");
             
             final String clientId = installed.get("client_id");
             final String clientSecret = installed.get("client_secret");
@@ -98,7 +119,6 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
                 new UrlEncodedFormEntity(nvps, LanternConstants.UTF8);
             post.setEntity(entity);
             
-            final DefaultHttpClient client = new DefaultHttpClient();
             log.debug("About to execute post!");
             final HttpResponse response = client.execute(post);
 
@@ -117,12 +137,9 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             final String accessToken = oauthToks.get("access_token");
             final String refreshToken = oauthToks.get("refresh_token");
             
-            try {
-                if (StringUtils.isNotBlank(accessToken) &&
-                    StringUtils.isNotBlank(refreshToken)) {
-                    final String dashboard = 
-                        "http://localhost:"+LanternHub.settings().getApiPort();
-                    resp.sendRedirect(dashboard);
+            if (StringUtils.isNotBlank(accessToken) &&
+                StringUtils.isNotBlank(refreshToken)) {
+                try {
                     // Note the e-mail is actually ignored when we login to 
                     // Google Talk.
                     LanternHub.settings().setEmail("anon@getlantern.org");
@@ -131,21 +148,28 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
                     LanternHub.settings().setAccessToken(accessToken);
                     LanternHub.settings().setRefreshToken(refreshToken);
                     LanternHub.settings().setUseGoogleOAuth2(true);
-                    LanternHub.xmppHandler().connect();
+                    this.xmppHandler.connect();
+                } catch (final CredentialException e) {
+                    // Not sure what to do here. This *should* never happen.
+                    log.error("Could not log in with OAUTH?", e);
+                } catch (final NotInClosedBetaException e) {
+                    // TODO: Set the modal state corresponding with not in closed
+                    // beta?
+                } catch (final IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
                 }
-                this.googleOauth2CallbackServer.stop();
-            } catch (final CredentialException e) {
-                // Not sure what to do here. This *should* never happen.
-                log.error("Could not log in with OAUTH?", e);
-            } catch (final NotInClosedBetaException e) {
-                // TODO: Set the modal state corresponding with not in closed
-                // beta?
-            } finally {
-                post.releaseConnection();
+            } else {
+                // Treat this the same as a credential exception? I.e. what
+                // happens if the user cancels?
             }
         } catch (final IOException e) {
             IOUtils.closeQuietly(is);
             throw new Error("Could not load oauth URL?", e);
+        } finally {
+            if (post != null) {
+                post.releaseConnection();
+            }
         }
     }
 }

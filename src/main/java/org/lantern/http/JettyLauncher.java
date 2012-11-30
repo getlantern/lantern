@@ -15,7 +15,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang3.SystemUtils;
 import org.cometd.server.CometdServlet;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Server;
@@ -23,16 +22,20 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.servlet.Holder.Source;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.lantern.BayeuxInitializer;
+import org.lantern.BrowserService;
+import org.lantern.Dashboard;
 import org.lantern.LanternConstants;
 import org.lantern.LanternHub;
 import org.lantern.LanternUtils;
 import org.lantern.Proxifier;
+import org.lantern.LanternService;
+import org.lantern.RuntimeSettings;
 import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.DefaultModelChangeImplementor;
 import org.lantern.state.Model;
@@ -42,17 +45,21 @@ import org.lantern.state.SyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
 /**
  * Launcher and secure path handler for Jetty.
  */
-public class JettyLauncher {
+@Singleton
+public class JettyLauncher implements LanternService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final String secureBase = "";
         //"/"+String.valueOf(LanternHub.secureRandom().nextLong());
 
-    private final int port = LanternHub.settings().getApiPort();
+    private final int port = RuntimeSettings.getApiPort();//8686;//LanternHub.settings().getApiPort();
 
     private final String fullBasePath = 
         "http://localhost:"+port+secureBase;
@@ -61,15 +68,30 @@ public class JettyLauncher {
 
     private final File resourceBaseFile;
     
+    /*
     private final Model model = new ModelIo().getModel();
 
     private final ModelChangeImplementor changeImplementor = 
         new DefaultModelChangeImplementor(model);
     
+    
     private final SyncService syncer = 
         new SyncService(new CometDSyncStrategy(), model);
+    */
 
-    public JettyLauncher() {
+    private final GoogleOauth2RedirectServlet redirectServlet;
+
+    private final SyncService syncer;
+
+    private final InteractionServlet interactionServlet;
+
+    @Inject
+    public JettyLauncher(final SyncService syncer,
+        final GoogleOauth2RedirectServlet redirectServlet,
+        final InteractionServlet interactionServlet) {
+        this.syncer = syncer;
+        this.redirectServlet = redirectServlet;
+        this.interactionServlet = interactionServlet;
         final File staticdir = 
             new File(LanternHub.settings().getUiDir(), "assets");
         
@@ -80,6 +102,7 @@ public class JettyLauncher {
         }
     }
     
+    @Override
     public void start() {
         final QueuedThreadPool qtp = new QueuedThreadPool();
         qtp.setMinThreads(5);
@@ -133,6 +156,7 @@ public class JettyLauncher {
         cometd.setInitOrder(1);
         contextHandler.addServlet(cometd, "/cometd/*");
         
+        /*
         final class ModelServlet extends GenericServlet {
             private static final long serialVersionUID = -2633162671596490471L;
             @Override
@@ -148,6 +172,7 @@ public class JettyLauncher {
                 res.getOutputStream().write(raw);
             }
         }
+        */
         
         /*
         final class SettingsServlet extends HttpServlet {
@@ -206,32 +231,6 @@ public class JettyLauncher {
             protected void doGet(final HttpServletRequest req, 
                 final HttpServletResponse resp) throws ServletException, 
                 IOException {
-                final String userAgent = req.getParameter(HttpHeaders.Names.USER_AGENT);
-                if (StringUtils.isNotBlank(userAgent) && (userAgent.contains("MSIE 6")
-                        || userAgent.contains("MSIE 7"))) {
-                    // If the user is running IE6 or 7, we want to close the dashboard and
-                    // pop up a message telling them to download a newer version.
-                    
-                    // NOTE: The above will match older Opera versions too, but we don't
-                    // support those either.
-                    final String url;
-                    if (SystemUtils.IS_OS_WINDOWS_XP) {
-                        url = "http://windows.microsoft.com/en-US/internet-explorer/downloads/ie-8";
-                    } else {
-                        url = "http://windows.microsoft.com/en-US/internet-explorer/downloads/ie";
-                    }
-                    
-                    LanternHub.jettyLauncher().stop();
-                    
-                    LanternHub.dashboard().showMessage("Unsupported Browser", 
-                        "We're sorry, but Lantern requires Internet Explorer 8 or " +
-                        "above. Lantern will open the download page for you " +
-                        "automatically. After downloading and installing Internet " +
-                        "Explorer 8, you can restart Lantern.");
-                    
-                    LanternUtils.browseUrl(url);
-                    System.exit(0);
-                }
                 final String uri = req.getRequestURI();
                 final String onPath = "/proxy_on.pac";
                 final String offPath = "/proxy_off.pac";
@@ -261,7 +260,7 @@ public class JettyLauncher {
         ds.setInitOrder(3);
         contextHandler.addServlet(ds, "/*");
         
-        final ServletHolder settings = new ServletHolder(new GoogleOauth2RedirectServlet());
+        final ServletHolder settings = new ServletHolder(redirectServlet);
         settings.setInitOrder(3);
         contextHandler.addServlet(settings, "/oauth/");
         
@@ -277,7 +276,7 @@ public class JettyLauncher {
         */
         
         final ServletHolder interactionServlet = 
-            new ServletHolder(new InteractionServlet(this.changeImplementor,this.syncer));
+            new ServletHolder(this.interactionServlet);
         interactionServlet.setInitOrder(2);
         contextHandler.addServlet(interactionServlet, apiPath());
         
@@ -285,11 +284,11 @@ public class JettyLauncher {
         photoServlet.setInitOrder(3);
         contextHandler.addServlet(photoServlet, "/photo/*");
         
-        
+        /*
         final ServletHolder modelHolder = new ServletHolder(new ModelServlet());
         modelHolder.setInitOrder(3);
         contextHandler.addServlet(modelHolder, "/model");
-        
+        */
         
         final BayeuxInitializer bi = new BayeuxInitializer(this.syncer);
         final ServletHolder bayeux = new ServletHolder(bi);
@@ -356,6 +355,7 @@ public class JettyLauncher {
         }
     }
 
+    @Override
     public void stop() {
         log.info("Stopping Jetty server...");
         try {
@@ -381,33 +381,15 @@ public class JettyLauncher {
         context.setConnectorNames(new String[] {name});
         return context;
     }
-
-    public void openBrowserWhenReady() {
-        /*
-        while(!server.isStarted()) {
-            try {
-                Thread.sleep(250);
-            } catch (final InterruptedException e) {
-                log.info("Interrupted?");
-            }
-        }
-        */
-        LanternUtils.waitForServer(this.port);
-        log.info("Server is running. Opening browser...");
-        LanternHub.dashboard().openBrowser();
-    }
     
     public File getResourceBaseFile() {
         return resourceBaseFile;
     }
     
-    public int getPort() {
-        return port;
-    }
-    
-    
+    /*
     public Model getModel() {
         return model;
     }
+    */
 }
 

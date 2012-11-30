@@ -53,18 +53,25 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
 
     private final ChannelGroup channelGroup;
 
+    private final Stats stats;
+
+    private LanternKeyStoreManager ksm;
+
     public DefaultHttpRequestProcessor( 
         final ProxyStatusListener proxyStatusListener, 
         final HttpRequestTransformer transformer, final boolean isLae, 
         final Proxy proxy, 
         final ClientSocketChannelFactory clientSocketChannelFactory,
-        final ChannelGroup channelGroup) {
+        final ChannelGroup channelGroup, final Stats stats,
+        final LanternKeyStoreManager ksm) {
         this.proxyStatusListener = proxyStatusListener;
         this.transformer = transformer;
         this.isLae = isLae;
         this.proxy = proxy;
         this.clientSocketChannelFactory = clientSocketChannelFactory;
         this.channelGroup = channelGroup;
+        this.stats = stats;
+        this.ksm = ksm;
     }
     
     private boolean hasProxy() {
@@ -122,29 +129,29 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         if (this.isLae) {
             log.info("Creating standard SSL engine");
             final LanternClientSslContextFactory sslFactory =
-                new LanternClientSslContextFactory();
+                new LanternClientSslContextFactory(this.ksm);
             engine = sslFactory.getClientContext().createSSLEngine();
         }
         else {
             log.info("Creating Lantern SSL engine");
             final LanternClientSslContextFactory sslFactory =
-                new LanternClientSslContextFactory();
+                new LanternClientSslContextFactory(this.ksm);
             engine = sslFactory.getClientContext().createSSLEngine();
         }
         engine.setUseClientMode(true);
         
-        final ChannelHandler stats = new StatsTrackingHandler() {
+        final ChannelHandler statsHandler = new StatsTrackingHandler() {
             @Override
             public void addUpBytes(final long bytes) {
-                statsTracker().addUpBytesViaProxies(bytes);
+                stats.addUpBytesViaProxies(bytes);
             }
             @Override
             public void addDownBytes(final long bytes) {
-                statsTracker().addDownBytesViaProxies(bytes);
+                stats.addDownBytesViaProxies(bytes);
             }
         };
 
-        pipeline.addLast("stats", stats);        
+        pipeline.addLast("stats", statsHandler);        
         pipeline.addLast("ssl", new SslHandler(engine));
         pipeline.addLast("decoder", new HttpResponseDecoder());
         pipeline.addLast("encoder", new HttpRequestEncoder());

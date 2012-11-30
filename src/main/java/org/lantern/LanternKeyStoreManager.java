@@ -15,7 +15,9 @@ import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Singleton;
 
+@Singleton
 public class LanternKeyStoreManager implements KeyStoreManager {
     
     private final Logger log = LoggerFactory.getLogger(getClass());

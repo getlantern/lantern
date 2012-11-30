@@ -64,6 +64,7 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
     }
 
     private Set<String> loadTrustedContacts() {
+        /*
         if (!CONTACTS_FILE.isFile()) {
             log.warn("No file to read!!");
             return Collections.emptySet();
@@ -90,6 +91,7 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
         } finally {
             IOUtils.closeQuietly(br);
         }
+        */
         return Collections.emptySet();
     }
 
@@ -132,6 +134,7 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
     
 
     private void writeContacts() {
+        /*
         synchronized (CONTACTS_FILE) {
             // We just write the whole thing again from scratch.
             CONTACTS_FILE.delete();
@@ -154,5 +157,6 @@ public class DefaultTrustedContactsManager implements TrustedContactsManager {
             }
         }
         log.info("File size after writing: {}", CONTACTS_FILE.length());
+        */
     }
 }

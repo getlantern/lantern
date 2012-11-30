@@ -1,64 +1,45 @@
 package org.lantern.http;
 
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 
-import javax.security.auth.login.CredentialException;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.lantern.LanternHub;
-import org.lantern.NotInClosedBetaException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp;
-import com.google.api.client.extensions.java6.auth.oauth2.FileCredentialStore;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow;
 import com.google.api.client.googleapis.auth.oauth2.GoogleBrowserClientRequestUrl;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson.JacksonFactory;
-//import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
+@Singleton
 public class GoogleOauth2RedirectServlet extends HttpServlet {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private static final long serialVersionUID = -957838028594747197L;
 
-    private static final JsonFactory JSON_FACTORY = new JacksonFactory();
+    private final GoogleOauth2CallbackServer server;
 
-    private static final HttpTransport HTTP_TRANSPORT = new NetHttpTransport();
+    @Inject
+    public GoogleOauth2RedirectServlet(final GoogleOauth2CallbackServer server) {
+        this.server = server;
+    }
     
     @Override
     protected void doGet(final HttpServletRequest req, 
@@ -83,11 +64,8 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         log.info("Query string: {}", req.getQueryString());
         final String location = newGtalkOauthUrl();
         
-        final GoogleOauth2CallbackServer server = 
-            new GoogleOauth2CallbackServer();
-        
         // Note that this call absolutely ensures the server is started.
-        server.start();
+        this.server.start();
         
         resp.sendRedirect(location);
     }

@@ -7,6 +7,10 @@ import org.lantern.state.Settings.Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+@Singleton
 public class InternalState {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -21,7 +25,6 @@ public class InternalState {
     
     private Collection<Modal> modalsCompleted = new HashSet<Modal>();
 
-    private final Model model;
     /*
     private final boolean[] modalsCompleted = {
         false, false, false, false, false, false, false
@@ -35,9 +38,13 @@ public class InternalState {
     private final int inviteFriends = 5;
     private final int finished = 6;
     */
+
+    private final ModelProvider modelProvider;
     
-    public InternalState(final Model model) {
-        this.model = model;
+    @Inject
+    public InternalState(final ModelProvider modelProvider) {
+        this.modelProvider = modelProvider;
+        //this.model = model;
     }
 
     public void resetInternalState() {
@@ -47,7 +54,7 @@ public class InternalState {
  
     public void advanceModal(final Modal backToIfNone) {
         final Modal[] seq;
-        if (this.model.getSettings().getMode() == Mode.get) {
+        if (this.modelProvider.getModel().getSettings().getMode() == Mode.get) {
             seq = modalSeqGet;
         } else {
             seq = modalSeqGive;
@@ -63,7 +70,7 @@ public class InternalState {
         if (backToIfNone != null && next != null && next == Modal.none) {
             next = backToIfNone;
         }
-        model.setModal(next);
+        this.modelProvider.getModel().setModal(next);
     }
 
     public void setModalCompleted(final Modal modal) {

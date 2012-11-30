@@ -30,11 +30,15 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
 
     private final ByteTracker byteTracker;
 
+    private final LanternSocketsUtil socketsUtil;
+
     public PeerHttpConnectRequestProcessor(final Socket sock,
-        final ChannelGroup channelGroup, final ByteTracker byteTracker) {
+        final ChannelGroup channelGroup, final ByteTracker byteTracker,
+        final LanternSocketsUtil socketsUtil) {
         this.sock = sock;
         this.channelGroup = channelGroup;
         this.byteTracker = byteTracker;
+        this.socketsUtil = socketsUtil;
     }
 
     @Override
@@ -49,7 +53,7 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
             // a SocketHttpConnectRelayingHandler and the normal 
             // encoder that records stats is removed from the 
             // browserToProxyChannel pipeline.
-            LanternUtils.startReading(this.sock, browserToProxyChannel, true);
+            this.socketsUtil.startReading(this.sock, browserToProxyChannel, true);
             
             log.info("Got an outbound socket on request handler hash {} to {}", 
                 hashCode(), this.sock);

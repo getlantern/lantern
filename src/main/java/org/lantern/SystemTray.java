@@ -13,4 +13,6 @@ public interface SystemTray {
 
     boolean isActive();
 
+    boolean isSupported();
+
 }

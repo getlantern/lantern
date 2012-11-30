@@ -51,11 +51,11 @@ public class LanternBrowser {
     private String lastEventLocation = "";
     
     
-    public LanternBrowser(final boolean isConfig) {
+    public LanternBrowser(final boolean isConfig, final Display display) {
         log.info("Creating Lantern browser...");
         //I18n = I18nFactory.getI18n(LanternBrowser.class, 
         //        "app.i18n.Messages", locale, I18nFactory.FALLBACK);
-        this.display = LanternHub.display();
+        this.display = display;
         this.isConfig = isConfig;
         
         log.info("Creating shell...");

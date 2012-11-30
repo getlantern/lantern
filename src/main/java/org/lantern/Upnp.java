@@ -24,8 +24,11 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
     
     private final static Collection<UpnpService> allServices =
             new ArrayList<UpnpService>();
+
+    private final Stats stats;
     
-    public Upnp() {
+    public Upnp(final Stats stats) {
+        this.stats = stats;
         final String HACK_STREAM_HANDLER_SYSTEM_PROPERTY = 
             "hackStreamHandlerProperty";
         System.setProperty(HACK_STREAM_HANDLER_SYSTEM_PROPERTY, 
@@ -105,7 +108,7 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
         final UpnpService upnpService;
         try {
             upnpService = new UpnpServiceImpl(new LanternUpnpServiceConfiguration(), 
-                new UpnpPortMappingListener(portMapListener, desiredMapping)
+                new UpnpPortMappingListener(stats, portMapListener, desiredMapping)
             );
             allServices.add(upnpService);
         } catch (final InitializationException e) {

@@ -9,28 +9,39 @@ import java.security.GeneralSecurityException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-import org.codehaus.jackson.map.SerializationConfig.Feature;
+import org.lantern.EncryptedFileService;
 import org.lantern.LanternConstants;
 import org.lantern.LanternHub;
 import org.lantern.LanternUtils;
+import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.privacy.UserInputRequiredException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ModelIo {
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+@Singleton
+public class ModelIo implements ModelProvider {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final File modelFile;
 
     private final Model model;
+
+    private final EncryptedFileService encryptedFileService;
+
+    private final LocalCipherProvider localCipherProvider;
     
     /**
      * Creates a new instance with all the default operations.
      */
-    public ModelIo() {
-        this(LanternConstants.DEFAULT_MODEL_FILE);
+    @Inject
+    public ModelIo(final EncryptedFileService encryptedFileService,
+        final LocalCipherProvider localCipherProvider) {
+        this(LanternConstants.DEFAULT_MODEL_FILE, encryptedFileService, 
+                localCipherProvider);
     }
     
     
@@ -40,9 +51,14 @@ public class ModelIo {
      * 
      * @param modelFile The file where settings are stored.
      */
-    public ModelIo(final File modelFile) {
+    public ModelIo(final File modelFile, 
+        final EncryptedFileService encryptedFileService,
+        final LocalCipherProvider localCipherProvider) {
         this.modelFile = modelFile;
+        this.encryptedFileService = encryptedFileService;
+        this.localCipherProvider = localCipherProvider;
         this.model = read();
+        log.info("Loaded module");
         if (!LanternConstants.ON_APP_ENGINE) {
             // Save the most current state when exiting.
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -80,7 +96,7 @@ public class ModelIo {
         //mapper.configure(Feature.FAIL_ON_EMPTY_BEANS, false);
         InputStream is = null;
         try {
-            is = LanternUtils.localDecryptInputStream(modelFile);
+            is = encryptedFileService.localDecryptInputStream(modelFile);
             final String json = IOUtils.toString(is);
             log.info("Building setting from json string...");
             if (StringUtils.isBlank(json) || json.equalsIgnoreCase("null")) {
@@ -121,7 +137,7 @@ public class ModelIo {
         
         // if some password initialization is required, 
         // consider the settings to be "locked"
-        if (LanternHub.localCipherProvider().requiresAdditionalUserInput()) {
+        if (localCipherProvider.requiresAdditionalUserInput()) {
             //s.getSettings().setState(State.LOCKED);
             blank.setModal(Modal.authorize);
         }
@@ -140,7 +156,7 @@ public class ModelIo {
         try {
             final String json = LanternUtils.jsonify(model, 
                 Model.Persistent.class);
-            os = LanternUtils.localEncryptOutputStream(this.modelFile);
+            os = encryptedFileService.localEncryptOutputStream(this.modelFile);
             os.write(json.getBytes("UTF-8"));
         } catch (final IOException e) {
             log.error("Error encrypting stream", e);
@@ -152,6 +168,7 @@ public class ModelIo {
     }
 
 
+    @Override
     public Model getModel() {
         return model;
     }

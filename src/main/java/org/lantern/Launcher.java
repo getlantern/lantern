@@ -10,7 +10,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Properties;
-import java.util.concurrent.Executors;
 
 import javax.security.auth.login.CredentialException;
 
@@ -31,33 +30,23 @@ import org.apache.log4j.spi.LoggingEvent;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.widgets.Display;
-import org.jboss.netty.channel.group.ChannelGroup;
-import org.jboss.netty.channel.group.DefaultChannelGroup;
-import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
-import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
-import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
-import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.ThreadNameDeterminer;
 import org.jboss.netty.util.ThreadRenamingRunnable;
-import org.jboss.netty.util.Timer;
 import org.json.simple.JSONObject;
 import org.lantern.event.SettingsStateEvent;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
+import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.stun.client.StunServerRepository;
-import org.littleshoot.proxy.HttpFilter;
-import org.littleshoot.proxy.HttpRequestFilter;
-import org.littleshoot.proxy.HttpResponseFilters;
-import org.littleshoot.proxy.PublicIpsOnlyRequestFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
-import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 
 /**
@@ -68,7 +57,18 @@ public class Launcher {
     private static Logger LOG;
     private static boolean lanternStarted = false;
     private static LanternHttpProxyServer localProxy;
-    private static HttpProxyServer plainTextAnsererRelayProxy;
+    private static PlainTestRelayHttpProxyServer plainTextAnsererRelayProxy;
+    private static JettyLauncher jettyLauncher;
+    private static XmppHandler xmpp;
+    private static BrowserService browserService;
+    
+    private static SslHttpProxyServer sslProxy;
+    
+    private static LocalCipherProvider localCipherProvider;
+    
+    private static MessageService messageService;
+    private static Injector injector;
+    private static Configurator configurator;
     
     
     /**
@@ -140,7 +140,7 @@ public class Launcher {
     private static void launch(final String... args) {
         LOG.info("Starting Lantern...");
         configureCipherSuites();
-        
+
         // first apply any command line settings
         final Options options = new Options();
         options.addOption(null, OPTION_DISABLE_UI, false,
@@ -262,12 +262,12 @@ public class Launcher {
                 cmd.getOptionValue(OPTION_API_PORT);
             LOG.info("Using command-line port: "+portStr);
             final int port = Integer.parseInt(portStr);
-            set.setApiPort(port);
+            RuntimeSettings.setApiPort(port);
         } else {
             LOG.info("Using random port...");
-            set.setApiPort(LanternUtils.randomPort());
+            RuntimeSettings.setApiPort(LanternUtils.randomPort());
         }
-        LOG.info("Running API on port: {}", set.getApiPort());
+        LOG.info("Running API on port: {}", RuntimeSettings.getApiPort());
 
         if (cmd.hasOption(OPTION_LAUNCHD)) {
             LOG.info("Running from launchd or launchd set on command line");
@@ -281,9 +281,10 @@ public class Launcher {
             // We initialize this super early in case there are any errors 
             // during startup we have to display to the user.
             Display.setAppName("Lantern");
-            display = LanternHub.display();
+            //display = new Display();//injector.getInstance(Display.class);;
             // Also, We need the system tray to listen for events early on.
-            LanternHub.systemTray().createTray();
+            //LanternHub.systemTray().createTray();
+            
         }
         else {
             display = null;
@@ -306,6 +307,25 @@ public class Launcher {
         if (cmd.hasOption(OPTION_NEW_UI)) {
             LanternHub.settings().setUiDir("ui");
         }
+        
+        
+        injector = Guice.createInjector(new LanternModule());
+        //final ModelProvider model = injector.getInstance(ModelIo.class);
+        //Display display = new Display();
+        configurator = instance(Configurator.class);
+        messageService = instance(MessageService.class);
+        xmpp = instance(DefaultXmppHandler.class);
+        jettyLauncher = instance(JettyLauncher.class);
+        browserService = instance(BrowserService.class);
+        sslProxy = instance(SslHttpProxyServer.class);
+        localCipherProvider = instance(LocalCipherProvider.class);
+        plainTextAnsererRelayProxy = instance(PlainTestRelayHttpProxyServer.class);
+        
+        
+        jettyLauncher.start();
+        xmpp.start();
+        sslProxy.start(false, false);
+        plainTextAnsererRelayProxy.start(true, false);
         
         gnomeAutoStart();
         
@@ -331,7 +351,8 @@ public class Launcher {
             // If setup is complete and we're not running on startup, open
             // the dashboard.
             else if (LanternHub.settings().isInitialSetupComplete()) {
-                LanternHub.jettyLauncher().openBrowserWhenReady();
+                browserService.openBrowserWhenPortReady();
+                //jettyLauncher.openBrowserWhenReady();
                 // Wait for an internet connection before starting the XMPP
                 // connection.
                 LOG.info("Waiting for internet connection...");
@@ -360,11 +381,33 @@ public class Launcher {
         
         // This is necessary to keep the tray/menu item up in the case
         // where we're not launching a browser.
+        /*
         if (display != null) {
             while (!display.isDisposed ()) {
                 if (!display.readAndDispatch ()) display.sleep ();
             }
         }
+        */
+    }
+
+    private static <T> T instance(Class<T> clazz) {
+        final T inst = injector.getInstance(clazz);
+        if (LanternService.class.isAssignableFrom(clazz)) {
+            addShutdownHook((LanternService) inst);
+        }
+        return inst;
+    }
+
+    private static void addShutdownHook(final LanternService service) {
+        LOG.info("Adding shutdown hook for {}", service);
+        // TODO: Add these all to a single list of things to do on shutdown.
+        final Thread serviceHook = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                service.stop();
+            }
+        }, "ShutdownHook-For-Service-"+service.getClass().getSimpleName());
+        Runtime.getRuntime().addShutdownHook(serviceHook);
     }
     
     private static void gnomeAutoStart() {
@@ -505,7 +548,7 @@ public class Launcher {
     }
     
     private static boolean askToUnlockSettingsCLI() {
-        if (!LanternHub.localCipherProvider().requiresAdditionalUserInput()) {
+        if (!localCipherProvider.requiresAdditionalUserInput()) {
             LOG.info("Local cipher does not require a password.");
             return true;
         }
@@ -569,7 +612,7 @@ public class Launcher {
     private static boolean unlockSettingsWithPassword(final char [] password)
         throws GeneralSecurityException, IOException {
         final boolean init = !LanternHub.settings().isLocalPasswordInitialized();
-        LanternHub.localCipherProvider().feedUserInput(password, init);
+        localCipherProvider.feedUserInput(password, init);
         LanternHub.resetSettings(true);
         final SettingsState.State ss = LanternHub.settings().getSettings().getState();
         if (ss != SettingsState.State.SET) {
@@ -580,8 +623,8 @@ public class Launcher {
     }
     
     private static void loadLocalPasswordFile(final String pwFilename) {
-        final LocalCipherProvider lcp = LanternHub.localCipherProvider();
-        if (!lcp.requiresAdditionalUserInput()) {
+        //final LocalCipherProvider lcp = localCipherProvider;
+        if (!localCipherProvider.requiresAdditionalUserInput()) {
             LOG.error("Settings do not require a password to unlock.");
             System.exit(1);
         }
@@ -600,7 +643,7 @@ public class Launcher {
         try {
             final String pw = FileUtils.readLines(pwFile, "US-ASCII").get(0);
             final boolean init = !LanternHub.settings().isLocalPasswordInitialized();
-            lcp.feedUserInput(pw.toCharArray(), init);
+            localCipherProvider.feedUserInput(pw.toCharArray(), init);
         }
         catch (final IndexOutOfBoundsException e) {
             LOG.error("Password in file \"{}\" was incorrect", pwFilename);
@@ -625,7 +668,7 @@ public class Launcher {
             // We only run headless on Linux for now.
             LOG.info("Running Lantern with no display...");
             launchLantern();
-            LanternHub.jettyLauncher();
+            //LanternHub.jettyLauncher();
             return;
         }
 
@@ -633,7 +676,7 @@ public class Launcher {
         launchLantern();
         if (!LanternHub.settings().isLaunchd() || 
             !LanternHub.settings().isInitialSetupComplete()) {
-            LanternHub.jettyLauncher().openBrowserWhenReady();
+            browserService.openBrowserWhenPortReady();
         }
     }
 
@@ -642,10 +685,13 @@ public class Launcher {
         ThreadRenamingRunnable.setThreadNameDeterminer(
             ThreadNameDeterminer.CURRENT);
         
+        
+        /*
         final HttpRequestFilter publicOnlyRequestFilter = 
             new PublicIpsOnlyRequestFilter();
         
-        final Timer timer = new HashedWheelTimer();
+        //final Timer timer = new HashedWheelTimer();
+        
         
         final ServerSocketChannelFactory serverChannelFactory = 
             new NioServerSocketChannelFactory(
@@ -663,21 +709,21 @@ public class Launcher {
                 Executors.newCachedThreadPool(
                     new ThreadFactoryBuilder().setNameFormat(
                         "Lantern-Netty-Client-Worker-Thread-%d").setDaemon(true).build()));
+        */
         
-        final ChannelGroup channelGroup = 
-            new DefaultChannelGroup("Local-HTTP-Proxy-Server");
+        //final ChannelGroup channelGroup = 
+        //    new DefaultChannelGroup("Local-HTTP-Proxy-Server");
         
-        LanternHub.setNettyTimer(timer);
-        LanternHub.setServerChannelFactory(serverChannelFactory);
-        LanternHub.setClientChannelFactory(clientChannelFactory);
-        LanternHub.setChannelGroup(channelGroup);
+        //LanternHub.setNettyTimer(timer);
+        //LanternHub.setServerChannelFactory(serverChannelFactory);
+        //LanternHub.setClientChannelFactory(clientChannelFactory);
+        //LanternHub.setChannelGroup(channelGroup);
         
 
-        final int staticRandomPort = LanternHub.settings().getServerPort();
-        
         // Note that the keystore manager triggers the following to 
         // become an SSL proxy server -- the constructor below looks up the
         // keystore internally.
+        /*
         final StatsTrackingDefaultHttpProxyServer sslProxy =
             new StatsTrackingDefaultHttpProxyServer(staticRandomPort,
             new HttpResponseFilters() {
@@ -688,10 +734,12 @@ public class Launcher {
             }, null, publicOnlyRequestFilter, clientChannelFactory, timer, 
             serverChannelFactory, LanternHub.getKeyStoreManager());
         LOG.debug("Long lived SSL port is {}", staticRandomPort);
+        */
+        
         
         //final org.littleshoot.proxy.HttpProxyServer sslProxy = 
         //    new DefaultHttpProxyServer(LanternHub.randomSslPort());
-        sslProxy.start(false, false);
+        //sslProxy.start(false, false);
          
         // The reason this exists is complicated. It's for the case when the
         // offerer gets an incoming connection from the answerer, and then
@@ -703,6 +751,7 @@ public class Launcher {
         // could theoretically wrap new client connections in SSL however.
         // See http://cdn.getlantern.org/IMAG0210.jpg
         
+        /*
         Launcher.plainTextAnsererRelayProxy =
             new StatsTrackingDefaultHttpProxyServer(
                 LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT,
@@ -713,6 +762,7 @@ public class Launcher {
                     }
                 }, null, publicOnlyRequestFilter, clientChannelFactory, timer, 
                 serverChannelFactory, null);
+                */
         
         /*
         Launcher.plainTextAnsererRelayProxy = 
@@ -721,10 +771,12 @@ public class Launcher {
                 publicOnlyRequestFilter, clientChannelFactory, timer, 
                 serverChannelFactory);
                 */
+        /*
         plainTextAnsererRelayProxy.start(true, false);
         
         LOG.info("About to start Lantern server on port: "+
             LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
+            */
 
 
         /*
@@ -755,18 +807,23 @@ public class Launcher {
         final SetCookieObserver cookieObserver = new WhitelistSetCookieObserver(hubTracker);
         final CookieFilter.Factory cookieFilterFactory = new DefaultCookieFilterFactory(hubTracker);
         */
+        /*
         Launcher.localProxy = 
             new LanternHttpProxyServer(
-                LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
+                //LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
                 //null, sslRandomPort,
-                null, null, serverChannelFactory, 
-                clientChannelFactory, timer, channelGroup);
+                //null, null, 
+                serverChannelFactory, 
+                clientChannelFactory, timer, channelGroup, xmpp);
         localProxy.start();
+        */
+
+        browserService.openBrowserWhenPortReady();
         
         new AutoConnector(); 
 
         try {
-            LanternHub.configurator().copyFireFoxExtension();
+            configurator.copyFireFoxExtension();
         } catch (final IOException e) {
             LOG.error("Could not copy extension", e);
         }
@@ -816,7 +873,8 @@ public class Launcher {
                     @Override
                     public void run() {
                         try {
-                            LanternHub.xmppHandler().connect();
+                            xmpp.connect();
+                            //LanternHub.xmppHandler().connect();
                         } catch (final IOException e) {
                             LOG.info("Could not login", e);
                         } catch (final CredentialException e) {
@@ -920,7 +978,7 @@ public class Launcher {
         } 
         else if (!lanternStarted && LanternHub.settings().isUiEnabled()) {
             LOG.info("Showing error to user...");
-            LanternHub.dashboard().showMessage("Startup Error",
+            messageService.showMessage("Startup Error",
                "We're sorry, but there was an error starting Lantern " +
                "described as '"+t.getMessage()+"'.");
         }
@@ -931,13 +989,15 @@ public class Launcher {
     }
 
     public static void stop() {
-        LanternHub.jettyLauncher().stop();
-        LanternHub.xmppHandler().stop();
+        /*
+        jettyLauncher.stop();
+        LanternConstants.INJECTOR.getInstance(DefaultXmppHandler.class).stop();
         if (Launcher.plainTextAnsererRelayProxy != null) {
             Launcher.plainTextAnsererRelayProxy.stop();
         }
         if (Launcher.localProxy != null) {
             Launcher.localProxy.stop();
         }
+        */
     }
 }

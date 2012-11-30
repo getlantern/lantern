@@ -15,11 +15,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Class that does the dirty work of executing changes to the various settings 
  * users can configure.
  */
+@Singleton
 public class DefaultSettingsChangeImplementor implements SettingsChangeImplementor {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -32,14 +35,24 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
 
     private final File gnomeAutostart;
 
-    public DefaultSettingsChangeImplementor() {
-        this(LanternConstants.LAUNCHD_PLIST, LanternConstants.GNOME_AUTOSTART);
+    private final XmppHandler xmppHandler;
+
+    private final Proxifier proxifier;
+
+    @Inject
+    public DefaultSettingsChangeImplementor(final XmppHandler xmppHandler,
+        final Proxifier proxifier) {
+        this(LanternConstants.LAUNCHD_PLIST, LanternConstants.GNOME_AUTOSTART,
+                xmppHandler, proxifier);
     }
     
     public DefaultSettingsChangeImplementor(final File launchdPlist, 
-        final File gnomeAutostart) {
+        final File gnomeAutostart, final XmppHandler xmppHandler,
+        final Proxifier proxifier) {
         this.launchdPlist = launchdPlist;
         this.gnomeAutostart = gnomeAutostart;
+        this.xmppHandler = xmppHandler;
+        this.proxifier = proxifier;
     }
     
     @Override
@@ -94,7 +107,7 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
     @Override
     public void setProxyAllSites(final boolean proxyAll) {
         try {
-            Proxifier.proxyAllSites(proxyAll);
+            proxifier.proxyAllSites(proxyAll);
         } catch (final ProxyConfigurationError e) {
             throw new RuntimeException("Error proxying all sites!", e);
         }
@@ -122,9 +135,9 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             public void run() {
                 try {
                     if (LanternUtils.shouldProxy() ) {
-                        Proxifier.startProxying();
+                        proxifier.startProxying();
                     } else {
-                        Proxifier.stopProxying();
+                        proxifier.stopProxying();
                     }
                 } catch (final Proxifier.ProxyConfigurationError e) {
                     log.error("Proxy reconfiguration failed: {}", e);
@@ -188,10 +201,10 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         
         // We disconnect and reconnect to create a new Jabber ID that will 
         // not advertise us as a connection point.
-        LanternHub.xmppHandler().disconnect();
+        xmppHandler.disconnect();
         try {
             try {
-                LanternHub.xmppHandler().connect();
+                xmppHandler.connect();
                 
                 // TODO: This isn't quite right. We don't necessarily have
                 // proxies to connect to at this point, and we shouldn't set
@@ -199,26 +212,26 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
                 if (LanternHub.settings().isInitialSetupComplete()) {
                     // may need to modify the proxying state
                     if (LanternUtils.shouldProxy()) {
-                        Proxifier.startProxying();
+                        proxifier.startProxying();
                     } else {
-                        Proxifier.stopProxying();
+                        proxifier.stopProxying();
                     }
                 }
             } catch (final IOException e) {
                 log.info("Could not connect to server", e);
                 // Don't proxy if there's some error connecting.
                 if (LanternHub.settings().isInitialSetupComplete()) {
-                    Proxifier.stopProxying();
+                    proxifier.stopProxying();
                 }
             } catch (final CredentialException e) {
                 log.info("Credentials are wrong!!");
                 if (LanternHub.settings().isInitialSetupComplete()) {
-                    Proxifier.stopProxying();
+                    proxifier.stopProxying();
                 }
             } catch (final NotInClosedBetaException e) {
                 log.info("Not in beta!!");
                 if (LanternHub.settings().isInitialSetupComplete()) {
-                    Proxifier.stopProxying();
+                    proxifier.stopProxying();
                 }
             }
         } catch (final Proxifier.ProxyConfigurationError e) {

@@ -6,12 +6,9 @@ import java.awt.Point;
 import java.awt.Toolkit;
 import java.io.Console;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -26,16 +23,9 @@ import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.channels.DatagramChannel;
 import java.nio.channels.UnresolvedAddressException;
-import java.security.GeneralSecurityException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
-import java.security.Security;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -45,21 +35,10 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.Scanner;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.crypto.Cipher;
-import javax.crypto.CipherInputStream;
-import javax.crypto.CipherOutputStream;
-import javax.net.SocketFactory;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
-import javax.net.ssl.SSLSocketFactory;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.codec.binary.Base64;
@@ -76,7 +55,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectWriter;
 import org.codehaus.jackson.map.SerializationConfig.Feature;
 import org.jboss.netty.buffer.ChannelBuffer;
-import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
@@ -85,19 +63,14 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMessage;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
-import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
-import org.jivesoftware.smack.proxy.ProxyInfo;
-import org.jivesoftware.smack.proxy.ProxyInfo.ProxyType;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lantern.SettingsState.State;
-import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
-import org.littleshoot.proxy.ProxyUtils;
 import org.littleshoot.util.ByteBufferUtils;
 import org.littleshoot.util.Sha1;
 import org.slf4j.Logger;
@@ -232,64 +205,6 @@ public class LanternUtils {
             LOG.warn("Could not connect to peer", ioe);
             throw ioe;
         }
-    }
-    
-    private static final ExecutorService threadPool = 
-        Executors.newCachedThreadPool(new ThreadFactory() {
-        private volatile int threadNumber = 0;
-        
-        @Override
-        public Thread newThread(final Runnable r) {
-            final Thread t = new Thread(r, "Peer-Reading-Thread-"+threadNumber);
-            t.setDaemon(true);
-            threadNumber++;
-            return t;
-        }
-    });
-    
-    public static void startReading(final Socket sock, final Channel channel, 
-        final boolean recordStats) {
-        final Runnable runner = new Runnable() {
-            @Override
-            public void run() {
-                final byte[] buffer = new byte[4096];
-                int n = 0;
-                try {
-                    LOG.info("READING FROM SOCKET: {}", sock);
-                    if (sock.isClosed()) {
-                        LOG.error("SOCKET IS CLOSED");
-                        ProxyUtils.closeOnFlush(channel);
-                        return;
-                    }
-                    final InputStream is = sock.getInputStream();
-                    while (-1 != (n = is.read(buffer))) {
-                        //LOG.info("Writing response data: {}", new String(buffer, 0, n));
-                        // We need to make a copy of the buffer here because
-                        // the writes are asynchronous, so the bytes can
-                        // otherwise get scrambled.
-                        final ChannelBuffer buf =
-                            ChannelBuffers.copiedBuffer(buffer, 0, n);
-                        channel.write(buf);
-                        if (recordStats) {
-                            LanternHub.statsTracker().addDownBytesFromPeers(n);
-                        }
-                        
-                    }
-                    ProxyUtils.closeOnFlush(channel);
-
-                } catch (final IOException e) {
-                    LOG.info("Exception relaying peer data back to browser", e);
-                    ProxyUtils.closeOnFlush(channel);
-                    
-                    // The other side probably just closed the connection!!
-                    
-                    //channel.close();
-                    //proxyStatusListener.onError(peerUri);
-                    
-                }
-            }
-        };
-        threadPool.execute(runner);
     }
     
     public static String getMacAddress() {
@@ -684,6 +599,7 @@ public class LanternUtils {
         return sc.nextLine();
     }
 
+    /*
     public static InputStream localDecryptInputStream(final InputStream in) 
         throws IOException, GeneralSecurityException {
         Cipher cipher = 
@@ -707,6 +623,7 @@ public class LanternUtils {
         throws IOException, GeneralSecurityException {
         return localEncryptOutputStream(new FileOutputStream(file));
     }
+    */
     
     /** 
      * output an encrypted copy of the plaintext file given in the 
@@ -716,6 +633,7 @@ public class LanternUtils {
      * @param encryptedDest a destination file to write an encrypted copy of 
      * plainSrc to
      */
+    /*
     public static void localEncryptedCopy(final File plainSrc, 
         final File encryptedDest)
         throws GeneralSecurityException, IOException {
@@ -744,6 +662,7 @@ public class LanternUtils {
      * encryptedSrc to
      * 
      */
+    /*
     public static void localDecryptedCopy(final File encryptedSrc, 
         final File plainDest)
         throws GeneralSecurityException, IOException {
@@ -761,6 +680,7 @@ public class LanternUtils {
             IOUtils.closeQuietly(out);
         }    
     }
+    */
 
     public static String jsonify(final Object all) {
         
@@ -985,344 +905,7 @@ public class LanternUtils {
             Arrays.fill(array, (byte) 0);
         }
     }
-
-    public static ConnectionConfiguration xmppConfig() {
-        return xmppConfig(null);
-    }
     
-    public static ConnectionConfiguration xmppProxyConfig() {
-        final int proxyPort;
-        if (NumberUtils.isNumber(LanternConstants.FALLBACK_SERVER_PORT)) {
-            proxyPort = Integer.parseInt(LanternConstants.FALLBACK_SERVER_PORT);
-        } else {
-            proxyPort = 80;
-        }
-        final ProxyInfo proxyInfo = 
-                new ProxyInfo(ProxyType.HTTP, 
-                    LanternConstants.FALLBACK_SERVER_HOST, 
-                    proxyPort, 
-                    LanternConstants.FALLBACK_SERVER_USER, 
-                    LanternConstants.FALLBACK_SERVER_PASS);
-        return xmppConfig(proxyInfo);
-    }
-    
-    public static ConnectionConfiguration xmppConfig(final ProxyInfo proxyInfo) {
-        final ConnectionConfiguration config;
-        if (proxyInfo == null) { 
-            config = new ConnectionConfiguration("talk.google.com", 5222, 
-                "gmail.com");
-            config.setSocketFactory(new DirectSocketFactory());
-        } else {
-            config = new ConnectionConfiguration("talk.google.com", 5222, 
-                "gmail.com", proxyInfo);
-            config.setSocketFactory(new ProxySocketFactory(proxyInfo));
-        }
-        config.setExpiredCertificatesCheckEnabled(true);
-        
-        // We don't check for matching domains because Google Talk uses the
-        // same cert for Google Apps domains, and this would always fail in
-        // those cases.
-        //config.setNotMatchingDomainCheckEnabled(true);
-        config.setSendPresence(false);
-        
-        config.setCompressionEnabled(true);
-        
-        config.setRosterLoadedAtLogin(true);
-        config.setReconnectionAllowed(false);
-        config.setVerifyChainEnabled(true);
-        config.setVerifyRootCAEnabled(true);
-        config.setSelfSignedCertificateEnabled(false);
-        final LanternTrustManager tm = 
-            LanternHub.getKeyStoreManager().getTrustManager();
-        config.setTruststorePath(tm.getTruststorePath());
-        config.setTruststorePassword(tm.getTruststorePassword());
-        
-        final String[] cipherSuites = new String[] {
-            //"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
-            //"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
-            //"TLS_DHE_RSA_WITH_CAMELLIA_256_CBC_SHA",
-            //"TLS_DHE_DSS_WITH_CAMELLIA_256_CBC_SHA",
-            //"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-            //"TLS_DHE_DSS_WITH_AES_256_CBC_SHA",
-            "SSL_RSA_WITH_RC4_128_SHA",
-            //"TLS_ECDH_RSA_WITH_AES_256_CBC_SHA",
-            //"TLS_ECDH_ECDSA_WITH_AES_256_CBC_SHA",
-            //"TLS_RSA_WITH_CAMELLIA_256_CBC_SHA",
-            //"TLS_RSA_WITH_AES_256_CBC_SHA",
-            //"TLS_ECDHE_ECDSA_WITH_RC4_128_SHA",
-            //"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
-            //"TLS_ECDHE_RSA_WITH_RC4_128_SHA",
-            //"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
-            //"TLS_DHE_RSA_WITH_CAMELLIA_128_CBC_SHA",
-            //"TLS_DHE_DSS_WITH_CAMELLIA_128_CBC_SHA",
-            //"TLS_DHE_DSS_WITH_RC4_128_SHA",
-            //"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
-            //"TLS_DHE_DSS_WITH_AES_128_CBC_SHA",
-            //"TLS_ECDH_RSA_WITH_RC4_128_SHA",
-            //"TLS_ECDH_RSA_WITH_AES_128_CBC_SHA",
-            //"TLS_ECDH_ECDSA_WITH_RC4_128_SHA",
-            //"TLS_ECDH_ECDSA_WITH_AES_128_CBC_SHA",
-            //"TLS_RSA_WITH_SEED_CBC_SHA",
-            //"TLS_RSA_WITH_CAMELLIA_128_CBC_SHA",
-            //"TLS_RSA_WITH_RC4_128_MD5",
-            //"TLS_RSA_WITH_RC4_128_SHA",
-            //"TLS_RSA_WITH_AES_128_CBC_SHA",
-            //"TLS_ECDHE_ECDSA_WITH_3DES_EDE_CBC_SHA",
-            //"TLS_ECDHE_RSA_WITH_3DES_EDE_CBC_SHA",
-            //"TLS_DHE_RSA_WITH_3DES_EDE_CBC_SHA",
-            //"TLS_DHE_DSS_WITH_3DES_EDE_CBC_SHA",
-            //"TLS_ECDH_RSA_WITH_3DES_EDE_CBC_SHA",
-            //"TLS_ECDH_ECDSA_WITH_3DES_EDE_CBC_SHA",
-            //"SSL_RSA_FIPS_WITH_3DES_EDE_CBC_SHA",
-            //"TLS_RSA_WITH_3DES_EDE_CBC_SHA",
-        };
-        config.setCipherSuites(cipherSuites);
-        return config;
-    }
-    
-    private static final class DirectSocketFactory extends SocketFactory {
-        
-        @Override
-        public Socket createSocket(final InetAddress host, final int port, 
-            final InetAddress localHost, final int localPort) 
-            throws IOException {
-            // We ignore the local port binding.
-            return createSocket(host, port);
-        }
-        
-        @Override
-        public Socket createSocket(final String host, final int port, 
-            final InetAddress localHost, final int localPort)
-            throws IOException, UnknownHostException {
-            // We ignore the local port binding.
-            return createSocket(host, port);
-        }
-        
-        @Override
-        public Socket createSocket(final InetAddress host, final int port) 
-            throws IOException {
-            final SocketAddress isa = new InetSocketAddress(host, port);
-            LOG.info("Creating socket to {}", isa);
-            final Socket sock = new Socket();
-            sock.connect(isa, 40000);
-            LOG.info("Socket connected to {}",isa);
-            return sock;
-        }
-        
-        @Override
-        public Socket createSocket(final String host, final int port) 
-            throws IOException, UnknownHostException {
-            LOG.info("Creating socket");
-            return createSocket(InetAddress.getByName(host), port);
-        }
-    }
-    
-    public static void configureXmpp() {
-        XmppUtils.setGlobalConfig(xmppConfig(null));
-    }
-
-    public static void configureXmppWithBackupProxy() {
-        XmppUtils.setGlobalConfig(xmppProxyConfig());
-    }
-    
-    public static SSLServerSocketFactory newTlsServerSocketFactory() {
-        LOG.info("Creating TLS server socket factory");
-        try {
-            final LanternKeyStoreManager ksm = LanternHub.getKeyStoreManager();
-            final KeyManagerFactory kmf = 
-                loadKeyManagerFactory(ksm, getSslAlgorithm());
-            
-            // Initialize the SSLContext to work with our key managers.
-            final SSLContext serverContext = SSLContext.getInstance("TLS");
-            serverContext.init(kmf.getKeyManagers(), ksm.getTrustManagers(), null);
-            return wrappedServerSocketFactory(serverContext.getServerSocketFactory());
-        } catch (final NoSuchAlgorithmException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        } catch (final KeyManagementException e) {
-            throw new Error("Could not create SSL server socket factory.", e);
-        }
-    }
-
-    private static String getSslAlgorithm() {
-        String algorithm = 
-            Security.getProperty("ssl.KeyManagerFactory.algorithm");
-        if (algorithm == null) {
-            algorithm = "SunX509";
-        }
-        return algorithm;
-    }
-
-    private static KeyManagerFactory loadKeyManagerFactory(
-        final LanternKeyStoreManager ksm, final String algorithm) {
-        try {
-            final KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(ksm.keyStoreAsInputStream(), ksm.getKeyStorePassword());
-            
-            // Set up key manager factory to use our key store
-            final KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
-            kmf.init(ks, ksm.getCertificatePassword());
-            return kmf;
-        } catch (final KeyStoreException e) {
-            throw new Error("Key manager issue", e);
-        } catch (final UnrecoverableKeyException e) {
-            throw new Error("Key manager issue", e);
-        } catch (final NoSuchAlgorithmException e) {
-            throw new Error("Key manager issue", e);
-        } catch (final CertificateException e) {
-            throw new Error("Key manager issue", e);
-        } catch (final IOException e) {
-            throw new Error("Key manager issue", e);
-        }
-    }
-
-    private static SSLServerSocketFactory wrappedServerSocketFactory(
-        final SSLServerSocketFactory ssf) {
-        return new SSLServerSocketFactory() {
-            @Override
-            public ServerSocket createServerSocket() throws IOException {
-                final SSLServerSocket ssl = 
-                    (SSLServerSocket) ssf.createServerSocket();
-                configure(ssl);
-                return ssl;
-            }
-            @Override
-            public ServerSocket createServerSocket(final int port, 
-                final int backlog, final InetAddress ifAddress) 
-                throws IOException {
-                final SSLServerSocket ssl = 
-                    (SSLServerSocket) ssf.createServerSocket(port, backlog, ifAddress);
-                configure(ssl);
-                return ssl;
-            }
-            @Override
-            public ServerSocket createServerSocket(final int port, 
-                final int backlog) throws IOException {
-                final SSLServerSocket ssl = 
-                    (SSLServerSocket) ssf.createServerSocket(port, backlog);
-                configure(ssl);
-                return ssl;
-            }
-            @Override
-            public ServerSocket createServerSocket(final int port) 
-                throws IOException {
-                final SSLServerSocket ssl = 
-                    (SSLServerSocket) ssf.createServerSocket(port);
-                configure(ssl);
-                return ssl;
-            }
-            @Override
-            public String[] getDefaultCipherSuites() {
-                return ssf.getDefaultCipherSuites();
-            }
-            @Override
-            public String[] getSupportedCipherSuites() {
-                return ssf.getSupportedCipherSuites();
-            }
-            
-            private void configure(final SSLServerSocket ssl) {
-                ssl.setNeedClientAuth(true);
-                final String[] suites = IceConfig.getCipherSuites();
-                if (suites != null && suites.length > 0) {
-                    ssl.setEnabledCipherSuites(suites);
-                }
-            }
-        };
-    }
-
-
-    public static SSLSocketFactory newTlsSocketFactory() {
-        LOG.info("Creating TLS socket factory");
-        try {
-            final SSLContext clientContext = SSLContext.getInstance("TLS");
-            final LanternKeyStoreManager ksm = LanternHub.getKeyStoreManager();
-            final KeyManagerFactory kmf = 
-                loadKeyManagerFactory(ksm, getSslAlgorithm());
-            
-            clientContext.init(kmf.getKeyManagers(), ksm.getTrustManagers(), null);
-            return wrappedSocketFactory(clientContext.getSocketFactory());
-        } catch (final NoSuchAlgorithmException e) {
-            LOG.error("No TLS?", e);
-            throw new Error("No TLS?", e);
-        } catch (final KeyManagementException e) {
-            LOG.error("Key managmement issue?", e);
-            throw new Error("Key managmement issue?", e);
-        }
-    }
-
-    private static SSLSocketFactory wrappedSocketFactory(final SSLSocketFactory sf) {
-        return new SSLSocketFactory() {
-            @Override
-            public Socket createSocket() throws IOException {
-                final SSLSocket sock = (SSLSocket) sf.createSocket();
-                configure(sock);
-                return sock;
-            }
-            
-            @Override
-            public Socket createSocket(final InetAddress address, 
-                final int port, final InetAddress localAddress, 
-                final int localPort) throws IOException {
-                final SSLSocket sock = 
-                    (SSLSocket) sf.createSocket(address, port, localAddress, localPort);
-                configure(sock);
-                return sock;
-            }
-            
-            @Override
-            public Socket createSocket(final String host, final int port, 
-                final InetAddress localHost, final int localPort) 
-                throws IOException, UnknownHostException {
-                final SSLSocket sock = 
-                    (SSLSocket) sf.createSocket(host, port, localHost, localPort);
-                configure(sock);
-                return sock;
-            }
-            
-            @Override
-            public Socket createSocket(final InetAddress host, 
-                final int port) throws IOException {
-                final SSLSocket sock = (SSLSocket) sf.createSocket(host, port);
-                configure(sock);
-                return sock;
-            }
-            
-            @Override
-            public Socket createSocket(final String host, final int port) 
-                throws IOException, UnknownHostException {
-                final SSLSocket sock = (SSLSocket) sf.createSocket(host, port);
-                configure(sock);
-                return sock;
-            }
-            
-            @Override
-            public Socket createSocket(final Socket s, final String host, 
-                final int port, final boolean autoClose) throws IOException {
-                final SSLSocket sock = 
-                    (SSLSocket) sf.createSocket(s, host, port, autoClose);
-                configure(sock);
-                return sock;
-            }
-
-            @Override
-            public String[] getDefaultCipherSuites() {
-                return sf.getDefaultCipherSuites();
-            }
-
-            @Override
-            public String[] getSupportedCipherSuites() {
-                return sf.getSupportedCipherSuites();
-            }
-            
-            private void configure(final SSLSocket sock) {
-                sock.setNeedClientAuth(true);
-                final String[] suites = IceConfig.getCipherSuites();
-                if (suites != null && suites.length > 0) {
-                    sock.setEnabledCipherSuites(suites);
-                }
-            }
-
-        };
-    }
     
     public static boolean isUnlimitedKeyStrength() {
         try {

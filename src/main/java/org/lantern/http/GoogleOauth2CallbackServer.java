@@ -10,8 +10,12 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.ExecutorThreadPool;
 import org.lantern.LanternUtils;
+import org.lantern.XmppHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * This is a special server that runs on the port we have registered for
@@ -19,6 +23,7 @@ import org.slf4j.LoggerFactory;
  * need OAuth (every time the OAuth redirect page is hit), and should stop it
  * as soon as the callback is done.
  */
+@Singleton
 public class GoogleOauth2CallbackServer {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -26,8 +31,18 @@ public class GoogleOauth2CallbackServer {
     private final Server server = new Server();
     
     private final int port = 7777;
+
+    private final XmppHandler xmppHandler;
+
+    
+    @Inject
+    public GoogleOauth2CallbackServer(final XmppHandler xmppHandler) {
+        this.xmppHandler = xmppHandler;
+    }
     
     public void start() {
+        // Note we unfortunately can't give our threads names using this
+        // thread pool.
         server.setThreadPool(new ExecutorThreadPool(1));
         final String apiName = "Lantern-Oauth-Callback";
         final ContextHandlerCollection contexts = 
@@ -54,7 +69,7 @@ public class GoogleOauth2CallbackServer {
         this.server.setConnectors(new Connector[]{connector});
         
         final ServletHolder oauth2callback = new ServletHolder(
-            new GoogleOauth2CallbackServlet(this));
+            new GoogleOauth2CallbackServlet(this, this.xmppHandler));
         oauth2callback.setInitOrder(1);
         contextHandler.addServlet(oauth2callback, "/oauth2callback");
         

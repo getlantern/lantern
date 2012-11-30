@@ -68,11 +68,21 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     private final Collection<URI> certPeers = new HashSet<URI>();
 
     private final ChannelGroup channelGroup;
+
+    private final XmppHandler xmppHandler;
+
+    private final Stats stats;
+
+    private final LanternSocketsUtil socketsUtil;
     
     public DefaultPeerProxyManager(final boolean anon, 
-        final ChannelGroup channelGroup) {
+        final ChannelGroup channelGroup, final XmppHandler xmppHandler,
+        final Stats stats, final LanternSocketsUtil socketsUtil) {
         this.anon = anon;
         this.channelGroup = channelGroup;
+        this.xmppHandler = xmppHandler;
+        this.stats = stats;
+        this.socketsUtil = socketsUtil;
     }
 
     @Override
@@ -207,7 +217,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
 
 
                         final Socket sock = LanternUtils.openOutgoingPeerSocket(
-                            peerUri, LanternHub.xmppHandler().getP2PClient(), 
+                            peerUri, xmppHandler.getP2PClient(), 
                             peerFailureCount);
                         log.info("Got socket and adding it for peer: {}", peerUri);
                         addSocket(peerUri, now, sock);
@@ -229,7 +239,8 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     private void addSocket(final URI peerUri, final long startTime, 
         final Socket sock) {
         final PeerSocketWrapper ts = 
-            new PeerSocketWrapper(peerUri, startTime, sock, this.anon, this.channelGroup);
+            new PeerSocketWrapper(peerUri, startTime, sock, this.anon, 
+                this.channelGroup, this.stats, this.socketsUtil);
         
         this.timedSockets.add(ts);
         final Peer peer;

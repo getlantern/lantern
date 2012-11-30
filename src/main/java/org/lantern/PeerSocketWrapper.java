@@ -30,15 +30,19 @@ public class PeerSocketWrapper implements PeerSocketData, ByteTracker {
 
     private final long startTime;
 
+    private final Stats stats;
+
     public PeerSocketWrapper(final URI peerUri, final long startTime, 
-        final Socket sock, final boolean anon, final ChannelGroup channelGroup){
+        final Socket sock, final boolean anon, final ChannelGroup channelGroup,
+        final Stats stats, final LanternSocketsUtil socketsUtil){
         this.peerUri = peerUri;
         this.sock = sock;
         this.startTime = startTime;
+        this.stats = stats;
         this.connectionTime = System.currentTimeMillis() - startTime;
         if (anon) {
             this.requestProcessor = 
-                new PeerHttpConnectRequestProcessor(sock, channelGroup, this);
+                new PeerHttpConnectRequestProcessor(sock, channelGroup, this, socketsUtil);
         } else {
             this.requestProcessor = 
                 new PeerChannelHttpRequestProcessor(sock, channelGroup, this);
@@ -99,12 +103,12 @@ public class PeerSocketWrapper implements PeerSocketData, ByteTracker {
     @Override
     public void addUpBytes(final long bytes) {
         this.upBytesPerSecond.addData(bytes);
-        LanternHub.statsTracker().addUpBytesToPeers(bytes);
+        this.stats.addUpBytesToPeers(bytes);
     }
 
     @Override
     public void addDownBytes(final long bytes) {
         this.downBytesPerSecond.addData(bytes);
-        LanternHub.statsTracker().addDownBytesFromPeers(bytes);
+        this.stats.addDownBytesFromPeers(bytes);
     }
 }
