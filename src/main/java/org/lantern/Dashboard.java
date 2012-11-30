@@ -9,8 +9,6 @@ import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.inject.Named;
-
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.browser.Browser;
@@ -45,6 +43,8 @@ public class Dashboard implements MessageService, BrowserService {
     private Shell shell;
     private Browser browser;
     private boolean completed;
+    
+    private final ChromeRunner chrome = new ChromeRunner();
 
     /**
      * The display is pulled out into a separate instance variable because
@@ -65,6 +65,7 @@ public class Dashboard implements MessageService, BrowserService {
      */
     @Override
     public void openBrowser() {
+        /*
         display.syncExec(new Runnable() {
             @Override
             public void run() {
@@ -72,17 +73,22 @@ public class Dashboard implements MessageService, BrowserService {
                 launchChrome();
             }
         });
+        */
+        final Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //buildBrowser();
+                launchChrome();
+            }
+        }, "Dashboard-Chrome-Opening-Thread");
+        t.setDaemon(true);
+        t.start();
     }
     private void launchChrome() {
         try {
-            final ChromeRunner chrome = new ChromeRunner();
             chrome.open();
-        } catch (IOException e1) {
-            // TODO Auto-generated catch block
-            e1.printStackTrace();
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (final IOException e) {
+            log.error("Error opening chrome browser?", e);
         }
     }
     
@@ -98,6 +104,13 @@ public class Dashboard implements MessageService, BrowserService {
         log.info("Server is running. Opening browser...");
         openBrowser();
     }
+    
+    @Override
+    public void reopenBrowser() {
+        chrome.close();
+        openBrowser();
+    }
+    
     
     protected void buildBrowser() {
         log.debug("Creating shell...");
