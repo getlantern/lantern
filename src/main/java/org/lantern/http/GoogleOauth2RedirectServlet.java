@@ -17,6 +17,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
+import org.lantern.XmppHandler;
+import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,11 +36,15 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
     
     private static final long serialVersionUID = -957838028594747197L;
 
-    private final GoogleOauth2CallbackServer server;
+    private final XmppHandler handler;
+
+    private final Model model;
 
     @Inject
-    public GoogleOauth2RedirectServlet(final GoogleOauth2CallbackServer server) {
-        this.server = server;
+    public GoogleOauth2RedirectServlet(final XmppHandler handler, 
+        final Model model) {
+        this.handler = handler;
+        this.model = model;
     }
     
     @Override
@@ -64,8 +70,14 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         log.info("Query string: {}", req.getQueryString());
         final String location = newGtalkOauthUrl();
         
+        // We have to completely recreate the server each time because we
+        // stop it and start it only when we need oauth callbacks. If we
+        // attempt to restart a stopped server, things get funky.
+        final GoogleOauth2CallbackServer server = 
+            new GoogleOauth2CallbackServer(handler, model);
+        
         // Note that this call absolutely ensures the server is started.
-        this.server.start();
+        server.start();
         
         resp.sendRedirect(location);
     }

@@ -2,6 +2,8 @@ package org.lantern.state;
 
 import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.bayeux.server.ServerSession;
+import org.lantern.LanternUtils;
+import org.lantern.state.Model.Run;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,7 +39,11 @@ public class CometDSyncStrategy implements SyncStrategy {
             session.getLocalSession().getChannel("/sync");
 
         lastUpdateTime = System.currentTimeMillis();
-        ch.publish(new SyncData(path, value));
+        final SyncData data = new SyncData(path, value);
+        final String json = LanternUtils.jsonify(data, Run.class);
+        log.info("Sending state to frontend:\n{}", json);
+        log.info("Synced object: {}", value);
+        ch.publish(data);
         log.info("Sync performed");
     }
 

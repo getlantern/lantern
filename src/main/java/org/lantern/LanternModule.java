@@ -35,6 +35,7 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Provides;
+import com.google.inject.Singleton;
 import com.google.inject.name.Names;
 
 public class LanternModule extends AbstractModule { 
@@ -62,7 +63,7 @@ public class LanternModule extends AbstractModule {
         
         bind(BrowserService.class).to(ChromeBrowserService.class);
         
-        bind(Model.class).toProvider(ModelIo.class);
+        bind(Model.class).toProvider(ModelIo.class).in(Singleton.class);
         //bind(ModelProvider.class).to(ModelIo.class);
         
         bind(ModelChangeImplementor.class).to(DefaultModelChangeImplementor.class);

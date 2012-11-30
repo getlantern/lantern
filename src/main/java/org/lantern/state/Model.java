@@ -2,15 +2,12 @@ package org.lantern.state;
 
 import org.codehaus.jackson.map.annotate.JsonView;
 
-import com.google.inject.Singleton;
-
 
 /**
  * State model of the application for the UI to display.
  * 
  * NOTE: We just always serialize all top-level elements.
  */
-@Singleton
 public class Model {
 
     public static class Persistent {}

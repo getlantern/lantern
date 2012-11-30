@@ -42,6 +42,11 @@ import org.slf4j.LoggerFactory;
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
 import com.google.api.client.json.jackson.JacksonFactory;
 
+/**
+ * Servlet for handling OAuth callbacks from Google. The associated code is
+ * converted into OAuth tokens that are used to login to Google Talk and to
+ * obtain any other necessary data.
+ */
 public class GoogleOauth2CallbackServlet extends HttpServlet {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -88,7 +93,11 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
         final String code = params.get("code");
         if (StringUtils.isBlank(code)) {
-            log.error("Did not get authorization code in params: {}", params);
+            log.info("Did not get authorization code in params: {}", params);
+            final String error = params.get("error");
+            log.info("Got error: {}", error);
+            log.info("Setting modal on model: {}", model);
+            this.model.setModal(Modal.authorize);
             redirectToDashboard(resp);
             return;
         } 
@@ -108,7 +117,6 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             return;
         }
         
-        //final Model model = LanternHub.jettyLauncher().getModel();
         this.model.setModal(Modal.gtalkConnecting);
         
         Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, 
@@ -120,7 +128,6 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
     private void fetchEmail(final Map<String, String> allToks, 
         final DefaultHttpClient client) {
-        //final String endpoint = "https://www.googleapis.com/oauth2/v1/userinfo";
         final String endpoint = 
             "https://www.googleapis.com/oauth2/v1/userinfo";
         final String accessToken = allToks.get("access_token");
@@ -176,7 +183,8 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         
         // We kick this off on another thread, as otherwise it would be 
         // a Jetty thread, and we're about to kill the server. When the
-        // server is killed, this thread will be interrupted.
+        // server is killed, the connecting thread would otherwise be 
+        // interrupted.
         final Thread t = new Thread(new Runnable() {
 
             @Override
