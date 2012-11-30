@@ -7,5 +7,7 @@ public interface BrowserService extends LanternService {
     void openBrowserWhenPortReady(int port);
 
     void openBrowserWhenPortReady();
+    
+    void reopenBrowser();
 
 }

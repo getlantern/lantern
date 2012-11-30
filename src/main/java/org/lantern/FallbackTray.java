@@ -2,10 +2,7 @@ package org.lantern;
 
 import java.util.Map;
 
-import javax.inject.Named;
-
 import org.apache.commons.lang.SystemUtils;
-import org.lantern.di.WinOsxTray;
 import org.lantern.event.UpdateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +14,8 @@ import com.google.inject.Singleton;
 /** 
  * A SystemTray implementation that falls back among available alternatives. 
 */
-@Singleton @Named("facade")
-public class FallbackTray implements SystemTray, LanternService {
+@Singleton //@Named("facade")
+public class FallbackTray implements SystemTray {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private SystemTray nonLinuxTray;
     private AppIndicatorTray linuxTray;
@@ -28,7 +25,7 @@ public class FallbackTray implements SystemTray, LanternService {
     }
 
     @Inject
-    public FallbackTray(@WinOsxTray final SystemTray nonLinuxTray,
+    public FallbackTray(final SystemTray nonLinuxTray,
         final AppIndicatorTray linuxTray) {
         this.nonLinuxTray = nonLinuxTray;
         this.linuxTray = linuxTray;
@@ -96,6 +93,10 @@ public class FallbackTray implements SystemTray, LanternService {
                 public boolean isActive() {return false;}
                 @Override
                 public boolean isSupported() {return false;}
+                @Override
+                public void start() throws Exception {}
+                @Override
+                public void stop() {}
             };
         }
     }

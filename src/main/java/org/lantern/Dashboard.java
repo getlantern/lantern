@@ -55,7 +55,7 @@ public class Dashboard implements MessageService, BrowserService {
     private final Display display;
     
     @Inject
-    public Dashboard(@Named("facade") final SystemTray systemTray) {
+    public Dashboard(final SystemTray systemTray) {
         this.systemTray = systemTray;
         this.display = DisplayWrapper.getDisplay();
     }
