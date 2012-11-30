@@ -62,7 +62,7 @@ import org.lantern.event.UpdateEvent;
 import org.lantern.http.PhotoServlet;
 import org.lantern.ksope.LanternKscopeAdvertisement;
 import org.lantern.state.Modal;
-import org.lantern.state.ModelProvider;
+import org.lantern.state.Model;
 import org.lantern.state.SyncPath;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.ice.MappedTcpAnswererServer;
@@ -178,8 +178,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private MappedServerSocket mappedServer;
 
-    private final ModelProvider modelProvider;
-
     private final PeerProxyManager trustedPeerProxyManager;
 
     private final PeerProxyManager anonymousPeerProxyManager;
@@ -194,18 +192,20 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final LanternXmppUtil xmppUtil;
 
+    private final Model model;
+
     /**
      * Creates a new XMPP handler.
      */
     @Inject
-    public DefaultXmppHandler(final ModelProvider modelProvider,
+    public DefaultXmppHandler(final Model model,
         @Named("trusted") final PeerProxyManager trustedPeerProxyManager,
         @Named("anon") final PeerProxyManager anonymousPeerProxyManager,
         final Timer updateTimer, final Stats stats,
         final LanternKeyStoreManager keyStoreManager,
         final LanternSocketsUtil socketsUtil,
         final LanternXmppUtil xmppUtil) {
-        this.modelProvider = modelProvider;
+        this.model = model;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.anonymousPeerProxyManager = anonymousPeerProxyManager;
         this.timer = updateTimer;
@@ -361,9 +361,9 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.info("Logging in with credentials: {}", credentials);
         
         //final Model model = LanternHub.jettyLauncher().getModel();
-        this.modelProvider.getModel().setModal(Modal.gtalkConnecting);
+        this.model.setModal(Modal.gtalkConnecting);
         Events.eventBus().post(new SyncEvent(SyncPath.MODAL, 
-            this.modelProvider.getModel().getModal()));
+            this.model.getModal()));
         connect(credentials);
     }
 

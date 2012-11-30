@@ -81,8 +81,16 @@ public class SystemTrayImpl implements SystemTray {
 
     @Override
     public void stop() {
-        // TODO Auto-generated method stub
-        
+        display.asyncExec (new Runnable () {
+            @Override
+            public void run () {
+                try {
+                    display.dispose();
+                } catch (final Throwable t) {
+                    log.info("Error disposing display?", t);
+                }
+            }
+        });
     }
 
     @Override

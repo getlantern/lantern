@@ -11,18 +11,19 @@ import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.EncryptedFileService;
 import org.lantern.LanternConstants;
-import org.lantern.LanternHub;
 import org.lantern.LanternUtils;
+import org.lantern.Shutdownable;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.privacy.UserInputRequiredException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 @Singleton
-public class ModelIo implements ModelProvider {
+public class ModelIo implements Provider<Model>, Shutdownable {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -59,28 +60,12 @@ public class ModelIo implements ModelProvider {
         this.localCipherProvider = localCipherProvider;
         this.model = read();
         log.info("Loaded module");
-        if (!LanternConstants.ON_APP_ENGINE) {
-            // Save the most current state when exiting.
-            Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+    }
     
-                @Override
-                public void run() {
-                    write();
-                    /*
-                    SettingsState ss = settings().getSettings();
-                    if (ss.getState() == SettingsState.State.SET) {
-                        log.info("Writing settings");
-                        LanternHub.settingsIo().write(LanternHub.settings());
-                        log.info("Finished writing settings...");
-                    }
-                    else {
-                        log.warn("Not writing settings, state was {}", ss.getState());
-                    }
-                    */
-                }
-                
-            }, "Write-Model-Thread"));
-        }
+
+    @Override
+    public Model get() {
+        return read();
     }
 
     /**
@@ -152,6 +137,7 @@ public class ModelIo implements ModelProvider {
      * Serializing the current model.
      */
     public void write() {
+        log.info("Writing model!!");
         OutputStream os = null;
         try {
             final String json = LanternUtils.jsonify(model, 
@@ -167,9 +153,22 @@ public class ModelIo implements ModelProvider {
         }
     }
 
-
     @Override
-    public Model getModel() {
-        return model;
+    public void stop() {
+        if (LanternConstants.ON_APP_ENGINE) {
+            return;
+        }
+        write();
+        /*
+        SettingsState ss = settings().getSettings();
+        if (ss.getState() == SettingsState.State.SET) {
+            log.info("Writing settings");
+            LanternHub.settingsIo().write(LanternHub.settings());
+            log.info("Finished writing settings...");
+        }
+        else {
+            log.warn("Not writing settings, state was {}", ss.getState());
+        }
+        */
     }
 }

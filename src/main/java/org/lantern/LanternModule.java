@@ -22,9 +22,9 @@ import org.lantern.privacy.MacLocalCipherProvider;
 import org.lantern.privacy.WindowsLocalCipherProvider;
 import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.DefaultModelChangeImplementor;
+import org.lantern.state.Model;
 import org.lantern.state.ModelChangeImplementor;
 import org.lantern.state.ModelIo;
-import org.lantern.state.ModelProvider;
 import org.lantern.state.SyncService;
 import org.lantern.state.SyncStrategy;
 import org.littleshoot.proxy.HttpRequestFilter;
@@ -62,7 +62,8 @@ public class LanternModule extends AbstractModule {
         
         bind(BrowserService.class).to(ChromeBrowserService.class);
         
-        bind(ModelProvider.class).to(ModelIo.class);
+        bind(Model.class).toProvider(ModelIo.class);
+        //bind(ModelProvider.class).to(ModelIo.class);
         
         bind(ModelChangeImplementor.class).to(DefaultModelChangeImplementor.class);
         bind(InteractionServlet.class);

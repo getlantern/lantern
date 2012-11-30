@@ -12,8 +12,8 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
+import org.lantern.state.Model;
 import org.lantern.state.ModelChangeImplementor;
-import org.lantern.state.ModelProvider;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.SyncService;
 import org.slf4j.Logger;
@@ -45,16 +45,15 @@ public class InteractionServlet extends HttpServlet {
 
     private final SyncService syncService;
 
-    private final ModelProvider modelProvider;
+    private final Model model;
     
     @Inject
-    public InteractionServlet(final ModelProvider modelProvider, 
+    public InteractionServlet(final Model model, 
         final ModelChangeImplementor changeImplementor,
         final SyncService syncService, final InternalState internalState) {
-        this.modelProvider = modelProvider;
+        this.model = model;
         this.changeImplementor = changeImplementor;
         this.syncService = syncService;
-        //this.model = changeImplementor.getModel();
         this.internalState = internalState;
     }
     
@@ -86,7 +85,7 @@ public class InteractionServlet extends HttpServlet {
         
         final Interaction inter = Interaction.valueOf(interactionStr);
         
-        final Modal modal = this.modelProvider.getModel().getModal();
+        final Modal modal = this.model.getModal();
         switch (modal) {
         case welcome:
             switch (inter) {
@@ -149,11 +148,11 @@ public class InteractionServlet extends HttpServlet {
     }
 
     private void handleGiveGet(final boolean getMode) {
-        this.modelProvider.getModel().getSettings().setMode(getMode ? Mode.get : Mode.give);
-        this.modelProvider.getModel().setModal(SystemUtils.IS_OS_LINUX ? Modal.passwordCreate : Modal.authorize);
+        this.model.getSettings().setMode(getMode ? Mode.get : Mode.give);
+        this.model.setModal(SystemUtils.IS_OS_LINUX ? Modal.passwordCreate : Modal.authorize);
         //this.syncService.publishSync("", this.model.getSettings().getMode());
-        this.syncService.publishSync("settings.mode", this.modelProvider.getModel().getSettings().getMode());
-        this.syncService.publishSync("modal", this.modelProvider.getModel().getModal());
+        this.syncService.publishSync("settings.mode", this.model.getSettings().getMode());
+        this.syncService.publishSync("modal", this.model.getModal());
         this.internalState.setModalCompleted(Modal.welcome);
         this.changeImplementor.setGetMode(getMode);
     }

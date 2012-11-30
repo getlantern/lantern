@@ -18,12 +18,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.lantern.LanternConstants;
 import org.lantern.LanternHub;
 import org.lantern.NotInClosedBetaException;
@@ -75,39 +78,110 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // Redirect back to the dashboard right away to continue giving the
         // user feedback. The UI will fetch the current state doc.
         log.info("Redirecting from oauth back to dashboard...");
-        final String dashboard = RuntimeSettings.getLocalEndpoint();
-        try {
-            resp.sendRedirect(dashboard);
-            resp.flushBuffer();
-        } catch (final IOException e) {
-            log.info("Error redirecting to the dashboard?", e);
-        }
 
+        final String code = params.get("code");
+        if (StringUtils.isBlank(code)) {
+            log.error("Did not get authorization code in params: {}", params);
+            redirectToDashboard(resp);
+            return;
+        } 
+        
+        redirectToDashboard(resp);
+        
         // Kill our temporary oauth callback server.
         this.googleOauth2CallbackServer.stop();
         
-        fetchOauthAndLoginToGoogleTalk(params.get("code"));
+        final DefaultHttpClient client = new DefaultHttpClient();
+        final Map<String, String> allToks;
+        try {
+            allToks = loadAllToks(client, code);
+        } catch (final IOException e) {
+            log.error("Could not load client secrets!!", e);
+            redirectToDashboard(resp);
+            return;
+        }
+        
+        connectToGoogleTalk(allToks);
+        fetchEmail(allToks, client);
     }
 
-    private void fetchOauthAndLoginToGoogleTalk(final String code) {
+    private void fetchEmail(final Map<String, String> allToks, 
+        final DefaultHttpClient client) {
+        //final String endpoint = "https://www.googleapis.com/oauth2/v1/userinfo";
+        final String endpoint = 
+            "https://www.googleapis.com/oauth2/v1/userinfo";
+        final String accessToken = allToks.get("access_token");
+        final HttpGet get = new HttpGet(endpoint);
+        get.setHeader(HttpHeaders.Names.AUTHORIZATION, "Bearer "+accessToken);
+        
+        try {
+            log.debug("About to execute get!");
+            final HttpResponse response = client.execute(get);
+
+            log.debug("Got response status: {}", response.getStatusLine());
+            final HttpEntity entity = response.getEntity();
+            final String body = IOUtils.toString(entity.getContent());
+            EntityUtils.consume(entity);
+            log.info("GOT RESPONSE BODY FOR EMAIL:\n"+body);
+            final ObjectMapper om = new ObjectMapper();
+            final Map<String, String> emailMap = 
+                om.readValue(body, Map.class);
+            final String email = emailMap.get("email");
+            
+        } catch (final IOException e) {
+            log.warn("Could not connect to Google?", e);
+        } finally {
+            get.releaseConnection();
+        }
+        
+    }
+
+    private void connectToGoogleTalk(final Map<String, String> allToks) {
         // Now we need to do an HTTP post to obtain the refresh token and
         // the access token.
+        final String accessToken = allToks.get("access_token");
+        final String refreshToken = allToks.get("refresh_token");
+        final String clientId = allToks.get("client_id");
+        final String clientSecret = allToks.get("client_secret");
+        
+        if (StringUtils.isNotBlank(accessToken) &&
+            StringUtils.isNotBlank(refreshToken)) {
+            try {
+                // Note the e-mail is actually ignored when we login to 
+                // Google Talk.
+                LanternHub.settings().setEmail("anon@getlantern.org");
+                LanternHub.settings().setClientID(clientId);
+                LanternHub.settings().setClientSecret(clientSecret);
+                LanternHub.settings().setAccessToken(accessToken);
+                LanternHub.settings().setRefreshToken(refreshToken);
+                LanternHub.settings().setUseGoogleOAuth2(true);
+                this.xmppHandler.connect();
+            } catch (final CredentialException e) {
+                // Not sure what to do here. This *should* never happen.
+                log.error("Could not log in with OAUTH?", e);
+            } catch (final NotInClosedBetaException e) {
+                // TODO: Set the modal state corresponding with not in closed
+                // beta?
+            } catch (final IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        } else {
+            // Treat this the same as a credential exception? I.e. what
+            // happens if the user cancels?
+        }
+    }
+    
+
+    private Map<String, String> loadAllToks(final DefaultHttpClient client,
+        final String code) throws IOException {
+        final Map<String, String> secrets = loadClientSecrets();
         final String redirectUrl = "http://localhost:7777/oauth2callback";
-        final DefaultHttpClient client = new DefaultHttpClient();
-        InputStream is = null;
-        HttpPost post = null;
+        final HttpPost post = 
+            new HttpPost("https://accounts.google.com/o/oauth2/token");
         try {
-            is = new FileInputStream("client_secrets_installed.json");
-            final GoogleClientSecrets secrets =
-                GoogleClientSecrets.load(new JacksonFactory(), is);
-            log.debug("Secrets: {}", secrets);
-            
-            final Map<String, String> installed = 
-                (Map<String, String>) secrets.get("installed");
-            post = new HttpPost("https://accounts.google.com/o/oauth2/token");
-            
-            final String clientId = installed.get("client_id");
-            final String clientSecret = installed.get("client_secret");
+            final String clientId = secrets.get("client_id");
+            final String clientSecret = secrets.get("client_secret");
             final List<? extends NameValuePair> nvps = Arrays.asList(
                 new BasicNameValuePair("code", code),
                 new BasicNameValuePair("client_id", clientId),
@@ -124,8 +198,6 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
             log.debug("Got response status: {}", response.getStatusLine());
             final HttpEntity responseEntity = response.getEntity();
-            // do something useful with the response body
-            // and ensure it is fully consumed
             final String body = IOUtils.toString(responseEntity.getContent());
             EntityUtils.consume(responseEntity);
             
@@ -133,43 +205,35 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             final Map<String, String> oauthToks = 
                 om.readValue(body, Map.class);
             log.debug("Got oath data: {}", oauthToks);
-            
-            final String accessToken = oauthToks.get("access_token");
-            final String refreshToken = oauthToks.get("refresh_token");
-            
-            if (StringUtils.isNotBlank(accessToken) &&
-                StringUtils.isNotBlank(refreshToken)) {
-                try {
-                    // Note the e-mail is actually ignored when we login to 
-                    // Google Talk.
-                    LanternHub.settings().setEmail("anon@getlantern.org");
-                    LanternHub.settings().setClientID(clientId);
-                    LanternHub.settings().setClientSecret(clientSecret);
-                    LanternHub.settings().setAccessToken(accessToken);
-                    LanternHub.settings().setRefreshToken(refreshToken);
-                    LanternHub.settings().setUseGoogleOAuth2(true);
-                    this.xmppHandler.connect();
-                } catch (final CredentialException e) {
-                    // Not sure what to do here. This *should* never happen.
-                    log.error("Could not log in with OAUTH?", e);
-                } catch (final NotInClosedBetaException e) {
-                    // TODO: Set the modal state corresponding with not in closed
-                    // beta?
-                } catch (final IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
-                }
-            } else {
-                // Treat this the same as a credential exception? I.e. what
-                // happens if the user cancels?
-            }
-        } catch (final IOException e) {
-            IOUtils.closeQuietly(is);
-            throw new Error("Could not load oauth URL?", e);
+            oauthToks.put("client_id", clientId);
+            oauthToks.put("client_secret", clientSecret);
+            return oauthToks;
         } finally {
-            if (post != null) {
-                post.releaseConnection();
-            }
+            post.releaseConnection();
+        }
+    }
+
+    private Map<String, String> loadClientSecrets() throws IOException {
+        InputStream is = null;
+        try {
+            is = new FileInputStream("client_secrets_installed.json");
+            final GoogleClientSecrets secrets =
+                GoogleClientSecrets.load(new JacksonFactory(), is);
+            log.debug("Secrets: {}", secrets);
+            
+            return (Map<String, String>) secrets.get("installed");
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+    }
+
+    private void redirectToDashboard(final HttpServletResponse resp) {
+        final String dashboard = RuntimeSettings.getLocalEndpoint();
+        try {
+            resp.sendRedirect(dashboard);
+            resp.flushBuffer();
+        } catch (final IOException e) {
+            log.info("Error redirecting to the dashboard?", e);
         }
     }
 }
