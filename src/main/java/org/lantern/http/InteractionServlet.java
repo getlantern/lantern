@@ -41,8 +41,6 @@ public class InteractionServlet extends HttpServlet {
 
     private final ModelChangeImplementor changeImplementor;
 
-    //private final Model model;
-
     private final SyncService syncService;
 
     private final Model model;
