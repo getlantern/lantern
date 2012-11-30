@@ -40,26 +40,23 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
 
     private final File gnomeAutostart;
 
-    //private final Model model;
-
-    private final ModelProvider modelProvider;
+    private final Model model;
 
     private final Proxifier proxifier;
 
     @Inject
-    public DefaultModelChangeImplementor(final ModelProvider modelProvider,
+    public DefaultModelChangeImplementor(final Model model,
         final Proxifier proxifier) {
         this(LanternConstants.LAUNCHD_PLIST, LanternConstants.GNOME_AUTOSTART, 
-            modelProvider, proxifier);
+                model, proxifier);
     }
     
     public DefaultModelChangeImplementor(final File launchdPlist, 
-        final File gnomeAutostart, final ModelProvider modelProvider,
+        final File gnomeAutostart, final Model model,
         final Proxifier proxifier) {
         this.launchdPlist = launchdPlist;
         this.gnomeAutostart = gnomeAutostart;
-        this.modelProvider = modelProvider;
-        //this.model = model;
+        this.model = model;
         this.proxifier = proxifier;
     }
     
@@ -150,7 +147,7 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
         // We we move to get mode, we want to stop advertising our ID and to
         // stop accepting incoming connections.
 
-        final Settings set = this.modelProvider.getModel().getSettings();
+        final Settings set = this.model.getSettings();
         final boolean inGet = set.getMode() == Mode.get;
         if (getMode == inGet) {
             log.info("Mode is unchanged.");

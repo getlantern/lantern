@@ -37,12 +37,10 @@ public class SyncService implements LanternService {
     
     private final SyncStrategy strategy;
 
-    //private final Model model;
+    private final Model model;
 
     private final Timer timer;
 
-    private final ModelProvider modelProvider;
-    
     /**
      * Creates a new sync service.
      * 
@@ -51,10 +49,9 @@ public class SyncService implements LanternService {
      */
     @Inject
     public SyncService(final SyncStrategy strategy, 
-        final ModelProvider modelProvider, final Timer timer) {
+        final Model model, final Timer timer) {
         this.strategy = strategy;
-        this.modelProvider = modelProvider;
-        //this.model = model;
+        this.model = model;
         this.timer = timer;
         // Make sure the config class is added as a listener before this class.
         Events.register(this);
@@ -148,7 +145,7 @@ public class SyncService implements LanternService {
         log.debug("In sync method");
         //this.strategy.sync(force, channel, this.session);
         
-        this.strategy.sync(force, this.session, "", this.modelProvider.getModel());
+        this.strategy.sync(force, this.session, "", this.model);
     }
 
     public void publishSync(final String path, final Object value) {

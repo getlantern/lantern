@@ -39,6 +39,7 @@ import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.state.ModelIo;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.slf4j.Logger;
@@ -69,7 +70,7 @@ public class Launcher {
     private static MessageService messageService;
     private static Injector injector;
     private static Configurator configurator;
-    private static FallbackTray fallbackTray;
+    private static SystemTray systemTray;
     
     
     /**
@@ -322,9 +323,15 @@ public class Launcher {
         sslProxy = instance(SslHttpProxyServer.class);
         localCipherProvider = instance(LocalCipherProvider.class);
         plainTextAnsererRelayProxy = instance(PlainTestRelayHttpProxyServer.class);
-        fallbackTray = instance(FallbackTray.class);
-
-        fallbackTray.start();
+        systemTray = instance(SystemTray.class);
+        
+        shutdownable(ModelIo.class);
+        
+        try {
+            systemTray.start();
+        } catch (final Exception e) {
+            LOG.error("Error starting tray?", e);
+        }
         jettyLauncher.start();
         xmpp.start();
         sslProxy.start(false, false);
@@ -391,15 +398,19 @@ public class Launcher {
         }
     }
 
-    private static <T> T instance(Class<T> clazz) {
+    private static <T> void shutdownable(final Class<T> clazz) {
+        instance(clazz);
+    }
+
+    private static <T> T instance(final Class<T> clazz) {
         final T inst = injector.getInstance(clazz);
-        if (LanternService.class.isAssignableFrom(clazz)) {
-            addShutdownHook((LanternService) inst);
+        if (Shutdownable.class.isAssignableFrom(clazz)) {
+            addShutdownHook((Shutdownable) inst);
         }
         return inst;
     }
 
-    private static void addShutdownHook(final LanternService service) {
+    private static void addShutdownHook(final Shutdownable service) {
         LOG.info("Adding shutdown hook for {}", service);
         // TODO: Add these all to a single list of things to do on shutdown.
         final Thread serviceHook = new Thread(new Runnable() {
