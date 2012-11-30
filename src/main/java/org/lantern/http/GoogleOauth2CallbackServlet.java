@@ -101,7 +101,12 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             redirectToDashboard(resp);
             return;
         } 
-        
+
+        // Theoretically this should actually be oauth connecting here, but 
+        // this should do. Make sure we set this before sending the user
+        // back to the dashboard. We don't need to post an event because the
+        // dashboard is about to get fully reloaded.
+        this.model.setModal(Modal.gtalkConnecting);
         redirectToDashboard(resp);
         
         // Kill our temporary oauth callback server.
@@ -116,12 +121,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             redirectToDashboard(resp);
             return;
         }
-        
-        this.model.setModal(Modal.gtalkConnecting);
-        
-        Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, 
-            this.model.getModal()));
-        
+
         connectToGoogleTalk(allToks);
         fetchEmail(allToks, client);
     }
