@@ -18,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -27,11 +26,16 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
+import org.lantern.Events;
 import org.lantern.LanternConstants;
 import org.lantern.LanternHub;
 import org.lantern.NotInClosedBetaException;
 import org.lantern.RuntimeSettings;
 import org.lantern.XmppHandler;
+import org.lantern.event.SyncEvent;
+import org.lantern.state.Modal;
+import org.lantern.state.Model;
+import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,12 +51,15 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
     private final GoogleOauth2CallbackServer googleOauth2CallbackServer;
 
     private final XmppHandler xmppHandler;
+
+    private final Model model;
     
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
-        final XmppHandler xmppHandler) {
+        final XmppHandler xmppHandler, final Model model) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.xmppHandler = xmppHandler;
+        this.model = model;
     }
     
     @Override
@@ -101,6 +108,12 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             return;
         }
         
+        //final Model model = LanternHub.jettyLauncher().getModel();
+        this.model.setModal(Modal.gtalkConnecting);
+        
+        Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, 
+            this.model.getModal()));
+        
         connectToGoogleTalk(allToks);
         fetchEmail(allToks, client);
     }
@@ -127,7 +140,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             final Map<String, String> emailMap = 
                 om.readValue(body, Map.class);
             final String email = emailMap.get("email");
-            
+            this.model.getSettings().setUserId(email);
         } catch (final IOException e) {
             log.warn("Could not connect to Google?", e);
         } finally {
@@ -137,39 +150,54 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
     }
 
     private void connectToGoogleTalk(final Map<String, String> allToks) {
-        // Now we need to do an HTTP post to obtain the refresh token and
-        // the access token.
         final String accessToken = allToks.get("access_token");
         final String refreshToken = allToks.get("refresh_token");
-        final String clientId = allToks.get("client_id");
-        final String clientSecret = allToks.get("client_secret");
         
-        if (StringUtils.isNotBlank(accessToken) &&
-            StringUtils.isNotBlank(refreshToken)) {
-            try {
-                // Note the e-mail is actually ignored when we login to 
-                // Google Talk.
-                LanternHub.settings().setEmail("anon@getlantern.org");
-                LanternHub.settings().setClientID(clientId);
-                LanternHub.settings().setClientSecret(clientSecret);
-                LanternHub.settings().setAccessToken(accessToken);
-                LanternHub.settings().setRefreshToken(refreshToken);
-                LanternHub.settings().setUseGoogleOAuth2(true);
-                this.xmppHandler.connect();
-            } catch (final CredentialException e) {
-                // Not sure what to do here. This *should* never happen.
-                log.error("Could not log in with OAUTH?", e);
-            } catch (final NotInClosedBetaException e) {
-                // TODO: Set the modal state corresponding with not in closed
-                // beta?
-            } catch (final IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
+        if (StringUtils.isBlank(accessToken) ||
+            StringUtils.isBlank(refreshToken)) {
+            log.warn("Not access or refresh token -- not logging in!!");
+            return;
         } else {
             // Treat this the same as a credential exception? I.e. what
             // happens if the user cancels?
         }
+        
+        final String clientId = allToks.get("client_id");
+        final String clientSecret = allToks.get("client_secret");
+        
+        // Note the e-mail is actually ignored when we login to 
+        // Google Talk.
+        LanternHub.settings().setEmail("anon@getlantern.org");
+        LanternHub.settings().setClientID(clientId);
+        LanternHub.settings().setClientSecret(clientSecret);
+        LanternHub.settings().setAccessToken(accessToken);
+        LanternHub.settings().setRefreshToken(refreshToken);
+        LanternHub.settings().setUseGoogleOAuth2(true);
+        
+        // We kick this off on another thread, as otherwise it would be 
+        // a Jetty thread, and we're about to kill the server. When the
+        // server is killed, this thread will be interrupted.
+        final Thread t = new Thread(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    xmppHandler.connect();
+                } catch (final CredentialException e) {
+                    // Not sure what to do here. This *should* never happen.
+                    log.error("Could not log in with OAUTH?", e);
+                } catch (final NotInClosedBetaException e) {
+                    // TODO: Set the modal state corresponding with not in closed
+                    // beta?
+                } catch (final IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+            
+        }, "Google-Talk-Connect-From-Oauth-Servlet-Thread");
+        t.setDaemon(true);
+        t.start();
     }
     
 

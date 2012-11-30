@@ -84,10 +84,13 @@ public class SystemTrayImpl implements SystemTray {
         display.asyncExec (new Runnable () {
             @Override
             public void run () {
+                if (display.isDisposed()) {
+                    return;
+                }
                 try {
                     display.dispose();
                 } catch (final Throwable t) {
-                    log.info("Error disposing display?", t);
+                    log.info("Exception disposing display?", t);
                 }
             }
         });

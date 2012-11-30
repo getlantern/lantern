@@ -106,7 +106,8 @@ public class LanternModule extends AbstractModule {
         return new Timer("Lantern-Timer", true);
     }
     
-    @Provides LocalCipherProvider provideLocalCipher(final MessageService messageService) {
+    @Provides 
+    LocalCipherProvider provideLocalCipher(final MessageService messageService) {
         final LocalCipherProvider lcp; 
         
         /*
