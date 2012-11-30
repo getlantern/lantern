@@ -79,7 +79,9 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
                 GoogleClientSecrets.load(new JacksonFactory(), is);
             final String redirectUrl = "http://localhost:7777/oauth2callback";
             final Collection<String> scopes = 
-                Arrays.asList("https://www.googleapis.com/auth/googletalk");
+                Arrays.asList("https://www.googleapis.com/auth/googletalk",
+                        "https://www.googleapis.com/auth/userinfo.email");
+            
             final GoogleBrowserClientRequestUrl gbc = 
                 new GoogleBrowserClientRequestUrl(clientSecrets, redirectUrl, scopes);
             gbc.setApprovalPrompt("auto");
