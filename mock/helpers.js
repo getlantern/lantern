@@ -1,5 +1,5 @@
 function getByPath(obj, path) {
-  var path = path.split('.');
+  path = (path || '').split('.');
   for (var i=0, name=path[i];
        name && typeof obj != 'undefined';
        obj=name ? obj[name] : obj, name=path[++i]);
@@ -30,10 +30,15 @@ function merge(dst, path, src) {
       dst = dst[last];
     }
     for (var key in src) {
-      dst[key] = src[key];
+      merge(dst, key, src[key]);
     }
   }
 }
 
+function validatePasswords(pw1, pw2) {
+  return pw1 && pw2 && pw1 == pw2;
+}
+
 exports.getByPath = getByPath;
 exports.merge = merge;
+exports.validatePasswords = validatePasswords;
