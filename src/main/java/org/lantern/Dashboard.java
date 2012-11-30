@@ -21,7 +21,6 @@ import org.eclipse.swt.browser.WindowEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
@@ -52,12 +51,10 @@ public class Dashboard implements MessageService, BrowserService {
      */
     //private final Display display = LanternHub.display();
     private final SystemTray systemTray;
-    private final Display display;
     
     @Inject
     public Dashboard(final SystemTray systemTray) {
         this.systemTray = systemTray;
-        this.display = DisplayWrapper.getDisplay();
     }
     
     /**
@@ -143,7 +140,7 @@ public class Dashboard implements MessageService, BrowserService {
             this.shell.forceActive();
             return;
         }
-        this.shell = new Shell(display);
+        this.shell = new Shell(DisplayWrapper.getDisplay());
         final Image small = newImage("16on.png");
         final Image medium = newImage("32on.png");
         final Image large = newImage("128on.png");
@@ -237,7 +234,7 @@ public class Dashboard implements MessageService, BrowserService {
         // create a hidden browser to intercept external
         // location references that should be opened
         // in the system's native browser.
-        Shell hiddenShell = new Shell(display);
+        Shell hiddenShell = new Shell(DisplayWrapper.getDisplay());
         final Browser externalBrowser = new Browser(hiddenShell, SWT.NONE);
 
         externalBrowser.addLocationListener(new LocationListener() {
@@ -291,7 +288,7 @@ public class Dashboard implements MessageService, BrowserService {
                         messageBox.setMessage (msg);
                         event.doit = messageBox.open () == SWT.YES;
                         if (event.doit) {
-                            display.dispose();
+                            DisplayWrapper.getDisplay().dispose();
                             System.exit(0);
                         }
                     }
@@ -308,7 +305,7 @@ public class Dashboard implements MessageService, BrowserService {
                         messageBox.setMessage (msg);
                         event.doit = messageBox.open () == SWT.YES;
                         if (event.doit) {
-                            display.dispose();
+                            DisplayWrapper.getDisplay().dispose();
                             System.exit(0);
                         }
                     }
@@ -321,7 +318,7 @@ public class Dashboard implements MessageService, BrowserService {
                     messageBox.setMessage (msg);
                     event.doit = messageBox.open () == SWT.YES;
                     if (event.doit) {
-                        display.dispose();
+                        DisplayWrapper.getDisplay().dispose();
                         System.exit(0);
                     }
                 }
@@ -334,8 +331,8 @@ public class Dashboard implements MessageService, BrowserService {
         shell.open();
         shell.forceActive();
         while (!shell.isDisposed()) {
-            if (!display.readAndDispatch())
-                display.sleep();
+            if (!DisplayWrapper.getDisplay().readAndDispatch())
+                DisplayWrapper.getDisplay().sleep();
         }
         hiddenShell.dispose();
     }
@@ -354,7 +351,7 @@ public class Dashboard implements MessageService, BrowserService {
             final File path2 = new File("install/common", path);
             toUse = path2.getAbsolutePath();
         }
-        return new Image(display, toUse);
+        return new Image(DisplayWrapper.getDisplay(), toUse);
     }
     
     
@@ -392,7 +389,7 @@ public class Dashboard implements MessageService, BrowserService {
             return -1;
         }
         final AtomicInteger response = new AtomicInteger();
-        display.syncExec(new Runnable() {
+        DisplayWrapper.getDisplay().syncExec(new Runnable() {
             @Override
             public void run() {
                 response.set(askQuestionOnThread(title, question, style));
@@ -405,7 +402,7 @@ public class Dashboard implements MessageService, BrowserService {
     protected int askQuestionOnThread(final String title, 
         final String question, final int style) {
         log.info("Creating display...");
-        final Shell boxShell = new Shell(display);
+        final Shell boxShell = new Shell(DisplayWrapper.getDisplay());
         log.info("Created display...");
         final MessageBox messageBox = new MessageBox (boxShell, style);
         messageBox.setText(title);
@@ -436,7 +433,7 @@ public class Dashboard implements MessageService, BrowserService {
             log.debug("Ignoring call on disposed shell.");
             return;
         }
-        display.syncExec(new Runnable() {
+        DisplayWrapper.getDisplay().syncExec(new Runnable() {
             @Override
             public void run() {
                 browser.evaluate(call);
@@ -452,8 +449,8 @@ public class Dashboard implements MessageService, BrowserService {
 
     @Override
     public void stop() {
-        if (display != null) {
-            display.dispose();
+        if (DisplayWrapper.getDisplay() != null) {
+            DisplayWrapper.getDisplay().dispose();
         }
     }
 }

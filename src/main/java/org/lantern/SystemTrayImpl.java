@@ -12,7 +12,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -36,7 +35,6 @@ import com.google.inject.Singleton;
 public class SystemTrayImpl implements SystemTray {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private Display display;
     private Shell shell;
     private TrayItem trayItem;
     private MenuItem connectionStatusItem;
@@ -68,8 +66,6 @@ public class SystemTrayImpl implements SystemTray {
         final BrowserService browserService) {
         this.handler = handler;
         this.browserService = browserService;
-        //this.display = display;
-        this.display = DisplayWrapper.getDisplay();
         Events.register(this);
     }
     
@@ -81,14 +77,14 @@ public class SystemTrayImpl implements SystemTray {
 
     @Override
     public void stop() {
-        display.asyncExec (new Runnable () {
+        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
             @Override
             public void run () {
-                if (display.isDisposed()) {
+                if (DisplayWrapper.getDisplay().isDisposed()) {
                     return;
                 }
                 try {
-                    display.dispose();
+                    DisplayWrapper.getDisplay().dispose();
                 } catch (final Throwable t) {
                     log.info("Exception disposing display?", t);
                 }
@@ -98,14 +94,14 @@ public class SystemTrayImpl implements SystemTray {
 
     @Override
     public boolean isSupported() {
-        return display.getSystemTray() != null;
+        return DisplayWrapper.getDisplay().getSystemTray() != null;
     }
 
     @Override
     public void createTray() {
-        this.shell = new Shell(display);
+        this.shell = new Shell(DisplayWrapper.getDisplay());
         
-        display.asyncExec (new Runnable () {
+        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
             @Override
             public void run () {
                 createTrayInternal();
@@ -114,7 +110,7 @@ public class SystemTrayImpl implements SystemTray {
     }
     
     private void createTrayInternal() {
-        final Tray tray = display.getSystemTray ();
+        final Tray tray = DisplayWrapper.getDisplay().getSystemTray ();
         if (tray == null) {
             log.warn("The system tray is not available");
         } else {
@@ -164,7 +160,7 @@ public class SystemTrayImpl implements SystemTray {
                     // This tells things like the Proxifier to stop proxying.
                     Events.eventBus().post(new QuitEvent());
                     
-                    display.dispose();
+                    DisplayWrapper.getDisplay().dispose();
                     
                     // We call this primarily because we need to make sure to
                     // remove any UPnP and NAT-PMP port mappings.
@@ -213,7 +209,7 @@ public class SystemTrayImpl implements SystemTray {
     }
 
     private void setImage(final Image image) {
-        display.asyncExec (new Runnable () {
+        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
             @Override
             public void run () {
                 trayItem.setImage (image);
@@ -222,7 +218,7 @@ public class SystemTrayImpl implements SystemTray {
     }
     
     private void setStatusLabel(final String status) {
-        display.asyncExec (new Runnable () {
+        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
             @Override
             public void run () {
                 // XXX i18n 
@@ -246,13 +242,13 @@ public class SystemTrayImpl implements SystemTray {
         InputStream is = null;
         try {
             is = new FileInputStream(iconFile);
-            return new Image (display, is);
+            return new Image (DisplayWrapper.getDisplay(), is);
         } catch (final FileNotFoundException e) {
             log.error("Could not find icon file: "+iconFile, e);
         } finally {
             IOUtils.closeQuietly(is);
         }
-        return new Image (display, width, height);
+        return new Image (DisplayWrapper.getDisplay(), width, height);
     }
 
     @Override
@@ -263,7 +259,7 @@ public class SystemTrayImpl implements SystemTray {
             return;
         }
         this.updateData = data;
-        display.asyncExec (new Runnable () {
+        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
             @Override
             public void run () {
                 if (updateItem == null) {
@@ -313,11 +309,11 @@ public class SystemTrayImpl implements SystemTray {
     }
 
     private void changeIcon(final String fileName) {
-        if (display.isDisposed()) {
+        if (DisplayWrapper.getDisplay().isDisposed()) {
             log.info("Ingoring call since display is disposed");
             return;
         }
-        display.asyncExec (new Runnable () {
+        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
             @Override
             public void run () {
                 if (SystemUtils.IS_OS_MAC_OSX) {
@@ -330,7 +326,7 @@ public class SystemTrayImpl implements SystemTray {
     }
     
     private void changeStatusLabel(final String status) {
-        if (display.isDisposed()) {
+        if (DisplayWrapper.getDisplay().isDisposed()) {
             log.info("Ingoring call since display is disposed");
             return;
         }
