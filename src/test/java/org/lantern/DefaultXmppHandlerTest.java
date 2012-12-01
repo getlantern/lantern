@@ -9,6 +9,9 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 /**
  * Test for the XMPP handler.
  */
@@ -30,8 +33,10 @@ public class DefaultXmppHandlerTest {
         final Settings settings = LanternHub.settings();
         settings.setGetMode(true);
         settings.setProxies(new HashSet<String>());
-        final XmppHandler handler = new DefaultXmppHandler();
         
+        final Injector injector = Guice.createInjector(new LanternModule());
+        final XmppHandler handler = injector.getInstance(DefaultXmppHandler.class);
+        handler.start();
         handler.connect(email, pwd);
         
         Collection<String> proxies = new HashSet<String>();
