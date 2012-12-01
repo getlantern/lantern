@@ -45,7 +45,6 @@ public class ModelIo implements Provider<Model>, Shutdownable {
                 localCipherProvider);
     }
     
-    
     /**
      * Creates a new instance with custom settings typically used only in 
      * testing.
@@ -61,7 +60,6 @@ public class ModelIo implements Provider<Model>, Shutdownable {
         this.model = read();
         log.info("Loaded module");
     }
-    
 
     @Override
     public Model get() {

@@ -35,6 +35,8 @@ public class InteractionServlet extends HttpServlet {
         GET,
         GIVE,
         CONTINUE,
+        SETTINGS,
+        CLOSE,
     }
     
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -114,6 +116,7 @@ public class InteractionServlet extends HttpServlet {
             case CONTINUE:
                 log.info("Processing continue");
                 this.model.setShowVis(true);
+                this.model.setSetupComplete(true);
                 this.internalState.setModalCompleted(Modal.finished);
                 this.internalState.advanceModal(null);
                 Events.asyncEventBus().post(new SyncEvent(SyncPath.ALL, model));
@@ -140,6 +143,16 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case none:
+            switch (inter) {
+            case SETTINGS:
+                log.info("Processing settings");
+                this.model.setModal(Modal.settings);
+                syncModal();
+                break;
+            default:
+                HttpUtils.sendClientError(resp, "give or get required");
+                break;
+            }
             break;
         case notInvited:
             break;
@@ -161,6 +174,16 @@ public class InteractionServlet extends HttpServlet {
         case requestSent:
             break;
         case settings:
+            switch (inter) {
+            case CLOSE:
+                log.info("Processing settings close");
+                this.model.setModal(Modal.none);
+                syncModal();
+                break;
+            default:
+                HttpUtils.sendClientError(resp, "give or get required");
+                break;
+            }
             break;
         case settingsLoadFailure:
             break;
@@ -195,6 +218,10 @@ public class InteractionServlet extends HttpServlet {
         }
     }
 
+    private void syncModal() {
+        Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, model.getModal()));
+    }
+
     private boolean toBool(final String str) {
         final String norm = str.toLowerCase().trim();
         return (norm.equals("true") || norm.equals("on"));
@@ -205,7 +232,9 @@ public class InteractionServlet extends HttpServlet {
         this.model.setModal(SystemUtils.IS_OS_LINUX ? Modal.passwordCreate : Modal.authorize);
         //this.syncService.publishSync("", this.model.getSettings().getMode());
         this.syncService.publishSync("settings.mode", this.model.getSettings().getMode());
-        this.syncService.publishSync("modal", this.model.getModal());
+        //this.syncService.publishSync("modal", this.model.getModal());
+        
+        syncModal();
         this.internalState.setModalCompleted(Modal.welcome);
         this.changeImplementor.setGetMode(getMode);
     }
