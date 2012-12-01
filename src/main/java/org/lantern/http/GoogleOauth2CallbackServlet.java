@@ -195,8 +195,8 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
                     // Not sure what to do here. This *should* never happen.
                     log.error("Could not log in with OAUTH?", e);
                 } catch (final NotInClosedBetaException e) {
-                    // TODO: Set the modal state corresponding with not in closed
-                    // beta?
+                    model.setModal(Modal.notInvited);
+                    Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, Modal.notInvited));
                 } catch (final IOException e) {
                     // TODO Auto-generated catch block
                     e.printStackTrace();
