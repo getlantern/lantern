@@ -4,14 +4,10 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import org.lantern.Events;
-import org.lantern.GoogleTalkState;
-import org.lantern.event.GoogleTalkStateEvent;
-import org.lantern.event.SyncEvent;
 import org.lantern.state.Settings.Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -25,7 +21,8 @@ public class InternalState {
     };
     
     private final Modal[] modalSeqGet = {
-        Modal.proxiedSites, Modal.systemProxy, Modal.inviteFriends, Modal.finished, Modal.none,
+        Modal.proxiedSites, Modal.systemProxy, Modal.inviteFriends, 
+        Modal.finished, Modal.none,
     };
     
     private Collection<Modal> modalsCompleted = new HashSet<Modal>();
@@ -49,9 +46,10 @@ public class InternalState {
     @Inject
     public InternalState(final Model model) {
         this.model = model;
-        Events.register(this);
+        //Events.register(this);
     }
     
+    /*
     @Subscribe
     public void onConnectivity(final GoogleTalkStateEvent event) {
         if (model.isSetupComplete()) {
@@ -74,6 +72,7 @@ public class InternalState {
         
         }
     }
+    */
 
     public void resetInternalState() {
         //Arrays.fill(modalsCompleted, false);
@@ -98,8 +97,7 @@ public class InternalState {
         if (backToIfNone != null && next != null && next == Modal.none) {
             next = backToIfNone;
         }
-        this.model.setModal(next);
-        Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, next));
+        Events.syncModal(this.model, next);
     }
 
     public void setModalCompleted(final Modal modal) {

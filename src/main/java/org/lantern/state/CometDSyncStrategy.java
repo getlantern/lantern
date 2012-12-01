@@ -1,7 +1,7 @@
 package org.lantern.state;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.bayeux.server.ServerSession;
@@ -23,7 +23,7 @@ public class CometDSyncStrategy implements SyncStrategy {
     //private volatile long lastUpdateTime = System.currentTimeMillis();
     
     private final Map<String, Long> lastUpdateTimes = 
-        new HashMap<String, Long>();
+        new ConcurrentHashMap<String, Long>();
 
     @Override
     public void sync(final boolean force,

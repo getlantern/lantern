@@ -10,6 +10,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.EncryptedFileService;
+import org.lantern.Events;
 import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Shutdownable;
@@ -97,7 +98,9 @@ public class ModelIo implements Provider<Model>, Shutdownable {
             return read;
         } catch (final UserInputRequiredException e) {
             log.info("Settings require password to be unlocked.");
-            return blankModel();
+            final Model mod = blankModel();
+            mod.setModal(Modal.settingsUnlock);
+            return mod;
         } catch (final IOException e) {
             log.error("Could not read model", e);
         } catch (final GeneralSecurityException e) {
@@ -105,12 +108,9 @@ public class ModelIo implements Provider<Model>, Shutdownable {
         } finally {
             IOUtils.closeQuietly(is);
         }
-        final Model settings = blankModel();
-        //final SettingsState ss = settings.getSettings();
-        //ss.setState(State.CORRUPTED);
-        //ss.setMessage("Could not read settings file.");
-        settings.setModal(Modal.settingsLoadFailure);
-        return settings;
+        final Model mod = blankModel();
+        mod.setModal(Modal.settingsLoadFailure);
+        return mod;
     }
     
 
@@ -122,7 +122,7 @@ public class ModelIo implements Provider<Model>, Shutdownable {
         // consider the settings to be "locked"
         if (localCipherProvider.requiresAdditionalUserInput()) {
             //s.getSettings().setState(State.LOCKED);
-            blank.setModal(Modal.authorize);
+            blank.setModal(Modal.settingsUnlock);
         }
         // otherwise, consider new settings to have been successfully loaded
         else {

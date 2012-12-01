@@ -32,10 +32,9 @@ import org.lantern.LanternHub;
 import org.lantern.NotInClosedBetaException;
 import org.lantern.RuntimeSettings;
 import org.lantern.XmppHandler;
-import org.lantern.event.SyncEvent;
+import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
-import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,13 +57,17 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
     private final XmppHandler xmppHandler;
 
     private final Model model;
+
+    private final InternalState internalState;
     
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
-        final XmppHandler xmppHandler, final Model model) {
+        final XmppHandler xmppHandler, final Model model,
+        final InternalState internalState) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.xmppHandler = xmppHandler;
         this.model = model;
+        this.internalState = internalState;
     }
     
     @Override
@@ -191,15 +194,15 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             public void run() {
                 try {
                     xmppHandler.connect();
+                    internalState.advanceModal(null);
                 } catch (final CredentialException e) {
                     // Not sure what to do here. This *should* never happen.
                     log.error("Could not log in with OAUTH?", e);
+                    Events.syncModal(model, Modal.gtalkUnreachable);
                 } catch (final NotInClosedBetaException e) {
-                    model.setModal(Modal.notInvited);
-                    Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, Modal.notInvited));
+                    Events.syncModal(model, Modal.notInvited);
                 } catch (final IOException e) {
-                    // TODO Auto-generated catch block
-                    e.printStackTrace();
+                    Events.syncModal(model, Modal.gtalkUnreachable);
                 }
             }
             

@@ -146,8 +146,7 @@ public class InteractionServlet extends HttpServlet {
             switch (inter) {
             case SETTINGS:
                 log.info("Processing settings");
-                this.model.setModal(Modal.settings);
-                syncModal();
+                Events.syncModal(model, Modal.settings);
                 break;
             default:
                 HttpUtils.sendClientError(resp, "give or get required");
@@ -177,8 +176,7 @@ public class InteractionServlet extends HttpServlet {
             switch (inter) {
             case CLOSE:
                 log.info("Processing settings close");
-                this.model.setModal(Modal.none);
-                syncModal();
+                Events.syncModal(model, Modal.none);
                 break;
             default:
                 HttpUtils.sendClientError(resp, "give or get required");
@@ -218,10 +216,6 @@ public class InteractionServlet extends HttpServlet {
         }
     }
 
-    private void syncModal() {
-        Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, model.getModal()));
-    }
-
     private boolean toBool(final String str) {
         final String norm = str.toLowerCase().trim();
         return (norm.equals("true") || norm.equals("on"));
@@ -234,7 +228,7 @@ public class InteractionServlet extends HttpServlet {
         this.syncService.publishSync("settings.mode", this.model.getSettings().getMode());
         //this.syncService.publishSync("modal", this.model.getModal());
         
-        syncModal();
+        Events.syncModal(model);
         this.internalState.setModalCompleted(Modal.welcome);
         this.changeImplementor.setGetMode(getMode);
     }
