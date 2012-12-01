@@ -20,7 +20,7 @@ public class Model {
     
     private final Location location = new Location();
     
-    private final boolean showVis = false;
+    private boolean showVis = false;
     
     private final boolean dev = false;
     
@@ -74,8 +74,13 @@ public class Model {
         this.ninvites = ninvites;
     }
 
+    @JsonView({Run.class, Persistent.class})
     public boolean isShowVis() {
         return showVis;
+    }
+    
+    public void setShowVis(boolean showVis) {
+        this.showVis = showVis;
     }
 
     public Connectivity getConnectivity() {
