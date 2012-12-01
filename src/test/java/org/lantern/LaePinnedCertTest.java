@@ -10,15 +10,37 @@ import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 
 public class LaePinnedCertTest {
 
+    private static Logger LOG = LoggerFactory.getLogger(LaePinnedCertTest.class);
+
+    private static DefaultXmppHandler xmppHandler;
+
+    private static LanternSocketsUtil socketsUtil;
+    
+    @BeforeClass
+    public static void setup() throws Exception {
+        final Injector injector = Guice.createInjector(new LanternModule());
+        
+        xmppHandler = injector.getInstance(DefaultXmppHandler.class);
+        socketsUtil = injector.getInstance(LanternSocketsUtil.class);
+        
+        xmppHandler.start();
+    }
+    
     @Test public void testPinnedCert() throws Exception {
         //System.setProperty("javax.net.debug", "all");
-        LanternHub.getKeyStoreManager();
-        final SSLSocketFactory tls = LanternUtils.newTlsSocketFactory();
+        //LanternHub.getKeyStoreManager();
+        final SSLSocketFactory tls = socketsUtil.newTlsSocketFactory();
         final SSLSocket sock = (SSLSocket) tls.createSocket();
         
         final AtomicBoolean completed = new AtomicBoolean(false);

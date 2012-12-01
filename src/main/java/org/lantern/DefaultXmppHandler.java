@@ -19,7 +19,6 @@ import java.util.TimerTask;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.inject.Named;
 import javax.management.InstanceAlreadyExistsException;
 import javax.management.MBeanRegistrationException;
 import javax.management.MBeanServer;
@@ -196,8 +195,8 @@ public class DefaultXmppHandler implements XmppHandler {
      */
     @Inject
     public DefaultXmppHandler(final Model model,
-        @Named("trusted") final PeerProxyManager trustedPeerProxyManager,
-        @Named("anon") final PeerProxyManager anonymousPeerProxyManager,
+        final TrustedPeerProxyManager trustedPeerProxyManager,
+        final AnonymousPeerProxyManager anonymousPeerProxyManager,
         final Timer updateTimer, final Stats stats,
         final LanternKeyStoreManager keyStoreManager,
         final LanternSocketsUtil socketsUtil,

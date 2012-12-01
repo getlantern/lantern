@@ -30,7 +30,7 @@ public class Connectivity {
     /**
      * TODO: FIX THIS -- SEE OLD SETTINGS.
      */
-    private String ip = "79.168.34.28";
+    private String ip = "";
     
     private String gtalkOauthUrl;
     

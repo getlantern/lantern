@@ -63,7 +63,7 @@ public class ModelIo implements Provider<Model>, Shutdownable {
 
     @Override
     public Model get() {
-        return read();
+        return this.model;
     }
 
     /**
@@ -81,7 +81,7 @@ public class ModelIo implements Provider<Model>, Shutdownable {
         try {
             is = encryptedFileService.localDecryptInputStream(modelFile);
             final String json = IOUtils.toString(is);
-            log.info("Building setting from json string...");
+            //log.info("Building model from json string...\n{}", json);
             if (StringUtils.isBlank(json) || json.equalsIgnoreCase("null")) {
                 log.info("Can't build settings from empty string");
                 return blankModel();
@@ -139,6 +139,7 @@ public class ModelIo implements Provider<Model>, Shutdownable {
         try {
             final String json = LanternUtils.jsonify(model, 
                 Model.Persistent.class);
+            //log.info("Writing JSON: \n{}", json);
             os = encryptedFileService.localEncryptOutputStream(this.modelFile);
             os.write(json.getBytes("UTF-8"));
         } catch (final IOException e) {

@@ -10,25 +10,34 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang.StringUtils;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 
 public class PeerSocketTest {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private static DefaultXmppHandler xmpp;
+    
+    @BeforeClass
+    public static void setup() throws Exception {
+        final Injector injector = Guice.createInjector(new LanternModule());
+        xmpp = injector.getInstance(DefaultXmppHandler.class);
+        xmpp.start();
+    }
     @Test
     public void testSocket() throws Exception {
         // Note you have to have a remote peer URI that's up a running for
         // this test to work. In the future we'll likely develop a test
         // framework that simulates things like unpredictable network latency
         // and doesn't require live tests over the network.
-        final XmppHandler xmpp = LanternHub.xmppHandler();
-        //final String email = LanternHub.settings().getEmail();
-        //final String pwd = LanternHub.settings().getPassword();
         
         final String email = TestUtils.loadTestEmail();
         final String pass = TestUtils.loadTestPassword();
@@ -52,7 +61,7 @@ public class PeerSocketTest {
             final long start = System.currentTimeMillis();
             try {
                 final Socket s = LanternUtils.openOutgoingPeerSocket(uri, 
-                    LanternHub.xmppHandler().getP2PClient(), 
+                        xmpp.getP2PClient(), 
                     new HashMap<URI, AtomicInteger>());
                 final long elapsed = System.currentTimeMillis() - start;
                 log.info("Elapsed: "+elapsed);

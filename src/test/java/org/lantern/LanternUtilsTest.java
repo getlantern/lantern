@@ -59,11 +59,6 @@ public class LanternUtilsTest {
 
     private static LanternXmppUtil lanternXmppUtil;
     
-    private final String msg = "oh hi";
-    
-    private final AtomicReference<String> readOnServer = 
-        new AtomicReference<String>("");
-    
     @BeforeClass
     public static void setup() throws Exception {
         final Injector injector = Guice.createInjector(new LanternModule());
@@ -75,6 +70,11 @@ public class LanternUtilsTest {
         
         xmppHandler.start();
     }
+    
+    private final String msg = "oh hi";
+    
+    private final AtomicReference<String> readOnServer = 
+        new AtomicReference<String>("");
     
     @Test 
     public void testGoogleTalkReachable() throws Exception {
