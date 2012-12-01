@@ -77,7 +77,7 @@ public class LanternModule extends AbstractModule {
         
         bind(PeerProxyManager.class).annotatedWith(Names.named("trusted")).to(TrustedPeerProxyManager.class);
         bind(PeerProxyManager.class).annotatedWith(Names.named("anon")).to(AnonymousPeerProxyManager.class);
-        bind(GoogleOauth2CallbackServer.class);
+        //bind(GoogleOauth2CallbackServer.class);
         bind(GoogleOauth2RedirectServlet.class);
         bind(JettyLauncher.class);
         bind(AppIndicatorTray.class);

@@ -32,6 +32,8 @@ public class Model {
     
     private Connectivity connectivity = new Connectivity();
     
+    private boolean setupComplete;
+    
     private int proxiedSitesMax = 2000;
 
     public SystemData getSystem() {
@@ -46,7 +48,7 @@ public class Model {
         return location;
     }
 
-    @JsonView({Run.class})
+    @JsonView({Run.class, Persistent.class})
     public Modal getModal() {
         return modal;
     }
@@ -63,6 +65,7 @@ public class Model {
         this.settings = settings;
     }
 
+    @JsonView({Run.class, Persistent.class})
     public int getNinvites() {
         return ninvites;
     }
@@ -94,6 +97,15 @@ public class Model {
 
     public void setProxiedSitesMax(int proxiedSitesMax) {
         this.proxiedSitesMax = proxiedSitesMax;
+    }
+
+    @JsonView({Run.class, Persistent.class})
+    public boolean isSetupComplete() {
+        return setupComplete;
+    }
+
+    public void setSetupComplete(final boolean setupComplete) {
+        this.setupComplete = setupComplete;
     }
     
 }

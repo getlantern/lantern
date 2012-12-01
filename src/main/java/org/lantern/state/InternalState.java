@@ -3,10 +3,15 @@ package org.lantern.state;
 import java.util.Collection;
 import java.util.HashSet;
 
+import org.lantern.Events;
+import org.lantern.GoogleTalkState;
+import org.lantern.event.GoogleTalkStateEvent;
+import org.lantern.event.SyncEvent;
 import org.lantern.state.Settings.Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -44,6 +49,30 @@ public class InternalState {
     @Inject
     public InternalState(final Model model) {
         this.model = model;
+        Events.register(this);
+    }
+    
+    @Subscribe
+    public void onConnectivity(final GoogleTalkStateEvent event) {
+        if (model.isSetupComplete()) {
+            log.info("Ignoring connectivity state when setup is complete");
+            return;
+        }
+        final GoogleTalkState state = event.getState();
+        switch (state) {
+        case LOGIN_FAILED:
+            break;
+        case connected:
+            advanceModal(null);
+            break;
+        case connecting:
+            break;
+        case notConnected:
+            break;
+        default:
+            break;
+        
+        }
     }
 
     public void resetInternalState() {
@@ -70,6 +99,7 @@ public class InternalState {
             next = backToIfNone;
         }
         this.model.setModal(next);
+        Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, next));
     }
 
     public void setModalCompleted(final Modal modal) {

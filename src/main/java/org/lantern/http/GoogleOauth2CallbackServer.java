@@ -15,16 +15,12 @@ import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
 /**
  * This is a special server that runs on the port we have registered for
  * OAuth callbacks with Google. It should be started every time we know we
  * need OAuth (every time the OAuth redirect page is hit), and should stop it
  * as soon as the callback is done.
  */
-@Singleton
 public class GoogleOauth2CallbackServer {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -37,7 +33,6 @@ public class GoogleOauth2CallbackServer {
 
     private final Model model;
     
-    @Inject
     public GoogleOauth2CallbackServer(final XmppHandler xmppHandler,
         final Model model) {
         this.xmppHandler = xmppHandler;
