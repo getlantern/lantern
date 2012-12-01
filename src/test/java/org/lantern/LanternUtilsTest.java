@@ -33,11 +33,16 @@ import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smackx.packet.VCard;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 /**
  * Test for Lantern utilities.
@@ -45,11 +50,31 @@ import org.slf4j.LoggerFactory;
 public class LanternUtilsTest {
     
     private static Logger LOG = LoggerFactory.getLogger(LanternUtilsTest.class);
+
+    private static DefaultXmppHandler xmppHandler;
+
+    private static LanternSocketsUtil socketsUtil;
+
+    private static LanternKeyStoreManager ksm;
+
+    private static LanternXmppUtil lanternXmppUtil;
     
     private final String msg = "oh hi";
     
     private final AtomicReference<String> readOnServer = 
         new AtomicReference<String>("");
+    
+    @BeforeClass
+    public static void setup() throws Exception {
+        final Injector injector = Guice.createInjector(new LanternModule());
+        
+        xmppHandler = injector.getInstance(DefaultXmppHandler.class);
+        socketsUtil = injector.getInstance(LanternSocketsUtil.class);
+        ksm = injector.getInstance(LanternKeyStoreManager.class);
+        lanternXmppUtil = injector.getInstance(LanternXmppUtil.class);
+        
+        xmppHandler.start();
+    }
     
     @Test 
     public void testGoogleTalkReachable() throws Exception {
@@ -75,7 +100,7 @@ public class LanternUtilsTest {
         final XMPPConnection conn = 
             XmppUtils.simpleGoogleTalkConnection(email, pass, "test");
         final Collection<LanternRosterEntry> entries = 
-            LanternHub.xmppHandler().getRoster().getRosterEntries(conn);
+                xmppHandler.getRoster().getRosterEntries(conn);
         
         // This user doesn't necessarily have any contacts.
         assertTrue(entries != null);
@@ -98,20 +123,17 @@ public class LanternUtilsTest {
         
         final XMPPConnection conn = 
             XmppUtils.simpleGoogleTalkConnection(email, pass, "test");
-        final byte[] photo = XmppUtils.getVCard(conn, email).getAvatar();
-        assertTrue(photo != null);
-        assertTrue(!(photo.length == 0));
+        assertTrue(conn.isAuthenticated());
         
-        /*
-        final MimeUtil2 mimeUtil = new MimeUtil2();
-        mimeUtil.registerMimeDetector("eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
+        final VCard vcard = XmppUtils.getVCard(conn, email);
+        assertTrue(vcard != null);
+        final String full = vcard.getField("FN");
+        assertTrue(StringUtils.isNotBlank(full));
         
-        final InputStream is = new ByteArrayInputStream(photo);
-        
-        final Collection types = mimeUtil.getMimeTypes(is);
-        assertTrue(!types.isEmpty());
-        assertEquals(types.iterator().next(), "image/jpeg");
-    */
+        // The photo might be null with test accounts!
+        //final byte[] photo = vcard.getAvatar();
+        //assertTrue(photo != null);
+        //assertTrue(!(photo.length == 0));
     }
     
     @Test
@@ -126,12 +148,11 @@ public class LanternUtilsTest {
         //System.setProperty("javax.net.debug", "ssl:record");
         //System.setProperty("javax.net.debug", "ssl:handshake");
         
-        final LanternKeyStoreManager ksm = LanternHub.getKeyStoreManager();
         ksm.addBase64Cert(LanternUtils.getMacAddress(), ksm.getBase64Cert());
         
-        final SocketFactory clientFactory = LanternUtils.newTlsSocketFactory();
+        final SocketFactory clientFactory = socketsUtil.newTlsSocketFactory();
         final ServerSocketFactory serverFactory = 
-            LanternUtils.newTlsServerSocketFactory();
+                socketsUtil.newTlsServerSocketFactory();
         
         final SocketAddress endpoint =
             new InetSocketAddress("127.0.0.1", LanternUtils.randomPort()); 
@@ -200,7 +221,7 @@ public class LanternUtilsTest {
             // Load the JDK's cacerts keystore file
             //String filename = System.getProperty("java.home") + "/lib/security/cacerts".replace('/', File.separatorChar);
             //FileInputStream is = new FileInputStream(filename);
-            KeyStore keystore = LanternHub.trustManager().getTruststore();//KeyStore.getInstance(KeyStore.getDefaultType());
+            KeyStore keystore = ksm.getTrustManager().getTruststore();//KeyStore.getInstance(KeyStore.getDefaultType());
             //String password = "changeit";
             //keystore.load(is, password.toCharArray());
 
@@ -226,7 +247,7 @@ public class LanternUtilsTest {
         //System.setProperty("javax.net.ssl.trustStore",
         //    LanternHub.trustManager().getTruststorePath());
         
-        LanternUtils.configureXmpp();
+        lanternXmppUtil.configureXmpp();
         //final String email = LanternHub.settings().getEmail();
         //final String pass = LanternHub.settings().getPassword();
         
@@ -238,7 +259,7 @@ public class LanternUtilsTest {
         }
         
         // Just make sure no exceptions are thrown for now.
-        LanternHub.xmppHandler().getRoster().getRosterEntries(email, pass, 1);
+        xmppHandler.getRoster().getRosterEntries(email, pass, 1);
         
     }
     
