@@ -79,7 +79,8 @@ public class SyncService implements LanternService {
         channel.setPersistent(true);
     }
     
-    @Listener(Channel.META_CONNECT)
+    //@Listener(Channel.META_CONNECT)
+    @Listener(Channel.META_SUBSCRIBE)
     public void metaConnect(final ServerSession remote, final Message connect) {
         // Make sure we give clients the most recent data whenever they connect.
         log.debug("Got connection from client, calling sync");
