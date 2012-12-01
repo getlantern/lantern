@@ -10,21 +10,53 @@ import java.util.Map;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.math.RandomUtils;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 
 public class SettingsTest {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
+    private static DefaultXmppHandler xmppHandler;
+
+    private static LanternSocketsUtil socketsUtil;
+
+    private static LanternKeyStoreManager ksm;
+
+    private static LanternXmppUtil lanternXmppUtil;
+
+    private static Proxifier proxifier;
+
+    private static EncryptedFileService encryptedFileService;
+    
+    @BeforeClass
+    public static void setup() throws Exception {
+        final Injector injector = Guice.createInjector(new LanternModule());
+        
+        xmppHandler = injector.getInstance(DefaultXmppHandler.class);
+        socketsUtil = injector.getInstance(LanternSocketsUtil.class);
+        ksm = injector.getInstance(LanternKeyStoreManager.class);
+        lanternXmppUtil = injector.getInstance(LanternXmppUtil.class);
+        proxifier = injector.getInstance(Proxifier.class);
+        
+        encryptedFileService = injector.getInstance(EncryptedFileService.class);
+        
+        
+        xmppHandler.start();
+    }
+    
     @Test
     public void testSettingsUpdate() throws Exception {
         final File plist = plist();
         final File settingsFile = settingsFile();
         
-        final SettingsIo io = new SettingsIo(settingsFile);
+        final SettingsIo io = new SettingsIo(settingsFile, encryptedFileService);
         final Settings settings = io.read();
         
         final Map<String, Object> update = new HashMap<String, Object>();
@@ -39,7 +71,7 @@ public class SettingsTest {
     public void testSettings() throws Exception {
         final File settingsFile = settingsFile();
         
-        final SettingsIo io = new SettingsIo(settingsFile);
+        final SettingsIo io = new SettingsIo(settingsFile, encryptedFileService);
         final Settings settings = io.read();
         assertEquals(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
             settings.getPort());
@@ -70,9 +102,9 @@ public class SettingsTest {
         assertTrue(cur1.contains("<true/>") || cur1.contains("<false/>"));
         assertTrue(cur2.contains("X-GNOME-Autostart-enabled=true") || 
                 cur2.contains("X-GNOME-Autostart-enabled=false"));
-        final SettingsIo ss = new SettingsIo(settingsFile);
+        final SettingsIo ss = new SettingsIo(settingsFile, encryptedFileService);
         final DefaultSettingsChangeImplementor implementor = 
-            new DefaultSettingsChangeImplementor(temp1, temp2);
+            new DefaultSettingsChangeImplementor(temp1, temp2, xmppHandler, proxifier);
         if (cur1.contains("<true/>")) {
             assertFalse(cur1.contains("<false/>"));
             //Configurator.setStartAtLogin(temp, false);

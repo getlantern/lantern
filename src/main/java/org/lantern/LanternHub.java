@@ -14,6 +14,7 @@ import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.InMemoryCookieTracker;
 import org.lantern.event.SettingsStateEvent;
 import org.lantern.httpseverywhere.HttpsEverywhere;
+import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -146,7 +147,8 @@ public class LanternHub {
     public static SettingsIo settingsIo() {
         synchronized (settingsIo) {
             if (settingsIo.get() == null) {
-                final SettingsIo io = new SettingsIo();
+                final SettingsIo io = new SettingsIo(
+                    new DefaultEncryptedFileService(new DefaultLocalCipherProvider()));
                 settingsIo.set(io);
             }
             return settingsIo.get();
