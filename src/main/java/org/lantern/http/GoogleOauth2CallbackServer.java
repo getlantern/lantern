@@ -11,6 +11,7 @@ import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.util.thread.ExecutorThreadPool;
 import org.lantern.LanternUtils;
 import org.lantern.XmppHandler;
+import org.lantern.state.InternalState;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,11 +33,14 @@ public class GoogleOauth2CallbackServer {
     private final XmppHandler xmppHandler;
 
     private final Model model;
+
+    private final InternalState internalState;
     
     public GoogleOauth2CallbackServer(final XmppHandler xmppHandler,
-        final Model model) {
+        final Model model, final InternalState internalState) {
         this.xmppHandler = xmppHandler;
         this.model = model;
+        this.internalState = internalState;
     }
     
     public void start() {
@@ -68,7 +72,8 @@ public class GoogleOauth2CallbackServer {
         this.server.setConnectors(new Connector[]{connector});
         
         final ServletHolder oauth2callback = new ServletHolder(
-            new GoogleOauth2CallbackServlet(this, this.xmppHandler, this.model));
+            new GoogleOauth2CallbackServlet(this, this.xmppHandler, 
+                this.model, this.internalState));
         oauth2callback.setInitOrder(1);
         contextHandler.addServlet(oauth2callback, "/oauth2callback");
         

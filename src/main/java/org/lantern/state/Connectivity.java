@@ -4,12 +4,9 @@ import java.util.Collection;
 import java.util.Collections;
 
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.Events;
 import org.lantern.GoogleTalkState;
-import org.lantern.LanternHub;
-import org.lantern.LanternUtils;
 import org.lantern.PeerProxyManager;
 import org.lantern.RuntimeSettings;
 import org.lantern.event.GoogleTalkStateEvent;
@@ -35,13 +32,10 @@ public class Connectivity {
      */
     private String ip = "79.168.34.28";
     
-    private int apiPort = LanternUtils.randomPort();
-
     private String gtalkOauthUrl;
     
     public Connectivity() {
         Events.register(this);
-        //gtalkOauthUrl = newGtalkOauthUrl();
     }
 
     @JsonView({Run.class})

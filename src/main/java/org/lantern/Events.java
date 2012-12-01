@@ -3,6 +3,9 @@ package org.lantern;
 import java.util.concurrent.Executors;
 
 import org.lantern.event.SyncEvent;
+import org.lantern.state.Modal;
+import org.lantern.state.Model;
+import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,5 +36,26 @@ public class Events {
 
     public static AsyncEventBus asyncEventBus() {
         return asyncEventBus;
+    }
+
+    /**
+     * Convenience method for syncing a new modal both with the state model
+     * and with the frontend.
+     * 
+     * @param model The state model.
+     * @param modal The modal to set.
+     */
+    public static void syncModal(final Model model, final Modal modal) {
+        model.setModal(modal);
+        Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, modal));
+    }
+
+    /**
+     * Convenience method for syncing the current modal with the frontend.
+     * 
+     * @param model The state model.
+     */
+    public static void syncModal(final Model model) {
+        Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, model.getModal()));
     }
 }

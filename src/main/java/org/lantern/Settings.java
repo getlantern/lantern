@@ -735,15 +735,6 @@ public class Settings implements MutableSettings {
         return analytics;
     }
     
-    public void setInvites(int invites) {
-        this.invites = invites;
-    }
-
-    @JsonView({RuntimeSetting.class, PersistentSetting.class})
-    public int getInvites() {
-        return invites;
-    }
-    
     public void setInvited(final Set<String> invited) {
         this.invited = invited;
     }

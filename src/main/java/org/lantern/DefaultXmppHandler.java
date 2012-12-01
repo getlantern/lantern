@@ -124,8 +124,6 @@ public class DefaultXmppHandler implements XmppHandler {
         SmackConfiguration.setPacketReplyTimeout(30 * 1000);
     }
 
-    //private final Timer updateTimer = LanternHub.timer();
-
     private volatile long lastInfoMessageScheduled = 0L;
     
     private final MessageListener typedListener = new MessageListener() {
@@ -791,7 +789,7 @@ public class DefaultXmppHandler implements XmppHandler {
             (Long) json.get(LanternConstants.INVITES_KEY);
         if (invites != null) {
             LOG.info("Setting invites to: {}", invites);
-            LanternHub.settings().setInvites(invites.intValue());
+            this.model.setNinvites(invites.intValue());
         }
     }
     
@@ -1448,8 +1446,9 @@ public class DefaultXmppHandler implements XmppHandler {
         final Thread t = new Thread(runner, "Invite-Thread");
         t.setDaemon(true);
         t.start();
-        LanternHub.settings().setInvites(LanternHub.settings().getInvites()-1);
-        LanternHub.settingsIo().write();
+        this.model.setNinvites(this.model.getNinvites() - 1);
+        //LanternHub.settings().setInvites(LanternHub.settings().getInvites()-1);
+        //LanternHub.settingsIo().write();
         
         addToRoster(email);
     }
