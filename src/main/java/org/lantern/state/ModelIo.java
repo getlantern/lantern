@@ -10,7 +10,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.EncryptedFileService;
-import org.lantern.Events;
 import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Shutdownable;

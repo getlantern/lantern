@@ -24,13 +24,19 @@ import org.junit.Test;
 import org.lantern.event.UpdateEvent;
 import org.lantern.http.JettyLauncher;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+
 public class CometDTest {
 
     @Test
     public void test() throws Exception {
-        LanternHub.settings().setApiPort(LanternUtils.randomPort());
-        final int port = LanternHub.settings().getApiPort();
-        startJetty();
+        final Injector injector = Guice.createInjector(new LanternModule());
+        final int port = LanternUtils.randomPort();
+        RuntimeSettings.setApiPort(port);
+        //LanternHub.settings().setApiPort(LanternUtils.randomPort());
+        //final int port = LanternHub.settings().getApiPort();
+        startJetty(injector, port);
         final HttpClient httpClient = new HttpClient();
         // Here set up Jetty's HttpClient, for example:
         // httpClient.setMaxConnectionsPerAddress(2);
@@ -57,21 +63,32 @@ public class CometDTest {
                 }
             });
         session.handshake();
-
-        waitForBoolean("handshake", handshake);
+        waitForBoolean(handshake);
         assertTrue("Could not handshake?", handshake.get());
-
         
-        final AtomicBoolean transferSync = new AtomicBoolean(false);
-        final AtomicReference<String> transferPathKey = new AtomicReference<String>("");
-        subscribe (session, transferSync, "transfers", transferPathKey);
-        waitForBoolean("transfers", transferSync);
-        assertEquals("Unexpected path key", "transfers", transferPathKey.get());
-        
-        final AtomicBoolean versionSync = new AtomicBoolean(false);
-        final AtomicReference<String> versionPathKey = new AtomicReference<String>("");
-        final AtomicReference<Map<String, Object>> versionData =
-            subscribe (session, versionSync, "version", versionPathKey);
+        final AtomicBoolean hasMessage = new AtomicBoolean(false);
+        final AtomicReference<String> messagePath = new AtomicReference<String>("none");
+        final MessageListener ml = new MessageListener() {
+            
+            @Override
+            public void onMessage(final ClientSessionChannel channel, 
+                final Message message) {
+                final Map<String, Object> map = message.getDataAsMap();
+                //data.set(map);
+                
+                final String path = (String) map.get("path");
+                messagePath.set(path);
+                
+                hasMessage.set(true);
+            }
+        };
+        //final AtomicBoolean sync = new AtomicBoolean(false);
+        //final AtomicReference<String> transferPathKey = new AtomicReference<String>("");
+        subscribe (session, ml);
+        waitForBoolean(hasMessage);
+        assertEquals("", messagePath.get());
+        hasMessage.set(false);
+        messagePath.set("none");
         
         final Map<String,Object> updateJson = 
             new LinkedHashMap<String,Object>();
@@ -85,45 +102,23 @@ public class CometDTest {
         
         Events.asyncEventBus().post(new UpdateEvent(updateJson));
         
-        waitForBoolean("version", versionSync);
-        assertEquals("Unexpected path key", "version", versionPathKey.get());
-        
-        final Map<String, Object> versionValue = 
-            (Map<String, Object>) versionData.get().get("value");
-        final Map<String, Object> update = 
-            (Map<String, Object>) versionValue.get("updated");
-        assertEquals(updateJson, update);
-        
-        
+        waitForBoolean(hasMessage);
+        assertEquals("version.updated", messagePath.get());
+        hasMessage.set(false);
+        messagePath.set("none");
     }
 
-    private AtomicReference<Map<String, Object>> subscribe(final ClientSession session, 
-        final AtomicBoolean bool, final String channelName, 
-        final AtomicReference<String> pathKey) {
+    private AtomicReference<Map<String, Object>> subscribe(
+        final ClientSession session, final MessageListener ml) {
         
         final AtomicReference<Map<String, Object>> data = 
             new AtomicReference<Map<String,Object>>();
         
-        session.getChannel("/sync/"+channelName).subscribe(new MessageListener() {
-            
-            @Override
-            public void onMessage(final ClientSessionChannel channel, 
-                final Message message) {
-                System.err.println(message.getJSON());
-                final Map<String, Object> map = message.getDataAsMap();
-                data.set(map);
-                
-                final String path = (String) map.get("path");
-                System.err.println("Setting path key = "+path);
-                pathKey.set(path);
-                
-                bool.set(true);
-            }
-        });
+        session.getChannel("/sync").subscribe(ml);
         return data;
     }
 
-    private void waitForBoolean(final String name, final AtomicBoolean bool) 
+    private void waitForBoolean(final AtomicBoolean bool) 
         throws InterruptedException {
         int tries = 0;
         while (tries < 200) {
@@ -133,11 +128,14 @@ public class CometDTest {
             tries++;
             Thread.sleep(100);
         }
-        assertTrue("Expected variable to be true: "+name, bool.get());
+        assertTrue("Expected variable to be true", bool.get());
     }
 
-    private void startJetty() throws Exception {
-        final JettyLauncher jl = new JettyLauncher();
+    private void startJetty(final Injector injector, final int port) throws Exception {
+        // The order of getting things from the injector matters unfortunately,
+        // so we have to do the below.
+        injector.getInstance(DefaultXmppHandler.class);
+        final JettyLauncher jl = injector.getInstance(JettyLauncher.class); 
         final Runnable runner = new Runnable() {
             @Override
             public void run() {
@@ -148,7 +146,7 @@ public class CometDTest {
         jetty.setDaemon(true);
         jetty.start();
         //Thread.sleep(5000);
-        waitForServer(jl.getPort());
+        waitForServer(port);
     }
 
     private void waitForServer(final int port) throws Exception {
