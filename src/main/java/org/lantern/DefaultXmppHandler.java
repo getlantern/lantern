@@ -189,6 +189,8 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final Model model;
 
+    private volatile boolean started;
+
     /**
      * Creates a new XMPP handler.
      */
@@ -277,6 +279,7 @@ public class DefaultXmppHandler implements XmppHandler {
         XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppProxyConfig());
         
         this.mappedServer = tempMapper;
+        this.started = true;
     }
     
     @Override
@@ -331,6 +334,10 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public void connect() throws IOException, CredentialException, 
         NotInClosedBetaException {
+        if (!this.started) {
+            LOG.warn("Can't connect when not started!!");
+            throw new Error("Can't connect when not started!!");
+        }
         if (!LanternUtils.isConfigured() && LanternHub.settings().isUiEnabled()) {
             LOG.info("Not connecting when not configured");
             return;
