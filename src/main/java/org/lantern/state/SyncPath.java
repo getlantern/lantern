@@ -7,7 +7,9 @@ public enum SyncPath {
     CONNECTIVITY_GTALK("connectivity.gtalk"), 
     SETTINGS("settings"), 
     VERSION_UPDATED("version.updated"), 
-    ROSTER("roster"), MODAL("modal");
+    ROSTER("roster"), 
+    MODAL("modal"), 
+    ALL("");
     
     private final String enumPath;
 

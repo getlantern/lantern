@@ -7,9 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Map;
 
-import javax.servlet.GenericServlet;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -22,25 +20,16 @@ import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.server.nio.SelectChannelConnector;
 import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.FilterHolder;
-import org.eclipse.jetty.servlet.Holder.Source;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.lantern.BayeuxInitializer;
-import org.lantern.BrowserService;
-import org.lantern.Dashboard;
 import org.lantern.LanternConstants;
 import org.lantern.LanternHub;
-import org.lantern.LanternUtils;
-import org.lantern.Proxifier;
 import org.lantern.LanternService;
+import org.lantern.Proxifier;
 import org.lantern.RuntimeSettings;
-import org.lantern.state.CometDSyncStrategy;
-import org.lantern.state.DefaultModelChangeImplementor;
-import org.lantern.state.Model;
-import org.lantern.state.ModelChangeImplementor;
-import org.lantern.state.ModelIo;
 import org.lantern.state.SyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,7 +48,7 @@ public class JettyLauncher implements LanternService {
     private final String secureBase = "";
         //"/"+String.valueOf(LanternHub.secureRandom().nextLong());
 
-    private final int port = RuntimeSettings.getApiPort();//8686;//LanternHub.settings().getApiPort();
+    private final int port = RuntimeSettings.getApiPort();
 
     private final String fullBasePath = 
         "http://localhost:"+port+secureBase;
@@ -67,17 +56,6 @@ public class JettyLauncher implements LanternService {
     private final Server server = new Server();
 
     private final File resourceBaseFile;
-    
-    /*
-    private final Model model = new ModelIo().getModel();
-
-    private final ModelChangeImplementor changeImplementor = 
-        new DefaultModelChangeImplementor(model);
-    
-    
-    private final SyncService syncer = 
-        new SyncService(new CometDSyncStrategy(), model);
-    */
 
     private final GoogleOauth2RedirectServlet redirectServlet;
 
@@ -155,73 +133,7 @@ public class JettyLauncher implements LanternService {
         //    "org.cometd.websocket.server.WebSocketTransport");
         cometd.setInitOrder(1);
         contextHandler.addServlet(cometd, "/cometd/*");
-        
-        /*
-        final class ModelServlet extends GenericServlet {
-            private static final long serialVersionUID = -2633162671596490471L;
-            @Override
-            public void service(final ServletRequest req, 
-                final javax.servlet.ServletResponse res)
-                throws ServletException, IOException {
-                //final Model model = LanternHub.getModel();
-                final String json = 
-                    LanternUtils.jsonify(model, Model.Run.class);
-                final byte[] raw = json.getBytes("UTF-8");
-                res.setContentLength(raw.length);
-                res.setContentType("application/json; charset=UTF-8");
-                res.getOutputStream().write(raw);
-            }
-        }
-        */
-        
-        /*
-        final class SettingsServlet extends HttpServlet {
 
-            private static final long serialVersionUID = -2647134475684088881L;
-
-            @Override
-            protected void doGet(final HttpServletRequest req, 
-                final HttpServletResponse resp) throws ServletException, 
-                IOException {
-                processRequest(req, resp);
-            }
-            @Override
-            protected void doPost(final HttpServletRequest req, 
-                final HttpServletResponse resp) throws ServletException, 
-                IOException {
-                processRequest(req, resp);
-            }
-            
-            protected void processRequest(final HttpServletRequest req, 
-                final HttpServletResponse resp) {
-                LanternHub.api().changeSetting(req, resp);
-            }
-        }
-        
-        final class ApiServlet extends HttpServlet {
-
-            private static final long serialVersionUID = -4199110396383838768L;
-
-            @Override
-            protected void doGet(final HttpServletRequest req, 
-                final HttpServletResponse resp) throws ServletException, 
-                IOException {
-                processRequest(req, resp);
-            }
-            @Override
-            protected void doPost(final HttpServletRequest req, 
-                final HttpServletResponse resp) throws ServletException, 
-                IOException {
-                processRequest(req, resp);
-            }
-            
-            protected void processRequest(final HttpServletRequest req, 
-                final HttpServletResponse resp) {
-                LanternHub.api().processCall(req, resp);
-            }
-        }
-        */
-        
         
         final ServletHolder ds = new ServletHolder(new DefaultServlet() {
 
@@ -264,31 +176,15 @@ public class JettyLauncher implements LanternService {
         settings.setInitOrder(3);
         contextHandler.addServlet(settings, "/oauth/");
         
-        /*
-        final ServletHolder settings = new ServletHolder(new SettingsServlet());
-        settings.setInitOrder(3);
-        contextHandler.addServlet(settings, "/settings/*");
-        
-        
-        final ServletHolder apiServlet = new ServletHolder(new ApiServlet());
-        apiServlet.setInitOrder(3);
-        contextHandler.addServlet(apiServlet, "/api/*");
-        */
-        
-        final ServletHolder interactionServlet = 
+        final ServletHolder interactionServletHolder = 
             new ServletHolder(this.interactionServlet);
-        interactionServlet.setInitOrder(2);
-        contextHandler.addServlet(interactionServlet, apiPath());
+        interactionServletHolder.setInitOrder(2);
+        contextHandler.addServlet(interactionServletHolder, apiPath());
         
         final ServletHolder photoServlet = new ServletHolder(new PhotoServlet());
         photoServlet.setInitOrder(3);
         contextHandler.addServlet(photoServlet, "/photo/*");
-        
-        /*
-        final ServletHolder modelHolder = new ServletHolder(new ModelServlet());
-        modelHolder.setInitOrder(3);
-        contextHandler.addServlet(modelHolder, "/model");
-        */
+
         
         final BayeuxInitializer bi = new BayeuxInitializer(this.syncer);
         final ServletHolder bayeux = new ServletHolder(bi);
