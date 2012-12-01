@@ -39,46 +39,30 @@ public class LanternModule extends AbstractModule {
     
     @Override 
     protected void configure() {
-        //bind(ChannelGroup.class).to(DefaultChannelGroup.class);
         bind(org.jboss.netty.util.Timer.class).to(HashedWheelTimer.class);
         bind(HttpRequestFilter.class).to(PublicIpsOnlyRequestFilter.class);
-        
         bind(Stats.class).to(StatsTracker.class);
-        
         bind(LanternSocketsUtil.class);
         bind(LanternXmppUtil.class);
-        
-        //bind(SystemTray.class).annotatedWith(WinOsxTray.class).to(SystemTrayImpl.class);
-        //bind(SystemTray.class).annotatedWith(Names.named("facade")).to(FallbackTray.class);
         bind(MessageService.class).to(Dashboard.class);
         bind(Proxifier.class);
         bind(Configurator.class);
-        
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);
         bind(SyncService.class);
         bind(EncryptedFileService.class).to(DefaultEncryptedFileService.class);
-        
         bind(BrowserService.class).to(ChromeBrowserService.class);
-        
         bind(Model.class).toProvider(ModelIo.class).in(Singleton.class);
-        //bind(ModelProvider.class).to(ModelIo.class);
-        
         bind(ModelChangeImplementor.class).to(DefaultModelChangeImplementor.class);
         bind(InteractionServlet.class);
-        
         bind(LanternKeyStoreManager.class);
         bind(SslHttpProxyServer.class);
         bind(PlainTestRelayHttpProxyServer.class);
-        
         bind(XmppHandler.class).to(DefaultXmppHandler.class);
-        
         bind(PeerProxyManager.class).annotatedWith(Names.named("trusted")).to(TrustedPeerProxyManager.class);
         bind(PeerProxyManager.class).annotatedWith(Names.named("anon")).to(AnonymousPeerProxyManager.class);
-        //bind(GoogleOauth2CallbackServer.class);
         bind(GoogleOauth2RedirectServlet.class);
         bind(JettyLauncher.class);
         bind(AppIndicatorTray.class);
-        
         bind(LanternApi.class).to(DefaultLanternApi.class);
         bind(SettingsChangeImplementor.class).to(DefaultSettingsChangeImplementor.class);
         bind(LanternHttpProxyServer.class);

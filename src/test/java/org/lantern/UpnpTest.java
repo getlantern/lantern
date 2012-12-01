@@ -1,7 +1,6 @@
 package org.lantern;
 
-import static org.junit.Assert.assertTrue;
-
+import java.util.Timer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
@@ -14,8 +13,9 @@ public class UpnpTest {
     @Test public void testUpnp() throws Exception {
         System.setProperty("java.util.logging.config.file", 
             "src/test/resources/logging.properties");
-        final Upnp up = new Upnp();
+        final Upnp up = new Upnp(new StatsTracker(new Timer()));
         final AtomicBoolean mapped = new AtomicBoolean(false);
+        final AtomicBoolean error = new AtomicBoolean(false);
         final PortMapListener pml = new PortMapListener() {
             @Override
             public void onPortMapError() {
@@ -40,6 +40,12 @@ public class UpnpTest {
                 mapped.wait(4000);
             }
         }
-        //assertTrue(mapped.get());
+        
+        // We might not be running on a router that supports UPnP
+        if (!error.get()) {
+            // We don't necessarily get an error even if the router doesn't
+            // support UPnP.
+            //assertTrue(mapped.get());
+        }
     }
 }
