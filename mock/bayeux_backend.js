@@ -1,11 +1,11 @@
 'use strict';
 
-var fs = require('fs')
-  , util = require('util')
-  , faye = require('./node_modules/faye')
-  , ApiServlet = require('./http_api').ApiServlet
-  , getByPath = require('./helpers').getByPath
-  ;
+var fs = require('fs'),
+    util = require('util'),
+    faye = require('./node_modules/faye'),
+    helpers = require('./helpers'),
+    getByPath = helpers.getByPath,
+    merge = helpers.merge;
 
 
 var RESETMODEL = JSON.parse(fs.readFileSync(__dirname+'/RESETMODEL.json'));
@@ -13,7 +13,6 @@ var RESETMODEL = JSON.parse(fs.readFileSync(__dirname+'/RESETMODEL.json'));
 
 function BayeuxBackend() {
   this._bayeux = new faye.NodeAdapter({mount: '/cometd', timeout: 45});
-  this.resetModel();
   this._bindCallbacks();
 }
 
@@ -25,28 +24,16 @@ BayeuxBackend.VERSION = {
 
 BayeuxBackend.prototype.attachServer = function(http_server) {
   this._bayeux.attach(http_server);
-}
+};
 
 BayeuxBackend.prototype.resetModel = function() {
   this.model = JSON.parse(JSON.stringify(RESETMODEL)); // quick and dirty clone
-  this.model.version.installed.bayeuxProtocol = BayeuxBackend.VERSION;
-  this.model.version.installed.httpApi = ApiServlet.VERSION;
-//this.model.version.installed.modelSchema = XXX
-  this.model.mock.scenarios.all = ApiServlet.SCENARIOS;
-};
-
-BayeuxBackend.prototype.get = function(path) {
-  var val = this.model;
-  path.split('.').forEach(function(name) {
-    if (name && typeof val != 'undefined')
-      val = val[name];
-  });
-  return val;
+  merge(this.model, 'version.installed', {bayeuxProtocol: BayeuxBackend.VERSION});
 };
 
 BayeuxBackend.prototype.publishSync = function(path) {
   path = path || '';
-  var value = this.get(path); // XXX use getByPath
+  var value = getByPath(this.model, path);
   // this._bayeux.getClient().publish({ // XXX why doesn't this work?
   this._bayeux._server._engine.publish({
     channel: '/sync',
@@ -55,9 +42,7 @@ BayeuxBackend.prototype.publishSync = function(path) {
 };
 
 BayeuxBackend.prototype._bindCallbacks = function() {
-  var self = this
-    , bayeux = this._bayeux
-    ;
+  var self = this, bayeux = this._bayeux;
 
   bayeux.bind('handshake', function(clientId) {
     util.puts('[bayeux] handshake: client: '+clientId);
@@ -89,6 +74,7 @@ BayeuxBackend.prototype._bindCallbacks = function() {
 };
 
 
+// XXX use merge and add a clobber param?
 function _sync(obj, path, value) {
   var lastObj = obj;
   var property;

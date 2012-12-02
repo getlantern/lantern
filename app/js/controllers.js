@@ -539,12 +539,12 @@ function ScenariosCtrl($scope, apiSrvc, logFactory, modelSrvc, dev, MODAL) {
     $scope.show = val == MODAL.scenarios;
   });
 
-  $scope.multiple = true; // XXX without this, ui-select2 with "multiple" attr causes an exception
+  $scope.selected = [];
+  $scope.$watch('model.mock.scenarios.applied', function(val) {
+    val && ($scope.selected = val.slice());
+  });
 
-  $scope.submit = function() {
-    log.debug($scope.appliedScenarios);
-    log.error('TODO');
-  };
+  $scope.multiple = true; // XXX without this, ui-select2 with "multiple" attr causes an exception
 }
 
 function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, cometdSrvc, modelSrvc) {

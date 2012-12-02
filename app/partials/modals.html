@@ -146,7 +146,7 @@
     </div>
   </div>
   <div class="modal-footer">
-    <a type="submit" class="btn btn-primary" ng-click="doOauth()">
+    <a type="submit" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">
       {{ 'AUTHORIZE_LANTERN' | i18n }}
       &nbsp;<i class="icon-external-link"></i>
     </a>
@@ -647,17 +647,17 @@ You should have received a copy of the GNU General Public License along with thi
     <h3>Applied scenarios</h3>
   </div>
   <div class="modal-body">
-    <div>{{ model.mock.scenarios.prompt }}</div>
-    <select ui-select2 multiple ng-multiple="multiple" ng-model="selected"
+    <p>{{ model.mock.scenarios.prompt }}</p>
+    <select multiple ng-multiple="multiple" ng-model="selected"
             placeholder="Choose applied scenarios" required style="width: 530px">
       <optgroup ng-repeat="(group, scenarios) in model.mock.scenarios.all" label="{{ group }}">
-        <option ng-repeat="(key, scen) in scenarios" value="{{ key }}">[{{ key }}] {{ scen.desc }}</option>
+        <option ng-repeat="(key, scen) in scenarios" value="{{ group }}.{{ key }}">[{{ key }}] {{ scen.desc }}</option>
       </optgroup>
     </select> 
     <div><code>selected: {{ selected | json }}</code></div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-primary" ng-click="submit()"
+    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)"
             ng-disabled="invalid">Continue</button>
   </div>
 </div>

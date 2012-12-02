@@ -1,8 +1,10 @@
-function getByPath(obj, path) {
+function getByPath(obj, path, defaultVal) {
   path = (path || '').split('.');
   for (var i=0, name=path[i];
        name && typeof obj != 'undefined';
        obj=name ? obj[name] : obj, name=path[++i]);
+  if (typeof obj == 'undefined' && typeof defaultVal != 'undefined')
+    return defaultVal;
   return obj;
 }
 

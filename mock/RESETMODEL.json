@@ -65,8 +65,5 @@
     "by":{"censors": true},
     "sa":{"censors": true},
     "kp":{"censors": true}
-  },
-  "mock":{
-    "scenarios":{}
   }
 }
