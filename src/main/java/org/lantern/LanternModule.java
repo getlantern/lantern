@@ -24,6 +24,7 @@ import org.lantern.state.DefaultModelChangeImplementor;
 import org.lantern.state.Model;
 import org.lantern.state.ModelChangeImplementor;
 import org.lantern.state.ModelIo;
+import org.lantern.state.ModelUtils;
 import org.lantern.state.SyncService;
 import org.lantern.state.SyncStrategy;
 import org.littleshoot.proxy.HttpRequestFilter;
@@ -40,6 +41,8 @@ public class LanternModule extends AbstractModule {
     @Override 
     protected void configure() {
         bind(org.jboss.netty.util.Timer.class).to(HashedWheelTimer.class);
+        //bind(LanternUtils.class);
+        bind(ModelUtils.class);
         bind(HttpRequestFilter.class).to(PublicIpsOnlyRequestFilter.class);
         bind(Stats.class).to(StatsTracker.class);
         bind(LanternSocketsUtil.class);
@@ -89,7 +92,7 @@ public class LanternModule extends AbstractModule {
     }
     
     @Provides  @Singleton
-    LocalCipherProvider provideLocalCipher(final MessageService messageService) {
+    LocalCipherProvider provideLocalCipher() {
         final LocalCipherProvider lcp; 
         
         /*
@@ -101,7 +104,7 @@ public class LanternModule extends AbstractModule {
             lcp = new WindowsLocalCipherProvider();   
         }
         else if (SystemUtils.IS_OS_MAC_OSX) {
-            lcp = new MacLocalCipherProvider(messageService);
+            lcp = new MacLocalCipherProvider();
         }
         // disabled per #249
         //else if (SystemUtils.IS_OS_LINUX && 

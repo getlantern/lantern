@@ -21,6 +21,7 @@ import org.lantern.http.HttpUtils;
 import org.lantern.http.LanternApi;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.state.Model;
 import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,16 +65,18 @@ public class DefaultLanternApi implements LanternApi {
     private final SettingsChangeImplementor settingsChangeImplementor;
     private final  LocalCipherProvider lcp;
     private final Proxifier proxifier;
+    private final Model model;
 
     @Inject
     public DefaultLanternApi(final XmppHandler xmppHandler,
         final SettingsChangeImplementor settingsChangeImplementor,
         final LocalCipherProvider lcp,
-        final Proxifier proxifier) {
+        final Proxifier proxifier, final Model model) {
         this.xmppHandler = xmppHandler;
         this.settingsChangeImplementor = settingsChangeImplementor;
         this.lcp = lcp;
         this.proxifier = proxifier;
+        this.model = model;
     }
     
     @Override
@@ -310,7 +313,7 @@ public class DefaultLanternApi implements LanternApi {
             this.xmppHandler.clearProxies();
             signout();
             final Settings set = LanternHub.settings();
-            set.setInClosedBeta(new HashSet<String>());
+            this.model.getSettings().setInClosedBeta(new HashSet<String>());
             set.setPeerProxies(new HashSet<InetSocketAddress>());
             LanternHub.destructiveFullReset();
             

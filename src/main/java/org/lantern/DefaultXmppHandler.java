@@ -52,6 +52,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.kaleidoscope.BasicTrustGraphAdvertisement;
 import org.kaleidoscope.BasicTrustGraphNodeId;
+import org.kaleidoscope.TrustGraphNode;
 import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.ConnectivityStatusChangeEvent;
@@ -59,7 +60,9 @@ import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.UpdateEvent;
 import org.lantern.http.PhotoServlet;
 import org.lantern.ksope.LanternKscopeAdvertisement;
+import org.lantern.ksope.LanternTrustGraphNode;
 import org.lantern.state.Model;
+import org.lantern.state.ModelUtils;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.ice.MappedTcpAnswererServer;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -190,6 +193,8 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private volatile boolean started;
 
+    private final ModelUtils modelUtils;
+
     /**
      * Creates a new XMPP handler.
      */
@@ -200,7 +205,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final Timer updateTimer, final Stats stats,
         final LanternKeyStoreManager keyStoreManager,
         final LanternSocketsUtil socketsUtil,
-        final LanternXmppUtil xmppUtil) {
+        final LanternXmppUtil xmppUtil,
+        final ModelUtils modelUtils) {
         this.model = model;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.anonymousPeerProxyManager = anonymousPeerProxyManager;
@@ -209,6 +215,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.keyStoreManager = keyStoreManager;
         this.socketsUtil = socketsUtil;
         this.xmppUtil = xmppUtil;
+        this.modelUtils = modelUtils;
         this.upnpService = new Upnp(stats);
         new GiveModeConnectivityHandler();
         prepopulateProxies();
@@ -337,12 +344,12 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.warn("Can't connect when not started!!");
             throw new Error("Can't connect when not started!!");
         }
-        if (!LanternUtils.isConfigured() && LanternHub.settings().isUiEnabled()) {
+        if (!this.modelUtils.isConfigured() && LanternHub.settings().isUiEnabled()) {
             LOG.info("Not connecting when not configured");
             return;
         }
         LOG.info("Connecting to XMPP servers...");
-        if (LanternHub.settings().isUseGoogleOAuth2()) {
+        if (this.model.getSettings().isUseGoogleOAuth2()) {
             connectViaOAuth2();
         } else {
             connectWithEmailAndPass();
@@ -353,10 +360,10 @@ public class DefaultXmppHandler implements XmppHandler {
             CredentialException, NotInClosedBetaException {
         final XmppCredentials credentials = new GoogleOAuth2Credentials(
             LanternHub.settings().getEmail(),
-            LanternHub.settings().getClientID(),
-            LanternHub.settings().getClientSecret(),
-            LanternHub.settings().getAccessToken(),
-            LanternHub.settings().getRefreshToken(),
+            this.model.getSettings().getClientID(),
+            this.model.getSettings().getClientSecret(),
+            this.model.getSettings().getAccessToken(),
+            this.model.getSettings().getRefreshToken(),
             getResource());
         
         LOG.info("Logging in with credentials: {}", credentials);
@@ -605,10 +612,9 @@ public class DefaultXmppHandler implements XmppHandler {
                     final BasicTrustGraphAdvertisement message =
                         new BasicTrustGraphAdvertisement(tgnid, payload, 0);
                     
-                    /*
-                    final TrustGraphNode tgn = new LanternTrustGraphNode();
+                    final TrustGraphNode tgn = 
+                        new LanternTrustGraphNode(DefaultXmppHandler.this);
                     tgn.advertiseSelf(message);
-                    */
                 }
             };
             // We delay this to make sure we've successfully loaded all roster
@@ -628,7 +634,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private boolean waitForClosedBetaStatus(final String email) 
         throws NotInClosedBetaException {
-        if (LanternUtils.isInClosedBeta(email)) {
+        if (this.modelUtils.isInClosedBeta(email)) {
             LOG.debug("Already in closed beta...");
             return true;
         }
@@ -804,7 +810,7 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.debug("Got closed beta event!!");
         this.closedBetaEvent = cbe;
         if (this.closedBetaEvent.isInClosedBeta()) {
-            LanternUtils.addToClosedBeta(cbe.getTo());
+            this.modelUtils.addToClosedBeta(cbe.getTo());
         }
         synchronized (this.closedBetaLock) {
             // We have to make sure that this event is actually intended for

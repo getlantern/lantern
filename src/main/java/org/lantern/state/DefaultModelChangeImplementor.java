@@ -8,12 +8,12 @@ import java.util.concurrent.Executors;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.lang.SystemUtils;
-import org.lantern.DefaultXmppHandler;
 import org.lantern.LanternConstants;
 import org.lantern.LanternHub;
 import org.lantern.LanternUtils;
 import org.lantern.NotInClosedBetaException;
 import org.lantern.Proxifier;
+import org.lantern.XmppHandler;
 import org.lantern.state.Settings.Mode;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
@@ -44,20 +44,28 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
 
     private final Proxifier proxifier;
 
+    private final ModelUtils modelUtils;
+
+    private XmppHandler xmppHandler;
+
     @Inject
     public DefaultModelChangeImplementor(final Model model,
-        final Proxifier proxifier) {
+        final Proxifier proxifier, final ModelUtils modelUtils,
+        final XmppHandler xmppHandler) {
         this(LanternConstants.LAUNCHD_PLIST, LanternConstants.GNOME_AUTOSTART, 
-                model, proxifier);
+                model, proxifier, modelUtils, xmppHandler);
     }
     
     public DefaultModelChangeImplementor(final File launchdPlist, 
         final File gnomeAutostart, final Model model,
-        final Proxifier proxifier) {
+        final Proxifier proxifier, final ModelUtils modelUtils,
+        final XmppHandler xmppHandler) {
         this.launchdPlist = launchdPlist;
         this.gnomeAutostart = gnomeAutostart;
         this.model = model;
         this.proxifier = proxifier;
+        this.modelUtils = modelUtils;
+        this.xmppHandler = xmppHandler;
     }
     
     @Override
@@ -153,7 +161,7 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
             log.info("Mode is unchanged.");
             return;
         }
-        if (!LanternUtils.isConfigured()) {
+        if (!this.modelUtils.isConfigured()) {
             log.info("Not implementing mode change -- not configured.");
             return;
         }
@@ -173,10 +181,10 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
         
         // We disconnect and reconnect to create a new Jabber ID that will 
         // not advertise us as a connection point.
-        LanternConstants.INJECTOR.getInstance(DefaultXmppHandler.class).disconnect();
+        xmppHandler.disconnect();
         try {
             try {
-                LanternConstants.INJECTOR.getInstance(DefaultXmppHandler.class).connect();
+                xmppHandler.connect();
                 
                 // TODO: This isn't quite right. We don't necessarily have
                 // proxies to connect to at this point, and we shouldn't set

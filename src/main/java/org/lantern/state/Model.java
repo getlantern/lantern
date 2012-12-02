@@ -112,5 +112,4 @@ public class Model {
     public void setSetupComplete(final boolean setupComplete) {
         this.setupComplete = setupComplete;
     }
-    
 }

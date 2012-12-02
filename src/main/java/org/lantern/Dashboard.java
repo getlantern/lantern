@@ -2,7 +2,6 @@ package org.lantern;
 
 import java.awt.Point;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
@@ -25,10 +24,12 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
+import org.lantern.events.MessageEvent;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -43,8 +44,6 @@ public class Dashboard implements MessageService, BrowserService {
     private Browser browser;
     private boolean completed;
     
-    private final ChromeRunner chrome = new ChromeRunner();
-
     /**
      * The display is pulled out into a separate instance variable because
      * the readAndDispatch method is called extremely frequently.
@@ -55,6 +54,7 @@ public class Dashboard implements MessageService, BrowserService {
     @Inject
     public Dashboard(final SystemTray systemTray) {
         this.systemTray = systemTray;
+        Events.register(this);
     }
     
     /**
@@ -62,31 +62,13 @@ public class Dashboard implements MessageService, BrowserService {
      */
     @Override
     public void openBrowser() {
-        /*
-        display.syncExec(new Runnable() {
+        DisplayWrapper.getDisplay().syncExec(new Runnable() {
             @Override
             public void run() {
-                //buildBrowser();
-                launchChrome();
+                buildBrowser();
+                //launchChrome();
             }
         });
-        */
-        final Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                //buildBrowser();
-                launchChrome();
-            }
-        }, "Dashboard-Chrome-Opening-Thread");
-        t.setDaemon(true);
-        t.start();
-    }
-    private void launchChrome() {
-        try {
-            chrome.open();
-        } catch (final IOException e) {
-            log.error("Error opening chrome browser?", e);
-        }
     }
     
     
@@ -104,7 +86,7 @@ public class Dashboard implements MessageService, BrowserService {
     
     @Override
     public void reopenBrowser() {
-        chrome.close();
+        
         openBrowser();
     }
     
@@ -452,5 +434,11 @@ public class Dashboard implements MessageService, BrowserService {
         if (DisplayWrapper.getDisplay() != null) {
             DisplayWrapper.getDisplay().dispose();
         }
+    }
+
+    @Override
+    @Subscribe
+    public void onMessageEvent(MessageEvent me) {
+        showMessage(me.getTitle(), me.getMsg());
     }
 }

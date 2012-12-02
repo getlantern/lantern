@@ -11,7 +11,13 @@ import com.google.inject.Singleton;
 public class ChromeBrowserService implements BrowserService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final ChromeRunner chrome  = new ChromeRunner();
+    
+    
+    private static final int SCREEN_WIDTH = 970;
+    private static final int SCREEN_HEIGHT = 630;
+    
+    private final ChromeRunner chrome = 
+        new ChromeRunner(SCREEN_WIDTH, SCREEN_HEIGHT);
     
     /**
      * Opens the browser.

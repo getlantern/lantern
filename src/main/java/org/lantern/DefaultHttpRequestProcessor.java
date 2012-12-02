@@ -55,7 +55,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
 
     private final Stats stats;
 
-    private LanternKeyStoreManager ksm;
+    private final LanternKeyStoreManager ksm;
 
     public DefaultHttpRequestProcessor( 
         final ProxyStatusListener proxyStatusListener, 

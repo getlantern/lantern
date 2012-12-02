@@ -20,6 +20,7 @@ import org.apache.http.client.utils.URIBuilder;
 import org.lantern.XmppHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.Model;
+import org.lantern.state.ModelIo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +44,16 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
 
     private final InternalState internalState;
 
+    private final ModelIo modelIo;
+
     @Inject
     public GoogleOauth2RedirectServlet(final XmppHandler handler, 
-        final Model model, final InternalState internalState) {
+        final Model model, final InternalState internalState,
+        final ModelIo modelIo) {
         this.handler = handler;
         this.model = model;
         this.internalState = internalState;
+        this.modelIo = modelIo;
     }
     
     @Override
@@ -78,7 +83,8 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         // stop it and start it only when we need oauth callbacks. If we
         // attempt to restart a stopped server, things get funky.
         final GoogleOauth2CallbackServer server = 
-            new GoogleOauth2CallbackServer(handler, model, this.internalState);
+            new GoogleOauth2CallbackServer(handler, model, 
+                this.internalState, this.modelIo);
         
         // Note that this call absolutely ensures the server is started.
         server.start();

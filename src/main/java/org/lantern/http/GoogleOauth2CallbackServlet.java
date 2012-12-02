@@ -35,6 +35,7 @@ import org.lantern.XmppHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
+import org.lantern.state.ModelIo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,15 +60,19 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
     private final Model model;
 
     private final InternalState internalState;
+
+    private final ModelIo modelIo;
     
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
         final XmppHandler xmppHandler, final Model model,
-        final InternalState internalState) {
+        final InternalState internalState,
+        final ModelIo modelIo) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.xmppHandler = xmppHandler;
         this.model = model;
         this.internalState = internalState;
+        this.modelIo = modelIo;
     }
     
     @Override
@@ -178,11 +183,13 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // Note the e-mail is actually ignored when we login to 
         // Google Talk.
         LanternHub.settings().setEmail("anon@getlantern.org");
-        LanternHub.settings().setClientID(clientId);
-        LanternHub.settings().setClientSecret(clientSecret);
-        LanternHub.settings().setAccessToken(accessToken);
-        LanternHub.settings().setRefreshToken(refreshToken);
-        LanternHub.settings().setUseGoogleOAuth2(true);
+        this.model.getSettings().setClientID(clientId);
+        this.model.getSettings().setClientSecret(clientSecret);
+        this.model.getSettings().setAccessToken(accessToken);
+        this.model.getSettings().setRefreshToken(refreshToken);
+        this.model.getSettings().setUseGoogleOAuth2(true);
+        
+        this.modelIo.write();
         
         // We kick this off on another thread, as otherwise it would be 
         // a Jetty thread, and we're about to kill the server. When the

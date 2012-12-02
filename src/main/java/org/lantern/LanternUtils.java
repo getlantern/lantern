@@ -295,20 +295,6 @@ public class LanternUtils {
         }
         return false;
     }
-    
-    public static boolean isConfigured() {
-        /*
-        if (!LanternConstants.DEFAULT_SETTINGS_FILE.isFile()) {
-            LOG.info("No settings file");
-            return false;
-        }
-        */
-        final String un = LanternHub.settings().getEmail();
-        final String pass = LanternHub.settings().getPassword();
-        final boolean oauth = LanternHub.settings().isUseGoogleOAuth2();
-        return oauth || (StringUtils.isNotBlank(un) && StringUtils.isNotBlank(pass));
-    }
-    
 
     public static boolean isLanternHub(final String from) {
         return from.startsWith("lanternctrl@") && 
@@ -921,17 +907,6 @@ public class LanternUtils {
         return XmppUtils.jidToUser(jid);
     }
 
-    public static boolean isInClosedBeta(final String email) {
-        final Set<String> in = LanternHub.settings().getInClosedBeta();
-        return in.contains(email);
-    }
-
-    public static void addToClosedBeta(final String to) {
-        final Set<String> in = LanternHub.settings().getInClosedBeta();
-        in.add(to);
-        LanternHub.settings().setInClosedBeta(in);
-    }
-
     public static boolean isNotJid(final String email) {
         final boolean isEmail = !email.contains(".talk.google.com");
         if (isEmail) {
@@ -952,81 +927,6 @@ public class LanternUtils {
         }
     }
     
-
-    public static void loadOAuth2ClientSecretsFile(final String filename) {
-        if (StringUtils.isBlank(filename)) {
-            LOG.error("No filename specified");
-            throw new NullPointerException("No filename specified!");
-        }
-        final File file = new File(filename);
-        if (!(file.exists() && file.canRead())) {
-            LOG.error("Unable to read user credentials from {}", filename);
-            throw new IllegalArgumentException("File does not exist! "+filename);
-        }
-        LOG.info("Reading client secrets from file \"{}\"", filename);
-        try {
-            final String json = FileUtils.readFileToString(file, "US-ASCII");
-            JSONObject obj = (JSONObject)JSONValue.parse(json);
-            final JSONObject ins;
-            final JSONObject temp = (JSONObject)obj.get("installed");
-            if (temp == null) {
-                ins = (JSONObject)obj.get("web");
-            } else {
-                ins = temp;
-            }
-            //JSONObject ins = (JSONObject)obj.get("installed");
-            final String clientID = (String)ins.get("client_id");
-            final String clientSecret = (String)ins.get("client_secret");
-            if (StringUtils.isBlank(clientID) || 
-                StringUtils.isBlank(clientSecret)) {
-                LOG.error("Failed to parse client secrets file \"{}\"", file);
-                throw new Error("Failed to parse client secrets file: "+ file);
-            } else {
-                LanternHub.settings().setClientID(clientID);
-                LanternHub.settings().setClientSecret(clientSecret);
-            }
-        } catch (final IOException e) {
-            LOG.error("Failed to read file \"{}\"", filename);
-            throw new Error("Could not load oauth file"+file, e);
-        }
-    }
-
-    public static void loadOAuth2UserCredentialsFile(final String filename) {
-        if (StringUtils.isBlank(filename)) {
-            LOG.error("No filename specified");
-            throw new NullPointerException("No filename specified!");
-        }
-        final File file = new File(filename);
-        if (!(file.exists() && file.canRead())) {
-            LOG.error("Unable to read user credentials from {}", filename);
-            throw new IllegalArgumentException("File does not exist! "+filename);
-        }
-        LOG.info("Reading user credentials from file \"{}\"", filename);
-        try {
-            final String json = FileUtils.readFileToString(file, "US-ASCII");
-            final JSONObject obj = (JSONObject)JSONValue.parse(json);
-            final String username = (String)obj.get("username");
-            final String accessToken = (String)obj.get("access_token");
-            final String refreshToken = (String)obj.get("refresh_token");
-            // Access token is not strictly necessary, so we allow it to be
-            // null.
-            if (StringUtils.isBlank(username) || 
-                StringUtils.isBlank(refreshToken)) {
-                LOG.error("Failed to parse user credentials file \"{}\"", filename);
-                throw new Error("Could not load username or refresh_token");
-            } else {
-                LanternHub.settings().setEmail(username);
-                //LanternHub.settings().setCommandLineEmail(username);
-                LanternHub.settings().setAccessToken(accessToken);
-                LanternHub.settings().setRefreshToken(refreshToken);
-                LanternHub.settings().setUseGoogleOAuth2(true);
-            }
-        } catch (final IOException e) {
-            LOG.error("Failed to read file \"{}\"", filename);
-            throw new Error("Could not load oauth credentials", e);
-        }
-    }
-
     public static Point getScreenCenter(final int width, final int height) {
         final Toolkit toolkit = Toolkit.getDefaultToolkit();
         final Dimension screenSize = toolkit.getScreenSize();

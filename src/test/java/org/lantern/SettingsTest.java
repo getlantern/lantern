@@ -12,6 +12,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.lantern.state.ModelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,6 +35,8 @@ public class SettingsTest {
     private static Proxifier proxifier;
 
     private static EncryptedFileService encryptedFileService;
+
+    private static ModelUtils modelUtils;
     
     @BeforeClass
     public static void setup() throws Exception {
@@ -44,9 +47,8 @@ public class SettingsTest {
         ksm = injector.getInstance(LanternKeyStoreManager.class);
         lanternXmppUtil = injector.getInstance(LanternXmppUtil.class);
         proxifier = injector.getInstance(Proxifier.class);
-        
         encryptedFileService = injector.getInstance(EncryptedFileService.class);
-        
+        modelUtils = injector.getInstance(ModelUtils.class);
         
         xmppHandler.start();
     }
@@ -104,7 +106,7 @@ public class SettingsTest {
                 cur2.contains("X-GNOME-Autostart-enabled=false"));
         final SettingsIo ss = new SettingsIo(settingsFile, encryptedFileService);
         final DefaultSettingsChangeImplementor implementor = 
-            new DefaultSettingsChangeImplementor(temp1, temp2, xmppHandler, proxifier);
+            new DefaultSettingsChangeImplementor(temp1, temp2, xmppHandler, proxifier, modelUtils);
         if (cur1.contains("<true/>")) {
             assertFalse(cur1.contains("<false/>"));
             //Configurator.setStartAtLogin(temp, false);
