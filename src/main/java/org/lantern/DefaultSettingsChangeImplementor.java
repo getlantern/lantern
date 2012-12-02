@@ -10,6 +10,7 @@ import javax.security.auth.login.CredentialException;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.lantern.Proxifier.ProxyConfigurationError;
+import org.lantern.state.ModelUtils;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,20 +40,23 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
 
     private final Proxifier proxifier;
 
+    private final ModelUtils modelUtils;
+
     @Inject
     public DefaultSettingsChangeImplementor(final XmppHandler xmppHandler,
-        final Proxifier proxifier) {
+        final Proxifier proxifier, final ModelUtils modelUtils) {
         this(LanternConstants.LAUNCHD_PLIST, LanternConstants.GNOME_AUTOSTART,
-                xmppHandler, proxifier);
+                xmppHandler, proxifier, modelUtils);
     }
     
     public DefaultSettingsChangeImplementor(final File launchdPlist, 
         final File gnomeAutostart, final XmppHandler xmppHandler,
-        final Proxifier proxifier) {
+        final Proxifier proxifier, final ModelUtils modelUtils) {
         this.launchdPlist = launchdPlist;
         this.gnomeAutostart = gnomeAutostart;
         this.xmppHandler = xmppHandler;
         this.proxifier = proxifier;
+        this.modelUtils = modelUtils;
     }
     
     @Override
@@ -188,7 +192,7 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             log.info("Mode is unchanged.");
             return;
         }
-        if (!LanternUtils.isConfigured()) {
+        if (!modelUtils.isConfigured()) {
             log.info("Not implementing mode change -- not configured.");
             return;
         }

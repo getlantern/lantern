@@ -32,7 +32,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Sets;
 import com.google.common.eventbus.Subscribe;
 
 /**
@@ -184,8 +183,6 @@ public class Settings implements MutableSettings {
     
     private String uiDir = "dashboard";
     
-    private Set<String> inClosedBeta = new HashSet<String>();
-    
     private String nodeId = String.valueOf(LanternHub.secureRandom().nextLong());
     
     /**
@@ -206,11 +203,13 @@ public class Settings implements MutableSettings {
         threadPublicIpLookup();
     }
 
+    /*
     private boolean useGoogleOAuth2=false;
     private String clientID;
     private String clientSecret;
     private String accessToken;
     private String refreshToken;
+    */
 
     public Settings() {}
     
@@ -462,6 +461,7 @@ public class Settings implements MutableSettings {
         return storedPassword;
     }
 
+    /*
     @JsonIgnore
     public void setClientID(final String clientID) {
         this.clientID = clientID;
@@ -516,6 +516,7 @@ public class Settings implements MutableSettings {
     public String getRefreshToken() {
         return refreshToken;
     }
+    */
 
     public void setUseCloudProxies(final boolean useCloudProxies) {
         this.useCloudProxies = useCloudProxies;
@@ -762,15 +763,6 @@ public class Settings implements MutableSettings {
         return cache;
     }
 
-    @JsonView({PersistentSetting.class})
-    public Set<String> getInClosedBeta() {
-        return Sets.newHashSet(this.inClosedBeta);
-    }
-
-    public void setInClosedBeta(final Set<String> inClosedBeta) {
-        this.inClosedBeta = ImmutableSet.copyOf(inClosedBeta);
-    }
-
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public Transfers getTransfers() {
         return transfers;
@@ -830,8 +822,8 @@ public class Settings implements MutableSettings {
                 + ", useLaeProxies=" + useLaeProxies + ", useCentralProxies="
                 + useCentralProxies + ", getModeLock=" + getModeLock
                 + ", stunServers=" + stunServers + ", invites=" + invites
-                + ", cache=" + cache + ", uiDir=" + uiDir + ", inClosedBeta="
-                + inClosedBeta + ", nodeId=" + nodeId + ", invited=" + invited
+                + ", cache=" + cache + ", uiDir=" + uiDir
+                + ", nodeId=" + nodeId + ", invited=" + invited
                 + ", transfers=" + transfers + ", connectivity=" + connectivity
                 + "]";
     }

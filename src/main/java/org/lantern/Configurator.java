@@ -7,6 +7,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
 import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.state.ModelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,15 +31,18 @@ public class Configurator {
     private final Proxifier proxifier;
 
     private final MessageService messageService;
+
+    private final ModelUtils modelUtils;
     
     /**
      * Creates a new configurator.
      */
     @Inject
     public Configurator(final Proxifier proxifier, 
-        final MessageService messageService) {
+        final MessageService messageService, final ModelUtils modelUtils) {
         this.proxifier = proxifier;
         this.messageService = messageService;
+        this.modelUtils = modelUtils;
         Events.register(this);
     }
     
@@ -123,7 +127,7 @@ public class Configurator {
     }
 
     public void reconfigure() {
-        if (!LanternUtils.isConfigured()) {
+        if (!modelUtils.isConfigured()) {
             System.out.println("GOOGLE ACCOUNT NOT CONFIGURED");
             return;
         }

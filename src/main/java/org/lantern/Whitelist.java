@@ -146,13 +146,7 @@ public class Whitelist {
         new TreeSet<WhitelistEntry>();
     
     {
-        // these domains host required services and can't be removed
-        addDefaultEntry("getlantern.org", true);
-        addDefaultEntry("google.com", true);
-        addDefaultEntry("exceptional.io", true);
-        for (final String site : SITES) {
-            addDefaultEntry(site);
-        }
+        reset();
     }
     
     public boolean isWhitelisted(final String uri,
@@ -303,5 +297,18 @@ public class Whitelist {
             parsed.add(str);
         }
         return parsed;
+    }
+
+    public void reset() {
+        // these domains host required services and can't be removed
+        whitelist.clear();
+        defaultWhitelist.clear();
+        requiredEntries.clear();
+        addDefaultEntry("getlantern.org", true);
+        addDefaultEntry("google.com", true);
+        addDefaultEntry("exceptional.io", true);
+        for (final String site : SITES) {
+            addDefaultEntry(site);
+        }
     }
 }

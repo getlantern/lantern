@@ -1,12 +1,18 @@
 package org.lantern.state;
 
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternConstants;
+import org.lantern.Settings.CommandLineOption;
 import org.lantern.Whitelist;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
+
+import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 /**
  * Base Lantern settings.
@@ -28,6 +34,14 @@ public class Settings {
     private boolean systemProxy = true;
     
     private boolean proxyAllSites = false;
+    
+    private boolean useGoogleOAuth2 = false;
+    private String clientID;
+    private String clientSecret;
+    private String accessToken;
+    private String refreshToken;
+    
+    private Set<String> inClosedBeta = new HashSet<String>();
     
     private Whitelist whitelist = new Whitelist();
     
@@ -124,5 +138,65 @@ public class Settings {
 
     public void setWhitelist(Whitelist whitelist) {
         this.whitelist = whitelist;
+    }
+    
+    public void setClientID(final String clientID) {
+        this.clientID = clientID;
+    }
+
+    public void setUseGoogleOAuth2(boolean useGoogleOAuth2) {
+        this.useGoogleOAuth2 = useGoogleOAuth2;
+    }
+
+    @CommandLineOption
+    @JsonView({Persistent.class})
+    public boolean isUseGoogleOAuth2() {
+        return useGoogleOAuth2;
+    }
+
+    @CommandLineOption
+    @JsonView({Persistent.class})
+    public String getClientID() {
+        return clientID;
+    }
+
+    public void setClientSecret(final String clientSecret) {
+        this.clientSecret = clientSecret;
+    }
+
+    @CommandLineOption
+    @JsonView({Persistent.class})
+    public String getClientSecret() {
+        return clientSecret;
+    }
+
+    public void setAccessToken(final String accessToken) {
+        this.accessToken = accessToken;
+    }
+
+    @CommandLineOption
+    @JsonView({Persistent.class})
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setRefreshToken(final String password) {
+        this.refreshToken = password;
+    }
+
+    @CommandLineOption
+    @JsonView({Persistent.class})
+    public String getRefreshToken() {
+        return refreshToken;
+    }
+    
+
+    @JsonView({Persistent.class})
+    public Set<String> getInClosedBeta() {
+        return Sets.newHashSet(this.inClosedBeta);
+    }
+
+    public void setInClosedBeta(final Set<String> inClosedBeta) {
+        this.inClosedBeta = ImmutableSet.copyOf(inClosedBeta);
     }
 }

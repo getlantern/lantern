@@ -6,17 +6,42 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 
 import org.apache.commons.lang.math.RandomUtils;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
+import org.lantern.state.Model;
+import org.lantern.state.ModelIo;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 
 public class WhitelistTest {
     
+    private static ModelIo modelIo;
+    
+    @BeforeClass
+    public static void setup() throws Exception {
+        final Injector injector = Guice.createInjector(new LanternModule());
+        modelIo = injector.getInstance(ModelIo.class);
+        
+        final Model settings = modelIo.get();
+        final Whitelist whitelist = settings.getSettings().getWhitelist();
+        whitelist.reset();
+    }
+    
+    @AfterClass
+    public static void after() throws Exception {
+        final Model settings = modelIo.get();
+        final Whitelist whitelist = settings.getSettings().getWhitelist();
+        whitelist.reset();
+        modelIo.write();
+    }
+    
     @Test
     public void testWhitelist() throws Exception {
-        final File settingsFile = settingsFile();
-        final SettingsIo io = new SettingsIo(settingsFile);
-        final Settings settings = io.read();
-        final Whitelist whitelist = settings.getWhitelist();
+        final Model settings = modelIo.get();
+        final Whitelist whitelist = settings.getSettings().getWhitelist();
         
         assertTrue(whitelist.isWhitelisted("libertytimes.com.tw"));
         assertTrue(!whitelist.isWhitelisted("libertytimes.org.tw"));
@@ -24,37 +49,42 @@ public class WhitelistTest {
         assertTrue(whitelist.isWhitelisted("www.facebook.com:443"));
         assertTrue(whitelist.isWhitelisted("avaaz.org"));
         assertTrue(whitelist.isWhitelisted("getlantern.org"));
-        assertFalse(whitelist.isWhitelisted(
+        assertTrue(whitelist.isWhitelisted(
             "http://graphics8.nytimes.com/adx/images/ADS/25/67/ad.256707/MJ_NYT_Text-Right.jpg"));
-        assertFalse(whitelist.isWhitelisted("http://www.nytimes.com/"));
+        assertTrue(whitelist.isWhitelisted("http://www.nytimes.com/"));
         assertTrue(whitelist.isWhitelisted("www.facebook.com:443"));
         assertTrue(whitelist.isWhitelisted("https://s-static.ak.facebook.com"));
         
-        whitelist.addEntry("nytimes.com");
+        assertFalse(whitelist.isWhitelisted("notwhitelisted.org"));
+        
+        whitelist.addEntry("notwhitelisted.org");
+        whitelist.removeEntry("nytimes.com");
         whitelist.removeEntry("avaaz.org");
         whitelist.removeEntry("getlantern.org");
 
         //final SettingsIo io = LanternHub.settingsIo();
-        io.write(settings);
-        final Settings read2 = io.read();
-        final Whitelist readWhitelist = read2.getWhitelist();
+        modelIo.write();
+        final Model read2 = modelIo.get();
+        final Whitelist readWhitelist = read2.getSettings().getWhitelist();
         
-        assertTrue(readWhitelist.isWhitelisted(
+        assertFalse(readWhitelist.isWhitelisted(
             "http://graphics8.nytimes.com/adx/images/ADS/25/67/ad.256707/MJ_NYT_Text-Right.jpg"));
-        assertTrue(readWhitelist.isWhitelisted("http://www.nytimes.com/"));
+        assertFalse(readWhitelist.isWhitelisted("http://www.nytimes.com/"));
         assertFalse(readWhitelist.isWhitelisted("avaaz.org"));
         assertTrue(readWhitelist.isWhitelisted("getlantern.org"));
+        assertTrue(readWhitelist.isWhitelisted("notwhitelisted.org"));
         
         assertTrue(readWhitelist.isWhitelisted("getlantern.org"));
         
     }
 
-    //@Test
+    @Test
     public void testIPAddressInWhitelist() throws Exception {
-        final File settingsFile = settingsFile();
-        final SettingsIo io = new SettingsIo(settingsFile);
-        final Settings settings = io.read();
-        final Whitelist whitelist = settings.getWhitelist();
+        //final File settingsFile = settingsFile();
+        //final SettingsIo io = new SettingsIo(settingsFile, 
+        //    new DefaultEncryptedFileService(new DefaultLocalCipherProvider()));
+        final Model settings = modelIo.get();
+        final Whitelist whitelist = settings.getSettings().getWhitelist();
 
         whitelist.addEntry("10.1.231.49");
         whitelist.addEntry("220.199.3.88");

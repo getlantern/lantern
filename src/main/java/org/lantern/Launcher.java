@@ -40,6 +40,7 @@ import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.ModelIo;
+import org.lantern.state.ModelUtils;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.slf4j.Logger;
@@ -71,6 +72,8 @@ public class Launcher {
     private static Injector injector;
     private static Configurator configurator;
     private static SystemTray systemTray;
+    //private static Model model;
+    private static ModelUtils modelUtils;
     
     
     /**
@@ -244,18 +247,6 @@ public class Launcher {
             loadLocalPasswordFile(cmd.getOptionValue(OPTION_PASSWORD_FILE));
         }
 
-        final String secOpt = OPTION_OAUTH2_CLIENT_SECRETS_FILE;
-        if (cmd.hasOption(secOpt)) {
-            LanternUtils.loadOAuth2ClientSecretsFile(
-                cmd.getOptionValue(secOpt));
-        }
-
-        final String credOpt = OPTION_OAUTH2_USER_CREDENTIALS_FILE;
-        if (cmd.hasOption(credOpt)) {
-            LanternUtils.loadOAuth2UserCredentialsFile(
-                cmd.getOptionValue(credOpt));
-        }
-
         if (cmd.hasOption(OPTION_PUBLIC_API)) {
             set.setBindToLocalhost(false);
         }
@@ -324,6 +315,20 @@ public class Launcher {
         localCipherProvider = instance(LocalCipherProvider.class);
         plainTextAnsererRelayProxy = instance(PlainTestRelayHttpProxyServer.class);
         systemTray = instance(SystemTray.class);
+        modelUtils = instance(ModelUtils.class);
+        
+
+        final String secOpt = OPTION_OAUTH2_CLIENT_SECRETS_FILE;
+        if (cmd.hasOption(secOpt)) {
+            modelUtils.loadOAuth2ClientSecretsFile(
+                cmd.getOptionValue(secOpt));
+        }
+
+        final String credOpt = OPTION_OAUTH2_USER_CREDENTIALS_FILE;
+        if (cmd.hasOption(credOpt)) {
+            modelUtils.loadOAuth2UserCredentialsFile(
+                cmd.getOptionValue(credOpt));
+        }
         
         shutdownable(ModelIo.class);
         
@@ -697,139 +702,6 @@ public class Launcher {
         ThreadRenamingRunnable.setThreadNameDeterminer(
             ThreadNameDeterminer.CURRENT);
         
-        
-        /*
-        final HttpRequestFilter publicOnlyRequestFilter = 
-            new PublicIpsOnlyRequestFilter();
-        
-        //final Timer timer = new HashedWheelTimer();
-        
-        
-        final ServerSocketChannelFactory serverChannelFactory = 
-            new NioServerSocketChannelFactory(
-                Executors.newCachedThreadPool(
-                    new ThreadFactoryBuilder().setNameFormat(
-                        "Lantern-Netty-Server-Boss-Thread-%d").setDaemon(true).build()),
-                Executors.newCachedThreadPool(
-                    new ThreadFactoryBuilder().setNameFormat(
-                        "Lantern-Netty-Server-Worker-Thread-%d").setDaemon(true).build()));
-        final ClientSocketChannelFactory clientChannelFactory = 
-            new NioClientSocketChannelFactory(
-                Executors.newCachedThreadPool(
-                    new ThreadFactoryBuilder().setNameFormat(
-                        "Lantern-Netty-Client-Boss-Thread-%d").setDaemon(true).build()),
-                Executors.newCachedThreadPool(
-                    new ThreadFactoryBuilder().setNameFormat(
-                        "Lantern-Netty-Client-Worker-Thread-%d").setDaemon(true).build()));
-        */
-        
-        //final ChannelGroup channelGroup = 
-        //    new DefaultChannelGroup("Local-HTTP-Proxy-Server");
-        
-        //LanternHub.setNettyTimer(timer);
-        //LanternHub.setServerChannelFactory(serverChannelFactory);
-        //LanternHub.setClientChannelFactory(clientChannelFactory);
-        //LanternHub.setChannelGroup(channelGroup);
-        
-
-        // Note that the keystore manager triggers the following to 
-        // become an SSL proxy server -- the constructor below looks up the
-        // keystore internally.
-        /*
-        final StatsTrackingDefaultHttpProxyServer sslProxy =
-            new StatsTrackingDefaultHttpProxyServer(staticRandomPort,
-            new HttpResponseFilters() {
-                @Override
-                public HttpFilter getFilter(String arg0) {
-                    return null;
-                }
-            }, null, publicOnlyRequestFilter, clientChannelFactory, timer, 
-            serverChannelFactory, LanternHub.getKeyStoreManager());
-        LOG.debug("Long lived SSL port is {}", staticRandomPort);
-        */
-        
-        
-        //final org.littleshoot.proxy.HttpProxyServer sslProxy = 
-        //    new DefaultHttpProxyServer(LanternHub.randomSslPort());
-        //sslProxy.start(false, false);
-         
-        // The reason this exists is complicated. It's for the case when the
-        // offerer gets an incoming connection from the answerer, and then
-        // only on the answerer side. The answerer "client" socket relays
-        // its data to the local proxy to feed data to the offerer, i.e. the
-        // real "client" in a broader sense. The only reason we don't use the
-        // same proxy just created above is that this is all decrypted by
-        // it gets to the point, and the above server only accepts SSL. We
-        // could theoretically wrap new client connections in SSL however.
-        // See http://cdn.getlantern.org/IMAG0210.jpg
-        
-        /*
-        Launcher.plainTextAnsererRelayProxy =
-            new StatsTrackingDefaultHttpProxyServer(
-                LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT,
-                new HttpResponseFilters() {
-                    @Override
-                    public HttpFilter getFilter(String arg0) {
-                        return null;
-                    }
-                }, null, publicOnlyRequestFilter, clientChannelFactory, timer, 
-                serverChannelFactory, null);
-                */
-        
-        /*
-        Launcher.plainTextAnsererRelayProxy = 
-            new DefaultHttpProxyServer(
-                LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT,
-                publicOnlyRequestFilter, clientChannelFactory, timer, 
-                serverChannelFactory);
-                */
-        /*
-        plainTextAnsererRelayProxy.start(true, false);
-        
-        LOG.info("About to start Lantern server on port: "+
-            LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
-            */
-
-
-        /*
-        // Delegate all calls to the current hub cookie tracker.
-        final CookieTracker hubTracker = new CookieTracker() {
-
-            @Override
-            public void setCookies(Collection<Cookie> cookies, HttpRequest context) {
-                LanternHub.cookieTracker().setCookies(cookies, context);
-            }
-
-            @Override
-            public boolean wouldSendCookie(final Cookie cookie, final URI toRequestUri) {
-                return LanternHub.cookieTracker().wouldSendCookie(cookie, toRequestUri);
-            }
-
-            @Override
-            public boolean wouldSendCookie(final Cookie cookie, final URI toRequestUri, final boolean requireValueMatch) {
-                return LanternHub.cookieTracker().wouldSendCookie(cookie, toRequestUri, requireValueMatch);
-            }
-
-            @Override
-            public CookieFilter asOutboundCookieFilter(final HttpRequest request, final boolean requireValueMatch) throws URISyntaxException {
-                return LanternHub.cookieTracker().asOutboundCookieFilter(request, requireValueMatch);
-            }
-        };
-
-        final SetCookieObserver cookieObserver = new WhitelistSetCookieObserver(hubTracker);
-        final CookieFilter.Factory cookieFilterFactory = new DefaultCookieFilterFactory(hubTracker);
-        */
-        /*
-        Launcher.localProxy = 
-            new LanternHttpProxyServer(
-                //LanternConstants.LANTERN_LOCALHOST_HTTP_PORT, 
-                //null, sslRandomPort,
-                //null, null, 
-                serverChannelFactory, 
-                clientChannelFactory, timer, channelGroup, xmpp);
-        localProxy.start();
-        */
-
         browserService.openBrowserWhenPortReady();
         
         new AutoConnector(); 
@@ -851,7 +723,7 @@ public class Launcher {
         
         private boolean done = false;
         
-        public AutoConnector() {
+        private AutoConnector() {
             checkAutoConnect();
             if (!done) {
                 Events.register(this);
@@ -880,7 +752,7 @@ public class Launcher {
             // their user name and password and the user is running with a UI.
             // Otherwise, it will connect.
             if (LanternHub.settings().isConnectOnLaunch() &&
-                (LanternUtils.isConfigured() || !LanternHub.settings().isUiEnabled())) {
+                (modelUtils.isConfigured() || !LanternHub.settings().isUiEnabled())) {
                 final Runnable runner = new Runnable() {
                     @Override
                     public void run() {

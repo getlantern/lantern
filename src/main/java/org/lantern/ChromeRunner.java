@@ -17,22 +17,21 @@ import org.slf4j.LoggerFactory;
 public class ChromeRunner {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
-    private static final int SCREEN_WIDTH = 970;
-    private static final int SCREEN_HEIGHT = 630;
     private final Point location;
     
     private volatile Process process;
+    private final int screenWidth;
+    private final int screenHeight;
     
-    public ChromeRunner() {
-        this(LanternUtils.getScreenCenter(SCREEN_WIDTH, SCREEN_HEIGHT));
-    }
     
-    public ChromeRunner(final Point location) { 
-        this.location = location;
+    public ChromeRunner(final int screenWidth, final int screenHeight) {
+        this.screenWidth = screenWidth;
+        this.screenHeight = screenHeight;
+        this.location = 
+            LanternUtils.getScreenCenter(screenWidth, screenHeight);
     }
 
-    
+
     private String determineExecutable() throws IOException {
         final String path = determineExecutablePath();
         final File file = new File(path);
@@ -75,7 +74,7 @@ public class ChromeRunner {
         final String executable = determineExecutable();
         commands.add(executable);
         commands.add("--user-data-dir="+LanternConstants.CONFIG_DIR.getAbsolutePath());
-        commands.add("--window-size="+SCREEN_WIDTH+","+SCREEN_HEIGHT);
+        commands.add("--window-size="+screenWidth+","+screenHeight);
         commands.add("--window-position="+location.x+","+location.y);
         commands.add("--app=http://localhost:"+RuntimeSettings.getApiPort());
 
