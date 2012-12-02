@@ -530,7 +530,7 @@ function GiveModeForbiddenCtrl($scope, logFactory, MODAL) {
   });
 }
 
-function ScenariosCtrl($scope, apiSrvc, logFactory, modelSrvc, dev, MODAL) {
+function ScenariosCtrl($scope, $timeout, apiSrvc, logFactory, modelSrvc, dev, MODAL) {
   var log = logFactory('ScenariosCtrl'),
       model = modelSrvc.model;
 
@@ -541,7 +541,14 @@ function ScenariosCtrl($scope, apiSrvc, logFactory, modelSrvc, dev, MODAL) {
 
   $scope.selected = [];
   $scope.$watch('model.mock.scenarios.applied', function(val) {
-    val && ($scope.selected = val.slice());
+    if (val) {
+      $scope.selected = val.slice();
+      // XXX manually call render on the select's ngModelController to work
+      // around https://github.com/angular/angular.js/issues/1624
+      $timeout(function() {
+        angular.element('select').controller('ngModel').$render();
+      });
+    }
   });
 
   $scope.multiple = true; // XXX without this, ui-select2 with "multiple" attr causes an exception
