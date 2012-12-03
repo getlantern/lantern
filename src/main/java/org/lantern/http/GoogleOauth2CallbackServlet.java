@@ -1,8 +1,6 @@
 package org.lantern.http;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -39,8 +37,7 @@ import org.lantern.state.ModelIo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets;
-import com.google.api.client.json.jackson.JacksonFactory;
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
 
 /**
  * Servlet for handling OAuth callbacks from Google. The associated code is
@@ -217,22 +214,20 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         t.setDaemon(true);
         t.start();
     }
-    
 
     private Map<String, String> loadAllToks(final DefaultHttpClient client,
         final String code) throws IOException {
-        final Map<String, String> secrets = loadClientSecrets();
-        final String redirectUrl = "http://localhost:7777/oauth2callback";
+        final Details secrets = OauthUtils.loadClientSecrets().getInstalled();
         final HttpPost post = 
             new HttpPost("https://accounts.google.com/o/oauth2/token");
         try {
-            final String clientId = secrets.get("client_id");
-            final String clientSecret = secrets.get("client_secret");
+            final String clientId = secrets.getClientId();
+            final String clientSecret = secrets.getClientSecret();
             final List<? extends NameValuePair> nvps = Arrays.asList(
                 new BasicNameValuePair("code", code),
                 new BasicNameValuePair("client_id", clientId),
                 new BasicNameValuePair("client_secret", clientSecret),
-                new BasicNameValuePair("redirect_uri", redirectUrl),
+                new BasicNameValuePair("redirect_uri", OauthUtils.REDIRECT_URL),
                 new BasicNameValuePair("grant_type", "authorization_code")
                 );
             final HttpEntity entity = 
@@ -256,20 +251,6 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             return oauthToks;
         } finally {
             post.releaseConnection();
-        }
-    }
-
-    private Map<String, String> loadClientSecrets() throws IOException {
-        InputStream is = null;
-        try {
-            is = new FileInputStream("client_secrets_installed.json");
-            final GoogleClientSecrets secrets =
-                GoogleClientSecrets.load(new JacksonFactory(), is);
-            log.debug("Secrets: {}", secrets);
-            
-            return (Map<String, String>) secrets.get("installed");
-        } finally {
-            IOUtils.closeQuietly(is);
         }
     }
 
