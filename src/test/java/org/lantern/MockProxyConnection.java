@@ -62,6 +62,7 @@ class MockProxyConnection extends MockConnection {
 
             // this is always asked for, but throwing an IOException 
             // causes us to try the next case (general proxy)
+            /*
             @Override
             public PeerProxyManager getTrustedPeerProxyManager() {
                 return new PeerProxyManager() {
@@ -87,17 +88,19 @@ class MockProxyConnection extends MockConnection {
                     
                 };
             }
+            
 
             // explosions...
             @Override
             public PeerProxyManager getAnonymousPeerProxyManager() {throw new IllegalStateException();}
+            */
             @Override
             public InetSocketAddress getLaeProxy() {throw new IllegalStateException();}
         };
 
          // start a "local" lantern browser proxy on another random port
         localPort = LanternUtils.randomPort();
-        LanternHub.setKeyStoreManager(keyStore);
+        //LanternHub.setKeyStoreManager(keyStore);
         localProxy = startMockLanternHttpProxyServer(localPort, proxyProvider, cookieTracker);
     }
 
