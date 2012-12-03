@@ -17,6 +17,7 @@ function make_simple_scenario(state) {
 
 exports.SCENARIOS = {
   os: {
+    _applyImmediately: true,
     windows: {
       desc: 'running Windows',
       func: make_simple_scenario({'system.os': OS.windows})
@@ -31,6 +32,7 @@ exports.SCENARIOS = {
     }
   },
   internet: {
+    _applyImmediately: true,
     connection: {
       desc: 'internet connection',
       func: make_simple_scenario({'connectivity.internet': true})
@@ -41,6 +43,7 @@ exports.SCENARIOS = {
     }
   },
   location: {
+    _applyImmediately: true,
     beijing: {
       desc: 'connecting from Beijing',
       func: make_simple_scenario({
@@ -58,19 +61,13 @@ exports.SCENARIOS = {
   },
   oauth: {
     notAuthorized: {
-      desc: 'not authorized',
-      func: function() {
-              this.updateModel({'connectivity.gtalkAuthorized': false}, true);
-              this._internalState.modalsCompleted[MODAL.authorize] = false;
-            }
+      desc: 'oauth: not authorized',
+      func: make_simple_scenario({'connectivity.gtalkAuthorized': false})
     },
     authorized: {
-      desc: 'authorized',
-      func: function() {
-              this.updateModel({'connectivity.gtalkAuthorized': true,
-                'settings.userid': 'user@example.com'}, true);
-              this._internalState.modalsCompleted[MODAL.authorize] = true;
-            }
+      desc: 'oauth: authorized',
+      func: make_simple_scenario({'connectivity.gtalkAuthorized': true,
+        'settings.userid': 'user@example.com'})
     }
   },
   lanternAccess: {

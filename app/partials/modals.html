@@ -371,7 +371,8 @@
       <form name="proxiedSitesForm">
         <!-- XXX add dir="ltr"? -->
         <textarea ng-model="input" name="input" placeholder="example.com" required
-          ui-validate="validate" ng-disabled="updating" ng-change="handleUpdate()"></textarea>
+          ui-validate="validate" ng-disabled="updating" ng-change="handleUpdate()"
+          autofocus tabindex="1"></textarea>
       </form>
     </div>
     <div class="smaller">
@@ -384,8 +385,10 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn" ng-disabled="updating" ng-click="reset()">{{ 'RESET' | i18n }}</button>
-    <button type="button" class="btn btn-primary" ng-disabled="dirty || updating || proxiedSitesForm.$invalid" ng-click="interaction(INTERACTION.continue)">{{ submitButtonLabelKey | i18n }}</button>
+    <button type="button" class="btn" ng-disabled="updating" ng-click="reset()" tabindex="3">{{ 'RESET' | i18n }}</button>
+    <button type="button" class="btn btn-primary" tabindex="2"
+            ng-disabled="dirty || updating || proxiedSitesForm.$invalid"
+            ng-click="interaction(INTERACTION.continue)">{{ submitButtonLabelKey | i18n }}</button>
   </div>
 </div>
 
@@ -643,11 +646,12 @@ You should have received a copy of the GNU General Public License along with thi
 
 <div id="scenarios" ng-controller="ScenariosCtrl" ng-model="show"
      ui-modal class="fade" data-backdrop="static" data-keyboard="false">
-  <div class="modal-header">
-    <h3>Applied scenarios</h3>
+  <div class="modal-header centered">
+    <h3>Developer</h3>
   </div>
   <div class="modal-body">
-    <p>{{ model.mock.scenarios.prompt }}</p>
+    <p class="centered text-error">{{ model.mock.scenarios.prompt }}</p>
+    <label>Applied scenarios:</label>
     <select ui-select2 multiple ng-multiple="multiple" ng-model="appliedScenarios"
             placeholder="Choose applied scenarios" required style="width: 530px">
       <optgroup ng-repeat="(group, scenarios) in model.mock.scenarios.all" label="{{ group }}">
@@ -656,7 +660,7 @@ You should have received a copy of the GNU General Public License along with thi
     </select> 
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.continue, {appliedScenarios: appliedScenarios})"
+    <button type="button" class="btn btn-primary" ng-click="submit()"
             ng-disabled="invalid">Continue</button>
   </div>
 </div>

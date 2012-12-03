@@ -5550,6 +5550,10 @@ body.showVis #footer {
   color: #c09853;
 }
 
+#scenarios .modal-header {
+  background-color: #fff343;
+}
+
 #dev-label {
   position: absolute;
   top: 2px;

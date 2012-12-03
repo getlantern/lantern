@@ -76,6 +76,7 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
   };
 
   $scope.updateState = function(updates) {
+    updates = angular.toJson(updates);
     return $http.post(apiSrvc.urlfor('state', {updates: updates}))
       .success(function(data, status, headers, config) {
         log.debug('Update state successful', updates);
@@ -411,8 +412,8 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
       $scope.validate($scope.input);
   });
 
-  function normalize(domain) {
-    return domain.trim().toLowerCase();
+  function normalize(domainOrIP) {
+    return domainOrIP.trim().toLowerCase();
   }
 
   $scope.validate = function(value) {
@@ -534,7 +535,7 @@ function GiveModeForbiddenCtrl($scope, logFactory, MODAL) {
   });
 }
 
-function ScenariosCtrl($scope, $timeout, apiSrvc, logFactory, modelSrvc, dev, MODAL) {
+function ScenariosCtrl($scope, $timeout, apiSrvc, logFactory, modelSrvc, dev, MODAL, INTERACTION) {
   var log = logFactory('ScenariosCtrl'),
       model = modelSrvc.model;
 
@@ -555,6 +556,16 @@ function ScenariosCtrl($scope, $timeout, apiSrvc, logFactory, modelSrvc, dev, MO
   });
 
   $scope.multiple = true; // XXX without this, ui-select2 with "multiple" attr causes an exception
+
+  $scope.submit = function() {
+    var appliedScenarios = {};
+    for (var i=0, ii=$scope.appliedScenarios[i]; ii; ii=$scope.appliedScenarios[++i]) {
+      var group_key_pair = ii.split('.');
+      appliedScenarios[group_key_pair[0]] = group_key_pair[1];
+    }
+    appliedScenarios = angular.toJson(appliedScenarios);
+    $scope.interaction(INTERACTION.continue, {appliedScenarios: appliedScenarios})
+  };
 }
 
 function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, cometdSrvc, modelSrvc) {

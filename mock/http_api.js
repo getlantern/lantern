@@ -49,13 +49,12 @@ ApiServlet.RESET_INTERNAL_STATE = {
   appliedScenarios: {
     os: 'osx',
     location: 'beijing',
-    internet: 'connection'/*,
+    internet: 'connection',
     oauth: 'authorized',
     lanternAccess: 'access',
     gtalkConnect: 'reachable',
     roster: 'contactsOnline',
     peers: 'peersOnline'
-    */
   }
 };
 
@@ -68,10 +67,13 @@ ApiServlet.prototype.reset = function() {
     mock: {scenarios: {applied: {}, all: SCENARIOS}}
   });
   var applied = this._internalState.appliedScenarios;
-  for (var group in applied) {
-    var scen = getByPath(SCENARIOS, group+'.'+applied[group]);
-    scen.func.call(this);
-    this.model.mock.scenarios.applied[group] = applied[group];
+  for (var groupKey in applied) {
+    var groupObj = getByPath(SCENARIOS, groupKey),
+        scenKey = applied[groupKey],
+        scenObj = groupObj[scenKey];
+    if (groupObj._applyImmediately || scenObj._applyImmediately)
+      scenObj.func.call(this);
+    this.model.mock.scenarios.applied[groupKey] = scenKey;
   }
   if (!this.passwordCreateRequired()) {
     this._internalState.modalsCompleted.passwordCreate = true;
@@ -97,7 +99,7 @@ ApiServlet.prototype._advanceModal = function(backToIfNone) {
   for (var i=0; this._internalState.modalsCompleted[next=modalSeq[i++]];);
   if (backToIfNone && next == MODAL.none)
     next = backToIfNone;
-  log('next', next);
+  log('next modal:', next);
   this.updateModel({modal: next}, true);
 };
 
@@ -131,8 +133,9 @@ ApiServlet._handlers.passwordCreate = function(res, qs) {
 
 ApiServlet._handlers.state = function(res, qs) {
   // XXX validate requested changes via model schema before applying them
-  this.updateModel(qs.updates, true);
-  log('applied state updates', qs.updates);
+  var updates = JSON.parse(qs.updates);
+  this.updateModel(updates, true);
+  log('applied state updates', updates);
 };
 
 ApiServlet._handlers['settings/unlock'] = function(res, qs) {
@@ -141,15 +144,6 @@ ApiServlet._handlers['settings/unlock'] = function(res, qs) {
     return;
   }
   this._advanceModal();
-};
-
-ApiServlet._handlers.oauthAuthorized = function(res, qs) {
-  // XXX handle via scenario
-  this.updateModel({'settings.userid': qs.userid,
-    'connectivity.gtalkAuthorized': true
-  }, true);
-  this._internalState.modalsCompleted[MODAL.authorize] = true;
-  this._tryConnect();
 };
 
 ApiServlet._handlers.requestInvite = function(res, qs) {
@@ -172,11 +166,11 @@ ApiServlet._handlers.interaction = function(res, qs) {
 ApiServlet._intHandlerForModal = {};
 ApiServlet._intHandlerForModal[MODAL.scenarios] = function(interaction, res, qs) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
-  var appliedScenarios = qs.appliedScenarios.split(',');
+  var appliedScenarios = JSON.parse(qs.appliedScenarios);
   log("appliedScenarios:", appliedScenarios);
   // XXX validate
   this.updateModel({'mock.scenarios.applied': appliedScenarios,
-    'modal': this._internalState.lastModal}, true);
+    'mock.scenarios.prompt': '', 'modal': this._internalState.lastModal}, true);
   this._internalState.lastModal = MODAL.none;
 };
 
@@ -204,12 +198,6 @@ ApiServlet._intHandlerForModal[MODAL.giveModeForbidden] = function(interaction, 
   }
 };
 
-    /*
-    var scenario = getByPath(this.model, 'mock.scenarios.all.'+ii);
-    if (scenario) {
-      scenario()
-    */
-
 ApiServlet._intHandlerForModal[MODAL.authorize] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
 
@@ -217,6 +205,7 @@ ApiServlet._intHandlerForModal[MODAL.authorize] = function(interaction, res) {
   var scen = getByPath(this.model, 'mock.scenarios.applied.oauth');
   scen = getByPath(this.model, 'mock.scenarios.all.oauth.'+scen);
   if (!scen) {
+    this._internalState.lastModal = MODAL.authorize;
     this.updateModel({modal: MODAL.scenarios,
       'mock.scenarios.prompt': 'No oauth scenario applied.'}, true);
     return;
@@ -230,9 +219,11 @@ ApiServlet._intHandlerForModal[MODAL.authorize] = function(interaction, res) {
   }
 
   // check for lantern access
+  // XXX show this in UI?
   scen = getByPath(this.model, 'mock.scenarios.applied.lanternAccess');
   scen = getByPath(this.model, 'mock.scenarios.all.lanternAccess.'+scen);
   if (!scen) {
+    this._internalState.lastModal = MODAL.authorize;
     this.updateModel({modal: MODAL.scenarios,
       'mock.scenarios.prompt': 'No Lantern access scenario applied.'}, true);
     return;
@@ -249,6 +240,7 @@ ApiServlet._intHandlerForModal[MODAL.authorize] = function(interaction, res) {
   scen = getByPath(this.model, 'mock.scenarios.applied.gtalkConnect');
   scen = getByPath(this.model, 'mock.scenarios.all.gtalkConnect.'+scen);
   if (!scen) {
+    this._internalState.lastModal = MODAL.authorize;
     this.updateModel({modal: MODAL.scenarios,
       'mock.scenarios.prompt': 'No gtalkConnect scenario applied.'}, true);
     return;
@@ -261,9 +253,11 @@ ApiServlet._intHandlerForModal[MODAL.authorize] = function(interaction, res) {
   }
 
   // fetch roster
+  // XXX show this in UI?
   scen = getByPath(this.model, 'mock.scenarios.applied.roster');
   scen = getByPath(this.model, 'mock.scenarios.all.roster.'+scen);
   if (!scen) {
+    this._internalState.lastModal = MODAL.authorize;
     this.updateModel({modal: MODAL.scenarios,
       'mock.scenarios.prompt': 'No roster scenario applied.'}, true);
     return;
@@ -276,9 +270,11 @@ ApiServlet._intHandlerForModal[MODAL.authorize] = function(interaction, res) {
   }
 
   // peer discovery and connection
+  // XXX show this in UI?
   scen = getByPath(this.model, 'mock.scenarios.applied.peers');
   scen = getByPath(this.model, 'mock.scenarios.all.peers.'+scen);
   if (!scen) {
+    this._internalState.lastModal = MODAL.authorize;
     this.updateModel({modal: MODAL.scenarios,
       'mock.scenarios.prompt': 'No peers scenario applied.'}, true);
     return;
@@ -289,7 +285,7 @@ ApiServlet._intHandlerForModal[MODAL.authorize] = function(interaction, res) {
     this.updateModel({modal: MODAL.gtalkUnreachable}, true);
     return;
   }
-
+  this._internalState.modalsCompleted[MODAL.authorize] = true;
   this._advanceModal();
 };
 
