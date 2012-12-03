@@ -4,7 +4,7 @@ Lantern [![Build Status](https://secure.travis-ci.org/getlantern/lantern.png)](h
 Lantern allows you to give or get access to the internet through other users
 around the world connected by a peer-to-peer network.
 
-Lantern is written in Java and runs on modern Mac, Windows, and Ubuntu Linux
+Lantern is written primarily in Java and runs on modern Mac, Windows, and Ubuntu Linux
 desktop systems.
 
 ![screenshot](https://www.getlantern.org/static/img/dl-mac_setup.png)
@@ -19,7 +19,7 @@ desktop systems.
 
 2. Clone the repository:
 
-    $ git clone git://github.com/getlantern/lantern.git 
+    $ git clone --recursive git://github.com/getlantern/lantern.git 
     
 3. Change to the lantern directory:
 
@@ -29,7 +29,7 @@ desktop systems.
 
     $ ./run.bash
 
-That script will fetch the required Java libraries, build, and
+That script will fetch the required libraries, build, and
 run Lantern. There's also a `quickRun.bash` script that will run Lantern
 when already built.
 
