@@ -5,6 +5,7 @@ import java.util.HashSet;
 import java.util.TreeSet;
 
 import org.apache.commons.lang.StringUtils;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -145,17 +146,14 @@ public class Whitelist {
         new TreeSet<WhitelistEntry>();
     
     {
-        // these domains host required services and can't be removed
-        addDefaultEntry("getlantern.org", true);
-        addDefaultEntry("google.com", true);
-        addDefaultEntry("exceptional.io", true);
-        for (final String site : SITES) {
-            addDefaultEntry(site);
-        }
+        reset();
     }
     
     public boolean isWhitelisted(final String uri,
         final Collection<WhitelistEntry> wl) {
+        if (StringUtils.isBlank(uri)) {
+            return false;
+        }
         final String toMatch = normalized(toBaseUri(uri));
         return wl.contains(new WhitelistEntry(toMatch));
     }
@@ -182,18 +180,8 @@ public class Whitelist {
         log.debug("Checking whitelist for request");
         final String uri = request.getUri();
         log.debug("URI is: {}", uri);
-
-        final String referer = request.getHeader("referer");
-        
-        final String uriToCheck;
-        log.debug("Referer: "+referer);
-        if (!StringUtils.isBlank(referer)) {
-            uriToCheck = referer;
-        } else {
-            uriToCheck = uri;
-        }
-
-        return isWhitelisted(uriToCheck);
+        final String referer = request.getHeader(HttpHeaders.Names.REFERER);
+        return isWhitelisted(referer) || isWhitelisted(uri);
     }
     
     private void addDefaultEntry(final String entry) {
@@ -208,9 +196,21 @@ public class Whitelist {
             this.requiredEntries.add(entry);
         }
     }
-    
+
     private String normalized(final String entry) {
         return entry.toLowerCase();
+    }
+
+    public void setStringEntries(final String[] entries) {
+        setEntries(toEntries(entries));
+    }
+    
+    private Collection<WhitelistEntry> toEntries(final String[] entries) {
+        final Collection<WhitelistEntry> wl = new TreeSet<WhitelistEntry>();
+        for (final String entry : entries) {
+            wl.add(new WhitelistEntry(normalized(entry)));
+        }
+        return wl;
     }
 
     public void addEntry(final String entry) {
@@ -227,7 +227,9 @@ public class Whitelist {
     }
     
     public Collection<WhitelistEntry> getEntries() {
-        return whitelist;
+        synchronized (whitelist) {
+            return new TreeSet<WhitelistEntry>(whitelist);
+        }
     }
     
     public void setEntries(final Collection<WhitelistEntry> entries) {
@@ -235,7 +237,6 @@ public class Whitelist {
             this.whitelist = entries; 
         }
     }
-
 
     private String toBaseUri(final String uri) {
         log.debug("Parsing full URI: {}", uri);
@@ -303,5 +304,18 @@ public class Whitelist {
             parsed.add(str);
         }
         return parsed;
+    }
+
+    public void reset() {
+        // these domains host required services and can't be removed
+        whitelist.clear();
+        defaultWhitelist.clear();
+        requiredEntries.clear();
+        addDefaultEntry("getlantern.org", true);
+        addDefaultEntry("google.com", true);
+        addDefaultEntry("exceptional.io", true);
+        for (final String site : SITES) {
+            addDefaultEntry(site);
+        }
     }
 }

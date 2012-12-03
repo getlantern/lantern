@@ -2,6 +2,8 @@ package org.lantern;
 
 import static org.junit.Assert.assertTrue;
 
+import java.util.Timer;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.junit.Test;
@@ -10,17 +12,23 @@ import org.lastbamboo.common.portmapping.PortMappingProtocol;
 
 
 public class NatPmpTest {
-
-    @Test public void testNatPmp() throws Exception {
+    
+    @Test 
+    public void testNatPmp() throws Exception {
         // NOTE: This will of course only work from a network with a router
         // that supports NAT-PMP! Disable for deploys in other scenarios?
-        final NatPmp pmp = new NatPmp();
+        final NatPmp pmp = new NatPmp(new StatsTracker(new Timer()));
         final AtomicInteger ai = new AtomicInteger(-1);
+        final AtomicBoolean error = new AtomicBoolean();
         final PortMapListener portMapListener = new PortMapListener() {
             
             @Override
             public void onPortMapError() {
                 System.out.println("Port map error!!");
+                error.set(true);
+                synchronized(ai) {
+                    ai.notifyAll();
+                }
             }
             
             @Override
@@ -40,7 +48,9 @@ public class NatPmpTest {
                 ai.wait(2000);
             }
         }
-        final int mapped = ai.get();
-        //assertTrue(mapped > 1024);
+        if (!error.get()) {
+            final int mapped = ai.get();
+            assertTrue(mapped > 1024);
+        }
     }
 }

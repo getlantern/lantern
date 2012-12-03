@@ -21,6 +21,7 @@ import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.RandomRoutingTable;
 import org.kaleidoscope.TrustGraphNodeId;
+import org.lantern.event.RosterStateChangedEvent;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -66,6 +67,11 @@ public class Roster implements RosterListener {
                 final XMPPConnection conn = 
                     xmppHandler.getP2PClient().getXmppConnection();
                 
+                if (conn == null) {
+                    // Probably testing...
+                    log.warn("No connection?");
+                    return;
+                }
                 final org.jivesoftware.smack.Roster roster = conn.getRoster();
                 roster.setSubscriptionMode(
                     org.jivesoftware.smack.Roster.SubscriptionMode.manual);
@@ -86,7 +92,7 @@ public class Roster implements RosterListener {
                 populated = true;
                 log.debug("Finished populating roster");
                 log.info("kscope is: {}", kscopeRoutingTable);
-                LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
+                Events.asyncEventBus().post(new RosterStateChangedEvent());
             }
         };
         final Thread t = new Thread(r, "Roster-Populating-Thread");
@@ -187,13 +193,13 @@ public class Roster implements RosterListener {
 
     public void addIncomingSubscriptionRequest(final String from) {
         incomingSubscriptionRequests.add(from);
-        LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
+        Events.asyncEventBus().post(new RosterStateChangedEvent());
     }
     
 
     public void removeIncomingSubscriptionRequest(final String from) {
         incomingSubscriptionRequests.remove(from);
-        LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
+        Events.asyncEventBus().post(new RosterStateChangedEvent());
     }
 
     public Collection<String> getSubscriptionRequests() {
@@ -206,7 +212,7 @@ public class Roster implements RosterListener {
         for (final String entry : entries) {
             addEntry(new LanternRosterEntry(entry));
         }
-        LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
+        Events.asyncEventBus().post(new RosterStateChangedEvent());
     }
 
     @Override
@@ -219,7 +225,7 @@ public class Roster implements RosterListener {
             rosterEntries.remove(email);
             rosterEntries.remove(entry);
         }
-        LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
+        Events.asyncEventBus().post(new RosterStateChangedEvent());
     }
 
     @Override
@@ -230,7 +236,7 @@ public class Roster implements RosterListener {
                 this.xmppHandler.getP2PClient().getXmppConnection().getRoster().getPresence(entry);
             onPresence(pres);
         }
-        LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
+        Events.asyncEventBus().post(new RosterStateChangedEvent());
     }
 
     @Override

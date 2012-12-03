@@ -28,10 +28,17 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
 
     private final ChannelGroup channelGroup;
 
+    private final ByteTracker byteTracker;
+
+    private final LanternSocketsUtil socketsUtil;
+
     public PeerHttpConnectRequestProcessor(final Socket sock,
-        final ChannelGroup channelGroup) {
+        final ChannelGroup channelGroup, final ByteTracker byteTracker,
+        final LanternSocketsUtil socketsUtil) {
         this.sock = sock;
         this.channelGroup = channelGroup;
+        this.byteTracker = byteTracker;
+        this.socketsUtil = socketsUtil;
     }
 
     @Override
@@ -46,7 +53,7 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
             // a SocketHttpConnectRelayingHandler and the normal 
             // encoder that records stats is removed from the 
             // browserToProxyChannel pipeline.
-            LanternUtils.startReading(this.sock, browserToProxyChannel, true);
+            this.socketsUtil.startReading(this.sock, browserToProxyChannel, true);
             
             log.info("Got an outbound socket on request handler hash {} to {}", 
                 hashCode(), this.sock);
@@ -56,7 +63,6 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
             browserPipeline.remove("encoder");
             browserPipeline.remove("decoder");
             browserPipeline.remove("handler");
-            
             
             browserPipeline.addLast("handler", 
                 new SocketHttpConnectRelayingHandler(this.sock, 
@@ -71,10 +77,15 @@ public class PeerHttpConnectRequestProcessor implements HttpRequestProcessor {
         try {
             final OutputStream os = this.sock.getOutputStream();
             final byte[] data = LanternUtils.toByteBuffer(request, ctx);
-            log.info("Writing data on peer socket: {}", new String(data, "UTF-8"));
+            //log.info("Writing data on peer socket: {}", new String(data, "UTF-8"));
+            log.debug("Writing {} bytes on peer socket...", data.length);
             os.write(data);
-            // shady, hard to know if it's really been done
-            LanternHub.statsTracker().addUpBytesViaProxies(data.length, this.sock);
+            
+            // Remember this could be any kind of underlying socket here, 
+            // including a UDP socket with an OutputStream that might not
+            // have truly written then bytes even though it's theoretically
+            // blocking.
+            byteTracker.addUpBytes(data.length);
         } catch (final IOException e) {
             log.error("Could not write to stream?", e);
             return false;

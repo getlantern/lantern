@@ -6,28 +6,44 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
+import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.state.ModelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Configures Lantern. This can be either on the first run of the application
  * or through the user changing his or her configurations in the configuration
  * screen.
  */
+@Singleton
 public class Configurator {
     
     private final Logger LOG = 
         LoggerFactory.getLogger(Configurator.class);
     
     private volatile boolean configured = false;
+
+    private final Proxifier proxifier;
+
+    private final MessageService messageService;
+
+    private final ModelUtils modelUtils;
     
     /**
      * Creates a new configurator.
      */
-    public Configurator() {
-        LanternHub.register(this);
+    @Inject
+    public Configurator(final Proxifier proxifier, 
+        final MessageService messageService, final ModelUtils modelUtils) {
+        this.proxifier = proxifier;
+        this.messageService = messageService;
+        this.modelUtils = modelUtils;
+        Events.register(this);
     }
     
     @Subscribe
@@ -111,7 +127,7 @@ public class Configurator {
     }
 
     public void reconfigure() {
-        if (!LanternUtils.isConfigured()) {
+        if (!modelUtils.isConfigured()) {
             System.out.println("GOOGLE ACCOUNT NOT CONFIGURED");
             return;
         }
@@ -127,7 +143,7 @@ public class Configurator {
             boolean finished = false;
             while (!finished) {
                 try {
-                    Proxifier.startProxying();
+                    proxifier.startProxying();
                     finished = true;
                 } catch (Proxifier.ProxyConfigurationError e) {
                     if (LanternHub.settings().isUiEnabled()) {
@@ -137,7 +153,7 @@ public class Configurator {
                             "your web traffic unless you manually configure your proxy settings.\n\n" +
                             "Try again?";
                         final int response = 
-                            LanternHub.dashboard().askQuestion("Proxy Settings", question,
+                            messageService.askQuestion("Proxy Settings", question,
                                 SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.RETRY | SWT.CANCEL);
                         if (response == SWT.CANCEL) {
                             finished = true;

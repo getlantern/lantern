@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 
+import javax.inject.Named;
 import javax.net.ssl.SSLEngine;
 
 import org.apache.commons.lang.StringUtils;
@@ -69,6 +70,16 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final ChannelGroup channelGroup;
 
+    private final XmppHandler xmppHandler;
+    
+    private final PeerProxyManager trustedPeerProxyManager;
+
+    private final PeerProxyManager anonymousPeerProxyManager;
+
+    private final Stats stats;
+
+    private final LanternKeyStoreManager ksm;
+
     /**
      * Creates a new handler that reads incoming HTTP requests and dispatches
      * them to proxies as appropriate.
@@ -79,11 +90,21 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
      */
     public DispatchingProxyRelayHandler(
         final ClientSocketChannelFactory clientChannelFactory,
-        final ChannelGroup channelGroup) {
+        final ChannelGroup channelGroup,
+        final XmppHandler xmppHandler,
+        @Named("trusted") final PeerProxyManager trustedPeerProxyManager,
+        @Named("anon") final PeerProxyManager anonymousPeerProxyManager,
+        final Stats stats,
+        final LanternKeyStoreManager ksm) {
         this.clientChannelFactory = clientChannelFactory;
         this.channelGroup = channelGroup;
+        this.xmppHandler = xmppHandler;
+        this.trustedPeerProxyManager = trustedPeerProxyManager;
+        this.anonymousPeerProxyManager = anonymousPeerProxyManager;
+        this.stats = stats;
+        this.ksm = ksm;
         this.proxyRequestProcessor =
-            new DefaultHttpRequestProcessor(LanternHub.getProxyStatusListener(),
+            new DefaultHttpRequestProcessor(xmppHandler,
                 new HttpRequestTransformer() {
                     @Override
                     public void transform(final HttpRequest request, 
@@ -99,11 +120,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     }
                     @Override
                     public InetSocketAddress getProxy() {
-                        return LanternHub.getProxyProvider().getProxy();
+                        return xmppHandler.getProxy();
                     }
-                }, this.clientChannelFactory, this.channelGroup);
+                }, this.clientChannelFactory, this.channelGroup, this.stats, this.ksm);
         this.laeRequestProcessor =
-            new DefaultHttpRequestProcessor(LanternHub.getProxyStatusListener(),
+            new DefaultHttpRequestProcessor(xmppHandler,
                 new LaeHttpRequestTransformer(), true,
                 new Proxy() {
                     @Override
@@ -113,9 +134,9 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     }
                     @Override
                     public InetSocketAddress getProxy() {
-                        return LanternHub.getProxyProvider().getLaeProxy();
+                        return xmppHandler.getLaeProxy();
                     }
-            }, this.clientChannelFactory, this.channelGroup);
+            }, this.clientChannelFactory, this.channelGroup, this.stats, this.ksm);
     }
 
     @Override
@@ -188,7 +209,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             return null;
         }
         log.debug("Not converting to HTTPS");
-        LanternHub.statsTracker().incrementProxiedRequests();
+        this.stats.incrementProxiedRequests();
         return dispatchProxyRequest(ctx, me);
     }
     
@@ -199,18 +220,18 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         if (request.getMethod() == HttpMethod.CONNECT) {
             try {
                 if (LanternHub.settings().isUseAnonymousPeers() && 
-                    LanternHub.getProxyProvider().getAnonymousPeerProxyManager().processRequest(
+                    anonymousPeerProxyManager.processRequest(
                 //if (LanternHub.settings().isUseTrustedPeers() && 
                 //    LanternHub.getProxyProvider().getTrustedPeerProxyManager().processRequest(
                         browserToProxyChannel, ctx, me) != null) {
                     log.info("Processed CONNECT on peer...returning");
                     return null;
                 } else if (useStandardProxies()){
-                    // We need to forward the CONNECT request from this proxy to an
-                    // external proxy that can handle it. We effectively want to 
-                    // relay all traffic in this case without doing anything on 
-                    // our own other than direct the CONNECT request to the correct 
-                    // proxy.
+                    // We need to forward the CONNECT request from this proxy 
+                    // to an external proxy that can handle it. We effectively 
+                    // want to relay all traffic in this case without doing 
+                    // anything on our own other than direct the CONNECT 
+                    // request to the correct proxy.
                     centralConnect(request);
                     return null;
                 }
@@ -228,8 +249,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         }
         try {
             if (LanternHub.settings().isUseTrustedPeers()) {
-                final PeerProxyManager provider = 
-                    LanternHub.getProxyProvider().getTrustedPeerProxyManager();
+                final PeerProxyManager provider = trustedPeerProxyManager;
                 if (provider != null) {
                     log.info("Sending {} to trusted peers", request.getUri());
                     final HttpRequestProcessor rp = provider.processRequest(
@@ -283,7 +303,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             log.debug("Opening HTTP CONNECT tunnel");
             try {
                 this.httpConnectChannelFuture = 
-                    openOutgoingRelayChannel(request);
+                    openHttpConnectChannelToCentralProxy(request);
             } catch (final IOException e) {
                 log.error("Could not open CONNECT channel", e);
             }
@@ -333,8 +353,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         this.channelGroup.add(this.browserToProxyChannel);
     }
     
-    private ChannelFuture openOutgoingRelayChannel(final HttpRequest request) 
-        throws IOException {
+    private ChannelFuture openHttpConnectChannelToCentralProxy(
+        final HttpRequest request) throws IOException {
         this.browserToProxyChannel.setReadable(false);
 
         // Start the connection attempt.
@@ -349,35 +369,31 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         // It's also necessary to use our own engine here, as we need to trust
         // the cert from the proxy.
         final LanternClientSslContextFactory sslFactory =
-            new LanternClientSslContextFactory();
+            new LanternClientSslContextFactory(this.ksm);
         final SSLEngine engine =
             sslFactory.getClientContext().createSSLEngine();
         engine.setUseClientMode(true);
         
-        ChannelHandler stats = new StatsTrackingHandler() {
+        final ChannelHandler statsHandler = new StatsTrackingHandler() {
             @Override
-            public void addDownBytes(long bytes, Channel channel) {
-                // global bytes proxied statistic
-                //log.info("Recording proxied bytes through HTTP CONNECT: {}", bytes);
-                statsTracker().addBytesProxied(bytes, channel);
-                
+            public void addDownBytes(long bytes) {
                 // contributes to local download rate
-                statsTracker().addDownBytesViaProxies(bytes, channel);
+                stats.addDownBytesViaProxies(bytes);
             }
 
             @Override
-            public void addUpBytes(long bytes, Channel channel) {
-                statsTracker().addUpBytesViaProxies(bytes, channel);
+            public void addUpBytes(long bytes) {
+                stats.addUpBytesViaProxies(bytes);
             }
         };        
 
-        pipeline.addLast("stats", stats);
+        pipeline.addLast("stats", statsHandler);
         pipeline.addLast("ssl", new SslHandler(engine));
         pipeline.addLast("encoder", new HttpRequestEncoder());
         pipeline.addLast("handler", 
             new HttpConnectRelayingHandler(this.browserToProxyChannel, 
                 this.channelGroup));
-        final InetSocketAddress isa = LanternHub.getProxyProvider().getProxy();
+        final InetSocketAddress isa = xmppHandler.getProxy();
         if (isa == null) {
             log.error("NO PROXY AVAILABLE?");
             ProxyUtils.closeOnFlush(browserToProxyChannel);
@@ -426,7 +442,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 } else {
                     // Close the connection if the connection attempt has failed.
                     browserToProxyChannel.close();
-                    LanternHub.getProxyStatusListener().onCouldNotConnect(isa);
+                    xmppHandler.onCouldNotConnect(isa);
                 }
             }
         });

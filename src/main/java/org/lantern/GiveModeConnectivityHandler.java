@@ -1,5 +1,7 @@
 package org.lantern;
 
+import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.event.GoogleTalkStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,10 +15,10 @@ public class GiveModeConnectivityHandler {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     public GiveModeConnectivityHandler() {
-        LanternHub.register(this);
+        Events.register(this);
     }
     
-    @Subscribe
+    //@Subscribe
     public void onGoogleTalkState(final GoogleTalkStateEvent event) {
         if (LanternHub.settings().isGetMode()) {
             log.info("Not linking Google Talk state to connectivity " +
@@ -26,21 +28,23 @@ public class GiveModeConnectivityHandler {
         final GoogleTalkState state = event.getState();
         final ConnectivityStatus cs;
         switch (state) {
-            case LOGGED_IN:
+            case connected:
                 cs = ConnectivityStatus.CONNECTED;
                 break;
-            case LOGGED_OUT:
+            case notConnected:
                 cs = ConnectivityStatus.DISCONNECTED;
                 break;
             case LOGIN_FAILED:
                 cs = ConnectivityStatus.DISCONNECTED;
                 break;
-            case LOGGING_IN:
+            case connecting:
                 cs = ConnectivityStatus.CONNECTING;
                 break;
+                /*
             case LOGGING_OUT:
                 cs = ConnectivityStatus.DISCONNECTED;
                 break;
+                */
             default:
                 log.error("Should never get here...");
                 cs = ConnectivityStatus.DISCONNECTED;
@@ -48,7 +52,7 @@ public class GiveModeConnectivityHandler {
         }
         log.info("Linking Google Talk state {} to connectivity state {}", 
             state, cs);
-        LanternHub.eventBus().post(
+        Events.eventBus().post(
             new ConnectivityStatusChangeEvent(cs));
     }
 }

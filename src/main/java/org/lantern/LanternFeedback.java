@@ -33,7 +33,7 @@ class LanternFeedback {
     protected Map<String, String> systemInfo() {
         final Map<String, String> info = new HashMap<String,String>();
 
-        info.put("lanternVersion", LanternHub.settings().getVersion());        
+        info.put("lanternVersion", LanternHub.settings().getVersion().getCurrent().getLabel());        
         info.put("javaVersion", SystemUtils.JAVA_VERSION);
         info.put("osName", SystemUtils.OS_NAME);
         info.put("osArch", SystemUtils.OS_ARCH);
@@ -89,7 +89,8 @@ class LanternFeedback {
   /**
    * quick and dirty google spreadsheet submitter
    */
-  private final static String FORM_URL = "https://docs.google.com/a/getlantern.org/spreadsheet/formResponse?formkey=dFl3UEhZV2pNcmFELU5jbTJ6eVhBMmc6MQ&amp;ifq";
+  private final static String FORM_URL = 
+      "https://docs.google.com/a/getlantern.org/spreadsheet/formResponse?formkey=dFl3UEhZV2pNcmFELU5jbTJ6eVhBMmc6MQ&amp;ifq";
   private final String [] FORM_ORDER = {
       "message",
       "replyto",

@@ -1,0 +1,20 @@
+package org.lantern.event; 
+
+import org.lantern.SettingsState;
+
+/**
+ * Event for a change in the state of the settings
+ */
+public class SettingsStateEvent {
+
+    private final SettingsState state;
+
+    public SettingsStateEvent(final SettingsState state) {
+        this.state = new SettingsState(state);
+    }
+
+    public SettingsState getState() {
+        return state;
+    }
+
+}

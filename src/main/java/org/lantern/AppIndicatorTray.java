@@ -3,6 +3,9 @@ package org.lantern;
 import java.io.File;
 import java.util.Map;
 
+import org.apache.commons.lang3.SystemUtils;
+import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.event.QuitEvent;
 import org.lantern.linux.AppIndicator;
 import org.lantern.linux.Glib;
 import org.lantern.linux.Gobject;
@@ -11,6 +14,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.sun.jna.Native;
 import com.sun.jna.Pointer;
 
@@ -19,6 +24,7 @@ import com.sun.jna.Pointer;
  * Class for handling all system tray interactions.
  * specialization for using app indicators in ubuntu. 
  */
+@Singleton
 public class AppIndicatorTray implements SystemTray {
 
     private static final Logger LOG = LoggerFactory.getLogger(AppIndicatorTray.class);
@@ -41,19 +47,22 @@ public class AppIndicatorTray implements SystemTray {
     private static AppIndicator libappindicator = null;
     
     static {
-        try {
-            libappindicator = (AppIndicator) Native.loadLibrary("appindicator", AppIndicator.class);
-            libgtk = (Gtk) Native.loadLibrary("gtk-x11-2.0", Gtk.class);
-            libgobject = (Gobject) Native.loadLibrary("gobject-2.0", Gobject.class);
-            libglib = (Glib) Native.loadLibrary("glib-2.0", Glib.class);
-            //libunique = (Unique) Native.loadLibrary("unique-3.0", Unique.class);
-        }
-        catch (final Throwable ex) {
-            LOG.warn("no supported version of appindicator libs found", ex);
+        if (SystemUtils.IS_OS_LINUX) {
+            try {
+                libappindicator = (AppIndicator) Native.loadLibrary("appindicator", AppIndicator.class);
+                libgtk = (Gtk) Native.loadLibrary("gtk-x11-2.0", Gtk.class);
+                libgobject = (Gobject) Native.loadLibrary("gobject-2.0", Gobject.class);
+                libglib = (Glib) Native.loadLibrary("glib-2.0", Glib.class);
+                //libunique = (Unique) Native.loadLibrary("unique-3.0", Unique.class);
+            }
+            catch (final Throwable ex) {
+                LOG.warn("no supported version of appindicator libs found", ex);
+            }
         }
     }
 
-    public static boolean isSupported() {
+    @Override
+    public boolean isSupported() {
         return (libglib != null && libgtk != null && libappindicator != null);
     }
 
@@ -76,17 +85,28 @@ public class AppIndicatorTray implements SystemTray {
     private Gobject.GCallback updateItemCallback;
     private Gobject.GCallback quitItemCallback;
 
-    private FailureCallback _failureCallback = null;
+    private FailureCallback failureCallback;
 
     private Map<String, Object> updateData;
 
     private boolean active = false;
 
-    public AppIndicatorTray() {        
+    private final BrowserService browserService;
+
+    @Inject
+    public AppIndicatorTray(final BrowserService jettyLauncher) {
+        this.browserService = jettyLauncher;
+    }
+    
+
+    @Override
+    public void start() {
+        createTray();
     }
 
-    public AppIndicatorTray(FailureCallback fbc) {
-        _failureCallback = fbc;
+    @Override
+    public void stop() {
+        
     }
 
     @Override
@@ -161,7 +181,7 @@ public class AppIndicatorTray implements SystemTray {
         changeIcon(ICON_DISCONNECTED, LABEL_DISCONNECTED);
         libappindicator.app_indicator_set_status(appIndicator, AppIndicator.STATUS_ACTIVE);
     
-        LanternHub.register(this);
+        Events.register(this);
         this.active = true;
     }
 
@@ -176,22 +196,21 @@ public class AppIndicatorTray implements SystemTray {
 
     protected void fallback() {
         LOG.warn("Failed to create appindicator system tray.");
-        if (_failureCallback != null) {
-            _failureCallback.createTrayFailed();
+        if (this.failureCallback != null) {
+            this.failureCallback.createTrayFailed();
         }
     }
 
     private void openDashboard() {
         LOG.debug("openDashboard called.");
-        LanternHub.jettyLauncher().openBrowserWhenReady();
+        this.browserService.reopenBrowser();
     }
 
     private void quit() {
         LOG.debug("quit called.");
-        LanternHub.eventBus().post(new QuitEvent());
-        LanternHub.display().dispose();
-        LanternHub.xmppHandler().disconnect();
-        LanternHub.jettyLauncher().stop();
+        Events.eventBus().post(new QuitEvent());
+        //LanternHub.display().dispose();
+        //this.xmppHandler.disconnect();
         System.exit(0);
     }
     
@@ -248,5 +267,9 @@ public class AppIndicatorTray implements SystemTray {
     private void changeIcon(final String fileName, final String label) {
         libappindicator.app_indicator_set_icon_full(appIndicator, iconPath(fileName), "Lantern");
         libgtk.gtk_menu_item_set_label(connectionStatusItem, label);
+    }
+
+    public void setFailureCallback(FailureCallback failureCallback) {
+        this.failureCallback = failureCallback;
     }
 };

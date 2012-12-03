@@ -34,6 +34,7 @@ class MockLaeConnection extends MockConnection {
         
         currentTest = null;
 
+        /*
         keyStore = createTempKeyStore();
         LanternHub.setKeyStoreManager(keyStore);
         // certify ourself to ourself...
@@ -53,10 +54,9 @@ class MockLaeConnection extends MockConnection {
         peerHandler = new FakePeerHandler(this);
         peerServer = startDummyLanternPeer(peerPort, keyStore, peerHandler);
         
-        /* this proxyprovider will explode if anything but the expected type 
-         * of proxy is requested.  When an app engine peer is requested, the 
-         * address of our fake app engine server is returned.
-         */
+        // this proxyprovider will explode if anything but the expected type 
+        // of proxy is requested.  When an app engine peer is requested, the 
+        // address of our fake app engine server is returned.
         ProxyProvider proxyProvider = new ProxyProvider() {
             @Override
             public InetSocketAddress getLaeProxy() {
@@ -66,18 +66,19 @@ class MockLaeConnection extends MockConnection {
             @Override
             public InetSocketAddress getProxy() {throw new IllegalStateException();}
 
-            @Override
-            public PeerProxyManager getTrustedPeerProxyManager() {return null;};//throw new IllegalStateException();}
-
-            // explosions...
-            @Override
-            public PeerProxyManager getAnonymousPeerProxyManager() {throw new IllegalStateException();}
+//            @Override
+//            public PeerProxyManager getTrustedPeerProxyManager() {return null;};//throw new IllegalStateException();}
+//
+//            // explosions...
+//            @Override
+//            public PeerProxyManager getAnonymousPeerProxyManager() {throw new IllegalStateException();}
         };
         
         // start a "local" lantern browser proxy on another random port
         localPort = LanternUtils.randomPort();
         localProxy = startMockLanternHttpProxyServer(localPort, proxyProvider, 
             cookieTracker);
+            */
 
     }
     

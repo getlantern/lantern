@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -14,11 +15,14 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.maxmind.geoip.LookupService;
 
 /**
  * Class for tracking statistics about Lantern.
  */
+@Singleton
 public class StatsTracker implements Stats {
     
     private final static Logger log = 
@@ -39,7 +43,7 @@ public class StatsTracker implements Stats {
      * getXYZBytesPerSecond calls will be calculated using a moving 
      * window average of size DATA_RATE_SECONDS.
      */ 
-    private static final int DATA_RATE_SECONDS = 1;
+    public static final int DATA_RATE_SECONDS = 1;
     private static final long ONE_SECOND = 1000;
     private static final long ONE_MINUTE = 60*ONE_SECOND;
     private static final long ONE_HOUR = 60*ONE_MINUTE;
@@ -64,18 +68,20 @@ public class StatsTracker implements Stats {
         = new TimeSeries1D(ONE_SECOND, ONE_SECOND*(DATA_RATE_SECONDS+1));
     
     
-    /* Peer count tracking, just tracks current for now */
-    private static final PeerCounter peersPerSecond
-            = new PeerCounter(ONE_SECOND, ONE_SECOND*2);
-    
+    /**
+     * Peer count tracking, just tracks current for now. 
+     */
+    private final PeerCounter peersPerSecond;
     
     private boolean upnp;
     
     private boolean natpmp;
     
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getUptime()
-     */
+    @Inject
+    public StatsTracker(final Timer timer) {
+        peersPerSecond = new PeerCounter(ONE_SECOND, ONE_SECOND*2, timer);
+    }
+    
     @Override
     public long getUptime() {
         return System.currentTimeMillis() - LanternConstants.START_TIME;
@@ -104,25 +110,16 @@ public class StatsTracker implements Stats {
         // others?
     }
     
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getPeerCount()
-     */
     @Override
     public long getPeerCount() {
         return peersPerSecond.latestValue();
     }
     
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getPeerCountThisRun()
-     */
     @Override
     public long getPeerCountThisRun() {
         return peersPerSecond.lifetimeTotal();
     }
     
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getUpBytesThisRun()
-     */
     @Override
     public long getUpBytesThisRun() {
         return getUpBytesThisRunForPeers() + // requests uploaded to internet for peers
@@ -130,9 +127,6 @@ public class StatsTracker implements Stats {
                getUpBytesThisRunToPeers();   // responses to requests we proxied
     }
     
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getDownBytesThisRun()
-     */
     @Override
     public long getDownBytesThisRun() {
         return getDownBytesThisRunForPeers() + // downloaded from internet for peers
@@ -140,58 +134,36 @@ public class StatsTracker implements Stats {
                getDownBytesThisRunFromPeers(); // requests from peers        
     }
     
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getUpBytesThisRunForPeers()
-     */
     @Override
     public long getUpBytesThisRunForPeers() {
         return upBytesPerSecondForPeers.lifetimeTotal();
     }
     
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getUpBytesThisRunViaProxies()
-     */
     @Override
     public long getUpBytesThisRunViaProxies() {
         return upBytesPerSecondViaProxies.lifetimeTotal();
     }
 
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getUpBytesThisRunToPeers()
-     */
     @Override
     public long getUpBytesThisRunToPeers() {
         return upBytesPerSecondToPeers.lifetimeTotal();
     }
     
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getDownBytesThisRunForPeers()
-     */
     @Override
     public long getDownBytesThisRunForPeers() {
         return downBytesPerSecondForPeers.lifetimeTotal();
     }
 
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getDownBytesThisRunViaProxies()
-     */
     @Override
     public long getDownBytesThisRunViaProxies() {
         return downBytesPerSecondViaProxies.lifetimeTotal();
     }
 
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getDownBytesThisRunFromPeers()
-     */
     @Override
     public long getDownBytesThisRunFromPeers() {
         return downBytesPerSecondFromPeers.lifetimeTotal();
     }
     
-    
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getUpBytesPerSecond()
-     */
     @Override
     public long getUpBytesPerSecond() {
         return getUpBytesPerSecondForPeers() + // requests uploaded to internet for peers
@@ -199,9 +171,6 @@ public class StatsTracker implements Stats {
                getUpBytesPerSecondToPeers();   // responses to requests we proxied
     }
 
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getDownBytesPerSecond()
-     */
     @Override
     public long getDownBytesPerSecond() {
         return getDownBytesPerSecondForPeers() + // downloaded from internet for peers
@@ -209,55 +178,37 @@ public class StatsTracker implements Stats {
                getDownBytesPerSecondFromPeers(); // requests from peers
     }
     
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getUpBytesPerSecondForPeers()
-     */
     @Override
     public long getUpBytesPerSecondForPeers() {
         return getBytesPerSecond(upBytesPerSecondForPeers);
     }
 
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getUpBytesPerSecondViaProxies()
-     */
     @Override
     public long getUpBytesPerSecondViaProxies() {
         return getBytesPerSecond(upBytesPerSecondViaProxies);
     }
 
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getDownBytesPerSecondForPeers()
-     */
     @Override
     public long getDownBytesPerSecondForPeers() {
         return getBytesPerSecond(downBytesPerSecondForPeers);
     }
     
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getDownBytesPerSecondViaProxies()
-     */
     @Override
     public long getDownBytesPerSecondViaProxies() {
         return getBytesPerSecond(downBytesPerSecondViaProxies);
     }
     
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getDownBytesPerSecondFromPeers()
-     */
     @Override
     public long getDownBytesPerSecondFromPeers() {
         return getBytesPerSecond(downBytesPerSecondFromPeers);
     }
     
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getUpBytesPerSecondToPeers()
-     */
     @Override
     public long getUpBytesPerSecondToPeers() {
         return getBytesPerSecond(upBytesPerSecondToPeers);
     }
     
-    private long getBytesPerSecond(TimeSeries1D ts) {
+    public static long getBytesPerSecond(final TimeSeries1D ts) {
         long now = System.currentTimeMillis();
         // prior second to the one we're still accumulating 
         long windowEnd = ((now / ONE_SECOND) * ONE_SECOND) - 1;
@@ -270,66 +221,32 @@ public class StatsTracker implements Stats {
     /**
      * request bytes this lantern proxy sent to other lanterns for proxying
      */
-    public void addUpBytesViaProxies(final long bp, final Channel channel) {
+    public void addUpBytesViaProxies(final long bp) {
         upBytesPerSecondViaProxies.addData(bp);
         log.debug("upBytesPerSecondViaProxies += {} up-rate {}", bp, getUpBytesPerSecond());
     }
 
     /**
-     * request bytes this lantern proxy sent to other lanterns for proxying
+     * response bytes downloaded by Peers for this lantern
      */
-    public void addUpBytesViaProxies(final long bp, final Socket sock) {
-        upBytesPerSecondViaProxies.addData(bp);
-        log.debug("upBytesPerSecondViaProxies += {} up-rate {}", bp, getUpBytesPerSecond());
+    public void addDownBytesViaProxies(final long bp) {
+        downBytesPerSecondViaProxies.addData(bp);
+        log.debug("downBytesPerSecondViaProxies += {} down-rate {}", bp, getDownBytesPerSecond());
     }
 
     /**
      * bytes sent upstream on behalf of another lantern by this
      * lantern
      */
-    public void addUpBytesForPeers(final long bp, final Channel channel) {
+    public void addUpBytesForPeers(final long bp) {
         upBytesPerSecondForPeers.addData(bp);
         log.debug("upBytesPerSecondForPeers += {} up-rate {}", bp, getUpBytesPerSecond());
     }
-
+    
     /**
-     * bytes sent upstream on behalf of another lantern by this
-     * lantern
+     * bytes downloaded on behalf of another lantern by this lantern
      */
-    public void addUpBytesForPeers(final long bp, final Socket sock) {
-        upBytesPerSecondForPeers.addData(bp);
-        log.debug("upBytesPerSecondForPeers += {} up-rate {}", bp, getUpBytesPerSecond());
-    }
-
-    /**
-     * response bytes downloaded by Peers for this lantern
-     */
-    public void addDownBytesViaProxies(final long bp, final Channel channel) {
-        downBytesPerSecondViaProxies.addData(bp);
-        log.debug("downBytesPerSecondViaProxies += {} down-rate {}", bp, getDownBytesPerSecond());
-    }
-
-    /**
-     * response bytes downloaded by Peers for this lantern
-     */
-    public void addDownBytesViaProxies(final long bp, final Socket sock) {
-        downBytesPerSecondViaProxies.addData(bp);
-        log.debug("downBytesPerSecondViaProxies += {} down-rate {}", bp, getDownBytesPerSecond());
-    }
-
-    /**
-     * bytes downloaded on behalf of another lantern by this
-     * lantern
-     */
-    public void addDownBytesForPeers(final long bp, final Channel channel) {
-        downBytesPerSecondForPeers.addData(bp);
-        log.debug("downBytesPerSecondForPeers += {} down-rate {}", bp, getDownBytesPerSecond());
-    }
-    /**
-     * bytes downloaded on behalf of another lantern by this
-     * lantern
-     */
-    public void addDownBytesForPeers(final long bp, final Socket sock) {
+    public void addDownBytesForPeers(final long bp) {
         downBytesPerSecondForPeers.addData(bp);
         log.debug("downBytesPerSecondForPeers += {} down-rate {}", bp, getDownBytesPerSecond());
     }
@@ -337,14 +254,8 @@ public class StatsTracker implements Stats {
     /**
      * request bytes sent by peers to this lantern
      */
-    public void addDownBytesFromPeers(final long bp, final Channel channel) {
-        downBytesPerSecondFromPeers.addData(bp);
-        log.debug("downBytesPerSecondFromPeers += {} down-rate {}", bp, getDownBytesPerSecond());
-    }
-    /**
-     * request bytes sent by peers to this lantern
-     */
-    public void addDownBytesFromPeers(final long bp, final Socket sock) {
+    @Override
+    public void addDownBytesFromPeers(final long bp) {
         downBytesPerSecondFromPeers.addData(bp);
         log.debug("downBytesPerSecondFromPeers += {} down-rate {}", bp, getDownBytesPerSecond());
     }
@@ -352,33 +263,22 @@ public class StatsTracker implements Stats {
     /** 
      * reply bytes send to peers by this lantern
      */
-    public void addUpBytesToPeers(final long bp, final Channel channel) {
-        upBytesPerSecondToPeers.addData(bp);
-        log.debug("upBytesPerSecondToPeers += {} up-rate {}", bp, getUpBytesPerSecond());
-    }
-    /** 
-     * reply bytes send to peers by this lantern
-     */
-    public void addUpBytesToPeers(final long bp, final Socket sock) {
+    @Override
+    public void addUpBytesToPeers(final long bp) {
         upBytesPerSecondToPeers.addData(bp);
         log.debug("upBytesPerSecondToPeers += {} up-rate {}", bp, getUpBytesPerSecond());
     }
 
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getTotalBytesProxied()
-     */
     @Override
     public long getTotalBytesProxied() {
         return bytesProxied.get();
     }
 
-    public void addDirectBytes(final int db) {
+    @Override
+    public void addDirectBytes(final long db) {
         directBytes.addAndGet(db);
     }
 
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getDirectBytes()
-     */
     @Override
     public long getDirectBytes() {
         return directBytes.get();
@@ -388,27 +288,23 @@ public class StatsTracker implements Stats {
         this.directRequests.incrementAndGet();
     }
 
+    @Override
     public void incrementProxiedRequests() {
         this.proxiedRequests.incrementAndGet();
     }
 
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getTotalProxiedRequests()
-     */
     @Override
     public int getTotalProxiedRequests() {
         return proxiedRequests.get();
     }
 
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getDirectRequests()
-     */
     @Override
     public int getDirectRequests() {
         return directRequests.get();
     }
     
 
+    @Override
     public void addBytesProxied(final long bp, final Channel channel) {
         bytesProxied.addAndGet(bp);
         final CountryData cd = toCountryData(channel);
@@ -431,25 +327,21 @@ public class StatsTracker implements Stats {
         }
     }
 
+    @Override
     public void setUpnp(final boolean upnp) {
         this.upnp = upnp;
     }
 
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#isUpnp()
-     */
     @Override
     public boolean isUpnp() {
         return upnp;
     }
 
+    @Override
     public void setNatpmp(final boolean natpmp) {
         this.natpmp = natpmp;
     }
 
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#isNatpmp()
-     */
     @Override
     public boolean isNatpmp() {
         return natpmp;
@@ -502,17 +394,11 @@ public class StatsTracker implements Stats {
         return cd;
     }
 
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getCountryCode()
-     */
     @Override
     public String getCountryCode() {
         return LanternHub.censored().countryCode();
     }
     
-    /* (non-Javadoc)
-     * @see org.lantern.Stats#getVersion()
-     */
     @Override
     public String getVersion() {
         return LanternConstants.VERSION;
@@ -532,4 +418,5 @@ public class StatsTracker implements Stats {
             data.put("lantern", lanternData);
         }
     }
+
 }

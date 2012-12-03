@@ -36,7 +36,8 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
         super();
     }
     
-    public DefaultLocalCipherProvider(final File validatorFile, final File cipherParamsFile) {
+    public DefaultLocalCipherProvider(final File validatorFile, 
+        final File cipherParamsFile) {
         super(validatorFile, cipherParamsFile);
     }
     
@@ -46,7 +47,8 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
     }
     
     @Override
-    void initializeCipher(Cipher cipher, int opmode, Key key) throws GeneralSecurityException {
+    void initializeCipher(Cipher cipher, int opmode, Key key) 
+        throws GeneralSecurityException {
         byte [] salt = new byte[8]; 
         LanternHub.secureRandom().nextBytes(salt);
         cipher.init(opmode, key, new PBEParameterSpec(salt, 100));

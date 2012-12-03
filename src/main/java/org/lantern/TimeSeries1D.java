@@ -9,9 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 
 
 /** 
- * TimeSeries1D tracks a set of observations
- * over time.
- *
+ * TimeSeries1D tracks a set of observations over time.
  */
 public class TimeSeries1D {
     
@@ -197,8 +195,8 @@ public class TimeSeries1D {
     
     // ...
 
-    protected long bucketForTimestamp(long timestamp) {
-        return (long) timestamp / bucketSizeMillis;
+    protected long bucketForTimestamp(final long timestamp) {
+        return timestamp / bucketSizeMillis;
     }
     
     protected void checkLimits() {

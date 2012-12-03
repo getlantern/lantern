@@ -11,30 +11,30 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 
-
-class PeerCounter extends TimeSeries1D {
+public class PeerCounter extends TimeSeries1D {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final Set<String> peers; // this is always the current connected set of peers.
     private final Set<String> lifetimePeers; // this tracks unique peers seen in total
     private long lastBucket = -1;
 
-    public PeerCounter() {
-        this(DEFAULT_BUCKET_SIZE, NO_AGE_LIMIT);
+    /*
+    public PeerCounter(final Timer timer) {
+        this(DEFAULT_BUCKET_SIZE, NO_AGE_LIMIT, timer);
     }
     
-    public PeerCounter(long bucketSizeMillis) {
-        this(bucketSizeMillis, NO_AGE_LIMIT);
+    public PeerCounter(long bucketSizeMillis, final Timer timer) {
+        this(bucketSizeMillis, NO_AGE_LIMIT, timer);
     }
+    */
     
-    public PeerCounter(long bucketSizeMillis, long ageLimit) {
+    public PeerCounter(long bucketSizeMillis, long ageLimit, final Timer timer) {
         super(bucketSizeMillis, ageLimit);
-        LanternHub.register(this);
+        Events.register(this);
         peers = new ConcurrentSkipListSet<String>();
         lifetimePeers = new ConcurrentSkipListSet<String>();
         
         // measure the current number of peers at regular intervals...
-        final Timer timer = LanternHub.timer();
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -43,6 +43,7 @@ class PeerCounter extends TimeSeries1D {
         }, 0, bucketSizeMillis);
     }
     
+    @Override
     public void reset() {
         super.reset();
         peers.clear();

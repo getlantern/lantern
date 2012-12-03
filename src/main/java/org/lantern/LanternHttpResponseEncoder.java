@@ -15,12 +15,12 @@ import org.slf4j.LoggerFactory;
 public class LanternHttpResponseEncoder extends ProxyHttpResponseEncoder {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
+    private final Stats stats;
     
-    private final StatsTracker statsTracker;
 
-    public LanternHttpResponseEncoder(final StatsTracker statsTracker) {
-        super(true); 
-        this.statsTracker = statsTracker;
+    public LanternHttpResponseEncoder(final Stats stats) {
+        super(true);
+        this.stats = stats; 
     }
 
     @Override
@@ -35,7 +35,7 @@ public class LanternHttpResponseEncoder extends ProxyHttpResponseEncoder {
         if (msg instanceof ProxyHttpResponse) {
             // This is called when we just pass unproxied requests over to
             // LittleProxy.
-            this.statsTracker.addDirectBytes(bytes);
+            this.stats.addDirectBytes(bytes);
         } else {
             // If it's *not* a ProxyHttpResponse, that means it's something
             // we didn't simply pass to LittleProxy and instead proxied
@@ -45,7 +45,7 @@ public class LanternHttpResponseEncoder extends ProxyHttpResponseEncoder {
             // bypassed any encoder.
             
             // global bytes proxied statistic
-            this.statsTracker.addBytesProxied(bytes, channel);
+            this.stats.addBytesProxied(bytes, channel);
         }
         return cb;
     }

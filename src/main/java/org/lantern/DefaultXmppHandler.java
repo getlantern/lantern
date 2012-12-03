@@ -34,7 +34,6 @@ import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.Chat;
-import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.Roster;
@@ -55,8 +54,15 @@ import org.kaleidoscope.BasicTrustGraphAdvertisement;
 import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.TrustGraphNode;
 import org.kaleidoscope.TrustGraphNodeId;
+import org.lantern.event.ClosedBetaEvent;
+import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.event.GoogleTalkStateEvent;
+import org.lantern.event.UpdateEvent;
+import org.lantern.http.PhotoServlet;
 import org.lantern.ksope.LanternKscopeAdvertisement;
 import org.lantern.ksope.LanternTrustGraphNode;
+import org.lantern.state.Model;
+import org.lantern.state.ModelUtils;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.ice.MappedTcpAnswererServer;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -68,6 +74,9 @@ import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.lastbamboo.common.stun.client.StunServerRepository;
+import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
+import org.littleshoot.commom.xmpp.PasswordCredentials;
+import org.littleshoot.commom.xmpp.XmppCredentials;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.littleshoot.p2p.P2P;
@@ -76,12 +85,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.hoodcomputing.natpmp.NatPmpException;
 
 /**
  * Handles logging in to the XMPP server and processing trusted users through
  * the roster.
  */
+@Singleton
 public class DefaultXmppHandler implements XmppHandler {
     
     private static final Logger LOG = 
@@ -113,8 +125,6 @@ public class DefaultXmppHandler implements XmppHandler {
     static {
         SmackConfiguration.setPacketReplyTimeout(30 * 1000);
     }
-
-    private final Timer updateTimer = LanternHub.timer();
 
     private volatile long lastInfoMessageScheduled = 0L;
     
@@ -152,26 +162,75 @@ public class DefaultXmppHandler implements XmppHandler {
     private String lastUserName;
 
     private String lastPass;
-    
-    private final NatPmpService natPmpService;
 
-    private final UpnpService upnpService = new Upnp();
+    private XmppCredentials lastCredentials;
+
+    private NatPmpService natPmpService;
+
+    private final UpnpService upnpService;
 
     private ClosedBetaEvent closedBetaEvent;
     
     private final Object closedBetaLock = new Object();
 
-    private final MappedServerSocket mappedServer;
+    private MappedServerSocket mappedServer;
+
+    private final PeerProxyManager trustedPeerProxyManager;
+
+    private final PeerProxyManager anonymousPeerProxyManager;
+
+    private final Timer timer;
+
+    private final Stats stats;
+
+    private final LanternKeyStoreManager keyStoreManager;
+
+    private final LanternSocketsUtil socketsUtil;
+
+    private final LanternXmppUtil xmppUtil;
+
+    private final Model model;
+
+    private volatile boolean started;
+
+    private final ModelUtils modelUtils;
 
     /**
      * Creates a new XMPP handler.
      */
-    public DefaultXmppHandler() {
+    @Inject
+    public DefaultXmppHandler(final Model model,
+        final TrustedPeerProxyManager trustedPeerProxyManager,
+        final AnonymousPeerProxyManager anonymousPeerProxyManager,
+        final Timer updateTimer, final Stats stats,
+        final LanternKeyStoreManager keyStoreManager,
+        final LanternSocketsUtil socketsUtil,
+        final LanternXmppUtil xmppUtil,
+        final ModelUtils modelUtils) {
+        this.model = model;
+        this.trustedPeerProxyManager = trustedPeerProxyManager;
+        this.anonymousPeerProxyManager = anonymousPeerProxyManager;
+        this.timer = updateTimer;
+        this.stats = stats;
+        this.keyStoreManager = keyStoreManager;
+        this.socketsUtil = socketsUtil;
+        this.xmppUtil = xmppUtil;
+        this.modelUtils = modelUtils;
+        this.upnpService = new Upnp(stats);
+        new GiveModeConnectivityHandler();
+        prepopulateProxies();
+        Events.register(this);
+        //setupJmx();
+    }
+   
+
+    @Override
+    public void start() {
         // This just links connectivity with Google Talk login status when 
         // running in give mode.
         NatPmpService temp = null;
         try {
-            temp = new NatPmp();
+            temp = new NatPmp(stats);
         } catch (final NatPmpException e) {
             // This will happen when NAT-PMP is not supported on the local 
             // network.
@@ -196,9 +255,11 @@ public class DefaultXmppHandler implements XmppHandler {
         
         MappedServerSocket tempMapper;
         try {
+            LOG.debug("Creating mapped TCP server...");
             tempMapper =
                 new MappedTcpAnswererServer(natPmpService, upnpService, 
                     new InetSocketAddress(LanternHub.settings().getServerPort()));
+            LOG.debug("Created mapped TCP server...");
         } catch (final IOException e) {
             LOG.info("Exception mapping TCP server", e);
             tempMapper = new MappedServerSocket() {
@@ -220,22 +281,31 @@ public class DefaultXmppHandler implements XmppHandler {
             };
         }
         
-        XmppUtils.setGlobalConfig(LanternUtils.xmppConfig());
-        XmppUtils.setGlobalProxyConfig(LanternUtils.xmppProxyConfig());
+        XmppUtils.setGlobalConfig(this.xmppUtil.xmppConfig());
+        XmppUtils.setGlobalProxyConfig(this.xmppUtil.xmppProxyConfig());
         
         this.mappedServer = tempMapper;
-        
-        new GiveModeConnectivityHandler();
-        prepopulateProxies();
-        LanternHub.register(this);
-        //setupJmx();
+        this.started = true;
+    }
+    
+    @Override
+    public void stop() {
+        LOG.info("Stopping XMPP handler...");
+        disconnect();
+        if (upnpService != null) {
+            upnpService.shutdown();
+        }
+        if (natPmpService != null) {
+            natPmpService.shutdown();
+        }
+        LOG.info("Finished stoppeding XMPP handler...");
     }
     
     @Subscribe
     public void onAuthStatus(final GoogleTalkStateEvent ase) {
         this.state = ase.getState();
         switch (state) {
-        case LOGGED_IN:
+        case connected:
             // We wait until we're logged in before creating our roster.
             this.roster.loggedIn();
             //LanternHub.asyncEventBus().post(new SyncEvent());
@@ -243,12 +313,10 @@ public class DefaultXmppHandler implements XmppHandler {
                 this.rosterLock.notifyAll();
             }
             break;
-        case LOGGED_OUT:
+        case notConnected:
             this.roster.reset();
             break;
-        case LOGGING_IN:
-            break;
-        case LOGGING_OUT:
+        case connecting:
             break;
         case LOGIN_FAILED:
             this.roster.reset();
@@ -272,11 +340,39 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public void connect() throws IOException, CredentialException, 
         NotInClosedBetaException {
-        if (!LanternUtils.isConfigured() && LanternHub.settings().isUiEnabled()) {
+        if (!this.started) {
+            LOG.warn("Can't connect when not started!!");
+            throw new Error("Can't connect when not started!!");
+        }
+        if (!this.modelUtils.isConfigured() && LanternHub.settings().isUiEnabled()) {
             LOG.info("Not connecting when not configured");
             return;
         }
         LOG.info("Connecting to XMPP servers...");
+        if (this.model.getSettings().isUseGoogleOAuth2()) {
+            connectViaOAuth2();
+        } else {
+            connectWithEmailAndPass();
+        }
+    }
+
+    private void connectViaOAuth2() throws IOException,
+            CredentialException, NotInClosedBetaException {
+        final XmppCredentials credentials = new GoogleOAuth2Credentials(
+            LanternHub.settings().getEmail(),
+            this.model.getSettings().getClientID(),
+            this.model.getSettings().getClientSecret(),
+            this.model.getSettings().getAccessToken(),
+            this.model.getSettings().getRefreshToken(),
+            getResource());
+        
+        LOG.info("Logging in with credentials: {}", credentials);
+        
+        connect(credentials);
+    }
+
+    private void connectWithEmailAndPass() throws IOException,
+            CredentialException, NotInClosedBetaException {
         String email = LanternHub.settings().getEmail();
         String pwd = LanternHub.settings().getPassword();
         if (StringUtils.isBlank(email)) {
@@ -308,20 +404,25 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public void connect(final String email, final String pass) 
         throws IOException, CredentialException, NotInClosedBetaException {
-        connect(email, pass, null);
-    }
-    
-    private void connect(final String email, final String pass, 
-        final ConnectionConfiguration config) 
-        throws IOException, CredentialException, NotInClosedBetaException {
-        LOG.debug("Connecting to XMPP servers with user name and password...");
-        if (config == null) {
-            XmppUtils.setGlobalConfig(LanternUtils.xmppConfig());
-        } else {
-            XmppUtils.setGlobalConfig(config);
-        }
         this.lastUserName = email;
         this.lastPass = pass;
+        connect(new PasswordCredentials(email, pass, getResource()));
+    }
+
+    private String getResource() {
+        if (LanternHub.settings().isGetMode()) {
+            LOG.info("Setting ID for get mode...");
+            return "gmail.";
+        } else {
+            LOG.info("Setting ID for give mode");
+            return LanternConstants.UNCENSORED_ID;
+        }
+    }
+
+    public void connect(final XmppCredentials credentials)
+        throws IOException, CredentialException, NotInClosedBetaException {
+        LOG.debug("Connecting to XMPP servers with user name and password...");
+        this.lastCredentials = credentials;
         this.closedBetaEvent = null;
         final InetSocketAddress plainTextProxyRelayAddress = 
             new InetSocketAddress("127.0.0.1", 
@@ -344,7 +445,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService, 
             upnpService, this.mappedServer, 
             //newTlsSocketFactory(),ç SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
-            LanternUtils.newTlsSocketFactory(), LanternUtils.newTlsServerSocketFactory(),
+            this.socketsUtil.newTlsSocketFactory(), this.socketsUtil.newTlsServerSocketFactory(),
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
             plainTextProxyRelayAddress, sessionListener, false));
         
@@ -353,7 +454,7 @@ public class DefaultXmppHandler implements XmppHandler {
             @Override
             public void onConnectivityEvent(final P2PConnectionEvent event) {
                 LOG.info("Got connectivity event: {}", event);
-                LanternHub.asyncEventBus().post(event);
+                Events.asyncEventBus().post(event);
             }
         });
         
@@ -367,21 +468,13 @@ public class DefaultXmppHandler implements XmppHandler {
         if (this.proxies.isEmpty()) {
             connectivityEvent(ConnectivityStatus.CONNECTING);
         }
-        LanternHub.eventBus().post(
-            new GoogleTalkStateEvent(GoogleTalkState.LOGGING_IN));
-        final String id;
-        if (LanternHub.settings().isGetMode()) {
-            LOG.info("Setting ID for get mode...");
-            id = "gmail.";
-        } else {
-            LOG.info("Setting ID for give mode");
-            id = LanternConstants.UNCENSORED_ID;
-        }
+        Events.eventBus().post(
+            new GoogleTalkStateEvent(GoogleTalkState.connecting));
 
         try {
-            this.client.get().login(email, pass, id);
-            LanternHub.eventBus().post(
-                new GoogleTalkStateEvent(GoogleTalkState.LOGGED_IN));
+            this.client.get().login(credentials);
+            Events.eventBus().post(
+                new GoogleTalkStateEvent(GoogleTalkState.connected));
         } catch (final IOException e) {
             // Note that the XMPP library will internally attempt to connect
             // to our backup proxy if it can.
@@ -484,51 +577,50 @@ public class DefaultXmppHandler implements XmppHandler {
         
         gTalkSharedStatus();
         updatePresence();
-        
-        final boolean inClosedBeta = handleClosedBeta(email);
+
+        final boolean inClosedBeta = waitForClosedBetaStatus(credentials.getUsername());
 
         // If we're in the closed beta and are an uncensored node, we want to
         // advertise ourselves through the kaleidoscope trust network.
-        if (inClosedBeta) {
+        if (inClosedBeta && !LanternHub.censored().isCensored()) {
             final TimerTask tt = new TimerTask() {
                 
                 @Override
                 public void run() {
-                    if (!LanternHub.censored().isCensored()) {
-                        final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
-                            LanternHub.settings().getNodeId());
-                        
-                        final InetAddress address = 
-                            new PublicIpAddress().getPublicIpAddress();
-                        
-                        final String user = connection.getUser();
-                        // The payload here is JSON with everything from the 
-                        // JID of the user to the public IP address and port
-                        // that should be mapped on the user's router.
-                        final LanternKscopeAdvertisement ad;
-                        if (mappedServer.isPortMapped()) {
-                            ad = new LanternKscopeAdvertisement(user, address, 
-                                mappedServer.getMappedPort());
-                        } else {
-                            ad = new LanternKscopeAdvertisement(user);
-                        }
-                        
-                        // Now turn the advertisement into JSON.
-                        final String payload = LanternUtils.jsonify(ad);
-                        
-                        LOG.info("Sending kscope payload: {}", payload);
-                        final BasicTrustGraphAdvertisement message =
-                            new BasicTrustGraphAdvertisement(tgnid, payload, 0);
-                        
-                        final TrustGraphNode tgn = new LanternTrustGraphNode();
-                        tgn.advertiseSelf(message);
+                    final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
+                        LanternHub.settings().getNodeId());
+                    
+                    final InetAddress address = 
+                        new PublicIpAddress().getPublicIpAddress();
+                    
+                    final String user = connection.getUser();
+                    // The payload here is JSON with everything from the 
+                    // JID of the user to the public IP address and port
+                    // that should be mapped on the user's router.
+                    final LanternKscopeAdvertisement ad;
+                    if (mappedServer.isPortMapped()) {
+                        ad = new LanternKscopeAdvertisement(user, address, 
+                            mappedServer.getMappedPort());
+                    } else {
+                        ad = new LanternKscopeAdvertisement(user);
                     }
+                    
+                    // Now turn the advertisement into JSON.
+                    final String payload = LanternUtils.jsonify(ad);
+                    
+                    LOG.info("Sending kscope payload: {}", payload);
+                    final BasicTrustGraphAdvertisement message =
+                        new BasicTrustGraphAdvertisement(tgnid, payload, 0);
+                    
+                    final TrustGraphNode tgn = 
+                        new LanternTrustGraphNode(DefaultXmppHandler.this);
+                    tgn.advertiseSelf(message);
                 }
             };
             // We delay this to make sure we've successfully loaded all roster
             // updates and presence notifications before sending out our
             // advertisement.
-            LanternHub.timer().schedule(tt, 30000);
+            this.timer.schedule(tt, 30000);
         }
     }
   
@@ -536,13 +628,13 @@ public class DefaultXmppHandler implements XmppHandler {
         if (this.proxies.isEmpty()) {
             connectivityEvent(ConnectivityStatus.DISCONNECTED);
         }
-        LanternHub.eventBus().post(
+        Events.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
     }
 
-    private boolean handleClosedBeta(final String email) 
+    private boolean waitForClosedBetaStatus(final String email) 
         throws NotInClosedBetaException {
-        if (LanternUtils.isInClosedBeta(email)) {
+        if (this.modelUtils.isInClosedBeta(email)) {
             LOG.debug("Already in closed beta...");
             return true;
         }
@@ -554,7 +646,7 @@ public class DefaultXmppHandler implements XmppHandler {
         synchronized (this.closedBetaLock) {
             if (this.closedBetaEvent == null) {
                 try {
-                    this.closedBetaLock.wait(60 * 1000);
+                    this.closedBetaLock.wait(80 * 1000);
                 } catch (final InterruptedException e) {
                     LOG.info("Interrupted? Maybe on shutdown?", e);
                 }
@@ -593,7 +685,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private void connectivityEvent(final ConnectivityStatus cs) {
         if (LanternHub.settings().isGetMode()) {
-            LanternHub.eventBus().post(
+            Events.eventBus().post(
                 new ConnectivityStatusChangeEvent(cs));
         } else {
             LOG.info("Ignoring connectivity event in give mode..");
@@ -613,8 +705,10 @@ public class DefaultXmppHandler implements XmppHandler {
     public void disconnect() {
         LOG.info("Disconnecting!!");
         lastJson = "";
+        /*
         LanternHub.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.LOGGING_OUT));
+        */
         
         final XmppP2PClient cl = this.client.get();
         if (cl != null) {
@@ -625,8 +719,8 @@ public class DefaultXmppHandler implements XmppHandler {
         if (this.proxies.isEmpty()) {
             connectivityEvent(ConnectivityStatus.DISCONNECTED);
         }
-        LanternHub.eventBus().post(
-            new GoogleTalkStateEvent(GoogleTalkState.LOGGED_OUT));
+        Events.eventBus().post(
+            new GoogleTalkStateEvent(GoogleTalkState.notConnected));
         
         peerProxySet.clear();
         this.closedBetaEvent = null;
@@ -649,12 +743,12 @@ public class DefaultXmppHandler implements XmppHandler {
             (Boolean) json.get(LanternConstants.INVITED);
         
         if (inClosedBeta != null) {
-            LanternHub.asyncEventBus().post(new ClosedBetaEvent(to, inClosedBeta));
+            Events.asyncEventBus().post(new ClosedBetaEvent(to, inClosedBeta));
             if (!inClosedBeta) {
                 //return;
             }
         } else {
-            LanternHub.asyncEventBus().post(new ClosedBetaEvent(to, false));
+            Events.asyncEventBus().post(new ClosedBetaEvent(to, false));
             //return;
         }
                 
@@ -668,7 +762,7 @@ public class DefaultXmppHandler implements XmppHandler {
             final long elapsed = now - lastInfoMessageScheduled;
             if (elapsed > 10000 && delay != 0L) {
                 lastInfoMessageScheduled = now;
-                updateTimer.schedule(new TimerTask() {
+                timer.schedule(new TimerTask() {
                     @Override
                     public void run() {
                         updatePresence();
@@ -697,22 +791,17 @@ public class DefaultXmppHandler implements XmppHandler {
             (JSONObject) json.get(LanternConstants.UPDATE_KEY);
         if (update != null) {
             LOG.info("About to propagate update...");
-            LanternHub.display().asyncExec (new Runnable () {
-                @Override
-                public void run () {
-                    final Map<String, Object> event = 
-                        new HashMap<String, Object>();
-                    event.putAll(update);
-                    LanternHub.asyncEventBus().post(new UpdateEvent(event));
-                }
-            });
+            final Map<String, Object> event = 
+                new HashMap<String, Object>();
+            event.putAll(update);
+            Events.asyncEventBus().post(new UpdateEvent(event));
         }
         
         final Long invites = 
             (Long) json.get(LanternConstants.INVITES_KEY);
         if (invites != null) {
             LOG.info("Setting invites to: {}", invites);
-            LanternHub.settings().setInvites(invites.intValue());
+            this.model.setNinvites(invites.intValue());
         }
     }
     
@@ -721,7 +810,7 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.debug("Got closed beta event!!");
         this.closedBetaEvent = cbe;
         if (this.closedBetaEvent.isInClosedBeta()) {
-            LanternUtils.addToClosedBeta(cbe.getTo());
+            this.modelUtils.addToClosedBeta(cbe.getTo());
         }
         synchronized (this.closedBetaLock) {
             // We have to make sure that this event is actually intended for
@@ -802,13 +891,12 @@ public class DefaultXmppHandler implements XmppHandler {
         forHub.setTo(LanternConstants.LANTERN_JID);
         
         //if (!LanternHub.settings().isGetMode()) {
-            final String str = 
-                LanternUtils.jsonify(LanternHub.statsTracker());
+            final String str = LanternUtils.jsonify(stats);
             LOG.debug("Reporting data: {}", str);
             if (!this.lastJson.equals(str)) {
                 this.lastJson = str;
                 forHub.setProperty("stats", str);
-                LanternHub.statsTracker().resetCumulativeStats();
+                stats.resetCumulativeStats();
             } else {
                 LOG.info("No new stats to report");
             }
@@ -953,8 +1041,7 @@ public class DefaultXmppHandler implements XmppHandler {
         msg.setProperty(P2PConstants.MESSAGE_TYPE, 
             XmppMessageConstants.INFO_RESPONSE_TYPE);
         msg.setProperty(P2PConstants.MAC, LanternUtils.getMacAddress());
-        msg.setProperty(P2PConstants.CERT, 
-            LanternHub.getKeyStoreManager().getBase64Cert());
+        msg.setProperty(P2PConstants.CERT, this.keyStoreManager.getBase64Cert());
         this.client.get().getXmppConnection().sendPacket(msg);
     }
 
@@ -977,13 +1064,13 @@ public class DefaultXmppHandler implements XmppHandler {
                 new String(Base64.decodeBase64(base64Cert)));
             try {
                 // Add the peer if we're able to add the cert.
-                LanternHub.getKeyStoreManager().addBase64Cert(mac, base64Cert);
+                this.keyStoreManager.addBase64Cert(mac, base64Cert);
                 if (LanternHub.settings().isAutoConnectToPeers()) {
                     final String email = XmppUtils.jidToUser(msg.getFrom());
                     if (this.roster.isFullyOnRoster(email)) {
-                        LanternHub.trustedPeerProxyManager().onPeer(uri);
+                        trustedPeerProxyManager.onPeer(uri);
                     } else {
-                        LanternHub.anonymousPeerProxyManager().onPeer(uri);
+                        anonymousPeerProxyManager.onPeer(uri);
                     }
                     /*
                     if (LanternHub.getTrustedContactsManager().isTrusted(msg)) {
@@ -1072,8 +1159,7 @@ public class DefaultXmppHandler implements XmppHandler {
         // Set our certificate in the request as well -- we want to make
         // extra sure these get through!
         msg.setProperty(P2PConstants.MAC, LanternUtils.getMacAddress());
-        msg.setProperty(P2PConstants.CERT, 
-            LanternHub.getKeyStoreManager().getBase64Cert());
+        msg.setProperty(P2PConstants.CERT, this.keyStoreManager.getBase64Cert());
         this.client.get().getXmppConnection().sendPacket(msg);
     }
 
@@ -1181,7 +1267,7 @@ public class DefaultXmppHandler implements XmppHandler {
         removePeerUri(uri);
         removeAnonymousPeerUri(uri);
         //if (LanternHub.getTrustedContactsManager().isJidTrusted(uri.toASCIIString())) {
-            LanternHub.trustedPeerProxyManager().removePeer(uri);
+            trustedPeerProxyManager.removePeer(uri);
         //} else {
         //    LanternHub.anonymousPeerProxyManager().removePeer(uri);
         //}
@@ -1212,6 +1298,7 @@ public class DefaultXmppHandler implements XmppHandler {
         return getProxy(this.proxies);
     }
     
+    /*
     @Override
     public PeerProxyManager getAnonymousPeerProxyManager() {
         return LanternHub.anonymousPeerProxyManager();
@@ -1222,6 +1309,7 @@ public class DefaultXmppHandler implements XmppHandler {
     public PeerProxyManager getTrustedPeerProxyManager() {
         return LanternHub.trustedPeerProxyManager();
     }
+    */
 
     private InetSocketAddress getProxy(final Queue<ProxyHolder> queue) {
         synchronized (queue) {
@@ -1370,8 +1458,9 @@ public class DefaultXmppHandler implements XmppHandler {
         final Thread t = new Thread(runner, "Invite-Thread");
         t.setDaemon(true);
         t.start();
-        LanternHub.settings().setInvites(LanternHub.settings().getInvites()-1);
-        LanternHub.settingsIo().write();
+        this.model.setNinvites(this.model.getNinvites() - 1);
+        //LanternHub.settings().setInvites(LanternHub.settings().getInvites()-1);
+        //LanternHub.settingsIo().write();
         
         addToRoster(email);
     }
@@ -1510,18 +1599,5 @@ public class DefaultXmppHandler implements XmppHandler {
         } catch (final NotCompliantMBeanException e) {
             LOG.error("Could not set up JMX", e);
         }
-    }
-    
-    @Override
-    public void stop() {
-        LOG.info("Stopping XMPP handler...");
-        disconnect();
-        if (upnpService != null) {
-            upnpService.shutdown();
-        }
-        if (natPmpService != null) {
-            natPmpService.shutdown();
-        }
-        LOG.info("Finished stoppeding XMPP handler...");
     }
 }

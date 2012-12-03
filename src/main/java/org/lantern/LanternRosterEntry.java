@@ -91,7 +91,8 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     }
 
     private static boolean extractTrusted(final String email) {
-        return LanternHub.getTrustedContactsManager().isTrusted(email);
+        //return LanternHub.getTrustedContactsManager().isTrusted(email);
+        return true;
     }
 
 
