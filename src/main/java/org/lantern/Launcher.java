@@ -304,8 +304,6 @@ public class Launcher {
             display = null;
         }
         
-        //final ModelProvider model = injector.getInstance(ModelIo.class);
-        //Display display = new Display();
         configurator = instance(Configurator.class);
         messageService = instance(MessageService.class);
         xmpp = instance(DefaultXmppHandler.class);
@@ -860,6 +858,10 @@ public class Launcher {
                 OPTION_DISABLE_UI +
                 " command line argument");
         } 
+        else if (t instanceof UnsatisfiedLinkError && t.getMessage().contains("Cannot load 32-bit SWT libraries on 64-bit JVM")) {
+            messageService.showMessage("Architecture Error",
+                "We're sorry, but it appears you're running 32-bit Lantern on a 64-bit JVM.");
+        }
         else if (!lanternStarted && LanternHub.settings().isUiEnabled()) {
             LOG.info("Showing error to user...");
             messageService.showMessage("Startup Error",
