@@ -75,17 +75,21 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
       });
   };
 
-  $scope.changeSetting = function(key, val) {
-    var params = {};
-    params[key] = val;
-    return $http.post(apiSrvc.urlfor('settings/', params))
+  $scope.updateState = function(updates) {
+    return $http.post(apiSrvc.urlfor('state', {updates: updates}))
       .success(function(data, status, headers, config) {
-        log.debug('Changed setting', key, 'to', val);
+        log.debug('Update state successful', updates);
       })
       .error(function(data, status, headers, config) {
-        log.debug('Changed setting', key, 'to', val, 'failed');
+        log.debug('Update state failed', updates);
       });
   };
+
+  $scope.changeSetting = function(key, val) {
+    var updates = {};
+    updates['settings.'+key] = val;
+    return $scope.updateState(updates);
+  }
 }
 
 function WaitingForLanternCtrl($scope, logFactory) {
@@ -539,14 +543,13 @@ function ScenariosCtrl($scope, $timeout, apiSrvc, logFactory, modelSrvc, dev, MO
     $scope.show = val == MODAL.scenarios;
   });
 
-  $scope.selected = [];
+  $scope.appliedScenarios = [];
   $scope.$watch('model.mock.scenarios.applied', function(val) {
     if (val) {
-      $scope.selected = val.slice();
-      // XXX manually call render on the select's ngModelController to work
-      // around https://github.com/angular/angular.js/issues/1624
       $timeout(function() {
-        angular.element('select').controller('ngModel').$render();
+        for (var group in val) {
+          $scope.appliedScenarios.push(group+'.'+val[group]);
+        }
       });
     }
   });

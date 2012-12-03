@@ -22,8 +22,8 @@ function ApiServlet(bayeuxBackend) {
   this.resetModel = bayeuxBackend.resetModel.bind(bayeuxBackend);
   this.reset();
   this._DEFAULT_PROXIED_SITES = bayeuxBackend.model.settings.proxiedSites.slice(0);
-  this.MODALSEQ_GIVE = [MODAL.welcome, MODAL.authorize, MODAL.inviteFriends, MODAL.finished, MODAL.none];
-  this.MODALSEQ_GET = [MODAL.welcome, MODAL.authorize, MODAL.proxiedSites, MODAL.systemProxy, MODAL.inviteFriends, MODAL.finished, MODAL.none];
+  this.MODALSEQ_GIVE = [MODAL.welcome, MODAL.passwordCreate, MODAL.authorize, MODAL.inviteFriends, MODAL.finished, MODAL.none];
+  this.MODALSEQ_GET = [MODAL.welcome, MODAL.passwordCreate, MODAL.authorize, MODAL.proxiedSites, MODAL.systemProxy, MODAL.inviteFriends, MODAL.finished, MODAL.none];
 }
 
 ApiServlet.VERSION = {
@@ -46,13 +46,17 @@ ApiServlet.RESET_INTERNAL_STATE = {
     inviteFriends: false,
     finished: false
   },
-  appliedScenarios: [
-    'os.osx',
-    'location.beijing',
-    'internet.connection',
-    'gtalkConnectivity.notConnected',
-    'gtalkAuthorization.notAuthorized'
-  ]
+  appliedScenarios: {
+    os: 'osx',
+    location: 'beijing',
+    internet: 'connection'/*,
+    oauth: 'authorized',
+    lanternAccess: 'access',
+    gtalkConnect: 'reachable',
+    roster: 'contactsOnline',
+    peers: 'peersOnline'
+    */
+  }
 };
 
 ApiServlet.prototype.reset = function() {
@@ -61,16 +65,17 @@ ApiServlet.prototype.reset = function() {
   this.model = this._bayeuxBackend.model;
   helpers.merge(this.model, '', {
     version: {installed: {httpApi: ApiServlet.VERSION}},
-    mock: {scenarios: {applied: [], all: SCENARIOS}}
+    mock: {scenarios: {applied: {}, all: SCENARIOS}}
   });
-  var self = this;
-  this._internalState.appliedScenarios.forEach(
-    function(path) {
-      var scenario = getByPath(SCENARIOS, path);
-      scenario.func.call(self);
-      self.model.mock.scenarios.applied.push(path);
-    }
-  );
+  var applied = this._internalState.appliedScenarios;
+  for (var group in applied) {
+    var scen = getByPath(SCENARIOS, group+'.'+applied[group]);
+    scen.func.call(this);
+    this.model.mock.scenarios.applied[group] = applied[group];
+  }
+  if (!this.passwordCreateRequired()) {
+    this._internalState.modalsCompleted.passwordCreate = true;
+  }
   this.publishSync();
 };
 
@@ -124,9 +129,10 @@ ApiServlet._handlers.passwordCreate = function(res, qs) {
   this.updateModel({modal: MODAL.authorize}, true);
 };
 
-ApiServlet._handlers['settings/'] = function(res, qs) {
+ApiServlet._handlers.state = function(res, qs) {
   // XXX validate requested changes via model schema before applying them
   this.updateModel(qs.updates, true);
+  log('applied state updates', qs.updates);
 };
 
 ApiServlet._handlers['settings/unlock'] = function(res, qs) {
@@ -166,12 +172,11 @@ ApiServlet._handlers.interaction = function(res, qs) {
 ApiServlet._intHandlerForModal = {};
 ApiServlet._intHandlerForModal[MODAL.scenarios] = function(interaction, res, qs) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
-  var appliedScenarios = qs.appliedScenarios;
-  log("appliedScenarios:", util.inspect(appliedScenarios));
-  // XXX parse and validate
+  var appliedScenarios = qs.appliedScenarios.split(',');
+  log("appliedScenarios:", appliedScenarios);
+  // XXX validate
   this.updateModel({'mock.scenarios.applied': appliedScenarios,
-    'modal': this._internalState.lastModal
-  }, true);
+    'modal': this._internalState.lastModal}, true);
   this._internalState.lastModal = MODAL.none;
 };
 
@@ -182,10 +187,9 @@ ApiServlet._intHandlerForModal[MODAL.welcome] = function(interaction, res) {
     this.updateModel({modal: MODAL.giveModeForbidden}, true);
     return;
   }
-  this.updateModel({'settings.mode': interaction,
-    'modal': this.passwordCreateRequired() ? MODAL.passwordCreate : MODAL.authorize
-  }, true);
+  this.updateModel({'settings.mode': interaction}, true);
   this._internalState.modalsCompleted[MODAL.welcome] = true;
+  this._advanceModal();
 };
 
 ApiServlet._intHandlerForModal[MODAL.giveModeForbidden] = function(interaction, res) {
@@ -208,27 +212,85 @@ ApiServlet._intHandlerForModal[MODAL.giveModeForbidden] = function(interaction, 
 
 ApiServlet._intHandlerForModal[MODAL.authorize] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
-  var gtalkAuthScenarioPath;
-  for (var i=0, applied=getByPath(this.model, 'mock.scenarios.applied.length', []),
-       ii=applied[i]; ii && !gtalkAuthScenarioPath; ii=applied[++i]) {
-    if (/gtalkAuthorization/.test(ii)) gtalkAuthScenarioPath = ii;
-  }
-  if (!gtalkAuthScenarioPath) {
+
+  // check for gtalk authorization
+  var scen = getByPath(this.model, 'mock.scenarios.applied.oauth');
+  scen = getByPath(this.model, 'mock.scenarios.all.oauth.'+scen);
+  if (!scen) {
     this.updateModel({modal: MODAL.scenarios,
-      'mock.scenarios.prompt': 'No gtalkAuthorization scenario applied.'}, true);
+      'mock.scenarios.prompt': 'No oauth scenario applied.'}, true);
     return;
   }
-  var gtalkAuthScenario = getByPath(this.model, 'mock.scenarios.all.'+gtalkAuthScenarioPath);
-  if (!gtalkAuthScenario) {
-    this.updateModel({modal: MODAL.scenarios,
-      'mock.scenarios.prompt': 'No matching gtalkAuthorization scenario for '+gtalkAuthScenarioPath}, true);
+  log('applying oauth scenario', scen.desc);
+  // XXX what if can't reach google here?
+  scen.func.call(this);
+  if (!getByPath(this.model, 'connectivity.gtalkAuthorized')) {
+    log('Google Talk access not granted, user must authorize');
     return;
   }
-  log('applying gtalkAuthScenario', gtalkAuthScenarioPath);
-  gtalkAuthScenario.func.call(this);
-  //XXX this would go inside the scenario:
-  //this._internalState.modalsCompleted[MODAL.authorize] = true;
-  //this._advanceModal(MODAL.settings);
+
+  // check for lantern access
+  scen = getByPath(this.model, 'mock.scenarios.applied.lanternAccess');
+  scen = getByPath(this.model, 'mock.scenarios.all.lanternAccess.'+scen);
+  if (!scen) {
+    this.updateModel({modal: MODAL.scenarios,
+      'mock.scenarios.prompt': 'No Lantern access scenario applied.'}, true);
+    return;
+  }
+  log('applying Lantern access scenario', scen.desc);
+  // XXX what if can't reach google here?
+  scen.func.call(this);
+  if (!getByPath(this.model, 'connectivity.lanternAccess')) {
+    this.updateModel({modal: MODAL.notInvited}, true);
+    return;
+  }
+
+  // connect to google talk
+  scen = getByPath(this.model, 'mock.scenarios.applied.gtalkConnect');
+  scen = getByPath(this.model, 'mock.scenarios.all.gtalkConnect.'+scen);
+  if (!scen) {
+    this.updateModel({modal: MODAL.scenarios,
+      'mock.scenarios.prompt': 'No gtalkConnect scenario applied.'}, true);
+    return;
+  }
+  log('applying gtalkConnect scenario', scen.desc);
+  scen.func.call(this);
+  if (getByPath(this.model, 'connectivity.gtalk') != CONNECTIVITY.connected) {
+    this.updateModel({modal: MODAL.gtalkUnreachable}, true);
+    return;
+  }
+
+  // fetch roster
+  scen = getByPath(this.model, 'mock.scenarios.applied.roster');
+  scen = getByPath(this.model, 'mock.scenarios.all.roster.'+scen);
+  if (!scen) {
+    this.updateModel({modal: MODAL.scenarios,
+      'mock.scenarios.prompt': 'No roster scenario applied.'}, true);
+    return;
+  }
+  log('applying roster scenario', scen.desc);
+  scen.func.call(this);
+  if (getByPath(this.model, 'connectivity.gtalk') != CONNECTIVITY.connected) {
+    this.updateModel({modal: MODAL.gtalkUnreachable}, true);
+    return;
+  }
+
+  // peer discovery and connection
+  scen = getByPath(this.model, 'mock.scenarios.applied.peers');
+  scen = getByPath(this.model, 'mock.scenarios.all.peers.'+scen);
+  if (!scen) {
+    this.updateModel({modal: MODAL.scenarios,
+      'mock.scenarios.prompt': 'No peers scenario applied.'}, true);
+    return;
+  }
+  log('applying peers scenario', scen.desc);
+  scen.func.call(this);
+  if (getByPath(this.model, 'connectivity.gtalk') != CONNECTIVITY.connected) {
+    this.updateModel({modal: MODAL.gtalkUnreachable}, true);
+    return;
+  }
+
+  this._advanceModal();
 };
 
 ApiServlet._intHandlerForModal[MODAL.proxiedSites] = function(interaction, res) {
@@ -377,7 +439,10 @@ ApiServlet.prototype.handleRequest = function(req, res) {
 };
 
 function log() {
-  util.puts('[api] ' + [].slice.call(arguments).join(' '));
+  var s = '[api] ';
+  for (var i=0, l=arguments.length, ii=arguments[i]; i<l; ii=arguments[++i])
+    s += (typeof ii == 'object' ? util.inspect(ii, false, null, true) : ii)+' ';
+  util.puts(s);
 }
 
 exports.ApiServlet = ApiServlet;

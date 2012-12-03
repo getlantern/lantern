@@ -648,16 +648,15 @@ You should have received a copy of the GNU General Public License along with thi
   </div>
   <div class="modal-body">
     <p>{{ model.mock.scenarios.prompt }}</p>
-    <select ui-select2 multiple ng-multiple="multiple" ng-model="selected"
+    <select ui-select2 multiple ng-multiple="multiple" ng-model="appliedScenarios"
             placeholder="Choose applied scenarios" required style="width: 530px">
       <optgroup ng-repeat="(group, scenarios) in model.mock.scenarios.all" label="{{ group }}">
-        <option ng-repeat="(key, scen) in scenarios" value="{{ group }}.{{ key }}">[{{ key }}] {{ scen.desc }}</option>
+        <option ng-repeat="(key, scen) in scenarios" value="{{ group }}.{{ key }}">{{ scen.desc }}</option>
       </optgroup>
     </select> 
-    <div><code>selected: {{ selected | json }}</code></div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)"
+    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.continue, {appliedScenarios: appliedScenarios})"
             ng-disabled="invalid">Continue</button>
   </div>
 </div>
