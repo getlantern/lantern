@@ -85,10 +85,12 @@ class MockTrustedConnection extends MockConnection {
                 final ChannelGroup channelGroup = 
                     new DefaultChannelGroup("Local-HTTP-Proxy-Server");
                 
+                /*
                 LanternHub.setNettyTimer(timer);
                 LanternHub.setServerChannelFactory(serverChannelFactory);
                 LanternHub.setClientChannelFactory(clientChannelFactory);
                 LanternHub.setChannelGroup(channelGroup);
+                */
                 Socket sock = socketFactory.createSocket("127.0.0.1", peerPort);
                 final ByteTracker byteTracker = new ByteTracker() {
                     
@@ -122,23 +124,25 @@ class MockTrustedConnection extends MockConnection {
          * faked proxy manager is given back.
          */
         final ProxyProvider proxyProvider = new ProxyProvider() {
+            /*
             @Override
             public PeerProxyManager getTrustedPeerProxyManager() {
                 return proxyManager;
             }
+            */
 
             // explosions...
             @Override
             public InetSocketAddress getLaeProxy() {throw new IllegalStateException();}
-            @Override
-            public PeerProxyManager getAnonymousPeerProxyManager() {throw new IllegalStateException();}
+            //@Override
+            //public PeerProxyManager getAnonymousPeerProxyManager() {throw new IllegalStateException();}
             @Override
             public InetSocketAddress getProxy() {throw new IllegalStateException();}
         };
         
         // start a "local" lantern browser proxy on another random port
         localPort = LanternUtils.randomPort();
-        LanternHub.setKeyStoreManager(keyStore);
+        //LanternHub.setKeyStoreManager(keyStore);
         localProxy = startMockLanternHttpProxyServer(localPort, proxyProvider, 
             cookieTracker);
     }

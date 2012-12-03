@@ -256,6 +256,7 @@ class TestingUtils {
         final ChannelGroup channelGroup = 
             new DefaultChannelGroup("Local-HTTP-Proxy-Server");
         
+        /*
         LanternHub.setNettyTimer(timer);
         LanternHub.setServerChannelFactory(serverChannelFactory);
         LanternHub.setClientChannelFactory(clientChannelFactory);
@@ -269,6 +270,9 @@ class TestingUtils {
             co, cf, serverChannelFactory, clientChannelFactory, timer, channelGroup);
         server.start();
         return server;
+        */
+        
+        return null;
     }
 
     public static HttpRequest createGetRequest(final String uri) {
