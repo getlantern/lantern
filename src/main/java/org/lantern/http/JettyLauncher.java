@@ -97,7 +97,8 @@ public class JettyLauncher implements LanternService {
         contexts.addHandler(contextHandler);
 
         //contextHandler.setResourceBase(this.resourceBaseFile.toString());
-        contextHandler.setResourceBase("lantern-ui");
+        //contextHandler.setResourceBase("/Users/afisk/lantern-ui-temp2/lantern-ui/app");
+        contextHandler.setResourceBase("./lantern-ui/app");
         
         server.setHandler(contexts);
         server.setStopAtShutdown(true);
