@@ -18,7 +18,7 @@ public class OauthUtils {
         InputStream is = null;
         try {
             is = OauthUtils.class.getResourceAsStream(
-                "client_secrets_installed.json");
+                "/client_secrets_installed.json");
             final GoogleClientSecrets secrets =
                 GoogleClientSecrets.load(new JacksonFactory(), is);
             //log.debug("Secrets: {}", secrets);
