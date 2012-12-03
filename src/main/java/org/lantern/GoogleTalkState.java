@@ -5,9 +5,9 @@ package org.lantern;
  */
 public enum GoogleTalkState {
 
-    LOGGED_OUT,
-    LOGGING_OUT,
-    LOGGING_IN,
-    LOGGED_IN, 
+    notConnected,
+    //LOGGING_OUT,
+    connecting,
+    connected, 
     LOGIN_FAILED
 }

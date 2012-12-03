@@ -1,14 +1,15 @@
 package org.lantern.privacy; 
 
-import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.lantern.LanternHub;
+import org.lantern.Events;
+import org.lantern.events.MessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Singleton;
 import com.mcdermottroe.apple.OSXKeychain;
 import com.mcdermottroe.apple.OSXKeychainException;
 
@@ -20,35 +21,35 @@ import com.mcdermottroe.apple.OSXKeychainException;
  * used to encrypt/decrypt local data.
  *
  */
+@Singleton
 public class MacLocalCipherProvider extends AbstractAESLocalCipherProvider {
 
     private static final String SERVICE_NAME = "Lantern Local Privacy";
     private static final String ACCOUNT_NAME = "lantern";
 
-    private final Logger log = LoggerFactory.getLogger(getClass());    
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
-    public MacLocalCipherProvider() {
-        super();
-    }
-    
+    /*
     public MacLocalCipherProvider(final File validatorFile, final File cipherParamsFile) {
         super(validatorFile, cipherParamsFile);
     }
+    */
 
     @Override
     byte[] loadKeyData() throws IOException, GeneralSecurityException {
         try {
             OSXKeychain keychain = OSXKeychain.getInstance();
             final Base64 base64 = new Base64();
-            final String encodedKey = keychain.findGenericPassword(SERVICE_NAME, ACCOUNT_NAME);
+            final String encodedKey = 
+                keychain.findGenericPassword(SERVICE_NAME, ACCOUNT_NAME);
             return base64.decode(encodedKey.getBytes());
-        } catch (OSXKeychainException e) {
+        } catch (final OSXKeychainException e) {
             throw new GeneralSecurityException("Keychain error?", e);
         }
     }
 
     @Override
-    void storeKeyData(byte[] key) throws IOException, GeneralSecurityException {
+    void storeKeyData(final byte[] key) throws IOException, GeneralSecurityException {
         final Base64 base64 = new Base64();
         final byte [] encodedKey = base64.encode(key);
         try {
@@ -58,15 +59,15 @@ public class MacLocalCipherProvider extends AbstractAESLocalCipherProvider {
                 keychain.modifyGenericPassword(SERVICE_NAME, ACCOUNT_NAME, keyString);
                 log.debug("Replaced old lantern keychain entry.");
             } catch (final OSXKeychainException e) {
-                /* not found, add */
+                // not found, add 
                 keychain.addGenericPassword(SERVICE_NAME, ACCOUNT_NAME, keyString);
                 log.debug("Created new lantern keychain entry.");
             }
         } catch (final OSXKeychainException e) {
             log.error("Error adding to keychain?", e);
-            LanternHub.dashboard().showMessage("Keychain error", 
+            Events.asyncEventBus().post(new MessageEvent("Keychain error", 
                 "Sorry, but there was an error writing to your keychain. " +
-                "Try resetting Lantern or deleting the Lantern entry in your keychain.");
+                "Try resetting Lantern or deleting the Lantern entry in your keychain."));
             throw new GeneralSecurityException("Keychain error?", e);
         } finally {
             zeroFill(encodedKey);

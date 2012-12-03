@@ -1,8 +1,9 @@
 package org.lantern;
 
+import java.awt.Point;
 import java.io.File;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -19,43 +20,76 @@ import org.eclipse.swt.browser.WindowEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
-import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.Shell;
+import org.lantern.events.MessageEvent;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
 /**
  * Browser dashboard for controlling lantern.
  */
-public class Dashboard {
+@Singleton
+public class Dashboard implements MessageService, BrowserService {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     private Shell shell;
     private Browser browser;
     private boolean completed;
-
+    
     /**
      * The display is pulled out into a separate instance variable because
      * the readAndDispatch method is called extremely frequently.
      */
-    private final Display display = LanternHub.display();
+    //private final Display display = LanternHub.display();
+    private final SystemTray systemTray;
+    
+    @Inject
+    public Dashboard(final SystemTray systemTray) {
+        this.systemTray = systemTray;
+        Events.register(this);
+    }
     
     /**
      * Opens the browser.
      */
+    @Override
     public void openBrowser() {
-        display.syncExec(new Runnable() {
+        DisplayWrapper.getDisplay().syncExec(new Runnable() {
             @Override
             public void run() {
                 buildBrowser();
+                //launchChrome();
             }
         });
     }
+    
+    
+    @Override
+    public void openBrowserWhenPortReady() {
+        openBrowserWhenPortReady(RuntimeSettings.getApiPort());
+    }
+    
+    @Override
+    public void openBrowserWhenPortReady(final int port) {
+        LanternUtils.waitForServer(port);
+        log.info("Server is running. Opening browser...");
+        openBrowser();
+    }
+    
+    @Override
+    public void reopenBrowser() {
+        
+        openBrowser();
+    }
+    
     
     protected void buildBrowser() {
         log.debug("Creating shell...");
@@ -88,7 +122,7 @@ public class Dashboard {
             this.shell.forceActive();
             return;
         }
-        this.shell = new Shell(display);
+        this.shell = new Shell(DisplayWrapper.getDisplay());
         final Image small = newImage("16on.png");
         final Image medium = newImage("32on.png");
         final Image large = newImage("128on.png");
@@ -99,18 +133,24 @@ public class Dashboard {
         //this.shell.setSize(720, 540);
         // shell.setFullScreen(true);
 
+        
         final int minWidth = 970;
         final int minHeight = 630;
-
+        
+        
         log.debug("Centering on screen...");
-        final Monitor primary = display.getPrimaryMonitor();
-        final Rectangle bounds = primary.getBounds();
+       
+        //final Monitor primary = display.getPrimaryMonitor();
+        //final Rectangle bounds = primary.getBounds();
         final Rectangle rect = shell.getBounds();
 
-        final int x = bounds.x + (bounds.width - rect.width) / 2;
-        final int y = bounds.y + (bounds.height - rect.height) / 2;
+        //final int x = bounds.x + (bounds.width - rect.width) / 2;
+        //final int y = bounds.y + (bounds.height - rect.height) / 2;
 
-        shell.setLocation(x, y);
+        //shell.setLocation(x, y);
+        
+        final Point center = LanternUtils.getScreenCenter(rect.width, rect.height);
+        shell.setLocation((int)center.getX(), (int)center.getY());
         
         log.debug("Creating new browser...");
         final int browserType;
@@ -150,23 +190,21 @@ public class Dashboard {
         log.debug("Running browser: {}", browser.getBrowserType());
         browser.setSize(minWidth, minHeight);
         //browser.setBounds(0, 0, 800, 600);
-        browser.setUrl("http://localhost:"+
-            LanternHub.settings().getApiPort());
+        browser.setUrl(RuntimeSettings.getLocalEndpoint());
 
         browser.addLocationListener(new LocationListener() {
             @Override
             public void changing(LocationEvent event) {
                 try {
-                    final URL url = new URL(event.location);
-                    final String localAuthority = "localhost:" + // XXX aliases should work too
-                        LanternHub.settings().getApiPort();
-                    if (!url.getAuthority().equals(localAuthority)) {
+                    final URI url = new URI(event.location);
+                    final String localAuthority = RuntimeSettings.getLocalEndpoint();
+                    if (openExternal(url, localAuthority)) {
                         log.info("opening external browser to {}", event.location);
                         event.doit = false;
                         LanternUtils.browseUrl(event.location);
                     }
-                }
-                catch (MalformedURLException e) {
+                } catch (final URISyntaxException e) {
+                    log.warn("Bad URI?", e);
                     event.doit = false;
                 }
             }
@@ -178,7 +216,7 @@ public class Dashboard {
         // create a hidden browser to intercept external
         // location references that should be opened
         // in the system's native browser.
-        Shell hiddenShell = new Shell(display);
+        Shell hiddenShell = new Shell(DisplayWrapper.getDisplay());
         final Browser externalBrowser = new Browser(hiddenShell, SWT.NONE);
 
         externalBrowser.addLocationListener(new LocationListener() {
@@ -206,7 +244,7 @@ public class Dashboard {
             public void handleEvent(final Event event) {
                 if (LanternHub.settings().getSettings().getState() == SettingsState.State.LOCKED &&
                     LanternHub.settings().isLocalPasswordInitialized()) {
-                    if (LanternHub.systemTray().isActive()) {
+                    if (systemTray.isActive()) {
                         // user presented with unlock screen and just hit close
                         final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
                         final MessageBox messageBox = new MessageBox (shell, style);
@@ -232,12 +270,12 @@ public class Dashboard {
                         messageBox.setMessage (msg);
                         event.doit = messageBox.open () == SWT.YES;
                         if (event.doit) {
-                            display.dispose();
+                            DisplayWrapper.getDisplay().dispose();
                             System.exit(0);
                         }
                     }
                 } else if (LanternHub.settings().isInitialSetupComplete()) {
-                    if (LanternHub.systemTray().isActive()) {
+                    if (systemTray.isActive()) {
                         browser.stop();
                         browser.setUrl("about:blank");
                     }
@@ -249,7 +287,7 @@ public class Dashboard {
                         messageBox.setMessage (msg);
                         event.doit = messageBox.open () == SWT.YES;
                         if (event.doit) {
-                            display.dispose();
+                            DisplayWrapper.getDisplay().dispose();
                             System.exit(0);
                         }
                     }
@@ -262,7 +300,7 @@ public class Dashboard {
                     messageBox.setMessage (msg);
                     event.doit = messageBox.open () == SWT.YES;
                     if (event.doit) {
-                        display.dispose();
+                        DisplayWrapper.getDisplay().dispose();
                         System.exit(0);
                     }
                 }
@@ -275,10 +313,15 @@ public class Dashboard {
         shell.open();
         shell.forceActive();
         while (!shell.isDisposed()) {
-            if (!display.readAndDispatch())
-                display.sleep();
+            if (!DisplayWrapper.getDisplay().readAndDispatch())
+                DisplayWrapper.getDisplay().sleep();
         }
         hiddenShell.dispose();
+    }
+
+    private boolean openExternal(final URI url, final String localAuthority) {
+        return !url.toASCIIString().startsWith("https://accounts.google.com") && 
+           !url.getAuthority().equals(localAuthority);
     }
 
     private Image newImage(final String path) {
@@ -290,7 +333,7 @@ public class Dashboard {
             final File path2 = new File("install/common", path);
             toUse = path2.getAbsolutePath();
         }
-        return new Image(display, toUse);
+        return new Image(DisplayWrapper.getDisplay(), toUse);
     }
     
     
@@ -328,7 +371,7 @@ public class Dashboard {
             return -1;
         }
         final AtomicInteger response = new AtomicInteger();
-        display.syncExec(new Runnable() {
+        DisplayWrapper.getDisplay().syncExec(new Runnable() {
             @Override
             public void run() {
                 response.set(askQuestionOnThread(title, question, style));
@@ -341,7 +384,7 @@ public class Dashboard {
     protected int askQuestionOnThread(final String title, 
         final String question, final int style) {
         log.info("Creating display...");
-        final Shell boxShell = new Shell(display);
+        final Shell boxShell = new Shell(DisplayWrapper.getDisplay());
         log.info("Created display...");
         final MessageBox messageBox = new MessageBox (boxShell, style);
         messageBox.setText(title);
@@ -372,11 +415,30 @@ public class Dashboard {
             log.debug("Ignoring call on disposed shell.");
             return;
         }
-        display.syncExec(new Runnable() {
+        DisplayWrapper.getDisplay().syncExec(new Runnable() {
             @Override
             public void run() {
                 browser.evaluate(call);
             } 
         });
+    }
+
+    @Override
+    public void start() throws Exception {
+        // TODO Auto-generated method stub
+        
+    }
+
+    @Override
+    public void stop() {
+        if (DisplayWrapper.getDisplay() != null) {
+            DisplayWrapper.getDisplay().dispose();
+        }
+    }
+
+    @Override
+    @Subscribe
+    public void onMessageEvent(MessageEvent me) {
+        showMessage(me.getTitle(), me.getMsg());
     }
 }

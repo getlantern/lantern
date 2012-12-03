@@ -2,16 +2,18 @@ package org.lantern;
 
 import org.codehaus.jackson.map.ObjectMapper;
 import org.cometd.server.JacksonJSONContextServer;
+import org.lantern.state.Model;
 
 /** 
- * customizes (de)serialization in cometd exchanges
+ * Customizes (de)serialization in cometd exchanges
  */
 public class SettingsJSONContextServer extends JacksonJSONContextServer {
     
     public SettingsJSONContextServer() {
-        ObjectMapper mapper = getObjectMapper();
+        final ObjectMapper mapper = getObjectMapper();
         mapper.setSerializationConfig(
             mapper.getSerializationConfig().withView(
-                Settings.UIStateSettings.class));
+                Model.Run.class));
+                
     }
 }

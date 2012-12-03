@@ -23,6 +23,7 @@ import org.littleshoot.proxy.HttpFilter;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.HttpResponseFilters;
 import org.littleshoot.proxy.HttpServerPipelineFactory;
+import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.NetworkUtils;
 import org.littleshoot.proxy.ProxyAuthorizationHandler;
 import org.littleshoot.proxy.ProxyAuthorizationManager;
@@ -37,7 +38,6 @@ import org.slf4j.LoggerFactory;
  *
  * DefaultHttpProxyServer is severely unfriendly to subclassing
  * so it is cargo culted in full with specific additions.
- *
  */
 public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
 
@@ -59,56 +59,15 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
 
     private final HttpResponseFilters responseFilters;
 
-    private ChannelFactory serverChannelFactory;
+    private final ChannelFactory serverChannelFactory;
 
-    private Timer timer;
+    private final Timer timer;
 
-    private ClientSocketChannelFactory clientChannelFactory;
+    private final ClientSocketChannelFactory clientChannelFactory;
 
-    /**
-     * Creates a new proxy server.
-     *
-     * @param port The port the server should run on.
-     */
-    /*
-    public StatsTrackingDefaultHttpProxyServer(final int port) {
-        this(port, new HttpResponseFilters() {
-            public HttpFilter getFilter(String hostAndPort) {
-                return null;
-            }
-        });
-    }
-    */
+    private final KeyStoreManager ksm;
 
-    /**
-     * Creates a new proxy server.
-     *
-     * @param port The port the server should run on.
-     * @param responseFilters The {@link Map} of request domains to match
-     * with associated {@link HttpFilter}s for filtering responses to
-     * those requests.
-     */
-    /*
-    public StatsTrackingDefaultHttpProxyServer(final int port,
-        final HttpResponseFilters responseFilters) {
-        this(port, responseFilters, null, null);
-    }
-    */
-
-    /**
-     * Creates a new proxy server.
-     *
-     * @param port The port the server should run on.
-     * @param requestFilter The filter for HTTP requests.
-     * @param responseFilters HTTP filters to apply.
-     */
-    /*
-    public StatsTrackingDefaultHttpProxyServer(final int port,
-        final HttpRequestFilter requestFilter,
-        final HttpResponseFilters responseFilters) {
-        this(port, responseFilters, null, requestFilter);
-    }
-    */
+    private final Stats stats;
 
     /**
      * Creates a new proxy server.
@@ -133,7 +92,9 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         final HttpRequestFilter requestFilter, 
         final ClientSocketChannelFactory clientChannelFactory, 
         final Timer timer,
-        final ServerSocketChannelFactory serverChannelFactory) {
+        final ServerSocketChannelFactory serverChannelFactory,
+        final KeyStoreManager ksm,
+        final Stats stats) {
         this.port = port;
         this.responseFilters = responseFilters;
         this.requestFilter = requestFilter;
@@ -141,6 +102,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         this.clientChannelFactory = clientChannelFactory;
         this.timer = timer;
         this.serverChannelFactory = serverChannelFactory;
+        this.ksm = ksm;
+        this.stats = stats;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
@@ -156,6 +119,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         start(false, true);
     }
 
+    @Override
     public void start(final boolean localOnly, final boolean anyAddress) {
         log.info("Starting proxy on port: "+this.port);
         final HttpServerPipelineFactory factory =
@@ -164,7 +128,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                 new StatsTrackingDefaultRelayPipelineFactoryFactory(chainProxyManager,
                     this.responseFilters, this.requestFilter,
                     this.allChannels, this.timer), this.clientChannelFactory, 
-                    this.timer);
+                    this.timer, this.ksm);
         serverBootstrap.setPipelineFactory(factory);
 
         // Binding only to localhost can significantly improve the security of
@@ -194,6 +158,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         }));
     }
 
+    @Override
     public void stop() {
         //log.info("Shutting down proxy");
         //final ChannelGroupFuture future = allChannels.close();
@@ -207,40 +172,43 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
         this.authenticationManager.addHandler(pah);
     }
     
-    private static class StatsTrackingHttpServerPipelineFactory 
+    private class StatsTrackingHttpServerPipelineFactory 
         extends HttpServerPipelineFactory {
         
-        public StatsTrackingHttpServerPipelineFactory(
+        private StatsTrackingHttpServerPipelineFactory(
             final ProxyAuthorizationManager authorizationManager, 
             final ChannelGroup channelGroup, 
             final ChainProxyManager chainProxyManager, 
             final RelayPipelineFactoryFactory relayPipelineFactoryFactory,
             final ClientSocketChannelFactory clientChannelFactory, 
-            final Timer timer) {
+            final Timer timer,
+            final KeyStoreManager ksm) {
             super(authorizationManager, channelGroup, chainProxyManager, 
-                LanternHub.getKeyStoreManager(), relayPipelineFactoryFactory, 
+                ksm, relayPipelineFactoryFactory, 
                 timer, clientChannelFactory);
         }
 
         @Override
         public ChannelPipeline getPipeline() throws Exception {
-            ChannelPipeline pipeline = super.getPipeline();
+            final ChannelPipeline pipeline = super.getPipeline();
             pipeline.addFirst("stats", new StatsTrackingHandler() {
-                public void addUpBytes(long bytes, Channel channel) {
-                    statsTracker().addUpBytesToPeers(bytes, channel);
+                @Override
+                public void addUpBytes(long bytes) {
+                    stats.addUpBytesToPeers(bytes);
                 }
-                public void addDownBytes(long bytes, Channel channel) {
-                    statsTracker().addDownBytesFromPeers(bytes, channel);
+                @Override
+                public void addDownBytes(long bytes) {
+                    stats.addDownBytesFromPeers(bytes);
                 }
             });
             return pipeline;
         }
     }
     
-    private static class StatsTrackingDefaultRelayPipelineFactoryFactory 
+    private class StatsTrackingDefaultRelayPipelineFactoryFactory 
         extends DefaultRelayPipelineFactoryFactory {
         
-        public StatsTrackingDefaultRelayPipelineFactoryFactory(
+        private StatsTrackingDefaultRelayPipelineFactoryFactory(
             final ChainProxyManager chainProxyManager, 
             final HttpResponseFilters responseFilters, 
             final HttpRequestFilter requestFilter, 
@@ -254,7 +222,8 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
             final HttpRequest httpRequest,final Channel browserToProxyChannel,
             final RelayListener relayListener) {
             final ChannelPipelineFactory innerFactory =
-                    super.getRelayPipelineFactory(httpRequest, browserToProxyChannel, relayListener);
+                super.getRelayPipelineFactory(httpRequest, 
+                    browserToProxyChannel, relayListener);
 
             return new ChannelPipelineFactory() {
                 @Override
@@ -262,12 +231,12 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                     ChannelPipeline pipeline = innerFactory.getPipeline();
                     pipeline.addFirst("stats", new StatsTrackingHandler() {
                         @Override
-                        public void addUpBytes(final long bytes, final Channel channel) {
-                            statsTracker().addUpBytesForPeers(bytes, browserToProxyChannel);
+                        public void addUpBytes(final long bytes) {
+                            stats.addUpBytesForPeers(bytes);
                         }
                         @Override
-                        public void addDownBytes(final long bytes, final Channel channel) {
-                            statsTracker().addDownBytesForPeers(bytes, browserToProxyChannel);
+                        public void addDownBytes(final long bytes) {
+                            stats.addDownBytesForPeers(bytes);
                         }
                     });
                     return pipeline;

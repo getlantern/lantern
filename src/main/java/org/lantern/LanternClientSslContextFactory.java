@@ -14,7 +14,8 @@ public class LanternClientSslContextFactory {
     private static final String PROTOCOL = "TLS";
     private final SSLContext CLIENT_CONTEXT;
     
-    public LanternClientSslContextFactory() {
+    public LanternClientSslContextFactory(
+        final LanternKeyStoreManager keyStoreManager) {
         String algorithm = 
             Security.getProperty("ssl.KeyManagerFactory.algorithm");
         if (algorithm == null) {
@@ -23,8 +24,7 @@ public class LanternClientSslContextFactory {
 
         try {
             final SSLContext clientContext = SSLContext.getInstance(PROTOCOL);
-            clientContext.init(null, 
-                LanternHub.getKeyStoreManager().getTrustManagers(), null);
+            clientContext.init(null, keyStoreManager.getTrustManagers(), null);
             CLIENT_CONTEXT = clientContext;
         } catch (final Exception e) {
             throw new Error(

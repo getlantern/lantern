@@ -3,6 +3,8 @@ package org.lantern;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.Executors;
 import java.io.IOException;
 import javax.net.SocketFactory;
@@ -26,6 +28,7 @@ import org.jboss.netty.util.Timer;
 import static org.lantern.TestingUtils.*;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.InMemoryCookieTracker;
+import org.lantern.state.Peer;
 
 
 /** 
@@ -82,27 +85,37 @@ class MockTrustedConnection extends MockConnection {
                 final ChannelGroup channelGroup = 
                     new DefaultChannelGroup("Local-HTTP-Proxy-Server");
                 
+                /*
                 LanternHub.setNettyTimer(timer);
                 LanternHub.setServerChannelFactory(serverChannelFactory);
                 LanternHub.setClientChannelFactory(clientChannelFactory);
                 LanternHub.setChannelGroup(channelGroup);
+                */
                 Socket sock = socketFactory.createSocket("127.0.0.1", peerPort);
+                final ByteTracker byteTracker = new ByteTracker() {
+                    
+                    @Override
+                    public void addUpBytes(long bytes) {}
+                    
+                    @Override
+                    public void addDownBytes(long bytes) {}
+                };
                 final HttpRequestProcessor proc = 
-                    new PeerChannelHttpRequestProcessor(sock, channelGroup);
+                    new PeerChannelHttpRequestProcessor(sock, channelGroup, 
+                        byteTracker);
                 proc.processRequest(browserToProxyChannel, ctx, me);
                 return proc;
             }
 
             @Override
-            public void closeAll() {
-                // TODO Auto-generated method stub
-                
-            }
+            public void closeAll() {}
 
             @Override
-            public void removePeer(URI uri) {
-                // TODO Auto-generated method stub
-                
+            public void removePeer(URI uri) {}
+
+            @Override
+            public Map<String, Peer> getPeers() {
+                return new HashMap<String, Peer>();
             }
         };
         
@@ -111,23 +124,25 @@ class MockTrustedConnection extends MockConnection {
          * faked proxy manager is given back.
          */
         final ProxyProvider proxyProvider = new ProxyProvider() {
+            /*
             @Override
             public PeerProxyManager getTrustedPeerProxyManager() {
                 return proxyManager;
             }
+            */
 
             // explosions...
             @Override
             public InetSocketAddress getLaeProxy() {throw new IllegalStateException();}
-            @Override
-            public PeerProxyManager getAnonymousPeerProxyManager() {throw new IllegalStateException();}
+            //@Override
+            //public PeerProxyManager getAnonymousPeerProxyManager() {throw new IllegalStateException();}
             @Override
             public InetSocketAddress getProxy() {throw new IllegalStateException();}
         };
         
         // start a "local" lantern browser proxy on another random port
         localPort = LanternUtils.randomPort();
-        LanternHub.setKeyStoreManager(keyStore);
+        //LanternHub.setKeyStoreManager(keyStore);
         localProxy = startMockLanternHttpProxyServer(localPort, proxyProvider, 
             cookieTracker);
     }

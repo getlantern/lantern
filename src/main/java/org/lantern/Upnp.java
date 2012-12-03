@@ -3,12 +3,16 @@ package org.lantern;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.teleal.cling.DefaultUpnpServiceConfiguration;
 import org.teleal.cling.UpnpService;
 import org.teleal.cling.UpnpServiceImpl;
 import org.teleal.cling.support.model.PortMapping;
@@ -20,8 +24,11 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
     
     private final static Collection<UpnpService> allServices =
             new ArrayList<UpnpService>();
+
+    private final Stats stats;
     
-    public Upnp() {
+    public Upnp(final Stats stats) {
+        this.stats = stats;
         final String HACK_STREAM_HANDLER_SYSTEM_PROPERTY = 
             "hackStreamHandlerProperty";
         System.setProperty(HACK_STREAM_HANDLER_SYSTEM_PROPERTY, 
@@ -67,22 +74,41 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
         // this point.
         return 1;
     }
+    
+    private static class LanternUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration {
+        
+        @Override
+        protected Executor createDefaultExecutor() {
+            return Executors.newCachedThreadPool(new ThreadFactory() {
+
+                private int count = 0;
+                
+                @Override
+                public Thread newThread(Runnable r) {
+                    final Thread t = new Thread(r, 
+                        "Lantern-UPnP-Default-Thread-Pool-"+count);
+                    t.setDaemon(true);
+                    count++;
+                    return t;
+                }
+                
+            });
+        }
+    }
 
     protected void addMapping(final PortMappingProtocol prot, 
         final int externalPortRequested, 
         final PortMapListener portMapListener, final String lh) {
-
         final PortMapping desiredMapping = new PortMapping(
             externalPortRequested,
             lh,
             prot == PortMappingProtocol.TCP ? PortMapping.Protocol.TCP : PortMapping.Protocol.UDP,
             "Lantern Port Mapping"
         );
-
         final UpnpService upnpService;
         try {
-            upnpService = new UpnpServiceImpl(
-                new UpnpPortMappingListener(portMapListener, desiredMapping)
+            upnpService = new UpnpServiceImpl(new LanternUpnpServiceConfiguration(), 
+                new UpnpPortMappingListener(stats, portMapListener, desiredMapping)
             );
             allServices.add(upnpService);
         } catch (final InitializationException e) {

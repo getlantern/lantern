@@ -23,12 +23,14 @@ public class SettingsIo {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final File settingsFile;
+
+    private final EncryptedFileService encryptedFileService;
     
     /**
      * Creates a new instance with all the default operations.
      */
-    public SettingsIo() {
-        this(LanternConstants.DEFAULT_SETTINGS_FILE);
+    public SettingsIo(final EncryptedFileService encryptedFileService) {
+        this(LanternConstants.DEFAULT_SETTINGS_FILE, encryptedFileService);
     }
     
     
@@ -38,8 +40,10 @@ public class SettingsIo {
      * 
      * @param settingsFile The file where settings are stored.
      */
-    public SettingsIo(final File settingsFile) {
+    public SettingsIo(final File settingsFile, 
+        final EncryptedFileService encryptedFileService) {
         this.settingsFile = settingsFile;
+        this.encryptedFileService = encryptedFileService;
     }
 
     /**
@@ -54,7 +58,7 @@ public class SettingsIo {
         final ObjectMapper mapper = new ObjectMapper();
         InputStream is = null;
         try {
-            is = LanternUtils.localDecryptInputStream(settingsFile);
+            is = encryptedFileService.localDecryptInputStream(settingsFile);
             final String json = IOUtils.toString(is);
             log.info("Building setting from json string...");
             if (StringUtils.isBlank(json) || json.equalsIgnoreCase("null")) {
@@ -88,7 +92,7 @@ public class SettingsIo {
 
     private Settings blankSettings() {
         final Settings s = new Settings(new Whitelist());
-        
+        /*
         // if some password initialization is required, 
         // consider the settings to be "locked"
         if (LanternHub.localCipherProvider().requiresAdditionalUserInput()) {
@@ -98,6 +102,7 @@ public class SettingsIo {
         else {
             s.getSettings().setState(State.SET);
         }
+        */
         return s;
     }
 
@@ -118,8 +123,8 @@ public class SettingsIo {
         OutputStream os = null;
         try {
             final String json = LanternUtils.jsonify(settings, 
-                Settings.PersistentSettings.class);
-            os = LanternUtils.localEncryptOutputStream(settingsFile);
+                Settings.PersistentSetting.class);
+            os = encryptedFileService.localEncryptOutputStream(settingsFile);
             os.write(json.getBytes("UTF-8"));
         } catch (final IOException e) {
             log.error("Error encrypting stream", e);
@@ -128,6 +133,5 @@ public class SettingsIo {
         } finally {
             IOUtils.closeQuietly(os);
         }
-        
     }
 }

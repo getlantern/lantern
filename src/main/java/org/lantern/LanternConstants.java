@@ -1,6 +1,7 @@
 package org.lantern;
 
 import java.io.File;
+import java.nio.charset.Charset;
 
 import org.apache.commons.lang.SystemUtils;
 import org.lantern.exceptional4j.ExceptionalUtils;
@@ -10,12 +11,12 @@ import org.lantern.exceptional4j.ExceptionalUtils;
  */
 public class LanternConstants {
     
-    static final long START_TIME = System.currentTimeMillis();
+    public static final long START_TIME = System.currentTimeMillis();
 
-    static final int DASHCACHE_MAXAGE = 60 * 5;
+    public static final int DASHCACHE_MAXAGE = 60 * 5;
 
-    public static final String FALLBACK_SERVER_HOST = "75.101.134.244";
-    public static final int FALLBACK_SERVER_PORT = 7777;
+    public static final String FALLBACK_SERVER_HOST = "fallback_server_host_tok";
+    public static final String FALLBACK_SERVER_PORT = "fallback_server_port_tok";;
     
     public static final String FALLBACK_SERVER_USER = "fallback_server_user_tok";
     public static final String FALLBACK_SERVER_PASS = "fallback_server_pass_tok";
@@ -26,6 +27,9 @@ public class LanternConstants {
      */
     public static final String VERSION = "lantern_version_tok";
     
+    public static final String API_VERSION = "0.0.1";
+    
+    public static final String BUILD_TIME = "build_time_tok";
     
     public static final String UNCENSORED_ID = "-lan-";
     
@@ -127,11 +131,9 @@ public class LanternConstants {
     public static final File DEFAULT_SETTINGS_FILE = 
         new File(CONFIG_DIR, "settings.json");
     
-
-    public static final String SETTINGS_SYNC_CHANNEL = "/sync/settings";
+    public static final File DEFAULT_MODEL_FILE = 
+            new File(CONFIG_DIR, "model");
     
-    public static final String ROSTER_SYNC_CHANNEL = "/sync/roster";
-
     /**
      * Note that we don't include the "X-" for experimental headers here. See:
      * the draft that appears likely to become an RFC at:
@@ -151,6 +153,8 @@ public class LanternConstants {
 
     public static final int KSCOPE_ADVERTISEMENT = 0x2111;
     public static final String KSCOPE_ADVERTISEMENT_KEY = "ksak";
+
+    public static final Charset UTF8 = Charset.forName("UTF8");
 
     static {
         boolean tempAppEngine;
@@ -199,5 +203,4 @@ public class LanternConstants {
         
         ON_APP_ENGINE = tempAppEngine;
     }
-
 }

@@ -70,9 +70,10 @@ public class LanternProxyingTest {
         log.info("Finished with stop!!");
     }
 
-    @Test
+    //@Test
     public void testWithHttpClient() throws Exception {
-        final String url = "http://www.yahoo.com";
+        //final String url = "http://www.yahoo.com";
+        final String url = "http://www.facebook.com";
             //"https://rlanternz.appspot.com/http/advar-news.biz/local/cache-css/spip_formulaires.34a0_rtl.css";
                 //"http://localhost:8080/http/advar-news.biz/local/cache-css/spip_formulaires.34a0_rtl.css";
             //    "http://advar-news.biz/local/cache-css/spip_formulaires.34a0_rtl.css";
@@ -124,7 +125,7 @@ public class LanternProxyingTest {
     }
     
     @Test
-    public void test() throws Exception {
+    public void testThroughLantern() throws Exception {
         //final String[] urls = {"https://rlanternz.appspot.com/http/advar-news.biz/local/cache-css/spip_formulaires.34a0_rtl.css"};//getUrls();
         final String[] urls = getUrls();
         //final String[] urls = {"http://www.yahoo.com/"};
@@ -169,6 +170,7 @@ public class LanternProxyingTest {
 
     private String[] getUrls() {
         return new String[] {
+            "https://www.facebook.com",
             //"http://advar-news.biz/",
             //"http://advar-news.biz/local/cache-css/spip_style.c225_rtl.css",
             "http://advar-news.biz/local/cache-css/spip_formulaires.34a0_rtl.css",

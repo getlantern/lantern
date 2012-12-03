@@ -12,7 +12,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
@@ -20,18 +19,22 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
+import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.event.QuitEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Class for handling all system tray interactions.
  */
+@Singleton
 public class SystemTrayImpl implements SystemTray {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private Display display;
     private Shell shell;
     private TrayItem trayItem;
     private MenuItem connectionStatusItem;
@@ -49,28 +52,56 @@ public class SystemTrayImpl implements SystemTray {
     private final static String ICON_DISCONNECTED  = "16off.png";
     private final static String ICON_CONNECTING    = "16off.png"; 
     private final static String ICON_CONNECTED     = "16on.png";
-    private final static String ICON_DISCONNECTING = "16off.png"; 
-
+    private final static String ICON_DISCONNECTING = "16off.png";
+    private final XmppHandler handler;
+    private final BrowserService browserService;
     
     /**
      * Creates a new system tray handler class.
      * 
      * @param display The SWT display. 
      */
-    public SystemTrayImpl() {
-        LanternHub.register(this);
+    @Inject
+    public SystemTrayImpl(final XmppHandler handler, 
+        final BrowserService browserService) {
+        this.handler = handler;
+        this.browserService = browserService;
+        Events.register(this);
+    }
+    
+
+    @Override
+    public void start() {
+        createTray();
     }
 
-    public static boolean isSupported() {
-        return LanternHub.display().getSystemTray() != null;
+    @Override
+    public void stop() {
+        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
+            @Override
+            public void run () {
+                if (DisplayWrapper.getDisplay().isDisposed()) {
+                    return;
+                }
+                try {
+                    DisplayWrapper.getDisplay().dispose();
+                } catch (final Throwable t) {
+                    log.info("Exception disposing display?", t);
+                }
+            }
+        });
+    }
+
+    @Override
+    public boolean isSupported() {
+        return DisplayWrapper.getDisplay().getSystemTray() != null;
     }
 
     @Override
     public void createTray() {
-        this.display = LanternHub.display();
-        this.shell = new Shell(display);
+        this.shell = new Shell(DisplayWrapper.getDisplay());
         
-        display.asyncExec (new Runnable () {
+        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
             @Override
             public void run () {
                 createTrayInternal();
@@ -79,7 +110,7 @@ public class SystemTrayImpl implements SystemTray {
     }
     
     private void createTrayInternal() {
-        final Tray tray = display.getSystemTray ();
+        final Tray tray = DisplayWrapper.getDisplay().getSystemTray ();
         if (tray == null) {
             log.warn("The system tray is not available");
         } else {
@@ -111,7 +142,7 @@ public class SystemTrayImpl implements SystemTray {
             dashboardItem.addListener (SWT.Selection, new Listener () {
                 @Override
                 public void handleEvent (final Event event) {
-                    LanternHub.jettyLauncher().openBrowserWhenReady();
+                    browserService.reopenBrowser();
                 }
             });
             
@@ -127,13 +158,13 @@ public class SystemTrayImpl implements SystemTray {
                     System.out.println("Got exit call");
                     
                     // This tells things like the Proxifier to stop proxying.
-                    LanternHub.eventBus().post(new QuitEvent());
+                    Events.eventBus().post(new QuitEvent());
                     
-                    display.dispose();
+                    DisplayWrapper.getDisplay().dispose();
                     
                     // We call this primarily because we need to make sure to
                     // remove any UPnP and NAT-PMP port mappings.
-                    LanternHub.xmppHandler().disconnect();
+                    handler.disconnect();
                     //LanternHub.jettyLauncher().stop();
                     
                     // We don't need to actively close all open resources --
@@ -164,7 +195,7 @@ public class SystemTrayImpl implements SystemTray {
                     @Override
                     public void widgetSelected(SelectionEvent se) {
                         log.debug("opening dashboard");
-                        LanternHub.jettyLauncher().openBrowserWhenReady();
+                        browserService.reopenBrowser();
                     }
                     
                     @Override
@@ -178,7 +209,7 @@ public class SystemTrayImpl implements SystemTray {
     }
 
     private void setImage(final Image image) {
-        display.asyncExec (new Runnable () {
+        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
             @Override
             public void run () {
                 trayItem.setImage (image);
@@ -187,7 +218,7 @@ public class SystemTrayImpl implements SystemTray {
     }
     
     private void setStatusLabel(final String status) {
-        display.asyncExec (new Runnable () {
+        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
             @Override
             public void run () {
                 // XXX i18n 
@@ -211,13 +242,13 @@ public class SystemTrayImpl implements SystemTray {
         InputStream is = null;
         try {
             is = new FileInputStream(iconFile);
-            return new Image (display, is);
+            return new Image (DisplayWrapper.getDisplay(), is);
         } catch (final FileNotFoundException e) {
             log.error("Could not find icon file: "+iconFile, e);
         } finally {
             IOUtils.closeQuietly(is);
         }
-        return new Image (display, width, height);
+        return new Image (DisplayWrapper.getDisplay(), width, height);
     }
 
     @Override
@@ -228,7 +259,7 @@ public class SystemTrayImpl implements SystemTray {
             return;
         }
         this.updateData = data;
-        display.asyncExec (new Runnable () {
+        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
             @Override
             public void run () {
                 if (updateItem == null) {
@@ -278,11 +309,11 @@ public class SystemTrayImpl implements SystemTray {
     }
 
     private void changeIcon(final String fileName) {
-        if (display.isDisposed()) {
+        if (DisplayWrapper.getDisplay().isDisposed()) {
             log.info("Ingoring call since display is disposed");
             return;
         }
-        display.asyncExec (new Runnable () {
+        DisplayWrapper.getDisplay().asyncExec (new Runnable () {
             @Override
             public void run () {
                 if (SystemUtils.IS_OS_MAC_OSX) {
@@ -295,7 +326,7 @@ public class SystemTrayImpl implements SystemTray {
     }
     
     private void changeStatusLabel(final String status) {
-        if (display.isDisposed()) {
+        if (DisplayWrapper.getDisplay().isDisposed()) {
             log.info("Ingoring call since display is disposed");
             return;
         }

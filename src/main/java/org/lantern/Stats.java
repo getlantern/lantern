@@ -1,5 +1,7 @@
 package org.lantern;
 
+import org.jboss.netty.channel.Channel;
+
 public interface Stats {
 
     long getUptime();
@@ -55,5 +57,29 @@ public interface Stats {
     String getCountryCode();
 
     String getVersion();
+
+    void setNatpmp(boolean natpmp);
+
+    void setUpnp(boolean upnp);
+
+    void resetCumulativeStats();
+
+    void addDownBytesViaProxies(long bytes);
+
+    void addUpBytesViaProxies(long bytes);
+
+    void incrementProxiedRequests();
+
+    void addUpBytesToPeers(long bytes);
+
+    void addDownBytesFromPeers(long bytes);
+
+    void addUpBytesForPeers(long bytes);
+
+    void addDownBytesForPeers(long bytes);
+
+    void addDirectBytes(long bytes);
+
+    void addBytesProxied(long bytes, Channel channel);
 
 }

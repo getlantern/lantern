@@ -10,7 +10,7 @@ import org.littleshoot.commom.xmpp.XmppP2PClient;
 /**
  * Interface for dealing with any XMPP interaction in Lantern.
  */
-public interface XmppHandler extends ProxyStatusListener, ProxyProvider {
+public interface XmppHandler extends ProxyStatusListener, ProxyProvider, LanternService {
 
     void disconnect();
 
@@ -89,5 +89,9 @@ public interface XmppHandler extends ProxyStatusListener, ProxyProvider {
 
     String getLastPass();
 
+    @Override
+    void start();
+    
+    @Override
     void stop();
 }

@@ -55,7 +55,7 @@ public class LanternBrowser {
         log.info("Creating Lantern browser...");
         //I18n = I18nFactory.getI18n(LanternBrowser.class, 
         //        "app.i18n.Messages", locale, I18nFactory.FALLBACK);
-        this.display = LanternHub.display();
+        this.display = DisplayWrapper.getDisplay();
         this.isConfig = isConfig;
         
         log.info("Creating shell...");

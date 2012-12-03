@@ -14,12 +14,15 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.lang.StringUtils;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.lastbamboo.common.ice.NetSocketUDTWrapper;
 
 import udt.UDTReceiver;
 
 import com.barchart.udt.net.NetServerSocketUDT;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
 
 
 public class UdtSslTest {
@@ -32,9 +35,25 @@ public class UdtSslTest {
     
     private final String msg = "testing";
     
+    private static DefaultXmppHandler xmppHandler;
+
+    private static LanternSocketsUtil socketsUtil;
+
+    private static LanternKeyStoreManager ksm;
+
+    
+    @BeforeClass
+    public static void setup() throws Exception {
+        final Injector injector = Guice.createInjector(new LanternModule());
+        
+        xmppHandler = injector.getInstance(DefaultXmppHandler.class);
+        socketsUtil = injector.getInstance(LanternSocketsUtil.class);
+        ksm = injector.getInstance(LanternKeyStoreManager.class);
+        
+        xmppHandler.start();
+    }
     @Test
     public void testSslOverUdt() throws Exception {
-        final LanternKeyStoreManager ksm = LanternHub.getKeyStoreManager();
         ksm.addBase64Cert(LanternUtils.getMacAddress(), ksm.getBase64Cert());
         
         startServer();
@@ -53,7 +72,7 @@ public class UdtSslTest {
         //final Socket sock = client.getSocket();
         //final Socket sock = new Socket(myHost, SERVER_PORT);
         
-        final SSLSocketFactory sslSocketFactory = LanternUtils.newTlsSocketFactory();
+        final SSLSocketFactory sslSocketFactory = socketsUtil.newTlsSocketFactory();
             //(SSLSocketFactory)SSLSocketFactory.getDefault();
         final SSLSocket sslSocket =
             (SSLSocket)sslSocketFactory.createSocket(sock, 
@@ -106,7 +125,7 @@ public class UdtSslTest {
 
     protected void accept(final ServerSocket server) throws Exception {
         final Socket socket = server.accept();
-        final SSLSocketFactory sslSocketFactory = LanternUtils.newTlsSocketFactory();
+        final SSLSocketFactory sslSocketFactory = socketsUtil.newTlsSocketFactory();
         //final ServerSocket server = factory.createServerSocket();
         //server.bind(new InetSocketAddress(SERVER_PORT));
         
