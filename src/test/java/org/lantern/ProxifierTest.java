@@ -14,6 +14,6 @@ public class ProxifierTest {
         //Proxifier.proxyOsxViaScript();
         
         // Just make sure we don't get an exception
-        new Proxifier(null).osxPrefPanesLocked();
+        new Proxifier(null, null, null).osxPrefPanesLocked();
     }
 }

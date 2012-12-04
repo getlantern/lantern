@@ -311,6 +311,8 @@ public class LanternUtils {
         return false;
     }
     
+    
+    /*
     public static void writeCredentials(final String email, final String pass) {
         LOG.info("Writing credentials...");
         LanternHub.settings().setEmail(email);
@@ -326,6 +328,7 @@ public class LanternUtils {
         LanternHub.settings().setPassword("");
         LanternHub.settingsIo().write();
     }
+    */
 
     public static boolean isNewInstall() {
         return LanternHub.settings().getSettings().getState() == 
@@ -786,20 +789,6 @@ public class LanternUtils {
         }
         return jid;
     }
-
-    public static boolean shouldProxy() {
-        return LanternHub.settings().isGetMode() && 
-            LanternHub.settings().isSystemProxy();
-    }
-    
-    /*
-    public static boolean shouldProxy(final HttpRequest request) {
-        if (LanternHub.settings().isProxyAllSites()) {
-            return true;
-        }
-        return LanternHub.whitelist().isWhitelisted(request);
-    }
-    */
 
     /**
      * Creates a typed object from the specified string. If the string is a

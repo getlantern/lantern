@@ -131,13 +131,20 @@ public class ModelIo implements Provider<Model>, Shutdownable {
     }
     
     /**
-     * Serializing the current model.
+     * Serializes the current model.
      */
     public void write() {
+        write(this.model);
+    }
+    
+    /**
+     * Serializes the specified model -- useful for testing.
+     */
+    public void write(final Model toWrite) {
         log.info("Writing model!!");
         OutputStream os = null;
         try {
-            final String json = LanternUtils.jsonify(model, 
+            final String json = LanternUtils.jsonify(toWrite, 
                 Model.Persistent.class);
             //log.info("Writing JSON: \n{}", json);
             os = encryptedFileService.localEncryptOutputStream(this.modelFile);

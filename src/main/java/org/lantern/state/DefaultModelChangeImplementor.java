@@ -9,10 +9,10 @@ import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.lang.SystemUtils;
 import org.lantern.LanternConstants;
-import org.lantern.LanternHub;
 import org.lantern.LanternUtils;
 import org.lantern.NotInClosedBetaException;
 import org.lantern.Proxifier;
+import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.XmppHandler;
 import org.lantern.state.Settings.Mode;
 import org.lantern.win.Registry;
@@ -119,32 +119,44 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
     
     @Override
     public void setProxyAllSites(final boolean proxyAll) {
+        try {
+            proxifier.proxyAllSites(proxyAll);
+        } catch (final ProxyConfigurationError e) {
+            throw new RuntimeException("Error proxying all sites!", e);
+        }
     }
 
     @Override
     public void setSystemProxy(final boolean isSystemProxy) {
-        log.info("Setting system proxy");
-    }
-    
-    @Override
-    public void setPort(final int port) {
-        // Not yet supported.
-        log.warn("setPort not yet implemented");
-    }
-
-    /*
-    @Override
-    public void setCountry(final Country country) {
-        if (country.equals(LanternHub.settings().getCountry())) {
+        if (isSystemProxy == this.model.getSettings().isSystemProxy()) {
+            log.info("System proxy setting is unchanged.");
             return;
         }
-        LanternHub.settings().setManuallyOverrideCountry(true);
-    }
-    */
-
-    @Override
-    public void setEmail(final String email) {
-        final String storedEmail = LanternHub.settings().getEmail();
+        
+        log.info("Setting system proxy");
+        
+        // Go ahead and change the setting so that it will affect. It will 
+        // be set again by the api, but that doesn't matter.
+        this.model.getSettings().setSystemProxy(isSystemProxy);
+        if (!this.model.isSetupComplete()) {
+            return;
+        }
+        
+        final Runnable proxyRunner = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    if (modelUtils.shouldProxy() ) {
+                        proxifier.startProxying();
+                    } else {
+                        proxifier.stopProxying();
+                    }
+                } catch (final Proxifier.ProxyConfigurationError e) {
+                    log.error("Proxy reconfiguration failed: {}", e);
+                }
+            }
+        };
+        proxyQueue.execute(proxyRunner);
     }
 
     @Override
@@ -189,9 +201,9 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
                 // TODO: This isn't quite right. We don't necessarily have
                 // proxies to connect to at this point, and we shouldn't set
                 // the OS proxy until we do.
-                if (LanternHub.settings().isInitialSetupComplete()) {
+                if (this.model.isSetupComplete()) {
                     // may need to modify the proxying state
-                    if (LanternUtils.shouldProxy()) {
+                    if (modelUtils.shouldProxy()) {
                         proxifier.startProxying();
                     } else {
                         proxifier.stopProxying();
@@ -200,17 +212,17 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
             } catch (final IOException e) {
                 log.info("Could not connect to server", e);
                 // Don't proxy if there's some error connecting.
-                if (LanternHub.settings().isInitialSetupComplete()) {
+                if (this.model.isSetupComplete()) {
                     proxifier.stopProxying();
                 }
             } catch (final CredentialException e) {
                 log.info("Credentials are wrong!!");
-                if (LanternHub.settings().isInitialSetupComplete()) {
+                if (this.model.isSetupComplete()) {
                     proxifier.stopProxying();
                 }
             } catch (final NotInClosedBetaException e) {
                 log.info("Not in beta!!");
-                if (LanternHub.settings().isInitialSetupComplete()) {
+                if (this.model.isSetupComplete()) {
                     proxifier.stopProxying();
                 }
             }
@@ -218,21 +230,4 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
             log.info("Proxy auto-configuration failed: {}", e);
         }
     }
-
-    @Override
-    public void setPassword(final String password) {
-        final org.lantern.Settings set = LanternHub.settings();
-    }
-    
-    @Override
-    public void setSavePassword(final boolean savePassword) {
-        log.info("Setting savePassword to {}", savePassword);
-    }
-
-    /*
-    @Override
-    public Model getModel() {
-        return this.model;
-    }
-    */
 }

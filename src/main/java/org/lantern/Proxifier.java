@@ -8,6 +8,8 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.eclipse.swt.SWT;
 import org.lantern.event.QuitEvent;
+import org.lantern.state.Model;
+import org.lantern.state.ModelUtils;
 import org.lantern.win.WinProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,9 +54,16 @@ public class Proxifier implements LanternService {
         new WinProxy(LanternConstants.CONFIG_DIR);
     
     private final MessageService messageService;
+
+    private final ModelUtils modelUtils;
+
+    private final Model model;
     
-    @Inject public Proxifier(final MessageService messageService) {
+    @Inject public Proxifier(final MessageService messageService,
+        final ModelUtils modelUtils, final Model model) {
         this.messageService = messageService;
+        this.modelUtils = modelUtils;
+        this.model = model;
         copyFromLocal(PROXY_ON);
         copyFromLocal(PROXY_ALL);
         copyFromLocal(PROXY_OFF);
@@ -143,7 +152,7 @@ public class Proxifier implements LanternService {
     }
 
     public void startProxying() throws ProxyConfigurationError {
-        if (LanternHub.settings().isProxyAllSites()) {
+        if (this.model.getSettings().isProxyAllSites()) {
             // If we were previously configured to proxy all sites, then we
             // need to force the override.
             startProxying(true, PROXY_ALL);
@@ -159,7 +168,7 @@ public class Proxifier implements LanternService {
             return;
         }
         
-        if (!LanternUtils.shouldProxy()) {
+        if (!modelUtils.shouldProxy()) {
             LOG.info("Not proxying in current mode...");
             return;
         }
@@ -326,7 +335,8 @@ public class Proxifier implements LanternService {
             } else {
                 LOG.info("Exception running script", e);
             }
-            LanternHub.settings().setSystemProxy(false);
+            //LanternHub.settings().setSystemProxy(false);
+            this.model.getSettings().setSystemProxy(false);
             throw new ProxyConfigurationCancelled();
         }
     }
@@ -421,7 +431,7 @@ public class Proxifier implements LanternService {
      */
     public void refresh() {
         if (isProxying()) {
-            if (LanternHub.settings().isProxyAllSites()) {
+            if (model.getSettings().isProxyAllSites()) {
                 // If we were previously configured to proxy all sites, then we
                 // need to force the override.
                 try {

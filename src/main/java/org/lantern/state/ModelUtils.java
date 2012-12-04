@@ -8,7 +8,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
-import org.lantern.LanternHub;
+import org.lantern.LanternConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,18 +35,20 @@ public class ModelUtils {
         in.add(to);
         this.model.getSettings().setInClosedBeta(in);
     }
-    
+
+    public boolean shouldProxy() {
+        return this.model.getSettings().isGetMode() && 
+            this.model.getSettings().isSystemProxy();
+    }
+
     public boolean isConfigured() {
-        /*
-        if (!LanternConstants.DEFAULT_SETTINGS_FILE.isFile()) {
+        if (!LanternConstants.DEFAULT_MODEL_FILE.isFile()) {
             LOG.info("No settings file");
             return false;
         }
-        */
-        final String un = LanternHub.settings().getEmail();
-        final String pass = LanternHub.settings().getPassword();
+        final String un = this.model.getSettings().getRefreshToken();
         final boolean oauth = this.model.getSettings().isUseGoogleOAuth2();
-        return oauth || (StringUtils.isNotBlank(un) && StringUtils.isNotBlank(pass));
+        return oauth && StringUtils.isNotBlank(un);
     }
 
     public void loadOAuth2ClientSecretsFile(final String filename) {

@@ -179,7 +179,6 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         
         // Note the e-mail is actually ignored when we login to 
         // Google Talk.
-        LanternHub.settings().setEmail("anon@getlantern.org");
         this.model.getSettings().setClientID(clientId);
         this.model.getSettings().setClientSecret(clientSecret);
         this.model.getSettings().setAccessToken(accessToken);
