@@ -22,8 +22,8 @@ function ApiServlet(bayeuxBackend) {
   this.resetModel = bayeuxBackend.resetModel.bind(bayeuxBackend);
   this.reset();
   this._DEFAULT_PROXIED_SITES = bayeuxBackend.model.settings.proxiedSites.slice(0);
-  this.MODALSEQ_GIVE = [MODAL.welcome, MODAL.passwordCreate, MODAL.authorize, MODAL.inviteFriends, MODAL.finished, MODAL.none];
-  this.MODALSEQ_GET = [MODAL.welcome, MODAL.passwordCreate, MODAL.authorize, MODAL.proxiedSites, MODAL.systemProxy, MODAL.inviteFriends, MODAL.finished, MODAL.none];
+  this.MODALSEQ_GIVE = [MODAL.welcome, MODAL.passwordCreate, MODAL.authorize, MODAL.lanternFriends, MODAL.finished, MODAL.none];
+  this.MODALSEQ_GET = [MODAL.welcome, MODAL.passwordCreate, MODAL.authorize, MODAL.proxiedSites, MODAL.systemProxy, MODAL.lanternFriends, MODAL.finished, MODAL.none];
 }
 
 ApiServlet.VERSION = {
@@ -43,7 +43,7 @@ ApiServlet.RESET_INTERNAL_STATE = {
     authorize: false,
     proxiedSites: false,
     systemProxy: false,
-    inviteFriends: false,
+    lanternFriends: false,
     finished: false
   },
   appliedScenarios: {
@@ -314,9 +314,9 @@ ApiServlet._intHandlerForModal[MODAL.systemProxy] = function(interaction, res, q
   this._advanceModal(MODAL.settings);
 };
 
-ApiServlet._intHandlerForModal[MODAL.inviteFriends] = function(interaction, res) {
+ApiServlet._intHandlerForModal[MODAL.lanternFriends] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
-  this._internalState.modalsCompleted[MODAL.inviteFriends] = true;
+  this._internalState.modalsCompleted[MODAL.lanternFriends] = true;
   this._advanceModal();
 };
 
@@ -401,7 +401,7 @@ ApiServlet._intHandlerForModal[MODAL.confirmReset] = function(interaction, res) 
     
 ApiServlet._intHandlerForModal[MODAL.none] = function(interaction, res) {
   switch (interaction) {
-    case INTERACTION.inviteFriends:
+    case INTERACTION.lanternFriends:
       if (this.model.connectivity.gtalk != CONNECTIVITY.connected) {
         // sign-in required XXX explain this to user
         this.updateModel({modal: MODAL.authorize}, true);

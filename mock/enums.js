@@ -14,7 +14,7 @@ exports.MODAL = {
   proxiedSites: 'proxiedSites',
   systemProxy: 'systemProxy',
   passwordCreate: 'passwordCreate',
-  inviteFriends: 'inviteFriends',
+  lanternFriends: 'lanternFriends',
   finished: 'finished',
   contactDevs: 'contactDevs',
   settings: 'settings',
@@ -26,7 +26,7 @@ exports.MODAL = {
   none: ''
 };
 exports.INTERACTION = {
-  inviteFriends: 'inviteFriends',
+  lanternFriends: 'lanternFriends',
   contactDevs: 'contactDevs',
   settings: 'settings',
   proxiedSites: 'proxiedSites',

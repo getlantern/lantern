@@ -284,7 +284,7 @@ the backend maintains on the frontend through comet publications:
       "settingsLoadFailure" | "welcome" | "giveModeForbidden" | "authorize" |
       "gtalkConnecting" | "gtalkUnreachable" |
       "notInvited" | "requestInvite" | "requestSent" | "firstInviteReceived" |
-      "proxiedSites" | "systemProxy" | "inviteFriends" | "finished" |
+      "proxiedSites" | "systemProxy" | "lanternFriends" | "finished" |
       "settings" | "giveMode" | "about" | "updateAvailable" | ""
     </td>
     <td>Instructs the UI to display the corresponding modal dialog.
@@ -565,14 +565,14 @@ the backend maintains on the frontend through comet publications:
   the concept that Lantern only proxies traffic to certain sites. `systemProxy`
   modal comes next, giving the user notice that an administrator password
   prompt may appear before Lantern can proceed. Next setup modal is
-  `inviteFriends`.
+  `lanternFriends`.
 
-* Give mode users are taken directly from `authorize` modal to `inviteFriends`.
+* Give mode users are taken directly from `authorize` modal to `lanternFriends`.
   Backend should remember that the `proxiedSites` and `systemProxy` modals
   have never been completed, so that if the give mode user ever switches to
   get mode, the backend can take the user back there.
 
-* `inviteFriends` is now a setup modal, to introduce the important concept of
+* `lanternFriends` is now a setup modal, to introduce the important concept of
   the trust network at the outset. User may not have any invites to give out
   yet, but will be told to expect to receive more as she continues to run
   Lantern.

@@ -56,7 +56,7 @@ angular.module('app.services', [])
     firstInviteReceived: 'firstInviteReceived',
     proxiedSites: 'proxiedSites',
     systemProxy: 'systemProxy',
-    inviteFriends: 'inviteFriends',
+    lanternFriends: 'lanternFriends',
     finished: 'finished',
     contactDevs: 'contactDevs',
     settings: 'settings',
@@ -68,7 +68,7 @@ angular.module('app.services', [])
     none: ''
   })
   .constant('INTERACTION', {
-    inviteFriends: 'inviteFriends',
+    lanternFriends: 'lanternFriends',
     contactDevs: 'contactDevs',
     settings: 'settings',
     reset: 'reset',

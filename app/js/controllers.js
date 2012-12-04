@@ -474,13 +474,13 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
   };
 }
 
-function InviteFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL) {
-  var log = logFactory('InviteFriendsCtrl'),
+function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL) {
+  var log = logFactory('LanternFriendsCtrl'),
       model = modelSrvc.model;
 
   $scope.show = false;
   $scope.$watch('model.modal', function(val) {
-    $scope.show = val == MODAL.inviteFriends;
+    $scope.show = val == MODAL.lanternFriends;
   });
 
   $scope.$watch('model.roster', function(val) {
