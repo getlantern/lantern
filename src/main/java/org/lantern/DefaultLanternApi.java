@@ -22,6 +22,7 @@ import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
 import org.lantern.state.ModelChangeImplementor;
+import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
@@ -64,23 +65,25 @@ public class DefaultLanternApi implements LanternApi {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final XmppHandler xmppHandler;
     private final ModelChangeImplementor modelChangeImplementor;
-    private final  LocalCipherProvider lcp;
+    private final LocalCipherProvider lcp;
     private final Proxifier proxifier;
     private final Model model;
     private final ModelUtils modelUtils;
+    private final ModelIo modelIo;
 
     @Inject
     public DefaultLanternApi(final XmppHandler xmppHandler,
         final ModelChangeImplementor modelChangeImplementor,
         final LocalCipherProvider lcp,
         final Proxifier proxifier, final Model model, 
-        final ModelUtils modelUtils) {
+        final ModelUtils modelUtils, final ModelIo modelIo) {
         this.xmppHandler = xmppHandler;
         this.modelChangeImplementor = modelChangeImplementor;
         this.lcp = lcp;
         this.proxifier = proxifier;
         this.model = model;
         this.modelUtils = modelUtils;
+        this.modelIo = modelIo;
     }
     
     @Override
@@ -104,19 +107,19 @@ public class DefaultLanternApi implements LanternApi {
             break;
         case RESET:
             handleReset(resp);
-            LanternHub.settingsIo().write();
+            modelIo.write();
             break;
         case ADDTOWHITELIST:
-            LanternHub.whitelist().addEntry(req.getParameter("site"));
+            this.model.getSettings().getWhitelist().addEntry(req.getParameter("site"));
             proxifier.refresh();
             handleWhitelist(resp);
-            LanternHub.settingsIo().write();
+            this.modelIo.write();
             break;
         case REMOVEFROMWHITELIST:
-            LanternHub.whitelist().removeEntry(req.getParameter("site"));
+            this.model.getSettings().getWhitelist().removeEntry(req.getParameter("site"));
             proxifier.refresh();
             handleWhitelist(resp);
-            LanternHub.settingsIo().write();
+            this.modelIo.write();
             break;
             /*
         case ADDTRUSTEDPEER:
@@ -443,8 +446,7 @@ public class DefaultLanternApi implements LanternApi {
     }
 
     private void handleWhitelist(final HttpServletResponse resp) {
-        final Whitelist wl = LanternHub.whitelist();
-        returnJson(resp, wl);
+        returnJson(resp, this.model.getSettings().getWhitelist());
     }
 
 
@@ -561,7 +563,7 @@ public class DefaultLanternApi implements LanternApi {
         resp.setStatus(HttpStatus.SC_OK);
         if (sync) {
             Events.asyncEventBus().post(new SyncEvent(SyncPath.SETTINGS, null));
-            LanternHub.settingsIo().write();
+            this.modelIo.write();
         }
     }
 
