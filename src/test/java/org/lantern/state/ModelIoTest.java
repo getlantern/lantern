@@ -10,9 +10,7 @@ import org.junit.Test;
 import org.lantern.DefaultXmppHandler;
 import org.lantern.EncryptedFileService;
 import org.lantern.LanternModule;
-import org.lantern.LanternUtils;
 import org.lantern.privacy.LocalCipherProvider;
-import org.lantern.state.Model.Run;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

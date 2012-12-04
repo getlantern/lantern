@@ -59,6 +59,7 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         this.modelUtils = modelUtils;
     }
     
+    /*
     @Override
     public void setStartAtLogin(final boolean start) {
         log.info("Setting start at login to "+start);
@@ -107,7 +108,9 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             log.error("Error changing startAtLogin? Result: "+result);
         }
     }
+    */
     
+    /*
     @Override
     public void setProxyAllSites(final boolean proxyAll) {
         try {
@@ -116,9 +119,12 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             throw new RuntimeException("Error proxying all sites!", e);
         }
     }
+    */
 
+    /*
     @Override
     public void setSystemProxy(final boolean isSystemProxy) {
+        
         if (isSystemProxy == LanternHub.settings().isSystemProxy()) {
             log.info("System proxy setting is unchanged.");
             return;
@@ -150,6 +156,7 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         };
         proxyQueue.execute(proxyRunner);
     }
+    */
     
     @Override
     public void setPort(final int port) {
@@ -165,6 +172,7 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         LanternHub.settings().setManuallyOverrideCountry(true);
     }
 
+    /*
     @Override
     public void setEmail(final String email) {
         final String storedEmail = LanternHub.settings().getEmail();
@@ -179,9 +187,11 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         log.info("Email address changed. Clearing user specific settings");
         LanternHub.resetUserConfig();
     }
+    */
 
     @Override
     public void setGetMode(final boolean getMode) {
+        /*
         // When we move to give mode, we want to start advertising our 
         // ID and to start accepting incoming connections.
         
@@ -241,8 +251,10 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         } catch (final Proxifier.ProxyConfigurationError e) {
             log.info("Proxy auto-configuration failed: {}", e);
         }
+        */
     }
 
+    /*
     @Override
     public void setPassword(final String password) {
         final Settings set = LanternHub.settings();
@@ -280,5 +292,6 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
             set.setPasswordSaved(false);
         }
     }
+    */
     
 }

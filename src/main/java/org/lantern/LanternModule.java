@@ -67,7 +67,7 @@ public class LanternModule extends AbstractModule {
         bind(JettyLauncher.class);
         bind(AppIndicatorTray.class);
         bind(LanternApi.class).to(DefaultLanternApi.class);
-        bind(SettingsChangeImplementor.class).to(DefaultSettingsChangeImplementor.class);
+        //bind(SettingsChangeImplementor.class).to(DefaultSettingsChangeImplementor.class);
         bind(LanternHttpProxyServer.class);
     }
     

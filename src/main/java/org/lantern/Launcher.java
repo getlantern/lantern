@@ -39,6 +39,7 @@ import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lastbamboo.common.offer.answer.IceConfig;
@@ -72,7 +73,7 @@ public class Launcher {
     private static Injector injector;
     private static Configurator configurator;
     private static SystemTray systemTray;
-    //private static Model model;
+    private static Model model;
     private static ModelUtils modelUtils;
     
     
@@ -329,6 +330,7 @@ public class Launcher {
         plainTextAnsererRelayProxy = instance(PlainTestRelayHttpProxyServer.class);
         systemTray = instance(SystemTray.class);
         modelUtils = instance(ModelUtils.class);
+        model = instance(Model.class);
         
 
         final String secOpt = OPTION_OAUTH2_CLIENT_SECRETS_FILE;
@@ -378,7 +380,7 @@ public class Launcher {
             }
             // If setup is complete and we're not running on startup, open
             // the dashboard.
-            else if (LanternHub.settings().isInitialSetupComplete()) {
+            else if (model.isSetupComplete()) {
                 browserService.openBrowserWhenPortReady();
                 //jettyLauncher.openBrowserWhenReady();
                 // Wait for an internet connection before starting the XMPP
@@ -705,7 +707,8 @@ public class Launcher {
         LOG.debug("Is launchd: {}", LanternHub.settings().isLaunchd());
         launchLantern();
         if (!LanternHub.settings().isLaunchd() || 
-            !LanternHub.settings().isInitialSetupComplete()) {
+            !model.isSetupComplete()) {
+            //!LanternHub.settings().isInitialSetupComplete()) {
             browserService.openBrowserWhenPortReady();
         }
     }

@@ -267,6 +267,7 @@ public class Settings implements MutableSettings {
         thread.start();
     }
 
+    /*
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public boolean isSystemProxy() {
         return this.isSystemProxy;
@@ -285,6 +286,7 @@ public class Settings implements MutableSettings {
     public void setStartAtLogin(final boolean startAtLogin) {
         this.startAtLogin = startAtLogin;
     }
+    */
 
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public int getPort() {
@@ -373,6 +375,7 @@ public class Settings implements MutableSettings {
         return commandLineEmail;
     }
 
+    /*
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public String getEmail() {
         return email;
@@ -382,7 +385,9 @@ public class Settings implements MutableSettings {
     public void setEmail(final String email) {
         this.email = email;
     }
+    */
 
+    /*
     @Override
     public void setProxyAllSites(final boolean proxyAllSites) {
         this.proxyAllSites = proxyAllSites;
@@ -392,6 +397,7 @@ public class Settings implements MutableSettings {
     public boolean isProxyAllSites() {
         return proxyAllSites;
     }
+    */
 
     public void setCountryDetected(final Country countryDetected) {
         this.countryDetected.set(countryDetected);
@@ -421,7 +427,7 @@ public class Settings implements MutableSettings {
     public boolean isManuallyOverrideCountry() {
         return manuallyOverrideCountry;
     }
-
+/*
     @Override
     public void setSavePassword(final boolean savePassword) {
         this.savePassword = savePassword;
@@ -442,6 +448,7 @@ public class Settings implements MutableSettings {
     public String getPassword() {
         return password;
     }
+    */
 
     public void setCommandLinePassword(String password) {
         commandLinePassword = password;

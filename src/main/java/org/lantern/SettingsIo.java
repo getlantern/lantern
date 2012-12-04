@@ -67,9 +67,11 @@ public class SettingsIo {
             }
             final Settings read = mapper.readValue(json, Settings.class);
             log.info("Built settings from disk: {}", read);
+            /*
             if (StringUtils.isBlank(read.getPassword())) {
                 read.setPassword(read.getStoredPassword());
             }
+            */
             read.getSettings().setState(State.SET); // read successfully.
             return read;
         } catch (final UserInputRequiredException e) {

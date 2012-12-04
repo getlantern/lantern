@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import javax.security.auth.login.CredentialException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -22,6 +21,8 @@ import org.lantern.http.LanternApi;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
+import org.lantern.state.ModelChangeImplementor;
+import org.lantern.state.ModelUtils;
 import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,21 +63,24 @@ public class DefaultLanternApi implements LanternApi {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final XmppHandler xmppHandler;
-    private final SettingsChangeImplementor settingsChangeImplementor;
+    private final ModelChangeImplementor modelChangeImplementor;
     private final  LocalCipherProvider lcp;
     private final Proxifier proxifier;
     private final Model model;
+    private final ModelUtils modelUtils;
 
     @Inject
     public DefaultLanternApi(final XmppHandler xmppHandler,
-        final SettingsChangeImplementor settingsChangeImplementor,
+        final ModelChangeImplementor modelChangeImplementor,
         final LocalCipherProvider lcp,
-        final Proxifier proxifier, final Model model) {
+        final Proxifier proxifier, final Model model, 
+        final ModelUtils modelUtils) {
         this.xmppHandler = xmppHandler;
-        this.settingsChangeImplementor = settingsChangeImplementor;
+        this.modelChangeImplementor = modelChangeImplementor;
         this.lcp = lcp;
         this.proxifier = proxifier;
         this.model = model;
+        this.modelUtils = modelUtils;
     }
     
     @Override
@@ -87,9 +91,11 @@ public class DefaultLanternApi implements LanternApi {
         final LanternApiCall call = LanternApiCall.valueOf(id.toUpperCase());
         log.debug("Got API call {} for full URI: "+uri, call);
         switch (call) {
+        /*
         case SIGNIN:
             handleSignin(req, resp);
             break;
+            */
         case SIGNOUT:
             handleSignout(resp);
             break;
@@ -216,6 +222,7 @@ public class DefaultLanternApi implements LanternApi {
         }
     }
 
+    /*
     private void handleSignin(final HttpServletRequest req, 
         final HttpServletResponse resp) {
         log.debug("Signing in...");
@@ -257,7 +264,7 @@ public class DefaultLanternApi implements LanternApi {
         LanternHub.settingsIo().write();
         try {
             this.xmppHandler.connect();
-            if (LanternHub.settings().isInitialSetupComplete()) {
+            if (this.model.isSetupComplete()) {
                 // We automatically start proxying upon connect if the 
                 // user's settings say they're in get mode and to use the 
                 // system proxy.
@@ -283,6 +290,7 @@ public class DefaultLanternApi implements LanternApi {
             sendError(resp, HttpStatus.SC_FORBIDDEN, e.getMessage());
         }
     }
+    */
 
 
     private void handleSignout(final HttpServletResponse resp) {
@@ -293,7 +301,7 @@ public class DefaultLanternApi implements LanternApi {
 
     private void handleAutoproxy(final HttpServletResponse resp) {
         try {
-            if (LanternUtils.shouldProxy()) {
+            if (modelUtils.shouldProxy()) {
                 proxifier.startProxying();
             }
             else {
@@ -547,7 +555,7 @@ public class DefaultLanternApi implements LanternApi {
 
     private void changeSetting(final HttpServletResponse resp, final String key, 
         final String val, final boolean determineType, final boolean sync) {
-        setProperty(this.settingsChangeImplementor, key, val, false, 
+        setProperty(this.modelChangeImplementor, key, val, false, 
             resp, determineType);
         setProperty(LanternHub.settings(), key, val, true, resp, determineType);
         resp.setStatus(HttpStatus.SC_OK);

@@ -25,6 +25,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.lantern.events.MessageEvent;
+import org.lantern.state.Model;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,10 +51,12 @@ public class Dashboard implements MessageService, BrowserService {
      */
     //private final Display display = LanternHub.display();
     private final SystemTray systemTray;
+    private final Model model;
     
     @Inject
-    public Dashboard(final SystemTray systemTray) {
+    public Dashboard(final SystemTray systemTray, final Model model) {
         this.systemTray = systemTray;
+        this.model = model;
         Events.register(this);
     }
     
@@ -274,7 +277,7 @@ public class Dashboard implements MessageService, BrowserService {
                             System.exit(0);
                         }
                     }
-                } else if (LanternHub.settings().isInitialSetupComplete()) {
+                } else if (model.isSetupComplete()) {
                     if (systemTray.isActive()) {
                         browser.stop();
                         browser.setUrl("about:blank");

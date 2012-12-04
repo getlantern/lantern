@@ -6,7 +6,10 @@ import java.util.Set;
 
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternConstants;
+import org.lantern.LanternHub;
 import org.lantern.Settings.CommandLineOption;
+import org.lantern.Settings.PersistentSetting;
+import org.lantern.Settings.RuntimeSetting;
 import org.lantern.Whitelist;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
@@ -17,7 +20,7 @@ import com.google.common.collect.Sets;
 /**
  * Base Lantern settings.
  */
-public class Settings {
+public class Settings implements MutableSettings {
 
     private String userId = "";
     
@@ -27,7 +30,7 @@ public class Settings {
 
     private boolean autoReport = true;
     
-    private Mode mode;
+    private Mode mode = Mode.none;
     
     private int proxyPort = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
     
@@ -44,10 +47,13 @@ public class Settings {
     private Set<String> inClosedBeta = new HashSet<String>();
     
     private Whitelist whitelist = new Whitelist();
+
+    private boolean startAtLogin;
     
     public enum Mode {
         give,
-        get
+        get, 
+        none
     }
     
     @JsonView({Run.class, Persistent.class})
@@ -109,6 +115,7 @@ public class Settings {
         return systemProxy;
     }
 
+    @Override
     public void setSystemProxy(final boolean systemProxy) {
         this.systemProxy = systemProxy;
     }
@@ -118,6 +125,7 @@ public class Settings {
         return proxyAllSites;
     }
 
+    @Override
     public void setProxyAllSites(final boolean proxyAllSites) {
         this.proxyAllSites = proxyAllSites;
     }
@@ -198,5 +206,38 @@ public class Settings {
 
     public void setInClosedBeta(final Set<String> inClosedBeta) {
         this.inClosedBeta = ImmutableSet.copyOf(inClosedBeta);
+    }
+
+    @Override
+    public void setGetMode(final boolean getMode) {
+        if (getMode) {
+            setMode(Mode.get);
+        } else {
+            setMode(Mode.give);
+        }
+    }
+
+    @JsonView({RuntimeSetting.class, PersistentSetting.class})
+    public boolean isGetMode() {
+        synchronized (mode) {
+            if (mode == Mode.none) {
+                if (LanternHub.censored().isCensored()) {
+                    mode = Mode.get;
+                } else {
+                    mode = Mode.give;
+                }
+            }
+            return mode == Mode.get;
+        }
+    }
+
+    @JsonView({Run.class, Persistent.class})
+    public boolean isStartAtLogin() {
+        return this.startAtLogin;
+    }
+    
+    @Override
+    public void setStartAtLogin(final boolean startAtLogin) {
+        this.startAtLogin = startAtLogin;
     }
 }

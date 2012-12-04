@@ -352,14 +352,15 @@ public class DefaultXmppHandler implements XmppHandler {
         if (this.model.getSettings().isUseGoogleOAuth2()) {
             connectViaOAuth2();
         } else {
-            connectWithEmailAndPass();
+            //connectWithEmailAndPass();
+            throw new Error("Oauth not configured properly?");
         }
     }
 
     private void connectViaOAuth2() throws IOException,
             CredentialException, NotInClosedBetaException {
         final XmppCredentials credentials = new GoogleOAuth2Credentials(
-            LanternHub.settings().getEmail(),
+            "anon@getlantern.org",
             this.model.getSettings().getClientID(),
             this.model.getSettings().getClientSecret(),
             this.model.getSettings().getAccessToken(),
@@ -371,6 +372,7 @@ public class DefaultXmppHandler implements XmppHandler {
         connect(credentials);
     }
 
+    /*
     private void connectWithEmailAndPass() throws IOException,
             CredentialException, NotInClosedBetaException {
         String email = LanternHub.settings().getEmail();
@@ -400,6 +402,7 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         connect(email, pwd);
     }
+    */
     
     @Override
     public void connect(final String email, final String pass) 

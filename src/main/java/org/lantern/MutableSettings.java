@@ -10,18 +10,18 @@ public interface MutableSettings {
     
     void setGetMode(boolean getMode);
     
-    void setStartAtLogin(boolean start);
+    //void setStartAtLogin(boolean start);
     
-    void setSystemProxy(boolean isSystemProxy);
+    //void setSystemProxy(boolean isSystemProxy);
     
     void setPort(int port);
 
-    void setEmail(String email);
+    //void setEmail(String email);
     
-    void setPassword(String password);
+    //void setPassword(String password);
     
-    void setSavePassword(boolean savePassword);
+    //void setSavePassword(boolean savePassword);
 
-    void setProxyAllSites(boolean proxyAll);
+    //void setProxyAllSites(boolean proxyAll);
 
 }

@@ -11,7 +11,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.Events;
-import org.lantern.LanternUtils;
 import org.lantern.event.SyncEvent;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
@@ -191,6 +190,7 @@ public class InteractionServlet extends HttpServlet {
                 log.info("Processing continue");
                 final boolean sys = toBool(params.get("systemProxy"));
                 this.model.getSettings().setSystemProxy(sys);
+                changeImplementor.setSystemProxy(sys);
                 this.internalState.setModalCompleted(Modal.systemProxy);
                 this.internalState.advanceModal(null);
                 break;

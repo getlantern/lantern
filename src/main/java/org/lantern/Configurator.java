@@ -7,6 +7,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
 import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,16 +34,20 @@ public class Configurator {
     private final MessageService messageService;
 
     private final ModelUtils modelUtils;
+
+    private final Model model;
     
     /**
      * Creates a new configurator.
      */
     @Inject
     public Configurator(final Proxifier proxifier, 
-        final MessageService messageService, final ModelUtils modelUtils) {
+        final MessageService messageService, final ModelUtils modelUtils,
+        final Model model) {
         this.proxifier = proxifier;
         this.messageService = messageService;
         this.modelUtils = modelUtils;
+        this.model = model;
         Events.register(this);
     }
     
@@ -137,8 +142,8 @@ public class Configurator {
             return;
         }
         
-        if (LanternUtils.shouldProxy() &&
-            (!LanternHub.settings().isUiEnabled() || LanternHub.settings().isInitialSetupComplete())) {
+        if (this.modelUtils.shouldProxy() &&
+            (!LanternHub.settings().isUiEnabled() || this.model.isSetupComplete())) {
             LOG.info("Auto-configuring proxy...");
             boolean finished = false;
             while (!finished) {
