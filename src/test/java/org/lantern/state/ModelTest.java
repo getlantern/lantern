@@ -37,7 +37,6 @@ public class ModelTest {
     @BeforeClass
     public static void setup() throws Exception {
         final Injector injector = Guice.createInjector(new LanternModule());
-        
         xmppHandler = injector.getInstance(DefaultXmppHandler.class);
         proxifier = injector.getInstance(Proxifier.class);
         modelUtils = injector.getInstance(ModelUtils.class);

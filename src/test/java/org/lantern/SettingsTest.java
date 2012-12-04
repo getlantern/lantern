@@ -86,6 +86,7 @@ public class SettingsTest {
         assertEquals(port, read.getPort());
     }
     
+    /*
     @Test
     public void testStartAtLogin() throws Exception {
         if (!LanternConstants.LAUNCHD_PLIST.isFile()) {
@@ -142,6 +143,7 @@ public class SettingsTest {
             assertTrue(newFile.contains("X-GNOME-Autostart-enabled=true"));
         }
     }
+    */
     
     private File autostart() {
         return testFile("lantern.desktop");

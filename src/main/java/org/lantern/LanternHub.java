@@ -55,6 +55,7 @@ public class LanternHub {
         settings.set(new Settings());
         postSettingsState();
         
+        /*
         if (!LanternConstants.ON_APP_ENGINE) {
             // if they were successfully loaded, save the most current state when exiting.
             Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
@@ -74,6 +75,7 @@ public class LanternHub {
                 
             }, "Write-Settings-Thread"));
         }
+        */
     }
     
     public static LookupService getGeoIpLookup() {
@@ -135,7 +137,8 @@ public class LanternHub {
             return censored.get();
         }
     }
-    
+
+    /*
     public static Whitelist whitelist() {
         return settings().getWhitelist();
     }
@@ -154,12 +157,14 @@ public class LanternHub {
             return settingsIo.get();
         }
     }
+    */
     
     public static Settings settings() {
         return settings.get();
     }
 
     public static void resetSettings(boolean retainCLIOptions) {
+        /*
         final Settings old = settings.get();
         final SettingsIo io = LanternHub.settingsIo();
         LOG.info("Setting settings...");
@@ -180,8 +185,10 @@ public class LanternHub {
                 LOG.error("error copying command line settings! {}", t);
             }
         }
+        */
         
         postSettingsState();
+        throw new UnsupportedOperationException();
     }
    
     private static void postSettingsState() {
