@@ -33,4 +33,7 @@ public class XmppMessageConstants {
 
     public static final String MESSAGE = "ME";
 
+    public static final String LANTERN_FLAG = "LF";
+    
+
 }
