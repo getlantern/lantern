@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Scanner;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.crypto.Cipher;
@@ -65,8 +64,7 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
-import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
+import org.jivesoftware.smack.packet.Presence;
 import org.lantern.SettingsState.State;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
@@ -692,7 +690,7 @@ public class LanternUtils {
     public static String jsonify(final Object all, final Class<?> view) {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.configure(Feature.INDENT_OUTPUT, true);
-        ObjectWriter writer = mapper.writerWithView(view);
+        final ObjectWriter writer = mapper.writerWithView(view);
         try {
             return writer.writeValueAsString(all);
         } catch (final JsonGenerationException e) {
@@ -944,6 +942,11 @@ public class LanternUtils {
         }
         LOG.error("Never able to connect with local server! " +
             "Maybe couldn't bind?");
+    }
+
+    public static boolean isLanternMessage(final Presence pres) {
+        final Object prop = pres.getProperty(XmppMessageConstants.LANTERN_FLAG);
+        return prop != null;
     }
 }
 

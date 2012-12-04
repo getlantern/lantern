@@ -21,6 +21,7 @@ import org.lantern.http.LanternApi;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
+import org.lantern.state.Model.Run;
 import org.lantern.state.ModelChangeImplementor;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
@@ -460,7 +461,7 @@ public class DefaultLanternApi implements LanternApi {
     }
 
     private void returnJson(final HttpServletResponse resp, final Object obj) {
-        final String json = LanternUtils.jsonify(obj);
+        final String json = LanternUtils.jsonify(obj, Run.class);
         returnJson(resp, json);
     }
     

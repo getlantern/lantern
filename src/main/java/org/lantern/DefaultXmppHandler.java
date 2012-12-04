@@ -545,12 +545,16 @@ public class DefaultXmppHandler implements XmppHandler {
                     case subscribe:
                         LOG.info("Adding subscription request from: {}", from);
                         
+                        final boolean isLantern =
+                            LanternUtils.isLanternMessage(pres);
                         // If we get a subscription request from someone 
                         // already on our roster, auto-accept it.
-                        if (roster.autoAcceptSubscription(from)) {
-                            subscribed(from);
+                        if (isLantern) {
+                            if (roster.autoAcceptSubscription(from)) {
+                                subscribed(from);
+                            }
+                            roster.addIncomingSubscriptionRequest(from);
                         }
-                        roster.addIncomingSubscriptionRequest(from);
                         break;
                     case subscribed:
                         break;
@@ -1497,6 +1501,7 @@ public class DefaultXmppHandler implements XmppHandler {
     private void sendTypedPacket(final String jid, final Type type) {
         final Presence packet = new Presence(type);
         packet.setTo(jid);
+        packet.setProperty(XmppMessageConstants.LANTERN_FLAG, "1");
         final XMPPConnection conn = this.client.get().getXmppConnection();
         //packet.setFrom(XmppUtils.jidToUser(conn));
         //packet.setFrom(conn.getUser());
