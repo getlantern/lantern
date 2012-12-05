@@ -36,6 +36,7 @@ public class ChromeBrowserService implements BrowserService {
     }
     
     private void launchChrome() {
+        log.info("Launching chrome...");
         try {
             this.chrome.open();
         } catch (final IOException e) {
@@ -45,7 +46,9 @@ public class ChromeBrowserService implements BrowserService {
     
     @Override
     public void openBrowserWhenPortReady() {
-        openBrowserWhenPortReady(RuntimeSettings.getApiPort());
+        final int port = RuntimeSettings.getApiPort();
+        log.info("Waiting on port: "+port);
+        openBrowserWhenPortReady(port);
     }
     
     @Override

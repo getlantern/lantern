@@ -5,11 +5,11 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternConstants;
 import org.lantern.LanternHub;
 import org.lantern.Settings.CommandLineOption;
-import org.lantern.Settings.PersistentSetting;
 import org.lantern.Settings.RuntimeSetting;
 import org.lantern.Whitelist;
 import org.lantern.state.Model.Persistent;
@@ -52,6 +52,28 @@ public class Settings implements MutableSettings {
     private boolean startAtLogin = true;
 
     private Set<String> proxies = new LinkedHashSet<String>();
+
+    private boolean useTrustedPeers;
+
+    private boolean useLaeProxies;
+
+    private boolean useAnonymousPeers;
+
+    private boolean useCentralProxies;
+
+    private Set<String> stunServers;
+
+    private boolean analytics;
+
+    private int serverPort;
+
+    private boolean keychainEnabled;
+
+    private boolean uiEnabled = true;
+
+    private String commandLineEmail;
+
+    private boolean bindToLocalhost;
     
     public enum Mode {
         give,
@@ -220,7 +242,7 @@ public class Settings implements MutableSettings {
         }
     }
 
-    @JsonView({RuntimeSetting.class, PersistentSetting.class})
+    @JsonView({Run.class, Persistent.class})
     public boolean isGetMode() {
         synchronized (mode) {
             if (mode == Mode.none) {
@@ -266,5 +288,87 @@ public class Settings implements MutableSettings {
 
     public void removeProxy(final String proxy) {
         this.proxies.remove(proxy);
+    }
+    
+
+    public void setUseTrustedPeers(final boolean useTrustedPeers) {
+        this.useTrustedPeers = useTrustedPeers;
+    }
+    
+    @JsonIgnore
+    public boolean isUseTrustedPeers() {
+        return useTrustedPeers;
+    }
+
+    public void setUseLaeProxies(boolean useLaeProxies) {
+        this.useLaeProxies = useLaeProxies;
+    }
+
+    @JsonIgnore
+    public boolean isUseLaeProxies() {
+        return useLaeProxies;
+    }
+
+    public void setUseAnonymousPeers(boolean useAnonymousPeers) {
+        this.useAnonymousPeers = useAnonymousPeers;
+    }
+
+    @JsonIgnore
+    public boolean isUseAnonymousPeers() {
+        return useAnonymousPeers;
+    }
+
+    public void setUseCentralProxies(final boolean useCentralProxies) {
+        this.useCentralProxies = useCentralProxies;
+    }
+
+    @JsonIgnore
+    public boolean isUseCentralProxies() {
+        return useCentralProxies;
+    }
+    
+    public void setStunServers(final Set<String> stunServers){
+        this.stunServers = stunServers;
+    }
+
+    @JsonView({Run.class, Persistent.class})
+    public Collection<String> getStunServers() {
+        return stunServers;
+    }
+    
+    public void setServerPort(final int serverPort) {
+        this.serverPort = serverPort;
+    }
+
+    @JsonView({Persistent.class})
+    public int getServerPort() {
+        return serverPort;
+    }
+    
+    public void setKeychainEnabled(boolean keychainEnabled) {
+        this.keychainEnabled = keychainEnabled;
+    }
+    
+    @JsonIgnore
+    public boolean isKeychainEnabled() {
+        return keychainEnabled;
+    }
+    
+    public void setUiEnabled(boolean uiEnabled) {
+        this.uiEnabled = uiEnabled;
+    }
+
+    @JsonIgnore
+    public boolean isUiEnabled() {
+        return uiEnabled;
+    }
+    
+    public void setBindToLocalhost(final boolean bindToLocalhost) {
+        this.bindToLocalhost = bindToLocalhost;
+    }
+
+    @JsonIgnore
+    public boolean isBindToLocalhost() {
+        return bindToLocalhost;
     }
 }

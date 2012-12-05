@@ -49,7 +49,7 @@ public class JettyLauncher implements LanternService {
     private final String secureBase = "";
         //"/"+String.valueOf(LanternHub.secureRandom().nextLong());
 
-    private final int port = RuntimeSettings.getApiPort();
+    private int port;
 
     private final String fullBasePath = 
         "http://localhost:"+port+secureBase;
@@ -87,6 +87,7 @@ public class JettyLauncher implements LanternService {
     
     @Override
     public void start() {
+        this.port = RuntimeSettings.getApiPort();
         final QueuedThreadPool qtp = new QueuedThreadPool();
         qtp.setMinThreads(5);
         qtp.setMaxThreads(200);
@@ -117,7 +118,7 @@ public class JettyLauncher implements LanternService {
         connector.setAcceptQueueSize(5000);
         //connector.setThreadPool(new QueuedThreadPool(20));
         
-        if (LanternHub.settings().isBindToLocalhost()) {
+        if (this.model.getSettings().isBindToLocalhost()) {
             // TODO: Make sure this works on Linux!!
             log.info("Binding to localhost");
             connector.setHost("127.0.0.1");
@@ -198,7 +199,7 @@ public class JettyLauncher implements LanternService {
         bayeux.setInitOrder(2);
         contextHandler.getServletHandler().addServlet(bayeux);
         
-        if (!LanternHub.settings().isBindToLocalhost()) {
+        if (!this.model.getSettings().isBindToLocalhost()) {
             final CrossOriginFilter filter = new CrossOriginFilter();
             final FilterHolder filterHolder = new FilterHolder(filter);
             //filterHolder.setInitParameter("allowedOrigins", "http://fiddle.jshell.net/");

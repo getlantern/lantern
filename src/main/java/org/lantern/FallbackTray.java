@@ -5,6 +5,7 @@ import java.util.Map;
 import org.apache.commons.lang.SystemUtils;
 import org.lantern.event.Events;
 import org.lantern.event.UpdateEvent;
+import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,22 +21,22 @@ public class FallbackTray implements SystemTray {
     private final Logger log = LoggerFactory.getLogger(getClass());
     private SystemTray nonLinuxTray;
     private AppIndicatorTray linuxTray;
+    private final Model model;
     
-    public FallbackTray() {
-        Events.register(this);
-    }
 
     @Inject
     public FallbackTray(final SystemTray nonLinuxTray,
-        final AppIndicatorTray linuxTray) {
+        final AppIndicatorTray linuxTray, final Model model) {
         this.nonLinuxTray = nonLinuxTray;
         this.linuxTray = linuxTray;
+        this.model = model;
         this.linuxTray.setFailureCallback(new AppIndicatorTray.FailureCallback() {
             @Override
             public void createTrayFailed() {
                 fallback();
             }
         });
+        Events.register(this);
     }
     
 
@@ -51,7 +52,7 @@ public class FallbackTray implements SystemTray {
     
     @Override
     public void createTray() {
-        if (SystemUtils.IS_OS_LINUX && LanternHub.settings().isUiEnabled() && 
+        if (SystemUtils.IS_OS_LINUX && model.getSettings().isUiEnabled() && 
             this.linuxTray.isSupported()) {
             this.linuxTray.createTray(); // may call fallback() later...
         }
@@ -79,7 +80,7 @@ public class FallbackTray implements SystemTray {
  
     public void fallback() {
         log.debug("App Indicator tray is not available.");
-        if (LanternHub.settings().isUiEnabled() && nonLinuxTray.isSupported()) {
+        if (model.getSettings().isUiEnabled() && nonLinuxTray.isSupported()) {
             log.debug("Falling back to SWT Tray.");
             nonLinuxTray.createTray();
         }

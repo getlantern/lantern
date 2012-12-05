@@ -43,6 +43,7 @@ import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
+import org.lantern.state.Settings;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.slf4j.Logger;
@@ -76,7 +77,7 @@ public class Launcher {
     private static SystemTray systemTray;
     private static Model model;
     private static ModelUtils modelUtils;
-    
+    private static Settings set;
     
     /**
      * Starts the proxy from the command line.
@@ -120,81 +121,12 @@ public class Launcher {
         }
     }
 
-    // the following are command line options 
-    private static final String OPTION_DISABLE_UI = "disable-ui";
-    private static final String OPTION_HELP = "help";
-    private static final String OPTION_LAUNCHD = "launchd";
-    private static final String OPTION_PUBLIC_API = "public-api";
-    private static final String OPTION_API_PORT = "api-port";
-    private static final String OPTION_SERVER_PORT = "server-port";
-    private static final String OPTION_DISABLE_KEYCHAIN = "disable-keychain";
-    private static final String OPTION_PASSWORD_FILE = "password-file";
-    private static final String OPTION_TRUSTED_PEERS = "disable-trusted-peers";
-    private static final String OPTION_ANON_PEERS ="disable-anon-peers";
-    private static final String OPTION_LAE = "disable-lae";
-    private static final String OPTION_CENTRAL = "disable-central";
-    private static final String OPTION_UDP = "disable-udp";
-    private static final String OPTION_TCP = "disable-tcp";
-    private static final String OPTION_USER = "user";
-    private static final String OPTION_PASS = "pass";
-    private static final String OPTION_GET = "force-get";
-    private static final String OPTION_GIVE = "force-give";
-    private static final String OPTION_NO_CACHE = "no-cache";
-    private static final String OPTION_VERSION = "version";
-    private static final String OPTION_NEW_UI = "new-ui";
-    public static final String OPTION_OAUTH2_CLIENT_SECRETS_FILE = "oauth2-client-secrets-file";
-    public static final String OPTION_OAUTH2_USER_CREDENTIALS_FILE = "oauth2-user-credentials-file";
-
     private static void launch(final String... args) {
         LOG.info("Starting Lantern...");
         configureCipherSuites();
 
         // first apply any command line settings
-        final Options options = new Options();
-        options.addOption(null, OPTION_DISABLE_UI, false,
-            "run without a graphical user interface.");
-        options.addOption(null, OPTION_API_PORT, true,
-            "the port to run the API server on.");
-        options.addOption(null, OPTION_SERVER_PORT, true,
-            "the port to run the give mode proxy server on.");
-        options.addOption(null, OPTION_PUBLIC_API, false,
-            "make the API server publicly accessible on non-localhost.");
-        options.addOption(null, OPTION_HELP, false,
-            "display command line help");
-        options.addOption(null, OPTION_LAUNCHD, false,
-            "running from launchd - not normally called from command line");
-        options.addOption(null, OPTION_DISABLE_KEYCHAIN, false, 
-            "disable use of system keychain and ask for local password");
-        options.addOption(null, OPTION_PASSWORD_FILE, true, 
-            "read local password from the file specified");
-        options.addOption(null, OPTION_TRUSTED_PEERS, false,
-            "disable use of trusted peer-to-peer connections for proxies.");
-        options.addOption(null, OPTION_ANON_PEERS, false,
-            "disable use of anonymous peer-to-peer connections for proxies.");
-        options.addOption(null, OPTION_LAE, false,
-            "disable use of app engine proxies.");
-        options.addOption(null, OPTION_CENTRAL, false,
-            "disable use of centralized proxies.");
-        options.addOption(null, OPTION_UDP, false,
-            "disable UDP for peer-to-peer connections.");
-        options.addOption(null, OPTION_TCP, false,
-            "disable TCP for peer-to-peer connections.");
-        options.addOption(null, OPTION_USER, true,
-            "Google user name -- WARNING INSECURE - ONLY USE THIS FOR TESTING!");
-        options.addOption(null, OPTION_PASS, true,
-            "Google password -- WARNING INSECURE - ONLY USE THIS FOR TESTING!");
-        options.addOption(null, OPTION_GET, false, "Force running in get mode");
-        options.addOption(null, OPTION_GIVE, false, "Force running in give mode");
-        options.addOption(null, OPTION_NO_CACHE, false,
-            "Don't allow caching of static files in the dashboard");
-        options.addOption(null, OPTION_VERSION, false, 
-            "Print the Lantern version");
-        options.addOption(null, OPTION_NEW_UI, false,
-            "Use the new UI under the 'ui' directory");
-        options.addOption(null, OPTION_OAUTH2_CLIENT_SECRETS_FILE, true,
-            "read Google OAuth2 client secrets from the file specified");
-        options.addOption(null, OPTION_OAUTH2_USER_CREDENTIALS_FILE, true,
-            "read Google OAuth2 user credentials from the file specified");
+        final Options options = buildOptions();
 
         final CommandLineParser parser = new PosixParser();
         final CommandLine cmd;
@@ -216,21 +148,11 @@ public class Launcher {
             printVersion();
             return;
         }
-        final Settings set = LanternHub.settings();
-        set.setUseTrustedPeers(parseOptionDefaultTrue(cmd, OPTION_TRUSTED_PEERS));
-        set.setUseAnonymousPeers(parseOptionDefaultTrue(cmd, OPTION_ANON_PEERS));
-        set.setUseLaeProxies(parseOptionDefaultTrue(cmd, OPTION_LAE));
-        set.setUseCentralProxies(parseOptionDefaultTrue(cmd, OPTION_CENTRAL));
+
+        injector = Guice.createInjector(new LanternModule());
+        model = instance(Model.class);
+        set = model.getSettings();
         
-        IceConfig.setTcp(parseOptionDefaultTrue(cmd, OPTION_TCP));
-        IceConfig.setUdp(parseOptionDefaultTrue(cmd, OPTION_UDP));
-        
-        if (cmd.hasOption(OPTION_USER)) {
-            set.setCommandLineEmail(cmd.getOptionValue(OPTION_USER));
-        }
-        if (cmd.hasOption(OPTION_PASS)) {
-            set.setCommandLinePassword(cmd.getOptionValue(OPTION_PASS));
-        }
         if (cmd.hasOption(OPTION_DISABLE_UI)) {
             LOG.info("Disabling UI");
             set.setUiEnabled(false);
@@ -239,48 +161,7 @@ public class Launcher {
             set.setUiEnabled(true);
         }
         
-        /* option to disable use of keychains in local privacy */
-        if (cmd.hasOption(OPTION_DISABLE_KEYCHAIN)) {
-            LOG.info("Disabling use of system keychains");
-            set.setKeychainEnabled(false);
-        }
-        else {
-            set.setKeychainEnabled(true);
-        }
-        
-        if (cmd.hasOption(OPTION_PASSWORD_FILE)) {
-            loadLocalPasswordFile(cmd.getOptionValue(OPTION_PASSWORD_FILE));
-        }
-
-        if (cmd.hasOption(OPTION_PUBLIC_API)) {
-            set.setBindToLocalhost(false);
-        }
-        if (cmd.hasOption(OPTION_API_PORT)) {
-            final String apiPortStr =
-                cmd.getOptionValue(OPTION_API_PORT);
-            LOG.info("Using command-line port: "+ apiPortStr);
-            final int apiPort = Integer.parseInt(apiPortStr);
-            RuntimeSettings.setApiPort(apiPort);
-        } else {
-            LOG.info("Using random port...");
-            RuntimeSettings.setApiPort(LanternUtils.randomPort());
-        }
-        LOG.info("Running API on port: {}", RuntimeSettings.getApiPort());
-
-        if (cmd.hasOption(OPTION_SERVER_PORT)) {
-            final String serverPortStr =
-                cmd.getOptionValue(OPTION_SERVER_PORT);
-            LOG.info("Using command-line proxy port: "+serverPortStr);
-            final int serverPort = Integer.parseInt(serverPortStr);
-            set.setServerPort(serverPort);
-        } else {
-            LOG.info("Using random give mode proxy port...");
-            set.setServerPort(LanternUtils.randomPort());
-        }
-        LOG.info("Running give mode proxy on port: {}", set.getServerPort());
-
-        
-        injector = Guice.createInjector(new LanternModule());
+        LOG.debug("Creating display...");
         final Display display;
         if (set.isUiEnabled()) {
             // We initialize this super early in case there are any errors 
@@ -306,47 +187,21 @@ public class Launcher {
         plainTextAnsererRelayProxy = instance(PlainTestRelayHttpProxyServer.class);
         systemTray = instance(SystemTray.class);
         modelUtils = instance(ModelUtils.class);
-        model = instance(Model.class);
         
-
-        if (cmd.hasOption(OPTION_LAUNCHD)) {
-            LOG.info("Running from launchd or launchd set on command line");
-            model.setLaunchd(true);
-        } else {
-            model.setLaunchd(false);
-        }
-        
-        if (cmd.hasOption(OPTION_GIVE)) {
-            model.getSettings().setGetMode(false);
-        } else if (cmd.hasOption(OPTION_GET)) {
-            model.getSettings().setGetMode(true);
-        }
-        
-        model.setCache(!LanternUtils.isDevMode());
-        if (cmd.hasOption(OPTION_NO_CACHE)) {
-            model.setCache(false);
-        }
-        
-        
-        final String secOpt = OPTION_OAUTH2_CLIENT_SECRETS_FILE;
-        if (cmd.hasOption(secOpt)) {
-            modelUtils.loadOAuth2ClientSecretsFile(
-                cmd.getOptionValue(secOpt));
-        }
-
-        final String credOpt = OPTION_OAUTH2_USER_CREDENTIALS_FILE;
-        if (cmd.hasOption(credOpt)) {
-            modelUtils.loadOAuth2UserCredentialsFile(
-                cmd.getOptionValue(credOpt));
-        }
-        
-        shutdownable(ModelIo.class);
-        
+        LOG.debug("Starting system tray..");
         try {
             systemTray.start();
         } catch (final Exception e) {
             LOG.error("Error starting tray?", e);
         }
+        LOG.debug("Started system tray..");
+        
+        LOG.debug("Processing command line options...");
+        processCommandLineOptions(cmd);
+        LOG.debug("Processed command line options...");
+        
+        shutdownable(ModelIo.class);
+        
         jettyLauncher.start();
         xmpp.start();
         sslProxy.start(false, false);
@@ -355,8 +210,7 @@ public class Launcher {
         gnomeAutoStart();
         
         // Use our stored STUN servers if available.
-        final Collection<String> stunServers = 
-            LanternHub.settings().getStunServers();
+        final Collection<String> stunServers = set.getStunServers();
         if (stunServers != null && !stunServers.isEmpty()) {
             LOG.info("Using stored STUN servers: {}", stunServers);
             StunServerRepository.setStunServers(toSocketAddresses(stunServers));
@@ -368,7 +222,7 @@ public class Launcher {
             // If we're running on startup, it's quite likely we just haven't
             // connected to the internet yet. Let's wait for an internet
             // connection and then start Lantern.
-            if (model.isLaunchd() || !LanternHub.settings().isUiEnabled()) {
+            if (model.isLaunchd() || !set.isUiEnabled()) {
                 LOG.info("Waiting for internet connection...");
                 LanternUtils.waitForInternet();
                 launchWithOrWithoutUi();
@@ -693,7 +547,7 @@ public class Launcher {
     }
 
     private static void launchWithOrWithoutUi() {
-        if (!LanternHub.settings().isUiEnabled()) {
+        if (!set.isUiEnabled()) {
             // We only run headless on Linux for now.
             LOG.info("Running Lantern with no display...");
             launchLantern();
@@ -703,18 +557,17 @@ public class Launcher {
 
         LOG.debug("Is launchd: {}", model.isLaunchd());
         launchLantern();
+        /*
         if (!model.isLaunchd() || 
             !model.isSetupComplete()) {
             //!LanternHub.settings().isInitialSetupComplete()) {
             browserService.openBrowserWhenPortReady();
         }
+        */
     }
 
     public static void launchLantern() {
         LOG.debug("Launching Lantern...");
-        ThreadRenamingRunnable.setThreadNameDeterminer(
-            ThreadNameDeterminer.CURRENT);
-        
         browserService.openBrowserWhenPortReady();
         
         new AutoConnector(); 
@@ -749,6 +602,7 @@ public class Launcher {
         }
         
         private void checkAutoConnect() {
+            LOG.info("Checking auto-connect...");
             if (done) {
                 return;
             }
@@ -767,7 +621,7 @@ public class Launcher {
             // their user name and password and the user is running with a UI.
             // Otherwise, it will connect.
             if (model.getSettings().isAutoStart() && //LanternHub.settings().isConnectOnLaunch() &&
-                (modelUtils.isConfigured() || !LanternHub.settings().isUiEnabled())) {
+                (modelUtils.isConfigured() || !set.isUiEnabled())) {
                 final Runnable runner = new Runnable() {
                     @Override
                     public void run() {
@@ -848,7 +702,7 @@ public class Launcher {
                     @Override
                     public boolean addData(final JSONObject json, 
                         final LoggingEvent le) {
-                        if (!LanternHub.settings().isAnalytics()) {
+                        if (!set.isAutoReport()) {
                             // Don't report anything if the user doesn't have
                             // it turned on.
                             return false;
@@ -881,7 +735,7 @@ public class Launcher {
             messageService.showMessage("Architecture Error",
                 "We're sorry, but it appears you're running 32-bit Lantern on a 64-bit JVM.");
         }
-        else if (!lanternStarted && LanternHub.settings().isUiEnabled()) {
+        else if (!lanternStarted && set.isUiEnabled()) {
             LOG.info("Showing error to user...");
             messageService.showMessage("Startup Error",
                "We're sorry, but there was an error starting Lantern " +
@@ -912,5 +766,174 @@ public class Launcher {
             Launcher.localProxy.stop();
         }
         */
+    }
+
+
+    // the following are command line options 
+    private static final String OPTION_DISABLE_UI = "disable-ui";
+    private static final String OPTION_HELP = "help";
+    private static final String OPTION_LAUNCHD = "launchd";
+    private static final String OPTION_PUBLIC_API = "public-api";
+    private static final String OPTION_API_PORT = "api-port";
+    private static final String OPTION_SERVER_PORT = "server-port";
+    private static final String OPTION_DISABLE_KEYCHAIN = "disable-keychain";
+    private static final String OPTION_PASSWORD_FILE = "password-file";
+    private static final String OPTION_TRUSTED_PEERS = "disable-trusted-peers";
+    private static final String OPTION_ANON_PEERS ="disable-anon-peers";
+    private static final String OPTION_LAE = "disable-lae";
+    private static final String OPTION_CENTRAL = "disable-central";
+    private static final String OPTION_UDP = "disable-udp";
+    private static final String OPTION_TCP = "disable-tcp";
+    private static final String OPTION_USER = "user";
+    private static final String OPTION_PASS = "pass";
+    private static final String OPTION_GET = "force-get";
+    private static final String OPTION_GIVE = "force-give";
+    private static final String OPTION_NO_CACHE = "no-cache";
+    private static final String OPTION_VERSION = "version";
+    private static final String OPTION_NEW_UI = "new-ui";
+    public static final String OPTION_OAUTH2_CLIENT_SECRETS_FILE = "oauth2-client-secrets-file";
+    public static final String OPTION_OAUTH2_USER_CREDENTIALS_FILE = "oauth2-user-credentials-file";
+
+    private static Options buildOptions() {
+        final Options options = new Options();
+        options.addOption(null, OPTION_DISABLE_UI, false,
+            "run without a graphical user interface.");
+        options.addOption(null, OPTION_API_PORT, true,
+            "the port to run the API server on.");
+        options.addOption(null, OPTION_SERVER_PORT, true,
+            "the port to run the give mode proxy server on.");
+        options.addOption(null, OPTION_PUBLIC_API, false,
+            "make the API server publicly accessible on non-localhost.");
+        options.addOption(null, OPTION_HELP, false,
+            "display command line help");
+        options.addOption(null, OPTION_LAUNCHD, false,
+            "running from launchd - not normally called from command line");
+        options.addOption(null, OPTION_DISABLE_KEYCHAIN, false, 
+            "disable use of system keychain and ask for local password");
+        options.addOption(null, OPTION_PASSWORD_FILE, true, 
+            "read local password from the file specified");
+        options.addOption(null, OPTION_TRUSTED_PEERS, false,
+            "disable use of trusted peer-to-peer connections for proxies.");
+        options.addOption(null, OPTION_ANON_PEERS, false,
+            "disable use of anonymous peer-to-peer connections for proxies.");
+        options.addOption(null, OPTION_LAE, false,
+            "disable use of app engine proxies.");
+        options.addOption(null, OPTION_CENTRAL, false,
+            "disable use of centralized proxies.");
+        options.addOption(null, OPTION_UDP, false,
+            "disable UDP for peer-to-peer connections.");
+        options.addOption(null, OPTION_TCP, false,
+            "disable TCP for peer-to-peer connections.");
+        options.addOption(null, OPTION_USER, true,
+            "Google user name -- WARNING INSECURE - ONLY USE THIS FOR TESTING!");
+        options.addOption(null, OPTION_PASS, true,
+            "Google password -- WARNING INSECURE - ONLY USE THIS FOR TESTING!");
+        options.addOption(null, OPTION_GET, false, "Force running in get mode");
+        options.addOption(null, OPTION_GIVE, false, "Force running in give mode");
+        options.addOption(null, OPTION_NO_CACHE, false,
+            "Don't allow caching of static files in the dashboard");
+        options.addOption(null, OPTION_VERSION, false, 
+            "Print the Lantern version");
+        options.addOption(null, OPTION_NEW_UI, false,
+            "Use the new UI under the 'ui' directory");
+        options.addOption(null, OPTION_OAUTH2_CLIENT_SECRETS_FILE, true,
+            "read Google OAuth2 client secrets from the file specified");
+        options.addOption(null, OPTION_OAUTH2_USER_CREDENTIALS_FILE, true,
+            "read Google OAuth2 user credentials from the file specified");
+        return options;
+    }
+    
+
+    private static void processCommandLineOptions(final CommandLine cmd) {
+
+        final String secOpt = OPTION_OAUTH2_CLIENT_SECRETS_FILE;
+        if (cmd.hasOption(secOpt)) {
+            modelUtils.loadOAuth2ClientSecretsFile(
+                cmd.getOptionValue(secOpt));
+        }
+
+        final String credOpt = OPTION_OAUTH2_USER_CREDENTIALS_FILE;
+        if (cmd.hasOption(credOpt)) {
+            modelUtils.loadOAuth2UserCredentialsFile(
+                cmd.getOptionValue(credOpt));
+        }
+        
+        //final Settings set = LanternHub.settings();
+        
+        final org.lantern.state.Settings set = model.getSettings();
+        set.setUseTrustedPeers(parseOptionDefaultTrue(cmd, OPTION_TRUSTED_PEERS));
+        set.setUseAnonymousPeers(parseOptionDefaultTrue(cmd, OPTION_ANON_PEERS));
+        set.setUseLaeProxies(parseOptionDefaultTrue(cmd, OPTION_LAE));
+        set.setUseCentralProxies(parseOptionDefaultTrue(cmd, OPTION_CENTRAL));
+        
+        IceConfig.setTcp(parseOptionDefaultTrue(cmd, OPTION_TCP));
+        IceConfig.setUdp(parseOptionDefaultTrue(cmd, OPTION_UDP));
+        
+        /*
+        if (cmd.hasOption(OPTION_USER)) {
+            set.setUserId(cmd.getOptionValue(OPTION_USER));
+        }
+        if (cmd.hasOption(OPTION_PASS)) {
+            set.(cmd.getOptionValue(OPTION_PASS));
+        }
+        */
+        
+        /* option to disable use of keychains in local privacy */
+        if (cmd.hasOption(OPTION_DISABLE_KEYCHAIN)) {
+            LOG.info("Disabling use of system keychains");
+            set.setKeychainEnabled(false);
+        }
+        else {
+            set.setKeychainEnabled(true);
+        }
+        
+        if (cmd.hasOption(OPTION_PASSWORD_FILE)) {
+            loadLocalPasswordFile(cmd.getOptionValue(OPTION_PASSWORD_FILE));
+        }
+
+        if (cmd.hasOption(OPTION_PUBLIC_API)) {
+            set.setBindToLocalhost(false);
+        }
+        if (cmd.hasOption(OPTION_API_PORT)) {
+            final String apiPortStr =
+                cmd.getOptionValue(OPTION_API_PORT);
+            LOG.info("Using command-line port: "+ apiPortStr);
+            final int apiPort = Integer.parseInt(apiPortStr);
+            RuntimeSettings.setApiPort(apiPort);
+        } else {
+            LOG.info("Using random port...");
+            RuntimeSettings.setApiPort(LanternUtils.randomPort());
+        }
+        LOG.info("Running API on port: {}", RuntimeSettings.getApiPort());
+
+        if (cmd.hasOption(OPTION_SERVER_PORT)) {
+            final String serverPortStr =
+                cmd.getOptionValue(OPTION_SERVER_PORT);
+            LOG.info("Using command-line proxy port: "+serverPortStr);
+            final int serverPort = Integer.parseInt(serverPortStr);
+            set.setServerPort(serverPort);
+        } else {
+            LOG.info("Using random give mode proxy port...");
+            set.setServerPort(LanternUtils.randomPort());
+        }
+        LOG.info("Running give mode proxy on port: {}", set.getServerPort());
+        
+        if (cmd.hasOption(OPTION_LAUNCHD)) {
+            LOG.info("Running from launchd or launchd set on command line");
+            model.setLaunchd(true);
+        } else {
+            model.setLaunchd(false);
+        }
+        
+        if (cmd.hasOption(OPTION_GIVE)) {
+            model.getSettings().setGetMode(false);
+        } else if (cmd.hasOption(OPTION_GET)) {
+            model.getSettings().setGetMode(true);
+        }
+        
+        model.setCache(!LanternUtils.isDevMode());
+        if (cmd.hasOption(OPTION_NO_CACHE)) {
+            model.setCache(false);
+        }
     }
 }

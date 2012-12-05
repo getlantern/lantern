@@ -369,7 +369,7 @@ public class Dashboard implements MessageService, BrowserService {
     
     public int askQuestion(final String title, final String question, 
         final int style) {
-        if (!LanternHub.settings().isUiEnabled()) {
+        if (!model.getSettings().isUiEnabled()) {
             log.info("MESSAGE BOX TITLE: "+title);
             log.info("MESSAGE BOX MESSAGE: "+question);
             return -1;

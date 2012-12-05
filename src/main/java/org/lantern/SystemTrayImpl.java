@@ -22,6 +22,7 @@ import org.eclipse.swt.widgets.TrayItem;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.QuitEvent;
+import org.lantern.event.UpdateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,7 +55,7 @@ public class SystemTrayImpl implements SystemTray {
     private final static String ICON_CONNECTING    = "16off.png"; 
     private final static String ICON_CONNECTED     = "16on.png";
     private final static String ICON_DISCONNECTING = "16off.png";
-    private final XmppHandler handler;
+    //private final XmppHandler handler;
     private final BrowserService browserService;
     
     /**
@@ -63,9 +64,7 @@ public class SystemTrayImpl implements SystemTray {
      * @param display The SWT display. 
      */
     @Inject
-    public SystemTrayImpl(final XmppHandler handler, 
-        final BrowserService browserService) {
-        this.handler = handler;
+    public SystemTrayImpl(final BrowserService browserService) {
         this.browserService = browserService;
         Events.register(this);
     }
@@ -100,7 +99,9 @@ public class SystemTrayImpl implements SystemTray {
 
     @Override
     public void createTray() {
+        log.debug("Creating shell");
         this.shell = new Shell(DisplayWrapper.getDisplay());
+        log.debug("Created shell");
         
         DisplayWrapper.getDisplay().asyncExec (new Runnable () {
             @Override
@@ -165,7 +166,7 @@ public class SystemTrayImpl implements SystemTray {
                     
                     // We call this primarily because we need to make sure to
                     // remove any UPnP and NAT-PMP port mappings.
-                    handler.disconnect();
+                    //handler.disconnect();
                     //LanternHub.jettyLauncher().stop();
                     
                     // We don't need to actively close all open resources --
@@ -278,6 +279,11 @@ public class SystemTrayImpl implements SystemTray {
                     data.get(LanternConstants.UPDATE_VERSION_KEY));
             }
         });
+    }
+    
+    @Subscribe
+    public void onUpdate(final UpdateEvent update) {
+        addUpdate(update.getData());
     }
 
     @Subscribe

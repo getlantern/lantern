@@ -209,7 +209,7 @@ public class Proxifier implements LanternService {
             return;
         }
         interactiveUnproxyCalled = true;
-        if (!LanternHub.settings().isUiEnabled()) {
+        if (!model.getSettings().isUiEnabled()) {
             try {
                 stopProxying();
             } catch (final Proxifier.ProxyConfigurationError e) {

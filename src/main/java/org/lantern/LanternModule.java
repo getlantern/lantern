@@ -11,6 +11,8 @@ import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.util.HashedWheelTimer;
+import org.jboss.netty.util.ThreadNameDeterminer;
+import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.lantern.http.GoogleOauth2RedirectServlet;
 import org.lantern.http.InteractionServlet;
 import org.lantern.http.JettyLauncher;
@@ -34,12 +36,15 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
-import com.google.inject.name.Names;
 
 public class LanternModule extends AbstractModule { 
     
     @Override 
     protected void configure() {
+        // Tweak Netty naming...
+        ThreadRenamingRunnable.setThreadNameDeterminer(
+                ThreadNameDeterminer.CURRENT);
+        
         bind(org.jboss.netty.util.Timer.class).to(HashedWheelTimer.class);
         //bind(LanternUtils.class);
         bind(ModelUtils.class);
@@ -61,8 +66,8 @@ public class LanternModule extends AbstractModule {
         bind(SslHttpProxyServer.class);
         bind(PlainTestRelayHttpProxyServer.class);
         bind(XmppHandler.class).to(DefaultXmppHandler.class);
-        bind(PeerProxyManager.class).annotatedWith(Names.named("trusted")).to(TrustedPeerProxyManager.class);
-        bind(PeerProxyManager.class).annotatedWith(Names.named("anon")).to(AnonymousPeerProxyManager.class);
+        bind(TrustedPeerProxyManager.class);
+        bind(AnonymousPeerProxyManager.class);
         bind(GoogleOauth2RedirectServlet.class);
         bind(JettyLauncher.class);
         bind(AppIndicatorTray.class);
@@ -72,12 +77,11 @@ public class LanternModule extends AbstractModule {
     }
     
     @Provides @Singleton
-    SystemTray provideSystemTray(final XmppHandler handler, 
-        final BrowserService browserService) {
+    SystemTray provideSystemTray(final BrowserService browserService) {
         if (SystemUtils.IS_OS_LINUX) {
             return new AppIndicatorTray(browserService);
         } else {
-            return new SystemTrayImpl(handler, browserService);
+            return new SystemTrayImpl(browserService);
         }
     }
     

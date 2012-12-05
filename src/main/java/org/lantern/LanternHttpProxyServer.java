@@ -7,8 +7,6 @@ import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.inject.Named;
-
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
@@ -21,6 +19,7 @@ import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.util.Timer;
+import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +30,7 @@ import com.google.inject.Singleton;
  * HTTP proxy server for local requests from the browser to Lantern.
  */
 @Singleton
-public class LanternHttpProxyServer implements HttpProxyServer, LanternService {
+public class LanternHttpProxyServer implements HttpProxyServer {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -50,13 +49,15 @@ public class LanternHttpProxyServer implements HttpProxyServer, LanternService {
 
     private final XmppHandler xmppHandler;
     
-    private final PeerProxyManager trustedPeerProxyManager;
+    private final TrustedPeerProxyManager trustedPeerProxyManager;
 
-    private final PeerProxyManager anonymousPeerProxyManager;
+    private final AnonymousPeerProxyManager anonymousPeerProxyManager;
 
     private final Stats stats;
 
     private final LanternKeyStoreManager keyStoreManager;
+
+    private final Model model;
 
     /**
      * Creates a new proxy server.
@@ -76,10 +77,11 @@ public class LanternHttpProxyServer implements HttpProxyServer, LanternService {
         final ClientSocketChannelFactory clientChannelFactory, 
         final Timer timer, final ChannelGroup channelGroup,
         final XmppHandler xmppHandler,
-        @Named("trusted") final PeerProxyManager trustedPeerProxyManager,
-        @Named("anon") final PeerProxyManager anonymousPeerProxyManager,
+        final TrustedPeerProxyManager trustedPeerProxyManager,
+        final AnonymousPeerProxyManager anonymousPeerProxyManager,
         final Stats stats,
-        final LanternKeyStoreManager keyStoreManager) {
+        final LanternKeyStoreManager keyStoreManager,
+        final Model model) {
         this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.anonymousPeerProxyManager = anonymousPeerProxyManager;
         //this.setCookieObserver = setCookieObserver;
@@ -91,6 +93,7 @@ public class LanternHttpProxyServer implements HttpProxyServer, LanternService {
         this.xmppHandler = xmppHandler;
         this.stats = stats;
         this.keyStoreManager = keyStoreManager;
+        this.model = model;
 
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
@@ -161,7 +164,8 @@ public class LanternHttpProxyServer implements HttpProxyServer, LanternService {
                 final SimpleChannelUpstreamHandler dispatcher = 
                     new DispatchingProxyRelayHandler(clientChannelFactory, 
                         channelGroup, xmppHandler, trustedPeerProxyManager,
-                        anonymousPeerProxyManager, stats, keyStoreManager);
+                        anonymousPeerProxyManager, stats, keyStoreManager, 
+                        model);
                 
                 final ChannelPipeline pipeline = pipeline();
                 pipeline.addLast("decoder", 
