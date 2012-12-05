@@ -68,6 +68,7 @@ import org.jivesoftware.smack.packet.Presence;
 import org.lantern.SettingsState.State;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
+import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.littleshoot.util.ByteBufferUtils;
 import org.littleshoot.util.Sha1;
@@ -403,19 +404,9 @@ public class LanternUtils {
     }
     
     public static boolean hasNetworkConnection() {
-        // Just try a couple of times to make sure.
-        for (int i = 0; i < 2; i++) {
-            try {
-                final DatagramChannel channel = DatagramChannel.open();
-                final SocketAddress server = 
-                    new InetSocketAddress("www.google.com", 80);
-                channel.connect(server);
-                return true;
-            } catch (final IOException e) {
-            } catch (final UnresolvedAddressException e) {
-            }
-        }
-        return false;
+        final InetAddress ip = 
+            new PublicIpAddress().getPublicIpAddress();
+        return ip != null;
     }
 
     public static int randomPort() {

@@ -10,7 +10,6 @@ import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternConstants;
 import org.lantern.LanternHub;
 import org.lantern.Settings.CommandLineOption;
-import org.lantern.Settings.RuntimeSetting;
 import org.lantern.Whitelist;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
@@ -61,17 +60,13 @@ public class Settings implements MutableSettings {
 
     private boolean useCentralProxies;
 
-    private Set<String> stunServers;
-
-    private boolean analytics;
+    private Set<String> stunServers = new HashSet<String>();
 
     private int serverPort;
 
     private boolean keychainEnabled;
 
     private boolean uiEnabled = true;
-
-    private String commandLineEmail;
 
     private boolean bindToLocalhost;
     

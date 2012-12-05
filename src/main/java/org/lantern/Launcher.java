@@ -153,6 +153,7 @@ public class Launcher {
         model = instance(Model.class);
         set = model.getSettings();
         
+        // We parse this one separately because we need this value right away.
         if (cmd.hasOption(OPTION_DISABLE_UI)) {
             LOG.info("Disabling UI");
             set.setUiEnabled(false);
