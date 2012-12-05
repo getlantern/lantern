@@ -9,6 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lantern.LanternConstants;
+import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -123,5 +124,13 @@ public class ModelUtils {
             LOG.error("Failed to read file \"{}\"", filename);
             throw new Error("Could not load oauth credentials", e);
         }
+    }
+
+    public GoogleOAuth2Credentials newGoogleOauthCreds(final String resource) {
+        final Settings set = this.model.getSettings();
+        return new GoogleOAuth2Credentials("anon@getlantern.org",
+            set.getClientID(), set.getClientSecret(), 
+            set.getAccessToken(), set.getRefreshToken(), 
+            resource);
     }
 }

@@ -17,6 +17,7 @@ import org.lantern.http.GoogleOauth2RedirectServlet;
 import org.lantern.http.InteractionServlet;
 import org.lantern.http.JettyLauncher;
 import org.lantern.http.LanternApi;
+import org.lantern.http.PhotoServlet;
 import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.privacy.MacLocalCipherProvider;
@@ -65,6 +66,8 @@ public class LanternModule extends AbstractModule {
         bind(LanternKeyStoreManager.class);
         bind(SslHttpProxyServer.class);
         bind(PlainTestRelayHttpProxyServer.class);
+        bind(PhotoServlet.class);
+        
         bind(XmppHandler.class).to(DefaultXmppHandler.class);
         bind(TrustedPeerProxyManager.class);
         bind(AnonymousPeerProxyManager.class);

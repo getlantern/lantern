@@ -65,6 +65,7 @@ import org.lantern.ksope.LanternTrustGraphNode;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
+import org.lantern.state.Profile;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.ice.MappedTcpAnswererServer;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -365,16 +366,10 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private void connectViaOAuth2() throws IOException,
             CredentialException, NotInClosedBetaException {
-        final XmppCredentials credentials = new GoogleOAuth2Credentials(
-            "anon@getlantern.org",
-            this.model.getSettings().getClientID(),
-            this.model.getSettings().getClientSecret(),
-            this.model.getSettings().getAccessToken(),
-            this.model.getSettings().getRefreshToken(),
-            getResource());
+        final XmppCredentials credentials = 
+            this.modelUtils.newGoogleOauthCreds(getResource());
         
         LOG.info("Logging in with credentials: {}", credentials);
-        
         connect(credentials);
     }
 
@@ -1440,23 +1435,12 @@ public class DefaultXmppHandler implements XmppHandler {
             }
         }
         
-        try {
-            final VCard vcard = PhotoServlet.getVCard(LanternUtils.toEmail(conn));
-            if (vcard != null) {
-                final String fullName = vcard.getField("FN");
-                if (StringUtils.isNotBlank(fullName)) {
-                    pres.setProperty(LanternConstants.INVITER_NAME, fullName);
-                } else {
-                    pres.setProperty(LanternConstants.INVITER_NAME, "");
-                }
-            }
-        } catch (final CredentialException e) {
-            LOG.warn("Bad credentials?", e);
-        } catch (final XMPPException e) {
-            LOG.warn("XMPP Error?", e);
-        } catch (final IOException e) {
-            LOG.warn("IO Error?", e);
-        }
+        final Profile prof = this.model.getProfile();
+        pres.setProperty(LanternConstants.INVITER_NAME, prof.getName());
+        
+        final String json = LanternUtils.jsonify(prof);
+        pres.setProperty(XmppMessageConstants.PROFILE, json);
+
         invited.add(email);
         //pres.setProperty(LanternConstants.INVITER_NAME, value);
         

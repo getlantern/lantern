@@ -66,15 +66,18 @@ public class JettyLauncher implements LanternService {
 
     private final Model model;
 
+    private final PhotoServlet photoServlet;
+
     @Inject
     public JettyLauncher(final SyncService syncer,
         final GoogleOauth2RedirectServlet redirectServlet,
         final InteractionServlet interactionServlet,
-        final Model model) {
+        final Model model, final PhotoServlet photoServlet) {
         this.syncer = syncer;
         this.redirectServlet = redirectServlet;
         this.interactionServlet = interactionServlet;
         this.model = model;
+        this.photoServlet = photoServlet;
         final File staticdir = 
             new File(LanternHub.settings().getUiDir(), "assets");
         
@@ -187,9 +190,9 @@ public class JettyLauncher implements LanternService {
         interactionServletHolder.setInitOrder(2);
         contextHandler.addServlet(interactionServletHolder, apiPath());
         
-        final ServletHolder photoServlet = new ServletHolder(new PhotoServlet());
-        photoServlet.setInitOrder(3);
-        contextHandler.addServlet(photoServlet, "/photo/*");
+        final ServletHolder photo = new ServletHolder(this.photoServlet);
+        photo.setInitOrder(3);
+        contextHandler.addServlet(photo, "/photo/*");
 
         
         final BayeuxInitializer bi = new BayeuxInitializer(this.syncer);

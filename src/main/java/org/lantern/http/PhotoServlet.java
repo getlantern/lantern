@@ -20,10 +20,14 @@ import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.packet.VCard;
-import org.lantern.LanternHub;
+import org.lantern.state.ModelUtils;
+import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 //import eu.medsea.mimeutil.MimeType;
 //import eu.medsea.mimeutil.MimeUtil2;
@@ -31,6 +35,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Servlet for sending photo data for a given user.
  */
+@Singleton
 public final class PhotoServlet extends HttpServlet {
 
     private static final Logger log = LoggerFactory.getLogger(PhotoServlet.class);
@@ -47,13 +52,17 @@ public final class PhotoServlet extends HttpServlet {
     
     private static final Map<String, VCard> cache = new HashMap<String, VCard>();
     
-    private static final byte[] noImage = loadNoImage();
+    private final byte[] noImage = loadNoImage();
     
     //private static final MimeUtil2 mimeUtil = new MimeUtil2();
     
     private static final Object CONNECTION_LOCK = new Object();
 
-    public PhotoServlet() {
+    private final ModelUtils modelUtils;
+
+    @Inject
+    public PhotoServlet(final ModelUtils modelUtils) {
+        this.modelUtils = modelUtils;
         /*
         mimeUtil.registerMimeDetector(
             "eu.medsea.mimeutil.detector.MagicMimeMimeDetector");
@@ -108,7 +117,7 @@ public final class PhotoServlet extends HttpServlet {
         //resp.getOutputStream().close();
     }
     
-    public static VCard getVCard(final String email) 
+    private VCard getVCard(final String email) 
         throws CredentialException, XMPPException, IOException {
         
         if (StringUtils.isBlank(email)) {
@@ -125,7 +134,7 @@ public final class PhotoServlet extends HttpServlet {
         }
     }
 
-    private static byte[] loadNoImage() {
+    private byte[] loadNoImage() {
         final File none;
         final File installed = new File("default-profile-image.png");
         if (installed.isFile()) {
@@ -146,7 +155,7 @@ public final class PhotoServlet extends HttpServlet {
         return new byte[0];
     }
 
-    private static XMPPConnection establishConnection() throws CredentialException, 
+    private XMPPConnection establishConnection() throws CredentialException, 
         XMPPException, IOException {
         // The browser will send a bunch of requests for photos, and we don't
         // want to hammer the Google Talk servers, so we synchronize to 
@@ -155,20 +164,12 @@ public final class PhotoServlet extends HttpServlet {
             if (conn != null && conn.isConnected()) {
                 return conn;
             }
-            /*
-            final String user = LanternHub.xmppHandler().getLastUserName();
-            final String pass = LanternHub.xmppHandler().getLastPass();
-            if (StringUtils.isBlank(user)) {
-                throw new IOException("No user name!!");
-            }
-            if (StringUtils.isBlank(user)) {
-                throw new IOException("No password!!");
-            }
-            conn = XmppUtils.simpleGoogleTalkConnection(user, pass, 
-                "vcard-connection");
+            
+            final GoogleOAuth2Credentials  cred = 
+                this.modelUtils.newGoogleOauthCreds("vcard-connection");
+
+            conn = XmppUtils.simpleGoogleTalkConnection(cred);
             return conn;
-            */
-            return null;
         }
     }
 
