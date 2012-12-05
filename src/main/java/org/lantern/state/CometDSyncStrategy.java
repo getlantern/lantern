@@ -49,10 +49,10 @@ public class CometDSyncStrategy implements SyncStrategy {
 
         final SyncData data = new SyncData(path, value);
         final String json = LanternUtils.jsonify(data, Run.class);
-        log.info("Sending state to frontend:\n{}", json);
-        log.info("Synced object: {}", value);
+        log.debug("Sending state to frontend:\n{}", json);
+        log.debug("Synced object: {}", value);
         ch.publish(data);
-        log.info("Sync performed");
+        log.debug("Sync performed");
     }
 
     private long elapsedForPath(final String path) {
