@@ -2,6 +2,7 @@ package org.lantern.state;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.codehaus.jackson.map.annotate.JsonView;
@@ -48,7 +49,9 @@ public class Settings implements MutableSettings {
     
     private Whitelist whitelist = new Whitelist();
 
-    private boolean startAtLogin;
+    private boolean startAtLogin = true;
+
+    private Set<String> proxies = new LinkedHashSet<String>();
     
     public enum Mode {
         give,
@@ -239,5 +242,29 @@ public class Settings implements MutableSettings {
     @Override
     public void setStartAtLogin(final boolean startAtLogin) {
         this.startAtLogin = startAtLogin;
+    }
+    
+    public void setProxies(final Set<String> proxies) {
+        synchronized (this.proxies) {
+            this.proxies = proxies;
+        }
+    }
+
+    @JsonView({Persistent.class})
+    public Set<String> getProxies() {
+        synchronized (this.proxies) {
+            return ImmutableSet.copyOf(this.proxies);
+        }
+    }
+    
+    public void addProxy(final String proxy) {
+        // Don't store peer proxies on disk.
+        if (!proxy.contains("@")) {
+            this.proxies.add(proxy);
+        }
+    }
+
+    public void removeProxy(final String proxy) {
+        this.proxies.remove(proxy);
     }
 }

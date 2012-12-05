@@ -158,7 +158,7 @@ public class Settings implements MutableSettings {
      */
     private boolean keychainEnabled = true;
     
-    private Set<String> proxies = new LinkedHashSet<String>();
+    //private Set<String> proxies = new LinkedHashSet<String>();
     
     private boolean analytics = true;
     
@@ -313,6 +313,7 @@ public class Settings implements MutableSettings {
         return this.platform;
     }
     
+    /*
     public void setConnectOnLaunch(final boolean connectOnLaunch) {
         this.connectOnLaunch = connectOnLaunch;
     }
@@ -321,6 +322,7 @@ public class Settings implements MutableSettings {
     public boolean isConnectOnLaunch() {
         return this.connectOnLaunch;
     }
+    */
     
     @Subscribe
     public void onUpdate(final UpdateEvent ue) {
@@ -643,6 +645,7 @@ public class Settings implements MutableSettings {
         return autoConnectToPeers;
     }
 
+    /*
     public void addProxy(final String proxy) {
         // Don't store peer proxies on disk.
         if (!proxy.contains("@")) {
@@ -653,7 +656,9 @@ public class Settings implements MutableSettings {
     public void removeProxy(final String proxy) {
         this.proxies.remove(proxy);
     }
+    */
     
+    /*
     public void setProxies(final Set<String> proxies) {
         synchronized (this.proxies) {
             this.proxies = proxies;
@@ -666,10 +671,11 @@ public class Settings implements MutableSettings {
             return ImmutableSet.copyOf(this.proxies);
         }
     }
+    */
     
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public Set<InetSocketAddress> getPeerProxies() {
-        synchronized (this.proxies) {
+        synchronized (this.peerProxies) {
             return ImmutableSet.copyOf(this.peerProxies);
         }
     }
@@ -819,8 +825,8 @@ public class Settings implements MutableSettings {
                 + getMode + ", bindToLocalhost=" + bindToLocalhost
                 + ", apiPort=" + apiPort + ", passwordSaved=" + passwordSaved
                 + ", launchd=" + launchd + ", uiEnabled=" + uiEnabled
-                + ", keychainEnabled=" + keychainEnabled + ", proxies="
-                + proxies + ", analytics=" + analytics + ", peerProxies="
+                + ", keychainEnabled=" + keychainEnabled 
+                + ", analytics=" + analytics + ", peerProxies="
                 + peerProxies + ", useTrustedPeers=" + useTrustedPeers
                 + ", useAnonymousPeers=" + useAnonymousPeers
                 + ", useLaeProxies=" + useLaeProxies + ", useCentralProxies="

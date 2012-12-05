@@ -327,7 +327,7 @@ public class DefaultXmppHandler implements XmppHandler {
     
     private void prepopulateProxies() {
         // Add all the stored proxies.
-        final Collection<String> saved = LanternHub.settings().getProxies();
+        final Collection<String> saved = this.model.getSettings().getProxies();
         LOG.info("Proxy set is: {}", saved);
         for (final String proxy : saved) {
             // Don't use peer proxies since we're not connected to XMPP yet.
@@ -1207,7 +1207,7 @@ public class DefaultXmppHandler implements XmppHandler {
             // This is a little odd because the proxy could have originally
             // come from the settings themselves, but it'll remove duplicates,
             // so no harm done.
-            LanternHub.settings().addProxy(fullProxyString);
+            this.model.getSettings().addProxy(fullProxyString);
             synchronized (set) {
                 if (!set.contains(ph)) {
                     set.add(ph);
@@ -1219,7 +1219,7 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.error("Could not connect to: {}", ph);
             sendErrorMessage(ph.isa, e.getMessage());
             onCouldNotConnect(ph.isa);
-            LanternHub.settings().removeProxy(fullProxyString);
+            this.model.getSettings().removeProxy(fullProxyString);
         } finally {
             IOUtils.closeQuietly(sock);
         }

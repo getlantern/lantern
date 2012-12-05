@@ -752,10 +752,12 @@ public class Launcher {
             if (done) {
                 return;
             }
+            /*
             if (LanternHub.settings().getSettings().getState() != SettingsState.State.SET) {
                 LOG.info("not testing auto-connect, settings are not ready.");
                 return;
             }
+            */
             
             // only test once.
             done = true;
@@ -764,7 +766,7 @@ public class Launcher {
             // This won't connect in the case where the user hasn't entered 
             // their user name and password and the user is running with a UI.
             // Otherwise, it will connect.
-            if (LanternHub.settings().isConnectOnLaunch() &&
+            if (model.getSettings().isAutoStart() && //LanternHub.settings().isConnectOnLaunch() &&
                 (modelUtils.isConfigured() || !LanternHub.settings().isUiEnabled())) {
                 final Runnable runner = new Runnable() {
                     @Override
