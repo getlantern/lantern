@@ -2,15 +2,18 @@ package org.lantern;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
@@ -22,6 +25,7 @@ import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.RandomRoutingTable;
 import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.event.Events;
+import org.lantern.state.Profile;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -39,8 +43,11 @@ public class Roster implements RosterListener {
     private Map<String, LanternRosterEntry> rosterEntries = 
         new ConcurrentSkipListMap<String, LanternRosterEntry>();
     
-    private final Collection<String> incomingSubscriptionRequests = 
-        new HashSet<String>();
+    /**
+     * Map of e-mail address of the requester to their full profile.
+     */
+    private final Map<String, Profile> incomingSubscriptionRequests = 
+        new TreeMap<String, Profile>();
 
     private final XmppHandler xmppHandler;
 
@@ -191,19 +198,37 @@ public class Roster implements RosterListener {
         }
     }
 
-    public void addIncomingSubscriptionRequest(final String from) {
-        incomingSubscriptionRequests.add(from);
-        Events.syncRoster(this);
+    public void addIncomingSubscriptionRequest(final Presence pres) {
+        final String json = (String) pres.getProperty(XmppMessageConstants.PROFILE);
+        if (StringUtils.isBlank(json)) {
+            log.warn("No profile?");
+            return;
+        }
+        final ObjectMapper mapper = new ObjectMapper();
+        try {
+            final Profile prof = mapper.readValue(json, Profile.class);
+            incomingSubscriptionRequests.put(prof.getEmail(), prof);
+            Events.syncRoster(this);
+        } catch (final JsonParseException e) {
+            log.warn("Error parsing json", e);
+        } catch (final JsonMappingException e) {
+            log.warn("Error mapping json", e);
+        } catch (final IOException e) {
+            log.warn("Error reading json", e);
+        }
     }
     
 
     public void removeIncomingSubscriptionRequest(final String from) {
-        incomingSubscriptionRequests.remove(from);
+        final String email = XmppUtils.jidToUser(from);
+        incomingSubscriptionRequests.remove(email);
         Events.syncRoster(this);
     }
 
-    public Collection<String> getSubscriptionRequests() {
-        return incomingSubscriptionRequests;
+    public Collection<Profile> getSubscriptionRequests() {
+        synchronized (incomingSubscriptionRequests) {
+            return incomingSubscriptionRequests.values();
+        }
     }
 
     @Override
