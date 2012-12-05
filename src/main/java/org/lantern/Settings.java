@@ -298,6 +298,7 @@ public class Settings implements MutableSettings {
         this.port = port;
     }
 
+    /*
     public void setServerPort(final int serverPort) {
         this.serverPort = serverPort;
     }
@@ -307,6 +308,7 @@ public class Settings implements MutableSettings {
     public int getServerPort() {
         return serverPort;
     }
+    */
 
     @JsonView(RuntimeSetting.class)
     public Platform getPlatform() {
@@ -357,6 +359,7 @@ public class Settings implements MutableSettings {
         return settings;
     }
 
+    /*
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public boolean isInitialSetupComplete() {
         return initialSetupComplete;
@@ -365,8 +368,9 @@ public class Settings implements MutableSettings {
     public void setInitialSetupComplete(boolean val) {
         initialSetupComplete = val;
     }
+    */
 
-
+    /*
     public void setCommandLineEmail(String email) {
         commandLineEmail = email;
     }
@@ -376,6 +380,7 @@ public class Settings implements MutableSettings {
     public String getCommandLineEmail() {
         return commandLineEmail;
     }
+    */
 
     /*
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
@@ -560,6 +565,7 @@ public class Settings implements MutableSettings {
     }
     */
 
+    /*
     public void setBindToLocalhost(final boolean bindToLocalhost) {
         this.bindToLocalhost = bindToLocalhost;
     }
@@ -569,6 +575,7 @@ public class Settings implements MutableSettings {
     public boolean isBindToLocalhost() {
         return bindToLocalhost;
     }
+    */
     
     @JsonView(RuntimeSetting.class)
     public boolean isProxying() {
@@ -613,6 +620,7 @@ public class Settings implements MutableSettings {
     }
     */
     
+    /*
     public void setUiEnabled(boolean uiEnabled) {
         this.uiEnabled = uiEnabled;
     }
@@ -622,13 +630,16 @@ public class Settings implements MutableSettings {
     public boolean isUiEnabled() {
         return uiEnabled;
     }
+    */
     
+    /*
     public void setKeychainEnabled(boolean keychainEnabled) {
         this.keychainEnabled = keychainEnabled;
     }
     public boolean isKeychainEnabled() {
         return keychainEnabled;
     }
+    */
 
     @JsonView(RuntimeSetting.class)
     public boolean isLocalPasswordInitialized() {
@@ -694,7 +705,7 @@ public class Settings implements MutableSettings {
         this.peerProxies.remove(proxy);
     }
     
-
+/*
     public void setUseTrustedPeers(final boolean useTrustedPeers) {
         this.useTrustedPeers = useTrustedPeers;
     }
@@ -752,6 +763,7 @@ public class Settings implements MutableSettings {
     public boolean isAnalytics() {
         return analytics;
     }
+    */
     
     public void setInvited(final Set<String> invited) {
         this.invited = invited;

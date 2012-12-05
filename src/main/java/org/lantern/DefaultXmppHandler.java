@@ -259,7 +259,7 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.debug("Creating mapped TCP server...");
             tempMapper =
                 new MappedTcpAnswererServer(natPmpService, upnpService, 
-                    new InetSocketAddress(LanternHub.settings().getServerPort()));
+                    new InetSocketAddress(this.model.getSettings().getServerPort()));
             LOG.debug("Created mapped TCP server...");
         } catch (final IOException e) {
             LOG.info("Exception mapping TCP server", e);
@@ -345,7 +345,7 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.warn("Can't connect when not started!!");
             throw new Error("Can't connect when not started!!");
         }
-        if (!this.modelUtils.isConfigured() && LanternHub.settings().isUiEnabled()) {
+        if (!this.modelUtils.isConfigured() && this.model.getSettings().isUiEnabled()) {
             LOG.info("Not connecting when not configured");
             return;
         }
@@ -496,12 +496,12 @@ public class DefaultXmppHandler implements XmppHandler {
         // actually get proxies to work with.
         final XMPPConnection connection = this.client.get().getXmppConnection();
         final Collection<String> servers = 
-            LanternHub.settings().getStunServers();
+                this.model.getSettings().getStunServers();
         if (servers.isEmpty()) {
             final Collection<InetSocketAddress> googleStunServers = 
                     XmppUtils.googleStunServers(connection);
             StunServerRepository.setStunServers(googleStunServers);
-            LanternHub.settings().setStunServers(
+            this.model.getSettings().setStunServers(
                     new HashSet<String>(toStringServers(googleStunServers)));
         }
         

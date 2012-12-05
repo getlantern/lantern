@@ -13,8 +13,8 @@ public class GoogleTalkTest {
     
     @Test
     public void testGoogleTalk() throws Exception {
-        LanternHub.settings().setUseAnonymousPeers(false);
-        LanternHub.settings().setUseTrustedPeers(false);
+        TestUtils.getModel().getSettings().setUseAnonymousPeers(false);
+        TestUtils.getModel().getSettings().setUseTrustedPeers(false);
         final String email = TestUtils.loadTestEmail();
         final XmppHandler handler = 
             createHandler(email, TestUtils.loadTestPassword());

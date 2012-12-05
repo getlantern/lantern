@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 
-import javax.inject.Named;
 import javax.net.ssl.SSLEngine;
 
 import org.apache.commons.lang.StringUtils;
@@ -32,6 +31,7 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.ssl.SslHandler;
+import org.lantern.state.Model;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
 import org.littleshoot.proxy.ProxyUtils;
 import org.slf4j.Logger;
@@ -80,6 +80,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final LanternKeyStoreManager ksm;
 
+    private final Model model;
+
     /**
      * Creates a new handler that reads incoming HTTP requests and dispatches
      * them to proxies as appropriate.
@@ -92,10 +94,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final ClientSocketChannelFactory clientChannelFactory,
         final ChannelGroup channelGroup,
         final XmppHandler xmppHandler,
-        @Named("trusted") final PeerProxyManager trustedPeerProxyManager,
-        @Named("anon") final PeerProxyManager anonymousPeerProxyManager,
+        final TrustedPeerProxyManager trustedPeerProxyManager,
+        final AnonymousPeerProxyManager anonymousPeerProxyManager,
         final Stats stats,
-        final LanternKeyStoreManager ksm) {
+        final LanternKeyStoreManager ksm,
+        final Model model) {
         this.clientChannelFactory = clientChannelFactory;
         this.channelGroup = channelGroup;
         this.xmppHandler = xmppHandler;
@@ -103,6 +106,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         this.anonymousPeerProxyManager = anonymousPeerProxyManager;
         this.stats = stats;
         this.ksm = ksm;
+        this.model = model;
         this.proxyRequestProcessor =
             new DefaultHttpRequestProcessor(xmppHandler,
                 new HttpRequestTransformer() {
@@ -219,7 +223,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         log.debug("Dispatching request");
         if (request.getMethod() == HttpMethod.CONNECT) {
             try {
-                if (LanternHub.settings().isUseAnonymousPeers() && 
+                if (this.model.getSettings().isUseAnonymousPeers() && 
                     anonymousPeerProxyManager.processRequest(
                 //if (LanternHub.settings().isUseTrustedPeers() && 
                 //    LanternHub.getProxyProvider().getTrustedPeerProxyManager().processRequest(
@@ -248,7 +252,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
         }
         try {
-            if (LanternHub.settings().isUseTrustedPeers()) {
+            if (this.model.getSettings().isUseTrustedPeers()) {
                 final PeerProxyManager provider = trustedPeerProxyManager;
                 if (provider != null) {
                     log.info("Sending {} to trusted peers", request.getUri());
@@ -291,11 +295,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     }
 
     private boolean useStandardProxies() {
-        return LanternHub.settings().isUseCentralProxies() && LanternHub.settings().isUseCloudProxies();
+        return this.model.getSettings().isUseCentralProxies() && LanternHub.settings().isUseCloudProxies();
     }
 
     private boolean useLae() {
-        return LanternHub.settings().isUseLaeProxies() && LanternHub.settings().isUseCloudProxies();
+        return this.model.getSettings().isUseLaeProxies() && LanternHub.settings().isUseCloudProxies();
     }
 
     private void centralConnect(final HttpRequest request) {
