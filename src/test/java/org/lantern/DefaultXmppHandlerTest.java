@@ -6,11 +6,10 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import org.junit.Test;
+import org.lantern.state.Model;
+import org.lantern.state.Settings.Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 
 /**
  * Test for the XMPP handler.
@@ -20,29 +19,33 @@ public class DefaultXmppHandlerTest {
     private static Logger LOG = 
         LoggerFactory.getLogger(DefaultXmppHandlerTest.class);
     
+    
     /**
      * Make sure we're getting messages back from the controller.
      * 
      * @throws Exception If anything goes wrong.
      */
-    @Test public void testControllerMessages() throws Exception {
+    @Test 
+    public void testControllerMessages() throws Exception {
         final String email = TestUtils.loadTestEmail();
         final String pwd = TestUtils.loadTestPassword();
         
-        LanternHub.resetSettings(true);
-        final Settings settings = LanternHub.settings();
-        settings.setGetMode(true);
+        //LanternHub.resetSettings(true);
+        final Model model = TestUtils.getModel();
+        final org.lantern.state.Settings settings = model.getSettings();
+        //settings.setGetMode(true);
         settings.setProxies(new HashSet<String>());
         
-        final Injector injector = Guice.createInjector(new LanternModule());
-        final XmppHandler handler = injector.getInstance(DefaultXmppHandler.class);
+        settings.setMode(Mode.get);
+        
+        final XmppHandler handler = TestUtils.getXmppHandler();
         handler.start();
         handler.connect(email, pwd);
         
         Collection<String> proxies = new HashSet<String>();
         
         int count = 0;
-        while (proxies.isEmpty() && count < 100) {
+        while (proxies.isEmpty() && count < 200) {
             proxies = settings.getProxies();
             if (!proxies.isEmpty()) break;
             Thread.sleep(200);

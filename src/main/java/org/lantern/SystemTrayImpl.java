@@ -19,8 +19,8 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
-import org.lantern.event.ConnectivityStatusChangeEvent;
 import org.lantern.event.Events;
+import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.QuitEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -281,26 +281,27 @@ public class SystemTrayImpl implements SystemTray {
     }
 
     @Subscribe
-    public void onConnectivityStateChanged(
-        final ConnectivityStatusChangeEvent csce) {
-        final ConnectivityStatus cs = csce.getConnectivityStatus();
-        log.info("Got connectivity state changed {}", cs);
-        switch (cs) {
-        case DISCONNECTED: {
+    public void onConnectivityStateChanged(final GoogleTalkStateEvent event) {
+        final GoogleTalkState state = event.getState();
+        switch (state) {
+        case LOGIN_FAILED:
             changeIcon(ICON_DISCONNECTED);
             changeStatusLabel(LABEL_DISCONNECTED);
             break;
-        }
-        case CONNECTING: {
-            changeIcon(ICON_CONNECTING);
-            changeStatusLabel(LABEL_CONNECTING);
-            break;
-        }
-        case CONNECTED: {
+        case connected:
             changeIcon(ICON_CONNECTED);
             changeStatusLabel(LABEL_CONNECTED);
             break;
-        }
+        case connecting:
+            changeIcon(ICON_CONNECTING);
+            changeStatusLabel(LABEL_CONNECTING);
+            break;
+        case notConnected:
+            changeIcon(ICON_DISCONNECTED);
+            changeStatusLabel(LABEL_DISCONNECTED);
+            break;
+        default:
+            break;
         }
     }
 
