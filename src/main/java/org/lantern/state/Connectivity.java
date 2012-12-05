@@ -5,10 +5,10 @@ import java.util.Collections;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.annotate.JsonView;
-import org.lantern.Events;
 import org.lantern.GoogleTalkState;
 import org.lantern.PeerProxyManager;
 import org.lantern.RuntimeSettings;
+import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.SyncEvent;
 import org.lantern.state.Model.Persistent;
@@ -27,13 +27,12 @@ public class Connectivity {
     
     private GoogleTalkState googleTalkState = GoogleTalkState.notConnected;
     
-    /**
-     * TODO: FIX THIS -- SEE OLD SETTINGS.
-     */
     private String ip = "";
     
     private String gtalkOauthUrl;
     
+    private boolean gtalkAuthorized = false;
+
     public Connectivity() {
         Events.register(this);
     }
@@ -41,11 +40,6 @@ public class Connectivity {
     @JsonView({Run.class})
     public GoogleTalkState getGTalk() {
         return googleTalkState;
-    }
-    
-    @JsonView({Run.class})
-    public boolean getGtalkAuthorized() {
-        return false;
     }
     
     @JsonView({Run.class})
@@ -105,6 +99,15 @@ public class Connectivity {
             gtalkOauthUrl = RuntimeSettings.getLocalEndpoint()+"/oauth/";
         }
         return gtalkOauthUrl;
+    }
+
+    @JsonView({Run.class})
+    public boolean isGtalkAuthorized() {
+        return gtalkAuthorized;
+    }
+
+    public void setGtalkAuthorized(boolean gtalkAuthorized) {
+        this.gtalkAuthorized = gtalkAuthorized;
     }
 
 }

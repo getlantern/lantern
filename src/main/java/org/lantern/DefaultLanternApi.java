@@ -15,6 +15,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
+import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
 import org.lantern.http.HttpUtils;
 import org.lantern.http.LanternApi;

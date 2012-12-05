@@ -12,6 +12,7 @@ import java.util.zip.GZIPInputStream;
 import org.apache.commons.io.IOUtils;
 import org.lantern.cookie.CookieTracker;
 import org.lantern.cookie.InMemoryCookieTracker;
+import org.lantern.event.Events;
 import org.lantern.event.SettingsStateEvent;
 import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.privacy.DefaultLocalCipherProvider;
@@ -185,9 +186,9 @@ public class LanternHub {
                 LOG.error("error copying command line settings! {}", t);
             }
         }
-        */
         
         postSettingsState();
+        */
         throw new UnsupportedOperationException();
     }
    

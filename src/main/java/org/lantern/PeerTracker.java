@@ -1,5 +1,6 @@
 package org.lantern;
 
+import org.lantern.event.Events;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

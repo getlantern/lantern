@@ -1,17 +1,10 @@
 package org.lantern;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-import javax.security.auth.login.CredentialException;
-
-import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.SystemUtils;
-import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.state.ModelUtils;
-import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -189,7 +182,7 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
     }
     */
 
-    @Override
+    //@Override
     public void setGetMode(final boolean getMode) {
         /*
         // When we move to give mode, we want to start advertising our 

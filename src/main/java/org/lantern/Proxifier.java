@@ -7,6 +7,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.eclipse.swt.SWT;
+import org.lantern.event.Events;
 import org.lantern.event.QuitEvent;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
@@ -58,8 +59,9 @@ public class Proxifier implements LanternService {
     private final ModelUtils modelUtils;
 
     private final Model model;
-    
-    @Inject public Proxifier(final MessageService messageService,
+
+    @Inject 
+    public Proxifier(final MessageService messageService,
         final ModelUtils modelUtils, final Model model) {
         this.messageService = messageService;
         this.modelUtils = modelUtils;

@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.lantern.Events;
+import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;

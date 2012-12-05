@@ -30,6 +30,7 @@ import org.lantern.LanternHub;
 import org.lantern.LanternService;
 import org.lantern.Proxifier;
 import org.lantern.RuntimeSettings;
+import org.lantern.state.Model;
 import org.lantern.state.SyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,13 +64,17 @@ public class JettyLauncher implements LanternService {
 
     private final InteractionServlet interactionServlet;
 
+    private final Model model;
+
     @Inject
     public JettyLauncher(final SyncService syncer,
         final GoogleOauth2RedirectServlet redirectServlet,
-        final InteractionServlet interactionServlet) {
+        final InteractionServlet interactionServlet,
+        final Model model) {
         this.syncer = syncer;
         this.redirectServlet = redirectServlet;
         this.interactionServlet = interactionServlet;
+        this.model = model;
         final File staticdir = 
             new File(LanternHub.settings().getUiDir(), "assets");
         
@@ -161,7 +166,7 @@ public class JettyLauncher implements LanternService {
                 }
             }
         });
-        if (LanternHub.settings().isCache()) {
+        if (model.isCache()) {
             ds.setInitParameter("cacheControl", "private, max-age=" +
                 LanternConstants.DASHCACHE_MAXAGE);
         } else {

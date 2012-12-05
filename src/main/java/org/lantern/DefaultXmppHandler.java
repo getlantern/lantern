@@ -56,6 +56,7 @@ import org.kaleidoscope.TrustGraphNode;
 import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.UpdateEvent;
 import org.lantern.http.PhotoServlet;
@@ -413,7 +414,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     private String getResource() {
-        if (LanternHub.settings().isGetMode()) {
+        if (model.getSettings().isGetMode()) {
             LOG.info("Setting ID for get mode...");
             return "gmail.";
         } else {
@@ -691,7 +692,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     private void connectivityEvent(final ConnectivityStatus cs) {
-        if (LanternHub.settings().isGetMode()) {
+        if (model.getSettings().isGetMode()) {
             Events.eventBus().post(
                 new ConnectivityStatusChangeEvent(cs));
         } else {

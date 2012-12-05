@@ -9,7 +9,8 @@ public enum SyncPath {
     VERSION_UPDATED("version.updated"), 
     ROSTER("roster"), 
     MODAL("modal"), 
-    ALL("");
+    ALL(""), 
+    PROFILE("profile");
     
     private final String enumPath;
 

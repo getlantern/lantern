@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.apache.commons.lang3.SystemUtils;
 import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.event.Events;
 import org.lantern.event.QuitEvent;
 import org.lantern.linux.AppIndicator;
 import org.lantern.linux.Glib;

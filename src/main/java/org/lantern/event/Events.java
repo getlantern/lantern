@@ -1,8 +1,8 @@
-package org.lantern;
+package org.lantern.event;
 
 import java.util.concurrent.Executors;
 
-import org.lantern.event.SyncEvent;
+import org.lantern.Roster;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.SyncPath;
@@ -57,5 +57,17 @@ public class Events {
      */
     public static void syncModal(final Model model) {
         Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, model.getModal()));
+    }
+    
+    /**
+     * Convenience method for syncing the current modal with the frontend.
+     */
+    public static void syncRoster(final Roster roster) {
+        Events.asyncEventBus().post(new SyncEvent(SyncPath.ROSTER, roster));
+    }
+
+
+    public static void sync(final SyncPath path, final Object val) {
+        Events.asyncEventBus().post(new SyncEvent(path, val));
     }
 }

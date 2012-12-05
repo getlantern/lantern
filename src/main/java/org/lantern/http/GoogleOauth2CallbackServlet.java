@@ -24,16 +24,17 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
-import org.lantern.Events;
 import org.lantern.LanternConstants;
-import org.lantern.LanternHub;
 import org.lantern.NotInClosedBetaException;
 import org.lantern.RuntimeSettings;
 import org.lantern.XmppHandler;
+import org.lantern.event.Events;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
+import org.lantern.state.Profile;
+import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,6 +79,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         IOException {
         processRequest(req, resp);
     }
+    
     @Override
     protected void doPost(final HttpServletRequest req, 
         final HttpServletResponse resp) throws ServletException, 
@@ -147,11 +149,12 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             final HttpEntity entity = response.getEntity();
             final String body = IOUtils.toString(entity.getContent());
             EntityUtils.consume(entity);
-            log.info("GOT RESPONSE BODY FOR EMAIL:\n"+body);
+            log.debug("GOT RESPONSE BODY FOR EMAIL:\n"+body);
             final ObjectMapper om = new ObjectMapper();
-            final Map<String, String> emailMap = 
-                om.readValue(body, Map.class);
-            final String email = emailMap.get("email");
+            final Profile profile = om.readValue(body, Profile.class);
+            this.model.setProfile(profile);
+            Events.sync(SyncPath.PROFILE, profile);
+            final String email = profile.getEmail();
             this.model.getSettings().setUserId(email);
         } catch (final IOException e) {
             log.warn("Could not connect to Google?", e);
@@ -197,6 +200,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             public void run() {
                 try {
                     xmppHandler.connect();
+                    model.getConnectivity().setGtalkAuthorized(true);
                     internalState.advanceModal(null);
                 } catch (final CredentialException e) {
                     // Not sure what to do here. This *should* never happen.
