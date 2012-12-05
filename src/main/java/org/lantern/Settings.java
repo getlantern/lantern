@@ -8,10 +8,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -198,8 +196,8 @@ public class Settings implements MutableSettings {
     
     private final Location location = new Location();
 
-    public Settings(final Events events)  {
-        events.register(this);
+    public Settings()  {
+        Events.register(this);
         threadPublicIpLookup();
     }
 
@@ -211,8 +209,6 @@ public class Settings implements MutableSettings {
     private String refreshToken;
     */
 
-    public Settings() {}
-    
     public Settings(final Whitelist whitelist) {
         this.whitelist = whitelist;
     }

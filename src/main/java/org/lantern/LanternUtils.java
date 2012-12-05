@@ -936,7 +936,7 @@ public class LanternUtils {
     }
 
     public static boolean isLanternMessage(final Presence pres) {
-        final Object prop = pres.getProperty(XmppMessageConstants.LANTERN_FLAG);
+        final Object prop = pres.getProperty(XmppMessageConstants.PROFILE);
         return prop != null;
     }
 }

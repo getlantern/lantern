@@ -63,6 +63,7 @@ import org.lantern.http.PhotoServlet;
 import org.lantern.ksope.LanternKscopeAdvertisement;
 import org.lantern.ksope.LanternTrustGraphNode;
 import org.lantern.state.Model;
+import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.ice.MappedTcpAnswererServer;
@@ -196,6 +197,8 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final ModelUtils modelUtils;
 
+    private final ModelIo modelIo;
+
     /**
      * Creates a new XMPP handler.
      */
@@ -207,7 +210,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final LanternKeyStoreManager keyStoreManager,
         final LanternSocketsUtil socketsUtil,
         final LanternXmppUtil xmppUtil,
-        final ModelUtils modelUtils) {
+        final ModelUtils modelUtils,
+        final ModelIo modelIo) {
         this.model = model;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.anonymousPeerProxyManager = anonymousPeerProxyManager;
@@ -217,6 +221,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.socketsUtil = socketsUtil;
         this.xmppUtil = xmppUtil;
         this.modelUtils = modelUtils;
+        this.modelIo = modelIo;
         this.upnpService = new Upnp(stats);
         new GiveModeConnectivityHandler();
         prepopulateProxies();
@@ -554,7 +559,7 @@ public class DefaultXmppHandler implements XmppHandler {
                             if (roster.autoAcceptSubscription(from)) {
                                 subscribed(from);
                             }
-                            roster.addIncomingSubscriptionRequest(from);
+                            roster.addIncomingSubscriptionRequest(pres);
                         }
                         break;
                     case subscribed:
@@ -1435,7 +1440,6 @@ public class DefaultXmppHandler implements XmppHandler {
             }
         }
         
-        
         try {
             final VCard vcard = PhotoServlet.getVCard(LanternUtils.toEmail(conn));
             if (vcard != null) {
@@ -1467,6 +1471,7 @@ public class DefaultXmppHandler implements XmppHandler {
         t.setDaemon(true);
         t.start();
         this.model.setNinvites(this.model.getNinvites() - 1);
+        this.modelIo.write();
         //LanternHub.settings().setInvites(LanternHub.settings().getInvites()-1);
         //LanternHub.settingsIo().write();
         
@@ -1476,7 +1481,12 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public void subscribe(final String jid) {
         LOG.info("Sending subscribe message to: {}", jid);
-        sendTypedPacket(jid, Presence.Type.subscribe);
+        final Presence packet = new Presence(Presence.Type.subscribe);
+        packet.setTo(jid);
+        final String json = LanternUtils.jsonify(this.model.getProfile());
+        packet.setProperty(XmppMessageConstants.PROFILE, json);
+        final XMPPConnection conn = this.client.get().getXmppConnection();
+        conn.sendPacket(packet);
     }
     
     @Override
@@ -1502,10 +1512,7 @@ public class DefaultXmppHandler implements XmppHandler {
     private void sendTypedPacket(final String jid, final Type type) {
         final Presence packet = new Presence(type);
         packet.setTo(jid);
-        packet.setProperty(XmppMessageConstants.LANTERN_FLAG, "1");
         final XMPPConnection conn = this.client.get().getXmppConnection();
-        //packet.setFrom(XmppUtils.jidToUser(conn));
-        //packet.setFrom(conn.getUser());
         conn.sendPacket(packet);
     }
     
