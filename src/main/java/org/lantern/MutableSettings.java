@@ -8,7 +8,7 @@ public interface MutableSettings {
 
     void setCountry(Country country);
     
-    void setGetMode(boolean getMode);
+    //void setGetMode(boolean getMode);
     
     //void setStartAtLogin(boolean start);
     

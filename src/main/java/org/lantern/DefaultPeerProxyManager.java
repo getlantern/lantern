@@ -22,6 +22,8 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.event.Events;
+import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -74,15 +76,19 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     private final Stats stats;
 
     private final LanternSocketsUtil socketsUtil;
+
+    private final Model model;
     
     public DefaultPeerProxyManager(final boolean anon, 
         final ChannelGroup channelGroup, final XmppHandler xmppHandler,
-        final Stats stats, final LanternSocketsUtil socketsUtil) {
+        final Stats stats, final LanternSocketsUtil socketsUtil,
+        final Model model) {
         this.anon = anon;
         this.channelGroup = channelGroup;
         this.xmppHandler = xmppHandler;
         this.stats = stats;
         this.socketsUtil = socketsUtil;
+        this.model = model;
     }
 
     @Override
@@ -185,7 +191,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     }
 
     private void onPeer(final URI peerUri, final int sockets) {
-        if (!LanternHub.settings().isGetMode()) {
+        if (!model.getSettings().isGetMode()) {
             log.info("Ingoring peer when we're in give mode");
             return;
         }

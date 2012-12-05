@@ -3,6 +3,7 @@ package org.lantern;
 import java.util.Map;
 
 import org.apache.commons.lang.SystemUtils;
+import org.lantern.event.Events;
 import org.lantern.event.UpdateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

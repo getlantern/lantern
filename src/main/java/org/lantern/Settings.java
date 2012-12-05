@@ -22,8 +22,8 @@ import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.lantern.event.Events;
 import org.lantern.event.UpdateEvent;
-import org.lantern.state.Connectivity;
 import org.lantern.state.Location;
 import org.lantern.state.Transfers;
 import org.lantern.state.Version;
@@ -192,14 +192,14 @@ public class Settings implements MutableSettings {
     
     private Transfers transfers = new Transfers();
     
-    private Connectivity connectivity = new Connectivity();
+    //private Connectivity connectivity = new Connectivity();
     
     private final Version version = new Version();
     
     private final Location location = new Location();
 
-    {
-        Events.register(this);
+    public Settings(final Events events)  {
+        events.register(this);
         threadPublicIpLookup();
     }
 
@@ -240,7 +240,7 @@ public class Settings implements MutableSettings {
                     log.info("No IP -- possibly no internet connection");
                     return;
                 }
-                connectivity.setIp(ip.getHostAddress());
+                //connectivity.setIp(ip.getHostAddress());
                 
                 // The IP is cached at this point.
                 final Country count = LanternHub.censored().country();
@@ -535,6 +535,7 @@ public class Settings implements MutableSettings {
         return useCloudProxies;
     }
 
+    /*
     @Override
     public void setGetMode(final boolean getMode) {
         synchronized (getModeLock) {
@@ -555,6 +556,7 @@ public class Settings implements MutableSettings {
             return getMode.get();
         }
     }
+    */
 
     public void setBindToLocalhost(final boolean bindToLocalhost) {
         this.bindToLocalhost = bindToLocalhost;
@@ -597,7 +599,7 @@ public class Settings implements MutableSettings {
         return whitelist;
     }
     
-
+    /*
     public void setLaunchd(final boolean launchd) {
         this.launchd = launchd;
     }
@@ -607,6 +609,7 @@ public class Settings implements MutableSettings {
     public boolean isLaunchd() {
         return launchd;
     }
+    */
     
     public void setUiEnabled(boolean uiEnabled) {
         this.uiEnabled = uiEnabled;
@@ -762,6 +765,7 @@ public class Settings implements MutableSettings {
         return uiDir;
     }
 
+    /*
     public void setCache(final boolean cache) {
         this.cache = cache;
     }
@@ -770,6 +774,7 @@ public class Settings implements MutableSettings {
     public boolean isCache() {
         return cache;
     }
+    */
 
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public Transfers getTransfers() {
@@ -778,15 +783,6 @@ public class Settings implements MutableSettings {
 
     public void setTransfers(Transfers transfers) {
         this.transfers = transfers;
-    }
-    
-    @JsonView({RuntimeSetting.class})
-    public Connectivity getConnectivity() {
-        return connectivity;
-    }
-
-    public void setConnectivity(final Connectivity connectivity) {
-        this.connectivity = connectivity;
     }
 
     @JsonView(RuntimeSetting.class)
@@ -832,7 +828,7 @@ public class Settings implements MutableSettings {
                 + ", stunServers=" + stunServers + ", invites=" + invites
                 + ", cache=" + cache + ", uiDir=" + uiDir
                 + ", nodeId=" + nodeId + ", invited=" + invited
-                + ", transfers=" + transfers + ", connectivity=" + connectivity
+                + ", transfers=" + transfers 
                 + "]";
     }
 

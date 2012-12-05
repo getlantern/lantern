@@ -1,26 +1,26 @@
 package org.lantern;
 
-import org.lantern.event.ConnectivityStatusChangeEvent;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.Subscribe;
-
 /**
- * Links Google login state with connectivity state in give mode.
+ * Links Google login state with connectivity state in give mode. This is 
+ * because in give mode the only connectivity we can have is connectivity to
+ * Google Talk, whereas in get mode connections to proxies are more relevant.
  */
 public class GiveModeConnectivityHandler {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     public GiveModeConnectivityHandler() {
-        Events.register(this);
+        //Events.register(this);
     }
     
     //@Subscribe
     public void onGoogleTalkState(final GoogleTalkStateEvent event) {
-        if (LanternHub.settings().isGetMode()) {
+        /*
+        if (model.getSettings().isGetMode()) {
             log.info("Not linking Google Talk state to connectivity " +
                 "state in get mode");
             return;
@@ -40,11 +40,9 @@ public class GiveModeConnectivityHandler {
             case connecting:
                 cs = ConnectivityStatus.CONNECTING;
                 break;
-                /*
             case LOGGING_OUT:
                 cs = ConnectivityStatus.DISCONNECTED;
                 break;
-                */
             default:
                 log.error("Should never get here...");
                 cs = ConnectivityStatus.DISCONNECTED;
@@ -54,5 +52,6 @@ public class GiveModeConnectivityHandler {
             state, cs);
         Events.eventBus().post(
             new ConnectivityStatusChangeEvent(cs));
+            */
     }
 }

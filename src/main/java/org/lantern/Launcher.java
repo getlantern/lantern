@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Display;
 import org.jboss.netty.util.ThreadNameDeterminer;
 import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.json.simple.JSONObject;
+import org.lantern.event.Events;
 import org.lantern.event.SettingsStateEvent;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
@@ -278,31 +279,6 @@ public class Launcher {
         }
         LOG.info("Running give mode proxy on port: {}", set.getServerPort());
 
-        if (cmd.hasOption(OPTION_LAUNCHD)) {
-            LOG.info("Running from launchd or launchd set on command line");
-            set.setLaunchd(true);
-        } else {
-            set.setLaunchd(false);
-        }
-        
-        // TODO: Just load all the command line options after the settings to
-        // avoid stupid state issues.
-        loadSettings();
-        
-        if (cmd.hasOption(OPTION_GIVE)) {
-            LanternHub.settings().setGetMode(false);
-        } else if (cmd.hasOption(OPTION_GET)) {
-            LanternHub.settings().setGetMode(true);
-        }
-        
-        //LanternHub.settings().setCache(!LanternUtils.isDevMode());
-        //if (cmd.hasOption(OPTION_NO_CACHE)) {
-            LanternHub.settings().setCache(false);
-        //}
-        if (cmd.hasOption(OPTION_NEW_UI)) {
-            LanternHub.settings().setUiDir("lantern-ui/app");
-        }
-        
         
         injector = Guice.createInjector(new LanternModule());
         final Display display;
@@ -333,6 +309,25 @@ public class Launcher {
         model = instance(Model.class);
         
 
+        if (cmd.hasOption(OPTION_LAUNCHD)) {
+            LOG.info("Running from launchd or launchd set on command line");
+            model.setLaunchd(true);
+        } else {
+            model.setLaunchd(false);
+        }
+        
+        if (cmd.hasOption(OPTION_GIVE)) {
+            model.getSettings().setGetMode(false);
+        } else if (cmd.hasOption(OPTION_GET)) {
+            model.getSettings().setGetMode(true);
+        }
+        
+        model.setCache(!LanternUtils.isDevMode());
+        if (cmd.hasOption(OPTION_NO_CACHE)) {
+            model.setCache(false);
+        }
+        
+        
         final String secOpt = OPTION_OAUTH2_CLIENT_SECRETS_FILE;
         if (cmd.hasOption(secOpt)) {
             modelUtils.loadOAuth2ClientSecretsFile(
@@ -373,7 +368,7 @@ public class Launcher {
             // If we're running on startup, it's quite likely we just haven't
             // connected to the internet yet. Let's wait for an internet
             // connection and then start Lantern.
-            if (LanternHub.settings().isLaunchd() || !LanternHub.settings().isUiEnabled()) {
+            if (model.isLaunchd() || !LanternHub.settings().isUiEnabled()) {
                 LOG.info("Waiting for internet connection...");
                 LanternUtils.waitForInternet();
                 launchWithOrWithoutUi();
@@ -543,6 +538,7 @@ public class Launcher {
     // settings are always fully loaded or the entire app has aborted, 
     // including prompting the user for password.
     private static void loadSettings() {
+        /*
         LanternHub.resetSettings(true);
         if (LanternHub.settings().getSettings().getState() == SettingsState.State.CORRUPTED) {
             try {
@@ -577,6 +573,7 @@ public class Launcher {
         }
         
         LOG.info("Settings state is {}", LanternHub.settings().getSettings().getState());
+        */
     }
     
     private static boolean askToUnlockSettingsCLI() {
@@ -704,9 +701,9 @@ public class Launcher {
             return;
         }
 
-        LOG.debug("Is launchd: {}", LanternHub.settings().isLaunchd());
+        LOG.debug("Is launchd: {}", model.isLaunchd());
         launchLantern();
-        if (!LanternHub.settings().isLaunchd() || 
+        if (!model.isLaunchd() || 
             !model.isSetupComplete()) {
             //!LanternHub.settings().isInitialSetupComplete()) {
             browserService.openBrowserWhenPortReady();
@@ -869,14 +866,16 @@ public class Launcher {
     }
     
     private static void handleError(final Throwable t, final boolean exit) {
-        LOG.error("Uncaught exception: "+t.getMessage(), t);
-        if (t instanceof SWTError || t.getMessage().contains("SWTError")) {
+        final String msg = msg(t);
+        LOG.error("Uncaught exception: "+msg, t);
+        if (t instanceof SWTError || msg.contains("SWTError")) {
             System.out.println(
                 "To run without a UI, run lantern with the --" + 
                 OPTION_DISABLE_UI +
                 " command line argument");
         } 
-        else if (t instanceof UnsatisfiedLinkError && t.getMessage().contains("Cannot load 32-bit SWT libraries on 64-bit JVM")) {
+        else if (t instanceof UnsatisfiedLinkError && 
+            msg.contains("Cannot load 32-bit SWT libraries on 64-bit JVM")) {
             messageService.showMessage("Architecture Error",
                 "We're sorry, but it appears you're running 32-bit Lantern on a 64-bit JVM.");
         }
@@ -884,12 +883,20 @@ public class Launcher {
             LOG.info("Showing error to user...");
             messageService.showMessage("Startup Error",
                "We're sorry, but there was an error starting Lantern " +
-               "described as '"+t.getMessage()+"'.");
+               "described as '"+msg+"'.");
         }
         if (exit) {
             LOG.info("Exiting Lantern");
             System.exit(1);
         }
+    }
+
+    private static String msg(final Throwable t) {
+        final String msg = t.getMessage();
+        if (msg == null) {
+            return "";
+        } 
+        return msg;
     }
 
     public static void stop() {

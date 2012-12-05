@@ -20,6 +20,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.event.Events;
 import org.lantern.event.QuitEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package org.lantern.events;
+package org.lantern.event;
 
 public class MessageEvent {
 

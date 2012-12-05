@@ -7,6 +7,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
 import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.event.Events;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.slf4j.Logger;
@@ -137,7 +138,7 @@ public class Configurator {
             return;
         }
         final File git = new File(".git");
-        if (git.isDirectory() && !LanternHub.settings().isGetMode()) {
+        if (git.isDirectory() && !model.getSettings().isGetMode()) {
             LOG.info("Running from repository...not auto-configuring proxy.");
             return;
         }

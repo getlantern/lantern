@@ -82,7 +82,6 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         
         resp.sendRedirect(location);
     }
-    
 
     private String newGtalkOauthUrl() {
         try {
@@ -90,8 +89,10 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
             final GoogleClientSecrets clientSecrets = 
                 OauthUtils.loadClientSecrets();
             final Collection<String> scopes = 
-                Arrays.asList("https://www.googleapis.com/auth/googletalk",
-                        "https://www.googleapis.com/auth/userinfo.email");
+                Arrays.asList(
+                    "https://www.googleapis.com/auth/googletalk",
+                    "https://www.googleapis.com/auth/userinfo.email",
+                    "https://www.googleapis.com/auth/userinfo.profile");
             
             final GoogleBrowserClientRequestUrl gbc = 
                 new GoogleBrowserClientRequestUrl(clientSecrets, 

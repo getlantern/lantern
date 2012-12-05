@@ -21,6 +21,7 @@ import org.cometd.client.transport.ClientTransport;
 import org.cometd.client.transport.LongPollingTransport;
 import org.eclipse.jetty.client.HttpClient;
 import org.junit.Test;
+import org.lantern.event.Events;
 import org.lantern.event.UpdateEvent;
 import org.lantern.http.JettyLauncher;
 

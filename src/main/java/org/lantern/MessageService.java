@@ -1,6 +1,6 @@
 package org.lantern;
 
-import org.lantern.events.MessageEvent;
+import org.lantern.event.MessageEvent;
 
 import com.google.common.eventbus.Subscribe;
 

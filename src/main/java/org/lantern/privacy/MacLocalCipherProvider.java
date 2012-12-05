@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.security.GeneralSecurityException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.lantern.Events;
-import org.lantern.events.MessageEvent;
+import org.lantern.event.Events;
+import org.lantern.event.MessageEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

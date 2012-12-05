@@ -21,7 +21,7 @@ import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.RandomRoutingTable;
 import org.kaleidoscope.TrustGraphNodeId;
-import org.lantern.event.RosterStateChangedEvent;
+import org.lantern.event.Events;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -49,7 +49,7 @@ public class Roster implements RosterListener {
     
     private final RandomRoutingTable kscopeRoutingTable = 
         new BasicRandomRoutingTable();
-    
+
     /**
      * Creates a new roster.
      */
@@ -92,7 +92,7 @@ public class Roster implements RosterListener {
                 populated = true;
                 log.debug("Finished populating roster");
                 log.info("kscope is: {}", kscopeRoutingTable);
-                Events.asyncEventBus().post(new RosterStateChangedEvent());
+                Events.syncRoster(Roster.this);
             }
         };
         final Thread t = new Thread(r, "Roster-Populating-Thread");
@@ -193,13 +193,13 @@ public class Roster implements RosterListener {
 
     public void addIncomingSubscriptionRequest(final String from) {
         incomingSubscriptionRequests.add(from);
-        Events.asyncEventBus().post(new RosterStateChangedEvent());
+        Events.syncRoster(this);
     }
     
 
     public void removeIncomingSubscriptionRequest(final String from) {
         incomingSubscriptionRequests.remove(from);
-        Events.asyncEventBus().post(new RosterStateChangedEvent());
+        Events.syncRoster(this);
     }
 
     public Collection<String> getSubscriptionRequests() {
@@ -212,7 +212,7 @@ public class Roster implements RosterListener {
         for (final String entry : entries) {
             addEntry(new LanternRosterEntry(entry));
         }
-        Events.asyncEventBus().post(new RosterStateChangedEvent());
+        Events.syncRoster(this);
     }
 
     @Override
@@ -225,7 +225,7 @@ public class Roster implements RosterListener {
             rosterEntries.remove(email);
             rosterEntries.remove(entry);
         }
-        Events.asyncEventBus().post(new RosterStateChangedEvent());
+        Events.syncRoster(this);
     }
 
     @Override
@@ -236,7 +236,7 @@ public class Roster implements RosterListener {
                 this.xmppHandler.getP2PClient().getXmppConnection().getRoster().getPresence(entry);
             onPresence(pres);
         }
-        Events.asyncEventBus().post(new RosterStateChangedEvent());
+        Events.syncRoster(this);
     }
 
     @Override

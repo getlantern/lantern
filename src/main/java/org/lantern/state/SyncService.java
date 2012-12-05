@@ -11,10 +11,9 @@ import org.cometd.bayeux.Channel;
 import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.cometd.bayeux.server.ServerSession;
-import org.lantern.Events;
 import org.lantern.LanternService;
 import org.lantern.event.ClosedBetaEvent;
-import org.lantern.event.RosterStateChangedEvent;
+import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,12 +48,12 @@ public class SyncService implements LanternService {
      */
     @Inject
     public SyncService(final SyncStrategy strategy, 
-        final Model model, final Timer timer) {
+        final Model model, final Timer timer, final Events events) {
         this.strategy = strategy;
         this.model = model;
         this.timer = timer;
         // Make sure the config class is added as a listener before this class.
-        Events.register(this);
+        events.register(this);
     }
     
 
@@ -122,20 +121,10 @@ public class SyncService implements LanternService {
         //sync(true, syncEvent.getChannel());
         publishSync(syncEvent.getPath(), syncEvent.getValue());
     }
-
-    @Subscribe 
-    public void onRosterStateChanged(final RosterStateChangedEvent rsce) {
-        log.debug("Roster changed...");
-        rosterSync();
-    }
     
     @Subscribe 
     public void closedBeta(final ClosedBetaEvent betaEvent) {
         sync(true);
-    }
-    
-    private void rosterSync() {
-        //sync(false, SyncPath.ROSTER);
     }
     
     private void sync() {
