@@ -11,6 +11,12 @@ angular.module('app.services', [])
     bayeuxProtocol: {major: 0, minor: 0}
   })
   .constant('VER', [0, 0, 1]) // frontend version XXX pull from package.json or some such?
+  .constant('DEFAULT_AVATAR_URL', '/app/img/default-avatar.png')
+  // utility functions
+  .constant('arraysEqual', function(left, right) {
+    return angular.isArray(left) && angular.isArray(right) &&
+      !(left < right) && !(left > right); // XXX is this cross-browser?
+  })
   // enums
   .constant('EXTERNAL_URL', {
     helpTranslate: 'https://github.com/getlantern/lantern/wiki/Contributing#wiki-other-languages',
@@ -260,7 +266,10 @@ angular.module('app.services', [])
     }
 
     function set(obj, path, value) {
-      if (!path) return angular.copy(value, obj);
+      if (!path) {
+        angular.copy(value, obj);
+        return;
+      }
       var lastObj = obj, property;
       angular.forEach(path.split('.'), function(name) {
         if (name) {
@@ -271,15 +280,31 @@ angular.module('app.services', [])
           }
         }
       });
-      lastObj[property] = angular.copy(value);
+      if (typeof property != 'undefined')
+        lastObj[property] = angular.copy(value);
+    }
+
+    function del(obj, path) {
+      path = (path || '').split('.');
+      var name = path[0], i = 0, l = path.length;
+      for (; i<l-1 && path[i+1]; ++i) {
+        obj = obj[name];
+        name = path[i+1];
+      }
+      if (i == l - 1)
+        delete obj[name];
     }
 
     function handleSync(msg) {
       // XXX use modelValidatorSrvc to validate update before accepting
       var data = msg.data;
-      set(model, data.path, data.value);
+      if (data.delete) {
+        del(model, data.path);
+      } else {
+        set(model, data.path, data.value);
+      }
       $rootScope.$apply();
-      log.debug('handleSync applied sync: path:', data.path || '""', 'value:', data.value);
+      log.debug('handleSync applied sync:\npath:', data.path || '""', '\ndelete:', data.delete, '\nvalue:', data.value);
     }
 
     syncSubscriptionKey = {chan: MODEL_SYNC_CHANNEL, cb: handleSync};

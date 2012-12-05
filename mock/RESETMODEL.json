@@ -10,7 +10,8 @@
     "gtalk":"notConnected",
     "peers":{
       "current":[],
-      "lifetime":[]
+      "lifetime":[],
+      "pending":[]
     }
   },
   "transfers":{
@@ -32,7 +33,7 @@
     "proxyPort":8787,
     "systemProxy":true,
     "proxyAllSites":false,
-    "proxiedSites":[]
+    "proxiedSites":["blocked.com"]
   },
   "version":{
     "installed":{
@@ -53,6 +54,11 @@
     "updateAvailable":false
   },
   "countries":{
+    "uk":{"censors": false},
+    "us":{"censors": false},
+    "fr":{"censors": false},
+    "de":{"censors": false},
+    "se":{"censors": false},
     "cn":{"censors": true},
     "cu":{"censors": true},
     "ir":{"censors": true},

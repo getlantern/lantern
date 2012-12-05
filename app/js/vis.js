@@ -359,23 +359,27 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, _COUNTRY_NAME_TO_CODE) {
   }
 
   function updateParabolas(valNew, valOld) {
-    var tmp = {};
+    var union = {};
     angular.forEach(valNew.concat(valOld), function(peerid) {
-      tmp[peerid] = {};
+      union[peerid] = {};
     });
     angular.forEach(valNew, function(peerid) {
-      tmp[peerid].inNew = true;
+      union[peerid].inNew = true;
     });
     angular.forEach(valOld, function(peerid) {
-      tmp[peerid].inOld = true;
+      union[peerid].inOld = true;
     });
-    angular.forEach(tmp, function(el, peerid) {
+    angular.forEach(union, function(marker, peerid) {
       var peer = _.find(model.connectivity.peers.lifetime, function(peer) {
         return peer.peerid == peerid;
       });
-      if (el.inOld && !el.inNew) {
+      if (!peer) {
+        log.error('no match for current peer', peerid, 'in peers.lifetime');
+        return;
+      }
+      if (marker.inOld && !marker.inNew) {
         removeParabola(peer);
-      } else if (el.inNew && !el.inOld) {
+      } else if (marker.inNew && !marker.inOld) {
         addParabola(peer);
       } else {
         log.debug('already added parabola for peer', peer);
@@ -387,4 +391,7 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, _COUNTRY_NAME_TO_CODE) {
     if (typeof valNew != 'object') { throw 'expected array, not' + typeof valNew; } // XXX
     updateParabolas(valNew, valOld || []);
   }, true);
+  $scope.$watch('model.location', function(val) {
+    // XXX redraw parabolas when user's own location changes
+  });
 }

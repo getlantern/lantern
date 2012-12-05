@@ -53,7 +53,7 @@ ApiServlet.RESET_INTERNAL_STATE = {
     oauth: 'authorized',
     lanternAccess: 'access',
     gtalkConnect: 'reachable',
-    roster: 'contactsOnline',
+    roster: 'contactsHaveLantern',
     peers: 'peersOnline'
   }
 };
@@ -167,8 +167,15 @@ ApiServlet._intHandlerForModal = {};
 ApiServlet._intHandlerForModal[MODAL.scenarios] = function(interaction, res, qs) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
   var appliedScenarios = JSON.parse(qs.appliedScenarios);
-  log("appliedScenarios:", appliedScenarios);
   // XXX validate
+  for (var groupKey in appliedScenarios) {
+    var scenKey = appliedScenarios[groupKey];
+    if (getByPath(this.model, 'mock.scenarios.applied.'+groupKey) != scenKey) {
+      var scen = getByPath(SCENARIOS, groupKey+'.'+scenKey);
+      log('applying scenario:', scen.desc);
+      scen.func.call(this);
+    }
+  }
   this.updateModel({'mock.scenarios.applied': appliedScenarios,
     'mock.scenarios.prompt': '', 'modal': this._internalState.lastModal}, true);
   this._internalState.lastModal = MODAL.none;
@@ -322,7 +329,7 @@ ApiServlet._intHandlerForModal[MODAL.lanternFriends] = function(interaction, res
 
 ApiServlet._intHandlerForModal[MODAL.gtalkUnreachable] = function(interaction, res) {
   if (interaction == INTERACTION.retryNow) {
-    this._tryConnect(); // XXX handle via scenario
+    this.updateModel({modal: MODAL.authorize}, true);
   } else if (interaction == INTERACTION.retryLater) {
     this.updateModel({modal: MODAL.authorizeLater}, true);
   } else {

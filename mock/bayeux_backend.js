@@ -5,6 +5,7 @@ var fs = require('fs'),
     faye = require('./node_modules/faye'),
     helpers = require('./helpers'),
     getByPath = helpers.getByPath,
+    deleteByPath = helpers.deleteByPath,
     merge = helpers.merge;
 
 
@@ -64,7 +65,11 @@ BayeuxBackend.prototype._bindCallbacks = function() {
     if (channel == '/sync' && typeof clientId != 'undefined') {
       util.puts('[bayeux] syncing client publication: client:'+clientId+
         ', data:\n'+util.inspect(data, false, 4, true));
-      _sync(self.model, data.path, data.value);
+      if (data.delete) {
+        deleteByPath(self.model, data.path);
+      } else {
+        merge(self.model, data.path, data.value, true);
+      }
     }
   });
 
@@ -73,25 +78,5 @@ BayeuxBackend.prototype._bindCallbacks = function() {
   });
 };
 
-
-// XXX use merge and add a clobber param?
-function _sync(obj, path, value) {
-  var lastObj = obj;
-  var property;
-  path.split('.').forEach(function(name) {
-    if (name) {
-      lastObj = obj;
-      obj = obj[property=name];
-      if (!obj) {
-        lastObj[property] = obj = {};
-      }
-    }
-  });
-  if (typeof property != 'undefined') {
-    lastObj[property] = value;
-  } else {
-    lastObj = value;
-  }
-}
 
 exports.BayeuxBackend = BayeuxBackend;

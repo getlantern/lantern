@@ -129,15 +129,22 @@ angular.module('app.i18n', [])
       AUTOREPORT_PROMPT: 'Securely report diagnostics and anonymous usage statistics to contribute to Lantern.', // XXX link to more info?
       AUTOREPORT_ENABLE: 'Enable automatic reporting',
       FINISH: 'Finish',
-      INVITE_FRIENDS_TITLE: 'Lantern Friends',
-      INVITE_FRIENDS_INTRO: 'Lantern relies on a large network of users who trust one another to share internet connections. Inviting people you trust to join Lantern helps Lantern work better.',
+      LANTERN_FRIENDS_TITLE: 'Lantern Friends',
+      LANTERN_FRIENDS_INTRO: 'Lantern relies on a large network of users who trust one another to share internet connections. Inviting people you trust to join Lantern helps Lantern work better.',
+      AUTOTRUSTED_PROMPT: 'Being Lantern Friends with someone also allows you to chat through Google Talk. Google Talk contacts who’ve already joined Lantern are considered Lantern friends automatically.',
+      LANTERN_FRIENDS: 'Lantern friends:',
+      NO_NAME: '(no name)',
+      NO_EMAIL: '(no email)',
+      NO_FRIENDS: 'You currently have no Lantern friends.',
       NO_INVITES: 'You currently have no invites.',
       MORE_INVITES: 'You will receive more invites as you continue to run Lantern.',
-      INVITE_FRIENDS_PROMPT: 'Enter some contacts to invite:',
-      AUTOTRUSTED_PROMPT: 'Lantern users in your Google Talk contacts will be trusted already.',
-      AUTOTRUSTED_LABEL: 'Lantern friends:',
+      INVITE_FRIENDS_PROMPT: 'Invite friends:',
       NONE_RUNNING_LANTERN: 'None of your Google Talk contacts are part of Lantern yet.',
-      INVITES_REMAINING: 'invite(s) remaining', // XXX ng-pluralize
+      INVITES_REMAINING: 'invites remaining', // XXX ng-pluralize
+      PENDING_REQS_PROMPT: 'pending friend requests:', // XXX ng-pluralize
+      PENDING_REQS_INFO: 'Accepting a user’s friend request will also allow you to chat through Google Talk.',
+      ACCEPT: 'Accept',
+      DECLINE: 'Decline',
       SETTINGS: 'Settings',
       MODE: 'Mode',
       PROXY: 'Proxy',

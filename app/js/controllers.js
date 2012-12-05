@@ -5,7 +5,7 @@
 // XXX use data-loading-text instead of submitButtonLabelKey below?
 // see http://twitter.github.com/bootstrap/javascript.html#buttons
 
-function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, $http, apiSrvc, ENUMS, $window) {
+function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, $http, apiSrvc, DEFAULT_AVATAR_URL, ENUMS, $window) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
       MODE = ENUMS.MODE,
@@ -14,7 +14,10 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
   $scope.modelSrvc = modelSrvc;
   $scope.cometdSrvc = cometdSrvc;
   $scope.dev = dev;
-
+  if (dev.value) {
+    $window.model = model; // easier interactive debugging
+  }
+  $scope.DEFAULT_AVATAR_URL = DEFAULT_AVATAR_URL;
   angular.forEach(ENUMS, function(val, key) {
     $scope[key] = val;
   });
@@ -413,7 +416,7 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
   });
 
   function normalize(domainOrIP) {
-    return domainOrIP.trim().toLowerCase();
+    return angular.lowercase(domainOrIP.trim());
   }
 
   $scope.validate = function(value) {
@@ -482,21 +485,6 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL) {
   $scope.$watch('model.modal', function(val) {
     $scope.show = val == MODAL.lanternFriends;
   });
-
-  $scope.$watch('model.roster', function(val) {
-    if (typeof val == 'undefined') return;
-    log.debug('got roster', val);
-    $scope.lanternContacts = _.filter(
-      val,
-      function(contact) {
-        if (!(contact.peers || []).length) return false;
-        return _.intersection(contact.peers,
-          _.map(model.connectivity.peers.lifetime, function(peer) {
-            return peer.peerid;
-          })).length;
-      }
-    );
-  });
 }
 
 function AuthorizeLaterCtrl($scope, logFactory, MODAL) {
@@ -544,9 +532,10 @@ function ScenariosCtrl($scope, $timeout, apiSrvc, logFactory, modelSrvc, dev, MO
     $scope.show = val == MODAL.scenarios;
   });
 
-  $scope.appliedScenarios = [];
   $scope.$watch('model.mock.scenarios.applied', function(val) {
     if (val) {
+      $scope.appliedScenarios = [];
+      // XXX ui-select2 timing issue
       $timeout(function() {
         for (var group in val) {
           $scope.appliedScenarios.push(group+'.'+val[group]);
@@ -568,7 +557,7 @@ function ScenariosCtrl($scope, $timeout, apiSrvc, logFactory, modelSrvc, dev, MO
   };
 }
 
-function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, cometdSrvc, modelSrvc) {
+function DevCtrl($scope, dev, logFactory, arraysEqual, MODEL_SYNC_CHANNEL, cometdSrvc, modelSrvc) {
   var log = logFactory('DevCtrl'),
       model = modelSrvc.model;
 
@@ -585,19 +574,36 @@ function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, cometdSrvc, modelS
     });
   };
 
-  // XXX deleted fields ignored?
   function syncObject(parent, src, dst) {
+    // remove deleted fields
+    for (var name in dst) {
+      if (name == '$$hashKey') continue;
+      var path = (parent ? parent + '.' : '') + name;
+      if (!(name in src)) {
+        log.debug('publishing: path:', path, 'delete:', true);
+        cometdSrvc.publish(MODEL_SYNC_CHANNEL, {path: path, delete: true});
+        delete dst[name];
+      }
+    }
+
+    // merge updated fields
     for (var name in src) {
       var path = (parent ? parent + '.' : '') + name;
       if (src[name] === dst[name]) {
-        // do nothing we are in sync
+        // do nothing, in sync
       } else if (typeof src[name] == 'object') {
-        // we are an object, so we need to recurse
-        if (!(name in dst)) dst[name] = {};
+        if (angular.isArray(src[name])) {
+          if (arraysEqual(src[name], dst[name]))
+            continue;
+          dst[name] = [];
+          log.debug('publishing: path:', path, 'value:', []);
+          cometdSrvc.publish(MODEL_SYNC_CHANNEL, {path: path, value: []});
+        } else if (typeof dst[name] != 'object') {
+          dst[name] = {};
+        }
         syncObject(path, src[name], dst[name]);
       } else {
         log.debug('publishing: path:', path, 'value:', src[name]);
-        // propagate local model changes to other clients
         cometdSrvc.publish(MODEL_SYNC_CHANNEL, {path: path, value: src[name]});
         dst[name] = angular.copy(src[name]);
       }

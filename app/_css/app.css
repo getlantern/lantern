@@ -5026,6 +5026,10 @@ label.checkbox.inline, label.radio.inline {
   color: #999999;
 }
 
+.bold {
+  font-weight: bold;
+}
+
 .tooltip {
   z-index: 1051;
 }
@@ -5334,11 +5338,63 @@ textarea.bugReport {
   margin: 0;
 }
 
-#lanternFriends form {
+#lanternFriends {
+  margin-top: -310px;
+}
+#lanternFriends .modal-body {
+  max-height: 500px;
+}
+#lanternFriends h4 {
+  font-size: 15.4px;
+  margin-bottom: 15px;
+}
+
+.invite-form {
   text-align: center;
 }
-#lanternFriends form label {
+.invite-form label {
   font-size: 11.9px;
+}
+
+.contactList-horizontal {
+  margin: 5px 0 10px;
+  overflow: auto;
+  white-space: nowrap;
+  width: 100%;
+}
+.contactList-horizontal li {
+  display: -moz-inline-stack;
+  display: inline-block;
+  vertical-align: middle;
+  *vertical-align: auto;
+  zoom: 1;
+  *display: inline;
+  text-align: left;
+  white-space: normal;
+  width: 200px;
+  margin-right: 5px;
+}
+.contactList-horizontal li:last-child {
+  margin-right: 0;
+}
+.contactList-horizontal img.photo {
+  width: 50px;
+  height: 50px;
+  margin-right: 10px;
+}
+.contactList-horizontal div {
+  width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.contactList-horizontal .fn {
+  font-weight: bold;
+  font-size: 11.9px;
+}
+.contactList-horizontal .btn-mini {
+  padding: 0 3px;
+  font-size: 10.5px;
 }
 
 #waiting-container {

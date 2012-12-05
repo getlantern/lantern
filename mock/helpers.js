@@ -8,7 +8,18 @@ function getByPath(obj, path, defaultVal) {
   return obj;
 }
 
-function merge(dst, path, src) {
+function deleteByPath(obj, path) {
+  path = (path || '').split('.');
+  var name = path[0], i = 0, l = path.length;
+  for (; i<l-1 && path[i+1]; ++i) {
+    obj = obj[name];
+    name = path[i+1];
+  }
+  if (i == l - 1)
+    delete obj[name];
+}
+
+function merge(dst, path, src, overwrite) {
   var path = path.split('.'), last = path.slice(-1)[0];
   for (var i=0, name=path[i], l=path.length; i<l-1; name=path[++i]) {
     if (typeof dst[name] != 'object' && path[i+1])
@@ -32,7 +43,11 @@ function merge(dst, path, src) {
       dst = dst[last];
     }
     for (var key in src) {
-      merge(dst, key, src[key]);
+      if (overwrite) {
+        dst[key] = src[key];
+      } else {
+        merge(dst, key, src[key]);
+      }
     }
   }
 }
@@ -42,5 +57,6 @@ function validatePasswords(pw1, pw2) {
 }
 
 exports.getByPath = getByPath;
+exports.deleteByPath = deleteByPath;
 exports.merge = merge;
 exports.validatePasswords = validatePasswords;

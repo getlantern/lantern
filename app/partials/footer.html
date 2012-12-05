@@ -40,6 +40,11 @@
         Update available<!-- XXX -->
       </a>
     </span>
+    <span>
+      · <a ng-click="interaction(INTERACTION.contactDevs)">
+        Contact
+      </a>
+    </span>
   </div>
 
   <div id="global-nav" class="btn-group" ng-show="model.showVis">
@@ -50,7 +55,8 @@
                                      style="font-weight: 200;
                                             font-size: 8px;
                                             padding: 0 3px;
-                                            margin-right: -7px">3</sub>
+                                            margin-right: -7px">{{
+        model.connectivity.peers.pending.length }}</sub>
     </button>
     <!-- XXX move to tray menu?
     <button type="button" class="btn btn-small btn-inverse"

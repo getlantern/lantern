@@ -84,10 +84,47 @@ textarea.bugReport
       padding: 2px 4px
       margin: 0
 
-#lanternFriends form
+#lanternFriends
+  margin-top: -310px
+  .modal-body
+    max-height: 500px
+  h4
+    font-size: $baseFontSize * 1.1
+    margin-bottom: 15px
+
+.invite-form
   +centered
   label
     +small
+
+.contactList-horizontal
+  margin: 5px 0 10px
+  overflow: auto
+  white-space: nowrap
+  width: 100%
+  li
+    +inline-block
+    text-align: left
+    white-space: normal
+    width: 200px
+    margin-right: 5px
+    &:last-child
+      margin-right: 0
+  img.photo
+    width: 50px
+    height: 50px
+    margin-right: 10px
+  div
+    width: 140px
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
+  .fn
+    +bold
+    +small
+  .btn-mini
+    padding: 0 3px
+    +smaller
 
 #waiting-container
   +position(100px, 0, 0 , 0)

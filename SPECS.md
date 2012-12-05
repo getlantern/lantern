@@ -94,11 +94,13 @@ And here is a coarser-grained update:
 This flexibility can allow for a significant reduction in the amount of data
 that must be serialized and deserialized to achieve a state synchronization.
 
-Note however that while adding a field which is not yet present can be
-represented in a very small message, removing a field can only be achieved by
-sending the whole containing object minus the field to be removed. In this
-case, setting the field to something falsy may be a workable alternative,
-though we may prefer to support something like:
+#### Deleting properties
+
+While adding a field which is not yet present can be represented in a very
+small message using the method above, removing a field using the method above
+can only be achieved by sending the whole containing object minus the field to
+be removed. To support this case more efficiently, the following can be used
+instead:
 
 ```json
 {
@@ -106,6 +108,8 @@ though we may prefer to support something like:
   "delete":true
 }
 ```
+
+#### Arrays
 
 To update a field whose value is an array, of course a replacement array could
 be sent in full, but because JavaScript arrays are just objects, an update to
@@ -334,6 +338,9 @@ the backend maintains on the frontend through comet publications:
             <table>
               <tr><td><strong>current</strong><br><em>string[]</em></td>
                   <td>list of peerids of currently connected peers</td></tr>
+              <tr><td><strong>pending</strong><br><em>object[]</em></td>
+                  <td>list of Lantern users not on the user's roster who have
+                  requested to be Lantern friends with the user</td></tr>
               <tr><td><strong>lifetime</strong><br><em>object[]</em></td>
                 <td>
                   <table>
@@ -431,8 +438,8 @@ the backend maintains on the frontend through comet publications:
           <td>Contact's status message, if available</td></tr>
         <tr><td><strong>peers</strong><br><em>string[]</em></td>
           <td>list of all known Lantern peerids owned by this contact<br><br>
-          <strong><small>* Used to tell if a roster contact is running
-          Lantern</small></strong></td></tr>
+          <strong><small>* Used to tell if a contact is a known Lantern
+          user</small></strong></td></tr>
       </table>
     </td>
   </tr>

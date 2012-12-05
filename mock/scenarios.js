@@ -102,16 +102,24 @@ exports.SCENARIOS = {
     }
   },
   roster: {
-    contactsOnline: {
-      desc: 'some contacts online',
+    contactsHaveLantern: {
+      desc: 'contacts have Lantern',
       func: function() {
               var roster = [{
                 userid: 'lantern_friend1@example.com',
                 name: 'Lantern Friend 1',
                 avatarUrl: '',
                 status: 'away',
-                statusMessage: '',
-                peers: ['peerid1']
+                statusMessage: 'meeting',
+                peers: ['friend1-1']
+                }
+               ,{
+                userid: 'lantern_friend2@example.com',
+                name: 'Lantern Friend 2',
+                avatarUrl: '',
+                status: 'available',
+                statusMessage: 'Bangkok',
+                peers: ['friend2-1']
                 }
                ,{
                 userid: 'not_a_lantern_user1@example.com',
@@ -128,11 +136,11 @@ exports.SCENARIOS = {
                 }
                ,{
                 userid: 'lantern_power_user@example.com',
-                name: 'Lantern Friend 2',
+                name: 'Lantern Power User',
                 avatarUrl: '',
                 status: 'available',
                 statusMessage: 'Shanghai!',
-                peers: ['peerid2', 'peerid3', 'peerid4', 'peerid5']
+                peers: ['poweruser-1', 'poweruser-2', 'poweruser-3', 'poweruser-4']
                 }
               ];
               this.updateModel({roster: roster}, true);
@@ -143,12 +151,17 @@ exports.SCENARIOS = {
     peersOnline: {
       desc: 'some peers online',
       func: function() {
-              // XXX connect to peers gradually
+              // XXX simulate peers going on and offline
               var peers = {
-                current: ['peerid1', 'peerid2', 'peerid3', 'peerid4', 'peerid5'],
-                lifetime: [
-                  {
-                    peerid: 'peerid1',
+                current: ['friend1-1', 'friend2-1', 'poweruser-1', 'poweruser-2', 'poweruser-3', 'poweruser-4'],
+                pending: [{
+                    userid: 'not_on_roster@example.com',
+                    name: 'Not On Roster',
+                    avatarUrl: '',
+                  }
+                ],
+                lifetime: [{
+                    peerid: 'friend1-1',
                     userid: 'lantern_friend1@example.com ',
                     mode: 'give',
                     ip: '74.120.12.135',
@@ -157,7 +170,16 @@ exports.SCENARIOS = {
                     country: 'de',
                     type: 'desktop'
                   },{
-                    peerid: 'peerid2',
+                    peerid: 'friend2-1',
+                    userid: 'lantern_friend2@example.com ',
+                    mode: 'get',
+                    ip: '27.55.2.80',
+                    lat: 13.754,
+                    lon: 100.5014,
+                    country: 'th',
+                    type: 'desktop'
+                  },{
+                    peerid: 'poweruser-1',
                     userid: 'lantern_power_user@example.com',
                     mode: 'give',
                     ip: '93.182.129.82',
@@ -166,7 +188,7 @@ exports.SCENARIOS = {
                     country: 'se',
                     type: 'lec2proxy'
                   },{
-                    peerid: 'peerid3',
+                    peerid: 'poweruser-2',
                     userid: 'lantern_power_user@example.com',
                     mode: 'give',
                     ip: '173.194.66.141',
@@ -175,7 +197,7 @@ exports.SCENARIOS = {
                     country: 'us',
                     type: 'laeproxy'
                   },{
-                    peerid: 'peerid4',
+                    peerid: 'poweruser-3',
                     userid: 'lantern_power_user@example.com',
                     mode: 'give',
                     ip: '...',
@@ -184,7 +206,7 @@ exports.SCENARIOS = {
                     country: 'gb',
                     type: 'lec2proxy'
                   },{
-                    peerid: 'peerid5',
+                    peerid: 'poweruser-4',
                     userid: 'lantern_power_user@example.com',
                     mode: 'get',
                     ip: '...',

@@ -122,7 +122,7 @@
     <div>{{ 'WELCOME_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="button" ui-if="!inCensoringCountry" ng-click="interaction(MODE.give)"
+    <button type="button" ng-hide="inCensoringCountry" ng-click="interaction(MODE.give)"
       class="btn btn-primary btn-{{inCensoringCountry && 'warning' || 'give-mode' }}">
       <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
       {{ 'GIVE_ACCESS' | i18n }}</button>
@@ -395,23 +395,48 @@
 <div id="lanternFriends" ng-controller="LanternFriendsCtrl" ui-modal ng-model="show"
      class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
-    <h3>{{ 'INVITE_FRIENDS_TITLE' | i18n }}</h3>
+    <h3>{{ 'LANTERN_FRIENDS_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body">
     <div>
-      <p>{{ 'INVITE_FRIENDS_INTRO' | i18n }}</p>
-      <div>{{ 'AUTOTRUSTED_PROMPT' | i18n }}</div>
-      <p ng-show="lanternContacts.length">
-        <ul>
-          <li ng-repeat="contact in lanternContacts">
-            {{ contact.name }} &lt;{{ contact.userid }}&gt;
-          </li>
-        </ul>
-      </p>
+      <p>{{ 'LANTERN_FRIENDS_INTRO' | i18n }}</p>
+      <p class="small">{{ 'AUTOTRUSTED_PROMPT' | i18n }}</p>
+      <br>
+      <h4 class="centered">{{ 'LANTERN_FRIENDS' | i18n }}</h4>
+      <div ng-hide="model.roster.length" class="centered smaller">{{ 'NO_FRIENDS' | i18n }}</div>
+      <ul ng-show="model.roster.length" class="contactList-horizontal centered">
+        <!-- http://microformats.org/wiki/hcard -->
+        <li class="vcard" ng-repeat="contact in model.roster" ng-show="contact.peers.length">
+          <img class="photo pull-left" ng-src="{{ contact.avatarUrl || DEFAULT_AVATAR_URL }}">
+          <div class="fn" title="{{ contact.name }}" ng-class="{gray: !contact.name}">{{ contact.name || ('NO_NAME' | i18n) }}</div>
+          <div class="email small" title="{{ contact.userid }}" ng-class="{gray: !contact.userid}">{{ contact.userid || ('NO_EMAIL' | i18n) }}</div>
+        </li>
+      </ul>
     </div>
-    <br>
-    <form ng-show="model.ninvites">
-      <label>{{ 'INVITE_FRIENDS_PROMPT' | i18n }}</label>
+    <hr ng-show="model.connectivity.peers.pending.length">
+    <div ng-show="model.connectivity.peers.pending.length" class="centered">
+      <h4>
+        <span class="badge badge-important">
+          {{ model.connectivity.peers.pending.length }}</span>
+        {{ 'PENDING_REQS_PROMPT' | i18n }}
+      </h4>
+      <ul class="contactList-horizontal">
+        <!-- http://microformats.org/wiki/hcard -->
+        <li class="vcard" ng-repeat="contact in model.connectivity.peers.pending">
+          <img class="photo pull-left" ng-src="{{ contact.avatarUrl || DEFAULT_AVATAR_URL }}">
+          <div class="fn" title="{{ contact.name }}" ng-class="{gray: !contact.name}">{{ contact.name || ('NO_NAME' | i18n) }}</div>
+          <div class="email small" title="{{ contact.userid }}" ng-class="{gray: !contact.userid}">{{ contact.userid || ('NO_EMAIL' | i18n) }}</div>
+          <div class="btn-group">
+            <button type="button" class="btn btn-mini btn-success" ng-click="accept(contact)">{{ 'ACCEPT' | i18n }}</button>
+            <button type="button" class="btn btn-mini btn-danger" ng-click="decline(contact)">{{ 'DECLINE' | i18n }}</button>
+          </div>
+        </li>
+      </ul>
+      <p class="smaller">{{ 'PENDING_REQS_INFO' | i18n }}</p>
+    </div>
+    <hr>
+    <form class="invite-form" ng-show="model.ninvites">
+      <h4>{{ 'INVITE_FRIENDS_PROMPT' | i18n }}</h4>
       <!-- XXX change to select2 with tag autocomplete -->
       <input type="text" placeholder="friend1@example.com, friend2@example.com, ..."
            autofocus ng-disabled="!model.ninvites" style="width: 400px">
@@ -421,9 +446,6 @@
     <div class="centered">
       <div ng-hide="model.ninvites">{{ 'NO_INVITES' | i18n }}</div>
       <div class="smaller">{{ 'MORE_INVITES' | i18n }}</div>
-    </div>
-    <div>
-      <!-- XXX manage pending friend requests UI here -->
     </div>
   </div>
   <div class="modal-footer">
