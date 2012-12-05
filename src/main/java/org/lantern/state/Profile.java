@@ -6,9 +6,11 @@ import org.lantern.state.Model.Run;
 
 public class Profile {
     
+    private String id = "";
     private String email = "";
     private boolean verified_email = false;
     private String name = "";
+    private String given_name = "";
     private String family_name = "";
     private String link = "";
     private String picture = "";
@@ -85,6 +87,18 @@ public class Profile {
     }
     public void setLocale(String locale) {
         this.locale = locale;
+    }
+    public String getId() {
+        return id;
+    }
+    public void setId(String id) {
+        this.id = id;
+    }
+    public String getGiven_name() {
+        return given_name;
+    }
+    public void setGiven_name(String given_name) {
+        this.given_name = given_name;
     }
     
     

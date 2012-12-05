@@ -161,16 +161,8 @@ public class SystemTrayImpl implements SystemTray {
                     
                     // This tells things like the Proxifier to stop proxying.
                     Events.eventBus().post(new QuitEvent());
-                    
                     DisplayWrapper.getDisplay().dispose();
-                    
-                    // We call this primarily because we need to make sure to
-                    // remove any UPnP and NAT-PMP port mappings.
-                    //handler.disconnect();
-                    //LanternHub.jettyLauncher().stop();
-                    
-                    // We don't need to actively close all open resources --
-                    // System.exit will cleanly shutdown the JVM.
+
                     System.exit(0);
                 }
             });
