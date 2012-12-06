@@ -26,7 +26,6 @@ import org.eclipse.jetty.servlets.CrossOriginFilter;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.lantern.BayeuxInitializer;
 import org.lantern.LanternConstants;
-import org.lantern.LanternHub;
 import org.lantern.LanternService;
 import org.lantern.Proxifier;
 import org.lantern.state.Model;
@@ -46,8 +45,6 @@ public class JettyLauncher implements LanternService {
     private final Logger log = LoggerFactory.getLogger(getClass());
         
     private final Server server = new Server();
-
-    private final File resourceBaseFile;
 
     private final GoogleOauth2RedirectServlet redirectServlet;
 
@@ -69,14 +66,6 @@ public class JettyLauncher implements LanternService {
         this.interactionServlet = interactionServlet;
         this.model = model;
         this.photoServlet = photoServlet;
-        final File staticdir = 
-            new File(LanternHub.settings().getUiDir(), "assets");
-        
-        if (staticdir.isDirectory()) {
-            this.resourceBaseFile = staticdir;
-        } else {
-            this.resourceBaseFile = new File("assets");
-        }
     }
     
     @Override
@@ -274,10 +263,6 @@ public class JettyLauncher implements LanternService {
         context.setContextPath(path);
         context.setConnectorNames(new String[] {name});
         return context;
-    }
-    
-    public File getResourceBaseFile() {
-        return resourceBaseFile;
     }
 }
 

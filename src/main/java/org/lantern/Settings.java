@@ -8,10 +8,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
@@ -21,16 +19,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.event.Events;
-import org.lantern.event.UpdateEvent;
 import org.lantern.state.Location;
 import org.lantern.state.Transfers;
 import org.lantern.state.Version;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.common.collect.ImmutableSet;
-import com.google.common.eventbus.Subscribe;
 
 /**
  * Top level class containing all user settings.
@@ -79,9 +73,9 @@ public class Settings implements MutableSettings {
     
     private Whitelist whitelist;
 
-    private Map<String, Object> update = new HashMap<String, Object>();
+    //private Map<String, Object> update = new HashMap<String, Object>();
     
-    private Platform platform = new Platform();
+    //private Platform platform = new Platform();
     private boolean startAtLogin = true;
     private boolean isSystemProxy = true;
     
@@ -304,14 +298,12 @@ public class Settings implements MutableSettings {
     public int getServerPort() {
         return serverPort;
     }
-    */
 
     @JsonView(RuntimeSetting.class)
     public Platform getPlatform() {
         return this.platform;
     }
     
-    /*
     public void setConnectOnLaunch(final boolean connectOnLaunch) {
         this.connectOnLaunch = connectOnLaunch;
     }
@@ -320,13 +312,13 @@ public class Settings implements MutableSettings {
     public boolean isConnectOnLaunch() {
         return this.connectOnLaunch;
     }
-    */
     
     @Subscribe
     public void onUpdate(final UpdateEvent ue) {
         log.info("Got update event");
         this.update = ue.getData();
     }
+    */
 
     public void setLanguage(final String language) {
         this.language = language;
@@ -337,6 +329,7 @@ public class Settings implements MutableSettings {
         return language;
     }
 
+    /*
     public void setUpdate(final Map<String, Object> update) {
         this.update = update;
     }
@@ -345,6 +338,7 @@ public class Settings implements MutableSettings {
     public Map<String, Object> getUpdate() {
         return update;
     }
+    */
 
     public void setSettings(SettingsState settings) {
         this.settings = settings;
@@ -678,7 +672,6 @@ public class Settings implements MutableSettings {
             return ImmutableSet.copyOf(this.proxies);
         }
     }
-    */
     
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public Set<InetSocketAddress> getPeerProxies() {
@@ -701,7 +694,6 @@ public class Settings implements MutableSettings {
         this.peerProxies.remove(proxy);
     }
     
-/*
     public void setUseTrustedPeers(final boolean useTrustedPeers) {
         this.useTrustedPeers = useTrustedPeers;
     }
@@ -770,6 +762,7 @@ public class Settings implements MutableSettings {
         return invited;
     }
 
+    /*
     public void setUiDir(final String uiDir) {
         this.uiDir = uiDir;
     }
@@ -779,7 +772,6 @@ public class Settings implements MutableSettings {
         return uiDir;
     }
 
-    /*
     public void setCache(final boolean cache) {
         this.cache = cache;
     }
@@ -788,7 +780,6 @@ public class Settings implements MutableSettings {
     public boolean isCache() {
         return cache;
     }
-    */
 
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public Transfers getTransfers() {
@@ -812,13 +803,13 @@ public class Settings implements MutableSettings {
     public void setNodeId(final String nodeId) {
         this.nodeId = nodeId;
     }
+    */
     
     @Override
     public String toString() {
-        return "Settings [update=" + update + ", platform=" + platform
-                + ", startAtLogin=" + startAtLogin + ", isSystemProxy="
+        return "Settings [startAtLogin=" + startAtLogin + ", isSystemProxy="
                 + isSystemProxy + ", port=" + port + ", serverPort="
-                + serverPort + ", version=" + getVersion() + ", connectOnLaunch="
+                + serverPort + ", connectOnLaunch="
                 + connectOnLaunch + ", language=" + language + ", settings="
                 + settings + ", initialSetupComplete=" + initialSetupComplete
                 + ", autoConnectToPeers=" + autoConnectToPeers

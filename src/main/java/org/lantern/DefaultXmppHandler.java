@@ -596,7 +596,7 @@ public class DefaultXmppHandler implements XmppHandler {
                 @Override
                 public void run() {
                     final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
-                        LanternHub.settings().getNodeId());
+                        model.getNodeId());
                     
                     final InetAddress address = 
                         new PublicIpAddress().getPublicIpAddress();

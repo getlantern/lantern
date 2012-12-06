@@ -1,5 +1,6 @@
 package org.lantern;
 
+import java.security.SecureRandom;
 import java.util.Timer;
 import java.util.concurrent.Executors;
 
@@ -47,7 +48,6 @@ public class LanternModule extends AbstractModule {
                 ThreadNameDeterminer.CURRENT);
         
         bind(org.jboss.netty.util.Timer.class).to(HashedWheelTimer.class);
-        //bind(LanternUtils.class);
         bind(ModelUtils.class);
         bind(HttpRequestFilter.class).to(PublicIpsOnlyRequestFilter.class);
         bind(Stats.class).to(StatsTracker.class);

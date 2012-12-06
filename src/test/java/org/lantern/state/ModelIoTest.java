@@ -33,6 +33,8 @@ public class ModelIoTest {
                     TestUtils.getLocalCipherProvider());
         
         Model model = io.get();
+        
+        final String id = model.getNodeId();
         SystemData system = model.getSystem();
         Settings settings = model.getSettings();
         Connectivity connectivity = model.getConnectivity();
@@ -64,6 +66,9 @@ public class ModelIoTest {
         
         // The user's IP address should not persist to disk
         assertEquals("", connectivity.getIp());
+        
+        assertEquals("ID should persist across sessions", 
+            id, model.getNodeId());
         
     }
 

@@ -16,12 +16,10 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smackx.packet.VCard;
-import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.commom.xmpp.XmppUtils;
@@ -56,19 +54,14 @@ public final class PhotoServlet extends HttpServlet {
     
     private final byte[] noImage = loadNoImage();
     
-    private final DefaultHttpClient client = new DefaultHttpClient();
-    
     //private static final MimeUtil2 mimeUtil = new MimeUtil2();
     
     private static final Object CONNECTION_LOCK = new Object();
 
     private final ModelUtils modelUtils;
 
-    private final Model model;
-
     @Inject
-    public PhotoServlet(final Model model, final ModelUtils modelUtils) {
-        this.model = model;
+    public PhotoServlet(final ModelUtils modelUtils) {
         this.modelUtils = modelUtils;
         /*
         mimeUtil.registerMimeDetector(

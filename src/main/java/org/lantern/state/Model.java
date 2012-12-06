@@ -1,6 +1,7 @@
 package org.lantern.state;
 
 import java.net.InetAddress;
+import java.security.SecureRandom;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -53,8 +54,10 @@ public class Model {
     private boolean launchd;
 
     private boolean cache;
+    
+    private String nodeId = String.valueOf(new SecureRandom().nextLong());
 
-    public Model()  {
+    public Model() {
         threadPublicIpLookup();
     }
     
@@ -199,5 +202,14 @@ public class Model {
 
     public void setCache(boolean cache) {
         this.cache = cache;
+    }
+
+    @JsonView({Run.class, Persistent.class})
+    public String getNodeId() {
+        return nodeId;
+    }
+
+    public void setNodeId(final String nodeId) {
+        this.nodeId = nodeId;
     }
 }
