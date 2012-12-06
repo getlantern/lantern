@@ -9,6 +9,7 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternConstants;
 import org.lantern.LanternHub;
+import org.lantern.LanternUtils;
 import org.lantern.Settings.CommandLineOption;
 import org.lantern.Whitelist;
 import org.lantern.state.Model.Persistent;
@@ -62,7 +63,7 @@ public class Settings implements MutableSettings {
 
     private Set<String> stunServers = new HashSet<String>();
 
-    private int serverPort;
+    private int serverPort = LanternUtils.randomPort();
 
     private boolean keychainEnabled;
 
