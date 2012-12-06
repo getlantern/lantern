@@ -898,12 +898,12 @@ public class Launcher {
                 cmd.getOptionValue(OPTION_API_PORT);
             LOG.info("Using command-line port: "+ apiPortStr);
             final int apiPort = Integer.parseInt(apiPortStr);
-            RuntimeSettings.setApiPort(apiPort);
+            model.getConnectivity().setApiPort(apiPort);
         } else {
             LOG.info("Using random port...");
-            RuntimeSettings.setApiPort(LanternUtils.randomPort());
+            model.getConnectivity().setApiPort(LanternUtils.randomPort());
         }
-        LOG.info("Running API on port: {}", RuntimeSettings.getApiPort());
+        LOG.info("Running API on port: {}", model.getConnectivity().getApiPort());
 
         if (cmd.hasOption(OPTION_SERVER_PORT)) {
             final String serverPortStr =

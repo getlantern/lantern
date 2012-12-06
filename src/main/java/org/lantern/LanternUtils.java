@@ -64,6 +64,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.lantern.SettingsState.State;
+import org.lantern.state.Model;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
@@ -73,12 +74,6 @@ import org.littleshoot.util.Sha1;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.client.auth.oauth2.BearerToken;
-import com.google.api.client.auth.oauth2.Credential;
-import com.google.api.client.http.GenericUrl;
-import com.google.api.client.http.HttpRequestFactory;
-import com.google.api.client.http.HttpResponse;
-import com.google.api.client.http.HttpTransport;
 import com.google.common.io.Files;
 
 /**
@@ -313,25 +308,6 @@ public class LanternUtils {
         }
         return false;
     }
-    
-    
-    /*
-    public static void writeCredentials(final String email, final String pass) {
-        LOG.info("Writing credentials...");
-        LanternHub.settings().setEmail(email);
-        LanternHub.settings().setPassword(pass);
-        LanternHub.settings().getSettings().setState(State.SET);
-        LanternHub.settingsIo().write();
-    }
-    
-
-    public static void clearCredentials() {
-        LOG.info("Clearing credentials...");
-        LanternHub.settings().setEmail("");
-        LanternHub.settings().setPassword("");
-        LanternHub.settingsIo().write();
-    }
-    */
 
     public static boolean isNewInstall() {
         return LanternHub.settings().getSettings().getState() == 
@@ -580,89 +556,6 @@ public class LanternUtils {
         //return sc.next();
         return sc.nextLine();
     }
-
-    /*
-    public static InputStream localDecryptInputStream(final InputStream in) 
-        throws IOException, GeneralSecurityException {
-        Cipher cipher = 
-            LanternHub.localCipherProvider().newLocalCipher(Cipher.DECRYPT_MODE);
-        return new CipherInputStream(in, cipher);
-    }
-    
-    public static InputStream localDecryptInputStream(File file) 
-        throws IOException, GeneralSecurityException {
-        return localDecryptInputStream(new FileInputStream(file));
-    }
-    
-    public static OutputStream localEncryptOutputStream(final OutputStream os)
-        throws IOException, GeneralSecurityException {
-        Cipher cipher = 
-            LanternHub.localCipherProvider().newLocalCipher(Cipher.ENCRYPT_MODE);
-        return new CipherOutputStream(os, cipher);
-    }
-    
-    public static OutputStream localEncryptOutputStream(File file) 
-        throws IOException, GeneralSecurityException {
-        return localEncryptOutputStream(new FileOutputStream(file));
-    }
-    */
-    
-    /** 
-     * output an encrypted copy of the plaintext file given in the 
-     * dest file given. 
-     * 
-     * @param plainSrc a plaintext source File to copy
-     * @param encryptedDest a destination file to write an encrypted copy of 
-     * plainSrc to
-     */
-    /*
-    public static void localEncryptedCopy(final File plainSrc, 
-        final File encryptedDest)
-        throws GeneralSecurityException, IOException {
-        if (plainSrc.equals(encryptedDest)) {
-            throw new IOException("Source and dest cannot be the same file.");
-        }
-        
-        InputStream in = null;
-        OutputStream out = null;
-        try {
-            in = new FileInputStream(plainSrc);
-            out = localEncryptOutputStream(encryptedDest);
-            IOUtils.copy(in, out);
-        } finally {
-            IOUtils.closeQuietly(in);
-            IOUtils.closeQuietly(out);
-        }
-    }
-
-    /**
-     * output a decrypted copy of the encrypted file given in the 
-     * dest file given. 
-     * 
-     * @param encryptedSrc an encrypted source file to copy
-     * @param plainDest a destination file to write a decrypted copy of 
-     * encryptedSrc to
-     * 
-     */
-    /*
-    public static void localDecryptedCopy(final File encryptedSrc, 
-        final File plainDest)
-        throws GeneralSecurityException, IOException {
-        if (encryptedSrc.equals(plainDest)) {
-            throw new IOException("Source and dest cannot be the same file.");
-        }
-        InputStream in = null;
-        OutputStream out = null;
-        try {
-            in = localDecryptInputStream(encryptedSrc);
-            out = new FileOutputStream(plainDest);
-            IOUtils.copy(in, out);
-        } finally {
-            IOUtils.closeQuietly(in);
-            IOUtils.closeQuietly(out);
-        }    
-    }
-    */
 
     public static String jsonify(final Object all) {
         
@@ -943,6 +836,11 @@ public class LanternUtils {
         final Object prop = pres.getProperty(XmppMessageConstants.PROFILE);
         return prop != null;
     }
+
+    public static String getLocalEndpoint(final Model model) {
+        return model.getConnectivity().getLocalEndpoint();
+    }
+
 }
 
 

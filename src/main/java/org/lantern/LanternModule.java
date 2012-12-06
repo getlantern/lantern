@@ -62,6 +62,8 @@ public class LanternModule extends AbstractModule {
         bind(BrowserService.class).to(ChromeBrowserService.class);
         bind(Model.class).toProvider(ModelIo.class).in(Singleton.class);
         bind(ModelChangeImplementor.class).to(DefaultModelChangeImplementor.class);
+        
+        bind(Roster.class);
         bind(InteractionServlet.class);
         bind(LanternKeyStoreManager.class);
         bind(SslHttpProxyServer.class);

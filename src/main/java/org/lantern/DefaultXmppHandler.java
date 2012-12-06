@@ -46,7 +46,6 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Presence.Type;
-import org.jivesoftware.smackx.packet.VCard;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -59,7 +58,7 @@ import org.lantern.event.ConnectivityStatusChangeEvent;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.UpdateEvent;
-import org.lantern.http.PhotoServlet;
+import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.ksope.LanternKscopeAdvertisement;
 import org.lantern.ksope.LanternTrustGraphNode;
 import org.lantern.state.Model;
@@ -77,7 +76,6 @@ import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.lastbamboo.common.stun.client.StunServerRepository;
-import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.commom.xmpp.PasswordCredentials;
 import org.littleshoot.commom.xmpp.XmppCredentials;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
@@ -158,8 +156,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private String hubAddress;
 
-    private final org.lantern.Roster roster = new org.lantern.Roster(this);
-
     private GoogleTalkState state;
 
     private String lastUserName;
@@ -200,6 +196,8 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final ModelIo modelIo;
 
+    private org.lantern.Roster roster;
+
     /**
      * Creates a new XMPP handler.
      */
@@ -212,7 +210,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final LanternSocketsUtil socketsUtil,
         final LanternXmppUtil xmppUtil,
         final ModelUtils modelUtils,
-        final ModelIo modelIo) {
+        final ModelIo modelIo, final org.lantern.Roster roster) {
         this.model = model;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.anonymousPeerProxyManager = anonymousPeerProxyManager;
@@ -223,6 +221,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.xmppUtil = xmppUtil;
         this.modelUtils = modelUtils;
         this.modelIo = modelIo;
+        this.roster = roster;
         this.upnpService = new Upnp(stats);
         new GiveModeConnectivityHandler();
         prepopulateProxies();
@@ -314,8 +313,9 @@ public class DefaultXmppHandler implements XmppHandler {
         switch (state) {
         case connected:
             // We wait until we're logged in before creating our roster.
-            this.roster.loggedIn();
-            //LanternHub.asyncEventBus().post(new SyncEvent());
+            final XMPPConnection conn = getP2PClient().getXmppConnection();
+            final org.jivesoftware.smack.Roster ros = conn.getRoster();
+            this.roster.onRoster(ros);
             synchronized (this.rosterLock) {
                 this.rosterLock.notifyAll();
             }
@@ -949,6 +949,13 @@ public class DefaultXmppHandler implements XmppHandler {
         //statsTracker.clear();
     }
     */
+    
+    @Subscribe
+    public void onUpdatePresenceEvent(final UpdatePresenceEvent upe) {
+        // This was originally added to decouple the roster from this class.
+        final Presence pres = upe.getPresence();
+        addOrRemovePeer(pres, pres.getFrom());
+    }
 
     @Override
     public void addOrRemovePeer(final Presence p, final String from) {
