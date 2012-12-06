@@ -71,7 +71,7 @@ public class ModelIo implements Provider<Model>, Shutdownable {
      * 
      * @return The {@link Model} instance as read from disk.
      */
-    private Model read() {
+    public Model read() {
         if (!modelFile.isFile()) {
             return blankModel();
         }

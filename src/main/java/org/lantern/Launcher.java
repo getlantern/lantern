@@ -30,8 +30,6 @@ import org.apache.log4j.spi.LoggingEvent;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.widgets.Display;
-import org.jboss.netty.util.ThreadNameDeterminer;
-import org.jboss.netty.util.ThreadRenamingRunnable;
 import org.json.simple.JSONObject;
 import org.lantern.event.Events;
 import org.lantern.event.SettingsStateEvent;

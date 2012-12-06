@@ -64,8 +64,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
         final XmppHandler xmppHandler, final Model model,
-        final InternalState internalState,
-        final ModelIo modelIo) {
+        final InternalState internalState, final ModelIo modelIo) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.xmppHandler = xmppHandler;
         this.model = model;

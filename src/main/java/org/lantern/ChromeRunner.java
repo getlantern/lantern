@@ -48,6 +48,12 @@ public class ChromeRunner {
             return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
         } else if (SystemUtils.IS_OS_LINUX) {
             return "/usr/bin/google-chrome";
+        } else if (SystemUtils.IS_OS_WINDOWS_XP) {
+            final String ad = System.getenv("APPDATA");
+            return ad + "/Google/Chrome/Application/chrome.exe";
+        } else if (SystemUtils.IS_OS_WINDOWS) {
+            final String ad = System.getenv("APPDATA");
+            return ad + "/Local/Google/Chrome/Application/chrome.exe";
         }
         /*
          * Should be something like:

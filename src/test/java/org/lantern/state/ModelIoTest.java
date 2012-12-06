@@ -7,41 +7,30 @@ import java.io.File;
 import org.apache.commons.lang.SystemUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.lantern.DefaultXmppHandler;
-import org.lantern.EncryptedFileService;
-import org.lantern.LanternModule;
-import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.TestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 
 public class ModelIoTest {
 
     private static Logger LOG = LoggerFactory.getLogger(ModelIoTest.class);
 
-    private static LocalCipherProvider localCipherProvider;
-    private static EncryptedFileService encryptedFileService;
+
+    private static File testFile;
 
     
     @BeforeClass
     public static void setup() throws Exception {
-        final Injector injector = Guice.createInjector(new LanternModule());
-        
-        injector.getInstance(DefaultXmppHandler.class);
-        localCipherProvider = injector.getInstance(LocalCipherProvider.class);
-        encryptedFileService = injector.getInstance(EncryptedFileService.class);
+        testFile = new File("modelTest");
+        testFile.delete();
+        testFile.deleteOnExit();
     }
     
     @Test
     public void testModelIo() throws Exception {
-        final File testFile = new File("modelTest");
-        testFile.delete();
-        testFile.deleteOnExit();
-
-        
-        ModelIo io = new ModelIo(testFile, encryptedFileService, localCipherProvider);
+        ModelIo io = 
+            new ModelIo(testFile, TestUtils.getEncryptedFileService(), 
+                    TestUtils.getLocalCipherProvider());
         
         Model model = io.get();
         SystemData system = model.getSystem();
@@ -64,7 +53,8 @@ public class ModelIoTest {
         }
         io.write();
         
-        io = new ModelIo(testFile, encryptedFileService, localCipherProvider);
+        io = new ModelIo(testFile, TestUtils.getEncryptedFileService(), 
+                TestUtils.getLocalCipherProvider());
         model = io.get();
         system = model.getSystem();
         settings = model.getSettings();
