@@ -26,7 +26,6 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.lantern.LanternConstants;
 import org.lantern.NotInClosedBetaException;
-import org.lantern.RuntimeSettings;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.state.InternalState;
@@ -257,7 +256,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
     }
 
     private void redirectToDashboard(final HttpServletResponse resp) {
-        final String dashboard = RuntimeSettings.getLocalEndpoint();
+        final String dashboard = this.model.getConnectivity().getLocalEndpoint();
         try {
             resp.sendRedirect(dashboard);
             resp.flushBuffer();

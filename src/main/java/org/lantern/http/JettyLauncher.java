@@ -29,7 +29,6 @@ import org.lantern.LanternConstants;
 import org.lantern.LanternHub;
 import org.lantern.LanternService;
 import org.lantern.Proxifier;
-import org.lantern.RuntimeSettings;
 import org.lantern.state.Model;
 import org.lantern.state.SyncService;
 import org.slf4j.Logger;
@@ -45,15 +44,7 @@ import com.google.inject.Singleton;
 public class JettyLauncher implements LanternService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
-    private final String secureBase = "";
-        //"/"+String.valueOf(LanternHub.secureRandom().nextLong());
-
-    private int port;
-
-    private final String fullBasePath = 
-        "http://localhost:"+port+secureBase;
-    
+        
     private final Server server = new Server();
 
     private final File resourceBaseFile;
@@ -90,7 +81,6 @@ public class JettyLauncher implements LanternService {
     
     @Override
     public void start() {
-        this.port = RuntimeSettings.getApiPort();
         final QueuedThreadPool qtp = new QueuedThreadPool();
         qtp.setMinThreads(5);
         qtp.setMaxThreads(200);
@@ -113,8 +103,7 @@ public class JettyLauncher implements LanternService {
         
         final SelectChannelConnector connector = 
             new SelectChannelConnector();
-        log.info("Setting connector port for API to: {}", port);
-        connector.setPort(port);
+        connector.setPort(this.model.getConnectivity().getApiPort());
         connector.setMaxIdleTime(60 * 1000);
         connector.setLowResourcesMaxIdleTime(30 * 1000);
         connector.setLowResourcesConnections(2000);
@@ -242,7 +231,7 @@ public class JettyLauncher implements LanternService {
     private String apiPath() {
         return "/api/"+StringUtils.substringBeforeLast(LanternConstants.API_VERSION, ".")+"/*";
     }
-
+    
     private void writeFileToResponse(final HttpServletResponse resp,
         final File file) {
         InputStream is = null;

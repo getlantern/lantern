@@ -11,6 +11,7 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,11 +23,13 @@ public class ChromeRunner {
     private volatile Process process;
     private final int screenWidth;
     private final int screenHeight;
+    private final Model model;
     
-    
-    public ChromeRunner(final int screenWidth, final int screenHeight) {
+    public ChromeRunner(final int screenWidth, final int screenHeight,
+        final Model model) {
         this.screenWidth = screenWidth;
         this.screenHeight = screenHeight;
+        this.model = model;
         this.location = 
             LanternUtils.getScreenCenter(screenWidth, screenHeight);
     }
@@ -82,7 +85,7 @@ public class ChromeRunner {
         commands.add("--user-data-dir="+LanternConstants.CONFIG_DIR.getAbsolutePath());
         commands.add("--window-size="+screenWidth+","+screenHeight);
         commands.add("--window-position="+location.x+","+location.y);
-        commands.add("--app=http://localhost:"+RuntimeSettings.getApiPort());
+        commands.add("--app="+LanternUtils.getLocalEndpoint(model));
 
         final ProcessBuilder processBuilder = new ProcessBuilder(commands);
         

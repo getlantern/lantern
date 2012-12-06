@@ -385,7 +385,7 @@ public class Proxifier implements LanternService {
     
     private String pacFileUrl(final File pacFile) {
         final String url = 
-            "http://127.0.0.1:"+RuntimeSettings.getApiPort()+"/"+
+            "http://127.0.0.1:"+this.model.getConnectivity().getApiPort()+"/"+
                 pacFile.getName()+"-"+RandomUtils.nextInt();
         return url;
     }

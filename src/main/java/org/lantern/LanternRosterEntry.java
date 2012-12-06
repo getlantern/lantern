@@ -1,6 +1,7 @@
 package org.lantern;
 
 import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.RosterPacket.Item;
@@ -17,7 +18,6 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     private boolean away;
     private String status;
     private String subscriptionStatus;
-    private boolean trusted;
     private String name;
     private String email;
     
@@ -39,43 +39,46 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     
     private final String inv;
     private final int sortKey;
-
-    public LanternRosterEntry(final Presence pres) {
+    private final String avatarUrlBase;
+    
+    public LanternRosterEntry(final Presence pres, final String avatarUrl) {
         this(pres.isAvailable(), false, pres.getFrom(), 
-            pres.getFrom(), pres.getStatus(), 0, 0, 0, false, "", false, "", "");
+            pres.getFrom(), pres.getStatus(), 0, 0, 0, false, "", false, "", "", 
+            avatarUrl);
     }
     
-    public LanternRosterEntry(final String email) {
-        this(false, true, email, "", "", 0, 0, 0, false, "", false, "", "");
+    public LanternRosterEntry(final String email, final String avatarUrl) {
+        this(false, true, email, "", "", 0, 0, 0, false, "", false, "", "",
+                avatarUrl);
     }
     
-    public LanternRosterEntry(final RosterEntry entry) {
+    public LanternRosterEntry(final RosterEntry entry, final String avatarUrl) {
         this(false, false, entry.getUser(), entry.getName(),  
             extractSubscriptionStatus(entry), entry.getMc(), entry.getEmc(), entry.getW(),
             entry.isRejected(), entry.getT(), entry.isAutosub(),
-            entry.getAliasFor(), entry.getInv());
+            entry.getAliasFor(), entry.getInv(), avatarUrl);
     }
     
-    public LanternRosterEntry(final Item entry) {
+    public LanternRosterEntry(final Item entry, final String avatarUrl) {
         this(false, false, entry.getUser(), entry.getName(),  
             extractSubscriptionStatus(entry), entry.getMc(), entry.getEmc(), entry.getW(),
             entry.isRejected(), entry.getT(), entry.isAutosub(),
-            entry.getAliasFor(), entry.getInv());
+            entry.getAliasFor(), entry.getInv(), avatarUrl);
     }
 
     public LanternRosterEntry(final boolean available, final boolean away, 
         final String email, final String name, final String subscriptionStatus, 
         final int mc, final int emc, final int w, final boolean rejected, 
         final String t, final boolean autosub, final String aliasFor, 
-        final String inv) {
+        final String inv, final String avatarUrlBase) {
         this.available = available;
         this.away = away;
+        this.avatarUrlBase = avatarUrlBase;
         if (StringUtils.isBlank(email)) {
             log.warn("No email address!!");
             throw new IllegalArgumentException("Blank email??");
         }
         this.email = XmppUtils.jidToUser(email);
-        this.trusted = extractTrusted(email);
         this.name = name == null ? "" : name;
         this.setSubscriptionStatus(subscriptionStatus == null ? "" : subscriptionStatus);
         this.status = "";
@@ -89,11 +92,6 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         this.inv = inv == null ? "" : inv;
         this.sortKey = this.emc + this.mc + this.w;
     }
-
-    private static boolean extractTrusted(final String email) {
-        return true;
-    }
-
 
     private static String extractSubscriptionStatus(final Item entry) {
         return extractSubscriptionStatus(entry.getItemStatus());
@@ -112,6 +110,11 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         }
     }
 
+    public String getAvatarUrl() {
+        return avatarUrlBase + "?email="+getUserId();
+    }
+    
+    @JsonIgnore
     public boolean isAvailable() {
         return available;
     }
@@ -120,6 +123,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         this.available = available;
     }
 
+    @JsonIgnore
     public boolean isAway() {
         return away;
     }
@@ -138,14 +142,6 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         }
     }
 
-    public void setTrusted(boolean trusted) {
-        this.trusted = trusted;
-    }
-
-    public boolean isTrusted() {
-        return trusted;
-    }
-
     public void setName(final String name) {
         this.name = name;
     }
@@ -154,11 +150,11 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         return name;
     }
 
-    public void setEmail(String email) {
+    public void setUserId(String email) {
         this.email = email;
     }
 
-    public String getEmail() {
+    public String getUserId() {
         return email;
     }
 
@@ -166,6 +162,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         return LanternHub.settings().getInvited().contains(email);
     }
 
+    @JsonIgnore
     public VCard getVcard() {
         return vcard;
     }
@@ -174,14 +171,17 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         this.vcard = vcard;
     }
     
+    @JsonIgnore
     public int getMc() {
         return mc;
     }
 
+    @JsonIgnore
     public int getEmc() {
         return emc;
     }
 
+    @JsonIgnore
     public int getW() {
         return w;
     }
@@ -190,22 +190,27 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         return rejected;
     }
 
+    @JsonIgnore
     public String getT() {
         return t;
     }
 
+    @JsonIgnore
     public boolean isAutosub() {
         return autosub;
     }
 
+    @JsonIgnore
     public String getAliasFor() {
         return aliasFor;
     }
 
+    @JsonIgnore
     public String getInv() {
         return inv;
     }
 
+    @JsonIgnore
     public String getSubscriptionStatus() {
         return subscriptionStatus;
     }
@@ -214,6 +219,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         this.subscriptionStatus = subscriptionStatus;
     }
     
+    @JsonIgnore
     public int getSortKey() {
         return sortKey;
     }
@@ -222,7 +228,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     public String toString() {
         return getClass().getSimpleName()+
                 " [available=" + available + ", away=" + away
-                + ", status=" + status + ", trusted=" + trusted + ", name="
+                + ", status=" + status + ", name="
                 + name + ", email=" + email + "]";
     }
 
@@ -260,7 +266,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         // If they have the same scores, compare by their e-mails. Otherwise
         // any entries with the same score will get consolidated.
         if (scores == 0) {
-            return this.email.compareToIgnoreCase(lre.getEmail());
+            return this.email.compareToIgnoreCase(lre.getUserId());
         } else {
             return -scores;
         }

@@ -3,11 +3,10 @@ package org.lantern.state;
 import java.util.Collection;
 import java.util.Collections;
 
-import org.apache.commons.lang.StringUtils;
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.GoogleTalkState;
 import org.lantern.PeerProxyManager;
-import org.lantern.RuntimeSettings;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.SyncEvent;
@@ -29,9 +28,9 @@ public class Connectivity {
     
     private String ip = "";
     
-    private String gtalkOauthUrl;
-    
     private boolean gtalkAuthorized = false;
+    
+    private int apiPort;
 
     public Connectivity() {
         Events.register(this);
@@ -95,10 +94,7 @@ public class Connectivity {
 
     @JsonView({Run.class})
     public String getGtalkOauthUrl() {
-        if (StringUtils.isBlank(gtalkOauthUrl)) {
-            gtalkOauthUrl = RuntimeSettings.getLocalEndpoint()+"/oauth/";
-        }
-        return gtalkOauthUrl;
+        return getLocalEndpoint()+"/oauth/";
     }
 
     @JsonView({Run.class})
@@ -110,4 +106,17 @@ public class Connectivity {
         this.gtalkAuthorized = gtalkAuthorized;
     }
 
+    @JsonIgnore
+    public int getApiPort() {
+        return apiPort;
+    }
+
+    public void setApiPort(final int apiPort) {
+        this.apiPort = apiPort;
+    }
+    
+    @JsonIgnore
+    public String getLocalEndpoint() {
+        return "http://127.0.0.1:"+getApiPort();
+    }
 }

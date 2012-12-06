@@ -63,7 +63,7 @@ public class Events {
      * Convenience method for syncing the current modal with the frontend.
      */
     public static void syncRoster(final Roster roster) {
-        Events.asyncEventBus().post(new SyncEvent(SyncPath.ROSTER, roster));
+        Events.asyncEventBus().post(new SyncEvent(SyncPath.ROSTER, roster.getEntries()));
     }
 
 

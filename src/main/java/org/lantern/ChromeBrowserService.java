@@ -2,9 +2,11 @@ package org.lantern;
 
 import java.io.IOException;
 
+import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -16,8 +18,15 @@ public class ChromeBrowserService implements BrowserService {
     private static final int SCREEN_WIDTH = 970;
     private static final int SCREEN_HEIGHT = 630;
     
-    private final ChromeRunner chrome = 
-        new ChromeRunner(SCREEN_WIDTH, SCREEN_HEIGHT);
+    private final ChromeRunner chrome; 
+
+    private final Model model;
+    
+    @Inject
+    public ChromeBrowserService(final Model model) {
+        this.model = model;
+        chrome = new ChromeRunner(SCREEN_WIDTH, SCREEN_HEIGHT, model);
+    }
     
     /**
      * Opens the browser.
@@ -46,7 +55,7 @@ public class ChromeBrowserService implements BrowserService {
     
     @Override
     public void openBrowserWhenPortReady() {
-        final int port = RuntimeSettings.getApiPort();
+        final int port = this.model.getConnectivity().getApiPort();
         log.info("Waiting on port: "+port);
         openBrowserWhenPortReady(port);
     }

@@ -12,6 +12,7 @@ import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.annotate.JsonUnwrapped;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.RosterEntry;
@@ -25,17 +26,21 @@ import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.RandomRoutingTable;
 import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.event.Events;
+import org.lantern.event.UpdatePresenceEvent;
+import org.lantern.state.Model;
 import org.lantern.state.Profile;
-import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Class that keeps track of all roster entries.
  */
+@Singleton
 public class Roster implements RosterListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -49,7 +54,7 @@ public class Roster implements RosterListener {
     private final Map<String, Profile> incomingSubscriptionRequests = 
         new TreeMap<String, Profile>();
 
-    private final XmppHandler xmppHandler;
+    //private final XmppHandler xmppHandler;
 
     private volatile boolean populated;
     
@@ -57,33 +62,31 @@ public class Roster implements RosterListener {
     private final RandomRoutingTable kscopeRoutingTable = 
         new BasicRandomRoutingTable();
 
+    private final Model model;
+
+    private org.jivesoftware.smack.Roster smackRoster;
+
     /**
      * Creates a new roster.
      */
-    public Roster(final XmppHandler xmppHandler) {
-        this.xmppHandler = xmppHandler;
+    @Inject
+    public Roster(final Model model) {
+        this.model = model;
     }
 
-    public void loggedIn() {
+    public void onRoster(final org.jivesoftware.smack.Roster roster) {
         log.info("Got logged in event");
         // Threaded to avoid this holding up setting the logged-in state in
         // the UI.
+        this.smackRoster = roster;
         final Runnable r = new Runnable() {
             @Override
             public void run() {
-                final XMPPConnection conn = 
-                    xmppHandler.getP2PClient().getXmppConnection();
-                
-                if (conn == null) {
-                    // Probably testing...
-                    log.warn("No connection?");
-                    return;
-                }
-                final org.jivesoftware.smack.Roster roster = conn.getRoster();
                 roster.setSubscriptionMode(
                     org.jivesoftware.smack.Roster.SubscriptionMode.manual);
                 roster.addRosterListener(Roster.this);
-                final Collection<RosterEntry> unordered = roster.getEntries();
+                final Collection<RosterEntry> unordered = 
+                    roster.getEntries();
                 log.debug("Got roster entries!!");
                 
                 rosterEntries = getRosterEntries(unordered);
@@ -126,7 +129,8 @@ public class Roster implements RosterListener {
         final Collection<LanternRosterEntry> entries = 
             new TreeSet<LanternRosterEntry>();
         for (final Item entry : unordered) {
-            final LanternRosterEntry lp = new LanternRosterEntry(entry);
+            final LanternRosterEntry lp = 
+                new LanternRosterEntry(entry, photoUrlBase());
             final boolean added = entries.add(lp);
             if (!added) {
                 log.warn("DID NOT ADD {}", entry);
@@ -136,14 +140,19 @@ public class Roster implements RosterListener {
         return entries;
     }
 
+    private String photoUrlBase() {
+        return this.model.getConnectivity().getLocalEndpoint()+"/photo/";
+    }
+
     private Map<String, LanternRosterEntry> getRosterEntries(
         final Collection<RosterEntry> unordered) {
         final Map<String, LanternRosterEntry> entries = 
             new ConcurrentSkipListMap<String, LanternRosterEntry>();
         for (final RosterEntry entry : unordered) {
-            final LanternRosterEntry lp = new LanternRosterEntry(entry);
-            if (LanternUtils.isNotJid(lp.getEmail())) {
-                entries.put(lp.getEmail(), lp);
+            final LanternRosterEntry lp = 
+                new LanternRosterEntry(entry, photoUrlBase());
+            if (LanternUtils.isNotJid(lp.getUserId())) {
+                entries.put(lp.getUserId(), lp);
             }
         }
         return entries;
@@ -155,7 +164,8 @@ public class Roster implements RosterListener {
         if (LanternUtils.isLanternHub(from)) {
             log.info("Got Lantern hub presence");
         } else if (LanternUtils.isLanternJid(from)) {
-            this.xmppHandler.addOrRemovePeer(presence, from);
+            //this.xmppHandler.addOrRemovePeer(presence, from);
+            Events.eventBus().post(new UpdatePresenceEvent(presence));
             final TrustGraphNodeId id = new BasicTrustGraphNodeId(from);
             this.kscopeRoutingTable.addNeighbor(id);
             onPresence(presence);
@@ -174,14 +184,14 @@ public class Roster implements RosterListener {
             // This may be someone we have subscribed to who we're just now
             // getting the presence for.
             log.info("Adding non-roster presence: {}", email);
-            addEntry(new LanternRosterEntry(pres));
+            addEntry(new LanternRosterEntry(pres, photoUrlBase()));
         }
     }
 
     private void addEntry(final LanternRosterEntry pres) {
-        if (LanternUtils.isNotJid(pres.getEmail())) {
+        if (LanternUtils.isNotJid(pres.getUserId())) {
             log.info("Adding entry for {}", pres);
-            rosterEntries.put(pres.getEmail(), pres);
+            rosterEntries.put(pres.getUserId(), pres);
             
         } else {
             log.info("Not adding entry for {}", pres);
@@ -192,6 +202,7 @@ public class Roster implements RosterListener {
         //this.kscopeRoutingTable
     }
     
+    //@JsonUnwrapped
     public Collection<LanternRosterEntry> getEntries() {
         synchronized (this.rosterEntries) {
             return ImmutableSortedSet.copyOf(this.rosterEntries.values());
@@ -235,7 +246,7 @@ public class Roster implements RosterListener {
     public void entriesAdded(final Collection<String> entries) {
         log.debug("Adding {} entries to roster", entries.size());
         for (final String entry : entries) {
-            addEntry(new LanternRosterEntry(entry));
+            addEntry(new LanternRosterEntry(entry, photoUrlBase()));
         }
         Events.syncRoster(this);
     }
@@ -256,9 +267,12 @@ public class Roster implements RosterListener {
     @Override
     public void entriesUpdated(final Collection<String> entries) {
         log.debug("Entries updated: {} for roster: {}", entries, this);
+        if (this.smackRoster == null) {
+            log.error("No roster yet?");
+            return;
+        }
         for (final String entry : entries) {
-            final Presence pres = 
-                this.xmppHandler.getP2PClient().getXmppConnection().getRoster().getPresence(entry);
+            final Presence pres = this.smackRoster.getPresence(entry);
             onPresence(pres);
         }
         Events.syncRoster(this);
@@ -323,17 +337,5 @@ public class Roster implements RosterListener {
         // Otherwise only auto-allow subscription requests if we've requested
         // to subscribe to them.
         return subscriptionStatus.equalsIgnoreCase("subscribe");
-    }
-    
-    
-    @Override
-    public String toString() {
-        String id = "";
-        final XmppP2PClient client = this.xmppHandler.getP2PClient();
-        if (client != null) {
-            final XMPPConnection conn = client.getXmppConnection();
-            id = conn.getUser();
-        }
-        return "Roster for "+id+" [rosterEntries=" + rosterEntries + "]";
     }
 }

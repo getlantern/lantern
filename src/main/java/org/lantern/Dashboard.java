@@ -75,10 +75,9 @@ public class Dashboard implements MessageService, BrowserService {
         });
     }
     
-    
     @Override
     public void openBrowserWhenPortReady() {
-        openBrowserWhenPortReady(RuntimeSettings.getApiPort());
+        openBrowserWhenPortReady(this.model.getConnectivity().getApiPort());
     }
     
     @Override
@@ -194,14 +193,15 @@ public class Dashboard implements MessageService, BrowserService {
         log.debug("Running browser: {}", browser.getBrowserType());
         browser.setSize(minWidth, minHeight);
         //browser.setBounds(0, 0, 800, 600);
-        browser.setUrl(RuntimeSettings.getLocalEndpoint());
+        browser.setUrl(LanternUtils.getLocalEndpoint(this.model));
 
         browser.addLocationListener(new LocationListener() {
             @Override
             public void changing(LocationEvent event) {
                 try {
                     final URI url = new URI(event.location);
-                    final String localAuthority = RuntimeSettings.getLocalEndpoint();
+                    final String localAuthority = 
+                        LanternUtils.getLocalEndpoint(model);
                     if (openExternal(url, localAuthority)) {
                         log.info("opening external browser to {}", event.location);
                         event.doit = false;
