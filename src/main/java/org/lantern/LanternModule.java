@@ -1,6 +1,5 @@
 package org.lantern;
 
-import java.security.SecureRandom;
 import java.util.Timer;
 import java.util.concurrent.Executors;
 
