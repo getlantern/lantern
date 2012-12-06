@@ -1,6 +1,7 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -25,19 +26,17 @@ import org.lantern.event.Events;
 import org.lantern.event.UpdateEvent;
 import org.lantern.http.JettyLauncher;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-
 public class CometDTest {
 
     @Test
     public void test() throws Exception {
-        final Injector injector = Guice.createInjector(new LanternModule());
+        //final Injector injector = Guice.createInjector(new LanternModule());
         final int port = LanternUtils.randomPort();
-        RuntimeSettings.setApiPort(port);
+        TestUtils.getModel().getConnectivity().setApiPort(port);
+        //RuntimeSettings.setApiPort(port);
         //LanternHub.settings().setApiPort(LanternUtils.randomPort());
         //final int port = LanternHub.settings().getApiPort();
-        startJetty(injector, port);
+        startJetty(TestUtils.getJettyLauncher(), port);
         final HttpClient httpClient = new HttpClient();
         // Here set up Jetty's HttpClient, for example:
         // httpClient.setMaxConnectionsPerAddress(2);
@@ -132,11 +131,11 @@ public class CometDTest {
         assertTrue("Expected variable to be true", bool.get());
     }
 
-    private void startJetty(final Injector injector, final int port) throws Exception {
+    private void startJetty(final JettyLauncher jl, final int port) throws Exception {
         // The order of getting things from the injector matters unfortunately,
         // so we have to do the below.
-        injector.getInstance(DefaultXmppHandler.class);
-        final JettyLauncher jl = injector.getInstance(JettyLauncher.class); 
+        //injector.getInstance(DefaultXmppHandler.class);
+        //final JettyLauncher jl = injector.getInstance(JettyLauncher.class); 
         final Runnable runner = new Runnable() {
             @Override
             public void run() {

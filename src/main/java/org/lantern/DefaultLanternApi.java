@@ -3,7 +3,6 @@ package org.lantern;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
-import java.net.InetSocketAddress;
 import java.security.GeneralSecurityException;
 import java.util.HashSet;
 import java.util.Map;
@@ -325,9 +324,7 @@ public class DefaultLanternApi implements LanternApi {
         try {
             this.xmppHandler.clearProxies();
             signout();
-            final Settings set = LanternHub.settings();
             this.model.getSettings().setInClosedBeta(new HashSet<String>());
-            set.setPeerProxies(new HashSet<InetSocketAddress>());
             LanternHub.destructiveFullReset();
             
             returnSettings(resp);
@@ -596,7 +593,7 @@ public class DefaultLanternApi implements LanternApi {
         String message = params.get("message");
         String email = params.get("replyto");
         try {
-            new LanternFeedback().submit(message, email);
+            new LanternFeedback(model).submit(message, email);
         }
         catch (final Exception e) {
             sendServerError(e, resp, true);

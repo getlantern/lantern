@@ -21,7 +21,7 @@ public class Version {
 
     private final Current current = new Current();
     
-    private Map<String, Object> updated = new TreeMap<String, Object>();
+    private Map<String, Object> update = new TreeMap<String, Object>();
     
     public Version() {
         Events.register(this);
@@ -29,7 +29,7 @@ public class Version {
     
     @Subscribe
     public void onUpdate(final UpdateEvent updateEvent) {
-        this.updated = updateEvent.getData();
+        this.update = updateEvent.getData();
         Events.asyncEventBus().post(new SyncEvent(SyncPath.VERSION_UPDATED, 
             updateEvent.getData()));
     }
@@ -40,8 +40,8 @@ public class Version {
     }
 
     @JsonView({Run.class})
-    public Map<String, Object> getUpdated() {
-        return updated;
+    public Map<String, Object> getUpdate() {
+        return update;
     }
 
     public class Current {

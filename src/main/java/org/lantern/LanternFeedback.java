@@ -17,10 +17,21 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.lantern.state.Model;
 
-class LanternFeedback {
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+@Singleton
+public class LanternFeedback {
     
-    public LanternFeedback() {}
+    private final Model model;
+    
+    @Inject
+    public LanternFeedback(final Model model) {
+        this.model = model;
+        
+    }
     
     public void submit(String message, String replyTo) throws IOException {
         Map <String, String> feedback = new HashMap<String, String>(); 
@@ -33,7 +44,7 @@ class LanternFeedback {
     protected Map<String, String> systemInfo() {
         final Map<String, String> info = new HashMap<String,String>();
 
-        info.put("lanternVersion", LanternHub.settings().getVersion().getCurrent().getLabel());        
+        info.put("lanternVersion", model.getVersion().getCurrent().getLabel());        
         info.put("javaVersion", SystemUtils.JAVA_VERSION);
         info.put("osName", SystemUtils.OS_NAME);
         info.put("osArch", SystemUtils.OS_ARCH);

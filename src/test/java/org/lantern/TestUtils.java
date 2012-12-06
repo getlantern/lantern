@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
+import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
 
@@ -38,6 +39,8 @@ public class TestUtils {
     
     private static LocalCipherProvider localCipherProvider;
     private static EncryptedFileService encryptedFileService;
+
+    private static JettyLauncher jettyLauncher;
     
     static {
         InputStream is = null;
@@ -76,8 +79,16 @@ public class TestUtils {
         localCipherProvider = injector.getInstance(LocalCipherProvider.class);
         encryptedFileService = injector.getInstance(EncryptedFileService.class);
         model = injector.getInstance(Model.class);
+        jettyLauncher = injector.getInstance(JettyLauncher.class);
         
         xmppHandler.start();
+    }
+    
+    public static JettyLauncher getJettyLauncher() {
+        if (jettyLauncher == null) {
+            load();
+        }
+        return jettyLauncher;
     }
     
     public static DefaultXmppHandler getXmppHandler() {
