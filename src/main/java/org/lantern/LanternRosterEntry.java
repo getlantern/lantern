@@ -7,6 +7,7 @@ import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.RosterPacket.Item;
 import org.jivesoftware.smack.packet.RosterPacket.ItemStatus;
 import org.jivesoftware.smackx.packet.VCard;
+import org.lantern.state.Model;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,40 +41,45 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     private final String inv;
     private final int sortKey;
     private final String avatarUrlBase;
+    private final Model model;
     
-    public LanternRosterEntry(final Presence pres, final String avatarUrl) {
+    public LanternRosterEntry(final Presence pres, final String avatarUrl, 
+        final Model model) {
         this(pres.isAvailable(), false, pres.getFrom(), 
             pres.getFrom(), pres.getStatus(), 0, 0, 0, false, "", false, "", "", 
-            avatarUrl);
+            avatarUrl, model);
     }
     
-    public LanternRosterEntry(final String email, final String avatarUrl) {
+    public LanternRosterEntry(final String email, final String avatarUrl, final Model model) {
         this(false, true, email, "", "", 0, 0, 0, false, "", false, "", "",
-                avatarUrl);
+                avatarUrl, model);
     }
     
-    public LanternRosterEntry(final RosterEntry entry, final String avatarUrl) {
+    public LanternRosterEntry(final RosterEntry entry, final String avatarUrl,
+            final Model model) {
         this(false, false, entry.getUser(), entry.getName(),  
             extractSubscriptionStatus(entry), entry.getMc(), entry.getEmc(), entry.getW(),
             entry.isRejected(), entry.getT(), entry.isAutosub(),
-            entry.getAliasFor(), entry.getInv(), avatarUrl);
+            entry.getAliasFor(), entry.getInv(), avatarUrl, model);
     }
     
-    public LanternRosterEntry(final Item entry, final String avatarUrl) {
+    public LanternRosterEntry(final Item entry, final String avatarUrl,
+            final Model model) {
         this(false, false, entry.getUser(), entry.getName(),  
             extractSubscriptionStatus(entry), entry.getMc(), entry.getEmc(), entry.getW(),
             entry.isRejected(), entry.getT(), entry.isAutosub(),
-            entry.getAliasFor(), entry.getInv(), avatarUrl);
+            entry.getAliasFor(), entry.getInv(), avatarUrl, model);
     }
 
     public LanternRosterEntry(final boolean available, final boolean away, 
         final String email, final String name, final String subscriptionStatus, 
         final int mc, final int emc, final int w, final boolean rejected, 
         final String t, final boolean autosub, final String aliasFor, 
-        final String inv, final String avatarUrlBase) {
+        final String inv, final String avatarUrlBase,final Model model) {
         this.available = available;
         this.away = away;
         this.avatarUrlBase = avatarUrlBase;
+        this.model = model;
         if (StringUtils.isBlank(email)) {
             log.warn("No email address!!");
             throw new IllegalArgumentException("Blank email??");
@@ -159,7 +165,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     }
 
     public boolean isInvited() {
-        return LanternHub.settings().getInvited().contains(email);
+        return this.model.getSettings().getInvited().contains(email);
     }
 
     @JsonIgnore

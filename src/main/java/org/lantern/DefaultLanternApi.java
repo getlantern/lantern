@@ -415,6 +415,7 @@ public class DefaultLanternApi implements LanternApi {
         try {
             // give it the password, *not intialization*
             lcp.feedUserInput(password.toCharArray(), false);
+            /*
             // immediately "unlock" the settings
             LanternHub.resetSettings(true);
             SettingsState.State ss = LanternHub.settings().getSettings().getState();
@@ -423,6 +424,7 @@ public class DefaultLanternApi implements LanternApi {
                 // still return the settings in this case so that the frontend
                 // can deal with the state.
             }
+            */
             returnSettings(resp);
 
         } catch (final InvalidKeyException e) {

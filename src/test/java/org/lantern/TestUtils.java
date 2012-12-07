@@ -42,6 +42,8 @@ public class TestUtils {
 
     private static JettyLauncher jettyLauncher;
     
+    private static MessageService messageService;
+    
     static {
         InputStream is = null;
         try {
@@ -80,6 +82,8 @@ public class TestUtils {
         encryptedFileService = injector.getInstance(EncryptedFileService.class);
         model = injector.getInstance(Model.class);
         jettyLauncher = injector.getInstance(JettyLauncher.class);
+        
+        messageService = injector.getInstance(MessageService.class);
         
         xmppHandler.start();
     }
@@ -140,6 +144,13 @@ public class TestUtils {
         return encryptedFileService;
     }
 
+    public static MessageService getMessageService() {
+        if (messageService == null) {
+            load();
+        }
+        return messageService;
+    }
+    
     public static File getPropsfile() {
         return propsFile;
     }
@@ -167,4 +178,5 @@ public class TestUtils {
     public static String getUserName() {
         return privateProps.getProperty("username");
     }
+
 }

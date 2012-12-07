@@ -456,7 +456,7 @@ public class Launcher {
     }
     
     private static char [] readSettingsPasswordCLI() throws IOException {
-        if (LanternHub.settings().isLocalPasswordInitialized() == false) {
+        if (localCipherProvider.isInitialized() == false) {
             while (true) {
                 // XXX i18n
                 System.out.print("Please enter a password to protect your local data:");
@@ -493,8 +493,10 @@ public class Launcher {
     
     private static boolean unlockSettingsWithPassword(final char [] password)
         throws GeneralSecurityException, IOException {
-        final boolean init = !LanternHub.settings().isLocalPasswordInitialized();
+        final boolean init = !localCipherProvider.isInitialized();
         localCipherProvider.feedUserInput(password, init);
+        
+        /*
         LanternHub.resetSettings(true);
         final SettingsState.State ss = LanternHub.settings().getSettings().getState();
         if (ss != SettingsState.State.SET) {
@@ -502,6 +504,8 @@ public class Launcher {
             return false;
         }
         return true;
+        */
+        throw new UnsupportedOperationException("TODO");
     }
     
     private static void loadLocalPasswordFile(final String pwFilename) {
@@ -524,7 +528,7 @@ public class Launcher {
         LOG.info("Reading local password from file \"{}\"", pwFilename);
         try {
             final String pw = FileUtils.readLines(pwFile, "US-ASCII").get(0);
-            final boolean init = !LanternHub.settings().isLocalPasswordInitialized();
+            final boolean init = !localCipherProvider.isInitialized();
             localCipherProvider.feedUserInput(pw.toCharArray(), init);
         }
         catch (final IndexOutOfBoundsException e) {

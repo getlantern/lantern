@@ -149,7 +149,6 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         };
         proxyQueue.execute(proxyRunner);
     }
-    */
     
     @Override
     public void setPort(final int port) {
@@ -165,7 +164,6 @@ public class DefaultSettingsChangeImplementor implements SettingsChangeImplement
         LanternHub.settings().setManuallyOverrideCountry(true);
     }
 
-    /*
     @Override
     public void setEmail(final String email) {
         final String storedEmail = LanternHub.settings().getEmail();

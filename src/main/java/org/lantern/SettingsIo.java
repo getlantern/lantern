@@ -51,6 +51,7 @@ public class SettingsIo {
      * 
      * @return The {@link Settings} instance as read from disk.
      */
+    /*
     public Settings read() {
         if (!settingsFile.isFile()) {
             return blankSettings();
@@ -67,11 +68,9 @@ public class SettingsIo {
             }
             final Settings read = mapper.readValue(json, Settings.class);
             log.info("Built settings from disk: {}", read);
-            /*
             if (StringUtils.isBlank(read.getPassword())) {
                 read.setPassword(read.getStoredPassword());
             }
-            */
             read.getSettings().setState(State.SET); // read successfully.
             return read;
         } catch (final UserInputRequiredException e) {
@@ -90,6 +89,7 @@ public class SettingsIo {
         ss.setMessage("Could not read settings file.");
         return settings;
     }
+    */
     
 
     private Settings blankSettings() {
@@ -122,6 +122,7 @@ public class SettingsIo {
      * @param settings The settings to apply.
      */
     public void write(final Settings settings) {
+        /*
         OutputStream os = null;
         try {
             final String json = LanternUtils.jsonify(settings, 
@@ -135,5 +136,6 @@ public class SettingsIo {
         } finally {
             IOUtils.closeQuietly(os);
         }
+        */
     }
 }

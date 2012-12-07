@@ -1080,7 +1080,7 @@ public class DefaultXmppHandler implements XmppHandler {
             try {
                 // Add the peer if we're able to add the cert.
                 this.keyStoreManager.addBase64Cert(mac, base64Cert);
-                if (LanternHub.settings().isAutoConnectToPeers()) {
+                if (this.model.getSettings().isAutoConnectToPeers()) {
                     final String email = XmppUtils.jidToUser(msg.getFrom());
                     if (this.roster.isFullyOnRoster(email)) {
                         trustedPeerProxyManager.onPeer(uri);
@@ -1412,7 +1412,7 @@ public class DefaultXmppHandler implements XmppHandler {
             return;
         }
         
-        final Set<String> invited = LanternHub.settings().getInvited();
+        final Set<String> invited = model.getSettings().getInvited();
         if (invited.contains(email)) {
             LOG.info("Already invited");
             return;

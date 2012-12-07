@@ -12,7 +12,6 @@ import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.annotate.JsonUnwrapped;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.RosterEntry;
@@ -130,7 +129,7 @@ public class Roster implements RosterListener {
             new TreeSet<LanternRosterEntry>();
         for (final Item entry : unordered) {
             final LanternRosterEntry lp = 
-                new LanternRosterEntry(entry, photoUrlBase());
+                new LanternRosterEntry(entry, photoUrlBase(), model);
             final boolean added = entries.add(lp);
             if (!added) {
                 log.warn("DID NOT ADD {}", entry);
@@ -150,7 +149,7 @@ public class Roster implements RosterListener {
             new ConcurrentSkipListMap<String, LanternRosterEntry>();
         for (final RosterEntry entry : unordered) {
             final LanternRosterEntry lp = 
-                new LanternRosterEntry(entry, photoUrlBase());
+                new LanternRosterEntry(entry, photoUrlBase(), model);
             if (LanternUtils.isNotJid(lp.getUserId())) {
                 entries.put(lp.getUserId(), lp);
             }
@@ -184,7 +183,7 @@ public class Roster implements RosterListener {
             // This may be someone we have subscribed to who we're just now
             // getting the presence for.
             log.info("Adding non-roster presence: {}", email);
-            addEntry(new LanternRosterEntry(pres, photoUrlBase()));
+            addEntry(new LanternRosterEntry(pres, photoUrlBase(), model));
         }
     }
 
@@ -246,7 +245,7 @@ public class Roster implements RosterListener {
     public void entriesAdded(final Collection<String> entries) {
         log.debug("Adding {} entries to roster", entries.size());
         for (final String entry : entries) {
-            addEntry(new LanternRosterEntry(entry, photoUrlBase()));
+            addEntry(new LanternRosterEntry(entry, photoUrlBase(), model));
         }
         Events.syncRoster(this);
     }

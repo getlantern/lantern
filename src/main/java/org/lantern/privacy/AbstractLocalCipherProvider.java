@@ -134,7 +134,8 @@ abstract class AbstractLocalCipherProvider implements LocalCipherProvider {
     }
 
     @Override
-    public synchronized Cipher newLocalCipher(int opmode) throws IOException, GeneralSecurityException {
+    public synchronized Cipher newLocalCipher(int opmode) throws IOException, 
+        GeneralSecurityException {
         final boolean init = !isInitialized();
         
         if (localKey == null) {

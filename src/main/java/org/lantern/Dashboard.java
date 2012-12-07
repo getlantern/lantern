@@ -6,7 +6,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.LinkedHashSet;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang.SystemUtils;
 import org.eclipse.swt.SWT;
@@ -25,13 +24,12 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.MessageBox;
 import org.eclipse.swt.widgets.Shell;
 import org.lantern.event.Events;
-import org.lantern.event.MessageEvent;
+import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -39,25 +37,23 @@ import com.google.inject.Singleton;
  * Browser dashboard for controlling lantern.
  */
 @Singleton
-public class Dashboard implements MessageService, BrowserService {
+public class Dashboard implements BrowserService {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     private Shell shell;
     private Browser browser;
     private boolean completed;
-    
-    /**
-     * The display is pulled out into a separate instance variable because
-     * the readAndDispatch method is called extremely frequently.
-     */
-    //private final Display display = LanternHub.display();
+
     private final SystemTray systemTray;
     private final Model model;
+    private final LocalCipherProvider localCipherProvider;
     
     @Inject
-    public Dashboard(final SystemTray systemTray, final Model model) {
+    public Dashboard(final SystemTray systemTray, final Model model,
+        final LocalCipherProvider localCipherProvider) {
         this.systemTray = systemTray;
         this.model = model;
+        this.localCipherProvider = localCipherProvider;
         Events.register(this);
     }
     
@@ -89,7 +85,6 @@ public class Dashboard implements MessageService, BrowserService {
     
     @Override
     public void reopenBrowser() {
-        
         openBrowser();
     }
     
@@ -147,11 +142,6 @@ public class Dashboard implements MessageService, BrowserService {
         //final Rectangle bounds = primary.getBounds();
         final Rectangle rect = shell.getBounds();
 
-        //final int x = bounds.x + (bounds.width - rect.width) / 2;
-        //final int y = bounds.y + (bounds.height - rect.height) / 2;
-
-        //shell.setLocation(x, y);
-        
         final Point center = LanternUtils.getScreenCenter(rect.width, rect.height);
         shell.setLocation((int)center.getX(), (int)center.getY());
         
@@ -247,7 +237,7 @@ public class Dashboard implements MessageService, BrowserService {
             @Override
             public void handleEvent(final Event event) {
                 if (LanternHub.settings().getSettings().getState() == SettingsState.State.LOCKED &&
-                    LanternHub.settings().isLocalPasswordInitialized()) {
+                    localCipherProvider.isInitialized()) {
                     if (systemTray.isActive()) {
                         // user presented with unlock screen and just hit close
                         final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
@@ -340,62 +330,6 @@ public class Dashboard implements MessageService, BrowserService {
         return new Image(DisplayWrapper.getDisplay(), toUse);
     }
     
-    
-    private static final int DEFAULT_QUESTION_FLAGS = 
-        SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
-    
-    /**
-     * Shows a message to the user using a dialog box;
-     * 
-     * @param title The title of the dialog box.
-     * @param msg The message.
-     */
-    public void showMessage(final String title, final String msg) {
-        final int flags = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.OK;
-        askQuestion(title, msg, flags);
-    }
-    
-    /**
-     * Shows a dialog to the user asking a yes or no question.
-     * 
-     * @param title The title for the dialog.
-     * @param question The question to ask.
-     * @return <code>true</code> if the user answered yes, otherwise
-     * <code>false</code>
-     */
-    public boolean askQuestion(final String title, final String question) {
-        return askQuestion(title, question, DEFAULT_QUESTION_FLAGS) == SWT.YES;
-    }
-    
-    public int askQuestion(final String title, final String question, 
-        final int style) {
-        if (!model.getSettings().isUiEnabled()) {
-            log.info("MESSAGE BOX TITLE: "+title);
-            log.info("MESSAGE BOX MESSAGE: "+question);
-            return -1;
-        }
-        final AtomicInteger response = new AtomicInteger();
-        DisplayWrapper.getDisplay().syncExec(new Runnable() {
-            @Override
-            public void run() {
-                response.set(askQuestionOnThread(title, question, style));
-            }
-        });
-        log.info("Returned from sync exec");
-        return response.get();
-    }
-    
-    protected int askQuestionOnThread(final String title, 
-        final String question, final int style) {
-        log.info("Creating display...");
-        final Shell boxShell = new Shell(DisplayWrapper.getDisplay());
-        log.info("Created display...");
-        final MessageBox messageBox = new MessageBox (boxShell, style);
-        messageBox.setText(title);
-        messageBox.setMessage(question);
-        return messageBox.open();
-    }
-    
     public void rosterSync() {
         log.debug("Syncing roster");
         evaluate("loadRoster();");
@@ -438,11 +372,5 @@ public class Dashboard implements MessageService, BrowserService {
         if (DisplayWrapper.getDisplay() != null) {
             DisplayWrapper.getDisplay().dispose();
         }
-    }
-
-    @Override
-    @Subscribe
-    public void onMessageEvent(MessageEvent me) {
-        showMessage(me.getTitle(), me.getMsg());
     }
 }

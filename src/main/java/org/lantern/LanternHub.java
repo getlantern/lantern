@@ -53,8 +53,8 @@ public class LanternHub {
     
     static {
         // start with an UNSET settings object until loaded
-        settings.set(new Settings());
-        postSettingsState();
+        //settings.set(new Settings());
+        //postSettingsState();
         
         /*
         if (!LanternConstants.ON_APP_ENGINE) {
@@ -174,9 +174,11 @@ public class LanternHub {
         } catch (final Throwable t) {
             LOG.error("Caught throwable resetting settings: {}", t);
         }
+        */
        
         // retain any CommandLineSettings to the newly loaded settings
         // if requested.
+        /*
         final Settings cur = settings();
         if (retainCLIOptions == true && cur != null && old != null) {
             try {
@@ -186,14 +188,14 @@ public class LanternHub {
                 LOG.error("error copying command line settings! {}", t);
             }
         }
-        
-        postSettingsState();
         */
-        throw new UnsupportedOperationException();
+        postSettingsState();
+        throw new UnsupportedOperationException("TODO");
     }
    
     private static void postSettingsState() {
-        Events.asyncEventBus().post(new SettingsStateEvent(settings().getSettings()));
+        throw new UnsupportedOperationException("TODO");
+        //Events.asyncEventBus().post(new SettingsStateEvent(settings().getSettings()));
     }
 
     public static HttpsEverywhere httpsEverywhere() {
