@@ -3,6 +3,7 @@ package org.lantern.state;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Locale;
 import java.util.Set;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
@@ -25,7 +26,7 @@ public class Settings implements MutableSettings {
 
     private String userId = "";
     
-    private String lang = "";
+    private String lang = Locale.getDefault().getLanguage();
     
     private boolean autoStart = true;
 
@@ -53,23 +54,41 @@ public class Settings implements MutableSettings {
 
     private Set<String> proxies = new LinkedHashSet<String>();
 
-    private boolean useTrustedPeers;
+    private boolean useTrustedPeers = true;
 
-    private boolean useLaeProxies;
+    private boolean useLaeProxies = true;
 
-    private boolean useAnonymousPeers;
+    private boolean useAnonymousPeers = true;
 
-    private boolean useCentralProxies;
+    private boolean useCentralProxies = true;
 
     private Set<String> stunServers = new HashSet<String>();
 
     private int serverPort = LanternUtils.randomPort();
 
-    private boolean keychainEnabled;
+    /**
+     * Indicates whether use of keychains is enabled. 
+     * this can be disabled by command line option.
+     */
+    private boolean keychainEnabled = true;
 
+    /**
+     * Whether or not we're running with a graphical UI.  
+     * Not stored or sent to the browser.
+     */
     private boolean uiEnabled = true;
+    
 
-    private boolean bindToLocalhost;
+    private boolean bindToLocalhost = true;
+
+    private boolean autoConnectToPeers = true;
+
+    private boolean useCloudProxies = true;
+    
+    /**
+     * Locally-stored set of users we've invited.
+     */
+    private Set<String> invited = new HashSet<String>();
     
     public enum Mode {
         give,
@@ -366,5 +385,33 @@ public class Settings implements MutableSettings {
     @JsonIgnore
     public boolean isBindToLocalhost() {
         return bindToLocalhost;
+    }
+    
+    public void setAutoConnectToPeers(final boolean autoConnectToPeers) {
+        this.autoConnectToPeers = autoConnectToPeers;
+    }
+
+    @JsonIgnore
+    public boolean isAutoConnectToPeers() {
+        return autoConnectToPeers;
+    }
+
+    public void setUseCloudProxies(final boolean useCloudProxies) {
+        this.useCloudProxies = useCloudProxies;
+    }
+
+    @JsonView({Run.class, Persistent.class})
+    public boolean isUseCloudProxies() {
+        return useCloudProxies;
+    }
+    
+    
+    public void setInvited(final Set<String> invited) {
+        this.invited = invited;
+    }
+    
+    @JsonView({Persistent.class})
+    public Set<String> getInvited() {
+        return invited;
     }
 }

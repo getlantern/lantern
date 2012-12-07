@@ -6,7 +6,7 @@ package org.lantern;
  */
 public interface MutableSettings {
 
-    void setCountry(Country country);
+    //void setCountry(Country country);
     
     //void setGetMode(boolean getMode);
     
@@ -14,7 +14,7 @@ public interface MutableSettings {
     
     //void setSystemProxy(boolean isSystemProxy);
     
-    void setPort(int port);
+    //void setPort(int port);
 
     //void setEmail(String email);
     

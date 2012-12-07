@@ -37,7 +37,7 @@ public class SettingsTest {
     private static EncryptedFileService encryptedFileService;
 
     private static ModelUtils modelUtils;
-    
+    /*
     @BeforeClass
     public static void setup() throws Exception {
         final Injector injector = Guice.createInjector(new LanternModule());
@@ -69,6 +69,7 @@ public class SettingsTest {
         
     }
     
+    
     @Test
     public void testSettings() throws Exception {
         final File settingsFile = settingsFile();
@@ -86,7 +87,7 @@ public class SettingsTest {
         assertEquals(port, read.getPort());
     }
     
-    /*
+    
     @Test
     public void testStartAtLogin() throws Exception {
         if (!LanternConstants.LAUNCHD_PLIST.isFile()) {

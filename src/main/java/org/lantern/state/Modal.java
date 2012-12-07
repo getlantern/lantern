@@ -26,7 +26,7 @@ public enum Modal {
     none
     */
     
-    settingsUnlock,
+    //settingsUnlock,
     settingsLoadFailure,
     welcome,
     authorize,

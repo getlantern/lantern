@@ -17,15 +17,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * DefaultLocalCipherProvider
- *
- * This is a LocalCipherProvider that uses password 
- * based encryption (PBE) and prompts the user for some 
- * secret.
+ * This is a LocalCipherProvider that uses password based encryption (PBE) 
+ * and prompts the user for some secret.
  * 
- * The user is asked to set and enter passwords to 
- * decrypt local information on each run of the program
- * and to set a password on the first run.
+ * The user is asked to set and enter passwords to decrypt local information 
+ * on each run of the program and to set a password on the first run.
  *
  */
 public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
@@ -60,7 +56,7 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
     }
     
     @Override
-    public void feedUserInput(char [] input, boolean init)
+    public void feedUserInput(final char [] input, final boolean init)
         throws IOException, GeneralSecurityException {
     
         byte[] rawKey = null;
@@ -78,7 +74,8 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
             }
         
             final KeySpec keySpec = new PBEKeySpec(input);
-            final SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(getAlgorithm());
+            final SecretKeyFactory keyFactory = 
+                SecretKeyFactory.getInstance(getAlgorithm());
             final SecretKey key = keyFactory.generateSecret(keySpec);
             rawKey = key.getEncoded();
 
@@ -107,7 +104,7 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
     }
     
     @Override
-    Key getLocalKey(boolean init) throws IOException, GeneralSecurityException {
+    Key getLocalKey(boolean init) throws UserInputRequiredException {
         // user key data must be fed in.  If it has been, this should not be called.
         throw new UserInputRequiredException("Password has not been provided");
     }

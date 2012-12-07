@@ -295,11 +295,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     }
 
     private boolean useStandardProxies() {
-        return this.model.getSettings().isUseCentralProxies() && LanternHub.settings().isUseCloudProxies();
+        return this.model.getSettings().isUseCentralProxies() && model.getSettings().isUseCloudProxies();
     }
 
     private boolean useLae() {
-        return this.model.getSettings().isUseLaeProxies() && LanternHub.settings().isUseCloudProxies();
+        return this.model.getSettings().isUseLaeProxies() && model.getSettings().isUseCloudProxies();
     }
 
     private void centralConnect(final HttpRequest request) {

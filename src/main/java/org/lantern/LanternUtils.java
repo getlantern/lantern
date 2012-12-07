@@ -63,7 +63,6 @@ import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
-import org.lantern.SettingsState.State;
 import org.lantern.state.Model;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
@@ -307,11 +306,6 @@ public class LanternUtils {
             return true;
         }
         return false;
-    }
-
-    public static boolean isNewInstall() {
-        return LanternHub.settings().getSettings().getState() == 
-            State.UNSET;
     }
 
     /**

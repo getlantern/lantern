@@ -41,7 +41,7 @@ public class Settings implements MutableSettings {
     /**
      * Settings that are not sent to the UI or persisted to disk.
      */
-    public static class TransientSettings {}
+    //public static class TransientSettings {}
 
     // by default, if not marked, fields will be serialized in 
     // all of the above classes. To exclude a field from other
@@ -82,7 +82,7 @@ public class Settings implements MutableSettings {
     private int port = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
     private int serverPort = LanternUtils.randomPort();
     private boolean connectOnLaunch = true;
-    private String language = Locale.getDefault().getLanguage();
+    //private String language = Locale.getDefault().getLanguage();
     
     private SettingsState settings = new SettingsState();
     
@@ -180,7 +180,7 @@ public class Settings implements MutableSettings {
     /**
      * Locally-stored set of users we've invited.
      */
-    private Set<String> invited = new HashSet<String>();
+    //private Set<String> invited = new HashSet<String>();
     
     private Transfers transfers = new Transfers();
     
@@ -192,7 +192,7 @@ public class Settings implements MutableSettings {
 
     public Settings()  {
         Events.register(this);
-        threadPublicIpLookup();
+        //threadPublicIpLookup();
     }
 
     /*
@@ -212,6 +212,7 @@ public class Settings implements MutableSettings {
      * over the network can delay the creation of settings altogether. That's
      * problematic if the UI is waiting on them, for example.
      */
+    /*
     private void threadPublicIpLookup() {
         if (LanternConstants.ON_APP_ENGINE) {
             return;
@@ -257,7 +258,6 @@ public class Settings implements MutableSettings {
         thread.start();
     }
 
-    /*
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public boolean isSystemProxy() {
         return this.isSystemProxy;
@@ -276,7 +276,6 @@ public class Settings implements MutableSettings {
     public void setStartAtLogin(final boolean startAtLogin) {
         this.startAtLogin = startAtLogin;
     }
-    */
 
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public int getPort() {
@@ -288,7 +287,6 @@ public class Settings implements MutableSettings {
         this.port = port;
     }
 
-    /*
     public void setServerPort(final int serverPort) {
         this.serverPort = serverPort;
     }
@@ -318,7 +316,6 @@ public class Settings implements MutableSettings {
         log.info("Got update event");
         this.update = ue.getData();
     }
-    */
 
     public void setLanguage(final String language) {
         this.language = language;
@@ -329,7 +326,6 @@ public class Settings implements MutableSettings {
         return language;
     }
 
-    /*
     public void setUpdate(final Map<String, Object> update) {
         this.update = update;
     }
@@ -338,18 +334,17 @@ public class Settings implements MutableSettings {
     public Map<String, Object> getUpdate() {
         return update;
     }
-    */
 
     public void setSettings(SettingsState settings) {
         this.settings = settings;
     }
+    */
 
     @JsonView(RuntimeSetting.class)
     public SettingsState getSettings() {
         return settings;
     }
 
-    /*
     @JsonView({RuntimeSetting.class, PersistentSetting.class})
     public boolean isInitialSetupComplete() {
         return initialSetupComplete;
@@ -358,7 +353,7 @@ public class Settings implements MutableSettings {
     public void setInitialSetupComplete(boolean val) {
         initialSetupComplete = val;
     }
-    */
+    
 
     /*
     public void setCommandLineEmail(String email) {
@@ -394,7 +389,6 @@ public class Settings implements MutableSettings {
     public boolean isProxyAllSites() {
         return proxyAllSites;
     }
-    */
 
     public void setCountryDetected(final Country countryDetected) {
         this.countryDetected.set(countryDetected);
@@ -424,7 +418,6 @@ public class Settings implements MutableSettings {
     public boolean isManuallyOverrideCountry() {
         return manuallyOverrideCountry;
     }
-/*
     @Override
     public void setSavePassword(final boolean savePassword) {
         this.savePassword = savePassword;
@@ -445,7 +438,6 @@ public class Settings implements MutableSettings {
     public String getPassword() {
         return password;
     }
-    */
 
     public void setCommandLinePassword(String password) {
         commandLinePassword = password;
@@ -466,7 +458,6 @@ public class Settings implements MutableSettings {
         return storedPassword;
     }
 
-    /*
     @JsonIgnore
     public void setClientID(final String clientID) {
         this.clientID = clientID;
@@ -521,7 +512,6 @@ public class Settings implements MutableSettings {
     public String getRefreshToken() {
         return refreshToken;
     }
-    */
 
     public void setUseCloudProxies(final boolean useCloudProxies) {
         this.useCloudProxies = useCloudProxies;
@@ -532,7 +522,6 @@ public class Settings implements MutableSettings {
         return useCloudProxies;
     }
 
-    /*
     @Override
     public void setGetMode(final boolean getMode) {
         synchronized (getModeLock) {
@@ -565,7 +554,6 @@ public class Settings implements MutableSettings {
     public boolean isBindToLocalhost() {
         return bindToLocalhost;
     }
-    */
     
     @JsonView(RuntimeSetting.class)
     public boolean isProxying() {
@@ -582,12 +570,11 @@ public class Settings implements MutableSettings {
         return passwordSaved;
     }
 
-    /*
+    
     @JsonView(UIStateSettings.class)
     public HttpsEverywhere getHttpsEverywhere() {
         return LanternHub.httpsEverywhere();
     }
-    */
     
     public void setWhitelist(Whitelist whitelist) {
         this.whitelist = whitelist;
@@ -598,7 +585,6 @@ public class Settings implements MutableSettings {
         return whitelist;
     }
     
-    /*
     public void setLaunchd(final boolean launchd) {
         this.launchd = launchd;
     }
@@ -631,12 +617,15 @@ public class Settings implements MutableSettings {
     }
     */
 
+    /*
     @JsonView(RuntimeSetting.class)
     public boolean isLocalPasswordInitialized() {
         //return LanternHub.localCipherProvider().isInitialized();
         throw new UnsupportedOperationException("FIX ME - NEW UI");
     }
+    */
 
+    /*
     public void setAutoConnectToPeers(final boolean autoConnectToPeers) {
         this.autoConnectToPeers = autoConnectToPeers;
     }
@@ -751,7 +740,6 @@ public class Settings implements MutableSettings {
     public boolean isAnalytics() {
         return analytics;
     }
-    */
     
     public void setInvited(final Set<String> invited) {
         this.invited = invited;
@@ -762,7 +750,6 @@ public class Settings implements MutableSettings {
         return invited;
     }
 
-    /*
     public void setUiDir(final String uiDir) {
         this.uiDir = uiDir;
     }
@@ -805,6 +792,7 @@ public class Settings implements MutableSettings {
     }
     */
     
+    /*
     @Override
     public String toString() {
         return "Settings [startAtLogin=" + startAtLogin + ", isSystemProxy="
@@ -832,10 +820,11 @@ public class Settings implements MutableSettings {
                 + useCentralProxies + ", getModeLock=" + getModeLock
                 + ", stunServers=" + stunServers + ", invites=" + invites
                 + ", cache=" + cache + ", uiDir=" + uiDir
-                + ", nodeId=" + nodeId + ", invited=" + invited
+                + ", nodeId=" + nodeId 
                 + ", transfers=" + transfers 
                 + "]";
     }
+    */
 
     /** 
      * copy properties annotated with the CommandLineOption setting 

@@ -30,6 +30,7 @@ import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.SyncService;
 import org.lantern.state.SyncStrategy;
+import org.lantern.ui.SwtMessageService;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.PublicIpsOnlyRequestFilter;
 
@@ -52,7 +53,8 @@ public class LanternModule extends AbstractModule {
         bind(Stats.class).to(StatsTracker.class);
         bind(LanternSocketsUtil.class);
         bind(LanternXmppUtil.class);
-        bind(MessageService.class).to(Dashboard.class);
+        bind(MessageService.class).to(SwtMessageService.class);
+        
         bind(Proxifier.class);
         bind(Configurator.class);
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);
@@ -113,6 +115,7 @@ public class LanternModule extends AbstractModule {
         }
         else if (SystemUtils.IS_OS_MAC_OSX) {
             lcp = new MacLocalCipherProvider();
+            //lcp = new DefaultLocalCipherProvider();
         }
         // disabled per #249
         //else if (SystemUtils.IS_OS_LINUX && 
