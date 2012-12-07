@@ -387,11 +387,11 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, _COUNTRY_NAME_TO_CODE) {
     });
   }
   $scope.$watch('model.connectivity.peers.current', function(valNew, valOld) {
-    if (!started || typeof valNew == 'undefined') return;
-    if (typeof valNew != 'object') { throw 'expected array, not' + typeof valNew; } // XXX
+    if (!started || angular.isUndefined(valNew)) return;
+    if (!angular.isArray(valNew)) throw Error('expected array, not' + typeof valNew); // XXX
     updateParabolas(valNew, valOld || []);
   }, true);
-  $scope.$watch('model.location', function(val) {
+  $scope.$watch('model.location', function(location) {
     // XXX redraw parabolas when user's own location changes
   });
 }

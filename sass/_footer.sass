@@ -1,14 +1,12 @@
 #footer
-  $footerHeight: 65px
-  +size(100%, $footerHeight)
+  +size(100%, false)
   +position(false, 0, 0, 0)
+  +aboveModal
   +centered
   +small
   +text-shadow($black 1px 1px 1px)
   +box-sizing(border-box)
   word-spacing: .3ex
-  padding: 47px 0 0
-  +aboveModal
 
 body.showVis #footer
   padding: 10px 0 0

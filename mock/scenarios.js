@@ -1,15 +1,16 @@
 var sleep = require('./node_modules/sleep'),
-    helpers = require('./helpers'),
+    helpers = require('../app/js/helpers.js'),
+      merge = helpers.merge,
     enums = require('./enums'),
-    CONNECTIVITY = enums.CONNECTIVITY,
-    MODAL = enums.MODAL,
-    OS = enums.OS;
+      CONNECTIVITY = enums.CONNECTIVITY,
+      MODAL = enums.MODAL,
+      OS = enums.OS;
 
 function make_simple_scenario(state) {
   return function() {
     var model = this.model, publishSync = this.publishSync;
     for (var path in state) {
-      helpers.merge(model, path, state[path]);
+      merge(model, state[path], path);
       publishSync(path);
     }
   };

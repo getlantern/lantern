@@ -5556,11 +5556,11 @@ circle {
 
 #footer {
   width: 100%;
-  height: 65px;
   position: absolute;
   right: 0;
   bottom: 0;
   left: 0;
+  z-index: 1051;
   text-align: center;
   font-size: 11.9px;
   text-shadow: black 1px 1px 1px;
@@ -5568,8 +5568,6 @@ circle {
   -moz-box-sizing: border-box;
   box-sizing: border-box;
   word-spacing: 0.3ex;
-  padding: 47px 0 0;
-  z-index: 1051;
 }
 
 body.showVis #footer {

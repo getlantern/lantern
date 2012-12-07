@@ -1,20 +1,21 @@
 'use strict';
 
 var url = require('url'),
-    util = require('util'),
     sleep = require('./node_modules/sleep'),
-    helpers = require('./helpers'),
-    getByPath = helpers.getByPath,
-    merge = helpers.merge,
-    validatePasswords = helpers.validatePasswords,
+    _ = require('../app/lib/lodash.js')._,
+    helpers = require('../app/js/helpers.js'),
+      makeLogger = helpers.makeLogger,
+        log = makeLogger('api'),
+      getByPath = helpers.getByPath,
+      merge = helpers.merge,
     scenarios = require('./scenarios'),
-    SCENARIOS = scenarios.SCENARIOS,
+      SCENARIOS = scenarios.SCENARIOS,
     enums = require('./enums'),
-    CONNECTIVITY = enums.CONNECTIVITY,
-    INTERACTION = enums.INTERACTION,
-    MODAL = enums.MODAL,
-    MODE = enums.MODE,
-    OS = enums.OS;
+      CONNECTIVITY = enums.CONNECTIVITY,
+      INTERACTION = enums.INTERACTION,
+      MODAL = enums.MODAL,
+      MODE = enums.MODE,
+      OS = enums.OS;
 
 function ApiServlet(bayeuxBackend) {
   this._bayeuxBackend = bayeuxBackend;
@@ -59,10 +60,10 @@ ApiServlet.RESET_INTERNAL_STATE = {
 };
 
 ApiServlet.prototype.reset = function() {
-  this._internalState = JSON.parse(JSON.stringify(ApiServlet.RESET_INTERNAL_STATE)); // quick and dirty clone
+  this._internalState = _.clone(ApiServlet.RESET_INTERNAL_STATE, true);
   this.resetModel();
   this.model = this._bayeuxBackend.model;
-  helpers.merge(this.model, '', {
+  merge(this.model, {
     version: {installed: {httpApi: ApiServlet.VERSION}},
     mock: {scenarios: {applied: {}, all: SCENARIOS}}
   });
@@ -81,10 +82,11 @@ ApiServlet.prototype.reset = function() {
   this.publishSync();
 };
 
-ApiServlet.prototype.updateModel = function(updates, publish) {
-  for (var path in updates) {
-    merge(this.model, path, updates[path]);
-    publish && this.publishSync(path);
+ApiServlet.prototype.updateModel = function(state, publish) {
+  for (var path in state) {
+    merge(this.model, state[path], path);
+    if (publish)
+      this.publishSync(path);
   }
 };
 
@@ -122,7 +124,7 @@ ApiServlet.prototype.passwordCreateRequired = function() {
 
 ApiServlet._handlers = {};
 ApiServlet._handlers.passwordCreate = function(res, qs) {
-  if (!validatePasswords(qs.password1, qs.password2)) {
+  if (!qs.password1 || qs.password1 != qs.password2) {
     res.writeHead(400);
     return;
   }
@@ -210,7 +212,7 @@ ApiServlet._intHandlerForModal[MODAL.authorize] = function(interaction, res) {
 
   // check for gtalk authorization
   var scen = getByPath(this.model, 'mock.scenarios.applied.oauth');
-  scen = getByPath(this.model, 'mock.scenarios.all.oauth.'+scen);
+  scen = getByPath(SCENARIOS, 'oauth.'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
     this.updateModel({modal: MODAL.scenarios,
@@ -228,7 +230,7 @@ ApiServlet._intHandlerForModal[MODAL.authorize] = function(interaction, res) {
   // check for lantern access
   // XXX show this in UI?
   scen = getByPath(this.model, 'mock.scenarios.applied.lanternAccess');
-  scen = getByPath(this.model, 'mock.scenarios.all.lanternAccess.'+scen);
+  scen = getByPath(SCENARIOS, 'lanternAccess.'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
     this.updateModel({modal: MODAL.scenarios,
@@ -245,7 +247,7 @@ ApiServlet._intHandlerForModal[MODAL.authorize] = function(interaction, res) {
 
   // connect to google talk
   scen = getByPath(this.model, 'mock.scenarios.applied.gtalkConnect');
-  scen = getByPath(this.model, 'mock.scenarios.all.gtalkConnect.'+scen);
+  scen = getByPath(SCENARIOS, 'gtalkConnect.'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
     this.updateModel({modal: MODAL.scenarios,
@@ -262,7 +264,7 @@ ApiServlet._intHandlerForModal[MODAL.authorize] = function(interaction, res) {
   // fetch roster
   // XXX show this in UI?
   scen = getByPath(this.model, 'mock.scenarios.applied.roster');
-  scen = getByPath(this.model, 'mock.scenarios.all.roster.'+scen);
+  scen = getByPath(SCENARIOS, 'roster.'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
     this.updateModel({modal: MODAL.scenarios,
@@ -279,7 +281,7 @@ ApiServlet._intHandlerForModal[MODAL.authorize] = function(interaction, res) {
   // peer discovery and connection
   // XXX show this in UI?
   scen = getByPath(this.model, 'mock.scenarios.applied.peers');
-  scen = getByPath(this.model, 'mock.scenarios.all.peers.'+scen);
+  scen = getByPath(SCENARIOS, 'peers.'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
     this.updateModel({modal: MODAL.scenarios,
@@ -441,11 +443,5 @@ ApiServlet.prototype.handleRequest = function(req, res) {
   log(res.statusCode);
 };
 
-function log() {
-  var s = '[api] ';
-  for (var i=0, l=arguments.length, ii=arguments[i]; i<l; ii=arguments[++i])
-    s += (typeof ii == 'object' ? util.inspect(ii, false, null, true) : ii)+' ';
-  util.puts(s);
-}
 
 exports.ApiServlet = ApiServlet;

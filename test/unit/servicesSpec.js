@@ -1,17 +1,11 @@
 'use strict';
 
-describe('test test', function() {
-  it('true should equal true', function() {
-    expect(true).toEqual(true);
-  });
-});
-
 describe('service', function() {
   beforeEach(module('app.services'));
 
-  describe('api version', function() {
-    it('should return current API version', inject(function(APIVER) {
-      expect(APIVER).toEqual('0.0.1');
+  describe('...', function() {
+    it('...', inject(function(MODEL_SYNC_CHANNEL) {
+      expect(MODEL_SYNC_CHANNEL).toEqual('/sync');
     }));
   });
 });

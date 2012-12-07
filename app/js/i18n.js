@@ -2,12 +2,13 @@
 
 angular.module('app.i18n', [])
   .constant('DEFAULTLANG', 'en')
+  .constant('DEFAULTDIRECTION', 'ltr')
   .constant('NBSP', ' ') // unicode no-break space
-  .service('langSrvc', function(modelSrvc, DEFAULTLANG, LANGDIRECTIONS) {
-    var DEFAULTDIRECTION = 'ltr';
+  .service('langSrvc', function(modelSrvc, DEFAULTLANG, DEFAULTDIRECTION, LANGDIRECTIONS) {
+    var model = modelSrvc.model;
     function lang() {
-      return modelSrvc.get('settings.lang') ||
-             modelSrvc.get('system.lang') ||
+      return getByPath(model, 'settings.lang') ||
+             getByPath(model, 'system.lang') ||
              DEFAULTLANG;
     }
     function direction() {
