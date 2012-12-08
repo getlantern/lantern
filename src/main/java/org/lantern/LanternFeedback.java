@@ -91,7 +91,7 @@ public class LanternFeedback {
         } catch (IOException e) {
             throw e;
         } catch (final Throwable e) {
-            throw new IOException(e);
+            throw new IOException("Unexpected throwable", e);
         } finally {
             httpclient.getConnectionManager().shutdown();
         }
