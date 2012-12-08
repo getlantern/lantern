@@ -22,6 +22,7 @@ import org.lantern.privacy.DefaultEncryptedFileService;
 import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.privacy.MacLocalCipherProvider;
 import org.lantern.privacy.UnencryptedFileService;
 import org.lantern.privacy.WindowsLocalCipherProvider;
 import org.lantern.state.CometDSyncStrategy;
@@ -125,10 +126,9 @@ public class LanternModule extends AbstractModule {
         */
         if (SystemUtils.IS_OS_WINDOWS) {
             lcp = new WindowsLocalCipherProvider();   
-        }
-        else if (SystemUtils.IS_OS_MAC_OSX) {
-            //lcp = new MacLocalCipherProvider();
-            lcp = new DefaultLocalCipherProvider();
+        } else if (SystemUtils.IS_OS_MAC_OSX) {
+            lcp = new MacLocalCipherProvider();
+            //lcp = new DefaultLocalCipherProvider();
         }
         // disabled per #249
         //else if (SystemUtils.IS_OS_LINUX && 
