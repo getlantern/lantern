@@ -43,8 +43,6 @@ angular.module('app.services', [])
     connected: 'connected'
   })
   .constant('MODAL', {
-    passwordCreate: 'passwordCreate',
-    settingsUnlock: 'settingsUnlock',
     settingsLoadFailure: 'settingsLoadFailure',
     welcome: 'welcome',
     authorize: 'authorize',

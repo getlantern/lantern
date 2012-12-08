@@ -1,6 +1,5 @@
 exports.MODE = {give: 'give', get: 'get'};
 exports.MODAL = {
-  settingsUnlock: 'settingsUnlock',
   settingsLoadFailure: 'settingsLoadFailure',
   welcome: 'welcome',
   authorize: 'authorize',
@@ -13,7 +12,6 @@ exports.MODAL = {
   firstInviteReceived: 'firstInviteReceived',
   proxiedSites: 'proxiedSites',
   systemProxy: 'systemProxy',
-  passwordCreate: 'passwordCreate',
   lanternFriends: 'lanternFriends',
   finished: 'finished',
   contactDevs: 'contactDevs',
