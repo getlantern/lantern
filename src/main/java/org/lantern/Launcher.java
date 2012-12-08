@@ -42,6 +42,7 @@ import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
+import org.lantern.state.StaticSettings;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.slf4j.Logger;
@@ -902,12 +903,11 @@ public class Launcher {
                 cmd.getOptionValue(OPTION_API_PORT);
             LOG.info("Using command-line port: "+ apiPortStr);
             final int apiPort = Integer.parseInt(apiPortStr);
-            model.getConnectivity().setApiPort(apiPort);
+            StaticSettings.setApiPort(apiPort);
         } else {
             LOG.info("Using random port...");
-            model.getConnectivity().setApiPort(LanternUtils.randomPort());
         }
-        LOG.info("Running API on port: {}", model.getConnectivity().getApiPort());
+        LOG.info("Running API on port: {}", StaticSettings.getApiPort());
 
         if (cmd.hasOption(OPTION_SERVER_PORT)) {
             final String serverPortStr =

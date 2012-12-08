@@ -281,6 +281,7 @@ public class SystemTrayImpl implements SystemTray {
     @Subscribe
     public void onConnectivityStateChanged(final GoogleTalkStateEvent event) {
         final GoogleTalkState state = event.getState();
+        log.debug("Received connectivity state changed: {}", state);
         switch (state) {
         case LOGIN_FAILED:
             changeIcon(ICON_DISCONNECTED);

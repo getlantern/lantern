@@ -33,6 +33,7 @@ import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.Profile;
+import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -198,6 +199,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             public void run() {
                 try {
                     xmppHandler.connect();
+                    log.debug("Setting gtalk authorized");
                     model.getConnectivity().setGtalkAuthorized(true);
                     internalState.advanceModal(null);
                 } catch (final CredentialException e) {
@@ -256,7 +258,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
     }
 
     private void redirectToDashboard(final HttpServletResponse resp) {
-        final String dashboard = this.model.getConnectivity().getLocalEndpoint();
+        final String dashboard = StaticSettings.getLocalEndpoint();
         try {
             resp.sendRedirect(dashboard);
             resp.flushBuffer();

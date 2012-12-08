@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.lantern.event.Events;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
+import org.lantern.state.StaticSettings;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,14 +74,14 @@ public class Dashboard implements BrowserService {
     
     @Override
     public void openBrowserWhenPortReady() {
-        openBrowserWhenPortReady(this.model.getConnectivity().getApiPort());
+        openBrowserWhenPortReady(StaticSettings.getApiPort());
     }
     
     @Override
     public void openBrowserWhenPortReady(final int port) {
         LanternUtils.waitForServer(port);
         log.info("Server is running. Opening browser...");
-        openBrowser();
+        openBrowser(port);
     }
     
     @Override
@@ -183,7 +184,7 @@ public class Dashboard implements BrowserService {
         log.debug("Running browser: {}", browser.getBrowserType());
         browser.setSize(minWidth, minHeight);
         //browser.setBounds(0, 0, 800, 600);
-        browser.setUrl(LanternUtils.getLocalEndpoint(this.model));
+        browser.setUrl(StaticSettings.getLocalEndpoint());
 
         browser.addLocationListener(new LocationListener() {
             @Override
@@ -191,7 +192,7 @@ public class Dashboard implements BrowserService {
                 try {
                     final URI url = new URI(event.location);
                     final String localAuthority = 
-                        LanternUtils.getLocalEndpoint(model);
+                        StaticSettings.getLocalEndpoint();
                     if (openExternal(url, localAuthority)) {
                         log.info("opening external browser to {}", event.location);
                         event.doit = false;
@@ -372,5 +373,11 @@ public class Dashboard implements BrowserService {
         if (DisplayWrapper.getDisplay() != null) {
             DisplayWrapper.getDisplay().dispose();
         }
+    }
+
+    @Override
+    public void openBrowser(int port) {
+        // TODO Auto-generated method stub
+        
     }
 }

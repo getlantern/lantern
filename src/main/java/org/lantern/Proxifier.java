@@ -11,6 +11,7 @@ import org.lantern.event.Events;
 import org.lantern.event.QuitEvent;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
+import org.lantern.state.StaticSettings;
 import org.lantern.win.WinProxy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -385,7 +386,7 @@ public class Proxifier implements LanternService {
     
     private String pacFileUrl(final File pacFile) {
         final String url = 
-            "http://127.0.0.1:"+this.model.getConnectivity().getApiPort()+"/"+
+            StaticSettings.getLocalEndpoint()+"/"+
                 pacFile.getName()+"-"+RandomUtils.nextInt();
         return url;
     }

@@ -48,12 +48,12 @@ public class SyncService implements LanternService {
      */
     @Inject
     public SyncService(final SyncStrategy strategy, 
-        final Model model, final Timer timer, final Events events) {
+        final Model model, final Timer timer) {
         this.strategy = strategy;
         this.model = model;
         this.timer = timer;
         // Make sure the config class is added as a listener before this class.
-        events.register(this);
+        Events.register(this);
     }
     
 

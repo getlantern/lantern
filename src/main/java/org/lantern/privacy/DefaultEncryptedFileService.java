@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.privacy;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,7 +13,6 @@ import javax.crypto.CipherInputStream;
 import javax.crypto.CipherOutputStream;
 
 import org.apache.commons.io.IOUtils;
-import org.lantern.privacy.LocalCipherProvider;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;

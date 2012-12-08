@@ -18,9 +18,11 @@ import org.lantern.http.InteractionServlet;
 import org.lantern.http.JettyLauncher;
 import org.lantern.http.LanternApi;
 import org.lantern.http.PhotoServlet;
+import org.lantern.privacy.DefaultEncryptedFileService;
 import org.lantern.privacy.DefaultLocalCipherProvider;
+import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.LocalCipherProvider;
-import org.lantern.privacy.MacLocalCipherProvider;
+import org.lantern.privacy.UnencryptedFileService;
 import org.lantern.privacy.WindowsLocalCipherProvider;
 import org.lantern.state.CometDSyncStrategy;
 import org.lantern.state.DefaultModelChangeImplementor;
@@ -59,7 +61,7 @@ public class LanternModule extends AbstractModule {
         bind(Configurator.class);
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);
         bind(SyncService.class);
-        bind(EncryptedFileService.class).to(DefaultEncryptedFileService.class);
+        //bind(EncryptedFileService.class).to(DefaultEncryptedFileService.class);
         bind(BrowserService.class).to(ChromeBrowserService.class);
         bind(Model.class).toProvider(ModelIo.class).in(Singleton.class);
         bind(ModelChangeImplementor.class).to(DefaultModelChangeImplementor.class);
@@ -80,6 +82,17 @@ public class LanternModule extends AbstractModule {
         bind(LanternApi.class).to(DefaultLanternApi.class);
         //bind(SettingsChangeImplementor.class).to(DefaultSettingsChangeImplementor.class);
         bind(LanternHttpProxyServer.class);
+    }
+    
+    @Provides @Singleton
+    EncryptedFileService provideEncryptedService(final LocalCipherProvider lcp) {
+        if (SystemUtils.IS_OS_LINUX) {
+            // On linux we don't store any oauth data on disk and instead 
+            // simply rely on the user re-entering his or her oauth credentials
+            // each time.
+            return new UnencryptedFileService();
+        }
+        return new DefaultEncryptedFileService(lcp);
     }
     
     @Provides @Singleton
@@ -114,8 +127,8 @@ public class LanternModule extends AbstractModule {
             lcp = new WindowsLocalCipherProvider();   
         }
         else if (SystemUtils.IS_OS_MAC_OSX) {
-            lcp = new MacLocalCipherProvider();
-            //lcp = new DefaultLocalCipherProvider();
+            //lcp = new MacLocalCipherProvider();
+            lcp = new DefaultLocalCipherProvider();
         }
         // disabled per #249
         //else if (SystemUtils.IS_OS_LINUX && 

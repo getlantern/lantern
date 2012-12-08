@@ -351,9 +351,11 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.warn("Can't connect when not started!!");
             throw new Error("Can't connect when not started!!");
         }
-        if (!this.modelUtils.isConfigured() && this.model.getSettings().isUiEnabled()) {
-            LOG.info("Not connecting when not configured");
-            return;
+        if (!this.modelUtils.isConfigured()) {
+            if (this.model.getSettings().isUiEnabled()) {
+                LOG.info("Not connecting when not configured and UI enabled");
+                return;
+            }
         }
         LOG.info("Connecting to XMPP servers...");
         if (this.model.getSettings().isUseGoogleOAuth2()) {
@@ -457,7 +459,7 @@ public class DefaultXmppHandler implements XmppHandler {
             
             @Override
             public void onConnectivityEvent(final P2PConnectionEvent event) {
-                LOG.info("Got connectivity event: {}", event);
+                LOG.debug("Got connectivity event: {}", event);
                 Events.asyncEventBus().post(event);
             }
         });
@@ -466,7 +468,7 @@ public class DefaultXmppHandler implements XmppHandler {
         // get notifications of messages twice in some cases, but that's
         // better than the alternative of sometimes not being notified
         // at all.
-        LOG.info("Adding message listener...");
+        LOG.debug("Adding message listener...");
         this.client.get().addMessageListener(typedListener);
         
         if (this.proxies.isEmpty()) {
@@ -477,6 +479,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
         try {
             this.client.get().login(credentials);
+            LOG.debug("Sending connected event");
             Events.eventBus().post(
                 new GoogleTalkStateEvent(GoogleTalkState.connected));
         } catch (final IOException e) {
@@ -509,7 +512,7 @@ public class DefaultXmppHandler implements XmppHandler {
         // OTR.
         LanternUtils.activateOtr(connection);
         
-        LOG.info("Connection ID: {}", connection.getConnectionID());
+        LOG.debug("Connection ID: {}", connection.getConnectionID());
         
         // Here we handle allowing the server to subscribe to our presence.
         connection.addPacketListener(new PacketListener() {

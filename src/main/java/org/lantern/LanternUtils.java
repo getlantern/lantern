@@ -63,7 +63,6 @@ import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
-import org.lantern.state.Model;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
@@ -831,10 +830,21 @@ public class LanternUtils {
         return prop != null;
     }
 
-    public static String getLocalEndpoint(final Model model) {
-        return model.getConnectivity().getLocalEndpoint();
+    /**
+     * Determines whether or not oauth data should be persisted to disk. It is
+     * only persisted if we can do so safely and securely but also cleanly --
+     * in particular on Ubuntu we require the user to re-authenticate for
+     * oauth each time because saving those credentials encrypted to disk
+     * would require the user to re-enter a Lantern password each time, which
+     * is no better and is arguably worse than them just re-authenticating 
+     * for new oauth tokens with google.
+     * 
+     * @return <code>true</code> if credentials should be persisted to disk,
+     * otherwise <code>false</code>.
+     */
+    public static boolean persistCredentials() {
+        return !SystemUtils.IS_OS_LINUX;
     }
-
 }
 
 

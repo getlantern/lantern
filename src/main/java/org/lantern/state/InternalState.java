@@ -29,50 +29,11 @@ public class InternalState {
 
     private final Model model;
 
-    /*
-    private final boolean[] modalsCompleted = {
-        false, false, false, false, false, false, false
-    };
-    
-    private final int welcome = 0;
-    private final int passwordCreate = 1;
-    private final int authorize = 2;
-    private final int proxiedSites = 3;
-    private final int systemProxy = 4;
-    private final int inviteFriends = 5;
-    private final int finished = 6;
-    */
-
     @Inject
     public InternalState(final Model model) {
         this.model = model;
         //Events.register(this);
     }
-    
-    /*
-    @Subscribe
-    public void onConnectivity(final GoogleTalkStateEvent event) {
-        if (model.isSetupComplete()) {
-            log.info("Ignoring connectivity state when setup is complete");
-            return;
-        }
-        final GoogleTalkState state = event.getState();
-        switch (state) {
-        case LOGIN_FAILED:
-            break;
-        case connected:
-            advanceModal(null);
-            break;
-        case connecting:
-            break;
-        case notConnected:
-            break;
-        default:
-            break;
-        
-        }
-    }
-    */
 
     public void resetInternalState() {
         //Arrays.fill(modalsCompleted, false);
@@ -80,6 +41,14 @@ public class InternalState {
     }
  
     public void advanceModal(final Modal backToIfNone) {
+        if (this.model.isSetupComplete()) {
+            // This can happen on Linux, for example, when we send the user
+            // the authorization screen to get new oauth tokens since we don't
+            // persist oauth.
+            log.info("Setup complete -- setting modal to none");
+            Events.syncModal(this.model, Modal.none);
+            return;
+        }
         final Modal[] seq;
         if (this.model.getSettings().getMode() == Mode.get) {
             seq = modalSeqGet;

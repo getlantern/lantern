@@ -10,6 +10,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.SettingsState.State;
+import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.UserInputRequiredException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
