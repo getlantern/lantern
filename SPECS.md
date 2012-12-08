@@ -530,10 +530,10 @@ the backend maintains on the frontend through comet publications:
 * Switches to Oauth rather than asking for users' Google passwords. Since we no
   longer store users' Google passwords, the data we do store is now much less
   sensitive. On Windows and OS X we continue to use the systems' keychain
-  facilities for secure data storage. Pending getlantern/lantern#357, on Ubuntu
-  we ditch Lantern password-based settings unlock and just don't store anything
-  sensitive like the Oauth token, instead just having the user do a new Oauth
-  Oauth sequence after restarting Lantern.
+  facilities for secure data storage. Pending [#357](https://github.com/getlantern/lantern/issues/357),
+  on Ubuntu we ditch Lantern password-based settings unlock and just don't store
+  anything sensitive like the Oauth token, instead just having the user do a new
+  Oauth Oauth sequence after restarting Lantern.
 
 * Frontend does not maintain any state outside of the state document, e.g. no
   longer tries to keep track of which modal to display when, just does as it's
