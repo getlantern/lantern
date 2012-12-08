@@ -102,6 +102,8 @@ public class InteractionServlet extends HttpServlet {
                 handleGiveGet(false);
                 break;
             default:
+                log.error("Did not handle interaction for modal {} with " +
+                        "params: {}", modal, params);
                 HttpUtils.sendClientError(resp, "give or get required");
                 break;
             }
@@ -121,6 +123,8 @@ public class InteractionServlet extends HttpServlet {
                 Events.asyncEventBus().post(new SyncEvent(SyncPath.ALL, model));
                 break;
             default:
+                log.error("Did not handle interaction for modal {} with " +
+                        "params: {}", modal, params);
                 HttpUtils.sendClientError(resp, "give or get required");
                 break;
             }
@@ -137,6 +141,8 @@ public class InteractionServlet extends HttpServlet {
                 this.internalState.advanceModal(null);
                 break;
             default:
+                log.error("Did not handle interaction for modal {} with " +
+                        "params: {}", modal, params);
                 HttpUtils.sendClientError(resp, "give or get required");
                 break;
             }
@@ -148,6 +154,8 @@ public class InteractionServlet extends HttpServlet {
                 Events.syncModal(model, Modal.settings);
                 break;
             default:
+                log.error("Did not handle interaction for modal {} with " +
+                        "params: {}", modal, params);
                 HttpUtils.sendClientError(resp, "give or get required");
                 break;
             }
@@ -163,6 +171,8 @@ public class InteractionServlet extends HttpServlet {
                 this.internalState.advanceModal(null);
                 break;
             default:
+                log.error("Did not handle interaction for modal {} with " +
+                    "params: {}", modal, params);
                 HttpUtils.sendClientError(resp, "give or get required");
                 break;
             }
@@ -173,11 +183,15 @@ public class InteractionServlet extends HttpServlet {
             break;
         case settings:
             switch (inter) {
+            case GET:
+                break;
             case CLOSE:
                 log.info("Processing settings close");
                 Events.syncModal(model, Modal.none);
                 break;
             default:
+                log.error("Did not handle interaction for modal {} with " +
+                        "params: {}", modal, params);
                 HttpUtils.sendClientError(resp, "give or get required");
                 break;
             }
@@ -195,24 +209,38 @@ public class InteractionServlet extends HttpServlet {
                 this.internalState.advanceModal(null);
                 break;
             default:
+                log.error("Did not handle interaction for modal {} with " +
+                        "params: {}", modal, params);
                 HttpUtils.sendClientError(resp, "give or get required");
                 break;
             }
             break;
         case updateAvailable:
+            log.error("Did not handle interaction for modal {} with " +
+                    "params: {}", modal, params);
             break;
         case authorizeLater:
+            log.error("Did not handle interaction for modal {} with " +
+                    "params: {}", modal, params);
             break;
         case confirmReset:
+            log.error("Did not handle interaction for modal {} with " +
+                    "params: {}", modal, params);
             break;
         case contactDevs:
+            log.error("Did not handle interaction for modal {} with " +
+                    "params: {}", modal, params);
             break;
         case giveModeForbidden:
+            log.error("Did not handle interaction for modal {} with " +
+                    "params: {}", modal, params);
             break;
         case passwordCreate:
+            log.error("Did not handle interaction for modal {} with " +
+                    "params: {}", modal, params);
             break;
         default:
-            log.info("No matching modal for {}", modal);
+            log.error("No matching modal for {}", modal);
         }
     }
 

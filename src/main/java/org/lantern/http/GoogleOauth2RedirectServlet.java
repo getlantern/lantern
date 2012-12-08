@@ -63,11 +63,11 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
     protected void processRequest(final HttpServletRequest req, 
         final HttpServletResponse resp) throws IOException {
         final String uri = req.getRequestURI();
-        log.info("Received URI: {}", uri);
+        log.debug("Received URI: {}", uri);
         final Map<String, String> params = HttpUtils.toParamMap(req);
-        log.info("Params: {}", params);
-        log.info("Headers: {}", HttpUtils.toHeaderMap(req));
-        log.info("Query string: {}", req.getQueryString());
+        log.debug("Params: {}", params);
+        log.debug("Headers: {}", HttpUtils.toHeaderMap(req));
+        log.debug("Query string: {}", req.getQueryString());
         final String location = newGtalkOauthUrl();
         
         // We have to completely recreate the server each time because we
@@ -101,7 +101,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
             gbc.setResponseTypes("code");
             final String url = gbc.build();
             
-            log.info("Sending redirect to URL: {}", url);
+            log.debug("Sending redirect to URL: {}", url);
             return url;
         } catch (final IOException e) {
             throw new Error("Could not load oauth URL?", e);
