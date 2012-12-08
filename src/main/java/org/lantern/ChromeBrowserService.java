@@ -3,6 +3,7 @@ package org.lantern;
 import java.io.IOException;
 
 import org.lantern.state.Model;
+import org.lantern.state.StaticSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,15 +19,8 @@ public class ChromeBrowserService implements BrowserService {
     private static final int SCREEN_WIDTH = 970;
     private static final int SCREEN_HEIGHT = 630;
     
-    private final ChromeRunner chrome; 
-
-    private final Model model;
-    
-    @Inject
-    public ChromeBrowserService(final Model model) {
-        this.model = model;
-        chrome = new ChromeRunner(SCREEN_WIDTH, SCREEN_HEIGHT, model);
-    }
+    private final ChromeRunner chrome = 
+            new ChromeRunner(SCREEN_WIDTH, SCREEN_HEIGHT);
     
     /**
      * Opens the browser.
@@ -37,17 +31,34 @@ public class ChromeBrowserService implements BrowserService {
             @Override
             public void run() {
                 //buildBrowser();
-                launchChrome();
+                launchChrome(StaticSettings.getApiPort());
             }
         }, "Chrome-Browser-Launch-Thread");
         t.setDaemon(true);
         t.start();
     }
     
-    private void launchChrome() {
+    /**
+     * Opens the browser.
+     * @param port 
+     */
+    @Override
+    public void openBrowser(final int port) {
+        final Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                //buildBrowser();
+                launchChrome(port);
+            }
+        }, "Chrome-Browser-Launch-Thread");
+        t.setDaemon(true);
+        t.start();
+    }
+    
+    private void launchChrome(final int port) {
         log.info("Launching chrome...");
         try {
-            this.chrome.open();
+            this.chrome.open(port);
         } catch (final IOException e) {
             log.error("Could not open chrome?", e);
         }
@@ -55,7 +66,7 @@ public class ChromeBrowserService implements BrowserService {
     
     @Override
     public void openBrowserWhenPortReady() {
-        final int port = this.model.getConnectivity().getApiPort();
+        final int port = StaticSettings.getApiPort();
         log.info("Waiting on port: "+port);
         openBrowserWhenPortReady(port);
     }
@@ -63,8 +74,8 @@ public class ChromeBrowserService implements BrowserService {
     @Override
     public void openBrowserWhenPortReady(final int port) {
         LanternUtils.waitForServer(port);
-        log.info("Server is running. Opening browser...");
-        openBrowser();
+        log.info("Server is running. Opening browser on port: {}", port);
+        openBrowser(port);
     }
 
     @Override

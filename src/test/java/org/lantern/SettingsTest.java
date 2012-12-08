@@ -12,6 +12,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.lantern.privacy.EncryptedFileService;
 import org.lantern.state.ModelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

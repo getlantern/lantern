@@ -29,6 +29,7 @@ import org.lantern.LanternConstants;
 import org.lantern.LanternService;
 import org.lantern.Proxifier;
 import org.lantern.state.Model;
+import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,7 +93,7 @@ public class JettyLauncher implements LanternService {
         
         final SelectChannelConnector connector = 
             new SelectChannelConnector();
-        connector.setPort(this.model.getConnectivity().getApiPort());
+        connector.setPort(StaticSettings.getApiPort());
         connector.setMaxIdleTime(60 * 1000);
         connector.setLowResourcesMaxIdleTime(30 * 1000);
         connector.setLowResourcesConnections(2000);

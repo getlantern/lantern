@@ -8,6 +8,7 @@ import java.util.Properties;
 
 import org.apache.commons.io.IOUtils;
 import org.lantern.http.JettyLauncher;
+import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
 

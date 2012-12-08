@@ -1,4 +1,4 @@
-package org.lantern;
+package org.lantern.privacy;
 
 import java.io.File;
 import java.io.IOException;

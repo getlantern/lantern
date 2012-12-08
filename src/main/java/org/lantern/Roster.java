@@ -28,6 +28,7 @@ import org.lantern.event.Events;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Profile;
+import org.lantern.state.StaticSettings;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,7 +141,7 @@ public class Roster implements RosterListener {
     }
 
     private String photoUrlBase() {
-        return this.model.getConnectivity().getLocalEndpoint()+"/photo/";
+        return StaticSettings.getLocalEndpoint()+"/photo/";
     }
 
     private Map<String, LanternRosterEntry> getRosterEntries(

@@ -44,12 +44,16 @@ public class ModelUtils {
 
     public boolean isConfigured() {
         if (!LanternConstants.DEFAULT_MODEL_FILE.isFile()) {
-            LOG.info("No settings file");
+            LOG.debug("No settings file");
             return false;
         }
-        final String un = this.model.getSettings().getRefreshToken();
+        final String refresh = this.model.getSettings().getRefreshToken();
         final boolean oauth = this.model.getSettings().isUseGoogleOAuth2();
-        return oauth && StringUtils.isNotBlank(un);
+        final boolean hasRefresh = StringUtils.isNotBlank(refresh);
+        
+        LOG.debug("Has refresh: "+hasRefresh);
+        LOG.debug("Has oauth: "+oauth);
+        return oauth && hasRefresh;
     }
 
     public void loadOAuth2ClientSecretsFile(final String filename) {
