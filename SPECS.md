@@ -284,7 +284,7 @@ the backend maintains on the frontend through comet publications:
     </td>
   </tr>
   <tr>
-    <td><strong>modal</strong><br>"settingsUnlock" |
+    <td><strong>modal</strong><br>
       "settingsLoadFailure" | "welcome" | "giveModeForbidden" | "authorize" |
       "gtalkConnecting" | "gtalkUnreachable" |
       "notInvited" | "requestInvite" | "requestSent" | "firstInviteReceived" |
@@ -527,6 +527,14 @@ the backend maintains on the frontend through comet publications:
 
 ## Notes and Questions
 
+* Switches to Oauth rather than asking for users' Google passwords. Since we no
+  longer store users' Google passwords, the data we do store is now much less
+  sensitive. On Windows and OS X we continue to use the systems' keychain
+  facilities for secure data storage. Pending getlantern/lantern#357, on Ubuntu
+  we ditch Lantern password-based settings unlock and just don't store anything
+  sensitive like the Oauth token, instead just having the user do a new Oauth
+  Oauth sequence after restarting Lantern.
+
 * Frontend does not maintain any state outside of the state document, e.g. no
   longer tries to keep track of which modal to display when, just does as it's
   told via the `modal` field.
@@ -538,52 +546,61 @@ the backend maintains on the frontend through comet publications:
 
 * Welcome modal now prompts for give/get mode choice
 
-* Backend now checks country user is connecting from and only allows Get Mode
-  if censoring
+    * Backend now checks country user is connecting from via geoip and only
+      allows Give Mode if not in censoring country (Give Mode choice hidden)
+    
+    * If the country cannot be detected via geoip lookup (either because the
+      user is offline or there is no match in the geoip database), the user
+      should be allowed to choose either mode, but if a censoring country is
+      detected in the future, the `giveModeForbidden` dialog should be displayed
+      which forces a switch to Get Mode.
 
-    * Hide Give Mode choice if censoring country detected or display
-      giveModeForbidden modal?
+        * `connectivity.ip` and `location` should always be kept up-to-date
+          as the user disconnects and reconnects from different places.
 
-* Password create now happens after welcome modal (on ubuntu)
+* Next is Oauth modal:
 
-* Oauth modal happens next.
-
-    * If Google cannot be reached, user is given option
-      to proceed in demonstration mode and is told that Lantern will keep trying to 
-      connect in the background. Once backend is able to reach Google, it can set
+    * If Google cannot be reached, user is given option to proceed in
+      demonstration mode and is told that Lantern will keep trying to connect
+      in the background. Once backend is able to reach Google, it can set
       `modal` back to `authorize` to prompt user to try again.
 
-    * If Google can be reached, Lantern should just wait until it has been
-      given Gtalk authorization. Once it has, it should sign the user in to
-      Google Talk.
+    * If Google can be reached, Lantern should just prompt for Google Talk
+      authorization until it has been granted.
 
-    * No longer allow switching Google accounts after a successful
-      sign in. Switching accounts should entail a full reset.
+    * Once we have an Oauth token, we know the user has successfully
+      authenticated to Google. But before we sign in to Google Talk, first we
+      should check if the user has a Lantern invite.
 
-    * Backend should then check if the user has a Lantern invite. If not,
-      it should notify the user via the `notInvited` modal and allow her to try
-      using a different userid (e.g. go back to `authorize` modal) or request
-      an invite via the `requestInvite` modal, and then proceed in
-      demonstration mode. When the user gets an invite, backend should discover
-      this and set modal to `firstInviteReceived`, and then take user back to
-      the remaining setup modals.
+        * If not, present the `notInvited` modal and allow user to try
+          using a different userid (e.g. go back to `authorize` modal), or
+          request an invite via the `requestInvite` modal, and then proceed in
+          demonstration mode. When the user gets an invite, backend should
+          discover this and set modal to `firstInviteReceived`, and then take
+          user back to the remaining setup modals.
 
-* Next, get mode users are presented with the `proxiedSites` modal, introducing
-  the concept that Lantern only proxies traffic to certain sites. `systemProxy`
-  modal comes next, giving the user notice that an administrator password
-  prompt may appear before Lantern can proceed. Next setup modal is
-  `lanternFriends`.
+        * If so, we sign the user in to Google Talk, fetch her roster, and
+          determine which of her contacts are also Lantern users for the
+          upcoming `lanternFriends` modal.
 
-* Give mode users are taken directly from `authorize` modal to `lanternFriends`.
+    * Note: We no longer allow switching Google accounts once we've
+      successfully signed in. Switching accounts should require a full reset.
+
+* Next is `lanternFriends` modal:
+
+    * `lanternFriends` is now a setup modal, to introduce the important concept
+      of the trust network at the outset. User may not have any invites to give
+      out yet, but will be told to expect to receive more as she continues to
+      run Lantern. This modal also allows the user to see which of her contacts
+      are already Lantern users and therefore already Lantern friends, as well
+      as manage any pending Lantern friend requests from users not on her
+      roster.
+
+* Next, Get Mode users are presented with the `proxiedSites` modal, introducing
+  the important concept that Lantern only proxies traffic to certain sites, and
+  then the `systemProxy` modal, before reaching the `finished` modal.
+
+* Give Mode users are taken directly from `lanternFriends` to `finished`.
   Backend should remember that the `proxiedSites` and `systemProxy` modals
-  have never been completed, so that if the give mode user ever switches to
-  get mode, the backend can take the user back there.
-
-* `lanternFriends` is now a setup modal, to introduce the important concept of
-  the trust network at the outset. User may not have any invites to give out
-  yet, but will be told to expect to receive more as she continues to run
-  Lantern.
-
-* `advertiseLantern` setting?
-
-* update connectivity.ip and location on reconnect to internet
+  have never been completed, so that if the Give Mode user ever switches to
+  Get Mode, the backend can immediately take her back there.

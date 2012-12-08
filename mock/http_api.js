@@ -23,8 +23,8 @@ function ApiServlet(bayeuxBackend) {
   this.resetModel = bayeuxBackend.resetModel.bind(bayeuxBackend);
   this.reset();
   this._DEFAULT_PROXIED_SITES = bayeuxBackend.model.settings.proxiedSites.slice(0);
-  this.MODALSEQ_GIVE = [MODAL.welcome, MODAL.passwordCreate, MODAL.authorize, MODAL.lanternFriends, MODAL.finished, MODAL.none];
-  this.MODALSEQ_GET = [MODAL.welcome, MODAL.passwordCreate, MODAL.authorize, MODAL.proxiedSites, MODAL.systemProxy, MODAL.lanternFriends, MODAL.finished, MODAL.none];
+  this.MODALSEQ_GIVE = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.finished, MODAL.none];
+  this.MODALSEQ_GET = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.proxiedSites, MODAL.systemProxy, MODAL.finished, MODAL.none];
 }
 
 ApiServlet.VERSION = {
@@ -40,7 +40,6 @@ ApiServlet.RESET_INTERNAL_STATE = {
   lastModal: MODAL.none,
   modalsCompleted: {
     welcome: false,
-    passwordCreate: false,
     authorize: false,
     proxiedSites: false,
     systemProxy: false,
@@ -75,9 +74,6 @@ ApiServlet.prototype.reset = function() {
     if (groupObj._applyImmediately || scenObj._applyImmediately)
       scenObj.func.call(this);
     this.model.mock.scenarios.applied[groupKey] = scenKey;
-  }
-  if (!this.passwordCreateRequired()) {
-    this._internalState.modalsCompleted.passwordCreate = true;
   }
   this.publishSync();
 };
@@ -118,21 +114,7 @@ ApiServlet.prototype.inGetMode = function() {
   return this.model.settings.mode == MODE.get;
 };
 
-ApiServlet.prototype.passwordCreateRequired = function() {
-  return this.model.system.os == OS.ubuntu && !this._internalState.password;
-};
-
 ApiServlet._handlers = {};
-ApiServlet._handlers.passwordCreate = function(res, qs) {
-  if (!qs.password1 || qs.password1 != qs.password2) {
-    res.writeHead(400);
-    return;
-  }
-  this._internalState.password = qs.password1;
-  this._internalState.modalsCompleted[MODAL.passwordCreate] = true;
-  this.updateModel({modal: MODAL.authorize}, true);
-};
-
 ApiServlet._handlers.state = function(res, qs) {
   // XXX validate requested changes via model schema before applying them
   var updates = JSON.parse(qs.updates);

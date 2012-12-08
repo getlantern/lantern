@@ -147,63 +147,6 @@ function SettingsLoadFailureCtrl($scope, MODAL) {
   });
 }
 
-function SettingsUnlockCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
-  var log = logFactory('SettingsUnlockCtrl');
-
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.settingsUnlock;
-  });
-
-  $scope.password = '';
-
-  $scope.settingsUnlock = function() {
-    $scope.error = false;
-    $http.post(apiSrvc.urlfor('settings/unlock', {password: $scope.password}))
-      .success(function(data, status, headers, config) {
-        log.debug('password valid');
-      })
-      .error(function(data, status, headers, config) {
-        $scope.error = true;
-        $scope.unlockForm.password.$pristine = true;
-      });
-  };
-}
-
-function PasswordCreateCtrl($scope, $http, apiSrvc, logFactory, MODAL) {
-  var log = logFactory('PasswordCreateCtrl');
-
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.passwordCreate;
-  });
-
-  $scope.password1 = '';
-  $scope.password2 = '';
-  // XXX don't allow weak passwords?
-  function validate() {
-    // XXX Angular way of doing this?
-    var pw1ctrl = $scope.passwordCreateForm.password1,
-        pw2ctrl = $scope.passwordCreateForm.password2,
-        valid = $scope.password1 == $scope.password2;
-    $scope.passwordCreateForm.$valid = pw2ctrl.$valid = valid;
-    $scope.passwordCreateForm.$invalid = pw2ctrl.$invalid = !valid;
-  }
-  $scope.$watch('password1', validate);
-  $scope.$watch('password2', validate);
-
-  $scope.passwordCreate = function() {
-    $http.post(apiSrvc.urlfor('passwordCreate',
-        {password1: $scope.password1, password2: $scope.password2}))
-      .success(function(data, status, headers, config) {
-        log.debug('Password create');
-      })
-      .error(function(data, status, headers, config) {
-        log.debug('Password create failed'); // XXX
-      });
-  };
-}
-
 function WelcomeCtrl($scope, modelSrvc, logFactory, MODAL) {
   var log = logFactory('WelcomeCtrl'),
       model = $scope.model = modelSrvc.model;

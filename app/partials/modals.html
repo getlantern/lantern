@@ -35,32 +35,6 @@
   </div>
 </div>
 
-<div id="settingsUnlock" ng-controller="SettingsUnlockCtrl" ui-modal
-     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
-  <form name="unlockForm" ng-submit="settingsUnlock()">
-    <div class="modal-header">
-      <h3>{{ 'SETTINGS_UNLOCK_TITLE' | i18n }}</h3>
-    </div>
-    <div class="modal-body">
-      <div>{{ 'SETTINGS_UNLOCK_PROMPT' | i18n }}</div>
-      <br>
-      <div class="control-group" ng-class="{error: error}">
-        <div class="controls">
-          <div class="input-append">
-            <input type="password" ng-model="password" autofocus required
-                   name="password" placeholder="{{ 'PASSWORD' | i18n }}"
-            ><button type="submit" ng-disabled="unlockForm.$invalid"
-                    class="btn btn-primary">{{ 'UNLOCK' | i18n }}</button>
-          </div>
-          <div class="text-error" ui-toggle="error && unlockForm.password.$pristine">
-            {{ 'PASSWORD_INVALID' | i18n }}
-          </div>
-        </div>
-      </div>
-    </div>
-  </form>
-</div>
-
 <div id="settingsLoadFailure" ng-controller="SettingsLoadFailureCtrl" ui-modal
      ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
@@ -84,34 +58,6 @@
 </div>
 
 <!-- setup screens -->
-
-<div id="passwordCreate" ng-controller="PasswordCreateCtrl" ui-modal
-     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
-  <form name="passwordCreateForm" ng-submit="passwordCreate()">
-    <div class="modal-header">
-      <h3>{{ 'PASSWORD_CREATE_TITLE' | i18n }}</h3>
-    </div>
-    <div class="modal-body">
-      <div>{{ 'PASSWORD_CREATE_PROMPT' | i18n }}</div>
-      <br>
-      <div class="control-group" ng-class="{error: passwordCreateForm.password2.$dirty && passwordCreateForm.password2.$invalid}">
-        <div class="controls">
-          <input type="password" ng-model="password1" autofocus required ng-disabled="disableForm"
-                 name="password1" placeholder="{{ 'PASSWORD' | i18n }}">
-        </div>
-        <div class="controls">
-          <input type="password" ng-model="password2" name="password2" ng-disabled="disableForm"
-                 required placeholder="{{ 'PASSWORD_CONFIRM' | i18n }}">
-          <div class="text-error" ui-toggle="passwordCreateForm.password2.$dirty && passwordCreateForm.password2.$invalid">{{ 'PASSWORDS_MUST_MATCH' | i18n }}</div>
-        </div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button type="submit" ng-disabled="passwordCreateForm.$invalid || disableForm"
-              class="btn btn-primary">{{ 'CREATE' | i18n }}</button>
-    </div>
-  </form>
-</div>
 
 <div id="welcome" ng-controller="WelcomeCtrl" ui-modal ng-model="show"
      class="fade" data-backdrop="static" data-keyboard="false">
