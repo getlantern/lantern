@@ -10,14 +10,10 @@ public class Country {
         
     }
     
-    public Country(final String code, final String name) {
+    public Country(final String code, final String name, final boolean cens) {
         this.code = code;
         this.name = name;
-        this.censoring = LanternHub.censored().isCountryCodeCensored(code);
-    }
-
-    public Country(final com.maxmind.geoip.Country country) {
-        this(country.getCode(), country.getName());
+        this.censoring = cens;
     }
 
     public void setCode(final String code) {

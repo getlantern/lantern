@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.Key;
+import java.security.SecureRandom;
 import java.security.spec.KeySpec;
 
 import javax.crypto.Cipher;
@@ -12,7 +13,6 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
-import org.lantern.LanternHub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,6 +27,8 @@ import org.slf4j.LoggerFactory;
 public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
+    
+    private static final SecureRandom secureRandom = new SecureRandom();
     
     public DefaultLocalCipherProvider() {
         super();
@@ -45,8 +47,8 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
     @Override
     void initializeCipher(Cipher cipher, int opmode, Key key) 
         throws GeneralSecurityException {
-        byte [] salt = new byte[8]; 
-        LanternHub.secureRandom().nextBytes(salt);
+        final byte [] salt = new byte[8]; 
+        secureRandom.nextBytes(salt);
         cipher.init(opmode, key, new PBEParameterSpec(salt, 100));
     }
     

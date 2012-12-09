@@ -15,10 +15,8 @@ public class ModelIoTest {
 
     private static Logger LOG = LoggerFactory.getLogger(ModelIoTest.class);
 
-
     private static File testFile;
 
-    
     @BeforeClass
     public static void setup() throws Exception {
         testFile = new File("modelTest");
@@ -29,8 +27,7 @@ public class ModelIoTest {
     @Test
     public void testModelIo() throws Exception {
         ModelIo io = 
-            new ModelIo(testFile, TestUtils.getEncryptedFileService(), 
-                    TestUtils.getLocalCipherProvider());
+            new ModelIo(testFile, TestUtils.getEncryptedFileService());
         
         Model model = io.get();
         
@@ -55,8 +52,7 @@ public class ModelIoTest {
         }
         io.write();
         
-        io = new ModelIo(testFile, TestUtils.getEncryptedFileService(), 
-                TestUtils.getLocalCipherProvider());
+        io = new ModelIo(testFile, TestUtils.getEncryptedFileService());
         model = io.get();
         system = model.getSystem();
         settings = model.getSettings();

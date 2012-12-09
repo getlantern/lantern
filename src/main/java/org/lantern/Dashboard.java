@@ -237,39 +237,7 @@ public class Dashboard implements BrowserService {
         shell.addListener (SWT.Close, new Listener () {
             @Override
             public void handleEvent(final Event event) {
-                if (LanternHub.settings().getSettings().getState() == SettingsState.State.LOCKED &&
-                    localCipherProvider.isInitialized()) {
-                    if (systemTray.isActive()) {
-                        // user presented with unlock screen and just hit close
-                        final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
-                        final MessageBox messageBox = new MessageBox (shell, style);
-                        messageBox.setText ("Leave Lantern locked?");
-                        final String msg =
-                            "Lantern will not work while it is locked. Hide "+
-                            "dashboard now? You can unlock Lantern later by "+
-                            "reopening the dashboard from its icon in the "+
-                            (SystemUtils.IS_OS_WINDOWS ? "system tray." :
-                            "menu bar.");
-                        messageBox.setMessage (msg);
-                        event.doit = messageBox.open () == SWT.YES;
-                        if (event.doit) {
-                            // don't quit, just hide the window so user can unlock later
-                            browser.close();
-                        }
-                    } else {
-                        // no system tray so close means quit, not hide
-                        final int style = SWT.APPLICATION_MODAL | SWT.ICON_INFORMATION | SWT.YES | SWT.NO;
-                        final MessageBox messageBox = new MessageBox (shell, style);
-                        messageBox.setText ("Quit Lantern?");
-                        final String msg = "Quit Lantern?";
-                        messageBox.setMessage (msg);
-                        event.doit = messageBox.open () == SWT.YES;
-                        if (event.doit) {
-                            DisplayWrapper.getDisplay().dispose();
-                            System.exit(0);
-                        }
-                    }
-                } else if (model.isSetupComplete()) {
+                if (model.isSetupComplete()) {
                     if (systemTray.isActive()) {
                         browser.stop();
                         browser.setUrl("about:blank");

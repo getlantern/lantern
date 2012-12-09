@@ -31,7 +31,6 @@ public class ModelIo implements Provider<Model>, Shutdownable {
 
     private final EncryptedFileService encryptedFileService;
 
-    
     /**
      * Creates a new instance with all the default operations.
      */

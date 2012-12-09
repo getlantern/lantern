@@ -1,6 +1,5 @@
 package org.lantern;
 
-import java.util.Timer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.junit.Test;
@@ -13,7 +12,7 @@ public class UpnpTest {
     @Test public void testUpnp() throws Exception {
         System.setProperty("java.util.logging.config.file", 
             "src/test/resources/logging.properties");
-        final Upnp up = new Upnp(new StatsTracker(new Timer()));
+        final Upnp up = new Upnp(TestUtils.getStatsTracker());
         final AtomicBoolean mapped = new AtomicBoolean(false);
         final AtomicBoolean error = new AtomicBoolean(false);
         final PortMapListener pml = new PortMapListener() {

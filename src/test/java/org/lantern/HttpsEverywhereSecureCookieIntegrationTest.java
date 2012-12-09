@@ -23,7 +23,7 @@ public class HttpsEverywhereSecureCookieIntegrationTest {
     
     @BeforeClass
     public static void setup() {
-        LanternHub.resetSettings(false);
+        //LanternHub.resetSettings(false);
     }
     
     /**

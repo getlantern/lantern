@@ -11,15 +11,18 @@ import org.lantern.exceptional4j.ExceptionalUtils;
  */
 public class LanternConstants {
     
-    public static final long START_TIME = System.currentTimeMillis();
-
-    public static final int DASHCACHE_MAXAGE = 60 * 5;
-
-    public static final String FALLBACK_SERVER_HOST = "fallback_server_host_tok";
-    public static final String FALLBACK_SERVER_PORT = "fallback_server_port_tok";;
+    public static final String FALLBACK_SERVER_HOST = "75.101.134.244";
+    public static final String FALLBACK_SERVER_PORT = "7777";;
     
     public static final String FALLBACK_SERVER_USER = "fallback_server_user_tok";
     public static final String FALLBACK_SERVER_PASS = "fallback_server_pass_tok";
+    
+    public static final File GEOIP = 
+            new File(LanternConstants.DATA_DIR, "GeoIP.dat");
+    
+    public static final long START_TIME = System.currentTimeMillis();
+
+    public static final int DASHCACHE_MAXAGE = 60 * 5;
     
     /**
      * This is the version of Lantern we're running. This is automatically

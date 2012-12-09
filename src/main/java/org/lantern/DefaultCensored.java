@@ -1,23 +1,33 @@
 package org.lantern;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.InetAddress;
 import java.util.Collection;
 import java.util.TreeSet;
+import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.Sets;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+import com.maxmind.geoip.LookupService;
 
 /**
  * Class that keeps track of which countries are considered censored.
  */
+@Singleton
 public class DefaultCensored implements Censored {
 
-    private final Logger LOG = 
+    private static final Logger LOG = 
         LoggerFactory.getLogger(DefaultCensored.class);
 
     private static final Collection<String> CENSORED =
@@ -48,10 +58,48 @@ public class DefaultCensored implements Censored {
             "VN", // Vietnam
             "YE" // Yemen
         ));
+
+    private final LookupService lookupService;
     
-    public DefaultCensored() {
+    @Inject
+    public DefaultCensored(final LookupService lookupService) {
+        this.lookupService = lookupService;
         CENSORED.add("CU");
         CENSORED.add("KP");
+    }
+
+    /**
+     * This is just used for testing...
+     */
+    public DefaultCensored() {
+        this(provideLookupService());
+    }
+    
+    private static LookupService provideLookupService() {
+        final File unzipped = 
+                new File(LanternConstants.DATA_DIR, "GeoIP.dat");
+        if (!unzipped.isFile())  {
+            final File file = new File("GeoIP.dat.gz");
+            GZIPInputStream is = null;
+            OutputStream os = null;
+            try {
+                is = new GZIPInputStream(new FileInputStream(file));
+                os = new FileOutputStream(unzipped);
+                IOUtils.copy(is, os);
+            } catch (final IOException e) {
+                LOG.error("Error expanding file?", e);
+            } finally {
+                IOUtils.closeQuietly(is);
+                IOUtils.closeQuietly(os);
+            }
+        }
+        try {
+            return new LookupService(unzipped, 
+                    LookupService.GEOIP_MEMORY_CACHE);
+        } catch (final IOException e) {
+            LOG.error("Could not create LOOKUP service?");
+        }
+        return null;
     }
 
     // These country codes have US export restrictions, and therefore cannot
@@ -63,7 +111,7 @@ public class DefaultCensored implements Censored {
     private String countryCode;
     
     @Override
-    public String countryCode() {
+    public String countryCode() throws IOException {
         if (StringUtils.isNotBlank(countryCode)) {
             LOG.info("Returning cached country code: {}", countryCode);
             return countryCode;
@@ -75,15 +123,17 @@ public class DefaultCensored implements Censored {
     }
     
     @Override
-    public Country country() {
+    public Country country() throws IOException {
         final InetAddress address = new PublicIpAddress().getPublicIpAddress();
         if (address == null) {
             // Just return an empty country instead of throwing null pointer.
-            return new Country("", "");
+            LOG.warn("Could not get public IP!!");
+            return new Country("", "", true);
         }
         final com.maxmind.geoip.Country country = 
-            LanternHub.getGeoIpLookup().getCountry(address);
-        return new Country(country.getCode(), country.getName());
+            lookupService.getCountry(address);
+        return new Country(country.getCode(), country.getName(), 
+            isCountryCodeCensored(country.getCode()));
     }
 
     @Override
@@ -143,7 +193,7 @@ public class DefaultCensored implements Censored {
     
     private String countryCode(final InetAddress address) {
         final com.maxmind.geoip.Country country = 
-            LanternHub.getGeoIpLookup().getCountry(address);
+            lookupService.getCountry(address);
         LOG.info("Country is: {}", country.getName());
         return country.getCode().trim();
     }

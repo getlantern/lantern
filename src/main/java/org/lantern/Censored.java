@@ -18,9 +18,9 @@ public interface Censored {
 
     boolean isCensored(Country country);
 
-    String countryCode();
+    String countryCode() throws IOException;
 
-    Country country();
+    Country country() throws IOException;
 
     boolean isCountryCodeCensored(String cc);
 

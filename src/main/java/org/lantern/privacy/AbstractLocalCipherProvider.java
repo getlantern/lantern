@@ -13,7 +13,6 @@ import javax.crypto.Cipher;
 
 import org.apache.commons.io.FileUtils;
 import org.lantern.LanternConstants;
-import org.lantern.LanternHub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +25,8 @@ import org.slf4j.LoggerFactory;
  */
 abstract class AbstractLocalCipherProvider implements LocalCipherProvider {
 
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     public static File DEFAULT_CIPHER_PARAMS_FILE =
             new File(LanternConstants.CONFIG_DIR, "cipher.params");
     
@@ -34,7 +35,8 @@ abstract class AbstractLocalCipherProvider implements LocalCipherProvider {
     
     private static final int VALIDATOR_SALT_BYTES = 8;
     
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final SecureRandom secureRandom = new SecureRandom();
+    
     private final File paramsFile;
     private final File validatorFile;
     private Key localKey = null;
@@ -108,8 +110,8 @@ abstract class AbstractLocalCipherProvider implements LocalCipherProvider {
     /** 
      * used by subclass as response to feedUserInput
      */
-    void feedLocalKey(Key localKey) {
-        this.localKey = localKey; 
+    void feedLocalKey(final Key key) {
+        this.localKey = key; 
     }
 
     /**
@@ -169,20 +171,19 @@ abstract class AbstractLocalCipherProvider implements LocalCipherProvider {
         FileUtils.writeByteArrayToFile(paramsFile, encodedParams);
     }
 
-    boolean checkKeyValid(byte[] key, byte[] validator) throws IOException, GeneralSecurityException {
+    boolean checkKeyValid(byte[] key, byte[] validator) throws GeneralSecurityException {
         final byte[] salt = Arrays.copyOf(validator, VALIDATOR_SALT_BYTES);
         return Arrays.equals(validator, createValidator(key, salt));
     }
 
-    byte[] createValidator(byte []key) throws GeneralSecurityException, IOException {
+    byte[] createValidator(byte []key) throws GeneralSecurityException {
         // generate new salt bytes
         final byte[] salt = new byte[VALIDATOR_SALT_BYTES];
-        final SecureRandom secureRandom = LanternHub.secureRandom();
         secureRandom.nextBytes(salt);
         return createValidator(key, salt);
     }
 
-    byte[] createValidator(byte [] key, byte[] salt) throws IOException, GeneralSecurityException {
+    byte[] createValidator(byte [] key, byte[] salt) throws GeneralSecurityException {
         // the validator is the concatenation of the salt value 
         // and the sha256 digest of the salt and the key
         final MessageDigest md = MessageDigest.getInstance("SHA-256");
@@ -202,7 +203,7 @@ abstract class AbstractLocalCipherProvider implements LocalCipherProvider {
     /** 
      * create and store a new validator for the key given.
      */
-    void storeValidator(byte []validator) throws IOException, GeneralSecurityException {
+    void storeValidator(byte []validator) throws IOException {
         FileUtils.writeByteArrayToFile(validatorFile, validator);
     }
     

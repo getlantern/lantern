@@ -12,11 +12,9 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Queue;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.management.InstanceAlreadyExistsException;
@@ -28,7 +26,6 @@ import javax.management.ObjectName;
 import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
@@ -54,7 +51,6 @@ import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.TrustGraphNode;
 import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.event.ClosedBetaEvent;
-import org.lantern.event.ConnectivityStatusChangeEvent;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.UpdateEvent;
@@ -100,26 +96,6 @@ public class DefaultXmppHandler implements XmppHandler {
     private static final Logger LOG = 
         LoggerFactory.getLogger(DefaultXmppHandler.class);
     
-    /**
-     * These are the centralized proxies this Lantern instance is using.
-     */
-    private final Set<ProxyHolder> proxySet =
-        new HashSet<ProxyHolder>();
-    private final Queue<ProxyHolder> proxies = 
-        new ConcurrentLinkedQueue<ProxyHolder>();
-    
-    /**
-     * This is the set of all peer proxies we know about. We may have 
-     * established connections with some of them. The main purpose of this is
-     * to avoid exchanging keys multiple times.
-     */
-    private final Set<URI> peerProxySet = new HashSet<URI>();
-    
-    private final Set<ProxyHolder> laeProxySet =
-        new HashSet<ProxyHolder>();
-    private final Queue<ProxyHolder> laeProxies = 
-        new ConcurrentLinkedQueue<ProxyHolder>();
-
     private final AtomicReference<XmppP2PClient> client = 
         new AtomicReference<XmppP2PClient>();
     
@@ -162,8 +138,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private String lastPass;
 
-    private XmppCredentials lastCredentials;
-
     private NatPmpService natPmpService;
 
     private final UpnpService upnpService;
@@ -196,7 +170,11 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final ModelIo modelIo;
 
-    private org.lantern.Roster roster;
+    private final org.lantern.Roster roster;
+
+    private final ProxyTracker proxyTracker;
+
+    private final Censored censored;
 
     /**
      * Creates a new XMPP handler.
@@ -210,7 +188,9 @@ public class DefaultXmppHandler implements XmppHandler {
         final LanternSocketsUtil socketsUtil,
         final LanternXmppUtil xmppUtil,
         final ModelUtils modelUtils,
-        final ModelIo modelIo, final org.lantern.Roster roster) {
+        final ModelIo modelIo, final org.lantern.Roster roster,
+        final ProxyTracker proxyTracker,
+        final Censored censored) {
         this.model = model;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.anonymousPeerProxyManager = anonymousPeerProxyManager;
@@ -222,6 +202,8 @@ public class DefaultXmppHandler implements XmppHandler {
         this.modelUtils = modelUtils;
         this.modelIo = modelIo;
         this.roster = roster;
+        this.proxyTracker = proxyTracker;
+        this.censored = censored;
         this.upnpService = new Upnp(stats);
         new GiveModeConnectivityHandler();
         prepopulateProxies();
@@ -428,7 +410,6 @@ public class DefaultXmppHandler implements XmppHandler {
     public void connect(final XmppCredentials credentials)
         throws IOException, CredentialException, NotInClosedBetaException {
         LOG.debug("Connecting to XMPP servers with user name and password...");
-        this.lastCredentials = credentials;
         this.closedBetaEvent = null;
         final InetSocketAddress plainTextProxyRelayAddress = 
             new InetSocketAddress("127.0.0.1", 
@@ -471,9 +452,6 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.debug("Adding message listener...");
         this.client.get().addMessageListener(typedListener);
         
-        if (this.proxies.isEmpty()) {
-            connectivityEvent(ConnectivityStatus.CONNECTING);
-        }
         Events.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.connecting));
 
@@ -593,7 +571,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
         // If we're in the closed beta and are an uncensored node, we want to
         // advertise ourselves through the kaleidoscope trust network.
-        if (inClosedBeta && !LanternHub.censored().isCensored()) {
+        if (inClosedBeta && !censored.isCensored()) {
             final TimerTask tt = new TimerTask() {
                 
                 @Override
@@ -636,9 +614,6 @@ public class DefaultXmppHandler implements XmppHandler {
     }
   
     private void handleConnectionFailure() {
-        if (this.proxies.isEmpty()) {
-            connectivityEvent(ConnectivityStatus.DISCONNECTED);
-        }
         Events.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.LOGIN_FAILED));
     }
@@ -694,22 +669,9 @@ public class DefaultXmppHandler implements XmppHandler {
         return strings;
     }
 
-    private void connectivityEvent(final ConnectivityStatus cs) {
-        if (model.getSettings().isGetMode()) {
-            Events.eventBus().post(
-                new ConnectivityStatusChangeEvent(cs));
-        } else {
-            LOG.info("Ignoring connectivity event in give mode..");
-        }
-    }
-
     @Override
     public void clearProxies() {
-        this.proxies.clear();
-        this.proxySet.clear();
-        this.peerProxySet.clear();
-        this.laeProxySet.clear();
-        this.laeProxies.clear();
+        this.proxyTracker.clear();
     }
     
     @Override
@@ -726,14 +688,11 @@ public class DefaultXmppHandler implements XmppHandler {
             this.client.get().logout();
             this.client.set(null);
         }
-        
-        if (this.proxies.isEmpty()) {
-            connectivityEvent(ConnectivityStatus.DISCONNECTED);
-        }
+
         Events.eventBus().post(
             new GoogleTalkStateEvent(GoogleTalkState.notConnected));
         
-        peerProxySet.clear();
+        proxyTracker.clearPeerProxySet();
         this.closedBetaEvent = null;
         
         // This is mostly logged for debugging thorny shutdown issues...
@@ -953,6 +912,13 @@ public class DefaultXmppHandler implements XmppHandler {
     }
     */
     
+
+    private void addPeerProxy(final URI peerUri) {
+        if (this.proxyTracker.addPeerProxy(peerUri)) {
+            sendAndRequestCert(peerUri);
+        }
+    }
+    
     @Subscribe
     public void onUpdatePresenceEvent(final UpdatePresenceEvent upe) {
         // This was originally added to decouple the roster from this class.
@@ -979,20 +945,7 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         else {
             LOG.info("Removing JID for peer '"+from);
-            removePeer(uri);
-        }
-    }
-
-    private void sendErrorMessage(final InetSocketAddress isa,
-        final String message) {
-        final Message msg = new Message();
-        msg.setProperty(P2PConstants.MESSAGE_TYPE, 
-            XmppMessageConstants.ERROR_TYPE);
-        final String errorMessage = "Error: "+message+" with host: "+isa;
-        msg.setProperty(XmppMessageConstants.MESSAGE, errorMessage);
-        if (isLoggedIn()) {
-            final XMPPConnection conn = this.client.get().getXmppConnection();
-            conn.sendPacket(msg);
+            this.proxyTracker.removePeer(uri);
         }
     }
     
@@ -1037,7 +990,7 @@ public class DefaultXmppHandler implements XmppHandler {
             // If the ad includes a mapped port, include it as straight proxy.
             if (ad.hasMappedEndpoint()) {
                 final String proxy = ad.getAddress() + ":" + ad.getPort();
-                addGeneralProxy(proxy);
+                this.proxyTracker.addGeneralProxy(proxy);
             }
             addPeerProxy(new URI(ad.getJid()));
             
@@ -1106,14 +1059,15 @@ public class DefaultXmppHandler implements XmppHandler {
         }
     }
 
+
     private void addProxy(final String cur) {
         LOG.info("Considering proxy: {}", cur);
         if (cur.contains("appspot")) {
-            addLaeProxy(cur);
+            this.proxyTracker.addLaeProxy(cur);
             return;
         }
         if (!cur.contains("@")) {
-            addGeneralProxy(cur);
+            this.proxyTracker.addGeneralProxy(cur);
             return;
         }
         if (!isLoggedIn()) {
@@ -1146,27 +1100,6 @@ public class DefaultXmppHandler implements XmppHandler {
         } 
     }
 
-    
-    private void addPeerProxy(final URI peerUri) {
-        LOG.info("Considering peer proxy");
-        synchronized (peerProxySet) {
-            // We purely do this to keep track of which peers we've attempted
-            // to establish connections to. This is to avoid exchanging certs
-            // multiple times.
-            
-            // TODO: I believe this excludes exchanging keys with peers who
-            // are on multiple machines when the peer URI is a general JID and
-            // not an instance JID.
-            if (!peerProxySet.contains(peerUri)) {
-                LOG.info("Actually adding peer proxy: {}", peerUri);
-                peerProxySet.add(peerUri);
-                sendAndRequestCert(peerUri);
-            } else {
-                LOG.info("We already know about the peer proxy");
-            }
-        }
-    }
-    
     private void sendAndRequestCert(final URI cur) {
         LOG.info("Requesting cert from {}", cur);
         final Message msg = new Message();
@@ -1179,141 +1112,6 @@ public class DefaultXmppHandler implements XmppHandler {
         msg.setProperty(P2PConstants.MAC, LanternUtils.getMacAddress());
         msg.setProperty(P2PConstants.CERT, this.keyStoreManager.getBase64Cert());
         this.client.get().getXmppConnection().sendPacket(msg);
-    }
-
-    private void addLaeProxy(final String cur) {
-        LOG.info("Adding LAE proxy");
-        addProxyWithChecks(this.laeProxySet, this.laeProxies, 
-            new ProxyHolder(cur, new InetSocketAddress(cur, 443)), cur);
-    }
-    
-    private void addGeneralProxy(final String cur) {
-        final String hostname = StringUtils.substringBefore(cur, ":");
-        final int port = Integer.parseInt(StringUtils.substringAfter(cur, ":"));
-        final InetSocketAddress isa = new InetSocketAddress(hostname, port);
-        addProxyWithChecks(proxySet, proxies, new ProxyHolder(hostname, isa), 
-            cur);
-    }
-
-    private void addProxyWithChecks(final Set<ProxyHolder> set,
-        final Queue<ProxyHolder> queue, final ProxyHolder ph, 
-        final String fullProxyString) {
-        if (set.contains(ph)) {
-            LOG.info("We already know about proxy "+ph+" in {}", set);
-            
-            // Send the event again in case we've somehow gotten into the 
-            // wrong state.
-            LOG.info("Dispatching CONNECTED event");
-            connectivityEvent(ConnectivityStatus.CONNECTED);
-            return;
-        }
-        
-        final Socket sock = new Socket();
-        try {
-            sock.connect(ph.isa, 60*1000);
-            LOG.info("Dispatching CONNECTED event");
-            connectivityEvent(ConnectivityStatus.CONNECTED);
-            
-            // This is a little odd because the proxy could have originally
-            // come from the settings themselves, but it'll remove duplicates,
-            // so no harm done.
-            this.model.getSettings().addProxy(fullProxyString);
-            synchronized (set) {
-                if (!set.contains(ph)) {
-                    set.add(ph);
-                    queue.add(ph);
-                    LOG.info("Queue is now: {}", queue);
-                }
-            }
-        } catch (final IOException e) {
-            LOG.error("Could not connect to: {}", ph);
-            sendErrorMessage(ph.isa, e.getMessage());
-            onCouldNotConnect(ph.isa);
-            this.model.getSettings().removeProxy(fullProxyString);
-        } finally {
-            IOUtils.closeQuietly(sock);
-        }
-    }
-    
-    @Override
-    public void onCouldNotConnect(final InetSocketAddress proxyAddress) {
-        // This can happen in several scenarios. First, it can happen if you've
-        // actually disconnected from the internet. Second, it can happen if
-        // the proxy is blocked. Third, it can happen when the proxy is simply
-        // down for some reason.
-        LOG.info("COULD NOT CONNECT TO STANDARD PROXY!! Proxy address: {}", 
-            proxyAddress);
-        
-        // For now we assume this is because we've lost our connection.
-        //onCouldNotConnect(new ProxyHolder(proxyAddress.getHostName(), proxyAddress), 
-        //    this.proxySet, this.proxies);
-    }
-    
-    @Override
-    public void onCouldNotConnectToLae(final InetSocketAddress proxyAddress) {
-        LOG.info("COULD NOT CONNECT TO LAE PROXY!! Proxy address: {}", 
-            proxyAddress);
-        
-        // For now we assume this is because we've lost our connection.
-        
-        //onCouldNotConnect(new ProxyHolder(proxyAddress.getHostName(), proxyAddress), 
-        //    this.laeProxySet, this.laeProxies);
-    }
-    
-    private void onCouldNotConnect(final ProxyHolder proxyAddress,
-        final Set<ProxyHolder> set, final Queue<ProxyHolder> queue){
-        LOG.info("COULD NOT CONNECT!! Proxy address: {}", proxyAddress);
-        synchronized (this.proxySet) {
-            set.remove(proxyAddress);
-            queue.remove(proxyAddress);
-        }
-    }
-
-    @Override
-    public void onCouldNotConnectToPeer(final URI peerUri) {
-        removePeer(peerUri);
-    }
-    
-    @Override
-    public void onError(final URI peerUri) {
-        removePeer(peerUri);
-    }
-
-    private void removePeer(final URI uri) {
-        // We always remove from both since their trusted status could have
-        // changed 
-        removePeerUri(uri);
-        removeAnonymousPeerUri(uri);
-        //if (LanternHub.getTrustedContactsManager().isJidTrusted(uri.toASCIIString())) {
-            trustedPeerProxyManager.removePeer(uri);
-        //} else {
-        //    LanternHub.anonymousPeerProxyManager().removePeer(uri);
-        //}
-    }
-    
-    private void removePeerUri(final URI peerUri) {
-        LOG.info("Removing peer with URI: {}", peerUri);
-        //remove(peerUri, this.establishedPeerProxies);
-    }
-
-    private void removeAnonymousPeerUri(final URI peerUri) {
-        LOG.info("Removing anonymous peer with URI: {}", peerUri);
-        //remove(peerUri, this.establishedAnonymousProxies);
-    }
-    
-    private void remove(final URI peerUri, final Queue<URI> queue) {
-        LOG.info("Removing peer with URI: {}", peerUri);
-        queue.remove(peerUri);
-    }
-    
-    @Override
-    public InetSocketAddress getLaeProxy() {
-        return getProxy(this.laeProxies);
-    }
-    
-    @Override
-    public InetSocketAddress getProxy() {
-        return getProxy(this.proxies);
     }
     
     /*
@@ -1329,71 +1127,11 @@ public class DefaultXmppHandler implements XmppHandler {
     }
     */
 
-    private InetSocketAddress getProxy(final Queue<ProxyHolder> queue) {
-        synchronized (queue) {
-            if (queue.isEmpty()) {
-                LOG.info("No proxy addresses");
-                return null;
-            }
-            final ProxyHolder proxy = queue.remove();
-            queue.add(proxy);
-            LOG.info("FIFO queue is now: {}", queue);
-            return proxy.isa;
-        }
-    }
-
     @Override
     public XmppP2PClient getP2PClient() {
         return client.get();
     }
 
-    private static final class ProxyHolder {
-        
-        private final String id;
-        private final InetSocketAddress isa;
-
-        private ProxyHolder(final String id, final InetSocketAddress isa) {
-            this.id = id;
-            this.isa = isa;
-        }
-        
-        @Override
-        public String toString() {
-            return "ProxyHolder [isa=" + isa + "]";
-        }
-        
-        @Override
-        public int hashCode() {
-            final int prime = 31;
-            int result = 1;
-            result = prime * result + ((id == null) ? 0 : id.hashCode());
-            result = prime * result + ((isa == null) ? 0 : isa.hashCode());
-            return result;
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null)
-                return false;
-            if (getClass() != obj.getClass())
-                return false;
-            ProxyHolder other = (ProxyHolder) obj;
-            if (id == null) {
-                if (other.id != null)
-                    return false;
-            } else if (!id.equals(other.id))
-                return false;
-            if (isa == null) {
-                if (other.isa != null)
-                    return false;
-            } else if (!isa.equals(other.isa))
-                return false;
-            return true;
-        }
-    }
-    
     @Override
     public boolean isLoggedIn() {
         if (this.client.get() == null) {

@@ -79,15 +79,17 @@ import com.google.common.io.Files;
  */
 public class LanternUtils {
 
-    public static boolean isDevMode() {
-        // TODO make this more robust
-        return LanternConstants.VERSION.equals("lantern_version_tok");
-    }
-
-    private static String MAC_ADDRESS;
     
     private static final Logger LOG = 
         LoggerFactory.getLogger(LanternUtils.class);
+    
+    private static final SecureRandom secureRandom = new SecureRandom();
+
+    private static String MAC_ADDRESS;
+    
+    public static boolean isDevMode() {
+        return LanternConstants.VERSION.equals("lantern_version_tok");
+    }
     
     public static String jidToUserId(final String fullId) {
         return fullId.split("/")[0];
@@ -237,7 +239,7 @@ public class LanternUtils {
                     System.currentTimeMillis());
         } catch (final UnknownHostException e) {
             final byte[] bytes = new byte[24];
-            LanternHub.secureRandom().nextBytes(bytes);
+            secureRandom.nextBytes(bytes);
             return macMe(bytes);
         }
     }
@@ -383,7 +385,6 @@ public class LanternUtils {
     }
 
     public static int randomPort() {
-        final SecureRandom sr = LanternHub.secureRandom();
         if (LanternConstants.ON_APP_ENGINE) {
             // Can't create server sockets on app engine.
             return -1;
@@ -392,7 +393,7 @@ public class LanternUtils {
             // The +1 on the random int is because 
             // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE -- caught
             // by FindBugs.
-            final int randomPort = 1024 + (Math.abs(sr.nextInt() + 1) % 60000);
+            final int randomPort = 1024 + (Math.abs(secureRandom.nextInt() + 1) % 60000);
             ServerSocket sock = null;
             try {
                 sock = new ServerSocket();
@@ -422,7 +423,7 @@ public class LanternUtils {
             return port;
         } catch (final IOException e) {
             LOG.info("Still could not bind?");
-            return 1024 + (Math.abs(sr.nextInt() + 1) % 60000);
+            return 1024 + (Math.abs(secureRandom.nextInt() + 1) % 60000);
         } finally {
             if (sock != null) {
                 try {

@@ -31,6 +31,7 @@ import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.ssl.SslHandler;
+import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.state.Model;
 import org.littleshoot.proxy.HttpConnectRelayingHandler;
 import org.littleshoot.proxy.ProxyUtils;
@@ -70,8 +71,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final ChannelGroup channelGroup;
 
-    private final XmppHandler xmppHandler;
-    
     private final PeerProxyManager trustedPeerProxyManager;
 
     private final PeerProxyManager anonymousPeerProxyManager;
@@ -81,6 +80,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     private final LanternKeyStoreManager ksm;
 
     private final Model model;
+
+    private final ProxyTracker proxyTracker;
+
+    private final HttpsEverywhere httpsEverywhere;
 
     /**
      * Creates a new handler that reads incoming HTTP requests and dispatches
@@ -93,22 +96,22 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     public DispatchingProxyRelayHandler(
         final ClientSocketChannelFactory clientChannelFactory,
         final ChannelGroup channelGroup,
-        final XmppHandler xmppHandler,
         final TrustedPeerProxyManager trustedPeerProxyManager,
         final AnonymousPeerProxyManager anonymousPeerProxyManager,
-        final Stats stats,
-        final LanternKeyStoreManager ksm,
-        final Model model) {
+        final Stats stats, final LanternKeyStoreManager ksm,
+        final Model model, final ProxyTracker proxyTracker,
+        final HttpsEverywhere httpsEverywhere) {
         this.clientChannelFactory = clientChannelFactory;
         this.channelGroup = channelGroup;
-        this.xmppHandler = xmppHandler;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.anonymousPeerProxyManager = anonymousPeerProxyManager;
         this.stats = stats;
         this.ksm = ksm;
         this.model = model;
+        this.proxyTracker = proxyTracker;
+        this.httpsEverywhere = httpsEverywhere;
         this.proxyRequestProcessor =
-            new DefaultHttpRequestProcessor(xmppHandler,
+            new DefaultHttpRequestProcessor(proxyTracker,
                 new HttpRequestTransformer() {
                     @Override
                     public void transform(final HttpRequest request, 
@@ -124,11 +127,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     }
                     @Override
                     public InetSocketAddress getProxy() {
-                        return xmppHandler.getProxy();
+                        return proxyTracker.getProxy();
                     }
                 }, this.clientChannelFactory, this.channelGroup, this.stats, this.ksm);
         this.laeRequestProcessor =
-            new DefaultHttpRequestProcessor(xmppHandler,
+            new DefaultHttpRequestProcessor(proxyTracker,
                 new LaeHttpRequestTransformer(), true,
                 new Proxy() {
                     @Override
@@ -138,7 +141,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     }
                     @Override
                     public InetSocketAddress getProxy() {
-                        return xmppHandler.getLaeProxy();
+                        return proxyTracker.getLaeProxy();
                     }
             }, this.clientChannelFactory, this.channelGroup, this.stats, this.ksm);
     }
@@ -193,7 +196,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         }
         
         // If it's an HTTP request, see if we can redirect it to HTTPS.
-        final String https = LanternHub.httpsEverywhere().toHttps(uri);
+        final String https = httpsEverywhere.toHttps(uri);
         if (!https.equals(uri)) {
             final HttpResponse response = 
                 new DefaultHttpResponse(request.getProtocolVersion(), 
@@ -397,7 +400,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         pipeline.addLast("handler", 
             new HttpConnectRelayingHandler(this.browserToProxyChannel, 
                 this.channelGroup));
-        final InetSocketAddress isa = xmppHandler.getProxy();
+        final InetSocketAddress isa = proxyTracker.getProxy();
         if (isa == null) {
             log.error("NO PROXY AVAILABLE?");
             ProxyUtils.closeOnFlush(browserToProxyChannel);
@@ -446,7 +449,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 } else {
                     // Close the connection if the connection attempt has failed.
                     browserToProxyChannel.close();
-                    xmppHandler.onCouldNotConnect(isa);
+                    proxyTracker.onCouldNotConnect(isa);
                 }
             }
         });

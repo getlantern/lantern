@@ -39,11 +39,13 @@ public class HttpsBestEffortCookieFilter implements CookieFilter {
      * @see lantern.cookie.InMemoryCookieTracker.asOutboundCookieFilter.
      *
      */
-    public HttpsBestEffortCookieFilter(final CookieFilter whitelist, final HttpRequest context) {
-        this(whitelist, new HttpsSecureCookieFilter(context));
+    public HttpsBestEffortCookieFilter(final CookieFilter whitelist, 
+        final HttpRequest context, final HttpsEverywhere httpsEverywhere) {
+        this(whitelist, new HttpsSecureCookieFilter(context, httpsEverywhere));
     }
     
-    public HttpsBestEffortCookieFilter(final CookieFilter whitelist, final CookieFilter blacklist) {
+    public HttpsBestEffortCookieFilter(final CookieFilter whitelist, 
+        final CookieFilter blacklist) {
         this.whitelist = whitelist; 
         this.blacklist = blacklist;
     }

@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.Key;
+import java.security.SecureRandom;
 import java.security.spec.AlgorithmParameterSpec;
 
 import javax.crypto.Cipher;
@@ -12,7 +13,6 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-import org.lantern.LanternHub;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +28,7 @@ public abstract class AbstractAESLocalCipherProvider extends AbstractLocalCipher
     
     private final Logger log = LoggerFactory.getLogger(getClass());
 
+    private static final SecureRandom secureRandom = new SecureRandom();
 
     abstract byte[] loadKeyData() throws IOException, GeneralSecurityException;    
     abstract void storeKeyData(byte [] key) throws IOException, GeneralSecurityException;
@@ -53,7 +54,7 @@ public abstract class AbstractAESLocalCipherProvider extends AbstractLocalCipher
     @Override
     void initializeCipher(Cipher cipher, int opmode, Key key) throws GeneralSecurityException {
         byte[] iv = new byte[16];
-        LanternHub.secureRandom().nextBytes(iv);
+        secureRandom.nextBytes(iv);
         AlgorithmParameterSpec params = new IvParameterSpec(iv);
         cipher.init(opmode, key, params);
     }

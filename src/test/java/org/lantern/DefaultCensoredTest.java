@@ -26,7 +26,7 @@ public class DefaultCensoredTest {
     
     @Test 
     public void testCensored() throws Exception {
-        final Censored cen = LanternHub.censored();
+        final Censored cen = new DefaultCensored();
         final boolean censored = cen.isCensored();
         assertFalse("Censored?", censored);
         assertTrue(cen.isExportRestricted("78.110.96.7")); // Syria

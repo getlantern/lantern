@@ -2,11 +2,9 @@ package org.lantern.httpseverywhere;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.lantern.LanternHub;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.httpseverywhere.HttpsEverywhere.HttpsRuleSet;
 
@@ -32,19 +30,19 @@ import org.lantern.httpseverywhere.HttpsEverywhere.HttpsRuleSet;
  */ 
 public class HttpsSecureCookieFilter implements CookieFilter {
     
-    final List<HttpsSecureCookieRule> rules;
+    private final Collection<HttpsSecureCookieRule> rules = 
+        new ArrayList<HttpsSecureCookieRule>();
     
-    public HttpsSecureCookieFilter(HttpRequest context) {
-        rules = new ArrayList<HttpsSecureCookieRule>();
-        for (HttpsRuleSet ruleSet : LanternHub.httpsEverywhere().getApplicableRuleSets(context.getUri())) {
+    public HttpsSecureCookieFilter(final HttpRequest context, 
+        final HttpsEverywhere httpsEverywhere) {
+        for (HttpsRuleSet ruleSet : httpsEverywhere.getApplicableRuleSets(context.getUri())) {
             for (HttpsSecureCookieRule rule : ruleSet.getSecureCookieRules()) {
                 rules.add(rule);
             }
         }
     }
 
-    public HttpsSecureCookieFilter(Collection<HttpsSecureCookieRule> rules) {
-        this.rules = new ArrayList<HttpsSecureCookieRule>();
+    public HttpsSecureCookieFilter(final Collection<HttpsSecureCookieRule> rules) {
         for (HttpsSecureCookieRule rule : rules) {
             this.rules.add(rule);
         }

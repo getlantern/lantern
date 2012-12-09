@@ -30,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.maxmind.geoip.LookupService;
 
 /**
  * Class the keeps track of P2P connections to peers, dispatching them and
@@ -78,17 +79,20 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     private final LanternSocketsUtil socketsUtil;
 
     private final Model model;
+
+    private final LookupService lookupService;
     
     public DefaultPeerProxyManager(final boolean anon, 
         final ChannelGroup channelGroup, final XmppHandler xmppHandler,
         final Stats stats, final LanternSocketsUtil socketsUtil,
-        final Model model) {
+        final Model model, final LookupService lookupService) {
         this.anon = anon;
         this.channelGroup = channelGroup;
         this.xmppHandler = xmppHandler;
         this.stats = stats;
         this.socketsUtil = socketsUtil;
         this.model = model;
+        this.lookupService = lookupService;
     }
 
     @Override
@@ -255,7 +259,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             peer = this.peers.get(userId);
         } else {
             final String cc = 
-                LanternHub.getGeoIpLookup().getCountry(sock.getInetAddress()).getCode();
+                lookupService.getCountry(sock.getInetAddress()).getCode();
             final InetSocketAddress isa = 
                 (InetSocketAddress) ts.getSocket().getRemoteSocketAddress();
             final String ip = isa.getAddress().getHostAddress();
