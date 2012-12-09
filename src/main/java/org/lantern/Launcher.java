@@ -3,6 +3,7 @@ package org.lantern;
 import java.io.File;
 import java.io.IOException;
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.security.GeneralSecurityException;
 import java.security.Security;
@@ -32,7 +33,6 @@ import org.eclipse.swt.SWTError;
 import org.eclipse.swt.widgets.Display;
 import org.json.simple.JSONObject;
 import org.lantern.event.Events;
-import org.lantern.event.SettingsStateEvent;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.http.JettyLauncher;
@@ -42,13 +42,14 @@ import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
+import org.lantern.state.Settings.Mode;
 import org.lantern.state.StaticSettings;
 import org.lastbamboo.common.offer.answer.IceConfig;
+import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.lastbamboo.common.stun.client.StunServerRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
@@ -77,6 +78,7 @@ public class Launcher {
     private static Model model;
     private static ModelUtils modelUtils;
     private static Settings set;
+    private static Censored censored;
     
     /**
      * Starts the proxy from the command line.
@@ -160,6 +162,9 @@ public class Launcher {
         else {
             set.setUiEnabled(true);
         }
+        
+        censored = instance(Censored.class);
+        threadPublicIpLookup();
         
         LOG.debug("Creating display...");
         final Display display;
@@ -265,6 +270,57 @@ public class Launcher {
                 if (!display.readAndDispatch ()) display.sleep ();
             }
         }
+    }
+    
+
+    /**
+     * We thread this because otherwise looking up our public IP address 
+     * over the network can delay the creation of settings altogether. That's
+     * problematic if the UI is waiting on them, for example.
+     */
+    private static void threadPublicIpLookup() {
+        if (LanternConstants.ON_APP_ENGINE) {
+            return;
+        }
+        final Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                // This performs the public IP lookup so by the time we set
+                // GET versus GIVE mode we already know the IP and don't have
+                // to wait.
+                
+                // We get the address here to set it in Connectivity.
+                final InetAddress ip = 
+                    new PublicIpAddress().getPublicIpAddress();
+                if (ip == null) {
+                    LOG.info("No IP -- possibly no internet connection");
+                    return;
+                }
+                model.getConnectivity().setIp(ip.getHostAddress());
+                
+                // The IP is cached at this point.
+                
+                try {
+                    final Country count = censored.country();
+                    model.getLocation().setCountry(count.getCode());
+                } catch (final IOException e) {
+                    LOG.error("Could not get country", e);
+                }
+                // If the mode isn't set in the model, set the default.
+                if (set.getMode() == null || set.getMode() == Mode.none) {
+                    if (censored.isCensored()) {
+                        set.setMode(Mode.get);
+                        set.setGetMode(true);
+                    } else {
+                        set.setMode(Mode.give);
+                        set.setGetMode(false);
+                    }
+                }
+            }
+            
+        }, "Public-IP-Lookup-Thread");
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private static <T> void shutdownable(final Class<T> clazz) {
@@ -600,22 +656,11 @@ public class Launcher {
             }
         }
         
-        @Subscribe
-        public void onStateChange(final SettingsStateEvent sse) {
-            checkAutoConnect();
-        }
-        
         private void checkAutoConnect() {
             LOG.info("Checking auto-connect...");
             if (done) {
                 return;
             }
-            /*
-            if (LanternHub.settings().getSettings().getState() != SettingsState.State.SET) {
-                LOG.info("not testing auto-connect, settings are not ready.");
-                return;
-            }
-            */
             
             // only test once.
             done = true;
@@ -646,8 +691,7 @@ public class Launcher {
                 t.setDaemon(true);
                 t.start();
             } else {
-                LOG.info("Not auto-logging in with settings:\n{}",
-                    LanternHub.settings());
+                LOG.info("Not auto-logging in with model:\n{}", model);
             }
         }
     }

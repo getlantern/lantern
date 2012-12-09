@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.security.SecureRandom;
 import java.util.Arrays;
 
 import javax.net.ssl.TrustManager;
@@ -31,7 +32,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     private final File CERT_FILE;
     
     private static final String PASS = 
-        String.valueOf(LanternHub.secureRandom().nextLong());
+        String.valueOf(new SecureRandom().nextLong());
     
     private static final String KEYSIZE = "2048";
     

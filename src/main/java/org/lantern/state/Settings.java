@@ -9,9 +9,7 @@ import java.util.Set;
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternConstants;
-import org.lantern.LanternHub;
 import org.lantern.LanternUtils;
-import org.lantern.Settings.CommandLineOption;
 import org.lantern.Whitelist;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
@@ -196,13 +194,11 @@ public class Settings implements MutableSettings {
         this.useGoogleOAuth2 = useGoogleOAuth2;
     }
 
-    @CommandLineOption
     @JsonView({Persistent.class})
     public boolean isUseGoogleOAuth2() {
         return useGoogleOAuth2;
     }
 
-    @CommandLineOption
     @JsonView({Persistent.class})
     public String getClientID() {
         return clientID;
@@ -212,7 +208,6 @@ public class Settings implements MutableSettings {
         this.clientSecret = clientSecret;
     }
 
-    @CommandLineOption
     @JsonView({Persistent.class})
     public String getClientSecret() {
         return clientSecret;
@@ -222,7 +217,6 @@ public class Settings implements MutableSettings {
         this.accessToken = accessToken;
     }
 
-    @CommandLineOption
     @JsonView({Persistent.class})
     public String getAccessToken() {
         return accessToken;
@@ -232,7 +226,6 @@ public class Settings implements MutableSettings {
         this.refreshToken = password;
     }
 
-    @CommandLineOption
     @JsonView({Persistent.class})
     public String getRefreshToken() {
         return refreshToken;
@@ -259,16 +252,7 @@ public class Settings implements MutableSettings {
 
     @JsonView({Run.class, Persistent.class})
     public boolean isGetMode() {
-        synchronized (mode) {
-            if (mode == Mode.none) {
-                if (LanternHub.censored().isCensored()) {
-                    mode = Mode.get;
-                } else {
-                    mode = Mode.give;
-                }
-            }
-            return mode == Mode.get;
-        }
+        return mode == Mode.get;
     }
 
     @JsonView({Run.class, Persistent.class})

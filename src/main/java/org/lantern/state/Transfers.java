@@ -1,7 +1,6 @@
 package org.lantern.state;
 
 import org.codehaus.jackson.map.annotate.JsonView;
-import org.lantern.LanternHub;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 

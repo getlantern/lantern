@@ -1,18 +1,18 @@
 package org.lantern; 
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.lantern.TestingUtils.createGetRequest;
+
 import java.util.ArrayList;
 import java.util.List;
-import static org.junit.Assert.*;
-import org.junit.Test;
+
 import org.jboss.netty.handler.codec.http.DefaultCookie;
-import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
-import org.jboss.netty.handler.codec.http.HttpMethod;
-import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpVersion;
+import org.junit.Test;
 import org.lantern.cookie.CookieFilter;
+import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.httpseverywhere.HttpsSecureCookieFilter;
 import org.lantern.httpseverywhere.HttpsSecureCookieRule;
-import static org.lantern.TestingUtils.*;
 
 public class HttpsSecureCookieFilterTest {
     
@@ -54,13 +54,14 @@ public class HttpsSecureCookieFilterTest {
         final String filterUri[] = {"http://twitter.com", "http://chupa.twitter.com"};
         final String nofilterUri[] = {"http://example.com", };
         
+        final HttpsEverywhere he = new HttpsEverywhere();
         for (final String uri : filterUri) {
-            CookieFilter f = new HttpsSecureCookieFilter(createGetRequest(uri));
+            CookieFilter f = new HttpsSecureCookieFilter(createGetRequest(uri), he);
             assertFalse(f.accepts(new DefaultCookie("foo", "0")));
         }
 
         for (final String uri : nofilterUri) {
-            CookieFilter f = new HttpsSecureCookieFilter(createGetRequest(uri));
+            CookieFilter f = new HttpsSecureCookieFilter(createGetRequest(uri), he);
             assertTrue(f.accepts(new DefaultCookie("foo", "0")));
         }
         

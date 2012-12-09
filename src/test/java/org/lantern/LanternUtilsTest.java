@@ -111,7 +111,7 @@ public class LanternUtilsTest {
         final String email = TestUtils.loadTestEmail();
         final String pass = TestUtils.loadTestPassword();
         
-        LanternHub.resetSettings(true);
+        //LanternHub.resetSettings(true);
         //final Settings settings = LanternHub.settings();
         //settings.setGetMode(true);
         //settings.setProxies(new HashSet<String>());

@@ -7,6 +7,7 @@ import org.lantern.state.Model;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
+import com.maxmind.geoip.LookupService;
 
 @Singleton @Named("trusted")
 public class TrustedPeerProxyManager extends DefaultPeerProxyManager {
@@ -14,8 +15,10 @@ public class TrustedPeerProxyManager extends DefaultPeerProxyManager {
     @Inject
     public TrustedPeerProxyManager(final ChannelGroup channelGroup,
         final XmppHandler xmppHandler, final Stats stats,
-        final LanternSocketsUtil socketsUtil, final Model model) {
-        super(false, channelGroup, xmppHandler, stats, socketsUtil, model);
+        final LanternSocketsUtil socketsUtil, final Model model,
+        final LookupService lookupService) {
+        super(false, channelGroup, xmppHandler, stats, socketsUtil, model, 
+            lookupService);
     }
 
 }

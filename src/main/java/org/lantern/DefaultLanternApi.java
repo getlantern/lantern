@@ -14,8 +14,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
-import org.lantern.event.Events;
-import org.lantern.event.SyncEvent;
 import org.lantern.http.HttpUtils;
 import org.lantern.http.LanternApi;
 import org.lantern.privacy.InvalidKeyException;
@@ -25,7 +23,6 @@ import org.lantern.state.Model.Run;
 import org.lantern.state.ModelChangeImplementor;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
-import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -144,9 +141,6 @@ public class DefaultLanternApi implements LanternApi {
             break;
         case WHITELIST:
             handleWhitelist(resp);
-            break;
-        case SETLOCALPASSWORD:
-            handleSetLocalPassword(req, resp);
             break;
         case UNLOCK:
             handleUnlock(req, resp);
@@ -321,17 +315,17 @@ public class DefaultLanternApi implements LanternApi {
     }
 
     private void handleReset(final HttpServletResponse resp) {
-        try {
+        //try {
             this.xmppHandler.clearProxies();
             signout();
             this.model.getSettings().setInClosedBeta(new HashSet<String>());
-            LanternHub.destructiveFullReset();
+            //LanternHub.destructiveFullReset();
             
             returnSettings(resp);
-        } catch (final IOException e) {
-            sendServerError(resp, "Error resetting settings: "+
-               e.getMessage());
-        }
+        //} catch (final IOException e) {
+        //    sendServerError(resp, "Error resetting settings: "+
+        //       e.getMessage());
+        //}
     }
     
     private void signout() {
@@ -350,47 +344,6 @@ public class DefaultLanternApi implements LanternApi {
         // roster, trusted contacts, saved password
         
         
-    }
-    
-    /** 
-     * This set the *initial* local password for encrypting local 
-     * settings in the case that the user specifies a password directly.
-     * It fails if a password has already been set or the local cipher 
-     * does not utilize a user supplied password.
-     */
-    private void handleSetLocalPassword(final HttpServletRequest req, 
-                                        final HttpServletResponse resp) {
-        //final LocalCipherProvider lcp = LanternHub.localCipherProvider();
-        if (lcp.isInitialized() == true) {
-            sendClientError(resp, "Local password has already been set, must reset to change.");
-            return;
-        }
-        if (!lcp.requiresAdditionalUserInput()) {
-            sendClientError(resp, "Local cipher does not require password.");
-            return;
-        }
-        final String password = req.getParameter("password");
-        if (StringUtils.isBlank(password)) {
-            sendClientError(resp, "Password cannot be blank");
-            return;
-        }
-        try {
-            lcp.feedUserInput(password.toCharArray(), true);
-            // immediately "unlock" the settings
-            LanternHub.resetSettings(true);
-            SettingsState.State ss = LanternHub.settings().getSettings().getState();
-            if (ss != SettingsState.State.SET) {
-                sendServerError(resp, "Failed to intialize settings.");
-                log.error("Settings did not unlock after initial set password, state is {}", ss);
-                return;
-            }
-        } catch (final GeneralSecurityException e) {
-            sendServerError(resp, "Error setting password.");
-            log.error("Unexpected error setting initial password: {}", e);
-        } catch (final IOException e) {
-            sendServerError(resp, "Error setting password.");
-            log.error("Unexpected error setting initial password: {}", e);
-        }
     }
     
     /** 
@@ -441,8 +394,7 @@ public class DefaultLanternApi implements LanternApi {
     }
 
     private void returnSettings(final HttpServletResponse resp) {
-        final String json = LanternUtils.jsonify(LanternHub.settings(), 
-            Settings.RuntimeSetting.class);
+        final String json = LanternUtils.jsonify(model, Model.Run.class);
         returnJson(resp, json);
     }
 
@@ -558,6 +510,7 @@ public class DefaultLanternApi implements LanternApi {
 
     private void changeSetting(final HttpServletResponse resp, final String key, 
         final String val, final boolean determineType, final boolean sync) {
+        /*
         setProperty(this.modelChangeImplementor, key, val, false, 
             resp, determineType);
         setProperty(LanternHub.settings(), key, val, true, resp, determineType);
@@ -566,6 +519,7 @@ public class DefaultLanternApi implements LanternApi {
             Events.asyncEventBus().post(new SyncEvent(SyncPath.SETTINGS, null));
             this.modelIo.write();
         }
+        */
     }
 
     private void setProperty(final Object bean, 

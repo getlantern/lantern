@@ -70,14 +70,7 @@ public class Proxifier implements LanternService {
         copyFromLocal(PROXY_ON);
         copyFromLocal(PROXY_ALL);
         copyFromLocal(PROXY_OFF);
-        final class Subscriber {
-            @Subscribe
-            public void onQuit(final QuitEvent quit) {
-                LOG.info("Got quit event!");
-                interactiveUnproxy();
-            }
-        }
-        Events.register(new Subscriber());
+        Events.register(this);
         
         if (SystemUtils.IS_OS_MAC_OSX) {
             final File Lantern = new File("Lantern");
@@ -106,6 +99,11 @@ public class Proxifier implements LanternService {
         LOG.info("Both pac files are in their expected locations");
     }
     
+    @Subscribe
+    public void onQuit(final QuitEvent quit) {
+        LOG.info("Got quit event!");
+        interactiveUnproxy();
+    }
 
     @Override
     public void start() throws Exception {

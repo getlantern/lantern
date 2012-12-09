@@ -1,8 +1,15 @@
 package org.lantern;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Timer;
 import java.util.concurrent.Executors;
+import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
@@ -18,6 +25,7 @@ import org.lantern.http.InteractionServlet;
 import org.lantern.http.JettyLauncher;
 import org.lantern.http.LanternApi;
 import org.lantern.http.PhotoServlet;
+import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.privacy.DefaultEncryptedFileService;
 import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.lantern.privacy.EncryptedFileService;
@@ -36,14 +44,18 @@ import org.lantern.state.SyncStrategy;
 import org.lantern.ui.SwtMessageService;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.PublicIpsOnlyRequestFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provides;
 import com.google.inject.Singleton;
+import com.maxmind.geoip.LookupService;
 
 public class LanternModule extends AbstractModule { 
     
+    private final Logger log = LoggerFactory.getLogger(getClass());
     @Override 
     protected void configure() {
         // Tweak Netty naming...
@@ -67,6 +79,7 @@ public class LanternModule extends AbstractModule {
         bind(Model.class).toProvider(ModelIo.class).in(Singleton.class);
         bind(ModelChangeImplementor.class).to(DefaultModelChangeImplementor.class);
         
+        bind(HttpsEverywhere.class);
         bind(Roster.class);
         bind(InteractionServlet.class);
         bind(LanternKeyStoreManager.class);
@@ -74,6 +87,8 @@ public class LanternModule extends AbstractModule {
         bind(PlainTestRelayHttpProxyServer.class);
         bind(PhotoServlet.class);
         
+        bind(Censored.class).to(DefaultCensored.class);
+        bind(ProxyTracker.class).to(DefaultProxyTracker.class);
         bind(XmppHandler.class).to(DefaultXmppHandler.class);
         bind(TrustedPeerProxyManager.class);
         bind(AnonymousPeerProxyManager.class);
@@ -81,8 +96,35 @@ public class LanternModule extends AbstractModule {
         bind(JettyLauncher.class);
         bind(AppIndicatorTray.class);
         bind(LanternApi.class).to(DefaultLanternApi.class);
-        //bind(SettingsChangeImplementor.class).to(DefaultSettingsChangeImplementor.class);
         bind(LanternHttpProxyServer.class);
+    }
+    
+    @Provides @Singleton
+    LookupService provideLookupService() {
+        final File unzipped = 
+                new File(LanternConstants.DATA_DIR, "GeoIP.dat");
+        if (!unzipped.isFile())  {
+            final File file = new File("GeoIP.dat.gz");
+            GZIPInputStream is = null;
+            OutputStream os = null;
+            try {
+                is = new GZIPInputStream(new FileInputStream(file));
+                os = new FileOutputStream(unzipped);
+                IOUtils.copy(is, os);
+            } catch (final IOException e) {
+                log.error("Error expanding file?", e);
+            } finally {
+                IOUtils.closeQuietly(is);
+                IOUtils.closeQuietly(os);
+            }
+        }
+        try {
+            return new LookupService(unzipped, 
+                    LookupService.GEOIP_MEMORY_CACHE);
+        } catch (final IOException e) {
+            log.error("Could not create LOOKUP service?");
+        }
+        return null;
     }
     
     @Provides @Singleton

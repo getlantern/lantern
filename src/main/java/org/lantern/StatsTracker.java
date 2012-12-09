@@ -1,5 +1,6 @@
 package org.lantern;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -76,10 +77,17 @@ public class StatsTracker implements Stats {
     private boolean upnp;
     
     private boolean natpmp;
+
+    private final LookupService lookupService;
+
+    private final Censored censored;
     
     @Inject
-    public StatsTracker(final Timer timer) {
-        peersPerSecond = new PeerCounter(ONE_SECOND, ONE_SECOND*2, timer);
+    public StatsTracker(final Timer timer, final LookupService lookupService,
+        final Censored censored) {
+        this.lookupService = lookupService;
+        this.censored = censored;
+        this.peersPerSecond = new PeerCounter(ONE_SECOND, ONE_SECOND*2, timer);
     }
     
     @Override
@@ -307,23 +315,22 @@ public class StatsTracker implements Stats {
     @Override
     public void addBytesProxied(final long bp, final Channel channel) {
         bytesProxied.addAndGet(bp);
-        final CountryData cd = toCountryData(channel);
-        if (cd != null) {
+        
+        try {
+            final CountryData cd = toCountryData(channel);
             cd.bytes += bp;
-        }
-        else {
-            log.warn("No CountryData for {} Not adding bytes proxied.", channel);
+        } catch (final IOException e) {
+            log.warn("No CountryData for {} Not adding bytes proxied.", e);
         }
     }
 
     public void addBytesProxied(final long bp, final Socket sock) {
         bytesProxied.addAndGet(bp);
-        final CountryData cd = toCountryData(sock);
-        if (cd != null) {
+        try {
+            final CountryData cd = toCountryData(sock);
             cd.bytes += bp;
-        }
-        else {
-            log.warn("No CountryData for {} Not adding bytes proxied.", sock);
+        } catch (final IOException e) {
+            log.warn("No CountryData for {} Not adding bytes proxied.", e);
         }
     }
 
@@ -347,27 +354,29 @@ public class StatsTracker implements Stats {
         return natpmp;
     }
 
-    private CountryData toCountryData(final Channel channel) {
+    private CountryData toCountryData(final Channel channel) throws IOException {
         final InetSocketAddress isa = 
             (InetSocketAddress) channel.getRemoteAddress();
         return toCountryData(isa);
     }
     
     
-    private CountryData toCountryData(final Socket sock) {
+    private CountryData toCountryData(final Socket sock) throws IOException {
         final InetSocketAddress isa = 
             (InetSocketAddress)sock.getRemoteSocketAddress();
         return toCountryData(isa);
     }
     
-    private CountryData toCountryData(final InetSocketAddress isa) {
+    private CountryData toCountryData(final InetSocketAddress isa) 
+        throws IOException {
         if (isa == null) {
             return null;
         }
         
-        final LookupService ls = LanternHub.getGeoIpLookup();
         final InetAddress addr = isa.getAddress();
-        final Country country = new Country(ls.getCountry(addr));
+        final com.maxmind.geoip.Country coun = lookupService.getCountry(addr);
+        final Country country = new Country(coun.getCode(), 
+            coun.getName(), censored.isCensored(coun.getCode()));
         final CountryData cd;
         final CountryData temp = new CountryData(country);
         final CountryData existing = 
@@ -383,12 +392,13 @@ public class StatsTracker implements Stats {
     }
     
 
-    public static CountryData newCountryData(final String cc, 
+    public CountryData newCountryData(final String cc, 
         final String name) {
         if (countries.containsKey(cc)) {
             return countries.get(cc);
         } 
-        final Country co = new Country(cc, name);
+        final Country co = new Country(cc, name, 
+            censored.isCountryCodeCensored(cc));
         final CountryData cd = new CountryData(co);
         countries.put(cc, cd);
         return cd;
@@ -396,7 +406,12 @@ public class StatsTracker implements Stats {
 
     @Override
     public String getCountryCode() {
-        return LanternHub.censored().countryCode();
+        try {
+            return censored.countryCode();
+        } catch (IOException e) {
+            log.warn("Could not report country code", e);
+            return "";
+        }
     }
     
     @Override
@@ -404,7 +419,7 @@ public class StatsTracker implements Stats {
         return LanternConstants.VERSION;
     }
     
-    public static final class CountryData {
+    public final class CountryData {
         private final Set<InetAddress> addresses = new HashSet<InetAddress>();
         private volatile long bytes;
         
@@ -412,7 +427,7 @@ public class StatsTracker implements Stats {
         final JSONObject data = new JSONObject();
         
         private CountryData(final Country country) {
-            data.put("censored", LanternHub.censored().isCensored(country));
+            data.put("censored", censored.isCensored(country));
             data.put("name", country.getName());
             data.put("code", country.getCode());
             data.put("lantern", lanternData);

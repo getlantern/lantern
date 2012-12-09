@@ -1,21 +1,22 @@
 package org.lantern; 
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.lantern.TestingUtils.createGetRequest;
+
 import java.util.ArrayList;
 import java.util.List;
-import static org.junit.Assert.*;
-import org.junit.Test;
+
 import org.jboss.netty.handler.codec.http.Cookie;
 import org.jboss.netty.handler.codec.http.DefaultCookie;
-import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
-import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpVersion;
+import org.junit.Test;
 import org.lantern.cookie.CookieFilter;
 import org.lantern.cookie.InMemoryCookieTracker;
 import org.lantern.httpseverywhere.HttpsBestEffortCookieFilter;
+import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.httpseverywhere.HttpsSecureCookieFilter;
 import org.lantern.httpseverywhere.HttpsSecureCookieRule;
-import static org.lantern.TestingUtils.*;
 
 public class HttpsBestEffortCookieFilterTest {
     
@@ -137,10 +138,12 @@ public class HttpsBestEffortCookieFilterTest {
 
         final InMemoryCookieTracker tracker = new InMemoryCookieTracker(); 
 
+        final HttpsEverywhere he = new HttpsEverywhere();
         final String filteredUris[] = {"http://twitter.com/", "http://foo.twitter.com/"};    
         for (final String uri : filteredUris) {
             final HttpRequest req = createGetRequest(uri);
-            final CookieFilter secureCookieFilter = new HttpsSecureCookieFilter(req);
+
+            final CookieFilter secureCookieFilter = new HttpsSecureCookieFilter(req, he);
 
             final CookieFilter cf = new HttpsBestEffortCookieFilter(
                 tracker.asOutboundCookieFilter(req, false),
@@ -159,7 +162,8 @@ public class HttpsBestEffortCookieFilterTest {
         for (final String uri : unfilteredUris) {
             final HttpRequest req = createGetRequest(uri);
             
-            final CookieFilter secureCookieFilter = new HttpsSecureCookieFilter(req);
+            final CookieFilter secureCookieFilter = 
+                new HttpsSecureCookieFilter(req, he);
             final CookieFilter cf = new HttpsBestEffortCookieFilter(
                 tracker.asOutboundCookieFilter(req, false),
                 secureCookieFilter

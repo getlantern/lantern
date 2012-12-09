@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.lantern.event.Events;
 import org.lantern.event.UpdateEvent;
 import org.lantern.http.JettyLauncher;
+import org.lantern.state.StaticSettings;
 
 public class CometDTest {
 
@@ -32,7 +33,7 @@ public class CometDTest {
     public void test() throws Exception {
         //final Injector injector = Guice.createInjector(new LanternModule());
         final int port = LanternUtils.randomPort();
-        TestUtils.getModel().getConnectivity().setApiPort(port);
+        StaticSettings.setApiPort(port);
         //RuntimeSettings.setApiPort(port);
         //LanternHub.settings().setApiPort(LanternUtils.randomPort());
         //final int port = LanternHub.settings().getApiPort();

@@ -15,6 +15,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 
+/**
+ * Utility methods that rely on the existence of the state model class.
+ */
 public class ModelUtils {
 
     private final Logger LOG = LoggerFactory.getLogger(ModelUtils.class);
