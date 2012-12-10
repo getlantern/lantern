@@ -30,8 +30,8 @@
     </form>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="maybeNotify(); interaction(INTERACTION.reset)" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
-    <button type="button" ng-click="maybeNotify(); refresh()" class="btn btn-primary">{{ 'REFRESH' | i18n }}</button>
+    <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notifyLanternDevs})" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
+    <button type="button" ng-click="refresh()" class="btn btn-primary">{{ 'REFRESH' | i18n }}</button>
   </div>
 </div>
 
@@ -52,8 +52,8 @@
     </form>
   </div>
   <div class="modal-footer">
-    <button type="button" ng-click="maybeNotify(); interaction(INTERACTION.reset)" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
-    <button type="button" ng-click="maybeNotify(); interaction(INTERACTION.quit)" class="btn btn-primary">{{ 'QUIT' | i18n }}</button>
+    <button type="button" ng-click="interaction(INTERACTION.reset, {notify: notifyLanternDevs})" class="btn btn-danger">{{ 'RESET' | i18n }}</button>
+    <button type="button" ng-click="interaction(INTERACTION.quit, {notify: notifyLanternDevs})" class="btn btn-primary">{{ 'QUIT' | i18n }}</button>
   </div>
 </div>
 
@@ -105,10 +105,6 @@
     <h3>{{ 'GTALK_CONNECTING_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body">
-    <p>
-      Connecting to Google Talk as {{ model.settings.userid }}...<!-- XXX i18n -->
-      <span ng-show="gtalkConnected">{{ 'CONNECTED' | i18n }}</span>
-    </p>
     <p class="centered" ng-show="gtalkConnecting">
       <!-- XXX progress bar would be nice here -->
       <img alt="{{ 'CONNECTING' | i18n }}"
@@ -409,8 +405,8 @@
     <br>
     <form class="form-inline">
       <label class="checkbox inline" style="margin:0"><!-- XXX inline style -->
-        <input type="checkbox" ng-model="notifyLanternDevs"
-               ng-change="changeSetting(SETTING.autoReport, notifyLanternDevs)">
+        <input type="checkbox" ng-model="autoReport"
+               ng-change="changeSetting(SETTING.autoReport, autoReport)">
         <small>{{ 'AUTOREPORT_ENABLE' | i18n }}</small>
       </label>
       <label class="checkbox inline" style="margin:0"><!-- XXX inline style -->

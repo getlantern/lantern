@@ -5,7 +5,7 @@
 // XXX use data-loading-text instead of submitButtonLabelKey below?
 // see http://twitter.github.com/bootstrap/javascript.html#buttons
 
-function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, $http, apiSrvc, DEFAULT_AVATAR_URL, ENUMS, $window) {
+function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, apiSrvc, DEFAULT_AVATAR_URL, ENUMS, $window) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
       MODE = ENUMS.MODE,
@@ -22,7 +22,6 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
     $scope[key] = val;
   });
 
-  // XXX better place for these?
   $scope.lang = langSrvc.lang;
   $scope.direction = langSrvc.direction;
 
@@ -48,16 +47,6 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
   });
 
   $scope.notifyLanternDevs = true;
-  $scope.$watch('model.settings.autoReport', function(autoReport) {
-    if (angular.isDefined(autoReport))
-      $scope.notifyLanternDevs = autoReport;
-  });
-  $scope.maybeNotify = function() {
-    // XXX TODO
-    if ($scope.notifyLanternDevs) {
-      log.warn('Notify Lantern developers not yet implemented');
-    }
-  };
 
   $scope.refresh = function() {
     location.reload(true); // true to bypass cache and force request to server
@@ -67,33 +56,20 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
     $window.open(model.connectivity.gtalkOauthUrl);
   };
 
-  $scope.interaction = function(interaction, extra) {
-    var params = angular.extend({interaction: interaction}, extra || {});
-    return $http.post(apiSrvc.urlfor('interaction', params))
+  $scope.interaction = function(interactionid, extra) {
+    return apiSrvc.interaction(interactionid, extra)
       .success(function(data, status, headers, config) {
-        log.debug('interaction', interaction, 'successful');
+        log.debug('interaction(', interactionid, extra, ') successful');
       })
       .error(function(data, status, headers, config) {
-        log.debug('interaction', interaction, 'failed'); // XXX
-      });
-  };
-
-  $scope.updateState = function(updates) {
-    updates = angular.toJson(updates);
-    return $http.post(apiSrvc.urlfor('state', {updates: updates}))
-      .success(function(data, status, headers, config) {
-        log.debug('Update state successful', updates);
-      })
-      .error(function(data, status, headers, config) {
-        log.debug('Update state failed', updates);
+        log.error('interaction(', interactionid, extra, ') failed');
       });
   };
 
   $scope.changeSetting = function(key, val) {
-    var updates = {};
-    updates['settings.'+key] = val;
-    return $scope.updateState(updates);
-  }
+    var update = {path: 'settings.'+key, value: val};
+    return $scope.interaction(INTERACTION.set, update);
+  };
 }
 
 function WaitingForLanternCtrl($scope, logFactory) {
@@ -173,7 +149,7 @@ function GtalkConnectingCtrl($scope, logFactory, MODAL) {
   });
 }
 
-function GtalkUnreachableCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
+function GtalkUnreachableCtrl($scope, logFactory, MODAL) {
   var log = logFactory('GtalkUnreachableCtrl');
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
@@ -181,7 +157,7 @@ function GtalkUnreachableCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
   });
 }
 
-function NotInvitedCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
+function NotInvitedCtrl($scope, logFactory, MODAL) {
   var log = logFactory('NotInvitedCtrl');
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
@@ -189,7 +165,7 @@ function NotInvitedCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
   });
 }
 
-function RequestInviteCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
+function RequestInviteCtrl($scope, logFactory, MODAL, INTERACTION) {
   var log = logFactory('RequestInviteCtrl');
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
@@ -210,20 +186,13 @@ function RequestInviteCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
     $scope.requestError = false;
     $scope.submitButtonLabelKey = 'SENDING_REQUEST';
     var params = {lanternDevs: $scope.sendToLanternDevs};
-    $http.post(apiSrvc.urlfor('requestInvite', params))
-      .success(function(data, status, headers, config) {
-        log.debug('sent invite request');
-        resetForm();
-      })
-      .error(function(data, status, headers, config) {
-        log.debug('send invite request failed');
-        $scope.requestError = true;
-        resetForm();
-      });
+    return $scope.interaction(INTERACTION.requestInvite, params) // XXX TODO
+      .error(function() { $scope.requestError = true; })
+      .then(resetForm);
   };
 }
 
-function RequestSentCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
+function RequestSentCtrl($scope, logFactory, MODAL) {
   var log = logFactory('RequestSentCtrl');
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
@@ -231,7 +200,7 @@ function RequestSentCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
   });
 }
 
-function FirstInviteReceivedCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
+function FirstInviteReceivedCtrl($scope, logFactory, MODAL) {
   var log = logFactory('FirstInviteReceivedCtrl');
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
@@ -239,7 +208,7 @@ function FirstInviteReceivedCtrl($scope, apiSrvc, $http, logFactory, MODAL) {
   });
 }
 
-function SystemProxyCtrl($scope, $http, apiSrvc, logFactory, MODAL, SETTING, INTERACTION) {
+function SystemProxyCtrl($scope, logFactory, MODAL, SETTING, INTERACTION) {
   var log = logFactory('SystemProxyCtrl');
 
   $scope.show = false;
@@ -260,21 +229,8 @@ function SystemProxyCtrl($scope, $http, apiSrvc, logFactory, MODAL, SETTING, INT
     $scope.sysproxyError = false;
     $scope.disableForm = true;
     $scope.submitButtonLabelKey = 'CONFIGURING';
-    var params = {systemProxy: $scope.systemProxy};
-    $scope.interaction(INTERACTION.continue, params);
-    resetForm(); // XXX pass in a callback to be called when $scope.interaction(..) completes
-    /*
-    $http.post(apiSrvc.urlfor('settings/', params))
-      .success(function(data, status, headers, config) {
-        log.debug('set systemProxy to', $scope.systemProxy);
-        resetForm();
-      })
-      .error(function(data, status, headers, config) {
-        log.debug('set systemProxy failed');
-        $scope.sysproxyError = true;
-        resetForm();
-      });
-    */
+    var p = {path: 'settings.'+SETTING.systemProxy, value: $scope.systemProxy};
+    $scope.interaction(INTERACTION.continue, p).then(resetForm);
   };
 }
 
@@ -283,6 +239,7 @@ function FinishedCtrl($scope, MODAL) {
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.finished;
   });
+  $scope.autoReport = true;
 }
 
 function ContactDevsCtrl($scope, MODAL) {
@@ -408,7 +365,7 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
         return;
       }
       $scope.input = normalized.join('\n');
-      if (angular.equals(original, normalized)) { // order ignored
+      if (_.isEqual(original, normalized)) {
         log.debug('input matches original, not sending update');
         updateComplete();
         return;
@@ -465,7 +422,7 @@ function GiveModeForbiddenCtrl($scope, logFactory, MODAL) {
   });
 }
 
-function ScenariosCtrl($scope, $timeout, apiSrvc, logFactory, modelSrvc, dev, MODAL, INTERACTION) {
+function ScenariosCtrl($scope, $timeout, logFactory, modelSrvc, dev, MODAL, INTERACTION) {
   var log = logFactory('ScenariosCtrl'),
       model = modelSrvc.model;
 
@@ -476,9 +433,9 @@ function ScenariosCtrl($scope, $timeout, apiSrvc, logFactory, modelSrvc, dev, MO
 
   $scope.$watch('model.mock.scenarios.applied', function(applied) {
     if (applied) {
-      $scope.appliedScenarios = [];
       // XXX ui-select2 timing issue
       $timeout(function() {
+        $scope.appliedScenarios = [];
         for (var group in applied) {
           $scope.appliedScenarios.push(group+'.'+applied[group]);
         }
@@ -494,12 +451,11 @@ function ScenariosCtrl($scope, $timeout, apiSrvc, logFactory, modelSrvc, dev, MO
       var group_key_pair = ii.split('.');
       appliedScenarios[group_key_pair[0]] = group_key_pair[1];
     }
-    appliedScenarios = angular.toJson(appliedScenarios);
-    $scope.interaction(INTERACTION.continue, {appliedScenarios: appliedScenarios})
+    $scope.interaction(INTERACTION.continue, {path: 'mock.scenarios.applied', value: appliedScenarios});
   };
 }
 
-function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, cometdSrvc, modelSrvc) {
+function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, modelSrvc) {
   var log = logFactory('DevCtrl'),
       model = modelSrvc.model;
 
@@ -528,12 +484,14 @@ function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, cometdSrvc, modelS
 
   $scope.handleUpdate = function() {
     log.debug('in handleUpdate');
-    cometdSrvc.batch(function() {
-      syncObject('', angular.fromJson($scope.editableModel), sanitized(model));
-    });
+    var updates = [];
+    syncObject('', angular.fromJson($scope.editableModel), sanitized(model), updates);
+    if (updates.length) {
+      $scope.interaction(INTERACTION.developer, updates);
+    }
   };
 
-  function syncObject(parent, src, dst) {
+  function syncObject(parent, src, dst, updates) {
     if (!_.isPlainObject(src) || !_.isPlainObject(dst)) {
       throw Error('src and dst must be objects');
     }
@@ -545,8 +503,7 @@ function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, cometdSrvc, modelS
     for (var name in dst) {
       var path = (parent ? parent + '.' : '') + name;
       if (!(name in src)) {
-        log.debug('publishing: path:', path, 'delete:', true);
-        cometdSrvc.publish(MODEL_SYNC_CHANNEL, {path: path, delete: true});
+        updates.push({path: path, delete: true});
         delete dst[name];
       }
     }
@@ -558,19 +515,16 @@ function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, cometdSrvc, modelS
         continue;
       }
       if (angular.isArray(src[name])) {
-        log.debug('publishing: path:', path, 'value:', src[name]);
-        cometdSrvc.publish(MODEL_SYNC_CHANNEL, {path: path, value: src[name]});
+        updates.push({path: path, value: src[name]});
         dst[name] = src[name].slice();
       } else if (angular.isObject(src[name])) {
         if (!angular.isObject(dst[name])) {
-          log.debug('publishing: path:', path, 'delete:', true);
-          cometdSrvc.publish(MODEL_SYNC_CHANNEL, {path: path, delete: true});
+          updates.push({path: path, delete: true});
           dst[name] = {};
         }
-        syncObject(path, src[name], dst[name]);
+        syncObject(path, src[name], dst[name], updates);
       } else {
-        log.debug('publishing: path:', path, 'value:', src[name]);
-        cometdSrvc.publish(MODEL_SYNC_CHANNEL, {path: path, value: src[name]});
+        updates.push({path: path, value: src[name]});
         dst[name] = src[name];
       }
     }

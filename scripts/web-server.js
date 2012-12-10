@@ -5,9 +5,8 @@ var util = require('util'),
     fs = require('fs'),
     url = require('url'),
     events = require('events');
-var BayeuxBackend = require('../mock/bayeux_backend').BayeuxBackend
-  , ApiServlet = require('../mock/http_api').ApiServlet
-  ;
+var BayeuxBackend = require('../mock/bayeux_backend').BayeuxBackend,
+    ApiServlet = require('../mock/http_api').ApiServlet;
 
 var DEFAULT_PORT = 8000;
 

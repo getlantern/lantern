@@ -1,14 +1,13 @@
 'use strict';
 
-// XXX better cross-environment dependency management
-if (typeof inspect == 'undefined') {
+if (typeof inspect != 'function') {
   try {
     var inspect = require('util').inspect;
   } catch(e) {
     var inspect = function(x) { return JSON.stringify(x); };
   }
 }
-if (typeof _ == 'undefined') {
+if (typeof _ != 'function') {
   try {
     var _ = require('../lib/lodash.js')._;
   } catch(e) {
@@ -38,13 +37,18 @@ function getByPath(obj, path, defaultVal) {
 }
 
 function deleteByPath(obj, path) {
-  path = (path || '').split('.');
+  if (path == '') {
+    for (var key in obj)
+      delete obj[key];
+    return;
+  }
+  path = path.split('.');
   var name = path[0], i = 0, l = path.length;
   for (; i<l-1 && path[i+1]; ++i) {
     obj = obj[name];
     name = path[i+1];
   }
-  if (i == l - 1)
+  if (i == l - 1 && name)
     delete obj[name];
 }
 
@@ -85,18 +89,17 @@ function merge(dst, src, path) {
   }
 }
 
-/*
-// XXX better than _.isEqual?
-function arraysEqual(left, right) {
-  return _.isArray(left) && _.isArray(right) &&
-    !(left < right) && !(left > right);
-}
-*/
-
-if (typeof exports != 'undefined') {
-  exports.makeLogger = makeLogger;
-  exports.getByPath = getByPath;
-  exports.deleteByPath = deleteByPath;
-  exports.merge = merge;
-  //exports.arraysEqual = arraysEqual;
+if (typeof angular == 'object' && angular && typeof angular.module == 'function') {
+  angular.module('app.helpers', [])
+    // XXX move app.services' logging stuff here?
+    .constant('getByPath', getByPath)
+    .constant('deleteByPath', deleteByPath)
+    .constant('merge', merge);
+} else if (typeof exports == 'object' && exports && typeof module == 'object' && module && module.exports == exports) {
+  module.exports = {
+    makeLogger: makeLogger,
+    getByPath: getByPath,
+    deleteByPath: deleteByPath,
+    merge: merge
+  };
 }

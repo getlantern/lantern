@@ -510,30 +510,35 @@ the backend maintains on the frontend through comet publications:
 
 
 <table>
-  <tr><td><strong>/reset</td>
-    <td>restore Lantern to clean install state</strong></td></tr>
-  <tr><td><strong>/changeSetting?<em>key</em>=<em>value</em></strong></td>
-    <td>change setting indiciated by <em>key</em> to <em>value</em></td></tr>
-  <tr><td><strong>/interaction?interaction=<em>key</em>[&amp;<em>param1</em>=<em>value1</em>[&amp;<em>param2</em>=<em>value2</em>[...]]]</strong></td>
-    <td>Notify backend of user interaction corresponding to <em>key</em> and
-      any associated parameters.</td></tr>
-  <tr><td><strong>TODO...</strong></td>
-    <td>For now please see <code>mock/http_api.js</code> in the code repository
-        for a work-in-progress mock implementation.</td></tr>
+  <tr><td><code>/interaction/<em>&lt;interactionid&gt;</em></code></td>
+    <td>Notify the backend of the user interaction specified by
+    <code>interactionid</code>, optionally passing additional requested updates
+    to the model in a json-encoded request body in the format of the update
+    protocol, e.g. <code>{"path": "foo.bar", "value": "baz"}</code></td></tr>
 </table>
 
 <hr>
 
 
-## Notes and Questions
+## Reference implementations
+
+lantern-ui's development server, invoked via `./scripts/web-server.js`,
+attaches a mock http api and bayeux backend to simulate a real backend.
+The mock implementations can be found in the `/mock` directory and can serve
+as reference implementations of these specifications.
+
+<hr>
+
+
+## Notes
 
 * Switches to Oauth rather than asking for users' Google passwords. Since we no
   longer store users' Google passwords, the data we do store is now much less
   sensitive. On Windows and OS X we continue to use the systems' keychain
   facilities for secure data storage. Pending [#357](https://github.com/getlantern/lantern/issues/357),
   on Ubuntu we ditch Lantern password-based settings unlock and just don't store
-  anything sensitive like the Oauth token, instead just having the user do a new
-  Oauth Oauth sequence after restarting Lantern.
+  anything sensitive like the Oauth token, instead just having the user complete
+  a new Oauth workflow every time she restarts Lantern.
 
 * Frontend does not maintain any state outside of the state document, e.g. no
   longer tries to keep track of which modal to display when, just does as it's
@@ -543,6 +548,11 @@ the backend maintains on the frontend through comet publications:
   user interactions via the `interaction` api and the backend responds by
   updating the state document (and in some cases setting a non-200 response
   code)
+
+<hr>
+
+
+## Setup Sequence
 
 * Welcome modal now prompts for give/get mode choice
 
@@ -569,22 +579,34 @@ the backend maintains on the frontend through comet publications:
       authorization until it has been granted.
 
     * Once we have an Oauth token, we know the user has successfully
-      authenticated to Google. But before we sign in to Google Talk, first we
-      should check if the user has a Lantern invite.
+      authenticated to Google.
 
-        * If not, present the `notInvited` modal and allow user to try
-          using a different userid (e.g. go back to `authorize` modal), or
-          request an invite via the `requestInvite` modal, and then proceed in
-          demonstration mode. When the user gets an invite, backend should
-          discover this and set modal to `firstInviteReceived`, and then take
-          user back to the remaining setup modals.
+    * Ideally, before we signed in to Google Talk, first we would check if the
+      user has a Lantern invite, to save time waiting for the Google Talk sign
+      in. The Lantern invite check is currently performed via XMPP message to
+      lantern-controller, however, so we must sign in to Google Talk first.
 
-        * If so, we sign the user in to Google Talk, fetch her roster, and
-          determine which of her contacts are also Lantern users for the
-          upcoming `lanternFriends` modal.
+    * After signing in to Google Talk, we compare the user's roster to the set
+      of invited Lantern users to determine which of her contacts are Lantern
+      users. This is needed by the `lanternFriends` modal and the
+      `requestInvite` modal.
+
+    * Next we check if the user has Lantern access (i.e. has an invite).
+
+    * If no invite, present the `notInvited` modal, which allows user to try
+      using a different userid (i.e. goes back to `authorize` modal), or
+      request an invite via the `requestInvite` modal, and then proceed in
+      demonstration mode. When the user gets an invite, backend should
+      discover this and set modal to `firstInviteReceived`, and then take
+      user back to the remaining setup modals. In demonstration mode,
+      Lantern will keep the user signed in to Google Talk, but will not
+      allow participation with Lantern peers.
+
+    * If the user has an invite, we proceed to `lanternFriends` modal.
 
     * Note: We no longer allow switching Google accounts once we've
-      successfully signed in. Switching accounts should require a full reset.
+      successfully signed in as a user with Lantern access. Switching accounts
+      should require a full reset.
 
 * Next is `lanternFriends` modal:
 

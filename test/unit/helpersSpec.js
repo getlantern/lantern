@@ -58,6 +58,12 @@ describe('helpers', function() {
       deleteByPath(obj, '2');
       expect(_.isEqual(obj, objCopy)).toBe(false);
     });
+
+    it('deletes all propreties when path is empty string', function() {
+      expect(obj['0']).toBe('0');
+      deleteByPath(obj, '');
+      expect(_.isEqual(obj, {})).toBe(true);
+    });
   });
 
   describe('merge', function() {

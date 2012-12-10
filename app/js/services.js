@@ -4,95 +4,6 @@ angular.module('app.services', [])
   // primitives wrapped in objects for mutatability
   .value('dev', {value: true}) // controls debug logging and developer panel
   .value('sanity', {value: true}) // triggers failure mode when false
-  .constant('MODEL_SYNC_CHANNEL', '/sync')
-  .constant('REQUIRED_VERSIONS', {
-    modelSchema: {major: 0, minor: 0},
-    httpApi: {major: 0, minor: 0},
-    bayeuxProtocol: {major: 0, minor: 0}
-  })
-  .constant('VER', [0, 0, 1]) // frontend version XXX pull from package.json or some such?
-  .constant('DEFAULT_AVATAR_URL', '/app/img/default-avatar.png')
-  // enums
-  .constant('EXTERNAL_URL', {
-    helpTranslate: 'https://github.com/getlantern/lantern/wiki/Contributing#wiki-other-languages',
-    httpsEverywhere: 'https://www.eff.org/https-everywhere'
-  })
-  .constant('INPUT_PATS', {
-    // from http://html5pattern.com/
-    DOMAIN: /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/,
-    IPV4: /((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$/
-  })
-  // XXX use some kind of Object.fromkeys function
-  .constant('SETTING', {
-    lang: 'lang',
-    mode: 'mode',
-    autoReport: 'autoReport',
-    autoStart: 'autoStart',
-    systemProxy: 'systemProxy',
-    proxyAllSites: 'proxyAllSites',
-    proxyPort: 'proxyPort',
-    proxiedSites: 'proxiedSites'
-  })
-  .constant('MODE', {
-    give: 'give',
-    get: 'get'
-  })
-  .constant('CONNECTIVITY', {
-    notConnected: 'notConnected',
-    connecting: 'connecting',
-    connected: 'connected'
-  })
-  .constant('MODAL', {
-    settingsLoadFailure: 'settingsLoadFailure',
-    welcome: 'welcome',
-    authorize: 'authorize',
-    gtalkConnecting: 'gtalkConnecting',
-    gtalkUnreachable: 'gtalkUnreachable',
-    authorizeLater: 'authorizeLater',
-    notInvited: 'notInvited',
-    requestInvite: 'requestInvite',
-    requestSent: 'requestSent',
-    firstInviteReceived: 'firstInviteReceived',
-    proxiedSites: 'proxiedSites',
-    systemProxy: 'systemProxy',
-    lanternFriends: 'lanternFriends',
-    finished: 'finished',
-    contactDevs: 'contactDevs',
-    settings: 'settings',
-    confirmReset: 'confirmReset',
-    giveModeForbidden: 'giveModeForbidden',
-    about: 'about',
-    updateAvailable: 'updateAvailable',
-    scenarios: 'scenarios',
-    none: ''
-  })
-  .constant('INTERACTION', {
-    lanternFriends: 'lanternFriends',
-    contactDevs: 'contactDevs',
-    settings: 'settings',
-    reset: 'reset',
-    proxiedSites: 'proxiedSites',
-    about: 'about',
-    updateAvailable: 'updateAvailable',
-    requestInvite: 'requestInvite',
-    retryNow: 'retryNow',
-    retryLater: 'retryLater',
-    cancel: 'cancel',
-    continue: 'continue',
-    close: 'close',
-    quit: 'quit',
-    scenarios: 'scenarios'
-  })
-  .service('ENUMS', function(MODE, CONNECTIVITY, MODAL, INTERACTION, SETTING, EXTERNAL_URL) {
-    return {
-      MODE: MODE,
-      CONNECTIVITY: CONNECTIVITY,
-      MODAL: MODAL,
-      INTERACTION: INTERACTION,
-      SETTING: SETTING,
-      EXTERNAL_URL: EXTERNAL_URL
-    };
-  })
   // more flexible log service
   // https://groups.google.com/d/msg/angular/vgMF3i3Uq2Y/q1fY_iIvkhUJ
   .value('logWhiteList', /.*Ctrl|.*Srvc/)
@@ -118,7 +29,6 @@ angular.module('app.services', [])
       };
     }
   })
-  .constant('COMETD_URL', location.protocol+'//'+location.host+'/cometd')
   .service('cometdSrvc', function(COMETD_URL, sanity, logFactory, $rootScope, $window) {
     var log = logFactory('cometdSrvc');
     // boilerplate cometd setup
@@ -234,16 +144,9 @@ angular.module('app.services', [])
 
     return {
       subscribe: subscribe,
-      unsubscribe: unsubscribe,
-      // for DevCtrl
-      batch: function() { cometd.batch.apply(cometd, arguments); },
-      publish: function(channel, data) { cometd.publish(channel, data); }
+      unsubscribe: unsubscribe
     };
   })
-  /*
-  .service('modelSchema', function(ENUMS) {...})
-  .service('modelValidatorSrvc', function(modelSchema, logFactory) {...})
-  */
   .service('modelSrvc', function($rootScope, MODEL_SYNC_CHANNEL, cometdSrvc, logFactory) {
     var log = logFactory('modelSrvc'),
         model = {},
@@ -274,15 +177,13 @@ angular.module('app.services', [])
         }
     };
   })
-  .service('apiSrvc', function(REQUIRED_VERSIONS) {
-    var ver = REQUIRED_VERSIONS.httpApi.major + '.' +
-              REQUIRED_VERSIONS.httpApi.minor;
+  .service('apiSrvc', function($http, REQUIRED_VERSIONS) {
+    var ver = [REQUIRED_VERSIONS.httpApi.major,
+               REQUIRED_VERSIONS.httpApi.minor].join('.');
     return {
-      urlfor: function(endpoint, params) {
-          var query = _.reduce(params, function(acc, val, key) {
-              return acc+key+'='+encodeURIComponent(val)+'&';
-            }, '?');
-          return '/api/'+ver+'/'+endpoint+query;
-        }
+      interaction: function(interactionid, data) {
+        var url = ['', 'api', ver, 'interaction', interactionid].join('/');
+        return $http.post(url, data); // XXX need data || {}?
+      }
     };
   });

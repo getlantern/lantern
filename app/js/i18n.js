@@ -1,29 +1,20 @@
 'use strict';
 
 angular.module('app.i18n', [])
-  .constant('DEFAULTLANG', 'en')
-  .constant('DEFAULTDIRECTION', 'ltr')
-  .constant('NBSP', ' ') // unicode no-break space
-  .service('langSrvc', function(modelSrvc, DEFAULTLANG, DEFAULTDIRECTION, LANGDIRECTIONS) {
+  .service('langSrvc', function(modelSrvc, getByPath, LANG, DEFAULT_LANG, DEFAULT_DIRECTION) {
     var model = modelSrvc.model;
     function lang() {
       return getByPath(model, 'settings.lang') ||
              getByPath(model, 'system.lang') ||
-             DEFAULTLANG;
+             DEFAULT_LANG;
     }
     function direction() {
-      return LANGDIRECTIONS[lang()] || DEFAULTDIRECTION;
+      return LANG[lang()].dir || DEFAULT_DIRECTION;
     }
     return {
       lang: lang,
       direction: direction
     };
-  })
-  .constant('LANGDIRECTIONS', {
-    en: 'ltr',
-    zh: 'ltr',
-    fa: 'rtl',
-    ar: 'rtl'
   })
   .constant('TRANSLATIONS', {
     zh: {
@@ -93,7 +84,7 @@ angular.module('app.i18n', [])
       RETRY_NOW: 'Retry now',
       RETRY_LATER: 'Retry later',
       NOT_INVITED_TITLE: 'User Not Invited',
-      NOT_INVITED_PROMPT: 'The user you entered has not been invited to join Lantern yet.',
+      NOT_INVITED_PROMPT: 'This user has not been invited to join Lantern yet.',
       TRY_ANOTHER_USER: 'Try another user',
       REQUEST_INVITE: 'Request invite',
       REQUEST_INVITE_TITLE: 'Request Invite',
@@ -179,13 +170,13 @@ angular.module('app.i18n', [])
     }
   })
   // https://groups.google.com/d/msg/angular/641c1ykOX4k/hcXI5HsSD5MJ
-  .filter('i18n', function(langSrvc, DEFAULTLANG, TRANSLATIONS) {
+  .filter('i18n', function(langSrvc, DEFAULT_LANG, TRANSLATIONS) {
     return function(key) {
       if (typeof key == 'undefined') return '(translation key undefined. did you forget quotes?)';
       if (!key) return '';
       var translation =
           (TRANSLATIONS[langSrvc.lang()] || {})[key] ||
-          TRANSLATIONS[DEFAULTLANG][key] ||
+          TRANSLATIONS[DEFAULT_LANG][key] ||
           '(translation key "'+key+'" not found)';
       return translation;
     }

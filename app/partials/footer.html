@@ -51,10 +51,11 @@
     <button type="button" class="btn btn-small btn-inverse"
             ng-click="interaction(INTERACTION.lanternFriends)"
             ui-jq="tooltip" rel="tooltip" data-original-title="Lantern friends">
-      <i class="icon-group"></i><sub class="badge badge-important"
+      <i class="icon-group"></i><sub ng-show="model.connectivity.peers.pending.length"
+                                     class="badge badge-important"
                                      style="font-weight: 200;
                                             font-size: 8px;
-                                            padding: 0 3px;
+                                            padding: 0 3px 0 2px;
                                             margin-right: -7px">{{
         model.connectivity.peers.pending.length }}</sub>
     </button>

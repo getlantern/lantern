@@ -1,10 +1,11 @@
 var sleep = require('./node_modules/sleep'),
     helpers = require('../app/js/helpers.js'),
       merge = helpers.merge,
-    enums = require('./enums'),
-      CONNECTIVITY = enums.CONNECTIVITY,
-      MODAL = enums.MODAL,
-      OS = enums.OS;
+    constants = require('../app/js/constants.js'),
+      ENUMS = constants.ENUMS,
+        CONNECTIVITY = ENUMS.CONNECTIVITY,
+        MODAL = ENUMS.MODAL,
+        OS = ENUMS.OS;
 
 function make_simple_scenario(state) {
   return function() {
@@ -224,7 +225,7 @@ exports.SCENARIOS = {
   }
 };
 
-/*
+/* XXX update available scenario
 model.version.updated = {
 "label":"0.0.2",
 "url":"https://lantern.s3.amazonaws.com/lantern-0.0.2.dmg",

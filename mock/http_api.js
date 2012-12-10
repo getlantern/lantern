@@ -7,15 +7,18 @@ var url = require('url'),
       makeLogger = helpers.makeLogger,
         log = makeLogger('api'),
       getByPath = helpers.getByPath,
+      deleteByPath = helpers.deleteByPath,
       merge = helpers.merge,
     scenarios = require('./scenarios'),
       SCENARIOS = scenarios.SCENARIOS,
-    enums = require('./enums'),
-      CONNECTIVITY = enums.CONNECTIVITY,
-      INTERACTION = enums.INTERACTION,
-      MODAL = enums.MODAL,
-      MODE = enums.MODE,
-      OS = enums.OS;
+    constants = require('../app/js/constants.js'),
+      ENUMS = constants.ENUMS,
+        CONNECTIVITY = ENUMS.CONNECTIVITY,
+        INTERACTION = ENUMS.INTERACTION,
+        MODAL = ENUMS.MODAL,
+        MODE = ENUMS.MODE,
+        OS = ENUMS.OS,
+        SETTING = ENUMS.SETTING;
 
 function ApiServlet(bayeuxBackend) {
   this._bayeuxBackend = bayeuxBackend;
@@ -32,9 +35,7 @@ ApiServlet.VERSION = {
   minor: 0,
   patch: 1
   };
-ApiServlet.VERSION_STR = ApiServlet.VERSION.major+'.'+ApiServlet.VERSION.minor;
-ApiServlet.MOUNT_POINT = '/api/';
-ApiServlet.API_PREFIX = ApiServlet.MOUNT_POINT + ApiServlet.VERSION_STR + '/';
+ApiServlet.MOUNT_POINT = 'api';
 
 ApiServlet.RESET_INTERNAL_STATE = {
   lastModal: MODAL.none,
@@ -114,46 +115,42 @@ ApiServlet.prototype.inGetMode = function() {
   return this.model.settings.mode == MODE.get;
 };
 
-ApiServlet._handlers = {};
-ApiServlet._handlers.state = function(res, qs) {
-  // XXX validate requested changes via model schema before applying them
-  var updates = JSON.parse(qs.updates);
-  this.updateModel(updates, true);
-  log('applied state updates', updates);
+ApiServlet._handlerForInteraction = {};
+ApiServlet._handlerForInteraction[INTERACTION.developer] = function(res, data) {
+  if (!_.isArray(data)) throw Error('Expected array');
+  // XXX validate requested updates
+  for (var i=0, update=data[i]; update; update=data[++i]) {
+    if (update.delete) {
+      deleteByPath(this.model, update.path);
+    } else {
+      deleteByPath(this.model, update.path);
+      merge(this.model, update.value, update.path);
+    }
+    this.publishSync(update.path);
+  }
 };
 
-ApiServlet._handlers['settings/unlock'] = function(res, qs) {
-  if (qs.password != this._internalState.password) {
-    res.writeHead(403);
+ApiServlet._handlerForInteraction[INTERACTION.scenarios] = function(res, data) {
+  if (this.model.modal == MODAL.scenarios) return;
+  this._internalState.lastModal = this.model.modal;
+  this.updateModel({modal: MODAL.scenarios}, true);
+};
+
+ApiServlet._handlerForModal = {};
+ApiServlet._handlerForModal[MODAL.scenarios] = function(interaction, res, data) {
+  if (interaction != INTERACTION.continue ||
+     (data.path && data.path != 'mock.scenarios.applied')) {
+    res.writeHead(400);
     return;
   }
-  this._advanceModal();
-};
-
-ApiServlet._handlers.requestInvite = function(res, qs) {
-  sleep.usleep(750000);
-  this.updateModel({modal: MODAL.requestSent}, true);
-};
-
-ApiServlet._handlers.interaction = function(res, qs) {
-  var interaction = qs.interaction;
-  if (interaction == INTERACTION.scenarios) {
-    this._internalState.lastModal = this.model.modal;
-    this.updateModel({modal: MODAL.scenarios}, true);
-    return;
-  }
-  var handler = ApiServlet._intHandlerForModal[this.model.modal];
-  if (!handler) return res.writeHead(400);
-  return handler.call(this, interaction, res, qs);
-};
-
-ApiServlet._intHandlerForModal = {};
-ApiServlet._intHandlerForModal[MODAL.scenarios] = function(interaction, res, qs) {
-  if (interaction != INTERACTION.continue) return res.writeHead(400);
-  var appliedScenarios = JSON.parse(qs.appliedScenarios);
-  // XXX validate
+  var appliedScenarios = data.value;
   for (var groupKey in appliedScenarios) {
     var scenKey = appliedScenarios[groupKey];
+    if (!getByPath(SCENARIOS, groupKey+'.'+scenKey)) {
+      log('No such scenario', groupKey+'.'+scenKey);
+      res.writeHead(400);
+      return;
+    }
     if (getByPath(this.model, 'mock.scenarios.applied.'+groupKey) != scenKey) {
       var scen = getByPath(SCENARIOS, groupKey+'.'+scenKey);
       log('applying scenario:', scen.desc);
@@ -166,7 +163,7 @@ ApiServlet._intHandlerForModal[MODAL.scenarios] = function(interaction, res, qs)
 };
 
 
-ApiServlet._intHandlerForModal[MODAL.welcome] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.welcome] = function(interaction, res) {
   if (!(interaction in MODE)) return res.writeHead(400);
   if (interaction == MODE.give && this.inCensoringCountry()) {
     this.updateModel({modal: MODAL.giveModeForbidden}, true);
@@ -177,7 +174,7 @@ ApiServlet._intHandlerForModal[MODAL.welcome] = function(interaction, res) {
   this._advanceModal();
 };
 
-ApiServlet._intHandlerForModal[MODAL.giveModeForbidden] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.giveModeForbidden] = function(interaction, res) {
   if (interaction == INTERACTION.continue) {
     this.updateModel({mode: MODE.get}, true);
     this._internalState.modalsCompleted[MODAL.welcome] = true;
@@ -189,7 +186,7 @@ ApiServlet._intHandlerForModal[MODAL.giveModeForbidden] = function(interaction, 
   }
 };
 
-ApiServlet._intHandlerForModal[MODAL.authorize] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
 
   // check for gtalk authorization
@@ -280,10 +277,12 @@ ApiServlet._intHandlerForModal[MODAL.authorize] = function(interaction, res) {
   this._advanceModal();
 };
 
-ApiServlet._intHandlerForModal[MODAL.proxiedSites] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.proxiedSites] = function(interaction, res, data) {
   if (interaction == INTERACTION.continue) {
     this._internalState.modalsCompleted[MODAL.proxiedSites] = true;
     this._advanceModal(MODAL.settings);
+  } else if (interaction == INTERACTION.set) {
+    this.updateModel({'settings.proxiedSites': data.value}, true);
   } else if (interaction == INTERACTION.reset) {
     this.updateModel({'settings.proxiedSites': this._DEFAULT_PROXIED_SITES}, true);
   } else {
@@ -291,27 +290,25 @@ ApiServlet._intHandlerForModal[MODAL.proxiedSites] = function(interaction, res) 
   }
 };
 
-ApiServlet._intHandlerForModal[MODAL.systemProxy] = function(interaction, res, qs) {
-  var systemProxy = qs.systemProxy;
+ApiServlet._handlerForModal[MODAL.systemProxy] = function(interaction, res, data) {
   if (interaction != INTERACTION.continue ||
-     (systemProxy != 'true' && systemProxy != 'false')) {
+      data.path != 'settings.systemProxy') {
     res.writeHead(400);
     return;
   }
-  systemProxy = systemProxy == 'true';
-  this.updateModel({'settings.systemProxy': systemProxy}, true);
-  if (systemProxy) sleep.usleep(750000);
+  this.updateModel({'settings.systemProxy': data.value}, true);
+  if (data.value) sleep.usleep(750000);
   this._internalState.modalsCompleted[MODAL.systemProxy] = true;
   this._advanceModal(MODAL.settings);
 };
 
-ApiServlet._intHandlerForModal[MODAL.lanternFriends] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
   this._internalState.modalsCompleted[MODAL.lanternFriends] = true;
   this._advanceModal();
 };
 
-ApiServlet._intHandlerForModal[MODAL.gtalkUnreachable] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.gtalkUnreachable] = function(interaction, res) {
   if (interaction == INTERACTION.retryNow) {
     this.updateModel({modal: MODAL.authorize}, true);
   } else if (interaction == INTERACTION.retryLater) {
@@ -321,7 +318,7 @@ ApiServlet._intHandlerForModal[MODAL.gtalkUnreachable] = function(interaction, r
   }
 };
 
-ApiServlet._intHandlerForModal[MODAL.authorizeLater] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.authorizeLater] = function(interaction, res) {
   if (interaction != INTERACTION.continue) {
     res.writeHead(400);
     return;
@@ -329,29 +326,29 @@ ApiServlet._intHandlerForModal[MODAL.authorizeLater] = function(interaction, res
   this.updateModel({modal: MODAL.none, showVis: true}, true);
 };
 
-ApiServlet._intHandlerForModal[MODAL.notInvited] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.notInvited] = function(interaction, res) {
   if (interaction != INTERACTION.requestInvite) return res.writeHead(400);
   this.updateModel({modal: MODAL.requestInvite}, true);
 };
 
-ApiServlet._intHandlerForModal[MODAL.requestSent] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.requestSent] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
   this.updateModel({modal: MODAL.none, showVis: true}, true);
 };
 
-ApiServlet._intHandlerForModal[MODAL.firstInviteReceived] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.firstInviteReceived] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
   this._advanceModal();
 };
 
-ApiServlet._intHandlerForModal[MODAL.finished] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.finished] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
   this._internalState.modalsCompleted[MODAL.finished] = true;
   this._advanceModal();
   this.updateModel({setupComplete: true, showVis: true}, true);
 };
 
-ApiServlet._intHandlerForModal[MODAL.settings] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.settings] = function(interaction, res, data) {
   if (interaction in MODE) {
     if (interaction == MODE.give && this.inCensoringCountry()) {
       this.updateModel({modal: MODAL.giveModeForbidden}, true);
@@ -369,18 +366,24 @@ ApiServlet._intHandlerForModal[MODAL.settings] = function(interaction, res) {
     this.updateModel({modal: MODAL.none}, true);
   } else if (interaction == INTERACTION.reset) {
     this.updateModel({modal: MODAL.confirmReset}, true);
+  } else if (interaction == INTERACTION.set) {
+    var path = (data.path || '').split('.'),
+        settings = path[0], setting = path[1], update = {};
+    if (settings != 'settings' || !(setting in SETTING)) return res.writeHead(400);
+    update[data.path] = data.value;
+    this.updateModel(update, true);
   } else {
     res.writeHead(400);
   }
 };
 
-ApiServlet._intHandlerForModal[MODAL.about] = 
-ApiServlet._intHandlerForModal[MODAL.updateAvailable] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.about] = 
+ApiServlet._handlerForModal[MODAL.updateAvailable] = function(interaction, res) {
   if (interaction != INTERACTION.close) return res.writeHead(400);
   this.updateModel({modal: MODAL.none}, true);
 };
 
-ApiServlet._intHandlerForModal[MODAL.confirmReset] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.confirmReset] = function(interaction, res) {
   if (interaction == INTERACTION.cancel) {
     this.updateModel({modal: MODAL.settings}, true);
   } else if (interaction == INTERACTION.reset) {
@@ -390,7 +393,7 @@ ApiServlet._intHandlerForModal[MODAL.confirmReset] = function(interaction, res) 
   }
 };
     
-ApiServlet._intHandlerForModal[MODAL.none] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.none] = function(interaction, res) {
   switch (interaction) {
     case INTERACTION.lanternFriends:
       if (this.model.connectivity.gtalk != CONNECTIVITY.connected) {
@@ -410,19 +413,64 @@ ApiServlet._intHandlerForModal[MODAL.none] = function(interaction, res) {
 };
 
 ApiServlet.prototype.handleRequest = function(req, res) {
-  var parsed = url.parse(req.url, true),
-      qs = parsed.query,
-      prefix = parsed.pathname.substring(0, ApiServlet.API_PREFIX.length),
-      endpoint = parsed.pathname.substring(ApiServlet.API_PREFIX.length),
-      handler = ApiServlet._handlers[endpoint];
+  var self = this, handled = false;
   log(req.url.href);
-  if (prefix == ApiServlet.API_PREFIX && handler) {
-    handler.call(this, res, qs);
+  // POST /api/<x.y.z>/interaction/<interactionid>
+  if (req.method != 'POST') {
+    res.writeHead(405);
   } else {
-    res.writeHead(404);
+    var path = url.parse(req.url).pathname,
+        parts = path.split('/'),
+        mnt = parts[1],
+        verstr = parts[2],
+        ver = (verstr || '').split('.'),
+        interaction = parts[3],
+        interactionid = parts[4];
+    if (mnt != ApiServlet.MOUNT_POINT ||
+        ver[0] != ApiServlet.VERSION.major ||
+        ver[1] != ApiServlet.VERSION.minor ||
+        interaction != 'interaction' ||
+        !(interactionid in INTERACTION)) {
+      res.writeHead(404);
+    } else {
+      var data = '', error = false;
+      req.addListener('data', function(chunk) { data += chunk; });
+      req.addListener('end', function() {
+        if (data) {
+          try {
+            data = JSON.parse(data);
+            log('got data:', data);
+          } catch (e) {
+            log('Error parsing JSON:', e)
+            res.writeHead(400);
+            error = true;
+          }
+        }
+        if (!error) {
+          if (interactionid in ApiServlet._handlerForInteraction) {
+            var handler = ApiServlet._handlerForInteraction[interactionid];
+            if (handler)
+              handler.call(self, res, data);
+            else
+              res.writeHead(404);
+          } else {
+            var handler = ApiServlet._handlerForModal[self.model.modal];
+            if (handler)
+              handler.call(self, interactionid, res, data);
+            else
+              res.writeHead(404);
+          }
+        }
+        res.end();
+        log(res.statusCode);
+      });
+      handled = true;
+    }
   }
-  res.end();
-  log(res.statusCode);
+  if (!handled) {
+    res.end();
+    log(res.statusCode);
+  }
 };
 
 

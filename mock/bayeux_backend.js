@@ -3,6 +3,8 @@
 var fs = require('fs'),
     faye = require('./node_modules/faye'),
     _ = require('../app/lib/lodash.js')._,
+    constants = require('../app/js/constants.js'),
+      MODEL_SYNC_CHANNEL = constants.MODEL_SYNC_CHANNEL,
     helpers = require('../app/js/helpers.js'),
       getByPath = helpers.getByPath,
       deleteByPath = helpers.deleteByPath,
@@ -41,10 +43,10 @@ BayeuxBackend.prototype.publishSync = function(path) {
   }
   path = path || '';
   var value = getByPath(this.model, path);
-  log('[publishSync]', '\npath:', path, '\nvalue:', value);
+  //log('[publishSync]', '\npath:', path, '\nvalue:', value);
   // this._bayeux.getClient().publish({ // XXX why doesn't this work?
   this._bayeux._server._engine.publish({
-    channel: '/sync',
+    channel: MODEL_SYNC_CHANNEL,
     data: {path: path, value: value}
   });
 };
@@ -54,33 +56,27 @@ BayeuxBackend.prototype._bindCallbacks = function() {
 
   bayeux.bind('handshake', function(clientId) {
     log('[handshake]', 'client:', clientId);
-    self._clients[clientId] = true;
   });
 
   bayeux.bind('subscribe', function(clientId, channel) {
     log('[subscribe]', 'client:', clientId, 'channel:', channel);
-    self.publishSync();
+    if (channel == MODEL_SYNC_CHANNEL)
+      self._clients[clientId] = true;
+    self.publishSync(); // XXX publish only to this client
   });
 
   bayeux.bind('unsubscribe', function(clientId, channel) {
     log('[unsubscribe]', 'client:', clientId, 'channel:', channel);
+    if (channel == MODEL_SYNC_CHANNEL)
+      delete self._clients[clientId];
   });
 
   bayeux.bind('publish', function(clientId, channel, data) {
-    if (channel == '/sync' && !_.isUndefined(clientId)) {
-      log('[syncing client publication]', 'client:', clientId, 'data:\n', data);
-      if (data.delete) {
-        deleteByPath(self.model, data.path);
-      } else {
-        deleteByPath(self.model, data.path);
-        merge(self.model, data.value, data.path);
-      }
-    }
+    log('[publish]', 'client:', clientId, 'channel:', channel, 'data:', data);
   });
 
   bayeux.bind('disconnect', function(clientId) {
     log('[disconnect]', 'client:', clientId);
-    delete self._clients[clientId];
   });
 };
 
