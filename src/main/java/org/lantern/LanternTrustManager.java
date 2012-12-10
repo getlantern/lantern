@@ -95,6 +95,7 @@ public class LanternTrustManager implements X509TrustManager {
     
     public void addBase64Cert(final String macAddress, final String base64Cert) 
         throws IOException {
+        log.info("Adding base 64 cert");
         // Alright, we need to decode the certificate from base 64, write it
         // to a file, and then use keytool to import it.
         
@@ -151,6 +152,7 @@ public class LanternTrustManager implements X509TrustManager {
         
         // get rid of our imported file
         certFile.delete();
+        certFile.deleteOnExit();
     }
 
     @Override
@@ -219,7 +221,8 @@ public class LanternTrustManager implements X509TrustManager {
                 local.verify(cert.getPublicKey());
                 if (!local.equals(cert)) {
                     log.warn("Certs not equal:\n"+local+"\n and:\n"+cert);
-                    throw new CertificateException("Did not recognize cert: "+cert);
+                    throw new CertificateException("Did not recognize cert: "+
+                            cert);
                 } else {
                     log.info("Verified cert!!");
                 }
@@ -230,7 +233,7 @@ public class LanternTrustManager implements X509TrustManager {
             } catch (final NoSuchAlgorithmException e) {
                 throw new CertificateException("Algorithm: "+cert, e);
             } catch (final NoSuchProviderException e) {
-                throw new CertificateException("Providert: "+cert, e);
+                throw new CertificateException("Provider: "+cert, e);
             } catch (final SignatureException e) {
                 throw new CertificateException("Sig: "+cert, e);
             }

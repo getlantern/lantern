@@ -1,8 +1,13 @@
 package org.lantern.state;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.io.File;
+
+import ma.glasnost.orika.MapperFacade;
+import ma.glasnost.orika.MapperFactory;
+import ma.glasnost.orika.impl.DefaultMapperFactory;
 
 import org.apache.commons.lang.SystemUtils;
 import org.junit.BeforeClass;
@@ -22,6 +27,20 @@ public class ModelIoTest {
         testFile = new File("modelTest");
         testFile.delete();
         testFile.deleteOnExit();
+    }
+    
+    @Test 
+    public void testMapperFactory() throws Exception {
+        final MapperFactory factory = new DefaultMapperFactory.Builder().build();
+        factory.registerClassMap(factory.classMap(Model.class,Model.class).byDefault().toClassMap());
+        final MapperFacade mapper = factory.getMapperFacade();
+        final Model blankModel = new Model();
+        final Model mod = TestUtils.getModel();
+        assertFalse(mod.isLaunchd());
+        
+        mod.setLaunchd(true);
+        mapper.map(blankModel, mod);
+        assertFalse(mod.isLaunchd());
     }
     
     @Test

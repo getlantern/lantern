@@ -47,6 +47,8 @@ public class TestUtils {
 
     private static Stats statsTracker;
     
+    private static Roster roster;
+    
     static {
         InputStream is = null;
         try {
@@ -87,10 +89,39 @@ public class TestUtils {
         jettyLauncher = injector.getInstance(JettyLauncher.class);
         messageService = injector.getInstance(MessageService.class);
         statsTracker = injector.getInstance(Stats.class);
+        roster = injector.getInstance(Roster.class);
         
         xmppHandler.start();
     }
     
+    public static File getPropsfile() {
+        return propsFile;
+    }
+
+    public static Properties getProps() {
+        return props;
+    }
+
+    public static String loadTestEmail() {
+        return props.getProperty("email");
+    }
+    
+    public static String loadTestPassword() {
+        return props.getProperty("pass");
+    }
+
+    public static String getRefreshToken() {
+        return privateProps.getProperty("refresh_token");
+    }
+
+    public static String getAccessToken() {
+        return privateProps.getProperty("access_token");
+    }
+    
+    public static String getUserName() {
+        return privateProps.getProperty("username");
+    }
+
     public static JettyLauncher getJettyLauncher() {
         if (jettyLauncher == null) {
             load();
@@ -162,32 +193,11 @@ public class TestUtils {
         return statsTracker;
     }
     
-    public static File getPropsfile() {
-        return propsFile;
-    }
-
-    public static Properties getProps() {
-        return props;
-    }
-
-    public static String loadTestEmail() {
-        return props.getProperty("email");
-    }
-    
-    public static String loadTestPassword() {
-        return props.getProperty("pass");
-    }
-
-    public static String getRefreshToken() {
-        return privateProps.getProperty("refresh_token");
-    }
-
-    public static String getAccessToken() {
-        return privateProps.getProperty("access_token");
-    }
-    
-    public static String getUserName() {
-        return privateProps.getProperty("username");
+    public static Roster getRoster() {
+        if (roster == null) {
+            load();
+        }
+        return roster;
     }
 
 }
