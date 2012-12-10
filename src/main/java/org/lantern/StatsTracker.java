@@ -13,9 +13,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 import org.jboss.netty.channel.Channel;
 import org.json.simple.JSONObject;
+import org.lantern.event.Events;
+import org.lantern.event.ResetEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.maxmind.geoip.LookupService;
@@ -88,6 +91,7 @@ public class StatsTracker implements Stats {
         this.lookupService = lookupService;
         this.censored = censored;
         this.peersPerSecond = new PeerCounter(ONE_SECOND, ONE_SECOND*2, timer);
+        Events.register(this);
     }
     
     @Override
@@ -100,6 +104,7 @@ public class StatsTracker implements Stats {
      * where the server doesn't differentiate data for individual users and
      * simply adds whatever we send them to the total.
      */
+    @Override
     public void resetCumulativeStats() {
         this.directRequests.set(0);
         this.directBytes.set(0L);
@@ -229,6 +234,7 @@ public class StatsTracker implements Stats {
     /**
      * request bytes this lantern proxy sent to other lanterns for proxying
      */
+    @Override
     public void addUpBytesViaProxies(final long bp) {
         upBytesPerSecondViaProxies.addData(bp);
         log.debug("upBytesPerSecondViaProxies += {} up-rate {}", bp, getUpBytesPerSecond());
@@ -237,6 +243,7 @@ public class StatsTracker implements Stats {
     /**
      * response bytes downloaded by Peers for this lantern
      */
+    @Override
     public void addDownBytesViaProxies(final long bp) {
         downBytesPerSecondViaProxies.addData(bp);
         log.debug("downBytesPerSecondViaProxies += {} down-rate {}", bp, getDownBytesPerSecond());
@@ -246,6 +253,7 @@ public class StatsTracker implements Stats {
      * bytes sent upstream on behalf of another lantern by this
      * lantern
      */
+    @Override
     public void addUpBytesForPeers(final long bp) {
         upBytesPerSecondForPeers.addData(bp);
         log.debug("upBytesPerSecondForPeers += {} up-rate {}", bp, getUpBytesPerSecond());
@@ -254,6 +262,7 @@ public class StatsTracker implements Stats {
     /**
      * bytes downloaded on behalf of another lantern by this lantern
      */
+    @Override
     public void addDownBytesForPeers(final long bp) {
         downBytesPerSecondForPeers.addData(bp);
         log.debug("downBytesPerSecondForPeers += {} down-rate {}", bp, getDownBytesPerSecond());
@@ -434,4 +443,9 @@ public class StatsTracker implements Stats {
         }
     }
 
+    @Subscribe
+    public void onReset(final ResetEvent event) {
+        resetUserStats();
+        resetCumulativeStats();
+    }
 }

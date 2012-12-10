@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.lantern.Proxifier;
 import org.lantern.XmppHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.Model;
@@ -37,14 +38,17 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
 
     private final ModelIo modelIo;
 
+    private final Proxifier proxifier;
+
     @Inject
     public GoogleOauth2RedirectServlet(final XmppHandler handler, 
         final Model model, final InternalState internalState,
-        final ModelIo modelIo) {
+        final ModelIo modelIo, final Proxifier proxifier) {
         this.handler = handler;
         this.model = model;
         this.internalState = internalState;
         this.modelIo = modelIo;
+        this.proxifier = proxifier;
     }
     
     @Override
@@ -68,6 +72,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         log.debug("Params: {}", params);
         log.debug("Headers: {}", HttpUtils.toHeaderMap(req));
         log.debug("Query string: {}", req.getQueryString());
+        proxifier.proxyGoogle();
         final String location = newGtalkOauthUrl();
         
         // We have to completely recreate the server each time because we
@@ -75,7 +80,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         // attempt to restart a stopped server, things get funky.
         final GoogleOauth2CallbackServer server = 
             new GoogleOauth2CallbackServer(handler, model, 
-                this.internalState, this.modelIo);
+                this.internalState, this.modelIo, this.proxifier);
         
         // Note that this call absolutely ensures the server is started.
         server.start();

@@ -14,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
+import org.lantern.event.ResetEvent;
 import org.lantern.http.HttpUtils;
 import org.lantern.http.LanternApi;
 import org.lantern.privacy.InvalidKeyException;
@@ -26,6 +27,7 @@ import org.lantern.state.ModelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -315,10 +317,11 @@ public class DefaultLanternApi implements LanternApi {
     }
 
     private void handleReset(final HttpServletResponse resp) {
+        
         //try {
-            this.xmppHandler.clearProxies();
-            signout();
-            this.model.getSettings().setInClosedBeta(new HashSet<String>());
+        //    this.xmppHandler.clearProxies();
+          //  signout();
+            //this.model.getSettings().setInClosedBeta(new HashSet<String>());
             //LanternHub.destructiveFullReset();
             
             returnSettings(resp);
@@ -409,7 +412,9 @@ public class DefaultLanternApi implements LanternApi {
             sendClientError(resp, "Not logged in!");
             return;
         }
-        returnJson(resp, this.xmppHandler.getRoster());
+        // TODO: We need to block until the roster is actually loaded here.
+        
+        //returnJson(resp, this.xmppHandler.getRoster());
     }
 
     private void returnJson(final HttpServletResponse resp, final Object obj) {
@@ -555,5 +560,4 @@ public class DefaultLanternApi implements LanternApi {
             sendServerError(e, resp, true);
         }
     }
-
 }

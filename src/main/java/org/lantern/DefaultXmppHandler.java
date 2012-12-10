@@ -53,6 +53,7 @@ import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
+import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdateEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.ksope.LanternKscopeAdvertisement;
@@ -667,11 +668,6 @@ public class DefaultXmppHandler implements XmppHandler {
             strings.add(isa.getHostName()+":"+isa.getPort());
         }
         return strings;
-    }
-
-    @Override
-    public void clearProxies() {
-        this.proxyTracker.clear();
     }
     
     @Override
@@ -1301,30 +1297,6 @@ public class DefaultXmppHandler implements XmppHandler {
             }
         }
     }
-
-    @Override
-    public org.lantern.Roster getRoster() {
-        if (this.roster == null) {
-            waitForRoster();
-        }
-        return this.roster;
-    }
-    
-    @Override
-    public void resetRoster() {
-        this.roster.reset();;
-    }
-
-    @Override
-    public String getLastUserName() {
-        return lastUserName;
-    }
-
-    @Override
-    public String getLastPass() {
-        return lastPass;
-    }
-    
     
     private void setupJmx() {
         final MBeanServer mbs = ManagementFactory.getPlatformMBeanServer();
@@ -1347,5 +1319,10 @@ public class DefaultXmppHandler implements XmppHandler {
         } catch (final NotCompliantMBeanException e) {
             LOG.error("Could not set up JMX", e);
         }
+    }
+    
+    @Subscribe
+    public void onReset(final ResetEvent event) {
+        disconnect();
     }
 }

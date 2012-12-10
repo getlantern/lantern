@@ -41,8 +41,6 @@ public interface XmppHandler extends LanternService {
     void connect(String email, String pwd) throws IOException, 
         CredentialException, NotInClosedBetaException;
 
-    void clearProxies();
-
     /**
      * Adds or removes a peer depending on the peer's availability 
      * advertised in its presence.
@@ -79,15 +77,7 @@ public interface XmppHandler extends LanternService {
 
     void subscribe(String jid);
 
-    Roster getRoster();
-
-    void resetRoster();
-
     void subscribed(String jid);
-
-    String getLastUserName();
-
-    String getLastPass();
 
     @Override
     void start();

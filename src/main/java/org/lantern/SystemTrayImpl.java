@@ -23,6 +23,7 @@ import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.QuitEvent;
 import org.lantern.event.UpdateEvent;
+import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,6 +58,7 @@ public class SystemTrayImpl implements SystemTray {
     private final static String ICON_DISCONNECTING = "16off.png";
     //private final XmppHandler handler;
     private final BrowserService browserService;
+    private final Model model;
     
     /**
      * Creates a new system tray handler class.
@@ -64,8 +66,10 @@ public class SystemTrayImpl implements SystemTray {
      * @param display The SWT display. 
      */
     @Inject
-    public SystemTrayImpl(final BrowserService browserService) {
+    public SystemTrayImpl(final BrowserService browserService,
+            final Model model) {
         this.browserService = browserService;
+        this.model = model;
         Events.register(this);
     }
     
@@ -282,6 +286,10 @@ public class SystemTrayImpl implements SystemTray {
     public void onConnectivityStateChanged(final GoogleTalkStateEvent event) {
         final GoogleTalkState state = event.getState();
         log.debug("Received connectivity state changed: {}", state);
+        if (!this.model.getSettings().isUiEnabled()) {
+            log.info("Ignoring event with UI disabled");
+            return;
+        }
         switch (state) {
         case LOGIN_FAILED:
             changeIcon(ICON_DISCONNECTED);

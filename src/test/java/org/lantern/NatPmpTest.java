@@ -2,7 +2,6 @@ package org.lantern;
 
 import static org.junit.Assert.assertTrue;
 
-import java.util.Timer;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 

@@ -11,10 +11,13 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.lantern.event.Events;
+import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -55,6 +58,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         final TrustedPeerProxyManager trustedPeerProxyManager) {
         this.model = model;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
+        Events.register(this);
     }
 
     @Override
@@ -247,6 +251,12 @@ public class DefaultProxyTracker implements ProxyTracker {
     @Override
     public InetSocketAddress getProxy() {
         return getProxy(this.proxies);
+    }
+    
+    
+    @Subscribe
+    public void onReset(final ResetEvent event) {
+        clear();
     }
 
     private static final class ProxyHolder {
