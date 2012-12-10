@@ -18,6 +18,8 @@ public class PacFileGenerator {
     private final static Logger LOG = 
         LoggerFactory.getLogger(PacFileGenerator.class);
     
+    private PacFileGenerator() {}
+    
     /**
      * Generates a pac file from the specified sites using a template.
      * 

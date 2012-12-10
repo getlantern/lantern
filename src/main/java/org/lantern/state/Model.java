@@ -1,21 +1,11 @@
 package org.lantern.state;
 
-import java.io.IOException;
-import java.net.InetAddress;
 import java.security.SecureRandom;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
-import org.lantern.Censored;
-import org.lantern.Country;
-import org.lantern.DefaultCensored;
-import org.lantern.LanternConstants;
-import org.lantern.state.Settings.Mode;
-import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.maxmind.geoip.LookupService;
 
 
 /**

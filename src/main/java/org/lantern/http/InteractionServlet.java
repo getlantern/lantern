@@ -8,14 +8,18 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.lantern.LanternConstants;
 import org.lantern.event.Events;
+import org.lantern.event.ResetEvent;
 import org.lantern.event.SyncEvent;
 import org.lantern.state.InternalState;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelChangeImplementor;
+import org.lantern.state.ModelIo;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.SyncPath;
 import org.lantern.state.SyncService;
@@ -36,6 +40,7 @@ public class InteractionServlet extends HttpServlet {
         CONTINUE,
         SETTINGS,
         CLOSE,
+        RESET,
     }
     
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -50,15 +55,19 @@ public class InteractionServlet extends HttpServlet {
     private final SyncService syncService;
 
     private final Model model;
+
+    private final ModelIo modelIo;
     
     @Inject
     public InteractionServlet(final Model model, 
         final ModelChangeImplementor changeImplementor,
-        final SyncService syncService, final InternalState internalState) {
+        final SyncService syncService, final InternalState internalState,
+        final ModelIo modelIo) {
         this.model = model;
         this.changeImplementor = changeImplementor;
         this.syncService = syncService;
         this.internalState = internalState;
+        this.modelIo = modelIo;
     }
     
     @Override
@@ -189,6 +198,11 @@ public class InteractionServlet extends HttpServlet {
                 log.info("Processing settings close");
                 Events.syncModal(model, Modal.none);
                 break;
+            case RESET:
+                log.info("Processing reset");
+                handleReset();
+                Events.syncModel(model);
+                break;
             default:
                 log.error("Did not handle interaction for modal {} with " +
                         "params: {}", modal, params);
@@ -260,5 +274,31 @@ public class InteractionServlet extends HttpServlet {
         this.internalState.setModalCompleted(Modal.welcome);
         this.changeImplementor.setGetMode(getMode);
     }
-
+    
+    private void handleReset() {
+        // This posts the reset event to any classes that need to take action,
+        // avoiding coupling this class to those classes.
+        Events.eventBus().post(new ResetEvent());
+        if (LanternConstants.DEFAULT_MODEL_FILE.isFile()) {
+            try {
+                FileUtils.forceDelete(LanternConstants.DEFAULT_MODEL_FILE);
+            } catch (final IOException e) {
+                log.warn("Could not delete model file?");
+            }
+        }
+        final Model base = new Model();
+        model.setCache(base.isCache());
+        model.setConnectivity(base.getConnectivity());
+        model.setLaunchd(base.isLaunchd());
+        model.setModal(base.getModal());
+        model.setNinvites(base.getNinvites());
+        model.setNodeId(base.getNodeId());
+        model.setProfile(base.getProfile());
+        model.setProxiedSitesMax(base.getProxiedSitesMax());
+        model.setSettings(base.getSettings());
+        model.setSetupComplete(base.isSetupComplete());
+        model.setShowVis(base.isShowVis());
+        modelIo.write();
+    }
+   
 }

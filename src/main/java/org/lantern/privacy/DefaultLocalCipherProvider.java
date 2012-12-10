@@ -13,8 +13,12 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
+import org.lantern.event.Events;
+import org.lantern.event.ResetEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.common.eventbus.Subscribe;
 
 /**
  * This is a LocalCipherProvider that uses password based encryption (PBE) 
@@ -37,6 +41,7 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
     public DefaultLocalCipherProvider(final File validatorFile, 
         final File cipherParamsFile) {
         super(validatorFile, cipherParamsFile);
+        Events.register(this);
     }
     
     @Override
@@ -110,5 +115,13 @@ public class DefaultLocalCipherProvider extends AbstractLocalCipherProvider {
         // user key data must be fed in.  If it has been, this should not be called.
         throw new UserInputRequiredException("Password has not been provided");
     }
-    
+
+    @Subscribe
+    public void onReset(final ResetEvent event) {
+        try {
+            reset();
+        } catch (final IOException e) {
+            log.warn("Error reseting", e);
+        }
+    }
 }

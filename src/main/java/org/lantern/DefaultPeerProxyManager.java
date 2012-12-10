@@ -23,12 +23,14 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.lantern.event.ConnectivityStatusChangeEvent;
 import org.lantern.event.Events;
+import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.maxmind.geoip.LookupService;
 
@@ -93,6 +95,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         this.socketsUtil = socketsUtil;
         this.model = model;
         this.lookupService = lookupService;
+        Events.register(this);
     }
 
     @Override
@@ -341,5 +344,13 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     @Override
     public String toString() {
         return getClass().getSimpleName()+"-"+hashCode()+" anon: "+anon;
+    }
+    
+    @Subscribe
+    public void onReset(final ResetEvent event) {
+        this.peers.clear();
+        this.certPeers.clear();
+        closeAll();
+        this.timedSockets.clear();
     }
 }

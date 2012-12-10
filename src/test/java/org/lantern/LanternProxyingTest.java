@@ -1,11 +1,14 @@
 package org.lantern;
 
+import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -20,6 +23,7 @@ import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriver.Navigation;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -70,7 +74,7 @@ public class LanternProxyingTest {
         log.info("Finished with stop!!");
     }
 
-    //@Test
+    @Test
     public void testWithHttpClient() throws Exception {
         //final String url = "http://www.yahoo.com";
         final String url = "http://www.facebook.com";
@@ -117,8 +121,10 @@ public class LanternProxyingTest {
         response = client.execute(get);
         assertEquals(200, response.getStatusLine().getStatusCode());
         
+        final HttpEntity entity = response.getEntity();
+        log.info("Received response: {}", IOUtils.toString(entity.getContent()));
         log.info("Consuming entity");
-        EntityUtils.consume(response.getEntity());
+        EntityUtils.consume(entity);
         
         log.info("Stopping proxy");
         proxy.stop();
@@ -146,22 +152,27 @@ public class LanternProxyingTest {
         capability.setCapability(CapabilityType.PROXY, proxy);
 
         //final String urlString = "http://www.yahoo.com/";
-        
-        
         for (final String url : urls) {
             log.info("TESTING URL: "+url);
             // Note this will actually launch a browser!!
             final WebDriver driver = new FirefoxDriver(capability);
             //final WebDriver driver = new HtmlUnitDriver(capability);
             driver.manage().timeouts().pageLoadTimeout(20, TimeUnit.SECONDS);
-            driver.get(url);
             final String source = driver.getPageSource();
+            //final Navigation nav = driver.navigate();
             //System.out.println(logs.);
             
             driver.close();
-            
+            log.info("RESPONSE: "+source);
+            log.info("RESPONSE LENGTH: "+source.length());
             // Just make sure it got something within reason.
             assertTrue(source.length() > 100);
+            
+            // The following is sent to firefox when the proxy server is 
+            // refusing connections. Note we can't get access to the response
+            // code.
+            assertFalse("Proxy server not receiving connections?", 
+                source.contains("!ENTITY securityOverride"));
         }
         log.info("Finished with test");
         //proxyServer.stop();

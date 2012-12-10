@@ -70,4 +70,9 @@ public class Events {
     public static void sync(final SyncPath path, final Object val) {
         Events.asyncEventBus().post(new SyncEvent(path, val));
     }
+
+
+    public static void syncModel(final Model model) {
+        sync(SyncPath.ALL, model);
+    }
 }

@@ -73,9 +73,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
      * @param channelGroup The group of all channels for convenient closing.
      */
     @Inject
-    public LanternHttpProxyServer(//final int httpLocalPort, 
-        //final SetCookieObserver setCookieObserver, 
-        //final CookieFilter.Factory cookieFilterFactory, 
+    public LanternHttpProxyServer(
         final ServerSocketChannelFactory serverChannelFactory, 
         final ClientSocketChannelFactory clientChannelFactory, 
         final Timer timer, final ChannelGroup channelGroup,

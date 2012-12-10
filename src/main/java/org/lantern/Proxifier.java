@@ -2,6 +2,7 @@ package org.lantern;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
@@ -9,6 +10,7 @@ import org.apache.commons.lang.math.RandomUtils;
 import org.eclipse.swt.SWT;
 import org.lantern.event.Events;
 import org.lantern.event.QuitEvent;
+import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.StaticSettings;
@@ -49,6 +51,8 @@ public class Proxifier implements LanternService {
         new File(LanternConstants.CONFIG_DIR, "proxy_on.pac");
     public final static File PROXY_OFF = 
         new File(LanternConstants.CONFIG_DIR, "proxy_off.pac");
+    public final static File PROXY_GOOGLE = 
+            new File(LanternConstants.CONFIG_DIR, "proxy_google.pac");
     public final static File PROXY_ALL = 
         new File(LanternConstants.CONFIG_DIR, "proxy_all.pac");
 
@@ -162,7 +166,7 @@ public class Proxifier implements LanternService {
         }
     }
     
-    private void startProxying(final boolean force, final File pacFile) 
+    public void startProxying(final boolean force, final File pacFile) 
         throws ProxyConfigurationError {
         if (isProxying() && !force) {
             LOG.info("Already proxying!");
@@ -447,6 +451,28 @@ public class Proxifier implements LanternService {
                     LOG.warn("Could not proxy", e);
                 }
             }
+        }
+    }
+    
+    public void proxyGoogle() {
+        final String google = "google.com";
+        PacFileGenerator.generatePacFile(Arrays.asList(google), 
+            Proxifier.PROXY_GOOGLE);
+        
+        try {
+            startProxying(true, Proxifier.PROXY_GOOGLE);
+        } catch (final ProxyConfigurationError e) {
+            // Not too much we can do here if we're unable to set up the proxy.
+            LOG.error("Could not proxy?", e);
+        }
+    }
+    
+    @Subscribe
+    public void onReset(final ResetEvent event) {
+        try {
+            stopProxying();
+        } catch (final ProxyConfigurationError e) {
+            LOG.warn("Could not stop proxying", e);
         }
     }
 }

@@ -25,6 +25,7 @@ import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.RandomRoutingTable;
 import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.event.Events;
+import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Profile;
@@ -34,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -72,6 +74,7 @@ public class Roster implements RosterListener {
     @Inject
     public Roster(final Model model) {
         this.model = model;
+        Events.register(this);
     }
 
     public void onRoster(final org.jivesoftware.smack.Roster roster) {
@@ -337,5 +340,10 @@ public class Roster implements RosterListener {
         // Otherwise only auto-allow subscription requests if we've requested
         // to subscribe to them.
         return subscriptionStatus.equalsIgnoreCase("subscribe");
+    }
+    
+    @Subscribe
+    public void onReset(final ResetEvent event) {
+        reset();
     }
 }

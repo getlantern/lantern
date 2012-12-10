@@ -131,9 +131,6 @@ public class LanternConstants {
     public static final File CONFIG_DIR = 
         new File(System.getProperty("user.home"), ".lantern");
     
-    public static final File DEFAULT_SETTINGS_FILE = 
-        new File(CONFIG_DIR, "settings.json");
-    
     public static final File DEFAULT_MODEL_FILE = 
             new File(CONFIG_DIR, "model");
     

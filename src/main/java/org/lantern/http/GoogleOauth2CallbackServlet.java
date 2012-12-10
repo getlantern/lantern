@@ -26,6 +26,8 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.lantern.LanternConstants;
 import org.lantern.NotInClosedBetaException;
+import org.lantern.Proxifier;
+import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.state.InternalState;
@@ -60,16 +62,20 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
     private final InternalState internalState;
 
     private final ModelIo modelIo;
+
+    private final Proxifier proxifier;
     
     public GoogleOauth2CallbackServlet(
         final GoogleOauth2CallbackServer googleOauth2CallbackServer,
         final XmppHandler xmppHandler, final Model model,
-        final InternalState internalState, final ModelIo modelIo) {
+        final InternalState internalState, final ModelIo modelIo,
+        final Proxifier proxifier) {
         this.googleOauth2CallbackServer = googleOauth2CallbackServer;
         this.xmppHandler = xmppHandler;
         this.model = model;
         this.internalState = internalState;
         this.modelIo = modelIo;
+        this.proxifier = proxifier;
     }
     
     @Override
@@ -93,16 +99,25 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         final Map<String, String> params = HttpUtils.toParamMap(req);
         log.debug("Params: {}", params);
         
+        // We before redirecting to Google, we set up the proxy to proxy
+        // access to accounts.google.com for the oauth exchange. That's just
+        // temporary, though, and we now cancel it.
+        try {
+            this.proxifier.stopProxying();
+        } catch (final ProxyConfigurationError e) {
+            log.warn("Could not stop proxy?", e);
+        }
+        
         // Redirect back to the dashboard right away to continue giving the
         // user feedback. The UI will fetch the current state doc.
-        log.info("Redirecting from oauth back to dashboard...");
-
+        log.debug("Redirecting from oauth back to dashboard...");
         final String code = params.get("code");
         if (StringUtils.isBlank(code)) {
-            log.info("Did not get authorization code in params: {}", params);
+            // This will happen when the user cancels oauth.
+            log.debug("Did not get authorization code in params: {}", params);
             final String error = params.get("error");
-            log.info("Got error: {}", error);
-            log.info("Setting modal on model: {}", model);
+            log.debug("Got error: {}", error);
+            log.debug("Setting modal on model: {}", model);
             this.model.setModal(Modal.authorize);
             redirectToDashboard(resp);
             return;

@@ -192,14 +192,17 @@ public class Launcher {
         plainTextAnsererRelayProxy = instance(PlainTestRelayHttpProxyServer.class);
         systemTray = instance(SystemTray.class);
         modelUtils = instance(ModelUtils.class);
+        localProxy = instance(LanternHttpProxyServer.class);
         
-        LOG.debug("Starting system tray..");
-        try {
-            systemTray.start();
-        } catch (final Exception e) {
-            LOG.error("Error starting tray?", e);
+        if (set.isUiEnabled()) {
+            LOG.debug("Starting system tray..");
+            try {
+                systemTray.start();
+            } catch (final Exception e) {
+                LOG.error("Error starting tray?", e);
+            }
+            LOG.debug("Started system tray..");
         }
-        LOG.debug("Started system tray..");
         
         LOG.debug("Processing command line options...");
         processCommandLineOptions(cmd);
@@ -210,6 +213,7 @@ public class Launcher {
         jettyLauncher.start();
         xmpp.start();
         sslProxy.start(false, false);
+        localProxy.start();
         plainTextAnsererRelayProxy.start(true, false);
         
         gnomeAutoStart();
@@ -628,7 +632,9 @@ public class Launcher {
 
     public static void launchLantern() {
         LOG.debug("Launching Lantern...");
-        browserService.openBrowserWhenPortReady();
+        if (set.isUiEnabled()) {
+            browserService.openBrowserWhenPortReady();
+        }
         
         new AutoConnector(); 
 
