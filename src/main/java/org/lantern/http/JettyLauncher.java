@@ -135,6 +135,7 @@ public class JettyLauncher implements LanternService {
                 final String onPath = "/proxy_on.pac";
                 final String offPath = "/proxy_off.pac";
                 final String allPath = "/proxy_all.pac";
+                final String googlePath = "/"+Proxifier.PROXY_GOOGLE;
                 if (uri.startsWith("/proxy_on") && !uri.equals(onPath)) {
                     writeFileToResponse(resp, Proxifier.PROXY_ON);
                     //resp.sendRedirect(onPath);
@@ -143,6 +144,9 @@ public class JettyLauncher implements LanternService {
                     //resp.sendRedirect(offPath);
                 } else if (uri.startsWith("/proxy_all") && !uri.equals(allPath)) {
                     writeFileToResponse(resp, Proxifier.PROXY_ALL);
+                    //resp.sendRedirect(allPath);
+                } else if (uri.startsWith("/proxy_google") && !uri.equals(googlePath)) {
+                    writeFileToResponse(resp, Proxifier.PROXY_GOOGLE);
                     //resp.sendRedirect(allPath);
                 } else {
                     super.doGet(req, resp);

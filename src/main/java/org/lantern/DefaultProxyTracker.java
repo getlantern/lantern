@@ -58,6 +58,9 @@ public class DefaultProxyTracker implements ProxyTracker {
         final TrustedPeerProxyManager trustedPeerProxyManager) {
         this.model = model;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
+        
+        addGeneralProxy(LanternConstants.FALLBACK_SERVER_HOST+":"+
+            LanternConstants.FALLBACK_SERVER_PORT);
         Events.register(this);
     }
 
