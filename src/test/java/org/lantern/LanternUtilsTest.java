@@ -34,15 +34,11 @@ import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smackx.packet.VCard;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 
 /**
  * Test for Lantern utilities.
@@ -50,26 +46,6 @@ import com.google.inject.Injector;
 public class LanternUtilsTest {
     
     private static Logger LOG = LoggerFactory.getLogger(LanternUtilsTest.class);
-
-    private static DefaultXmppHandler xmppHandler;
-
-    private static LanternSocketsUtil socketsUtil;
-
-    private static LanternKeyStoreManager ksm;
-
-    private static LanternXmppUtil lanternXmppUtil;
-    
-    @BeforeClass
-    public static void setup() throws Exception {
-        final Injector injector = Guice.createInjector(new LanternModule());
-        
-        xmppHandler = injector.getInstance(DefaultXmppHandler.class);
-        socketsUtil = injector.getInstance(LanternSocketsUtil.class);
-        ksm = injector.getInstance(LanternKeyStoreManager.class);
-        lanternXmppUtil = injector.getInstance(LanternXmppUtil.class);
-        
-        xmppHandler.start();
-    }
     
     private final String msg = "oh hi";
     
@@ -93,6 +69,7 @@ public class LanternUtilsTest {
         assertTrue(LanternUtils.isNotJid(id));
     }
     
+    
     @Test 
     public void testRosterEntries() throws Exception {
         final String email = TestUtils.loadTestEmail();
@@ -100,11 +77,12 @@ public class LanternUtilsTest {
         final XMPPConnection conn = 
             XmppUtils.simpleGoogleTalkConnection(email, pass, "test");
         final Collection<LanternRosterEntry> entries = 
-                xmppHandler.getRoster().getRosterEntries(conn);
+                TestUtils.getRoster().getRosterEntries(conn);
         
         // This user doesn't necessarily have any contacts.
         assertTrue(entries != null);
     }
+    
     
     @Test 
     public void testVCard() throws Exception {
@@ -148,11 +126,11 @@ public class LanternUtilsTest {
         //System.setProperty("javax.net.debug", "ssl:record");
         //System.setProperty("javax.net.debug", "ssl:handshake");
         
-        ksm.addBase64Cert(LanternUtils.getMacAddress(), ksm.getBase64Cert());
+        TestUtils.getKsm().addBase64Cert(LanternUtils.getMacAddress(), TestUtils.getKsm().getBase64Cert());
         
-        final SocketFactory clientFactory = socketsUtil.newTlsSocketFactory();
+        final SocketFactory clientFactory = TestUtils.getSocketsUtil().newTlsSocketFactory();
         final ServerSocketFactory serverFactory = 
-                socketsUtil.newTlsServerSocketFactory();
+                TestUtils.getSocketsUtil().newTlsServerSocketFactory();
         
         final SocketAddress endpoint =
             new InetSocketAddress("127.0.0.1", LanternUtils.randomPort()); 
@@ -221,7 +199,7 @@ public class LanternUtilsTest {
             // Load the JDK's cacerts keystore file
             //String filename = System.getProperty("java.home") + "/lib/security/cacerts".replace('/', File.separatorChar);
             //FileInputStream is = new FileInputStream(filename);
-            KeyStore keystore = ksm.getTrustManager().getTruststore();//KeyStore.getInstance(KeyStore.getDefaultType());
+            KeyStore keystore = TestUtils.getKsm().getTrustManager().getTruststore();//KeyStore.getInstance(KeyStore.getDefaultType());
             //String password = "changeit";
             //keystore.load(is, password.toCharArray());
 
@@ -247,7 +225,7 @@ public class LanternUtilsTest {
         //System.setProperty("javax.net.ssl.trustStore",
         //    LanternHub.trustManager().getTruststorePath());
         
-        lanternXmppUtil.configureXmpp();
+        TestUtils.getLanternXmppUtil().configureXmpp();
         //final String email = LanternHub.settings().getEmail();
         //final String pass = LanternHub.settings().getPassword();
         
@@ -259,7 +237,7 @@ public class LanternUtilsTest {
         }
         
         // Just make sure no exceptions are thrown for now.
-        xmppHandler.getRoster().getRosterEntries(email, pass, 1);
+        TestUtils.getRoster().getRosterEntries(email, pass, 1);
         
     }
     

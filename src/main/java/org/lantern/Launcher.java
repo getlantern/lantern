@@ -73,7 +73,6 @@ public class Launcher {
     
     private static MessageService messageService;
     private static Injector injector;
-    private static Configurator configurator;
     private static SystemTray systemTray;
     private static Model model;
     private static ModelUtils modelUtils;
@@ -182,7 +181,6 @@ public class Launcher {
             display = null;
         }
         
-        configurator = instance(Configurator.class);
         messageService = instance(MessageService.class);
         xmpp = instance(DefaultXmppHandler.class);
         jettyLauncher = instance(JettyLauncher.class);
@@ -516,12 +514,6 @@ public class Launcher {
         }
         
         new AutoConnector(); 
-
-        try {
-            configurator.copyFireFoxExtension();
-        } catch (final IOException e) {
-            LOG.error("Could not copy extension", e);
-        }
         
         lanternStarted = true;
     }

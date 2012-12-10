@@ -54,7 +54,7 @@ public class WhitelistProxyingTest {
         
         //log.info("Stopping proxy");
         //proxy.stop();
-        Launcher.stop();
+        //Launcher.stop();
     }
     
     private void testWhitelistedSite(final String url, final HttpClient client, 

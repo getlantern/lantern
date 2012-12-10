@@ -9,6 +9,7 @@ import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.zip.GZIPInputStream;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.jboss.netty.channel.group.ChannelGroup;
@@ -71,7 +72,6 @@ public class LanternModule extends AbstractModule {
         bind(MessageService.class).to(SwtMessageService.class);
         
         bind(Proxifier.class);
-        bind(Configurator.class);
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);
         bind(SyncService.class);
         //bind(EncryptedFileService.class).to(DefaultEncryptedFileService.class);
@@ -97,6 +97,12 @@ public class LanternModule extends AbstractModule {
         bind(AppIndicatorTray.class);
         bind(LanternApi.class).to(DefaultLanternApi.class);
         bind(LanternHttpProxyServer.class);
+        
+        try {
+            copyFireFoxExtension();
+        } catch (final IOException e) {
+            log.error("Could not copy FireFox extension?", e);
+        }
     }
     
     @Provides @Singleton
@@ -206,5 +212,54 @@ public class LanternModule extends AbstractModule {
             Executors.newCachedThreadPool(
                 new ThreadFactoryBuilder().setNameFormat(
                     "Lantern-Netty-Client-Worker-Thread-%d").setDaemon(true).build()));
+    }
+    
+
+    /**
+     * Copies our FireFox extension to the appropriate place.
+     * 
+     * @return The {@link File} for the final destination directory of the
+     * extension.
+     * @throws IOException If there's an error copying the extension.
+     */
+    public void copyFireFoxExtension() throws IOException {
+        log.info("Copying FireFox extension");
+        final File dir = getExtensionDir();
+        if (!dir.isDirectory()) {
+            log.info("Making FireFox extension directory...");
+            // NOTE: This likely means the user does not have FireFox. We copy
+            // the extension here anyway in case the user ever installs 
+            // FireFox in the future.
+            if (!dir.mkdirs()) {
+                log.error("Could not create ext dir: "+dir);
+                throw new IOException("Could not create ext dir: "+dir);
+            }
+        }
+        final String extName = "lantern@getlantern.org";
+        final File dest = new File(dir, extName);
+        final File ffDir = new File("firefox/"+extName);
+        if (dest.exists() && !FileUtils.isFileNewer(ffDir, dest)) {
+            log.info("Extension already exists and ours is not newer");
+            return;
+        }
+        if (!ffDir.isDirectory()) {
+            log.error("No extension directory found at {}", ffDir);
+            throw new IOException("Could not find extension?");
+        }
+        FileUtils.copyDirectoryToDirectory(ffDir, dir);
+        log.info("Copied FireFox extension from {} to {}", ffDir, dir);
+    }
+
+    public File getExtensionDir() {
+        final File userHome = SystemUtils.getUserHome();
+        if (SystemUtils.IS_OS_WINDOWS) {
+            final File ffDir = new File(System.getenv("APPDATA"), "Mozilla");
+            return new File(ffDir, "Extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
+        } else if (SystemUtils.IS_OS_MAC_OSX) {
+            return new File(userHome, 
+                "Library/Application Support/Mozilla/Extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
+        } else {
+            return new File(userHome, "Mozilla/extensions/{ec8030f7-c20a-464f-9b0e-13a3a9e97384}");
+        }
     }
 }
