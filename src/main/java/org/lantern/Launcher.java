@@ -254,15 +254,15 @@ public class Launcher {
                 // connection.
                 // TODO: i18n
                 
-                /*
                 final String msg = 
                     "We're sorry, but you cannot configure Lantern without " +
                     "an active connection to the internet. Please try again " +
                     "when you have an internet connection.";
-                LanternHub.dashboard().showMessage("No Internet", msg);
+                messageService.showMessage("No Internet", msg);
                 System.exit(0);
-                */
-                launchWithOrWithoutUi();
+                
+                // The new-ui wants to allow the user to configure this later?
+                //launchWithOrWithoutUi();
             }
         }
 
@@ -446,127 +446,6 @@ public class Launcher {
         }
         
         return false;
-    }
-
-    // TODO: We want to make it such that once this method returns the
-    // settings are always fully loaded or the entire app has aborted, 
-    // including prompting the user for password.
-    private static void loadSettings() {
-        /*
-        LanternHub.resetSettings(true);
-        if (LanternHub.settings().getSettings().getState() == SettingsState.State.CORRUPTED) {
-            try {
-                // current behavior is automatic reset of all local data / ciphers
-                // immediately.  This behavior could be deferred until later or handled
-                // in some other way.
-                LOG.warn("Destroying corrupt settings...");
-                LanternHub.destructiveFullReset();
-            }
-            catch (IOException e) {
-                LOG.error("Failed to reset corrupt settings: {}", e);
-                System.exit(1);
-            }
-            // still corrupt?
-            if (LanternHub.settings().getSettings().getState() == SettingsState.State.CORRUPTED) {
-                LOG.error("Failed to reset corrupt settings.");
-                System.exit(1);
-            }
-            else {
-                LOG.info("Settings have been reset.");
-            }
-        }
-        
-        // if there is no UI and the settings are locked, we need to grab the password on 
-        // the command line or else quit.
-        if (!LanternHub.settings().isUiEnabled() && 
-            LanternHub.settings().getSettings().getState() == SettingsState.State.LOCKED) {
-            if (!askToUnlockSettingsCLI()) {
-                LOG.error("Unable to unlock settings.");
-                System.exit(1);
-            }
-        }
-        
-        LOG.info("Settings state is {}", LanternHub.settings().getSettings().getState());
-        */
-    }
-    
-    private static boolean askToUnlockSettingsCLI() {
-        if (!localCipherProvider.requiresAdditionalUserInput()) {
-            LOG.info("Local cipher does not require a password.");
-            return true;
-        }
-        while(true) {
-            char [] pw = null; 
-            try {
-                pw = readSettingsPasswordCLI();
-                return unlockSettingsWithPassword(pw);
-            }
-            catch (final InvalidKeyException e) {
-                System.out.println("Password was incorrect, try again."); // XXX i18n
-            }
-            catch (final GeneralSecurityException e) {
-                LOG.error("Error unlocking settings: {}", e);
-            }
-            catch (final IOException e) {
-                LOG.error("Erorr unlocking settings: {}", e);
-            }
-            finally {
-                LanternUtils.zeroFill(pw);
-            }
-        }
-    }
-    
-    private static char [] readSettingsPasswordCLI() throws IOException {
-        if (localCipherProvider.isInitialized() == false) {
-            while (true) {
-                // XXX i18n
-                System.out.print("Please enter a password to protect your local data:");
-                System.out.flush();
-                final char [] pw1 = LanternUtils.readPasswordCLI();
-                if (pw1.length == 0) {
-                    System.out.println("password cannot be blank, please try again.");
-                    System.out.flush();
-                    continue;
-                }
-                System.out.print("Please enter password again:");
-                System.out.flush();
-                final char [] pw2 = LanternUtils.readPasswordCLI();
-                if (Arrays.equals(pw1, pw2)) {
-                    // zero out pw2
-                    LanternUtils.zeroFill(pw2);
-                    return pw1;
-                }
-                else {
-                    LanternUtils.zeroFill(pw1);
-                    LanternUtils.zeroFill(pw2);
-                    System.out.println("passwords did not match, please try again.");
-                    System.out.flush();
-                }
-            }
-        }
-        else {
-            System.out.print("Please enter your lantern password:");
-            System.out.flush();
-            return LanternUtils.readPasswordCLI();
-        }
-    }
-    
-    
-    private static boolean unlockSettingsWithPassword(final char [] password)
-        throws GeneralSecurityException, IOException {
-        final boolean init = !localCipherProvider.isInitialized();
-        localCipherProvider.feedUserInput(password, init);
-        
-        /*
-        LanternHub.resetSettings(true);
-        final SettingsState.State ss = LanternHub.settings().getSettings().getState();
-        if (ss != SettingsState.State.SET) {
-            LOG.error("Settings did not unlock, state is {}", ss);
-            return false;
-        }
-        return true;
-        */
-        throw new UnsupportedOperationException("TODO");
     }
     
     private static void loadLocalPasswordFile(final String pwFilename) {
@@ -809,19 +688,6 @@ public class Launcher {
         return msg;
     }
 
-    public static void stop() {
-        /*
-        jettyLauncher.stop();
-        LanternConstants.INJECTOR.getInstance(DefaultXmppHandler.class).stop();
-        if (Launcher.plainTextAnsererRelayProxy != null) {
-            Launcher.plainTextAnsererRelayProxy.stop();
-        }
-        if (Launcher.localProxy != null) {
-            Launcher.localProxy.stop();
-        }
-        */
-    }
-
 
     // the following are command line options 
     private static final String OPTION_DISABLE_UI = "disable-ui";
@@ -914,7 +780,6 @@ public class Launcher {
         
         //final Settings set = LanternHub.settings();
         
-        final org.lantern.state.Settings set = model.getSettings();
         set.setUseTrustedPeers(parseOptionDefaultTrue(cmd, OPTION_TRUSTED_PEERS));
         set.setUseAnonymousPeers(parseOptionDefaultTrue(cmd, OPTION_ANON_PEERS));
         set.setUseLaeProxies(parseOptionDefaultTrue(cmd, OPTION_LAE));
