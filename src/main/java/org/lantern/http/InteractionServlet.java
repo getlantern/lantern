@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.LanternConstants;
 import org.lantern.event.Events;
@@ -161,11 +160,11 @@ public class InteractionServlet extends HttpServlet {
         case gtalkUnreachable:
             log.error("Processing gtalk unreachable.");
             break;
-        case inviteFriends:
+        case lanternFriends:
             switch (inter) {
             case CONTINUE:
                 log.info("Processing continue");
-                this.internalState.setModalCompleted(Modal.inviteFriends);
+                this.internalState.setModalCompleted(Modal.lanternFriends);
                 this.internalState.advanceModal(null);
                 break;
             default:
@@ -268,10 +267,6 @@ public class InteractionServlet extends HttpServlet {
                     "params: {}", modal, params);
             break;
         case giveModeForbidden:
-            log.error("Did not handle interaction for modal {} with " +
-                    "params: {}", modal, params);
-            break;
-        case passwordCreate:
             log.error("Did not handle interaction for modal {} with " +
                     "params: {}", modal, params);
             break;

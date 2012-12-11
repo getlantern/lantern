@@ -26,7 +26,8 @@ public enum Modal {
     none
     */
     
-    //settingsUnlock,
+
+    
     settingsLoadFailure,
     welcome,
     authorize,
@@ -39,8 +40,7 @@ public enum Modal {
     firstInviteReceived,
     proxiedSites,
     systemProxy,
-    passwordCreate,
-    inviteFriends,
+    lanternFriends,
     finished,
     contactDevs,
     settings,
@@ -48,6 +48,7 @@ public enum Modal {
     giveModeForbidden,
     about,
     updateAvailable,
-    none,
+    scenarios,
+    none
 
 }
