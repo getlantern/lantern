@@ -10,6 +10,7 @@ import org.lantern.LanternConstants;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
 import org.lantern.event.UpdateEvent;
+import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 
 import com.google.common.eventbus.Subscribe;
@@ -19,9 +20,9 @@ import com.google.common.eventbus.Subscribe;
  */
 public class Version {
 
-    private final Current current = new Current();
+    private final Installed installed = new Installed();
     
-    private Map<String, Object> update = new TreeMap<String, Object>();
+    private Map<String, Object> latest = new TreeMap<String, Object>();
     
     public Version() {
         Events.register(this);
@@ -29,29 +30,29 @@ public class Version {
     
     @Subscribe
     public void onUpdate(final UpdateEvent updateEvent) {
-        this.update = updateEvent.getData();
+        this.latest = updateEvent.getData();
         Events.asyncEventBus().post(new SyncEvent(SyncPath.VERSION_UPDATED, 
             updateEvent.getData()));
     }
 
     @JsonView({Run.class})
-    public Current getCurrent() {
-        return current;
+    public Installed getInstalled() {
+        return installed;
     }
 
-    @JsonView({Run.class})
-    public Map<String, Object> getUpdate() {
-        return update;
+    @JsonView({Run.class, Persistent.class})
+    public Map<String, Object> getLatest() {
+        return latest;
     }
 
-    public class Current {
-        private final String label = "0.0.1";//LanternConstants.VERSION;
+    public class Installed {
+        private final String label = LanternConstants.VERSION;
         
         private final Api api = new Api();
         
         private final long released;
         
-        public Current() {
+        public Installed() {
             if (NumberUtils.isNumber(LanternConstants.BUILD_TIME)) {
                 released = Long.parseLong(LanternConstants.BUILD_TIME);
             } else {

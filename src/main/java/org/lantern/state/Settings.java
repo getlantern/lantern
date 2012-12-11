@@ -250,7 +250,7 @@ public class Settings implements MutableSettings {
         }
     }
 
-    @JsonView({Run.class, Persistent.class})
+    @JsonIgnore
     public boolean isGetMode() {
         return mode == Mode.get;
     }

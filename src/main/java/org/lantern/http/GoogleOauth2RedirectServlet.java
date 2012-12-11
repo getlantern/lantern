@@ -85,6 +85,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         // Note that this call absolutely ensures the server is started.
         server.start();
         
+        log.debug("Sending redirect...");
         resp.sendRedirect(location);
     }
 

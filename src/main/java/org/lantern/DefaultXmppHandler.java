@@ -299,9 +299,6 @@ public class DefaultXmppHandler implements XmppHandler {
             final XMPPConnection conn = getP2PClient().getXmppConnection();
             final org.jivesoftware.smack.Roster ros = conn.getRoster();
             this.roster.onRoster(ros);
-            synchronized (this.rosterLock) {
-                this.rosterLock.notifyAll();
-            }
             break;
         case notConnected:
             this.roster.reset();
@@ -1276,24 +1273,6 @@ public class DefaultXmppHandler implements XmppHandler {
                 rost.removeEntry(entry);
             } catch (final XMPPException e) {
                 LOG.error("Could not create entry?", e);
-            }
-        }
-    }
-    
-
-    private final Object rosterLock = new Object();
-
-    /**
-     * This is primarily here because the frontend can request the roster 
-     * before we have it. We block until the roster comes in.
-     */
-    private void waitForRoster() {
-        synchronized (rosterLock) {
-            while(!this.roster.populated()) {
-                try {
-                    rosterLock.wait(40000);
-                } catch (final InterruptedException e) {
-                }
             }
         }
     }

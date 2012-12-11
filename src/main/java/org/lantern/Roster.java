@@ -8,17 +8,13 @@ import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
 
-import javax.security.auth.login.CredentialException;
-
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
-import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
-import org.jivesoftware.smack.packet.RosterPacket;
 import org.jivesoftware.smack.packet.RosterPacket.Item;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.BasicTrustGraphNodeId;
@@ -113,6 +109,7 @@ public class Roster implements RosterListener {
         t.start();
     }
     
+    /*
     public Collection<LanternRosterEntry> getRosterEntries(
         final String email, final String pwd, final int attempts) 
         throws IOException, CredentialException {
@@ -126,6 +123,7 @@ public class Roster implements RosterListener {
         final RosterPacket msg = XmppUtils.extendedRoster(xmppConnection);
         return getRosterEntriesByItems(msg.getRosterItems());
     }
+    */
 
     private Collection<LanternRosterEntry> getRosterEntriesByItems(
         final Collection<Item> unordered) {

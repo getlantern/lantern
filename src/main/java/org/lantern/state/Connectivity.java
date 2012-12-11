@@ -29,8 +29,8 @@ public class Connectivity {
     
     private boolean gtalkAuthorized = false;
     
-    private int apiPort;
-
+    private boolean internet = false;
+    
     public Connectivity() {
         Events.register(this);
     }
@@ -73,14 +73,6 @@ public class Connectivity {
             new SyncEvent(SyncPath.CONNECTIVITY_GTALK, ase.getState()));
         //Events.asyncEventBus().post(new SyncEvent(SyncChannel.connectivity));
     }
-    
-    /*
-    @Subscribe
-    public void onConnectivityStateChanged(
-        final ConnectivityStatusChangeEvent csce) {
-        LanternHub.asyncEventBus().post(new SyncEvent(SyncChannel.connectivity));
-    }
-    */
 
     @JsonView({Run.class})
     public String getIp() {
@@ -103,5 +95,14 @@ public class Connectivity {
 
     public void setGtalkAuthorized(boolean gtalkAuthorized) {
         this.gtalkAuthorized = gtalkAuthorized;
+    }
+
+    @JsonView({Run.class})
+    public boolean isInternet() {
+        return internet;
+    }
+
+    public void setInternet(final boolean internet) {
+        this.internet = internet;
     }
 }
