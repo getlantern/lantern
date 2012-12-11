@@ -11,6 +11,7 @@ import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
+import org.lantern.state.ModelService;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -48,6 +49,8 @@ public class TestUtils {
     private static Stats statsTracker;
     
     private static Roster roster;
+
+    private static ModelService modelService;
     
     static {
         InputStream is = null;
@@ -90,6 +93,7 @@ public class TestUtils {
         messageService = injector.getInstance(MessageService.class);
         statsTracker = injector.getInstance(Stats.class);
         roster = injector.getInstance(Roster.class);
+        modelService = injector.getInstance(ModelService.class);
         
         xmppHandler.start();
     }
@@ -198,6 +202,13 @@ public class TestUtils {
             load();
         }
         return roster;
+    }
+
+    public static ModelService getModelService() {
+        if (modelService == null) {
+            load();
+        }
+        return modelService;
     }
 
 }

@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.LanternConstants;
@@ -16,10 +17,11 @@ import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.SyncEvent;
 import org.lantern.state.InternalState;
+import org.lantern.state.JsonModelModifier;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
-import org.lantern.state.ModelChangeImplementor;
 import org.lantern.state.ModelIo;
+import org.lantern.state.ModelService;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.SyncPath;
 import org.lantern.state.SyncService;
@@ -50,7 +52,7 @@ public class InteractionServlet extends HttpServlet {
      */
     private static final long serialVersionUID = -8820179746803371322L;
 
-    private final ModelChangeImplementor changeImplementor;
+    private final ModelService modelService;
 
     private final SyncService syncService;
 
@@ -60,11 +62,11 @@ public class InteractionServlet extends HttpServlet {
     
     @Inject
     public InteractionServlet(final Model model, 
-        final ModelChangeImplementor changeImplementor,
+        final ModelService modelService,
         final SyncService syncService, final InternalState internalState,
         final ModelIo modelIo) {
         this.model = model;
-        this.changeImplementor = changeImplementor;
+        this.modelService = modelService;
         this.syncService = syncService;
         this.internalState = internalState;
         this.modelIo = modelIo;
@@ -96,7 +98,19 @@ public class InteractionServlet extends HttpServlet {
             return;
         }
         
-        final Interaction inter = Interaction.valueOf(interactionStr.toUpperCase());
+        log.info("Headers: "+HttpUtils.getRequestHeaders(req));
+        
+        final int cl = req.getContentLength();
+        String json = "";
+        if (cl > 0) {
+            try {
+                json = IOUtils.toString(req.getInputStream());
+            } catch (final IOException e) {
+                log.error("Could not parse json?");
+            }
+        }
+        final Interaction inter = 
+            Interaction.valueOf(interactionStr.toUpperCase());
         
         final Modal modal = this.model.getModal();
         switch (modal) {
@@ -224,9 +238,8 @@ public class InteractionServlet extends HttpServlet {
             switch (inter) {
             case CONTINUE:
                 log.info("Processing continue");
-                final boolean sys = toBool(params.get("systemProxy"));
-                this.model.getSettings().setSystemProxy(sys);
-                changeImplementor.setSystemProxy(sys);
+                applyJson(json);
+                
                 this.internalState.setModalCompleted(Modal.systemProxy);
                 this.internalState.advanceModal(null);
                 break;
@@ -266,9 +279,9 @@ public class InteractionServlet extends HttpServlet {
         }
     }
 
-    private boolean toBool(final String str) {
-        final String norm = str.toLowerCase().trim();
-        return (norm.equals("true") || norm.equals("on"));
+    private void applyJson(final String json) {
+        final JsonModelModifier mod = new JsonModelModifier(modelService);
+        mod.applyJson(json);
     }
 
     private void handleGiveGet(final boolean getMode) {
@@ -280,7 +293,8 @@ public class InteractionServlet extends HttpServlet {
         
         Events.syncModal(model);
         this.internalState.setModalCompleted(Modal.welcome);
-        this.changeImplementor.setGetMode(getMode);
+        
+        this.modelService.setGetMode(getMode);
     }
     
     private void handleReset() {

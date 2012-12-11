@@ -28,7 +28,7 @@ import com.google.inject.Singleton;
  * users can configure.
  */
 @Singleton
-public class DefaultModelChangeImplementor implements ModelChangeImplementor {
+public class DefaultModelService implements ModelService {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
@@ -49,14 +49,14 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
     private XmppHandler xmppHandler;
 
     @Inject
-    public DefaultModelChangeImplementor(final Model model,
+    public DefaultModelService(final Model model,
         final Proxifier proxifier, final ModelUtils modelUtils,
         final XmppHandler xmppHandler) {
         this(LanternConstants.LAUNCHD_PLIST, LanternConstants.GNOME_AUTOSTART, 
                 model, proxifier, modelUtils, xmppHandler);
     }
     
-    public DefaultModelChangeImplementor(final File launchdPlist, 
+    public DefaultModelService(final File launchdPlist, 
         final File gnomeAutostart, final Model model,
         final Proxifier proxifier, final ModelUtils modelUtils,
         final XmppHandler xmppHandler) {
@@ -70,7 +70,9 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
     
     @Override
     public void setStartAtLogin(final boolean start) {
-        log.info("Setting start at login to "+start);
+        log.debug("Setting start at login to "+start);
+        
+        this.model.getSettings().setStartAtLogin(start);
         if (SystemUtils.IS_OS_MAC_OSX && this.launchdPlist.isFile()) {
             setStartAtLoginOsx(start);
         } else if (SystemUtils.IS_OS_WINDOWS) {
@@ -119,6 +121,7 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
     
     @Override
     public void setProxyAllSites(final boolean proxyAll) {
+        this.model.getSettings().setProxyAllSites(proxyAll);
         try {
             proxifier.proxyAllSites(proxyAll);
         } catch (final ProxyConfigurationError e) {
@@ -132,6 +135,7 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
             log.info("System proxy setting is unchanged.");
             return;
         }
+        this.model.getSettings().setSystemProxy(isSystemProxy);
         
         log.info("Setting system proxy");
         
@@ -161,18 +165,21 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
 
     @Override
     public void setGetMode(final boolean getMode) {
+        
         // When we move to give mode, we want to start advertising our 
         // ID and to start accepting incoming connections.
         
         // We we move to get mode, we want to stop advertising our ID and to
         // stop accepting incoming connections.
-
         final Settings set = this.model.getSettings();
         final boolean inGet = set.getMode() == Mode.get;
         if (getMode == inGet) {
             log.info("Mode is unchanged.");
             return;
         }
+        
+        this.model.getSettings().setGetMode(getMode);
+        
         if (!this.modelUtils.isConfigured()) {
             log.info("Not implementing mode change -- not configured.");
             return;
@@ -193,6 +200,11 @@ public class DefaultModelChangeImplementor implements ModelChangeImplementor {
         
         // We disconnect and reconnect to create a new Jabber ID that will 
         // not advertise us as a connection point.
+        if (!model.isSetupComplete()) {
+            log.debug("Not disconnecting and reconnecting before setup is " +
+                "complete");
+            return;
+        }
         xmppHandler.disconnect();
         try {
             try {

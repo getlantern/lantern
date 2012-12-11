@@ -64,8 +64,8 @@ public class ModelTest {
         assertTrue(cur2.contains("X-GNOME-Autostart-enabled=true") || 
                 cur2.contains("X-GNOME-Autostart-enabled=false"));
         //final SettingsIo ss = new SettingsIo(settingsFile, encryptedFileService);
-        final DefaultModelChangeImplementor implementor = 
-            new DefaultModelChangeImplementor(temp1, temp2, model, proxifier, modelUtils, xmppHandler);
+        final DefaultModelService implementor = 
+            new DefaultModelService(temp1, temp2, model, proxifier, modelUtils, xmppHandler);
         if (cur1.contains("<true/>")) {
             assertFalse(cur1.contains("<false/>"));
             //Configurator.setStartAtLogin(temp, false);

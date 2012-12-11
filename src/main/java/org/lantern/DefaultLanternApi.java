@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.security.GeneralSecurityException;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -14,20 +13,17 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.lang.StringUtils;
-import org.lantern.event.ResetEvent;
 import org.lantern.http.HttpUtils;
 import org.lantern.http.LanternApi;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
 import org.lantern.state.Model.Run;
-import org.lantern.state.ModelChangeImplementor;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -64,7 +60,7 @@ public class DefaultLanternApi implements LanternApi {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final XmppHandler xmppHandler;
-    private final ModelChangeImplementor modelChangeImplementor;
+    //private final ModelChangeImplementor modelChangeImplementor;
     private final LocalCipherProvider lcp;
     private final Proxifier proxifier;
     private final Model model;
@@ -73,12 +69,12 @@ public class DefaultLanternApi implements LanternApi {
 
     @Inject
     public DefaultLanternApi(final XmppHandler xmppHandler,
-        final ModelChangeImplementor modelChangeImplementor,
+        //final ModelChangeImplementor modelChangeImplementor,
         final LocalCipherProvider lcp,
         final Proxifier proxifier, final Model model, 
         final ModelUtils modelUtils, final ModelIo modelIo) {
         this.xmppHandler = xmppHandler;
-        this.modelChangeImplementor = modelChangeImplementor;
+        //this.modelChangeImplementor = modelChangeImplementor;
         this.lcp = lcp;
         this.proxifier = proxifier;
         this.model = model;
