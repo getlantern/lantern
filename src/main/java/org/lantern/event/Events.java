@@ -57,7 +57,6 @@ public class Events {
      * @param model The state model.
      */
     public static void syncModal(final Model model) {
-        LOG.debug("Syncing modal: "+ThreadUtils.dumpStack());
         Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, model.getModal()));
     }
     
