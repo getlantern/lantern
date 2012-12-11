@@ -37,6 +37,12 @@ That script will fetch the required libraries, build, and
 run Lantern. There's also a `quickRun.bash` script that will run Lantern
 when already built.
 
+If you have already checked out Lantern, but did not do so with the '--recursive'
+flag, you can still grab any submodules, particularly lantern-ui with:
+
+    $ git submodule init
+    $ git submodule update
+
 Lantern binds its HTTP API to a random port for security. You can pass
 `--api-port=xyz` to override this. This is helpful for pointing external
 browsers at Lantern for development.
