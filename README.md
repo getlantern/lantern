@@ -20,7 +20,11 @@ desktop systems.
 2. Clone the repository:
 
     $ git clone --recursive git://github.com/getlantern/lantern.git 
-    
+
+    or
+
+    $ git clone --recursive git@github.com:getlantern/lantern.git (if you have commit privileges ONLY)   
+ 
 3. Change to the lantern directory:
 
     $ cd lantern
