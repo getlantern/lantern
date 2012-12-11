@@ -17,11 +17,11 @@ public class InternalState {
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     private final Modal[] modalSeqGive = {
-        Modal.inviteFriends, Modal.finished, Modal.none,
+        Modal.lanternFriends, Modal.finished, Modal.none,
     };
     
     private final Modal[] modalSeqGet = {
-        Modal.proxiedSites, Modal.systemProxy, Modal.inviteFriends, 
+        Modal.lanternFriends, Modal.proxiedSites, Modal.systemProxy, 
         Modal.finished, Modal.none,
     };
     
