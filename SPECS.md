@@ -501,6 +501,46 @@ the backend maintains on the frontend through comet publications:
       <br><small><a name="note-get-mode-only">1</a> Only present when in "get" mode</small>
     </td>
   </tr>
+  
+ 
+  <tr>
+    <td><strong>profile</strong> (<a href="https://developers.google.com/accounts/docs/OAuth2Login">OAuth2Login</a>)<br><em>object</em></td>
+    <td>
+      <table>
+        <tr>
+          <td><strong>email</strong><br><em>string</em></td>
+          <td>The user's e-mail address.</td>
+        </tr>
+        </tr>
+        <tr>
+          <td><strong>name</strong><br><em>string</em></td>
+          <td>The user's full name, if available in their Google profile.</td>
+        </tr>
+        <tr>
+          <td><strong>link</strong><br><em>string</em></td>
+          <td>A link to the user's Google Plus page, if available.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>picture</strong><br><em>string</em></td>
+          <td>The link to the user's picture, if available.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>gender</strong><br><em>string</em></td>
+          <td>The user's gender.</td>
+        </tr>
+        <tr>
+          <td><strong>birthday</strong><br><em>string</em></td>
+          <td>The user's birthday in the form YYYY-MM-DD where YYYY may or may not be available.</td>
+        </tr>
+        <tr>
+          <td><strong>locale</strong><br><em>string</em></td>
+          <td>The user's full locale, as in "en-US".</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
 </table>
 
 <hr>
