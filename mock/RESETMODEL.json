@@ -7,6 +7,7 @@
   "showVis": false,
   "connectivity":{
     "gtalkAuthorized":false,
+    "gtalkOauthUrl":"/mock/googleOauth.html",
     "gtalk":"notConnected",
     "peers":{
       "current":[],

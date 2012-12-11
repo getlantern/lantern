@@ -53,14 +53,10 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
     location.reload(true); // true to bypass cache and force request to server
   };
 
-  $scope.doOauth = function() {
-    $window.open(model.connectivity.gtalkOauthUrl);
-  };
-
   $scope.interaction = function(interactionid, extra) {
     return apiSrvc.interaction(interactionid, extra)
       .success(function(data, status, headers, config) {
-        log.debug('interaction(', interactionid, extra, ') successful');
+        log.debug('interaction(', interactionid, extra || '', ') successful');
       })
       .error(function(data, status, headers, config) {
         log.error('interaction(', interactionid, extra, ') failed');

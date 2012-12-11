@@ -316,9 +316,14 @@ the backend maintains on the frontend through comet publications:
           <td>The system's public IP address, if available</td>
         </tr>
         <tr>
-          <td><strong>gtalkAccess</strong><br><em>boolean</em></td>
+          <td><strong>gtalkAuthorized</strong><br><em>boolean</em></td>
           <td>Whether the user has authorized Lantern via Oauth to access
             her Google Talk account.</td>
+        </tr>
+        <tr>
+          <td><strong>gtalkOauthUrl</strong><br><em>string</em></td>
+          <td>The url to open to request Oauth access to the user's
+            Google Talk account.</td>
         </tr>
         <tr>
           <td><strong>lanternAccess</strong><br><em>boolean</em></td>

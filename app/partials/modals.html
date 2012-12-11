@@ -90,9 +90,8 @@
     </div>
   </div>
   <div class="modal-footer">
-    <a type="submit" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">
+    <a class="btn btn-primary" href="{{ model.connectivity.gtalkOauthUrl }}">
       {{ 'AUTHORIZE_LANTERN' | i18n }}
-      &nbsp;<i class="icon-external-link"></i>
     </a>
   </div>
 </div>
@@ -148,7 +147,7 @@
     <div>{{ 'GTALK_UNREACHABLE_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn" ng-click="interaction(INTERACTION.retryNow)">{{ 'RETRY_NOW' | i18n }}</button>
+    <button type="button" class="btn" ng-click="interaction(INTERACTION.retry)">{{ 'RETRY_NOW' | i18n }}</button>
     <button type="button" class="btn" ng-click="interaction(INTERACTION.retryLater)">{{ 'RETRY_LATER' | i18n }}</button>
   </div>
 </div>
@@ -175,7 +174,7 @@
     <div>{{ 'NOT_INVITED_PROMPT' | i18n }}</div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn" ng-click="doOauth()">{{ 'TRY_ANOTHER_USER' | i18n }}</button>
+    <button type="button" class="btn" ng-click="interaction(INTERACTION.retry)">{{ 'TRY_ANOTHER_USER' | i18n }}</button>
     <button type="button" class="btn" ng-click="interaction(INTERACTION.requestInvite)">{{ 'REQUEST_INVITE' | i18n }}</button>
   </div>
 </div>

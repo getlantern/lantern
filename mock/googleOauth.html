@@ -1,0 +1,36 @@
+<head>
+  <title>Mock Google Oauth Page</title>
+  <link href="/app/_css/app.css" rel="stylesheet">
+  <script src="/app/lib/angular/docs/js/jquery.js"></script>
+  <script>
+    $(function() {
+      $('#allow').click(function() {
+        $.post('/api/0.0/interaction/continue');
+        location.replace('/app/index.html');
+      });
+    });
+  </script>
+  <style>
+    h1, p { margin: 30px 0 0 0; }
+    small { color: #999 }
+  </style>
+<head>
+<body class="pagination-centered">
+  <h1>Mock Google Oauth Page</h1>
+
+  <p>
+    <small>
+      (If you weren't signed in you'd see Google's sign in/create account page
+      before being taken here.)
+    </small>
+  </p>
+
+  <p>
+    Lantern is requesting permission to access Google Talk on your behalf.
+  </p>
+
+  <p>
+    <a href="#" id="allow" class="btn btn-primary">Allow</a>
+  </p>
+
+</body>

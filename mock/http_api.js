@@ -323,7 +323,7 @@ ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res) {
 };
 
 ApiServlet._handlerForModal[MODAL.gtalkUnreachable] = function(interaction, res) {
-  if (interaction == INTERACTION.retryNow) {
+  if (interaction == INTERACTION.retry) {
     this.updateModel({modal: MODAL.authorize}, true);
   } else if (interaction == INTERACTION.retryLater) {
     this.updateModel({modal: MODAL.authorizeLater}, true);
@@ -341,8 +341,13 @@ ApiServlet._handlerForModal[MODAL.authorizeLater] = function(interaction, res) {
 };
 
 ApiServlet._handlerForModal[MODAL.notInvited] = function(interaction, res) {
-  if (interaction != INTERACTION.requestInvite) return res.writeHead(400);
-  this.updateModel({modal: MODAL.requestInvite}, true);
+  if (interaction == INTERACTION.retry) {
+    this.updateModel({modal: MODAL.authorize}, true);
+  } else if (interaction == INTERACTION.requestInvite) {
+    this.updateModel({modal: MODAL.requestInvite}, true);
+  } else {
+    res.writeHead(400);
+  }
 };
 
 ApiServlet._handlerForModal[MODAL.requestSent] = function(interaction, res) {
