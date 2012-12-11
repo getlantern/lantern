@@ -48,7 +48,7 @@ public class Model {
     private boolean cache;
     
     private String nodeId = String.valueOf(new SecureRandom().nextLong());
-
+    
     public SystemData getSystem() {
         return system;
     }

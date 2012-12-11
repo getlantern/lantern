@@ -6,6 +6,7 @@ import org.lantern.Roster;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.SyncPath;
+import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,7 +48,7 @@ public class Events {
      */
     public static void syncModal(final Model model, final Modal modal) {
         model.setModal(modal);
-        Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, modal));
+        syncModal(model);
     }
 
     /**
@@ -56,6 +57,7 @@ public class Events {
      * @param model The state model.
      */
     public static void syncModal(final Model model) {
+        LOG.debug("Syncing modal: "+ThreadUtils.dumpStack());
         Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, model.getModal()));
     }
     
@@ -67,8 +69,8 @@ public class Events {
     }
 
 
-    public static void sync(final SyncPath path, final Object val) {
-        Events.asyncEventBus().post(new SyncEvent(path, val));
+    public static void sync(final SyncPath path, final Object value) {
+        Events.asyncEventBus().post(new SyncEvent(path, value));
     }
 
 

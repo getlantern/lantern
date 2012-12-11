@@ -23,7 +23,7 @@ public class Connectivity {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    private GoogleTalkState googleTalkState = GoogleTalkState.notConnected;
+    private GoogleTalkState gtalk = GoogleTalkState.notConnected;
     
     private String ip = "";
     
@@ -37,7 +37,7 @@ public class Connectivity {
 
     @JsonView({Run.class})
     public GoogleTalkState getGTalk() {
-        return googleTalkState;
+        return gtalk;
     }
     
     @JsonView({Run.class})
@@ -68,9 +68,9 @@ public class Connectivity {
 
     @Subscribe
     public void onAuthenticationStateChanged(final GoogleTalkStateEvent ase) {
-        this.googleTalkState = ase.getState();
+        this.gtalk = ase.getState();
         Events.asyncEventBus().post(
-            new SyncEvent(SyncPath.CONNECTIVITY_GTALK, ase.getState()));
+            new SyncEvent(SyncPath.CONNECTIVITY_GTALK, gtalk));
         //Events.asyncEventBus().post(new SyncEvent(SyncChannel.connectivity));
     }
 

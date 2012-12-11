@@ -83,11 +83,6 @@ public class Settings {
 
     private boolean useCloudProxies = true;
     
-    /**
-     * Locally-stored set of users we've invited.
-     */
-    private Set<String> invited = new HashSet<String>();
-    
     public enum Mode {
         give,
         get, 
@@ -383,15 +378,5 @@ public class Settings {
     @JsonView({Run.class, Persistent.class})
     public boolean isUseCloudProxies() {
         return useCloudProxies;
-    }
-    
-    
-    public void setInvited(final Set<String> invited) {
-        this.invited = invited;
-    }
-    
-    @JsonView({Persistent.class})
-    public Set<String> getInvited() {
-        return invited;
     }
 }

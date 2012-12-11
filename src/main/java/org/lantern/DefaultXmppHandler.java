@@ -1146,7 +1146,7 @@ public class DefaultXmppHandler implements XmppHandler {
             return;
         }
         
-        final Set<String> invited = model.getSettings().getInvited();
+        final Set<String> invited = roster.getInvited();
         if (invited.contains(email)) {
             LOG.info("Already invited");
             return;

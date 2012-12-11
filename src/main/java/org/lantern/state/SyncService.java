@@ -135,10 +135,10 @@ public class SyncService implements LanternService {
         log.debug("In sync method");
         //this.strategy.sync(force, channel, this.session);
         
-        this.strategy.sync(force, this.session, "", this.model);
+        this.strategy.sync(force, this.session, SyncPath.ALL, this.model);
     }
 
-    public void publishSync(final String path, final Object value) {
+    public void publishSync(final SyncPath path, final Object value) {
         this.strategy.sync(true, this.session, path, value);
     }
 }

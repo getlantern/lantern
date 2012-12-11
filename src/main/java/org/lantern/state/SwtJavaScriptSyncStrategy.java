@@ -15,7 +15,7 @@ public class SwtJavaScriptSyncStrategy implements SyncStrategy {
     private volatile long lastUpdateTime = System.currentTimeMillis();
 
     @Override
-    public void sync(boolean force, ServerSession session, String path,
+    public void sync(boolean force, ServerSession session, SyncPath path,
             Object value) {
         final long elapsed = System.currentTimeMillis() - lastUpdateTime;
         if (!force && elapsed < 100) {

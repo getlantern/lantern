@@ -30,18 +30,5 @@ public class JsonModelModifierTest {
         mod.applyJson(json);
         assertFalse("Model modifier didn't modify!", set.isSystemProxy());
     }
-    
-    @Test
-    public void testGetTargetForPath() throws Exception {
-        final ModelService mm = TestUtils.getModelService();
-        final JsonModelModifier mod = new JsonModelModifier(mm);
-        
-        final Model model = TestUtils.getModel();
-        
-        assertFalse(model.isLaunchd());
-        final Object obj = mod.getTargetForPath(model, "version.installed.major");
-        
-        assertEquals(model.getVersion().getInstalled(), obj);
-    }
 
 }

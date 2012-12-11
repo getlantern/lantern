@@ -10,6 +10,7 @@ import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
@@ -38,6 +39,7 @@ import javax.crypto.Cipher;
 import javax.net.ssl.SSLSocket;
 import javax.servlet.http.HttpServletRequest;
 
+import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.httpclient.URIException;
 import org.apache.commons.io.FileUtils;
@@ -845,6 +847,29 @@ public class LanternUtils {
      */
     public static boolean persistCredentials() {
         return !SystemUtils.IS_OS_LINUX;
+    }
+    
+
+    /**
+     * Accesses the object to set a property on with a nested dot notation as
+     * in object1.object2.
+     * 
+     * Public for testing. Note this is actually not use in favor of
+     * ModelMutables that consolidates all accessible methods.
+     */
+    public static Object getTargetForPath(final Object root, final String path) 
+        throws IllegalAccessException, InvocationTargetException, 
+        NoSuchMethodException {
+        if (!path.contains(".")) {
+            return root;
+        }
+        final String curProp = StringUtils.substringBefore(path, ".");
+        final Object propObject = PropertyUtils.getProperty(root, curProp);
+        final String nextProp = StringUtils.substringAfter(path, ".");
+        if (nextProp.contains(".")) {
+            return getTargetForPath(propObject, nextProp);
+        }
+        return propObject;
     }
 }
 
