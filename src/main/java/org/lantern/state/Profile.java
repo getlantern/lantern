@@ -18,6 +18,7 @@ public class Profile {
     private String birthday = "";
     private String locale = "";
     
+    @JsonView({Run.class, Persistent.class})
     public String getEmail() {
         return email;
     }
@@ -25,10 +26,11 @@ public class Profile {
         this.email = email;
     }
     
-    @JsonView({Run.class, Persistent.class})
+    @JsonView({Persistent.class})
     public boolean isVerified_email() {
         return verified_email;
     }
+    
     public void setVerified_email(boolean verified_email) {
         this.verified_email = verified_email;
     }
@@ -41,7 +43,7 @@ public class Profile {
         this.name = name;
     }
     
-    @JsonView({Run.class, Persistent.class})
+    @JsonView({Persistent.class})
     public String getFamily_name() {
         return family_name;
     }
@@ -88,12 +90,15 @@ public class Profile {
     public void setLocale(String locale) {
         this.locale = locale;
     }
+    
+    @JsonView({Persistent.class})
     public String getId() {
         return id;
     }
     public void setId(String id) {
         this.id = id;
     }
+    @JsonView({Persistent.class})
     public String getGiven_name() {
         return given_name;
     }

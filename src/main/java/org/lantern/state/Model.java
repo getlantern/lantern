@@ -41,7 +41,7 @@ public class Model {
     
     private boolean setupComplete;
     
-    private int proxiedSitesMax = 2000;
+    private int nproxiedSitesMax = 2000;
 
     private boolean launchd;
 
@@ -108,15 +108,6 @@ public class Model {
         return dev;
     }
 
-    @JsonView({Run.class})
-    public int getProxiedSitesMax() {
-        return proxiedSitesMax;
-    }
-
-    public void setProxiedSitesMax(int proxiedSitesMax) {
-        this.proxiedSitesMax = proxiedSitesMax;
-    }
-
     @JsonView({Run.class, Persistent.class})
     public boolean isSetupComplete() {
         return setupComplete;
@@ -160,5 +151,14 @@ public class Model {
 
     public void setNodeId(final String nodeId) {
         this.nodeId = nodeId;
+    }
+
+    @JsonView({Run.class})
+    public int getNproxiedSitesMax() {
+        return nproxiedSitesMax;
+    }
+
+    public void setNproxiedSitesMax(int nproxiedSitesMax) {
+        this.nproxiedSitesMax = nproxiedSitesMax;
     }
 }

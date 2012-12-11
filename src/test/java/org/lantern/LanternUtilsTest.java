@@ -9,16 +9,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.Security;
-import java.security.cert.PKIXParameters;
-import java.security.cert.TrustAnchor;
-import java.security.cert.X509Certificate;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
@@ -69,7 +62,7 @@ public class LanternUtilsTest {
         assertTrue(LanternUtils.isNotJid(id));
     }
     
-    
+    /*
     @Test 
     public void testRosterEntries() throws Exception {
         final String email = TestUtils.loadTestEmail();
@@ -82,7 +75,7 @@ public class LanternUtilsTest {
         // This user doesn't necessarily have any contacts.
         assertTrue(entries != null);
     }
-    
+    */
     
     @Test 
     public void testVCard() throws Exception {
@@ -191,6 +184,7 @@ public class LanternUtilsTest {
         t.start();
     }
 
+    /*
     @Test
     public void testRoster() throws Exception {
         System.setProperty("javax.net.debug", "ssl:record");
@@ -238,8 +232,8 @@ public class LanternUtilsTest {
         
         // Just make sure no exceptions are thrown for now.
         TestUtils.getRoster().getRosterEntries(email, pass, 1);
-        
     }
+    */
     
     @Test 
     public void testToTypes() throws Exception {

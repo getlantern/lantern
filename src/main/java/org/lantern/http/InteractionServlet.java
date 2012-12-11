@@ -89,7 +89,7 @@ public class InteractionServlet extends HttpServlet {
         log.info("Received URI: {}", uri);
         final Map<String, String> params = HttpUtils.toParamMap(req);
         log.info("Params: {}", params);
-        final String interactionStr = params.get("interaction");
+        final String interactionStr = StringUtils.substringAfterLast(uri, "/");//params.get("interaction");
         if (StringUtils.isBlank(interactionStr)) {
             log.info("No interaction!!");
             HttpUtils.sendClientError(resp, "interaction argument required!");
@@ -118,8 +118,10 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case about:
+            log.error("Processing about...");
             break;
         case authorize:
+            log.error("Processing authorize modal...");
             break;
         case finished:
             switch (inter) {
@@ -139,8 +141,10 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case firstInviteReceived:
+            log.error("Processing invite received...");
             break;
         case gtalkUnreachable:
+            log.error("Processing gtalk unreachable.");
             break;
         case inviteFriends:
             switch (inter) {
@@ -170,6 +174,7 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case notInvited:
+            log.error("Processing not invited...");
             break;
         case proxiedSites:
             switch (inter) {
@@ -187,8 +192,10 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case requestInvite:
+            log.error("Porcessing request invite");
             break;
         case requestSent:
+            log.info("Process request sent");
             break;
         case settings:
             switch (inter) {
@@ -211,6 +218,7 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case settingsLoadFailure:
+            log.error("Processing settings load failure...");
             break;
         case systemProxy:
             switch (inter) {
@@ -294,7 +302,7 @@ public class InteractionServlet extends HttpServlet {
         model.setNinvites(base.getNinvites());
         model.setNodeId(base.getNodeId());
         model.setProfile(base.getProfile());
-        model.setProxiedSitesMax(base.getProxiedSitesMax());
+        model.setNproxiedSitesMax(base.getNproxiedSitesMax());
         model.setSettings(base.getSettings());
         model.setSetupComplete(base.isSetupComplete());
         model.setShowVis(base.isShowVis());

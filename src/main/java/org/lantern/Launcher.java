@@ -498,13 +498,9 @@ public class Launcher {
 
         LOG.debug("Is launchd: {}", model.isLaunchd());
         launchLantern();
-        /*
-        if (!model.isLaunchd() || 
-            !model.isSetupComplete()) {
-            //!LanternHub.settings().isInitialSetupComplete()) {
-            browserService.openBrowserWhenPortReady();
-        }
-        */
+        
+        model.getConnectivity().setInternet(
+            LanternUtils.hasNetworkConnection());
     }
 
     public static void launchLantern() {
