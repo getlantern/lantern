@@ -118,11 +118,11 @@ public class InteractionServlet extends HttpServlet {
             switch (inter) {
             case GET:
                 log.info("Setting get mode");
-                handleSetModeWelcome(true);
+                handleSetModeWelcome(Mode.get);
                 break;
             case GIVE:
                 log.info("Setting give mode");
-                handleSetModeWelcome(false);
+                handleSetModeWelcome(Mode.give);
                 break;
             default:
                 log.error("Did not handle interaction for modal {} with " +
@@ -146,7 +146,6 @@ public class InteractionServlet extends HttpServlet {
                 this.internalState.setModalCompleted(Modal.finished);
                 this.internalState.advanceModal(null);
                 Events.syncModel(this.model);
-                //Events.asyncEventBus().post(new SyncEvent(SyncPath.ALL));
                 break;
             default:
                 log.error("Did not handle interaction for modal {} with " +
@@ -216,11 +215,11 @@ public class InteractionServlet extends HttpServlet {
             switch (inter) {
             case GET:
                 log.info("Setting get mode");
-                handleGiveGet(true);
+                handleGiveGet(Mode.get);
                 break;
             case GIVE:
                 log.info("Setting give mode");
-                handleGiveGet(false);
+                handleGiveGet(Mode.give);
                 break;
             case CLOSE:
                 log.info("Processing settings close");
@@ -280,14 +279,15 @@ public class InteractionServlet extends HttpServlet {
         default:
             log.error("No matching modal for {}", modal);
         }
+        this.modelIo.write();
     }
 
-    private void handleSetModeWelcome(final boolean getMode) {
-        this.model.getSettings().setMode(getMode ? Mode.get : Mode.give);
-        this.modelService.setGetMode(getMode);
+    private void handleSetModeWelcome(final Mode mode) {
+        //this.model.getSettings().setMode(mode);
+        this.modelService.setMode(mode);
         this.model.setModal(Modal.authorize);
         this.internalState.setModalCompleted(Modal.welcome);
-        Events.eventBus().post(new SyncEvent(SyncPath.MODE, this.model.getSettings().getMode()));
+        Events.eventBus().post(new SyncEvent(SyncPath.MODE, mode));
         Events.syncModal(model);
     }
 
@@ -296,9 +296,9 @@ public class InteractionServlet extends HttpServlet {
         mod.applyJson(json);
     }
 
-    private void handleGiveGet(final boolean getMode) {
-        this.model.getSettings().setMode(getMode ? Mode.get : Mode.give);
-        this.modelService.setGetMode(getMode);
+    private void handleGiveGet(final Mode mode) {
+        Events.eventBus().post(new SyncEvent(SyncPath.MODE, mode));
+        this.modelService.setMode(mode);
     }
     
     private void handleReset() {

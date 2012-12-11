@@ -164,39 +164,30 @@ public class DefaultModelService implements ModelService {
     }
 
     @Override
-    public void setGetMode(final boolean getMode) {
-        
+    public void setMode(final Mode mode) {
+        log.debug("Calling set get mode. Get is: "+mode);
         // When we move to give mode, we want to start advertising our 
         // ID and to start accepting incoming connections.
         
         // We we move to get mode, we want to stop advertising our ID and to
         // stop accepting incoming connections.
         final Settings set = this.model.getSettings();
-        final boolean inGet = set.getMode() == Mode.get;
-        if (getMode == inGet) {
+        if (mode == set.getMode()) {
             log.info("Mode is unchanged.");
             return;
         }
         
-        this.model.getSettings().setGetMode(getMode);
         
         if (!this.modelUtils.isConfigured()) {
             log.info("Not implementing mode change -- not configured.");
             return;
         }
         
-        final Mode newMode;
-        if (getMode) {
-            newMode = Mode.get;
-        } else {
-            newMode = Mode.give;
-        }
-        
         // Go ahead and set the setting although it will also be
         // updated by the api as well. We want to make sure the
         // state seen by the following calls is consistent with
         // this flag being aspirational vs. representational
-        set.setMode(newMode);
+        set.setMode(mode);
         
         // We disconnect and reconnect to create a new Jabber ID that will 
         // not advertise us as a connection point.
@@ -205,41 +196,46 @@ public class DefaultModelService implements ModelService {
                 "complete");
             return;
         }
-        xmppHandler.disconnect();
-        try {
-            try {
-                xmppHandler.connect();
-                
-                // TODO: This isn't quite right. We don't necessarily have
-                // proxies to connect to at this point, and we shouldn't set
-                // the OS proxy until we do.
-                if (this.model.isSetupComplete()) {
-                    // may need to modify the proxying state
-                    if (modelUtils.shouldProxy()) {
-                        proxifier.startProxying();
-                    } else {
+        
+        // We dont' want to force the frontend to wait for all of this, so we
+        // thread it.
+        final Runnable runner = new Runnable() {
+
+            @Override
+            public void run() {
+                xmppHandler.disconnect();
+                try {
+                    try {
+                        xmppHandler.connect();
+                        
+                        // TODO: This isn't quite right. We don't necessarily have
+                        // proxies to connect to at this point, and we shouldn't set
+                        // the OS proxy until we do.
+                        // may need to modify the proxying state
+                        if (modelUtils.shouldProxy()) {
+                            proxifier.startProxying();
+                        } else {
+                            proxifier.stopProxying();
+                        }
+                    } catch (final IOException e) {
+                        log.info("Could not connect to server", e);
+                        // Don't proxy if there's some error connecting.
+                        proxifier.stopProxying();
+                    } catch (final CredentialException e) {
+                        log.info("Credentials are wrong!!");
+                        proxifier.stopProxying();
+                    } catch (final NotInClosedBetaException e) {
+                        log.info("Not in beta!!");
                         proxifier.stopProxying();
                     }
-                }
-            } catch (final IOException e) {
-                log.info("Could not connect to server", e);
-                // Don't proxy if there's some error connecting.
-                if (this.model.isSetupComplete()) {
-                    proxifier.stopProxying();
-                }
-            } catch (final CredentialException e) {
-                log.info("Credentials are wrong!!");
-                if (this.model.isSetupComplete()) {
-                    proxifier.stopProxying();
-                }
-            } catch (final NotInClosedBetaException e) {
-                log.info("Not in beta!!");
-                if (this.model.isSetupComplete()) {
-                    proxifier.stopProxying();
+                } catch (final Proxifier.ProxyConfigurationError e) {
+                    log.info("Proxy auto-configuration failed: {}", e);
                 }
             }
-        } catch (final Proxifier.ProxyConfigurationError e) {
-            log.info("Proxy auto-configuration failed: {}", e);
-        }
+        };
+        
+        final Thread t = new Thread(runner, "Mode-Shift-Thread");
+        t.setDaemon(true);
+        t.start();
     }
 }

@@ -1,5 +1,7 @@
 package org.lantern.state;
 
+import org.lantern.state.Settings.Mode;
+
 /**
  * Interface for settings that are mutable. This allows helper classes to
  * implement the same interface as data beans.
@@ -8,7 +10,7 @@ public interface ModelService {
 
     //void setCountry(Country country);
     
-    void setGetMode(boolean getMode);
+    //void setGetMode(boolean getMode);
     
     //void setMode(boolean getMode);
     
@@ -25,5 +27,7 @@ public interface ModelService {
     //void setSavePassword(boolean savePassword);
 
     void setProxyAllSites(boolean proxyAll);
+
+    void setMode(Mode mode);
 
 }
