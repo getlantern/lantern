@@ -1,11 +1,9 @@
 <div id="langchooser"
      ng-show="model.modal == MODAL.welcome || model.modal == MODAL.settings">
   <ul class="pull-right">
-    <!-- XXX do this programatically -->
-    <li ng-class="{active: lang() == 'en'}"><a ng-click="lang() != 'en' && changeSetting(SETTING.lang, 'en')">English</a></li>
-    <li ng-class="{active: lang() == 'zh'}"><a ng-click="lang() != 'zh' && changeSetting(SETTING.lang, 'zh')">中文</a></li>
-    <li ng-class="{active: lang() == 'fa'}"><a ng-click="lang() != 'fa' && changeSetting(SETTING.lang, 'fa')">‫پارسی‬</a></li>
-    <li ng-class="{active: lang() == 'ar'}"><a ng-click="lang() != 'ar' && changeSetting(SETTING.lang, 'ar')">‫العربية‬</a></li>
+    <li ng-repeat="(langKey, langVal) in LANG" ng-class="{active: lang() == langKey}"><a
+        ng-click="lang() != langKey && changeSetting(SETTING.lang, langKey)"
+        dir="{{ langVal.dir }}">{{ langVal.name }}</a></li>
     <li><a target="_blank" href="{{ EXTERNAL_URL.helpTranslate }}">{{ 'HELP_TRANSLATE' | i18n }}<sup><i class="icon-external-link"></i></sup></a></li>
   </ul>
 </div>

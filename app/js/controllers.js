@@ -5,12 +5,11 @@
 // XXX use data-loading-text instead of submitButtonLabelKey below?
 // see http://twitter.github.com/bootstrap/javascript.html#buttons
 
-function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, apiSrvc, DEFAULT_AVATAR_URL, ENUMS, $window) {
+function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, DEFAULT_AVATAR_URL, ENUMS, EXTERNAL_URL, $window) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
       MODE = ENUMS.MODE,
-      CONNECTIVITY = ENUMS.CONNECTIVITY,
-      EXTERNAL_URL = ENUMS.EXTERNAL_URL;
+      CONNECTIVITY = ENUMS.CONNECTIVITY;
   $scope.modelSrvc = modelSrvc;
   $scope.cometdSrvc = cometdSrvc;
   $scope.dev = dev;
@@ -18,12 +17,14 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
     $window.model = model; // easier interactive debugging
   }
   $scope.DEFAULT_AVATAR_URL = DEFAULT_AVATAR_URL;
+  $scope.EXTERNAL_URL = EXTERNAL_URL;
   angular.forEach(ENUMS, function(val, key) {
     $scope[key] = val;
   });
 
   $scope.lang = langSrvc.lang;
   $scope.direction = langSrvc.direction;
+  $scope.LANG = LANG;
 
   $scope.$watch('model.settings.mode', function(mode) {
     $scope.inGiveMode = mode == MODE.give;

@@ -12,6 +12,7 @@ var url = require('url'),
     scenarios = require('./scenarios'),
       SCENARIOS = scenarios.SCENARIOS,
     constants = require('../app/js/constants.js'),
+      LANG = constants.LANG,
       ENUMS = constants.ENUMS,
         CONNECTIVITY = ENUMS.CONNECTIVITY,
         INTERACTION = ENUMS.INTERACTION,
@@ -77,6 +78,13 @@ ApiServlet.prototype.reset = function() {
     this.model.mock.scenarios.applied[groupKey] = scenKey;
   }
   this.publishSync();
+};
+
+// XXX better name for this
+ApiServlet.prototype.flattened = function(data) {
+  var update = {};
+  update[data.path] = data.value;
+  return update;
 };
 
 ApiServlet.prototype.updateModel = function(state, publish) {
@@ -163,7 +171,13 @@ ApiServlet._handlerForModal[MODAL.scenarios] = function(interaction, res, data) 
 };
 
 
-ApiServlet._handlerForModal[MODAL.welcome] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.welcome] = function(interaction, res, data) {
+  // user can set language from welcome screen
+  if (interaction == INTERACTION.set && data &&
+      data.path == 'settings.lang' && data.value in LANG) {
+    this.updateModel(this.flattened(data), true);
+    return;
+  }
   if (!(interaction in MODE)) return res.writeHead(400);
   if (interaction == MODE.give && this.inCensoringCountry()) {
     this.updateModel({modal: MODAL.giveModeForbidden}, true);
@@ -368,10 +382,9 @@ ApiServlet._handlerForModal[MODAL.settings] = function(interaction, res, data) {
     this.updateModel({modal: MODAL.confirmReset}, true);
   } else if (interaction == INTERACTION.set) {
     var path = (data.path || '').split('.'),
-        settings = path[0], setting = path[1], update = {};
+        settings = path[0], setting = path[1];
     if (settings != 'settings' || !(setting in SETTING)) return res.writeHead(400);
-    update[data.path] = data.value;
-    this.updateModel(update, true);
+    this.updateModel(this.flattened(data), true);
   } else {
     res.writeHead(400);
   }

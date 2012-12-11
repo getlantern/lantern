@@ -18,22 +18,13 @@ angular.module('app.i18n', [])
   })
   .constant('TRANSLATIONS', {
     zh: {
-      WELCOME_TITLE: '欢迎到Lantern',
-      WELCOME_PROMPT: '互联网为每个人的自由。',
-      GIVE_ACCESS: '给访问',
-      GET_ACCESS: '进入'
+      HELP_TRANSLATE: '帮助翻译'
     },
     fa: {
-      WELCOME_TITLE: '‫به انجمن خوش آمدید ‬‪Lantern‬',
-      WELCOME_PROMPT: '‫آزادی اینترنت برای همه.‬',
-      GIVE_ACCESS: '‫دسترسی‬',
-      GET_ACCESS: '‫دسترسی‬'
+      HELP_TRANSLATE: 'کمک برای ترجمه'
     },
     ar: {
-      WELCOME_TITLE: '‫مرحبا بكم في ‬‪Lantern‬',
-      WELCOME_PROMPT: '‫حرية الإنترنت للجميع.‬',
-      GIVE_ACCESS: '‫منح حق الوصول‬',
-      GET_ACCESS: '‫احصل على دخول‬'
+      HELP_TRANSLATE: 'مساعدة لترجمة'
     },
     en: {
       HELP_TRANSLATE: 'Help translate',

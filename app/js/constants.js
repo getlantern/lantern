@@ -15,10 +15,11 @@ function makeEnum(keys, extra) {
 var DEFAULT_LANG = 'en',
     DEFAULT_DIRECTION = 'ltr',
     LANG = {
-      en: {dir: 'ltr'},
-      zh: {dir: 'ltr'},
-      fa: {dir: 'rtl'},
-      ar: {dir: 'rtl'}
+      en: {dir: 'ltr', name: 'English'}/*,
+      zh: {dir: 'ltr', name: '中文'},
+      fa: {dir: 'rtl', name: 'پارسی'},
+      ar: {dir: 'rtl', name: 'العربية'}
+      */
     },
     COMETD_MOUNT_POINT = '/cometd',
     COMETD_URL = typeof location == 'object' ?

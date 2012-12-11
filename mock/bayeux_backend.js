@@ -7,7 +7,6 @@ var fs = require('fs'),
       MODEL_SYNC_CHANNEL = constants.MODEL_SYNC_CHANNEL,
     helpers = require('../app/js/helpers.js'),
       getByPath = helpers.getByPath,
-      deleteByPath = helpers.deleteByPath,
       merge = helpers.merge;
 
 var log = helpers.makeLogger('bayeux');

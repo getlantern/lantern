@@ -5282,6 +5282,7 @@ textarea.bugReport {
 }
 #langchooser ul li.active a:hover {
   text-decoration: none;
+  cursor: default;
 }
 
 #welcome .modal-header {
