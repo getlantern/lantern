@@ -11,7 +11,6 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.lantern.state.Model;
 import org.lantern.state.StaticSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +47,12 @@ public class ChromeRunner {
         if (SystemUtils.IS_OS_MAC_OSX) {
             return "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
         } else if (SystemUtils.IS_OS_LINUX) {
-            return "/usr/bin/google-chrome";
+            final String path1 = "/usr/bin/google-chrome";
+            final File opt1 = new File(path1);
+            if (opt1.isFile()) return path1;
+            
+            // TODO: Clean this up across OSes.
+            return "/usr/bin/chromium-browser";
         } else if (SystemUtils.IS_OS_WINDOWS_XP) {
             final String ad = System.getenv("APPDATA");
             return ad + "/Google/Chrome/Application/chrome.exe";
