@@ -118,11 +118,11 @@ public class InteractionServlet extends HttpServlet {
             switch (inter) {
             case GET:
                 log.info("Setting get mode");
-                handleGiveGet(true);
+                handleSetModeWelcome(true);
                 break;
             case GIVE:
                 log.info("Setting give mode");
-                handleGiveGet(false);
+                handleSetModeWelcome(false);
                 break;
             default:
                 log.error("Did not handle interaction for modal {} with " +
@@ -145,7 +145,8 @@ public class InteractionServlet extends HttpServlet {
                 this.model.setSetupComplete(true);
                 this.internalState.setModalCompleted(Modal.finished);
                 this.internalState.advanceModal(null);
-                Events.asyncEventBus().post(new SyncEvent(SyncPath.ALL, model));
+                Events.syncModel(this.model);
+                //Events.asyncEventBus().post(new SyncEvent(SyncPath.ALL));
                 break;
             default:
                 log.error("Did not handle interaction for modal {} with " +
@@ -163,7 +164,7 @@ public class InteractionServlet extends HttpServlet {
         case lanternFriends:
             switch (inter) {
             case CONTINUE:
-                log.info("Processing continue");
+                log.info("Processing continue for friends dialog");
                 this.internalState.setModalCompleted(Modal.lanternFriends);
                 this.internalState.advanceModal(null);
                 break;
@@ -214,6 +215,12 @@ public class InteractionServlet extends HttpServlet {
         case settings:
             switch (inter) {
             case GET:
+                log.info("Setting get mode");
+                handleGiveGet(true);
+                break;
+            case GIVE:
+                log.info("Setting give mode");
+                handleGiveGet(false);
                 break;
             case CLOSE:
                 log.info("Processing settings close");
@@ -222,7 +229,7 @@ public class InteractionServlet extends HttpServlet {
             case RESET:
                 log.info("Processing reset");
                 handleReset();
-                Events.syncModel(model);
+                Events.syncModel(this.model);
                 break;
             default:
                 log.error("Did not handle interaction for modal {} with " +
@@ -275,6 +282,15 @@ public class InteractionServlet extends HttpServlet {
         }
     }
 
+    private void handleSetModeWelcome(final boolean getMode) {
+        this.model.getSettings().setMode(getMode ? Mode.get : Mode.give);
+        this.modelService.setGetMode(getMode);
+        this.model.setModal(Modal.authorize);
+        this.internalState.setModalCompleted(Modal.welcome);
+        Events.eventBus().post(new SyncEvent(SyncPath.MODE, this.model.getSettings().getMode()));
+        Events.syncModal(model);
+    }
+
     private void applyJson(final String json) {
         final JsonModelModifier mod = new JsonModelModifier(modelService);
         mod.applyJson(json);
@@ -282,15 +298,6 @@ public class InteractionServlet extends HttpServlet {
 
     private void handleGiveGet(final boolean getMode) {
         this.model.getSettings().setMode(getMode ? Mode.get : Mode.give);
-        //this.model.setModal(SystemUtils.IS_OS_LINUX ? Modal.passwordCreate : Modal.authorize);
-        this.model.setModal(Modal.authorize);
-        //this.syncService.publishSync("", this.model.getSettings().getMode());
-        this.syncService.publishSync("settings.mode", this.model.getSettings().getMode());
-        //this.syncService.publishSync("modal", this.model.getModal());
-        
-        Events.syncModal(model);
-        this.internalState.setModalCompleted(Modal.welcome);
-        
         this.modelService.setGetMode(getMode);
     }
     

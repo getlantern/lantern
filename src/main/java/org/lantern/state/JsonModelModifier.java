@@ -55,28 +55,6 @@ public class JsonModelModifier {
         }
     }
 
-    /**
-     * Accesses the object to set a property on with a nested dot notation as
-     * in object1.object2.
-     * 
-     * Public for testing. Note this is actually not use in favor of
-     * ModelMutables that consolidates all accessible methods.
-     */
-    public Object getTargetForPath(final Object root, final String path) 
-        throws IllegalAccessException, InvocationTargetException, NoSuchMethodException {
-        if (!path.contains(".")) {
-            return root;
-        }
-        final String curProp = StringUtils.substringBefore(path, ".");
-        final Object propObject = PropertyUtils.getProperty(root, curProp);
-        final String nextProp = StringUtils.substringAfter(path, ".");
-        if (nextProp.contains(".")) {
-            return getTargetForPath(propObject, nextProp);
-        }
-        return propObject;
-    }
-    
-
     private String getMethodForPath(final String path) {
         if (!path.contains(".")) {
             return path;

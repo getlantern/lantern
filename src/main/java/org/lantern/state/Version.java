@@ -32,7 +32,7 @@ public class Version {
     public void onUpdate(final UpdateEvent updateEvent) {
         this.latest = updateEvent.getData();
         Events.asyncEventBus().post(new SyncEvent(SyncPath.VERSION_UPDATED, 
-            updateEvent.getData()));
+            this.latest));
     }
 
     @JsonView({Run.class})

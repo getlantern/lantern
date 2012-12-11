@@ -10,6 +10,7 @@ import org.lantern.state.Model.Run;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 /**
@@ -20,14 +21,19 @@ public class CometDSyncStrategy implements SyncStrategy {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
-    //private volatile long lastUpdateTime = System.currentTimeMillis();
-    
-    private final Map<String, Long> lastUpdateTimes = 
-        new ConcurrentHashMap<String, Long>();
+    private final Map<SyncPath, Long> lastUpdateTimes = 
+        new ConcurrentHashMap<SyncPath, Long>();
 
+    private final Model model;
+    
+    @Inject
+    public CometDSyncStrategy(final Model model) {
+        this.model = model;
+    }
+    
     @Override
     public void sync(final boolean force,
-        final ServerSession session, final String path, final Object value) {
+        final ServerSession session, final SyncPath path, final Object value) {
         log.info("SYNCING");
         if (session == null) {
             log.info("No session...not syncing");
@@ -55,7 +61,7 @@ public class CometDSyncStrategy implements SyncStrategy {
         log.debug("Sync performed");
     }
 
-    private long elapsedForPath(final String path) {
+    private long elapsedForPath(final SyncPath path) {
         synchronized(lastUpdateTimes) {
             if (lastUpdateTimes.containsKey(path)) {
                 final long lastUpdateTime = lastUpdateTimes.get(path);
@@ -78,7 +84,7 @@ public class CometDSyncStrategy implements SyncStrategy {
         private final Object value; 
         
         public SyncData(final SyncPath channel, final Object val) {
-            this(channel.name(), val);
+            this(channel.getPath(), val);
         }
         
         public SyncData(final String path, final Object val) {

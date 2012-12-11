@@ -1,6 +1,7 @@
 package org.lantern;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -28,6 +29,7 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smackx.packet.VCard;
 import org.junit.Test;
+import org.lantern.state.Model;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -48,6 +50,21 @@ public class LanternUtilsTest {
     @Test 
     public void testGoogleTalkReachable() throws Exception {
         assertTrue(LanternUtils.isGoogleTalkReachable());
+    }
+    
+    @Test
+    public void testGetTargetForPath() throws Exception {
+        
+        final Model model = TestUtils.getModel();
+        
+        assertFalse(model.isLaunchd());
+        Object obj = LanternUtils.getTargetForPath(model, "version.installed.major");
+        
+        assertEquals(model.getVersion().getInstalled(), obj);
+        
+        obj = LanternUtils.getTargetForPath(model, "settings.mode");
+        
+        assertEquals(model.getSettings(), obj);
     }
     
     @Test

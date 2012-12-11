@@ -2,8 +2,10 @@ package org.lantern;
 
 import java.io.IOException;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
@@ -12,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.annotate.JsonView;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.packet.Presence;
@@ -26,6 +29,7 @@ import org.lantern.event.UpdatePresenceEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Profile;
 import org.lantern.state.StaticSettings;
+import org.lantern.state.Model.Persistent;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,24 +56,25 @@ public class Roster implements RosterListener {
     private final Map<String, Profile> incomingSubscriptionRequests = 
         new TreeMap<String, Profile>();
 
-    //private final XmppHandler xmppHandler;
-
     private volatile boolean populated;
     
     
     private final RandomRoutingTable kscopeRoutingTable = 
         new BasicRandomRoutingTable();
 
-    private final Model model;
-
     private org.jivesoftware.smack.Roster smackRoster;
+    
+    
+    /**
+     * Locally-stored set of users we've invited.
+     */
+    private Set<String> invited = new HashSet<String>();
 
     /**
      * Creates a new roster.
      */
     @Inject
-    public Roster(final Model model) {
-        this.model = model;
+    public Roster() {
         Events.register(this);
     }
 
@@ -131,7 +136,7 @@ public class Roster implements RosterListener {
             new TreeSet<LanternRosterEntry>();
         for (final Item entry : unordered) {
             final LanternRosterEntry lp = 
-                new LanternRosterEntry(entry, photoUrlBase(), model);
+                new LanternRosterEntry(entry, photoUrlBase(), this);
             final boolean added = entries.add(lp);
             if (!added) {
                 log.warn("DID NOT ADD {}", entry);
@@ -151,7 +156,7 @@ public class Roster implements RosterListener {
             new ConcurrentSkipListMap<String, LanternRosterEntry>();
         for (final RosterEntry entry : unordered) {
             final LanternRosterEntry lp = 
-                new LanternRosterEntry(entry, photoUrlBase(), model);
+                new LanternRosterEntry(entry, photoUrlBase(), this);
             if (LanternUtils.isNotJid(lp.getUserId())) {
                 entries.put(lp.getUserId(), lp);
             }
@@ -185,7 +190,7 @@ public class Roster implements RosterListener {
             // This may be someone we have subscribed to who we're just now
             // getting the presence for.
             log.info("Adding non-roster presence: {}", email);
-            addEntry(new LanternRosterEntry(pres, photoUrlBase(), model));
+            addEntry(new LanternRosterEntry(pres, photoUrlBase(), this));
         }
     }
 
@@ -247,7 +252,7 @@ public class Roster implements RosterListener {
     public void entriesAdded(final Collection<String> entries) {
         log.debug("Adding {} entries to roster", entries.size());
         for (final String entry : entries) {
-            addEntry(new LanternRosterEntry(entry, photoUrlBase(), model));
+            addEntry(new LanternRosterEntry(entry, photoUrlBase(), this));
         }
         Events.syncRoster(this);
     }
@@ -343,5 +348,14 @@ public class Roster implements RosterListener {
     @Subscribe
     public void onReset(final ResetEvent event) {
         reset();
+    }
+    
+    public void setInvited(final Set<String> invited) {
+        this.invited = invited;
+    }
+    
+    @JsonView({Persistent.class})
+    public Set<String> getInvited() {
+        return invited;
     }
 }

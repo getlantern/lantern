@@ -9,19 +9,20 @@ import org.lantern.state.SyncPath;
  */
 public class SyncEvent {
 
-    private final String path;
+    private final SyncPath path;
     private final Object value;
     
     public SyncEvent(final SyncPath path, final Object value) {
-        this.path = path.getEnumPath();
+        this.path = path;
         this.value = value;
     }
-    
-    public String getPath() {
+
+    public SyncPath getPath() {
         return path;
     }
 
     public Object getValue() {
         return value;
     }
+
 }
