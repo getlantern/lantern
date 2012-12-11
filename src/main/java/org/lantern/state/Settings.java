@@ -20,7 +20,7 @@ import com.google.common.collect.Sets;
 /**
  * Base Lantern settings.
  */
-public class Settings implements MutableSettings {
+public class Settings {
 
     private String userId = "";
     
@@ -153,7 +153,6 @@ public class Settings implements MutableSettings {
         return systemProxy;
     }
 
-    @Override
     public void setSystemProxy(final boolean systemProxy) {
         this.systemProxy = systemProxy;
     }
@@ -163,7 +162,6 @@ public class Settings implements MutableSettings {
         return proxyAllSites;
     }
 
-    @Override
     public void setProxyAllSites(final boolean proxyAllSites) {
         this.proxyAllSites = proxyAllSites;
     }
@@ -241,7 +239,6 @@ public class Settings implements MutableSettings {
         this.inClosedBeta = ImmutableSet.copyOf(inClosedBeta);
     }
 
-    @Override
     public void setGetMode(final boolean getMode) {
         if (getMode) {
             setMode(Mode.get);
@@ -260,7 +257,6 @@ public class Settings implements MutableSettings {
         return this.startAtLogin;
     }
     
-    @Override
     public void setStartAtLogin(final boolean startAtLogin) {
         this.startAtLogin = startAtLogin;
     }

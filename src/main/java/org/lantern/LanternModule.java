@@ -35,10 +35,10 @@ import org.lantern.privacy.MacLocalCipherProvider;
 import org.lantern.privacy.UnencryptedFileService;
 import org.lantern.privacy.WindowsLocalCipherProvider;
 import org.lantern.state.CometDSyncStrategy;
-import org.lantern.state.DefaultModelChangeImplementor;
+import org.lantern.state.DefaultModelService;
 import org.lantern.state.Model;
-import org.lantern.state.ModelChangeImplementor;
 import org.lantern.state.ModelIo;
+import org.lantern.state.ModelService;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.SyncService;
 import org.lantern.state.SyncStrategy;
@@ -77,8 +77,8 @@ public class LanternModule extends AbstractModule {
         //bind(EncryptedFileService.class).to(DefaultEncryptedFileService.class);
         bind(BrowserService.class).to(ChromeBrowserService.class);
         bind(Model.class).toProvider(ModelIo.class).in(Singleton.class);
-        bind(ModelChangeImplementor.class).to(DefaultModelChangeImplementor.class);
         
+        bind(ModelService.class).to(DefaultModelService.class);
         bind(HttpsEverywhere.class);
         bind(Roster.class);
         bind(InteractionServlet.class);
