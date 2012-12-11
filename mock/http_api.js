@@ -51,12 +51,12 @@ ApiServlet.RESET_INTERNAL_STATE = {
   appliedScenarios: {
     os: 'osx',
     location: 'beijing',
-    internet: 'connection',
-    oauth: 'authorized',
-    lanternAccess: 'access',
-    gtalkConnect: 'reachable',
-    roster: 'contactsHaveLantern',
-    peers: 'peersOnline'
+    internet: 'true',
+    gtalkAuthorized: 'true',
+    invited: 'true',
+    gtalkReachable: 'true',
+    roster: 'roster1',
+    peers: 'peers1'
   }
 };
 
@@ -204,15 +204,15 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
 
   // check for gtalk authorization
-  var scen = getByPath(this.model, 'mock.scenarios.applied.oauth');
-  scen = getByPath(SCENARIOS, 'oauth.'+scen);
+  var scen = getByPath(this.model, 'mock.scenarios.applied.gtalkAuthorized');
+  scen = getByPath(SCENARIOS, 'gtalkAuthorized.'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
     this.updateModel({modal: MODAL.scenarios,
       'mock.scenarios.prompt': 'No oauth scenario applied.'}, true);
     return;
   }
-  log('applying oauth scenario', scen.desc);
+  log('applying gtalkAuthorized scenario', scen.desc);
   // XXX what if can't reach google here?
   scen.func.call(this);
   if (!getByPath(this.model, 'connectivity.gtalkAuthorized')) {
@@ -222,8 +222,8 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
 
   // check for lantern access
   // XXX show this in UI?
-  scen = getByPath(this.model, 'mock.scenarios.applied.lanternAccess');
-  scen = getByPath(SCENARIOS, 'lanternAccess.'+scen);
+  scen = getByPath(this.model, 'mock.scenarios.applied.invited');
+  scen = getByPath(SCENARIOS, 'invited.'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
     this.updateModel({modal: MODAL.scenarios,
@@ -233,21 +233,21 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   log('applying Lantern access scenario', scen.desc);
   // XXX what if can't reach google here?
   scen.func.call(this);
-  if (!getByPath(this.model, 'connectivity.lanternAccess')) {
+  if (!getByPath(this.model, 'connectivity.invited')) {
     this.updateModel({modal: MODAL.notInvited}, true);
     return;
   }
 
   // connect to google talk
-  scen = getByPath(this.model, 'mock.scenarios.applied.gtalkConnect');
-  scen = getByPath(SCENARIOS, 'gtalkConnect.'+scen);
+  scen = getByPath(this.model, 'mock.scenarios.applied.gtalkReachable');
+  scen = getByPath(SCENARIOS, 'gtalkReachable.'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
     this.updateModel({modal: MODAL.scenarios,
-      'mock.scenarios.prompt': 'No gtalkConnect scenario applied.'}, true);
+      'mock.scenarios.prompt': 'No gtalkReachable scenario applied.'}, true);
     return;
   }
-  log('applying gtalkConnect scenario', scen.desc);
+  log('applying gtalkReachable scenario', scen.desc);
   scen.func.call(this);
   if (getByPath(this.model, 'connectivity.gtalk') != CONNECTIVITY.connected) {
     this.updateModel({modal: MODAL.gtalkUnreachable}, true);

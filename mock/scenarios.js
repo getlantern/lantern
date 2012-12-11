@@ -21,70 +21,70 @@ exports.SCENARIOS = {
   os: {
     _applyImmediately: true,
     windows: {
-      desc: 'running Windows',
+      desc: 'Windows',
       func: make_simple_scenario({'system.os': OS.windows})
     },
     ubuntu: {
-      desc: 'running Ubuntu',
+      desc: 'Ubuntu',
       func: make_simple_scenario({'system.os': OS.ubuntu})
     },
     osx: {
-      desc: 'running OS X',
+      desc: 'OS X',
       func: make_simple_scenario({'system.os': OS.osx})
     }
   },
   internet: {
     _applyImmediately: true,
-    connection: {
-      desc: 'internet connection',
+    true: {
+      desc: 'internet: true',
       func: make_simple_scenario({'connectivity.internet': true})
     },
-    noConnection: {
-      desc: 'no internet connection',
+    false: {
+      desc: 'internet: false',
       func: make_simple_scenario({'connectivity.internet': false})
     }
   },
   location: {
     _applyImmediately: true,
     beijing: {
-      desc: 'connecting from Beijing',
+      desc: 'location: Beijing',
       func: make_simple_scenario({
               location: {lat:39.904041, lon:116.407528, country:'cn'},
               'connectivity.ip': '123.123.123.123'
             })
     },
     paris: {
-      desc: 'connecting from Paris',
+      desc: 'location: Paris',
       func: make_simple_scenario({
               location: {lat:48.8667, lon:2.3333, country:'fr'},
               'connectivity.ip': '78.250.177.119'
             })
     }
   },
-  oauth: {
-    notAuthorized: {
-      desc: 'oauth: not authorized',
+  gtalkAuthorized: {
+    false: {
+      desc: 'gtalkAuthorized: false',
       func: make_simple_scenario({'connectivity.gtalkAuthorized': false})
     },
-    authorized: {
-      desc: 'oauth: authorized',
+    true: {
+      desc: 'gtalkAuthorized: true',
       func: make_simple_scenario({'connectivity.gtalkAuthorized': true,
         'settings.userid': 'user@example.com'})
     }
   },
-  lanternAccess: {
-    noAccess: {
-      desc: 'no Lantern access',
-      func: make_simple_scenario({'connectivity.lanternAccess': false})
+  invited: {
+    true: {
+      desc: 'invited: true',
+      func: make_simple_scenario({'connectivity.invited': true})
     },
-    access: {
-      desc: 'Lantern access',
-      func: make_simple_scenario({'connectivity.lanternAccess': true})
+    false: {
+      desc: 'invited: false',
+      func: make_simple_scenario({'connectivity.invited': false})
     }
   },
-  gtalkConnect: {
-    notReachable: {
-      desc: 'cannot reach Google Talk',
+  gtalkReachable: {
+    false: {
+      desc: 'gtalkReachable: false',
       func: function() {
               this.updateModel({'connectivity.gtalk': CONNECTIVITY.connecting,
                 modal: MODAL.gtalkConnecting}, true);
@@ -93,8 +93,8 @@ exports.SCENARIOS = {
                 modal: MODAL.gtalkUnreachable}, true);
             }
     },
-    reachable: {
-      desc: 'can reach Google Talk',
+    true: {
+      desc: 'gtalkReachable: true',
       func: function() {
               this.updateModel({'connectivity.gtalk': CONNECTIVITY.connecting,
                 modal: MODAL.gtalkConnecting}, true);
@@ -104,8 +104,8 @@ exports.SCENARIOS = {
     }
   },
   roster: {
-    contactsHaveLantern: {
-      desc: 'contacts have Lantern',
+    roster1: {
+      desc: 'roster 1',
       func: function() {
               var roster = [{
                 userid: 'lantern_friend1@example.com',
@@ -150,8 +150,8 @@ exports.SCENARIOS = {
     }
   },
   peers: {
-    peersOnline: {
-      desc: 'some peers online',
+    peers1: {
+      desc: 'peers1',
       func: function() {
               // XXX simulate peers going on and offline
               var peers = {

@@ -31,14 +31,14 @@
 
   <div id="version">
     Lantern {{ mockBackend && '(mock backend)' || '' }} {{ model.version.installed | version }}
-    <span ng-show="model.showVis">
-      · <a ng-click="interaction(INTERACTION.about)">About</a>
-    </span>
-    <span ng-show="model.showVis && model.version.updateAvailable">
+    <span ng-show="model.version.updateAvailable">
       · <i class="icon-exclamation-sign warning-colored"></i>
       <a ng-click="interaction(INTERACTION.updateAvailable)" class="update-available">
         Update available<!-- XXX -->
       </a>
+    </span>
+    <span>
+      · <a ng-click="interaction(INTERACTION.about)">About</a>
     </span>
     <span>
       · <a ng-click="interaction(INTERACTION.contactDevs)">

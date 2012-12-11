@@ -326,8 +326,8 @@ the backend maintains on the frontend through comet publications:
             Google Talk account.</td>
         </tr>
         <tr>
-          <td><strong>lanternAccess</strong><br><em>boolean</em></td>
-          <td>Whether the user has access to Lantern</td>
+          <td><strong>invited</strong><br><em>boolean</em></td>
+          <td>Whether the user has been invited to Lantern.</td>
         </tr>
         <tr>
           <td><strong>gtalk</strong><br>"notConnected" | "connecting" |
@@ -362,9 +362,9 @@ the backend maintains on the frontend through comet publications:
                             sponsoring cloud proxies</small></strong><br><br>
                             <strong><small>* Should not reveal identity of
                             associated user</small></strong></td></tr>
-                    <tr><td><strong>type</strong><br>"desktop" | "laeproxy" | "lec2proxy"</td>
-                        <td>type of Lantern client the peer is running<br><br>
-                        <strong><small>* laeproxy and lec2proxy instances will have
+                    <tr><td><strong>type</strong><br>"desktop" | "cloud" | "laeproxy"</td>
+                        <td>type of Lantern peer<br><br>
+                        <strong><small>* cloud and laeproxy peers will have
                         userids associated with them via kaleidoscope</small>
                         </strong></td></tr>
                     <tr><td><strong>mode</strong><br>"give" | "get"</td>
