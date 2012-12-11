@@ -78,6 +78,7 @@ public class InteractionServlet extends HttpServlet {
         IOException {
         processRequest(req, resp);
     }
+    
     @Override
     protected void doPost(final HttpServletRequest req, 
         final HttpServletResponse resp) throws ServletException, 
@@ -286,7 +287,8 @@ public class InteractionServlet extends HttpServlet {
 
     private void handleGiveGet(final boolean getMode) {
         this.model.getSettings().setMode(getMode ? Mode.get : Mode.give);
-        this.model.setModal(SystemUtils.IS_OS_LINUX ? Modal.passwordCreate : Modal.authorize);
+        //this.model.setModal(SystemUtils.IS_OS_LINUX ? Modal.passwordCreate : Modal.authorize);
+        this.model.setModal(Modal.authorize);
         //this.syncService.publishSync("", this.model.getSettings().getMode());
         this.syncService.publishSync("settings.mode", this.model.getSettings().getMode());
         //this.syncService.publishSync("modal", this.model.getModal());
