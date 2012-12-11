@@ -10,6 +10,7 @@ mvn --version || die "Please install maven from http://maven.apache.org"
 SWT_VERSION=4.2
 JNA_VERSION=3.4.1
 #pushd ..
+test -d lantern-ui || git submodule init;git submodule update
 mvn install:install-file -DgroupId=net.java.dev.jna -DartifactId=jna -Dversion=$JNA_VERSION -Dpackaging=jar -Dfile=lib/jna-$JNA_VERSION.jar -DgeneratePom=true
 mvn install:install-file -DgroupId=net.java.dev.jna -DartifactId=platform -Dversion=$JNA_VERSION -Dpackaging=jar -Dfile=lib/platform-$JNA_VERSION.jar -DgeneratePom=true
 mvn install:install-file -DgroupId=org.eclipse.swt.cocoa -DartifactId=x86 -Dversion=$SWT_VERSION -Dpackaging=jar -Dfile=lib/swt-$SWT_VERSION-cocoa-macosx.jar -DgeneratePom=true
