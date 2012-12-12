@@ -90,7 +90,8 @@
     </div>
   </div>
   <div class="modal-footer">
-    <a class="btn btn-primary" href="{{ model.connectivity.gtalkOauthUrl }}">
+    <a class="btn btn-primary" href="{{ model.connectivity.gtalkOauthUrl }}"
+       ui-jq="tooltip" rel="tooltip" data-original-title="{{ 'AUTHORIZE_EXTERNAL' | i18n }}">
       {{ 'AUTHORIZE_LANTERN' | i18n }}
     </a>
   </div>

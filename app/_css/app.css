@@ -5164,18 +5164,18 @@ a.disabled:hover {
   opacity: 0;
 }
 
-a[rel=tooltip] {
+a[rel=tooltip]:not(.btn) {
   color: inherit;
   text-decoration: inherit;
   cursor: inherit;
 }
-a[rel=tooltip]:active, a[rel=tooltip]:focus {
+a[rel=tooltip]:not(.btn):active, a[rel=tooltip]:not(.btn):focus {
   outline: none;
 }
-a[rel=tooltip]:focus, a[rel=tooltip]:active, a[rel=tooltip]:hover {
+a[rel=tooltip]:not(.btn):focus, a[rel=tooltip]:not(.btn):active, a[rel=tooltip]:not(.btn):hover {
   text-decoration: none;
 }
-a[rel=tooltip]:hover {
+a[rel=tooltip]:not(.btn):hover {
   cursor: pointer;
   color: black;
 }
