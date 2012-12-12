@@ -228,7 +228,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
             return new ChannelPipelineFactory() {
                 @Override
                 public ChannelPipeline getPipeline() throws Exception {
-                    ChannelPipeline pipeline = innerFactory.getPipeline();
+                    final ChannelPipeline pipeline = innerFactory.getPipeline();
                     pipeline.addFirst("stats", new StatsTrackingHandler() {
                         @Override
                         public void addUpBytes(final long bytes) {
