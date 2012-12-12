@@ -55,8 +55,13 @@ public class CometDSyncStrategy implements SyncStrategy {
 
         final SyncData data = new SyncData(path, value);
         final String json = LanternUtils.jsonify(data, Run.class);
-        log.debug("Sending state to frontend:\n{}", json);
-        log.debug("Synced object: {}", value);
+        
+        if (path != SyncPath.ROSTER) {
+            log.debug("Sending state to frontend:\n{}", json);
+            log.debug("Synced object: {}", value);
+        } else {
+            log.debug("SYNCING ROSTER -- NOT LOGGING FULL");
+        }
         ch.publish(data);
         log.debug("Sync performed");
     }

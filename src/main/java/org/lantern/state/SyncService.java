@@ -12,6 +12,7 @@ import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.cometd.bayeux.server.ServerSession;
 import org.lantern.LanternService;
+import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
 import org.slf4j.Logger;
@@ -87,29 +88,12 @@ public class SyncService implements LanternService {
             @Override
             public void run() {
                 log.info("Syncing with frontend...");
-                sync();
+                publishSync(SyncPath.ALL, model);
             }
             
         }, "CometD-Sync-OnConnect-Thread");
         t.setDaemon(true);
         t.start();
-    }
-
-    @Listener("/service/sync")
-    public void processSync(final ServerSession remote, final Message message) {
-        log.debug("JSON: {}", message.getJSON());
-        log.debug("DATA: {}", message.getData());
-        log.debug("DATA CLASS: {}", message.getData().getClass());
-        
-        /*
-        final String fullJson = message.getJSON();
-        final String json = StringUtils.substringBetween(fullJson, "\"data\":", ",\"channel\":");
-        final Map<String, Object> update = message.getDataAsMap();
-        log.debug("MAP: {}", update);
-        */
-
-        log.debug("Pushing updated config to browser...");
-        sync();
     }
     
     @Subscribe
@@ -121,15 +105,9 @@ public class SyncService implements LanternService {
         publishSync(syncEvent.getPath(), syncEvent.getValue());
     }
     
-    private void sync() {
-        sync(false);
-    }
-    
-    private void sync(final boolean force) {
-        log.debug("In sync method");
-        //this.strategy.sync(force, channel, this.session);
-        
-        this.strategy.sync(force, this.session, SyncPath.ALL, this.model);
+    @Subscribe 
+    public void closedBeta(final ClosedBetaEvent betaEvent) {
+        publishSync(SyncPath.INVITED, betaEvent.isInClosedBeta());
     }
 
     public void publishSync(final SyncPath path, final Object value) {

@@ -13,7 +13,9 @@ public enum SyncPath {
     PROFILE("profile"), 
     MODE("settings.mode"),
     CONNECTIVITY_GTALK("connectivity.gtalk"), 
-    PEERS("connectivity.peers");
+    PEERS("connectivity.peers"), 
+    INVITED("connectivity.invited"), 
+    NINVITES("ninvites");
     
     private final String path;
 
