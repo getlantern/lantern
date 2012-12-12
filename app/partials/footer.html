@@ -51,25 +51,22 @@
     <button type="button" class="btn btn-small btn-inverse"
             ng-click="interaction(INTERACTION.lanternFriends)"
             ui-jq="tooltip" rel="tooltip" data-original-title="Lantern friends">
-      <i class="icon-group"></i><sub ng-show="model.connectivity.peers.pending.length"
-                                     class="badge badge-important"
-                                     style="font-weight: 200;
-                                            font-size: 8px;
-                                            padding: 0 3px 0 2px;
-                                            margin-right: -7px">{{
-        model.connectivity.peers.pending.length }}</sub>
+      <i class="icon-group"></i>
     </button>
-    <!-- XXX move to tray menu?
-    <button type="button" class="btn btn-small btn-inverse"
-            ng-click="interaction(INTERACTION.contactDevs)"
-            ui-jq="tooltip" rel="tooltip" data-original-title="Contact Devs">
-      <i class="icon-edit"></i>
-    </button>
-    -->
     <button type="button" class="btn btn-small btn-inverse"
             ng-click="interaction(INTERACTION.settings)"
             ui-jq="tooltip" rel="tooltip" data-original-title="Settings">
       <i class="icon-cogs"></i>
     </button>
+  </div>
+  <div id="nfriends" class="badge badge-info" ng-show="model.showVis"
+    ui-jq="tooltip" rel="tooltip" data-original-title="{{ friends.length }} Lantern friends">{{ friends.length | badgeCount:99 }}</div>
+  <div id="ninvites" ng-show="model.showVis && model.ninvites" class="badge badge-success"
+    ui-jq="tooltip" rel="tooltip" data-original-title="{{ model.ninvites }} invites">
+    {{ model.ninvites | badgeCount }}
+  </div>
+  <div id="npending" ng-show="model.showVis && model.connectivity.peers.pending.length" class="badge badge-important"
+    ui-jq="tooltip" rel="tooltip" data-original-title="{{ model.connectivity.peers.pending.length }} pending">
+    {{ model.connectivity.peers.pending.length | badgeCount }}
   </div>
 </div>

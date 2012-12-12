@@ -5383,7 +5383,7 @@ textarea.bugReport {
   height: 50px;
   margin-right: 10px;
 }
-.contactList-horizontal div {
+.contactList-horizontal .fn, .contactList-horizontal .email {
   width: 140px;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -5583,9 +5583,38 @@ body.showVis #footer {
   position: absolute;
   right: 20px;
   bottom: 20px;
+  white-space: nowrap;
 }
 #global-nav button {
   color: #999999;
+}
+
+#nfriends {
+  position: absolute;
+  right: 76px;
+  bottom: 13px;
+}
+
+#ninvites {
+  position: absolute;
+  right: 57px;
+  bottom: 13px;
+}
+
+#npending {
+  position: absolute;
+  right: 38px;
+  bottom: 13px;
+}
+
+#footer .badge {
+  text-shadow: black 0 2px 0;
+  width: 10px;
+  font-weight: 200;
+  font-size: 8px;
+  padding: 0 4px;
+  z-index: 1050;
+  opacity: 0.65;
 }
 
 #stats strong {

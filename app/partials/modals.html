@@ -341,11 +341,14 @@
       <p>{{ 'LANTERN_FRIENDS_INTRO' | i18n }}</p>
       <p class="small">{{ 'AUTOTRUSTED_PROMPT' | i18n }}</p>
       <br>
-      <h4 class="centered">{{ 'LANTERN_FRIENDS' | i18n }}</h4>
+      <h4 class="centered">
+        <span class="badge badge-info">{{ friends.length }}</span>
+        {{ 'LANTERN_FRIENDS' | i18n }}
+      </h4>
       <div ng-hide="model.roster.length" class="centered smaller">{{ 'NO_FRIENDS' | i18n }}</div>
       <ul ng-show="model.roster.length" class="contactList-horizontal centered">
         <!-- http://microformats.org/wiki/hcard -->
-        <li class="vcard" ng-repeat="contact in model.roster" ng-show="contact.peers.length">
+        <li class="vcard" ng-repeat="contact in friends">
           <img class="photo pull-left" ng-src="{{ contact.avatarUrl || DEFAULT_AVATAR_URL }}">
           <div class="fn" title="{{ contact.name }}" ng-class="{gray: !contact.name}">{{ contact.name || ('NO_NAME' | i18n) }}</div>
           <div class="email small" title="{{ contact.userid }}" ng-class="{gray: !contact.userid}">{{ contact.userid || ('NO_EMAIL' | i18n) }}</div>
@@ -379,7 +382,10 @@
       <!-- XXX change to select2 with tag autocomplete -->
       <input type="text" placeholder="friend1@example.com, friend2@example.com, ..."
            autofocus ng-disabled="!model.ninvites" style="width: 400px">
-      <div>{{ model.ninvites }} {{ 'INVITES_REMAINING' | i18n }}</div>
+      <div>
+        <span class="badge badge-success">{{ model.ninvites }}</span>
+        {{ 'INVITES_REMAINING' | i18n }}
+      </div>
       <!-- XXX allow writing custom invite message -->
     </form>
     <div class="centered">

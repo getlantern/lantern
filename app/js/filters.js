@@ -2,6 +2,12 @@
 
 angular.module('app.filters', [])
   // see i18n.js for i18n filter
+  .filter('badgeCount', function() {
+    return function(str, max) {
+      var count = parseInt(str), max = max || 9;
+      return count > max ? max + '+' : count;
+    };
+  })
   .filter('truncateAfter', function() {
     return function(str, index, replaceStr) {
       if (!str || str.length <= index) return str;
