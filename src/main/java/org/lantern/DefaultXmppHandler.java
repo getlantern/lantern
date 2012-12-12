@@ -565,7 +565,10 @@ public class DefaultXmppHandler implements XmppHandler {
         gTalkSharedStatus();
         updatePresence();
 
-        final boolean inClosedBeta = waitForClosedBetaStatus(credentials.getUsername());
+        final boolean inClosedBeta = 
+            waitForClosedBetaStatus(credentials.getUsername());
+        
+        this.model.getConnectivity().setInvited(inClosedBeta);
 
         // If we're in the closed beta and are an uncensored node, we want to
         // advertise ourselves through the kaleidoscope trust network.
@@ -654,6 +657,7 @@ public class DefaultXmppHandler implements XmppHandler {
     private void notInClosedBeta(final String msg) 
         throws NotInClosedBetaException {
         //connectivityEvent(ConnectivityStatus.DISCONNECTED);
+        this.model.getConnectivity().setInvited(false);
         disconnect();
         throw new NotInClosedBetaException(msg);
     }

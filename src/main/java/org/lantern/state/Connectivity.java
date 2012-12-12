@@ -31,6 +31,8 @@ public class Connectivity {
     
     private boolean internet = false;
     
+    private boolean invited = false;
+    
     public Connectivity() {
         Events.register(this);
     }
@@ -104,5 +106,14 @@ public class Connectivity {
 
     public void setInternet(final boolean internet) {
         this.internet = internet;
+    }
+
+    @JsonView({Run.class, Persistent.class})
+    public boolean isInvited() {
+        return invited;
+    }
+
+    public void setInvited(boolean invited) {
+        this.invited = invited;
     }
 }

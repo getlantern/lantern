@@ -15,10 +15,6 @@ public class Peer {
 
     private final String userId;
 
-    private final String ip;
-
-    private final int port;
-    
     private final String country;
     
     private final boolean incoming;
@@ -27,15 +23,15 @@ public class Peer {
     
     private final boolean upnp;
     
+    private int connectionAttempts = 0;
+    
     private final Collection<PeerSocketWrapper> sockets = 
         new HashSet<PeerSocketWrapper>();
 
-    public Peer(final String userId, final String ip, final int port,
+    public Peer(final String userId,
         final String country,final boolean incoming, 
         final boolean natPmp, final boolean upnp) {
         this.userId = userId;
-        this.ip = ip;
-        this.port = port;
         this.country = country;
         this.incoming = incoming;
         this.natPmp = natPmp;
@@ -45,10 +41,6 @@ public class Peer {
     
     public String getUserId() {
         return userId;
-    }
-
-    public String getIp() {
-        return ip;
     }
 
     public String getCountry() {
@@ -73,23 +65,23 @@ public class Peer {
         }
     }
 
-
     public boolean isIncoming() {
         return incoming;
     }
-
 
     public boolean isNatPmp() {
         return natPmp;
     }
 
-
     public boolean isUpnp() {
         return upnp;
     }
 
+    public int getConnectionAttempts() {
+        return connectionAttempts;
+    }
 
-    public int getPort() {
-        return port;
+    public void incrementConnectionAttempts() {
+        this.connectionAttempts++;
     }
 }

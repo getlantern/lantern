@@ -1,9 +1,9 @@
 package org.lantern;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -23,9 +23,11 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.lantern.event.ConnectivityStatusChangeEvent;
 import org.lantern.event.Events;
+import org.lantern.event.IncomingSocketEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
+import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -233,7 +235,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                             peerUri, xmppHandler.getP2PClient(), 
                             peerFailureCount);
                         log.info("Got socket and adding it for peer: {}", peerUri);
-                        addSocket(peerUri, now, sock);
+                        addConnectedPeer(peerUri, now, sock, true);
 
                         if (!gotConnected) {
                             Events.eventBus().post(
@@ -249,13 +251,15 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         });
     }
 
-    private void addSocket(final URI peerUri, final long startTime, 
-        final Socket sock) {
+    private void addConnectedPeer(final URI peerUri, final long startTime, 
+        final Socket sock, final boolean addToSocketsInUse) {
         final PeerSocketWrapper ts = 
             new PeerSocketWrapper(peerUri, startTime, sock, this.anon, 
                 this.channelGroup, this.stats, this.socketsUtil);
         
-        this.timedSockets.add(ts);
+        if (addToSocketsInUse) {
+            this.timedSockets.add(ts);
+        }
         final Peer peer;
         final String userId = XmppUtils.jidToUser(peerUri.toASCIIString());
         if (this.getPeers().containsKey(userId)) {
@@ -263,11 +267,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         } else {
             final String cc = 
                 lookupService.getCountry(sock.getInetAddress()).getCode();
-            final InetSocketAddress isa = 
-                (InetSocketAddress) ts.getSocket().getRemoteSocketAddress();
-            final String ip = isa.getAddress().getHostAddress();
-            final int port = isa.getPort();
-            peer = new Peer(userId, ip, port, cc, false, false, false);
+            peer = new Peer(userId, cc, false, false, false);
             this.peers.put(userId, peer);
         }
         peer.addSocket(ts);
@@ -341,16 +341,60 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         return peers;
     }
     
-    @Override
-    public String toString() {
-        return getClass().getSimpleName()+"-"+hashCode()+" anon: "+anon;
-    }
-    
     @Subscribe
     public void onReset(final ResetEvent event) {
         this.peers.clear();
         this.certPeers.clear();
         closeAll();
         this.timedSockets.clear();
+    }
+    
+    
+    @Override
+    public String toString() {
+        return getClass().getSimpleName()+"-"+hashCode()+" anon: "+anon;
+    }
+    
+    @Subscribe
+    public void onIncomingSocket(final IncomingSocketEvent event) {
+        final Channel ch = event.getChannel();
+        //this.peers.put(key, value)
+    }
+    
+    /**
+     * Track P2P connection events. Note this only tracks peers we're able
+     * to directly connect to, not all peers we know about.
+     * 
+     * @param event The P2P connection event.
+     */
+    @Subscribe
+    public void onP2PConnectionEvent(final P2PConnectionEvent event) {
+        log.info("Got p2p connection event: {}", event);
+        final URI peerUri;
+        try {
+            peerUri = new URI(event.getJid());
+        } catch (final URISyntaxException e) {
+            log.error("Could not read peer URI?", event.getJid());
+            return;
+        }
+        
+        final Socket sock = event.getSocket();
+        // TODO: How the hell do we know we're getting notifications from 
+        // anonymous peers? We don't here.
+        final PeerSocketWrapper ts = 
+            new PeerSocketWrapper(peerUri, System.currentTimeMillis(), sock, this.anon, 
+                this.channelGroup, this.stats, this.socketsUtil);
+        
+        final Peer peer;
+        final String userId = XmppUtils.jidToUser(peerUri.toASCIIString());
+        if (this.getPeers().containsKey(userId)) {
+            peer = this.peers.get(userId);
+        } else {
+            final String cc = 
+                lookupService.getCountry(sock.getInetAddress()).getCode();
+            peer = new Peer(userId, cc, false, false, false);
+            this.peers.put(userId, peer);
+        }
+        peer.addSocket(ts);
     }
 }

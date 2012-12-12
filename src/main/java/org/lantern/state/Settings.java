@@ -224,7 +224,7 @@ public class Settings {
         return refreshToken;
     }
     
-
+    
     @JsonView({Persistent.class})
     public Set<String> getInClosedBeta() {
         return Sets.newHashSet(this.inClosedBeta);
