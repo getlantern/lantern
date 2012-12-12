@@ -6,7 +6,6 @@ import org.lantern.Roster;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.SyncPath;
-import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,5 +74,10 @@ public class Events {
 
     public static void syncModel(final Model model) {
         sync(SyncPath.ALL, model);
+    }
+
+
+    public static void syncNInvites(final Integer ninvites) {
+        sync(SyncPath.NINVITES, ninvites);
     }
 }

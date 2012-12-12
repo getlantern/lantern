@@ -26,10 +26,9 @@ import org.kaleidoscope.TrustGraphNodeId;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
-import org.lantern.state.Model;
+import org.lantern.state.Model.Persistent;
 import org.lantern.state.Profile;
 import org.lantern.state.StaticSettings;
-import org.lantern.state.Model.Persistent;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -100,7 +99,7 @@ public class Roster implements RosterListener {
                         roster.getPresences(entry.getUser());
                     while (presences.hasNext()) {
                         final Presence p = presences.next();
-                        processPresence(p);
+                        processPresence(p, false);
                     }
                 }
                 populated = true;
@@ -164,7 +163,7 @@ public class Roster implements RosterListener {
         return entries;
     }
     
-    private void processPresence(final Presence presence) {
+    private void processPresence(final Presence presence, final boolean sync) {
         final String from = presence.getFrom();
         log.debug("Got presence: {}", presence.toXML());
         if (LanternUtils.isLanternHub(from)) {
@@ -174,13 +173,13 @@ public class Roster implements RosterListener {
             Events.eventBus().post(new UpdatePresenceEvent(presence));
             final TrustGraphNodeId id = new BasicTrustGraphNodeId(from);
             this.kscopeRoutingTable.addNeighbor(id);
-            onPresence(presence);
+            onPresence(presence, sync);
         } else {
-            onPresence(presence);
+            onPresence(presence, sync);
         }
     }
     
-    private void onPresence(final Presence pres) {
+    private void onPresence(final Presence pres, final boolean sync) {
         final String email = LanternUtils.jidToEmail(pres.getFrom());
         final LanternRosterEntry entry = this.rosterEntries.get(email);
         if (entry != null) {
@@ -191,6 +190,10 @@ public class Roster implements RosterListener {
             // getting the presence for.
             log.info("Adding non-roster presence: {}", email);
             addEntry(new LanternRosterEntry(pres, photoUrlBase(), this));
+        }
+        
+        if (sync) {
+            Events.syncRoster(this);
         }
     }
 
@@ -279,7 +282,7 @@ public class Roster implements RosterListener {
         }
         for (final String entry : entries) {
             final Presence pres = this.smackRoster.getPresence(entry);
-            onPresence(pres);
+            onPresence(pres, false);
         }
         Events.syncRoster(this);
     }
@@ -287,7 +290,7 @@ public class Roster implements RosterListener {
     @Override
     public void presenceChanged(final Presence pres) {
         log.debug("Got presence changed event.");
-        processPresence(pres);
+        processPresence(pres, true);
         //LanternHub.asyncEventBus().post(new RosterStateChangedEvent());
     }
     

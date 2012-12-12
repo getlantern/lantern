@@ -706,6 +706,15 @@ public class DefaultXmppHandler implements XmppHandler {
         final Object obj = JSONValue.parse(body);
         final JSONObject json = (JSONObject) obj;
         
+        
+        final Long invites = 
+            (Long) json.get(LanternConstants.INVITES_KEY);
+        if (invites != null) {
+            LOG.info("Setting invites to: {}", invites);
+            this.model.setNinvites(invites.intValue());
+            Events.syncNInvites(invites.intValue());
+        }
+        
         final Boolean inClosedBeta = 
             (Boolean) json.get(LanternConstants.INVITED);
         
@@ -762,13 +771,6 @@ public class DefaultXmppHandler implements XmppHandler {
                 new HashMap<String, Object>();
             event.putAll(update);
             Events.asyncEventBus().post(new UpdateEvent(event));
-        }
-        
-        final Long invites = 
-            (Long) json.get(LanternConstants.INVITES_KEY);
-        if (invites != null) {
-            LOG.info("Setting invites to: {}", invites);
-            this.model.setNinvites(invites.intValue());
         }
     }
     
