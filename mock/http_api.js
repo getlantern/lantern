@@ -56,6 +56,7 @@ ApiServlet.RESET_INTERNAL_STATE = {
     invited: 'true',
     gtalkReachable: 'true',
     roster: 'roster1',
+    friends: 'friends1',
     peers: 'peers1'
   }
 };
@@ -213,7 +214,6 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
     return;
   }
   log('applying gtalkAuthorized scenario', scen.desc);
-  // XXX what if can't reach google here?
   scen.func.call(this);
   if (!getByPath(this.model, 'connectivity.gtalkAuthorized')) {
     log('Google Talk access not granted, user must authorize');
@@ -231,14 +231,13 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
     return;
   }
   log('applying Lantern access scenario', scen.desc);
-  // XXX what if can't reach google here?
   scen.func.call(this);
   if (!getByPath(this.model, 'connectivity.invited')) {
     this.updateModel({modal: MODAL.notInvited}, true);
     return;
   }
 
-  // connect to google talk
+  // try connecting to google talk
   scen = getByPath(this.model, 'mock.scenarios.applied.gtalkReachable');
   scen = getByPath(SCENARIOS, 'gtalkReachable.'+scen);
   if (!scen) {
@@ -266,10 +265,18 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   }
   log('applying roster scenario', scen.desc);
   scen.func.call(this);
-  if (getByPath(this.model, 'connectivity.gtalk') != CONNECTIVITY.connected) {
-    this.updateModel({modal: MODAL.gtalkUnreachable}, true);
+
+  // fetch lantern friends
+  scen = getByPath(this.model, 'mock.scenarios.applied.friends');
+  scen = getByPath(SCENARIOS, 'friends.'+scen);
+  if (!scen) {
+    this._internalState.lastModal = MODAL.authorize;
+    this.updateModel({modal: MODAL.scenarios,
+      'mock.scenarios.prompt': 'No friends scenario applied.'}, true);
     return;
   }
+  log('applying friends scenario', scen.desc);
+  scen.func.call(this);
 
   // peer discovery and connection
   // XXX show this in UI?
@@ -283,10 +290,6 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   }
   log('applying peers scenario', scen.desc);
   scen.func.call(this);
-  if (getByPath(this.model, 'connectivity.gtalk') != CONNECTIVITY.connected) {
-    this.updateModel({modal: MODAL.gtalkUnreachable}, true);
-    return;
-  }
   this._internalState.modalsCompleted[MODAL.authorize] = true;
   this._advanceModal();
 };
@@ -316,10 +319,34 @@ ApiServlet._handlerForModal[MODAL.systemProxy] = function(interaction, res, data
   this._advanceModal(MODAL.settings);
 };
 
-ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res) {
-  if (interaction != INTERACTION.continue) return res.writeHead(400);
-  this._internalState.modalsCompleted[MODAL.lanternFriends] = true;
-  this._advanceModal();
+function _matchIndex(collection, item, field) {
+  for (var i=0, ii=collection[i]; ii; ii = collection[++i]) {
+    if (item[field] == ii[field])
+      return i;
+  }
+  return -1;
+}
+ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res, data) {
+  if (interaction == INTERACTION.continue) {
+    this._internalState.modalsCompleted[MODAL.lanternFriends] = true;
+    this._advanceModal();
+  } else if (interaction == INTERACTION.accept ||
+             interaction == INTERACTION.decline) {
+    var pending = getByPath(this.model, 'friends.pending', []),
+        i = _matchIndex(pending, data, 'email');
+    if (i == -1) return res.writeHead(400);
+    pending.splice(i, 1);
+    this.publishSync('friends.pending');
+    if (interaction == INTERACTION.accept) {
+      this.model.friends.current.push(data);
+      this.publishSync('friends.current.'+(this.model.friends.current.length-1));
+      this.model.roster.push(data);
+      this.publishSync('roster.'+(this.model.roster.length-1));
+    }
+    // XXX display notification
+  } else {
+    res.writeHead(400);
+  }
 };
 
 ApiServlet._handlerForModal[MODAL.gtalkUnreachable] = function(interaction, res) {
@@ -360,7 +387,12 @@ ApiServlet._handlerForModal[MODAL.firstInviteReceived] = function(interaction, r
   this._advanceModal();
 };
 
-ApiServlet._handlerForModal[MODAL.finished] = function(interaction, res) {
+ApiServlet._handlerForModal[MODAL.finished] = function(interaction, res, data) {
+  if (interaction == INTERACTION.set && data &&
+      data.path == ('settings.'+SETTING.autoReport) && _.isBoolean(data.value)) {
+    this.updateModel(this.flattened(data), true);
+    return;
+  }
   if (interaction != INTERACTION.continue) return res.writeHead(400);
   this._internalState.modalsCompleted[MODAL.finished] = true;
   this._advanceModal();

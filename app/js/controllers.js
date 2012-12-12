@@ -47,15 +47,6 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
     $scope.gtalkConnected = gtalk == CONNECTIVITY.connected;
   });
 
-  $scope.$watch('model.roster', function(roster) {
-    if (!roster) return;
-    $scope.friends = [];
-    for (var i=0, contact=roster[i]; contact; contact=roster[++i]) {
-      if (contact.peers && contact.peers.length)
-        $scope.friends.push(contact);
-    }
-  });
-
   $scope.notifyLanternDevs = true;
 
   $scope.refresh = function() {

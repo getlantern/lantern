@@ -88,7 +88,6 @@ exports.SCENARIOS = {
       func: function() {
               this.updateModel({'connectivity.gtalk': CONNECTIVITY.connecting,
                 modal: MODAL.gtalkConnecting}, true);
-              sleep.usleep(2000000);
               this.updateModel({'connectivity.gtalk': CONNECTIVITY.notConnected,
                 modal: MODAL.gtalkUnreachable}, true);
             }
@@ -98,54 +97,81 @@ exports.SCENARIOS = {
       func: function() {
               this.updateModel({'connectivity.gtalk': CONNECTIVITY.connecting,
                 modal: MODAL.gtalkConnecting}, true);
-              sleep.usleep(2000000);
               this.updateModel({'connectivity.gtalk': CONNECTIVITY.connected}, true);
             }
     }
   },
   roster: {
     roster1: {
-      desc: 'roster 1',
+      desc: 'roster1',
       func: function() {
               var roster = [{
-                userid: 'lantern_friend1@example.com',
+                email: 'lantern_friend1@example.com',
                 name: 'Lantern Friend 1',
-                avatarUrl: '',
+                link: '',
+                picture: '',
                 status: 'away',
                 statusMessage: 'meeting',
-                peers: ['friend1-1']
                 }
                ,{
-                userid: 'lantern_friend2@example.com',
+                email: 'lantern_friend2@example.com',
                 name: 'Lantern Friend 2',
-                avatarUrl: '',
+                link: '',
+                picture: '',
                 status: 'available',
                 statusMessage: 'Bangkok',
-                peers: ['friend2-1']
                 }
                ,{
-                userid: 'not_a_lantern_user1@example.com',
+                email: 'not_a_lantern_user1@example.com',
                 name: 'Not A Lantern User 1',
-                avatarUrl: '',
+                link: '',
+                picture: '',
                 status: 'idle',
                 statusMessage: 'sleeping'
                 }
                ,{
-                userid: 'not_a_lantern_user2@example.com',
+                email: 'not_a_lantern_user2@example.com',
                 name: 'Not A Lantern User 2',
-                avatarUrl: '',
+                link: '',
+                picture: '',
                 status: 'offline'
                 }
                ,{
-                userid: 'lantern_power_user@example.com',
+                email: 'lantern_power_user@example.com',
                 name: 'Lantern Power User',
-                avatarUrl: '',
+                link: '',
+                picture: '',
                 status: 'available',
                 statusMessage: 'Shanghai!',
-                peers: ['poweruser-1', 'poweruser-2', 'poweruser-3', 'poweruser-4']
                 }
               ];
               this.updateModel({roster: roster}, true);
+            }
+    }
+  },
+  friends: {
+    friends1: {
+      desc: 'friends1',
+      func: function() {
+              var friends = {
+                current: [{
+                           email: 'lantern_friend1@example.com',
+                           name: 'Lantern Friend 1'
+                          },
+                          {
+                           email: 'lantern_friend2@example.com',
+                           name: 'Lantern Friend 2'
+                          },
+                          {
+                           email: 'lantern_power_user@example.com',
+                           name: 'Lantern Power User'
+                          }],
+                pending: [{
+                           email: 'not_on_roster@example.com',
+                           name: 'Not On Roster',
+                          }]
+                };
+              this.updateModel({friends: friends}, true);
             }
     }
   },
@@ -156,12 +182,6 @@ exports.SCENARIOS = {
               // XXX simulate peers going on and offline
               var peers = {
                 current: ['friend1-1', 'friend2-1', 'poweruser-1', 'poweruser-2', 'poweruser-3', 'poweruser-4'],
-                pending: [{
-                    userid: 'not_on_roster@example.com',
-                    name: 'Not On Roster',
-                    avatarUrl: '',
-                  }
-                ],
                 lifetime: [{
                     peerid: 'friend1-1',
                     userid: 'lantern_friend1@example.com ',

@@ -286,7 +286,7 @@ the backend maintains on the frontend through comet publications:
   <tr>
     <td><strong>modal</strong><br>
       "settingsLoadFailure" | "welcome" | "giveModeForbidden" | "authorize" |
-      "gtalkConnecting" | "gtalkUnreachable" |
+      "gtalkConnecting" | "gtalkUnreachable" | "contact" |
       "notInvited" | "requestInvite" | "requestSent" | "firstInviteReceived" |
       "proxiedSites" | "systemProxy" | "lanternFriends" | "finished" |
       "settings" | "giveMode" | "about" | "updateAvailable" | ""
@@ -343,9 +343,6 @@ the backend maintains on the frontend through comet publications:
             <table>
               <tr><td><strong>current</strong><br><em>string[]</em></td>
                   <td>list of peerids of currently connected peers</td></tr>
-              <tr><td><strong>pending</strong><br><em>object[]</em></td>
-                  <td>list of Lantern users not on the user's roster who have
-                  requested to be Lantern friends with the user</td></tr>
               <tr><td><strong>lifetime</strong><br><em>object[]</em></td>
                 <td>
                   <table>
@@ -428,33 +425,70 @@ the backend maintains on the frontend through comet publications:
     </td>
   </tr>
   <tr>
-    <td><strong>roster</strong><br><em>object[]</em></td>
+    <td><strong>profile</strong> (<a href="https://developers.google.com/accounts/docs/OAuth2Login">OAuth2Login</a>)<br><em>object</em></td>
     <td>
       <table>
-        <tr><td><strong>userid</strong><br><em>string</em></td>
-          <td>Google Talk userid of roster contact</td></tr>
-        <tr><td><strong>name</strong><br><em>string</em></td>
-          <td>Name of roster contact, if available</td></tr>
-        <tr><td><strong>avatarUrl</strong><br><em>string</em></td>
-          <td>Avatar url of roster contact, if available</td></tr>
-        <tr><td><strong>status</strong><br>"offline" | "away" | "idle" | "available"</td>
-          <td>Contact's status</td></tr>
-        <tr><td><strong>statusMessage</strong><br><em>string</em></td>
-          <td>Contact's status message, if available</td></tr>
-        <tr><td><strong>peers</strong><br><em>string[]</em></td>
-          <td>list of all known Lantern peerids owned by this contact<br><br>
-          <strong><small>* Used to tell if a contact is a known Lantern
-          user</small></strong></td></tr>
+        <tr>
+          <td><strong>email</strong><br><em>string</em></td>
+          <td>The user's e-mail address.</td>
+        </tr>
+        </tr>
+        <tr>
+          <td><strong>name</strong><br><em>string</em></td>
+          <td>The user's full name, if available in their Google profile.</td>
+        </tr>
+        <tr>
+          <td><strong>link</strong><br><em>url</em></td>
+          <td>A link to the user's Google Plus page, if available.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>picture</strong><br><em>url</em></td>
+          <td>Url of the user's picture, if available.
+          </td>
+        </tr>
+        <tr>
+          <td><strong>gender</strong><br><em>string</em></td>
+          <td>The user's gender.</td>
+        </tr>
+        <tr>
+          <td><strong>birthday</strong><br><em>string</em></td>
+          <td>The user's birthday in the form YYYY-MM-DD, where YYYY may not be
+            available.</td>
+        </tr>
+        <tr>
+          <td><strong>locale</strong><br><em>string</em></td>
+          <td>The user's full locale, as in "en-US".</td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td><strong>roster</strong><br><em>object[]</em></td>
+    <td>List of contacts on the user's Google Talk roster.
+      <em>As in</em> <code>profile</code>.</td></tr>
+  </tr>
+  <tr>
+    <td><strong>friends</strong><br><em>object</em></td>
+    <td>
+      <table>
+        <tr><td><strong>current</strong><br><em>object[]</em></td>
+          <td>List of the user's Lantern friends, i.e. contacts on her roster
+            who are Lantern users. <em>As in</em> <code>profile</code>.</td></tr>
+        <tr><td><strong>pending</strong><br><em>object[]</em></td>
+          <td>List of the user's pending Lantern friends, i.e. contacts not on
+            her roster who have invited her to connect on Lantern. <em>As in</em>
+            <code>profile</code>.</td></tr>
       </table>
     </td>
   </tr>
   <tr>
     <td><strong>ninvites</strong><br><em>integer</em></td>
-    <td>The number of Lantern invites user has remaining</td>
+    <td>The number of Lantern invites the user has remaining.</td>
   </tr>
   <tr>
     <td><strong>nproxiedSitesMax</strong><br><em>integer</em></td>
-    <td>The maximum number of configured proxied sites allowed</td>
+    <td>The maximum number of configured proxied sites allowed.</td>
   </tr>
   <tr>
     <td><strong>settings</strong><br><em>object</em></td>
@@ -504,46 +538,6 @@ the backend maintains on the frontend through comet publications:
         </tr>
       </table>
       <br><small><a name="note-get-mode-only">1</a> Only present when in "get" mode</small>
-    </td>
-  </tr>
-  
- 
-  <tr>
-    <td><strong>profile</strong> (<a href="https://developers.google.com/accounts/docs/OAuth2Login">OAuth2Login</a>)<br><em>object</em></td>
-    <td>
-      <table>
-        <tr>
-          <td><strong>email</strong><br><em>string</em></td>
-          <td>The user's e-mail address.</td>
-        </tr>
-        </tr>
-        <tr>
-          <td><strong>name</strong><br><em>string</em></td>
-          <td>The user's full name, if available in their Google profile.</td>
-        </tr>
-        <tr>
-          <td><strong>link</strong><br><em>string</em></td>
-          <td>A link to the user's Google Plus page, if available.
-          </td>
-        </tr>
-        <tr>
-          <td><strong>picture</strong><br><em>string</em></td>
-          <td>The link to the user's picture, if available.
-          </td>
-        </tr>
-        <tr>
-          <td><strong>gender</strong><br><em>string</em></td>
-          <td>The user's gender.</td>
-        </tr>
-        <tr>
-          <td><strong>birthday</strong><br><em>string</em></td>
-          <td>The user's birthday in the form YYYY-MM-DD where YYYY may or may not be available.</td>
-        </tr>
-        <tr>
-          <td><strong>locale</strong><br><em>string</em></td>
-          <td>The user's full locale, as in "en-US".</td>
-        </tr>
-      </table>
     </td>
   </tr>
 </table>
