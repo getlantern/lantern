@@ -45,7 +45,11 @@ git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 
 cp target/lantern*SNAPSHOT.jar install/common/lantern.jar || die "Could not copy jar?"
 
+echo "Tagging..."
 git tag -f -a v$VERSION -m "Version $INTERNAL_VERSION release with MVN_ARGS $MVN_ARGS"
-git push --tags
+
+echo "Pushing tags..."
+git push --tags || die "Could not push tags!!"
+echo "Finished push..."
 
 install4jc -L $INSTALL4J_KEY || die "Could not update license information?"
