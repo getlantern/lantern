@@ -5,6 +5,7 @@ import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,11 +28,13 @@ import org.lantern.event.IncomingSocketEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
+import org.lantern.state.SyncPath;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.maxmind.geoip.LookupService;
@@ -65,7 +68,8 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             }
         });
     
-    private final Map<String, Peer> peers = new TreeMap<String, Peer>();
+    private final Map<String, Peer> peers = 
+        Collections.synchronizedMap(new TreeMap<String, Peer>());
 
     private final boolean anon;
     
@@ -271,6 +275,8 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             this.peers.put(userId, peer);
         }
         peer.addSocket(ts);
+        
+        syncPeers();
     }
 
     /**
@@ -358,7 +364,11 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     @Subscribe
     public void onIncomingSocket(final IncomingSocketEvent event) {
         final Channel ch = event.getChannel();
-        //this.peers.put(key, value)
+        if (event.isOpen()) {
+            
+        } else {
+            
+        }
     }
     
     /**
@@ -369,7 +379,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
      */
     @Subscribe
     public void onP2PConnectionEvent(final P2PConnectionEvent event) {
-        log.info("Got p2p connection event: {}", event);
+        log.debug("Got p2p connection event: {}", event);
         final URI peerUri;
         try {
             peerUri = new URI(event.getJid());
@@ -396,5 +406,15 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             this.peers.put(userId, peer);
         }
         peer.addSocket(ts);
+        
+        syncPeers();
+    }
+
+    private void syncPeers() {
+        log.debug("Syncing peers...");
+        synchronized (this.peers) {
+            final Collection<Peer> peerList = this.peers.values();
+            Events.sync(SyncPath.PEERS, peerList);
+        }
     }
 }

@@ -12,7 +12,6 @@ import org.cometd.bayeux.Message;
 import org.cometd.bayeux.server.ConfigurableServerChannel;
 import org.cometd.bayeux.server.ServerSession;
 import org.lantern.LanternService;
-import org.lantern.event.ClosedBetaEvent;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
 import org.slf4j.Logger;
@@ -120,11 +119,6 @@ public class SyncService implements LanternService {
         // recently synced.
         //sync(true, syncEvent.getChannel());
         publishSync(syncEvent.getPath(), syncEvent.getValue());
-    }
-    
-    @Subscribe 
-    public void closedBeta(final ClosedBetaEvent betaEvent) {
-        sync(true);
     }
     
     private void sync() {
