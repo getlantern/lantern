@@ -99,7 +99,7 @@ var DEFAULT_LANG = 'en',
       'connected']),
     GTALK_STATUS = makeEnum([
       'offline',
-      'busy',
+      'unavailable',
       'idle',
       'available']),
     ENUMS = {

@@ -182,14 +182,116 @@ the backend maintains on the frontend through comet publications:
     <td><strong>countries</strong><br><em>object</em></td>
     <td>
       <table>
-        <tr><td>"ir" | "cn" | ...</td>
+        <tr><td><strong>country code</strong><br>"uk" | "ru" | ...</td>
           <td>
             <table>
               <tr><td><strong>censors</strong><br><em>boolean</em></td>
                 <td>whether this country employs pervasive censorship,
-                  as reported by (SOURCE) # XXX</td></tr>
+                  as reported by <em>&lt;LIVE SOURCE WHICH IS KEPT
+                  UP-TO-DATE&gt;</em> <strong># XXX TODO</strong></td></tr>
+              <tr><td><strong>bps</strong><br><em>int</em></td>
+                <td>Total number of bytes per second being transferred right
+                  now by all online peers in this country.</td>
+              <tr><td><strong>bytesEver</strong><br><em>int</em></td>
+                <td>Total number of bytes ever transferred by peers in this
+                  country.</td>
+              <tr><td><strong>nusers</strong><br><em>object</em></td>
+                <td>
+                  <table>
+                    <tr><td><strong>online</strong><br><em>int</em></td>
+                      <td>Number of users online now in this country.</td></tr>
+                    <tr><td><strong>ever</strong><br><em>int</em></td>
+                      <td>Number of users that ever connected in this country.</td></tr>
+                  </table>
+                </td></tr>
+              <tr><td><strong>npeers</strong><br><em>object</em></td>
+                <td>
+                  <table>
+                    <tr><td><strong>online</strong><br><em>object</em></td>
+                      <td>
+                        <table>
+                          <tr><td><strong>give</strong><br><em>int</em></td>
+                            <td>Number of Give Mode peers online now in this
+                              country.</td></tr>
+                          <tr><td><strong>get</strong><br><em>int</em></td>
+                            <td>Number of Get Mode peers online now in this
+                              country.</td></tr>
+                          <tr><td><strong>giveGet</strong><br><em>int</em></td>
+                            <td>Number of Give and Get Mode peers online now
+                              in this country.</td></tr>
+                        </table>
+                      </td></tr>
+                    <tr><td><strong>ever</strong><br><em>object</em></td>
+                      <td>
+                        <table>
+                          <tr><td><strong>give</strong><br><em>int</em></td>
+                            <td>Number of Give Mode peers ever to connect in
+                              this country.</td></tr>
+                          <tr><td><strong>get</strong><br><em>int</em></td>
+                            <td>Number of Get Mode peers ever to connect in
+                              this country.</td></tr>
+                          <tr><td><strong>giveGet</strong><br><em>int</em></td>
+                            <td>Number of Give and Get Mode users ever to
+                              connect in this country.</td></tr>
+                        </table>
+                      </td></tr>
+                  </table>
+                </td></tr>
             </table>
           </td></tr>
+      </table>
+    </td>
+  </tr>
+  <tr>
+    <td><strong>global</strong><br><em>object</em></td>
+    <td>
+      <table>
+        <tr><td><strong>nusers</strong><br><em>object</em></td>
+          <td>
+            <table>
+              <tr><td><strong>online</strong><br><em>int</em></td>
+                <td>Total number of users online now worldwide.</td></tr>
+              <tr><td><strong>ever</strong><br><em>int</em></td>
+                <td>Total number of users ever worldwide.</td></tr>
+            </table>
+          </td>
+        </tr>
+        <tr><td><strong>npeers</strong><br><em>object</em></td>
+          <td>
+            <table>
+              <tr><td><strong>online</strong><br><em>object</em></td>
+                  <td>
+                    <table>
+                      <tr><td><strong>give</strong><br><em>int</em></td>
+                        <td>Number of Give Mode peers online now worldwide.</td></tr>
+                      <tr><td><strong>get</strong><br><em>int</em></td>
+                        <td>Number of Get Mode peers online now worldwide.</td></tr>
+                      <tr><td><strong>giveGet</strong><br><em>int</em></td>
+                        <td>Number of Give and Get Mode peers online now
+                          worldwide.</td></tr>
+                    </table>
+                  </td>
+              </tr>
+              <tr><td><strong>ever</strong><br><em>object</em></td>
+                <td>
+                  <table>
+                    <tr><td><strong>give</strong><br><em>int</em></td>
+                      <td>Number of Give Mode peers ever to connect worldwide.</td></tr>
+                    <tr><td><strong>get</strong><br><em>int</em></td>
+                      <td>Number of Get Mode peers ever to connect worldwide.</td></tr>
+                    <tr><td><strong>giveGet</strong><br><em>int</em></td>
+                      <td>Number of Give and Get Mode users ever to
+                        connect worldwide.</td></tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr><td><strong>bps</strong><br><em>int</em></td>
+          <td>Total bytes per second being transferred worldwide right now.</td></tr>
+        <tr><td><strong>bytesEver</strong><br><em>int</em></td>
+          <td>Total bytes transferred worldwide ever.</td></tr>
       </table>
     </td>
   </tr>
@@ -347,7 +449,7 @@ the backend maintains on the frontend through comet publications:
                 <td>
                   <table>
                     <tr><td><strong>userid</strong><br><em>string</em></td>
-                      <td>identifier for the user that owns this peer.<br><br>
+                      <td>Lantern userid for the user that owns this peer.<br><br>
                       <strong><small>* Should be blank or omitted for users that
                       do not trust <code>settings.userid</code>
                       </small></strong></td></tr>
@@ -378,13 +480,13 @@ the backend maintains on the frontend through comet publications:
                         <td>instantaneous upload rate to this peer</td></tr>
                     <tr><td><strong>bpsDn</strong><br><em>number</em></td>
                         <td>instantaneous download rate from this peer</td></tr>
-                    <tr><td><strong>bpsTotal</strong><br><em>number</em></td>
+                    <tr><td><strong>bpsUpDn</strong><br><em>number</em></td>
                         <td>instantaneous upload+download rate with this peer</td></tr>
                     <tr><td><strong>bytesUp</strong><br><em>number</em></td>
                         <td>lifetime bytes uploaded to this peer</td></tr>
                     <tr><td><strong>bytesDn</strong><br><em>number</em></td>
                         <td>lifetime bytes downloaded from this peer</td></tr>
-                    <tr><td><strong>bytesTotal</strong><br><em>number</em></td>
+                    <tr><td><strong>bytesUpDn</strong><br><em>number</em></td>
                         <td>lifetime bytes transferred with this peer</td></tr>
                   </table></td></tr>
             </table>
@@ -406,7 +508,7 @@ the backend maintains on the frontend through comet publications:
           <td>total instantaneous download rate across all current peers</td>
         </tr>
         <tr>
-          <td><strong>bpsTotal</strong><br><em>number</em></td>
+          <td><strong>bpsUpDn</strong><br><em>number</em></td>
           <td>total instantaneous upload+download rate across all current peers</td>
         </tr>
         <tr>
@@ -418,7 +520,7 @@ the backend maintains on the frontend through comet publications:
           <td>total number of bytes downloaded since first signin</td>
         </tr>
         <tr>
-          <td><strong>bytesTotal</strong><br><em>number</em></td>
+          <td><strong>bytesUpDn</strong><br><em>number</em></td>
           <td>total number of bytes uploaded+downloaded since first signin</td>
         </tr>
       </table>
@@ -429,13 +531,13 @@ the backend maintains on the frontend through comet publications:
     <td>
       <table>
         <tr>
-          <td><strong>email</strong><br><em>string</em></td>
+          <td><strong>email</strong><br><em>email</em></td>
           <td>The user's e-mail address.</td>
         </tr>
         </tr>
         <tr>
           <td><strong>name</strong><br><em>string</em></td>
-          <td>The user's full name, if available in their Google profile.</td>
+          <td>The user's full name, if available.</td>
         </tr>
         <tr>
           <td><strong>link</strong><br><em>url</em></td>
@@ -453,20 +555,36 @@ the backend maintains on the frontend through comet publications:
         </tr>
         <tr>
           <td><strong>birthday</strong><br><em>string</em></td>
-          <td>The user's birthday in the form YYYY-MM-DD, where YYYY may not be
-            available.</td>
+          <td>The user's birthday in the form YYYY-MM-DD, where YYYY may be
+            "0000" if the contact does not display her birth year.</td>
         </tr>
         <tr>
           <td><strong>locale</strong><br><em>string</em></td>
-          <td>The user's full locale, as in "en-US".</td>
+          <td>The user's locale code, as in "en".</td>
         </tr>
       </table>
     </td>
   </tr>
   <tr>
     <td><strong>roster</strong><br><em>object[]</em></td>
-    <td>List of contacts on the user's Google Talk roster.
-      <em>As in</em> <code>profile</code>.</td></tr>
+    <td>List of contacts on the user's Google Talk roster <strong><em>with known
+      email addresses</em></strong>. Used for auto-completing by name or email
+      when the user is prompted to select friends to invite or request an
+      invite from.<br>
+      <table>
+        <tr><td><strong>email</strong><br><em>email</em></td>
+          <td>Contact's email address.</td></tr>
+        <tr><td><strong>status</strong><br>"offline" | "available" |
+          "idle" | "unavailable"</td>
+          <td>Contact's online status.</td></tr>
+        <tr><td><strong>statusMessage</strong><br><em>string</em></td>
+          <td>Contact's status message.</td></tr>
+        <tr><td><strong>name</strong><br><em>string</em></td>
+          <td>Contact's full name, if available.</td></tr>
+        <tr><td><strong>picture</strong><br><em>url</em></td>
+          <td>Url of the contact's profile picture, if available.</td></tr>
+      </table>
+    </td></tr>
   </tr>
   <tr>
     <td><strong>friends</strong><br><em>object</em></td>
@@ -474,7 +592,16 @@ the backend maintains on the frontend through comet publications:
       <table>
         <tr><td><strong>current</strong><br><em>object[]</em></td>
           <td>List of the user's Lantern friends, i.e. contacts on her roster
-            who are Lantern users. <em>As in</em> <code>profile</code>.</td></tr>
+            who are Lantern users.<br>
+            <table>
+              <tr><td><strong>userid</strong><br><em>email</em></td>
+                <td>The friend's Lantern/Google Talk userid.</td>
+              <tr><td><strong>name</strong><br><em>email</em></td>
+                <td>The friend's full name, if available.</td>
+              <tr><td><strong>picture</strong><br><em>url</em></td>
+                <td>Url of the contact's profile picture, if available.</td></tr>
+            </table>
+          </td></tr>
         <tr><td><strong>pending</strong><br><em>object[]</em></td>
           <td>List of the user's pending Lantern friends, i.e. contacts not on
             her roster who have invited her to connect on Lantern. <em>As in</em>
@@ -495,7 +622,7 @@ the backend maintains on the frontend through comet publications:
     <td>
       <table>
         <tr>
-          <td><strong>userid</strong><br><em>string</em></td>
+          <td><strong>userid</strong><br><em>email</em></td>
           <td>The user's Google Talk/Lantern userid.</td>
         </tr>
         </tr>
