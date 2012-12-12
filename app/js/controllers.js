@@ -248,10 +248,10 @@ function FinishedCtrl($scope, MODAL) {
   $scope.autoReport = true;
 }
 
-function ContactDevsCtrl($scope, MODAL) {
+function ContactCtrl($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.contactDevs;
+    $scope.show = modal == MODAL.contact;
   });
 }
 
