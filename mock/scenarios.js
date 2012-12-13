@@ -82,6 +82,16 @@ exports.SCENARIOS = {
       func: make_simple_scenario({'connectivity.invited': false})
     }
   },
+  ninvites: {
+    0: {
+      desc: 'ninvites: 0',
+      func: make_simple_scenario({'ninvites': 0})
+    },
+    10: {
+      desc: 'ninvites: 10',
+      func: make_simple_scenario({'ninvites': 10})
+    }
+  },
   gtalkReachable: {
     false: {
       desc: 'gtalkReachable: false',

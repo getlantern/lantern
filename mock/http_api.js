@@ -54,6 +54,7 @@ ApiServlet.RESET_INTERNAL_STATE = {
     internet: 'true',
     gtalkAuthorized: 'true',
     invited: 'true',
+    ninvites: '10',
     gtalkReachable: 'true',
     roster: 'roster1',
     friends: 'friends1',
@@ -252,6 +253,18 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
     this.updateModel({modal: MODAL.gtalkUnreachable}, true);
     return;
   }
+
+  // fetch number of invites
+  scen = getByPath(this.model, 'mock.scenarios.applied.ninvites');
+  scen = getByPath(SCENARIOS, 'ninvites.'+scen);
+  if (!scen) {
+    this._internalState.lastModal = MODAL.authorize;
+    this.updateModel({modal: MODAL.scenarios,
+      'mock.scenarios.prompt': 'No ninvites scenario applied.'}, true);
+    return;
+  }
+  log('applying ninvites scenario', scen.desc);
+  scen.func.call(this);
 
   // fetch roster
   // XXX show this in UI?
