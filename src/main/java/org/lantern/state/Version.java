@@ -60,7 +60,7 @@ public class Version {
                 
         private final SemanticVersion httpApi = new SemanticVersion(0, 0, 1);
         
-        private final SemanticVersion stateScheme = new SemanticVersion(0, 0, 1);
+        private final SemanticVersion stateSchema = new SemanticVersion(0, 0, 1);
         
         private final SemanticVersion bayeuxProtocol = new SemanticVersion(0, 0, 1);
         
@@ -114,8 +114,8 @@ public class Version {
             return released;
         }
 
-        public SemanticVersion getStateScheme() {
-            return stateScheme;
+        public SemanticVersion getStateSchema() {
+            return stateSchema;
         }
 
         public SemanticVersion getBayeuxProtocol() {
