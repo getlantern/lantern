@@ -48,7 +48,17 @@ public class Version {
 
     public class Installed {
         
-        private final SemanticVersion api;
+        private final int major;
+        
+        private final int minor;
+
+        private final int patch;
+        
+        private final String tag = "";
+        
+        private final String git = "";
+                
+        private final SemanticVersion httpApi = new SemanticVersion(0, 0, 1);
         
         private final SemanticVersion stateScheme = new SemanticVersion(0, 0, 1);
         
@@ -62,9 +72,6 @@ public class Version {
             } else {
                 released = new Date(System.currentTimeMillis());
             }
-            final int major;
-            final int minor;
-            final int patch;
             if ("lantern_version_tok".equals(LanternConstants.VERSION)) {
                 major = 0;
                 minor = 0;
@@ -75,12 +82,32 @@ public class Version {
                 minor = Integer.parseInt(parts[1]);
                 patch = Integer.parseInt(StringUtils.substringBefore(parts[2], "-"));
             }
-            api = new SemanticVersion(major, minor, patch);
+        }
+        
+        
+        public int getMajor() {
+            return major;
+        }
+
+        public int getMinor() {
+            return minor;
+        }
+
+        public int getPatch() {
+            return patch;
+        }
+
+        public String getTag() {
+            return tag;
+        }
+
+        public String getGit() {
+            return git;
         }
 
         @JsonView({Run.class})
         public SemanticVersion getHttpApi() {
-            return api;
+            return httpApi;
         }
 
         public Date getReleased() {
