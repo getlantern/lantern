@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<updateDescriptor baseUrl="">
+  <entry targetMediaFileId="579" updatableVersionMin="" updatableVersionMax="" fileName="lantern-64.deb" newVersion="0.20.4" newMediaFileId="579" fileSize="41588262" bundledJre="./linux/linux-amd64-1.7.0_03" archive="true">
+    <comment language="en" />
+  </entry>
+  <entry targetMediaFileId="690" updatableVersionMin="" updatableVersionMax="" fileName="lantern-32.deb" newVersion="0.20.4" newMediaFileId="690" fileSize="43529964" bundledJre="linux-x86-1.7.0_03" archive="true">
+    <comment language="en" />
+  </entry>
+</updateDescriptor>
+

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <install4j version="5.1.3" transformSequenceNumber="4">
-  <directoryPresets config="../proxy_all.pac" />
+  <directoryPresets config="./linux" />
   <application name="Lantern" distributionSourceDir="" applicationId="3831-6452-7413-7646" mediaDir="." mediaFilePattern="${compiler:sys.shortName}_${compiler:sys.platform}_${compiler:sys.version}" compression="6" lzmaCompression="true" pack200Compression="true" excludeSignedFromPacking="true" commonExternalFiles="false" createMd5Sums="true" shrinkRuntime="true" shortName="lantern" publisher="Team Lantern" publisherWeb="http://www.getlantern.org" version="0.20.0" allPathsRelative="true" backupOnSave="false" autoSave="true" convertDotsToUnderscores="true" macSignature="????" installerName="" javaMinVersion="1.6" javaMaxVersion="" allowBetaVM="false" jdkMode="runtimeJre" jdkName="">
     <languages skipLanguageSelection="false" languageSelectionInPrincipalLanguage="false">
       <principalLanguage id="en" customLocalizationFile="" />
@@ -1297,7 +1297,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
     </applications>
   </installerGui>
   <mediaSets>
-      <windows name="Windows" id="26" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="win/windows-x86-1.7.0_03.tar.gz" manualJREEntry="true" bundleType="2" jreURL="http://cdn.getlantern.org/windows-x86-1.7.0_03.tar.gz" jreShared="true" directDownload="true" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
+    <windows name="Windows" id="26" customizedId="" mediaFileName="Lantern" installDir="Lantern" overridePrincipalLanguage="false" jreBitType="32" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="win/windows-x86-1.7.0_03.tar.gz" manualJREEntry="true" bundleType="2" jreURL="http://cdn.getlantern.org/windows-x86-1.7.0_03.tar.gz" jreShared="true" directDownload="true" installOnlyIfNecessary="true" customInstallBaseDir="" contentFilesType="1" downloadURL="" verifyIntegrity="true">
       <excludedLaunchers>
         <launcher id="27" />
         <launcher id="580" />
@@ -1330,7 +1330,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
       <excludedComponents />
       <includedDownloadableComponents />
     </macos>
-    <linuxDeb name="Linux Deb Archive 64" id="579" customizedId="" mediaFileName="lantern-64" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./linux/linux-amd64-1.7.0_03.tar.gz" manualJREEntry="true" bzip="false" description="${compiler:deb-description}" dependencies="libwebkitgtk-1.0-0" maintainerEmail="lantern_deb@getlantern.org">
+    <linuxDeb name="Linux Deb Archive 64" id="579" customizedId="" mediaFileName="lantern-64" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./linux/linux-amd64-1.7.0_03.tar.gz" manualJREEntry="true" bzip="false" description="${compiler:deb-description}" dependencies="" maintainerEmail="lantern_deb@getlantern.org">
       <excludedLaunchers>
         <launcher id="27" />
         <launcher id="224" />
@@ -1359,7 +1359,7 @@ if (propsFile.isFile() &amp;&amp; propsFile.length() &gt; 0) {
         <content />
       </postUninstallScript>
     </linuxDeb>
-    <linuxDeb name="Linux Deb Archive 32" id="690" customizedId="" mediaFileName="lantern-32" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./linux/linux-x86-1.7.0_03" manualJREEntry="false" bzip="false" description="${compiler:deb-description}" dependencies="libwebkitgtk-1.0-0" maintainerEmail="lantern_deb@getlantern.org">
+    <linuxDeb name="Linux Deb Archive 32" id="690" customizedId="" mediaFileName="lantern-32" installDir="/opt/lantern" overridePrincipalLanguage="false" jreBitType="all" runPostProcessor="false" postProcessor="" failOnPostProcessorError="false" useLegacyMediaFileIds="false" legacyMediaFileIds="" includedJRE="./linux/linux-x86-1.7.0_03.tar.gz" manualJREEntry="true" bzip="false" description="${compiler:deb-description}" dependencies="" maintainerEmail="lantern_deb@getlantern.org">
       <excludedLaunchers>
         <launcher id="27" />
         <launcher id="224" />
