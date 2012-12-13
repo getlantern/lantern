@@ -448,15 +448,13 @@ the backend maintains on the frontend through comet publications:
               <tr><td><strong>lifetime</strong><br><em>object[]</em></td>
                 <td>
                   <table>
-                    <tr><td><strong>userid</strong><br><em>string</em></td>
-                      <td>Lantern userid for the user that owns this peer.<br><br>
-                      <strong><small>* Should be blank or omitted for users that
-                      do not trust <code>settings.userid</code>
+                    <tr><td><strong>email</strong><br><em>string</em></td>
+                      <td>email for the user that owns this peer, if known.<br><br>
                       </small></strong></td></tr>
                     <tr><td><strong>peerid</strong><br><em>string</em></td>
                         <td>unique identifier for this peer<br><br>
-                            <strong><small>* Needed because multiple peers with
-                            the same userid are possible, since a user could be
+                            <strong><small>* Needed because multiple peers for
+                            the same user are possible, since a user could be
                             running Lantern from several personal computers and/or
                             sponsoring cloud proxies</small></strong><br><br>
                             <strong><small>* Should not reveal identity of
@@ -464,8 +462,10 @@ the backend maintains on the frontend through comet publications:
                     <tr><td><strong>type</strong><br>"desktop" | "cloud" | "laeproxy"</td>
                         <td>type of Lantern peer<br><br>
                         <strong><small>* cloud and laeproxy peers will have
-                        userids associated with them via kaleidoscope</small>
+                        users associated with them via kaleidoscope</small>
                         </strong></td></tr>
+                    <tr><td><strong>version</strong><br><em>string</em></td>
+                        <td>version of client software the peer is running</td></tr>
                     <tr><td><strong>mode</strong><br>"give" | "get"</td>
                         <td>(last known) mode this peer is running in</td></tr>
                     <tr><td><strong>ip</strong><br><em>string</em></td>
@@ -594,9 +594,9 @@ the backend maintains on the frontend through comet publications:
           <td>List of the user's Lantern friends, i.e. contacts on her roster
             who are Lantern users.<br>
             <table>
-              <tr><td><strong>userid</strong><br><em>email</em></td>
-                <td>The friend's Lantern/Google Talk userid.</td>
-              <tr><td><strong>name</strong><br><em>email</em></td>
+              <tr><td><strong>email</strong><br><em>email</em></td>
+                <td>The friend's email address.</td>
+              <tr><td><strong>name</strong><br><em>string</em></td>
                 <td>The friend's full name, if available.</td>
               <tr><td><strong>picture</strong><br><em>url</em></td>
                 <td>Url of the contact's profile picture, if available.</td></tr>
@@ -622,8 +622,8 @@ the backend maintains on the frontend through comet publications:
     <td>
       <table>
         <tr>
-          <td><strong>userid</strong><br><em>email</em></td>
-          <td>The user's Google Talk/Lantern userid.</td>
+          <td><strong>email</strong><br><em>email</em></td>
+          <td>The user's email address used to log in to Google Talk/Lantern.</td>
         </tr>
         </tr>
         <tr>
@@ -760,7 +760,7 @@ as reference implementations of these specifications.
     * Next we check if the user has Lantern access (i.e. has an invite).
 
     * If no invite, present the `notInvited` modal, which allows user to try
-      using a different userid (i.e. goes back to `authorize` modal), or
+      using a different account (i.e. goes back to `authorize` modal), or
       request an invite via the `requestInvite` modal, and then proceed in
       demonstration mode. When the user gets an invite, backend should
       discover this and set modal to `firstInviteReceived`, and then take

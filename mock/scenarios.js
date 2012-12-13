@@ -69,7 +69,7 @@ exports.SCENARIOS = {
     true: {
       desc: 'gtalkAuthorized: true',
       func: make_simple_scenario({'connectivity.gtalkAuthorized': true,
-        'settings.userid': 'user@example.com'})
+        'settings.email': 'user@example.com'})
     }
   },
   invited: {
@@ -184,7 +184,7 @@ exports.SCENARIOS = {
                 current: ['friend1-1', 'friend2-1', 'poweruser-1', 'poweruser-2', 'poweruser-3', 'poweruser-4'],
                 lifetime: [{
                     peerid: 'friend1-1',
-                    userid: 'lantern_friend1@example.com ',
+                    email: 'lantern_friend1@example.com ',
                     mode: 'give',
                     ip: '74.120.12.135',
                     lat: 51,
@@ -193,7 +193,7 @@ exports.SCENARIOS = {
                     type: 'desktop'
                   },{
                     peerid: 'friend2-1',
-                    userid: 'lantern_friend2@example.com ',
+                    email: 'lantern_friend2@example.com ',
                     mode: 'get',
                     ip: '27.55.2.80',
                     lat: 13.754,
@@ -202,7 +202,7 @@ exports.SCENARIOS = {
                     type: 'desktop'
                   },{
                     peerid: 'poweruser-1',
-                    userid: 'lantern_power_user@example.com',
+                    email: 'lantern_power_user@example.com',
                     mode: 'give',
                     ip: '93.182.129.82',
                     lat: 55.7,
@@ -211,7 +211,7 @@ exports.SCENARIOS = {
                     type: 'lec2proxy'
                   },{
                     peerid: 'poweruser-2',
-                    userid: 'lantern_power_user@example.com',
+                    email: 'lantern_power_user@example.com',
                     mode: 'give',
                     ip: '173.194.66.141',
                     lat: 37.4192,
@@ -220,7 +220,7 @@ exports.SCENARIOS = {
                     type: 'laeproxy'
                   },{
                     peerid: 'poweruser-3',
-                    userid: 'lantern_power_user@example.com',
+                    email: 'lantern_power_user@example.com',
                     mode: 'give',
                     ip: '...',
                     lat: 54,
@@ -229,7 +229,7 @@ exports.SCENARIOS = {
                     type: 'lec2proxy'
                   },{
                     peerid: 'poweruser-4',
-                    userid: 'lantern_power_user@example.com',
+                    email: 'lantern_power_user@example.com',
                     mode: 'get',
                     ip: '...',
                     lat: 31.230381,

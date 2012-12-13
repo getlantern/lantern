@@ -27,7 +27,7 @@
   "ninvites":0,
   "nproxiedSitesMax":1000,
   "settings":{
-    "userid":"",
+    "email":"",
     "lang":"",
     "autoStart":true,
     "autoReport":true,
