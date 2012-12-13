@@ -28,7 +28,7 @@
   "settings":{
     "email":"",
     "lang":"",
-    "autoStart":true,
+    "runAtSystemStart":true,
     "autoReport":true,
     "proxyPort":8787,
     "systemProxy":true,

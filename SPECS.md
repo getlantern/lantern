@@ -632,7 +632,7 @@ the backend maintains on the frontend through comet publications:
           <td>The user's language setting as a two-letter ISO 639-1 code.</td>
         </tr>
         <tr>
-          <td><strong>autoStart</strong><br><em>boolean</em></td>
+          <td><strong>runAtSystemStart</strong><br><em>boolean</em></td>
           <td>Whether Lantern should start up automatically when the user logs
             in to the system.
           </td>

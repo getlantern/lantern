@@ -254,8 +254,8 @@ function SettingsCtrl($scope, modelSrvc, logFactory, MODAL) {
     $scope.show = modal == MODAL.settings;
   });
 
-  $scope.$watch('model.settings.autoStart', function(autoStart) {
-    $scope.autoStart = autoStart;
+  $scope.$watch('model.settings.runAtSystemStart', function(runAtSystemStart) {
+    $scope.runAtSystemStart = runAtSystemStart;
   });
 
   $scope.$watch('model.settings.systemProxy', function(systemProxy) {
