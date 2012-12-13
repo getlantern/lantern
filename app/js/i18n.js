@@ -123,7 +123,7 @@ angular.module('app.i18n', [])
       NO_INVITES: 'You currently have no invites.',
       MORE_INVITES: 'You will receive more invites as you continue to run Lantern.',
       INVITE_FRIENDS_PROMPT: 'Invite friends:',
-      NONE_RUNNING_LANTERN: 'None of your Google Talk contacts are part of Lantern yet.',
+      NINVITES_REACHED: 'Number of invites reached', // XXX interpolate "max" param
       INVITES_REMAINING: 'invites remaining', // XXX ng-pluralize
       PENDING_REQS_PROMPT: 'pending friend requests:', // XXX ng-pluralize
       PENDING_REQS_INFO: 'Accepting a user’s friend request will also allow you to chat through Google Talk.',

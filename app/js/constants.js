@@ -27,7 +27,9 @@ var DEFAULT_LANG = 'en',
                    COMETD_MOUNT_POINT,
     MODEL_SYNC_CHANNEL = '/sync',
     DEFAULT_AVATAR_URL = '/app/img/default-avatar.png',
-    INPUT_PATS = {
+    INPUT_PAT = {
+      // HTML5 compatible email regex (http://www.whatwg.org/specs/web-apps/current-work/multipage/states-of-the-type-attribute.html)
+      EMAIL: /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/,
       // from http://html5pattern.com/
       DOMAIN: /^([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}$/,
       IPV4: /((^|\.)((25[0-5])|(2[0-4]\d)|(1\d\d)|([1-9]?\d))){4}$/
@@ -121,7 +123,7 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     .constant('COMETD_URL', COMETD_URL)
     .constant('MODEL_SYNC_CHANNEL', MODEL_SYNC_CHANNEL)
     .constant('DEFAULT_AVATAR_URL', DEFAULT_AVATAR_URL)
-    .constant('INPUT_PATS', INPUT_PATS)
+    .constant('INPUT_PAT', INPUT_PAT)
     .constant('EXTERNAL_URL', EXTERNAL_URL)
     .constant('ENUMS', ENUMS)
     .constant('MODE', MODE)
@@ -147,7 +149,7 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     COMETD_URL: COMETD_URL,
     MODEL_SYNC_CHANNEL: MODEL_SYNC_CHANNEL,
     DEFAULT_AVATAR_URL: DEFAULT_AVATAR_URL,
-    INPUT_PATS: INPUT_PATS,
+    INPUT_PAT: INPUT_PAT,
     EXTERNAL_URL: EXTERNAL_URL,
     ENUMS: ENUMS,
     MODE: MODE,

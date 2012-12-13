@@ -93,11 +93,6 @@ textarea.bugReport
     font-size: $baseFontSize * 1.1
     margin-bottom: 15px
 
-.invite-form
-  +centered
-  label
-    +small
-
 .contactList-horizontal
   margin: 5px 0 10px
   overflow: auto
@@ -127,9 +122,20 @@ textarea.bugReport
     padding: 0 3px
     +smaller
 
-#waiting-container
-  +position(100px, 0, 0 , 0)
-  line-height: 50px
+.inviteForm
+  +centered
+  label
+    +small
+  &.ng-invalid .select2-choices
+    +inputInvalid
+
+.selectContacts
+  $cselectWdth: 500px
+  width: $cselectWdth
+  margin-bottom: 15px
+  input.select2-default
+    text-align: center
+    width: $cselectWdth
 
 #systemProxy
   .control-group

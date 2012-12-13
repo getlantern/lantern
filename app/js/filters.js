@@ -25,5 +25,4 @@ angular.module('app.filters', [])
       if (versionObj.git) versionStr += ' ('+versionObj.git+')';
       return versionStr;
     };
-  })
-  ;
+  });

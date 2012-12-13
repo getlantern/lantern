@@ -267,10 +267,10 @@ function SettingsCtrl($scope, modelSrvc, logFactory, MODAL) {
   });
 }
 
-function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACTION, INPUT_PATS) {
+function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACTION, INPUT_PAT) {
   var log = logFactory('ProxiedSitesCtrl'),
-      DOMAIN = INPUT_PATS.DOMAIN,
-      IPV4 = INPUT_PATS.IPV4,
+      DOMAIN = INPUT_PAT.DOMAIN,
+      IPV4 = INPUT_PAT.IPV4,
       DELAY = 1000, // milliseconds
       nproxiedSitesMax = 1000, // default value, should be overwritten below
       sendUpdatePromise,
@@ -373,14 +373,101 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
   };
 }
 
-function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL) {
+function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter, INPUT_PAT, INTERACTION) {
   var log = logFactory('LanternFriendsCtrl'),
-      model = modelSrvc.model;
+      model = modelSrvc.model,
+      EMAIL = INPUT_PAT.EMAIL;
 
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.lanternFriends;
   });
+
+  $scope.invitees = [];
+  $scope.validateInvitees = function(invitees) {
+    if (invitees.length > getByPath(model, 'ninvites', 0))
+      return false;
+    for (var i=0, ii=invitees[i]; ii; ii=invitees[++i]) {
+      if (!EMAIL.test(ii.id))
+        return false;
+    }
+    return true;
+  }
+
+  var sortedFriendEmails = [];
+  $scope.$watch('model.friends', function(friends) {
+    if (!friends) return;
+    friends = _.flatten([friends.current, friends.pending], true);
+    sortedFriendEmails = [];
+    for (var i=0, ii=friends[i]; ii; ii=friends[++i]) {
+      ii.email && sortedFriendEmails.push(ii.email);
+    }
+    sortedFriendEmails.sort();
+    updateCompletions();
+  });
+
+  function updateCompletions() {
+    var roster = model.roster;
+    if (!roster) return;
+    var notAlreadyFriends;
+    if (_.isEmpty(sortedFriendEmails)) {
+      notAlreadyFriends = roster;
+    } else {
+      notAlreadyFriends = [];
+      for (var i=0, ii=roster[i]; ii; ii=roster[++i]) {
+        if (_.indexOf(sortedFriendEmails, ii.email, true) == -1)
+          notAlreadyFriends.push(ii);
+      }
+    }
+    $scope.notAlreadyFriends = notAlreadyFriends;
+    angular.copy(_.map(notAlreadyFriends, function(i) {
+      return {id: i.email, text: i.name + ' (' + i.email + ')'};
+    }), $scope.selectInvitees.tags);
+  }
+
+  $scope.$watch('model.roster', function(roster) {
+    if (!roster) return;
+    updateCompletions();
+  });
+
+  $scope.$watch('model.ninvites', function(ninvites) {
+    if (angular.isDefined(ninvites))
+      $scope.selectInvitees.maximumSelectionSize = ninvites; // XXX https://github.com/ivaynberg/select2/issues/648
+  });
+
+  $scope.selectInvitees = {
+    tags: [],
+    multiple: true,
+    formatSelectionTooBig: function(max) {
+      return $filter('i18n')('NINVITES_REACHED'); // XXX use max in this message
+    },
+    // XXX could use something like these if https://github.com/ivaynberg/select2/issues/647 is fixed:
+    validateResult: function(item) {
+      return EMAIL.test(item.id);
+    },
+    formatInvalidInput: function(item) {
+      return $filter('i18n')('NOT_AN_EMAIL'); // XXX use item.id in this message
+    }
+  };
+
+  function resetForm() {
+    $scope.invitees = [];
+  }
+
+  $scope.continue = function() {
+    var invitees = _.map($scope.invitees, function(i) { return i.id });
+    return $scope.interaction(INTERACTION.continue, invitees)
+      .success(function(data, status, headers, config) {
+        // XXX display notification
+        console.log('successfully invited', invitees);
+        resetForm();
+      })
+      .error(function(data, status, headers, config) {
+        // XXX display notification
+        console.log('error inviting', invitees);
+        resetForm();
+      });
+  };
 }
 
 function AuthorizeLaterCtrl($scope, logFactory, MODAL) {
@@ -439,8 +526,6 @@ function ScenariosCtrl($scope, $timeout, logFactory, modelSrvc, dev, MODAL, INTE
       });
     }
   });
-
-  $scope.multiple = true; // XXX without this, ui-select2 with "multiple" attr causes an exception
 
   $scope.submit = function() {
     var appliedScenarios = {};

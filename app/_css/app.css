@@ -5190,10 +5190,10 @@ input:focus, textarea:focus {
   box-shadow: 0 0 8px rgba(82, 168, 236, 0.6);
 }
 input:focus.ng-invalid, textarea:focus.ng-invalid {
-  border-color: #e9322d;
-  -webkit-box-shadow: 0 0 6px #f8b9b7;
-  -moz-box-shadow: 0 0 6px #f8b9b7;
-  box-shadow: 0 0 6px #f8b9b7;
+  border-color: #e9322d !important;
+  -webkit-box-shadow: 0 0 6px #f8b9b7 !important;
+  -moz-box-shadow: 0 0 6px #f8b9b7 !important;
+  box-shadow: 0 0 6px #f8b9b7 !important;
 }
 
 textarea {
@@ -5350,13 +5350,6 @@ textarea.bugReport {
   margin-bottom: 15px;
 }
 
-.invite-form {
-  text-align: center;
-}
-.invite-form label {
-  font-size: 11.9px;
-}
-
 .contactList-horizontal {
   margin: 5px 0 10px;
   overflow: auto;
@@ -5398,13 +5391,26 @@ textarea.bugReport {
   font-size: 10.5px;
 }
 
-#waiting-container {
-  position: absolute;
-  top: 100px;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  line-height: 50px;
+.inviteForm {
+  text-align: center;
+}
+.inviteForm label {
+  font-size: 11.9px;
+}
+.inviteForm.ng-invalid .select2-choices {
+  border-color: #e9322d !important;
+  -webkit-box-shadow: 0 0 6px #f8b9b7 !important;
+  -moz-box-shadow: 0 0 6px #f8b9b7 !important;
+  box-shadow: 0 0 6px #f8b9b7 !important;
+}
+
+.selectContacts {
+  width: 500px;
+  margin-bottom: 15px;
+}
+.selectContacts input.select2-default {
+  text-align: center;
+  width: 500px;
 }
 
 #systemProxy .control-group {
@@ -5696,4 +5702,13 @@ body.showVis #footer {
   -webkit-box-sizing: border-box;
   -moz-box-sizing: border-box;
   box-sizing: border-box;
+}
+
+#waiting-container {
+  position: absolute;
+  top: 100px;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  line-height: 50px;
 }

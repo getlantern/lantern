@@ -194,7 +194,7 @@
         {{ 'SOMEONE_I_KNOW_LABEL' | i18n }}
       </label>
       <div class="control-extra">
-        <input type="email" autofocus ng-required="!sendToLanternDevs"
+        <input type="email" ng-required="!sendToLanternDevs"
                ng-disabled="disableForm || sendToLanternDevs"
                ng-model="sendRequestTo" placeholder="email@example.com">
         <div>{{ 'SOMEONE_I_KNOW_INFO' | i18n }}</div>
@@ -309,10 +309,9 @@
         {{ 'CONFIGURE_PROXIED_SITES' | i18n }}
       </label>
       <form name="proxiedSitesForm">
-        <!-- XXX add dir="ltr"? -->
         <textarea ng-model="input" name="input" placeholder="example.com" required
           ui-validate="validate" ng-disabled="updating" ng-change="handleUpdate()"
-          autofocus tabindex="1"></textarea>
+          dir="ltr" tabindex="1"></textarea>
       </form>
     </div>
     <div class="smaller">
@@ -378,16 +377,15 @@
       <p class="smaller">{{ 'PENDING_REQS_INFO' | i18n }}</p>
     </div>
     <hr>
-    <form class="invite-form" ng-show="model.ninvites">
+    <form class="inviteForm" name="inviteForm" ng-show="model.ninvites">
       <h4>{{ 'INVITE_FRIENDS_PROMPT' | i18n }}</h4>
-      <!-- XXX change to select2 with tag autocomplete -->
-      <input type="text" placeholder="friend1@example.com, friend2@example.com, ..."
-           autofocus ng-disabled="!model.ninvites" style="width: 400px">
+      <input type="hidden" ng-model="invitees" name="selectInvitees"
+             ui-select2="selectInvitees" ui-validate="validateInvitees"
+             class="selectContacts" data-placeholder="email@example.com, email@example.com, ..." ng-disabled="!model.ninvites">
       <div>
         <span class="badge badge-success">{{ model.ninvites }}</span>
         {{ 'INVITES_REMAINING' | i18n }}
       </div>
-      <!-- XXX allow writing custom invite message -->
     </form>
     <div class="centered">
       <div ng-hide="model.ninvites">{{ 'NO_INVITES' | i18n }}</div>
@@ -395,7 +393,9 @@
     </div>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.continue)">{{ 'CONTINUE' | i18n }}</button>
+    <button type="button" class="btn btn-primary"
+      ng-disabled="inviteForm.selectInvitees.$invalid"
+      ng-click="continue()">{{ 'CONTINUE' | i18n }}</button>
   </div>
 </div>
 
@@ -620,7 +620,7 @@ You should have received a copy of the GNU General Public License along with thi
   <div class="modal-body">
     <p class="centered text-error">{{ model.mock.scenarios.prompt }}</p>
     <label>Applied scenarios:</label>
-    <select ui-select2 multiple ng-multiple="multiple" ng-model="appliedScenarios"
+    <select ui-select2 multiple ng-model="appliedScenarios"
             placeholder="Choose applied scenarios" required style="width: 530px">
       <optgroup ng-repeat="(group, scenarios) in model.mock.scenarios.all" label="{{ group }}">
         <option ng-repeat="(key, scen) in scenarios" value="{{ group }}.{{ key }}">{{ scen.desc }}</option>

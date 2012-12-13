@@ -12,6 +12,7 @@ var url = require('url'),
     scenarios = require('./scenarios'),
       SCENARIOS = scenarios.SCENARIOS,
     constants = require('../app/js/constants.js'),
+      EMAIL = constants.INPUT_PAT.EMAIL,
       LANG = constants.LANG,
       ENUMS = constants.ENUMS,
         CONNECTIVITY = ENUMS.CONNECTIVITY,
@@ -341,6 +342,20 @@ function _matchIndex(collection, item, field) {
 }
 ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res, data) {
   if (interaction == INTERACTION.continue) {
+    if (data) {
+      if (data.length > this.model.ninvites) {
+        log('more invitees than invites', data);
+        return res.writeHead(400);
+      }
+      for (var i=0, ii=data[i]; ii; ii=data[++i]) {
+        if (!EMAIL.test(ii)) {
+          log('not a valid email:', ii);
+          return res.writeHead(400);
+        }
+      }
+      this.updateModel({'ninvites': this.model.ninvites - data.length}, true);
+      log('invitations will be sent to', data);
+    }
     this._internalState.modalsCompleted[MODAL.lanternFriends] = true;
     this._advanceModal();
   } else if (interaction == INTERACTION.accept ||
@@ -356,7 +371,6 @@ ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res, d
       this.model.roster.push(data);
       this.publishSync('roster.'+(this.model.roster.length-1));
     }
-    // XXX display notification
   } else {
     res.writeHead(400);
   }
