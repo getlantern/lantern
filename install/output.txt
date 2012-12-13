@@ -1,4 +1,0 @@
-# List of generated media files. The columns are tab-separated:
-# id | media file type | display name | media file path
-579	unix	Linux Deb Archive 64	/Users/afisk/lantern/install/lantern-64.deb
-690	unix	Linux Deb Archive 32	/Users/afisk/lantern/install/lantern-32.deb
