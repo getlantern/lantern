@@ -5,15 +5,22 @@ function die() {
   exit 1
 }
 
-if [ $# -ne "1" ]
+if [ $# -lt "1" ]
 then
     die "$0: Received $# args... version required"
+fi
+
+if [ $# -gt "1" ]
+then
+    RELEASE=$2;
+else
+    RELEASE=true;
 fi
 
 VERSION=$1
 #INSTALL4J_MAC_PASS=$2
 
-./installerBuild.bash $VERSION || die "Could not build!!"
+./installerBuild.bash $VERSION "" $RELEASE || die "Could not build!!"
 
 #install4jc -L $INSTALL4J_KEY || die "Could not update license information?"
 

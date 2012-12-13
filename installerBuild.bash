@@ -23,6 +23,12 @@ INTERNAL_VERSION=$1-`git rev-parse HEAD | cut -c1-10`
 MVN_ARGS=$2
 echo "*******MAVEN ARGS*******: $MVN_ARGS"
 perl -pi -e "s/lantern_version_tok/$INTERNAL_VERSION/g" $CONSTANTS_FILE
+if [ $# -gt "2" ]
+then
+    RELEASE=$3;
+else
+    RELEASE=true;
+fi
 
 BUILD_TIME=`date +%s`
 perl -pi -e "s/build_time_tok/$BUILD_TIME/g" $CONSTANTS_FILE
@@ -45,11 +51,14 @@ git checkout -- $CONSTANTS_FILE || die "Could not revert version file?"
 
 cp target/lantern*SNAPSHOT.jar install/common/lantern.jar || die "Could not copy jar?"
 
-echo "Tagging..."
-git tag -f -a v$VERSION -m "Version $INTERNAL_VERSION release with MVN_ARGS $MVN_ARGS"
+if [ $RELEASE = true ]
+then
+    echo "Tagging...";
+    git tag -f -a v$VERSION -m "Version $INTERNAL_VERSION release with MVN_ARGS $MVN_ARGS";
 
-echo "Pushing tags..."
-git push --tags || die "Could not push tags!!"
-echo "Finished push..."
+    echo "Pushing tags...";
+    git push --tags || die "Could not push tags!!";
+    echo "Finished push...";
+fi
 
 install4jc -L $INSTALL4J_KEY || die "Could not update license information?"
