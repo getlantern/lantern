@@ -2,6 +2,7 @@ package org.lantern.event;
 
 import java.util.concurrent.Executors;
 
+import org.lantern.LanternRosterEntry;
 import org.lantern.Roster;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
@@ -63,7 +64,17 @@ public class Events {
      * Convenience method for syncing the current modal with the frontend.
      */
     public static void syncRoster(final Roster roster) {
-        Events.asyncEventBus().post(new SyncEvent(SyncPath.ROSTER, roster.getEntries()));
+        // This is done synchronously because we need the roster array on the
+        // frontend to be in sync with the backend in order to index into it 
+        // on roster updates.
+        Events.eventBus().post(new SyncEvent(SyncPath.ROSTER, roster.getEntries()));
+    }
+    
+
+    public static void syncRosterEntry(final LanternRosterEntry entry, final int index) {
+        final String path = SyncPath.ROSTER.getPath()+"."+index;
+        LOG.debug("Syncing roster entry at path {} with entry {}", path, entry);
+        Events.eventBus().post(new SyncEvent(path, entry));
     }
 
 

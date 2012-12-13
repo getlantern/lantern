@@ -88,7 +88,7 @@ public class SyncService implements LanternService {
             @Override
             public void run() {
                 log.info("Syncing with frontend...");
-                publishSync(SyncPath.ALL, model);
+                delegateSync(SyncPath.ALL, model);
             }
             
         }, "CometD-Sync-OnConnect-Thread");
@@ -102,15 +102,32 @@ public class SyncService implements LanternService {
         // We want to force a sync here regardless of whether or not we've 
         // recently synced.
         //sync(true, syncEvent.getChannel());
-        publishSync(syncEvent.getPath(), syncEvent.getValue());
+        delegateSync(syncEvent.getPath(), syncEvent.getValue());
     }
     
     @Subscribe 
     public void closedBeta(final ClosedBetaEvent betaEvent) {
-        publishSync(SyncPath.INVITED, betaEvent.isInClosedBeta());
+        final boolean alreadyInvited = this.model.getConnectivity().isInvited();
+        
+        final boolean invited = betaEvent.isInClosedBeta();
+        if (alreadyInvited == invited) {
+            log.debug("No change in invited state");
+            return;
+        }
+        // Note this is the only place setInvited should be called. We do all
+        // checks here to know whether or not to sync with the frontend and
+        // because of the use of ClosedBetaEvent for thread syncing in
+        // the xmpp handler.
+        this.model.getConnectivity().setInvited(invited);
+        
+        delegateSync(SyncPath.INVITED, invited);
     }
 
-    public void publishSync(final SyncPath path, final Object value) {
+    private void delegateSync(final SyncPath path, final Object value) {
+        delegateSync(path.getPath(), value);
+    }
+    
+    private void delegateSync(final String path, final Object value) {
         this.strategy.sync(true, this.session, path, value);
     }
 }

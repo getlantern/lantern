@@ -177,7 +177,7 @@ public class InteractionServlet extends HttpServlet {
         case none:
             switch (inter) {
             case SETTINGS:
-                log.info("Processing settings");
+                log.info("Processing settings in none");
                 Events.syncModal(model, Modal.settings);
                 break;
             default:
@@ -223,15 +223,14 @@ public class InteractionServlet extends HttpServlet {
                 break;
             case CLOSE:
                 log.info("Processing settings close");
-                
-                // TODO: Anything to apply here?
-                applyJson(json);
+                Events.syncModal(model, Modal.none);
                 break;
             case SET:
-                log.info("Processing set setting...");
+                log.info("Processing set setting...applying JSON\n{}", json);
                 //Events.syncModal(model, Modal.none);
                 
                 // TODO: Apply JSON.
+                applyJson(json);
                 break;
             case RESET:
                 log.info("Processing reset");

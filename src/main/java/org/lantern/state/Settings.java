@@ -13,6 +13,8 @@ import org.lantern.LanternUtils;
 import org.lantern.Whitelist;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
@@ -21,12 +23,14 @@ import com.google.common.collect.Sets;
  * Base Lantern settings.
  */
 public class Settings {
-
+    
+    private final Logger log = LoggerFactory.getLogger(getClass());
+    
     private String email = "";
     
     private String lang = Locale.getDefault().getLanguage();
     
-    private boolean autoStart = true;
+    private boolean autoConnect = true;
 
     private boolean autoReport = true;
     
@@ -48,7 +52,7 @@ public class Settings {
     
     private Whitelist whitelist = new Whitelist();
 
-    private boolean startAtLogin = true;
+    private boolean runOnSystemStartup = true;
 
     private Set<String> proxies = new LinkedHashSet<String>();
 
@@ -79,7 +83,7 @@ public class Settings {
 
     private boolean bindToLocalhost = true;
 
-    private boolean autoConnectToPeers = true;
+    //private boolean autoConnectToPeers = true;
 
     private boolean useCloudProxies = true;
     
@@ -108,12 +112,12 @@ public class Settings {
     }
 
     @JsonView({Run.class, Persistent.class})
-    public boolean isAutoStart() {
-        return autoStart;
+    public boolean isAutoConnect() {
+        return autoConnect;
     }
 
-    public void setAutoStart(final boolean autoStart) {
-        this.autoStart = autoStart;
+    public void setAutoConnect(final boolean autoConnect) {
+        this.autoConnect = autoConnect;
     }
 
     @JsonView({Run.class, Persistent.class})
@@ -234,28 +238,6 @@ public class Settings {
         this.inClosedBeta = ImmutableSet.copyOf(inClosedBeta);
     }
 
-    public void setGetMode(final boolean getMode) {
-        if (getMode) {
-            setMode(Mode.get);
-        } else {
-            setMode(Mode.give);
-        }
-    }
-
-    @JsonIgnore
-    public boolean isGetMode() {
-        return mode == Mode.get;
-    }
-
-    @JsonView({Run.class, Persistent.class})
-    public boolean isStartAtLogin() {
-        return this.startAtLogin;
-    }
-    
-    public void setStartAtLogin(final boolean startAtLogin) {
-        this.startAtLogin = startAtLogin;
-    }
-    
     public void setProxies(final Set<String> proxies) {
         synchronized (this.proxies) {
             this.proxies = proxies;
@@ -362,6 +344,7 @@ public class Settings {
         return bindToLocalhost;
     }
     
+    /*
     public void setAutoConnectToPeers(final boolean autoConnectToPeers) {
         this.autoConnectToPeers = autoConnectToPeers;
     }
@@ -370,6 +353,7 @@ public class Settings {
     public boolean isAutoConnectToPeers() {
         return autoConnectToPeers;
     }
+    */
 
     public void setUseCloudProxies(final boolean useCloudProxies) {
         this.useCloudProxies = useCloudProxies;
@@ -378,5 +362,14 @@ public class Settings {
     @JsonView({Run.class, Persistent.class})
     public boolean isUseCloudProxies() {
         return useCloudProxies;
+    }
+
+    public boolean isRunOnSystemStartup() {
+        return runOnSystemStartup;
+    }
+
+    @JsonView({Run.class, Persistent.class})
+    public void setRunOnSystemStartup(boolean runOnSystemStartup) {
+        this.runOnSystemStartup = runOnSystemStartup;
     }
 }

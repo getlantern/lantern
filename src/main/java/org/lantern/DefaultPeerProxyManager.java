@@ -29,6 +29,7 @@ import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
 import org.lantern.state.SyncPath;
+import org.lantern.state.Settings.Mode;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -203,7 +204,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     }
 
     private void onPeer(final URI peerUri, final int sockets) {
-        if (!model.getSettings().isGetMode()) {
+        if (model.getSettings().getMode() == Mode.give) {
             log.info("Ingoring peer when we're in give mode");
             return;
         }

@@ -9,6 +9,7 @@ import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lantern.LanternConstants;
+import org.lantern.state.Settings.Mode;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,7 +58,7 @@ public class ModelUtils {
     }
 
     public boolean shouldProxy() {
-        return this.model.getSettings().isGetMode() && 
+        return this.model.getSettings().getMode() == Mode.get && 
             this.model.getSettings().isSystemProxy();
     }
 

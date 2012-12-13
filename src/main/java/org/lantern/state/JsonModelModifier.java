@@ -44,14 +44,11 @@ public class JsonModelModifier {
             
             //setProperty(modelService, key, val, true);
         } catch (final JsonParseException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.error("Problem handling JSON:"+json, e);
         } catch (final JsonMappingException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.error("Problem handling JSON:"+json, e);
         } catch (final IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+            log.error("Problem handling JSON: "+json, e);
         }
     }
 
@@ -75,8 +72,11 @@ public class JsonModelModifier {
             PropertyUtils.setSimpleProperty(bean, key, obj);
             //PropertyUtils.setProperty(bean, key, obj);
         } catch (final IllegalAccessException e) {
+            log.error("Could not set property '"+key+"' to '"+obj+"'", e);
         } catch (final InvocationTargetException e) {
+            log.error("Could not set property '"+key+"' to '"+obj+"'", e);
         } catch (final NoSuchMethodException e) {
+            log.error("Could not set property '"+key+"' to '"+obj+"'", e);
         }
     }
 }

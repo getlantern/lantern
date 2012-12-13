@@ -62,6 +62,7 @@ import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Profile;
+import org.lantern.state.Settings.Mode;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.ice.MappedTcpAnswererServer;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -396,7 +397,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     private String getResource() {
-        if (model.getSettings().isGetMode()) {
+        if (model.getSettings().getMode() == Mode.get) {
             LOG.info("Setting ID for get mode...");
             return "gmail.";
         } else {
@@ -567,8 +568,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
         final boolean inClosedBeta = 
             waitForClosedBetaStatus(credentials.getUsername());
-        
-        this.model.getConnectivity().setInvited(inClosedBeta);
 
         // If we're in the closed beta and are an uncensored node, we want to
         // advertise ourselves through the kaleidoscope trust network.
@@ -657,7 +656,6 @@ public class DefaultXmppHandler implements XmppHandler {
     private void notInClosedBeta(final String msg) 
         throws NotInClosedBetaException {
         //connectivityEvent(ConnectivityStatus.DISCONNECTED);
-        this.model.getConnectivity().setInvited(false);
         disconnect();
         throw new NotInClosedBetaException(msg);
     }
@@ -1039,21 +1037,19 @@ public class DefaultXmppHandler implements XmppHandler {
             try {
                 // Add the peer if we're able to add the cert.
                 this.keyStoreManager.addBase64Cert(mac, base64Cert);
-                if (this.model.getSettings().isAutoConnectToPeers()) {
-                    final String email = XmppUtils.jidToUser(msg.getFrom());
-                    if (this.roster.isFullyOnRoster(email)) {
-                        trustedPeerProxyManager.onPeer(uri);
-                    } else {
-                        anonymousPeerProxyManager.onPeer(uri);
-                    }
-                    /*
-                    if (LanternHub.getTrustedContactsManager().isTrusted(msg)) {
-                        LanternHub.trustedPeerProxyManager().onPeer(uri);
-                    } else {
-                        LanternHub.anonymousPeerProxyManager().onPeer(uri);
-                    }
-                    */
+                final String email = XmppUtils.jidToUser(msg.getFrom());
+                if (this.roster.isFullyOnRoster(email)) {
+                    trustedPeerProxyManager.onPeer(uri);
+                } else {
+                    anonymousPeerProxyManager.onPeer(uri);
                 }
+                /*
+                if (LanternHub.getTrustedContactsManager().isTrusted(msg)) {
+                    LanternHub.trustedPeerProxyManager().onPeer(uri);
+                } else {
+                    LanternHub.anonymousPeerProxyManager().onPeer(uri);
+                }
+                */
             } catch (final IOException e) {
                 LOG.error("Could not add cert??", e);
             }
