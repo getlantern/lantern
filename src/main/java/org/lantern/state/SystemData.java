@@ -9,6 +9,18 @@ import org.lantern.state.Model.Run;
  */
 public class SystemData {
 
+    private final String os;
+    public SystemData() {
+        
+        if (SystemUtils.IS_OS_MAC_OSX) {
+            os = "osx";
+        } else if (SystemUtils.IS_OS_WINDOWS) {
+            os = "windows";
+        } else {
+            os = "ubuntu";
+        }
+    }
+    
     @JsonView({Run.class})
     public String getLang() {
         return SystemUtils.USER_LANGUAGE;
@@ -16,6 +28,6 @@ public class SystemData {
     
     @JsonView({Run.class})
     public String getOs() {
-        return SystemUtils.OS_NAME;
+        return os;
     }
 }
