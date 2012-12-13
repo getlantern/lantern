@@ -342,19 +342,19 @@ function _matchIndex(collection, item, field) {
 }
 ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res, data) {
   if (interaction == INTERACTION.continue) {
-    if (data) {
-      if (data.length > this.model.ninvites) {
+    if (data && data.invite) {
+      if (data.invite.length > this.model.ninvites) {
         log('more invitees than invites', data);
         return res.writeHead(400);
       }
-      for (var i=0, ii=data[i]; ii; ii=data[++i]) {
+      for (var i=0, ii=data.invite[i]; ii; ii=data.invite[++i]) {
         if (!EMAIL.test(ii)) {
           log('not a valid email:', ii);
           return res.writeHead(400);
         }
       }
-      this.updateModel({'ninvites': this.model.ninvites - data.length}, true);
-      log('invitations will be sent to', data);
+      this.updateModel({'ninvites': this.model.ninvites - data.invite.length}, true);
+      log('invitations will be sent to', data.invite);
     }
     this._internalState.modalsCompleted[MODAL.lanternFriends] = true;
     this._advanceModal();

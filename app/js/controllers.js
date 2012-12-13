@@ -456,7 +456,7 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
 
   $scope.continue = function() {
     var invitees = _.map($scope.invitees, function(i) { return i.id });
-    return $scope.interaction(INTERACTION.continue, invitees)
+    return $scope.interaction(INTERACTION.continue, {invite: invitees})
       .success(function(data, status, headers, config) {
         // XXX display notification
         console.log('successfully invited', invitees);
