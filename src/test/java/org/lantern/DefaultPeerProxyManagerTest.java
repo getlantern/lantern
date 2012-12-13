@@ -44,13 +44,13 @@ public class DefaultPeerProxyManagerTest {
         
 
         final PeerSocketWrapper cts1 = 
-            new PeerSocketWrapper(peerUri, time4, new Socket(), true, channelGroup, stats, sockets);
+            new PeerSocketWrapper(peerUri, time4, new Socket(), true, channelGroup, stats, sockets, false);
         final PeerSocketWrapper cts2 = 
-            new PeerSocketWrapper(peerUri, time3, new Socket(), true, channelGroup, stats, sockets);
+            new PeerSocketWrapper(peerUri, time3, new Socket(), true, channelGroup, stats, sockets, false);
         final PeerSocketWrapper cts3 = 
-            new PeerSocketWrapper(peerUri, time2, new Socket(), true, channelGroup, stats, sockets);
+            new PeerSocketWrapper(peerUri, time2, new Socket(), true, channelGroup, stats, sockets, false);
         final PeerSocketWrapper cts4 = 
-            new PeerSocketWrapper(peerUri, time1, new Socket(), true, channelGroup, stats, sockets);
+            new PeerSocketWrapper(peerUri, time1, new Socket(), true, channelGroup, stats, sockets, false);
         
         anon.timedSockets.add(cts1);
         anon.timedSockets.add(cts2);
