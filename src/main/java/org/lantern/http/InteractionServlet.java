@@ -23,7 +23,6 @@ import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.SyncPath;
-import org.lantern.state.SyncService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +41,7 @@ public class InteractionServlet extends HttpServlet {
         SETTINGS,
         CLOSE,
         RESET,
+        SET
     }
     
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -53,8 +53,6 @@ public class InteractionServlet extends HttpServlet {
 
     private final ModelService modelService;
 
-    private final SyncService syncService;
-
     private final Model model;
 
     private final ModelIo modelIo;
@@ -62,11 +60,10 @@ public class InteractionServlet extends HttpServlet {
     @Inject
     public InteractionServlet(final Model model, 
         final ModelService modelService,
-        final SyncService syncService, final InternalState internalState,
+        final InternalState internalState,
         final ModelIo modelIo) {
         this.model = model;
         this.modelService = modelService;
-        this.syncService = syncService;
         this.internalState = internalState;
         this.modelIo = modelIo;
     }
@@ -109,6 +106,9 @@ public class InteractionServlet extends HttpServlet {
                 log.error("Could not parse json?");
             }
         }
+        
+        log.info("Body: '"+json+"'");
+        
         final Interaction inter = 
             Interaction.valueOf(interactionStr.toUpperCase());
         
@@ -223,7 +223,15 @@ public class InteractionServlet extends HttpServlet {
                 break;
             case CLOSE:
                 log.info("Processing settings close");
-                Events.syncModal(model, Modal.none);
+                
+                // TODO: Anything to apply here?
+                applyJson(json);
+                break;
+            case SET:
+                log.info("Processing set setting...");
+                //Events.syncModal(model, Modal.none);
+                
+                // TODO: Apply JSON.
                 break;
             case RESET:
                 log.info("Processing reset");
