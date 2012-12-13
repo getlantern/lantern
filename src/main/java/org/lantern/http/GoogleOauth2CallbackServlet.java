@@ -169,7 +169,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             this.model.setProfile(profile);
             Events.sync(SyncPath.PROFILE, profile);
             final String email = profile.getEmail();
-            this.model.getSettings().setUserId(email);
+            this.model.getSettings().setEmail(email);
         } catch (final IOException e) {
             log.warn("Could not connect to Google?", e);
         } finally {

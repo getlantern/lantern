@@ -117,8 +117,8 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         }
     }
 
-    public String getAvatarUrl() {
-        return avatarUrlBase + "?email="+getUserId();
+    public String getPicture() {
+        return avatarUrlBase + "?email="+getEmail();
     }
     
     @JsonIgnore
@@ -157,11 +157,11 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         return name;
     }
 
-    public void setUserId(String email) {
+    public void setEmail(String email) {
         this.email = email;
     }
 
-    public String getUserId() {
+    public String getEmail() {
         return email;
     }
 
@@ -273,7 +273,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         // If they have the same scores, compare by their e-mails. Otherwise
         // any entries with the same score will get consolidated.
         if (scores == 0) {
-            return this.email.compareToIgnoreCase(lre.getUserId());
+            return this.email.compareToIgnoreCase(lre.getEmail());
         } else {
             return -scores;
         }

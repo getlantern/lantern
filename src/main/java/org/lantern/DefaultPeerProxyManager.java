@@ -34,7 +34,6 @@ import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.eventbus.Subscribe;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.maxmind.geoip.LookupService;
@@ -239,7 +238,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                             peerUri, xmppHandler.getP2PClient(), 
                             peerFailureCount);
                         log.info("Got socket and adding it for peer: {}", peerUri);
-                        addConnectedPeer(peerUri, now, sock, true);
+                        addConnectedPeer(peerUri, now, sock, true, false);
 
                         if (!gotConnected) {
                             Events.eventBus().post(
@@ -256,10 +255,10 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     }
 
     private void addConnectedPeer(final URI peerUri, final long startTime, 
-        final Socket sock, final boolean addToSocketsInUse) {
+        final Socket sock, final boolean addToSocketsInUse, final boolean incoming) {
         final PeerSocketWrapper ts = 
             new PeerSocketWrapper(peerUri, startTime, sock, this.anon, 
-                this.channelGroup, this.stats, this.socketsUtil);
+                this.channelGroup, this.stats, this.socketsUtil, incoming);
         
         if (addToSocketsInUse) {
             this.timedSockets.add(ts);
@@ -393,7 +392,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         // anonymous peers? We don't here.
         final PeerSocketWrapper ts = 
             new PeerSocketWrapper(peerUri, System.currentTimeMillis(), sock, this.anon, 
-                this.channelGroup, this.stats, this.socketsUtil);
+                this.channelGroup, this.stats, this.socketsUtil, event.isIncoming());
         
         final Peer peer;
         final String userId = XmppUtils.jidToUser(peerUri.toASCIIString());

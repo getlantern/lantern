@@ -13,21 +13,7 @@ public class Transfers {
     // sum of past runs
     private long historicalUpBytes = 0;
     private long historicalDownBytes = 0;
-
-    /*
-    @JsonView(RunSetting.class)
-    public long getPeerCount() {
-        return LanternHub.statsTracker().getPeerCount();
-    }
-
-    @JsonView(RunSetting.class)
-    public long getPeerCountThisRun() {
-        return LanternHub.statsTracker().getPeerCountThisRun();
-    }
-    */
     
-    // TODO: Add ncurrent and nlifetime
-
     @JsonView({Run.class})
     public long getBpsUp() {
         //return LanternHub.statsTracker().getUpBytesPerSecond();

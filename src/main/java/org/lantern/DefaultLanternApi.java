@@ -550,7 +550,7 @@ public class DefaultLanternApi implements LanternApi {
         String message = params.get("message");
         String email = params.get("replyto");
         try {
-            new LanternFeedback(model).submit(message, email);
+            new LanternFeedback().submit(message, email);
         }
         catch (final Exception e) {
             sendServerError(e, resp, true);
