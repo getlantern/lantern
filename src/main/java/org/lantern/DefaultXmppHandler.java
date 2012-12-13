@@ -711,8 +711,12 @@ public class DefaultXmppHandler implements XmppHandler {
             (Long) json.get(LanternConstants.INVITES_KEY);
         if (invites != null) {
             LOG.info("Setting invites to: {}", invites);
-            this.model.setNinvites(invites.intValue());
-            Events.syncNInvites(invites.intValue());
+            final int oldInvites = this.model.getNinvites();
+            final int newInvites = invites.intValue();
+            if (oldInvites != newInvites) {
+                this.model.setNinvites(newInvites);
+                Events.syncNInvites(invites.intValue());
+            }
         }
         
         final Boolean inClosedBeta = 
