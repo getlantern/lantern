@@ -31,14 +31,18 @@ public class PeerSocketWrapper implements PeerSocketData, ByteTracker {
     private final long startTime;
 
     private final Stats stats;
+    
+    private final boolean incoming;
 
     public PeerSocketWrapper(final URI peerUri, final long startTime, 
         final Socket sock, final boolean anon, final ChannelGroup channelGroup,
-        final Stats stats, final LanternSocketsUtil socketsUtil) {
+        final Stats stats, final LanternSocketsUtil socketsUtil, 
+        final boolean incoming) {
         this.peerUri = peerUri;
         this.sock = sock;
         this.startTime = startTime;
         this.stats = stats;
+        this.incoming = incoming;
         this.connectionTime = System.currentTimeMillis() - startTime;
         if (anon) {
             this.requestProcessor = 
@@ -111,5 +115,9 @@ public class PeerSocketWrapper implements PeerSocketData, ByteTracker {
     public void addDownBytes(final long bytes) {
         this.downBytesPerSecond.addData(bytes);
         this.stats.addDownBytesFromPeers(bytes);
+    }
+
+    public boolean isIncoming() {
+        return incoming;
     }
 }

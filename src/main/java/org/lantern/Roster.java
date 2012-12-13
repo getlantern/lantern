@@ -156,8 +156,8 @@ public class Roster implements RosterListener {
         for (final RosterEntry entry : unordered) {
             final LanternRosterEntry lp = 
                 new LanternRosterEntry(entry, photoUrlBase(), this);
-            if (LanternUtils.isNotJid(lp.getUserId())) {
-                entries.put(lp.getUserId(), lp);
+            if (LanternUtils.isNotJid(lp.getEmail())) {
+                entries.put(lp.getEmail(), lp);
             }
         }
         return entries;
@@ -198,9 +198,9 @@ public class Roster implements RosterListener {
     }
 
     private void addEntry(final LanternRosterEntry pres) {
-        if (LanternUtils.isNotJid(pres.getUserId())) {
+        if (LanternUtils.isNotJid(pres.getEmail())) {
             log.info("Adding entry for {}", pres);
-            rosterEntries.put(pres.getUserId(), pres);
+            rosterEntries.put(pres.getEmail(), pres);
             
         } else {
             log.info("Not adding entry for {}", pres);

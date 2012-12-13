@@ -20,7 +20,9 @@ public class Location {
     }
 
     public void setCountry(final String country) {
-        this.country = country;
+        if (country != null) {
+            this.country = country.toLowerCase();
+        }
     }
     
     @JsonView({Run.class})

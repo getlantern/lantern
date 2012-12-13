@@ -2,6 +2,7 @@ package org.lantern.state;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Locale;
 
 import org.lantern.PeerSocketWrapper;
 
@@ -32,7 +33,7 @@ public class Peer {
         final String country,final boolean incoming, 
         final boolean natPmp, final boolean upnp) {
         this.userId = userId;
-        this.country = country;
+        this.country = country.toLowerCase(Locale.US);
         this.incoming = incoming;
         this.natPmp = natPmp;
         this.upnp = upnp;

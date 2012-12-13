@@ -34,6 +34,7 @@ public class Version {
         this.latest = updateEvent.getData();
         Events.asyncEventBus().post(new SyncEvent(SyncPath.VERSION_UPDATED, 
             this.latest));
+        this.installed.setUpdateAvailable(true);
     }
 
     @JsonView({Run.class})
@@ -65,6 +66,8 @@ public class Version {
         private final SemanticVersion bayeuxProtocol = new SemanticVersion(0, 0, 1);
         
         private final Date released;
+        
+        private boolean updateAvailable = false;
         
         public Installed() {
             if (NumberUtils.isNumber(LanternConstants.BUILD_TIME)) {
@@ -120,6 +123,16 @@ public class Version {
 
         public SemanticVersion getBayeuxProtocol() {
             return bayeuxProtocol;
+        }
+
+
+        public boolean isUpdateAvailable() {
+            return updateAvailable;
+        }
+
+
+        public void setUpdateAvailable(boolean updateAvailable) {
+            this.updateAvailable = updateAvailable;
         }
         
     }
