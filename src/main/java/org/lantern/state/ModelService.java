@@ -14,9 +14,13 @@ public interface ModelService {
     
     //void setMode(boolean getMode);
     
-    void setStartAtLogin(boolean start);
+    void setRunOnSystemStartup(boolean start);
     
     void setSystemProxy(boolean isSystemProxy);
+    
+    void setAutoReport(boolean report);
+    
+    //void setAutoConnect(boolean autoConnect);
     
     //void setPort(int port);
 

@@ -14,6 +14,7 @@ import org.lantern.NotInClosedBetaException;
 import org.lantern.Proxifier;
 import org.lantern.Proxifier.ProxyConfigurationError;
 import org.lantern.XmppHandler;
+import org.lantern.event.Events;
 import org.lantern.state.Settings.Mode;
 import org.lantern.win.Registry;
 import org.slf4j.Logger;
@@ -46,7 +47,7 @@ public class DefaultModelService implements ModelService {
 
     private final ModelUtils modelUtils;
 
-    private XmppHandler xmppHandler;
+    private final XmppHandler xmppHandler;
 
     @Inject
     public DefaultModelService(final Model model,
@@ -69,17 +70,18 @@ public class DefaultModelService implements ModelService {
     }
     
     @Override
-    public void setStartAtLogin(final boolean start) {
-        log.debug("Setting start at login to "+start);
+    public void setRunOnSystemStartup(final boolean runOnSystemStartup) {
+        log.debug("Setting start at login to "+runOnSystemStartup);
         
-        this.model.getSettings().setStartAtLogin(start);
+        this.model.getSettings().setRunOnSystemStartup(runOnSystemStartup);
+        Events.sync(SyncPath.START_AT_LOGIN, runOnSystemStartup);
         if (SystemUtils.IS_OS_MAC_OSX && this.launchdPlist.isFile()) {
-            setStartAtLoginOsx(start);
+            setStartAtLoginOsx(runOnSystemStartup);
         } else if (SystemUtils.IS_OS_WINDOWS) {
-            setStartAtLoginWindows(start);
+            setStartAtLoginWindows(runOnSystemStartup);
         } else if (SystemUtils.IS_OS_LINUX) {
             log.info("Setting setStartAtLogin for Linux");
-            setStartAtLoginLinux(start);
+            setStartAtLoginLinux(runOnSystemStartup);
         } else {
             log.warn("setStartAtLogin not yet implemented for {}", SystemUtils.OS_NAME);
         }
@@ -122,6 +124,7 @@ public class DefaultModelService implements ModelService {
     @Override
     public void setProxyAllSites(final boolean proxyAll) {
         this.model.getSettings().setProxyAllSites(proxyAll);
+        Events.sync(SyncPath.PROXY_ALL_SITES, proxyAll);
         try {
             proxifier.proxyAllSites(proxyAll);
         } catch (final ProxyConfigurationError e) {
@@ -174,12 +177,6 @@ public class DefaultModelService implements ModelService {
         final Settings set = this.model.getSettings();
         if (mode == set.getMode()) {
             log.info("Mode is unchanged.");
-            return;
-        }
-        
-        
-        if (!this.modelUtils.isConfigured()) {
-            log.info("Not implementing mode change -- not configured.");
             return;
         }
         
@@ -238,4 +235,18 @@ public class DefaultModelService implements ModelService {
         t.setDaemon(true);
         t.start();
     }
+
+    @Override
+    public void setAutoReport(final boolean autoReport) {
+        this.model.getSettings().setAutoReport(autoReport);
+        Events.sync(SyncPath.AUTO_REPORT, autoReport);
+    }
+
+    /*
+    @Override
+    public void setAutoConnect(boolean autoConnect) {
+        this.model.getSettings().setAutoConnect(autoConnect);
+        Events.sync(SyncPath.AUTO_CONNECT, autoConnect);
+    }
+    */
 }

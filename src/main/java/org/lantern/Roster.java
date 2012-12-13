@@ -7,8 +7,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
+
+import javax.annotation.Nullable;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
@@ -18,7 +19,6 @@ import org.codehaus.jackson.map.annotate.JsonView;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.packet.Presence;
-import org.jivesoftware.smack.packet.RosterPacket.Item;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.RandomRoutingTable;
@@ -30,10 +30,13 @@ import org.lantern.state.Model.Persistent;
 import org.lantern.state.Profile;
 import org.lantern.state.StaticSettings;
 import org.littleshoot.commom.xmpp.XmppUtils;
+import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSortedSet;
+import com.google.common.collect.Iterables;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -127,7 +130,6 @@ public class Roster implements RosterListener {
         final RosterPacket msg = XmppUtils.extendedRoster(xmppConnection);
         return getRosterEntriesByItems(msg.getRosterItems());
     }
-    */
 
     private Collection<LanternRosterEntry> getRosterEntriesByItems(
         final Collection<Item> unordered) {
@@ -144,6 +146,7 @@ public class Roster implements RosterListener {
         }
         return entries;
     }
+    */
 
     private String photoUrlBase() {
         return StaticSettings.getLocalEndpoint()+"/photo/";
@@ -185,28 +188,51 @@ public class Roster implements RosterListener {
         if (entry != null) {
             entry.setAvailable(pres.isAvailable());
             entry.setStatus(pres.getStatus());
+            if (sync) {
+                log.info("Syncing roster from onPresence...");//+ThreadUtils.dumpStack());
+                //Events.syncRoster(this);
+                synchronized (this.rosterEntries) {
+                    final Iterable<LanternRosterEntry> iterable = 
+                        this.rosterEntries.values();
+                    final Predicate<LanternRosterEntry> predicate = 
+                        new Predicate<LanternRosterEntry>() {
+
+                        @Override
+                        public boolean apply(@Nullable LanternRosterEntry input) {
+                            return entry == input;
+                        }
+                    };
+                    final int index = Iterables.indexOf(iterable, predicate);
+                    Events.syncRosterEntry(entry, index);
+                }
+            }
         } else {
             // This may be someone we have subscribed to who we're just now
             // getting the presence for.
             log.info("Adding non-roster presence: {}", email);
-            addEntry(new LanternRosterEntry(pres, photoUrlBase(), this));
+            addEntry(new LanternRosterEntry(pres, photoUrlBase(), this), true);
         }
         
-        if (sync) {
-            Events.syncRoster(this);
-        }
     }
 
-    private void addEntry(final LanternRosterEntry pres) {
+    private void addEntry(final LanternRosterEntry pres, final boolean sync) {
         if (LanternUtils.isNotJid(pres.getEmail())) {
             log.info("Adding entry for {}", pres);
-            rosterEntries.put(pres.getEmail(), pres);
+            synchronized (rosterEntries) {
+                rosterEntries.put(pres.getEmail(), pres);
+            }
             
         } else {
             log.info("Not adding entry for {}", pres);
         }
         
         log.info("Finished adding entry for {}", pres);
+        if (sync) {
+            // We have to sync the whole thing here because we need our roster
+            // indeces to be accurate for contact-specific updates that index
+            // into the roster array.
+            Events.syncRoster(this);
+        }
         //if (LanternUtils.isLanternJid(pres.getEmail()))
         //this.kscopeRoutingTable
     }
@@ -255,7 +281,7 @@ public class Roster implements RosterListener {
     public void entriesAdded(final Collection<String> entries) {
         log.debug("Adding {} entries to roster", entries.size());
         for (final String entry : entries) {
-            addEntry(new LanternRosterEntry(entry, photoUrlBase(), this));
+            addEntry(new LanternRosterEntry(entry, photoUrlBase(), this), false);
         }
         Events.syncRoster(this);
     }
@@ -267,8 +293,10 @@ public class Roster implements RosterListener {
             final String email = LanternUtils.jidToEmail(entry);
             // We remove both because we're not sure what form it's 
             // stored in.
-            rosterEntries.remove(email);
-            rosterEntries.remove(entry);
+            synchronized (rosterEntries) {
+                rosterEntries.remove(email);
+                rosterEntries.remove(entry);
+            }
         }
         Events.syncRoster(this);
     }
@@ -301,7 +329,9 @@ public class Roster implements RosterListener {
     
     public void reset() {
         this.incomingSubscriptionRequests.clear();
-        this.rosterEntries.clear();
+        synchronized (rosterEntries) {
+            this.rosterEntries.clear();
+        }
         this.kscopeRoutingTable.clear();
         this.populated = false;
     }

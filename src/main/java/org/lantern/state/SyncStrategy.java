@@ -8,8 +8,6 @@ import org.cometd.bayeux.server.ServerSession;
  */
 public interface SyncStrategy {
 
-    void sync(boolean force, ServerSession session, SyncPath path, Object value);
-
-    //void sync(boolean force, ServerSession session, SyncPath path);
+    void sync(boolean force, ServerSession session, String path, Object value);
 
 }

@@ -312,10 +312,8 @@ public class Launcher {
                 if (set.getMode() == null || set.getMode() == Mode.none) {
                     if (censored.isCensored()) {
                         set.setMode(Mode.get);
-                        set.setGetMode(true);
                     } else {
                         set.setMode(Mode.give);
-                        set.setGetMode(false);
                     }
                 }
             }
@@ -542,14 +540,13 @@ public class Launcher {
             // This won't connect in the case where the user hasn't entered 
             // their user name and password and the user is running with a UI.
             // Otherwise, it will connect.
-            if (model.getSettings().isAutoStart() && //LanternHub.settings().isConnectOnLaunch() &&
+            if (model.getSettings().isAutoConnect() && //LanternHub.settings().isConnectOnLaunch() &&
                 (modelUtils.isConfigured() || !set.isUiEnabled())) {
                 final Runnable runner = new Runnable() {
                     @Override
                     public void run() {
                         try {
                             xmpp.connect();
-                            //LanternHub.xmppHandler().connect();
                         } catch (final IOException e) {
                             LOG.info("Could not login", e);
                         } catch (final CredentialException e) {
@@ -559,8 +556,7 @@ public class Launcher {
                         }
                     }
                 };
-                final Thread t = 
-                    new Thread(runner, "Auto-Connect-From-Settings-Ready");
+                final Thread t = new Thread(runner, "Auto-Starting-Thread");
                 t.setDaemon(true);
                 t.start();
             } else {
@@ -832,9 +828,9 @@ public class Launcher {
         }
         
         if (cmd.hasOption(OPTION_GIVE)) {
-            model.getSettings().setGetMode(false);
+            model.getSettings().setMode(Mode.give);
         } else if (cmd.hasOption(OPTION_GET)) {
-            model.getSettings().setGetMode(true);
+            model.getSettings().setMode(Mode.get);
         }
         
         model.setCache(!LanternUtils.isDevMode());
