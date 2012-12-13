@@ -22,7 +22,7 @@ import com.google.common.collect.Sets;
  */
 public class Settings {
 
-    private String userId = "";
+    private String email = "";
     
     private String lang = Locale.getDefault().getLanguage();
     
@@ -90,12 +90,12 @@ public class Settings {
     }
     
     @JsonView({Run.class, Persistent.class})
-    public String getUserId() {
-        return userId;
+    public String getEmail() {
+        return email;
     }
 
-    public void setUserId(String userId) {
-        this.userId = userId;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     @JsonView(Run.class)
