@@ -325,11 +325,11 @@ the backend maintains on the frontend through comet publications:
               <tr><td><strong>stateSchema</strong><br><em>object</em></td>
                 <td>
                   <table>
-                    <tr><td><strong>major</strong><br><em>integer</em></td>
+                    <tr><td><strong>major</strong><br><em>int</em></td>
                       <td>state schema major version</td></tr>
-                    <tr><td><strong>minor</strong><br><em>integer</em></td>
+                    <tr><td><strong>minor</strong><br><em>int</em></td>
                       <td>state schema minor version</td></tr>
-                    <tr><td><strong>patch</strong><br><em>integer</em></td>
+                    <tr><td><strong>patch</strong><br><em>int</em></td>
                       <td>state schema patch version</td></tr>
                   </table><br><br>
                   <strong><small>The UI should display an 'unexpected state' error
@@ -340,11 +340,11 @@ the backend maintains on the frontend through comet publications:
               <tr><td><strong>httpApi</strong><br><em>object</em></td>
                 <td>
                   <table>
-                    <tr><td><strong>major</strong><br><em>integer</em></td>
+                    <tr><td><strong>major</strong><br><em>int</em></td>
                       <td>http api major version</td></tr>
-                    <tr><td><strong>minor</strong><br><em>integer</em></td>
+                    <tr><td><strong>minor</strong><br><em>int</em></td>
                       <td>http api minor version</td></tr>
-                    <tr><td><strong>patch</strong><br><em>integer</em></td>
+                    <tr><td><strong>patch</strong><br><em>int</em></td>
                       <td>http api patch version</td></tr>
                   </table><br><br>
                   <strong><small>The UI should display an 'unexpected state' error
@@ -355,11 +355,11 @@ the backend maintains on the frontend through comet publications:
               <tr><td><strong>bayeuxProtocol</strong><br><em>object</em></td>
                 <td>
                   <table>
-                    <tr><td><strong>major</strong><br><em>integer</em></td>
+                    <tr><td><strong>major</strong><br><em>int</em></td>
                       <td>bayeux protocol major version</td></tr>
-                    <tr><td><strong>minor</strong><br><em>integer</em></td>
+                    <tr><td><strong>minor</strong><br><em>int</em></td>
                       <td>bayeux protocol minor version</td></tr>
-                    <tr><td><strong>patch</strong><br><em>integer</em></td>
+                    <tr><td><strong>patch</strong><br><em>int</em></td>
                       <td>bayeux protocol patch version</td></tr>
                   </table><br><br>
                   <strong><small>The UI should display an 'unexpected state' error
@@ -443,8 +443,9 @@ the backend maintains on the frontend through comet publications:
           <td><strong>peers</strong><br><em>object[]</em></td>
           <td>
             <table>
-              <tr><td><strong>current</strong><br><em>string[]</em></td>
-                  <td>list of peerids of currently connected peers</td></tr>
+              <tr><td><strong>current</strong><br><em>object[]</em></td>
+                  <td>as in lifetime, but for only currently-online
+                      (or -connected) peers</td></tr>
               <tr><td><strong>lifetime</strong><br><em>object[]</em></td>
                 <td>
                   <table>
@@ -610,11 +611,11 @@ the backend maintains on the frontend through comet publications:
     </td>
   </tr>
   <tr>
-    <td><strong>ninvites</strong><br><em>integer</em></td>
+    <td><strong>ninvites</strong><br><em>int</em></td>
     <td>The number of Lantern invites the user has remaining.</td>
   </tr>
   <tr>
-    <td><strong>nproxiedSitesMax</strong><br><em>integer</em></td>
+    <td><strong>nproxiedSitesMax</strong><br><em>int</em></td>
     <td>The maximum number of configured proxied sites allowed.</td>
   </tr>
   <tr>
@@ -646,7 +647,7 @@ the backend maintains on the frontend through comet publications:
           <td>Whether in give mode or get mode.</td>
         </tr>
         <tr>
-          <td><strong>proxyPort</strong><a href="note-get-mode-only"><sup>1</sup></a><br><em>integer</em></td>
+          <td><strong>proxyPort</strong><a href="note-get-mode-only"><sup>1</sup></a><br><em>int</em></td>
           <td>The port the Lantern http proxy is running on.</td>
         </tr>
         <tr>
