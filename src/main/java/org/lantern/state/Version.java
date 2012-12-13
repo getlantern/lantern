@@ -1,5 +1,6 @@
 package org.lantern.state;
 
+import java.util.Date;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -46,46 +47,24 @@ public class Version {
     }
 
     public class Installed {
-        private final String label = LanternConstants.VERSION;
         
-        private final Api api = new Api();
+        private final SemanticVersion api;
         
-        private final long released;
+        private final SemanticVersion stateScheme = new SemanticVersion(0, 0, 1);
+        
+        private final SemanticVersion bayeuxProtocol = new SemanticVersion(0, 0, 1);
+        
+        private final Date released;
         
         public Installed() {
             if (NumberUtils.isNumber(LanternConstants.BUILD_TIME)) {
-                released = Long.parseLong(LanternConstants.BUILD_TIME);
+                released = new Date(Long.parseLong(LanternConstants.BUILD_TIME));
             } else {
-                released = System.currentTimeMillis();
+                released = new Date(System.currentTimeMillis());
             }
-        }
-
-        @JsonView({Run.class})
-        public long getReleased() {
-            return released;
-        }
-
-        @JsonView({Run.class})
-        public Api getApi() {
-            return api;
-        }
-        
-        @JsonView({Run.class})
-        public String getLabel() {
-            return label;
-        }
-    }
-
-    public class Api {
-        private final int major;
-        
-        private final int minor;
-        
-        private final int patch;
-        
-        private final boolean mock = true;
-        
-        public Api() {
+            final int major;
+            final int minor;
+            final int patch;
             if ("lantern_version_tok".equals(LanternConstants.VERSION)) {
                 major = 0;
                 minor = 0;
@@ -96,6 +75,41 @@ public class Version {
                 minor = Integer.parseInt(parts[1]);
                 patch = Integer.parseInt(StringUtils.substringBefore(parts[2], "-"));
             }
+            api = new SemanticVersion(major, minor, patch);
+        }
+
+        @JsonView({Run.class})
+        public SemanticVersion getHttpApi() {
+            return api;
+        }
+
+        public Date getReleased() {
+            return released;
+        }
+
+        public SemanticVersion getStateScheme() {
+            return stateScheme;
+        }
+
+        public SemanticVersion getBayeuxProtocol() {
+            return bayeuxProtocol;
+        }
+        
+    }
+
+    public class SemanticVersion {
+        private final int major;
+        
+        private final int minor;
+        
+        private final int patch;
+        
+        private final boolean mock = true;
+        
+        public SemanticVersion(final int major, final int minor, final int patch) {
+            this.major = major;
+            this.minor = minor;
+            this.patch = patch;
         }
 
         @JsonView({Run.class})
