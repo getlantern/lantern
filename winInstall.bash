@@ -16,7 +16,7 @@ RELEASE=$2
 echo "RELEASE flag is $RELEASE"
 
 #INSTALL4J_PASS=$2
-./installerBuild.bash $VERSION "-Dsun.arch.data.model=32 -Pwindows" || die "Could not build?"
+./installerBuild.bash $VERSION "-Dsun.arch.data.model=32 -Pwindows" $RELEASE || die "Could not build?"
 
 install4jc --win-keystore-password="#@$|bg77q" -m windows -r $VERSION ./install/lantern.install4j || die "Could not build installer"
 #install4jc --win-keystore-password=$INSTALL4J_WIN_PASS -m windows -r $VERSION ./install/lantern.install4j || die "Could not build installer"
@@ -28,6 +28,6 @@ mv install/Lantern.exe $name || die "Could not move new installer -- failed to c
 
 ./installMetaRefresh.bash win $name latest.exe $RELEASE
 
-cp $name ~/Desktop/virtual-machine-files/
+#cp $name ~/Desktop/virtual-machine-files/
 
 
