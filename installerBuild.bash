@@ -33,6 +33,18 @@ fi
 BUILD_TIME=`date +%s`
 perl -pi -e "s/build_time_tok/$BUILD_TIME/g" $CONSTANTS_FILE
 
+# The build script in Lantern EC2 instances sets this in the environment.
+if test -z $FALLBACK_SERVER_HOST; then
+    FALLBACK_SERVER_HOST="75.101.134.244";
+fi
+perl -pi -e "s/fallback_server_host_tok/$FALLBACK_SERVER_HOST/g" $CONSTANTS_FILE || die "Could not set fallback server host"
+
+# The build script in Lantern EC2 instances sets this in the environment.
+if test -z $FALLBACK_SERVER_PORT; then
+    FALLBACK_SERVER_PORT="7777";
+fi
+perl -pi -e "s/fallback_server_port_tok/$FALLBACK_SERVER_PORT/g" $CONSTANTS_FILE || die "Could not set fallback server port";
+
 GE_API_KEY=`cat lantern_getexceptional.txt`
 if [ ! -n "$GE_API_KEY" ]
   then
