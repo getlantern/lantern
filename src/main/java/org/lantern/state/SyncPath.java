@@ -19,7 +19,8 @@ public enum SyncPath {
     START_AT_LOGIN("settings.startAtLogin"),
     AUTO_CONNECT("settings.autoConnect"),
     AUTO_REPORT("settings.autoReport"),
-    PROXY_ALL_SITES("settings.proxyAllSites");
+    PROXY_ALL_SITES("settings.proxyAllSites"), 
+    SUBSCRIPTION_REQUESTS("friends.pending");
     
     private final String path;
     
