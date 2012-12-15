@@ -57,7 +57,7 @@ public class Version {
         
         private final String tag = "";
         
-        private final String git = "";
+        private final String git;
                 
         private final SemanticVersion httpApi = new SemanticVersion(0, 0, 1);
         
@@ -79,11 +79,13 @@ public class Version {
                 major = 0;
                 minor = 0;
                 patch = 1;
+                git = "";
             } else {
                 final String[] parts = LanternConstants.VERSION.split(".");
                 major = Integer.parseInt(parts[0]);
                 minor = Integer.parseInt(parts[1]);
                 patch = Integer.parseInt(StringUtils.substringBefore(parts[2], "-"));
+                git = StringUtils.substringAfter(parts[2], "-");
             }
         }
         
