@@ -149,6 +149,10 @@ public class InteractionServlet extends HttpServlet {
                 this.internalState.advanceModal(null);
                 Events.syncModel(this.model);
                 break;
+            case SET:
+                log.info("Processing set in finished modal...applying JSON\n{}", json);
+                applyJson(json);
+                break;
             default:
                 log.error("Did not handle interaction for modal {} with " +
                         "params: {}", modal, params);
@@ -228,10 +232,7 @@ public class InteractionServlet extends HttpServlet {
                 Events.syncModal(model, Modal.none);
                 break;
             case SET:
-                log.info("Processing set setting...applying JSON\n{}", json);
-                //Events.syncModal(model, Modal.none);
-                
-                // TODO: Apply JSON.
+                log.info("Processing set in setting...applying JSON\n{}", json);
                 applyJson(json);
                 break;
             case RESET:
@@ -251,7 +252,7 @@ public class InteractionServlet extends HttpServlet {
         case systemProxy:
             switch (inter) {
             case CONTINUE:
-                log.info("Processing continue");
+                log.info("Processing continue...applying JSON: {}", json);
                 applyJson(json);
                 
                 this.internalState.setModalCompleted(Modal.systemProxy);

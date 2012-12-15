@@ -76,8 +76,11 @@ public class DefaultProxyTracker implements ProxyTracker {
         this.peerProxySet.clear();
         this.laeProxySet.clear();
         this.laeProxies.clear();
+        
+        // We need to add the fallback proxy back in.
+        addGeneralProxy(LanternConstants.FALLBACK_SERVER_HOST+":"+
+                LanternConstants.FALLBACK_SERVER_PORT);
     }
-    
 
     @Override
     public void clearPeerProxySet() {

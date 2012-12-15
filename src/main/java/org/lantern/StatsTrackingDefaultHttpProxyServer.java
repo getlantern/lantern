@@ -156,6 +156,7 @@ public class StatsTrackingDefaultHttpProxyServer implements HttpProxyServer {
                 stop();
             }
         }));
+        log.debug("Started "+this);
     }
 
     @Override
