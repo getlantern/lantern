@@ -381,8 +381,11 @@ public class LanternUtils {
     }
     
     public static boolean hasNetworkConnection() {
+        LOG.debug("Checking for network connection by looking up public IP");
         final InetAddress ip = 
             new PublicIpAddress().getPublicIpAddress();
+        
+        LOG.debug("Returning result: "+ip);
         return ip != null;
     }
 

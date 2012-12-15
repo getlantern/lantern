@@ -73,7 +73,7 @@ public class DefaultModelService implements ModelService {
     public void setRunAtSystemStart(final boolean runOnSystemStartup) {
         log.debug("Setting start at login to "+runOnSystemStartup);
         
-        this.model.getSettings().setRunOnSystemStartup(runOnSystemStartup);
+        this.model.getSettings().setRunAtSystemStart(runOnSystemStartup);
         Events.sync(SyncPath.START_AT_LOGIN, runOnSystemStartup);
         if (SystemUtils.IS_OS_MAC_OSX && this.launchdPlist.isFile()) {
             setStartAtLoginOsx(runOnSystemStartup);

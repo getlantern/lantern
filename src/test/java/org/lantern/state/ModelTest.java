@@ -69,7 +69,7 @@ public class ModelTest {
         if (cur1.contains("<true/>")) {
             assertFalse(cur1.contains("<false/>"));
             //Configurator.setStartAtLogin(temp, false);
-            settings.setRunOnSystemStartup(false);
+            settings.setRunAtSystemStart(false);
             implementor.setStartAtLoginOsx(false);
             modelIo.write();
             final String newFile = FileUtils.readFileToString(temp1, "UTF-8");
@@ -77,7 +77,7 @@ public class ModelTest {
         } else if (cur1.contains("<false/>")) {
             assertFalse(cur1.contains("<true/>"));
             //Configurator.setStartAtLogin(temp, true);
-            settings.setRunOnSystemStartup(true);
+            settings.setRunAtSystemStart(true);
             implementor.setStartAtLoginOsx(true);
             modelIo.write();
             final String newFile = FileUtils.readFileToString(temp1, "UTF-8");
@@ -89,7 +89,7 @@ public class ModelTest {
         if (cur2.contains("X-GNOME-Autostart-enabled=true")) {
             assertFalse(cur2.contains("<false/>"));
             //Configurator.setStartAtLogin(temp, false);
-            settings.setRunOnSystemStartup(false);
+            settings.setRunAtSystemStart(false);
             implementor.setStartAtLoginLinux(false);
             modelIo.write();
             final String newFile = FileUtils.readFileToString(temp2, "UTF-8");
@@ -97,7 +97,7 @@ public class ModelTest {
         } else if (cur2.contains("X-GNOME-Autostart-enabled=false")) {
             assertFalse(cur2.contains("X-GNOME-Autostart-enabled=true"));
             //Configurator.setStartAtLogin(temp, true);
-            settings.setRunOnSystemStartup(true);
+            settings.setRunAtSystemStart(true);
             implementor.setStartAtLoginLinux(true);
             modelIo.write();
             final String newFile = FileUtils.readFileToString(temp2, "UTF-8");
