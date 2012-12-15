@@ -52,7 +52,7 @@ public class Settings {
     
     private Whitelist whitelist = new Whitelist();
 
-    private boolean runOnSystemStartup = true;
+    private boolean runAtSystemStart = true;
 
     private Set<String> proxies = new LinkedHashSet<String>();
 
@@ -364,12 +364,12 @@ public class Settings {
         return useCloudProxies;
     }
 
-    public boolean isRunOnSystemStartup() {
-        return runOnSystemStartup;
+    public boolean isRunAtSystemStart() {
+        return runAtSystemStart;
     }
 
     @JsonView({Run.class, Persistent.class})
-    public void setRunOnSystemStartup(boolean runOnSystemStartup) {
-        this.runOnSystemStartup = runOnSystemStartup;
+    public void setRunAtSystemStart(boolean runOnSystemStartup) {
+        this.runAtSystemStart = runOnSystemStartup;
     }
 }
