@@ -14,9 +14,11 @@ import org.slf4j.LoggerFactory;
 public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+    
+    private int index;
     private boolean available;
     private boolean away;
-    private String status;
+    private String statusMessage;
     private String subscriptionStatus;
     private String name;
     private String email;
@@ -38,7 +40,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     private final String aliasFor;
     
     private final String inv;
-    private final int sortKey;
+    private int sortKey;
     private final String avatarUrlBase;
     private final Roster roster;
     
@@ -58,20 +60,13 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     public LanternRosterEntry(final RosterEntry entry, final String avatarUrl,
             final Roster roster) {
         this(false, false, entry.getUser(), entry.getName(),  
-            extractSubscriptionStatus(entry), entry.getMc(), entry.getEmc(), entry.getW(),
-            entry.isRejected(), entry.getT(), entry.isAutosub(),
-            entry.getAliasFor(), entry.getInv(), avatarUrl, roster);
-    }
-    
-    public LanternRosterEntry(final Item entry, final String avatarUrl,
-            final Roster roster) {
-        this(false, false, entry.getUser(), entry.getName(),  
-            extractSubscriptionStatus(entry), entry.getMc(), entry.getEmc(), entry.getW(),
+            extractSubscriptionStatus(entry), entry.getMc(), entry.getEmc(), 
+            entry.getW(),
             entry.isRejected(), entry.getT(), entry.isAutosub(),
             entry.getAliasFor(), entry.getInv(), avatarUrl, roster);
     }
 
-    public LanternRosterEntry(final boolean available, final boolean away, 
+    private LanternRosterEntry(final boolean available, final boolean away, 
         final String email, final String name, final String subscriptionStatus, 
         final int mc, final int emc, final int w, final boolean rejected, 
         final String t, final boolean autosub, final String aliasFor, 
@@ -88,7 +83,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         this.email = XmppUtils.jidToUser(email);
         this.name = name == null ? "" : name;
         this.setSubscriptionStatus(subscriptionStatus == null ? "" : subscriptionStatus);
-        this.status = "";
+        this.statusMessage = "";
         this.mc = mc;
         this.emc = emc;
         this.w = w;
@@ -139,13 +134,13 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         this.away = away;
     }
 
-    public String getStatus() {
-        return status;
+    public String getStatusMessage() {
+        return statusMessage;
     }
 
-    public void setStatus(final String status) {
+    public void setStatusMessage(final String status) {
         if (status != null) {
-            this.status = status;
+            this.statusMessage = status;
         }
     }
 
@@ -230,13 +225,24 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     public int getSortKey() {
         return sortKey;
     }
+
+    public void setSortKey(final int sortKey) {
+        this.sortKey = sortKey;
+    }
+
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
     
     @Override
     public String toString() {
-        return getClass().getSimpleName()+
-                " [available=" + available + ", away=" + away
-                + ", status=" + status + ", name="
-                + name + ", email=" + email + "]";
+        return "LanternRosterEntry [available=" + available + ", status="
+                + statusMessage + ", name=" + name + ", email=" + email + ", index="
+                + index + ", sortKey=" + sortKey + "]";
     }
 
     @Override
@@ -266,7 +272,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     
     @Override
     public int compareTo(final LanternRosterEntry lre) {
-        final Integer score1 = this.sortKey;
+        final Integer score1 = this.getSortKey();
         final Integer score2 = lre.getSortKey();
         final int scores = score1.compareTo(score2);
         
