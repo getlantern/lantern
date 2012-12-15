@@ -2,6 +2,9 @@ package org.lantern.state;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 
 import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.bayeux.server.ServerSession;
@@ -22,6 +25,16 @@ public class CometDSyncStrategy implements SyncStrategy {
     
     private final Map<String, Long> lastUpdateTimes = 
         new ConcurrentHashMap<String, Long>();
+    
+    private final Executor exec = Executors.newSingleThreadExecutor(new ThreadFactory() {
+        
+        @Override
+        public Thread newThread(final Runnable r) {
+            final Thread t = new Thread(r, "Sync-Exec-Thread");
+            t.setDaemon(true);
+            return t;
+        }
+    });
     
     @Override
     public void sync(final boolean force,
@@ -55,8 +68,13 @@ public class CometDSyncStrategy implements SyncStrategy {
             log.debug("SYNCING ROSTER -- NOT LOGGING FULL");
             log.debug("Sending state to frontend:\n{}", json);
         }
-        ch.publish(data);
-        log.debug("Sync performed");
+        this.exec.execute(new Runnable() {
+            @Override
+            public void run() {
+                ch.publish(data);
+                log.debug("Sync performed");
+            }
+        });
     }
 
     private long elapsedForPath(final String path) {
