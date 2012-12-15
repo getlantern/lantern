@@ -11,9 +11,15 @@ import org.lantern.exceptional4j.ExceptionalUtils;
  */
 public class LanternConstants {
     
-    public static final String FALLBACK_SERVER_HOST = "fallback_server_host_tok";
-    public static final String FALLBACK_SERVER_PORT = "fallback_server_port_tok";
+    public static final String FALLBACK_SERVER_HOST;
+    public static final String FALLBACK_SERVER_PORT;
     
+    static {
+        final String host = "fallback_server_host_tok";
+        final String port = "fallback_server_port_tok";
+        FALLBACK_SERVER_HOST = host.endsWith("_tok") ? "75.101.134.244" : host;
+        FALLBACK_SERVER_PORT = port.endsWith("_tok") ? "7777" : port;
+    }
     public static final String FALLBACK_SERVER_USER = "fallback_server_user_tok";
     public static final String FALLBACK_SERVER_PASS = "fallback_server_pass_tok";
     
