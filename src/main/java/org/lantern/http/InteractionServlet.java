@@ -41,7 +41,9 @@ public class InteractionServlet extends HttpServlet {
         SETTINGS,
         CLOSE,
         RESET,
-        SET
+        SET,
+        PROXIEDSITES,
+        CANCEL
     }
     
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -234,8 +236,7 @@ public class InteractionServlet extends HttpServlet {
                 break;
             case RESET:
                 log.info("Processing reset");
-                handleReset();
-                Events.syncModel(this.model);
+                Events.syncModal(model, Modal.confirmReset);
                 break;
             default:
                 log.error("Did not handle interaction for modal {} with " +
@@ -272,8 +273,22 @@ public class InteractionServlet extends HttpServlet {
                     "params: {}", modal, params);
             break;
         case confirmReset:
-            log.error("Did not handle interaction for modal {} with " +
-                    "params: {}", modal, params);
+            log.info("Handling confirm reset interaction");
+            switch (inter) {
+            case CANCEL:
+                log.info("Processing cancel");
+                Events.syncModal(model, Modal.settings);
+                break;
+            case RESET:
+                handleReset();
+                Events.syncModel(this.model);
+                break;
+            default:
+                log.error("Did not handle interaction for modal {} with " +
+                        "params: {}", modal, params);
+                HttpUtils.sendClientError(resp, "give or get required");
+                break;
+            }
             break;
         case contactDevs:
             log.error("Did not handle interaction for modal {} with " +
