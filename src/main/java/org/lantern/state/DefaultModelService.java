@@ -70,7 +70,7 @@ public class DefaultModelService implements ModelService {
     }
     
     @Override
-    public void setRunOnSystemStartup(final boolean runOnSystemStartup) {
+    public void setRunAtSystemStart(final boolean runOnSystemStartup) {
         log.debug("Setting start at login to "+runOnSystemStartup);
         
         this.model.getSettings().setRunOnSystemStartup(runOnSystemStartup);

@@ -14,7 +14,7 @@ public interface ModelService {
     
     //void setMode(boolean getMode);
     
-    void setRunOnSystemStartup(boolean start);
+    void setRunAtSystemStart(boolean start);
     
     void setSystemProxy(boolean isSystemProxy);
     
