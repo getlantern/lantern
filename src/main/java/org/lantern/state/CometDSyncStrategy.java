@@ -53,6 +53,7 @@ public class CometDSyncStrategy implements SyncStrategy {
             log.debug("Synced object: {}", value);
         } else {
             log.debug("SYNCING ROSTER -- NOT LOGGING FULL");
+            log.debug("Sending state to frontend:\n{}", json);
         }
         ch.publish(data);
         log.debug("Sync performed");
