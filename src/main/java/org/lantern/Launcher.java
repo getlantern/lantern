@@ -38,6 +38,8 @@ import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
+import org.lantern.state.InternalState;
+import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
@@ -78,6 +80,8 @@ public class Launcher {
     private static ModelUtils modelUtils;
     private static Settings set;
     private static Censored censored;
+    
+    private static InternalState internalState;
     
     /**
      * Starts the proxy from the command line.
@@ -191,6 +195,7 @@ public class Launcher {
         systemTray = instance(SystemTray.class);
         modelUtils = instance(ModelUtils.class);
         localProxy = instance(LanternHttpProxyServer.class);
+        internalState = instance(InternalState.class);
         
         if (set.isUiEnabled()) {
             LOG.debug("Starting system tray..");
@@ -547,6 +552,9 @@ public class Launcher {
                     public void run() {
                         try {
                             xmpp.connect();
+                            if (model.getModal() == Modal.gtalkConnecting) {
+                                internalState.advanceModal(null);
+                            }
                         } catch (final IOException e) {
                             LOG.info("Could not login", e);
                         } catch (final CredentialException e) {
