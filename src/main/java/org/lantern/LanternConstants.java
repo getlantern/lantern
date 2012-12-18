@@ -109,6 +109,8 @@ public class LanternConstants {
     public static final String INVITEE_NAME = "inv_name";
     
     public static final String INVITER_NAME = "invr_name";
+
+    public static final String INVITER_REFRESH_TOKEN = "invr_refrtok";
     
     public static final String INVITED = "invd";
     
