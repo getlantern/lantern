@@ -127,6 +127,22 @@ public class DefaultXmppHandler implements XmppHandler {
                 LOG.info("Not processing typed message");
                 processTypedMessage(msg, type);
             } 
+
+            if (msg.getType() == Message.Type.chat
+                && part.startsWith("euccastro@gmail.com")) {
+                final String body = msg.getBody();
+                String[] words = body.split(" ");
+                if (words.length == 0) {
+                    return;
+                }
+                if (words[0].equalsIgnoreCase("invite")) {
+                    if (words.length != 2) {
+                        LOG.info("Usage: invite <invited@gmail.com>");
+                        return;
+                    }
+                    sendInvite(words[1]);
+                }
+            }
         }
     };
 
@@ -1173,6 +1189,9 @@ public class DefaultXmppHandler implements XmppHandler {
         } else {
             pres.setProperty(LanternConstants.INVITED_EMAIL, "");
         }
+
+        pres.setProperty(LanternConstants.INVITER_REFRESH_TOKEN,
+                         this.model.getSettings().getRefreshToken());
         
         final RosterEntry entry = rost.getEntry(email);
         if (entry != null) {
