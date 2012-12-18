@@ -188,11 +188,13 @@ public class Launcher {
         messageService = instance(MessageService.class);
         xmpp = instance(DefaultXmppHandler.class);
         jettyLauncher = instance(JettyLauncher.class);
-        browserService = instance(BrowserService.class);
+        if (set.isUiEnabled()) {
+            browserService = instance(BrowserService.class);
+            systemTray = instance(SystemTray.class);
+        }
         sslProxy = instance(SslHttpProxyServer.class);
         localCipherProvider = instance(LocalCipherProvider.class);
         plainTextAnsererRelayProxy = instance(PlainTestRelayHttpProxyServer.class);
-        systemTray = instance(SystemTray.class);
         modelUtils = instance(ModelUtils.class);
         localProxy = instance(LanternHttpProxyServer.class);
         internalState = instance(InternalState.class);
@@ -242,7 +244,9 @@ public class Launcher {
             // If setup is complete and we're not running on startup, open
             // the dashboard.
             else if (model.isSetupComplete()) {
-                browserService.openBrowserWhenPortReady();
+                if (set.isUiEnabled()) {
+                    browserService.openBrowserWhenPortReady();
+                }
                 //jettyLauncher.openBrowserWhenReady();
                 // Wait for an internet connection before starting the XMPP
                 // connection.
