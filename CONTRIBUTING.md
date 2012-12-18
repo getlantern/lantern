@@ -23,6 +23,8 @@ contributors to follow to facilitate the process:
     checkout fix/master/my_contribution`.  Please avoid working directly on the
     `master` branch.
 * Make commits of logical units.
+* Match our code style. The provided [eclipse-format.xml](https://github.com/getlantern/lantern/tree/master/eclipse-style.xml)
+  file may be of help.
 * Check for unnecessary whitespace with `git diff --check` before committing.
 * Make sure your commit messages are in the proper format.
 
