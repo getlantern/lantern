@@ -1,150 +1,245 @@
 package org.lantern;
 
 import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
+import java.util.HashMap;
 
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
 import org.littleshoot.util.NetworkUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.teleal.cling.DefaultUpnpServiceConfiguration;
-import org.teleal.cling.UpnpService;
-import org.teleal.cling.UpnpServiceImpl;
-import org.teleal.cling.support.model.PortMapping;
-import org.teleal.cling.transport.spi.InitializationException;
+
+import fr.free.miniupnp.IGDdatas;
+import fr.free.miniupnp.MiniupnpcLibrary;
+import fr.free.miniupnp.UPNPDev;
+import fr.free.miniupnp.UPNPUrls;
 
 public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
-    
+
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
-    private final static Collection<UpnpService> allServices =
-            new ArrayList<UpnpService>();
+
+    private static final int UPNP_DELAY = 2000;
+
+    private static final MiniupnpcLibrary miniupnpc = MiniupnpcLibrary.INSTANCE;
 
     private final Stats stats;
-    
+
+    private String publicIp;
+
+    private int maxMappingIndex = 1;
+
+    HashMap<Integer, UpnpMapping> mappings = new HashMap<Integer, UpnpMapping>();
+
     public Upnp(final Stats stats) {
         this.stats = stats;
-        final String HACK_STREAM_HANDLER_SYSTEM_PROPERTY = 
-            "hackStreamHandlerProperty";
-        System.setProperty(HACK_STREAM_HANDLER_SYSTEM_PROPERTY, 
-            "alreadyWorkedAroundTheEvilJDK");
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                removeAllMappings();
+            }
+        });
+    }
+
+    public void removeAllMappings() {
+        for (UpnpMapping mapping : mappings.values()) {
+            removeUpnpMapping(mapping);
+        }
+    }
+
+    private void removeUpnpMapping(UpnpMapping mapping) {
+        int ret;
+        UPNPDev devlist = miniupnpc.upnpDiscover(UPNP_DELAY, (String) null,
+                (String) null, 0, 0, IntBuffer.allocate(1));
+        if (devlist == null) {
+            // no devices, so no way to remove mapping
+            return;
+        }
+        final UPNPUrls urls = new UPNPUrls();
+        final IGDdatas data = new IGDdatas();
+
+        try {
+            ByteBuffer lanaddr = ByteBuffer.allocate(16);
+            ret = miniupnpc.UPNP_GetValidIGD(devlist, urls, data, lanaddr, 16);
+            if (ret == 0) {
+                return;
+            }
+            logIGDResponse(ret, urls);
+
+            ret = miniupnpc.UPNP_DeletePortMapping(
+                    urls.controlURL.getString(0),
+                    zeroTerminatedString(data.first.servicetype), ""
+                            + mapping.externalPort, mapping.prot.toString(),
+                    null);
+            if (ret != MiniupnpcLibrary.UPNPCOMMAND_SUCCESS)
+                log.debug("DelPortMapping() failed with code " + ret);
+        } finally {
+            miniupnpc.FreeUPNPUrls(urls);
+            miniupnpc.freeUPNPDevlist(devlist);
+        }
     }
 
     @Override
-    public void removeUpnpMapping(final int mappingIndex) {
-        // The underlying implementation just removes mappings on shutdown,
-        // so we don't need to do this here.
+    public synchronized void removeUpnpMapping(final int mappingIndex) {
+        removeUpnpMapping(mappings.get(mappingIndex));
+        mappings.remove(mappingIndex);
     }
-    
+
     @Override
-    public int addUpnpMapping(final PortMappingProtocol prot, 
-        final int localPort, final int externalPortRequested,
-        final PortMapListener portMapListener) {
+    public synchronized int addUpnpMapping(final PortMappingProtocol prot,
+            final int localPort, final int externalPortRequested,
+            final PortMapListener portMapListener) {
+
         if (NetworkUtils.isPublicAddress()) {
             return 1;
         }
-        final String lh;
+        final String localhost;
         try {
-            lh = NetworkUtils.getLocalHost().getHostAddress();
+            localhost = NetworkUtils.getLocalHost().getHostAddress();
         } catch (final UnknownHostException e) {
             log.error("Could not find host?", e);
             return -1;
         }
-        
+
         // This call will block unless we thread it here.
         final Runnable upnpRunner = new Runnable() {
             @Override
             public void run() {
-                addMapping(prot, externalPortRequested, 
-                    portMapListener, lh);
+                addMapping(prot, externalPortRequested, localPort,
+                        portMapListener, localhost);
             }
         };
         final Thread mapper = new Thread(upnpRunner, "UPnP-Mapping-Thread");
         mapper.setDaemon(true);
         mapper.start();
-        
-        // The mapping index isn't relevant in this case because the underlying
-        // UPnP implementation handles removing mappings automatically. We
-        // return a positive number to indicate the mapping hasn't failed at
-        // this point.
-        return 1;
-    }
-    
-    private static class LanternUpnpServiceConfiguration extends DefaultUpnpServiceConfiguration {
-        
-        @Override
-        protected Executor createDefaultExecutor() {
-            return Executors.newCachedThreadPool(new ThreadFactory() {
 
-                private int count = 0;
-                
-                @Override
-                public Thread newThread(Runnable r) {
-                    final Thread t = new Thread(r, 
-                        "Lantern-UPnP-Default-Thread-Pool-"+count);
-                    t.setDaemon(true);
-                    count++;
-                    return t;
-                }
-                
-            });
-        }
+        int index = maxMappingIndex++;
+        UpnpMapping mapping = new UpnpMapping();
+        mapping.prot = prot;
+        mapping.internalPort = localPort;
+        mapping.externalPort = externalPortRequested;
+        mappings.put(index, mapping);
+        return index;
     }
 
-    protected void addMapping(final PortMappingProtocol prot, 
-        final int externalPortRequested, 
-        final PortMapListener portMapListener, final String lh) {
-        final PortMapping desiredMapping = new PortMapping(
-            externalPortRequested,
-            lh,
-            prot == PortMappingProtocol.TCP ? PortMapping.Protocol.TCP : PortMapping.Protocol.UDP,
-            "Lantern Port Mapping"
-        );
-        final UpnpService upnpService;
-        try {
-            upnpService = new UpnpServiceImpl(new LanternUpnpServiceConfiguration(), 
-                new UpnpPortMappingListener(stats, portMapListener, desiredMapping)
-            );
-            allServices.add(upnpService);
-        } catch (final InitializationException e) {
-            final String msg = e.getMessage();
-            if (msg.contains("no Inet4Address associated")) {
-                log.info("Could not map -- no internet access?", e);
-            } else {
-                log.error("Could not map port", e);
-            }
+    class UpnpMapping {
+        public PortMappingProtocol prot;
+        public int internalPort;
+        public int externalPort;
+    }
+
+    protected void addMapping(final PortMappingProtocol prot,
+            final int externalPortRequested, int localPort,
+            final PortMapListener portMapListener, final String lh) {
+
+        ByteBuffer lanaddr = ByteBuffer.allocate(16);
+        ByteBuffer intClient = ByteBuffer.allocate(16);
+        ByteBuffer intPort = ByteBuffer.allocate(6);
+        ByteBuffer desc = ByteBuffer.allocate(80);
+        ByteBuffer enabled = ByteBuffer.allocate(4);
+        ByteBuffer leaseDuration = ByteBuffer.allocate(16);
+        int ret;
+
+        final UPNPUrls urls = new UPNPUrls();
+        final IGDdatas data = new IGDdatas();
+
+        UPNPDev devlist = miniupnpc.upnpDiscover(UPNP_DELAY, (String) null,
+                (String) null, 0, 0, IntBuffer.allocate(1));
+        if (devlist == null) {
+            portMapListener.onPortMapError();
             return;
         }
-
-        Runtime.getRuntime().addShutdownHook(new Thread() {
-            @Override
-            public void run() {
-                upnpService.shutdown();
+        try {
+            ret = miniupnpc.UPNP_GetValidIGD(devlist, urls, data, lanaddr, 16);
+            if (ret == 0) {
+                log.debug("No valid UPNP Internet Gateway Device found.");
+                portMapListener.onPortMapError();
+                return;
             }
-        });
-        
-        upnpService.getControlPoint().search();
+            logIGDResponse(ret, urls);
+
+            log.debug("Local LAN ip address : "
+                    + zeroTerminatedString(lanaddr.array()));
+            ByteBuffer externalAddress = ByteBuffer.allocate(16);
+            miniupnpc.UPNP_GetExternalIPAddress(urls.controlURL.getString(0),
+                    zeroTerminatedString(data.first.servicetype),
+                    externalAddress);
+            publicIp = zeroTerminatedString(externalAddress.array());
+            log.debug("ExternalIPAddress = " + publicIp);
+
+            ret = miniupnpc.UPNP_AddPortMapping(urls.controlURL.getString(0), // controlURL
+                    zeroTerminatedString(data.first.servicetype), // servicetype
+                    "" + externalPortRequested, // external Port
+                    "" + localPort, // internal Port
+                    zeroTerminatedString(lanaddr.array()), // internal client
+                    "added via miniupnpc/JAVA !", // description
+                    prot.toString(), // protocol UDP or TCP
+                    null, // remote host (useless)
+                    "0"); // leaseDuration
+
+            if (ret != MiniupnpcLibrary.UPNPCOMMAND_SUCCESS) {
+                portMapListener.onPortMapError();
+                return;
+            }
+
+            // get the local port (but didn't we request one?)
+            ret = miniupnpc.UPNP_GetSpecificPortMappingEntry(
+                    urls.controlURL.getString(0),
+                    zeroTerminatedString(data.first.servicetype), ""
+                            + externalPortRequested, prot.toString(),
+                    intClient, intPort, desc, enabled, leaseDuration);
+
+            log.debug("InternalIP:Port = "
+                    + zeroTerminatedString(intClient.array()) + ":"
+                    + zeroTerminatedString(intPort.array()) + " ("
+                    + zeroTerminatedString(desc.array()) + ")");
+
+            stats.setUpnp(true);
+        } finally {
+            miniupnpc.FreeUPNPUrls(urls);
+            miniupnpc.freeUPNPDevlist(devlist);
+        }
+        portMapListener.onPortMap(externalPortRequested);
+    }
+
+    private void logIGDResponse(int i, final UPNPUrls urls) {
+        switch (i) {
+        case 1:
+            log.debug("Found valid IGD : " + urls.controlURL.getString(0));
+            break;
+        case 2:
+            log.debug("Found a (not connected?) IGD : "
+                    + urls.controlURL.getString(0));
+            log.debug("Trying to continue anyway");
+            break;
+        case 3:
+            log.debug("UPnP device found. Is it an IGD ? : "
+                    + urls.controlURL.getString(0));
+            log.debug("Trying to continue anyway");
+            break;
+        default:
+            log.debug("Found device (igd ?) : " + urls.controlURL.getString(0));
+            log.debug("Trying to continue anyway");
+
+        }
+    }
+
+    private String zeroTerminatedString(byte[] array) {
+        for (int i = 0; i < array.length; ++i) {
+            if (array[i] == 0) {
+                return new String(array, 0, i);
+            }
+        }
+        return new String(array);
     }
 
     @Override
     public void shutdown() {
-        final Runnable shutdown = new Runnable() {
-            
-            @Override
-            public void run() {
-                for (final UpnpService service : allServices) {
-                    log.info("Shutting down UPNP service: {}", service);
-                    service.shutdown();
-                }
-            }
-        };
-        final Thread t = new Thread(shutdown, "Lantern-UPNP-Shutdown-Thread");
-        t.setDaemon(true);
-        t.start();
+
+    }
+
+    public String getPublicIpAddress() {
+        return publicIp;
     }
 }
