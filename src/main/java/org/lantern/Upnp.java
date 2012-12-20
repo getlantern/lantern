@@ -3,6 +3,8 @@ package org.lantern;
 import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 
 import org.lastbamboo.common.portmapping.PortMapListener;
@@ -43,12 +45,10 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
     }
 
     public void removeAllMappings() {
-        for (UpnpMapping mapping : mappings.values()) {
-            removeUpnpMapping(mapping);
-        }
+        removeUpnpMappings(mappings.values());
     }
 
-    private void removeUpnpMapping(UpnpMapping mapping) {
+    private void removeUpnpMappings(Collection<UpnpMapping> mappings) {
         int ret;
         UPNPDev devlist = miniupnpc.upnpDiscover(UPNP_DELAY, (String) null,
                 (String) null, 0, 0, IntBuffer.allocate(1));
@@ -66,14 +66,15 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
                 return;
             }
             logIGDResponse(ret, urls);
-
-            ret = miniupnpc.UPNP_DeletePortMapping(
+            for (UpnpMapping mapping : mappings) {
+                ret = miniupnpc.UPNP_DeletePortMapping(
                     urls.controlURL.getString(0),
                     zeroTerminatedString(data.first.servicetype), ""
                             + mapping.externalPort, mapping.prot.toString(),
                     null);
-            if (ret != MiniupnpcLibrary.UPNPCOMMAND_SUCCESS)
-                log.debug("DelPortMapping() failed with code " + ret);
+                if (ret != MiniupnpcLibrary.UPNPCOMMAND_SUCCESS)
+                    log.debug("DeletePortMapping() failed with code " + ret);
+            }
         } finally {
             miniupnpc.FreeUPNPUrls(urls);
             miniupnpc.freeUPNPDevlist(devlist);
@@ -82,7 +83,7 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
 
     @Override
     public synchronized void removeUpnpMapping(final int mappingIndex) {
-        removeUpnpMapping(mappings.get(mappingIndex));
+        removeUpnpMappings(Arrays.asList(mappings.get(mappingIndex)));
         mappings.remove(mappingIndex);
     }
 
