@@ -59,19 +59,20 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
         final UPNPUrls urls = new UPNPUrls();
         final IGDdatas data = new IGDdatas();
 
+        ByteBuffer lanaddr = ByteBuffer.allocate(16);
+        ret = miniupnpc.UPNP_GetValidIGD(devlist, urls, data, lanaddr, 16);
+        if (ret == 0) {
+            miniupnpc.freeUPNPDevlist(devlist);
+            return;
+        }
         try {
-            ByteBuffer lanaddr = ByteBuffer.allocate(16);
-            ret = miniupnpc.UPNP_GetValidIGD(devlist, urls, data, lanaddr, 16);
-            if (ret == 0) {
-                return;
-            }
             logIGDResponse(ret, urls);
             for (UpnpMapping mapping : mappings) {
                 ret = miniupnpc.UPNP_DeletePortMapping(
-                    urls.controlURL.getString(0),
-                    zeroTerminatedString(data.first.servicetype), ""
-                            + mapping.externalPort, mapping.prot.toString(),
-                    null);
+                        urls.controlURL.getString(0),
+                        zeroTerminatedString(data.first.servicetype), ""
+                                + mapping.externalPort,
+                        mapping.prot.toString(), null);
                 if (ret != MiniupnpcLibrary.UPNPCOMMAND_SUCCESS)
                     log.debug("DeletePortMapping() failed with code " + ret);
             }
@@ -151,13 +152,15 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
             portMapListener.onPortMapError();
             return;
         }
+        ret = miniupnpc.UPNP_GetValidIGD(devlist, urls, data, lanaddr, 16);
+        if (ret == 0) {
+            log.debug("No valid UPNP Internet Gateway Device found.");
+            portMapListener.onPortMapError();
+            miniupnpc.freeUPNPDevlist(devlist);
+            return;
+        }
         try {
-            ret = miniupnpc.UPNP_GetValidIGD(devlist, urls, data, lanaddr, 16);
-            if (ret == 0) {
-                log.debug("No valid UPNP Internet Gateway Device found.");
-                portMapListener.onPortMapError();
-                return;
-            }
+
             logIGDResponse(ret, urls);
 
             log.debug("Local LAN ip address : "
