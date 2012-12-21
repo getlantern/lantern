@@ -27,5 +27,5 @@ mvn install:install-file -DgroupId=cx.ath.matthew -DartifactId=debug -Dversion=1
 mvn install:install-file -DgroupId=org.freedesktop.dbus -DartifactId=dbus-java -Dversion=2.7 -Dpackaging=jar -Dfile=lib/libdbus-java-2.7.jar -DgeneratePom=true
 mvn install:install-file -DgroupId=com.barchart.udt -DartifactId=barchart-udt4-bundle -Dversion=1.0.3-SNAPSHOT -Dpackaging=jar -Dfile=lib/barchart-udt4-bundle-1.0.3-SNAPSHOT.jar -DgeneratePom=true
 mvn install:install-file -DgroupId=com.barchart.udt -DartifactId=barchart-udt4 -Dversion=1.0.3-SNAPSHOT -Dpackaging=jar -Dfile=lib/barchart-udt4-1.0.3-SNAPSHOT.jar -DgeneratePom=true
-mvn install:install-file -DgroupId=fr.free.miniupnp -DartifactId=miniupnp-java -Dversion=1.7 -Dpackaging=jar -Dfile=lib/miniupnpc_linux.jar -DgeneratePom=true
+mvn install:install-file -DgroupId=fr.free.miniupnp -DartifactId=miniupnp-java -Dversion=1.7 -Dpackaging=jar -Dfile=lib/miniupnpc_win32.jar -DgeneratePom=true
 
