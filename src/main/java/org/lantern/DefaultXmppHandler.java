@@ -298,8 +298,7 @@ public class DefaultXmppHandler implements XmppHandler {
         case connected:
             // We wait until we're logged in before creating our roster.
             final XMPPConnection conn = getP2PClient().getXmppConnection();
-            final org.jivesoftware.smack.Roster ros = conn.getRoster();
-            this.roster.onRoster(ros);
+            this.roster.onRoster(conn);
             break;
         case notConnected:
             this.roster.reset();
