@@ -57,8 +57,17 @@ public class ChromeRunner {
             final String ad = System.getenv("APPDATA");
             return ad + "/Google/Chrome/Application/chrome.exe";
         } else if (SystemUtils.IS_OS_WINDOWS) {
+            final String chromePath = "/Google/Chrome/Application/chrome.exe";
             final String ad = System.getenv("APPDATA");
-            return ad + "/Local/Google/Chrome/Application/chrome.exe";
+            final String roaming = ad + chromePath;
+            final File roamingFile = new File(roaming);
+            if (roamingFile.isFile() && roamingFile.canExecute()) {
+                return roaming;
+            } else {
+                final String adl = System.getenv("LOCALAPPDATA");
+                final String local = adl + chromePath;
+                return local;
+            }
         }
         /*
          * Should be something like:
