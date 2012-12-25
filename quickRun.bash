@@ -4,15 +4,15 @@ function die() {
   exit 1
 }
 
-fullPath=`dirname $0`
-#jar=`find $fullPath/target/*with-dependencies.jar`
-jar=`find $fullPath/target/lantern*SNAPSHOT.jar`
-cp=`echo $jar | sed 's,./,'$fullPath'/,'`
+path=`dirname $0`
+# Launching lantern only works from within its directory.
+cd $path
+jar=target/lantern*SNAPSHOT.jar
 
 # We need to copy the bouncycastle jar in separately because it's signed. The shaded jar
 # include it in the classpath in its manifest.
 test -f target/bcprov-jdk16-1.46.jar || cp install/common/bcprov-jdk16-1.46.jar target/
-javaArgs="-jar "$cp" $*"
+javaArgs="-jar $jar $*"
 
 if [ "$RUN_LANTERN_DEBUG_PORT" ]
     then
