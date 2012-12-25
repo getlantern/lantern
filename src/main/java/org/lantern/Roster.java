@@ -17,11 +17,13 @@ import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
+import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.RandomRoutingTable;
 import org.kaleidoscope.TrustGraphNodeId;
+import org.lantern.LanternRosterEntry.Uploaded;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
@@ -78,26 +80,26 @@ public class Roster implements RosterListener {
         Events.register(this);
     }
 
-    public void onRoster(final org.jivesoftware.smack.Roster roster) {
+    public void onRoster(final XMPPConnection conn) {
         log.info("Got logged in event");
         // Threaded to avoid this holding up setting the logged-in state in
         // the UI.
-        this.smackRoster = roster;
+        final org.jivesoftware.smack.Roster ros = conn.getRoster();
+        this.smackRoster = ros;
         final Runnable r = new Runnable() {
             @Override
             public void run() {
-                roster.setSubscriptionMode(
+                ros.setSubscriptionMode(
                     org.jivesoftware.smack.Roster.SubscriptionMode.manual);
-                roster.addRosterListener(Roster.this);
-                final Collection<RosterEntry> unordered = 
-                    roster.getEntries();
+                ros.addRosterListener(Roster.this);
+                final Collection<RosterEntry> unordered = ros.getEntries();
                 log.debug("Got roster entries!!");
                 
                 rosterEntries = getRosterEntries(unordered);
                 
                 for (final RosterEntry entry : unordered) {
                     final Iterator<Presence> presences = 
-                        roster.getPresences(entry.getUser());
+                        ros.getPresences(entry.getUser());
                     while (presences.hasNext()) {
                         final Presence p = presences.next();
                         processPresence(p, false, false);
@@ -107,11 +109,26 @@ public class Roster implements RosterListener {
                 log.debug("Finished populating roster");
                 log.info("kscope is: {}", kscopeRoutingTable);
                 fullRosterSync();
+                fetchLanternFriends(conn);
             }
         };
         final Thread t = new Thread(r, "Roster-Populating-Thread");
         t.setDaemon(true);
         t.start();
+    }
+
+    /**
+     * This method uploads the roster to our servers to see which of them are
+     * also running Lantern.
+     * 
+     * @param conn The connection to the XMPP server.
+     */
+    private void fetchLanternFriends(final XMPPConnection conn) {
+        final Presence forHub = new Presence(Presence.Type.available);
+        forHub.setTo(LanternConstants.LANTERN_JID);
+        final String json = LanternUtils.jsonify(getEntries(), Uploaded.class);
+        forHub.setProperty(LanternConstants.ROSTER, json);
+        conn.sendPacket(forHub);
     }
 
     /**

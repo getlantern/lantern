@@ -82,6 +82,7 @@ public class LanternConstants {
     public static final String WHITELIST_REMOVALS = "wr";
     public static final String SERVERS = "s";
     public static final String UPDATE_TIME = "ut";
+    public static final String ROSTER = "roster";
     
     
     /**
