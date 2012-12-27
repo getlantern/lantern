@@ -2,6 +2,7 @@
 .PHONY: cull uncull 
 .PHONY: test.otto- test.v8- digest.json- report
 .PHONY: release gauntlet try try-tmp look copy
+.PHONY: panicking
 
 otto := ./otto -underscore=false
 TEST := python ./data/tools/packaging/test262.py --test=data --non_strict_only
@@ -82,3 +83,12 @@ look: .fail
 
 copy: .fail
 	@echo `readlink $<` | pbcopy
+
+panicking:
+	rm -rf $@
+	mkdir $@
+	for panic in `$(MAKE) report | grep ^ch`; do \
+		echo $$panic; \
+		cp suite/$$panic.js $@; \
+	done
+
