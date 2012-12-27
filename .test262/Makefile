@@ -19,10 +19,12 @@ test-otto:
 	$(TEST) $(WITH_otto)
 
 test.otto:
-	$(TEST) $(WITH_otto) | tee $@
+	$(TEST) $(WITH_otto) | tee $@.new
+	mv $@.new $@
 
 test.otto-: 
-	$(MAKE) -B test.otto
+	rm -f $(@:-=)
+	$(MAKE) $(@:-=)
 
 test-v8:
 	$(TEST) $(WITH_v8)
@@ -42,7 +44,8 @@ digest.json: test.otto
 	./digest < test.otto > $@
 
 digest.json-:
-	$(MAKE) -B digest.json
+	rm -f $(@:-=)
+	$(MAKE) $(@:-=)
 
 report: digest.json
 	@./report < digest.json

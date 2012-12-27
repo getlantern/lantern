@@ -383,6 +383,12 @@ The return value will (generally) be one of:
     Date
     RegExp
 
+#### func (Value) Export
+
+```go
+func (value Value) Export() (interface{}, error)
+```
+
 #### func (Value) IsBoolean
 
 ```go

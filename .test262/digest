@@ -33,7 +33,6 @@ while (<STDIN>) {
     chomp;
     if (m/^=== (\S+)/) {
         $test = $1;
-        commit();
     } elsif (m/^(\S+) passed|as expected$/) {
         $test = $1;
         $pass = 1;
@@ -41,6 +40,7 @@ while (<STDIN>) {
     } elsif (m/^--- (errors|output) ---/) {
         $read = 1;
     } elsif (m/^===$/) {
+        commit();
         $read = 0;
     } elsif (m/^#/) {
         next;
