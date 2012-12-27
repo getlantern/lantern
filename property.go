@@ -80,6 +80,7 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 		}
 
 		if objectDescriptor.hasProperty("writable") {
+			descriptor.value = UndefinedValue() // FIXME Is this the right place for this?
 			if objectDescriptor.get("writable").toBoolean() {
 				mode |= 0100
 			}
