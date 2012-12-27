@@ -20,8 +20,8 @@ test-otto:
 	$(TEST) $(WITH_otto)
 
 test.otto:
-	$(TEST) $(WITH_otto) | tee $@.new
-	mv $@.new $@
+	$(TEST) $(WITH_otto) | tee $@.tmp
+	mv $@.tmp $@
 
 test.otto-: 
 	rm -f $(@:-=)
