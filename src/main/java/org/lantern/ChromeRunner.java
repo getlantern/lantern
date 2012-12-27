@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -49,25 +50,14 @@ public class ChromeRunner {
         } else if (SystemUtils.IS_OS_LINUX) {
             final String path1 = "/usr/bin/google-chrome";
             final File opt1 = new File(path1);
-            if (opt1.isFile()) return path1;
-            
-            // TODO: Clean this up across OSes.
+            if (opt1.isFile() && opt1.canExecute()) return path1;
             return "/usr/bin/chromium-browser";
         } else if (SystemUtils.IS_OS_WINDOWS_XP) {
             final String ad = System.getenv("APPDATA");
             return ad + "/Google/Chrome/Application/chrome.exe";
         } else if (SystemUtils.IS_OS_WINDOWS) {
-            final String chromePath = "/Google/Chrome/Application/chrome.exe";
-            final String ad = System.getenv("APPDATA");
-            final String roaming = ad + chromePath;
-            final File roamingFile = new File(roaming);
-            if (roamingFile.isFile() && roamingFile.canExecute()) {
-                return roaming;
-            } else {
-                final String adl = System.getenv("LOCALAPPDATA");
-                final String local = adl + chromePath;
-                return local;
-            }
+            return findWindowsExe("APPDATA", "LOCALAPPDATA", "PROGRAMFILES", 
+                "ProgramW6432");
         }
         /*
          * Should be something like:
@@ -76,6 +66,21 @@ public class ChromeRunner {
          * Windows Vista    C:\Users\%USERNAME%\AppData\Local\Google\Chrome\Application\chrome.exe
          */
         throw new UnsupportedOperationException("This is an experimental feature!");
+    }
+    
+    private String findWindowsExe(final String... opts) {
+        final String chromePath = "/Google/Chrome/Application/chrome.exe";
+        for (final String opt : opts) {
+            final String base = System.getenv(opt);
+            final String path = base + chromePath;
+            final File candidate = new File(path);
+            if (candidate.isFile() && candidate.canExecute()) {
+                return opt;
+            }
+        }
+        throw new UnsupportedOperationException(
+            "Could not find Chrome on Windows!! Searched paths:\n"+
+                    Arrays.asList(opts));
     }
 
     public void open() throws IOException {
