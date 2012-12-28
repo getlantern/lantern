@@ -58,6 +58,7 @@ func TestTransformRegExp(t *testing.T) {
 
 	Is(transformRegExp(`\\|'|\r|\n|\t|\u2028|\u2029`), `\\|'|\r|\n|\t|\x{2028}|\x{2029}`)
 	Is(transformRegExp(`\x`), `x`)
+	Is(transformRegExp(`\u0z01\x\undefined`), `u0z01xundefined`)
 }
 
 func TestIsValidRegExp(t *testing.T) {

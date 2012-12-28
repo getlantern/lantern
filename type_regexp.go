@@ -128,9 +128,8 @@ func execResultToArray(runtime *_runtime, target string, result []int) *_object 
 var transformRegExp_matchSlashU = regexp.MustCompile(`\\u([[:xdigit:]]{1,4})`)
 var transformRegExp_escape_c = regexp.MustCompile(`\\c([A-Za-z])`)
 var transformRegExp_unescape_c = regexp.MustCompile(`\\c`)
-var transformRegExp_unescape = regexp.MustCompile(strings.NewReplacer("\n", "", "\t", "", " ", "").Replace(`
-
-	(?:
+var transformRegExp_unescape = []*regexp.Regexp{
+	regexp.MustCompile(strings.NewReplacer("\n", "", "\t", "", " ", "").Replace(`
 		\\(
 		[
 			\x{0043}\x{0045}-\x{004F}
@@ -140,40 +139,24 @@ var transformRegExp_unescape = regexp.MustCompile(strings.NewReplacer("\n", "", 
 			\x{0080}-\x{FFFF}
 		]
 		)()
-	) |
-	(?:
-		\\(u)([^[:xdigit:]])
-	) |
-	(?:
-		\\(u)([:xdigit:][^[:xdigit:]])
-	) |
-	(?:
-		\\(u)([:xdigit:][:xdigit:][^[:xdigit:]])
-	) |
-	(?:
-		\\(u)([:xdigit:][:xdigit:][:xdigit:][^[:xdigit:]])
-	) |
-	(?:
-		\\(x)([^[:xdigit:]])
-	) |
-	(?:
-		\\(x)([:xdigit:][^[:xdigit:]])
-	)
+	`)),
+	regexp.MustCompile(`\\(u)([^[:xdigit:]])`),
+	regexp.MustCompile(`\\(u)([[:xdigit:]][^[:xdigit:]])`),
+	regexp.MustCompile(`\\(u)([[:xdigit:]][[:xdigit:]][^[:xdigit:]])`),
+	regexp.MustCompile(`\\(u)([[:xdigit:]][[:xdigit:]][[:xdigit:]][^[:xdigit:]])`),
+	regexp.MustCompile(`\\(x)([^[:xdigit:]])`),
+	regexp.MustCompile(`\\(x)([[:xdigit:]][^[:xdigit:]])`),
+}
 
-`))
-var transformRegExp_unescapeDollar = regexp.MustCompile(strings.NewReplacer("\n", "", "\t", "", " ", "").Replace(`
-
-	(?:
-		\\([cux])$
-	)
-
-`))
+var transformRegExp_unescapeDollar = regexp.MustCompile(`\\([cux])$`)
 // TODO Go "regexp" bug? Can't do: (?:)|(?:$)
 
 func transformRegExp(ecmaRegExp string) (goRegExp string) {
 	// https://bugzilla.mozilla.org/show_bug.cgi/show_bug.cgi?id=334158
 	tmp := []byte(ecmaRegExp)
-	tmp = transformRegExp_unescape.ReplaceAll(tmp, []byte(`$1$2`))
+	for _, value := range transformRegExp_unescape {
+		tmp = value.ReplaceAll(tmp, []byte(`$1$2`))
+	}
 	tmp = transformRegExp_escape_c.ReplaceAllFunc(tmp, func(in []byte) []byte{
 		in = bytes.ToUpper(in)
 		return []byte(fmt.Sprintf("\\%o", in[0] - 64)) // \cA => \001 (A == 65)

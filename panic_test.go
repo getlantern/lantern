@@ -23,7 +23,13 @@ func Test_panic(t *testing.T) {
 	// without panic
 	test(`
 		var abc = 0x0410;
-		var def = String.fromCharCode(abc)
-		new RegExp("\\c" + def).exec(def)
+		var def = String.fromCharCode(abc);
+		new RegExp("\\c" + def).exec(def);
 	`, "null")
+
+	// Test transforming a transformable regular expression without a panic
+	test(`
+		new RegExp("\\u0000");
+		new RegExp("\\undefined").test("undefined");
+	`, "true")
 }

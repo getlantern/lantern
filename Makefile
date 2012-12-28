@@ -30,6 +30,8 @@ TEST := -v --run RegExp
 TEST := -v --run stringToFloat 
 TEST := -v --run TryFinally 
 TEST := -v --run RegExp_exec
+TEST := -v --run _panic
+TEST := -v --run TransformRegExp
 TEST := .
 
 test: test-i
