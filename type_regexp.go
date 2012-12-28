@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
+	"bytes"
 )
 
 type _regExpObject struct {
@@ -125,7 +126,8 @@ func execResultToArray(runtime *_runtime, target string, result []int) *_object 
 //\x{0031}-\x{0039}
 
 var transformRegExp_matchSlashU = regexp.MustCompile(`\\u([[:xdigit:]]{1,4})`)
-// ? Changing \\(c)([^A-Za-z]) to \\(c)([^A-Z]) causes ch15/15.10/15.10.2/15.10.2.10/S15.10.2.10_A2.1_T3.js to panic
+var transformRegExp_escape_c = regexp.MustCompile(`\\c([A-Za-z])`)
+var transformRegExp_unescape_c = regexp.MustCompile(`\\c`)
 var transformRegExp_unescape = regexp.MustCompile(strings.NewReplacer("\n", "", "\t", "", " ", "").Replace(`
 
 	(?:
@@ -138,9 +140,6 @@ var transformRegExp_unescape = regexp.MustCompile(strings.NewReplacer("\n", "", 
 			\x{0080}-\x{FFFF}
 		]
 		)()
-	) |
-	(?:
-		\\(c)([^A-Za-z])
 	) |
 	(?:
 		\\(u)([^[:xdigit:]])
@@ -175,6 +174,11 @@ func transformRegExp(ecmaRegExp string) (goRegExp string) {
 	// https://bugzilla.mozilla.org/show_bug.cgi/show_bug.cgi?id=334158
 	tmp := []byte(ecmaRegExp)
 	tmp = transformRegExp_unescape.ReplaceAll(tmp, []byte(`$1$2`))
+	tmp = transformRegExp_escape_c.ReplaceAllFunc(tmp, func(in []byte) []byte{
+		in = bytes.ToUpper(in)
+		return []byte(fmt.Sprintf("\\%o", in[0] - 64)) // \cA => \001 (A == 65)
+	})
+	tmp = transformRegExp_unescape_c.ReplaceAll(tmp, []byte(`c`))
 	tmp = transformRegExp_unescapeDollar.ReplaceAll(tmp, []byte(`$1`))
 	tmp = transformRegExp_matchSlashU.ReplaceAll(tmp, []byte(`\x{$1}`))
 	return string(tmp)

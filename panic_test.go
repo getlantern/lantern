@@ -18,4 +18,12 @@ func Test_panic(t *testing.T) {
         Object.defineProperty(abc, "0", { writable: false });
 		"0" in abc;
 	`, "false") // TODO Should be true, but we're really testing for a panic
+
+	// Test that a regular expression can contain \c0410 (CYRILLIC CAPITAL LETTER A) 
+	// without panic
+	test(`
+		var abc = 0x0410;
+		var def = String.fromCharCode(abc)
+		new RegExp("\\c" + def).exec(def)
+	`, "null")
 }

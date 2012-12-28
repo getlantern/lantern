@@ -4,4 +4,5 @@
 /.test262/test.otto
 /.test262/digest.json
 /.test262/.fail
+/.test262/.fail.tmp
 /.test262/panicking
