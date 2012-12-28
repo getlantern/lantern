@@ -136,7 +136,7 @@ public class LanternUtilsTest {
         //System.setProperty("javax.net.debug", "ssl:record");
         //System.setProperty("javax.net.debug", "ssl:handshake");
         
-        TestUtils.getKsm().addBase64Cert(LanternUtils.getMacAddress(), TestUtils.getKsm().getBase64Cert());
+        TestUtils.getKsm().addBase64Cert("testid", TestUtils.getKsm().getBase64Cert());
         
         final SocketFactory clientFactory = TestUtils.getSocketsUtil().newTlsSocketFactory();
         final ServerSocketFactory serverFactory = 

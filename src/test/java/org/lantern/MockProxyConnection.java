@@ -33,6 +33,7 @@ class MockProxyConnection extends MockConnection {
     int localPort;
     LanternHttpProxyServer localProxy;
 
+    /*
     public MockProxyConnection() throws Exception {
         super();
         
@@ -50,10 +51,9 @@ class MockProxyConnection extends MockConnection {
         
         peerServer = startDummyLanternPeer(peerPort, keyStore, peerHandler);
          
-        /* this proxyprovider will explode if anything but the expected type 
-         * of proxy is requested.  When an app engine peer is requested, the 
-         * address of our fake app engine server is returned.
-         */
+//         this proxyprovider will explode if anything but the expected type 
+//         of proxy is requested.  When an app engine peer is requested, the 
+//         address of our fake app engine server is returned.
         ProxyProvider proxyProvider = new ProxyProvider() {
             @Override
             public InetSocketAddress getProxy() {
@@ -62,38 +62,37 @@ class MockProxyConnection extends MockConnection {
 
             // this is always asked for, but throwing an IOException 
             // causes us to try the next case (general proxy)
-            /*
-            @Override
-            public PeerProxyManager getTrustedPeerProxyManager() {
-                return new PeerProxyManager() {
-                    @Override
-                    public void onPeer(URI peerUri) {}
-
-                    @Override
-                    public HttpRequestProcessor processRequest(Channel browserToProxyChannel,
-                       ChannelHandlerContext ctx, MessageEvent me) throws IOException {
-                           throw new IOException();
-                       }
-
-                    @Override
-                    public void closeAll() {}
-
-                    @Override
-                    public void removePeer(URI uri) {}
-
-                    @Override
-                    public Map<String, Peer> getPeers() {
-                        return null;
-                    }
-                    
-                };
-            }
-            
-
-            // explosions...
-            @Override
-            public PeerProxyManager getAnonymousPeerProxyManager() {throw new IllegalStateException();}
-            */
+//            @Override
+//            public PeerProxyManager getTrustedPeerProxyManager() {
+//                return new PeerProxyManager() {
+//                    @Override
+//                    public void onPeer(URI peerUri) {}
+//
+//                    @Override
+//                    public HttpRequestProcessor processRequest(Channel browserToProxyChannel,
+//                       ChannelHandlerContext ctx, MessageEvent me) throws IOException {
+//                           throw new IOException();
+//                       }
+//
+//                    @Override
+//                    public void closeAll() {}
+//
+//                    @Override
+//                    public void removePeer(URI uri) {}
+//
+//                    @Override
+//                    public Map<String, Peer> getPeers() {
+//                        return null;
+//                    }
+//                    
+//                };
+//            }
+//            
+//
+//            // explosions...
+//            @Override
+//            public PeerProxyManager getAnonymousPeerProxyManager() {throw new IllegalStateException();}
+//            
             @Override
             public InetSocketAddress getLaeProxy() {throw new IllegalStateException();}
         };
@@ -103,6 +102,7 @@ class MockProxyConnection extends MockConnection {
         //LanternHub.setKeyStoreManager(keyStore);
         localProxy = startMockLanternHttpProxyServer(localPort, proxyProvider, cookieTracker);
     }
+    */
 
 
     @Override

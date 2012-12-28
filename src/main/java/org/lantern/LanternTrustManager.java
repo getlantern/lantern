@@ -43,12 +43,15 @@ public class LanternTrustManager implements X509TrustManager {
     private KeyStore keyStore;
     private final File trustStoreFile;
     private final String password;
+    private final CertTracker certTracker;
     
     public LanternTrustManager(final KeyStoreManager ksm, 
-        final File trustStoreFile, final String password) {
+        final File trustStoreFile, final String password, 
+        final CertTracker certTracker) {
         this.ksm = ksm;
         this.trustStoreFile = trustStoreFile;
         this.password = password;
+        this.certTracker = certTracker;
         addStaticCerts();
         
         // This has to go after the certs are added!!
@@ -93,9 +96,10 @@ public class LanternTrustManager implements X509TrustManager {
         throw new Error("Could not create trust manager!");
     }
     
-    public void addBase64Cert(final String macAddress, final String base64Cert) 
+    public void addBase64Cert(final String fullJid, final String base64Cert) 
         throws IOException {
-        log.info("Adding base 64 cert");
+        log.debug("Adding base 64 cert");
+        this.certTracker.addCert(base64Cert, fullJid);
         // Alright, we need to decode the certificate from base 64, write it
         // to a file, and then use keytool to import it.
         
@@ -110,9 +114,9 @@ public class LanternTrustManager implements X509TrustManager {
          [-providerpath <pathlist>]
          */
         final byte[] decoded = Base64.decodeBase64(base64Cert);
-        final String fileName = 
-            FileUtils.removeIllegalCharsFromFileName(macAddress);
-        final File certFile = new File(fileName);
+        final String normalizedAlias = 
+            FileUtils.removeIllegalCharsFromFileName(fullJid);
+        final File certFile = new File(normalizedAlias);
         OutputStream os = null;
         try {
             os = new FileOutputStream(certFile);
@@ -133,7 +137,7 @@ public class LanternTrustManager implements X509TrustManager {
          */
         // Make sure we delete the old one.
         final String deleteResult = LanternUtils.runKeytool("-delete", 
-            "-alias", fileName, "-keystore", trustStoreFile.getAbsolutePath(), 
+            "-alias", normalizedAlias, "-keystore", trustStoreFile.getAbsolutePath(), 
             "-storepass", this.password);
         log.info("Result of deleting old cert: {}", deleteResult);
         
@@ -141,7 +145,7 @@ public class LanternTrustManager implements X509TrustManager {
         // TODO: We should be able to just add it to the trust store here 
         // without saving
         final String importResult = LanternUtils.runKeytool("-importcert", 
-            "-noprompt", "-alias", fileName, "-keystore", 
+            "-noprompt", "-alias", normalizedAlias, "-keystore", 
             trustStoreFile.getAbsolutePath(), 
             "-file", certFile.getAbsolutePath(), 
             "-keypass", this.password, "-storepass", this.password);

@@ -6,6 +6,7 @@ import java.util.Collections;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.GoogleTalkState;
 import org.lantern.PeerProxyManager;
+import org.lantern.event.ConnectedPeersEvent;
 import org.lantern.event.Events;
 import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.SyncEvent;
@@ -32,6 +33,8 @@ public class Connectivity {
     private boolean internet = false;
     
     private boolean invited = false;
+
+    private PeerProxyManager peerProxyManager;
     
     public Connectivity() {
         Events.register(this);
@@ -44,10 +47,16 @@ public class Connectivity {
     
     @JsonView({Run.class})
     public Collection<Peer> getPeers() {
-        //return peers(LanternHub.trustedPeerProxyManager());
         return Collections.emptyList();
+        /*
+        if (this.peerProxyManager != null) {
+            return this.peerProxyManager.getPeers();
+        }
+        return Collections.emptyList();
+        */
     }
     
+    /*
     public Collection<Peer> getPeersCurrent() {
         //return peers(LanternHub.trustedPeerProxyManager());
         return Collections.emptyList();
@@ -60,12 +69,19 @@ public class Connectivity {
     }
     
     public Collection<Peer> getAnonymousPeers() {
-        //return peers(LanternHub.anonymousPeerProxyManager());
         return Collections.emptyList();
     }
     
     private Collection<Peer> peers(final PeerProxyManager ppm) {
         return ppm.getPeers().values();
+    }
+    */
+    
+    @Subscribe
+    public void onConnectedPeers(final ConnectedPeersEvent cpe) {
+        if (this.peerProxyManager == null) {
+            this.peerProxyManager = cpe.getPeerProxyManager();
+        }
     }
 
     @Subscribe

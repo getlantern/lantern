@@ -16,9 +16,9 @@ public class AnonymousPeerProxyManager extends DefaultPeerProxyManager {
     public AnonymousPeerProxyManager(final ChannelGroup channelGroup,
         final XmppHandler xmppHandler, final Stats stats,
         final LanternSocketsUtil socketsUtil, final Model model,
-        final LookupService lookupService) {
+        final LookupService lookupService, final CertTracker certTracker) {
         super(true, channelGroup, xmppHandler, stats, socketsUtil, model, 
-            lookupService);
+            lookupService, certTracker);
     }
 
 }

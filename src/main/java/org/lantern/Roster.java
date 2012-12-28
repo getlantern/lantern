@@ -60,12 +60,10 @@ public class Roster implements RosterListener {
 
     private volatile boolean populated;
     
-    
     private final RandomRoutingTable kscopeRoutingTable = 
         new BasicRandomRoutingTable();
 
     private org.jivesoftware.smack.Roster smackRoster;
-    
     
     /**
      * Locally-stored set of users we've invited.

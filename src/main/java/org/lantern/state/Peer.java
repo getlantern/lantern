@@ -4,8 +4,10 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
 
+import org.apache.commons.lang3.StringUtils;
 import org.lantern.PeerSocketWrapper;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -29,17 +31,22 @@ public class Peer {
     private final Collection<PeerSocketWrapper> sockets = 
         new HashSet<PeerSocketWrapper>();
 
+    private final String base64Cert;
+
     public Peer(final String userId,
-        final String country,final boolean incoming, 
+        final String base64Cert, final String countryCode, 
+        final boolean incoming, 
         final boolean natPmp, final boolean upnp) {
+        Preconditions.checkArgument(StringUtils.isNotBlank(base64Cert), 
+                "No cert?");
         this.userId = userId;
-        this.country = country.toLowerCase(Locale.US);
+        this.base64Cert = base64Cert;
+        this.country = countryCode.toLowerCase(Locale.US);
         this.incoming = incoming;
         this.natPmp = natPmp;
         this.upnp = upnp;
     }
 
-    
     public String getUserId() {
         return userId;
     }
@@ -84,5 +91,9 @@ public class Peer {
 
     public void incrementConnectionAttempts() {
         this.connectionAttempts++;
+    }
+
+    public String getBase64Cert() {
+        return base64Cert;
     }
 }

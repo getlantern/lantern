@@ -4,10 +4,12 @@ import java.util.Collection;
 import java.util.HashSet;
 
 import org.lantern.event.Events;
+import org.lantern.event.ResetEvent;
 import org.lantern.state.Settings.Mode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
@@ -32,12 +34,7 @@ public class InternalState {
     @Inject
     public InternalState(final Model model) {
         this.model = model;
-        //Events.register(this);
-    }
-
-    public void resetInternalState() {
-        //Arrays.fill(modalsCompleted, false);
-        modalsCompleted = new HashSet<Modal>();
+        Events.register(this);
     }
  
     public void advanceModal(final Modal backToIfNone) {
@@ -71,5 +68,10 @@ public class InternalState {
 
     public void setModalCompleted(final Modal modal) {
         this.modalsCompleted.add(modal);
+    }
+    
+    @Subscribe
+    public void onReset(final ResetEvent re) {
+        modalsCompleted.clear();
     }
 }

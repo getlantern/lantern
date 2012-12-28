@@ -207,6 +207,7 @@ public class LanternUtils {
         }
     }
     
+    /*
     public static String getMacAddress() {
         if (MAC_ADDRESS != null) {
             LOG.info("Returning MAC: "+MAC_ADDRESS);
@@ -249,6 +250,7 @@ public class LanternUtils {
     private static String macMe(final String mac) {
         return macMe(utf8Bytes(mac));
     }
+    */
 
     public static byte[] utf8Bytes(final String str) {
         try {

@@ -79,6 +79,8 @@ public class LanternModule extends AbstractModule {
         bind(Model.class).toProvider(ModelIo.class).in(Singleton.class);
         
         bind(ModelService.class).to(DefaultModelService.class);
+        
+        bind(CertTracker.class).to(DefaultCertTracker.class);
         bind(HttpsEverywhere.class);
         bind(Roster.class);
         bind(InteractionServlet.class);

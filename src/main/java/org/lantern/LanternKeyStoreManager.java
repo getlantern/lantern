@@ -12,10 +12,12 @@ import javax.net.ssl.TrustManager;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.lantern.state.Model;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
@@ -44,11 +46,17 @@ public class LanternKeyStoreManager implements KeyStoreManager {
 
     private final LanternTrustManager lanternTrustManager;
 
-    public LanternKeyStoreManager() {
-        this(null);
+    private final Model model;
+
+    @Inject
+    public LanternKeyStoreManager(final Model model, 
+        final CertTracker certTracker) {
+        this(null, model, certTracker);
     }
     
-    public LanternKeyStoreManager(final File rootDir) {
+    public LanternKeyStoreManager(final File rootDir, final Model model, 
+        final CertTracker certTracker) {
+        this.model = model;
         CONFIG_DIR = rootDir != null ? rootDir : LanternConstants.CONFIG_DIR;
         KEYSTORE_FILE = 
             new File(CONFIG_DIR, "lantern_keystore.jks");
@@ -65,11 +73,11 @@ public class LanternKeyStoreManager implements KeyStoreManager {
                 log.error("Could not create config dir!! "+CONFIG_DIR);
             }
         }
-        reset(LanternUtils.getMacAddress());
+        reset(model.getNodeId());
         createTrustStore();
         
         this.lanternTrustManager = 
-            new LanternTrustManager(this, TRUSTSTORE_FILE, PASS);
+            new LanternTrustManager(this, TRUSTSTORE_FILE, PASS, certTracker);
         
         trustManagers = new TrustManager[] {
             lanternTrustManager
@@ -97,7 +105,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         }
         final String result = LanternUtils.runKeytool("-genkey", "-alias", 
             "foo", "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG, 
-            "-dname", "CN="+LanternUtils.getMacAddress(), "-keystore", 
+            "-dname", "CN="+model.getNodeId(), "-keystore", 
             TRUSTSTORE_FILE.getAbsolutePath(), "-keypass", PASS, 
             "-storepass", PASS);
         log.info("Got result of creating trust store: {}", result);
@@ -214,9 +222,9 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     }
     
     @Override
-    public void addBase64Cert(final String macAddress, final String base64Cert) 
+    public void addBase64Cert(final String id, final String base64Cert) 
         throws IOException {
-        this.lanternTrustManager.addBase64Cert(macAddress, base64Cert);
+        this.lanternTrustManager.addBase64Cert(id, base64Cert);
     }
 
     @Override
