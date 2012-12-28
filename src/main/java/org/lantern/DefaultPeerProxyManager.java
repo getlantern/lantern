@@ -8,7 +8,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.TreeMap;
@@ -18,18 +17,20 @@ import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.apache.commons.lang3.StringUtils;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.group.ChannelGroup;
+import org.lantern.event.ConnectedPeersEvent;
 import org.lantern.event.ConnectivityStatusChangeEvent;
 import org.lantern.event.Events;
 import org.lantern.event.IncomingSocketEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
-import org.lantern.state.SyncPath;
 import org.lantern.state.Settings.Mode;
+import org.lantern.state.SyncPath;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
 import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
@@ -76,7 +77,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     /**
      * Online peers we've exchanged certs with.
      */
-    private final Collection<URI> certPeers = new HashSet<URI>();
+    private final Map<URI, String> certPeers = new HashMap<URI, String>();
 
     private final ChannelGroup channelGroup;
 
@@ -89,11 +90,14 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     private final Model model;
 
     private final LookupService lookupService;
+
+    private final CertTracker certTracker;
     
     public DefaultPeerProxyManager(final boolean anon, 
         final ChannelGroup channelGroup, final XmppHandler xmppHandler,
         final Stats stats, final LanternSocketsUtil socketsUtil,
-        final Model model, final LookupService lookupService) {
+        final Model model, final LookupService lookupService,
+        final CertTracker certTracker) {
         this.anon = anon;
         this.channelGroup = channelGroup;
         this.xmppHandler = xmppHandler;
@@ -101,6 +105,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         this.socketsUtil = socketsUtil;
         this.model = model;
         this.lookupService = lookupService;
+        this.certTracker = certTracker;
         Events.register(this);
     }
 
@@ -111,14 +116,14 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         log.debug("Processing request...sockets in queue {} on this {}", 
             this.timedSockets.size(), this);
         
-        final PeerSocketWrapper cts;
+        final PeerSocketWrapper peerSocket;
         try {
-            cts = selectSocket();
+            peerSocket = selectSocket();
         } catch (final IOException e) {
             // This means there's no socket available.
             return null;
         }
-        if (!cts.getRequestProcessor().processRequest(browserToProxyChannel, ctx, me)) {
+        if (!peerSocket.getRequestProcessor().processRequest(browserToProxyChannel, ctx, me)) {
             log.info("Peer could not process the request...");
             // We return null here because that's how the dispatcher knows of
             // failures on peers.
@@ -139,16 +144,18 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         } else {
             socketsToFetch = 3;
         }
-        onPeer(cts.getPeerUri(), socketsToFetch);
-        return cts.getRequestProcessor();
+        final String cert = 
+            this.certTracker.getCertForJid(peerSocket.getPeerUri().toASCIIString());
+        onPeer(peerSocket.getPeerUri(), cert, socketsToFetch);
+        return peerSocket.getRequestProcessor();
     }
 
     private PeerSocketWrapper selectSocket() throws IOException {
         pruneSockets();
         if (this.timedSockets.isEmpty()) {
             // Try to create some more sockets using peers we've learned about.
-            for (final URI peer : certPeers) {
-                onPeer(peer, 2);
+            for (final Map.Entry<URI,String> peer : certPeers.entrySet()) {
+                onPeer(peer.getKey(), peer.getValue(), 2);
             }
         }
         // This removes the highest priority socket.
@@ -187,7 +194,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             if (sock != null) {
                 if (sock.isClosed()) {
                     iter.remove();
-                    final Peer peer = this.getPeers().get(cts.getPeerUri());
+                    final Peer peer = this.peers.get(cts.getPeerUri());
                     if (peer == null) {
                         log.warn("Could not find matching peer data?");
                     } else {
@@ -199,27 +206,28 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     }
 
     @Override
-    public void onPeer(final URI peerUri) {
-        onPeer(peerUri, 6);
+    public void onPeer(final URI peerUri, final String base64Cert) {
+        onPeer(peerUri, base64Cert, 6);
     }
 
-    private void onPeer(final URI peerUri, final int sockets) {
+    private void onPeer(final URI peerUri, final String base64Cert, 
+        final int sockets) {
         if (model.getSettings().getMode() == Mode.give) {
-            log.info("Ingoring peer when we're in give mode");
+            log.debug("Ingoring peer when we're in give mode");
             return;
         }
         if (this.anon && !model.getSettings().isUseAnonymousPeers()) {
-            log.info("Ignoring anonymous peer");
+            log.debug("Ignoring anonymous peer");
             return;
         }
         if (!this.anon && !model.getSettings().isUseTrustedPeers()) {
-            log.info("Ignoring trusted peer");
+            log.debug("Ignoring trusted peer");
             return;
         }
-        log.info("Received peer URI {}...attempting {} connections...", 
+        log.debug("Received peer URI {}...attempting {} connections...", 
             peerUri, sockets);
         
-        certPeers.add(peerUri);
+        certPeers.put(peerUri, base64Cert);
         // Unclear how this count will be used for now.
         final Map<URI, AtomicInteger> peerFailureCount = 
             new HashMap<URI, AtomicInteger>();
@@ -239,7 +247,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                             peerUri, xmppHandler.getP2PClient(), 
                             peerFailureCount);
                         log.info("Got socket and adding it for peer: {}", peerUri);
-                        addConnectedPeer(peerUri, now, sock, true, false);
+                        addConnectedPeer(peerUri, base64Cert, now, sock, true, false);
 
                         if (!gotConnected) {
                             Events.eventBus().post(
@@ -255,8 +263,9 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         });
     }
 
-    private void addConnectedPeer(final URI peerUri, final long startTime, 
-        final Socket sock, final boolean addToSocketsInUse, final boolean incoming) {
+    private void addConnectedPeer(final URI peerUri, final String base64Cert, 
+        final long startTime, final Socket sock, final boolean addToSocketsInUse, 
+        final boolean incoming) {
         final PeerSocketWrapper ts = 
             new PeerSocketWrapper(peerUri, startTime, sock, this.anon, 
                 this.channelGroup, this.stats, this.socketsUtil, incoming);
@@ -266,12 +275,12 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         }
         final Peer peer;
         final String userId = XmppUtils.jidToUser(peerUri.toASCIIString());
-        if (this.getPeers().containsKey(userId)) {
+        if (this.peers.containsKey(userId)) {
             peer = this.peers.get(userId);
         } else {
             final String cc = 
                 lookupService.getCountry(sock.getInetAddress()).getCode();
-            peer = new Peer(userId, cc, false, false, false);
+            peer = new Peer(userId, base64Cert, cc, false, false, false);
             this.peers.put(userId, peer);
         }
         peer.addSocket(ts);
@@ -279,60 +288,11 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         syncPeers();
     }
 
-    /**
-     * Class holding a socket and an HTTP request processor that also tracks
-     * connection times.
-     * 
-     * Package-access for easier testing.
-     */
-    /*
-    public final class ConnectionTimeSocket {
-        private final Long connectionTime;
-        
-        private final URI peerUri;
-        private final HttpRequestProcessor requestProcessor;
-        private final Socket sock;
-
-        private final long startTime;
-
-        public ConnectionTimeSocket(final URI peerUri, final long startTime, 
-            final Socket sock) {
-            this.peerUri = peerUri;
-            this.sock = sock;
-            this.startTime = startTime;
-            this.connectionTime = System.currentTimeMillis() - startTime;
-            if (anon) {
-                this.requestProcessor = 
-                    new PeerHttpConnectRequestProcessor(sock, channelGroup);
-            } else {
-                this.requestProcessor = 
-                    new PeerChannelHttpRequestProcessor(sock, channelGroup);
-                    //new PeerHttpRequestProcessor(sock);
-            }
-        }
-
-        public Socket getSocket() {
-            return sock;
-        }
-
-        public Long getConnectionTime() {
-            return connectionTime;
-        }
-
-        public long getStartTime() {
-            return startTime;
-        }
-
-        public URI getPeerUri() {
-            return peerUri;
-        }
-    }
-    */
-
     @Override
     public void removePeer(final URI uri) {
         this.certPeers.remove(uri);
         this.peers.remove(uri);
+        syncPeers();
     }
     
     @Override
@@ -343,8 +303,10 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     }
 
     @Override
-    public Map<String, Peer> getPeers() {
-        return peers;
+    public Collection<Peer> getPeers() {
+        synchronized (peers) {
+            return peers.values();
+        }
     }
     
     @Subscribe
@@ -373,36 +335,51 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     
     /**
      * Track P2P connection events. Note this only tracks peers we're able
-     * to directly connect to, not all peers we know about.
+     * to directly connect to, not all peers we know about. Responding to these
+     * events is necessary because it's the only way we can track incoming
+     * sockets.
+     * 
+     * Note this still does not cover incoming connections directly to a 
+     * port-mapped HTTP proxy. Those can only be identified by corresponding
+     * certs, and those may or may not be availabe depending on if the IP was
+     * cached across sessions.
      * 
      * @param event The P2P connection event.
      */
     @Subscribe
     public void onP2PConnectionEvent(final P2PConnectionEvent event) {
         log.debug("Got p2p connection event: {}", event);
+        final String fullJid = event.getJid();
         final URI peerUri;
         try {
-            peerUri = new URI(event.getJid());
+            peerUri = new URI(fullJid);
         } catch (final URISyntaxException e) {
             log.error("Could not read peer URI?", event.getJid());
             return;
         }
         
+        final String cert = this.certTracker.getCertForJid(fullJid);
+        if (StringUtils.isBlank(cert)) {
+            log.warn("No cert for {} in {}", fullJid, this.certTracker);
+        }
+        
         final Socket sock = event.getSocket();
         // TODO: How the hell do we know we're getting notifications from 
-        // anonymous peers? We don't here.
+        // anonymous peers? We don't here, so the "this.anon" argument below
+        // is bogus.
         final PeerSocketWrapper ts = 
-            new PeerSocketWrapper(peerUri, System.currentTimeMillis(), sock, this.anon, 
-                this.channelGroup, this.stats, this.socketsUtil, event.isIncoming());
+            new PeerSocketWrapper(peerUri, System.currentTimeMillis(), 
+                sock, this.anon, this.channelGroup, this.stats, 
+                this.socketsUtil, event.isIncoming());
         
         final Peer peer;
         final String userId = XmppUtils.jidToUser(peerUri.toASCIIString());
-        if (this.getPeers().containsKey(userId)) {
+        if (this.peers.containsKey(userId)) {
             peer = this.peers.get(userId);
         } else {
             final String cc = 
                 lookupService.getCountry(sock.getInetAddress()).getCode();
-            peer = new Peer(userId, cc, false, false, false);
+            peer = new Peer(userId, cert, cc, false, false, false);
             this.peers.put(userId, peer);
         }
         peer.addSocket(ts);
@@ -412,6 +389,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
 
     private void syncPeers() {
         log.debug("Syncing peers...");
+        Events.eventBus().post(new ConnectedPeersEvent(this));
         synchronized (this.peers) {
             final Collection<Peer> peerList = this.peers.values();
             Events.sync(SyncPath.PEERS, peerList);

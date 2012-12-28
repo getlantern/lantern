@@ -214,10 +214,12 @@ class TestingUtils {
         return server;
     }
 
+    /*
     public static LanternKeyStoreManager createTempKeyStore() {
         File keyStoreRoot = Files.createTempDir(); 
         return new LanternKeyStoreManager(keyStoreRoot);
     }
+    */
 
     public static SocketFactory newTlsSocketFactory(KeyStoreManager mgr) throws Exception{
         final SSLContext clientContext = SSLContext.getInstance("TLS");

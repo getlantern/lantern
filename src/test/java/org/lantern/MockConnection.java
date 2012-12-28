@@ -70,7 +70,7 @@ abstract class MockConnection {
     RoundTripTest currentTest;
     final ClientBootstrap clientBootstrap;
 
-    public MockConnection() throws Exception {
+    public MockConnection()  {
         final ChannelFactory channelFactory = new NioClientSocketChannelFactory(
             Executors.newCachedThreadPool(),
             Executors.newCachedThreadPool()

@@ -16,9 +16,9 @@ public class TrustedPeerProxyManager extends DefaultPeerProxyManager {
     public TrustedPeerProxyManager(final ChannelGroup channelGroup,
         final XmppHandler xmppHandler, final Stats stats,
         final LanternSocketsUtil socketsUtil, final Model model,
-        final LookupService lookupService) {
+        final LookupService lookupService, final CertTracker certTracker) {
         super(false, channelGroup, xmppHandler, stats, socketsUtil, model, 
-            lookupService);
+            lookupService, certTracker);
     }
 
 }

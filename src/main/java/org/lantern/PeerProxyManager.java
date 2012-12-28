@@ -2,7 +2,7 @@ package org.lantern;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Map;
+import java.util.Collection;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -14,7 +14,7 @@ import org.lantern.state.Peer;
  */
 public interface PeerProxyManager {
 
-    void onPeer(URI peerUri);
+    void onPeer(URI peerUri, String base64Cert);
 
     HttpRequestProcessor processRequest(Channel browserToProxyChannel,
        ChannelHandlerContext ctx, MessageEvent me) throws IOException;
@@ -23,6 +23,6 @@ public interface PeerProxyManager {
 
     void removePeer(URI uri);
 
-    Map<String, Peer> getPeers();
+    Collection<Peer> getPeers();
 
 }

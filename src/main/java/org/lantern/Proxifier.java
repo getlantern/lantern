@@ -455,8 +455,8 @@ public class Proxifier implements LanternService {
     }
     
     public void proxyGoogle() {
-        final String google = "google.com";
-        PacFileGenerator.generatePacFile(Arrays.asList(google), 
+        PacFileGenerator.generatePacFile(
+            Arrays.asList("google.com", "youtube.com"), 
             Proxifier.PROXY_GOOGLE);
         
         try {

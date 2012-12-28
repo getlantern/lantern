@@ -3,7 +3,9 @@ package org.lantern;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.Executors;
 import java.io.IOException;
@@ -45,6 +47,7 @@ class MockTrustedConnection extends MockConnection {
     int localPort;    
     LanternHttpProxyServer localProxy;    
 
+    /*
     public MockTrustedConnection() throws Exception {
         super();
         
@@ -85,12 +88,10 @@ class MockTrustedConnection extends MockConnection {
                 final ChannelGroup channelGroup = 
                     new DefaultChannelGroup("Local-HTTP-Proxy-Server");
                 
-                /*
-                LanternHub.setNettyTimer(timer);
-                LanternHub.setServerChannelFactory(serverChannelFactory);
-                LanternHub.setClientChannelFactory(clientChannelFactory);
-                LanternHub.setChannelGroup(channelGroup);
-                */
+//                LanternHub.setNettyTimer(timer);
+//                LanternHub.setServerChannelFactory(serverChannelFactory);
+//                LanternHub.setClientChannelFactory(clientChannelFactory);
+//                LanternHub.setChannelGroup(channelGroup);
                 Socket sock = socketFactory.createSocket("127.0.0.1", peerPort);
                 final ByteTracker byteTracker = new ByteTracker() {
                     
@@ -114,22 +115,15 @@ class MockTrustedConnection extends MockConnection {
             public void removePeer(URI uri) {}
 
             @Override
-            public Map<String, Peer> getPeers() {
-                return new HashMap<String, Peer>();
+            public Collection<Peer> getPeers() {
+                return new HashSet<Peer>();
             }
         };
         
-        /* this proxyprovider will explode if anything but the expected type 
-         * of proxy is requested.  When a trusted peer is requested, the 
-         * faked proxy manager is given back.
-         */
+        this proxyprovider will explode if anything but the expected type 
+        of proxy is requested.  When a trusted peer is requested, the 
+        faked proxy manager is given back.
         final ProxyProvider proxyProvider = new ProxyProvider() {
-            /*
-            @Override
-            public PeerProxyManager getTrustedPeerProxyManager() {
-                return proxyManager;
-            }
-            */
 
             // explosions...
             @Override
@@ -146,6 +140,7 @@ class MockTrustedConnection extends MockConnection {
         localProxy = startMockLanternHttpProxyServer(localPort, proxyProvider, 
             cookieTracker);
     }
+    */
 
     @Override
     public Channel connect() throws Exception {

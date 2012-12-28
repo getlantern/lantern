@@ -178,6 +178,8 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final Censored censored;
 
+    private final CertTracker certTracker;
+
     /**
      * Creates a new XMPP handler.
      */
@@ -192,7 +194,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final ModelUtils modelUtils,
         final ModelIo modelIo, final org.lantern.Roster roster,
         final ProxyTracker proxyTracker,
-        final Censored censored) {
+        final Censored censored, final CertTracker certTracker) {
         this.model = model;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.anonymousPeerProxyManager = anonymousPeerProxyManager;
@@ -206,6 +208,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.roster = roster;
         this.proxyTracker = proxyTracker;
         this.censored = censored;
+        this.certTracker = certTracker;
         this.upnpService = new Upnp(stats);
         new GiveModeConnectivityHandler();
         prepopulateProxies();
@@ -1011,13 +1014,13 @@ public class DefaultXmppHandler implements XmppHandler {
         msg.setTo(from);
         msg.setProperty(P2PConstants.MESSAGE_TYPE, 
             XmppMessageConstants.INFO_RESPONSE_TYPE);
-        msg.setProperty(P2PConstants.MAC, LanternUtils.getMacAddress());
+        msg.setProperty(P2PConstants.MAC, this.model.getNodeId());
         msg.setProperty(P2PConstants.CERT, this.keyStoreManager.getBase64Cert());
         this.client.get().getXmppConnection().sendPacket(msg);
     }
 
     private void processInfoData(final Message msg) {
-        LOG.info("Processing INFO data from request or response.");
+        LOG.debug("Processing INFO data from request or response.");
         final URI uri;
         try {
             uri = new URI(msg.getFrom());
@@ -1026,29 +1029,23 @@ public class DefaultXmppHandler implements XmppHandler {
             return;
         }
 
-        final String mac = (String) msg.getProperty(P2PConstants.MAC);
+        //final String mac = (String) msg.getProperty(P2PConstants.MAC);
         final String base64Cert = (String) msg.getProperty(P2PConstants.CERT);
-        LOG.info("Base 64 cert: {}", base64Cert);
+        
+        LOG.debug("Base 64 cert: {}", base64Cert);
         
         if (StringUtils.isNotBlank(base64Cert)) {
-            LOG.info("Got certificate:\n"+
+            LOG.debug("Got certificate:\n"+
                 new String(Base64.decodeBase64(base64Cert)));
             try {
                 // Add the peer if we're able to add the cert.
-                this.keyStoreManager.addBase64Cert(mac, base64Cert);
+                this.keyStoreManager.addBase64Cert(msg.getFrom(), base64Cert);
                 final String email = XmppUtils.jidToUser(msg.getFrom());
                 if (this.roster.isFullyOnRoster(email)) {
-                    trustedPeerProxyManager.onPeer(uri);
+                    trustedPeerProxyManager.onPeer(uri, base64Cert);
                 } else {
-                    anonymousPeerProxyManager.onPeer(uri);
+                    anonymousPeerProxyManager.onPeer(uri, base64Cert);
                 }
-                /*
-                if (LanternHub.getTrustedContactsManager().isTrusted(msg)) {
-                    LanternHub.trustedPeerProxyManager().onPeer(uri);
-                } else {
-                    LanternHub.anonymousPeerProxyManager().onPeer(uri);
-                }
-                */
             } catch (final IOException e) {
                 LOG.error("Could not add cert??", e);
             }
@@ -1059,7 +1056,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
 
     private void addProxy(final String cur) {
-        LOG.info("Considering proxy: {}", cur);
+        LOG.debug("Considering proxy: {}", cur);
         if (cur.contains("appspot")) {
             this.proxyTracker.addLaeProxy(cur);
             return;
@@ -1076,8 +1073,8 @@ public class DefaultXmppHandler implements XmppHandler {
             this.client.get().getXmppConnection().getUser().trim();
         
         final String emailId = XmppUtils.jidToUser(jid);
-        LOG.info("We are: {}", jid);
-        LOG.info("Service name: {}",
+        LOG.debug("We are: {}", jid);
+        LOG.debug("Service name: {}",
              this.client.get().getXmppConnection().getServiceName());
         if (jid.equals(cur.trim())) {
             LOG.info("Not adding ourselves as a proxy!!");
@@ -1098,32 +1095,19 @@ public class DefaultXmppHandler implements XmppHandler {
         } 
     }
 
-    private void sendAndRequestCert(final URI cur) {
-        LOG.info("Requesting cert from {}", cur);
+    private void sendAndRequestCert(final URI peer) {
+        LOG.debug("Requesting cert from {}", peer);
         final Message msg = new Message();
         msg.setProperty(P2PConstants.MESSAGE_TYPE, 
             XmppMessageConstants.INFO_REQUEST_TYPE);
         
-        msg.setTo(cur.toASCIIString());
+        msg.setTo(peer.toASCIIString());
         // Set our certificate in the request as well -- we want to make
         // extra sure these get through!
-        msg.setProperty(P2PConstants.MAC, LanternUtils.getMacAddress());
+        msg.setProperty(P2PConstants.MAC, this.model.getNodeId());
         msg.setProperty(P2PConstants.CERT, this.keyStoreManager.getBase64Cert());
         this.client.get().getXmppConnection().sendPacket(msg);
     }
-    
-    /*
-    @Override
-    public PeerProxyManager getAnonymousPeerProxyManager() {
-        return LanternHub.anonymousPeerProxyManager();
-    }
-    
-    
-    @Override
-    public PeerProxyManager getTrustedPeerProxyManager() {
-        return LanternHub.trustedPeerProxyManager();
-    }
-    */
 
     @Override
     public XmppP2PClient getP2PClient() {
