@@ -27,9 +27,10 @@ public class WhitelistProxyingTest {
     public void testWithHttpClient() throws Exception {
         final String email = TestUtils.loadTestEmail();
         final String pass = TestUtils.loadTestPassword();
-        Launcher.main(new String[]{"--disable-ui", "--force-get", 
+        Launcher launcher = new Launcher(new String[]{"--disable-ui", "--force-get", 
             "--user", email, "--pass", pass});
-        
+        launcher.run();
+
         Thread.sleep(10000);
         /*
         final int proxyPort = 10200;
