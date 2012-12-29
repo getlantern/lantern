@@ -144,7 +144,8 @@ public class ChromeRunner {
         public void run() {
             BufferedReader br = null;
             try {
-                br = new BufferedReader(new InputStreamReader(this.is));
+                br = new BufferedReader(new InputStreamReader(this.is, 
+                    LanternConstants.UTF8));
 
                 String line = "";
                 while((line = br.readLine()) != null) {
