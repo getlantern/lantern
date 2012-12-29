@@ -1,10 +1,7 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
-import java.io.File;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.commons.io.IOUtils;
@@ -18,16 +15,12 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.littleshoot.proxy.DefaultHttpProxyServer;
 import org.littleshoot.proxy.HttpProxyServer;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.openqa.selenium.Proxy;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebDriver.Navigation;
-import org.openqa.selenium.chrome.ChromeDriver;
-import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.remote.CapabilityType;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -48,11 +41,12 @@ public class LanternProxyingTest {
         //HttpProxyServer proxyServer = new DefaultHttpProxyServer(port);
         //proxyServer.start();
         
-        Launcher.main(new String[]{"--disable-trusted-peers", 
+        Launcher launcher = new Launcher(new String[]{"--disable-trusted-peers", 
             "--disable-anon-peers", "--disable-ui", "--force-get", 
             "--user", TestUtils.loadTestEmail(), "--pass", 
             TestUtils.loadTestPassword()});
-        
+        launcher.run();
+
         Proxy proxy = new Proxy();
         proxy.setProxyType(Proxy.ProxyType.MANUAL);
         String proxyStr = String.format("localhost:%d", 
@@ -120,7 +114,7 @@ public class LanternProxyingTest {
         
         final Header[] headers = response.getAllHeaders();
         for (final Header h : headers) {
-            System.out.println(h.getName() + ": "+h.getValue());
+            log.debug(h.getName() + ": "+h.getValue());
         }
         //assertEquals(200, response.getStatusLine().getStatusCode());
         EntityUtils.consume(response.getEntity());
@@ -129,7 +123,7 @@ public class LanternProxyingTest {
             new DefaultHttpProxyServer(PROXY_PORT, new HttpRequestFilter() {
             @Override
             public void filter(final HttpRequest httpRequest) {
-                System.out.println("Request went through proxy");
+                log.debug("Request went through proxy");
             }
         });
 
@@ -140,11 +134,11 @@ public class LanternProxyingTest {
         assertEquals(200, response.getStatusLine().getStatusCode());
         
         final HttpEntity entity = response.getEntity();
-        log.info("Received response: {}", IOUtils.toString(entity.getContent()));
-        log.info("Consuming entity");
+        log.debug("Received response: {}", IOUtils.toString(entity.getContent()));
+        log.debug("Consuming entity");
         EntityUtils.consume(entity);
         
-        log.info("Stopping proxy");
+        log.debug("Stopping proxy");
         proxy.stop();
     }
     
@@ -154,8 +148,11 @@ public class LanternProxyingTest {
         final String[] urls = getUrls();
         //final String[] urls = {"http://www.yahoo.com/"};
         final int port = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
-        Launcher.main(new String[]{"--disable-ui", "--force-get", "--user", 
-            TestUtils.loadTestEmail(), "--pass", TestUtils.loadTestPassword()});
+
+        Launcher launcher = new Launcher(new String[] { "--disable-ui",
+                "--force-get", "--user", TestUtils.loadTestEmail(), "--pass",
+                TestUtils.loadTestPassword() });
+        launcher.run();
         
         // Give it a second to start up.
         Thread.sleep(6000);

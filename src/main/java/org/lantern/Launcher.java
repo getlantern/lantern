@@ -61,38 +61,32 @@ import com.google.inject.Injector;
  */
 public class Launcher {
 
-    private static Logger LOG;
-    private static boolean lanternStarted = false;
-    private static LanternHttpProxyServer localProxy;
-    private static PlainTestRelayHttpProxyServer plainTextAnsererRelayProxy;
-    private static JettyLauncher jettyLauncher;
-    private static XmppHandler xmpp;
-    private static BrowserService browserService;
+    private Logger LOG;
+    private boolean lanternStarted = false;
+    private LanternHttpProxyServer localProxy;
+    private PlainTestRelayHttpProxyServer plainTextAnsererRelayProxy;
+    private JettyLauncher jettyLauncher;
+    private XmppHandler xmpp;
+    private BrowserService browserService;
     
-    private static SslHttpProxyServer sslProxy;
+    private SslHttpProxyServer sslProxy;
     
-    private static LocalCipherProvider localCipherProvider;
+    private LocalCipherProvider localCipherProvider;
     
-    private static MessageService messageService;
-    private static Injector injector;
-    private static SystemTray systemTray;
-    private static Model model;
-    private static ModelUtils modelUtils;
-    private static Settings set;
-    private static Censored censored;
+    private MessageService messageService;
+    private Injector injector;
+    private SystemTray systemTray;
+    private Model model;
+    private ModelUtils modelUtils;
+    private Settings set;
+    private Censored censored;
     
     private static InternalState internalState;
-    
-    /**
-     * Starts the proxy from the command line.
-     * 
-     * @param args Any command line arguments.
-     */
-    public static void main(final String... args) {
+    private Runnable runner;
+
+    public Launcher(final String[] args) {
         Thread.currentThread().setName("Lantern-Main-Thread");
         //Connection.DEBUG_ENABLED = true;
-        configureLogger();
-        LOG = LoggerFactory.getLogger(Launcher.class);
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(final Thread t, final Throwable e) {
@@ -100,7 +94,7 @@ public class Launcher {
             }
         });
         
-        final Runnable runner = new Runnable() {
+        runner = new Runnable() {
 
             @Override
             public void run() {
@@ -111,9 +105,12 @@ public class Launcher {
                 }
             }
         };
+    }
+
+    public void run() {
+        LOG = LoggerFactory.getLogger(Launcher.class);
         final Thread main = new Thread(runner, "Lantern-Launch-Thread");
-        //main.start();
-        runner.run();
+        main.start();
         if (SystemUtils.IS_OS_LINUX) {
             synchronized (runner) {
                 try {
@@ -125,7 +122,18 @@ public class Launcher {
         }
     }
 
-    private static void launch(final String... args) {
+    /**
+     * Starts the proxy from the command line.
+     * 
+     * @param args Any command line arguments.
+     */
+    public static void main(final String... args) {
+        Launcher launcher = new Launcher(args);
+        launcher.configureDefaultLogger();
+        launcher.run();
+    }
+
+    private void launch(final String... args) {
         LOG.info("Starting Lantern...");
         configureCipherSuites();
 
@@ -289,7 +297,7 @@ public class Launcher {
      * over the network can delay the creation of settings altogether. That's
      * problematic if the UI is waiting on them, for example.
      */
-    private static void threadPublicIpLookup() {
+    private void threadPublicIpLookup() {
         if (LanternConstants.ON_APP_ENGINE) {
             return;
         }
@@ -332,11 +340,11 @@ public class Launcher {
         thread.start();
     }
 
-    private static <T> void shutdownable(final Class<T> clazz) {
+    private <T> void shutdownable(final Class<T> clazz) {
         instance(clazz);
     }
 
-    private static <T> T instance(final Class<T> clazz) {
+    private <T> T instance(final Class<T> clazz) {
         final T inst = injector.getInstance(clazz);
         if (Shutdownable.class.isAssignableFrom(clazz)) {
             addShutdownHook((Shutdownable) inst);
@@ -344,7 +352,7 @@ public class Launcher {
         return inst;
     }
 
-    private static void addShutdownHook(final Shutdownable service) {
+    private void addShutdownHook(final Shutdownable service) {
         LOG.info("Adding shutdown hook for {}", service);
         // TODO: Add these all to a single list of things to do on shutdown.
         final Thread serviceHook = new Thread(new Runnable() {
@@ -356,7 +364,7 @@ public class Launcher {
         Runtime.getRuntime().addShutdownHook(serviceHook);
     }
     
-    private static void gnomeAutoStart() {
+    private void gnomeAutoStart() {
         // Before setup we should just do the default, which is to run on
         // startup. The user can configure this differently at any point 
         // hereafter.
@@ -392,7 +400,7 @@ public class Launcher {
         }
     }
 
-    private static void configureCipherSuites() {
+    private void configureCipherSuites() {
         Security.addProvider(new BouncyCastleProvider());
         if (!LanternUtils.isUnlimitedKeyStrength()) {
             if (!SystemUtils.IS_OS_WINDOWS_VISTA) {
@@ -432,7 +440,7 @@ public class Launcher {
         return isas;
     }
 
-    private static boolean parseOptionDefaultTrue(final CommandLine cmd, 
+    private boolean parseOptionDefaultTrue(final CommandLine cmd,
         final String option) {
         if (cmd.hasOption(option)) {
             LOG.info("Found option: "+option);
@@ -443,17 +451,7 @@ public class Launcher {
         return true;
     }
     
-    private static boolean parseOptionDefaultFalse(final CommandLine cmd, 
-        final String option) {
-        if (cmd.hasOption(option)) {
-            LOG.info("Found option: "+option);
-            return false;
-        }
-        
-        return false;
-    }
-    
-    private static void loadLocalPasswordFile(final String pwFilename) {
+    private void loadLocalPasswordFile(final String pwFilename) {
         //final LocalCipherProvider lcp = localCipherProvider;
         if (!localCipherProvider.requiresAdditionalUserInput()) {
             LOG.error("Settings do not require a password to unlock.");
@@ -494,7 +492,7 @@ public class Launcher {
         }
     }
 
-    private static void launchWithOrWithoutUi() {
+    private void launchWithOrWithoutUi() {
         if (!set.isUiEnabled()) {
             // We only run headless on Linux for now.
             LOG.info("Running Lantern with no display...");
@@ -510,7 +508,7 @@ public class Launcher {
             LanternUtils.hasNetworkConnection());
     }
 
-    public static void launchLantern() {
+    public void launchLantern() {
         LOG.debug("Launching Lantern...");
         if (set.isUiEnabled()) {
             browserService.openBrowserWhenPortReady();
@@ -525,7 +523,7 @@ public class Launcher {
      * The autoconnector tries to auto-connect the first time that it observes 
      * that the settings have reached the SET state.
      */
-    private static class AutoConnector {
+    private class AutoConnector {
         
         private boolean done = false;
         
@@ -577,7 +575,7 @@ public class Launcher {
         }
     }
     
-    private static void printHelp(Options options, String errorMessage) {
+    private void printHelp(Options options, String errorMessage) {
         if (errorMessage != null) {
             LOG.error(errorMessage);
             System.err.println(errorMessage);
@@ -587,11 +585,11 @@ public class Launcher {
         formatter.printHelp("lantern", options);
     }
     
-    private static void printVersion() {
+    private void printVersion() {
         System.out.println("Lantern version "+LanternConstants.VERSION);
     }
     
-    private static void configureLogger() {
+    public void configureDefaultLogger() {
         final String propsPath = "src/main/resources/log4j.properties";
         final File props = new File(propsPath);
         if (props.isFile()) {
@@ -603,7 +601,7 @@ public class Launcher {
         }
     }
     
-    private static void configureProductionLogger() {
+    private void configureProductionLogger() {
         final File logDir = LanternConstants.LOG_DIR;
         final File logFile = new File(logDir, "java.log");
         final Properties props = new Properties();
@@ -650,7 +648,7 @@ public class Launcher {
         }
     }
     
-    private static void handleError(final Throwable t, final boolean exit) {
+    private void handleError(final Throwable t, final boolean exit) {
         final String msg = msg(t);
         LOG.error("Uncaught exception: "+msg, t);
         if (t instanceof SWTError || msg.contains("SWTError")) {
@@ -760,7 +758,7 @@ public class Launcher {
     }
     
 
-    private static void processCommandLineOptions(final CommandLine cmd) {
+    private void processCommandLineOptions(final CommandLine cmd) {
 
         final String secOpt = OPTION_OAUTH2_CLIENT_SECRETS_FILE;
         if (cmd.hasOption(secOpt)) {

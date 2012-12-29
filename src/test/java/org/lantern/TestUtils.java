@@ -64,7 +64,7 @@ public class TestUtils {
         } finally {
             IOUtils.closeQuietly(is);
         }
-        
+        /*
         try {
             is = new FileInputStream(privatePropsFile);
             privateProps.load(is);
@@ -75,7 +75,7 @@ public class TestUtils {
         } finally {
             IOUtils.closeQuietly(is);
         }
-        
+        */
     }
     
     private static void load() {
