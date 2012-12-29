@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="ISO-8859-1"?>
+
+<project name="Maven" xmlns="http://maven.apache.org/DECORATION/1.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.0 http://maven.apache.org/xsd/decoration-1.0.0.xsd">
+    <bannerLeft>
+        <name>A Maven Site using Twitter Bootstrap</name>
+        <src>http://html5-slides-template.googlecode.com/git/images/akquinet-logo-small.png</src>
+        <href>http://www.akquinet.de/en</href>
+    </bannerLeft>
+
+    <skin>
+        <groupId>org.apache.maven.skins</groupId>
+        <artifactId>maven-fluido-skin</artifactId>
+        <version>1.2.1</version>
+    </skin>
+    <custom>
+        <fluidoSkin>
+            <sideBarEnabled>true</sideBarEnabled>
+            <googlePlusOne />
+        </fluidoSkin>
+    </custom>
+
+
+    <body>
+        <menu ref="reports"/>
+    </body>
+</project>
