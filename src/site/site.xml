@@ -4,9 +4,9 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/DECORATION/1.0.0 http://maven.apache.org/xsd/decoration-1.0.0.xsd">
     <bannerLeft>
-        <name>A Maven Site using Twitter Bootstrap</name>
-        <src>http://html5-slides-template.googlecode.com/git/images/akquinet-logo-small.png</src>
-        <href>http://www.akquinet.de/en</href>
+        <name>Lantern Censorship Circumvention Tool</name>
+        <src>https://www.getlantern.org/vstatic/splash/img/logo.png?fb7c5998fbc19b7efc2c9467faccfbf7</src>
+        <href>http://www.getlantern.org</href>
     </bannerLeft>
 
     <skin>
