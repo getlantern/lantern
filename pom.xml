@@ -17,6 +17,7 @@
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     <slf4j.version>1.6.1</slf4j.version>
     <cometd.version>2.5.0</cometd.version>
+    <github.global.server>github</github.global.server>
     <!--<cometd.version>2.4.1</cometd.version>-->
   </properties>
 
@@ -364,7 +365,7 @@
       <plugin>
         <groupId>com.github.github</groupId>
         <artifactId>site-maven-plugin</artifactId>
-        <version>0.5</version>
+        <version>0.7</version>
         <configuration>
           <message>Building site for ${project.version}</message>
         </configuration>
@@ -380,7 +381,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-site-plugin</artifactId>
-        <version>3.0</version>
+        <version>3.1</version>
         <configuration>
           <reportPlugins>
             <plugin>
@@ -415,7 +416,7 @@
             <plugin>
               <groupId>org.codehaus.mojo</groupId>
               <artifactId>findbugs-maven-plugin</artifactId>
-              <version>2.5.1</version>
+              <version>2.5.2</version>
               <configuration>
                 <!-- Optional directory to put findbugs xml report -->
               </configuration>
