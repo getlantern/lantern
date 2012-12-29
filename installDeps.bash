@@ -33,14 +33,17 @@ mvn install:install-file -DgroupId=com.barchart.udt -DartifactId=barchart-udt4 -
 if [ "$OS" == "Linux" ];
 then
     mvn install:install-file -DgroupId=fr.free.miniupnp -DartifactId=miniupnp-java -Dversion=1.7 -Dpackaging=jar -Dfile=lib/miniupnpc_linux.jar -DgeneratePom=true
+    mvn install:install-file -DgroupId=fr.free.miniupnp.natpmp -DartifactId=natpmp-java -Dversion=1.7 -Dpackaging=jar -Dfile=lib/natpmp_linux.jar -DgeneratePom=true
 fi
 if [ "$OS" == "Darwin" ];
 then
     mvn install:install-file -DgroupId=fr.free.miniupnp -DartifactId=miniupnp-java -Dversion=1.7 -Dpackaging=jar -Dfile=lib/miniupnpc_mac.jar -DgeneratePom=true
+    mvn install:install-file -DgroupId=fr.free.miniupnp.natpmp -DartifactId=natpmp-java -Dversion=1.7 -Dpackaging=jar -Dfile=lib/natpmp_mac.jar -DgeneratePom=true
 fi
 shopt -s nocasematch;
 if [[ "$OS" =~ win ]] ;
 then
     mvn install:install-file -DgroupId=fr.free.miniupnp -DartifactId=miniupnp-java -Dversion=1.7 -Dpackaging=jar -Dfile=lib/miniupnpc_win32.jar -DgeneratePom=true
+    mvn install:install-file -DgroupId=fr.free.miniupnp.natpmp -DartifactId=natpmp-java -Dversion=1.7 -Dpackaging=jar -Dfile=lib/natpmp_win32.jar -DgeneratePom=true
 fi
 
