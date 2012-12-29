@@ -16,8 +16,8 @@ public class NatPmpTest {
     public void testNatPmp() throws Exception {
         // NOTE: This will of course only work from a network with a router
         // that supports NAT-PMP! Disable for deploys in other scenarios?
-        final NatPmp pmp = 
-            new NatPmp(TestUtils.getStatsTracker());
+        final NatPmpImpl pmp =
+            new NatPmpImpl(TestUtils.getStatsTracker());
         final AtomicInteger ai = new AtomicInteger(-1);
         final AtomicBoolean error = new AtomicBoolean();
         final PortMapListener portMapListener = new PortMapListener() {
