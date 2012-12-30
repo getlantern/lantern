@@ -385,7 +385,7 @@
               <version>2.6</version>
               <configuration>
                 <dependencyDetailsEnabled>true</dependencyDetailsEnabled>
-                <dependencyLocationsEnabled>false</dependencyLocationsEnabled>
+                <dependencyLocationsEnabled>true</dependencyLocationsEnabled>
               </configuration>
             </plugin>
             <plugin>
@@ -436,6 +436,20 @@
               <groupId>org.codehaus.mojo</groupId>
               <artifactId>cobertura-maven-plugin</artifactId>
               <version>2.5.2</version>
+            </plugin>
+            <plugin>
+              <groupId>org.codehaus.mojo</groupId>
+              <artifactId>versions-maven-plugin</artifactId>
+              <version>2.0</version>
+              <reportSets>
+                <reportSet>
+                  <reports>
+                    <report>dependency-updates-report</report>
+                    <report>plugin-updates-report</report>
+                    <report>property-updates-report</report>
+                  </reports>
+                </reportSet>
+              </reportSets>
             </plugin>
           </reportPlugins>
         </configuration>
