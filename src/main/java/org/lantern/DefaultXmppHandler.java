@@ -462,6 +462,9 @@ public class DefaultXmppHandler implements XmppHandler {
 
         try {
             this.client.get().login(credentials);
+            
+            // Preemptively create our key.
+            this.keyStoreManager.getBase64Cert(getJid());
             LOG.debug("Sending connected event");
             Events.eventBus().post(
                 new GoogleTalkStateEvent(GoogleTalkState.connected));
@@ -1099,10 +1102,10 @@ public class DefaultXmppHandler implements XmppHandler {
         } 
     }
 
-    private String getJid() {
+    @Override
+    public String getJid() {
         return this.client.get().getXmppConnection().getUser().trim();
     }
-
 
     private void sendAndRequestCert(final URI peer) {
         LOG.debug("Requesting cert from {}", peer);

@@ -84,4 +84,6 @@ public interface XmppHandler extends LanternService {
     
     @Override
     void stop();
+
+    String getJid();
 }
