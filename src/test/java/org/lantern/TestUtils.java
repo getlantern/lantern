@@ -68,6 +68,8 @@ public class TestUtils {
 
     private static boolean loaded;
 
+    private static DefaultProxyTracker proxyTracker;
+
     static {
         InputStream is = null;
         try {
@@ -108,6 +110,7 @@ public class TestUtils {
         proxifier = injector.getInstance(Proxifier.class);
         modelUtils = injector.getInstance(ModelUtils.class);
         modelIo = injector.getInstance(ModelIo.class);
+        proxyTracker = injector.getInstance(DefaultProxyTracker.class);
         
         final Settings set = model.getSettings();
         set.setAccessToken(getAccessToken());
@@ -233,5 +236,10 @@ public class TestUtils {
     public static ModelUtils getModelUtils() {
         if (!loaded) load();
         return modelUtils;
+    }
+
+    public static ProxyTracker getProxyTracker() {
+        if (!loaded) load();
+        return proxyTracker;
     }
 }

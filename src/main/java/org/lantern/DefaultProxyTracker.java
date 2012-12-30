@@ -113,7 +113,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     @Override
     public void addLaeProxy(final String cur) {
-        log.info("Adding LAE proxy");
+        log.debug("Adding LAE proxy");
         addProxyWithChecks(this.laeProxySet, this.laeProxies, 
             new ProxyHolder(cur, new InetSocketAddress(cur, 443)), cur);
     }
@@ -130,12 +130,12 @@ public class DefaultProxyTracker implements ProxyTracker {
     private InetSocketAddress getProxy(final Queue<ProxyHolder> queue) {
         synchronized (queue) {
             if (queue.isEmpty()) {
-                log.info("No proxy addresses");
+                log.debug("No proxy addresses");
                 return null;
             }
             final ProxyHolder proxy = queue.remove();
             queue.add(proxy);
-            log.info("FIFO queue is now: {}", queue);
+            log.debug("FIFO queue is now: {}", queue);
             return proxy.isa;
         }
     }
@@ -144,11 +144,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         final Queue<ProxyHolder> queue, final ProxyHolder ph, 
         final String fullProxyString) {
         if (set.contains(ph)) {
-            log.info("We already know about proxy "+ph+" in {}", set);
-            
-            // Send the event again in case we've somehow gotten into the 
-            // wrong state.
-            log.info("Dispatching CONNECTED event");
+            log.debug("We already know about proxy "+ph+" in {}", set);
             return;
         }
         
@@ -160,6 +156,7 @@ public class DefaultProxyTracker implements ProxyTracker {
             // This is a little odd because the proxy could have originally
             // come from the settings themselves, but it'll remove duplicates,
             // so no harm done.
+            log.debug("Adding proxy to settings: {}", this.model.getSettings());
             this.model.getSettings().addProxy(fullProxyString);
             synchronized (set) {
                 if (!set.contains(ph)) {

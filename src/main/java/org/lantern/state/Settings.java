@@ -256,6 +256,11 @@ public class Settings {
         // Don't store peer proxies on disk.
         if (!proxy.contains("@")) {
             this.proxies.add(proxy);
+            log.debug("Added proxy. Proxies: {}", this.proxies);
+            
+            log.debug("Added proxy. Immutable proxies: {}", getProxies());
+        } else {
+            log.debug("Did not add proxy: {}", proxy);
         }
     }
 
