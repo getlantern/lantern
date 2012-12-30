@@ -11,7 +11,9 @@ import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
+import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
+import org.lantern.state.ModelUtils;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -52,6 +54,14 @@ public class TestUtils {
 
     private static ModelService modelService;
     
+    private static AnonymousPeerProxyManager anon;
+    
+    private static Proxifier proxifier;
+    
+    private static ModelIo modelIo;
+    
+    private static ModelUtils modelUtils;
+
     static {
         InputStream is = null;
         try {
@@ -94,18 +104,14 @@ public class TestUtils {
         statsTracker = injector.getInstance(Stats.class);
         roster = injector.getInstance(Roster.class);
         modelService = injector.getInstance(ModelService.class);
+        anon = injector.getInstance(AnonymousPeerProxyManager.class);
+        proxifier = injector.getInstance(Proxifier.class);
+        modelUtils = injector.getInstance(ModelUtils.class);
+        modelIo = injector.getInstance(ModelIo.class);
         
         xmppHandler.start();
     }
     
-    public static File getPropsfile() {
-        return propsFile;
-    }
-
-    public static Properties getProps() {
-        return props;
-    }
-
     public static String loadTestEmail() {
         return props.getProperty("email");
     }
@@ -211,4 +217,20 @@ public class TestUtils {
         return modelService;
     }
 
+    public static AnonymousPeerProxyManager getAnon() {
+        return anon;
+    }
+    
+    
+    public static Proxifier getProxifier() {
+        return proxifier;
+    }
+
+    public static ModelIo getModelIo() {
+        return modelIo;
+    }
+
+    public static ModelUtils getModelUtils() {
+        return modelUtils;
+    }
 }

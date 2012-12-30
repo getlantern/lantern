@@ -10,36 +10,17 @@ import javax.net.ssl.HandshakeCompletedListener;
 import javax.net.ssl.SSLSocket;
 import javax.net.ssl.SSLSocketFactory;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-
-
 public class LaePinnedCertTest {
 
-    private static Logger LOG = LoggerFactory.getLogger(LaePinnedCertTest.class);
-
-    private static DefaultXmppHandler xmppHandler;
-
-    private static LanternSocketsUtil socketsUtil;
-    
-    @BeforeClass
-    public static void setup() throws Exception {
-        final Injector injector = Guice.createInjector(new LanternModule());
-        
-        xmppHandler = injector.getInstance(DefaultXmppHandler.class);
-        socketsUtil = injector.getInstance(LanternSocketsUtil.class);
-        
-        xmppHandler.start();
-    }
+    private static Logger LOG = 
+        LoggerFactory.getLogger(LaePinnedCertTest.class);
     
     @Test public void testPinnedCert() throws Exception {
-        //System.setProperty("javax.net.debug", "all");
-        //LanternHub.getKeyStoreManager();
+        final LanternSocketsUtil socketsUtil = TestUtils.getSocketsUtil();
         final SSLSocketFactory tls = socketsUtil.newTlsSocketFactory();
         final SSLSocket sock = (SSLSocket) tls.createSocket();
         
@@ -53,7 +34,8 @@ public class LaePinnedCertTest {
             }
         });
         
-        sock.connect(new InetSocketAddress("laeproxyhr1.appspot.com", 443), 10000);
+        sock.connect(new InetSocketAddress("laeproxyhr1.appspot.com", 443), 
+            10000);
         assertTrue(sock.isConnected());
         
         sock.startHandshake();

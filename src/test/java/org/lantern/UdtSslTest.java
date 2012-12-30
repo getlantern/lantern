@@ -43,7 +43,7 @@ public class UdtSslTest {
     public void testSslOverUdt() throws Exception {
         final LanternKeyStoreManager ksm = TestUtils.getKsm();
         final Model model = TestUtils.getModel();
-        ksm.addBase64Cert(model.getNodeId(), ksm.getBase64Cert());
+        ksm.addBase64Cert(model.getNodeId(), ksm.getBase64Cert("test@gmail.com/test"));
         
         startServer();
         Thread.sleep(800);
