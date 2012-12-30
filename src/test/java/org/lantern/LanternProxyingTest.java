@@ -118,7 +118,7 @@ public class LanternProxyingTest {
         log.debug("Consuming entity");
         final HttpEntity entity = response.getEntity();
         final String raw = IOUtils.toString(entity.getContent());
-        log.debug("Raw response: "+raw);
+        //log.debug("Raw response: "+raw);
         
         // The response body can actually be pretty small -- consider 
         // responses like 
