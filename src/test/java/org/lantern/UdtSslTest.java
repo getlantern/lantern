@@ -15,7 +15,6 @@ import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.lang.StringUtils;
 import org.junit.Test;
-import org.lantern.state.Model;
 import org.lastbamboo.common.ice.NetSocketUDTWrapper;
 
 import udt.UDTReceiver;
@@ -36,8 +35,8 @@ public class UdtSslTest {
     @Test
     public void testSslOverUdt() throws Exception {
         final LanternKeyStoreManager ksm = TestUtils.getKsm();
-        final Model model = TestUtils.getModel();
-        ksm.addBase64Cert(model.getNodeId(), ksm.getBase64Cert("test@gmail.com/test"));
+        final String testId = "test@gmail.com/test";
+        ksm.addBase64Cert(testId, ksm.getBase64Cert(testId));
         
         startServer();
         Thread.sleep(800);
