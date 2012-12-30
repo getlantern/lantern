@@ -62,6 +62,8 @@ public class TestUtils {
     
     private static ModelUtils modelUtils;
 
+    private static boolean loaded;
+
     static {
         InputStream is = null;
         try {
@@ -84,10 +86,11 @@ public class TestUtils {
         } finally {
             IOUtils.closeQuietly(is);
         }
+        //load();
     }
     
     private static void load() {
-        
+        loaded = true;
         final Injector injector = Guice.createInjector(new LanternModule());
         
         xmppHandler = injector.getInstance(DefaultXmppHandler.class);
@@ -135,104 +138,82 @@ public class TestUtils {
     }
 
     public static JettyLauncher getJettyLauncher() {
-        if (jettyLauncher == null) {
-            load();
-        }
+        if (!loaded) load();
         return jettyLauncher;
     }
     
     public static DefaultXmppHandler getXmppHandler() {
-        if (xmppHandler == null) {
-            load();
-        }
+        if (!loaded) load();
         return xmppHandler;
     }
 
     public static LanternSocketsUtil getSocketsUtil() {
-        if (socketsUtil == null) {
-            load();
-        }
+        if (!loaded) load();
         return socketsUtil;
     }
 
     public static LanternKeyStoreManager getKsm() {
-        if (ksm == null) {
-            load();
-        }
+        if (!loaded) load();
         return ksm;
     }
 
     public static LanternXmppUtil getLanternXmppUtil() {
-        if (lanternXmppUtil == null) {
-            load();
-        }
+        if (!loaded) load();
         return lanternXmppUtil;
     }
 
     public static Model getModel() {
-        if (model == null) {
-            load();
-        }
+        if (!loaded) load();
         return model;
     }
     
     public static LocalCipherProvider getLocalCipherProvider() {
-        if (localCipherProvider == null) {
-            load();
-        }
+        if (!loaded) load();
         return localCipherProvider;
     }
 
     public static EncryptedFileService getEncryptedFileService() {
-        if (encryptedFileService == null) {
-            load();
-        }
+        if (!loaded) load();
         return encryptedFileService;
     }
 
     public static MessageService getMessageService() {
-        if (messageService == null) {
-            load();
-        }
+        if (!loaded) load();
         return messageService;
     }
-    
 
     public static Stats getStatsTracker() {
-        if (statsTracker == null) {
-            load();
-        }
+        if (!loaded) load();
         return statsTracker;
     }
     
     public static Roster getRoster() {
-        if (roster == null) {
-            load();
-        }
+        if (!loaded) load();
         return roster;
     }
 
     public static ModelService getModelService() {
-        if (modelService == null) {
-            load();
-        }
+        if (!loaded) load();
         return modelService;
     }
 
     public static AnonymousPeerProxyManager getAnon() {
+        if (!loaded) load();
         return anon;
     }
     
-    
     public static Proxifier getProxifier() {
+        if (!loaded) load();
         return proxifier;
     }
 
     public static ModelIo getModelIo() {
+        if (!loaded) load();
         return modelIo;
     }
 
     public static ModelUtils getModelUtils() {
+        if (!loaded) load();
         return modelUtils;
     }
 }

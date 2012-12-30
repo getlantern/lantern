@@ -13,14 +13,11 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.InvocationTargetException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketAddress;
-import java.net.SocketException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -785,11 +782,13 @@ public class LanternUtils {
 
     public static boolean isNotJid(final String email) {
         final boolean isEmail = !email.contains(".talk.google.com");
+        /*
         if (isEmail) {
             LOG.debug("Allowing email {}", email);
         } else {
             LOG.debug("Is a JID {}", email);
         }
+        */
         return isEmail;
     }
     
@@ -875,6 +874,18 @@ public class LanternUtils {
             return getTargetForPath(propObject, nextProp);
         }
         return propObject;
+    }
+
+    public static boolean isLocalHost(final Channel channel) {
+        final InetSocketAddress remote = 
+            (InetSocketAddress) channel.getRemoteAddress();
+        return remote.getAddress().isLoopbackAddress();
+    }
+
+    public static boolean isLocalHost(final Socket sock) {
+        final InetSocketAddress remote = 
+            (InetSocketAddress) sock.getRemoteSocketAddress();
+        return remote.getAddress().isLoopbackAddress();
     }
 }
 
