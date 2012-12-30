@@ -59,12 +59,12 @@
     <dependency>
       <groupId>net.java.dev.jna</groupId>
       <artifactId>jna</artifactId>
-      <version>3.5.1</version>
+      <version>3.4.1</version>
     </dependency>
     <dependency>
       <groupId>net.java.dev.jna</groupId>
       <artifactId>platform</artifactId>
-      <version>3.5.1</version>
+      <version>3.4.1</version>
     </dependency>
     <dependency>
       <groupId>org.cometd.java</groupId>
@@ -634,7 +634,6 @@
 
   <repositories>
     <!-- TODO: Would be really nice to remove this ASAP -->
-<!--
     <repository>
       <id>teleal.org-repo</id>
       <url>http://teleal.org/m2</url>
@@ -642,7 +641,6 @@
         <enabled>false</enabled>
       </snapshots>
     </repository>
--->
 
     <repository>
       <id>sonatype-nexus-snapshots</id>
