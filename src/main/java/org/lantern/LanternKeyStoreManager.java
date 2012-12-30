@@ -12,6 +12,7 @@ import javax.net.ssl.TrustManager;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.lantern.state.Model;
 import org.littleshoot.proxy.KeyStoreManager;
@@ -75,7 +76,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
                 log.error("Could not create config dir!! "+CONFIG_DIR);
             }
         }
-        reset(model.getNodeId());
+        reset();
         createTrustStore();
         
         this.lanternTrustManager = 
@@ -113,7 +114,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         log.info("Got result of creating trust store: {}", result);
     }
 
-    private void reset(final String id) {
+    private void reset() {
         log.info("RESETTING KEYSTORE AND TRUSTSTORE!!");
         if (KEYSTORE_FILE.isFile()) {
             log.info("Deleting existing keystore file at: " +
@@ -127,6 +128,8 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             TRUSTSTORE_FILE.delete();
         }
         
+        // Generate the keystore using a dummy ID.
+        getKey(String.valueOf(RandomUtils.nextInt()));
 
         /*
         log.info("Importing cert");
@@ -140,10 +143,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     private void generateLocalCert(final String jid) {
         final String normalizedAlias = 
                 FileUtils.removeIllegalCharsFromFileName(jid);
-        final String genKeyResult = LanternUtils.runKeytool("-genkey", "-alias", 
-                normalizedAlias, "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG, 
-            "-dname", "CN="+normalizedAlias, "-keypass", PASS, "-storepass", 
-            PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
+        final String genKeyResult = getKey(normalizedAlias);
         
         
         log.info("Result of keytool -genkey call: {}", genKeyResult);
@@ -168,6 +168,13 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             log.error("Could not base 64 encode cert?", e);
             throw new Error("Could not base 64 encode cert?", e);
         }
+    }
+
+    private String getKey(final String normalizedAlias) {
+        return LanternUtils.runKeytool("-genkey", "-alias", 
+                normalizedAlias, "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG, 
+            "-dname", "CN="+normalizedAlias, "-keypass", PASS, "-storepass", 
+            PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
     }
 
     /**

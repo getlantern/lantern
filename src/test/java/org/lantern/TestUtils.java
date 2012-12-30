@@ -14,6 +14,7 @@ import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
 import org.lantern.state.ModelUtils;
+import org.lantern.state.Settings;
 
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -29,7 +30,6 @@ public class TestUtils {
     private static final Properties props = new Properties();
     
     private static final Properties privateProps = new Properties();
-    
 
     private static DefaultXmppHandler xmppHandler;
 
@@ -74,7 +74,6 @@ public class TestUtils {
         } finally {
             IOUtils.closeQuietly(is);
         }
-        /*
         try {
             is = new FileInputStream(privatePropsFile);
             privateProps.load(is);
@@ -85,7 +84,6 @@ public class TestUtils {
         } finally {
             IOUtils.closeQuietly(is);
         }
-        */
     }
     
     private static void load() {
@@ -109,6 +107,10 @@ public class TestUtils {
         modelUtils = injector.getInstance(ModelUtils.class);
         modelIo = injector.getInstance(ModelIo.class);
         
+        final Settings set = model.getSettings();
+        set.setAccessToken(getAccessToken());
+        set.setRefreshToken(getRefreshToken());
+        set.setUseGoogleOAuth2(true);
         xmppHandler.start();
     }
     

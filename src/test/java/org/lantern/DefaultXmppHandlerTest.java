@@ -27,8 +27,8 @@ public class DefaultXmppHandlerTest {
      */
     @Test 
     public void testControllerMessages() throws Exception {
-        final String email = TestUtils.loadTestEmail();
-        final String pwd = TestUtils.loadTestPassword();
+        //final String email = TestUtils.loadTestEmail();
+        //final String pwd = TestUtils.loadTestPassword();
         
         //LanternHub.resetSettings(true);
         final Model model = TestUtils.getModel();
@@ -40,7 +40,8 @@ public class DefaultXmppHandlerTest {
         
         final XmppHandler handler = TestUtils.getXmppHandler();
         handler.start();
-        handler.connect(email, pwd);
+        //handler.connect(email, pwd);
+        handler.connect();
         
         Collection<String> proxies = new HashSet<String>();
         

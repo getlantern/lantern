@@ -40,8 +40,6 @@ import org.lantern.state.SyncPath;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
-
 /**
  * Servlet for handling OAuth callbacks from Google. The associated code is
  * converted into OAuth tokens that are used to login to Google Talk and to
@@ -191,13 +189,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             // happens if the user cancels?
         }
         
-        final String clientId = allToks.get("client_id");
-        final String clientSecret = allToks.get("client_secret");
-        
-        // Note the e-mail is actually ignored when we login to 
-        // Google Talk.
-        this.model.getSettings().setClientID(clientId);
-        this.model.getSettings().setClientSecret(clientSecret);
+
         this.model.getSettings().setAccessToken(accessToken);
         this.model.getSettings().setRefreshToken(refreshToken);
         this.model.getSettings().setUseGoogleOAuth2(true);
@@ -235,16 +227,13 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
 
     private Map<String, String> loadAllToks(final DefaultHttpClient client,
         final String code) throws IOException {
-        final Details secrets = OauthUtils.loadClientSecrets().getInstalled();
         final HttpPost post = 
             new HttpPost("https://accounts.google.com/o/oauth2/token");
         try {
-            final String clientId = secrets.getClientId();
-            final String clientSecret = secrets.getClientSecret();
             final List<? extends NameValuePair> nvps = Arrays.asList(
                 new BasicNameValuePair("code", code),
-                new BasicNameValuePair("client_id", clientId),
-                new BasicNameValuePair("client_secret", clientSecret),
+                new BasicNameValuePair("client_id", model.getSettings().getClientID()),
+                new BasicNameValuePair("client_secret", model.getSettings().getClientSecret()),
                 new BasicNameValuePair("redirect_uri", OauthUtils.REDIRECT_URL),
                 new BasicNameValuePair("grant_type", "authorization_code")
                 );
@@ -264,8 +253,6 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             final Map<String, String> oauthToks = 
                 om.readValue(body, Map.class);
             log.debug("Got oath data: {}", oauthToks);
-            oauthToks.put("client_id", clientId);
-            oauthToks.put("client_secret", clientSecret);
             return oauthToks;
         } finally {
             post.releaseConnection();

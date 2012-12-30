@@ -9,11 +9,13 @@ import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.lantern.LanternConstants;
+import org.lantern.http.OauthUtils;
 import org.lantern.state.Settings.Mode;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
 import com.google.inject.Inject;
 
 /**
@@ -74,6 +76,23 @@ public class ModelUtils {
         LOG.debug("Has refresh: "+hasRefresh);
         LOG.debug("Has oauth: "+oauth);
         return oauth && hasRefresh;
+    }
+    
+    public void loadClientSecrets() {
+        final Details secrets;
+        try {
+            secrets = OauthUtils.loadClientSecrets().getInstalled();
+        } catch (final IOException e) {
+            LOG.error("Could not load client secrets?", e);
+            throw new Error("Could not load client secrets?", e);
+        }
+        final String clientId = secrets.getClientId();
+        final String clientSecret = secrets.getClientSecret();
+        
+        // Note the e-mail is actually ignored when we login to 
+        // Google Talk.
+        this.model.getSettings().setClientID(clientId);
+        this.model.getSettings().setClientSecret(clientSecret);
     }
 
     public void loadOAuth2ClientSecretsFile(final String filename) {
@@ -156,5 +175,11 @@ public class ModelUtils {
             set.getClientID(), set.getClientSecret(), 
             set.getAccessToken(), set.getRefreshToken(), 
             resource);
+    }
+
+    public boolean isOauthConfigured() {
+        final Settings set = this.model.getSettings();
+        return StringUtils.isNotBlank(set.getRefreshToken()) &&
+                StringUtils.isNotBlank(set.getAccessToken());
     }
 }
