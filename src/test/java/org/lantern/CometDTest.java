@@ -31,7 +31,6 @@ public class CometDTest {
 
     @Test
     public void test() throws Exception {
-        //final Injector injector = Guice.createInjector(new LanternModule());
         final int port = LanternUtils.randomPort();
         StaticSettings.setApiPort(port);
         //RuntimeSettings.setApiPort(port);
@@ -104,7 +103,7 @@ public class CometDTest {
         Events.asyncEventBus().post(new UpdateEvent(updateJson));
         
         waitForBoolean(hasMessage);
-        assertEquals("version.updated", messagePath.get());
+        assertEquals("version.latest", messagePath.get());
         hasMessage.set(false);
         messagePath.set("none");
     }

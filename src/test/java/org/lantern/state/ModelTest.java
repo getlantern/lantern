@@ -8,43 +8,17 @@ import java.io.File;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.math.RandomUtils;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.lantern.DefaultXmppHandler;
 import org.lantern.LanternConstants;
-import org.lantern.LanternModule;
 import org.lantern.Proxifier;
+import org.lantern.TestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 
 public class ModelTest {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
-    private static DefaultXmppHandler xmppHandler;
-
-    private static Proxifier proxifier;
-
-    private static ModelUtils modelUtils;
-
-    private static Model model;
-
-    private static ModelIo modelIo;
-
-    @BeforeClass
-    public static void setup() throws Exception {
-        final Injector injector = Guice.createInjector(new LanternModule());
-        xmppHandler = injector.getInstance(DefaultXmppHandler.class);
-        proxifier = injector.getInstance(Proxifier.class);
-        modelUtils = injector.getInstance(ModelUtils.class);
-        modelIo = injector.getInstance(ModelIo.class);
-        //implementor = injector.getInstance(DefaultModelChangeImplementor.class);
-        
-        model = injector.getInstance(Model.class);
-    }
     
     @Test
     public void testStartAtLogin() throws Exception {
@@ -52,6 +26,11 @@ public class ModelTest {
             log.info("No plist file - not installed or on different OS?");
             return;
         }
+        final Model model = TestUtils.getModel();
+        final Proxifier proxifier = TestUtils.getProxifier();
+        final ModelUtils modelUtils = TestUtils.getModelUtils();
+        final DefaultXmppHandler xmppHandler = TestUtils.getXmppHandler();
+        final ModelIo modelIo = TestUtils.getModelIo();
         final Settings settings = model.getSettings();
         final File temp1 = plist();
         final File temp2 = autostart();

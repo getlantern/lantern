@@ -19,6 +19,7 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -210,7 +211,8 @@ public class LanternTrustManager implements X509TrustManager {
             try {
                 final Certificate local = this.keyStore.getCertificate(alias);
                 if (local == null) {
-                    log.warn("No matching cert for: "+alias);
+                    log.warn("No matching cert for {} in {}", alias, 
+                            enumToString(this.keyStore.aliases()));
                     throw new CertificateException("No cert for "+ alias);
                 }
                 
@@ -292,6 +294,15 @@ public class LanternTrustManager implements X509TrustManager {
         }
     }
     
+
+    private String enumToString(final Enumeration<String> aliases) {
+        final StringBuilder sb = new StringBuilder();
+        while (aliases.hasMoreElements()) {
+            sb.append(aliases.nextElement());
+        }
+        return sb.toString();
+    }
+
 
     private static Pattern cnPattern = Pattern.compile("(?i)(cn=)([^,]*)");
     

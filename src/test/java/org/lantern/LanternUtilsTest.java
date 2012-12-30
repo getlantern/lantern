@@ -133,10 +133,9 @@ public class LanternUtilsTest {
             //"SSL_RSA_WITH_RC4_128_SHA",
                 "TLS_ECDHE_RSA_WITH_RC4_128_SHA"
         });
-        //System.setProperty("javax.net.debug", "ssl:record");
-        //System.setProperty("javax.net.debug", "ssl:handshake");
         
-        TestUtils.getKsm().addBase64Cert("testid", TestUtils.getKsm().getBase64Cert());
+        TestUtils.getKsm().addBase64Cert("test@gmail.com/me", 
+            TestUtils.getKsm().getBase64Cert("test@gmail.com/me"));
         
         final SocketFactory clientFactory = TestUtils.getSocketsUtil().newTlsSocketFactory();
         final ServerSocketFactory serverFactory = 

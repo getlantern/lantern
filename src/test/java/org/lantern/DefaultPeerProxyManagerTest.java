@@ -7,32 +7,13 @@ import java.net.URI;
 
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 
-
-public class DefaultPeerProxyManagerTest {
-
-    private static AnonymousPeerProxyManager anon;
-    private static Stats stats;
-    private static LanternSocketsUtil sockets;
+public class DefaultPeerProxyManagerTest {    
     
-    @BeforeClass
-    public static void setup() throws Exception {
-        final Injector injector = Guice.createInjector(new LanternModule());
-        
-        // Order annoyingly matters -- have to create xmpp handler first.
-        injector.getInstance(DefaultXmppHandler.class);
-        anon = injector.getInstance(AnonymousPeerProxyManager.class);
-        stats = injector.getInstance(Stats.class);
-        sockets = injector.getInstance(LanternSocketsUtil.class);
-    }
-    
-    
-    @Test public void testQueue() throws Exception {
+    @Test 
+    public void testQueue() throws Exception {
         final ChannelGroup channelGroup = 
             new DefaultChannelGroup("Local-HTTP-Proxy-Server");
         
@@ -43,14 +24,21 @@ public class DefaultPeerProxyManagerTest {
         final long time4 = 3;
         
 
+        final AnonymousPeerProxyManager anon = TestUtils.getAnon();
+        final Stats stats = TestUtils.getStatsTracker();
+        final LanternSocketsUtil sockets = TestUtils.getSocketsUtil();
         final PeerSocketWrapper cts1 = 
-            new PeerSocketWrapper(peerUri, time4, new Socket(), true, channelGroup, stats, sockets, false);
+            new PeerSocketWrapper(peerUri, time4, new Socket(), true, 
+                channelGroup, stats, sockets, false);
         final PeerSocketWrapper cts2 = 
-            new PeerSocketWrapper(peerUri, time3, new Socket(), true, channelGroup, stats, sockets, false);
+            new PeerSocketWrapper(peerUri, time3, new Socket(), true, 
+                channelGroup, stats, sockets, false);
         final PeerSocketWrapper cts3 = 
-            new PeerSocketWrapper(peerUri, time2, new Socket(), true, channelGroup, stats, sockets, false);
+            new PeerSocketWrapper(peerUri, time2, new Socket(), true, 
+                channelGroup, stats, sockets, false);
         final PeerSocketWrapper cts4 = 
-            new PeerSocketWrapper(peerUri, time1, new Socket(), true, channelGroup, stats, sockets, false);
+            new PeerSocketWrapper(peerUri, time1, new Socket(), true, 
+                channelGroup, stats, sockets, false);
         
         anon.timedSockets.add(cts1);
         anon.timedSockets.add(cts2);

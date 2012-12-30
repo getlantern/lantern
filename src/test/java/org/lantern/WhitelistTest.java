@@ -6,40 +6,16 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 
 import org.apache.commons.lang.math.RandomUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-
 
 public class WhitelistTest {
     
-    private static ModelIo modelIo;
-    
-    @BeforeClass
-    public static void setup() throws Exception {
-        final Injector injector = Guice.createInjector(new LanternModule());
-        modelIo = injector.getInstance(ModelIo.class);
-        
-        final Model settings = modelIo.get();
-        final Whitelist whitelist = settings.getSettings().getWhitelist();
-        whitelist.reset();
-    }
-    
-    @AfterClass
-    public static void after() throws Exception {
-        final Model settings = modelIo.get();
-        final Whitelist whitelist = settings.getSettings().getWhitelist();
-        whitelist.reset();
-        modelIo.write();
-    }
-    
     @Test
     public void testWhitelist() throws Exception {
+        final ModelIo modelIo = TestUtils.getModelIo();
         final Model settings = modelIo.get();
         final Whitelist whitelist = settings.getSettings().getWhitelist();
         
@@ -80,6 +56,7 @@ public class WhitelistTest {
 
     @Test
     public void testIPAddressInWhitelist() throws Exception {
+        final ModelIo modelIo = TestUtils.getModelIo();
         //final File settingsFile = settingsFile();
         //final SettingsIo io = new SettingsIo(settingsFile, 
         //    new DefaultEncryptedFileService(new DefaultLocalCipherProvider()));

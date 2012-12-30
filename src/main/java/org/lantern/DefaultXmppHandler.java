@@ -1014,8 +1014,9 @@ public class DefaultXmppHandler implements XmppHandler {
         msg.setTo(from);
         msg.setProperty(P2PConstants.MESSAGE_TYPE, 
             XmppMessageConstants.INFO_RESPONSE_TYPE);
-        msg.setProperty(P2PConstants.MAC, this.model.getNodeId());
-        msg.setProperty(P2PConstants.CERT, this.keyStoreManager.getBase64Cert());
+        //msg.setProperty(P2PConstants.MAC, this.model.getNodeId());
+        msg.setProperty(P2PConstants.CERT, 
+            this.keyStoreManager.getBase64Cert(getJid()));
         this.client.get().getXmppConnection().sendPacket(msg);
     }
 
@@ -1069,8 +1070,7 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.info("Not connected -- ignoring proxy: {}", cur);
             return;
         }
-        final String jid = 
-            this.client.get().getXmppConnection().getUser().trim();
+        final String jid = getJid();
         
         final String emailId = XmppUtils.jidToUser(jid);
         LOG.debug("We are: {}", jid);
@@ -1095,6 +1095,11 @@ public class DefaultXmppHandler implements XmppHandler {
         } 
     }
 
+    private String getJid() {
+        return this.client.get().getXmppConnection().getUser().trim();
+    }
+
+
     private void sendAndRequestCert(final URI peer) {
         LOG.debug("Requesting cert from {}", peer);
         final Message msg = new Message();
@@ -1104,8 +1109,9 @@ public class DefaultXmppHandler implements XmppHandler {
         msg.setTo(peer.toASCIIString());
         // Set our certificate in the request as well -- we want to make
         // extra sure these get through!
-        msg.setProperty(P2PConstants.MAC, this.model.getNodeId());
-        msg.setProperty(P2PConstants.CERT, this.keyStoreManager.getBase64Cert());
+        //msg.setProperty(P2PConstants.MAC, this.model.getNodeId());
+        msg.setProperty(P2PConstants.CERT, 
+            this.keyStoreManager.getBase64Cert(getJid()));
         this.client.get().getXmppConnection().sendPacket(msg);
     }
 

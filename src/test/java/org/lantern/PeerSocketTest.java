@@ -10,28 +10,16 @@ import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.commons.lang.StringUtils;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.google.inject.Guice;
-import com.google.inject.Injector;
 
 
 public class PeerSocketTest {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private static DefaultXmppHandler xmpp;
-    
-    @BeforeClass
-    public static void setup() throws Exception {
-        final Injector injector = Guice.createInjector(new LanternModule());
-        xmpp = injector.getInstance(DefaultXmppHandler.class);
-        xmpp.start();
-    }
     @Test
     public void testSocket() throws Exception {
         // Note you have to have a remote peer URI that's up a running for
@@ -46,6 +34,7 @@ public class PeerSocketTest {
             log.info("user name and password not configured");
             return;
         }
+        final DefaultXmppHandler xmpp = TestUtils.getXmppHandler();
         xmpp.connect(email, pass);
 
         // ENTER A PEER TO RUN LIVE TESTS -- THEY NEED TO BE ON THE NETWORK.
