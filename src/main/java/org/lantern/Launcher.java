@@ -82,9 +82,10 @@ public class Launcher {
     private Censored censored;
     
     private static InternalState internalState;
-    private Runnable runner;
+    private final String[] commandLineArgs;
 
-    public Launcher(final String[] args) {
+    public Launcher(final String... args) {
+        this.commandLineArgs = args;
         Thread.currentThread().setName("Lantern-Main-Thread");
         //Connection.DEBUG_ENABLED = true;
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
@@ -93,42 +94,33 @@ public class Launcher {
                 handleError(e, false);
             }
         });
-        
-        runner = new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    launch(args);
-                } catch (final Throwable t) {
-                    handleError(t, true);
-                }
-            }
-        };
     }
 
     public void run() {
         LOG = LoggerFactory.getLogger(Launcher.class);
-        final Thread main = new Thread(runner, "Lantern-Launch-Thread");
-        main.start();
+        try {
+            launch(this.commandLineArgs);
+        } catch (final Throwable t) {
+            handleError(t, true);
+        }
         if (SystemUtils.IS_OS_LINUX) {
-            synchronized (runner) {
+            synchronized (this) {
                 try {
-                    runner.wait();
+                    this.wait();
                 } catch (final InterruptedException e) {
                     LOG.info("Interrupted", e);
                 }
             }
         }
     }
-
+    
     /**
      * Starts the proxy from the command line.
      * 
      * @param args Any command line arguments.
      */
     public static void main(final String... args) {
-        Launcher launcher = new Launcher(args);
+        final Launcher launcher = new Launcher(args);
         launcher.configureDefaultLogger();
         launcher.run();
     }
@@ -589,7 +581,7 @@ public class Launcher {
         System.out.println("Lantern version "+LanternConstants.VERSION);
     }
     
-    public void configureDefaultLogger() {
+    private void configureDefaultLogger() {
         final String propsPath = "src/main/resources/log4j.properties";
         final File props = new File(propsPath);
         if (props.isFile()) {
@@ -684,27 +676,29 @@ public class Launcher {
 
 
     // the following are command line options 
-    private static final String OPTION_DISABLE_UI = "disable-ui";
-    private static final String OPTION_HELP = "help";
-    private static final String OPTION_LAUNCHD = "launchd";
-    private static final String OPTION_PUBLIC_API = "public-api";
-    private static final String OPTION_API_PORT = "api-port";
-    private static final String OPTION_SERVER_PORT = "server-port";
-    private static final String OPTION_DISABLE_KEYCHAIN = "disable-keychain";
-    private static final String OPTION_PASSWORD_FILE = "password-file";
-    private static final String OPTION_TRUSTED_PEERS = "disable-trusted-peers";
-    private static final String OPTION_ANON_PEERS ="disable-anon-peers";
-    private static final String OPTION_LAE = "disable-lae";
-    private static final String OPTION_CENTRAL = "disable-central";
-    private static final String OPTION_UDP = "disable-udp";
-    private static final String OPTION_TCP = "disable-tcp";
-    private static final String OPTION_USER = "user";
-    private static final String OPTION_PASS = "pass";
-    private static final String OPTION_GET = "force-get";
-    private static final String OPTION_GIVE = "force-give";
-    private static final String OPTION_NO_CACHE = "no-cache";
-    private static final String OPTION_VERSION = "version";
-    private static final String OPTION_NEW_UI = "new-ui";
+    public static final String OPTION_DISABLE_UI = "disable-ui";
+    public static final String OPTION_HELP = "help";
+    public static final String OPTION_LAUNCHD = "launchd";
+    public static final String OPTION_PUBLIC_API = "public-api";
+    public static final String OPTION_API_PORT = "api-port";
+    public static final String OPTION_SERVER_PORT = "server-port";
+    public static final String OPTION_DISABLE_KEYCHAIN = "disable-keychain";
+    public static final String OPTION_PASSWORD_FILE = "password-file";
+    public static final String OPTION_TRUSTED_PEERS = "disable-trusted-peers";
+    public static final String OPTION_ANON_PEERS ="disable-anon-peers";
+    public static final String OPTION_LAE = "disable-lae";
+    public static final String OPTION_CENTRAL = "disable-central";
+    public static final String OPTION_UDP = "disable-udp";
+    public static final String OPTION_TCP = "disable-tcp";
+    public static final String OPTION_USER = "user";
+    public static final String OPTION_PASS = "pass";
+    public static final String OPTION_GET = "force-get";
+    public static final String OPTION_GIVE = "force-give";
+    public static final String OPTION_NO_CACHE = "no-cache";
+    public static final String OPTION_VERSION = "version";
+    public static final String OPTION_NEW_UI = "new-ui";
+    public static final String OPTION_REFRESH_TOK = "refresh-tok";
+    public static final String OPTION_ACCESS_TOK = "access-tok";
     public static final String OPTION_OAUTH2_CLIENT_SECRETS_FILE = "oauth2-client-secrets-file";
     public static final String OPTION_OAUTH2_USER_CREDENTIALS_FILE = "oauth2-user-credentials-file";
 
@@ -750,6 +744,10 @@ public class Launcher {
             "Print the Lantern version");
         options.addOption(null, OPTION_NEW_UI, false,
             "Use the new UI under the 'ui' directory");
+        options.addOption(null, OPTION_REFRESH_TOK, true,
+                "Specify the oauth2 refresh token");
+        options.addOption(null, OPTION_ACCESS_TOK, true,
+                "Specify the oauth2 access token");
         options.addOption(null, OPTION_OAUTH2_CLIENT_SECRETS_FILE, true,
             "read Google OAuth2 client secrets from the file specified");
         options.addOption(null, OPTION_OAUTH2_USER_CREDENTIALS_FILE, true,
@@ -791,7 +789,13 @@ public class Launcher {
         }
         */
         
-        /* option to disable use of keychains in local privacy */
+        if (cmd.hasOption(OPTION_REFRESH_TOK)) {
+            set.setRefreshToken(cmd.getOptionValue(OPTION_REFRESH_TOK));
+        }
+        if (cmd.hasOption(OPTION_ACCESS_TOK)) {
+            set.setAccessToken(cmd.getOptionValue(OPTION_ACCESS_TOK));
+        }
+        // option to disable use of keychains in local privacy 
         if (cmd.hasOption(OPTION_DISABLE_KEYCHAIN)) {
             LOG.info("Disabling use of system keychains");
             set.setKeychainEnabled(false);

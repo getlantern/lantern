@@ -40,11 +40,19 @@ public class LanternProxyingTest {
         //int port = 9090;
         //HttpProxyServer proxyServer = new DefaultHttpProxyServer(port);
         //proxyServer.start();
-        
+        /*
         Launcher launcher = new Launcher(new String[]{"--disable-trusted-peers", 
             "--disable-anon-peers", "--disable-ui", "--force-get", 
             "--user", TestUtils.loadTestEmail(), "--pass", 
             TestUtils.loadTestPassword()});
+        launcher.run();
+        */
+        
+        final Launcher launcher = 
+            new Launcher(new String[]{"--disable-trusted-peers", 
+            "--disable-anon-peers","--disable-ui", "--force-get", 
+            "--refresh-tok", TestUtils.getRefreshToken(), 
+            "--access-tok", TestUtils.getAccessToken()});
         launcher.run();
 
         Proxy proxy = new Proxy();
@@ -149,10 +157,19 @@ public class LanternProxyingTest {
         //final String[] urls = {"http://www.yahoo.com/"};
         final int port = LanternConstants.LANTERN_LOCALHOST_HTTP_PORT;
 
+        /*
         Launcher launcher = new Launcher(new String[] { "--disable-ui",
                 "--force-get", "--user", TestUtils.loadTestEmail(), "--pass",
                 TestUtils.loadTestPassword() });
         launcher.run();
+        */
+        
+        final Launcher launcher = 
+            new Launcher(new String[]{"--disable-ui", "--force-get", 
+            "--refresh-tok", TestUtils.getRefreshToken(), 
+            "--access-tok", TestUtils.getAccessToken()});
+        launcher.run();
+
         
         // Give it a second to start up.
         Thread.sleep(6000);

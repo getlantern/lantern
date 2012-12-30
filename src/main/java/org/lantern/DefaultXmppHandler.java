@@ -219,6 +219,8 @@ public class DefaultXmppHandler implements XmppHandler {
 
     @Override
     public void start() {
+        this.modelUtils.loadClientSecrets();
+        
         // This just links connectivity with Google Talk login status when 
         // running in give mode.
         NatPmpService temp = null;
@@ -341,7 +343,8 @@ public class DefaultXmppHandler implements XmppHandler {
             }
         }
         LOG.info("Connecting to XMPP servers...");
-        if (this.model.getSettings().isUseGoogleOAuth2()) {
+        if (this.modelUtils.isOauthConfigured()) {
+        //if (this.model.getSettings().isUseGoogleOAuth2()) {
             connectViaOAuth2();
         } else {
             //connectWithEmailAndPass();
@@ -433,7 +436,8 @@ public class DefaultXmppHandler implements XmppHandler {
         this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService, 
             upnpService, this.mappedServer, 
             //newTlsSocketFactory(),ç SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
-            this.socketsUtil.newTlsSocketFactory(), this.socketsUtil.newTlsServerSocketFactory(),
+            this.socketsUtil.newTlsSocketFactory(), 
+            this.socketsUtil.newTlsServerSocketFactory(),
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
             plainTextProxyRelayAddress, sessionListener, false));
         

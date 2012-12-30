@@ -219,8 +219,8 @@ public class Settings {
         return accessToken;
     }
 
-    public void setRefreshToken(final String password) {
-        this.refreshToken = password;
+    public void setRefreshToken(final String refreshToken) {
+        this.refreshToken = refreshToken;
     }
 
     @JsonView({Persistent.class})

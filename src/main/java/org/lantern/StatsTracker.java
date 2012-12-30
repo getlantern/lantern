@@ -329,7 +329,7 @@ public class StatsTracker implements Stats {
             final CountryData cd = toCountryData(channel);
             cd.bytes += bp;
         } catch (final IOException e) {
-            log.warn("No CountryData for {} Not adding bytes proxied.", e);
+            log.warn("No CountryData for {} Not adding bytes proxied.", channel, e);
         }
     }
 

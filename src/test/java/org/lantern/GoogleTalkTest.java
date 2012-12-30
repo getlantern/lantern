@@ -15,18 +15,17 @@ public class GoogleTalkTest {
     public void testGoogleTalk() throws Exception {
         TestUtils.getModel().getSettings().setUseAnonymousPeers(false);
         TestUtils.getModel().getSettings().setUseTrustedPeers(false);
-        final String email = TestUtils.loadTestEmail();
-        final XmppHandler handler = 
-            createHandler(email, TestUtils.loadTestPassword());
+        //final String email = TestUtils.loadTestEmail();
+        final XmppHandler handler = createHandler();
         assertTrue("Not logged in to gtalk", handler.isLoggedIn());
     }
     
-    private XmppHandler createHandler(final String user, final String pass) 
+    private XmppHandler createHandler() 
         throws CredentialException, IOException, NotInClosedBetaException {
         TestUtils.getModel().getSettings().setProxies(new HashSet<String>());
         final XmppHandler xmpp = TestUtils.getXmppHandler();
         
-        xmpp.connect(user, pass);
+        xmpp.connect();
         return xmpp;
     }
 

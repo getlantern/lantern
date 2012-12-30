@@ -25,13 +25,14 @@ public class WhitelistProxyingTest {
     
     @Test
     public void testWithHttpClient() throws Exception {
-        final String email = TestUtils.loadTestEmail();
-        final String pass = TestUtils.loadTestPassword();
-        Launcher launcher = new Launcher(new String[]{"--disable-ui", "--force-get", 
-            "--user", email, "--pass", pass});
+        final Launcher launcher = 
+            new Launcher(new String[]{"--disable-ui", "--force-get", 
+            "--refresh-tok", TestUtils.getRefreshToken(), 
+            "--access-tok", TestUtils.getAccessToken()});
         launcher.run();
 
-        Thread.sleep(10000);
+        //Thread.sleep(8000);
+        LanternUtils.waitForServer(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
         /*
         final int proxyPort = 10200;
         final HttpProxyServer proxy = 
