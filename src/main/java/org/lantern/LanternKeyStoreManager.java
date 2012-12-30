@@ -106,16 +106,18 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             log.info("Trust store already exists");
             return;
         }
+        final String dummyCn = model.getNodeId();
+        log.debug("Dummy CN is: {}", dummyCn);
         final String result = LanternUtils.runKeytool("-genkey", "-alias", 
             "foo", "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG, 
-            "-dname", "CN="+model.getNodeId(), "-keystore", 
+            "-dname", "CN="+dummyCn, "-keystore", 
             TRUSTSTORE_FILE.getAbsolutePath(), "-keypass", PASS, 
             "-storepass", PASS);
-        log.info("Got result of creating trust store: {}", result);
+        log.debug("Got result of creating trust store: {}", result);
     }
 
     private void reset() {
-        log.info("RESETTING KEYSTORE AND TRUSTSTORE!!");
+        log.debug("RESETTING KEYSTORE AND TRUSTSTORE!!");
         if (KEYSTORE_FILE.isFile()) {
             log.info("Deleting existing keystore file at: " +
                 KEYSTORE_FILE.getAbsolutePath());
@@ -128,8 +130,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             TRUSTSTORE_FILE.delete();
         }
         
-        // Generate the keystore using a dummy ID.
-        getKey(String.valueOf(RandomUtils.nextInt()));
+        createKeyStore();
 
         /*
         log.info("Importing cert");
@@ -140,11 +141,32 @@ public class LanternKeyStoreManager implements KeyStoreManager {
 
     }
 
+    private void createKeyStore() {
+        final String dummyId = String.valueOf(RandomUtils.nextInt());
+        // Generate the keystore using a dummy ID.
+        log.debug("Dummy ID is: {}", dummyId);
+        log.debug("Creating keystore...");
+        LanternUtils.runKeytool("-genkey", 
+            "-alias", dummyId, 
+            "-keysize", KEYSIZE, 
+            "-dname", "CN="+dummyId, // Required
+            "-keypass", PASS, 
+            "-storepass", PASS, 
+            "-keystore", KEYSTORE_FILE.getAbsolutePath());
+        
+        
+        log.debug("Deleting dummy alias...");
+        LanternUtils.runKeytool("-delete", "-alias", dummyId,
+            "-keypass", PASS, "-storepass", PASS,
+            "-keystore", KEYSTORE_FILE.getAbsolutePath());
+        
+        log.debug("Done creating keystore...");
+    }
+
     private void generateLocalCert(final String jid) {
         final String normalizedAlias = 
                 FileUtils.removeIllegalCharsFromFileName(jid);
         final String genKeyResult = getKey(normalizedAlias);
-        
         
         log.info("Result of keytool -genkey call: {}", genKeyResult);
         
@@ -172,7 +194,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
 
     private String getKey(final String normalizedAlias) {
         return LanternUtils.runKeytool("-genkey", "-alias", 
-                normalizedAlias, "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG, 
+            normalizedAlias, "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG, 
             "-dname", "CN="+normalizedAlias, "-keypass", PASS, "-storepass", 
             PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
     }

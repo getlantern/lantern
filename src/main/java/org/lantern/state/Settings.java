@@ -183,9 +183,6 @@ public class Settings {
         this.whitelist = whitelist;
     }
     
-    public void setClientID(final String clientID) {
-        this.clientID = clientID;
-    }
 
     public void setUseGoogleOAuth2(boolean useGoogleOAuth2) {
         this.useGoogleOAuth2 = useGoogleOAuth2;
@@ -196,6 +193,10 @@ public class Settings {
         return useGoogleOAuth2;
     }
 
+    public void setClientID(final String clientID) {
+        this.clientID = clientID;
+    }
+    
     @JsonView({Persistent.class})
     public String getClientID() {
         return clientID;

@@ -6,8 +6,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
+import javax.security.auth.login.CredentialException;
+
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.jivesoftware.smack.XMPPConnection;
 import org.lantern.http.JettyLauncher;
+import org.lantern.http.OauthUtils;
 import org.lantern.privacy.EncryptedFileService;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.Model;
@@ -15,19 +20,18 @@ import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
+import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
+import org.littleshoot.commom.xmpp.XmppUtils;
 
+import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 public class TestUtils {
 
-    private static final File propsFile = 
-        new File("src/test/resources/test.properties");
-    
     private static final File privatePropsFile = 
-        new File("private.properties");
-    
-    private static final Properties props = new Properties();
+        new File(LanternConstants.CONFIG_DIR, "private.properties");
+        //new File("src/test/resources/private.properties");
     
     private static final Properties privateProps = new Properties();
 
@@ -67,16 +71,6 @@ public class TestUtils {
     static {
         InputStream is = null;
         try {
-            is = new FileInputStream(propsFile);
-            props.load(is);
-        } catch (final IOException e) {
-            System.err.println("PLEASE ENTER email AND pass FIELDS IN "+
-                propsFile.getAbsolutePath());
-            e.printStackTrace();
-        } finally {
-            IOUtils.closeQuietly(is);
-        }
-        try {
             is = new FileInputStream(privatePropsFile);
             privateProps.load(is);
         } catch (final IOException e) {
@@ -85,6 +79,11 @@ public class TestUtils {
             e.printStackTrace();
         } finally {
             IOUtils.closeQuietly(is);
+        }
+        
+        if (StringUtils.isBlank(getRefreshToken()) ||
+            StringUtils.isBlank(getAccessToken())) {
+            throw new Error("Tokens not in "+privatePropsFile);
         }
         //load();
     }
@@ -117,12 +116,31 @@ public class TestUtils {
         xmppHandler.start();
     }
     
-    public static String loadTestEmail() {
-        return props.getProperty("email");
+    public static XMPPConnection xmppConnection() throws CredentialException, 
+        IOException {
+        final GoogleOAuth2Credentials creds = TestUtils.getGoogleOauthCreds();
+        final int attempts = 2;
+        
+        final XMPPConnection conn = 
+            XmppUtils.persistentXmppConnection(creds, attempts, 
+                "talk.google.com", 5222, "gmail.com", null);
+        return conn;
     }
     
-    public static String loadTestPassword() {
-        return props.getProperty("pass");
+    public static GoogleOAuth2Credentials getGoogleOauthCreds() {
+        final Details secrets;
+        try {
+            secrets = OauthUtils.loadClientSecrets().getInstalled();
+        } catch (final IOException e) {
+            throw new Error("Could not load client secrets?", e);
+        }
+        final String clientId = secrets.getClientId();
+        final String clientSecret = secrets.getClientSecret();
+        
+        return new GoogleOAuth2Credentials("anon@getlantern.org",
+            clientId, clientSecret, 
+            getAccessToken(), getRefreshToken(), 
+            "gmail.");
     }
 
     public static String getRefreshToken() {
