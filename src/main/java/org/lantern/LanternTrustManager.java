@@ -213,7 +213,8 @@ public class LanternTrustManager implements X509TrustManager {
                 if (local == null) {
                     log.warn("No matching cert for {} in {}", alias, 
                             enumToString(this.keyStore.aliases()));
-                    throw new CertificateException("No cert for "+ alias);
+                    throw new CertificateException("No cert for "+ alias+ 
+                        " in "+ enumToString(this.keyStore.aliases()));
                 }
                 
                 // Verifies that this certificate was signed using the private 
@@ -318,7 +319,7 @@ public class LanternTrustManager implements X509TrustManager {
      */
     private  Collection<String> getPeerIdentity(final X509Certificate x509Certificate) {
         String name = x509Certificate.getSubjectDN().getName();
-        Matcher matcher = cnPattern.matcher(name);
+        final Matcher matcher = cnPattern.matcher(name);
         if (matcher.find()) {
             name = matcher.group(2);
         }

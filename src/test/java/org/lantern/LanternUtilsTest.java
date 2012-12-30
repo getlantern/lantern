@@ -79,41 +79,12 @@ public class LanternUtilsTest {
         assertTrue(LanternUtils.isNotJid(id));
     }
     
-    /*
-    @Test 
-    public void testRosterEntries() throws Exception {
-        final String email = TestUtils.loadTestEmail();
-        final String pass = TestUtils.loadTestPassword();
-        final XMPPConnection conn = 
-            XmppUtils.simpleGoogleTalkConnection(email, pass, "test");
-        final Collection<LanternRosterEntry> entries = 
-                TestUtils.getRoster().getRosterEntries(conn);
-        
-        // This user doesn't necessarily have any contacts.
-        assertTrue(entries != null);
-    }
-    */
-    
     @Test 
     public void testVCard() throws Exception {
-        final String email = TestUtils.loadTestEmail();
-        final String pass = TestUtils.loadTestPassword();
-        
-        //LanternHub.resetSettings(true);
-        //final Settings settings = LanternHub.settings();
-        //settings.setGetMode(true);
-        //settings.setProxies(new HashSet<String>());
-        //final XmppHandler handler = new DefaultXmppHandler();
-        
-        //handler.connect(email, pass);
-        
-        //final XMPPConnection conn = handler.getP2PClient().getXmppConnection();
-        
-        final XMPPConnection conn = 
-            XmppUtils.simpleGoogleTalkConnection(email, pass, "test");
+        final XMPPConnection conn = TestUtils.xmppConnection();
         assertTrue(conn.isAuthenticated());
         
-        final VCard vcard = XmppUtils.getVCard(conn, email);
+        final VCard vcard = XmppUtils.getVCard(conn, "lanternftw@gmail.com");
         assertTrue(vcard != null);
         final String full = vcard.getField("FN");
         assertTrue(StringUtils.isNotBlank(full));
@@ -137,9 +108,10 @@ public class LanternUtilsTest {
         TestUtils.getKsm().addBase64Cert("test@gmail.com/me", 
             TestUtils.getKsm().getBase64Cert("test@gmail.com/me"));
         
-        final SocketFactory clientFactory = TestUtils.getSocketsUtil().newTlsSocketFactory();
+        final SocketFactory clientFactory = 
+            TestUtils.getSocketsUtil().newTlsSocketFactory();
         final ServerSocketFactory serverFactory = 
-                TestUtils.getSocketsUtil().newTlsServerSocketFactory();
+            TestUtils.getSocketsUtil().newTlsServerSocketFactory();
         
         final SocketAddress endpoint =
             new InetSocketAddress("127.0.0.1", LanternUtils.randomPort()); 
@@ -199,57 +171,6 @@ public class LanternUtilsTest {
         t.setDaemon(true);
         t.start();
     }
-
-    /*
-    @Test
-    public void testRoster() throws Exception {
-        System.setProperty("javax.net.debug", "ssl:record");
-        System.setProperty("javax.net.debug", "ssl:handshake");
-        try {
-            // Load the JDK's cacerts keystore file
-            //String filename = System.getProperty("java.home") + "/lib/security/cacerts".replace('/', File.separatorChar);
-            //FileInputStream is = new FileInputStream(filename);
-            KeyStore keystore = TestUtils.getKsm().getTrustManager().getTruststore();//KeyStore.getInstance(KeyStore.getDefaultType());
-            //String password = "changeit";
-            //keystore.load(is, password.toCharArray());
-
-            // This class retrieves the most-trusted CAs from the keystore
-            PKIXParameters params = new PKIXParameters(keystore);
-
-            // Get the set of trust anchors, which contain the most-trusted CA certificates
-            Iterator it = params.getTrustAnchors().iterator();
-            while( it.hasNext() ) {
-                TrustAnchor ta = (TrustAnchor)it.next();
-                // Get certificate
-                X509Certificate cert = ta.getTrustedCert();
-                //System.err.println(cert);
-            }
-        //} catch (CertificateException e) {
-        } catch (KeyStoreException e) {
-        //} catch (NoSuchAlgorithmException e) {
-        } catch (InvalidAlgorithmParameterException e) {
-        //} catch (IOException e) {
-        } 
-        
-        //System.out.println(System.getProperty("javax.net.ssl.trustStore"));
-        //System.setProperty("javax.net.ssl.trustStore",
-        //    LanternHub.trustManager().getTruststorePath());
-        
-        TestUtils.getLanternXmppUtil().configureXmpp();
-        //final String email = LanternHub.settings().getEmail();
-        //final String pass = LanternHub.settings().getPassword();
-        
-        final String email = TestUtils.loadTestEmail();
-        final String pass = TestUtils.loadTestPassword();
-        if (StringUtils.isBlank(email) || StringUtils.isBlank(pass)) {
-            LOG.info("user name and password not configured");
-            return;
-        }
-        
-        // Just make sure no exceptions are thrown for now.
-        TestUtils.getRoster().getRosterEntries(email, pass, 1);
-    }
-    */
     
     @Test 
     public void testToTypes() throws Exception {
@@ -278,16 +199,7 @@ public class LanternUtilsTest {
     
     @Test 
     public void testGoogleStunServers() throws Exception {
-        //final String email = LanternHub.settings().getEmail();
-        //final String pass = LanternHub.settings().getPassword();
-        final String email = TestUtils.loadTestEmail();
-        final String pass = TestUtils.loadTestPassword();
-        if (StringUtils.isBlank(email) || StringUtils.isBlank(pass)) {
-            LOG.info("user name and password not configured");
-            return;
-        }
-        final XMPPConnection conn = XmppUtils.persistentXmppConnection(
-            email, pass, "dfalj;", 2);
+        final XMPPConnection conn = TestUtils.xmppConnection();
         
         final Collection<InetSocketAddress> servers = 
             XmppUtils.googleStunServers(conn);
@@ -323,16 +235,7 @@ public class LanternUtilsTest {
     
     @Test 
     public void testOtrMode() throws Exception {
-        //final String email = LanternHub.settings().getEmail();
-        //final String pass = LanternHub.settings().getPassword();
-        final String email = TestUtils.loadTestEmail();
-        final String pass = TestUtils.loadTestPassword();
-        if (StringUtils.isBlank(email) || StringUtils.isBlank(pass)) {
-            LOG.info("Not testing with no credentials");
-            return;
-        }
-        final XMPPConnection conn = XmppUtils.persistentXmppConnection(
-            email, pass, "jqiq", 2);
+        final XMPPConnection conn = TestUtils.xmppConnection();
         final String activateResponse = LanternUtils.activateOtr(conn).toXML();
         LOG.info("Got response: {}", activateResponse);
         

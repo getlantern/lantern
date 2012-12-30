@@ -1,10 +1,15 @@
 package org.lantern.state;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -171,10 +176,33 @@ public class ModelUtils {
 
     public GoogleOAuth2Credentials newGoogleOauthCreds(final String resource) {
         final Settings set = this.model.getSettings();
+        if (isDevMode()) {
+            final File oauth = 
+                new File(LanternConstants.CONFIG_DIR, "private.properties");
+            if (!oauth.isFile()) {
+                final Properties props = new Properties();
+                props.put("refresh_token", set.getRefreshToken());
+                props.put("access_token", set.getAccessToken());
+                OutputStream os = null;
+                try {
+                    os = new FileOutputStream(oauth);
+                    props.store(os, "Automatically stored test oauth tokens");
+                } catch (final IOException e) {
+                } finally {
+                    IOUtils.closeQuietly(os);
+                }
+            } else {
+                LOG.info("Not overwriting existing oauth file.");
+            }
+        }
         return new GoogleOAuth2Credentials("anon@getlantern.org",
             set.getClientID(), set.getClientSecret(), 
             set.getAccessToken(), set.getRefreshToken(), 
             resource);
+    }
+
+    public boolean isDevMode() {
+        return this.model.isDev();
     }
 
     public boolean isOauthConfigured() {

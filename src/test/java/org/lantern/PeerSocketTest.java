@@ -26,16 +26,8 @@ public class PeerSocketTest {
         // this test to work. In the future we'll likely develop a test
         // framework that simulates things like unpredictable network latency
         // and doesn't require live tests over the network.
-        
-        final String email = TestUtils.loadTestEmail();
-        final String pass = TestUtils.loadTestPassword();
-        
-        if (StringUtils.isBlank(email) || StringUtils.isBlank(pass)) {
-            log.info("user name and password not configured");
-            return;
-        }
         final DefaultXmppHandler xmpp = TestUtils.getXmppHandler();
-        xmpp.connect(email, pass);
+        xmpp.connect();
 
         // ENTER A PEER TO RUN LIVE TESTS -- THEY NEED TO BE ON THE NETWORK.
         final String peer = "";

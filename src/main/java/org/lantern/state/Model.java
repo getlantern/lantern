@@ -4,6 +4,7 @@ import java.security.SecureRandom;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.lantern.LanternConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +28,8 @@ public class Model {
     
     private boolean showVis = false;
     
-    private final boolean dev = false;
+    private final boolean dev = 
+        LanternConstants.VERSION.equals("lantern_version_tok");
     
     private int ninvites = 0;
     
