@@ -158,15 +158,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             "-storepass", PASS, 
             "-keystore", KEYSTORE_FILE.getAbsolutePath());
         log.debug("Got response: {}", result);
-        /*
-        final String result = LanternUtils.runKeytool("-genkey", 
-            "-alias", dummyId, 
-            "-keysize", KEYSIZE, 
-            "-dname", "CN="+dummyId, // Required
-            "-keypass", PASS, 
-            "-storepass", PASS, 
-            "-keystore", KEYSTORE_FILE.getAbsolutePath());
-        */
         
         log.debug("Deleting dummy alias...");
         result = LanternUtils.runKeytool("-delete", "-alias", dummyId,
@@ -184,13 +175,17 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         
         log.info("Result of keytool -genkey call: {}", genKeyResult);
         
-        waitForFile(KEYSTORE_FILE);
+        //waitForFile(KEYSTORE_FILE);
         
         // Now grab our newly-generated cert. All of our trusted peers will
         // use this to connect.
-        final String exportCertResult = LanternUtils.runKeytool("-exportcert", "-alias", 
-            normalizedAlias, "-keystore", KEYSTORE_FILE.getAbsolutePath(), 
-            "-storepass", PASS, "-file", CERT_FILE.getAbsolutePath());
+        final String exportCertResult = LanternUtils.runKeytool(
+            "-exportcert", 
+            "-alias", normalizedAlias, 
+            "-keystore", KEYSTORE_FILE.getAbsolutePath(), 
+            "-storepass", PASS, 
+            "-file", CERT_FILE.getAbsolutePath());
+        
         log.info("Result of keytool -exportcert call: {}", exportCertResult);
         waitForFile(CERT_FILE);
         

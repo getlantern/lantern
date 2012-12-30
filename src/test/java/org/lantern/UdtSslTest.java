@@ -33,12 +33,6 @@ public class UdtSslTest {
     
     private final String msg = "testing";
     
-    //private static DefaultXmppHandler xmppHandler;
-
-    //private static LanternSocketsUtil socketsUtil;
-
-    //private static LanternKeyStoreManager ksm;
-
     @Test
     public void testSslOverUdt() throws Exception {
         final LanternKeyStoreManager ksm = TestUtils.getKsm();

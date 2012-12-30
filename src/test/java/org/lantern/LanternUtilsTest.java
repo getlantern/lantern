@@ -104,9 +104,16 @@ public class LanternUtilsTest {
             //"SSL_RSA_WITH_RC4_128_SHA",
                 "TLS_ECDHE_RSA_WITH_RC4_128_SHA"
         });
+        final XmppHandler xmpp = TestUtils.getXmppHandler();
+        // We have to actually connect because the ID we use in the keystore
+        // is our XMPP JID.
+        xmpp.connect();
         
-        TestUtils.getKsm().addBase64Cert("test@gmail.com/me", 
-            TestUtils.getKsm().getBase64Cert("test@gmail.com/me"));
+        // Since we're connecting to ourselves for testing, we need to add our 
+        // own key to the *trust store* from the key store.
+        TestUtils.getKsm().addBase64Cert(xmpp.getJid(),
+            TestUtils.getKsm().getBase64Cert(xmpp.getJid()));
+                
         
         final SocketFactory clientFactory = 
             TestUtils.getSocketsUtil().newTlsSocketFactory();

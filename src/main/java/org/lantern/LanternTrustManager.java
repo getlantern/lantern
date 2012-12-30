@@ -300,6 +300,7 @@ public class LanternTrustManager implements X509TrustManager {
         final StringBuilder sb = new StringBuilder();
         while (aliases.hasMoreElements()) {
             sb.append(aliases.nextElement());
+            sb.append(", ");
         }
         return sb.toString();
     }
