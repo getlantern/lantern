@@ -1,6 +1,7 @@
 package org.lantern;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 
@@ -13,6 +14,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -46,12 +48,16 @@ public class WhitelistProxyingTest {
         proxy.start();
         */
         
+        //final String[] censored = {"youtube.com"};
+        //final String[] censored = {"www.newcenturynews.com"};
+        //final String[] censored = {"bullogger.com"};
         final String[] censored = Whitelist.SITES;
         //final String[] censored = new String[] {"irangreenvoice.com/"};
         final HttpClient client = new DefaultHttpClient();
         for (final String site : censored) {
             log.warn("TESTING SITE: {}", site);
-            testWhitelistedSite(site, client, 8787);
+            testWhitelistedSite(site, client, 
+                LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
         }
         
         //log.info("Stopping proxy");
@@ -87,6 +93,10 @@ public class WhitelistProxyingTest {
         EntityUtils.consume(response.getEntity());
         */
         
+        client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 
+            3000);
+        // Timeout when server does not send data.
+        client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 60000);
         client.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, 
             new HttpHost("localhost", proxyPort));
         final HttpResponse response;
@@ -102,10 +112,15 @@ public class WhitelistProxyingTest {
         assertEquals("Did not get 200 response for site: "+url, 200, 
                 response.getStatusLine().getStatusCode());
         
-        log.info("Consuming entity");
+        log.debug("Consuming entity");
         final HttpEntity entity = response.getEntity();
         final String raw = IOUtils.toString(entity.getContent());
-        log.info("Raw response: "+raw);
+        log.debug("Raw response: "+raw);
+        
+        // The response body can actually be pretty small -- consider 
+        // responses like 
+        // <meta http-equiv="refresh" content="0;url=index.html">
+        assertTrue("Expected larger response than:\n"+raw, raw.length() > 40);
         EntityUtils.consume(entity);
     }
 }

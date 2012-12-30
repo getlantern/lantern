@@ -196,6 +196,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         }
         
         // If it's an HTTP request, see if we can redirect it to HTTPS.
+        /*
         final String https = httpsEverywhere.toHttps(uri);
         if (!https.equals(uri)) {
             final HttpResponse response = 
@@ -215,6 +216,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             // not an issue to return null here.
             return null;
         }
+        */
         log.debug("Not converting to HTTPS");
         this.stats.incrementProxiedRequests();
         return dispatchProxyRequest(ctx, me);
@@ -406,7 +408,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             ProxyUtils.closeOnFlush(browserToProxyChannel);
             throw new IOException("No proxy to use for CONNECT?");
         }
-        log.info("Connecting to relay proxy {} for {}", isa, request.getUri());
+        log.debug("Connecting to relay proxy {} for {}", isa, request.getUri());
         final ChannelFuture cf = cb.connect(isa);
         log.debug("Got an outbound channel on: {}", hashCode());
         

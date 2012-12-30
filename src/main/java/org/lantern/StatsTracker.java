@@ -324,7 +324,9 @@ public class StatsTracker implements Stats {
     @Override
     public void addBytesProxied(final long bp, final Channel channel) {
         bytesProxied.addAndGet(bp);
-        
+        if (LanternUtils.isLocalHost(channel)) {
+            return;
+        }
         try {
             final CountryData cd = toCountryData(channel);
             cd.bytes += bp;
@@ -335,6 +337,9 @@ public class StatsTracker implements Stats {
 
     public void addBytesProxied(final long bp, final Socket sock) {
         bytesProxied.addAndGet(bp);
+        if (LanternUtils.isLocalHost(sock)) {
+            return;
+        }
         try {
             final CountryData cd = toCountryData(sock);
             cd.bytes += bp;
