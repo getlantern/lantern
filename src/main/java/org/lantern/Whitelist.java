@@ -128,7 +128,7 @@ public class Whitelist {
         "mingpao.com",
         "molihua.org",
         //Re-enable pending the fix to https://github.com/getlantern/laeproxy/issues/14
-        //"newcenturynews.com", 
+        "www.newcenturynews.com", 
         "nextmedia.com",
         "ntdtv.com",
         "rfa.org",
