@@ -132,6 +132,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         
         createKeyStore();
 
+        waitForFile(KEYSTORE_FILE);
         /*
         log.info("Importing cert");
         nativeCall("keytool", "-import", "-noprompt", "-file", CERT_FILE.getName(), 
@@ -146,19 +147,32 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         // Generate the keystore using a dummy ID.
         log.debug("Dummy ID is: {}", dummyId);
         log.debug("Creating keystore...");
-        LanternUtils.runKeytool("-genkey", 
+        
+        String result = LanternUtils.runKeytool("-genkey", 
+            "-alias", dummyId, 
+            "-keysize", KEYSIZE, 
+            "-validity", "365", 
+            "-keyalg", ALG, 
+            "-dname", "CN="+dummyId, 
+            "-keypass", PASS, 
+            "-storepass", PASS, 
+            "-keystore", KEYSTORE_FILE.getAbsolutePath());
+        log.debug("Got response: {}", result);
+        /*
+        final String result = LanternUtils.runKeytool("-genkey", 
             "-alias", dummyId, 
             "-keysize", KEYSIZE, 
             "-dname", "CN="+dummyId, // Required
             "-keypass", PASS, 
             "-storepass", PASS, 
             "-keystore", KEYSTORE_FILE.getAbsolutePath());
-        
+        */
         
         log.debug("Deleting dummy alias...");
-        LanternUtils.runKeytool("-delete", "-alias", dummyId,
+        result = LanternUtils.runKeytool("-delete", "-alias", dummyId,
             "-keypass", PASS, "-storepass", PASS,
             "-keystore", KEYSTORE_FILE.getAbsolutePath());
+        log.debug("Got response: {}", result);
         
         log.debug("Done creating keystore...");
     }

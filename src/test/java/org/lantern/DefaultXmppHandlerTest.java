@@ -39,7 +39,7 @@ public class DefaultXmppHandlerTest {
         settings.setMode(Mode.get);
         
         final XmppHandler handler = TestUtils.getXmppHandler();
-        handler.start();
+        //handler.start();
         //handler.connect(email, pwd);
         handler.connect();
         

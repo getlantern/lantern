@@ -155,7 +155,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         final Socket sock = new Socket();
         try {
             sock.connect(ph.isa, 60*1000);
-            log.info("Dispatching CONNECTED event");
+            log.debug("Dispatching CONNECTED event");
             
             // This is a little odd because the proxy could have originally
             // come from the settings themselves, but it'll remove duplicates,
@@ -165,7 +165,7 @@ public class DefaultProxyTracker implements ProxyTracker {
                 if (!set.contains(ph)) {
                     set.add(ph);
                     queue.add(ph);
-                    log.info("Queue is now: {}", queue);
+                    log.debug("Queue is now: {}", queue);
                 }
             }
         } catch (final IOException e) {
