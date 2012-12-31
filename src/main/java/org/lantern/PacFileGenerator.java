@@ -1,9 +1,11 @@
 package org.lantern;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Collection;
 
 import org.apache.commons.io.IOUtils;
@@ -66,14 +68,14 @@ public class PacFileGenerator {
         final File proxyOn) {
         LOG.debug("Writing pac file to: {}", proxyOn);
         final String pac = generatePacFileString(entries);
-        FileWriter fw = null;
+        OutputStream os = null;
         try {
-            fw = new FileWriter(proxyOn);
-            fw.write(pac);
+            os = new FileOutputStream(proxyOn);
+            os.write(pac.getBytes(LanternConstants.UTF8));
         } catch (final IOException e) {
             LOG.error("Could not write to pac file at: {}", proxyOn);
         } finally {
-            IOUtils.closeQuietly(fw);
+            IOUtils.closeQuietly(os);
         }
     }
 

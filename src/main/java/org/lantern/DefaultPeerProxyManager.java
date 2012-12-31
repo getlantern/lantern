@@ -194,7 +194,8 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             if (sock != null) {
                 if (sock.isClosed()) {
                     iter.remove();
-                    final Peer peer = this.peers.get(cts.getPeerUri());
+                    final Peer peer = 
+                        this.peers.get(cts.getPeerUri().toASCIIString());
                     if (peer == null) {
                         log.warn("Could not find matching peer data?");
                     } else {
@@ -290,7 +291,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
 
     @Override
     public void removePeer(final URI uri) {
-        this.certPeers.remove(uri);
+        this.certPeers.remove(uri.toASCIIString());
         this.peers.remove(uri);
         syncPeers();
     }

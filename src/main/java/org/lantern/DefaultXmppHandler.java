@@ -1044,7 +1044,8 @@ public class DefaultXmppHandler implements XmppHandler {
         
         if (StringUtils.isNotBlank(base64Cert)) {
             LOG.debug("Got certificate:\n"+
-                new String(Base64.decodeBase64(base64Cert)));
+                new String(Base64.decodeBase64(base64Cert), 
+                    LanternConstants.UTF8));
             try {
                 // Add the peer if we're able to add the cert.
                 this.keyStoreManager.addBase64Cert(msg.getFrom(), base64Cert);
