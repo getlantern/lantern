@@ -1,7 +1,6 @@
 package org.lantern.state;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -177,8 +176,7 @@ public class ModelUtils {
     public GoogleOAuth2Credentials newGoogleOauthCreds(final String resource) {
         final Settings set = this.model.getSettings();
         if (isDevMode()) {
-            final File oauth = 
-                new File(LanternConstants.CONFIG_DIR, "private.properties");
+            final File oauth = LanternConstants.TEST_PROPS;
             if (!oauth.isFile()) {
                 final Properties props = new Properties();
                 props.put("refresh_token", set.getRefreshToken());

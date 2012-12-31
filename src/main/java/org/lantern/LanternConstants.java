@@ -143,6 +143,10 @@ public class LanternConstants {
     public static final File DEFAULT_MODEL_FILE = 
             new File(CONFIG_DIR, "model");
     
+    public static final File TEST_PROPS = 
+            new File(CONFIG_DIR, "test.properties");
+
+    
     /**
      * Note that we don't include the "X-" for experimental headers here. See:
      * the draft that appears likely to become an RFC at:
@@ -164,7 +168,6 @@ public class LanternConstants {
     public static final String KSCOPE_ADVERTISEMENT_KEY = "ksak";
 
     public static final Charset UTF8 = Charset.forName("UTF8");
-
     static {
         boolean tempAppEngine;
         try {

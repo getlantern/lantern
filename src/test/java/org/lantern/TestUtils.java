@@ -30,8 +30,7 @@ import com.google.inject.Injector;
 public class TestUtils {
 
     private static final File privatePropsFile = 
-        new File(LanternConstants.CONFIG_DIR, "private.properties");
-        //new File("src/test/resources/private.properties");
+        LanternConstants.TEST_PROPS;
     
     private static final Properties privateProps = new Properties();
 
