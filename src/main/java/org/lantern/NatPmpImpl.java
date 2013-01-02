@@ -16,8 +16,8 @@ import fr.free.miniupnp.libnatpmp.NatPmp;
 import fr.free.miniupnp.libnatpmp.NatPmpResponse;
 
 /**
- * NAT-PMP service class that wraps the underlying NAT-PMP implementation
- * from miniupnp's libnatpmp.
+ * NAT-PMP service class that wraps the underlying NAT-PMP implementation from
+ * miniupnp's libnatpmp.
  */
 @Singleton
 public class NatPmpImpl implements NatPmpService {
@@ -30,17 +30,17 @@ public class NatPmpImpl implements NatPmpService {
     }
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     private NatPmp pmpDevice;
 
     private final Stats stats;
-    private final List<MapRequest> requests =
-                new ArrayList<MapRequest>();
+    private final List<MapRequest> requests = new ArrayList<MapRequest>();
 
     /**
      * Creates a new NAT-PMP instance.
      * 
-     * @throws NatPmpException If we could not start NAT-PMP for any reason.
+     * @throws NatPmpException
+     *             If we could not start NAT-PMP for any reason.
      */
     @Inject
     public NatPmpImpl(final Stats stats) {
@@ -50,8 +50,8 @@ public class NatPmpImpl implements NatPmpService {
             return;
         }
         pmpDevice = new NatPmp();
-        
-        // We implement the shutdown hook ourselves so we can explicitly 
+
+        // We implement the shutdown hook ourselves so we can explicitly
         // remove all the mappings we've created.
         Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
 
@@ -63,15 +63,16 @@ public class NatPmpImpl implements NatPmpService {
                 for (int i = 0; i < num; i++) {
                     removeNatPmpMapping(i);
                 }
-                //pmpDevice.shutdown();
+                // pmpDevice.shutdown();
                 log.info("Finished shutdown for NAT-PMP");
             }
-            
+
         }, "NAT-PMP-Shutdown-Thread"));
     }
 
     public boolean isNatPmpSupported() {
-        //tests to see if NAT-PMP is supported by issuing a getExternalAddress query
+        // tests to see if NAT-PMP is supported by issuing a getExternalAddress
+        // query
         pmpDevice.sendPublicAddressRequest();
         for (int i = 0; i < 5; ++i) {
             NatPmpResponse response = new NatPmpResponse();
@@ -82,7 +83,7 @@ public class NatPmpImpl implements NatPmpService {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                //fallthrough
+                // fallthrough
             }
         }
         return false;
@@ -97,12 +98,14 @@ public class NatPmpImpl implements NatPmpService {
 
         final MapRequest request = requests.get(mappingIndex);
 
-        pmpDevice.sendNewPortMappingRequest(request.protocol, request.internalPort, request.externalPort, 0);
+        pmpDevice.sendNewPortMappingRequest(request.protocol,
+                request.internalPort, request.externalPort, 0);
 
     }
 
     class MapRequest {
-        public MapRequest(int protocol, int localPort, int externalPort, int lifeTimeSeconds) {
+        public MapRequest(int protocol, int localPort, int externalPort,
+                int lifeTimeSeconds) {
             this.protocol = protocol;
             this.internalPort = localPort;
             this.externalPort = externalPort;
@@ -112,13 +115,13 @@ public class NatPmpImpl implements NatPmpService {
         int protocol;
         int internalPort;
         int externalPort;
-        int lifeTimeSeconds;        
+        int lifeTimeSeconds;
     }
-    
+
     @Override
-    public int addNatPmpMapping(final PortMappingProtocol prot, 
-        final int localPort, final int externalPortRequested,
-        final PortMapListener portMapListener) {
+    public int addNatPmpMapping(final PortMappingProtocol prot,
+            final int localPort, final int externalPortRequested,
+            final PortMapListener portMapListener) {
         if (NetworkUtils.isPublicAddress()) {
             // If we're already on the public network, there's no NAT.
             return 1;
@@ -140,12 +143,12 @@ public class NatPmpImpl implements NatPmpService {
         mapper.setDaemon(true);
         final int index = requests.size();
         mapper.start();
-        
+
         return index;
     }
 
     protected void addMapping(final PortMappingProtocol prot,
-        final int localPort, final PortMapListener portMapListener) {
+            final int localPort, final PortMapListener portMapListener) {
         log.info("Adding NAT-PMP mapping");
         final int protocol;
         if (prot == PortMappingProtocol.TCP) {
@@ -153,27 +156,28 @@ public class NatPmpImpl implements NatPmpService {
         } else {
             protocol = 1;
         }
-        // We just take whatever port the router gives us, ignoring the 
+        // We just take whatever port the router gives us, ignoring the
         // requested port.
         final int lifeTimeSeconds = 60 * 60;
 
         MapRequest map = new MapRequest(protocol, localPort, 0, lifeTimeSeconds);
-        
-        pmpDevice.sendNewPortMappingRequest(protocol, localPort, -1, lifeTimeSeconds * 1000);
+
+        pmpDevice.sendNewPortMappingRequest(protocol, localPort, -1,
+                lifeTimeSeconds * 1000);
         NatPmpResponse response = new NatPmpResponse();
         int result = -1;
         for (int i = 0; i < 5; ++i) {
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
-                //fallthrough
+                // fallthrough
             }
             result = pmpDevice.readNatPmpResponseOrRetry(response);
             if (result == 0) {
                 break;
             }
         }
-        
+
         if (result == 0) {
             map.externalPort = response.mappedpublicport;
             portMapListener.onPortMap(map.externalPort);
@@ -182,14 +186,14 @@ public class NatPmpImpl implements NatPmpService {
             portMapListener.onPortMapError();
             stats.setNatpmp(false);
         }
-        // We have to add it whether it succeeded or not to keep the indeces 
+        // We have to add it whether it succeeded or not to keep the indices
         // in sync.
         requests.add(map);
     }
 
     @Override
     public void shutdown() {
-        //nothing to do here
+        // nothing to do here
     }
 
 }
