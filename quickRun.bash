@@ -17,17 +17,17 @@ done
 
 jar=target/lantern*SNAPSHOT.jar
 
-# We need to copy the bouncycastle jar in separately because it's signed. The shaded jar
-# include it in the classpath in its manifest.
+# We need to copy the bouncycastle jar in separately because it's signed.
+# The shaded jar includes it in the classpath in its manifest.
 test -f target/bcprov-jdk16-1.46.jar || cp install/common/bcprov-jdk16-1.46.jar target/
 javaArgs="-jar $jar $*"
 
 if [ "$RUN_LANTERN_DEBUG_PORT" ]
-    then
-    javaArgs="-Xdebug -Xrunjdwp:transport=dt_socket,address=$RUN_LANTERN_DEBUG_PORT,server=y,suspend=y $javaArgs"
+then
+  javaArgs="-Xdebug -Xrunjdwp:transport=dt_socket,address=$RUN_LANTERN_DEBUG_PORT,server=y,suspend=y $javaArgs"
 fi
 
-uname -a | grep Darwin && extras="-XstartOnFirstThread"
+[ $(uname) == "Darwin" ] && extras="-XstartOnFirstThread"
 
 echo "Running using Java on path at `which java` with args $javaArgs"
 java $extras $javaArgs || die "Java process exited abnormally"
