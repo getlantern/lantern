@@ -75,9 +75,6 @@ public class ChromeRunner {
     
     private String findWindowsExe() {//final String... opts) {
         final Map<String, Integer> opts = new HashMap<String, Integer>();
-        final Collection<String> vars = 
-            Arrays.asList("APPDATA", "LOCALAPPDATA", "PROGRAMFILES", 
-                "ProgramW6432");
         opts.put("APPDATA", ShlObj.CSIDL_APPDATA);
         opts.put("LOCALAPPDATA", ShlObj.CSIDL_LOCAL_APPDATA);
         opts.put("PROGRAMFILES", ShlObj.CSIDL_PROGRAM_FILES);
@@ -91,6 +88,10 @@ public class ChromeRunner {
                 base = Shell32Util.getFolderPath(entry.getValue().intValue());
             } else {
                 base = envBase;
+            }
+            if (StringUtils.isBlank(base)) {
+                log.error("Could not resolve env variable: {}", base);
+                continue;
             }
             final String path = base + chromePath;
             paths.add(path);
