@@ -24,7 +24,6 @@ public class NatPmpImpl implements NatPmpService {
 
     static {
         if (System.getProperty("jna.nosys") == null) {
-            System.out.println("[*] Set new system property");
             System.setProperty("jna.nosys", "true");
         }
     }
