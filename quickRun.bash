@@ -7,6 +7,14 @@ function die() {
 path=`dirname $0`
 # Launching lantern only works from within its directory.
 cd $path
+
+# make sure required submodules have been initialized
+submodules=("lantern-ui")
+for i in "${submodules[@]}"
+do
+  ls $i/.git || die "Were git submodules initialized? (hint: git submodule update --init)"
+done
+
 jar=target/lantern*SNAPSHOT.jar
 
 # We need to copy the bouncycastle jar in separately because it's signed. The shaded jar
