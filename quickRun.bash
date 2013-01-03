@@ -9,10 +9,10 @@ path=`dirname $0`
 cd $path
 
 # make sure required submodules have been initialized
-submodules=("lantern-ui")
-for i in "${submodules[@]}"
+submodules=$(grep -o '^\[submodule "[^"]\+"\]$' .gitmodules | cut -d'"' -f2)
+for i in "${submodules}"
 do
-  ls $i/.git || die "Were git submodules initialized? (hint: git submodule update --init)"
+  ls $i/.git > /dev/null || die "Were git submodules initialized? (hint: git submodule update --init)"
 done
 
 jar=target/lantern*SNAPSHOT.jar
