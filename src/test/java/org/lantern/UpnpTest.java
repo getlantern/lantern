@@ -21,8 +21,11 @@ import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class UpnpTest {
+    private final Logger log = LoggerFactory.getLogger(getClass());
 
     @Test
     public void testUpnp() throws Exception {
@@ -42,7 +45,7 @@ public class UpnpTest {
 
             @Override
             public void onPortMap(final int port) {
-                System.out.println("Got port mapped!!" + port);
+                log.info("Got port mapped: " + port);
                 mapped.set(true);
                 synchronized (mapped) {
                     mapped.notifyAll();
