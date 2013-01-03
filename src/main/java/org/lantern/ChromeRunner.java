@@ -97,6 +97,7 @@ public class ChromeRunner {
             paths.add(path);
             final File candidate = new File(path);
             if (candidate.isFile() && candidate.canExecute()) {
+                log.debug("Running with path: {}", path);
                 return path;
             }
         }
