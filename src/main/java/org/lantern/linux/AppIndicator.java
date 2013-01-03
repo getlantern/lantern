@@ -1,9 +1,8 @@
 package org.lantern.linux;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import org.lantern.JnaUtils;
 
 import com.sun.jna.Callback;
 import com.sun.jna.Library;
@@ -61,15 +60,9 @@ public interface AppIndicator extends Library {
             read();
         }
         
+        @Override
         protected List getFieldOrder() {
-            final List<String> list = new ArrayList<String>();
-            final Field[] fields = getClass().getFields();
-            
-            for (final Field field : fields) {
-                list.add(field.getName());
-            }
-            Collections.sort(list);
-            return list;
+            return JnaUtils.getFieldOrder(this);
         }
     }
 
@@ -77,15 +70,9 @@ public interface AppIndicator extends Library {
         public Gobject.GObjectStruct parent;
         public Pointer priv;
         
+        @Override
         protected List getFieldOrder() {
-            final List<String> list = new ArrayList<String>();
-            final Field[] fields = getClass().getFields();
-            
-            for (final Field field : fields) {
-                list.add(field.getName());
-            }
-            Collections.sort(list);
-            return list;
+            return JnaUtils.getFieldOrder(this);
         }
     }
 
