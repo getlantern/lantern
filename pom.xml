@@ -644,15 +644,6 @@
   </profiles>
 
   <repositories>
-    <!-- TODO: Would be really nice to remove this ASAP -->
-    <repository>
-      <id>teleal.org-repo</id>
-      <url>http://teleal.org/m2</url>
-      <snapshots>
-        <enabled>false</enabled>
-      </snapshots>
-    </repository>
-
     <repository>
       <id>sonatype-nexus-snapshots</id>
       <name>Sonatype Nexus Snapshots</name>
