@@ -1,9 +1,8 @@
 package org.lantern.linux;
 
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import org.lantern.JnaUtils;
 
 import com.sun.jna.Callback;
 import com.sun.jna.Library;
@@ -19,15 +18,9 @@ public interface Gobject extends Library {
         public class ByReference extends GTypeClassStruct implements Structure.ByReference {}
         public NativeLong g_type;
         
+        @Override
         protected List getFieldOrder() {
-            final List<String> list = new ArrayList<String>();
-            final Field[] fields = getClass().getFields();
-            
-            for (final Field field : fields) {
-                list.add(field.getName());
-            }
-            Collections.sort(list);
-            return list;
+            return JnaUtils.getFieldOrder(this);
         }
     };
 
@@ -36,15 +29,9 @@ public interface Gobject extends Library {
         public class ByReference extends GTypeInstanceStruct implements Structure.ByReference {}
         public Pointer g_class;
         
+        @Override
         protected List getFieldOrder() {
-            final List<String> list = new ArrayList<String>();
-            final Field[] fields = getClass().getFields();
-            
-            for (final Field field : fields) {
-                list.add(field.getName());
-            }
-            Collections.sort(list);
-            return list;
+            return JnaUtils.getFieldOrder(this);
         }
     }
 
@@ -56,15 +43,9 @@ public interface Gobject extends Library {
         public int ref_count;
         public Pointer qdata;
         
+        @Override
         protected List getFieldOrder() {
-            final List<String> list = new ArrayList<String>();
-            final Field[] fields = getClass().getFields();
-            
-            for (final Field field : fields) {
-                list.add(field.getName());
-            }
-            Collections.sort(list);
-            return list;
+            return JnaUtils.getFieldOrder(this);
         }
     }
 
@@ -90,15 +71,9 @@ public interface Gobject extends Library {
         public Pointer dummy5;
         public Pointer dummy6;
         
+        @Override
         protected List getFieldOrder() {
-            final List<String> list = new ArrayList<String>();
-            final Field[] fields = getClass().getFields();
-            
-            for (final Field field : fields) {
-                list.add(field.getName());
-            }
-            Collections.sort(list);
-            return list;
+            return JnaUtils.getFieldOrder(this);
         }
     };
 
