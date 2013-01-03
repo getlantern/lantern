@@ -8,13 +8,22 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.lantern.state.StaticSettings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.sun.jna.platform.win32.Shell32Util;
+import com.sun.jna.platform.win32.ShlObj;
 
 public class ChromeRunner {
 
@@ -56,8 +65,7 @@ public class ChromeRunner {
             final String ad = System.getenv("APPDATA");
             return ad + "/Google/Chrome/Application/chrome.exe";
         } else if (SystemUtils.IS_OS_WINDOWS) {
-            return findWindowsExe("APPDATA", "LOCALAPPDATA", "PROGRAMFILES", 
-                "ProgramW6432");
+            return findWindowsExe();
         }
         /*
          * Should be something like:
@@ -68,19 +76,34 @@ public class ChromeRunner {
         throw new UnsupportedOperationException("This is an experimental feature!");
     }
     
-    private String findWindowsExe(final String... opts) {
+    private String findWindowsExe() {//final String... opts) {
+        final Map<String, Integer> opts = new HashMap<String, Integer>();
+        final Collection<String> vars = 
+            Arrays.asList("APPDATA", "LOCALAPPDATA", "PROGRAMFILES", 
+                "ProgramW6432");
+        opts.put("APPDATA", ShlObj.CSIDL_APPDATA);
+        opts.put("LOCALAPPDATA", ShlObj.CSIDL_LOCAL_APPDATA);
+        opts.put("PROGRAMFILES", ShlObj.CSIDL_PROGRAM_FILES);
+        opts.put("ProgramW6432", ShlObj.CSIDL_PROGRAM_FILESX86);
         final String chromePath = "/Google/Chrome/Application/chrome.exe";
-        for (final String opt : opts) {
-            final String base = System.getenv(opt);
+        final Collection<String> paths = new HashSet<String>();
+        for (final Entry<String, Integer> entry : opts.entrySet()) {
+            final String base;
+            final String envBase = System.getenv(entry.getKey());
+            if (StringUtils.isBlank(envBase)) {
+                base = Shell32Util.getFolderPath(entry.getValue().intValue());
+            } else {
+                base = envBase;
+            }
             final String path = base + chromePath;
+            paths.add(path);
             final File candidate = new File(path);
             if (candidate.isFile() && candidate.canExecute()) {
-                return opt;
+                return path;
             }
         }
         throw new UnsupportedOperationException(
-            "Could not find Chrome on Windows!! Searched paths:\n"+
-                    Arrays.asList(opts));
+            "Could not find Chrome on Windows!! Searched paths:\n"+paths);
     }
 
     public void open() throws IOException {
