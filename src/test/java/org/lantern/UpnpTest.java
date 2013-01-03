@@ -1,6 +1,7 @@
 package org.lantern;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,7 +35,6 @@ public class UpnpTest {
         final PortMapListener pml = new PortMapListener() {
             @Override
             public void onPortMapError() {
-                System.out.println("ERROR!!");
                 synchronized (mapped) {
                     mapped.notifyAll();
                 }
@@ -57,6 +57,8 @@ public class UpnpTest {
                 mapped.wait(10000);
             }
         }
+
+        assertTrue("Expected to get a public ip address ", mapped.get());
 
         String ip = up.getPublicIpAddress();
 
