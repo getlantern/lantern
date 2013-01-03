@@ -61,9 +61,6 @@ public class ChromeRunner {
             final File opt1 = new File(path1);
             if (opt1.isFile() && opt1.canExecute()) return path1;
             return "/usr/bin/chromium-browser";
-        } else if (SystemUtils.IS_OS_WINDOWS_XP) {
-            final String ad = System.getenv("APPDATA");
-            return ad + "/Google/Chrome/Application/chrome.exe";
         } else if (SystemUtils.IS_OS_WINDOWS) {
             return findWindowsExe();
         }
