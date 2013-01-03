@@ -8,11 +8,11 @@ import org.lantern.state.Model.Run;
  */
 public class Location {
 
-    private String country = "gb";
+    private String country = "";
 
-    private int lat = 54;
+    private int lat = 0;
     
-    private int lon = -2;
+    private int lon = 0;
 
     @JsonView({Run.class})
     public String getCountry() {
@@ -30,7 +30,7 @@ public class Location {
         return lat;
     }
 
-    public void setLat(int lat) {
+    public void setLat(final int lat) {
         this.lat = lat;
     }
 
