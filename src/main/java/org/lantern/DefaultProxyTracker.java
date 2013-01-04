@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.lantern.event.Events;
+import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
 import org.slf4j.Logger;
@@ -152,7 +153,8 @@ public class DefaultProxyTracker implements ProxyTracker {
         try {
             sock.connect(ph.isa, 60*1000);
             log.debug("Dispatching CONNECTED event");
-            
+            Events.asyncEventBus().post(
+                new ProxyConnectionEvent(ConnectivityStatus.CONNECTED));
             // This is a little odd because the proxy could have originally
             // come from the settings themselves, but it'll remove duplicates,
             // so no harm done.

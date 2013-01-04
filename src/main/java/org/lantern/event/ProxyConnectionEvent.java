@@ -2,11 +2,14 @@ package org.lantern.event;
 
 import org.lantern.ConnectivityStatus;
 
-public class ConnectivityStatusChangeEvent {
+/**
+ * Event created when we successfully connect to a proxy.
+ */
+public class ProxyConnectionEvent {
 
     private final ConnectivityStatus connectivityStatus;
 
-    public ConnectivityStatusChangeEvent(
+    public ProxyConnectionEvent(
         final ConnectivityStatus connectivityStatus) {
             this.connectivityStatus = connectivityStatus;
         

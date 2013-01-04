@@ -61,7 +61,7 @@ public class JsonModelModifier {
 
     private void setProperty(final Object bean, 
         final String key, final String val, final boolean determineType) {
-        log.info("Setting {} property on {}", key, bean);
+        log.info("Setting {} property on {} to "+val, key, bean);
         final Object obj;
         if (determineType) {
             obj = LanternUtils.toTyped(val);

@@ -211,7 +211,6 @@ public class DefaultXmppHandler implements XmppHandler {
         this.certTracker = certTracker;
         this.upnpService = new Upnp(stats);
         new GiveModeConnectivityHandler();
-        prepopulateProxies();
         Events.register(this);
         //setupJmx();
     }
@@ -219,6 +218,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     @Override
     public void start() {
+        prepopulateProxies();
         this.modelUtils.loadClientSecrets();
         
         // This just links connectivity with Google Talk login status when 

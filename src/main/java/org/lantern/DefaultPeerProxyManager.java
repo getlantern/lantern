@@ -23,7 +23,7 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.lantern.event.ConnectedPeersEvent;
-import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.Events;
 import org.lantern.event.IncomingSocketEvent;
 import org.lantern.event.ResetEvent;
@@ -252,7 +252,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
 
                         if (!gotConnected) {
                             Events.eventBus().post(
-                                new ConnectivityStatusChangeEvent(
+                                new ProxyConnectionEvent(
                                     ConnectivityStatus.CONNECTED));
                         }
                         gotConnected = true;
