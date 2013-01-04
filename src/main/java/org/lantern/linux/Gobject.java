@@ -1,8 +1,7 @@
 package org.lantern.linux;
 
+import java.util.Arrays;
 import java.util.List;
-
-import org.lantern.JnaUtils;
 
 import com.sun.jna.Callback;
 import com.sun.jna.Library;
@@ -18,10 +17,6 @@ public interface Gobject extends Library {
         public class ByReference extends GTypeClassStruct implements Structure.ByReference {}
         public NativeLong g_type;
         
-        @Override
-        protected List getFieldOrder() {
-            return JnaUtils.getFieldOrder(this);
-        }
     };
 
     public class GTypeInstanceStruct extends Structure {
@@ -29,10 +24,6 @@ public interface Gobject extends Library {
         public class ByReference extends GTypeInstanceStruct implements Structure.ByReference {}
         public Pointer g_class;
         
-        @Override
-        protected List getFieldOrder() {
-            return JnaUtils.getFieldOrder(this);
-        }
     }
 
     public class GObjectStruct extends Structure {
@@ -43,10 +34,6 @@ public interface Gobject extends Library {
         public int ref_count;
         public Pointer qdata;
         
-        @Override
-        protected List getFieldOrder() {
-            return JnaUtils.getFieldOrder(this);
-        }
     }
 
     public class GObjectClassStruct extends Structure {
@@ -71,10 +58,6 @@ public interface Gobject extends Library {
         public Pointer dummy5;
         public Pointer dummy6;
         
-        @Override
-        protected List getFieldOrder() {
-            return JnaUtils.getFieldOrder(this);
-        }
     };
 
     public interface GCallback extends Callback {
