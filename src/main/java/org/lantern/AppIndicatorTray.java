@@ -4,7 +4,7 @@ import java.io.File;
 import java.util.Map;
 
 import org.apache.commons.lang3.SystemUtils;
-import org.lantern.event.ConnectivityStatusChangeEvent;
+import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.Events;
 import org.lantern.event.QuitEvent;
 import org.lantern.linux.AppIndicator;
@@ -245,10 +245,9 @@ public class AppIndicatorTray implements SystemTray {
     }
 
     @Subscribe
-    public void onConnectivityStateChanged(
-        final ConnectivityStatusChangeEvent csce) {
+    public void onConnectivityStateChanged(final ProxyConnectionEvent csce) {
         final ConnectivityStatus cs = csce.getConnectivityStatus();
-        LOG.info("Got connectivity state changed {}", cs);
+        LOG.debug("Got connectivity state changed {}", cs);
         switch (cs) {
         case DISCONNECTED: {
             changeIcon(ICON_DISCONNECTED, LABEL_DISCONNECTED);

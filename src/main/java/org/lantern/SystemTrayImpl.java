@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Tray;
 import org.eclipse.swt.widgets.TrayItem;
 import org.lantern.event.Events;
-import org.lantern.event.GoogleTalkStateEvent;
+import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.QuitEvent;
 import org.lantern.event.UpdateEvent;
 import org.lantern.state.Model;
@@ -283,29 +283,25 @@ public class SystemTrayImpl implements SystemTray {
     }
 
     @Subscribe
-    public void onConnectivityStateChanged(final GoogleTalkStateEvent event) {
-        final GoogleTalkState state = event.getState();
-        log.debug("Received connectivity state changed: {}", state);
+    public void onConnectivityStateChanged(final ProxyConnectionEvent csce) {
+        final ConnectivityStatus cs = csce.getConnectivityStatus();
+        log.debug("Received connectivity state changed: {}", cs);
         if (!this.model.getSettings().isUiEnabled()) {
             log.info("Ignoring event with UI disabled");
             return;
         }
-        switch (state) {
-        case LOGIN_FAILED:
+        switch (cs) {
+        case DISCONNECTED:
             changeIcon(ICON_DISCONNECTED);
             changeStatusLabel(LABEL_DISCONNECTED);
             break;
-        case connected:
+        case CONNECTED:
             changeIcon(ICON_CONNECTED);
             changeStatusLabel(LABEL_CONNECTED);
             break;
-        case connecting:
+        case CONNECTING:
             changeIcon(ICON_CONNECTING);
             changeStatusLabel(LABEL_CONNECTING);
-            break;
-        case notConnected:
-            changeIcon(ICON_DISCONNECTED);
-            changeStatusLabel(LABEL_DISCONNECTED);
             break;
         default:
             break;

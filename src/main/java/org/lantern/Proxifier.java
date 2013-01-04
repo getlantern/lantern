@@ -9,6 +9,7 @@ import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.eclipse.swt.SWT;
 import org.lantern.event.Events;
+import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.QuitEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
@@ -79,16 +80,16 @@ public class Proxifier implements LanternService {
         if (SystemUtils.IS_OS_MAC_OSX) {
             final File Lantern = new File("Lantern");
             if (!Lantern.isFile()) {
-                LOG.info("Creating hard link to osascript...");
+                LOG.debug("Creating hard link to osascript...");
                 try {
                     final String result = 
                         mpm.runScript("ln", "/usr/bin/osascript", "Lantern");
-                    LOG.info("Result of script is: {}", result);
+                    LOG.debug("Result of script is: {}", result);
                 } catch (final IOException e) {
                     LOG.warn("Error creating hard link!!", e);
                 }
             } else {
-                LOG.info("Appears to already be a link to osascript");
+                LOG.debug("Appears to already be a link to osascript");
             }
         }
         LANTERN_PROXYING_FILE.delete();
@@ -100,13 +101,44 @@ public class Proxifier implements LanternService {
             LOG.error(msg);
             throw new IllegalStateException(msg);
         }
-        LOG.info("Both pac files are in their expected locations");
+        LOG.debug("Both pac files are in their expected locations");
     }
     
     @Subscribe
     public void onQuit(final QuitEvent quit) {
-        LOG.info("Got quit event!");
+        LOG.debug("Got quit event!");
         interactiveUnproxy();
+    }
+    
+    @Subscribe
+    public void onProxyConnection(final ProxyConnectionEvent pce) {
+        final ConnectivityStatus stat = pce.getConnectivityStatus();
+        switch (stat) {
+        case CONNECTED:
+            LOG.debug("Got connected event");
+            if (modelUtils.shouldProxy()) {
+                try {
+                    startProxying();
+                } catch (final ProxyConfigurationError e) {
+                    LOG.warn("Could not proxy?", e);
+                }
+            }
+            break;
+        case CONNECTING:
+            LOG.debug("Got connecting event");
+            break;
+        case DISCONNECTED:
+            LOG.debug("Got disconnected event");
+            try {
+                stopProxying();
+            } catch (final ProxyConfigurationError e) {
+                LOG.warn("Could not unproxy?", e);
+            }
+            break;
+        default:
+            break;
+        
+        }
     }
 
     @Override
@@ -169,12 +201,12 @@ public class Proxifier implements LanternService {
     public void startProxying(final boolean force, final File pacFile) 
         throws ProxyConfigurationError {
         if (isProxying() && !force) {
-            LOG.info("Already proxying!");
+            LOG.debug("Already proxying!");
             return;
         }
         
         if (!modelUtils.shouldProxy()) {
-            LOG.info("Not proxying in current mode...");
+            LOG.debug("Not proxying in current mode...");
             return;
         }
 
@@ -182,10 +214,11 @@ public class Proxifier implements LanternService {
         // entries -- only recreates proxy_on.
         if (pacFile.equals(PROXY_ON)) {
             PacFileGenerator.generatePacFile(
-                this.model.getSettings().getWhitelist().getEntriesAsStrings(), PROXY_ON);
+                this.model.getSettings().getWhitelist().getEntriesAsStrings(), 
+                PROXY_ON);
         }
         
-        LOG.info("Autoconfiguring local to proxy Lantern");
+        LOG.debug("Autoconfiguring local to proxy Lantern");
         final String url = pacFileUrl(pacFile);
         
         if (SystemUtils.IS_OS_MAC_OSX) {

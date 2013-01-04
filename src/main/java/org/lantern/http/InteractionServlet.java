@@ -87,17 +87,17 @@ public class InteractionServlet extends HttpServlet {
     protected void processRequest(final HttpServletRequest req, 
         final HttpServletResponse resp) {
         final String uri = req.getRequestURI();
-        log.info("Received URI: {}", uri);
+        log.debug("Received URI: {}", uri);
         final Map<String, String> params = HttpUtils.toParamMap(req);
-        log.info("Params: {}", params);
+        log.debug("Params: {}", params);
         final String interactionStr = StringUtils.substringAfterLast(uri, "/");//params.get("interaction");
         if (StringUtils.isBlank(interactionStr)) {
-            log.info("No interaction!!");
+            log.debug("No interaction!!");
             HttpUtils.sendClientError(resp, "interaction argument required!");
             return;
         }
         
-        log.info("Headers: "+HttpUtils.getRequestHeaders(req));
+        log.debug("Headers: "+HttpUtils.getRequestHeaders(req));
         
         final int cl = req.getContentLength();
         String json = "";
@@ -109,7 +109,7 @@ public class InteractionServlet extends HttpServlet {
             }
         }
         
-        log.info("Body: '"+json+"'");
+        log.debug("Body: '"+json+"'");
         
         final Interaction inter = 
             Interaction.valueOf(interactionStr.toUpperCase());
@@ -119,11 +119,11 @@ public class InteractionServlet extends HttpServlet {
         case welcome:
             switch (inter) {
             case GET:
-                log.info("Setting get mode");
+                log.debug("Setting get mode");
                 handleSetModeWelcome(Mode.get);
                 break;
             case GIVE:
-                log.info("Setting give mode");
+                log.debug("Setting give mode");
                 handleSetModeWelcome(Mode.give);
                 break;
             default:
@@ -142,7 +142,7 @@ public class InteractionServlet extends HttpServlet {
         case finished:
             switch (inter) {
             case CONTINUE:
-                log.info("Processing continue");
+                log.debug("Processing continue");
                 this.model.setShowVis(true);
                 this.model.setSetupComplete(true);
                 this.internalState.setModalCompleted(Modal.finished);
@@ -150,7 +150,7 @@ public class InteractionServlet extends HttpServlet {
                 Events.syncModel(this.model);
                 break;
             case SET:
-                log.info("Processing set in finished modal...applying JSON\n{}", json);
+                log.debug("Processing set in finished modal...applying JSON\n{}", json);
                 applyJson(json);
                 break;
             default:
@@ -169,7 +169,7 @@ public class InteractionServlet extends HttpServlet {
         case lanternFriends:
             switch (inter) {
             case CONTINUE:
-                log.info("Processing continue for friends dialog");
+                log.debug("Processing continue for friends dialog");
                 this.internalState.setModalCompleted(Modal.lanternFriends);
                 this.internalState.advanceModal(null);
                 break;
@@ -183,7 +183,7 @@ public class InteractionServlet extends HttpServlet {
         case none:
             switch (inter) {
             case SETTINGS:
-                log.info("Processing settings in none");
+                log.debug("Processing settings in none");
                 Events.syncModal(model, Modal.settings);
                 break;
             default:
@@ -199,7 +199,7 @@ public class InteractionServlet extends HttpServlet {
         case proxiedSites:
             switch (inter) {
             case CONTINUE:
-                log.info("Processing continue");
+                log.debug("Processing continue");
                 // How should we actually set the proxied sites here?
                 this.internalState.setModalCompleted(Modal.proxiedSites);
                 this.internalState.advanceModal(null);
@@ -215,28 +215,28 @@ public class InteractionServlet extends HttpServlet {
             log.error("Porcessing request invite");
             break;
         case requestSent:
-            log.info("Process request sent");
+            log.debug("Process request sent");
             break;
         case settings:
             switch (inter) {
             case GET:
-                log.info("Setting get mode");
+                log.debug("Setting get mode");
                 handleGiveGet(Mode.get);
                 break;
             case GIVE:
-                log.info("Setting give mode");
+                log.debug("Setting give mode");
                 handleGiveGet(Mode.give);
                 break;
             case CLOSE:
-                log.info("Processing settings close");
+                log.debug("Processing settings close");
                 Events.syncModal(model, Modal.none);
                 break;
             case SET:
-                log.info("Processing set in setting...applying JSON\n{}", json);
+                log.debug("Processing set in setting...applying JSON\n{}", json);
                 applyJson(json);
                 break;
             case RESET:
-                log.info("Processing reset");
+                log.debug("Processing reset");
                 Events.syncModal(model, Modal.confirmReset);
                 break;
             default:
@@ -252,7 +252,7 @@ public class InteractionServlet extends HttpServlet {
         case systemProxy:
             switch (inter) {
             case CONTINUE:
-                log.info("Processing continue...applying JSON: {}", json);
+                log.debug("Processing continue...applying JSON: {}", json);
                 applyJson(json);
                 
                 this.internalState.setModalCompleted(Modal.systemProxy);
@@ -274,10 +274,10 @@ public class InteractionServlet extends HttpServlet {
                     "params: {}", modal, params);
             break;
         case confirmReset:
-            log.info("Handling confirm reset interaction");
+            log.debug("Handling confirm reset interaction");
             switch (inter) {
             case CANCEL:
-                log.info("Processing cancel");
+                log.debug("Processing cancel");
                 Events.syncModal(model, Modal.settings);
                 break;
             case RESET:
