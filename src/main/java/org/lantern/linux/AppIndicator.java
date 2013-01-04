@@ -1,9 +1,5 @@
 package org.lantern.linux;
 
-import java.util.List;
-
-import org.lantern.JnaUtils;
-
 import com.sun.jna.Callback;
 import com.sun.jna.Library;
 import com.sun.jna.Pointer;
@@ -60,20 +56,23 @@ public interface AppIndicator extends Library {
             read();
         }
         
+        /*
         @Override
         protected List getFieldOrder() {
-            return JnaUtils.getFieldOrder(this);
+            return Arrays.asList("new_icon", "new_attention_icon", "new_status", 
+                "new_icon_theme", "new_label", "connection_changed", 
+                "scroll_event", "app_indicator_reserved_ats", "",
+                "fallback", "unfallback", "app_indicator_reserved_1", 
+                "app_indicator_reserved_2", "app_indicator_reserved_3", 
+                "app_indicator_reserved_4", "app_indicator_reserved_5", 
+                "app_indicator_reserved_6");
         }
+        */
     }
 
     public class AppIndicatorInstanceStruct extends Structure {
         public Gobject.GObjectStruct parent;
         public Pointer priv;
-        
-        @Override
-        protected List getFieldOrder() {
-            return JnaUtils.getFieldOrder(this);
-        }
     }
 
 
