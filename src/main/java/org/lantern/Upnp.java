@@ -48,7 +48,7 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
         removeUpnpMappings(mappings.values());
     }
 
-    private void removeUpnpMappings(Collection<UpnpMapping> mappings) {
+    private synchronized void removeUpnpMappings(Collection<UpnpMapping> mappings) {
         int ret;
         UPNPDev devlist = miniupnpc.upnpDiscover(UPNP_DELAY, (String) null,
                 (String) null, 0, 0, IntBuffer.allocate(1));
@@ -62,6 +62,7 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
         ByteBuffer lanaddr = ByteBuffer.allocate(16);
         ret = miniupnpc.UPNP_GetValidIGD(devlist, urls, data, lanaddr, 16);
         if (ret == 0) {
+            devlist.setAutoRead(false);
             miniupnpc.freeUPNPDevlist(devlist);
             return;
         }
@@ -78,6 +79,7 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
             }
         } finally {
             miniupnpc.FreeUPNPUrls(urls);
+            devlist.setAutoRead(false);
             miniupnpc.freeUPNPDevlist(devlist);
         }
     }
@@ -131,7 +133,7 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
         public int externalPort;
     }
 
-    protected void addMapping(final PortMappingProtocol prot,
+    protected synchronized void addMapping(final PortMappingProtocol prot,
             final int externalPortRequested, int localPort,
             final PortMapListener portMapListener, final String lh) {
 
@@ -149,6 +151,7 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
         UPNPDev devlist = miniupnpc.upnpDiscover(UPNP_DELAY, (String) null,
                 (String) null, 0, 0, IntBuffer.allocate(1));
         if (devlist == null) {
+            miniupnpc.FreeUPNPUrls(urls);
             portMapListener.onPortMapError();
             return;
         }
@@ -156,6 +159,8 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
         if (ret == 0) {
             log.debug("No valid UPNP Internet Gateway Device found.");
             portMapListener.onPortMapError();
+            miniupnpc.FreeUPNPUrls(urls);
+            devlist.setAutoRead(false);
             miniupnpc.freeUPNPDevlist(devlist);
             return;
         }
@@ -202,6 +207,7 @@ public class Upnp implements org.lastbamboo.common.portmapping.UpnpService {
             stats.setUpnp(true);
         } finally {
             miniupnpc.FreeUPNPUrls(urls);
+            devlist.setAutoRead(false);
             miniupnpc.freeUPNPDevlist(devlist);
         }
         portMapListener.onPortMap(externalPortRequested);
