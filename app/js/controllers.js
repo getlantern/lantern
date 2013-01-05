@@ -265,6 +265,16 @@ function SettingsCtrl($scope, modelSrvc, logFactory, MODAL) {
 
   $scope.$watch('model.settings.systemProxy', function(systemProxy) {
     $scope.systemProxy = systemProxy;
+    if (systemProxy == false) {
+      $scope.proxyAdvancedExpanded = true;
+    }
+  });
+
+  $scope.$watch('model.settings.proxyAllSites', function(proxyAllSites) {
+    $scope.proxyAllSites = proxyAllSites;
+    if (proxyAllSites) {
+      $scope.proxyAdvancedExpanded = true;
+    }
   });
 
   $scope.$watch('model.settings.autoReport', function(autoReport) {
