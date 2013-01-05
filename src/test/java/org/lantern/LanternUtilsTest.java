@@ -13,6 +13,7 @@ import java.net.SocketAddress;
 import java.security.Security;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
@@ -47,6 +48,15 @@ public class LanternUtilsTest {
     private final AtomicReference<String> readOnServer = 
         new AtomicReference<String>("");
     
+    @Test
+    public void testGeoData() throws Exception {
+        final Map<String, String> data = 
+            LanternUtils.getGeoData("86.170.128.133");
+        assertTrue(data.containsKey("latitude"));
+        assertTrue(data.containsKey("longitude"));
+        assertTrue(data.containsKey("countrycode"));
+    }
+    
     @Test 
     public void testGoogleTalkReachable() throws Exception {
         assertTrue(LanternUtils.isGoogleTalkReachable());
@@ -58,7 +68,8 @@ public class LanternUtilsTest {
         final Model model = TestUtils.getModel();
         
         assertFalse(model.isLaunchd());
-        Object obj = LanternUtils.getTargetForPath(model, "version.installed.major");
+        Object obj = LanternUtils.getTargetForPath(model, 
+            "version.installed.major");
         
         assertEquals(model.getVersion().getInstalled(), obj);
         
