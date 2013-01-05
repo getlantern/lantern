@@ -1,5 +1,13 @@
 {
   "system":{
+    "arch":"x86_64",
+    "processor":"1.8 GHz Intel Core i7",
+    "memory":"4 GB 1333 MHz DDR3",
+    "bytesFree":1234567890,
+    "graphics":"Intel HD Graphics 3000 384 MB",
+    "displays":[[1280,1024]],
+    "java":"1.7.0_33",
+    "chrome":"25.0.1364.5",
     "lang":"en"
   },
   "location":{},

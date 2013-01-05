@@ -151,8 +151,10 @@ angular.module('app.i18n', [])
       BACK: 'Back',
       ABOUT_TITLE: 'About Lantern',
       UPDATE_AVAILABLE_TITLE: 'Update Available',
-      CONTACT_DEVS_TITLE: 'Contact Lantern Developers',
-      CONTACT_DEVS_PROMPT: '...',
+      CONTACT_TITLE: 'Contact Lantern Developers',
+      CONTACT_PROMPT: 'The Lantern documentation and users forums are good places to search, request, and provide information appropriate for public access. Private messages can be submitted securely through this form.', // XXX links
+      MESSAGE_PLACEHOLDER: 'Your message here\n\n\n\n\n--\nYour information:\n',
+      SEND: 'Send',
       GIVE_MODE_FORBIDDEN_TITLE: 'Give Access Mode Forbidden',
       GIVE_MODE_FORBIDDEN_PROMPT: 'Your internet connection appears to be coming from a censoring country. Giving access through this connection could be undesirable for other users. You can run Lantern in Give Access mode if you connect to the internet from outside a censoring country.', // XXX say which country and source identifying it as censoring
       CONTINUE_IN_GET_MODE: 'Continue in Get Access Mode',

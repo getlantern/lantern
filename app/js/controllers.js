@@ -239,10 +239,15 @@ function FinishedCtrl($scope, MODAL) {
   $scope.autoReport = true;
 }
 
-function ContactCtrl($scope, MODAL) {
+function ContactCtrl($scope, MODAL, $filter) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.contact;
+    if ($scope.show) {
+      var reportedState = $filter('json')($filter('reportedState')($scope.model));
+      $scope.message = $filter('i18n')('MESSAGE_PLACEHOLDER') + reportedState;
+      $scope.contactForm.contactMsg.$pristine = true;
+    }
   });
 }
 

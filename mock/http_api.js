@@ -141,6 +141,12 @@ ApiServlet._handlerForInteraction[INTERACTION.developer] = function(res, data) {
   }
 };
 
+ApiServlet._handlerForInteraction[INTERACTION.contact] = function(res, data) {
+  if (this.model.modal == MODAL.contact) return;
+  this._internalState.lastModal = this.model.modal;
+  this.updateModel({modal: MODAL.contact}, true);
+};
+
 ApiServlet._handlerForInteraction[INTERACTION.scenarios] = function(res, data) {
   if (this.model.modal == MODAL.scenarios) return;
   this._internalState.lastModal = this.model.modal;
@@ -148,6 +154,19 @@ ApiServlet._handlerForInteraction[INTERACTION.scenarios] = function(res, data) {
 };
 
 ApiServlet._handlerForModal = {};
+ApiServlet._handlerForModal[MODAL.contact] = function(interaction, res, data) {
+  if (interaction != INTERACTION.continue && interaction != INTERACTION.cancel) {
+    res.writeHead(400);
+    return;
+  }
+  if (interaction == INTERACTION.continue) {
+    log('received message:', data.message);
+    // XXX notify user message was sent in an alert
+  }
+  this.updateModel({modal: this._internalState.lastModal}, true);
+  this._internalState.lastModal = MODAL.none;
+};
+
 ApiServlet._handlerForModal[MODAL.scenarios] = function(interaction, res, data) {
   if (interaction != INTERACTION.continue ||
      (data.path && data.path != 'mock.scenarios.applied')) {

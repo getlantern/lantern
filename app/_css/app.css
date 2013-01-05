@@ -5486,6 +5486,14 @@ a.toggle.advanced:active, a.toggle.advanced:visited, a.toggle.advanced:hover {
   font-size: 10.5px;
 }
 
+#contact-msg {
+  font-size: 11.9px;
+  font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  width: 100%;
+  height: 175px;
+  margin-top: 24px;
+}
+
 #canvas, #canvas svg {
   display: inline-block;
   width: 100%;
@@ -5688,8 +5696,8 @@ body.showVis #footer {
 }
 #model textarea {
   font-size: 10.5px;
-  overflow: scroll;
   font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+  overflow: scroll;
   display: block;
   width: 100%;
   height: 100%;

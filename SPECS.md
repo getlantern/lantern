@@ -156,7 +156,26 @@ the backend maintains on the frontend through comet publications:
       <table>
         <tr><td><strong>os</strong><br>"windows" | "osx" | "ubuntu"</td>
             <td>operating system</td></tr>
-        <tr><td><strong>lang</strong><br><em>string</em></td>
+        <tr><td><strong>version</strong><br>"10.7.5" | "12.04" | ...</td>
+            <td>os version</td></tr>
+        <tr><td><strong>arch</strong><br>"x86" | "x86_64" | ...</td>
+            <td>architecture</td></tr>
+        <tr><td><strong>processor</strong><br>"1.8 GHz Intel Core i7" | ...</td>
+            <td>processor</td></tr>
+        <tr><td><strong>memory</strong><br>"4 GB 1333 MHz DDR3" | ...</td>
+            <td>memory</td></tr>
+        <tr><td><strong>bytesFree</strong><br>int</td>
+            <td>available bytes on disk</td></tr>
+        <tr><td><strong>graphics</strong><br>"Intel HD Graphics 3000 384 MB" | ...</td>
+            <td>graphics</td></tr>
+        <tr><td><strong>displays</strong><br>[[1280, 1024]] | ...</td>
+            <td>list of [pixel width, pixel height] pairs for each
+            display</td></tr>
+        <tr><td><strong>java</strong><br>"1.7.0_33" | ...</td>
+            <td>java version</td></tr>
+        <tr><td><strong>chrome</strong><br>"25.0.1364.5" | ...</td>
+            <td>chrome version</td></tr>
+        <tr><td><strong>lang</strong><br><em>"en" | "es" | ...</em></td>
           <td>The system's language setting as a two-letter ISO 639-1 code.
           <br><br>Determines the language the UI is displayed in when the
           user's <strong>lang</strong> setting (under <strong>settings</strong>
@@ -698,6 +717,10 @@ as reference implementations of these specifications.
 
 
 ## Notes
+
+* If we haven't yet specified what standard we use for two-letter country codes
+  in the places we use them, we probably are using
+  http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2.
 
 * Switches to Oauth rather than asking for users' Google passwords. Since we no
   longer store users' Google passwords, the data we do store is now much less

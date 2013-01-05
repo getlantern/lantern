@@ -8,6 +8,39 @@ angular.module('app.filters', [])
       return count > max ? max + '+' : count;
     };
   })
+  .filter('reportedState', function() {
+    return function(model) {
+      var state = _.cloneDeep(model);
+
+      // omit these fields
+      state = _.omit(state, 'mock', 'countries', 'global');
+
+      // only include these fields from the user's profile
+      if (state.profile) {
+        state.profile = {email: state.profile.email, name: state.profile.name};
+      }
+
+      // replace these array fields with their lengths
+      for (var path in {roster:0, 'settings.proxiedSites':0, 'friends.current':0, 'friends.pending':0}) {
+        var val = getByPath(state, path);
+        if (val && 'length' in val) {
+          merge(state, val.length, path);
+        }
+      }
+
+      // strip identifying info from peers
+      for (var path in {'connectivity.peers.current':0, 'connectivity.peers.lifetime':0}) {
+        var peers = getByPath(state, path);
+        if (!peers) continue;
+        peers = _.map(peers, function(peer) {
+          return _.omit(peer, 'email', 'peerid', 'ip', 'lat', 'lon');
+        });
+        merge(state, peers, path);
+      }
+
+      return state;
+    };
+  })
   .filter('truncateAfter', function() {
     return function(str, index, replaceStr) {
       if (!str || str.length <= index) return str;

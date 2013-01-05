@@ -430,14 +430,20 @@
 <div id="contact" ng-controller="ContactCtrl" ui-modal
      ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
-    <h3>{{ 'CONTACT_DEVS_TITLE' | i18n }}</h3>
+    <h3>{{ 'CONTACT_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body">
-    <div>{{ 'CONTACT_DEVS_PROMPT' | i18n }}</div>
+    <div>{{ 'CONTACT_PROMPT' | i18n }}</div>
+    <form name="contactForm">
+      <textarea id="contact-msg" name="contactMsg" ng-model="message" required></textarea>
+    </form>
   </div>
   <div class="modal-footer">
+    <button type="button" class="btn"
+            ng-click="interaction(INTERACTION.cancel)">{{ 'CANCEL' | i18n }}</button>
     <button type="button" class="btn btn-primary"
-            ng-click="interaction(INTERACTION.continue)">{{ 'CLOSE' | i18n }}</button>
+            ng-disabled="!message || contactForm.contactMsg.$pristine"
+            ng-click="interaction(INTERACTION.continue, {message: message})">{{ 'SEND' | i18n }}</button>
   </div>
 </div>
 
