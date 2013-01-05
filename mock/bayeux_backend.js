@@ -31,7 +31,7 @@ BayeuxBackend.prototype.attachServer = function(http_server) {
 };
 
 BayeuxBackend.prototype.resetModel = function() {
-  this.model = _.clone(RESETMODEL, true);
+  this.model = _.cloneDeep(RESETMODEL);
   merge(this.model, {bayeuxProtocol: BayeuxBackend.VERSION}, 'version.installed');
 };
 

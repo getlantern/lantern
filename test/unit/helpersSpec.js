@@ -90,6 +90,12 @@ describe('helpers', function() {
       expect(obj.arr.length).toBe(2);
       expect(obj.arr[1]).toBe(2);
       expect(_.isEqual(obj.arr, [1, 2])).toBe(true);
+
+      // deep clone is used
+      var foo = {bar: true};
+      merge(obj, [foo], 'arr');
+      foo.bar = false;
+      expect(obj.arr[0].bar).toBe(true);
     });
 
     it('merges primitives correctly', function() {

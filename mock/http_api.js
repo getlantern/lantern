@@ -64,7 +64,7 @@ ApiServlet.RESET_INTERNAL_STATE = {
 };
 
 ApiServlet.prototype.reset = function() {
-  this._internalState = _.clone(ApiServlet.RESET_INTERNAL_STATE, true);
+  this._internalState = _.cloneDeep(ApiServlet.RESET_INTERNAL_STATE);
   this.resetModel();
   this.model = this._bayeuxBackend.model;
   merge(this.model, {

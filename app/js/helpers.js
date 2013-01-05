@@ -81,7 +81,7 @@ function merge(dst, src, path) {
       throw Error("Can't merge array source into object at top level");
     }
     //log('src is array, replacing with dst rather than merging');
-    lastdst[name] = _.clone(src);
+    lastdst[name] = _.cloneDeep(src);
     return;
   }
   for (var key in src) {
