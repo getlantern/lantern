@@ -1,6 +1,7 @@
 package org.lantern.state;
 
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.lantern.state.Model.Persistent;
 import org.lantern.state.Model.Run;
 
 /**
@@ -10,9 +11,9 @@ public class Location {
 
     private String country = "";
 
-    private int lat = 0;
+    private double lat = 0;
     
-    private int lon = 0;
+    private double lon = 0;
 
     @JsonView({Run.class})
     public String getCountry() {
@@ -25,21 +26,21 @@ public class Location {
         }
     }
     
-    @JsonView({Run.class})
-    public int getLat() {
+    @JsonView({Run.class, Persistent.class})
+    public double getLat() {
         return lat;
     }
 
-    public void setLat(final int lat) {
+    public void setLat(final double lat) {
         this.lat = lat;
     }
 
-    @JsonView({Run.class})
-    public int getLon() {
+    @JsonView({Run.class, Persistent.class})
+    public double getLon() {
         return lon;
     }
 
-    public void setLon(int lon) {
+    public void setLon(final double lon) {
         this.lon = lon;
     }
 }

@@ -1,6 +1,8 @@
 package org.lantern;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -279,9 +281,10 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         if (this.peers.containsKey(userId)) {
             peer = this.peers.get(userId);
         } else {
-            final String cc = 
-                lookupService.getCountry(sock.getInetAddress()).getCode();
-            peer = new Peer(userId, base64Cert, cc, false, false, false);
+            final InetAddress ia = sock.getInetAddress();
+            final GeoData geo = LanternUtils.getGeoData(ia.getHostAddress());
+            peer = new Peer(userId, base64Cert, geo.getCountrycode(), false, 
+                false, false, geo.getLatitude(), geo.getLongitude());
             this.peers.put(userId, peer);
         }
         peer.addSocket(ts);

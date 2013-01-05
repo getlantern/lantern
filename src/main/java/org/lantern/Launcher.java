@@ -39,6 +39,7 @@ import org.lantern.http.JettyLauncher;
 import org.lantern.privacy.InvalidKeyException;
 import org.lantern.privacy.LocalCipherProvider;
 import org.lantern.state.InternalState;
+import org.lantern.state.Location;
 import org.lantern.state.Modal;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
@@ -309,14 +310,22 @@ public class Launcher {
                 }
                 model.getConnectivity().setIp(ip.getHostAddress());
                 
-                // The IP is cached at this point.
+                final GeoData geo = 
+                    LanternUtils.getGeoData(ip.getHostAddress());
+                final Location loc = model.getLocation();
+                loc.setCountry(geo.getCountrycode());
+                loc.setLat(geo.getLatitude());
+                loc.setLon(geo.getLongitude());
                 
+                // The IP is cached at this point.
+                /*
                 try {
                     final Country count = censored.country();
                     model.getLocation().setCountry(count.getCode());
                 } catch (final IOException e) {
                     LOG.error("Could not get country", e);
                 }
+                */
                 // If the mode isn't set in the model, set the default.
                 if (set.getMode() == null || set.getMode() == Mode.none) {
                     if (censored.isCensored()) {
