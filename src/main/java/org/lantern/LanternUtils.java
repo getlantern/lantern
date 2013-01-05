@@ -25,7 +25,6 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -895,7 +894,7 @@ public class LanternUtils {
         return remote.getAddress().isLoopbackAddress();
     }
     
-    public static Map<String, String> getGeoData(final String ip) {
+    public static GeoData getGeoData(final String ip) {
         final String query = 
             "USE 'http://www.datatables.org/iplocation/ip.location.xml' " +
             "AS ip.location; select CountryCode, Latitude,Longitude from " +
@@ -922,11 +921,11 @@ public class LanternUtils {
             final ObjectMapper om = new ObjectMapper();
             if (!body.contains("latitude")) {
                 LOG.warn("No latitude in response: {}", body);
-                return new HashMap<String, String>();
+                return new GeoData();
             }
             final String parsed = StringUtils.substringAfterLast(body, "{");
             final String full = "{"+StringUtils.substringBeforeLast(parsed, "\"}")+"\"}";
-            return om.readValue(full, Map.class);
+            return om.readValue(full, GeoData.class);
         } catch (final IOException e) {
             LOG.warn("Could not connect to geo ip url?", e);
         } catch (final URISyntaxException e) {
@@ -934,7 +933,7 @@ public class LanternUtils {
         } finally {
             get.releaseConnection();
         }
-        return new HashMap<String, String>();
+        return new GeoData();
     }
 }
 

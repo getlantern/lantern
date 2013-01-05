@@ -33,12 +33,19 @@ public class Peer {
 
     private final String base64Cert;
 
+    private final double latitude;
+
+    private final double longitude;
+
     public Peer(final String userId,
         final String base64Cert, final String countryCode, 
         final boolean incoming, 
-        final boolean natPmp, final boolean upnp) {
+        final boolean natPmp, final boolean upnp, final double latitude, 
+        final double longitude) {
         Preconditions.checkArgument(StringUtils.isNotBlank(base64Cert), 
                 "No cert?");
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.userId = userId;
         this.base64Cert = base64Cert;
         this.country = countryCode.toLowerCase(Locale.US);
@@ -95,5 +102,13 @@ public class Peer {
 
     public String getBase64Cert() {
         return base64Cert;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
     }
 }
