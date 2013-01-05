@@ -105,15 +105,6 @@ public class Launcher {
         } catch (final Throwable t) {
             handleError(t, true);
         }
-        if (SystemUtils.IS_OS_LINUX) {
-            synchronized (this) {
-                try {
-                    this.wait();
-                } catch (final InterruptedException e) {
-                    LOG.info("Interrupted", e);
-                }
-            }
-        }
     }
     
     /**
