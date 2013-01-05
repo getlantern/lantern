@@ -50,11 +50,10 @@ public class LanternUtilsTest {
     
     @Test
     public void testGeoData() throws Exception {
-        final Map<String, String> data = 
-            LanternUtils.getGeoData("86.170.128.133");
-        assertTrue(data.containsKey("latitude"));
-        assertTrue(data.containsKey("longitude"));
-        assertTrue(data.containsKey("countrycode"));
+        final GeoData data = LanternUtils.getGeoData("86.170.128.133");
+        assertTrue(data.getLatitude() > 50.0);
+        assertTrue(data.getLongitude() < 3.0);
+        assertEquals("gb", data.getCountrycode());
     }
     
     @Test 
