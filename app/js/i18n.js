@@ -152,8 +152,9 @@ angular.module('app.i18n', [])
       ABOUT_TITLE: 'About Lantern',
       UPDATE_AVAILABLE_TITLE: 'Update Available',
       CONTACT_TITLE: 'Contact Lantern Developers',
-      CONTACT_PROMPT: 'The Lantern documentation and users forums are good places to search, request, and provide information appropriate for public access. Private messages can be submitted securely through this form.', // XXX links
-      MESSAGE_PLACEHOLDER: 'Your message here\n\n\n\n\n--\nYour information:\n',
+      CONTACT_PROMPT: 'The Lantern documentation and users forums are the best places to search, request, and provide information appropriate for public access. Private messages can be submitted securely through this form.', // XXX links
+      MESSAGE_PLACEHOLDER: '\n\n\n\n\n--\nDiagnostic information:\n',
+      ERROR_TOO_LONG: 'characters too long', // XXX interpolate param, ng-pluralize
       SEND: 'Send',
       GIVE_MODE_FORBIDDEN_TITLE: 'Give Access Mode Forbidden',
       GIVE_MODE_FORBIDDEN_PROMPT: 'Your internet connection appears to be coming from a censoring country. Giving access through this connection could be undesirable for other users. You can run Lantern in Give Access mode if you connect to the internet from outside a censoring country.', // XXX say which country and source identifying it as censoring

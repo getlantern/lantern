@@ -433,16 +433,21 @@
     <h3>{{ 'CONTACT_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body">
-    <div>{{ 'CONTACT_PROMPT' | i18n }}</div>
+    <div class="smaller">{{ 'CONTACT_PROMPT' | i18n }}</div>
     <form name="contactForm">
-      <textarea id="contact-msg" name="contactMsg" ng-model="message" required></textarea>
+      <textarea id="contact-msg" name="contactMsg" ng-model="message" autofocus
+        ng-maxlength="500000" required></textarea><!-- XXX https://github.com/angular/angular.js/pull/1588 -->
+      <div class="text-error" ui-toggle="contactForm.contactMsg.$error.maxlength">
+        {{ contactForm.contactMsg.$viewValue.length - 500000 }}
+        {{ 'ERROR_TOO_LONG' | i18n }}&nbsp;
+      </div>
     </form>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn"
             ng-click="interaction(INTERACTION.cancel)">{{ 'CANCEL' | i18n }}</button>
     <button type="button" class="btn btn-primary"
-            ng-disabled="!message || contactForm.contactMsg.$pristine"
+            ng-disabled="contactForm.contactMsg.$invalid || contactForm.contactMsg.$pristine"
             ng-click="interaction(INTERACTION.continue, {message: message})">{{ 'SEND' | i18n }}</button>
   </div>
 </div>

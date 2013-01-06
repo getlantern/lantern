@@ -239,7 +239,9 @@ function FinishedCtrl($scope, MODAL) {
   $scope.autoReport = true;
 }
 
-function ContactCtrl($scope, MODAL, $filter) {
+function ContactCtrl($scope, MODAL, $filter, CONTACT_FORM_MAXLEN) {
+  $scope.CONTACT_FORM_MAXLEN = CONTACT_FORM_MAXLEN;
+
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.contact;
