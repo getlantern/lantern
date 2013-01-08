@@ -44,6 +44,50 @@ exports.SCENARIOS = {
       func: make_simple_scenario({'connectivity.internet': false})
     }
   },
+  updateAvailable: {
+    _applyImmediately: true,
+    true: {
+      desc: 'updateAvailable: true',
+      func: make_simple_scenario({'version.updateAvailable': true,
+              'version.latest': {
+                "major": 0,
+                "minor": 23,
+                "patch": 0,
+                "tag": "beta",
+                "git": "ac7de5f",
+                "releaseDate": "2013-1-30",
+                "installerUrl": "https://lantern.s3.amazonaws.com/lantern-0.23.0.dmg",
+                "changes": [{
+                    "en": "(English translation of <a href=\"#\">feature x</a>)",
+                    "zh": "(Chinese translation of <a href=\"#\">feature x</a>)"
+                  },{
+                    "en": "(English translation of <a href=\"#\">feature y</a>)",
+                    "zh": "(Chinese translation of <a href=\"#\">feature y</a>)"
+                  }
+                ],
+                "modelSchema": {
+                  "major": 0,
+                  "minor": 0,
+                  "patch": 1
+                },
+                "httpApi": {
+                  "major": 0,
+                  "minor": 0,
+                  "patch": 1
+                },
+                "bayeuxProtocol": {
+                  "major": 0,
+                  "minor": 0,
+                  "patch": 1
+                }
+              }
+            })
+    },
+    false: {
+      desc: 'updateAvailable: false',
+      func: make_simple_scenario({'version.updateAvailable': false})
+    }
+  },
   location: {
     _applyImmediately: true,
     beijing: {

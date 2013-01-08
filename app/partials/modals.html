@@ -468,7 +468,7 @@
     </div>
     <div>
       Credits
-      <textarea readonly rows="2">                                     Myles Horton                      _pants                      aranhoide
+      <textarea readonly rows="2">                          myleshorton                  _pants                  aranhoide                leahxschmidt
             Wm. Forkner             M. Messier           Collin A.           Jacob A.            Chris N.            Nancy</textarea>
     </div>
     <div>
@@ -480,14 +480,14 @@
     </div>
     <div>
       License
-      <textarea readonly rows="4">This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License (GPL) as published by the Free Software Foundation; either version 2 of the License, or (at your option) any later version. The full text of version 3 of the GPL can be found in the file LICENSE.
+      <textarea readonly rows="4">This program is free software; you can redistribute it and/or modify it under the terms of the GNU General Public License (GPL) as published by the Free Software Foundation; either version 3 of the License, or (at your option) any later version. The full text of version 3 of the GPL can be found in the file LICENSE.
 
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along with this program; if not, write to the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.</textarea>
     </div>
     <!-- XXX https://en.wikipedia.org/wiki/Copyright#Obtaining_and_enforcing_copyright -->
-    <div class="smaller gray centered" style="margin:0">© 2012 Team Lantern.</div>
+    <div class="smaller gray centered" style="margin:0">© 2013 Team Lantern.</div>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
@@ -501,10 +501,24 @@ You should have received a copy of the GNU General Public License along with thi
     <h3>{{ 'UPDATE_AVAILABLE_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body">
-    <div>...</div>
+    <p>{{ 'UPDATE_AVAILABLE_PROMPT' | i18n }}</p>
+    <h4>{{ 'VERSION' | i18n }} {{ model.version.latest | version }}
+        {{ 'RELEASED' | i18n }} <time>{{ model.version.latest.releaseDate }}</time></h4>
+    <br>
+    <p class="small">{{ 'UPDATE_AVAILABLE_PROMPT_CHANGES' | i18n }}</p>
+    <ul class="small">
+      <li ng-repeat="change in model.version.latest.changes">
+        <span ng-bind-html="change[lang()]"></span>
+      </li>
+    </ul>
+    <br>
+    <p class="small">{{ 'UPDATE_AVAILABLE_PROMPT_RUNNING' | i18n }}
+      {{ 'VERSION' | i18n }} {{ model.version.installed | version }}
+      {{ 'RELEASED' | i18n }} <time>{{ model.version.installed.releaseDate }}</time></p>
   </div>
   <div class="modal-footer">
-    <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
+    <button type="button" class="btn" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
+    <a class="btn btn-primary" href="{{ model.version.latest.installerUrl }}">{{ 'DOWNLOAD' | i18n }}</a>
   </div>
 </div>
 
@@ -639,6 +653,7 @@ You should have received a copy of the GNU General Public License along with thi
     </select> 
   </div>
   <div class="modal-footer">
+    <button type="button" class="btn" ng-click="interaction(INTERACTION.cancel)">Cancel</button>
     <button type="button" class="btn btn-primary" ng-click="submit()"
             ng-disabled="invalid">Continue</button>
   </div>

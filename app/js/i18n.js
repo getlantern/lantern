@@ -151,6 +151,12 @@ angular.module('app.i18n', [])
       BACK: 'Back',
       ABOUT_TITLE: 'About Lantern',
       UPDATE_AVAILABLE_TITLE: 'Update Available',
+      UPDATE_AVAILABLE_PROMPT: 'A new version of Lantern is available!',
+      VERSION: 'version',
+      RELEASED: 'released',
+      UPDATE_AVAILABLE_PROMPT_CHANGES: 'Changes in this version:',
+      UPDATE_AVAILABLE_PROMPT_RUNNING: 'You are currently running',
+      DOWNLOAD: 'Download',
       CONTACT_TITLE: 'Contact Lantern Developers',
       CONTACT_PROMPT: 'The Lantern documentation and users forums are the best places to search, request, and provide information appropriate for public access. Private messages can be submitted securely through this form.', // XXX links
       MESSAGE_PLACEHOLDER: '\n\n\n\n\n--\nDiagnostic information:\n',

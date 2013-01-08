@@ -341,6 +341,19 @@ the backend maintains on the frontend through comet publications:
                 <br>e.g. "2012-12-12"</td>
                 <td>release date of the currently-running Lantern
                 instance</td></tr>
+              <tr><td><strong>installerUrl</strong><br><em>url</em>
+                <td>installer url for the user's platform</td></tr>
+              <tr><td><strong>changes</strong><br><em>object[]</em></td>
+                <td>internationalized list of changes in this version, with
+                  language codes as keys and html strings as values, e.g.<br>
+                <pre>[{
+    "en": "(English translation of <a href=\"#\">feature x</a>)",
+    "zh": "(Chinese translation of <a href=\"#\">feature x</a>)"
+  },{
+    "en": "(English translation of <a href=\"#\">feature y</a>)",
+    "zh": "(Chinese translation of <a href=\"#\">feature y</a>)"
+  }
+]</pre></td>
               <tr><td><strong>stateSchema</strong><br><em>object</em></td>
                 <td>
                   <table>

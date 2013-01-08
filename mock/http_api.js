@@ -53,6 +53,7 @@ ApiServlet.RESET_INTERNAL_STATE = {
     os: 'osx',
     location: 'beijing',
     internet: 'true',
+    updateAvailable: 'true',
     gtalkAuthorized: 'true',
     invited: 'true',
     ninvites: '10',
@@ -126,7 +127,29 @@ ApiServlet.prototype.inGetMode = function() {
   return this.model.settings.mode == MODE.get;
 };
 
+
 ApiServlet._handlerForInteraction = {};
+
+var _globalModals = {};
+_globalModals[INTERACTION.updateAvailable] = MODAL.updateAvailable;
+_globalModals[INTERACTION.about] = MODAL.about;
+_globalModals[INTERACTION.contact] = MODAL.contact;
+_globalModals[INTERACTION.lanternFriends] = MODAL.lanternFriends;
+_globalModals[INTERACTION.settings] = MODAL.settings;
+_globalModals[INTERACTION.scenarios] = MODAL.scenarios;
+_.forEach(_globalModals, function(modal, interaction) {
+  ApiServlet._handlerForInteraction[interaction] = function(res, data) {
+    if (this.model.modal == modal) return;
+    this._internalState.lastModal = this.model.modal;
+    this.updateModel({modal: modal}, true);
+  };
+});
+
+ApiServlet._handlerForInteraction[INTERACTION.close] = function(res, data) {
+  this.updateModel({modal: this._internalState.lastModal}, true);
+  this._internalState.lastModal = MODAL.none;
+};
+
 ApiServlet._handlerForInteraction[INTERACTION.developer] = function(res, data) {
   if (!_.isArray(data)) throw Error('Expected array');
   // XXX validate requested updates
@@ -139,18 +162,6 @@ ApiServlet._handlerForInteraction[INTERACTION.developer] = function(res, data) {
     }
     this.publishSync(update.path);
   }
-};
-
-ApiServlet._handlerForInteraction[INTERACTION.contact] = function(res, data) {
-  if (this.model.modal == MODAL.contact) return;
-  this._internalState.lastModal = this.model.modal;
-  this.updateModel({modal: MODAL.contact}, true);
-};
-
-ApiServlet._handlerForInteraction[INTERACTION.scenarios] = function(res, data) {
-  if (this.model.modal == MODAL.scenarios) return;
-  this._internalState.lastModal = this.model.modal;
-  this.updateModel({modal: MODAL.scenarios}, true);
 };
 
 ApiServlet._handlerForModal = {};
@@ -168,6 +179,11 @@ ApiServlet._handlerForModal[MODAL.contact] = function(interaction, res, data) {
 };
 
 ApiServlet._handlerForModal[MODAL.scenarios] = function(interaction, res, data) {
+  if (interaction == INTERACTION.cancel) {
+    this.updateModel({modal: this._internalState.lastModal}, true);
+    this._internalState.lastModal = MODAL.none;
+    return;
+  }
   if (interaction != INTERACTION.continue ||
      (data.path && data.path != 'mock.scenarios.applied')) {
     res.writeHead(400);
@@ -473,12 +489,6 @@ ApiServlet._handlerForModal[MODAL.settings] = function(interaction, res, data) {
   }
 };
 
-ApiServlet._handlerForModal[MODAL.about] = 
-ApiServlet._handlerForModal[MODAL.updateAvailable] = function(interaction, res) {
-  if (interaction != INTERACTION.close) return res.writeHead(400);
-  this.updateModel({modal: MODAL.none}, true);
-};
-
 ApiServlet._handlerForModal[MODAL.confirmReset] = function(interaction, res) {
   if (interaction == INTERACTION.cancel) {
     this.updateModel({modal: MODAL.settings}, true);
@@ -489,25 +499,6 @@ ApiServlet._handlerForModal[MODAL.confirmReset] = function(interaction, res) {
   }
 };
     
-ApiServlet._handlerForModal[MODAL.none] = function(interaction, res) {
-  switch (interaction) {
-    case INTERACTION.lanternFriends:
-      if (this.model.connectivity.gtalk != CONNECTIVITY.connected) {
-        // sign-in required XXX explain this to user
-        this.updateModel({modal: MODAL.authorize}, true);
-        return;
-      }
-      // otherwise fall through to no-sign-in-required cases:
-    case INTERACTION.about:
-    case INTERACTION.updateAvailable:
-    case INTERACTION.settings: // XXX check if signed in on clientside and only allow configuring settings accordingly
-      this.updateModel({modal: interaction}, true);
-      return;
-    default:
-      res.writeHead(400);
-  }
-};
-
 ApiServlet.prototype.handleRequest = function(req, res) {
   var self = this, handled = false;
   log(req.url.href);

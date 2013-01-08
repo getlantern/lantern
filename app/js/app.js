@@ -8,5 +8,6 @@ angular.module('app', [
   'app.services',
   'app.directives',
   'app.vis',
+  'ngSanitize',
   'ui'
 ]);
