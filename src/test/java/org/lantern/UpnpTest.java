@@ -61,7 +61,10 @@ public class UpnpTest {
             }
         }
 
-        assertTrue("Expected to get a public ip address ", mapped.get());
+        if (!mapped.get()) {
+            log.debug("Network does not seem to support UPNP so we're not testing it.");
+            return;
+        }
 
         String ip = up.getPublicIpAddress();
 
