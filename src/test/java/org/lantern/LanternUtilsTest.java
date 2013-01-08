@@ -13,7 +13,6 @@ import java.net.SocketAddress;
 import java.security.Security;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.net.ServerSocketFactory;
@@ -93,8 +92,7 @@ public class LanternUtilsTest {
     public void testVCard() throws Exception {
         final XMPPConnection conn = TestUtils.xmppConnection();
         assertTrue(conn.isAuthenticated());
-        
-        final VCard vcard = XmppUtils.getVCard(conn, "lanternftw@gmail.com");
+        final VCard vcard = XmppUtils.getVCard(conn, TestUtils.getUserName());
         assertTrue(vcard != null);
         final String full = vcard.getField("FN");
         assertTrue(StringUtils.isNotBlank(full));
