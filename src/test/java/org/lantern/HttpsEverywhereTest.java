@@ -47,7 +47,7 @@ public class HttpsEverywhereTest {
         }
         
         final String[] excluded = new String[] {
-            "http://www.google.com/search?tbm=isch",
+            "http://images.google.com/",
             "http://test.forums.wordpress.com/"
         };
         
