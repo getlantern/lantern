@@ -2,7 +2,6 @@ package org.lantern;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,9 +24,9 @@ import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.lantern.event.ConnectedPeersEvent;
-import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.Events;
 import org.lantern.event.IncomingSocketEvent;
+import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
 import org.lantern.state.Peer;
@@ -381,9 +380,10 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         if (this.peers.containsKey(userId)) {
             peer = this.peers.get(userId);
         } else {
-            final String cc = 
-                lookupService.getCountry(sock.getInetAddress()).getCode();
-            peer = new Peer(userId, cert, cc, false, false, false);
+            final GeoData geo = LanternUtils.getGeoData(
+                sock.getInetAddress().getHostAddress());
+            peer = new Peer(userId, cert, geo.getCountrycode(), false, false, 
+                false, geo.getLatitude(), geo.getLongitude());
             this.peers.put(userId, peer);
         }
         peer.addSocket(ts);
