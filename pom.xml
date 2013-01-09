@@ -289,7 +289,7 @@
     <dependency>
       <groupId>${swt.groupId}</groupId>
       <artifactId>${swt.artifactId}</artifactId>
-      <version>4.2</version>
+      <version>4.2.1</version>
     </dependency>
 
     <dependency>
