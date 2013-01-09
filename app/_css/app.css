@@ -5328,7 +5328,7 @@ textarea.bugReport {
   margin: 10px 0;
   height: 21px;
 }
-#proxiedSites .error pre {
+#proxiedSites .errorCause {
   display: -moz-inline-stack;
   display: inline-block;
   vertical-align: middle;
@@ -5337,6 +5337,10 @@ textarea.bugReport {
   *display: inline;
   padding: 2px 4px;
   margin: 0;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 #lanternFriends {

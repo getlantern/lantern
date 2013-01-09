@@ -80,10 +80,14 @@ textarea.bugReport
     +error-colored
     margin: 10px 0
     height: $baseFontSize * 1.5
-    pre
-      +inline-block
-      padding: 2px 4px
-      margin: 0
+  .errorCause
+    +inline-block
+    padding: 2px 4px
+    margin: 0
+    max-width: 200px
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
 
 #lanternFriends
   margin-top: -310px

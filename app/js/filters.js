@@ -41,13 +41,6 @@ angular.module('app.filters', [])
       return state;
     };
   })
-  .filter('truncateAfter', function() {
-    return function(str, index, replaceStr) {
-      if (!str || str.length <= index) return str;
-      replaceStr = replaceStr || '...';
-      return str.substring(0, index) + replaceStr;
-    };
-  })
   .filter('version', function() {
     return function(versionObj, full) {
       if (!versionObj) return versionObj;
