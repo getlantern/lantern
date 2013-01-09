@@ -24,6 +24,7 @@ public class JsonModelModifierTest {
 
         // Now test nested properties.
         final Settings set = model.getSettings();
+        set.setSystemProxy(true);
         assertTrue(set.isSystemProxy());
         
         String json = "{\"path\":\"settings.systemProxy\",\"value\":false}";
