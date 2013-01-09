@@ -17,23 +17,23 @@ desktop systems.
   * [Java 1.6+](http://www.oracle.com/technetwork/java/javase/downloads/index.html)
       * On Windows, make sure to use a 32-bit Java, even if you're running
         64-bit Windows.
-  * [Maven](http://maven.apache.org/download.html) (brew install maven, port install maven3, etc.)
+  * You can install Maven [manually](http://maven.apache.org/download.html) or one of: brew install maven, port install maven3, etc.
 
 2. Clone the repository:
 
-    $ git clone --recursive git://github.com/getlantern/lantern.git 
+    git clone --recursive git://github.com/getlantern/lantern.git 
 
     or
 
-    $ git clone --recursive git@github.com:getlantern/lantern.git (if you have commit privileges ONLY)   
+    git clone --recursive git@github.com:getlantern/lantern.git (if you have commit privileges ONLY)   
  
 3. Change to the lantern directory:
 
-    $ cd lantern
+    cd lantern
 
 3. Run the build-and-run script:
 
-    $ ./run.bash
+    ./run.bash
 
 That script will fetch the required libraries, build, and
 run Lantern. There's also a `quickRun.bash` script that will run Lantern
@@ -42,8 +42,8 @@ when already built.
 If you have already checked out Lantern, but did not do so with the '--recursive'
 flag, you can still grab any submodules, particularly lantern-ui with:
 
-    $ git submodule init
-    $ git submodule update
+    git submodule init
+    git submodule update
 
 Lantern binds its HTTP API to a random port for security. You can pass
 `--api-port=xyz` to override this. This is helpful for pointing external
@@ -60,7 +60,7 @@ If you want to load the Lantern source code in Eclipse, you can do the following
 
 1. Build the Eclipse project and classpath files:
 
-    $ mvn eclipse:eclipse
+    mvn eclipse:eclipse
 
 2. Load them into Eclipse using File->Import->General->Existing Projects into Workspace
 Select the directory where you ran mvn eclipse:eclipse, and you should see the "lantern" project loaded into Eclipse.
