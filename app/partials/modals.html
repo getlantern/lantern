@@ -504,14 +504,12 @@ You should have received a copy of the GNU General Public License along with thi
     <p>{{ 'UPDATE_AVAILABLE_PROMPT' | i18n }}</p>
     <h4>{{ 'VERSION' | i18n }} {{ model.version.latest | version }}
         {{ 'RELEASED' | i18n }} <time>{{ model.version.latest.releaseDate }}</time></h4>
-    <br>
-    <p class="small">{{ 'UPDATE_AVAILABLE_PROMPT_CHANGES' | i18n }}</p>
-    <ul class="small">
+    <div class="small">{{ 'UPDATE_AVAILABLE_PROMPT_CHANGES' | i18n }}</div>
+    <ul id="changes" class="well">
       <li ng-repeat="change in model.version.latest.changes">
         <span ng-bind-html="change[lang()]"></span>
       </li>
     </ul>
-    <br>
     <p class="small">{{ 'UPDATE_AVAILABLE_PROMPT_RUNNING' | i18n }}
       {{ 'VERSION' | i18n }} {{ model.version.installed | version }}
       {{ 'RELEASED' | i18n }} <time>{{ model.version.installed.releaseDate }}</time></p>

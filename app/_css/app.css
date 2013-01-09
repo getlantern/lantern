@@ -5475,6 +5475,19 @@ a.toggle.advanced:active, a.toggle.advanced:visited, a.toggle.advanced:hover {
   margin-top: 10px;
 }
 
+#updateAvailable h4 {
+  margin: 5px 0 10px;
+}
+
+#changes {
+  font-size: 11.9px;
+  max-height: 200px;
+  overflow: auto;
+  margin-left: 0;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
 #about {
   font-size: 11.9px;
 }
