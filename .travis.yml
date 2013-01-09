@@ -3,4 +3,4 @@ jdk:
   - oraclejdk7
 install: ./install.bash
 notifications:
-  irc: "irc.freenode.net#lantern
+  irc: "irc.freenode.net#lantern"
