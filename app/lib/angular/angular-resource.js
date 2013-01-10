@@ -1,5 +1,5 @@
 /**
- * @license AngularJS v1.0.2
+ * @license AngularJS v1.0.3
  * (c) 2010-2012 Google, Inc. http://angularjs.org
  * License: MIT
  */
@@ -231,7 +231,7 @@ angular.module('ngResource', ['ng']).
         };
 
   /**
-   * We need our custom mehtod because encodeURIComponent is too agressive and doesn't follow
+   * We need our custom mehtod because encodeURIComponent is too aggressive and doesn't follow
    * http://www.ietf.org/rfc/rfc3986.txt with regards to the character set (pchar) allowed in path
    * segments:
    *    segment       = *pchar
@@ -285,12 +285,18 @@ angular.module('ngResource', ['ng']).
       url: function(params) {
         var self = this,
             url = this.template,
+            val,
             encodedVal;
 
         params = params || {};
         forEach(this.urlParams, function(_, urlParam){
-          encodedVal = encodeUriSegment(params[urlParam] || self.defaults[urlParam] || "");
-          url = url.replace(new RegExp(":" + urlParam + "(\\W)"), encodedVal + "$1");
+          val = params.hasOwnProperty(urlParam) ? params[urlParam] : self.defaults[urlParam];
+          if (angular.isDefined(val) && val !== null) {
+            encodedVal = encodeUriSegment(val);
+            url = url.replace(new RegExp(":" + urlParam + "(\\W)", "g"), encodedVal + "$1");
+          } else {
+            url = url.replace(new RegExp("/?:" + urlParam + "(\\W)", "g"), '$1');
+          }
         });
         url = url.replace(/\/?#$/, '');
         var query = [];
@@ -311,9 +317,10 @@ angular.module('ngResource', ['ng']).
 
       actions = extend({}, DEFAULT_ACTIONS, actions);
 
-      function extractParams(data){
+      function extractParams(data, actionParams){
         var ids = {};
-        forEach(paramDefaults || {}, function(value, key){
+        actionParams = extend({}, paramDefaults, actionParams);
+        forEach(actionParams, function(value, key){
           ids[key] = value.charAt && value.charAt(0) == '@' ? getter(data, value.substr(1)) : value;
         });
         return ids;
@@ -367,7 +374,7 @@ angular.module('ngResource', ['ng']).
           var value = this instanceof Resource ? this : (action.isArray ? [] : new Resource(data));
           $http({
             method: action.method,
-            url: route.url(extend({}, extractParams(data), action.params || {}, params)),
+            url: route.url(extend({}, extractParams(data, action.params || {}), params)),
             data: data
           }).then(function(response) {
               var data = response.data;
