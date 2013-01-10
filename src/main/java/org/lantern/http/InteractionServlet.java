@@ -1,6 +1,7 @@
 package org.lantern.http;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -11,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.LanternConstants;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
@@ -43,7 +45,8 @@ public class InteractionServlet extends HttpServlet {
         RESET,
         SET,
         PROXIEDSITES,
-        CANCEL
+        CANCEL,
+        LANTERNFRIENDS,
     }
     
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -113,7 +116,6 @@ public class InteractionServlet extends HttpServlet {
         
         final Interaction inter = 
             Interaction.valueOf(interactionStr.toUpperCase());
-        
         final Modal modal = this.model.getModal();
         switch (modal) {
         case welcome:
@@ -170,6 +172,7 @@ public class InteractionServlet extends HttpServlet {
             switch (inter) {
             case CONTINUE:
                 log.debug("Processing continue for friends dialog");
+                invite(json);
                 this.internalState.setModalCompleted(Modal.lanternFriends);
                 this.internalState.advanceModal(null);
                 break;
@@ -187,9 +190,8 @@ public class InteractionServlet extends HttpServlet {
                 Events.syncModal(model, Modal.settings);
                 break;
             default:
-                log.error("Did not handle interaction for modal {} with " +
-                        "params: {}", modal, params);
-                HttpUtils.sendClientError(resp, "give or get required");
+                log.debug("Processing friends in none");
+                Events.syncModal(model, Modal.lanternFriends);
                 break;
             }
             break;
@@ -303,6 +305,29 @@ public class InteractionServlet extends HttpServlet {
             log.error("No matching modal for {}", modal);
         }
         this.modelIo.write();
+    }
+
+    static class Invite {
+        List<String> invite;
+
+        public Invite() {}
+
+        public List<String> getInvite() {
+            return invite;
+        }
+
+        public void setInvite(List<String> invite) {
+            this.invite = invite;
+        }
+    }
+    private void invite(String json) {
+        ObjectMapper om = new ObjectMapper();
+        try {
+            Invite invite = om.readValue(json, Invite.class);
+            modelService.invite(invite.getInvite());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void handleSetModeWelcome(final Mode mode) {
