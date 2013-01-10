@@ -2,6 +2,7 @@ package org.lantern.state;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -240,6 +241,12 @@ public class DefaultModelService implements ModelService {
     public void setAutoReport(final boolean autoReport) {
         this.model.getSettings().setAutoReport(autoReport);
         Events.sync(SyncPath.AUTO_REPORT, autoReport);
+    }
+
+    public void invite(List<String> emails) {
+        for (String email : emails) {
+            xmppHandler.sendInvite(email);
+        }
     }
 
     /*
