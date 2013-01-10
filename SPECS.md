@@ -67,6 +67,8 @@ After the merge, `model` will look like:
 
 ### Subsequent publications: Updating the frontend model
 
+**XXX** *switch to [JSON Patch](tools.ietf.org/html/draft-ietf-appsawg-json-patch-09)*
+
 After initial state is published in full, updates to the state can be published
 a field at a time using the `path` variable at whatever granularity is desired.
 For instance, here is a fine-grained update to a deeply-nested field with an
@@ -175,7 +177,7 @@ the backend maintains on the frontend through comet publications:
             <td>java version</td></tr>
         <tr><td><strong>chrome</strong><br>"25.0.1364.5" | ...</td>
             <td>chrome version</td></tr>
-        <tr><td><strong>lang</strong><br><em>"en" | "es" | ...</em></td>
+        <tr><td><strong>lang</strong><br>"en" | "es" | ...</td>
           <td>The system's language setting as a two-letter ISO 639-1 code.
           <br><br>Determines the language the UI is displayed in when the
           user's <strong>lang</strong> setting (under <strong>settings</strong>
