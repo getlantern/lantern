@@ -479,12 +479,12 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
     return $scope.interaction(INTERACTION.continue, data)
       .success(function(data, status, headers, config) {
         // XXX display notification
-        console.log('successfully invited', invitees);
+        console.log('successfully invited', data);
         resetForm();
       })
       .error(function(data, status, headers, config) {
         // XXX display notification
-        console.log('error inviting', invitees);
+        console.log('error inviting', data);
         resetForm();
       });
   };
