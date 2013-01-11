@@ -348,7 +348,7 @@ public class MacProxyManager {
     
     public String runScript(final String script, final String... args) 
         throws IOException {
-        log.info("Got args: {}", Arrays.asList(args));
+        log.debug("Got args: {}", Arrays.asList(args));
         final CommandLine command = new CommandLine(script, args);
         command.execute();
         final String output = command.getStdOut();
@@ -361,7 +361,7 @@ public class MacProxyManager {
             if (output != null && !output.contains("canceled")) {
                 log.warn(msg);
             } else {
-                log.info(msg);
+                log.debug(msg);
             }
             throw new IOException(msg);
         }

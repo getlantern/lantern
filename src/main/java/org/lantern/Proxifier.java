@@ -2,11 +2,14 @@ package org.lantern;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.swt.SWT;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
@@ -442,40 +445,47 @@ public class Proxifier implements LanternService {
             "        get require password to unlock\n"+
             "    end tell\n"+
             "end tell\n";
-        String result = "";
-        try {
-            result = mpm.runScript("osascript", "-e", script);
-        } catch (final IOException e) {
-            LOG.error("Could not run script", e);
-            try {
-                result = mpm.runScript("arch", "-i386", "osascript", "-e", script);
-            } catch (final IOException e1) {
-                LOG.error("Could not run script", e1);
-                try {
-                    result = mpm.runScript("arch", "-x86_64", "osascript", "-e", script);
-                } catch (final IOException e2) {
-                    LOG.error("Could not run script", e2);
-                    throw e2;
-                }
-            }
-        }
-        LOG.info("Result of script is: {}", result);
+        final Collection<String[]> args = new ArrayList<String[]>();
+        args.add(new String[]{"osascript", "-e", script});
+        args.add(new String[]{"arch", "-i386", "osascript", "-e", script});
+        args.add(new String[]{"arch", "-x86_64", "osascript", "-e", script});
+        final String result = tryAll(args);
+        LOG.debug("Result of script is: {}", result);
 
         if (StringUtils.isBlank(result)) {
             LOG.error("No result from AppleScript");
             return false;
         }
         
-        // Make sure it's 
         if (LanternUtils.isTrue(result)) {
             return true;
         } else if (LanternUtils.isFalse(result)) {
             return false;
         } else {
-            final String msg = "Got unexpected result from AppleScript: "+result;
+            final String msg = "Somehow not true or false here? "+result;
             LOG.error(msg);
             throw new IOException(msg);
         }
+    }
+
+    private String tryAll(final Collection<String[]> args) throws IOException {
+        for (final String[] argSet : args) {
+            try {
+                final String result = 
+                    mpm.runScript(argSet[0], 
+                        Arrays.copyOfRange(argSet, 1, argSet.length)).trim();
+                if (LanternUtils.isTrueOrFalse(result)) {
+                    return result;
+                } else {
+                    LOG.warn("Got unexpected result from AppleScript: "+result);
+                }
+            } catch (final IOException e) {
+                LOG.error("Could not run script", e);
+            }
+        }
+        final String msg = "No scripts worked!";
+        LOG.error(msg);
+        throw new IOException(msg);
     }
 
     /**
