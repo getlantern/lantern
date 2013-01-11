@@ -36,8 +36,7 @@ public class RosterTest {
         final SortedSet<LanternRosterEntry> sortedSet = 
                 new TreeSet<LanternRosterEntry>();
         for (int i = 0; i < 1000; i++) {
-            final int sortKey = RandomUtils.nextInt() % 1000;
-            buildEntry(i, url, roster, entries, sortedSet, sortKey);
+            buildEntry(i, url, roster, entries, sortedSet);
         }
         roster.setEntries(entries);
         
@@ -66,7 +65,6 @@ public class RosterTest {
         // updated.
         final LanternRosterEntry lre = 
             new LanternRosterEntry("totally different email key", url, roster);
-        lre.setSortKey(Integer.MAX_VALUE);
         roster.addEntry(lre);
         
         
@@ -114,12 +112,10 @@ public class RosterTest {
     private LanternRosterEntry buildEntry(final int chronologicalIndex, 
         final String url,
         final Roster roster, final Map<String, LanternRosterEntry> entries, 
-        final SortedSet<LanternRosterEntry> sorted, final int sortKey) {
+        final SortedSet<LanternRosterEntry> sorted) {
         final LanternRosterEntry lre = 
             new LanternRosterEntry("entry"+chronologicalIndex, url, roster);
-        
-        
-        lre.setSortKey(sortKey);
+
         entries.put(lre.getEmail(), lre);
         sorted.add(lre);
         return lre;

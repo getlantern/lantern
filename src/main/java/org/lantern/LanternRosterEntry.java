@@ -5,7 +5,6 @@ import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Presence;
-import org.jivesoftware.smack.packet.RosterPacket.Item;
 import org.jivesoftware.smack.packet.RosterPacket.ItemStatus;
 import org.jivesoftware.smackx.packet.VCard;
 import org.littleshoot.commom.xmpp.XmppUtils;
@@ -15,9 +14,10 @@ import org.slf4j.LoggerFactory;
 public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
-    public static class Uploaded {}
-    
+
+    public static class Uploaded {
+    }
+
     private int index;
     private boolean available;
     private boolean away;
@@ -25,56 +25,36 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     private String subscriptionStatus;
     private String name;
     private String email;
-    
+
     private VCard vcard;
-    
-    private final int mc;
-    
-    private final int emc;
-    
-    private final int w;
-    
-    private final boolean rejected;
-    
-    private final String t;
-    
+
     private final boolean autosub;
-    
-    private final String aliasFor;
-    
-    private final String inv;
-    private int sortKey;
+
     private final String avatarUrlBase;
     private final Roster roster;
-    
-    public LanternRosterEntry(final Presence pres, final String avatarUrl, 
-        final Roster roster) {
-        this(pres.isAvailable(), false, pres.getFrom(), 
-            pres.getFrom(), pres.getStatus(), 0, 0, 0, false, "", false, "", "", 
-            avatarUrl, roster);
-    }
-    
-    public LanternRosterEntry(final String email, final String avatarUrl, 
-        final Roster roster) {
-        this(false, true, email, "", "", 0, 0, 0, false, "", false, "", "",
-                avatarUrl, roster);
-    }
-    
-    public LanternRosterEntry(final RosterEntry entry, final String avatarUrl,
+
+    public LanternRosterEntry(final Presence pres, final String avatarUrl,
             final Roster roster) {
-        this(false, false, entry.getUser(), entry.getName(),  
-            extractSubscriptionStatus(entry), entry.getMc(), entry.getEmc(), 
-            entry.getW(),
-            entry.isRejected(), entry.getT(), entry.isAutosub(),
-            entry.getAliasFor(), entry.getInv(), avatarUrl, roster);
+        this(pres.isAvailable(), false, pres.getFrom(), pres.getFrom(), pres
+                .getStatus(), false, avatarUrl, roster);
     }
 
-    private LanternRosterEntry(final boolean available, final boolean away, 
-        final String email, final String name, final String subscriptionStatus, 
-        final int mc, final int emc, final int w, final boolean rejected, 
-        final String t, final boolean autosub, final String aliasFor, 
-        final String inv, final String avatarUrlBase,
-        final Roster roster) {
+    public LanternRosterEntry(final String email, final String avatarUrl,
+            final Roster roster) {
+        this(false, true, email, "", "", false, avatarUrl, roster);
+    }
+
+    public LanternRosterEntry(final RosterEntry entry, final String avatarUrl,
+            final Roster roster) {
+        this(false, false, entry.getUser(), entry.getName(),
+                extractSubscriptionStatus(entry), entry.isAutosub(), avatarUrl,
+                roster);
+    }
+
+    private LanternRosterEntry(final boolean available, final boolean away,
+            final String email, final String name,
+            final String subscriptionStatus, final boolean autosub,
+            final String avatarUrlBase, final Roster roster) {
         this.available = available;
         this.away = away;
         this.avatarUrlBase = avatarUrlBase;
@@ -85,28 +65,17 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         }
         this.email = XmppUtils.jidToUser(email);
         this.name = name == null ? "" : name;
-        this.setSubscriptionStatus(subscriptionStatus == null ? "" : subscriptionStatus);
+        this.setSubscriptionStatus(subscriptionStatus == null ? ""
+                : subscriptionStatus);
         this.statusMessage = "";
-        this.mc = mc;
-        this.emc = emc;
-        this.w = w;
-        this.rejected = rejected;
-        this.t = t == null ? "" : t;
         this.autosub = autosub;
-        this.aliasFor = aliasFor == null ? "" : aliasFor;
-        this.inv = inv == null ? "" : inv;
-        this.sortKey = this.emc + this.mc + this.w;
     }
 
-    private static String extractSubscriptionStatus(final Item entry) {
-        return extractSubscriptionStatus(entry.getItemStatus());
-    }
-    
     private static String extractSubscriptionStatus(final RosterEntry entry) {
         final ItemStatus stat = entry.getStatus();
         return extractSubscriptionStatus(stat);
     }
-    
+
     private static String extractSubscriptionStatus(final ItemStatus stat) {
         if (stat != null) {
             return stat.toString();
@@ -116,9 +85,9 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     }
 
     public String getPicture() {
-        return avatarUrlBase + "?email="+getEmail();
+        return avatarUrlBase + "?email=" + getEmail();
     }
-    
+
     @JsonIgnore
     public boolean isAvailable() {
         return available;
@@ -159,7 +128,7 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         this.email = email;
     }
 
-    @JsonView({Uploaded.class})
+    @JsonView({ Uploaded.class })
     public String getEmail() {
         return email;
     }
@@ -176,44 +145,10 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     public void setVcard(VCard vcard) {
         this.vcard = vcard;
     }
-    
-    @JsonIgnore
-    public int getMc() {
-        return mc;
-    }
-
-    @JsonIgnore
-    public int getEmc() {
-        return emc;
-    }
-
-    @JsonIgnore
-    public int getW() {
-        return w;
-    }
-
-    public boolean isRejected() {
-        return rejected;
-    }
-
-    @JsonIgnore
-    public String getT() {
-        return t;
-    }
 
     @JsonIgnore
     public boolean isAutosub() {
         return autosub;
-    }
-
-    @JsonIgnore
-    public String getAliasFor() {
-        return aliasFor;
-    }
-
-    @JsonIgnore
-    public String getInv() {
-        return inv;
     }
 
     @JsonIgnore
@@ -224,15 +159,6 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     public void setSubscriptionStatus(String subscriptionStatus) {
         this.subscriptionStatus = subscriptionStatus;
     }
-    
-    @JsonIgnore
-    public int getSortKey() {
-        return sortKey;
-    }
-
-    public void setSortKey(final int sortKey) {
-        this.sortKey = sortKey;
-    }
 
     public int getIndex() {
         return index;
@@ -241,12 +167,12 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
     public void setIndex(int index) {
         this.index = index;
     }
-    
+
     @Override
     public String toString() {
         return "LanternRosterEntry [available=" + available + ", status="
-                + statusMessage + ", name=" + name + ", email=" + email + ", index="
-                + index + ", sortKey=" + sortKey + "]";
+                + statusMessage + ", name=" + name + ", email=" + email
+                + ", index=" + index + "]";
     }
 
     @Override
@@ -273,15 +199,13 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
             return false;
         return true;
     }
-    
+
     @Override
     public int compareTo(final LanternRosterEntry lre) {
-        final Integer score1 = this.getSortKey();
-        final Integer score2 = lre.getSortKey();
-        final int scores = score1.compareTo(score2);
-        
-        // If they have the same scores, compare by their e-mails. Otherwise
-        // any entries with the same score will get consolidated.
+        final int scores = lre.getName().compareTo(name);
+
+        // If they have the same name, compare by their e-mails. Otherwise
+        // any entries with the same name will get consolidated.
         if (scores == 0) {
             return this.email.compareToIgnoreCase(lre.getEmail());
         } else {
