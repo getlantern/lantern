@@ -30,10 +30,11 @@ Install required dependencies (`sudo` as necessary):
 
 For working on the stylesheets:
 
-* [Compass](http://compass-style.org/): `gem install compass`
+* [compass](http://compass-style.org/) 0.12.2:
+  `gem install compass --version '= 0.12.2'`.
   
-* [Compass Twitter Bootstrap](https://github.com/vwall/compass-twitter-bootstrap):
-  `gem install compass_twitter_bootstrap`
+* [compass_twitter_bootstrap](https://github.com/vwall/compass-twitter-bootstrap/) 2.0.3:
+  `gem install compass_twitter_bootstrap --version '= 2.0.3'`
 
 Tell compass to watch for changes in the sass stylesheets and
 automatically compile them into css in the directory specified by the compass
