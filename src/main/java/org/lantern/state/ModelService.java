@@ -1,5 +1,7 @@
 package org.lantern.state;
 
+import java.util.List;
+
 import org.lantern.state.Settings.Mode;
 
 /**
@@ -33,5 +35,7 @@ public interface ModelService {
     void setProxyAllSites(boolean proxyAll);
 
     void setMode(Mode mode);
+
+    void invite(List<String> emails);
 
 }
