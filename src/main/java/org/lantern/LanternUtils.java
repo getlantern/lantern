@@ -924,7 +924,8 @@ public class LanternUtils {
                 return new GeoData();
             }
             final String parsed = StringUtils.substringAfterLast(body, "{");
-            final String full = "{"+StringUtils.substringBeforeLast(parsed, "\"}")+"\"}";
+            final String full = 
+                "{"+StringUtils.substringBeforeLast(parsed, "\"}")+"\"}";
             return om.readValue(full, GeoData.class);
         } catch (final IOException e) {
             LOG.warn("Could not connect to geo ip url?", e);
@@ -934,6 +935,23 @@ public class LanternUtils {
             get.releaseConnection();
         }
         return new GeoData();
+    }
+
+    /**
+     * Returns whether or not the string is either true of false. If it's some
+     * other random string, this returns false.
+     * 
+     * @param str The string to test.
+     * @return <code>true</code> if the string is either true or false 
+     * (or on or off), otherwise false.
+     */
+    public static boolean isTrueOrFalse(final String str) {
+        if (LanternUtils.isTrue(str)) {
+            return true;
+        } else if (LanternUtils.isFalse(str)) {
+            return true;
+        }
+        return false;
     }
 }
 
