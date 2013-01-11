@@ -442,8 +442,23 @@ public class Proxifier implements LanternService {
             "        get require password to unlock\n"+
             "    end tell\n"+
             "end tell\n";
-        final String result = 
-            mpm.runScript("osascript", "-e", script);
+        String result = "";
+        try {
+            result = mpm.runScript("osascript", "-e", script);
+        } catch (final IOException e) {
+            LOG.error("Could not run script", e);
+            try {
+                result = mpm.runScript("arch", "-i386", "osascript", "-e", script);
+            } catch (final IOException e1) {
+                LOG.error("Could not run script", e1);
+                try {
+                    result = mpm.runScript("arch", "-x86_64", "osascript", "-e", script);
+                } catch (final IOException e2) {
+                    LOG.error("Could not run script", e2);
+                    throw e2;
+                }
+            }
+        }
         LOG.info("Result of script is: {}", result);
 
         if (StringUtils.isBlank(result)) {
