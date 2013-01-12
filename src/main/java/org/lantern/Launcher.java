@@ -47,6 +47,7 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.StaticSettings;
+import org.lantern.util.LanternHttpClient;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.lastbamboo.common.stun.client.StunServerRepository;
@@ -640,7 +641,9 @@ public class Launcher {
                     }
             };
             final Appender bugAppender = new ExceptionalAppender(
-               LanternConstants.GET_EXCEPTIONAL_API_KEY, callback);
+               LanternConstants.GET_EXCEPTIONAL_API_KEY, callback,
+               new LanternHttpClient());
+            
             BasicConfigurator.configure(bugAppender);
         } catch (final IOException e) {
             System.out.println("Exception setting log4j props with file: "
