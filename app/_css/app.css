@@ -4939,6 +4939,28 @@ textarea {
   box-sizing: border-box;
 }
 
+.badge {
+  display: -moz-inline-stack;
+  display: inline-block;
+  vertical-align: middle;
+  font-weight: bold;
+  font-size: 12px;
+  background: radial-gradient(1px -11px, circle, #ffffff 8%, #ff0000 26px);
+  background: -moz-radial-gradient(1px -11px, circle, white 8%, red 26px);
+  background: -ms-radial-gradient(1px -11px, circle, white 8%, red 26px);
+  background: -o-radial-gradient(1px -11px, circle, white 8%, red 26px);
+  background: -webkit-radial-gradient(1px -11px, circle, white 8%, red 26px);
+  background-color: red;
+  border: 2px solid white;
+  border-radius: 12px;
+  box-shadow: 1px 1px 1px black;
+  color: white;
+  height: 16px;
+  min-width: 12px;
+  padding: 2px 3px 0 3px;
+  text-align: center;
+}
+
 .modal form {
   margin-bottom: 0;
 }
@@ -5337,40 +5359,20 @@ body.showVis #footer {
 
 #global-nav {
   position: absolute;
-  right: 20px;
-  bottom: 20px;
+  right: 15px;
+  bottom: 15px;
+  z-index: 1;
   white-space: nowrap;
 }
 #global-nav button {
   color: #999999;
 }
 
-#nfriends {
-  position: absolute;
-  right: 76px;
-  bottom: 13px;
-}
-
 #npending {
   position: absolute;
-  right: 57px;
+  right: 100px;
   bottom: 13px;
-}
-
-#ninvites {
-  position: absolute;
-  right: 38px;
-  bottom: 13px;
-}
-
-#footer .badge {
-  text-shadow: black 0 2px 0;
-  width: 10px;
-  font-weight: 200;
-  font-size: 8px;
-  padding: 0 4px;
-  z-index: 1050;
-  opacity: 0.65;
+  z-index: 2;
 }
 
 #stats strong {

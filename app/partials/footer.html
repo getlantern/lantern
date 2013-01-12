@@ -47,22 +47,17 @@
     </span>
   </div>
 
-  <div id="global-nav" class="btn-group" ng-show="model.showVis">
-    <button type="button" class="btn btn-small btn-inverse"
+  <div id="global-nav" class="btn-group" ng-show="model.setupComplete">
+    <button type="button" class="btn btn-large btn-inverse"
             ng-click="interaction(INTERACTION.lanternFriends)"
             ui-jq="tooltip" rel="tooltip" data-original-title="Lantern friends">
       <i class="icon-group"></i>
     </button>
-    <button type="button" class="btn btn-small btn-inverse"
+    <button type="button" class="btn btn-large btn-inverse"
             ng-click="interaction(INTERACTION.settings)"
             ui-jq="tooltip" rel="tooltip" data-original-title="Settings">
       <i class="icon-cogs"></i>
     </button>
   </div>
-  <div id="nfriends" class="badge badge-info" ng-show="model.showVis"
-    ui-jq="tooltip" rel="tooltip" data-original-title="{{ model.friends.current.length }} friends">{{ model.friends.current.length | badgeCount:99 }}</div>
-  <div id="npending" ng-show="model.showVis && model.friends.pending.length" class="badge badge-important"
-    ui-jq="tooltip" rel="tooltip" data-original-title="{{ model.friends.pending.length }} pending">{{ model.friends.pending.length | badgeCount }}</div>
-  <div id="ninvites" ng-show="model.showVis && model.ninvites" class="badge badge-success"
-    ui-jq="tooltip" rel="tooltip" data-original-title="{{ model.ninvites }} invites">{{ model.ninvites | badgeCount }}</div>
+  <div id="npending" ng-show="model.setupComplete && model.friends.pending.length" class="badge badge-important">{{ model.friends.pending.length | badgeCount }}</div>
 </div>

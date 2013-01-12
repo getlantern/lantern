@@ -15,29 +15,17 @@ body.showVis #footer
   color: $grayLight
   z-index: auto
 
+$zindexGlobalNav: 1
 #global-nav
-  +position(false, 20px, 20px)
+  +position(false, 15px, 15px)
+  z-index: $zindexGlobalNav
   white-space: nowrap
   button
     color: $grayLight
 
-#nfriends
-  +position(false, 76px, 13px)
-
 #npending
-  +position(false, 57px, 13px)
-
-#ninvites
-  +position(false, 38px, 13px)
-
-#footer .badge
-  +text-shadow($black 0 2px 0)
-  width: 10px
-  font-weight: 200
-  font-size: 8px
-  padding: 0 4px
-  z-index: $zindexModal
-  opacity: .65
+  +position(false, 100px, 13px)
+  z-index: $zindexGlobalNav + 1
 
 #stats
   strong
