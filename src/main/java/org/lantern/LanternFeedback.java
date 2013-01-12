@@ -17,6 +17,7 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
+import org.lantern.util.LanternHttpClient;
 
 import com.google.inject.Singleton;
 
@@ -55,11 +56,13 @@ public class LanternFeedback {
         return info;
     }
     
-    protected void postForm(String url, List<NameValuePair> params) throws IOException {
-        final DefaultHttpClient httpclient = new DefaultHttpClient();
+    protected void postForm(String url, List<NameValuePair> params) 
+            throws IOException {
+        final DefaultHttpClient httpclient = new LanternHttpClient();
         final HttpPost post = new HttpPost(url);
         try {
-            UrlEncodedFormEntity entity = new UrlEncodedFormEntity(params, "UTF-8");
+            final UrlEncodedFormEntity entity = 
+                new UrlEncodedFormEntity(params, "UTF-8");
             post.setEntity(entity);
             final HttpResponse response = httpclient.execute(post);
 
@@ -75,7 +78,8 @@ public class LanternFeedback {
                 for (int i = 0; i < headers.length; i++) {
                     headerVals.append(headers[i].toString());
                 }
-                final String err = "Failed to submit feedback. Status was " + statusCode + ", headers " + headerVals.toString();
+                final String err = "Failed to submit feedback. Status was " + 
+                        statusCode + ", headers " + headerVals.toString();
                 throw new IOException(err);
             }
         } catch (IOException e) {

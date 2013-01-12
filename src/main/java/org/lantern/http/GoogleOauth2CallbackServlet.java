@@ -37,6 +37,7 @@ import org.lantern.state.ModelIo;
 import org.lantern.state.Profile;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
+import org.lantern.util.LanternHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -131,7 +132,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // Kill our temporary oauth callback server.
         this.googleOauth2CallbackServer.stop();
         
-        final DefaultHttpClient client = new DefaultHttpClient();
+        final DefaultHttpClient client = new LanternHttpClient();
         final Map<String, String> allToks;
         try {
             allToks = loadAllToks(client, code);
