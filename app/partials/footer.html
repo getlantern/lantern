@@ -51,12 +51,14 @@
     <button type="button" class="btn btn-large btn-inverse"
             ng-click="interaction(INTERACTION.lanternFriends)"
             ui-jq="tooltip" rel="tooltip" data-original-title="Lantern friends">
-      <i class="icon-group"></i>
+      <!-- i class="icon-group"></i -->
+      <i class="lsf-icon lsf-friends"></i>
     </button>
     <button type="button" class="btn btn-large btn-inverse"
             ng-click="interaction(INTERACTION.settings)"
             ui-jq="tooltip" rel="tooltip" data-original-title="Settings">
-      <i class="icon-cogs"></i>
+      <!-- i class="icon-cogs"></i -->
+      <i class="lsf-icon lsf-gear"></i>
     </button>
   </div>
   <div id="npending" ng-show="model.setupComplete && model.friends.pending.length" class="badge badge-important">{{ model.friends.pending.length | badgeCount }}</div>

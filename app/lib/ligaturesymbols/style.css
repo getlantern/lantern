@@ -1,0 +1,64 @@
+@charset 'UTF-8';
+
+@font-face {
+    font-family: 'LigatureSymbols';
+    src: url('LigatureSymbols-2.09.eot');
+    src: url('LigatureSymbols-2.09.eot?#iefix') format('embedded-opentype'),
+         url('LigatureSymbols-2.09.woff') format('woff'),
+         url('LigatureSymbols-2.09.ttf') format('truetype'),
+         url('LigatureSymbols-2.09.svg#LigatureSymbols') format('svg');
+    font-weight: normal;
+    font-style: normal;
+}
+
+.lsf {
+  font-family: 'LigatureSymbols';
+  -webkit-text-rendering: optimizeLegibility;
+  -moz-text-rendering: optimizeLegibility;
+  -ms-text-rendering: optimizeLegibility;
+  -o-text-rendering: optimizeLegibility;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-font-smoothing: antialiased;
+  -ms-font-smoothing: antialiased;
+  -o-font-smoothing: antialiased;
+  font-smoothing: antialiased;
+  -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+  -moz-font-feature-settings: "liga=1, dlig=1";
+  -ms-font-feature-settings: "liga" 1, "dlig" 1;
+  -o-font-feature-settings: "liga" 1, "dlig" 1;
+  font-feature-settings: "liga" 1, "dlig" 1;
+}
+.lsf-icon:before {
+  content:attr(title);
+  margin-right:0.3em;
+  font-size:130%;
+  font-family: 'LigatureSymbols';
+  -webkit-text-rendering: optimizeLegibility;
+  -moz-text-rendering: optimizeLegibility;
+  -ms-text-rendering: optimizeLegibility;
+  -o-text-rendering: optimizeLegibility;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-font-smoothing: antialiased;
+  -ms-font-smoothing: antialiased;
+  -o-font-smoothing: antialiased;
+  font-smoothing: antialiased;
+  -webkit-font-feature-settings: "liga" 1, "dlig" 1;
+  -moz-font-feature-settings: "liga=1, dlig=1";
+  -ms-font-feature-settings: "liga" 1, "dlig" 1;
+  -o-font-feature-settings: "liga" 1, "dlig" 1;
+  font-feature-settings: "liga" 1, "dlig" 1;
+}
+
+i.lsf-icon {
+  font-style: normal;
+}
+
+.lsf-icon.lsf-friends:before {
+  content: '\E051';
+}
+
+.lsf-icon.lsf-gear:before {
+  content: '\E055';
+}
