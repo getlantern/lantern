@@ -379,8 +379,8 @@
     <form class="inviteForm" name="inviteForm" ng-show="model.ninvites">
       <h4>{{ 'INVITE_FRIENDS_PROMPT' | i18n }}</h4>
       <input type="hidden" ng-model="invitees" name="selectInvitees"
-             ui-select2="selectInvitees" ui-validate="validateInvitees"
-             class="selectContacts" data-placeholder="email@example.com, email@example.com, ..." ng-disabled="!model.ninvites">
+             ui-select2="selectInvitees" class="selectContacts"
+             data-placeholder="email@example.com, email@example.com, ...">
       <div>
         <span>{{ model.ninvites }}</span>
         {{ 'INVITES_REMAINING' | i18n }}

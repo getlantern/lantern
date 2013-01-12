@@ -401,15 +401,6 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
   });
 
   $scope.invitees = [];
-  $scope.validateInvitees = function(invitees) {
-    if (invitees.length > getByPath(model, 'ninvites', 0))
-      return false;
-    for (var i=0, ii=invitees[i]; ii; ii=invitees[++i]) {
-      if (!EMAIL.test(ii.id))
-        return false;
-    }
-    return true;
-  }
 
   var sortedFriendEmails = [];
   $scope.$watch('model.friends', function(friends) {
@@ -447,23 +438,28 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
     updateCompletions();
   });
 
-  $scope.$watch('model.ninvites', function(ninvites) {
-    if (angular.isDefined(ninvites))
-      $scope.selectInvitees.maximumSelectionSize = ninvites; // XXX https://github.com/ivaynberg/select2/issues/648
-  });
-
   $scope.selectInvitees = {
     tags: [],
+    tokenSeparators: [',', ' '],
     multiple: true,
+    maximumSelectionSize: function() {
+      return model.ninvites || 0;
+    },
+    formatSelection: function(item) {
+      return item.id;
+    },
+    formatSearching: function() {
+      return $filter('i18n')('SEARCHING_ELLIPSIS');
+    },
     formatSelectionTooBig: function(max) {
+      console.log('called');
       return $filter('i18n')('NINVITES_REACHED'); // XXX use max in this message
     },
-    // XXX could use something like these if https://github.com/ivaynberg/select2/issues/647 is fixed:
-    validateResult: function(item) {
-      return EMAIL.test(item.id);
+    formatNoMatches: function() {
+      return $filter('i18n')('ENTER_VALID_EMAIL');
     },
-    formatInvalidInput: function(item) {
-      return $filter('i18n')('NOT_AN_EMAIL'); // XXX use item.id in this message
+    createSearchChoice: function(input) {
+      return EMAIL.test(input) ? {id: input, text: input} : undefined;
     }
   };
 

@@ -5209,9 +5209,8 @@ textarea.bugReport {
   width: 500px;
   margin-bottom: 15px;
 }
-.selectContacts input.select2-default {
-  text-align: center;
-  width: 500px;
+.selectContacts input.select2-default, .selectContacts input.select2-input {
+  width: 500px !important;
 }
 
 #systemProxy .control-group {

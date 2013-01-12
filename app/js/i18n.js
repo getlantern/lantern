@@ -124,6 +124,8 @@ angular.module('app.i18n', [])
       NO_INVITES: 'You currently have no invites.',
       MORE_INVITES: 'You will receive more invites as you continue to run Lantern.',
       INVITE_FRIENDS_PROMPT: 'Invite friends:',
+      SEARCHING_ELLIPSIS: 'Searching...',
+      ENTER_VALID_EMAIL: 'Enter a valid email address',
       NINVITES_REACHED: 'Number of invites reached', // XXX interpolate "max" param
       INVITES_REMAINING: 'invites remaining', // XXX ng-pluralize
       PENDING_REQS_PROMPT: 'pending friend requests:', // XXX ng-pluralize
