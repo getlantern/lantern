@@ -573,30 +573,6 @@ You should have received a copy of the GNU General Public License along with thi
           <i class="icon-exclamation-sign"></i>
           <small>{{ 'NO_AUTOREPORT_WARNING' | i18n }}</small>
         </div>
-
-        <div>
-          <a class="toggle advanced" ng-click="appAdvancedExpanded = !appAdvancedExpanded">
-            <small>
-              {{ appAdvancedExpanded && 'CARET_EXPANDED' || 'CARET_COLLAPSED' | i18n }}
-              {{ 'ADVANCED' | i18n }}
-            </small>
-          </a>
-        </div>
-        <div class="advanced-container" ui-toggle="appAdvancedExpanded">
-          <label class="checkbox inline">
-            <!-- XXX not yet implemented -->
-            <input type="checkbox" ng-model="showInDock"
-                   ng-click="changeSetting(SETTING.showInDock, showInDock)">
-            {{ 'SHOW_IN_DOCK' | i18n }}
-          </label>
-
-          <button type="button" ng-click="interaction(INTERACTION.reset)"
-                  class="btn btn-mini" style="margin: 0 0 -5px 50px"><!-- XXX inline style -->
-            <i class="icon-warning-sign warning-colored"></i>
-            {{ 'RESET_ELLIPSIS' | i18n }}
-          </button>
-        </div>
-
       </dd>
 
       <dt ui-toggle="inGetMode">{{ 'PROXY' | i18n }}</dt>
@@ -632,6 +608,11 @@ You should have received a copy of the GNU General Public License along with thi
     </dl>
   </div>
   <div class="modal-footer">
+    <button type="button" ng-click="interaction(INTERACTION.reset)"
+            class="btn btn-mini pull-left">
+      <i class="icon-warning-sign warning-colored"></i>
+      {{ 'RESET_ELLIPSIS' | i18n }}
+    </button>
     <button type="button" class="btn btn-primary" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>
   </div>
 </div>

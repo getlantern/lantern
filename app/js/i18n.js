@@ -28,6 +28,7 @@ angular.module('app.i18n', [])
     },
     en: {
       HELP_TRANSLATE: 'Help translate',
+      LANTERN: 'Lantern',
       LANGUAGE: 'Language',
       WAITING_FOR_LANTERN: 'Waiting for Lantern...',
       UNEXPECTED_STATE_TITLE: 'Unexpected State',
@@ -135,7 +136,6 @@ angular.module('app.i18n', [])
       MANAGE_PROXIED_SITES: 'Manage proxied sites...',
       //HTTPS_EVERYWHERE_LABEL: 'For your security, http requests to this site will automatically be converted to https requests using rulesets from HTTPS Everywhere.',
       ADVANCED: 'Advanced',
-      SHOW_IN_DOCK: 'Show in dock', // XXX taskbar if windows
       CARET_COLLAPSED: '▸',
       CARET_EXPANDED: '▾',
       PROXY_ALL_TRAFFIC: 'Proxy all traffic (not recommended)',
