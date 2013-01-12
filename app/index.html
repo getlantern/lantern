@@ -2,29 +2,25 @@
 <html ng-app="app">
   <head>
     <meta charset="utf-8">
-    <title>Lantern</title>
+    <title>{{ 'LANTERN' | i18n }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Lantern">
     <meta name="author" content="Team Lantern">
 
-    <link href="_css/app.css" rel="stylesheet">
-    <!--link href="_css/style.css" rel="stylesheet"--><!-- XXX from vizzuality -->
+    <link href="lib/ligaturesymbols/style.css" rel="stylesheet">
     <link href="lib/angular-ui/angular-ui.css" rel="stylesheet">
     <link href="lib/select2/select2.css" rel="stylesheet">
+    <link href="_css/app.css" rel="stylesheet">
+    <link href="lib/fontawesome/css/font-awesome.css" rel="stylesheet">
 
-    <script src="lib/angular/docs/js/jquery.js"></script>
-    <script src="lib/webshims/js-webshim/dev/extras/modernizr-custom.js"></script>
-    <script src="lib/webshims/js-webshim/dev/polyfiller.js"></script>
-    <script>
-      $.webshims.polyfill('es5 forms forms-ext');
-    </script>
+    <script src="lib/jquery.js"></script>
     <script src="lib/cometd.js"></script>
     <script src="lib/jquery.cometd.js"></script>
     <script src="lib/jquery.easing.1.3.js"></script>
     <script src="lib/angular/angular.js"></script>
     <script src="lib/angular/angular-resource.js"></script>
     <script src="lib/angular/angular-sanitize.js"></script>
-    <!--
+    <!-- XXX https://groups.google.com/d/msg/angular/jizUZ6JgUcE/cKmFOUBg7DEJ
     <script src="lib/angular/i18n/angular-locale_zh-cn.js"></script>
     <script src="lib/angular/i18n/angular-locale_fa-ir.js"></script>
     <script src="lib/angular/i18n/angular-locale_ar.js"></script>
@@ -32,7 +28,7 @@
     <script src="lib/angular-ui/angular-ui.js"></script>
     <script src="lib/select2/select2.js"></script>
     <script src="lib/lodash.js"></script>
-    <script src="lib/d3.v2.min.js"></script>
+    <script src="lib/d3.v3.js"></script>
 
     <script src="js/app.js"></script>
     <script src="js/constants.js"></script>
@@ -53,7 +49,7 @@
     <div x-block-input ng-controller="WaitingForLanternCtrl" ng-show="show">
       <div id="waiting-container">
         <div>{{ 'WAITING_FOR_LANTERN' | i18n }}</div>
-        <img src="lib/webshims/css/polyfill-loader.gif">
+        <i class="icon-spinner icon-spin icon-3x"></i>
         <!-- XXX something entertaining here -->
       </div>
     </div>

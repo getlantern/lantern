@@ -29,6 +29,11 @@ $zindexGlobalNav: 1
       line-height: 17px
       font-size: 22px
       padding-right: 2px
+  button.active
+    z-index: $zindexModal + 1 !important
+    color: $devModeColor
+  button.ng-disabled
+    color: $grayDark
 
 #npending
   +position(false, 100px, 13px)

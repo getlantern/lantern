@@ -5390,6 +5390,13 @@ body.showVis #footer {
   font-size: 22px;
   padding-right: 2px;
 }
+#global-nav button.active {
+  z-index: 1051 !important;
+  color: #fff343;
+}
+#global-nav button.ng-disabled {
+  color: #333333;
+}
 
 #npending {
   position: absolute;

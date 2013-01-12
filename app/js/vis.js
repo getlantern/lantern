@@ -150,11 +150,6 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, _COUNTRY_NAME_TO_CODE) {
     //updateLines(scale);
   }
 
-  d3.timer.frame_function(function(callback) {
-    setTimeout(callback, 30); // FPS à la Peter Jackson
-  //setTimeout(callback, 120);
-  });
-
   function addBlur(name, deviation) {
     svg.append("svg:defs")
        .append("svg:filter")
