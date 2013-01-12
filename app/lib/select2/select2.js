@@ -783,7 +783,9 @@
                         opts.query = local(opts.data);
                     } else if ("tags" in opts) {
                         opts.query = tags(opts.tags);
-                        opts.createSearchChoice = function (term) { return {id: term, text: term}; };
+                        if (opts.createSearchChoice === undefined) {
+                            opts.createSearchChoice = function (term) { return {id: term, text: term}; };
+                        }
                         opts.initSelection = function (element, callback) {
                             var data = [];
                             $(splitVal(element.val(), opts.separator)).each(function () {
