@@ -44,11 +44,18 @@ textarea.bugReport
           cursor: default
 
 #welcome
-  .modal-header
-    +centered
+  +bootstrap-gradient-vertical(#391a42, #070333)
+  +centered
+  color: #fff
   .modal-body
-    +centered
-    margin: 10px 0 100px 0
+    font-size: $baseFontSize * 1.25
+    font-weight: 200
+  h1
+    +text-shadow($black 1px 1px 2px)
+    font-size: $baseFontSize * 6
+    line-height: $baseFontSize * 10
+  button
+    margin: 50px 5px 10px
 
 #passwordCreate .control-group
   +centered

@@ -1,6 +1,7 @@
 'use strict';
 
 var fs = require('fs'),
+    sleep = require('./node_modules/sleep'),
     faye = require('./node_modules/faye'),
     _ = require('../app/lib/lodash.js')._,
     constants = require('../app/js/constants.js'),
@@ -55,6 +56,8 @@ BayeuxBackend.prototype._bindCallbacks = function() {
 
   bayeux.bind('handshake', function(clientId) {
     log('[handshake]', 'client:', clientId);
+    // uncomment to delay connection:
+    //sleep.usleep(2000000);
   });
 
   bayeux.bind('subscribe', function(clientId, channel) {

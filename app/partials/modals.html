@@ -59,18 +59,16 @@
 
 <div id="welcome" ng-controller="WelcomeCtrl" ui-modal ng-model="show"
      class="fade" data-backdrop="static" data-keyboard="false">
-  <div class="modal-header">
-    <h3>{{ 'WELCOME_TITLE' | i18n }}</h3>
-  </div>
   <div class="modal-body">
-    <div>{{ 'WELCOME_PROMPT' | i18n }}</div>
-  </div>
-  <div class="modal-footer">
-    <button type="button" ng-hide="inCensoringCountry" ng-click="interaction(MODE.give)"
-      class="btn btn-primary btn-{{inCensoringCountry && 'warning' || 'give-mode' }}">
-      <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
-      {{ 'GIVE_ACCESS' | i18n }}</button>
-    <button type="button" class="btn btn-primary btn-get-mode" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
+    <h1>{{ 'LANTERN' | i18n }}</h1>
+    <p>{{ 'WELCOME_PROMPT' | i18n }}</p>
+    <p>
+      <button type="button" ng-hide="inCensoringCountry" ng-click="interaction(MODE.give)"
+        class="btn btn-large btn-primary btn-{{inCensoringCountry && 'warning' || 'give-mode' }}">
+        <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
+        {{ 'GIVE_ACCESS' | i18n }}</button>
+      <button type="button" class="btn btn-large btn-primary btn-get-mode" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
+    </p>
   </div>
 </div>
 
