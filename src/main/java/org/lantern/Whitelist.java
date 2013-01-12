@@ -314,7 +314,6 @@ public class Whitelist {
         requiredEntries.clear();
         addDefaultEntry("getlantern.org", true);
         addDefaultEntry("google.com", true);
-        addDefaultEntry("exceptional.io", true);
         for (final String site : SITES) {
             addDefaultEntry(site);
         }
