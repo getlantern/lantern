@@ -21,7 +21,6 @@ public class Whitelist {
     
     public static final String[] SITES = {
         // optional
-        "query.yahooapis.com",
         "avaaz.org",
         "bittorrent.com",
         "bloglines.com",
