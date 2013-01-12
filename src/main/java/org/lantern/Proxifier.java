@@ -9,7 +9,6 @@ import java.util.Collection;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.RandomUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.eclipse.swt.SWT;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
