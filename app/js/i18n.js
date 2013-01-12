@@ -136,10 +136,8 @@ angular.module('app.i18n', [])
       MANAGE_PROXIED_SITES: 'Manage proxied sites...',
       //HTTPS_EVERYWHERE_LABEL: 'For your security, http requests to this site will automatically be converted to https requests using rulesets from HTTPS Everywhere.',
       ADVANCED: 'Advanced',
-      CARET_COLLAPSED: '▸',
-      CARET_EXPANDED: '▾',
       PROXY_ALL_TRAFFIC: 'Proxy all traffic (not recommended)',
-      PORT: 'Port',
+      LANTERN_PORT: 'Lantern is running on port', // XXX interpolate
       APP: 'App',
       SAVE_GTALK_PASSWORD: 'Securely save Google Talk password',
       AUTO_START: 'Run Lantern automatically on startup',

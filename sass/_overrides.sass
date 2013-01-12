@@ -6,9 +6,26 @@ html, body
 html small
   +small
 
+details
+  *:not(summary)
+    +smaller
+  > *:not(summary)
+    margin-left: 20px
+
+summary
+  cursor: pointer
+  &:focus
+    outline: none
+
+details[open] summary
+  margin-bottom: 5px
+
 label.checkbox.inline, label.radio.inline
   white-space: nowrap
   margin-right: 5px
+
+.indented
+  +indented
 
 .small
   +small

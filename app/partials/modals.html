@@ -582,28 +582,25 @@ You should have received a copy of the GNU General Public License along with thi
           {{ 'MANAGE_PROXIED_SITES' | i18n }}
         </button>
         <br>
-        <a class="toggle advanced" ng-click="proxyAdvancedExpanded = !proxyAdvancedExpanded">
-          <small>
-            {{ proxyAdvancedExpanded && 'CARET_EXPANDED' || 'CARET_COLLAPSED' | i18n }}
-            {{ 'ADVANCED' | i18n }}
-          </small>
-        </a>
-        <div class="advanced-container" ui-toggle="proxyAdvancedExpanded">
-          <label>
-            {{ 'PORT' | i18n }}&nbsp;
-            <input type="number" ng-model="model.settings.proxyPort" disabled>
-          </label>
-          <label class="checkbox">
-            <input type="checkbox" ng-model="systemProxy"
-                   ng-click="changeSetting(SETTING.systemProxy, systemProxy)">
-            {{ 'SET_AS_SYSTEM_PROXY' | i18n }}
-          </label>
+        <details ng-open="proxyAdvancedExpanded"><!-- XXX ng-open not yet implemented: https://github.com/angular/angular.js/issues/1797 -->
+          <summary class="small">{{ 'ADVANCED' | i18n }}</summary>
           <label class="checkbox">
             <input type="checkbox" ng-model="proxyAllSites"
                    ng-click="changeSetting(SETTING.proxyAllSites, proxyAllSites)">
               {{'PROXY_ALL_TRAFFIC' | i18n }}
           </label>
-        </div>
+          <div>
+            <label class="checkbox">
+              <input type="checkbox" ng-model="systemProxy"
+                     ng-click="changeSetting(SETTING.systemProxy, systemProxy)">
+              {{ 'SET_AS_SYSTEM_PROXY' | i18n }}
+            </label>
+            <div class="indented" ui-toggle="!systemProxy">
+              <i class="icon-info-sign"></i>
+              {{ 'LANTERN_PORT' | i18n }} {{ model.settings.proxyPort }}<!-- XXX interpolate -->
+            </div>
+          </div>
+        </details>
       </dd>
     </dl>
   </div>

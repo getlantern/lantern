@@ -4,7 +4,7 @@
   margin-bottom: 0
 
 .control-extra
-  margin-left: 30px
+  +indented(30px)
   +small
   +gray
 
@@ -156,32 +156,13 @@ textarea.bugReport
 #settings
   dd
     margin-bottom: $baseFontSize * 1.75
+  details
+    margin-top: 9px
 
 #autoreport-warning
   +indented
   +warning-colored
   margin-top: 3px
-
-a.toggle.advanced
-  +inline-block
-  margin-top: 9px
-  color: $textColor
-  &:active, &:visited, &:hover
-    color: $textColor
-
-.advanced-container
-  margin-left: 20px
-  *
-    +smaller
-  input[type=number]
-    +inline-block
-    width: 50px
-    height: $baseFontSize
-    padding: 0 2px 2px
-  #app-settings &
-    margin-top: 5px
-  #proxy-settings &
-    margin-top: 10px
 
 #updateAvailable
   h4
