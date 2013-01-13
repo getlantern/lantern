@@ -20,7 +20,6 @@ public class Whitelist {
     private final Collection<String> requiredEntries = new HashSet<String>();
     
     public static final String[] SITES = {
-        // optional
         "avaaz.org",
         "bittorrent.com",
         "bloglines.com",
@@ -37,6 +36,7 @@ public class Whitelist {
         "flickr.com",
         "friendfeed.com",
         "freedomhouse.org",
+        "getlantern.org",
         "hrw.org", // Human Rights Watch
         "ifconfig.me",
         "igfw.net",
