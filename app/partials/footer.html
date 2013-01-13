@@ -47,9 +47,9 @@
     </span>
   </div>
 
-  <div id="global-nav" class="btn-group" ng-hide="model.modal == MODAL.welcome">
+  <div id="global-nav" class="btn-group" ng-show="model.showVis">
     <button type="button" class="btn btn-large btn-inverse"
-            ng-click="model.setupComplete && interaction(INTERACTION.lanternFriends)"
+            ng-click="interaction(INTERACTION.lanternFriends)"
             ng-class="{active: model.modal == MODAL.lanternFriends}"
             ui-jq="tooltip" rel="tooltip" data-original-title="Lantern friends">
       <!-- i class="icon-group"></i -->
@@ -58,11 +58,10 @@
     <button type="button" class="btn btn-large btn-inverse"
             ng-click="interaction(INTERACTION.settings)"
             ng-class="{active: model.modal == MODAL.settings}"
-            ng-disabled="!model.setupComplete"
             ui-jq="tooltip" rel="tooltip" data-original-title="Settings">
       <!-- i class="icon-cogs"></i -->
       <i class="lsf-icon lsf-gear"></i>
     </button>
   </div>
-  <div id="npending" ng-show="model.setupComplete && model.friends.pending.length" class="badge badge-important">{{ model.friends.pending.length | badgeCount }}</div>
+  <div id="npending" ng-show="model.showVis && model.friends.pending.length" class="badge badge-important">{{ model.friends.pending.length | badgeCount }}</div>
 </div>

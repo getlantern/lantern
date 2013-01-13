@@ -296,7 +296,10 @@
 <div id="proxiedSites" ng-controller="ProxiedSitesCtrl" ui-modal ng-model="show"
      class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
-    <h3>{{ 'PROXIED_SITES_TITLE' | i18n }}</h3>
+    <h3>
+      <i class="lsf-icon lsf-web"></i>
+      {{ 'PROXIED_SITES_TITLE' | i18n }}
+    </h3>
   </div>
   <div class="modal-body">
     <div>{{ 'PROXIED_SITES_PROMPT' | i18n }}</div>
@@ -331,7 +334,10 @@
 <div id="lanternFriends" ng-controller="LanternFriendsCtrl" ui-modal ng-model="show"
      class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
-    <h3>{{ 'LANTERN_FRIENDS_TITLE' | i18n }}</h3>
+    <h3>
+      <i class="lsf-icon lsf-friends"></i>
+      {{ 'LANTERN_FRIENDS_TITLE' | i18n }}
+    </h3>
   </div>
   <div class="modal-body">
     <div>
@@ -523,7 +529,10 @@ You should have received a copy of the GNU General Public License along with thi
      class="fade" data-backdrop="static" data-keyboard="true"><!-- XXX data-keyboard=true not working? -->
   <div class="modal-header">
     <button type="button" class="close" ng-click="interaction(INTERACTION.close)" aria-hidden="true">×</button>
-    <h3>{{ 'SETTINGS' | i18n }}</h3>
+    <h3>
+      <i class="lsf-icon lsf-gear"></i>
+      {{ 'SETTINGS' | i18n }}
+    </h3>
   </div>
   <div class="modal-body">
     <dl class="dl-horizontal">
@@ -577,6 +586,7 @@ You should have received a copy of the GNU General Public License along with thi
       <dd ui-toggle="inGetMode" id="proxy-settings">
         <button type="button" class="btn btn-mini"
                 ng-click="interaction(INTERACTION.proxiedSites)">
+          <!--i class="lsf-icon lsf-web"></i-->
           {{ 'MANAGE_PROXIED_SITES' | i18n }}
         </button>
         <br>

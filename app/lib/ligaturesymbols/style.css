@@ -62,3 +62,7 @@ i.lsf-icon {
 .lsf-icon.lsf-gear:before {
   content: '\E055';
 }
+
+.lsf-icon.lsf-web:before {
+  content: '\E13F';
+}
