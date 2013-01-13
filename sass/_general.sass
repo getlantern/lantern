@@ -1,4 +1,4 @@
-@import helpers
+@import mixins
 
 html, body
   height: 100%
@@ -81,13 +81,9 @@ a.disabled:hover
   background-color: #fff
   cursor: default
 
-=error-colored
-  color: $errorText
 .error-colored, .text-error
   +error-colored
 
-=warning-colored
-  color: $warningText
 .warning-colored, .text-warning
   +warning-colored
 
@@ -114,7 +110,7 @@ input, textarea
   &:disabled, &[readonly]
     cursor: default
 
-// taken from compass_twitter_bootstrap's _forms.sass
+// see compass_twitter_bootstrap's _forms.sass
 input:focus, textarea:focus
   +bootstrap-box-shadow(0 0 8px rgba(82,168,236,.6))
   &.ng-invalid
