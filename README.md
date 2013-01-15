@@ -1,7 +1,8 @@
 # lantern-ui
-
 [![Build
 Status](https://secure.travis-ci.org/getlantern/lantern-ui.png)](http://travis-ci.org/getlantern/lantern-ui)
+
+![screenshot](https://f.cloud.github.com/assets/475147/69151/13c65cb2-5f51-11e2-8608-aa245a63287e.png)
 
 Replacement UI for [Lantern](https://github.com/getlantern/lantern).
 
@@ -9,9 +10,8 @@ Live Demo: http://lantern-ui.jit.su/app/index.html
 
 ## Overview
 
-This is the proposed repository for the future UI of
-[Lantern](https://github.com/getlantern/lantern), featuring the [Vizzuality
-visualization](http://vizzuality.github.com/lantern/). It is maintained as
+This is the repository for the new UI of
+[Lantern](https://github.com/getlantern/lantern). It is maintained as
 a separate repository to facilitate development. This code can be run
 independently of Lantern's Java backend with a lightweight node.js http server
 using [Faye](http://faye.jcoglan.com/) to implement Lantern's bayeux server.
