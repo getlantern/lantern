@@ -37,6 +37,7 @@ public class Whitelist {
         "friendfeed.com",
         "freedomhouse.org",
         "getlantern.org",
+        "google.com",
         "hrw.org", // Human Rights Watch
         "ifconfig.me",
         "igfw.net",
@@ -312,8 +313,6 @@ public class Whitelist {
         whitelist.clear();
         defaultWhitelist.clear();
         requiredEntries.clear();
-        addDefaultEntry("getlantern.org", true);
-        addDefaultEntry("google.com", true);
         for (final String site : SITES) {
             addDefaultEntry(site);
         }
