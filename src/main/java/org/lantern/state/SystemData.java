@@ -60,18 +60,22 @@ public class SystemData {
         return SystemUtils.OS_ARCH;
     }
 
+    @JsonView({Run.class})
     public long getBytesFree() {
         return bytesFree;
     }
 
+    @JsonView({Run.class})
     public long getMemory() {
         return memory;
     }
 
+    @JsonView({Run.class})
     public String getJava() {
         return SystemUtils.JAVA_VERSION;
     }
 
+    @JsonView({Run.class})
     public double[] getScreenSize() {
         final double[] screenSize = new double[2];
         final Toolkit toolkit =  Toolkit.getDefaultToolkit ();
@@ -80,5 +84,4 @@ public class SystemData {
         screenSize[1] = screen.getHeight();
         return screenSize;
     }
-    
 }
