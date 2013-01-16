@@ -309,7 +309,7 @@ public class LanternUtils {
     
 
     public static boolean isLanternJid(final String from) {
-        // Here's the format we're looking for: "-la-"
+        // Here's the format we're looking for: "-lan-"
         if (from.contains("/"+LanternConstants.UNCENSORED_ID)) {
             LOG.info("Returning Lantern TRUE for from: {}", from);
             return true;
