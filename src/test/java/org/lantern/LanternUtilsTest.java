@@ -110,9 +110,9 @@ public class LanternUtilsTest {
         Security.addProvider(new BouncyCastleProvider());
         IceConfig.setCipherSuites(new String[] {
             //"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-            //"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+            "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
             //"SSL_RSA_WITH_RC4_128_SHA",
-                "TLS_ECDHE_RSA_WITH_RC4_128_SHA"
+            //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
         });
         final XmppHandler xmpp = TestUtils.getXmppHandler();
         // We have to actually connect because the ID we use in the keystore
