@@ -302,11 +302,11 @@ public class LanternUtils {
         return false;
     }
 
-    public static boolean isLanternHub(final String from) {
-        from = from.split("/")[0];
-        return from.startsWith("lanternctrl@")
-                && (from.endsWith(".lanternctrl.appspot.com") || 
-                    from.endsWith("@lanternctrl.appspot.com"));
+    public static boolean isLanternHub(final String jabberid) {
+        final String userid = jabberid.split("/")[0];
+        return userid.startsWith("lanternctrl@")
+                && (userid.endsWith(".lanternctrl.appspot.com") || 
+                    userid.endsWith("@lanternctrl.appspot.com"));
     }
     
 
