@@ -303,9 +303,9 @@ public class LanternUtils {
     }
 
     public static boolean isLanternHub(final String jabberid) {
-        final String userid = jabberid.split("/")[0];
+        final String userid = jidToUserId(jabberid);
         return userid.startsWith("lanternctrl@")
-                && (userid.endsWith(".lanternctrl.appspot.com") || 
+                && (userid.endsWith(".lanternctrl.appspotchat.com") ||
                     userid.endsWith("@lanternctrl.appspot.com"));
     }
     
