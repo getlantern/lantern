@@ -303,8 +303,10 @@ public class LanternUtils {
     }
 
     public static boolean isLanternHub(final String from) {
-        return from.startsWith("lanternctrl@") && 
-            from.contains("lanternctrl.appspot");
+        from = from.split("/")[0];
+        return from.startsWith("lanternctrl@")
+                && (from.endsWith(".lanternctrl.appspot.com") || 
+                    from.endsWith("@lanternctrl.appspot.com"));
     }
     
 
