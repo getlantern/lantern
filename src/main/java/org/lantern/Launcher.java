@@ -512,68 +512,47 @@ public class Launcher {
 
     public void launchLantern() {
         LOG.debug("Launching Lantern...");
+        if (!modelUtils.isConfigured()) {
+            model.setModal(Modal.welcome);
+        }
         if (set.isUiEnabled()) {
             browserService.openBrowserWhenPortReady();
         }
         
-        new AutoConnector(); 
+        autoConnect(); 
         
         lanternStarted = true;
     }
 
-    /**
-     * The autoconnector tries to auto-connect the first time that it observes 
-     * that the settings have reached the SET state.
-     */
-    private class AutoConnector {
         
-        private boolean done = false;
-        
-        private AutoConnector() {
-            checkAutoConnect();
-            if (!done) {
-                Events.register(this);
-            }
-        }
-        
-        private void checkAutoConnect() {
-            LOG.info("Checking auto-connect...");
-            if (done) {
-                return;
-            }
-            
-            // only test once.
-            done = true;
-            
-            LOG.info("Settings loaded, testing auto-connect behavior");
-            // This won't connect in the case where the user hasn't entered 
-            // their user name and password and the user is running with a UI.
-            // Otherwise, it will connect.
-            if (model.getSettings().isAutoConnect() && //LanternHub.settings().isConnectOnLaunch() &&
-                (modelUtils.isConfigured() || !set.isUiEnabled())) {
-                final Runnable runner = new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            xmpp.connect();
-                            if (model.getModal() == Modal.gtalkConnecting) {
-                                internalState.advanceModal(null);
-                            }
-                        } catch (final IOException e) {
-                            LOG.info("Could not login", e);
-                        } catch (final CredentialException e) {
-                            LOG.info("Bad credentials");
-                        } catch (final NotInClosedBetaException e) {
-                            LOG.warn("Not in closed beta!!");
+    private void autoConnect() {
+        LOG.debug("Connecting if oauth is configured...");
+        // This won't connect in the case where the user hasn't entered 
+        // their user name and password and the user is running with a UI.
+        // Otherwise, it will connect.
+        if (modelUtils.isConfigured()) {
+            final Runnable runner = new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        xmpp.connect();
+                        if (model.getModal() == Modal.gtalkConnecting) {
+                            internalState.advanceModal(null);
                         }
+                    } catch (final IOException e) {
+                        LOG.debug("Could not login", e);
+                    } catch (final CredentialException e) {
+                        LOG.debug("Bad credentials");
+                    } catch (final NotInClosedBetaException e) {
+                        LOG.warn("Not in closed beta!!");
                     }
-                };
-                final Thread t = new Thread(runner, "Auto-Starting-Thread");
-                t.setDaemon(true);
-                t.start();
-            } else {
-                LOG.info("Not auto-logging in with model:\n{}", model);
-            }
+                }
+            };
+            final Thread t = new Thread(runner, "Auto-Starting-Thread");
+            t.setDaemon(true);
+            t.start();
+        } else {
+            LOG.debug("Not auto-logging in with model:\n{}", model);
         }
     }
     
