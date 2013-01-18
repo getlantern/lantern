@@ -145,8 +145,8 @@ the backend maintains on the frontend through comet publications:
     <td>
       <table>
         <tr><td><strong>scenarios</strong><br><em>object</em></td>
-          <td>mapping from http api endpoints (which trigger simulated scenarios
-          when hit) to string descriptions</td></tr>
+          <td>set of available scenarios the mock backend can
+          simulate for testing</td></tr>
       </table>
       <small><strong>The <code>mock</code> field should only be sent by the
       mock backend.</strong></small>
@@ -345,6 +345,8 @@ the backend maintains on the frontend through comet publications:
                 instance</td></tr>
               <tr><td><strong>installerUrl</strong><br><em>url</em>
                 <td>installer url for the user's platform</td></tr>
+              <tr><td><strong>installerSHA1</strong><br><em>string</em>
+                <td>SHA-1 of the installer for the user's platform</td></tr>
               <tr><td><strong>changes</strong><br><em>object[]</em></td>
                 <td>internationalized list of changes in this version, with
                   language codes as keys and html strings as values, e.g.<br>

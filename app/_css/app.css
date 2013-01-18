@@ -5244,13 +5244,24 @@ textarea.bugReport {
   margin: 5px 0 10px;
 }
 
+#latestDetails summary {
+  margin-left: 20px;
+  font-weight: bold;
+  text-transform: capitalize;
+}
+#latestDetails dt {
+  text-transform: capitalize;
+}
+
+#latestDetails:not([open]) {
+  margin-bottom: 10px;
+}
+
 #changes {
   font-size: 11.9px;
   max-height: 200px;
   overflow: auto;
   margin-left: 0;
-  padding-top: 5px;
-  padding-bottom: 5px;
 }
 
 #about {

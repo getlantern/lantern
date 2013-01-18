@@ -507,17 +507,30 @@ You should have received a copy of the GNU General Public License along with thi
   </div>
   <div class="modal-body">
     <p>{{ 'UPDATE_AVAILABLE_PROMPT' | i18n }}</p>
-    <h4>{{ 'VERSION' | i18n }} {{ model.version.latest | version }}
-        {{ 'RELEASED' | i18n }} <time>{{ model.version.latest.releaseDate }}</time></h4>
-    <div class="small">{{ 'UPDATE_AVAILABLE_PROMPT_CHANGES' | i18n }}</div>
-    <ul id="changes" class="well">
-      <li ng-repeat="change in model.version.latest.changes">
-        <span ng-bind-html="change[lang()]"></span>
-      </li>
-    </ul>
-    <p class="small">{{ 'UPDATE_AVAILABLE_PROMPT_RUNNING' | i18n }}
-      {{ 'VERSION' | i18n }} {{ model.version.installed | version }}
-      {{ 'RELEASED' | i18n }} <time>{{ model.version.installed.releaseDate }}</time></p>
+    <details open id="latestDetails">
+      <summary>{{ 'VERSION' | i18n }} {{ model.version.latest | version }}</summary>
+      <dl class="dl-horizontal">
+        <dt>{{ 'RELEASED' | i18n }}</dt>
+        <dd><time>{{ model.version.latest.releaseDate }}</time></dd>
+        <dt>{{ 'URL' | i18n }}</dt>
+        <dd><a href="{{ model.version.latest.installerUrl }}">{{ model.version.latest.installerUrl }}</a></dd>
+        <dt>{{ 'SHA1' | i18n }}</dt>
+        <dd>{{ model.version.latest.installerSHA1 }}</dd>
+        <dt>{{ 'CHANGES' | i18n }}</dt>
+        <dd>
+          <ul id="changes">
+            <li ng-repeat="change in model.version.latest.changes">
+              <span ng-bind-html="change[lang()]"></span>
+            </li>
+          </ul>
+        </dd>
+      </dl>
+    </details>
+    <p class="smaller indented">{{ 'UPDATE_AVAILABLE_PROMPT_RUNNING' | i18n }}
+      {{ 'VERSION' | i18n }} {{ model.version.installed | version }},
+      {{ 'RELEASED' | i18n }} <time>{{ model.version.installed.releaseDate }}.</time></p><!-- XXX i18n -->
+    <br>
+    <p class="indented">{{ 'UPDATE_PROMPT' | i18n }}</p>
   </div>
   <div class="modal-footer">
     <button type="button" class="btn" ng-click="interaction(INTERACTION.close)">{{ 'CLOSE' | i18n }}</button>

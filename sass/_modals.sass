@@ -174,14 +174,22 @@ textarea.bugReport
   h4
     margin: 5px 0 10px
 
+#latestDetails
+  summary
+    +indented
+    font-weight: bold
+    text-transform: capitalize
+  dt
+    text-transform: capitalize
+
+#latestDetails:not([open])
+  margin-bottom: 10px
+
 #changes
   +small
   max-height: 200px
   overflow: auto
   margin-left: 0
-  $padding-y: 5px
-  padding-top: $padding-y
-  padding-bottom: $padding-y
 
 #about
   +small

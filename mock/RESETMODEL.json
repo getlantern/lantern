@@ -52,6 +52,7 @@
       "git":"ac7de5f",
       "releaseDate":"2012-12-12",
       "installerUrl": "https://lantern.s3.amazonaws.com/lantern-0.23.0.dmg",
+      "installerSHA1": "...",
       "changes": [{
           "en": "(English translation of <a href=\"#\">feature x</a>)",
           "zh": "(Chinese translation of <a href=\"#\">feature x</a>)"

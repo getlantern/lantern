@@ -57,6 +57,7 @@ exports.SCENARIOS = {
                 "git": "ac7de5f",
                 "releaseDate": "2013-1-30",
                 "installerUrl": "https://lantern.s3.amazonaws.com/lantern-0.23.0.dmg",
+                "installerSHA1": "b3d15ec2d190fac79e858f5dec57ba296ac85776",
                 "changes": [{
                     "en": "(English translation of <a href=\"#\">feature x</a>)",
                     "zh": "(Chinese translation of <a href=\"#\">feature x</a>)"
