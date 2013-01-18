@@ -44,9 +44,6 @@ public class ModelIoTest {
         model.setNinvites(10);
         assertEquals(10, model.getNinvites());
         
-        assertEquals(true, settings.isAutoConnect());
-        settings.setAutoConnect(false);
-        
         if ("en".equalsIgnoreCase(SystemUtils.USER_LANGUAGE)) {
             assertEquals("en", system.getLang());
         }
@@ -57,7 +54,6 @@ public class ModelIoTest {
         system = model.getSystem();
         settings = model.getSettings();
         connectivity = model.getConnectivity();
-        assertEquals(false, settings.isAutoConnect());
         assertEquals(10, model.getNinvites());
         
         // The user's IP address should not persist to disk
