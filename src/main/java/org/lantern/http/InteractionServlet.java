@@ -323,6 +323,9 @@ public class InteractionServlet extends HttpServlet {
     private void invite(String json) {
         ObjectMapper om = new ObjectMapper();
         try {
+            if (json.length() == 0) {
+                return;//nobody to invite
+            }
             Invite invite = om.readValue(json, Invite.class);
             modelService.invite(invite.getInvite());
         } catch (IOException e) {

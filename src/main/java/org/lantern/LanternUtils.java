@@ -302,14 +302,16 @@ public class LanternUtils {
         return false;
     }
 
-    public static boolean isLanternHub(final String from) {
-        return from.startsWith("lanternctrl@") && 
-            from.contains("lanternctrl.appspot");
+    public static boolean isLanternHub(final String jabberid) {
+        final String userid = jidToUserId(jabberid);
+        return userid.startsWith("lanternctrl@")
+                && (userid.endsWith(".lanternctrl.appspotchat.com") ||
+                    userid.endsWith("@lanternctrl.appspot.com"));
     }
     
 
     public static boolean isLanternJid(final String from) {
-        // Here's the format we're looking for: "-la-"
+        // Here's the format we're looking for: "-lan-"
         if (from.contains("/"+LanternConstants.UNCENSORED_ID)) {
             LOG.info("Returning Lantern TRUE for from: {}", from);
             return true;
