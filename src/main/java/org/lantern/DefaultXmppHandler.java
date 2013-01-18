@@ -484,15 +484,11 @@ public class DefaultXmppHandler implements XmppHandler {
         // Note we don't consider ourselves connected in get mode until we 
         // actually get proxies to work with.
         final XMPPConnection connection = this.client.get().getXmppConnection();
-        final Collection<String> servers = 
-                this.model.getSettings().getStunServers();
-        if (servers.isEmpty()) {
-            final Collection<InetSocketAddress> googleStunServers = 
-                    XmppUtils.googleStunServers(connection);
-            StunServerRepository.setStunServers(googleStunServers);
-            this.model.getSettings().setStunServers(
-                    new HashSet<String>(toStringServers(googleStunServers)));
-        }
+        final Collection<InetSocketAddress> googleStunServers = 
+                XmppUtils.googleStunServers(connection);
+        StunServerRepository.setStunServers(googleStunServers);
+        this.model.getSettings().setStunServers(
+                new HashSet<String>(toStringServers(googleStunServers)));
         
         // Make sure all connections between us and the server are stored
         // OTR.
