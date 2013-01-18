@@ -132,12 +132,12 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // Kill our temporary oauth callback server.
         this.googleOauth2CallbackServer.stop();
         
-        final DefaultHttpClient client = new LanternHttpClient();
+        final DefaultHttpClient client = new DefaultHttpClient();//new LanternHttpClient();
         final Map<String, String> allToks;
         try {
             allToks = loadAllToks(client, code);
         } catch (final IOException e) {
-            log.error("Could not load client secrets!!", e);
+            log.error("Could not load all oauth tokens!!", e);
             redirectToDashboard(resp);
             return;
         }

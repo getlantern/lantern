@@ -910,7 +910,7 @@ public class LanternUtils {
         final HttpGet get = new HttpGet();
         try {
             final URI uri = builder.build();
-            final DefaultHttpClient client = new LanternHttpClient();
+            final DefaultHttpClient client = new DefaultHttpClient();//new LanternHttpClient();
             get.setURI(uri);
             final HttpResponse response = client.execute(get);
             final HttpEntity entity = response.getEntity();
