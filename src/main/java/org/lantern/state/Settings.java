@@ -112,15 +112,6 @@ public class Settings {
     }
 
     @JsonView({Run.class, Persistent.class})
-    public boolean isAutoConnect() {
-        return autoConnect;
-    }
-
-    public void setAutoConnect(final boolean autoConnect) {
-        this.autoConnect = autoConnect;
-    }
-
-    @JsonView({Run.class, Persistent.class})
     public boolean isAutoReport() {
         return autoReport;
     }
