@@ -426,6 +426,18 @@
               <version>2.2</version>
             </plugin>
             <plugin>
+              <groupId>org.apache.maven.plugins</groupId>
+              <artifactId>maven-changes-plugin</artifactId>
+              <version>2.8</version>
+              <reportSets>
+                <reportSet>
+                    <reports>
+                      <report>github-report</report>
+                    </reports>
+                </reportSet>
+              </reportSets>
+            </plugin>
+            <plugin>
               <groupId>org.codehaus.mojo</groupId>
               <artifactId>findbugs-maven-plugin</artifactId>
               <version>2.5.2</version>
