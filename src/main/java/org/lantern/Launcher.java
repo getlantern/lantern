@@ -410,7 +410,7 @@ public class Launcher {
             }
             LOG.info("Reverting to weaker ciphers on Vista");
             IceConfig.setCipherSuites(new String[] {
-                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
+                "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
                 //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
             });
         } else {
@@ -421,8 +421,8 @@ public class Launcher {
             // copy the unlimited strength policy files on Vista, so we have 
             // to revert back to 128.
             IceConfig.setCipherSuites(new String[] {
-                //"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-                "TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
+                "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+                //"TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
                 //"TLS_RSA_WITH_RC4_128_SHA"
                 //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
             });
