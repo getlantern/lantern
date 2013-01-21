@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('app', [
+var app = angular.module('app', [
   'app.constants',
   'app.helpers',
   'app.i18n',
@@ -9,5 +9,6 @@ angular.module('app', [
   'app.directives',
   'app.vis',
   'ngSanitize',
-  'ui'
+  'ui',
+  'ui.bootstrap'
 ]);

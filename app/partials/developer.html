@@ -1,24 +1,23 @@
 <div id="dev-label" ng-show="dev.value">Developer</div>
 
-<div id="dev-buttons" class="btn-group" ng-show="dev.value">
-  <button class="btn btn-mini btn-dev" ng-click="interaction(INTERACTION.scenarios)"
-          ng-disabled="!mockBackend"
-          ui-jq="tooltip" rel="tooltip" data-original-title="Scenarios"
-          ui-options="{placement: 'bottom'}">
-    <i class="icon-magic"></i>
-  </button>
-  <button class="btn btn-mini btn-dev"
-          data-toggle="collapse" data-target="#model"
-          ui-jq="tooltip" rel="tooltip" data-original-title="Model"
-          ui-options="{placement: 'bottom'}">
-    <i class="icon-reorder"></i>
-    <span class="caret"></span>
-  </button>
-</div>
-
-<div id="model" class="collapse"
-     ng-controller="DevCtrl" ng-show="dev.value" lang="en" dir="ltr">
-  <textarea ng-model="editableModel" x-update-on-blur
-            ng-readonly="!mockBackend"
-            ng-change="handleUpdate()"></textarea>
+<div ng-init="showModel=false">
+  <div id="dev-buttons" class="btn-group" ng-show="dev.value">
+    <button class="btn btn-mini btn-dev" ng-click="interaction(INTERACTION.scenarios)"
+            ng-disabled="!mockBackend" tooltip="Scenarios" tooltip-placement="bottom">
+      <i class="icon-magic"></i>
+    </button>
+    <button class="btn btn-mini btn-dev"
+            ng-click="showModel=!showModel">
+            <!-- tooltip="Model" tooltip-placement="bottom" XXX https://github.com/angular-ui/bootstrap/issues/75 -->
+      <i class="icon-reorder"></i>
+      <span class="caret"></span>
+    </button>
+  </div>
+  
+  <div id="model" ng-show="showModel"
+       ng-controller="DevCtrl" ng-show="dev.value" lang="en" dir="ltr">
+    <textarea ng-model="editableModel" x-update-on-blur
+              ng-readonly="!mockBackend"
+              ng-change="handleUpdate()"></textarea>
+  </div>
 </div>

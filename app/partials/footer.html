@@ -10,7 +10,7 @@
     <div id="stats-personal">
       <strong>your stats:</strong>
       <span ng-show="model.connectivity.peers.lifetime.length">
-        <a rel="tooltip" data-original-title="{{ 'ENABLE_AUTOREPORT_SUGGESTION' | i18n }}" ui-jq="tooltip" ng-show="!model.settings.autoReport">
+        <a rel="tooltip" tooltip="{{ 'ENABLE_AUTOREPORT_SUGGESTION' | i18n }}" ng-show="!model.settings.autoReport">
           <i class="icon-info-sign"></i>
         </a>
         {{ model.settings.email }} ·
@@ -50,15 +50,15 @@
   <div id="global-nav" class="btn-group" ng-show="model.showVis">
     <button type="button" class="btn btn-large btn-inverse"
             ng-click="interaction(INTERACTION.lanternFriends)"
-            ng-class="{active: model.modal == MODAL.lanternFriends}"
-            ui-jq="tooltip" rel="tooltip" data-original-title="Lantern friends">
+            ng-class="{active: model.modal == MODAL.lanternFriends}">
+            <!-- tooltip="{{ 'LANTERN_FRIENDS' | i18n }}" XXX https://github.com/angular-ui/bootstrap/issues/75 -->
       <!-- i class="icon-group"></i -->
       <i class="lsf-icon lsf-friends"></i>
     </button>
     <button type="button" class="btn btn-large btn-inverse"
             ng-click="interaction(INTERACTION.settings)"
-            ng-class="{active: model.modal == MODAL.settings}"
-            ui-jq="tooltip" rel="tooltip" data-original-title="Settings">
+            ng-class="{active: model.modal == MODAL.settings}">
+            <!--tooltip="{{ 'SETTINGS' | i18n }}" XXX https://github.com/angular-ui/bootstrap/issues/75 -->
       <!-- i class="icon-cogs"></i -->
       <i class="lsf-icon lsf-gear"></i>
     </button>

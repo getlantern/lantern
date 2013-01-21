@@ -116,10 +116,10 @@ angular.module('app.i18n', [])
       AUTOREPORT_PROMPT: 'Securely report diagnostics and anonymous usage statistics to contribute to Lantern.', // XXX link to more info?
       AUTOREPORT_ENABLE: 'Enable automatic reporting',
       FINISH: 'Finish',
-      LANTERN_FRIENDS_TITLE: 'Lantern Friends',
+      LANTERN_FRIENDS: 'Lantern Friends',
       LANTERN_FRIENDS_INTRO: 'Lantern relies on a large network of users who trust one another to share internet connections. Inviting people you trust to join Lantern helps Lantern work better.',
       AUTOTRUSTED_PROMPT: 'Being Lantern Friends with someone also allows you to chat through Google Talk. Google Talk contacts who’ve already joined Lantern are considered Lantern friends automatically.',
-      LANTERN_FRIENDS: 'Lantern friends:',
+      LANTERN_FRIENDS_COLON: 'Lantern friends:',
       NO_NAME: '(no name)',
       NO_EMAIL: '(no email)',
       NO_FRIENDS: 'You currently have no Lantern friends.',

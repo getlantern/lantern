@@ -8,8 +8,7 @@
   </ul>
 </div>
 
-<div id="sanity" ng-controller="SanityCtrl" ng-model="show"
-     ui-modal class="fade" data-backdrop="static" data-keyboard="false">
+<div id="sanity" ng-controller="SanityCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'UNEXPECTED_STATE_TITLE' | i18n }}</h3>
   </div>
@@ -33,8 +32,7 @@
   </div>
 </div>
 
-<div id="settingsLoadFailure" ng-controller="SettingsLoadFailureCtrl" ui-modal
-     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+<div id="settingsLoadFailure" ng-controller="SettingsLoadFailureCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'SETTINGS_LOAD_FAILURE_TITLE' | i18n }}</h3>
   </div>
@@ -57,8 +55,7 @@
 
 <!-- setup screens -->
 
-<div id="welcome" ng-controller="WelcomeCtrl" ui-modal ng-model="show"
-     class="fade" data-backdrop="static" data-keyboard="false">
+<div id="welcome" ng-controller="WelcomeCtrl" modal="show">
   <div class="modal-body">
     <h1>{{ 'LANTERN' | i18n }}</h1>
     <p>{{ 'WELCOME_PROMPT' | i18n }}</p>
@@ -72,8 +69,7 @@
   </div>
 </div>
 
-<div id="authorize" ng-controller="AuthorizeCtrl" ui-modal ng-model="show" class="fade"
-     data-backdrop="static" data-keyboard="false">
+<div id="authorize" ng-controller="AuthorizeCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'AUTHORIZE_TITLE' | i18n }}</h3>
   </div>
@@ -88,15 +84,13 @@
     </div>
   </div>
   <div class="modal-footer">
-    <a class="btn btn-primary" href="{{ model.connectivity.gtalkOauthUrl }}"
-       ui-jq="tooltip" rel="tooltip" data-original-title="{{ 'AUTHORIZE_EXTERNAL' | i18n }}">
+    <a class="btn btn-primary" href="{{ model.connectivity.gtalkOauthUrl }}">
       {{ 'AUTHORIZE_LANTERN' | i18n }}
     </a>
   </div>
 </div>
 
-<div id="gtalkConnecting" ng-controller="GtalkConnectingCtrl" ui-modal ng-model="show" class="fade"
-     data-backdrop="static" data-keyboard="false">
+<div id="gtalkConnecting" ng-controller="GtalkConnectingCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'GTALK_CONNECTING_TITLE' | i18n }}</h3>
   </div>
@@ -108,8 +102,7 @@
   </div>
 </div>
 
-<div id="confirmReset" ng-controller="ConfirmResetCtrl" ui-modal
-     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+<div id="confirmReset" ng-controller="ConfirmResetCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'CONFIRM_RESET_TITLE' | i18n }}</h3>
   </div>
@@ -122,8 +115,7 @@
   </div>
 </div>
 
-<div id="giveModeForbidden" ng-controller="GiveModeForbiddenCtrl" ui-modal
-     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+<div id="giveModeForbidden" ng-controller="GiveModeForbiddenCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'GIVE_MODE_FORBIDDEN_TITLE' | i18n }}</h3>
   </div>
@@ -136,8 +128,7 @@
   </div>
 </div>
 
-<div id="gtalkUnreachable" ng-controller="GtalkUnreachableCtrl" ui-modal
-     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+<div id="gtalkUnreachable" ng-controller="GtalkUnreachableCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'GOOG_UNREACHABLE_TITLE' | i18n }}</h3>
   </div>
@@ -150,8 +141,7 @@
   </div>
 </div>
 
-<div id="authorizeLater" ng-controller="AuthorizeLaterCtrl" ui-modal
-     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+<div id="authorizeLater" ng-controller="AuthorizeLaterCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'AUTHORIZE_LATER_TITLE' | i18n }}</h3>
   </div>
@@ -163,8 +153,7 @@
   </div>
 </div>
 
-<div id="notInvited" ng-controller="NotInvitedCtrl" ui-modal
-     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+<div id="notInvited" ng-controller="NotInvitedCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'NOT_INVITED_TITLE' | i18n }}</h3>
   </div>
@@ -177,8 +166,7 @@
   </div>
 </div>
 
-<div id="requestInvite" ng-controller="RequestInviteCtrl" ui-modal
-     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+<div id="requestInvite" ng-controller="RequestInviteCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'REQUEST_INVITE_TITLE' | i18n }}</h3>
   </div>
@@ -216,8 +204,7 @@
   </div>
 </div>
 
-<div id="requestSent" ng-controller="RequestSentCtrl" ui-modal
-     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+<div id="requestSent" ng-controller="RequestSentCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'REQUEST_SENT_TITLE' | i18n }}</h3>
   </div>
@@ -229,8 +216,7 @@
   </div>
 </div>
 
-<div id="firstInviteReceived" ng-controller="FirstInviteReceivedCtrl" ui-modal
-     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+<div id="firstInviteReceived" ng-controller="FirstInviteReceivedCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'FIRST_INVITE_RECEIVED_TITLE' | i18n }}</h3>
   </div>
@@ -252,8 +238,7 @@
   </div>
 </div>
 
-<div id="systemProxy" ng-controller="SystemProxyCtrl" ui-modal ng-model="show"
-     class="fade" data-backdrop="static" data-keyboard="false">
+<div id="systemProxy" ng-controller="SystemProxyCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'SYSTEM_PROXY_TITLE' | i18n }}</h3>
   </div>
@@ -293,8 +278,7 @@
   </div>
 </div>
 
-<div id="proxiedSites" ng-controller="ProxiedSitesCtrl" ui-modal ng-model="show"
-     class="fade" data-backdrop="static" data-keyboard="false">
+<div id="proxiedSites" ng-controller="ProxiedSitesCtrl" modal="show">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-web"></i>
@@ -331,12 +315,11 @@
   </div>
 </div>
 
-<div id="lanternFriends" ng-controller="LanternFriendsCtrl" ui-modal ng-model="show"
-     class="fade" data-backdrop="static" data-keyboard="false">
+<div id="lanternFriends" ng-controller="LanternFriendsCtrl" modal="show">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-friends"></i>
-      {{ 'LANTERN_FRIENDS_TITLE' | i18n }}
+      {{ 'LANTERN_FRIENDS' | i18n }}
     </h3>
   </div>
   <div class="modal-body">
@@ -370,7 +353,7 @@
 
     <h4 class="centered" ng-show="model.friends.current.length">
       <span ng-show="model.friends.current.length">{{ model.friends.current.length }}</span>
-      {{ 'LANTERN_FRIENDS' | i18n }}
+      {{ 'LANTERN_FRIENDS_COLON' | i18n }}
     </h4>
     <ul ng-show="model.friends.current.length" class="contactList-horizontal centered">
       <!-- http://microformats.org/wiki/hcard -->
@@ -404,8 +387,7 @@
   </div>
 </div>
 
-<div id="finished" ng-controller="FinishedCtrl" ui-modal
-     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+<div id="finished" ng-controller="FinishedCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'FINISHED_TITLE' | i18n }}</h3>
   </div>
@@ -419,8 +401,7 @@
         <small>{{ 'AUTOREPORT_ENABLE' | i18n }}</small>
       </label>
       <label class="checkbox inline" style="margin:0"><!-- XXX inline style -->
-        <a rel="tooltip" data-original-title="{{ 'AUTOREPORT_PROMPT' | i18n }}"
-           ui-jq="tooltip">
+        <a rel="tooltip" tooltip="{{ 'AUTOREPORT_PROMPT' | i18n }}">
           <i class="icon-info-sign"></i>
         </a>
       </label>
@@ -432,8 +413,7 @@
   </div>
 </div>
 
-<div id="contact" ng-controller="ContactCtrl" ui-modal
-     ng-model="show" class="fade" data-backdrop="static" data-keyboard="false">
+<div id="contact" ng-controller="ContactCtrl" modal="show">
   <div class="modal-header">
     <h3>{{ 'CONTACT_TITLE' | i18n }}</h3>
   </div>
@@ -458,8 +438,7 @@
 </div>
 
 <!-- XXX this is just a sketch -->
-<div id="about" ng-controller="AboutCtrl" ui-modal ng-model="show"
-     class="fade" data-backdrop="static" data-keyboard="true"><!-- XXX data-keyboard=true not working? -->
+<div id="about" ng-controller="AboutCtrl" modal="show">
   <div class="modal-body">
     <div style="text-align:center; margin:0">
       Lantern version {{ model.version.installed | version:true }}<br>
@@ -499,8 +478,7 @@ You should have received a copy of the GNU General Public License along with thi
   </div>
 </div>
 
-<div id="updateAvailable" ng-controller="UpdateAvailableCtrl" ui-modal ng-model="show"
-     class="fade" data-backdrop="static" data-keyboard="true"><!-- XXX data-keyboard=true not working? -->
+<div id="updateAvailable" ng-controller="UpdateAvailableCtrl" modal="show">
   <div class="modal-header">
     <button type="button" class="close" ng-click="interaction(INTERACTION.close)" aria-hidden="true">×</button>
     <h3>{{ 'UPDATE_AVAILABLE_TITLE' | i18n }}</h3>
@@ -538,8 +516,7 @@ You should have received a copy of the GNU General Public License along with thi
   </div>
 </div>
 
-<div id="settings" ng-controller="SettingsCtrl" ui-modal ng-model="show"
-     class="fade" data-backdrop="static" data-keyboard="true"><!-- XXX data-keyboard=true not working? -->
+<div id="settings" ng-controller="SettingsCtrl" modal="show">
   <div class="modal-header">
     <button type="button" class="close" ng-click="interaction(INTERACTION.close)" aria-hidden="true">×</button>
     <h3>
@@ -582,8 +559,7 @@ You should have received a copy of the GNU General Public License along with thi
           {{ 'AUTOREPORT_ENABLE' | i18n }}
         </label>
         <label class="checkbox inline" style="margin:0; padding:0 0 0 1px"><!-- XXX inline style -->
-          <a rel="tooltip" data-original-title="{{ 'AUTOREPORT_PROMPT' | i18n }}"
-             ui-jq="tooltip">
+          <a rel="tooltip" tooltip="{{ 'AUTOREPORT_PROMPT' | i18n }}">
             <i class="icon-info-sign"></i>
           </a>
         </label>
@@ -635,8 +611,7 @@ You should have received a copy of the GNU General Public License along with thi
   </div>
 </div>
 
-<div id="scenarios" ng-controller="ScenariosCtrl" ng-model="show"
-     ui-modal class="fade" data-backdrop="static" data-keyboard="false">
+<div id="scenarios" ng-controller="ScenariosCtrl" modal="show">
   <div class="modal-header centered">
     <h3>Developer</h3>
   </div>
