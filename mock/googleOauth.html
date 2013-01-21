@@ -5,8 +5,9 @@
   <script>
     $(function() {
       $('#allow').click(function() {
-        $.post('/api/0.0/interaction/continue');
-        location.replace('/app/index.html');
+        $.post('/api/0.0/interaction/continue', function() {
+          location.replace('/app/index.html');
+        });
       });
     });
   </script>
