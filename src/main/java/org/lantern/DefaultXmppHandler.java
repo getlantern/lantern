@@ -508,8 +508,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
                 final Type type = pres.getType();
                 // Allow subscription requests from the lantern bot.
-                if (from.startsWith("lanternctrl@") &&
-                    from.endsWith("lanternctrl.appspotchat.com")) {
+                if (LanternUtils.isLanternHub(from)) {
                     if (type == Type.subscribe) {
                         final Presence packet = 
                             new Presence(Presence.Type.subscribed);
