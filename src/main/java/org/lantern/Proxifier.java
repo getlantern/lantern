@@ -243,7 +243,7 @@ public class Proxifier implements LanternService {
     
     public void interactiveUnproxy() {
         if (interactiveUnproxyCalled) {
-            LOG.info("Interactive unproxy already called!");
+            LOG.debug("Interactive unproxy already called!");
             return;
         }
         interactiveUnproxyCalled = true;
@@ -279,7 +279,7 @@ public class Proxifier implements LanternService {
                         finished = true;
                     }
                     else {
-                        LOG.info("Trying again");
+                        LOG.debug("Trying again");
                     }
                 }
             }
@@ -288,11 +288,11 @@ public class Proxifier implements LanternService {
 
     public void stopProxying() throws ProxyConfigurationError {
         if (!isProxying()) {
-            LOG.info("Ignoring call since we're not proxying");
+            LOG.debug("Ignoring call since we're not proxying");
             return; 
         }
 
-        LOG.info("Unproxying Lantern");
+        LOG.debug("Unproxying Lantern");
         LANTERN_PROXYING_FILE.delete();
         if (SystemUtils.IS_OS_MAC_OSX) {
             unproxyOsx();
@@ -317,11 +317,11 @@ public class Proxifier implements LanternService {
             final String result1 = 
                 mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
                     "mode", "'auto'");
-            LOG.info("Result of Ubuntu gsettings mode call: {}", result1);
+            LOG.debug("Result of Ubuntu gsettings mode call: {}", result1);
             final String result2 = 
                 mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
                     "autoconfig-url", url);
-            LOG.info("Result of Ubuntu gsettings pac file call: {}", result2);
+            LOG.debug("Result of Ubuntu gsettings pac file call: {}", result2);
         } catch (final IOException e) {
             LOG.warn("Error calling Ubuntu proxy script!", e);
             throw new ProxyConfigurationError();
@@ -366,14 +366,14 @@ public class Proxifier implements LanternService {
         try {
             final String result = //mpm.runScript("osascript", "-e", applescriptCommand);
                 mpm.runScript("./Lantern", "-e", applescriptCommand);
-            LOG.info("Result of script is {}", result);
+            LOG.debug("Result of script is {}", result);
         } catch (final IOException e) {
             final String msg = e.getMessage();
             if (!msg.contains("canceled")) {
                 // Could just be another language here...
                 LOG.error("Script failure with unknown message: "+msg, e);
             } else {
-                LOG.info("Exception running script", e);
+                LOG.debug("Exception running script", e);
             }
             //LanternHub.settings().setSystemProxy(false);
             this.model.getSettings().setSystemProxy(false);
@@ -383,7 +383,7 @@ public class Proxifier implements LanternService {
 
     private void proxyWindows(final String url) {
         if (!SystemUtils.IS_OS_WINDOWS) {
-            LOG.info("Not running on Windows");
+            LOG.debug("Not running on Windows");
             return;
         }
         
@@ -392,7 +392,7 @@ public class Proxifier implements LanternService {
         // of spaces causes problems.
         //final String url = "file://"+pacFile.getAbsolutePath();
             //ACTIVE_PAC.toURI().toASCIIString().replace("file:/", "file://");
-        LOG.info("Using pac path: {}", url);
+        LOG.debug("Using pac path: {}", url);
         
         WIN_PROXY.setPacFile(url);
     }
@@ -407,7 +407,7 @@ public class Proxifier implements LanternService {
             final String result1 = 
                 mpm.runScript("gsettings", "set", "org.gnome.system.proxy", 
                     "mode", "'none'");
-            LOG.info("Result of Ubuntu gsettings mode call: {}", result1);
+            LOG.debug("Result of Ubuntu gsettings mode call: {}", result1);
         } catch (final IOException e) {
             LOG.warn("Error calling Ubuntu proxy script!", e);
             throw new ProxyConfigurationError();
