@@ -40,6 +40,7 @@ release: otto gauntlet
 
 clean:
 	rm -f test.otto digest.json .node.tmp.js
+	rm -rf test.*.tmp
 
 digest.json: test.otto
 	./digest < test.otto > $@
