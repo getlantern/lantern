@@ -62,9 +62,8 @@ test-all: test-i
 release: test-all test-synopsis
 	for package in . underscore registry; do (cd $$package && godocdown --signature > README.markdown); done
 
-test-synopsis: .test test-i
-	cd .test/synopsis && go test -v
-	cd .test/synopsis && otto example.js
+test-synopsis: .test test-i otto
+	$(MAKE) -C .test/synopsis
 
 test262: .test
 	$(MAKE) -C .test/test262 test
