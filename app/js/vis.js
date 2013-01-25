@@ -17,7 +17,7 @@ angular.module('app.vis', [])
     'N. Korea': 'kp'
   })
   .constant('CONFIG', {
-    scale: 1000,
+    scale: 1400,
     translate: [500, 350],
     zoomContraints: [.5, 6], // min & max zoom levels
     zoomChangeSpeed: 500,
@@ -25,12 +25,12 @@ angular.module('app.vis', [])
     parabolaDrawingStep: .03,
     styles: {
       strokeColorCensored: '#fff',
-      strokeColorUncensored: 'none',
+      strokeColorUncensored: '#000',
 
       countriesOpacity: .3,
       censoredCountriesOpacity: .45,
-      censoredCountriesStrokeOpacity: .45,
-      uncensoredCountriesStrokeOpacity: 0,
+      censoredCountriesStrokeOpacity: .95,
+      uncensoredCountriesStrokeOpacity: .45,
 
       parabolaLightStrokeWidth: 1,
       parabolaStrokeWidth: 1,
@@ -191,8 +191,10 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, _COUNTRY_NAME_TO_CODE) {
          .data(collection.features)
          .enter().append("path")
          .attr("d", geoPath)
+         /*
          .transition()
-         .duration(700)
+         .duration(750)
+         */
          .style("stroke", function(d) {
            return CONFIG.styles[censors(d) ?
              'strokeColorCensored' : 'strokeColorUncensored'];
@@ -205,12 +207,9 @@ function VisCtrl($scope, logFactory, modelSrvc, CONFIG, _COUNTRY_NAME_TO_CODE) {
            return CONFIG.styles[censors(d) ?
              'censoredCountriesOpacity' : 'countriesOpacity'];
          })
-         /* XXX ???
          .style("fill", function(d) {
-           if (d.properties.name == 'China')
-             return 'black';
+           return 'rgba(155, 200, 255, .15)';
          })
-         */
          ;
     });
   }
