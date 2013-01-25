@@ -5390,6 +5390,7 @@ body.showVis #footer {
 }
 #global-nav button {
   color: #999999;
+  width: 49px;
 }
 #global-nav button i.lsf-icon {
   display: -moz-inline-stack;
@@ -5410,10 +5411,20 @@ body.showVis #footer {
 }
 
 #npending {
+  z-index: 2;
+}
+body.getMode #npending {
+  position: absolute;
+  right: 148px;
+  bottom: 13px;
+  position: absolute;
+  right: 149px;
+  bottom: 7.5px;
+}
+body.giveMode #npending {
   position: absolute;
   right: 100px;
-  bottom: 13px;
-  z-index: 2;
+  bottom: 7.5px;
 }
 
 #stats strong {

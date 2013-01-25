@@ -16,12 +16,16 @@ body.showVis #footer
   z-index: auto
 
 $zindexGlobalNav: 1
+$globalNavBtnWidth: 49px
+$globalNavPosRight: 15px
+$globalNavPosBottom: 15px
 #global-nav
-  +position(false, 15px, 15px)
+  +position(false, $globalNavPosRight, $globalNavPosBottom)
   z-index: $zindexGlobalNav
   white-space: nowrap
   button
     color: $grayLight
+    width: $globalNavBtnWidth
     i.lsf-icon
       +inline-block
       height: 17px
@@ -35,9 +39,17 @@ $zindexGlobalNav: 1
   button.ng-disabled
     color: $grayDark
 
+$npendingIndexGiveMode: 1
+$npendingIndexGetMode: 2
+$npendingPosBottom: $globalNavPosBottom / 2
+$npendingOffsetRight: 36px
 #npending
-  +position(false, 100px, 13px)
   z-index: $zindexGlobalNav + 1
+  body.getMode &
+    +position(false, 148px, 13px)
+    +position(false, $globalNavPosRight + ($npendingIndexGetMode * $globalNavBtnWidth) + $npendingOffsetRight, $npendingPosBottom)
+  body.giveMode &
+    +position(false, $globalNavPosRight + ($npendingIndexGiveMode * $globalNavBtnWidth) + $npendingOffsetRight, $npendingPosBottom)
 
 #stats
   strong

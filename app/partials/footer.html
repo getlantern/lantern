@@ -56,6 +56,14 @@
       <i class="lsf-icon lsf-friends"></i>
     </button>
     <button type="button" class="btn btn-large btn-inverse"
+            ng-show="inGetMode"
+            ng-click="interaction(INTERACTION.proxiedSites)"
+            ng-class="{active: model.modal == MODAL.proxiedSites}"
+            ui-jq="tooltip" rel="tooltip" data-original-title="Proxied Sites">
+      <!-- i class="icon-cogs"></i -->
+      <i class="lsf-icon lsf-web"></i>
+    </button>
+    <button type="button" class="btn btn-large btn-inverse"
             ng-click="interaction(INTERACTION.settings)"
             ng-class="{active: model.modal == MODAL.settings}"
             ui-jq="tooltip" rel="tooltip" data-original-title="Settings">

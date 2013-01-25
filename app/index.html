@@ -16,7 +16,7 @@
     <script src="lib/jquery.js"></script>
     <script src="lib/cometd.js"></script>
     <script src="lib/jquery.cometd.js"></script>
-    <script src="lib/jquery.easing.1.3.js"></script>
+    <script src="lib/jquery.easing.1.3.js"></script><!-- XXX is this used? -->
     <script src="lib/angular/angular.js"></script>
     <script src="lib/angular/angular-resource.js"></script>
     <script src="lib/angular/angular-sanitize.js"></script>
@@ -43,8 +43,8 @@
     <link rel="shortcut icon" href="img/favicon.ico">
   </head>
 
-  <body ng-controller="RootCtrl" ng-cloak lang="{{ lang() }}"
-        dir="{{ direction() }}" ng-class="{showVis: model.showVis}">
+  <body ng-controller="RootCtrl" ng-cloak lang="{{ lang() }}" dir="{{ direction() }}"
+    ng-class="{showVis: model.showVis, getMode: inGetMode, giveMode: inGiveMode}">
 
     <div x-block-input ng-controller="WaitingForLanternCtrl" ng-show="show">
       <div id="waiting-container">
