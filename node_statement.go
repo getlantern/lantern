@@ -32,7 +32,7 @@ type _breakNode struct {
 func newBreakNode(target string) *_breakNode {
 	return &_breakNode{
 		_nodeType: nodeBreak,
-		Target:target,
+		Target:    target,
 	}
 }
 
@@ -49,7 +49,7 @@ type _continueNode struct {
 func newContinueNode(target string) *_continueNode {
 	return &_continueNode{
 		_nodeType: nodeContinue,
-		Target:target,
+		Target:    target,
 	}
 }
 
@@ -60,16 +60,16 @@ func (self _continueNode) String() string {
 type _doWhileNode struct {
 	_nodeType
 	_node_
-	Test _node
-	Body _node
+	Test      _node
+	Body      _node
 	_labelSet _labelSet
 }
 
 func newDoWhileNode(test _node, body _node) *_doWhileNode {
 	self := &_doWhileNode{
 		_nodeType: nodeDoWhile,
-		Test: test,
-		Body: body,
+		Test:      test,
+		Body:      body,
 		_labelSet: _labelSet{},
 	}
 	return self
@@ -97,20 +97,20 @@ func (self _emptyNode) String() string {
 type _forNode struct {
 	_nodeType
 	_node_
-	Initial _node
-	Test _node
-	Update _node
-	Body _node
+	Initial   _node
+	Test      _node
+	Update    _node
+	Body      _node
 	_labelSet _labelSet
 }
 
 func newForNode(initial _node, test _node, update _node, body _node) *_forNode {
 	self := &_forNode{
 		_nodeType: nodeFor,
-		Initial: initial,
-		Test: test,
-		Update: update,
-		Body: body,
+		Initial:   initial,
+		Test:      test,
+		Update:    update,
+		Body:      body,
 		_labelSet: _labelSet{},
 	}
 	return self
@@ -129,18 +129,18 @@ func (self _forNode) String() string {
 type _forInNode struct {
 	_nodeType
 	_node_
-	Into _node
-	Source _node
-	Body _node
+	Into      _node
+	Source    _node
+	Body      _node
 	_labelSet _labelSet
 }
 
 func newForInNode(into _node, source _node, body _node) *_forInNode {
 	self := &_forInNode{
 		_nodeType: nodeForIn,
-		Into: into,
-		Source: source,
-		Body: body,
+		Into:      into,
+		Source:    source,
+		Body:      body,
 		_labelSet: _labelSet{},
 	}
 	return self
@@ -158,24 +158,24 @@ func (self _forInNode) String() string {
 type _ifNode struct {
 	_nodeType
 	_node_
-	Test _node
+	Test       _node
 	Consequent _node
-	Alternate _node
+	Alternate  _node
 }
 
 func newIfNode(test _node, consequent _node) *_ifNode {
 	return &_ifNode{
-		_nodeType: nodeIf,
-		Test: test,
+		_nodeType:  nodeIf,
+		Test:       test,
 		Consequent: consequent,
 	}
 }
 
 func newIfElseNode(test _node, consequent _node, alternate _node) *_ifNode {
 	return &_ifNode{
-		Test: test,
+		Test:       test,
 		Consequent: consequent,
-		Alternate: alternate,
+		Alternate:  alternate,
 	}
 }
 
@@ -189,7 +189,7 @@ func (self _ifNode) String() string {
 type _programNode struct {
 	_nodeType
 	_node_
-	Body []_node
+	Body         []_node
 	VariableList []_declaration
 	FunctionList []_declaration
 }
@@ -236,17 +236,17 @@ type _switchNode struct {
 	_nodeType
 	_node_
 	Discriminant _node
-	Default int
-	CaseList [](*_caseNode)
-	_labelSet _labelSet
+	Default      int
+	CaseList     [](*_caseNode)
+	_labelSet    _labelSet
 }
 
 func newSwitchNode(discriminant _node) *_switchNode {
 	return &_switchNode{
-		_nodeType: nodeSwitch,
+		_nodeType:    nodeSwitch,
 		Discriminant: discriminant,
-		Default: -1,
-		_labelSet: _labelSet{},
+		Default:      -1,
+		_labelSet:    _labelSet{},
 	}
 }
 
@@ -268,13 +268,12 @@ type _caseNode struct {
 func newCaseNode(test _node) *_caseNode {
 	return &_caseNode{
 		_nodeType: nodeCase,
-		Test: test,
+		Test:      test,
 	}
 }
 
 func newDefaultCaseNode() *_caseNode {
-	return &_caseNode{
-	}
+	return &_caseNode{}
 }
 
 func (self _caseNode) String() string {
@@ -293,7 +292,7 @@ type _throwNode struct {
 func newThrowNode(argument _node) *_throwNode {
 	return &_throwNode{
 		_nodeType: nodeThrow,
-		Argument: argument,
+		Argument:  argument,
 	}
 }
 
@@ -304,15 +303,15 @@ func (self _throwNode) String() string {
 type _tryCatchNode struct {
 	_nodeType
 	_node_
-	Try _node
-	Catch *_catchNode
+	Try     _node
+	Catch   *_catchNode
 	Finally *_blockNode
 }
 
 func newTryCatchNode(try _node) *_tryCatchNode {
 	return &_tryCatchNode{
 		_nodeType: nodeTryCatch,
-		Try: try,
+		Try:       try,
 	}
 }
 
@@ -338,14 +337,14 @@ type _catchNode struct {
 	_nodeType
 	_node_
 	Identifier string
-	Body *_blockNode
+	Body       *_blockNode
 }
 
 func newCatchNode(identifier string, body *_blockNode) *_catchNode {
 	return &_catchNode{
-		_nodeType: nodeCatch,
+		_nodeType:  nodeCatch,
 		Identifier: identifier,
-		Body: body,
+		Body:       body,
 	}
 }
 
@@ -372,14 +371,14 @@ func (self _variableDeclarationListNode) String() string {
 type _variableDeclarationNode struct {
 	_nodeType
 	_node_
-	Identifier string
-	Operator string
+	Identifier  string
+	Operator    string
 	Initializer _node
 }
 
 func newVariableDeclarationNode(identifier string) *_variableDeclarationNode {
 	return &_variableDeclarationNode{
-		_nodeType: nodeVariableDeclaration,
+		_nodeType:  nodeVariableDeclaration,
 		Identifier: identifier,
 	}
 }
@@ -394,16 +393,16 @@ func (self _variableDeclarationNode) String() string {
 type _whileNode struct {
 	_nodeType
 	_node_
-	Test _node
-	Body _node
+	Test      _node
+	Body      _node
 	_labelSet _labelSet
 }
 
 func newWhileNode(test _node, body _node) *_whileNode {
 	self := &_whileNode{
 		_nodeType: nodeWhile,
-		Test: test,
-		Body: body,
+		Test:      test,
+		Body:      body,
 		_labelSet: _labelSet{},
 	}
 	return self
@@ -417,18 +416,17 @@ type _withNode struct {
 	_nodeType
 	_node_
 	Object _node
-	Body _node
+	Body   _node
 }
 
 func newWithNode(object _node, body _node) *_withNode {
 	return &_withNode{
 		_nodeType: nodeWith,
-		Object: object,
-		Body: body,
+		Object:    object,
+		Body:      body,
 	}
 }
 
 func (self _withNode) String() string {
 	return fmt.Sprintf("{ <with> %s %s }", self.Object, self.Body)
 }
-

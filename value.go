@@ -1,8 +1,8 @@
 package otto
 
 import (
-	"math"
 	"fmt"
+	"math"
 )
 
 type _valueType int
@@ -26,7 +26,7 @@ type Value struct {
 
 func ToValue(value interface{}) (Value, error) {
 	result := UndefinedValue()
-	err := catchPanic(func(){
+	err := catchPanic(func() {
 		result = toValue(value)
 	})
 	return result, err
@@ -51,12 +51,12 @@ func UndefinedValue() Value {
 
 // IsDefined will return false if the value is undefined, and true otherwise.
 func (value Value) IsDefined() bool {
-    return value._valueType != valueUndefined
+	return value._valueType != valueUndefined
 }
 
 // IsUndefined will return true if the value is undefined, and false otherwise.
 func (value Value) IsUndefined() bool {
-    return value._valueType == valueUndefined
+	return value._valueType == valueUndefined
 }
 
 // Any nil will do -- we just make a new throwaway type here
@@ -75,14 +75,14 @@ func (value Value) IsNull() bool {
 
 func (value Value) isCallable() bool {
 	switch value := value.value.(type) {
-    case *_object:
+	case *_object:
 		return value._Function != nil
-    }
-    return false
+	}
+	return false
 }
 
 func (value Value) isReference() bool {
-    return value._valueType == valueReference
+	return value._valueType == valueReference
 }
 
 // Call the value as a function with the given this value and argument list and
@@ -96,25 +96,25 @@ func (value Value) isReference() bool {
 //		2. The value is not actually a function
 //		3. An (uncaught) exception is thrown
 //
-func (value Value) Call(this Value, argumentList... interface{}) (Value, error) {
+func (value Value) Call(this Value, argumentList ...interface{}) (Value, error) {
 	result := UndefinedValue()
-	err := catchPanic(func(){
+	err := catchPanic(func() {
 		result = value.call(this, argumentList...)
 	})
 	return result, err
 }
 
-func (value Value) call(this Value, argumentList... interface{}) Value {
-    switch value := value.value.(type) {
-    case *_object:
-        return value.Call(this, argumentList...)
-    }
+func (value Value) call(this Value, argumentList ...interface{}) Value {
+	switch value := value.value.(type) {
+	case *_object:
+		return value.Call(this, argumentList...)
+	}
 	panic(newTypeError())
 }
 
 // IsPrimitive will return true if value is a primitive (any kind of primitive).
 func (value Value) IsPrimitive() bool {
-	return ! value.IsObject()
+	return !value.IsObject()
 }
 
 // IsBoolean will return true if value is a boolean (primitive).
@@ -234,8 +234,8 @@ func (value Value) isError() bool {
 
 func toValue(value interface{}) Value {
 	switch value := value.(type) {
-    case Value:
-        return value
+	case Value:
+		return value
 	case bool:
 		return Value{valueBoolean, value}
 	case int:
@@ -273,7 +273,7 @@ func toValue(value interface{}) Value {
 		return Value{valueObject, value.object}
 	case _reference: // reference is an interface (already a pointer)
 		return Value{valueReference, value}
-    }
+	}
 	panic(newTypeError("Unable to convert value: %v (%T)", value, value))
 }
 
@@ -282,7 +282,7 @@ func toValue(value interface{}) Value {
 // This method will make return the empty string if there is an error.
 func (value Value) String() string {
 	result := ""
-	catchPanic(func(){
+	catchPanic(func() {
 		result = value.toString()
 	})
 	return result
@@ -303,7 +303,7 @@ func (value Value) toBoolean() bool {
 // If there is an error during the conversion process (like an uncaught exception), then the result will be false and an error.
 func (value Value) ToBoolean() (bool, error) {
 	result := false
-	err := catchPanic(func(){
+	err := catchPanic(func() {
 		result = toBoolean(value)
 	})
 	return result, err
@@ -326,7 +326,7 @@ func (value Value) toFloat() float64 {
 // If there is an error during the conversion process (like an uncaught exception), then the result will be 0 and an error.
 func (value Value) ToFloat() (float64, error) {
 	result := float64(0)
-	err := catchPanic(func(){
+	err := catchPanic(func() {
 		result = toFloat(value)
 	})
 	return result, err
@@ -341,7 +341,7 @@ func (value Value) ToFloat() (float64, error) {
 // If there is an error during the conversion process (like an uncaught exception), then the result will be 0 and an error.
 func (value Value) ToInteger() (int64, error) {
 	result := int64(0)
-	err := catchPanic(func(){
+	err := catchPanic(func() {
 		result = toInteger(value)
 	})
 	return result, err
@@ -362,7 +362,7 @@ func (value Value) toString() string {
 // If there is an error during the conversion process (like an uncaught exception), then the result will be the empty string ("") and an error.
 func (value Value) ToString() (string, error) {
 	result := ""
-	err := catchPanic(func(){
+	err := catchPanic(func() {
 		result = toString(value)
 	})
 	return result, err
@@ -373,7 +373,7 @@ func (value Value) _object() *_object {
 	case *_object:
 		return value
 	}
-    return nil
+	return nil
 }
 
 // Object will return the object of the value, or nil if value is not an object.
@@ -384,7 +384,7 @@ func (value Value) Object() *Object {
 	case *_object:
 		return _newObject(object, value)
 	}
-    return nil
+	return nil
 }
 
 func (value Value) reference() _reference {
@@ -392,16 +392,17 @@ func (value Value) reference() _reference {
 	case _reference:
 		return value
 	}
-    return nil
+	return nil
 }
 
 var __NaN__, __PositiveInfinity__, __NegativeInfinity__, __PositiveZero__, __NegativeZero__ float64
+
 func init() {
 	__NaN__ = math.NaN()
 	__PositiveInfinity__ = math.Inf(+1)
 	__NegativeInfinity__ = math.Inf(-1)
 	__PositiveZero__ = 0
-	__NegativeZero__ = math.Float64frombits(0|(1<<63))
+	__NegativeZero__ = math.Float64frombits(0 | (1 << 63))
 }
 
 func positiveInfinity() float64 {

@@ -1,34 +1,33 @@
 package otto
 
-import (
-)
+import ()
 
 type _functionObject struct {
-	Call _callFunction
+	Call      _callFunction
 	Construct _constructFunction
 }
 
 func (runtime *_runtime) newNativeFunctionObject(native _nativeFunction, length int, name string) *_object {
 	self := runtime.newClassObject("Function")
 	self._Function = &_functionObject{
-		Call: newNativeCallFunction(native, name),
+		Call:      newNativeCallFunction(native, name),
 		Construct: defaultConstructFunction,
 	}
 	self.stash.set("length", toValue(length), _propertyMode(0))
-    return self
+	return self
 }
 
 func (runtime *_runtime) newNodeFunctionObject(node *_functionNode, scopeEnvironment _environment) *_object {
 	self := runtime.newClassObject("Function")
 	self._Function = &_functionObject{
-		Call: newNodeCallFunction(node, scopeEnvironment),
+		Call:      newNodeCallFunction(node, scopeEnvironment),
 		Construct: defaultConstructFunction,
 	}
 	self.stash.set("length", toValue(len(node.ParameterList)), _propertyMode(0))
 	return self
 }
 
-func (self *_object) Call(this Value, argumentList... interface{}) Value {
+func (self *_object) Call(this Value, argumentList ...interface{}) Value {
 	if self._Function == nil {
 		panic(newTypeError("%v is not a function", toValue(self)))
 	}
@@ -36,7 +35,7 @@ func (self *_object) Call(this Value, argumentList... interface{}) Value {
 	// ... -> runtime -> self.Function.Call.Dispatch -> ...
 }
 
-func (self *_object) Construct(this Value, argumentList... interface{}) Value {
+func (self *_object) Construct(this Value, argumentList ...interface{}) Value {
 	if self._Function == nil {
 		panic(newTypeError("%v is not a function", toValue(self)))
 	}
@@ -92,7 +91,7 @@ type _constructFunction func(*_object, Value, []Value) Value
 
 // _callFunction
 type _callFunction interface {
-    Dispatch(*_functionEnvironment, *_runtime, Value, []Value) Value
+	Dispatch(*_functionEnvironment, *_runtime, Value, []Value) Value
 	Source() string
 	ScopeEnvironment() _environment
 	name() string
@@ -100,7 +99,7 @@ type _callFunction interface {
 
 type _callFunction_ struct {
 	scopeEnvironment _environment // Can be either Lexical or Variable
-	_name string
+	_name            string
 }
 
 func (self _callFunction_) ScopeEnvironment() _environment {
@@ -127,8 +126,8 @@ func newNativeCallFunction(native _nativeFunction, name string) *_nativeCallFunc
 
 func (self _nativeCallFunction) Dispatch(_ *_functionEnvironment, runtime *_runtime, this Value, argumentList []Value) Value {
 	return self.Native(FunctionCall{
-		runtime: runtime,
-		This: this,
+		runtime:      runtime,
+		This:         this,
 		ArgumentList: argumentList,
 	})
 }
@@ -163,9 +162,9 @@ func (self _nodeCallFunction) Source() string {
 
 // FunctionCall is an enscapulation of a JavaScript function call.
 type FunctionCall struct {
-	runtime *_runtime
-	This Value
-	_thisObject *_object
+	runtime      *_runtime
+	This         Value
+	_thisObject  *_object
 	ArgumentList []Value
 }
 

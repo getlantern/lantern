@@ -1,11 +1,11 @@
 package otto
 
 import (
-    "math"
-    "strconv"
 	"fmt"
-	"strings"
+	"math"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 var stringToNumberParseInteger = regexp.MustCompile(`^(?:0[xX])`)
@@ -26,7 +26,7 @@ func stringToFloat(value string) float64 {
 		parseFloat = true
 	}
 
-	if (parseFloat) {
+	if parseFloat {
 		number, err := strconv.ParseFloat(value, 64)
 		if err != nil && err.(*strconv.NumError).Err != strconv.ErrRange {
 			return math.NaN()
@@ -82,22 +82,22 @@ func toFloat(value Value) float64 {
 	case uint64:
 		return float64(value)
 	case float64:
-        return value
+		return value
 	case string:
 		return stringToFloat(value)
 	case *_object:
 		return toFloat(value.DefaultValue(defaultValueHintNumber))
 	}
-    panic(fmt.Errorf("toFloat(%T)", value.value))
+	panic(fmt.Errorf("toFloat(%T)", value.value))
 }
 
 const (
-	float_2_32 float64 = 4294967296.0
-	float_2_31 float64 = 2147483648.0
-	float_2_16 float64 = 65536.0
-	integer_2_32 int64 = 4294967296
-	integer_2_31 int64 = 2146483648
-	sqrt1_2 float64 = math.Sqrt2/2
+	float_2_32   float64 = 4294967296.0
+	float_2_31   float64 = 2147483648.0
+	float_2_16   float64 = 65536.0
+	integer_2_32 int64   = 4294967296
+	integer_2_31 int64   = 2146483648
+	sqrt1_2      float64 = math.Sqrt2 / 2
 )
 
 func toIntegerFloat(value Value) float64 {

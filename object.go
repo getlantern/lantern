@@ -212,7 +212,7 @@ func (self *_object) defineOwnProperty(name string, descriptor _property, throw 
 			}
 			// Test that, if enumerable is set on the property descriptor, then it should
 			// be the same as the existing property
-			if descriptor.mode & 0020 == 0 && descriptor.enumerable() != property.enumerable() {
+			if descriptor.mode&0020 == 0 && descriptor.enumerable() != property.enumerable() {
 				return false
 			}
 		}

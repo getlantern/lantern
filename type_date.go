@@ -1,27 +1,27 @@
 package otto
 
 import (
-	tme "time"
-	"math"
 	"fmt"
+	"math"
+	tme "time"
 )
 
 type _dateObject struct {
-	time tme.Time // Time from the "time" package, a cached version of time
+	time  tme.Time // Time from the "time" package, a cached version of time
 	epoch int64
 	value Value
 	isNaN bool
 }
 
 type _ecmaTime struct {
-	year int
-	month int
-	day int
-	hour int
-	minute int
-	second int
+	year        int
+	month       int
+	day         int
+	hour        int
+	minute      int
+	second      int
 	millisecond int
-	location *tme.Location // Basically, either local or UTC
+	location    *tme.Location // Basically, either local or UTC
 }
 
 func ecmaTime(goTime tme.Time) _ecmaTime {
@@ -45,7 +45,7 @@ func (self *_ecmaTime) goTime() tme.Time {
 		self.hour,
 		self.minute,
 		self.second,
-		self.millisecond * (100 * 100 * 100),
+		self.millisecond*(100*100*100),
 		self.location,
 	)
 }
@@ -108,12 +108,12 @@ func epochToTime(value float64) (time tme.Time, err error) {
 	epoch := int64(epochWithMilli / 1000)
 	milli := int64(epochWithMilli) % 1000
 
-	time = tme.Unix(int64(epoch), milli * 1000000).UTC()
+	time = tme.Unix(int64(epoch), milli*1000000).UTC()
 	return
 }
 
 func timeToEpoch(time tme.Time) float64 {
-	return float64(time.Unix() * 1000 + int64(time.Nanosecond() / 1000000))
+	return float64(time.Unix()*1000 + int64(time.Nanosecond()/1000000))
 }
 
 func (runtime *_runtime) newDateObject(epoch float64) *_object {
@@ -193,7 +193,7 @@ func newDateTime(argumentList []Value) (epoch float64) {
 			year += 1900
 		}
 
-		time := tme.Date(int(year), dateToGoMonth(int(month)), int(day), int(hours), int(minutes), int(seconds), int(ms) * 1000000, tme.UTC)
+		time := tme.Date(int(year), dateToGoMonth(int(month)), int(day), int(hours), int(minutes), int(seconds), int(ms)*1000000, tme.UTC)
 		return timeToEpoch(time)
 
 	} else if len(argumentList) == 0 { // 0-argument

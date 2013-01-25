@@ -13,4 +13,3 @@ func (runtime *_runtime) newArgumentsObject(argumentList []Value) *_object {
 
 	return self
 }
-

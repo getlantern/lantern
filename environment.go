@@ -24,14 +24,14 @@ type _environment interface {
 
 type _functionEnvironment struct {
 	_objectEnvironment
-	arguments *_object
+	arguments           *_object
 	indexOfArgumentName map[string]string
 }
 
 func (runtime *_runtime) newFunctionEnvironment(outer _environment) *_functionEnvironment {
 	return &_functionEnvironment{
 		_objectEnvironment: _objectEnvironment{
-			outer: outer,
+			outer:  outer,
 			Object: runtime.newObject(),
 		},
 	}
@@ -56,9 +56,9 @@ func (self *_functionEnvironment) HasBinding(name string) bool {
 // _objectEnvironment
 
 type _objectEnvironment struct {
-	runtime *_runtime
-    outer _environment
-    Object *_object
+	runtime     *_runtime
+	outer       _environment
+	Object      *_object
 	ProvideThis bool
 }
 
@@ -66,11 +66,11 @@ func (runtime *_runtime) newObjectEnvironment(object *_object, outer _environmen
 	if object == nil {
 		object = runtime.newBaseObject()
 	}
-    return &_objectEnvironment{
+	return &_objectEnvironment{
 		runtime: runtime,
-		outer: outer,
-        Object: object,
-    }
+		outer:   outer,
+		Object:  object,
+	}
 }
 
 func (self *_objectEnvironment) HasBinding(name string) bool {
@@ -137,21 +137,21 @@ func (self *_objectEnvironment) newReference(name string, strict bool) _referenc
 func (runtime *_runtime) newDeclarativeEnvironment(outer _environment) *_declarativeEnvironment {
 	return &_declarativeEnvironment{
 		runtime: runtime,
-		outer: outer,
-		stash: map[string]*_declarativeProperty{},
+		outer:   outer,
+		stash:   map[string]*_declarativeProperty{},
 	}
 }
 
 type _declarativeProperty struct {
-	value Value
-	mutable bool
+	value     Value
+	mutable   bool
 	deletable bool
 }
 
 type _declarativeEnvironment struct {
 	runtime *_runtime
-    outer _environment
-	stash map[string]*_declarativeProperty
+	outer   _environment
+	stash   map[string]*_declarativeProperty
 }
 
 func (self *_declarativeEnvironment) HasBinding(name string) bool {
@@ -165,8 +165,8 @@ func (self *_declarativeEnvironment) CreateMutableBinding(name string, deletable
 		panic(hereBeDragons())
 	}
 	self.stash[name] = &_declarativeProperty{
-		value: UndefinedValue(),
-		mutable: true,
+		value:     UndefinedValue(),
+		mutable:   true,
 		deletable: deletable,
 	}
 }

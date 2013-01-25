@@ -2,9 +2,9 @@ package otto
 
 import (
 	"fmt"
+	. "github.com/robertkrimen/terst"
 	"strings"
-    "testing"
-    . "github.com/robertkrimen/terst"
+	"testing"
 )
 
 func lexerCollect(source string) (result []_token) {
@@ -20,7 +20,7 @@ func lexerCollect(source string) (result []_token) {
 	return
 }
 
-func lexerCollectAndTest(input string, arguments... string){
+func lexerCollectAndTest(input string, arguments ...string) {
 	result := lexerCollect(input)
 	for index, expect := range arguments {
 		result := result[index]
@@ -97,7 +97,6 @@ func TestLexer(t *testing.T) {
 		test(&lexer, 2, []rune{102, -1}, "f", 1, 1)
 	}
 }
-
 
 func TestParserLexer(t *testing.T) {
 	Terst(t)

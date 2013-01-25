@@ -1,15 +1,15 @@
 package otto
 
 func toStringPrimitive(value Value) Value {
-    return _toPrimitive(value, defaultValueHintString)
+	return _toPrimitive(value, defaultValueHintString)
 }
 
 func toNumberPrimitive(value Value) Value {
-    return _toPrimitive(value, defaultValueHintNumber)
+	return _toPrimitive(value, defaultValueHintNumber)
 }
 
 func toPrimitive(value Value) Value {
-    return _toPrimitive(value, defaultValueNoHint)
+	return _toPrimitive(value, defaultValueNoHint)
 }
 
 func _toPrimitive(value Value, hint _defaultValueHint) Value {

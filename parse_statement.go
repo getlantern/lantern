@@ -1,7 +1,6 @@
 package otto
 
-import (
-)
+import ()
 
 func (self *_parser) ParseStatement() _node {
 
@@ -165,7 +164,7 @@ func (self *_parser) ParseContinueBreak(kind string, _newNode func(string) _node
 func (self *_parser) parseInFunction(parse func() _node) _node {
 	in := self.Scope().InFunction
 	self.Scope().InFunction = true
-	defer func(){
+	defer func() {
 		self.Scope().InFunction = in
 	}()
 	return parse()
@@ -174,7 +173,7 @@ func (self *_parser) parseInFunction(parse func() _node) _node {
 func (self *_parser) parseInSwitch(parse func() _node) _node {
 	in := self.Scope().InSwitch
 	self.Scope().InSwitch = true
-	defer func(){
+	defer func() {
 		self.Scope().InSwitch = in
 	}()
 	return parse()
@@ -183,7 +182,7 @@ func (self *_parser) parseInSwitch(parse func() _node) _node {
 func (self *_parser) parseInIteration(parse func() _node) _node {
 	in := self.Scope().InIteration
 	self.Scope().InIteration = true
-	defer func(){
+	defer func() {
 		self.Scope().InIteration = in
 	}()
 	return parse()
@@ -191,7 +190,7 @@ func (self *_parser) parseInIteration(parse func() _node) _node {
 
 func (self *_parser) ParseDoWhile() _node {
 	self.Expect("do")
-	body := self.parseInIteration(func() _node{
+	body := self.parseInIteration(func() _node {
 		return self.ParseStatement()
 	})
 	self.Expect("while")
@@ -209,7 +208,7 @@ func (self *_parser) ParseWhile() _node {
 	self.Expect("(")
 	test := self.ParseExpression()
 	self.Expect(")")
-	body := self.parseInIteration(func() _node{
+	body := self.parseInIteration(func() _node {
 		return self.ParseStatement()
 	})
 
@@ -442,7 +441,7 @@ func (self *_parser) ParseFunction(declare bool) _node {
 		functionNode.FunctionList = self.Scope().FunctionList
 	}
 
-	return functionNode;
+	return functionNode
 }
 
 /*func (self *_parser) ParseFunctionParameterList() []string {*/
@@ -467,7 +466,7 @@ func (self *_parser) parseForIn(into _node) *_forInNode {
 	source := self.ParseExpression()
 	self.Expect(")")
 
-	body := self.parseInIteration(func() _node{
+	body := self.parseInIteration(func() _node {
 		return self.ParseStatement()
 	})
 
@@ -493,7 +492,7 @@ func (self *_parser) parseFor(initial _node) *_forNode {
 	}
 	self.Expect(")")
 
-	body := self.parseInIteration(func() _node{
+	body := self.parseInIteration(func() _node {
 		return self.ParseStatement()
 	})
 

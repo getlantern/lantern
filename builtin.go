@@ -1,15 +1,15 @@
 package otto
 
 import (
-	"strings"
-	"fmt"
-	"strconv"
-	"math"
 	"bytes"
-	"regexp"
+	"fmt"
+	"math"
 	"math/rand"
-	time_ "time"
 	"net/url"
+	"regexp"
+	"strconv"
+	"strings"
+	time_ "time"
 	"unicode/utf16"
 )
 
@@ -209,7 +209,7 @@ func builtinNewFunctionNative(runtime *_runtime, argumentList []Value) *_object 
 	argumentCount := len(argumentList)
 	if argumentCount > 0 {
 		bodySource = toString(argumentList[argumentCount-1])
-		argumentList = argumentList[0:argumentCount-1]
+		argumentList = argumentList[0 : argumentCount-1]
 		for _, value := range argumentList {
 			parameterList = append(parameterList, toString(value))
 		}
@@ -278,14 +278,14 @@ func builtinNewBoolean(self *_object, _ Value, argumentList []Value) Value {
 // String
 
 func stringValueFromStringArgumentList(argumentList []Value) Value {
-    if len(argumentList) > 0 {
-	    return toValue(toString(argumentList[0]))
-    }
-    return toValue("")
+	if len(argumentList) > 0 {
+		return toValue(toString(argumentList[0]))
+	}
+	return toValue("")
 }
 
 func builtinString(call FunctionCall) Value {
-    return stringValueFromStringArgumentList(call.ArgumentList)
+	return stringValueFromStringArgumentList(call.ArgumentList)
 }
 
 func builtinNewString(self *_object, _ Value, argumentList []Value) Value {
@@ -418,7 +418,7 @@ func builtinString_findAndReplaceString(input []byte, lastIndex int, match []int
 	if match[0] != lastIndex {
 		output = append(output, target[lastIndex:match[0]]...)
 	}
-	replacement := builtinString_replace_Regexp.ReplaceAllFunc(replaceValue, func(part []byte) []byte{
+	replacement := builtinString_replace_Regexp.ReplaceAllFunc(replaceValue, func(part []byte) []byte {
 		// TODO Check if match[0] or match[1] can be -1 in this scenario
 		switch part[1] {
 		case '$':
@@ -428,7 +428,7 @@ func builtinString_findAndReplaceString(input []byte, lastIndex int, match []int
 		case '`':
 			return target[:match[0]]
 		case '\'':
-			return target[match[1]:len(target)-1]
+			return target[match[1] : len(target)-1]
 		}
 		matchNumberParse, error := strconv.ParseInt(string(part[1:]), 10, 64)
 		matchNumber := int(matchNumberParse)
@@ -483,7 +483,7 @@ func builtinString_replace(call FunctionCall) Value {
 					result = append(result, target[lastIndex:match[0]]...)
 				}
 				matchCount := len(match) / 2
-				argumentList := make([]Value, matchCount + 2)
+				argumentList := make([]Value, matchCount+2)
 				for index := 0; index < matchCount; index++ {
 					offset := 2 * index
 					if match[offset] != -1 {
@@ -492,8 +492,8 @@ func builtinString_replace(call FunctionCall) Value {
 						argumentList[index] = UndefinedValue()
 					}
 				}
-				argumentList[matchCount + 0] = toValue(match[0])
-				argumentList[matchCount + 1] = toValue(target)
+				argumentList[matchCount+0] = toValue(match[0])
+				argumentList[matchCount+1] = toValue(target)
 				replacement := toString(replace.Call(UndefinedValue(), argumentList))
 				result = append(result, []byte(replacement)...)
 				lastIndex = match[1]
@@ -537,7 +537,7 @@ func builtinString_search(call FunctionCall) Value {
 }
 
 func stringSplitMatch(target string, targetLength int64, index uint, search string, searchLength int64) (bool, uint) {
-	if int64(index) + searchLength > searchLength {
+	if int64(index)+searchLength > searchLength {
 		return false, 0
 	}
 	found := strings.Index(target[index:], search)
@@ -618,7 +618,7 @@ func builtinString_split(call FunctionCall) Value {
 			}
 		}
 
-RETURN:
+	RETURN:
 		return toValue(call.runtime.newArray(valueArray))
 
 	} else {
@@ -654,7 +654,7 @@ func builtinString_slice(call FunctionCall) Value {
 
 	length := uint(len(target))
 	start, end := rangeStartEnd(call.ArgumentList, length, false)
-	if 0 >= end - start {
+	if 0 >= end-start {
 		return toValue("")
 	}
 	return toValue(target[start:end])
@@ -688,7 +688,7 @@ func builtinString_substr(call FunctionCall) Value {
 		return toValue("")
 	}
 
-	if start + length >= size {
+	if start+length >= size {
 		// Cap length to be to the end of the string
 		// start = 3, length = 5, size = 4 [0, 1, 2, 3]
 		// 4 - 3 = 1 
@@ -696,7 +696,7 @@ func builtinString_substr(call FunctionCall) Value {
 		length = size - start
 	}
 
-	return toValue(target[start:start+length])
+	return toValue(target[start : start+length])
 }
 
 func builtinString_toLowerCase(call FunctionCall) Value {
@@ -712,14 +712,14 @@ func builtinString_toUpperCase(call FunctionCall) Value {
 // Number
 
 func numberValueFromNumberArgumentList(argumentList []Value) Value {
-    if len(argumentList) > 0 {
-	    return toValue(toNumber(argumentList[0]))
-    }
-    return toValue(0)
+	if len(argumentList) > 0 {
+		return toValue(toNumber(argumentList[0]))
+	}
+	return toValue(0)
 }
 
 func builtinNumber(call FunctionCall) Value {
-    return numberValueFromNumberArgumentList(call.ArgumentList)
+	return numberValueFromNumberArgumentList(call.ArgumentList)
 }
 
 func builtinNewNumber(self *_object, _ Value, argumentList []Value) Value {
@@ -797,8 +797,8 @@ func builtinArray_shift(call FunctionCall) Value {
 			thisObject.delete(to, true)
 		}
 	}
-	thisObject.delete(arrayIndexToString(length - 1), true)
-	thisObject.put("length", toValue(length - 1), true)
+	thisObject.delete(arrayIndexToString(length-1), true)
+	thisObject.put("length", toValue(length-1), true)
 	return first
 }
 
@@ -824,8 +824,8 @@ func builtinArray_pop(call FunctionCall) Value {
 		return UndefinedValue()
 	}
 	last := thisObject.get(arrayIndexToString(length - 1))
-	thisObject.delete(arrayIndexToString(length - 1), true)
-	thisObject.put("length", toValue(length - 1), true)
+	thisObject.delete(arrayIndexToString(length-1), true)
+	thisObject.put("length", toValue(length-1), true)
 	return last
 }
 
@@ -920,7 +920,7 @@ func builtinArray_splice(call FunctionCall) Value {
 	length := uint(toUI32(thisObject.get("length")))
 
 	start := valueToArrayIndex(call.Argument(0), length, false)
-	deleteCount := valueToArrayIndex(call.Argument(1), length - start, true)
+	deleteCount := valueToArrayIndex(call.Argument(1), length-start, true)
 	valueArray := make([]Value, deleteCount)
 
 	for index := uint(0); index < deleteCount; index++ {
@@ -945,13 +945,13 @@ func builtinArray_splice(call FunctionCall) Value {
 	if itemCount < deleteCount {
 		// The Object/Array is shrinking
 		stop := length - deleteCount // The new length of the Object/Array before
-									 // appending the itemList remainder
+		// appending the itemList remainder
 		// Stopping at the lower bound of the insertion:
 		// Move an item from the after the deleted portion
 		// to a position after the inserted portion
 		for index := start; index < stop; index++ {
 			from := arrayIndexToString(index + deleteCount) // Position just after deletion
-			to := arrayIndexToString(index + itemCount) // Position just after splice (insertion)
+			to := arrayIndexToString(index + itemCount)     // Position just after splice (insertion)
 			if thisObject.hasProperty(from) {
 				thisObject.put(to, thisObject.get(from), true)
 			} else {
@@ -962,7 +962,7 @@ func builtinArray_splice(call FunctionCall) Value {
 		// We don't bother to delete below <stop + itemCount> (if any) since those
 		// will be overwritten anyway
 		for index := length; index > (stop + itemCount); index-- {
-			thisObject.delete(arrayIndexToString(index - 1), true)
+			thisObject.delete(arrayIndexToString(index-1), true)
 		}
 	} else if itemCount > deleteCount {
 		// The Object/Array is growing
@@ -984,9 +984,9 @@ func builtinArray_splice(call FunctionCall) Value {
 	}
 
 	for index := uint(0); index < itemCount; index++ {
-		thisObject.put(arrayIndexToString(index + start), itemList[index], true)
+		thisObject.put(arrayIndexToString(index+start), itemList[index], true)
 	}
-	thisObject.put("length", toValue(length + itemCount - deleteCount), true)
+	thisObject.put("length", toValue(length+itemCount-deleteCount), true)
 
 	return toValue(call.runtime.newArray(valueArray))
 }
@@ -1049,8 +1049,8 @@ func builtinArray_reverse(call FunctionCall) Value {
 	length := uint(toUI32(thisObject.get("length")))
 
 	lower := struct {
-		name string
-		index uint
+		name   string
+		index  uint
 		exists bool
 	}{}
 	upper := lower
@@ -1091,10 +1091,10 @@ func builtinArray_reverse(call FunctionCall) Value {
 
 func sortCompare(thisObject *_object, index0, index1 uint, compare *_object) int {
 	j := struct {
-		name string
-		exists bool
+		name    string
+		exists  bool
 		defined bool
-		value string
+		value   string
 	}{}
 	k := j
 	j.name = arrayIndexToString(index0)
@@ -1142,7 +1142,7 @@ func sortCompare(thisObject *_object, index0, index1 uint, compare *_object) int
 func arraySortSwap(thisObject *_object, index0, index1 uint) {
 
 	j := struct {
-		name string
+		name   string
 		exists bool
 	}{}
 	k := j
@@ -1185,12 +1185,12 @@ func arraySortQuickPartition(thisObject *_object, left, right, pivot uint, compa
 
 func arraySortQuickSort(thisObject *_object, left, right uint, compare *_object) {
 	if left < right {
-		pivot := left + (right - left)/2
+		pivot := left + (right-left)/2
 		pivot = arraySortQuickPartition(thisObject, left, right, pivot, compare)
 		if pivot > 0 {
-			arraySortQuickSort(thisObject, left, pivot - 1, compare)
+			arraySortQuickSort(thisObject, left, pivot-1, compare)
 		}
-		arraySortQuickSort(thisObject, pivot + 1, right, compare)
+		arraySortQuickSort(thisObject, pivot+1, right, compare)
 	}
 }
 
@@ -1204,7 +1204,7 @@ func builtinArray_sort(call FunctionCall) Value {
 		panic(newTypeError())
 	}
 	if length > 1 {
-		arraySortQuickSort(thisObject, 0, length - 1, compare)
+		arraySortQuickSort(thisObject, 0, length-1, compare)
 	}
 	return call.This
 }

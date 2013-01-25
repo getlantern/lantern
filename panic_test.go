@@ -1,8 +1,8 @@
 package otto
 
 import (
-    "testing"
-    . "github.com/robertkrimen/terst"
+	. "github.com/robertkrimen/terst"
+	"testing"
 )
 
 func Test_panic(t *testing.T) {

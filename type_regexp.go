@@ -1,19 +1,19 @@
 package otto
 
 import (
+	"bytes"
 	"fmt"
 	"regexp"
 	"strings"
-	"bytes"
 )
 
 type _regExpObject struct {
 	RegularExpression *regexp.Regexp
-	Global bool
-	IgnoreCase bool
-	Multiline bool
-	Source string
-	LastIndex Value
+	Global            bool
+	IgnoreCase        bool
+	Multiline         bool
+	Source            string
+	LastIndex         Value
 }
 
 func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object {
@@ -58,11 +58,11 @@ func (runtime *_runtime) newRegExpObject(pattern string, flags string) *_object 
 
 	self._RegExp = &_regExpObject{
 		RegularExpression: regularExpression,
-		Global: global,
-		IgnoreCase: ignoreCase,
-		Multiline: multiline,
-		Source: pattern,
-		LastIndex: toValue(0),
+		Global:            global,
+		IgnoreCase:        ignoreCase,
+		Multiline:         multiline,
+		Source:            pattern,
+		LastIndex:         toValue(0),
 	}
 	self.stash = newRegExpStash(self._RegExp, self.stash)
 	return self
@@ -149,6 +149,7 @@ var transformRegExp_unescape = []*regexp.Regexp{
 }
 
 var transformRegExp_unescapeDollar = regexp.MustCompile(`\\([cux])$`)
+
 // TODO Go "regexp" bug? Can't do: (?:)|(?:$)
 
 func transformRegExp(ecmaRegExp string) (goRegExp string) {
@@ -157,9 +158,9 @@ func transformRegExp(ecmaRegExp string) (goRegExp string) {
 	for _, value := range transformRegExp_unescape {
 		tmp = value.ReplaceAll(tmp, []byte(`$1$2`))
 	}
-	tmp = transformRegExp_escape_c.ReplaceAllFunc(tmp, func(in []byte) []byte{
+	tmp = transformRegExp_escape_c.ReplaceAllFunc(tmp, func(in []byte) []byte {
 		in = bytes.ToUpper(in)
-		return []byte(fmt.Sprintf("\\%o", in[0] - 64)) // \cA => \001 (A == 65)
+		return []byte(fmt.Sprintf("\\%o", in[0]-64)) // \cA => \001 (A == 65)
 	})
 	tmp = transformRegExp_unescape_c.ReplaceAll(tmp, []byte(`c`))
 	tmp = transformRegExp_unescapeDollar.ReplaceAll(tmp, []byte(`$1`))
@@ -169,7 +170,7 @@ func transformRegExp(ecmaRegExp string) (goRegExp string) {
 
 func isValidRegExp(ecmaRegExp string) bool {
 	shibboleth := 0 // The shibboleth in this case is (?
-					// Since we're looking for (?! / (?=
+	// Since we're looking for (?! / (?=
 	inSet := false // In a bracketed set, e.g. [0-9]
 	escape := false
 	for _, chr := range ecmaRegExp {

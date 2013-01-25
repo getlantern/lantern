@@ -1,12 +1,12 @@
 package otto
 
 import (
-    "testing"
-    . "github.com/robertkrimen/terst"
+	. "github.com/robertkrimen/terst"
+	"testing"
 )
 
 func TestOttoError(t *testing.T) {
-    Terst(t)
+	Terst(t)
 
 	Otto := New()
 

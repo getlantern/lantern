@@ -1,21 +1,21 @@
 package otto
 
 import (
-	"strconv"
-	"math"
 	"fmt"
-	"strings"
-	runtime_ "runtime"
+	"math"
 	"regexp"
+	runtime_ "runtime"
+	"strconv"
+	"strings"
 )
 
 var isIdentifier_Regexp *regexp.Regexp = regexp.MustCompile(`^[a-zA-Z\$][a-zA-Z0-9\$]*$`)
 
-func isIdentifier(string_ string ) bool {
+func isIdentifier(string_ string) bool {
 	return isIdentifier_Regexp.MatchString(string_)
 }
 
-func toValueArray(arguments... interface{}) []Value {
+func toValueArray(arguments ...interface{}) []Value {
 	length := len(arguments)
 	if length == 1 {
 		if valueArray, ok := arguments[0].([]Value); ok {
@@ -67,7 +67,7 @@ func valueToArrayIndex(indexValue Value, length uint, negativeIsZero bool) uint 
 			return uint(index)
 		}
 		if 0 > index {
-			index = math.Max(index + float64(length), 0)
+			index = math.Max(index+float64(length), 0)
 		} else {
 			index = math.Min(index, float64(length))
 		}
@@ -86,7 +86,7 @@ func valueToArrayIndex(indexValue Value, length uint, negativeIsZero bool) uint 
 	}
 }
 
-func dbg(arguments... interface{}) {
+func dbg(arguments ...interface{}) {
 	output := []string{}
 	for _, argument := range arguments {
 		output = append(output, fmt.Sprintf("%v", argument))
@@ -102,7 +102,7 @@ func boolFields(input string) (result map[string]bool) {
 	return result
 }
 
-func hereBeDragons(arguments... interface{}) string {
+func hereBeDragons(arguments ...interface{}) string {
 	pc, _, _, _ := runtime_.Caller(1)
 	name := runtime_.FuncForPC(pc).Name()
 	message := fmt.Sprintf("Here be dragons -- %s", name)
@@ -120,7 +120,7 @@ func hereBeDragons(arguments... interface{}) string {
 	return message
 }
 
-func throwHereBeDragons(arguments... interface{}) {
+func throwHereBeDragons(arguments ...interface{}) {
 	panic(hereBeDragons(arguments...))
 }
 
@@ -136,4 +136,3 @@ func eachPair(list []interface{}, fn func(_0, _1 interface{})) {
 		fn(_0, _1)
 	}
 }
-

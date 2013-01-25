@@ -18,15 +18,15 @@ type _property struct {
 }
 
 func (self _property) writable() bool {
-	return self.mode & 0700 == 0100
+	return self.mode&0700 == 0100
 }
 
 func (self _property) enumerable() bool {
-	return self.mode & 0070 == 0010
+	return self.mode&0070 == 0010
 }
 
 func (self _property) configurable() bool {
-	return self.mode & 0007 == 0001
+	return self.mode&0007 == 0001
 }
 
 func (self _property) copy() *_property {
@@ -41,7 +41,7 @@ func (self _property) isAccessorDescriptor() bool {
 
 func (self _property) isDataDescriptor() bool {
 	value, test := self.value.(Value)
-	return self.mode & 0700 != 0200 || (test && !value.isEmpty())
+	return self.mode&0700 != 0200 || (test && !value.isEmpty())
 }
 
 func (self _property) isGenericDescriptor() bool {
@@ -90,7 +90,6 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 		descriptor.mode = mode
 	}
 
-
 	var getter, setter *_object
 	getterSetter := false
 
@@ -116,16 +115,16 @@ func toPropertyDescriptor(value Value) (descriptor _property) {
 		}
 	}
 
-	if (getterSetter) {
+	if getterSetter {
 		// If writable is set on the descriptor, ...
-		if descriptor.mode & 0200 != 0 {
+		if descriptor.mode&0200 != 0 {
 			panic(newTypeError())
 		}
 		descriptor.value = _propertyGetSet{getter, setter}
 	}
 
 	if objectDescriptor.hasProperty("value") {
-		if (getterSetter) {
+		if getterSetter {
 			panic(newTypeError())
 		}
 		descriptor.value = objectDescriptor.get("value")

@@ -1,12 +1,12 @@
 package otto
 
 import (
-    "testing"
-    . "github.com/robertkrimen/terst"
+	. "github.com/robertkrimen/terst"
+	"testing"
 )
 
 func TestStash(t *testing.T) {
-    Terst(t)
+	Terst(t)
 
 	stash := newObjectStash(true)
 	IsTrue(stash.canPut("xyzzy"))

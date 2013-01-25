@@ -1,12 +1,12 @@
 package otto
 
 import (
-    "testing"
-    . "github.com/robertkrimen/terst"
+	. "github.com/robertkrimen/terst"
+	"testing"
 )
 
 func TestGlobal(t *testing.T) {
-    Terst(t)
+	Terst(t)
 
 	Otto, test := runTestWithOtto()
 	runtime := Otto.runtime
@@ -44,7 +44,7 @@ func TestGlobal(t *testing.T) {
 }
 
 func TestGlobalLength(t *testing.T) {
-    Terst(t)
+	Terst(t)
 
 	test := runTest()
 
@@ -55,7 +55,7 @@ func TestGlobalLength(t *testing.T) {
 }
 
 func TestGlobalError(t *testing.T) {
-    Terst(t)
+	Terst(t)
 
 	test := runTest()
 
@@ -69,7 +69,7 @@ func TestGlobalError(t *testing.T) {
 }
 
 func TestGlobalReadOnly(t *testing.T) {
-    Terst(t)
+	Terst(t)
 
 	test := runTest()
 

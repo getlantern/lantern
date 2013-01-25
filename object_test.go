@@ -1,12 +1,12 @@
 package otto
 
 import (
-    "testing"
-    . "github.com/robertkrimen/terst"
+	. "github.com/robertkrimen/terst"
+	"testing"
 )
 
 func TestObject_(t *testing.T) {
-    Terst(t)
+	Terst(t)
 
 	object := newObject(nil, "")
 	IsTrue(object != nil)
@@ -16,7 +16,7 @@ func TestObject_(t *testing.T) {
 }
 
 func TestStringObject(t *testing.T) {
-    Terst(t)
+	Terst(t)
 
 	object := New().runtime.newStringObject(toValue("xyzzy"))
 	Is(object.get("1"), "y")

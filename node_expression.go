@@ -13,7 +13,7 @@ type _arrayNode struct {
 func newArrayNode(nodeList []_node) *_arrayNode {
 	return &_arrayNode{
 		_nodeType: nodeArray,
-		nodeList: nodeList,
+		nodeList:  nodeList,
 	}
 }
 
@@ -28,18 +28,18 @@ type _assignmentNode struct {
 	_nodeType
 	_node_
 	Assignment string
-	Operator string
-	Left _node
-	Right _node
+	Operator   string
+	Left       _node
+	Right      _node
 }
 
 func newAssignmentNode(assignment string, left _node, right _node) *_assignmentNode {
 	return &_assignmentNode{
-		_nodeType: nodeAssignment,
+		_nodeType:  nodeAssignment,
 		Assignment: assignment,
-		Operator: assignmentTable[assignment],
-		Left: left,
-		Right: right,
+		Operator:   assignmentTable[assignment],
+		Left:       left,
+		Right:      right,
 	}
 }
 
@@ -51,16 +51,16 @@ type _binaryOperationNode struct {
 	_nodeType
 	_node_
 	Operator string
-	Left _node
-	Right _node
+	Left     _node
+	Right    _node
 }
 
 func newBinaryOperationNode(operator string, left _node, right _node) *_binaryOperationNode {
 	return &_binaryOperationNode{
 		_nodeType: nodeBinaryOperation,
-		Operator: operator,
-		Left: left,
-		Right: right,
+		Operator:  operator,
+		Left:      left,
+		Right:     right,
 	}
 }
 
@@ -71,14 +71,14 @@ func (self _binaryOperationNode) String() string {
 type _callNode struct {
 	_nodeType
 	_node_
-	Callee _node
+	Callee       _node
 	ArgumentList []_node
 }
 
 func newCallNode(callee _node) *_callNode {
 	return &_callNode{
-		_nodeType: nodeCall,
-		Callee: callee,
+		_nodeType:    nodeCall,
+		Callee:       callee,
 		ArgumentList: []_node{},
 	}
 }
@@ -96,7 +96,7 @@ type _commaNode struct {
 func newCommaNode(sequence []_node) *_commaNode {
 	return &_commaNode{
 		_nodeType: nodeComma,
-		Sequence: sequence,
+		Sequence:  sequence,
 	}
 }
 
@@ -108,16 +108,16 @@ type _comparisonNode struct {
 	_nodeType
 	_node_
 	Comparator string
-	Left _node
-	Right _node
+	Left       _node
+	Right      _node
 }
 
 func newComparisonNode(comparator string, left _node, right _node) *_comparisonNode {
 	return &_comparisonNode{
-		_nodeType: nodeComparison,
+		_nodeType:  nodeComparison,
 		Comparator: comparator,
-		Left: left,
-		Right: right,
+		Left:       left,
+		Right:      right,
 	}
 }
 
@@ -128,16 +128,16 @@ func (self _comparisonNode) String() string {
 type _conditionalNode struct {
 	_nodeType
 	_node_
-	Test _node
+	Test       _node
 	Consequent _node
-	Alternate _node
+	Alternate  _node
 }
 
 func newConditionalNode(test _node, consequent _node, alternate _node) *_conditionalNode {
 	return &_conditionalNode{
-		Test: test,
+		Test:       test,
 		Consequent: consequent,
-		Alternate: alternate,
+		Alternate:  alternate,
 	}
 }
 
@@ -148,12 +148,12 @@ func (self _conditionalNode) String() string {
 type _functionNode struct {
 	_nodeType
 	_node_
-	_declaration bool
-	ParameterList []string
-	Body []_node
-	VariableList []_declaration
-	FunctionList []_declaration
-	ArgumentsIsParameter bool	// A hint that "arguments" exists as a parameter
+	_declaration         bool
+	ParameterList        []string
+	Body                 []_node
+	VariableList         []_declaration
+	FunctionList         []_declaration
+	ArgumentsIsParameter bool // A hint that "arguments" exists as a parameter
 }
 
 func newFunctionNode() *_functionNode {
@@ -179,8 +179,8 @@ type _identifierNode struct {
 func newIdentifierNode(value string) *_identifierNode {
 	return &_identifierNode{
 		_nodeType: nodeIdentifier,
-        Value: value,
-    }
+		Value:     value,
+	}
 }
 
 func (self *_identifierNode) String() string {
@@ -197,9 +197,9 @@ type _dotMemberNode struct {
 func newDotMemberNode(target _node, member string) *_dotMemberNode {
 	return &_dotMemberNode{
 		_nodeType: nodeDotMember,
-		Target: target,
-        Member: member,
-    }
+		Target:    target,
+		Member:    member,
+	}
 }
 
 func (self *_dotMemberNode) String() string {
@@ -216,9 +216,9 @@ type _bracketMemberNode struct {
 func newBracketMemberNode(target _node, member _node) *_bracketMemberNode {
 	return &_bracketMemberNode{
 		_nodeType: nodeBracketMember,
-		Target: target,
-        Member: member,
-    }
+		Target:    target,
+		Member:    member,
+	}
 }
 
 func (self *_bracketMemberNode) String() string {
@@ -228,14 +228,14 @@ func (self *_bracketMemberNode) String() string {
 type _newNode struct {
 	_nodeType
 	_node_
-	Callee _node
+	Callee       _node
 	ArgumentList []_node
 }
 
 func newnewNode(callee _node) *_newNode {
 	return &_newNode{
-		_nodeType: nodeNew,
-		Callee: callee,
+		_nodeType:    nodeNew,
+		Callee:       callee,
 		ArgumentList: []_node{},
 	}
 }
@@ -256,7 +256,7 @@ func newObjectNode() *_objectNode {
 	}
 }
 
-func (self *_objectNode) AddProperty (property *_objectPropertyNode) {
+func (self *_objectNode) AddProperty(property *_objectPropertyNode) {
 	self.propertyList = append(self.propertyList, property)
 }
 
@@ -270,15 +270,15 @@ func (self *_objectNode) String() string {
 type _objectPropertyNode struct {
 	_nodeType
 	_node_
-	Key string
+	Key   string
 	Value _node
 }
 
 func newObjectPropertyNode(key string, value _node) *_objectPropertyNode {
 	return &_objectPropertyNode{
 		_nodeType: nodeObjectProperty,
-		Key: key,
-		Value: value,
+		Key:       key,
+		Value:     value,
 	}
 }
 
@@ -290,14 +290,14 @@ type _regExpNode struct {
 	_nodeType
 	_node_
 	Pattern string
-	Flags string
+	Flags   string
 }
 
 func newRegExpNode(pattern string, flags string) *_regExpNode {
 	return &_regExpNode{
 		_nodeType: nodeRegExp,
-		Pattern: pattern,
-		Flags: flags,
+		Pattern:   pattern,
+		Flags:     flags,
 	}
 }
 
@@ -324,14 +324,14 @@ type _unaryOperationNode struct {
 	_nodeType
 	_node_
 	Operator string
-	Target _node
+	Target   _node
 }
 
 func newUnaryOperationNode(operator string, target _node) *_unaryOperationNode {
 	return &_unaryOperationNode{
 		_nodeType: nodeUnaryOperation,
-		Operator: operator,
-		Target: target,
+		Operator:  operator,
+		Target:    target,
 	}
 }
 
@@ -353,33 +353,33 @@ type _valueNode struct {
 	_nodeType
 	_node_
 	Value Value
-	Text string
-	Kind _valueNodeType
+	Text  string
+	Kind  _valueNodeType
 }
 
 func newUndefinedNode() *_valueNode {
 	return &_valueNode{
 		_nodeType: nodeValue,
-		Text: "undefined",
-		Value: UndefinedValue(),
-		Kind: valueNodeUndefined,
+		Text:      "undefined",
+		Value:     UndefinedValue(),
+		Kind:      valueNodeUndefined,
 	}
 }
 
 func newNullNode(text string) *_valueNode {
 	return &_valueNode{
 		_nodeType: nodeValue,
-		Text: text,
-		Value: NullValue(),
-		Kind: valueNodeNull,
+		Text:      text,
+		Value:     NullValue(),
+		Kind:      valueNodeNull,
 	}
 }
 
 func newBooleanNode(text string) *_valueNode {
 	node := &_valueNode{
 		_nodeType: nodeValue,
-		Text: text,
-		Kind: valueNodeBoolean,
+		Text:      text,
+		Kind:      valueNodeBoolean,
 	}
 	switch text {
 	case "true":
@@ -401,18 +401,18 @@ func newNumberNode(text string) *_valueNode {
 	//}
 	return &_valueNode{
 		_nodeType: nodeValue,
-		Text: text,
-		Value: toValue(value),
-		Kind: valueNodeNumber,
+		Text:      text,
+		Value:     toValue(value),
+		Kind:      valueNodeNumber,
 	}
 }
 
 func newStringNode(text string) *_valueNode {
 	return &_valueNode{
 		_nodeType: nodeValue,
-		Text: text,
-		Value: toValue(text),
-		Kind: valueNodeString, // Slightly less ugh, but still ugh
+		Text:      text,
+		Value:     toValue(text),
+		Kind:      valueNodeString, // Slightly less ugh, but still ugh
 	}
 }
 

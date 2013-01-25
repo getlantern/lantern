@@ -2,9 +2,9 @@ package otto
 
 import (
 	"fmt"
+	"reflect"
 	"sort"
 	"strings"
-	"reflect"
 )
 
 type _node interface {
@@ -100,7 +100,7 @@ func (self _labelSet) label(target string) string {
 // _declaration
 
 type _declaration struct {
-	Name string
+	Name       string
 	Definition _node
 }
 
@@ -118,7 +118,7 @@ func _fmtNodeSliceString(input interface{}) string {
 	return strings.Join(result, " ")
 }
 
-func fmtNodeString(argument0 interface{}, arguments... interface{}) string {
+func fmtNodeString(argument0 interface{}, arguments ...interface{}) string {
 	if _, yes := argument0.(string); yes {
 		return _fmtNodeString(argument0.(string), arguments...)
 	}
@@ -134,7 +134,7 @@ func fmtNodeString(argument0 interface{}, arguments... interface{}) string {
 	return result
 }
 
-func _fmtNodeString(head string, arguments... interface{}) string {
+func _fmtNodeString(head string, arguments ...interface{}) string {
 	tail := []interface{}{}
 	for _, argument := range arguments {
 		value := argument

@@ -13,7 +13,7 @@ type _reference interface {
 // Reference
 
 type _reference_ struct {
-    name string
+	name   string
 	strict bool
 }
 
@@ -29,7 +29,7 @@ func (self _reference_) Strict() bool {
 
 type _propertyReference struct {
 	_reference_
-    Base *_object
+	Base *_object
 	node _node
 }
 
@@ -37,7 +37,7 @@ func newPropertyReference(base *_object, name string, strict bool, node _node) *
 	return &_propertyReference{
 		Base: base,
 		_reference_: _reference_{
-			name: name,
+			name:   name,
 			strict: strict,
 		},
 		node: node,
@@ -87,7 +87,7 @@ func newArgumentReference(base *_object, name string, strict bool) *_propertyRef
 
 type _environmentReference struct {
 	_reference_
-    Base _environment
+	Base _environment
 	node _node
 }
 
@@ -95,7 +95,7 @@ func newEnvironmentReference(base _environment, name string, strict bool, node _
 	return &_environmentReference{
 		Base: base,
 		_reference_: _reference_{
-			name: name,
+			name:   name,
 			strict: strict,
 		},
 		node: node,

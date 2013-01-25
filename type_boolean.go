@@ -1,7 +1,7 @@
 package otto
 
 import (
-    "strconv"
+	"strconv"
 )
 
 func (runtime *_runtime) newBooleanObject(value Value) *_object {
@@ -9,5 +9,5 @@ func (runtime *_runtime) newBooleanObject(value Value) *_object {
 }
 
 func booleanToString(value bool) string {
-    return strconv.FormatBool(value)
+	return strconv.FormatBool(value)
 }

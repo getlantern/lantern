@@ -3,13 +3,13 @@ package otto
 import (
 	"encoding/json"
 	"fmt"
+	. "github.com/robertkrimen/terst"
 	"math"
-    "testing"
-    . "github.com/robertkrimen/terst"
+	"testing"
 )
 
 func TestValue(t *testing.T) {
-    Terst(t)
+	Terst(t)
 
 	value := UndefinedValue()
 	Is(value.IsUndefined(), true)
@@ -22,7 +22,7 @@ func TestValue(t *testing.T) {
 }
 
 func TestObject(t *testing.T) {
-    Terst(t)
+	Terst(t)
 
 	Is(Value{}.isEmpty(), true)
 	//Is(newObject().Value(), "[object]")
@@ -33,12 +33,12 @@ func TestObject(t *testing.T) {
 }
 
 func TestToValue(t *testing.T) {
-    Terst(t)
+	Terst(t)
 	//Is(toValue(newObjectValue()), "[object]")
 }
 
 func TestToBoolean(t *testing.T) {
-    Terst(t)
+	Terst(t)
 	is := func(left interface{}, right bool) {
 		Is(toValue(left).toBoolean(), right)
 	}
@@ -52,7 +52,7 @@ func TestToBoolean(t *testing.T) {
 }
 
 func TestToFloat(t *testing.T) {
-    Terst(t)
+	Terst(t)
 	is := func(left interface{}, right float64) {
 		if math.IsNaN(right) {
 			Is(toValue(left).toFloat(), "NaN")
@@ -71,11 +71,11 @@ func TestToFloat(t *testing.T) {
 }
 
 func TestToObject(t *testing.T) {
-    Terst(t)
+	Terst(t)
 }
 
 func TestToString(t *testing.T) {
-    Terst(t)
+	Terst(t)
 	Is("undefined", UndefinedValue().toString())
 	Is("null", NullValue().toString())
 	Is("true", toValue(true).toString())
@@ -88,7 +88,7 @@ func TestToString(t *testing.T) {
 }
 
 func TestToI32(t *testing.T) {
-    Terst(t)
+	Terst(t)
 
 	Is(toI32(toValue(0)), "0")
 	Is(toI32(toValue(1)), "1")
@@ -99,7 +99,7 @@ func TestToI32(t *testing.T) {
 }
 
 func TestsameValue(t *testing.T) {
-    Terst(t)
+	Terst(t)
 
 	IsFalse(sameValue(positiveZeroValue(), negativeZeroValue()))
 	IsTrue(sameValue(positiveZeroValue(), toValue(0)))
@@ -108,61 +108,61 @@ func TestsameValue(t *testing.T) {
 }
 
 func TestExport(t *testing.T) {
-    Terst(t)
+	Terst(t)
 
-    test := runTest()
+	test := runTest()
 
-    // test exporting a variety of objects
-    testObjects := []interface{}{
-        true,
-        false,
-        0,
-        7,
-        "string",
-        []interface{}{true, false, 0, 7, "string"},
-        map[string]interface{}{
-            "bool":   true,
-            "number": 7.5,
-            "string": "string",
-            "array": []interface{}{
-                true,
-                false,
-                0,
-                7,
-                "string"},
-            "object": map[string]interface{}{
-                "inside": 7}}}
+	// test exporting a variety of objects
+	testObjects := []interface{}{
+		true,
+		false,
+		0,
+		7,
+		"string",
+		[]interface{}{true, false, 0, 7, "string"},
+		map[string]interface{}{
+			"bool":   true,
+			"number": 7.5,
+			"string": "string",
+			"array": []interface{}{
+				true,
+				false,
+				0,
+				7,
+				"string"},
+			"object": map[string]interface{}{
+				"inside": 7}}}
 
-    for _, obj := range testObjects {
-        // convert test object to JSON
-        bytes, err := json.Marshal(obj)
-        Is(err, nil)
+	for _, obj := range testObjects {
+		// convert test object to JSON
+		bytes, err := json.Marshal(obj)
+		Is(err, nil)
 
-        // store that evaluated JSON as variable x
-        test("x = " + string(bytes))
+		// store that evaluated JSON as variable x
+		test("x = " + string(bytes))
 
-        // export x
-        exported, err := test(`x`).Export()
-        Is(err, nil)
+		// export x
+		exported, err := test(`x`).Export()
+		Is(err, nil)
 
-        // convert the exported object to json
-        exported_bytes, err := json.Marshal(exported)
-        Is(err, nil)
+		// convert the exported object to json
+		exported_bytes, err := json.Marshal(exported)
+		Is(err, nil)
 
-        // compare json from exported value should match origina json
-        Is(string(bytes), string(exported_bytes))
+		// compare json from exported value should match origina json
+		Is(string(bytes), string(exported_bytes))
 
-    }
+	}
 
-    // test exporting undefined
-    exported_undefined, err := test(`y`).Export()
-    Is(exported_undefined, nil)
-    Is(err, fmt.Errorf("undefined"))
+	// test exporting undefined
+	exported_undefined, err := test(`y`).Export()
+	Is(exported_undefined, nil)
+	Is(err, fmt.Errorf("undefined"))
 
-    // test object containing undefined, value is omitted from map
-    test(`x = { "an_undefined_value": undefined }`)
-    exported, err := test(`x`).Export()
-    exported_bytes, err := json.Marshal(exported)
-    Is(err, nil)
-    Is(string(exported_bytes), "{}")
+	// test object containing undefined, value is omitted from map
+	test(`x = { "an_undefined_value": undefined }`)
+	exported, err := test(`x`).Export()
+	exported_bytes, err := json.Marshal(exported)
+	Is(err, nil)
+	Is(string(exported_bytes), "{}")
 }

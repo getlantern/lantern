@@ -17,7 +17,7 @@ func mustParse(source string) *_programNode {
 }
 
 func parse(source string) (result *_programNode, error interface{}) {
-	defer func(){
+	defer func() {
 		if caught := recover(); caught != nil {
 			if _, yes := caught.(*_syntaxError); yes {
 				error = caught
@@ -37,11 +37,11 @@ func init() {
 	// <= >= == != ++ -- << >> && ||
 	// += -= *= %= &= |= ^= /=
 	for _, value := range "<>=!+-*%&|^/" {
-		punctuatorTable[string(value) + "="] = true
+		punctuatorTable[string(value)+"="] = true
 	}
 
 	for _, value := range "+-<>&|" {
-		punctuatorTable[string(value) + string(value)] = true
+		punctuatorTable[string(value)+string(value)] = true
 	}
 
 	// 1-character
@@ -51,8 +51,8 @@ func init() {
 }
 
 type _parser struct {
-	lexer _lexer
-	Stack [](*_sourceScope)
+	lexer   _lexer
+	Stack   [](*_sourceScope)
 	history []_token
 }
 
@@ -71,11 +71,11 @@ func (self *_parser) Consume() string {
 type _sourceScope struct {
 	VariableList []_declaration
 	FunctionList []_declaration
-	_labelSet _labelSet
-	AllowIn bool
-	InFunction bool
-	InSwitch bool
-	InIteration bool
+	_labelSet    _labelSet
+	AllowIn      bool
+	InFunction   bool
+	InSwitch     bool
+	InIteration  bool
 }
 
 func (self *_sourceScope) AddVariable(name string) {
@@ -89,7 +89,7 @@ func (self *_sourceScope) AddFunction(name string, definition _node) {
 func newSourceScope() *_sourceScope {
 	self := &_sourceScope{
 		_labelSet: _labelSet{},
-		AllowIn: true,
+		AllowIn:   true,
 	}
 	return self
 }
@@ -101,15 +101,15 @@ func (self *_sourceScope) HasLabel(name string) bool {
 
 func (self *_parser) EnterScope() {
 	scope := newSourceScope()
-    self.Stack = append(self.Stack, scope)
+	self.Stack = append(self.Stack, scope)
 }
 
 func (self *_parser) LeaveScope() {
-    self.Stack = self.Stack[:len(self.Stack)-1]
+	self.Stack = self.Stack[:len(self.Stack)-1]
 }
 
 func (self *_parser) Scope() *_sourceScope {
-    return self.Stack[len(self.Stack)-1]
+	return self.Stack[len(self.Stack)-1]
 }
 
 func (self *_parser) Accept(kind string) bool {
@@ -145,7 +145,6 @@ func (self *_parser) Expect(kind string) {
 		//panic(fmt.Sprintf("Expect %s but got %s (%s)", kind, token.Kind, token.Text))
 	}
 }
-
 
 var assignmentTable map[string]string = map[string]string{}
 
@@ -261,7 +260,7 @@ func (self *_parser) Parse() *_programNode {
 	node := newProgramNode()
 	node.Body = self.parseStatementUntil(func() bool {
 		return self.Match("EOF")
-	});
+	})
 	node.VariableList = self.Scope().VariableList
 	node.FunctionList = self.Scope().FunctionList
 
@@ -276,7 +275,7 @@ func (self *_parser) ParseAsFunction() *_programNode {
 	node := newProgramNode()
 	node.Body = self.parseStatementUntil(func() bool {
 		return self.Match("EOF")
-	});
+	})
 	node.VariableList = self.Scope().VariableList
 	node.FunctionList = self.Scope().FunctionList
 

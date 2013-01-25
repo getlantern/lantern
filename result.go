@@ -1,7 +1,6 @@
 package otto
 
-import (
-)
+import ()
 
 type _resultKind int
 
@@ -14,8 +13,8 @@ const (
 )
 
 type _result struct {
-	Kind _resultKind
-	Value Value
+	Kind   _resultKind
+	Value  Value
 	Target string
 }
 

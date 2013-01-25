@@ -1,11 +1,11 @@
 package otto
 
 import (
-    "testing"
-    . "github.com/robertkrimen/terst"
-	"strings"
-	"regexp"
 	"fmt"
+	. "github.com/robertkrimen/terst"
+	"regexp"
+	"strings"
+	"testing"
 )
 
 var beforeAfterSeparator_Regexp = regexp.MustCompile(`(?m)^[ \t]*---$`)
@@ -25,8 +25,10 @@ func parserTestNormalizeWant(want string) string {
 		if inQuote {
 			if !ignoreNext {
 				switch rune {
-				case '"': inQuote = false
-				case '\\': ignoreNext = true
+				case '"':
+					inQuote = false
+				case '\\':
+					ignoreNext = true
 				case '\n':
 					inQuote = false
 					aSpace = true
@@ -40,7 +42,8 @@ func parserTestNormalizeWant(want string) string {
 			case ' ', '\t', '\n':
 				aSpace = true
 				continue
-			case '"': inQuote = true
+			case '"':
+				inQuote = true
 			}
 		}
 		if aSpace {
@@ -56,7 +59,7 @@ var errorOptionalLine_Regexp = regexp.MustCompile(` (-):[\d-]+:[\d-]+$`)
 var errorOptionalColumn_Regexp = regexp.MustCompile(` [\d-]+:(-):[\d-]+$`)
 var errorOptionalIndex_Regexp = regexp.MustCompile(` [\d-]+:[\d-]+:(-)$`)
 
-func parserTest(sourceWant... string) {
+func parserTest(sourceWant ...string) {
 	source, want := "", ""
 	if len(sourceWant) == 1 {
 		sourceWant := sourceWant[0]
@@ -782,19 +785,19 @@ Unexpected token ILLEGAL ("Hello)
 
 	// TODO Make these run again
 	if false {
-	test(`x\
+		test(`x\
 ---
 Unexpected token ILLEGAL (x)
 1:-:-
 	`)
 
-	test(`x\u005c
+		test(`x\u005c
 ---
 Unexpected token ILLEGAL (x)
 1:-:-
 	`)
 
-	test(`x\u002a
+		test(`x\u002a
 ---
 Unexpected token ILLEGAL (x)
 1:-:-

@@ -34,7 +34,7 @@ func (self *_parser) ParsePrimaryExpression() _node {
 		self.Expect(")")
 		return result
 	case "/", "/=": // Here, "/" & "/=" actually indicate
-					// the beginning of a regular expression
+		// the beginning of a regular expression
 		return self.ParseRegExpLiteral(token)
 	}
 
@@ -250,7 +250,7 @@ func (self *_parser) ParsePostfixExpression() _node {
 		default:
 			panic(self.History(-1).newSyntaxError("Invalid left-hand side in assignment"))
 		}
-		node := newUnaryOperationNode("=" + self.Consume(), left)
+		node := newUnaryOperationNode("="+self.Consume(), left)
 		self.markNode(node)
 		return node
 	}
@@ -276,7 +276,7 @@ func (self *_parser) ParseUnaryExpression() _node {
 		default:
 			panic(self.History(-1).newSyntaxError("Invalid left-hand side in assignment"))
 		}
-		node := newUnaryOperationNode(operation + "=", left)
+		node := newUnaryOperationNode(operation+"=", left)
 		self.markNode(node)
 		return node
 	case "delete", "void", "typeof":
@@ -431,7 +431,7 @@ func (self *_parser) ParseConditionlExpression() _node {
 
 	if self.Accept("?") {
 		consequent := self.ParseAssignmentExpression()
-		self.Expect(":");
+		self.Expect(":")
 		node := newConditionalNode(left, consequent, self.ParseAssignmentExpression())
 		self.markNode(node)
 		return node
@@ -472,5 +472,3 @@ func (self *_parser) ParseExpression() _node {
 
 	return left
 }
-
-

@@ -102,7 +102,7 @@ func (self *_arrayStash) put(name string, value Value) {
 			self.valueArray[index] = value
 			return
 		}
-		valueArray := make([]Value, index + 1)
+		valueArray := make([]Value, index+1)
 		copy(valueArray, self.valueArray)
 		valueArray[index] = value
 		self.valueArray = valueArray
@@ -117,7 +117,7 @@ func (self *_arrayStash) property(name string) *_property {
 	if name == "length" {
 		return &_property{
 			value: toValue(len(self.valueArray)),
-			mode: 0100, // +Write -Enumerate -Configure
+			mode:  0100, // +Write -Enumerate -Configure
 		}
 	}
 
@@ -130,7 +130,7 @@ func (self *_arrayStash) property(name string) *_property {
 		}
 		return &_property{
 			value: value,
-			mode: 0111, // +Write +Enumerate +Configure
+			mode:  0111, // +Write +Enumerate +Configure
 		}
 	}
 

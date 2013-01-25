@@ -5,7 +5,7 @@ func (self *_runtime) evaluateTryCatch(node *_tryCatchNode) Value {
 
 	if throw != false && node.Catch != nil {
 		lexicalEnvironment := self._executionContext(0).newDeclarativeEnvironment(self)
-		defer func(){
+		defer func() {
 			self._executionContext(0).LexicalEnvironment = lexicalEnvironment
 		}()
 		// TODO If necessary, convert TypeError<runtime> => TypeError
@@ -82,7 +82,7 @@ func (self *_runtime) evaluateWith(node *_withNode) Value {
 	objectValue := self.GetValue(object)
 	previousLexicalEnvironment, lexicalEnvironment := self._executionContext(0).newLexicalEnvironment(self.toObject(objectValue))
 	lexicalEnvironment.ProvideThis = true
-	defer func(){
+	defer func() {
 		self._executionContext(0).LexicalEnvironment = previousLexicalEnvironment
 	}()
 
@@ -104,7 +104,7 @@ func (self *_runtime) evaluateDoWhile(node *_doWhileNode) Value {
 			}
 			testResult := self.evaluate(test)
 			testResultValue := self.GetValue(testResult)
-			if (toBoolean(testResultValue) == false) {
+			if toBoolean(testResultValue) == false {
 				break
 			}
 		}
@@ -123,7 +123,7 @@ func (self *_runtime) evaluateWhile(node *_whileNode) Value {
 		for {
 			testResult := self.evaluate(test)
 			testResultValue := self.GetValue(testResult)
-			if (toBoolean(testResultValue) == false) {
+			if toBoolean(testResultValue) == false {
 				break
 			}
 			value := self.continueEvaluate(body, _labelSet)
@@ -154,7 +154,7 @@ func (self *_runtime) evaluateFor(node *_forNode) Value {
 			if test != nil {
 				testResult := self.evaluate(test)
 				testResultValue := self.GetValue(testResult)
-				if (toBoolean(testResultValue) == false) {
+				if toBoolean(testResultValue) == false {
 					break
 				}
 			}
@@ -191,7 +191,7 @@ func (self *_runtime) evaluateForIn(node *_forInNode) Value {
 		result := emptyValue()
 		object := sourceObject
 		for object != nil {
-			object.enumerate(func(name string){
+			object.enumerate(func(name string) {
 				into := self.evaluate(into)
 				// In the case of: for (var abc in def) ...
 				if into.reference() == nil {

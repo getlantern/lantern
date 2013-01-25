@@ -2,8 +2,8 @@ package otto
 
 import (
 	"fmt"
-	"strings"
 	"os"
+	"strings"
 )
 
 func formatForConsole(argumentList []Value) string {

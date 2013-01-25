@@ -1,13 +1,13 @@
 package otto
 
 import (
-	"fmt"
-	"strings"
 	"bytes"
-	"unicode"
-	"unicode/utf8"
-	"unicode/utf16"
+	"fmt"
 	"strconv"
+	"strings"
+	"unicode"
+	"unicode/utf16"
+	"unicode/utf8"
 )
 
 var keywordTable map[string]bool = boolFields(`
@@ -43,6 +43,7 @@ var keywordTable map[string]bool = boolFields(`
 `)
 
 var punctuatorTable map[string]bool
+
 func init() {
 
 	punctuatorTable = boolFields(`
@@ -53,11 +54,11 @@ func init() {
 	// <= >= == != ++ -- << >> && ||
 	// += -= *= %= &= |= ^= /=
 	for _, value := range "<>=!+-*%&|^/" {
-		punctuatorTable[string(value) + "="] = true
+		punctuatorTable[string(value)+"="] = true
 	}
 
 	for _, value := range "+-<>&|" {
-		punctuatorTable[string(value) + string(value)] = true
+		punctuatorTable[string(value)+string(value)] = true
 	}
 
 	// 1-character
@@ -68,8 +69,8 @@ func init() {
 
 type _token struct {
 	Line, Column, Character int
-	Kind, File, Text string
-	Error bool
+	Kind, File, Text        string
+	Error                   bool
 }
 
 func (self _token) IsValid() bool {
@@ -77,19 +78,19 @@ func (self _token) IsValid() bool {
 }
 
 type _lexer struct {
-	Source		string
+	Source string
 	//Tail		int
 	//Head		int
 	//Width		int
 
-	lineCount int
+	lineCount        int
 	zeroColumnOffset int
 
-	readIn		[]rune
-	readInOffset	int
-	atEndOfFile	bool
-	head		int
-	tail		int
+	readIn       []rune
+	readInOffset int
+	atEndOfFile  bool
+	head         int
+	tail         int
 
 	headOffset int
 	tailOffset int
@@ -323,7 +324,7 @@ func (self *_lexer) scanQuoteLiteral() _token {
 }
 
 func convertHexadecimalRune(word string) rune {
-	value, err := strconv.ParseUint(word, 16, len(word) * 4)
+	value, err := strconv.ParseUint(word, 16, len(word)*4)
 	if err != nil {
 		// Not a valid hexadecimal sequence
 		return utf8.RuneError
@@ -348,7 +349,7 @@ func (self *_lexer) scanPunctuator() (token _token) {
 		return self.emit("punctuator")
 	}
 
-	accept := func(count int){
+	accept := func(count int) {
 		for count > 0 {
 			count--
 			self.next()
@@ -367,7 +368,7 @@ func (self *_lexer) scanPunctuator() (token _token) {
 			accept(len(word))
 			return self.emit("punctuator")
 		}
-		word = word[:len(word) - 1]
+		word = word[:len(word)-1]
 	}
 
 	return
@@ -422,7 +423,6 @@ func (self *_lexer) scanNumericLiteral() _token {
 
 	return self.emit("number")
 }
-
 
 func (self *_lexer) scanIdentifierKeyword() (token _token) {
 	word := []rune{}
@@ -485,11 +485,11 @@ func (self *_lexer) scanIllegal() _token {
 func (self *_lexer) emitWith(kind string, text string) _token {
 	token := _token{
 		Character: 1 + self.tailOffset,
-		Line: 1 + self.lineCount,
-		Column: 1 + self.tailOffset - self.zeroColumnOffset,
+		Line:      1 + self.lineCount,
+		Column:    1 + self.tailOffset - self.zeroColumnOffset,
 
-		Kind: kind,
-		Text: text,
+		Kind:  kind,
+		Text:  text,
 		Error: false,
 	}
 	if kind == "punctuator" {
@@ -562,7 +562,7 @@ func (self *_lexer) next() rune {
 }
 
 func (self *_lexer) skip(count int) {
-	read := self.readIn[self.tail:self.tail+count]
+	read := self.readIn[self.tail : self.tail+count]
 	for _, chr := range read {
 		self.tail += 1
 		self.tailOffset += utf8.RuneLen(chr)
@@ -597,7 +597,7 @@ func (self *_lexer) peek() rune {
 
 func (self *_lexer) back() {
 	if self.tail > self.head && self.tail > 0 {
-		self.tailOffset -= utf8.RuneLen(self.readIn[self.tail - 1])
+		self.tailOffset -= utf8.RuneLen(self.readIn[self.tail-1])
 		self.tail -= 1
 	}
 }
@@ -647,7 +647,6 @@ func isIdentifierStart(chr rune) bool {
 func isIdentifierPart(chr rune) bool {
 	return chr == '$' || chr == '_' || chr == '\\' || unicode.IsLetter(chr) || unicode.IsDigit(chr)
 }
-
 
 func isWhiteSpace(chr rune) bool {
 	switch chr {

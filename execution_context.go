@@ -1,27 +1,27 @@
 package otto
 
 type _executionContext struct {
-    LexicalEnvironment _environment
-    VariableEnvironment _environment
-    this *_object
-	eval bool // Replace this with kind?
+	LexicalEnvironment  _environment
+	VariableEnvironment _environment
+	this                *_object
+	eval                bool // Replace this with kind?
 }
 
 func newExecutionContext(lexical _environment, variable _environment, this *_object) *_executionContext {
-    return &_executionContext{
-        LexicalEnvironment: lexical,
-        VariableEnvironment: variable,
-        this: this,
-    }
+	return &_executionContext{
+		LexicalEnvironment:  lexical,
+		VariableEnvironment: variable,
+		this:                this,
+	}
 }
 
 func (self *_executionContext) GetValue(name string) Value {
 	strict := false
-    return self.LexicalEnvironment.GetValue(name, strict)
+	return self.LexicalEnvironment.GetValue(name, strict)
 }
 
 func (self *_executionContext) SetValue(name string, value Value, throw bool) {
-    self.LexicalEnvironment.SetValue(name, value, throw)
+	self.LexicalEnvironment.SetValue(name, value, throw)
 }
 
 func (self *_executionContext) newLexicalEnvironment(object *_object) (_environment, *_objectEnvironment) {

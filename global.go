@@ -13,19 +13,19 @@ func (self *_runtime) newGlobalFunction(
 	name string, callFunction _globalCallFunction,
 	constructFunction _globalConstructFunction,
 	prototype *_object,
-	definition... interface{}) *_object {
+	definition ...interface{}) *_object {
 
 	// TODO We're overwriting the prototype of newNativeFunction with this one, 
 	// what is going on?
-	functionObject := self.newNativeFunction(_nativeFunction(callFunction), length, "native" + name)
+	functionObject := self.newNativeFunction(_nativeFunction(callFunction), length, "native"+name)
 	functionObject._Function.Construct = _constructFunction(constructFunction)
 	functionObject.stash.set("prototype", toValue(prototype), _propertyMode(0))
 
 	prototype.write(append([]interface{}{
-			_functionSignature("builtin"),
-			_propertyMode(0101), // Write | Configure
-			"constructor", toValue(functionObject),
-		},
+		_functionSignature("builtin"),
+		_propertyMode(0101), // Write | Configure
+		"constructor", toValue(functionObject),
+	},
 		definition...,
 	)...)
 
@@ -34,7 +34,7 @@ func (self *_runtime) newGlobalFunction(
 
 func (self *_runtime) newGlobalObject(
 	class string,
-	nameAndValue... interface{}) *_object {
+	nameAndValue ...interface{}) *_object {
 
 	target := self.newClassObject(class)
 	nameAndValue = append(
@@ -50,7 +50,7 @@ func (self *_runtime) newGlobalObject(
 	return target
 }
 
-func builtinDefine(target *_object, nameAndValue... interface{}) {
+func builtinDefine(target *_object, nameAndValue ...interface{}) {
 	nameAndValue = append(
 		[]interface{}{
 			_functionSignature("builtin"),
@@ -65,7 +65,7 @@ func newContext() *_runtime {
 
 	self := &_runtime{}
 
-	self._newError = make(map[string] func(Value) *_object)
+	self._newError = make(map[string]func(Value) *_object)
 
 	self.GlobalEnvironment = self.newObjectEnvironment(nil, nil)
 	self.GlobalObject = self.GlobalEnvironment.Object
@@ -777,11 +777,11 @@ func (runtime *_runtime) defineError(name string) func(Value) *_object {
 		1,
 		// e.g. TypeError( ... )
 		name,
-		func (call FunctionCall) Value { // TypeError( ... )
+		func(call FunctionCall) Value { // TypeError( ... )
 			return toValue(errorFunction(call.Argument(0)))
 		},
 		// e.g. new TypeError( ... )
-		func (self *_object, _ Value, argumentList []Value) Value {
+		func(self *_object, _ Value, argumentList []Value) Value {
 			return toValue(errorFunction(valueOfArrayIndex(argumentList, 0)))
 		},
 		prototype,

@@ -1,8 +1,8 @@
 package otto
 
 import (
-	"strings"
 	"math"
+	"strings"
 )
 
 func (self *_runtime) evaluateConditional(node *_conditionalNode) Value {
@@ -341,29 +341,29 @@ func calculateLessThan(left Value, right Value, leftFirst bool) _lessThanResult 
 var lessThanTable [4](map[_lessThanResult]bool) = [4](map[_lessThanResult]bool){
 	// <
 	map[_lessThanResult]bool{
-		lessThanFalse: false,
-		lessThanTrue: true,
+		lessThanFalse:     false,
+		lessThanTrue:      true,
 		lessThanUndefined: false,
 	},
 
 	// >
 	map[_lessThanResult]bool{
-		lessThanFalse: false,
-		lessThanTrue: true,
+		lessThanFalse:     false,
+		lessThanTrue:      true,
 		lessThanUndefined: false,
 	},
 
 	// <=
 	map[_lessThanResult]bool{
-		lessThanFalse: true,
-		lessThanTrue: false,
+		lessThanFalse:     true,
+		lessThanTrue:      false,
 		lessThanUndefined: false,
 	},
 
 	// >=
 	map[_lessThanResult]bool{
-		lessThanFalse: true,
-		lessThanTrue: false,
+		lessThanFalse:     true,
+		lessThanTrue:      false,
 		lessThanUndefined: false,
 	},
 }

@@ -6,48 +6,48 @@ import (
 )
 
 type _runtime struct {
-    Stack [](*_executionContext)
+	Stack [](*_executionContext)
 
-	GlobalObject *_object
-    GlobalEnvironment *_objectEnvironment
+	GlobalObject      *_object
+	GlobalEnvironment *_objectEnvironment
 
 	Global struct {
-		Object *_object // Object( ... ), new Object( ... ) - 1 (length)
+		Object   *_object // Object( ... ), new Object( ... ) - 1 (length)
 		Function *_object // Function( ... ), new Function( ... ) - 1
-		Array *_object // Array( ... ), new Array( ... ) - 1
-		String *_object // String( ... ), new String( ... ) - 1
-		Boolean *_object // Boolean( ... ), new Boolean( ... ) - 1
-		Number *_object // Number( ... ), new Number( ... ) - 1
-		Math *_object
-		Date *_object // Date( ... ), new Date( ... ) - 7
-		RegExp *_object // RegExp( ... ), new RegExp( ... ) - 2
-		Error *_object // Error( ... ), new Error( ... ) - 1
+		Array    *_object // Array( ... ), new Array( ... ) - 1
+		String   *_object // String( ... ), new String( ... ) - 1
+		Boolean  *_object // Boolean( ... ), new Boolean( ... ) - 1
+		Number   *_object // Number( ... ), new Number( ... ) - 1
+		Math     *_object
+		Date     *_object // Date( ... ), new Date( ... ) - 7
+		RegExp   *_object // RegExp( ... ), new RegExp( ... ) - 2
+		Error    *_object // Error( ... ), new Error( ... ) - 1
 		// JSON
 
-		ObjectPrototype *_object // Object.prototype
+		ObjectPrototype   *_object // Object.prototype
 		FunctionPrototype *_object // Function.prototype
-		ArrayPrototype *_object // Array.prototype
-		StringPrototype *_object // String.prototype
-		BooleanPrototype *_object // Boolean.prototype
-		NumberPrototype *_object // Number.prototype
-		DatePrototype *_object // Date.prototype
-		RegExpPrototype *_object // RegExp.prototype
-		ErrorPrototype *_object // Error.prototype
+		ArrayPrototype    *_object // Array.prototype
+		StringPrototype   *_object // String.prototype
+		BooleanPrototype  *_object // Boolean.prototype
+		NumberPrototype   *_object // Number.prototype
+		DatePrototype     *_object // Date.prototype
+		RegExpPrototype   *_object // RegExp.prototype
+		ErrorPrototype    *_object // Error.prototype
 	}
 
-	_newError map[string] func(Value) *_object
+	_newError map[string]func(Value) *_object
 }
 
 func (self *_runtime) EnterGlobalExecutionContext() {
-    self.EnterExecutionContext(newExecutionContext(self.GlobalEnvironment, self.GlobalEnvironment, self.GlobalObject))
+	self.EnterExecutionContext(newExecutionContext(self.GlobalEnvironment, self.GlobalEnvironment, self.GlobalObject))
 }
 
 func (self *_runtime) EnterExecutionContext(scope *_executionContext) {
-    self.Stack = append(self.Stack, scope)
+	self.Stack = append(self.Stack, scope)
 }
 
 func (self *_runtime) LeaveExecutionContext() {
-    self.Stack = self.Stack[:len(self.Stack)-1]
+	self.Stack = self.Stack[:len(self.Stack)-1]
 }
 
 func (self *_runtime) _executionContext(depth int) *_executionContext {
@@ -73,7 +73,7 @@ func (self *_runtime) EnterFunctionExecutionContext(function *_object, this Valu
 	default:
 		thisObject = self.toObject(this)
 	}
-    self.EnterExecutionContext(newExecutionContext(environment, environment, thisObject))
+	self.EnterExecutionContext(newExecutionContext(environment, environment, thisObject))
 	return environment
 }
 
@@ -159,28 +159,28 @@ func (self *_runtime) _callNode(environment *_functionEnvironment, node *_functi
 
 func (self *_runtime) Call(function *_object, this Value, argumentList []Value) (returnValue Value) {
 	_functionEnvironment := self.EnterFunctionExecutionContext(function, this)
-	defer func(){
+	defer func() {
 		// TODO Catch any errant break/continue, etc. here?
 		//		They should never get here, but we want to be
 		//		very vocal if they do.
-		self.LeaveExecutionContext();
+		self.LeaveExecutionContext()
 		if caught := recover(); caught != nil {
 			if result, ok := caught.(_result); ok {
-					if result.Kind == resultReturn {
-						returnValue = result.Value
-						return
-					}
+				if result.Kind == resultReturn {
+					returnValue = result.Value
+					return
+				}
 			}
 			panic(caught)
 		}
 	}()
 
-    returnValue = function._Function.Call.Dispatch(_functionEnvironment, self, this, argumentList)
+	returnValue = function._Function.Call.Dispatch(_functionEnvironment, self, this, argumentList)
 	return
 }
 
 func (self *_runtime) tryEvaluate(inner func() Value) (tryValue Value, throw bool, throwValue Value, other *_result) {
-	defer func(){
+	defer func() {
 		if caught := recover(); caught != nil {
 			switch caught := caught.(type) {
 			case _result:
@@ -213,12 +213,12 @@ func (self *_runtime) tryEvaluate(inner func() Value) (tryValue Value, throw boo
 }
 
 func (self *_runtime) breakEvaluate(_labelSet map[string]bool, inner func() Value) Value {
-	defer func(){
+	defer func() {
 		if caught := recover(); caught != nil {
 			if result, ok := caught.(_result); ok {
-					if result.Kind == resultBreak && _labelSet[result.Target] == true {
-						return
-					}
+				if result.Kind == resultBreak && _labelSet[result.Target] == true {
+					return
+				}
 			}
 			panic(caught)
 		}
@@ -228,13 +228,13 @@ func (self *_runtime) breakEvaluate(_labelSet map[string]bool, inner func() Valu
 }
 
 func (self *_runtime) continueEvaluate(node _node, _labelSet map[string]bool) (returnResult Value) {
-	defer func(){
+	defer func() {
 		if caught := recover(); caught != nil {
 			if result, ok := caught.(_result); ok {
-					if result.Kind == resultContinue && _labelSet[result.Target] == true {
-						returnResult = emptyValue()
-						return
-					}
+				if result.Kind == resultContinue && _labelSet[result.Target] == true {
+					returnResult = emptyValue()
+					return
+				}
 			}
 			panic(caught)
 		}
@@ -264,19 +264,19 @@ func (self *_runtime) declare(kind string, declarationList []_declaration) {
 // _executionContext Proxy
 
 func (self *_runtime) localGet(name string) Value {
-    return self._executionContext(0).GetValue(name)
+	return self._executionContext(0).GetValue(name)
 }
 
 func (self *_runtime) localSet(name string, value Value) {
-    self._executionContext(0).SetValue(name, value, false)
+	self._executionContext(0).SetValue(name, value, false)
 }
 
 func (self *_runtime) VariableEnvironment() _environment {
-    return self._executionContext(0).VariableEnvironment
+	return self._executionContext(0).VariableEnvironment
 }
 
 func (self *_runtime) LexicalEnvironment() _environment {
-    return self._executionContext(0).LexicalEnvironment
+	return self._executionContext(0).LexicalEnvironment
 }
 
 // toObject

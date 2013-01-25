@@ -35,26 +35,26 @@ func (self *_runtime) evaluate(node _node) Value {
 		}
 	}()
 
-    switch node := node.(type) {
+	switch node := node.(type) {
 
-    case *_variableDeclarationListNode:
+	case *_variableDeclarationListNode:
 		return self.evaluateVariableDeclarationList(node)
 
-    case *_variableDeclarationNode:
+	case *_variableDeclarationNode:
 		return self.evaluateVariableDeclaration(node)
 
-    case *_programNode:
+	case *_programNode:
 		self.declare("function", node.FunctionList)
 		self.declare("variable", node.VariableList)
 		return self.evaluateBody(node.Body)
 
-    case *_blockNode:
+	case *_blockNode:
 		return self.evaluateBody(node.Body)
 
-    case *_valueNode:
+	case *_valueNode:
 		return self.evaluateValue(node)
 
-    case *_identifierNode:
+	case *_identifierNode:
 		return self.evaluateIdentifier(node)
 
 	case *_functionNode:
@@ -141,7 +141,7 @@ func (self *_runtime) evaluate(node _node) Value {
 	case *_withNode:
 		return self.evaluateWith(node)
 
-    }
+	}
 
 	panic(fmt.Sprintf("evaluate: Here be dragons: %T %v", node, node))
 }

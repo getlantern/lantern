@@ -129,7 +129,7 @@ func New() *Otto {
 	}
 	self.Set("console", self.runtime.newConsole())
 
-	registry.Apply(func(entry registry.Entry){
+	registry.Apply(func(entry registry.Entry) {
 		self.Run(entry.Source())
 	})
 
@@ -151,7 +151,7 @@ func Run(source string) (*Otto, Value, error) {
 // will be evaluated in this case).
 func (self Otto) Run(source string) (Value, error) {
 	result := UndefinedValue()
-	err := catchPanic(func(){
+	err := catchPanic(func() {
 		result = self.run(source)
 	})
 	switch result._valueType {
@@ -187,7 +187,7 @@ func (self Otto) runNode(run _node) Value {
 // will be undefined.
 func (self Otto) Get(name string) (Value, error) {
 	result := UndefinedValue()
-	err := catchPanic(func(){
+	err := catchPanic(func() {
 		result = self.getValue(name)
 	})
 	return result, err
@@ -207,7 +207,7 @@ func (self Otto) getValue(name string) Value {
 //
 // If the top-level binding does not exist, it will be created.
 func (self Otto) Set(name string, value interface{}) error {
-	err := catchPanic(func(){
+	err := catchPanic(func() {
 		self.setValue(name, self.runtime.toValue(value))
 	})
 	return err
@@ -236,7 +236,7 @@ func (self Otto) setValue(name string, value Value) {
 // nil and an error is returned.
 func (self Otto) Object(source string) (*Object, error) {
 	var result Value
-	err := catchPanic(func(){
+	err := catchPanic(func() {
 		result = self.run(source)
 	})
 	if err != nil {
@@ -253,14 +253,14 @@ func (self Otto) Object(source string) (*Object, error) {
 // Object is the representation of a JavaScript object.
 type Object struct {
 	object *_object
-	value Value
+	value  Value
 }
 
 func _newObject(object *_object, value Value) *Object {
 	// value MUST contain object!
 	return &Object{
 		object: object,
-		value: value,
+		value:  value,
 	}
 }
 
@@ -275,7 +275,7 @@ func _newObject(object *_object, value Value) *Object {
 //		2. The property is not actually a function
 //		3. An (uncaught) exception is thrown
 //
-func (self Object) Call(name string, argumentList... interface{}) (Value, error) {
+func (self Object) Call(name string, argumentList ...interface{}) (Value, error) {
 	function, err := self.Get(name)
 	if err != nil {
 		return UndefinedValue(), err
@@ -291,7 +291,7 @@ func (self Object) Value() Value {
 // Get the value of the property with the given name.
 func (self Object) Get(name string) (Value, error) {
 	result := UndefinedValue()
-	err := catchPanic(func(){
+	err := catchPanic(func() {
 		result = self.object.get(name)
 	})
 	return result, err
@@ -301,8 +301,8 @@ func (self Object) Get(name string) (Value, error) {
 //
 // An error will result if the setting the property triggers an exception (i.e. read-only),
 // or there is an error during conversion of the given value.
-func (self Object) Set(name string, value interface{}) (error) {
-	err := catchPanic(func(){
+func (self Object) Set(name string, value interface{}) error {
+	err := catchPanic(func() {
 		self.object.put(name, self.object.runtime.toValue(value), true)
 	})
 	return err

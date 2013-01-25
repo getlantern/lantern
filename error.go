@@ -1,12 +1,12 @@
 package otto
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 )
 
 type _error struct {
-	Name string
+	Name    string
 	Message string
 
 	Line int // Hackish -- line where the error/exception occurred
@@ -16,7 +16,7 @@ var messageDetail map[string]string = map[string]string{
 	"notDefined": "%v is not defined",
 }
 
-func messageFromDescription(description string, argumentList... interface{}) string {
+func messageFromDescription(description string, argumentList ...interface{}) string {
 	message := messageDetail[description]
 	if message == "" {
 		message = description
@@ -42,13 +42,13 @@ func (self _error) String() string {
 	return fmt.Sprintf("%s: %s", self.Name, self.Message)
 }
 
-func newError(name string, argumentList... interface{}) _error {
+func newError(name string, argumentList ...interface{}) _error {
 	description := ""
 	var node _node = nil
 	length := len(argumentList)
 	if length > 0 {
-		if node, _ = argumentList[length-1].(_node); node != nil  || argumentList[length-1] == nil {
-			argumentList = argumentList[0:length-1]
+		if node, _ = argumentList[length-1].(_node); node != nil || argumentList[length-1] == nil {
+			argumentList = argumentList[0 : length-1]
 			length -= 1
 		}
 		if length > 0 {
@@ -56,9 +56,9 @@ func newError(name string, argumentList... interface{}) _error {
 		}
 	}
 	error := _error{
-		Name: name,
+		Name:    name,
 		Message: messageFromDescription(description, argumentList...),
-		Line: -1,
+		Line:    -1,
 	}
 	if node != nil {
 		error.Line = node.position()
@@ -66,23 +66,23 @@ func newError(name string, argumentList... interface{}) _error {
 	return error
 }
 
-func newReferenceError(argumentList... interface{}) _error {
+func newReferenceError(argumentList ...interface{}) _error {
 	return newError("ReferenceError", argumentList...)
 }
 
-func newTypeError(argumentList... interface{}) _error {
+func newTypeError(argumentList ...interface{}) _error {
 	return newError("TypeError", argumentList...)
 }
 
-func newRangeError(argumentList... interface{}) _error {
+func newRangeError(argumentList ...interface{}) _error {
 	return newError("RangeError", argumentList...)
 }
 
-func newSyntaxError(argumentList... interface{}) _error {
+func newSyntaxError(argumentList ...interface{}) _error {
 	return newError("SyntaxError", argumentList...)
 }
 
-func newURIError(argumentList... interface{}) _error {
+func newURIError(argumentList ...interface{}) _error {
 	return newError("URIError", argumentList...)
 }
 
@@ -94,18 +94,18 @@ func typeErrorResult(throw bool) bool {
 }
 
 func catchPanic(function func()) (err error) {
-	defer func(){
+	defer func() {
 		if caught := recover(); caught != nil {
 			switch caught := caught.(type) {
 			case *_syntaxError:
-				err = errors.New(fmt.Sprintf("%s (line %d)", caught.String(), caught.Line + 0))
+				err = errors.New(fmt.Sprintf("%s (line %d)", caught.String(), caught.Line+0))
 				return
 			case _error:
 				if caught.Line == -1 {
 					err = errors.New(caught.String())
 				} else {
 					// We're 0-based (for now), hence the + 1
-					err = errors.New(fmt.Sprintf("%s (line %d)", caught.String(), caught.Line + 1))
+					err = errors.New(fmt.Sprintf("%s (line %d)", caught.String(), caught.Line+1))
 				}
 				return
 			case _result:
@@ -127,9 +127,9 @@ func catchPanic(function func()) (err error) {
 // SyntaxError
 
 type _syntaxError struct {
-	Message string
-	Line int
-	Column int
+	Message   string
+	Line      int
+	Column    int
 	Character int
 }
 
@@ -141,11 +141,11 @@ func (self _syntaxError) String() string {
 	return fmt.Sprintf("%s: %s", name, self.Message)
 }
 
-func (self _token) newSyntaxError(description string, argumentList... interface{}) *_syntaxError {
+func (self _token) newSyntaxError(description string, argumentList ...interface{}) *_syntaxError {
 	return &_syntaxError{
-		Message: messageFromDescription(description, argumentList...),
-		Line: self.Line,
-		Column: self.Column,
+		Message:   messageFromDescription(description, argumentList...),
+		Line:      self.Line,
+		Column:    self.Column,
 		Character: self.Character,
 	}
 }

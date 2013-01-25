@@ -1,20 +1,20 @@
 package otto
 
 import (
-    "testing"
 	"fmt"
-    . "github.com/robertkrimen/terst"
+	. "github.com/robertkrimen/terst"
 	"math"
 	"strings"
+	"testing"
 	"unicode/utf16"
 	"unicode/utf8"
 )
 
-func runTestWithOtto() (*Otto, func(string, ... interface{}) Value) {
+func runTestWithOtto() (*Otto, func(string, ...interface{}) Value) {
 	Otto := New()
-	test := func(name string, expect... interface{}) Value {
+	test := func(name string, expect ...interface{}) Value {
 		raise := false
-		defer func(){
+		defer func() {
 			if caught := recover(); caught != nil {
 				if raise {
 					if len(expect) > 0 {
@@ -48,7 +48,7 @@ func runTestWithOtto() (*Otto, func(string, ... interface{}) Value) {
 	return Otto, test
 }
 
-func runTest() func(string, ... interface{}) Value {
+func runTest() func(string, ...interface{}) Value {
 	_, test := runTestWithOtto()
 	return test
 }
@@ -143,13 +143,13 @@ func TestOperator(t *testing.T) {
 
 	Otto, test := runTestWithOtto()
 
-    test("xyzzy = 1")
+	test("xyzzy = 1")
 	test("xyzzy", "1")
 
 	if true {
 		Otto.Set("twoPlusTwo", func(FunctionCall) Value {
 			return toValue(5)
-		});
+		})
 		test("twoPlusTwo( 1 )", "5")
 
 		test("1 + twoPlusTwo( 1 )", "6")
@@ -160,16 +160,16 @@ func TestOperator(t *testing.T) {
 	test("result = 4")
 	test("result", "4")
 
-    test("result += 1")
+	test("result += 1")
 	test("result", "5")
 
-    test("result *= 2")
+	test("result *= 2")
 	test("result", "10")
 
-    test("result /= 2")
+	test("result /= 2")
 	test("result", "5")
 
-    test("result = 112.51 % 3.1")
+	test("result = 112.51 % 3.1")
 	test("result", "0.9100000000000019")
 
 	test("result = 'Xyzzy'")
@@ -678,7 +678,7 @@ func TestPositiveNegativeZero(t *testing.T) {
 		abc = -0
 		1/abc
 	`,
-	"-Infinity",
+		"-Infinity",
 	)
 }
 
@@ -1024,7 +1024,7 @@ func TestArrayLiteral(t *testing.T) {
 	test("_6", "undefined")
 }
 
-func TestUnaryPrefix (t *testing.T) {
+func TestUnaryPrefix(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
@@ -1042,7 +1042,7 @@ func TestUnaryPrefix (t *testing.T) {
 	test("result", "-1")
 }
 
-func TestUnaryPostfix (t *testing.T) {
+func TestUnaryPostfix(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
@@ -1064,7 +1064,7 @@ func TestUnaryPostfix (t *testing.T) {
 	test("result", "-2")
 }
 
-func TestBinaryLogicalOperation (t *testing.T) {
+func TestBinaryLogicalOperation(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
@@ -1089,7 +1089,7 @@ func TestBinaryLogicalOperation (t *testing.T) {
 
 }
 
-func TestBinaryBitwiseOperation (t *testing.T) {
+func TestBinaryBitwiseOperation(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
@@ -1109,7 +1109,7 @@ func TestBinaryBitwiseOperation (t *testing.T) {
 	test("mno", "2")
 }
 
-func TestBinaryShiftOperation (t *testing.T) {
+func TestBinaryShiftOperation(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
@@ -1139,7 +1139,7 @@ func TestBinaryShiftOperation (t *testing.T) {
 
 }
 
-func TestParenthesizing (t *testing.T) {
+func TestParenthesizing(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
@@ -1156,7 +1156,7 @@ func TestParenthesizing (t *testing.T) {
 	test("jkl", "true")
 }
 
-func TestInstanceOf (t *testing.T) {
+func TestInstanceOf(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
@@ -1167,7 +1167,7 @@ func TestInstanceOf (t *testing.T) {
 	test("abc", "true")
 }
 
-func TestIn (t *testing.T) {
+func TestIn(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
@@ -1180,7 +1180,7 @@ func TestIn (t *testing.T) {
 	test("def", "false")
 }
 
-func TestForIn (t *testing.T) {
+func TestForIn(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
