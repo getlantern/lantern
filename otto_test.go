@@ -1253,6 +1253,7 @@ func TestString(t *testing.T) {
 	test("def", "0")
 	test("ghi", "16")
 	test(`"".length`, "0")
+	test(`"a\uFFFFbc".length`, "4")
 }
 
 func TestArray(t *testing.T) {
