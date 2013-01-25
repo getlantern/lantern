@@ -271,4 +271,9 @@ Second line \
 	test("10e10000",
 		"number 10e10000",
 	)
+
+	test(`"\x0G"`,
+		"illegal",
+	)
+
 }

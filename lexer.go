@@ -298,7 +298,7 @@ func (self *_lexer) scanQuoteLiteral() _token {
 				if result != utf8.RuneError {
 					text.WriteRune(result)
 				} else {
-					text.WriteRune(value)
+					return errorIllegal()
 				}
 
 			case 'x':
@@ -306,7 +306,7 @@ func (self *_lexer) scanQuoteLiteral() _token {
 				if result != utf8.RuneError {
 					text.WriteRune(result)
 				} else {
-					text.WriteRune(value)
+					return errorIllegal()
 				}
 			default:
 				text.WriteRune(value)
