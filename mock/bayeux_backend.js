@@ -73,9 +73,11 @@ BayeuxBackend.prototype._bindCallbacks = function() {
       delete self._clients[clientId];
   });
 
+  /*
   bayeux.bind('publish', function(clientId, channel, data) {
     log('[publish]', 'client:', clientId, 'channel:', channel, 'data:', data);
   });
+  */
 
   bayeux.bind('disconnect', function(clientId) {
     log('[disconnect]', 'client:', clientId);

@@ -110,7 +110,6 @@ ApiServlet.prototype._advanceModal = function(backToIfNone) {
   for (var i=0; this._internalState.modalsCompleted[next=modalSeq[i++]];);
   if (backToIfNone && next == MODAL.none)
     next = backToIfNone;
-  log('next modal:', next);
   this.updateModel({modal: next}, true);
 };
 
@@ -135,6 +134,7 @@ _globalModals[INTERACTION.updateAvailable] = MODAL.updateAvailable;
 _globalModals[INTERACTION.about] = MODAL.about;
 _globalModals[INTERACTION.contact] = MODAL.contact;
 _globalModals[INTERACTION.lanternFriends] = MODAL.lanternFriends;
+_globalModals[INTERACTION.proxiedSites] = MODAL.proxiedSites;
 _globalModals[INTERACTION.settings] = MODAL.settings;
 _globalModals[INTERACTION.scenarios] = MODAL.scenarios;
 _.forEach(_globalModals, function(modal, interaction) {
@@ -217,7 +217,8 @@ ApiServlet._handlerForModal[MODAL.welcome] = function(interaction, res, data) {
     return;
   }
   if (!(interaction in MODE)) return res.writeHead(400);
-  if (interaction == MODE.give && this.inCensoringCountry()) {
+  if (interaction == INTERACTION.give && this.inCensoringCountry()) {
+    this._internalState.lastModal = MODAL.welcome;
     this.updateModel({modal: MODAL.giveModeForbidden}, true);
     return;
   }
@@ -227,12 +228,12 @@ ApiServlet._handlerForModal[MODAL.welcome] = function(interaction, res, data) {
 };
 
 ApiServlet._handlerForModal[MODAL.giveModeForbidden] = function(interaction, res) {
-  if (interaction == INTERACTION.continue) {
-    this.updateModel({mode: MODE.get}, true);
-    this._internalState.modalsCompleted[MODAL.welcome] = true;
-    this._advanceModal(MODAL.settings);
-  } else if (interaction == INTERACTION.cancel && !this._internalState.modalsCompleted[MODAL.welcome]) {
-    this.updateModel({modal: MODAL.welcome}, true);
+  if (interaction == INTERACTION.cancel || interaction == INTERACTION.continue) {
+    if (interaction == INTERACTION.continue) {
+      this.updateModel({mode: MODE.get}, true);
+      this._internalState.modalsCompleted[MODAL.welcome] = true;
+    }
+    this._advanceModal(this._internalState.lastModal);
   } else {
     res.writeHead(400);
   }
@@ -340,13 +341,13 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   log('applying peers scenario', scen.desc);
   scen.func.call(this);
   this._internalState.modalsCompleted[MODAL.authorize] = true;
-  this._advanceModal();
+  this._advanceModal(this._internalState.lastModal);
 };
 
 ApiServlet._handlerForModal[MODAL.proxiedSites] = function(interaction, res, data) {
   if (interaction == INTERACTION.continue) {
     this._internalState.modalsCompleted[MODAL.proxiedSites] = true;
-    this._advanceModal(MODAL.settings);
+    this._advanceModal(this._internalState.lastModal);
   } else if (interaction == INTERACTION.set) {
     this.updateModel({'settings.proxiedSites': data.value}, true);
   } else if (interaction == INTERACTION.reset) {
@@ -365,7 +366,7 @@ ApiServlet._handlerForModal[MODAL.systemProxy] = function(interaction, res, data
   this.updateModel({'settings.systemProxy': data.value}, true);
   if (data.value) sleep.usleep(750000);
   this._internalState.modalsCompleted[MODAL.systemProxy] = true;
-  this._advanceModal(MODAL.settings);
+  this._advanceModal(this._internalState.lastModal);
 };
 
 function _matchIndex(collection, item, field) {
@@ -392,7 +393,7 @@ ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res, d
       log('invitations will be sent to', data.invite);
     }
     this._internalState.modalsCompleted[MODAL.lanternFriends] = true;
-    this._advanceModal();
+    this._advanceModal(this._internalState.lastModal);
   } else if (interaction == INTERACTION.accept ||
              interaction == INTERACTION.decline) {
     var pending = getByPath(this.model, 'friends.pending', []),
@@ -446,7 +447,7 @@ ApiServlet._handlerForModal[MODAL.requestSent] = function(interaction, res) {
 
 ApiServlet._handlerForModal[MODAL.firstInviteReceived] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
-  this._advanceModal();
+  this._advanceModal(this._internalState.lastModal);
 };
 
 ApiServlet._handlerForModal[MODAL.finished] = function(interaction, res, data) {
@@ -457,7 +458,7 @@ ApiServlet._handlerForModal[MODAL.finished] = function(interaction, res, data) {
   }
   if (interaction != INTERACTION.continue) return res.writeHead(400);
   this._internalState.modalsCompleted[MODAL.finished] = true;
-  this._advanceModal();
+  this._advanceModal(this._internalState.lastModal);
   this.updateModel({setupComplete: true, showVis: true}, true);
 };
 
@@ -472,6 +473,8 @@ ApiServlet._handlerForModal[MODAL.settings] = function(interaction, res, data) {
     if (wasInGiveMode && this.model.settings.systemProxy)
       sleep.usleep(750000);
     this.updateModel({'settings.mode': interaction}, true);
+    // switching from Give to Get for the first time should show unseen
+    // Get Mode modals
     this._advanceModal(MODAL.settings);
   } else if (interaction == INTERACTION.proxiedSites) {
     this.updateModel({modal: MODAL.proxiedSites}, true);
