@@ -98,6 +98,13 @@ exports.SCENARIOS = {
               'connectivity.ip': '123.123.123.123'
             })
     },
+    nyc: {
+      desc: 'location: NYC',
+      func: make_simple_scenario({
+              location: {lat:40.7089, lon:-74.0012, country:'us'},
+              'connectivity.ip': '64.90.182.55'
+            })
+    },
     paris: {
       desc: 'location: Paris',
       func: make_simple_scenario({
@@ -177,16 +184,16 @@ exports.SCENARIOS = {
                 statusMessage: 'Bangkok',
                 }
                ,{
-                email: 'not_a_lantern_user1@example.com',
-                name: 'Not A Lantern User 1',
+                email: 'user1@example.com',
+                name: 'User 1',
                 link: '',
                 picture: '',
                 status: 'idle',
                 statusMessage: 'sleeping'
                 }
                ,{
-                email: 'not_a_lantern_user2@example.com',
-                name: 'Not A Lantern User 2',
+                email: 'user2@example.com',
+                name: 'User 2',
                 link: '',
                 picture: '',
                 status: 'offline'
