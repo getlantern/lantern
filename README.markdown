@@ -92,7 +92,6 @@ For more information: http://github.com/robertkrimen/otto/tree/master/underscore
 * Does not support the (?!) or (?=) regular expression syntax (because Go does not)
 * JavaScript considers a vertical tab (\000B <VT>) to be part of the whitespace class (\s), while RE2 does not.
 * Really, error reporting could use some improvement.
-* For now, otto handles strings as UTF-8 rather than UTF-16.
 
 ### Regular Expression Syntax
 
@@ -106,11 +105,6 @@ A brief discussion of these limitations: "Regexp (?!re)" https://groups.google.c
 More information about RE2: https://code.google.com/p/re2/
 
 JavaScript considers a vertical tab (\000B <VT>) to be part of the whitespace class (\s), while RE2 does not.
-
-### UTF-8 UTF-16
-
-Internally, otto stores strings as Go does, which is UTF-8. JavaScript calls for strings to be handled as UTF-16.
-This leads to some strange edge cases, such as a UTF-8 string having a length of 5, while the "same" string as UTF-16 has a length of 3.
 
 ## Usage
 
