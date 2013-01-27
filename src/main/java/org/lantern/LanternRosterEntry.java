@@ -2,7 +2,6 @@ package org.lantern;
 
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.annotate.JsonIgnore;
-import org.codehaus.jackson.map.annotate.JsonView;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.RosterPacket.ItemStatus;
@@ -14,9 +13,6 @@ import org.slf4j.LoggerFactory;
 public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-
-    public static class Uploaded {
-    }
 
     private int index;
     private boolean available;
@@ -128,7 +124,6 @@ public class LanternRosterEntry implements Comparable<LanternRosterEntry> {
         this.email = email;
     }
 
-    @JsonView({ Uploaded.class })
     public String getEmail() {
         return email;
     }
