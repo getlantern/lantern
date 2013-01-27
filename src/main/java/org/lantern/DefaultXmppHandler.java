@@ -62,7 +62,6 @@ import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Profile;
-import org.lantern.state.Settings.Mode;
 import org.lastbamboo.common.ice.MappedServerSocket;
 import org.lastbamboo.common.ice.MappedTcpAnswererServer;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -407,13 +406,7 @@ public class DefaultXmppHandler implements XmppHandler {
     }
 
     private String getResource() {
-        if (model.getSettings().getMode() == Mode.get) {
-            LOG.info("Setting ID for get mode...");
-            return "gmail.";
-        } else {
-            LOG.info("Setting ID for give mode");
-            return LanternConstants.UNCENSORED_ID;
-        }
+        return LanternConstants.UNCENSORED_ID;
     }
 
     public void connect(final XmppCredentials credentials)
