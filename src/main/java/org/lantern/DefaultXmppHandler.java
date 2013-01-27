@@ -229,7 +229,7 @@ public class DefaultXmppHandler implements XmppHandler {
         } catch (final NatPmpException e) {
             // This will happen when NAT-PMP is not supported on the local 
             // network.
-            LOG.info("Could not map", e);
+            LOG.debug("Could not map", e);
             // We just use a dummy one in this case.
             temp = new NatPmpService() {
                 @Override
@@ -256,7 +256,7 @@ public class DefaultXmppHandler implements XmppHandler {
                     new InetSocketAddress(this.model.getSettings().getServerPort()));
             LOG.debug("Created mapped TCP server...");
         } catch (final IOException e) {
-            LOG.info("Exception mapping TCP server", e);
+            LOG.debug("Exception mapping TCP server", e);
             tempMapper = new MappedServerSocket() {
                 
                 @Override
@@ -285,7 +285,7 @@ public class DefaultXmppHandler implements XmppHandler {
     
     @Override
     public void stop() {
-        LOG.info("Stopping XMPP handler...");
+        LOG.debug("Stopping XMPP handler...");
         disconnect();
         if (upnpService != null) {
             upnpService.shutdown();
@@ -293,7 +293,7 @@ public class DefaultXmppHandler implements XmppHandler {
         if (natPmpService != null) {
             natPmpService.shutdown();
         }
-        LOG.info("Finished stoppeding XMPP handler...");
+        LOG.debug("Finished stoppeding XMPP handler...");
     }
     
     @Subscribe
@@ -302,7 +302,12 @@ public class DefaultXmppHandler implements XmppHandler {
         switch (state) {
         case connected:
             // We wait until we're logged in before creating our roster.
-            final XMPPConnection conn = getP2PClient().getXmppConnection();
+            final XmppP2PClient cl = client.get();
+            if (cl == null) {
+                LOG.error("Null client for instance: "+hashCode());
+                return;
+            }
+            final XMPPConnection conn = cl.getXmppConnection();
             this.roster.onRoster(conn);
             break;
         case notConnected:
@@ -319,11 +324,11 @@ public class DefaultXmppHandler implements XmppHandler {
     private void prepopulateProxies() {
         // Add all the stored proxies.
         final Collection<String> saved = this.model.getSettings().getProxies();
-        LOG.info("Proxy set is: {}", saved);
+        LOG.debug("Proxy set is: {}", saved);
         for (final String proxy : saved) {
             // Don't use peer proxies since we're not connected to XMPP yet.
             if (!proxy.contains("@")) {
-                LOG.info("Adding prepopulated proxy: {}", proxy);
+                LOG.debug("Adding prepopulated proxy: {}", proxy);
                 addProxy(proxy);
             }
         }
@@ -338,11 +343,11 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         if (!this.modelUtils.isConfigured()) {
             if (this.model.getSettings().isUiEnabled()) {
-                LOG.info("Not connecting when not configured and UI enabled");
+                LOG.debug("Not connecting when not configured and UI enabled");
                 return;
             }
         }
-        LOG.info("Connecting to XMPP servers...");
+        LOG.debug("Connecting to XMPP servers...");
         if (this.modelUtils.isOauthConfigured()) {
         //if (this.model.getSettings().isUseGoogleOAuth2()) {
             connectViaOAuth2();
@@ -357,7 +362,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final XmppCredentials credentials = 
             this.modelUtils.newGoogleOauthCreds(getResource());
         
-        LOG.info("Logging in with credentials: {}", credentials);
+        LOG.debug("Logging in with credentials: {}", credentials);
         connect(credentials);
     }
 
@@ -441,6 +446,7 @@ public class DefaultXmppHandler implements XmppHandler {
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
             plainTextProxyRelayAddress, sessionListener, false));
         
+        LOG.debug("Set client for xmpp handler: "+hashCode());
         this.client.get().addConnectionListener(new P2PConnectionListener() {
             
             @Override
@@ -660,6 +666,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private void notInClosedBeta(final String msg) 
         throws NotInClosedBetaException {
+        LOG.debug("Not in closed beta!");
         //connectivityEvent(ConnectivityStatus.DISCONNECTED);
         disconnect();
         throw new NotInClosedBetaException(msg);
@@ -676,7 +683,7 @@ public class DefaultXmppHandler implements XmppHandler {
     
     @Override
     public void disconnect() {
-        LOG.info("Disconnecting!!");
+        LOG.debug("Disconnecting!!");
         lastJson = "";
         /*
         LanternHub.eventBus().post(
@@ -686,7 +693,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final XmppP2PClient cl = this.client.get();
         if (cl != null) {
             this.client.get().logout();
-            this.client.set(null);
+            //this.client.set(null);
         }
 
         Events.eventBus().post(
@@ -696,7 +703,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.closedBetaEvent = null;
         
         // This is mostly logged for debugging thorny shutdown issues...
-        LOG.info("Finished disconnecting XMPP...");
+        LOG.debug("Finished disconnecting XMPP...");
     }
 
     private void processLanternHubMessage(final Message msg) {
