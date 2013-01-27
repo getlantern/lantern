@@ -1,8 +1,8 @@
 package otto
 
 import (
+	"reflect"
 	"strconv"
-	//"fmt"
 )
 
 type _runtime struct {
@@ -320,12 +320,36 @@ func testObjectCoercible(value Value) (isObject bool, mustCoerce bool) {
 	return
 }
 
+func (self *_runtime) ToValue(value interface{}) (Value, error) {
+	result := UndefinedValue()
+	err := catchPanic(func() {
+		result = self.toValue(value)
+	})
+	return result, err
+}
+
 func (self *_runtime) toValue(value interface{}) Value {
 	switch value := value.(type) {
 	case func(FunctionCall) Value:
 		return toValue(self.newNativeFunction(value, 0, "nativeFunction"))
 	case _nativeFunction:
 		return toValue(self.newNativeFunction(value, 0, "nativeFunction"))
+	case Object, *Object, _object, *_object:
+		// Nothing happens.
+	default:
+		{
+			value := reflect.Indirect(reflect.ValueOf(value))
+			switch value.Kind() {
+			case reflect.Struct:
+				return toValue(self.newGoStructObject(value))
+			case reflect.Map:
+				return toValue(self.newGoMapObject(value))
+			case reflect.Slice, reflect.Array:
+				object := self.newGoArrayObject(value)
+				object.prototype = self.Global.ArrayPrototype
+				return toValue(object)
+			}
+		}
 	}
 	return toValue(value)
 }

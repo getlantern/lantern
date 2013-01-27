@@ -31,7 +31,7 @@ func (self *_object) Call(this Value, argumentList ...interface{}) Value {
 	if self._Function == nil {
 		panic(newTypeError("%v is not a function", toValue(self)))
 	}
-	return self.runtime.Call(self, this, toValueArray(argumentList...))
+	return self.runtime.Call(self, this, self.runtime.toValueArray(argumentList...))
 	// ... -> runtime -> self.Function.Call.Dispatch -> ...
 }
 
@@ -39,7 +39,7 @@ func (self *_object) Construct(this Value, argumentList ...interface{}) Value {
 	if self._Function == nil {
 		panic(newTypeError("%v is not a function", toValue(self)))
 	}
-	return self._Function.Construct(self, this, toValueArray(argumentList...))
+	return self._Function.Construct(self, this, self.runtime.toValueArray(argumentList...))
 }
 
 func defaultConstructFunction(self *_object, this Value, argumentList []Value) Value {

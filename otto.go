@@ -49,7 +49,7 @@ Embedding a Go function in JavaScript:
 
 	Otto.Set("twoPlus", func(call otto.FunctionCall) otto.Value {
 		right, _ := call.Argument(0).ToInteger()
-		result, _ := otto.ToValue(2 + right)
+		result, _ := Otto.ToValue(2 + right)
 		return result
 	})
 
@@ -201,10 +201,16 @@ func (self Otto) getValue(name string) Value {
 //
 // If the top-level binding does not exist, it will be created.
 func (self Otto) Set(name string, value interface{}) error {
-	err := catchPanic(func() {
-		self.setValue(name, self.runtime.toValue(value))
-	})
-	return err
+	{
+		value, err := self.ToValue(value)
+		if err != nil {
+			return err
+		}
+		err = catchPanic(func() {
+			self.setValue(name, value)
+		})
+		return err
+	}
 }
 
 func (self Otto) setValue(name string, value Value) {
@@ -240,6 +246,10 @@ func (self Otto) Object(source string) (*Object, error) {
 		return result.Object(), nil
 	}
 	return nil, fmt.Errorf("Result was not an object")
+}
+
+func (self Otto) ToValue(value interface{}) (Value, error) {
+	return self.runtime.ToValue(value)
 }
 
 // Object{}
@@ -296,10 +306,16 @@ func (self Object) Get(name string) (Value, error) {
 // An error will result if the setting the property triggers an exception (i.e. read-only),
 // or there is an error during conversion of the given value.
 func (self Object) Set(name string, value interface{}) error {
-	err := catchPanic(func() {
-		self.object.put(name, self.object.runtime.toValue(value), true)
-	})
-	return err
+	{
+		value, err := self.object.runtime.ToValue(value)
+		if err != nil {
+			return err
+		}
+		err = catchPanic(func() {
+			self.object.put(name, value, true)
+		})
+		return err
+	}
 }
 
 // Class will return the class string of the object.

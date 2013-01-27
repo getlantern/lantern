@@ -10,8 +10,11 @@ import (
 	"unicode/utf8"
 )
 
+var testOtto *Otto
+
 func runTestWithOtto() (*Otto, func(string, ...interface{}) Value) {
 	Otto := New()
+	testOtto = Otto
 	test := func(name string, expect ...interface{}) Value {
 		raise := false
 		defer func() {

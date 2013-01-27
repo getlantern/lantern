@@ -64,18 +64,6 @@ func (self *_arrayStash) get(name string) Value {
 	return self._stash.get(name)
 }
 
-func (self *_arrayStash) enumerate(each func(string)) {
-	// .0, .1, .2, ...
-	for index, _ := range self.valueArray {
-		if self.valueArray[index]._valueType == valueEmpty {
-			continue // A sparse array
-		}
-		name := strconv.FormatInt(int64(index), 10)
-		each(name)
-	}
-	self._stash.enumerate(each)
-}
-
 func (self *_arrayStash) property(name string) *_property {
 	// length
 	if name == "length" {
@@ -99,6 +87,18 @@ func (self *_arrayStash) property(name string) *_property {
 	}
 
 	return self._stash.property(name)
+}
+
+func (self *_arrayStash) enumerate(each func(string)) {
+	// .0, .1, .2, ...
+	for index, _ := range self.valueArray {
+		if self.valueArray[index]._valueType == valueEmpty {
+			continue // A sparse array
+		}
+		name := strconv.FormatInt(int64(index), 10)
+		each(name)
+	}
+	self._stash.enumerate(each)
 }
 
 // write

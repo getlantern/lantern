@@ -100,6 +100,46 @@ const (
 	sqrt1_2      float64 = math.Sqrt2 / 2
 )
 
+const (
+	_MaxInt8   = math.MaxInt8
+	_MinInt8   = math.MinInt8
+	_MaxInt16  = math.MaxInt16
+	_MinInt16  = math.MinInt16
+	_MaxInt32  = math.MaxInt32
+	_MinInt32  = math.MinInt32
+	_MaxInt64  = math.MaxInt64
+	_MinInt64  = math.MinInt64
+	_MaxUint8  = math.MaxUint8
+	_MaxUint16 = math.MaxUint16
+	_MaxUint32 = math.MaxUint32
+	_MaxUint64 = math.MaxUint64
+	_MaxUint   = ^uint(0)
+	_MinUint   = 0
+	_MaxInt    = int(^uint(0) >> 1)
+	_MinInt    = -_MaxInt - 1
+
+	// int64
+	_MaxInt8_   int64 = math.MaxInt8
+	_MinInt8_   int64 = math.MinInt8
+	_MaxInt16_  int64 = math.MaxInt16
+	_MinInt16_  int64 = math.MinInt16
+	_MaxInt32_  int64 = math.MaxInt32
+	_MinInt32_  int64 = math.MinInt32
+	_MaxUint8_  int64 = math.MaxUint8
+	_MaxUint16_ int64 = math.MaxUint16
+	_MaxUint32_ int64 = math.MaxUint32
+
+	// float64
+	_MaxInt_    float64 = float64(int(^uint(0) >> 1))
+	_MinInt_    float64 = float64(int(-_MaxInt - 1))
+	_MinUint_   float64 = float64(0)
+	_MaxUint_   float64 = float64(uint(^uint(0)))
+	_MinUint64_ float64 = float64(0)
+	_MaxUint64_ float64 = math.MaxUint64
+	_MaxInt64_  float64 = math.MaxInt64
+	_MinInt64_  float64 = math.MinInt64
+)
+
 func toIntegerFloat(value Value) float64 {
 	floatValue := value.toFloat()
 	if math.IsNaN(floatValue) {
@@ -132,7 +172,8 @@ func toInteger(value Value) int64 {
 	if math.IsNaN(floatValue) {
 		return 0
 	} else if math.IsInf(floatValue, 0) {
-		panic(hereBeDragons())
+		// FIXME
+		dbgf("%/panic//%@: %f %v to int64", floatValue, value)
 	}
 	if floatValue > 0 {
 		return int64(math.Floor(floatValue))

@@ -15,7 +15,7 @@ func isIdentifier(string_ string) bool {
 	return isIdentifier_Regexp.MatchString(string_)
 }
 
-func toValueArray(arguments ...interface{}) []Value {
+func (self *_runtime) toValueArray(arguments ...interface{}) []Value {
 	length := len(arguments)
 	if length == 1 {
 		if valueArray, ok := arguments[0].([]Value); ok {
@@ -84,14 +84,6 @@ func valueToArrayIndex(indexValue Value, length uint, negativeIsZero bool) uint 
 		}
 		return index
 	}
-}
-
-func dbg(arguments ...interface{}) {
-	output := []string{}
-	for _, argument := range arguments {
-		output = append(output, fmt.Sprintf("%v", argument))
-	}
-	fmt.Println(strings.Join(output, " "))
 }
 
 func boolFields(input string) (result map[string]bool) {

@@ -3,6 +3,8 @@ package otto
 import (
 	"fmt"
 	"math"
+	"reflect"
+	"strconv"
 )
 
 type _valueType int
@@ -58,8 +60,6 @@ func (value Value) IsDefined() bool {
 func (value Value) IsUndefined() bool {
 	return value._valueType == valueUndefined
 }
-
-// Any nil will do -- we just make a new throwaway type here
 
 // NullValue will return a Value representing null.
 func NullValue() Value {
@@ -232,6 +232,17 @@ func (value Value) isError() bool {
 
 // ---
 
+func toValue_reflectValuePanic(value interface{}, kind reflect.Kind) {
+	switch kind {
+	case reflect.Struct:
+		panic(newTypeError("Invalid value (struct): Missing runtime: %v (%T)", value, value))
+	case reflect.Map:
+		panic(newTypeError("Invalid value (map): Missing runtime: %v (%T)", value, value))
+	case reflect.Slice:
+		panic(newTypeError("Invalid value (slice): Missing runtime: %v (%T)", value, value))
+	}
+}
+
 func toValue(value interface{}) Value {
 	switch value := value.(type) {
 	case Value:
@@ -273,8 +284,47 @@ func toValue(value interface{}) Value {
 		return Value{valueObject, value.object}
 	case _reference: // reference is an interface (already a pointer)
 		return Value{valueReference, value}
+	case reflect.Value:
+		value = reflect.Indirect(value)
+		switch value.Kind() {
+		case reflect.Bool:
+			return Value{valueBoolean, bool(value.Bool())}
+		case reflect.Int:
+			return Value{valueNumber, int(value.Int())}
+		case reflect.Int8:
+			return Value{valueNumber, int8(value.Int())}
+		case reflect.Int16:
+			return Value{valueNumber, int16(value.Int())}
+		case reflect.Int32:
+			return Value{valueNumber, int32(value.Int())}
+		case reflect.Int64:
+			return Value{valueNumber, int64(value.Int())}
+		case reflect.Uint:
+			return Value{valueNumber, uint(value.Uint())}
+		case reflect.Uint8:
+			return Value{valueNumber, uint8(value.Uint())}
+		case reflect.Uint16:
+			return Value{valueNumber, uint16(value.Uint())}
+		case reflect.Uint32:
+			return Value{valueNumber, uint32(value.Uint())}
+		case reflect.Uint64:
+			return Value{valueNumber, uint64(value.Uint())}
+		case reflect.Float32:
+			return Value{valueNumber, float32(value.Float())}
+		case reflect.Float64:
+			return Value{valueNumber, float64(value.Float())}
+		case reflect.String:
+			return Value{valueString, string(value.String())}
+		default:
+			toValue_reflectValuePanic(value.Interface(), value.Kind())
+		}
+	default:
+		{
+			value := reflect.Indirect(reflect.ValueOf(value))
+			toValue_reflectValuePanic(value.Interface(), value.Kind())
+		}
 	}
-	panic(newTypeError("Unable to convert value: %v (%T)", value, value))
+	panic(newTypeError("Invalid value: Unsupported: %v (%T)", value, value))
 }
 
 // String will return the value as a string.
@@ -395,15 +445,13 @@ func (value Value) reference() _reference {
 	return nil
 }
 
-var __NaN__, __PositiveInfinity__, __NegativeInfinity__, __PositiveZero__, __NegativeZero__ float64
-
-func init() {
-	__NaN__ = math.NaN()
-	__PositiveInfinity__ = math.Inf(+1)
-	__NegativeInfinity__ = math.Inf(-1)
-	__PositiveZero__ = 0
-	__NegativeZero__ = math.Float64frombits(0 | (1 << 63))
-}
+var (
+	__NaN__              float64 = math.NaN()
+	__PositiveInfinity__ float64 = math.Inf(+1)
+	__NegativeInfinity__ float64 = math.Inf(-1)
+	__PositiveZero__     float64 = 0
+	__NegativeZero__     float64 = math.Float64frombits(0 | (1 << 63))
+)
 
 func positiveInfinity() float64 {
 	return __PositiveInfinity__
@@ -563,4 +611,188 @@ func (value Value) Export() (interface{}, error) {
 	}
 
 	return nil, nil
+}
+
+func (value Value) toReflectValue(kind reflect.Kind) (reflect.Value, error) {
+	switch kind {
+	case reflect.Bool:
+		return reflect.ValueOf(value.toBoolean()), nil
+	case reflect.Int:
+		tmp := toIntegerFloat(value)
+		if tmp < _MinInt_ || tmp > _MaxInt_ {
+			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int", tmp, value)
+		} else {
+			return reflect.ValueOf(int(tmp)), nil
+		}
+	case reflect.Int8:
+		tmp := toInteger(value)
+		if tmp < _MinInt8_ || tmp > _MaxInt8_ {
+			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int8", tmp, value)
+		} else {
+			return reflect.ValueOf(int8(tmp)), nil
+		}
+	case reflect.Int16:
+		tmp := toInteger(value)
+		if tmp < _MinInt16_ || tmp > _MaxInt16_ {
+			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int16", tmp, value)
+		} else {
+			return reflect.ValueOf(int16(tmp)), nil
+		}
+	case reflect.Int32:
+		tmp := toInteger(value)
+		if tmp < _MinInt32_ || tmp > _MaxInt32_ {
+			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int32", tmp, value)
+		} else {
+			return reflect.ValueOf(int32(tmp)), nil
+		}
+	case reflect.Int64:
+		tmp := toIntegerFloat(value)
+		if tmp < _MinInt64_ || tmp > _MaxInt64_ {
+			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to int", tmp, value)
+		} else {
+			return reflect.ValueOf(int64(tmp)), nil
+		}
+	case reflect.Uint:
+		tmp := toIntegerFloat(value)
+		if tmp < 0 || tmp > _MaxUint_ {
+			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint", tmp, value)
+		} else {
+			return reflect.ValueOf(uint(tmp)), nil
+		}
+	case reflect.Uint8:
+		tmp := toInteger(value)
+		if tmp < 0 || tmp > _MaxUint8_ {
+			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint8", tmp, value)
+		} else {
+			return reflect.ValueOf(uint8(tmp)), nil
+		}
+	case reflect.Uint16:
+		tmp := toInteger(value)
+		if tmp < 0 || tmp > _MaxUint16_ {
+			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint16", tmp, value)
+		} else {
+			return reflect.ValueOf(uint16(tmp)), nil
+		}
+	case reflect.Uint32:
+		tmp := toInteger(value)
+		if tmp < 0 || tmp > _MaxUint32_ {
+			return reflect.Value{}, fmt.Errorf("RangeError: %d (%v) to uint32", tmp, value)
+		} else {
+			return reflect.ValueOf(uint32(tmp)), nil
+		}
+	case reflect.Uint64:
+		tmp := toIntegerFloat(value)
+		if tmp < 0 || tmp > _MaxUint64_ {
+			return reflect.Value{}, fmt.Errorf("RangeError: %f (%v) to uint64", tmp, value)
+		} else {
+			return reflect.ValueOf(uint64(tmp)), nil
+		}
+	case reflect.Float32:
+		tmp := toFloat(value)
+		tmp1 := tmp
+		if 0 > tmp1 {
+			tmp1 = -tmp1
+		}
+		if tmp1 < math.SmallestNonzeroFloat32 || tmp1 > math.MaxFloat32 {
+			return reflect.Value{}, fmt.Errorf("RangeError: %f (%v) to float32", tmp, value)
+		} else {
+			return reflect.ValueOf(float32(tmp)), nil
+		}
+	case reflect.Float64:
+		value := toFloat(value)
+		return reflect.ValueOf(float64(value)), nil
+	case reflect.String:
+		return reflect.ValueOf(value.toString()), nil
+	}
+
+	dbgf("%/panic//%@: Invalid: (%v) to reflect.Kind: %v", value, kind)
+	panic("")
+}
+
+func stringToReflectValue(value string, kind reflect.Kind) (reflect.Value, error) {
+	switch kind {
+	case reflect.Bool:
+		value, err := strconv.ParseBool(value)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return reflect.ValueOf(value), nil
+	case reflect.Int:
+		value, err := strconv.ParseInt(value, 0, 0)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return reflect.ValueOf(int(value)), nil
+	case reflect.Int8:
+		value, err := strconv.ParseInt(value, 0, 8)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return reflect.ValueOf(int8(value)), nil
+	case reflect.Int16:
+		value, err := strconv.ParseInt(value, 0, 16)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return reflect.ValueOf(int16(value)), nil
+	case reflect.Int32:
+		value, err := strconv.ParseInt(value, 0, 32)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return reflect.ValueOf(int32(value)), nil
+	case reflect.Int64:
+		value, err := strconv.ParseInt(value, 0, 64)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return reflect.ValueOf(int64(value)), nil
+	case reflect.Uint:
+		value, err := strconv.ParseUint(value, 0, 0)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return reflect.ValueOf(uint(value)), nil
+	case reflect.Uint8:
+		value, err := strconv.ParseUint(value, 0, 8)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return reflect.ValueOf(uint8(value)), nil
+	case reflect.Uint16:
+		value, err := strconv.ParseUint(value, 0, 16)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return reflect.ValueOf(uint16(value)), nil
+	case reflect.Uint32:
+		value, err := strconv.ParseUint(value, 0, 32)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return reflect.ValueOf(uint32(value)), nil
+	case reflect.Uint64:
+		value, err := strconv.ParseUint(value, 0, 64)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return reflect.ValueOf(uint64(value)), nil
+	case reflect.Float32:
+		value, err := strconv.ParseFloat(value, 32)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return reflect.ValueOf(float32(value)), nil
+	case reflect.Float64:
+		value, err := strconv.ParseFloat(value, 64)
+		if err != nil {
+			return reflect.Value{}, err
+		}
+		return reflect.ValueOf(float64(value)), nil
+	case reflect.String:
+		return reflect.ValueOf(value), nil
+	}
+
+	dbgf("%/panic//%@: Invalid: \"%s\" to reflect.Kind: %v", value, kind)
+	panic("")
 }

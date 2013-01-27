@@ -32,6 +32,9 @@ TEST := -v --run RegExp_exec
 TEST := -v --run _panic
 TEST := -v --run TransformRegExp
 TEST := -v --run Lexer
+TEST := -v --run Reflect
+TEST := -v --run _reflectSlice
+TEST := -v --run _reflect
 TEST := .
 
 test: test-i

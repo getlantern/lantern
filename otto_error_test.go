@@ -20,7 +20,7 @@ func TestOttoError(t *testing.T) {
 	Is(err, "TypeError: Nothing happens.")
 
 	_, err = ToValue([]byte{})
-	Is(err, "TypeError: Unable to convert value: [] ([]uint8)")
+	Is(err, "TypeError: Invalid value (slice): Missing runtime: [] ([]uint8)")
 
 	_, err = Otto.Run(`
 		(function(){

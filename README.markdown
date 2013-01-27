@@ -52,7 +52,7 @@ Embedding a Go function in JavaScript:
 
 	Otto.Set("twoPlus", func(call otto.FunctionCall) otto.Value {
 		right, _ := call.Argument(0).ToInteger()
-		result, _ := otto.ToValue(2 + right)
+		result, _ := Otto.ToValue(2 + right)
 		return result
 	})
 
@@ -279,6 +279,12 @@ If there is an error (like the binding being read-only, or the ToValue
 conversion failing), then an error is returned.
 
 If the top-level binding does not exist, it will be created.
+
+#### func (Otto) ToValue
+
+```go
+func (self Otto) ToValue(value interface{}) (Value, error)
+```
 
 #### type Value
 
