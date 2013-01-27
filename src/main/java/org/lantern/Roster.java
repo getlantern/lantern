@@ -23,7 +23,6 @@ import org.kaleidoscope.BasicRandomRoutingTable;
 import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.RandomRoutingTable;
 import org.kaleidoscope.TrustGraphNodeId;
-import org.lantern.LanternRosterEntry.Uploaded;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
@@ -107,26 +106,11 @@ public class Roster implements RosterListener {
                 log.debug("Finished populating roster");
                 log.info("kscope is: {}", kscopeRoutingTable);
                 fullRosterSync();
-                fetchLanternFriends(conn);
             }
         };
         final Thread t = new Thread(r, "Roster-Populating-Thread");
         t.setDaemon(true);
         t.start();
-    }
-
-    /**
-     * This method uploads the roster to our servers to see which of them are
-     * also running Lantern.
-     * 
-     * @param conn The connection to the XMPP server.
-     */
-    private void fetchLanternFriends(final XMPPConnection conn) {
-        final Presence forHub = new Presence(Presence.Type.available);
-        forHub.setTo(LanternConstants.LANTERN_JID);
-        final String json = LanternUtils.jsonify(getEntries(), Uploaded.class);
-        forHub.setProperty(LanternConstants.ROSTER, json);
-        conn.sendPacket(forHub);
     }
 
     /**
