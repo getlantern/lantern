@@ -503,7 +503,6 @@ You should have received a copy of the GNU General Public License along with thi
 <div id="updateAvailable" ng-controller="UpdateAvailableCtrl" ui-modal ng-model="show"
      class="fade" data-backdrop="static" data-keyboard="true"><!-- XXX data-keyboard=true not working? -->
   <div class="modal-header">
-    <button type="button" class="close" ng-click="interaction(INTERACTION.close)" aria-hidden="true">×</button>
     <h3>{{ 'UPDATE_AVAILABLE_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body">
@@ -542,7 +541,6 @@ You should have received a copy of the GNU General Public License along with thi
 <div id="settings" ng-controller="SettingsCtrl" ui-modal ng-model="show"
      class="fade" data-backdrop="static" data-keyboard="true"><!-- XXX data-keyboard=true not working? -->
   <div class="modal-header">
-    <button type="button" class="close" ng-click="interaction(INTERACTION.close)" aria-hidden="true">×</button>
     <h3>
       <i class="lsf-icon lsf-gear"></i>
       {{ 'SETTINGS' | i18n }}

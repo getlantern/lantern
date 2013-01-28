@@ -45,7 +45,7 @@ label.checkbox.inline, label.radio.inline
 .bold
   +bold
 
-// XXX apparently fixed in http://blog.getbootstrap.com/2012/10/29/bootstrap-2-2-0-released/
+// supposedly fixed in http://blog.getbootstrap.com/2012/10/29/bootstrap-2-2-0-released/
 .tooltip
   +aboveModal
 
@@ -54,14 +54,14 @@ label.checkbox.inline, label.radio.inline
 
 .btn-give-mode
   //+ctb-buttonBackground($giveModeColor, $giveModeColorAccent)
-  +bootstrap-buttonBackground($giveModeColor, $giveModeColorAccent)
+  +ctb-buttonBackground($giveModeColor, $giveModeColorAccent)
 
 .btn-get-mode
   //+ctb-buttonBackground($getModeColor, $getModeColorAccent)
-  +bootstrap-buttonBackground($getModeColor, $getModeColorAccent)
+  +ctb-buttonBackground($getModeColor, $getModeColorAccent)
 
 .btn-dev
-  +bootstrap-buttonBackground($devModeColor, $devModeColorAccent)
+  +ctb-buttonBackground($devModeColor, $devModeColorAccent)
 
 .btn-dev
   color: #b3aa1e
@@ -112,7 +112,7 @@ input, textarea
 
 // see compass_twitter_bootstrap's _forms.sass
 input:focus, textarea:focus
-  +bootstrap-box-shadow(0 0 8px rgba(82,168,236,.6))
+  +ctb-box-shadow(0 0 8px rgba(82,168,236,.6))
   &.ng-invalid
     +inputInvalid
 

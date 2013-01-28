@@ -33,8 +33,8 @@ For working on the stylesheets:
 * [compass](http://compass-style.org/) 0.12.2:
   `gem install compass --version '= 0.12.2'`.
   
-* [compass_twitter_bootstrap](https://github.com/vwall/compass-twitter-bootstrap/) 2.0.3:
-  `gem install compass_twitter_bootstrap --version '= 2.0.3'`
+* [compass_twitter_bootstrap](https://github.com/vwall/compass-twitter-bootstrap/) 2.2.2.2:
+  `gem install compass_twitter_bootstrap --version '= 2.2.2.2'`
 
 Tell compass to watch for changes in the sass stylesheets and
 automatically compile them into css in the directory specified by the compass

@@ -1,5 +1,9 @@
 @import mixins
 
+.modal-header h3
+  font-size: $baseFontSize * 1.25
+  line-height: $baseLineHeight * 1.5
+
 .modal form
   margin-bottom: 0
 
@@ -44,7 +48,7 @@ textarea.bugReport
           cursor: default
 
 #welcome
-  +bootstrap-gradient-vertical(#391a42, #070333)
+  +ctb-gradient-vertical(#391a42, #070333)
   +centered
   color: #fff
   .modal-body
@@ -80,7 +84,7 @@ textarea.bugReport
   textarea
     width: 100%
     height: 150px
-    +bootstrap-font-family-monospace
+    +ctb-font-family-monospace
     font-size: $baseFontSize - 1
   .error
     +centered
@@ -97,9 +101,6 @@ textarea.bugReport
     white-space: nowrap
 
 #lanternFriends
-  margin-top: -310px
-  .modal-body
-    max-height: 500px
   h4
     font-size: $baseFontSize * 1.1
     margin-bottom: 15px
@@ -115,6 +116,7 @@ textarea.bugReport
     white-space: normal
     width: 200px
     margin-right: 5px
+    line-height: 1.4
     &:last-child
       margin-right: 0
   img.photo
@@ -131,6 +133,7 @@ textarea.bugReport
     +small
   .btn-mini
     padding: 0 3px
+    line-height: 1.4
     +smaller
 
 .inviteForm
