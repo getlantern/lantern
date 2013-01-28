@@ -47,6 +47,8 @@ public class InteractionServlet extends HttpServlet {
         PROXIEDSITES,
         CANCEL,
         LANTERNFRIENDS,
+        RETRY,
+        REQUESTINVITE,
     }
     
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -117,6 +119,7 @@ public class InteractionServlet extends HttpServlet {
         final Interaction inter = 
             Interaction.valueOf(interactionStr.toUpperCase());
         final Modal modal = this.model.getModal();
+        System.out.println("MODAL: " + modal);
         switch (modal) {
         case welcome:
             switch (inter) {
@@ -196,7 +199,17 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case notInvited:
-            log.error("Processing not invited...");
+            switch (inter) {
+            case RETRY:
+                Events.syncModal(model, Modal.authorize);
+                break;
+            case REQUESTINVITE:
+                Events.syncModal(model, Modal.requestInvite);
+                break;
+            default:
+                log.error("Unexpected interaction: " + inter);
+                break;
+            }
             break;
         case proxiedSites:
             switch (inter) {
