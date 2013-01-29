@@ -119,7 +119,6 @@ public class InteractionServlet extends HttpServlet {
         final Interaction inter = 
             Interaction.valueOf(interactionStr.toUpperCase());
         final Modal modal = this.model.getModal();
-        System.out.println("MODAL: " + modal);
         switch (modal) {
         case welcome:
             switch (inter) {
