@@ -24,6 +24,7 @@ import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
@@ -611,8 +612,8 @@ public class Launcher {
                     }
             };
             final Appender bugAppender = new ExceptionalAppender(
-               LanternConstants.GET_EXCEPTIONAL_API_KEY, callback,
-               new LanternHttpClient());
+               LanternConstants.GET_EXCEPTIONAL_API_KEY, callback);
+               //new LanternHttpClient());
             
             BasicConfigurator.configure(bugAppender);
         } catch (final IOException e) {
