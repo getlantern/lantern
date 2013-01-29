@@ -2071,8 +2071,8 @@ table th[class*="span"],
  */
 @font-face {
   font-family: "FontAwesome";
-  src: url(/app/lib/fontawesome/font/fontawesome-webfont.eot?v=3.0.1);
-  src: url(/app/lib/fontawesome/font/fontawesome-webfont.eot?v=3.0.1?#iefix) format('eot'), url(/app/lib/fontawesome/font/fontawesome-webfont.woff?v=3.0.1) format('woff'), url(/app/lib/fontawesome/font/fontawesome-webfont.ttf?v=3.0.1) format('truetype');
+  src: url('../font/fontawesome-webfont.eot?v=3.0.1');
+  src: url('../font/fontawesome-webfont.eot?v=3.0.1?#iefix') format('eot'), url('../font/fontawesome-webfont.woff?v=3.0.1') format('woff'), url('../font/fontawesome-webfont.ttf?v=3.0.1') format('truetype');
   font-weight: normal;
   font-style: normal;
 }
@@ -6332,7 +6332,7 @@ html, body {
 }
 
 body {
-  background: url('../img/bg/vis.png?1351597515');
+  background: url('../img/bg/vis.png?1353084736');
 }
 
 small {

@@ -7,6 +7,7 @@ http_path = '/'
 project_path = File.join(BASEDIR, 'app')
 sass_path = File.join(BASEDIR, 'sass')
 css_dir = '_css'
+fonts_dir = 'font'
 images_dir = 'img'
 javascripts_dir = 'js'
 output_style = :expanded
