@@ -2,11 +2,10 @@
 
 /* Controllers */
 
+angular.module('myApp.controllers', []).
+  controller('MyCtrl1', [function() {
 
-function MyCtrl1() {}
-MyCtrl1.$inject = [];
+  }])
+  .controller('MyCtrl2', [function() {
 
-
-function MyCtrl2() {
-}
-MyCtrl2.$inject = [];
+  }]);
