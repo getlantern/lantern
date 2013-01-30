@@ -5,6 +5,7 @@ function die() {
 }
 
 OS=`uname -s`
+MACHINE=`uname -m`
 
 mvn --version || die "Please install maven from http://maven.apache.org" 
 
@@ -32,8 +33,14 @@ mvn install:install-file -DgroupId=com.barchart.udt -DartifactId=barchart-udt4 -
 
 if [ "$OS" == "Linux" ];
 then
-    mvn install:install-file -DgroupId=fr.free.miniupnp -DartifactId=miniupnp-java -Dversion=1.7 -Dpackaging=jar -Dfile=lib/miniupnpc_linux.jar -DgeneratePom=true
-    mvn install:install-file -DgroupId=fr.free.miniupnp.natpmp -DartifactId=natpmp-java -Dversion=1.7 -Dpackaging=jar -Dfile=lib/natpmp_linux.jar -DgeneratePom=true
+if [ "$MACHINE" == "x86_64" ];
+then
+	mvn install:install-file -DgroupId=fr.free.miniupnp -DartifactId=miniupnp-java -Dversion=1.7 -Dpackaging=jar -Dfile=lib/miniupnpc_linux.jar -DgeneratePom=true
+	mvn install:install-file -DgroupId=fr.free.miniupnp.natpmp -DartifactId=natpmp-java -Dversion=1.7 -Dpackaging=jar -Dfile=lib/natpmp_linux.jar -DgeneratePom=true
+else
+	mvn install:install-file -DgroupId=fr.free.miniupnp -DartifactId=miniupnp-java -Dversion=1.7 -Dpackaging=jar -Dfile=lib/miniupnpc_linux_32.jar -DgeneratePom=true
+	mvn install:install-file -DgroupId=fr.free.miniupnp.natpmp -DartifactId=natpmp-java -Dversion=1.7 -Dpackaging=jar -Dfile=lib/natpmp_linux_32.jar -DgeneratePom=true
+fi
 fi
 if [ "$OS" == "Darwin" ];
 then
