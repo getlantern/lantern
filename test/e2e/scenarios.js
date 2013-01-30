@@ -12,10 +12,10 @@ describe('app', function() {
   describe('comet connectivity', function() {
 
     it('displays waiting message iff comet is not connected', function() {
-      // XXX make sure cometd server is disconnected
-      expect(element('[x-block-input]').count()).toEqual(1);
+      // cometd server starts out disconnected
+      expect(element('#waiting').count()).toEqual(1);
       // XXX start up cometd server
-      //expect(element('[x-block-input]').count()).toEqual(0);
+      //expect(element('#waiting').count()).toEqual(0);
     });
 
   });

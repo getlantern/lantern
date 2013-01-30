@@ -12,3 +12,6 @@ before_script:
 script:
   - testacular start config/testacular.conf.js --no-auto-watch --single-run --reporters=dots --browsers=Firefox
   - testacular start config/testacular-e2e.conf.js --reporters=dots --browsers=Firefox
+
+notifications:
+  irc: "irc.freenode.net#lantern"
