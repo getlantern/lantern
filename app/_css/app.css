@@ -6930,6 +6930,13 @@ circle.peer {
   -webkit-animation-duration: 2.5s;
 }
 
+path.p2p {
+  fill: none;
+  stroke-width: 1;
+  stroke: white;
+  opacity: 0.5;
+}
+
 #footer {
   width: 100%;
   position: absolute;
