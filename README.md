@@ -4,9 +4,14 @@ Status](https://secure.travis-ci.org/getlantern/lantern-ui.png)](http://travis-c
 
 ![screenshot](https://f.cloud.github.com/assets/475147/69151/13c65cb2-5f51-11e2-8608-aa245a63287e.png)
 
-Replacement UI for [Lantern](https://github.com/getlantern/lantern).
+UI for [Lantern](https://github.com/getlantern/lantern).
 
-Live Demo: http://lantern-ui.jit.su/app/index.html
+A live demo is deployed to http://lantern-ui.jit.su/app/index.html running
+against the bundled mock server, which simulates a real Lantern backend.
+The real backend serves lantern-ui only over localhost, where minification,
+concatenation, and other speedups appropriate for remotely hosted files are not
+necessary. Please keep that in mind when accessing the public demo.
+
 
 ## Overview
 
@@ -44,7 +49,7 @@ config file (`config/compass.rb`):
     >>> Compass is watching for changes. Press Ctrl-C to Stop.
 
 
-Start up the Node.js server simulating the Lantern backend:
+Start up the Node.js mock server simulating the Lantern backend:
 
     $ scripts/web-server.js
     Bayeux-attached http server running at...
