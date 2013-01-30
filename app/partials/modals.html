@@ -460,7 +460,7 @@
 
 <!-- XXX this is just a sketch -->
 <div id="about" ng-controller="AboutCtrl" ui-modal ng-model="show"
-     class="fade" data-backdrop="static" data-keyboard="true"><!-- XXX data-keyboard=true not working? -->
+     class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-body">
     <div style="text-align:center; margin:0">
       Lantern version {{ model.version.installed | version:true }}<br>
@@ -501,7 +501,7 @@ You should have received a copy of the GNU General Public License along with thi
 </div>
 
 <div id="updateAvailable" ng-controller="UpdateAvailableCtrl" ui-modal ng-model="show"
-     class="fade" data-backdrop="static" data-keyboard="true"><!-- XXX data-keyboard=true not working? -->
+     class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
     <h3>{{ 'UPDATE_AVAILABLE_TITLE' | i18n }}</h3>
   </div>
@@ -539,7 +539,7 @@ You should have received a copy of the GNU General Public License along with thi
 </div>
 
 <div id="settings" ng-controller="SettingsCtrl" ui-modal ng-model="show"
-     class="fade" data-backdrop="static" data-keyboard="true"><!-- XXX data-keyboard=true not working? -->
+     class="fade" data-backdrop="static" data-keyboard="false">
   <div class="modal-header">
     <h3>
       <i class="lsf-icon lsf-gear"></i>
@@ -580,12 +580,10 @@ You should have received a copy of the GNU General Public License along with thi
                  ng-click="changeSetting(SETTING.autoReport, autoReport)">
           {{ 'AUTOREPORT_ENABLE' | i18n }}
         </label>
-        <label class="checkbox inline" style="margin:0; padding:0 0 0 1px"><!-- XXX inline style -->
-          <a rel="tooltip" data-original-title="{{ 'AUTOREPORT_PROMPT' | i18n }}"
-             ui-jq="tooltip">
-            <i class="icon-info-sign"></i>
-          </a>
-        </label>
+        <a rel="tooltip" data-original-title="{{ 'AUTOREPORT_PROMPT' | i18n }}"
+           ui-jq="tooltip" style="margin-left: 3px"><!-- XXX inline style -->
+          <i class="icon-info-sign"></i>
+        </a>
 
         <div id="autoreport-warning" ui-toggle="!model.settings.autoReport"
              class="noHeightWhenHidden">
@@ -608,6 +606,8 @@ You should have received a copy of the GNU General Public License along with thi
             <input type="checkbox" ng-model="proxyAllSites"
                    ng-click="changeSetting(SETTING.proxyAllSites, proxyAllSites)">
               {{'PROXY_ALL_TRAFFIC' | i18n }}
+              <a rel="tooltip" data-original-title="{{ 'PROXIED_SITES_PROMPT' | i18n }}"
+                 ui-jq="tooltip"><i class="icon icon-info-sign" style="font-size: 14px"></i></a><!-- XXX inline style -->
           </label>
           <div>
             <label class="checkbox">
