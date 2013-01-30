@@ -8,6 +8,14 @@ angular.module('app.filters', [])
       return count > max ? max + '+' : count;
     };
   })
+  .filter('prettyUser', function() {
+    return function(obj) {
+      if (!obj) return obj;
+      if (obj.email && obj.name)
+        return obj.name + ' (' + obj.email + ')'; // XXX i18n?
+      return obj.email || obj.peerid;
+    };
+  })
   .filter('reportedState', function() {
     return function(model) {
       var state = _.cloneDeep(model);

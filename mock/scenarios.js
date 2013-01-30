@@ -161,6 +161,15 @@ exports.SCENARIOS = {
               this.updateModel({'connectivity.gtalk': CONNECTIVITY.connecting,
                 modal: MODAL.gtalkConnecting}, true);
               this.updateModel({'connectivity.gtalk': CONNECTIVITY.connected}, true);
+              this.updateModel({profile: {
+                email: 'user@example.com',
+                name: 'Some User',
+                link: 'https://plus.google.com/1234567',
+                picture: 'img/default-avatar.png',
+                gender: '',
+                birthday: '',
+                locale: 'en'
+              }}, true);
             }
     }
   },
@@ -246,6 +255,7 @@ exports.SCENARIOS = {
               var peers = [{
                     peerid: 'friend1-1',
                     email: 'lantern_friend1@example.com ',
+                    name: 'Lantern Friend 1',
                     mode: 'give',
                     ip: '74.120.12.135',
                     lat: 51,
@@ -255,6 +265,7 @@ exports.SCENARIOS = {
                   },{
                     peerid: 'friend2-1',
                     email: 'lantern_friend2@example.com ',
+                    name: 'Lantern Friend 2',
                     mode: 'get',
                     ip: '27.55.2.80',
                     lat: 13.754,
@@ -264,6 +275,7 @@ exports.SCENARIOS = {
                   },{
                     peerid: 'poweruser-1',
                     email: 'lantern_power_user@example.com',
+                    name: 'Lantern Power User',
                     mode: 'give',
                     ip: '93.182.129.82',
                     lat: 55.7,
@@ -273,6 +285,7 @@ exports.SCENARIOS = {
                   },{
                     peerid: 'poweruser-2',
                     email: 'lantern_power_user@example.com',
+                    name: 'Lantern Power User',
                     mode: 'give',
                     ip: '173.194.66.141',
                     lat: 37.4192,
@@ -282,6 +295,7 @@ exports.SCENARIOS = {
                   },{
                     peerid: 'poweruser-3',
                     email: 'lantern_power_user@example.com',
+                    name: 'Lantern Power User',
                     mode: 'give',
                     ip: '...',
                     lat: 54,
@@ -291,6 +305,7 @@ exports.SCENARIOS = {
                   },{
                     peerid: 'poweruser-4',
                     email: 'lantern_power_user@example.com',
+                    name: 'Lantern Power User',
                     mode: 'get',
                     ip: '...',
                     lat: 31.230381,

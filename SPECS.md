@@ -488,6 +488,9 @@ the backend maintains on the frontend through comet publications:
                     <tr><td><strong>email</strong><br><em>string</em></td>
                       <td>email for the user that owns this peer, if known.<br><br>
                       </small></strong></td></tr>
+                    <tr><td><strong>name</strong><br><em>string</em></td>
+                      <td>name for the user that owns this peer, if known.<br><br>
+                      </small></strong></td></tr>
                     <tr><td><strong>peerid</strong><br><em>string</em></td>
                         <td>unique identifier for this peer<br><br>
                             <strong><small>* Needed because multiple peers for

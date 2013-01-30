@@ -59,10 +59,6 @@ function VisCtrl($scope, $window, logFactory, modelSrvc, CONFIG) {
         .attr('d', path);
   }
 
-  function updatePeers() {
-    log.debug('updating peers');
-  }
-
   function redraw() {
     log.debug('in redraw');
     var scale     = d3.event.scale,

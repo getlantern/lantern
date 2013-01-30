@@ -426,7 +426,7 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
     }
     $scope.notAlreadyFriends = notAlreadyFriends;
     angular.copy(_.map(notAlreadyFriends, function(i) {
-      return {id: i.email, text: i.name + ' (' + i.email + ')'};
+      return {id: i.email, text: $filter('prettyUser')(i)};
     }), $scope.selectInvitees.tags);
   }
 

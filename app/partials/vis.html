@@ -1,14 +1,19 @@
 <svg id="vis" ng-controller="VisCtrl" ng-show="model.showVis">
   <g id="countries"></g>
   <circle id="self" cx="{{ self.x }}" cy="{{ self.y }}" r="{{ selfR }}"
-          class="{{ model.settings.mode }}" filter="url(#blur)"/>
-  <g id="peers">
+          class="{{ model.settings.mode }}" filter="url(#blur)">
+    <title>{{ model.profile | prettyUser }}</title>
+  </circle>
+  <g id="peersCurrent">
     <g ng-repeat="peer in model.connectivity.peers.current">
       <circle cx="{{ project(peer).x }}" cy="{{ project(peer).y }}" r="{{ peerR }}"
-              id="{{ peer.peerid }}" class="peer {{ peer.mode }}" filter="url(#blur)"/>
-      <path d="M {{ self.x }} {{ self.y }} Q {{ controlpoint(peer).x }} {{ controlpoint(peer).y }} {{ project(peer).x }} {{ project(peer).y }}" class="p2p"/>
+      id="{{ peer.peerid }}" class="peer {{ peer.mode }}" filter="url(#blur)">
+        <title>{{ peer | prettyUser }}</title>
+      </circle>
+      <path d="M {{ self.x }} {{ self.y }} Q {{ controlpoint(peer).x }} {{ controlpoint(peer).y }} {{ project(peer).x }} {{ project(peer).y }}" class="p2p" opacity="{{ }}"/>
     </g>
   </g>
+  <!-- XXX show last seen locations of peers not connected to -->
   <defs>
     <filter id="blur">
       <feGaussianBlur stdDeviation="1" />

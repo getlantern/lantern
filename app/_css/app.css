@@ -6897,17 +6897,15 @@ textarea.bugReport {
   margin-top: 24px;
 }
 
-#vis, #vis svg {
-  height: 100%;
-}
-
-#vis svg {
+#vis {
   display: block;
+  height: 100%;
 }
 
 #countries path {
   fill: none;
-  stroke: rgba(155, 200, 255, 0.15);
+  stroke-width: 1;
+  stroke: #1e3d4b;
 }
 
 circle.give {
@@ -6934,7 +6932,7 @@ path.p2p {
   fill: none;
   stroke-width: 1;
   stroke: white;
-  opacity: 0.5;
+  opacity: 0.25;
 }
 
 #footer {
