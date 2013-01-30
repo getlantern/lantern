@@ -51,7 +51,7 @@ ApiServlet.RESET_INTERNAL_STATE = {
   },
   appliedScenarios: {
     os: 'osx',
-    location: 'beijing',
+    location: 'nyc',
     internet: 'true',
     updateAvailable: 'true',
     gtalkAuthorized: 'true',

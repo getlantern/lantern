@@ -1,64 +1,24 @@
-// XXX why is this y-overflowing the window?
-
-// for firefox
-#canvas, #canvas svg
-  display: inline-block
-  width: 100%
+#vis, #vis svg
   height: 100%
 
-#vis
-  height: 100%
+#vis svg
+  display: block
 
-=parabola
+#countries path
   fill: none
-  stroke: $white
-  opacity: .7
-  stroke-linecap: round
+  stroke: rgba(155, 200, 255, .15)
 
-.parabola
-  +parabola
+circle.give
+  fill: $giveModeColor
 
-.parabola_light
-  +parabola
-  opacity: .15
+circle.get
+  fill: $getModeColor
 
-circle
-  stroke: 1
-  fill: $white
+circle.peer, #self
+  -webkit-animation-iteration-count: infinite
 
-#cities circle
-  opacity: .7
+#self
+  -webkit-animation-duration: 2s
 
-.glow
-  stroke: none
-  opacity: .1
-
-.beam
-  stroke: none
-  fill: $white
-  opacity: .3
-
-.dot_green
-  stroke: 1
-  fill: #AAD092
-  opacity: 1
-  cursor: pointer
-  z-index: 1000
-
-.green_glow
-  :stroke 1
-  :fill #AAD092
-  :opacity .15
-  :z-index 1000
-
-.green_glow_2
-  :stroke 1
-  :fill #AAD092
-  :opacity .5
-  :z-index 1000
-
-.hollow
-  :stroke #FF6666
-  :stroke-width 1.5
-  :fill none
-  :opacity .9
+circle.peer
+  -webkit-animation-duration: 2.5s

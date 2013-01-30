@@ -1,391 +1,62 @@
 'use strict';
 
 angular.module('app.vis', [])
-  // XXX data/countries.json doesn't have two-letter country codes
-  .constant('_COUNTRY_NAME_TO_CODE', {
-    'China': 'cn',
-    'Cuba': 'cu',
-    'Iran': 'ir',
-    'Myanmar': 'mm',
-    'Syria': 'sy',
-    'Turkmenistan': 'tm',
-    'Uzbekistan': 'uz',
-    'Vietnam': 'vn',
-    'Bahrain': 'bh',
-    'Belarus': 'by',
-    'Saudi Arabia': 'sa',
-    'N. Korea': 'kp'
-  })
   .constant('CONFIG', {
     scale: 1400,
     translate: [500, 350],
-    zoomContraints: [.5, 6], // min & max zoom levels
-    zoomChangeSpeed: 500,
-    beamSpeed: 500,
-    parabolaDrawingStep: .03,
-    styles: {
-      strokeColorCensored: '#fff',
-      strokeColorUncensored: '#000',
-
-      countriesOpacity: .3,
-      censoredCountriesOpacity: .45,
-      censoredCountriesStrokeOpacity: .95,
-      uncensoredCountriesStrokeOpacity: .45,
-
-      parabolaLightStrokeWidth: 1,
-      parabolaStrokeWidth: 1,
-
-      userRadiusWidth: 3.7,
-      userStrokeWidth: 1.5,
-      beamRadiusWidth: 3,
-      nodeRadiusWidth: 2.7,
-      nodeGlowRadiusWidth: 8,
-      citiesRadiusWidth: .6,
-      citiesGlowRadiusWidth: 2.5
+    style: {
+      self: {
+        r: 5
+      },
+      peer: {
+        r: 3
+      }
     },
-    sources: {
-      countries: "data/countries.json"
+    source: {
+      countries: 'data/countries.json'
     }
   });
 
-function VisCtrl($scope, logFactory, modelSrvc, CONFIG, _COUNTRY_NAME_TO_CODE) {
+function VisCtrl($scope, $window, logFactory, modelSrvc, CONFIG) {
   var log = logFactory('VisCtrl'),
       model = modelSrvc.model,
-      projection   = null,
-      zoom         = null,
-      geoPath      = null,
-      ends         = [],
-      parabolas    = [],
-      r            = 0,
-      t            = .5,
-      last         = 0,
-      direction    = {},
-      scale        = 1,
-      currentScale = null,
-      svg          = null,
-      layers       = {};
+      projection = d3.geo.mercator()
+                            .scale(CONFIG.scale)
+                            .translate(CONFIG.translate),
+      path = d3.geo.path().projection(projection),
+      zoom = d3.behavior.zoom(),
+      svg = d3.select('svg'),
+      layers = {
+        countries: svg.select('#countries'),
+        self: svg.select('#self')
+      };
 
-  function startTimer() {
-    d3.timer(function(elapsed) {
-       var d = elapsed - last;
-        t += (elapsed - last) / CONFIG.beamSpeed;
-        last = elapsed;
-        loop();
-    });
+  $scope.CONFIG = CONFIG;
+  $scope.projection = projection;
+
+  queue()
+    .defer(d3.json, CONFIG.source.countries)
+    .await(dataFetched);
+
+  function dataFetched(error, countries) {
+    layers.countries.selectAll('path')
+      .data(countries.features)
+      .enter()
+      .append('path')
+        .attr('d', path);
   }
 
-  function loop() {
-    r += .1;
-    // beam animation
-    var p       = Math.abs(Math.sin(t)),
-        radius  = 6 + p*4/scale;
-    angular.forEach(parabolas, function(parabola) {
-      if (parabola.t < 1) {
-        parabola.t += CONFIG.parabolaDrawingStep;
-        var curve = parabola.path.data(function(d) {
-          return getSlicedCurve(parabola, d);
-        });
-        curve.enter().append("path").attr("class", "curve");
-        curve.attr("d", parabola.line);
-      }
-    });
-    svg.select("#nodes").selectAll(".green_glow")
-                        .attr("r", radius)
-                        .attr("opacity", p);
-  }
-
-  function interpolate(d, p) {
-    if (arguments.length < 2) p = t;
-    var r = [];
-    for (var i = 1; i < d.length; i++) {
-      var d0 = d[i - 1],
-          d1 = d[i];
-      r.push({
-        x: d0.x + (d1.x - d0.x) * p,
-        y: d0.y + (d1.y - d0.y) * p
-      });
-    }
-    return r;
-  }
-
-  function getLevels(parabola, d, t_) {
-    if (arguments.length < 2) t_ = t;
-    var x = [parabola.points.slice(0, d)];
-    for (var i = 1; i < d; i++) {
-      x.push(interpolate(x[x.length - 1], t_));
-    }
-    return x;
-  }
-
-  function getSlicedCurve(parabola, d) {
-    var curve = parabola.bezier[d];
-    if (!curve) {
-      curve = parabola.bezier[d] = [];
-      for (var t_ = 0; t_ <= 1; t_ += parabola.delta) {
-        var x = getLevels(parabola, d, t_);
-        curve.push(x[x.length - 1][0]);
-      }
-    }
-    return [curve.slice(0, parabola.t / parabola.delta + 1)];
-  }
-
-  function setupProjection() {
-    projection = d3.geo.mercator()
-                   .scale(CONFIG.scale)
-                   .translate(CONFIG.translate);
-  }
-
-  function setupZoom() {
-    zoom = d3.behavior.zoom()
-             .scaleExtent(CONFIG.zoomContraints)
-             .on("zoom", function() { redraw(); });
+  function updatePeers() {
+    log.debug('updating peers');
   }
 
   function redraw() {
-    //closeMenu();
+    log.debug('in redraw');
     var scale     = d3.event.scale,
         translate = d3.event.translate;
     zoom.translate();
-    svg.attr("transform", "translate(" + translate + ") scale(" + scale + ")");
-    //updateLines(scale);
+    svg.attr('transform', 'translate(' + translate + ') scale(' + scale + ')');
+    // resize, recenter, redraw
   }
-
-  function addBlur(name, deviation) {
-    svg.append("svg:defs")
-       .append("svg:filter")
-       .attr("id", "blur." + name)
-       .append("svg:feGaussianBlur")
-       .attr("stdDeviation", deviation);
-  }
-
-  function setupFilters(svg) {
-    //addBlur("light",   .7);
-    addBlur("medium",  .7);
-    addBlur("strong", 2.5);
-    addBlur("beam",    .9);
-    addBlur("node",    .35);
-    addBlur("green",   1.9);
-    addBlur("red",     0.5);
-  }
-
-  function setupLayers() {
-    layers.states     = svg.append("g").attr("id", "states");
-    layers.cities     = svg.append("g").attr("id", "cities");
-    layers.citiesGlow = svg.append("g").attr("id", "cities_glow");
-    layers.lines      = svg.append("g").attr("id", "lines");
-    layers.beams      = svg.append("g").attr("id", "beams");
-    layers.nodes      = svg.append("g").attr("id", "nodes");
-  }
-
-  function censors(d) {
-    var code = _COUNTRY_NAME_TO_CODE[d.properties.name],
-        country = model.countries[code];
-    return country ? country.censors : false; // XXX country will always be defined once backend populates model.countries completely
-  }
-
-  function loadCountries() {
-    d3.json(CONFIG.sources.countries, function(collection) {
-      geoPath = d3.geo.path().projection(projection);
-      svg.select("#states")
-         .selectAll("path")
-         .data(collection.features)
-         .enter().append("path")
-         .attr("d", geoPath)
-         /*
-         .transition()
-         .duration(750)
-         */
-         .style("stroke", function(d) {
-           return CONFIG.styles[censors(d) ?
-             'strokeColorCensored' : 'strokeColorUncensored'];
-         })
-         .style("stroke-opacity", function(d) {
-           return CONFIG.styles[censors(d) ? 'censoredCountriesStrokeOpacity' :
-             'uncensoredCountriesStrokeOpacity'];
-         })
-         .style("opacity", function(d) {
-           return CONFIG.styles[censors(d) ?
-             'censoredCountriesOpacity' : 'countriesOpacity'];
-         })
-         .style("fill", function(d) {
-           return 'rgba(155, 200, 255, .15)';
-         })
-         ;
-    });
-  }
-
-  function addUser(lat, lon) {
-    var layer = layers.nodes,
-        projected = projection([lon, lat]),
-        cx = projected[0],
-        cy = projected[1];
-
-    layer.append("circle")
-         .attr("class", "hollow")
-         .attr("r", CONFIG.styles.userRadiusWidth)
-         .attr('cx', cx)
-         .attr('cy', cy);
-  }
-
-  var started = false;
-  $scope.$watch('model.showVis', function(val) {
-    if (!val || started) return;
-    log.debug('starting vis');
-    started = true;
-    startTimer();
-    setupProjection();
-    setupZoom();
-    svg = d3.select("#canvas")
-            .append("svg")
-            .call(zoom)
-            .append("g");
-
-    setupFilters();
-    setupLayers();
-    loadCountries();
-    addUser(model.location.lat, model.location.lon);
-    updateParabolas(model.connectivity.peers.current, []);
-  });
-
-  function translateAlong(id, path) {
-    var l = path.getTotalLength(),
-        precalc = [],
-        N = 512;
-    for (var i = 0; i < N; ++i) {
-      var p = path.getPointAtLength((i/(N-1)) * l);
-      precalc.push("translate(" + p.x + "," + p.y + ")");
-    }
-    return function(d, i, a) {
-      return function(t) {
-        return direction[id] == 1 ?
-          precalc[N - ((t*(N-1))|0) - 1] :
-          precalc[(t*(N-1))|0];
-      };
-    };
-  }
-  function transition(circle, parabola) {
-    if (!direction[parabola.id])
-      direction[parabola.id] = 1;
-  
-    circle.transition()
-          .duration(800) // XXX CONFIG
-          .style("opacity", .25)
-          .transition()
-          .duration(1500)
-          .delay(Math.round(Math.random(100) * 2500))
-          .style("opacity", .25)
-          .attrTween("transform", translateAlong(parabola.id, parabola.path.node()))
-          .each("end", function(t) {
-            // fade out the circle after it has stopped
-            circle.transition()
-                  .duration(500)
-                  .style("opacity", 0)
-                  .each("end", function() {
-                    direction[parabola.id] = -direction[parabola.id]; // changes the direction
-                    if (direction[parabola.id] == 1) {
-                      svg.select("#" + parabola.id + "_node")
-                         .transition()
-                         .duration(500)
-                         .style("opacity", .5)
-                         .each("end", function(t) {
-                           d3.select(this).transition().duration(500).style("opacity", 0);
-                         });
-                    } 
-                    transition(circle, parabola);
-                  });
-          });
-  }
-
-  /*
-  var counter = {next: function() { return counter.next._val++; }};
-  counter.next._val = 0;
-  */
-
-  function addParabola(peer) {
-    log.debug('adding parabola for peer', peer);
-    var parabola = {},
-        projected1 = projection([model.location.lon, model.location.lat]),
-        projected2 = projection([peer.lon, peer.lat]),
-        p1 = {x: projected1[0], y: projected1[1]},
-        p2 = {x: projected2[0], y: projected2[1]};
-
-    // midpoint coordinates
-    var x = Math.abs(p1.x + p2.x) / 2,
-        y = Math.min(p2.y, p1.y) - Math.abs(p2.x - p1.x) * .3;
-
-    parabola.t        = .03; // XXX magic numbers
-    parabola.delta    = .03;
-    parabola.points   = [{x: p1.x, y: p1.y}, {x: x, y: y}, {x: p2.x, y: p2.y}];
-    parabola.line     = d3.svg.line().x(function(d) { return d.x; } ).y(function(d) { return d.y; } );
-    parabola.orders   = d3.range(3, 4);
-    parabola.id       = 'parabola_' + peer.peerid;
-    parabola.bezier   = [];
-    parabola.c        = 'parabola_light'; // XXX
-
-    parabola.path = svg.select("#lines")
-                       .data(parabola.orders)
-                       .selectAll("path.curve")
-                       .data(function(d) {
-                         return getSlicedCurve(parabola, d);
-                       })
-                       .enter()
-                       .append("path")
-                       .attr("class", parabola.c)
-                       .attr("id", parabola.id)
-                       .attr("d", parabola.line)
-                       .attr("stroke-width", 1);
-
-    // Store the parabola
-    parabolas.push(parabola);
-
-    var circle = svg.select("#beams")
-                    .append("circle")
-                    .attr("class", "beam")
-                    .attr("filter", "url(#blur.beam)")
-                    .attr("r", CONFIG.styles.beamRadiusWidth);
-
-    transition(circle, parabola);
-    //updateLines(zoom.scale() + .2);
-  }
-
-  function removeParabola(peer) {
-    log.debug('removing parabola for peer', peer);
-  }
-
-  function updateParabolas(valNew, valOld) {
-    var union = {};
-    angular.forEach(valNew.concat(valOld), function(peerid) {
-      union[peerid] = {};
-    });
-    angular.forEach(valNew, function(peerid) {
-      union[peerid].inNew = true;
-    });
-    angular.forEach(valOld, function(peerid) {
-      union[peerid].inOld = true;
-    });
-    angular.forEach(union, function(marker, peerid) {
-      var peer = _.find(model.connectivity.peers.lifetime, function(peer) {
-        return peer.peerid == peerid;
-      });
-      if (!peer) {
-        log.error('no match for current peer', peerid, 'in peers.lifetime');
-        return;
-      }
-      if (marker.inOld && !marker.inNew) {
-        removeParabola(peer);
-      } else if (marker.inNew && !marker.inOld) {
-        addParabola(peer);
-      } else {
-        log.debug('already added parabola for peer', peer);
-      }
-    });
-  }
-  $scope.$watch('model.connectivity.peers.current', function(valNew, valOld) {
-    if (!started || angular.isUndefined(valNew)) return;
-    if (!angular.isArray(valNew)) throw Error('expected array, not' + typeof valNew); // XXX
-    updateParabolas(valNew, valOld || []);
-  }, true);
-  $scope.$watch('model.location', function(location) {
-    // XXX redraw parabolas when user's own location changes
-  });
+  //d3.select($window).on('resize', redraw); // XXX
 }

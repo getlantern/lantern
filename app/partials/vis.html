@@ -1,0 +1,23 @@
+<svg id="vis" ng-controller="VisCtrl" ng-show="model.showVis">
+  <g id="countries"></g>
+  <circle id="self"
+          cx="{{ projection([model.location.lon, model.location.lat])[0] }}"
+          cy="{{ projection([model.location.lon, model.location.lat])[1] }}"
+          r="{{ CONFIG.style.self.r }}"
+          class="{{ model.settings.mode }} animated fadeIn"
+          filter="url(#blur)"></circle>
+  <g id="peers">
+    <circle ng-repeat="peer in model.connectivity.peers.current"
+            cx="{{ projection([peer.lon, peer.lat])[0] }}"
+            cy="{{ projection([peer.lon, peer.lat])[1] }}"
+            r="{{ CONFIG.style.peer.r }}"
+            id="{{ peer.peerid }}"
+            class="peer {{ peer.mode }} animated fadeIn"
+            filter="url(#blur)"></circle>
+  </g>
+  <defs>
+    <filter id="blur">
+      <feGaussianBlur stdDeviation="1" />
+    </filter>
+  </defs>
+</svg>

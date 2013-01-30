@@ -26,6 +26,18 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
   $scope.direction = langSrvc.direction;
   $scope.LANG = LANG;
 
+  $scope.$on('cometdConnected', function() {
+    log.debug('cometdConnected');
+    $scope.cometdConnected = true;
+    $scope.$apply();
+  });
+
+  $scope.$on('cometdDisconnected', function () {
+    log.debug('cometdDisconnected');
+    $scope.cometdConnected = false;
+    $scope.$apply();
+  });
+
   $scope.$watch('model.settings.mode', function(mode) {
     $scope.inGiveMode = mode == MODE.give;
     $scope.inGetMode = mode == MODE.get;
@@ -67,21 +79,6 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
     var update = {path: 'settings.'+key, value: val};
     return $scope.interaction(INTERACTION.set, update);
   };
-}
-
-function WaitingForLanternCtrl($scope, logFactory) {
-  var log = logFactory('WaitingForLanternCtrl');
-  $scope.show = true;
-  $scope.$on('cometdConnected', function() {
-    log.debug('cometdConnected');
-    $scope.show = false;
-    $scope.$apply();
-  });
-  $scope.$on('cometdDisconnected', function () {
-    log.debug('cometdDisconnected');
-    $scope.show = true;
-    $scope.$apply();
-  });
 }
 
 function SanityCtrl($scope, sanity, modelSrvc, cometdSrvc, MODAL, REQUIRED_VERSIONS, logFactory) {

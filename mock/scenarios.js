@@ -1,4 +1,5 @@
 var sleep = require('./node_modules/sleep'),
+    _ = require('../app/lib/lodash.js')._,
     helpers = require('../app/js/helpers.js'),
       merge = helpers.merge,
     constants = require('../app/js/constants.js'),
@@ -229,8 +230,8 @@ exports.SCENARIOS = {
                            name: 'Lantern Power User'
                           }],
                 pending: [{
-                           email: 'not_on_roster@example.com',
-                           name: 'Not On Roster',
+                           email: 'user7@example.com',
+                           name: 'User 7',
                           }]
                 };
               this.updateModel({friends: friends}, true);
@@ -242,9 +243,7 @@ exports.SCENARIOS = {
       desc: 'peers1',
       func: function() {
               // XXX simulate peers going on and offline
-              var peers = {
-                current: ['friend1-1', 'friend2-1', 'poweruser-1', 'poweruser-2', 'poweruser-3', 'poweruser-4'],
-                lifetime: [{
+              var peers = [{
                     peerid: 'friend1-1',
                     email: 'lantern_friend1@example.com ',
                     mode: 'give',
@@ -299,9 +298,11 @@ exports.SCENARIOS = {
                     country: 'cn',
                     type: 'desktop'
                   }
-                ]
-              };
-              this.updateModel({'connectivity.peers': peers}, true);
+              ];
+              this.updateModel({'connectivity.peers': {
+                current: peers,
+                lifetime: _.cloneDeep(peers)
+              }}, true);
             }
     }
   }
