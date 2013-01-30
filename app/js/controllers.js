@@ -41,23 +41,23 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
   $scope.$watch('model.settings.mode', function(mode) {
     $scope.inGiveMode = mode == MODE.give;
     $scope.inGetMode = mode == MODE.get;
-  });
+  }, true);
 
   $scope.$watch('model.mock', function(mock) {
     $scope.mockBackend = !!mock;
-  });
+  }, true);
 
 
   $scope.$watch('model.location.country', function(country) {
     if (country)
       $scope.inCensoringCountry = model.countries[country].censors;
-  });
+  }, true);
 
   $scope.$watch('model.connectivity.gtalk', function(gtalk) {
     $scope.gtalkNotConnected = gtalk == CONNECTIVITY.notConnected;
     $scope.gtalkConnecting = gtalk == CONNECTIVITY.connecting;
     $scope.gtalkConnected = gtalk == CONNECTIVITY.connected;
-  });
+  }, true);
 
   $scope.notifyLanternDevs = true;
 
@@ -93,7 +93,7 @@ function SanityCtrl($scope, sanity, modelSrvc, cometdSrvc, MODAL, REQUIRED_VERSI
       modelSrvc.model.modal = MODAL.none;
       $scope.show = true;
     }
-  });
+  }, true);
 
   $scope.$watch('model.version.installed', function(installed) {
     if (angular.isUndefined(installed)) return;
@@ -114,7 +114,7 @@ function SettingsLoadFailureCtrl($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.settingsLoadFailure;
-  });
+  }, true);
 }
 
 function WelcomeCtrl($scope, modelSrvc, logFactory, MODAL) {
@@ -123,7 +123,7 @@ function WelcomeCtrl($scope, modelSrvc, logFactory, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.welcome;
-  });
+  }, true);
 }
 
 function AuthorizeCtrl($scope, logFactory, MODAL) {
@@ -132,7 +132,7 @@ function AuthorizeCtrl($scope, logFactory, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.authorize;
-  });
+  }, true);
 }
 
 function GtalkConnectingCtrl($scope, logFactory, MODAL) {
@@ -140,7 +140,7 @@ function GtalkConnectingCtrl($scope, logFactory, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.gtalkConnecting;
-  });
+  }, true);
 }
 
 function GtalkUnreachableCtrl($scope, logFactory, MODAL) {
@@ -148,7 +148,7 @@ function GtalkUnreachableCtrl($scope, logFactory, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.gtalkUnreachable;
-  });
+  }, true);
 }
 
 function NotInvitedCtrl($scope, logFactory, MODAL) {
@@ -156,7 +156,7 @@ function NotInvitedCtrl($scope, logFactory, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.notInvited;
-  });
+  }, true);
 }
 
 function RequestInviteCtrl($scope, logFactory, MODAL, INTERACTION) {
@@ -164,7 +164,7 @@ function RequestInviteCtrl($scope, logFactory, MODAL, INTERACTION) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.requestInvite;
-  });
+  }, true);
 
   $scope.sendToLanternDevs = false;
   $scope.disableForm = false;
@@ -191,7 +191,7 @@ function RequestSentCtrl($scope, logFactory, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.requestSent;
-  });
+  }, true);
 }
 
 function FirstInviteReceivedCtrl($scope, logFactory, MODAL) {
@@ -199,7 +199,7 @@ function FirstInviteReceivedCtrl($scope, logFactory, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.firstInviteReceived;
-  });
+  }, true);
 }
 
 function SystemProxyCtrl($scope, logFactory, MODAL, SETTING, INTERACTION) {
@@ -208,7 +208,7 @@ function SystemProxyCtrl($scope, logFactory, MODAL, SETTING, INTERACTION) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.systemProxy;
-  });
+  }, true);
 
   $scope.systemProxy = true;
   $scope.disableForm = false;
@@ -232,7 +232,7 @@ function FinishedCtrl($scope, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.finished;
-  });
+  }, true);
   $scope.autoReport = true;
 }
 
@@ -247,7 +247,7 @@ function ContactCtrl($scope, MODAL, $filter, CONTACT_FORM_MAXLEN) {
       $scope.message = $filter('i18n')('MESSAGE_PLACEHOLDER') + reportedState;
       $scope.contactForm.contactMsg.$pristine = true;
     }
-  });
+  }, true);
 }
 
 function SettingsCtrl($scope, modelSrvc, logFactory, MODAL) {
@@ -256,29 +256,29 @@ function SettingsCtrl($scope, modelSrvc, logFactory, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.settings;
-  });
+  }, true);
 
   $scope.$watch('model.settings.runAtSystemStart', function(runAtSystemStart) {
     $scope.runAtSystemStart = runAtSystemStart;
-  });
+  }, true);
 
   $scope.$watch('model.settings.systemProxy', function(systemProxy) {
     $scope.systemProxy = systemProxy;
     if (systemProxy == false) {
       $scope.proxyAdvancedExpanded = true;
     }
-  });
+  }, true);
 
   $scope.$watch('model.settings.proxyAllSites', function(proxyAllSites) {
     $scope.proxyAllSites = proxyAllSites;
     if (proxyAllSites) {
       $scope.proxyAdvancedExpanded = true;
     }
-  });
+  }, true);
 
   $scope.$watch('model.settings.autoReport', function(autoReport) {
     $scope.autoReport = autoReport;
-  });
+  }, true);
 }
 
 function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACTION, INPUT_PAT) {
@@ -294,12 +294,12 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.proxiedSites;
-  });
+  }, true);
 
   $scope.updating = false;
   $scope.$watch('updating', function(updating) {
     $scope.submitButtonLabelKey = updating ? 'UPDATING' : 'CONTINUE';
-  });
+  }, true);
 
   function updateComplete() {
     $scope.updating = false;
@@ -319,12 +319,12 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
       updateComplete();
       makeValid();
     }
-  });
+  }, true);
   $scope.$watch('model.nproxiedSitesMax', function(nproxiedSitesMax_) {
     nproxiedSitesMax = nproxiedSitesMax_;
     if ($scope.input)
       $scope.validate($scope.input);
-  });
+  }, true);
 
   function normalize(domainOrIP) {
     return angular.lowercase(domainOrIP.trim());
@@ -395,7 +395,7 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.lanternFriends;
-  });
+  }, true);
 
   $scope.invitees = [];
 
@@ -409,7 +409,7 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
     }
     sortedFriendEmails.sort();
     updateCompletions();
-  });
+  }, true);
 
   function updateCompletions() {
     var roster = model.roster;
@@ -433,7 +433,7 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
   $scope.$watch('model.roster', function(roster) {
     if (!roster) return;
     updateCompletions();
-  });
+  }, true);
 
   $scope.selectInvitees = {
     tags: [],
@@ -487,7 +487,7 @@ function AuthorizeLaterCtrl($scope, logFactory, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.authorizeLater;
-  });
+  }, true);
 }
 
 function AboutCtrl($scope, logFactory, MODAL, VER) {
@@ -495,28 +495,28 @@ function AboutCtrl($scope, logFactory, MODAL, VER) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.about;
-  });
+  }, true);
 }
 
 function UpdateAvailableCtrl($scope, logFactory, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.updateAvailable;
-  });
+  }, true);
 }
 
 function ConfirmResetCtrl($scope, logFactory, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.confirmReset;
-  });
+  }, true);
 }
 
 function GiveModeForbiddenCtrl($scope, logFactory, MODAL) {
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.giveModeForbidden;
-  });
+  }, true);
 }
 
 function ScenariosCtrl($scope, $timeout, logFactory, modelSrvc, dev, MODAL, INTERACTION) {
@@ -526,7 +526,7 @@ function ScenariosCtrl($scope, $timeout, logFactory, modelSrvc, dev, MODAL, INTE
   $scope.show = false;
   $scope.$watch('model.modal', function(modal) {
     $scope.show = modal == MODAL.scenarios;
-  });
+  }, true);
 
   $scope.$watch('model.mock.scenarios.applied', function(applied) {
     if (applied) {
@@ -538,7 +538,7 @@ function ScenariosCtrl($scope, $timeout, logFactory, modelSrvc, dev, MODAL, INTE
         }
       });
     }
-  });
+  }, true);
 
   $scope.submit = function() {
     var appliedScenarios = {};
