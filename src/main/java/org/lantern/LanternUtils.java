@@ -113,7 +113,7 @@ public class LanternUtils {
     public static void writeRequest(final Queue<HttpRequest> httpRequests,
         final HttpRequest request, final ChannelFuture cf) {
         httpRequests.add(request);
-        LOG.info("Writing request: {}", request);
+        LOG.debug("Writing request: {}", request);
         LanternUtils.genericWrite(request, cf);
     }
     
@@ -531,7 +531,7 @@ public class LanternUtils {
     public static char[] readPasswordCLI() throws IOException {
         Console console = System.console();
         if (console == null) {
-            LOG.info("No console -- using System.in...");
+            LOG.debug("No console -- using System.in...");
             final Scanner sc = new Scanner(System.in);
             return sc.nextLine().toCharArray();
         }
@@ -555,7 +555,7 @@ public class LanternUtils {
     }
         
     public static String readLineCliNoConsole() {
-        LOG.info("No console -- using System.in...");
+        LOG.debug("No console -- using System.in...");
         final Scanner sc = new Scanner(System.in, "UTF-8");
         //sc.useDelimiter("\n");
         //return sc.next();
@@ -637,7 +637,7 @@ public class LanternUtils {
      */
     public static void replaceInFile(final File file, 
         final String regex, final String replacement) {
-        LOG.info("Replacing "+regex+" with "+replacement+" in "+file);
+        LOG.debug("Replacing "+regex+" with "+replacement+" in "+file);
         try {
             final String cur = FileUtils.readFileToString(file, "UTF-8");
             final String noStart = cur.replaceFirst(regex, replacement);
@@ -727,37 +727,6 @@ public class LanternUtils {
             sb.append("\n");
         }
         return sb.toString();
-    }
-    
-    
-    /** 
-     * returns bean property assocated with a method name of the form 
-     * getXyzW -> xyzW or isXyzW -> xyzW
-     *
-     * returns null if no property name is deduced
-     */
-    public static String methodNameToProperty(final String methodName) {
-        if (methodName.startsWith("get")) {
-            return _lowerFirst(methodName.substring(3));
-        }
-        else if (methodName.startsWith("is")) {
-            return _lowerFirst(methodName.substring(2));
-        }
-        else {
-            return null;
-        }
-    }
-    
-    private static String _lowerFirst(final String s) {
-        if (s == null) {
-            return null;
-        }
-        if (s.length() > 1) {
-            return s.substring(0,1).toLowerCase() + s.substring(1);
-        }
-        else {
-            return s.toLowerCase();
-        }
     }
     
     public static void zeroFill(char[] array) {
