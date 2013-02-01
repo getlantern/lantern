@@ -55,7 +55,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
 
     private final Stats stats;
 
-    private final LanternKeyStoreManager ksm;
+    private final LanternClientSslContextFactory sslFactory;
 
     public DefaultHttpRequestProcessor( 
         final ProxyStatusListener proxyStatusListener, 
@@ -63,7 +63,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         final Proxy proxy, 
         final ClientSocketChannelFactory clientSocketChannelFactory,
         final ChannelGroup channelGroup, final Stats stats,
-        final LanternKeyStoreManager ksm) {
+        final LanternClientSslContextFactory sslFactory) {
         this.proxyStatusListener = proxyStatusListener;
         this.transformer = transformer;
         this.isLae = isLae;
@@ -71,7 +71,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         this.clientSocketChannelFactory = clientSocketChannelFactory;
         this.channelGroup = channelGroup;
         this.stats = stats;
-        this.ksm = ksm;
+        this.sslFactory = sslFactory;
     }
     
     private boolean hasProxy() {
@@ -126,6 +126,9 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         
         final ChannelPipeline pipeline = cb.getPipeline();
         final SSLEngine engine;
+        
+        engine = sslFactory.getClientContext().createSSLEngine();
+        /*
         if (this.isLae) {
             log.info("Creating standard SSL engine");
             final LanternClientSslContextFactory sslFactory =
@@ -138,6 +141,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
                 new LanternClientSslContextFactory(this.ksm);
             engine = sslFactory.getClientContext().createSSLEngine();
         }
+        */
         engine.setUseClientMode(true);
         
         final ChannelHandler statsHandler = new StatsTrackingHandler() {

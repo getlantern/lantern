@@ -135,7 +135,7 @@ public class DefaultLanternApi implements LanternApi {
             handleRoster(resp);
             break;
         case CONTACT:
-            handleContactForm(req, resp);
+            //handleContactForm(req, resp);
             break;
         case WHITELIST:
             handleWhitelist(resp);
@@ -545,6 +545,7 @@ public class DefaultLanternApi implements LanternApi {
         }
     }
 
+    /*
     private void handleContactForm(HttpServletRequest req, HttpServletResponse resp) {
         final Map<String, String> params = HttpUtils.toParamMap(req);
         String message = params.get("message");
@@ -556,4 +557,5 @@ public class DefaultLanternApi implements LanternApi {
             sendServerError(e, resp, true);
         }
     }
+    */
 }

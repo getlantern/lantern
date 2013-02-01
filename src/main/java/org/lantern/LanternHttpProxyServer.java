@@ -62,6 +62,8 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     private final HttpsEverywhere httpsEverywhere;
 
+    private LanternClientSslContextFactory sslClientContextFactory;
+
     /**
      * Creates a new proxy server.
      * 
@@ -82,7 +84,8 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         final Stats stats,
         final LanternKeyStoreManager keyStoreManager,
         final Model model, final ProxyTracker proxyTracker,
-        final HttpsEverywhere httpsEverywhere) {
+        final HttpsEverywhere httpsEverywhere,
+        final LanternClientSslContextFactory sslClientContextFactory) {
         this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.anonymousPeerProxyManager = anonymousPeerProxyManager;
         //this.setCookieObserver = setCookieObserver;
@@ -96,6 +99,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         this.model = model;
         this.proxyTracker = proxyTracker;
         this.httpsEverywhere = httpsEverywhere;
+        this.sslClientContextFactory = sslClientContextFactory;
 
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
@@ -166,8 +170,9 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                 final SimpleChannelUpstreamHandler dispatcher = 
                     new DispatchingProxyRelayHandler(clientChannelFactory, 
                         channelGroup, trustedPeerProxyManager,
-                        anonymousPeerProxyManager, stats, keyStoreManager, 
-                        model, proxyTracker, httpsEverywhere);
+                        anonymousPeerProxyManager, stats, 
+                        model, proxyTracker, httpsEverywhere, 
+                        sslClientContextFactory);
                 
                 final ChannelPipeline pipeline = pipeline();
                 pipeline.addLast("decoder", 

@@ -4,14 +4,24 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Properties;
 import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
+import org.lantern.GeoData;
 import org.lantern.LanternConstants;
 import org.lantern.http.OauthUtils;
 import org.lantern.state.Settings.Mode;
@@ -30,10 +40,56 @@ public class ModelUtils {
     private final Logger LOG = LoggerFactory.getLogger(ModelUtils.class);
     
     private final Model model;
+
+    private final DefaultHttpClient httpClient;
     
     @Inject
-    public ModelUtils(final Model model) {
+    public ModelUtils(final Model model, final DefaultHttpClient httpClient) {
         this.model = model;
+        this.httpClient = httpClient;
+    }
+    
+    
+    public GeoData getGeoData(final String ip) {
+        final String query = 
+            "USE 'http://www.datatables.org/iplocation/ip.location.xml' " +
+            "AS ip.location; select CountryCode, Latitude,Longitude from " +
+            "ip.location where ip = '"+ip+"' and key = " +
+            "'a6a2704c6ebf0ee3a0c55d694431686c0b6944afd5b648627650ea1424365abb'";
+
+        final URIBuilder builder = new URIBuilder();
+        builder.setScheme("https").setHost("query.yahooapis.com").setPath(
+            "/v1/public/yql").setParameter("q", query).setParameter(
+                "format", "json");
+        
+        final HttpGet get = new HttpGet();
+        try {
+            final URI uri = builder.build();
+            get.setURI(uri);
+            final HttpResponse response = this.httpClient.execute(get);
+            final HttpEntity entity = response.getEntity();
+            final String body = 
+                IOUtils.toString(entity.getContent()).toLowerCase();
+            EntityUtils.consume(entity);
+            LOG.debug("GOT RESPONSE BODY FOR GEO IP LOOKUP:\n"+body);
+            
+            final ObjectMapper om = new ObjectMapper();
+            if (!body.contains("latitude")) {
+                LOG.warn("No latitude in response: {}", body);
+                return new GeoData();
+            }
+            final String parsed = StringUtils.substringAfterLast(body, "{");
+            final String full = 
+                "{"+StringUtils.substringBeforeLast(parsed, "\"}")+"\"}";
+            return om.readValue(full, GeoData.class);
+        } catch (final IOException e) {
+            LOG.warn("Could not connect to geo ip url?", e);
+        } catch (final URISyntaxException e) {
+            LOG.error("URI error", e);
+        } finally {
+            get.releaseConnection();
+        }
+        return new GeoData();
     }
 
     /**

@@ -29,6 +29,7 @@ import org.lantern.event.IncomingSocketEvent;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
+import org.lantern.state.ModelUtils;
 import org.lantern.state.Peer;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.SyncPath;
@@ -93,12 +94,14 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     private final LookupService lookupService;
 
     private final CertTracker certTracker;
+
+    private final ModelUtils modelUtils;
     
     public DefaultPeerProxyManager(final boolean anon, 
         final ChannelGroup channelGroup, final XmppHandler xmppHandler,
         final Stats stats, final LanternSocketsUtil socketsUtil,
         final Model model, final LookupService lookupService,
-        final CertTracker certTracker) {
+        final CertTracker certTracker, final ModelUtils modelUtils) {
         this.anon = anon;
         this.channelGroup = channelGroup;
         this.xmppHandler = xmppHandler;
@@ -107,6 +110,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         this.model = model;
         this.lookupService = lookupService;
         this.certTracker = certTracker;
+        this.modelUtils = modelUtils;
         Events.register(this);
     }
 
@@ -281,7 +285,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             peer = this.peers.get(userId);
         } else {
             final InetAddress ia = sock.getInetAddress();
-            final GeoData geo = LanternUtils.getGeoData(ia.getHostAddress());
+            final GeoData geo = modelUtils.getGeoData(ia.getHostAddress());
             peer = new Peer(userId, base64Cert, geo.getCountrycode(), false, 
                 false, false, geo.getLatitude(), geo.getLongitude());
             this.peers.put(userId, peer);
@@ -380,7 +384,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         if (this.peers.containsKey(userId)) {
             peer = this.peers.get(userId);
         } else {
-            final GeoData geo = LanternUtils.getGeoData(
+            final GeoData geo = modelUtils.getGeoData(
                 sock.getInetAddress().getHostAddress());
             peer = new Peer(userId, cert, geo.getCountrycode(), false, false, 
                 false, geo.getLatitude(), geo.getLongitude());

@@ -47,14 +47,6 @@ public class LanternUtilsTest {
     private final AtomicReference<String> readOnServer = 
         new AtomicReference<String>("");
     
-    @Test
-    public void testGeoData() throws Exception {
-        final GeoData data = LanternUtils.getGeoData("86.170.128.133");
-        assertTrue(data.getLatitude() > 50.0);
-        assertTrue(data.getLongitude() < 3.0);
-        assertEquals("gb", data.getCountrycode());
-    }
-    
     @Test 
     public void testGoogleTalkReachable() throws Exception {
         assertTrue(LanternUtils.isGoogleTalkReachable());
