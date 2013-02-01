@@ -848,6 +848,7 @@ public class DefaultXmppHandler implements XmppHandler {
         forHub.setTo(LanternConstants.LANTERN_JID);
         
         //if (!LanternHub.settings().isGetMode()) {
+            forHub.setProperty("mode", model.getSettings().getMode().toString());
             final String str = LanternUtils.jsonify(stats);
             LOG.debug("Reporting data: {}", str);
             if (!this.lastJson.equals(str)) {
