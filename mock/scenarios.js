@@ -324,27 +324,32 @@ exports.SCENARIOS = {
               }, true);
               setInterval(function() {
                 var peersCurrent = getByPath(this_.model, 'connectivity.peers.current');
+                //log('peersCurrent:', _.pluck(peersCurrent, 'peerid'));
                 if (_.isEmpty(peersCurrent)) {
-                  this_.updateModel({'connectivity.peers.current.0': randomChoice(peers)}, true);
+                  var randomPeer = randomChoice(peers);
+                  this_.updateModel({'connectivity.peers.current.0': randomPeer}, true);
+                  //log('No current peers, added random peer', randomPeer.peerid);
                   return;
                 }
-                if (peersCurrent === peers.length) {
+                if (peersCurrent.length === peers.length) {
                   var i = _.random(peers.length - 1);
+                  //log('Connected to all available peers, removing random peer', peersCurrent[i].peerid);
                   peersCurrent.splice(i, 1);
                   this_.publishSync('connectivity.peers.current');
                   return;
                 }
-                var offline = [];
-                for (var i=0, p=peers[i]; p; p=peers[++i]) {
-                  if (!_.any(peersCurrent, function(pp) { return p.peerid === (pp || {}).peerid; }))
-                    offline.push(p);
-                }
-                if (Math.random() < .5) { // offline peer comes online, add it
-                  var randomPeer = randomChoice(offline);
+                if (Math.random() < .5) { // add a random not connected peer
+                  var peersall = _.pluck(peers, 'peerid'),
+                      peerscur = _.pluck(peersCurrent, 'peerid'),
+                      peersnc = _.difference(peersall, peerscur),
+                      randomPeerid = randomChoice(peersnc),
+                      randomPeer = _.find(peers, function(p){ return p.peerid === randomPeerid; });
                   peersCurrent.push(randomPeer);
                   this_.publishSync('connectivity.peers.current.'+peersCurrent.length, true);
-                } else { // online peer goes offline, remove it
+                  //log('heads: added random peer', randomPeerid);
+                } else { // remove a random connected peer
                   var i = _.random(peersCurrent.length - 1);
+                  //log('tails: removing random peer', peersCurrent[i].peerid);
                   peersCurrent.splice(i, 1);
                   this_.publishSync('connectivity.peers.current');
                 }
