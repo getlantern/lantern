@@ -49,7 +49,7 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
 
 
   $scope.$watch('model.location.country', function(country) {
-    if (country)
+    if (country && model.countries[country])
       $scope.inCensoringCountry = model.countries[country].censors;
   }, true);
 

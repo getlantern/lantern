@@ -36,19 +36,21 @@ BayeuxBackend.prototype.resetModel = function() {
   merge(this.model, {bayeuxProtocol: BayeuxBackend.VERSION}, 'version.installed');
 };
 
-BayeuxBackend.prototype.publishSync = function(path) {
+BayeuxBackend.prototype.publishSync = function(path, delete_) {
   if (_.isEmpty(this._clients)) {
-    log('[publishSync]', 'no clients to publish to');
+    //log('[publishSync]', 'no clients to publish to');
     return;
   }
   path = path || '';
-  var value = getByPath(this.model, path);
-  //log('[publishSync]', '\npath:', path, '\nvalue:', value);
-  // this._bayeux.getClient().publish({ // XXX why doesn't this work?
-  this._bayeux._server._engine.publish({
-    channel: MODEL_SYNC_CHANNEL,
-    data: {path: path, value: value}
-  });
+  var data = {path: path};
+  if (delete_) {
+    data.delete = true;
+  } else {
+    data.value = getByPath(this.model, path);
+  }
+  //log('[publishSync]\n', data);
+  this._bayeux._server._engine.publish({channel: MODEL_SYNC_CHANNEL, data: data});
+  //this._bayeux.getClient().publish({ // XXX why doesn't this work?
 };
 
 BayeuxBackend.prototype._bindCallbacks = function() {

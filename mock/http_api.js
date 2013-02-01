@@ -22,14 +22,16 @@ var url = require('url'),
         OS = ENUMS.OS,
         SETTING = ENUMS.SETTING;
 
+var SKIPSETUP = true,
+    MODALSEQ_GIVE = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.finished, MODAL.none],
+    MODALSEQ_GET = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.proxiedSites, MODAL.systemProxy, MODAL.finished, MODAL.none];
+
 function ApiServlet(bayeuxBackend) {
   this._bayeuxBackend = bayeuxBackend;
   this.publishSync = bayeuxBackend.publishSync.bind(bayeuxBackend);
   this.resetModel = bayeuxBackend.resetModel.bind(bayeuxBackend);
   this.reset();
   this._DEFAULT_PROXIED_SITES = bayeuxBackend.model.settings.proxiedSites.slice(0);
-  this.MODALSEQ_GIVE = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.finished, MODAL.none];
-  this.MODALSEQ_GET = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.proxiedSites, MODAL.systemProxy, MODAL.finished, MODAL.none];
 }
 
 ApiServlet.VERSION = {
@@ -42,12 +44,12 @@ ApiServlet.MOUNT_POINT = 'api';
 ApiServlet.RESET_INTERNAL_STATE = {
   lastModal: MODAL.none,
   modalsCompleted: {
-    welcome: false,
-    authorize: false,
-    proxiedSites: false,
-    systemProxy: false,
-    lanternFriends: false,
-    finished: false
+    welcome: SKIPSETUP,
+    authorize: SKIPSETUP,
+    proxiedSites: SKIPSETUP,
+    systemProxy: SKIPSETUP,
+    lanternFriends: SKIPSETUP,
+    finished: SKIPSETUP
   },
   appliedScenarios: {
     os: 'osx',
@@ -60,7 +62,8 @@ ApiServlet.RESET_INTERNAL_STATE = {
     gtalkReachable: 'true',
     roster: 'roster1',
     friends: 'friends1',
-    peers: 'peers1'
+    peers: 'peers1',
+    countries: 'countries1'
   }
 };
 
@@ -82,6 +85,13 @@ ApiServlet.prototype.reset = function() {
     this.model.mock.scenarios.applied[groupKey] = scenKey;
   }
   this.publishSync();
+  if (SKIPSETUP) {
+    this.updateModel({
+      'showVis': true,
+      'settings.mode': MODE.give
+    }, true);
+    ApiServlet._handlerForModal[MODAL.authorize].call(this, INTERACTION.continue);
+  }
 };
 
 // XXX better name for this
@@ -105,7 +115,7 @@ ApiServlet.prototype.updateModel = function(state, publish) {
  * unable to complete them, but should be returned to later.
  * */
 ApiServlet.prototype._advanceModal = function(backToIfNone) {
-  var modalSeq = this.inGiveMode() ? this.MODALSEQ_GIVE : this.MODALSEQ_GET,
+  var modalSeq = this.inGiveMode() ? MODALSEQ_GIVE : MODALSEQ_GET,
       next;
   for (var i=0; this._internalState.modalsCompleted[next=modalSeq[i++]];);
   if (backToIfNone && next == MODAL.none)
@@ -340,6 +350,19 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   }
   log('applying peers scenario', scen.desc);
   scen.func.call(this);
+
+  // country statistics
+  scen = getByPath(this.model, 'mock.scenarios.applied.countries');
+  scen = getByPath(SCENARIOS, 'countries.'+scen);
+  if (!scen) {
+    this._internalState.lastModal = MODAL.authorize;
+    this.updateModel({modal: MODAL.scenarios,
+      'mock.scenarios.prompt': 'No countries scenario applied.'}, true);
+    return;
+  }
+  log('applying countries scenario', scen.desc);
+  scen.func.call(this);
+
   this._internalState.modalsCompleted[MODAL.authorize] = true;
   this._advanceModal(this._internalState.lastModal);
 };

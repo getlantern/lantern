@@ -6903,7 +6903,6 @@ textarea.bugReport {
 }
 
 #countries path {
-  fill: none;
   stroke-width: 1;
   stroke: #1e3d4b;
 }
@@ -6914,18 +6913,6 @@ circle.give {
 
 circle.get {
   fill: #ffcc66;
-}
-
-circle.peer, #self {
-  -webkit-animation-iteration-count: infinite;
-}
-
-#self {
-  -webkit-animation-duration: 2s;
-}
-
-circle.peer {
-  -webkit-animation-duration: 2.5s;
 }
 
 path.p2p {

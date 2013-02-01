@@ -54,6 +54,8 @@ describe('helpers', function() {
       expect(_.isEqual(obj, objCopy)).toBe(true);
       deleteByPath(obj, 'missing');
       expect(_.isEqual(obj, objCopy)).toBe(true);
+      deleteByPath(obj, 'missing.missing2');
+      expect(_.isEqual(obj, objCopy)).toBe(true);
 
       deleteByPath(obj, '2');
       expect(_.isEqual(obj, objCopy)).toBe(false);

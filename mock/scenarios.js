@@ -2,6 +2,10 @@ var sleep = require('./node_modules/sleep'),
     _ = require('../app/lib/lodash.js')._,
     helpers = require('../app/js/helpers.js'),
       merge = helpers.merge,
+      makeLogger = helpers.makeLogger,
+        log = makeLogger('scenarios'),
+      randomChoice = helpers.randomChoice,
+      getByPath = helpers.getByPath,
     constants = require('../app/js/constants.js'),
       ENUMS = constants.ENUMS,
         CONNECTIVITY = ENUMS.CONNECTIVITY,
@@ -95,21 +99,21 @@ exports.SCENARIOS = {
     beijing: {
       desc: 'location: Beijing',
       func: make_simple_scenario({
-              location: {lat:39.904041, lon:116.407528, country:'cn'},
+              location: {lat:39.904041, lon:116.407528, country:'CN'},
               'connectivity.ip': '123.123.123.123'
             })
     },
     nyc: {
       desc: 'location: NYC',
       func: make_simple_scenario({
-              location: {lat:40.7089, lon:-74.0012, country:'us'},
+              location: {lat:40.7089, lon:-74.0012, country:'US'},
               'connectivity.ip': '64.90.182.55'
             })
     },
     paris: {
       desc: 'location: Paris',
       func: make_simple_scenario({
-              location: {lat:48.8667, lon:2.3333, country:'fr'},
+              location: {lat:48.8667, lon:2.3333, country:'FR'},
               'connectivity.ip': '78.250.177.119'
             })
     }
@@ -251,8 +255,8 @@ exports.SCENARIOS = {
     peers1: {
       desc: 'peers1',
       func: function() {
-              // XXX simulate peers going on and offline
-              var peers = [{
+              var this_ = this,
+                  peers = [{
                     peerid: 'friend1-1',
                     email: 'lantern_friend1@example.com ',
                     name: 'Lantern Friend 1',
@@ -260,7 +264,7 @@ exports.SCENARIOS = {
                     ip: '74.120.12.135',
                     lat: 51,
                     lon: 9,
-                    country: 'de',
+                    country: 'DE',
                     type: 'desktop'
                   },{
                     peerid: 'friend2-1',
@@ -270,7 +274,7 @@ exports.SCENARIOS = {
                     ip: '27.55.2.80',
                     lat: 13.754,
                     lon: 100.5014,
-                    country: 'th',
+                    country: 'TH',
                     type: 'desktop'
                   },{
                     peerid: 'poweruser-1',
@@ -280,7 +284,7 @@ exports.SCENARIOS = {
                     ip: '93.182.129.82',
                     lat: 55.7,
                     lon: 13.1833,
-                    country: 'se',
+                    country: 'SE',
                     type: 'lec2proxy'
                   },{
                     peerid: 'poweruser-2',
@@ -290,7 +294,7 @@ exports.SCENARIOS = {
                     ip: '173.194.66.141',
                     lat: 37.4192,
                     lon: -122.0574,
-                    country: 'us',
+                    country: 'US',
                     type: 'laeproxy'
                   },{
                     peerid: 'poweruser-3',
@@ -300,7 +304,7 @@ exports.SCENARIOS = {
                     ip: '...',
                     lat: 54,
                     lon: -2,
-                    country: 'gb',
+                    country: 'GB',
                     type: 'lec2proxy'
                   },{
                     peerid: 'poweruser-4',
@@ -310,15 +314,59 @@ exports.SCENARIOS = {
                     ip: '...',
                     lat: 31.230381,
                     lon: 121.473684,
-                    country: 'cn',
+                    country: 'CN',
                     type: 'desktop'
                   }
               ];
-              this.updateModel({'connectivity.peers': {
-                current: peers,
-                lifetime: _.cloneDeep(peers)
-              }}, true);
+              this.updateModel({
+                'connectivity.peers.current': [],
+                'connectivity.peers.lifetime': peers
+              }, true);
+              setInterval(function() {
+                var peersCurrent = getByPath(this_.model, 'connectivity.peers.current');
+                if (_.isEmpty(peersCurrent)) {
+                  this_.updateModel({'connectivity.peers.current.0': randomChoice(peers)}, true);
+                  return;
+                }
+                if (peersCurrent === peers.length) {
+                  var i = _.random(peers.length - 1);
+                  peersCurrent.splice(i, 1);
+                  this_.publishSync('connectivity.peers.current');
+                  return;
+                }
+                var offline = [];
+                for (var i=0, p=peers[i]; p; p=peers[++i]) {
+                  if (!_.any(peersCurrent, function(pp) { return p.peerid === (pp || {}).peerid; }))
+                    offline.push(p);
+                }
+                if (Math.random() < .5) { // offline peer comes online, add it
+                  var randomPeer = randomChoice(offline);
+                  peersCurrent.push(randomPeer);
+                  this_.publishSync('connectivity.peers.current.'+peersCurrent.length, true);
+                } else { // online peer goes offline, remove it
+                  var i = _.random(peersCurrent.length - 1);
+                  peersCurrent.splice(i, 1);
+                  this_.publishSync('connectivity.peers.current');
+                }
+              }, 1000);
             }
+    }
+  },
+  countries: {
+    countries1: {
+      desc: 'countries1',
+      func: function() {
+        var this_ = this;
+        setInterval(function() {
+          var randomCountry = randomChoice(this_.model.countries),
+              stats = this_.model.countries[randomCountry],
+              nusersOnlineNow = getByPath(stats, 'nusers.online', _.random(0, 1000)),
+              nusersOnlineNext = Math.max(0, nusersOnlineNow + _.random(-50, 50)),
+              update = {};
+          update['countries.'+randomCountry+'.nusers.online'] = nusersOnlineNext;
+          this_.updateModel(update, true);
+        }, 1000);
+      }
     }
   }
 };

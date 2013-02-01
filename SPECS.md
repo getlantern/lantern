@@ -190,7 +190,7 @@ the backend maintains on the frontend through comet publications:
     <td><strong>location</strong><br><em>object</em></td>
     <td>
       <table>
-        <tr><td><strong>country</strong><br>two-letter country code</td>
+        <tr><td><strong>country</strong><br>ISO 3166-1 alpha-2 country code</td>
           <td>(last known) country connecting from (as reported by geoip lookup)</td></tr>
         <tr><td><strong>lat</strong><br><em>float</em></td>
           <td>(last known) latitude connecting from (as reported by geoip lookup)</td></tr>
@@ -203,7 +203,7 @@ the backend maintains on the frontend through comet publications:
     <td><strong>countries</strong><br><em>object</em></td>
     <td>
       <table>
-        <tr><td><strong>country code</strong><br>"uk" | "ru" | ...</td>
+        <tr><td><strong>country code</strong><br>"UK" | "RU" | ...</td>
           <td>
             <table>
               <tr><td><strong>censors</strong><br><em>boolean</em></td>
@@ -737,10 +737,6 @@ as reference implementations of these specifications.
 
 
 ## Notes
-
-* If we haven't yet specified what standard we use for two-letter country codes
-  in the places we use them, we probably are using
-  http://en.wikipedia.org/wiki/ISO_3166-1_alpha-2.
 
 * Switches to Oauth rather than asking for users' Google passwords. Since we no
   longer store users' Google passwords, the data we do store is now much less

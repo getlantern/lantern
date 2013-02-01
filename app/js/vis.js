@@ -16,7 +16,7 @@ angular.module('app.vis', [])
       }
     },
     source: {
-      countries: 'data/countries.json'
+      world: 'data/world.json'
     }
   });
 
@@ -36,6 +36,7 @@ function VisCtrl($scope, $window, logFactory, modelSrvc, CONFIG) {
 
   $scope.CONFIG = CONFIG;
   $scope.project = function(latlon) {
+    if (!latlon) return latlon;
     var p = projection([latlon.lon, latlon.lat]);
     return {x: p[0], y: p[1]};
   };
@@ -48,15 +49,16 @@ function VisCtrl($scope, $window, logFactory, modelSrvc, CONFIG) {
       heightFactor = CONFIG.style.connection.heightFactor;
 
   queue()
-    .defer(d3.json, CONFIG.source.countries)
+    .defer(d3.json, CONFIG.source.world)
     .await(dataFetched);
 
-  function dataFetched(error, countries) {
-    layers.countries.selectAll('path')
-      .data(countries.features)
-      .enter()
-      .append('path')
-        .attr('d', path);
+  $scope.countryPaths = {};
+  function dataFetched(error, world) {
+    $scope.countryGeometries = topojson.object(world, world.objects.countries).geometries;
+    var paths = $scope.countryPaths, geoms = $scope.countryGeometries;
+    for (var i=0, d=geoms[i]; d; d=geoms[++i]) {
+      paths[d.alpha2] = path(d);
+    }
   }
 
   function redraw() {
@@ -74,12 +76,29 @@ function VisCtrl($scope, $window, logFactory, modelSrvc, CONFIG) {
     $scope.self = $scope.project(loc);
   }, true);
 
+  $scope.opacityByCountry = {};
+  var countryOpacityScale = d3.scale.linear()
+                              .domain([0, 1000])
+                              .range([0, .2])
+                              .clamp(true);
+
+  var unwatchAllCountries = $scope.$watch('model.countries', function(countries) {
+    if (!countries) return;
+    unwatchAllCountries();
+    _.forEach(countries, function(stats, country) {
+      $scope.$watch('model.countries.'+country+'.nusers.online', function(nusers) {
+        $scope.opacityByCountry[country] = countryOpacityScale(nusers) || 0;
+      });
+    });
+  }, true);
+
   function _controlpoint(x1, y1, x2, y2) {
     return {x: abs(x1 + x2) / 2,
             y: min(y2, y1) - abs(x2 - x1) * heightFactor};
   }
 
   $scope.controlpoint = function(peer) {
+    if (!peer) return peer;
     var projected = $scope.project(peer);
     return _controlpoint($scope.self.x, $scope.self.y, projected.x, projected.y);
   };
