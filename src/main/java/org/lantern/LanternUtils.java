@@ -45,12 +45,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -68,7 +62,6 @@ import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
-import org.lantern.util.LanternHttpClient;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
@@ -862,49 +855,6 @@ public class LanternUtils {
         final InetSocketAddress remote = 
             (InetSocketAddress) sock.getRemoteSocketAddress();
         return remote.getAddress().isLoopbackAddress();
-    }
-    
-    public static GeoData getGeoData(final String ip) {
-        final String query = 
-            "USE 'http://www.datatables.org/iplocation/ip.location.xml' " +
-            "AS ip.location; select CountryCode, Latitude,Longitude from " +
-            "ip.location where ip = '"+ip+"' and key = " +
-            "'a6a2704c6ebf0ee3a0c55d694431686c0b6944afd5b648627650ea1424365abb'";
-
-        final URIBuilder builder = new URIBuilder();
-        builder.setScheme("https").setHost("query.yahooapis.com").setPath(
-            "/v1/public/yql").setParameter("q", query).setParameter(
-                "format", "json");
-        
-        final HttpGet get = new HttpGet();
-        try {
-            final URI uri = builder.build();
-            final DefaultHttpClient client = new DefaultHttpClient();//new LanternHttpClient();
-            get.setURI(uri);
-            final HttpResponse response = client.execute(get);
-            final HttpEntity entity = response.getEntity();
-            final String body = 
-                IOUtils.toString(entity.getContent()).toLowerCase();
-            EntityUtils.consume(entity);
-            LOG.debug("GOT RESPONSE BODY FOR GEO IP LOOKUP:\n"+body);
-            
-            final ObjectMapper om = new ObjectMapper();
-            if (!body.contains("latitude")) {
-                LOG.warn("No latitude in response: {}", body);
-                return new GeoData();
-            }
-            final String parsed = StringUtils.substringAfterLast(body, "{");
-            final String full = 
-                "{"+StringUtils.substringBeforeLast(parsed, "\"}")+"\"}";
-            return om.readValue(full, GeoData.class);
-        } catch (final IOException e) {
-            LOG.warn("Could not connect to geo ip url?", e);
-        } catch (final URISyntaxException e) {
-            LOG.error("URI error", e);
-        } finally {
-            get.releaseConnection();
-        }
-        return new GeoData();
     }
 
     /**

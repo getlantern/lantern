@@ -24,7 +24,6 @@ import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
@@ -33,7 +32,6 @@ import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.eclipse.swt.SWTError;
 import org.eclipse.swt.widgets.Display;
 import org.json.simple.JSONObject;
-import org.lantern.event.Events;
 import org.lantern.exceptional4j.ExceptionalAppender;
 import org.lantern.exceptional4j.ExceptionalAppenderCallback;
 import org.lantern.http.JettyLauncher;
@@ -48,7 +46,6 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.StaticSettings;
-import org.lantern.util.LanternHttpClient;
 import org.lastbamboo.common.offer.answer.IceConfig;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.lastbamboo.common.stun.client.StunServerRepository;
@@ -303,8 +300,7 @@ public class Launcher {
                 }
                 model.getConnectivity().setIp(ip.getHostAddress());
                 
-                final GeoData geo = 
-                    LanternUtils.getGeoData(ip.getHostAddress());
+                final GeoData geo = modelUtils.getGeoData(ip.getHostAddress());
                 final Location loc = model.getLocation();
                 loc.setCountry(geo.getCountrycode());
                 loc.setLat(geo.getLatitude());
