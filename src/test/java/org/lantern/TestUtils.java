@@ -84,7 +84,8 @@ public class TestUtils {
         
         if (StringUtils.isBlank(getRefreshToken()) ||
             StringUtils.isBlank(getAccessToken())) {
-            throw new Error("Tokens not in "+privatePropsFile);
+            System.err.println("NO REFRESH OR ACCESS TOKENS!!");
+            //throw new Error("Tokens not in "+privatePropsFile);
         }
         //load();
     }
