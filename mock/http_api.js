@@ -109,6 +109,13 @@ ApiServlet.prototype.updateModel = function(state, publish) {
   }
 };
 
+ApiServlet.prototype.updateMultiple = function(state, publish) {
+  for (var path in state) {
+    merge(this.model, state[path], path);
+  }
+  this._bayeuxBackend.publishMultiple.call(this._bayeuxBackend, state);
+};
+
 /*
  * Show next modal that should be shown, including possibly MODAL.none.
  * Needed because some modals can be skipped if the user is

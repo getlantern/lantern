@@ -16,10 +16,10 @@
         {{ model.settings.email }} ·
         {{ model.connectivity.gtalk }} to Google Talk ·
         XXX Lantern friends online ·
-        connected to {{ model.connectivity.peers.lifetime.length }} peers in {{ ncountries || 'XXX' }} countries ·
+        connected to {{ model.connectivity.peers.current.length }} peers in {{ ncountries || 'XXX' }} countries ·
         {{ model.transfers.bpsUp }} M/s up ·
         {{ model.transfers.bpsDn }} M/s down ·
-        {{ model.transfers.bytesTotal || '0B' }} lifetime
+        {{ model.transfers.bytesTotal || 'XXX M' }} lifetime
       </span>
       <span ng-hide="model.connectivity.peers.lifetime.length">
         {{ model.connectivity.gtalk }} to Google Talk ·

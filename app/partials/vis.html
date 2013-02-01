@@ -1,13 +1,13 @@
 <svg id="vis" ng-controller="VisCtrl" ng-show="model.showVis">
   <g id="countries">
     <g ng-repeat="d in countryGeometries">
-      <title>{{ d.alpha2 | i18n }}: {{ model.countries[d.alpha2].nusers.online || 0 }} users online</title><!-- XXX i18n -->
-      <path d="{{ countryPaths[d.alpha2] }}" fill="rgba(255, 255, 255, {{ opacityByCountry[d.alpha2] || 0 }})" class="{{ d.alpha2 }}"/>
+      <title ui-if="d.alpha2">{{ d.alpha2 | i18n }}: {{ model.countries[d.alpha2].npeers.online.giveGet || 0 }} peers online, {{ model.countries[d.alpha2].npeers.online.give || 0 }} in Give Mode, {{ model.countries[d.alpha2].npeers.online.get || 0 }} in Get Mode</title><!-- XXX i18n -->
+      <path fill="{{ fillByCountry[d.alpha2] || 'rgba(0, 0, 0, 0)' }}" class="{{ d.alpha2 }}" d="{{ countryPaths[d.alpha2] }}"/>
     </g>
   </g>
   <g id="peersCurrent">
     <g ng-repeat="peer in model.connectivity.peers.current">
-      <path d="M {{ self.x }} {{ self.y }} Q {{ controlpoint(peer).x }} {{ controlpoint(peer).y }} {{ project(peer).x }} {{ project(peer).y }}" class="p2p"/>
+      <path d="M {{ self.x }} {{ self.y }} Q {{ controlpoint(peer).x }} {{ controlpoint(peer).y }} {{ project(peer).x }} {{ project(peer).y }}" class="connection"/>
       <circle cx="{{ project(peer).x }}" cy="{{ project(peer).y }}" r="{{ peerR }}"
               id="{{ peer.peerid }}" class="peer {{ peer.mode }}" filter="url(#blur)">
         <title>{{ peer | prettyUser }}</title>

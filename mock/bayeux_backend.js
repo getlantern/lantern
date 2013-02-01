@@ -36,6 +36,16 @@ BayeuxBackend.prototype.resetModel = function() {
   merge(this.model, {bayeuxProtocol: BayeuxBackend.VERSION}, 'version.installed');
 };
 
+BayeuxBackend.prototype.publishMultiple = function(state) {
+  if (_.isEmpty(this._clients)) {
+    //log('[publishSync]', 'no clients to publish to');
+    return;
+  }
+  var data = {state: state};
+  log('[publishMultiple]\n', data);
+  this._bayeux._server._engine.publish({channel: MODEL_SYNC_CHANNEL, data: data});
+};
+
 BayeuxBackend.prototype.publishSync = function(path, delete_) {
   if (_.isEmpty(this._clients)) {
     //log('[publishSync]', 'no clients to publish to');
@@ -48,7 +58,7 @@ BayeuxBackend.prototype.publishSync = function(path, delete_) {
   } else {
     data.value = getByPath(this.model, path);
   }
-  //log('[publishSync]\n', data);
+  log('[publishSync]\n', data);
   this._bayeux._server._engine.publish({channel: MODEL_SYNC_CHANNEL, data: data});
   //this._bayeux.getClient().publish({ // XXX why doesn't this work?
 };

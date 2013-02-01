@@ -24,7 +24,7 @@ function makeLogger(prefix) {
   };
 }
 
-//var log = makeLogger('helpers');
+var log = makeLogger('helpers');
 
 function randomChoice(collection) {
   if (_.isArray(collection)) {
@@ -54,7 +54,12 @@ function deleteByPath(obj, path) {
   path = path.split('.');
   var name = path[0], i = 0, l = path.length;
   for (; i<l-1 && path[i+1]; ++i) {
-    obj = obj[name];
+    try {
+      obj = obj[name];
+    } catch(e) {
+      log('deleteByPath(', obj, path, ') caused', e);
+      return; // XXX
+    }
     name = path[i+1];
   }
   if (i == l - 1 && name && obj) { // XXX && obj check necessary?

@@ -154,15 +154,17 @@ angular.module('app.services', [])
 
     function handleSync(msg) {
       // XXX use modelValidatorSrvc to validate update before accepting
-      var data = msg.data, path = data.path, value = data.value;
-      if (data.delete) {
+      var data = msg.data, path = data.path, value = data.value, state = data.state;
+      if (state) {
+        merge(model, state);
+      } else if (data.delete) {
         deleteByPath(model, path);
       } else {
         deleteByPath(model, path);
         merge(model, value, path);
       }
       $rootScope.$apply();
-      log.debug('handleSync applied sync:\npath:', path || '""', '\nvalue:', value, '\ndelete:', data.delete);
+      //log.debug('handleSync applied sync:\npath:', path || '""', '\nvalue:', value, '\ndelete:', data.delete);
     }
 
     syncSubscriptionKey = {chan: MODEL_SYNC_CHANNEL, cb: handleSync};

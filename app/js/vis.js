@@ -5,6 +5,10 @@ angular.module('app.vis', [])
     scale: 1400,
     translate: [500, 350],
     style: {
+      giveModeColor: '#00ff80',
+      getModeColor: '#ffcc66',
+      countryOpacityMin: 0,
+      countryOpacityMax: .5,
       self: {
         r: 5
       },
@@ -76,18 +80,55 @@ function VisCtrl($scope, $window, logFactory, modelSrvc, CONFIG) {
     $scope.self = $scope.project(loc);
   }, true);
 
-  $scope.opacityByCountry = {};
-  var countryOpacityScale = d3.scale.linear()
-                              .domain([0, 1000])
-                              .range([0, .2])
-                              .clamp(true);
+  $scope.fillByCountry = {};
+  var maxGiveGet = 0,
+      countryOpacityScale = d3.scale.linear()
+                              .range([CONFIG.style.countryOpacityMin, CONFIG.style.countryOpacityMax])
+                              .clamp(true),
+      countryFillScale = d3.scale.linear(),
+      GMC = d3.rgb(CONFIG.style.getModeColor),
+      getModeColorPrefix = 'rgba('+GMC.r+','+GMC.g+','+GMC.b+',',
+      countryFillInterpolator = d3.interpolateRgb(CONFIG.style.giveModeColor,
+                                                  CONFIG.style.getModeColor);
+
+  function updateFill(country) {
+    var npeers = getByPath(model, 'countries.'+country+'.npeers.online');
+    if (!npeers) return;
+    var censors = getByPath(model, 'countries.'+country).censors,
+        scaledOpacity = countryOpacityScale(npeers.giveGet),
+        colorPrefix, fill;
+    if (_.isNaN(scaledOpacity)) {
+      log.error('scaledOpacity is NaN');
+      debugger;
+    }
+    if (censors) {
+      if (npeers.giveGet !== npeers.get) {
+        log.warn('npeers.giveGet (', npeers.giveGet, ') !== npeers.get (', npeers.get, ') for censoring country', country);
+      }
+      colorPrefix = getModeColorPrefix;
+    } else {
+      countryFillScale.domain([-npeers.giveGet, npeers.giveGet]);
+      var scaledFill = countryFillScale(npeers.get - npeers.give),
+          color = d3.rgb(countryFillInterpolator(scaledFill));
+      colorPrefix = 'rgba('+color.r+','+color.g+','+color.b+',';
+    }
+    fill = colorPrefix+(scaledOpacity||0)+')';
+    $scope.fillByCountry[country] = fill;
+  }
 
   var unwatchAllCountries = $scope.$watch('model.countries', function(countries) {
     if (!countries) return;
     unwatchAllCountries();
     _.forEach(countries, function(stats, country) {
-      $scope.$watch('model.countries.'+country+'.nusers.online', function(nusers) {
-        $scope.opacityByCountry[country] = countryOpacityScale(nusers) || 0;
+      $scope.$watch('model.countries.'+country+'.npeers.online', function(npeers) {
+        if (!npeers) return;
+        if (npeers.giveGet > maxGiveGet) {
+          maxGiveGet = npeers.giveGet;
+          countryOpacityScale.domain([0, maxGiveGet]);
+          _.forEach(countries, updateFill);
+        } else {
+          updateFill(country);
+        }
       });
     });
   }, true);

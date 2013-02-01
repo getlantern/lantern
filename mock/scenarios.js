@@ -363,13 +363,21 @@ exports.SCENARIOS = {
       func: function() {
         var this_ = this;
         setInterval(function() {
-          var randomCountry = randomChoice(this_.model.countries),
-              stats = this_.model.countries[randomCountry],
-              nusersOnlineNow = getByPath(stats, 'nusers.online', _.random(0, 1000)),
-              nusersOnlineNext = Math.max(0, nusersOnlineNow + _.random(-50, 50)),
+          var country = randomChoice(this_.model.countries),
+              stats = this_.model.countries[country],
+              censors = stats.censors,
+              npeersOnlineGive = getByPath(stats, 'npeers.online.give',
+                                           censors ? 0 : _.random(0, 1000)),
+              npeersOnlineGet = getByPath(stats, 'npeers.online.get',
+                                censors ? _.random(0, 1000) :_.random(0, 500)),
+              npeersOnlineGive_ = censors ? npeersOnlineGive :
+                                  Math.max(0, npeersOnlineGive + _.random(-50, 50)),
+              npeersOnlineGet_ = Math.max(0, npeersOnlineGet + _.random(-50, 50)),
               update = {};
-          update['countries.'+randomCountry+'.nusers.online'] = nusersOnlineNext;
-          this_.updateModel(update, true);
+          update['countries.'+country+'.npeers.online.give'] = npeersOnlineGive_;
+          update['countries.'+country+'.npeers.online.get'] = npeersOnlineGet_;
+          update['countries.'+country+'.npeers.online.giveGet'] = npeersOnlineGive_ + npeersOnlineGet_;
+          this_.updateMultiple(update);
         }, 1000);
       }
     }
