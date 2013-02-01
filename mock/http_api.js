@@ -43,14 +43,6 @@ ApiServlet.MOUNT_POINT = 'api';
 
 ApiServlet.RESET_INTERNAL_STATE = {
   lastModal: MODAL.none,
-  modalsCompleted: {
-    welcome: SKIPSETUP,
-    authorize: SKIPSETUP,
-    proxiedSites: SKIPSETUP,
-    systemProxy: SKIPSETUP,
-    lanternFriends: SKIPSETUP,
-    finished: SKIPSETUP
-  },
   appliedScenarios: {
     os: 'osx',
     location: 'nyc',
@@ -69,6 +61,14 @@ ApiServlet.RESET_INTERNAL_STATE = {
 
 ApiServlet.prototype.reset = function() {
   this._internalState = _.cloneDeep(ApiServlet.RESET_INTERNAL_STATE);
+  this._internalState.modalsCompleted = {
+    welcome: SKIPSETUP,
+    authorize: SKIPSETUP,
+    proxiedSites: SKIPSETUP,
+    systemProxy: SKIPSETUP,
+    lanternFriends: SKIPSETUP,
+    finished: SKIPSETUP
+  };
   this.resetModel();
   this.model = this._bayeuxBackend.model;
   merge(this.model, {
@@ -519,6 +519,7 @@ ApiServlet._handlerForModal[MODAL.confirmReset] = function(interaction, res) {
   if (interaction == INTERACTION.cancel) {
     this.updateModel({modal: MODAL.settings}, true);
   } else if (interaction == INTERACTION.reset) {
+    SKIPSETUP = false;
     this.reset();
   } else {
     res.writeHead(400);
