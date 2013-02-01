@@ -26,6 +26,15 @@ function makeLogger(prefix) {
 
 //var log = makeLogger('helpers');
 
+function randomChoice(collection) {
+  if (_.isArray(collection)) {
+    return collection[_.random(0, collection.length-1)];
+  } else if (_.isPlainObject(collection)) {
+    return randomChoice(_.keys(collection));
+  }
+  throw Error('randomChoice: expected array or plain object, got '+typeof collection);
+}
+
 function getByPath(obj, path, defaultVal) {
   path = (path || '').split('.');
   for (var i=0, name=path[i];
@@ -48,8 +57,9 @@ function deleteByPath(obj, path) {
     obj = obj[name];
     name = path[i+1];
   }
-  if (i == l - 1 && name)
+  if (i == l - 1 && name && obj) { // XXX && obj check necessary?
     delete obj[name];
+  }
 }
 
 function merge(dst, src, path) {
@@ -92,12 +102,14 @@ function merge(dst, src, path) {
 if (typeof angular == 'object' && angular && typeof angular.module == 'function') {
   angular.module('app.helpers', [])
     // XXX move app.services' logging stuff here?
+    .constant('randomChoice', randomChoice)
     .constant('getByPath', getByPath)
     .constant('deleteByPath', deleteByPath)
     .constant('merge', merge);
 } else if (typeof exports == 'object' && exports && typeof module == 'object' && module && module.exports == exports) {
   module.exports = {
     makeLogger: makeLogger,
+    randomChoice: randomChoice,
     getByPath: getByPath,
     deleteByPath: deleteByPath,
     merge: merge
