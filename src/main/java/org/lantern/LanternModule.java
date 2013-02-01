@@ -43,6 +43,7 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.SyncService;
 import org.lantern.state.SyncStrategy;
 import org.lantern.ui.SwtMessageService;
+import org.lantern.util.LanternHttpClient;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.PublicIpsOnlyRequestFilter;
 import org.slf4j.Logger;
@@ -85,6 +86,8 @@ public class LanternModule extends AbstractModule {
         bind(Roster.class);
         bind(InteractionServlet.class);
         bind(LanternKeyStoreManager.class);
+        bind(LanternClientSslContextFactory.class);
+        bind(LanternHttpClient.class);
         bind(SslHttpProxyServer.class);
         bind(PlainTestRelayHttpProxyServer.class);
         bind(PhotoServlet.class);

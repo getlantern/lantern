@@ -4,6 +4,7 @@ import javax.inject.Named;
 
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.lantern.state.Model;
+import org.lantern.state.ModelUtils;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -16,9 +17,10 @@ public class TrustedPeerProxyManager extends DefaultPeerProxyManager {
     public TrustedPeerProxyManager(final ChannelGroup channelGroup,
         final XmppHandler xmppHandler, final Stats stats,
         final LanternSocketsUtil socketsUtil, final Model model,
-        final LookupService lookupService, final CertTracker certTracker) {
+        final LookupService lookupService, final CertTracker certTracker,
+        final ModelUtils modelUtils) {
         super(false, channelGroup, xmppHandler, stats, socketsUtil, model, 
-            lookupService, certTracker);
+            lookupService, certTracker, modelUtils);
     }
 
 }

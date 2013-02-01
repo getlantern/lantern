@@ -19,10 +19,19 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.lantern.util.LanternHttpClient;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 @Singleton
 public class LanternFeedback {
+    
+    private final DefaultHttpClient httpClient;
+    
+    @Inject
+    public LanternFeedback(final DefaultHttpClient httpClient) {
+        this.httpClient = httpClient;
+        
+    }
     
     public void submit(String message, String replyTo) throws IOException {
         Map <String, String> feedback = new HashMap<String, String>(); 
@@ -58,13 +67,12 @@ public class LanternFeedback {
     
     protected void postForm(String url, List<NameValuePair> params) 
             throws IOException {
-        final DefaultHttpClient httpclient = new LanternHttpClient();
         final HttpPost post = new HttpPost(url);
         try {
             final UrlEncodedFormEntity entity = 
                 new UrlEncodedFormEntity(params, "UTF-8");
             post.setEntity(entity);
-            final HttpResponse response = httpclient.execute(post);
+            final HttpResponse response = httpClient.execute(post);
 
             final int statusCode = response.getStatusLine().getStatusCode();
             final HttpEntity responseEntity = response.getEntity();
@@ -74,7 +82,7 @@ public class LanternFeedback {
             
             if (statusCode < 200 || statusCode > 299) {
                 final Header[] headers = response.getAllHeaders();
-                StringBuilder headerVals = new StringBuilder();
+                final StringBuilder headerVals = new StringBuilder();
                 for (int i = 0; i < headers.length; i++) {
                     headerVals.append(headers[i].toString());
                 }
@@ -82,12 +90,10 @@ public class LanternFeedback {
                         statusCode + ", headers " + headerVals.toString();
                 throw new IOException(err);
             }
-        } catch (IOException e) {
+        } catch (final IOException e) {
             throw e;
-        } catch (final Throwable e) {
-            throw new IOException("Unexpected throwable", e);
         } finally {
-            httpclient.getConnectionManager().shutdown();
+            post.releaseConnection();
         }
   }
   

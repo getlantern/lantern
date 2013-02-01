@@ -20,16 +20,11 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
-import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpChunk;
-import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
-import org.jboss.netty.handler.codec.http.HttpResponse;
-import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.state.Model;
@@ -77,13 +72,13 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final Stats stats;
 
-    private final LanternKeyStoreManager ksm;
-
     private final Model model;
 
     private final ProxyTracker proxyTracker;
 
     private final HttpsEverywhere httpsEverywhere;
+
+    private final LanternClientSslContextFactory sslFactory;
 
     /**
      * Creates a new handler that reads incoming HTTP requests and dispatches
@@ -98,18 +93,18 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final ChannelGroup channelGroup,
         final TrustedPeerProxyManager trustedPeerProxyManager,
         final AnonymousPeerProxyManager anonymousPeerProxyManager,
-        final Stats stats, final LanternKeyStoreManager ksm,
-        final Model model, final ProxyTracker proxyTracker,
-        final HttpsEverywhere httpsEverywhere) {
+        final Stats stats, final Model model, final ProxyTracker proxyTracker,
+        final HttpsEverywhere httpsEverywhere,
+        final LanternClientSslContextFactory sslFactory) {
         this.clientChannelFactory = clientChannelFactory;
         this.channelGroup = channelGroup;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.anonymousPeerProxyManager = anonymousPeerProxyManager;
         this.stats = stats;
-        this.ksm = ksm;
         this.model = model;
         this.proxyTracker = proxyTracker;
         this.httpsEverywhere = httpsEverywhere;
+        this.sslFactory = sslFactory;
         this.proxyRequestProcessor =
             new DefaultHttpRequestProcessor(proxyTracker,
                 new HttpRequestTransformer() {
@@ -129,7 +124,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     public InetSocketAddress getProxy() {
                         return proxyTracker.getProxy();
                     }
-                }, this.clientChannelFactory, this.channelGroup, this.stats, this.ksm);
+                }, this.clientChannelFactory, this.channelGroup, this.stats, sslFactory);
         this.laeRequestProcessor =
             new DefaultHttpRequestProcessor(proxyTracker,
                 new LaeHttpRequestTransformer(), true,
@@ -143,7 +138,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     public InetSocketAddress getProxy() {
                         return proxyTracker.getLaeProxy();
                     }
-            }, this.clientChannelFactory, this.channelGroup, this.stats, this.ksm);
+            }, this.clientChannelFactory, this.channelGroup, this.stats, sslFactory);
     }
 
     @Override
@@ -377,8 +372,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         
         // It's also necessary to use our own engine here, as we need to trust
         // the cert from the proxy.
-        final LanternClientSslContextFactory sslFactory =
-            new LanternClientSslContextFactory(this.ksm);
+        //final LanternClientSslContextFactory sslFactory =
+        //    new LanternClientSslContextFactory(this.ksm);
         final SSLEngine engine =
             sslFactory.getClientContext().createSSLEngine();
         engine.setUseClientMode(true);
