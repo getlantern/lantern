@@ -45,21 +45,24 @@ public class LanternKeyStoreManager implements KeyStoreManager {
 
     private String localCert;
     
-    private final TrustManager[] trustManagers;
+    //private final TrustManager[] trustManagers;
 
-    private final LanternTrustManager lanternTrustManager;
+    //private final LanternTrustManager lanternTrustManager;
 
     private final Model model;
 
+    private final LanternTrustStore trustStore;
+
     @Inject
     public LanternKeyStoreManager(final Model model, 
-        final CertTracker certTracker) {
-        this(null, model, certTracker);
+        final CertTracker certTracker, final LanternTrustStore trustStore) {
+        this(null, model, certTracker, trustStore);
     }
     
     public LanternKeyStoreManager(final File rootDir, final Model model, 
-        final CertTracker certTracker) {
+        final CertTracker certTracker, final LanternTrustStore trustStore) {
         this.model = model;
+        this.trustStore = trustStore;
         CONFIG_DIR = rootDir != null ? rootDir : LanternConstants.CONFIG_DIR;
         KEYSTORE_FILE = 
             new File(CONFIG_DIR, "lantern_keystore.jks");
@@ -77,14 +80,16 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             }
         }
         reset();
-        createTrustStore();
+        //createTrustStore();
         
+        /*
         this.lanternTrustManager = 
             new LanternTrustManager(this, TRUSTSTORE_FILE, PASS, certTracker);
         
         trustManagers = new TrustManager[] {
             lanternTrustManager
         };
+        */
         Runtime.getRuntime().addShutdownHook(new Thread (new Runnable() {
             @Override
             public void run() {
@@ -132,7 +137,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         
         createKeyStore();
 
-        waitForFile(KEYSTORE_FILE);
+        LanternUtils.waitForFile(KEYSTORE_FILE);
         /*
         log.info("Importing cert");
         nativeCall("keytool", "-import", "-noprompt", "-file", CERT_FILE.getName(), 
@@ -187,7 +192,7 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             "-file", CERT_FILE.getAbsolutePath());
         
         log.info("Result of keytool -exportcert call: {}", exportCertResult);
-        waitForFile(CERT_FILE);
+        LanternUtils.waitForFile(CERT_FILE);
         
         try {
             final InputStream is = new FileInputStream(CERT_FILE);
@@ -206,29 +211,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             normalizedAlias, "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG, 
             "-dname", "CN="+normalizedAlias, "-keypass", PASS, "-storepass", 
             PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
-    }
-
-    /**
-     * The completion of the native calls is dependent on OS process 
-     * scheduling, so we need to wait until files actually exist.
-     * 
-     * @param file The file to wait for.
-     */
-    private void waitForFile(final File file) {
-        int i = 0;
-        while (!file.isFile() && i < 100) {
-            try {
-                Thread.sleep(80);
-                i++;
-            } catch (final InterruptedException e) {
-                log.error("Interrupted?", e);
-            }
-        }
-        if (!file.isFile()) {
-            log.error("Still could not create file at: {}", file);
-        } else {
-            log.info("Successfully created file at: {}", file);
-        }
     }
 
     @Override
@@ -272,15 +254,22 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     @Override
     public void addBase64Cert(final String id, final String base64Cert) 
         throws IOException {
-        this.lanternTrustManager.addBase64Cert(id, base64Cert);
+        this.trustStore.addBase64Cert(id, base64Cert);
     }
 
     @Override
     public TrustManager[] getTrustManagers() {
-        return Arrays.copyOf(trustManagers, trustManagers.length);
+        //return Arrays.copyOf(trustManagers, trustManagers.length);
+        return new TrustManager[] {};
     }
 
+    public LanternTrustStore getTrustStore() {
+        return this.trustStore;
+    }
+
+    /*
     public LanternTrustManager getTrustManager() {
         return this.lanternTrustManager;
     }
+    */
 }

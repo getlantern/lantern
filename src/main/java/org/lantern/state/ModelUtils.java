@@ -25,6 +25,7 @@ import org.lantern.GeoData;
 import org.lantern.LanternConstants;
 import org.lantern.http.OauthUtils;
 import org.lantern.state.Settings.Mode;
+import org.lantern.util.LanternHttpClient;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +34,8 @@ import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
 import com.google.inject.Inject;
 
 /**
- * Utility methods that rely on the existence of the state model class.
+ * Utility methods that rely on all classes already having been bound using
+ * Guice.
  */
 public class ModelUtils {
 
@@ -41,15 +43,20 @@ public class ModelUtils {
     
     private final Model model;
 
-    private final DefaultHttpClient httpClient;
+    private final LanternHttpClient httpClient;
     
     @Inject
-    public ModelUtils(final Model model, final DefaultHttpClient httpClient) {
+    public ModelUtils(final Model model, final LanternHttpClient httpClient) {
         this.model = model;
         this.httpClient = httpClient;
     }
     
-    
+    /**
+     * Fetches the geo data for the specified IP.
+     * 
+     * @param ip The IP address to get the geo data for.
+     * @return The geo data.
+     */
     public GeoData getGeoData(final String ip) {
         final String query = 
             "USE 'http://www.datatables.org/iplocation/ip.location.xml' " +
@@ -165,7 +172,7 @@ public class ModelUtils {
             LOG.error("Unable to read user credentials from {}", filename);
             throw new IllegalArgumentException("File does not exist! "+filename);
         }
-        LOG.info("Reading client secrets from file \"{}\"", filename);
+        LOG.debug("Reading client secrets from file \"{}\"", filename);
         try {
             final String json = FileUtils.readFileToString(file, "US-ASCII");
             JSONObject obj = (JSONObject)JSONValue.parse(json);

@@ -9,6 +9,7 @@ public class ModelUtilsTest {
 
     @Test
     public void testGeoData() throws Exception {
+        //System.setProperty("javax.net.debug", "all");
         final ModelUtils modelUtils = TestUtils.getModelUtils();
         final GeoData data = modelUtils.getGeoData("86.170.128.133");
         assertTrue(data.getLatitude() > 50.0);

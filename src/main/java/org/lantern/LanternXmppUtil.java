@@ -78,9 +78,13 @@ public class LanternXmppUtil {
         config.setVerifyChainEnabled(true);
         config.setVerifyRootCAEnabled(true);
         config.setSelfSignedCertificateEnabled(false);
-        final LanternTrustManager tm = this.keyStoreManager.getTrustManager();
-        config.setTruststorePath(tm.getTruststorePath());
-        config.setTruststorePassword(tm.getTruststorePassword());
+        //final LanternTrustManager tm = this.keyStoreManager.getTrustManager();
+        //config.setTruststorePath(tm.getTruststorePath());
+        //config.setTruststorePassword(tm.getTruststorePassword());
+        
+        final LanternTrustStore ts = this.keyStoreManager.getTrustStore();
+        config.setTruststorePath(ts.getTrustStorePath());
+        config.setTruststorePassword(ts.getTrustStorePassword());
         
         final String[] cipherSuites = new String[] {
             //"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",

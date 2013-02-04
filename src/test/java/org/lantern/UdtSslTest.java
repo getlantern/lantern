@@ -54,7 +54,8 @@ public class UdtSslTest {
         //final Socket sock = client.getSocket();
         //final Socket sock = new Socket(myHost, SERVER_PORT);
         
-        final SSLSocketFactory sslSocketFactory = TestUtils.getSocketsUtil().newTlsSocketFactory();
+        final SSLSocketFactory sslSocketFactory = 
+            TestUtils.getSocketsUtil().newTlsSocketFactory();
             //(SSLSocketFactory)SSLSocketFactory.getDefault();
         final SSLSocket sslSocket =
             (SSLSocket)sslSocketFactory.createSocket(sock, 
@@ -76,6 +77,8 @@ public class UdtSslTest {
             }
         }
         assertEquals(msg, readOnServer.get());
+        
+        // TODO: TEST CERTS BEING ADDED *AFTER* THE FACTORIES ARE SET UP!!
     }
 
     private void startServer() throws Exception {
