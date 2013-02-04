@@ -5,11 +5,17 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.Security;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
 import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.zip.GZIPInputStream;
 
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 
 import org.apache.commons.io.FileUtils;
@@ -46,7 +52,6 @@ import org.lantern.state.ModelUtils;
 import org.lantern.state.SyncService;
 import org.lantern.state.SyncStrategy;
 import org.lantern.ui.SwtMessageService;
-import org.lantern.util.LanternHttpClient;
 import org.littleshoot.proxy.HttpRequestFilter;
 import org.littleshoot.proxy.PublicIpsOnlyRequestFilter;
 import org.slf4j.Logger;
@@ -113,20 +118,44 @@ public class LanternModule extends AbstractModule {
     }
     
     @Provides @Singleton
-    SSLContext provideSslContext() {
+    SSLContext provideSslContext(final LanternKeyStoreManager ksm) {
+        final KeyManagerFactory kmf = loadKeyManagerFactory(ksm);
+        try {
+            final SSLContext clientContext = SSLContext.getInstance("TLS");
+            clientContext.init(kmf.getKeyManagers(), null, null);
+            return clientContext;
+        } catch (final Exception e) {
+            throw new Error(
+                    "Failed to initialize the client-side SSLContext", e);
+        }
+    }
+    
+
+    private KeyManagerFactory loadKeyManagerFactory(
+        final LanternKeyStoreManager ksm) {
         String algorithm = 
             Security.getProperty("ssl.KeyManagerFactory.algorithm");
         if (algorithm == null) {
             algorithm = "SunX509";
         }
-
         try {
-            final SSLContext clientContext = SSLContext.getInstance("TLS");
-            clientContext.init(null, null, null);
-            return clientContext;
-        } catch (final Exception e) {
-            throw new Error(
-                    "Failed to initialize the client-side SSLContext", e);
+            final KeyStore ks = KeyStore.getInstance("JKS");
+            ks.load(ksm.keyStoreAsInputStream(), ksm.getKeyStorePassword());
+            
+            // Set up key manager factory to use our key store
+            final KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
+            kmf.init(ks, ksm.getCertificatePassword());
+            return kmf;
+        } catch (final KeyStoreException e) {
+            throw new Error("Key manager issue", e);
+        } catch (final UnrecoverableKeyException e) {
+            throw new Error("Key manager issue", e);
+        } catch (final NoSuchAlgorithmException e) {
+            throw new Error("Key manager issue", e);
+        } catch (final CertificateException e) {
+            throw new Error("Key manager issue", e);
+        } catch (final IOException e) {
+            throw new Error("Key manager issue", e);
         }
     }
     

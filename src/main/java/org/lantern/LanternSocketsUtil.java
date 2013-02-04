@@ -6,18 +6,10 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.Security;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
-import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
@@ -55,18 +47,23 @@ public class LanternSocketsUtil {
         }
     });
 
-    private final LanternKeyStoreManager ksm;
+    //private final LanternKeyStoreManager ksm;
+
+    private final SSLContext sslContext;
 
     @Inject
     public LanternSocketsUtil(final Stats stats, 
-        final LanternKeyStoreManager keyStoreManager) {
+        //final LanternKeyStoreManager keyStoreManager,
+        final SSLContext sslContext) {
         this.stats = stats;
-        this.ksm = keyStoreManager;
+        //this.ksm = keyStoreManager;
+        this.sslContext = sslContext;
     }
-    
 
     public SSLServerSocketFactory newTlsServerSocketFactory() {
-        log.info("Creating TLS server socket factory");
+        log.debug("Creating TLS server socket factory");
+        return wrappedServerSocketFactory(this.sslContext.getServerSocketFactory());
+        /*
         try {
             final KeyManagerFactory kmf = loadKeyManagerFactory(getSslAlgorithm());
             
@@ -83,8 +80,10 @@ public class LanternSocketsUtil {
         } catch (final KeyManagementException e) {
             throw new Error("Could not create SSL server socket factory.", e);
         }
+        */
     }
 
+    /*
     private String getSslAlgorithm() {
         String algorithm = 
             Security.getProperty("ssl.KeyManagerFactory.algorithm");
@@ -115,6 +114,7 @@ public class LanternSocketsUtil {
             throw new Error("Key manager issue", e);
         }
     }
+    */
 
     private static SSLServerSocketFactory wrappedServerSocketFactory(
         final SSLServerSocketFactory ssf) {
@@ -173,6 +173,8 @@ public class LanternSocketsUtil {
 
     public SSLSocketFactory newTlsSocketFactory() {
         log.info("Creating TLS socket factory");
+        return wrappedSocketFactory(this.sslContext.getSocketFactory());
+        /*
         try {
             final SSLContext clientContext = SSLContext.getInstance("TLS");
             final KeyManagerFactory kmf = loadKeyManagerFactory(getSslAlgorithm());
@@ -186,6 +188,7 @@ public class LanternSocketsUtil {
             log.error("Key managmement issue?", e);
             throw new Error("Key managmement issue?", e);
         }
+        */
     }
 
     private SSLSocketFactory wrappedSocketFactory(final SSLSocketFactory sf) {
