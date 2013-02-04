@@ -416,6 +416,9 @@ public class DefaultXmppHandler implements XmppHandler {
         this.client.set(P2P.newXmppP2PHttpClient("shoot", natPmpService, 
             upnpService, this.mappedServer, 
             //newTlsSocketFactory(),ç SSLServerSocketFactory.getDefault(),//newTlsServerSocketFactory(),
+            
+            // Major issue here -- these TLS factories don't take into account
+            // future changes in SSL certs we trust.
             this.socketsUtil.newTlsSocketFactory(), 
             this.socketsUtil.newTlsServerSocketFactory(),
             //SocketFactory.getDefault(), ServerSocketFactory.getDefault(), 
