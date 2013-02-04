@@ -250,7 +250,7 @@ func (self *_runtime) calculateBinaryOperation(operator string, left Value, righ
 	case "instanceof":
 		rightValue := self.GetValue(right)
 		if !rightValue.IsObject() {
-			panic(newTypeError())
+			panic(newTypeError("Expecting a function in instanceof check, but got: %v", rightValue))
 		}
 		return toValue(rightValue._object().HasInstance(leftValue))
 

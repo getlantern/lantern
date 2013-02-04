@@ -69,7 +69,7 @@ func (self *_object) CallSet(name string, value Value) {
 // 15.3.5.3
 func (self *_object) HasInstance(of Value) bool {
 	if !of.IsObject() {
-		panic(newTypeError())
+		return false
 	}
 	prototype := self.get("prototype")
 	if !prototype.IsObject() {

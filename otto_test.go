@@ -1159,15 +1159,24 @@ func TestParenthesizing(t *testing.T) {
 	test("jkl", "true")
 }
 
-func TestInstanceOf(t *testing.T) {
+func Test_instanceof(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
 
 	test(`
-		abc = {} instanceof Object
+		abc = {} instanceof Object;
 	`)
 	test("abc", "true")
+
+	test(`
+		abc = "abc" instanceof Object;
+	`)
+	test("abc", "false")
+
+	test(`raise:
+		abc = {} instanceof "abc";
+    `, "TypeError: Expecting a function in instanceof check, but got: abc")
 }
 
 func TestIn(t *testing.T) {
