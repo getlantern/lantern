@@ -16,10 +16,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -132,7 +132,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         // Kill our temporary oauth callback server.
         this.googleOauth2CallbackServer.stop();
         
-        final DefaultHttpClient client = new DefaultHttpClient();//new LanternHttpClient();
+        final HttpClient client = new LanternHttpClient();
         final Map<String, String> allToks;
         try {
             allToks = loadAllToks(client, code);
@@ -147,7 +147,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
     }
 
     private void fetchEmail(final Map<String, String> allToks, 
-        final DefaultHttpClient client) {
+        final HttpClient client) {
         final String endpoint = 
             "https://www.googleapis.com/oauth2/v1/userinfo";
         final String accessToken = allToks.get("access_token");
@@ -226,7 +226,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         t.start();
     }
 
-    private Map<String, String> loadAllToks(final DefaultHttpClient client,
+    private Map<String, String> loadAllToks(final HttpClient client,
         final String code) throws IOException {
         final HttpPost post = 
             new HttpPost("https://accounts.google.com/o/oauth2/token");

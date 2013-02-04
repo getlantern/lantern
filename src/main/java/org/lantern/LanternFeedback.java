@@ -12,26 +12,14 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.lantern.util.LanternHttpClient;
 
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
-
-@Singleton
 public class LanternFeedback {
-    
-    private final DefaultHttpClient httpClient;
-    
-    @Inject
-    public LanternFeedback(final DefaultHttpClient httpClient) {
-        this.httpClient = httpClient;
-        
-    }
     
     public void submit(String message, String replyTo) throws IOException {
         Map <String, String> feedback = new HashMap<String, String>(); 
@@ -72,6 +60,7 @@ public class LanternFeedback {
             final UrlEncodedFormEntity entity = 
                 new UrlEncodedFormEntity(params, "UTF-8");
             post.setEntity(entity);
+            final HttpClient httpClient = new LanternHttpClient();
             final HttpResponse response = httpClient.execute(post);
 
             final int statusCode = response.getStatusLine().getStatusCode();
