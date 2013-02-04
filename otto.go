@@ -248,6 +248,7 @@ func (self Otto) Object(source string) (*Object, error) {
 	return nil, fmt.Errorf("Result was not an object")
 }
 
+// ToValue will convert an interface{} value to a value digestible by otto/JavaScript.
 func (self Otto) ToValue(value interface{}) (Value, error) {
 	return self.runtime.ToValue(value)
 }

@@ -285,6 +285,8 @@ If the top-level binding does not exist, it will be created.
 ```go
 func (self Otto) ToValue(value interface{}) (Value, error)
 ```
+ToValue will convert an interface{} value to a value digestible by
+otto/JavaScript.
 
 #### type Value
 
@@ -329,6 +331,13 @@ NullValue will return a Value representing null.
 ```go
 func ToValue(value interface{}) (Value, error)
 ```
+ToValue will convert an interface{} value to a value digestible by
+otto/JavaScript This function will not work for advanced types (struct, map,
+slice/array, etc.) and you probably should not use it.
+
+ToValue may be deprecated and removed in the near future.
+
+Try Otto.ToValue for a reaplcement.
 
 #### func  TrueValue
 

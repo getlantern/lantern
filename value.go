@@ -26,6 +26,13 @@ type Value struct {
 	value interface{}
 }
 
+// ToValue will convert an interface{} value to a value digestible by otto/JavaScript
+// This function will not work for advanced types (struct, map, slice/array, etc.) and 
+// you probably should not use it.
+//
+// ToValue may be deprecated and removed in the near future.
+//
+// Try Otto.ToValue for a reaplcement.
 func ToValue(value interface{}) (Value, error) {
 	result := UndefinedValue()
 	err := catchPanic(func() {
