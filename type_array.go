@@ -117,7 +117,7 @@ func (self *_arrayStash) property(name string) *_property {
 	if name == "length" {
 		return &_property{
 			value: toValue(len(self.valueArray)),
-			mode:  0100, // +Write -Enumerate -Configure
+			mode:  0100, // +w-ec
 		}
 	}
 
@@ -130,7 +130,7 @@ func (self *_arrayStash) property(name string) *_property {
 		}
 		return &_property{
 			value: value,
-			mode:  0111, // +Write +Enumerate +Configure
+			mode:  0111, // +wec
 		}
 	}
 
@@ -147,4 +147,20 @@ func (self *_arrayStash) enumerate(each func(string)) {
 		each(name)
 	}
 	self._stash.enumerate(each)
+}
+
+func (self *_arrayStash) delete(name string) {
+	// length
+	if name == "length" {
+		return
+	}
+
+	// .0, .1, .2, ...
+	index := stringToArrayIndex(name)
+	if index >= 0 {
+		if index < int64(len(self.valueArray)) {
+			self.valueArray[index] = emptyValue()
+		}
+	}
+
 }

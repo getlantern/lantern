@@ -1262,9 +1262,9 @@ func TestArray(t *testing.T) {
 	test := runTest()
 
 	test(`
-		abc = ""+[0, 1, 2, 3]
-		def = [].toString()
-		ghi = [null, 4, "null"].toString()
+		abc = ""+[0, 1, 2, 3];
+		def = [].toString();
+		ghi = [null, 4, "null"].toString();
 	`)
 	test("abc", "0,1,2,3")
 	test("def", "")
@@ -1272,6 +1272,12 @@ func TestArray(t *testing.T) {
 	test(`new Array(0).length`, "0")
 	test(`new Array(11).length`, "11")
 	test(`new Array(11, 1).length`, "2")
+
+	test(`
+        abc = [0, 1, 2, 3];
+        delete abc[1];
+        abc;
+    `, "0,,2,3")
 }
 
 func TestArray_toString(t *testing.T) {
