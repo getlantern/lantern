@@ -72,7 +72,11 @@ public class LanternSocketsUtil {
             
             // Initialize the SSLContext to work with our key managers.
             final SSLContext serverContext = SSLContext.getInstance("TLS");
-            serverContext.init(kmf.getKeyManagers(), ksm.getTrustManagers(), null);
+            
+            // TODO: We probably still need our own trust manager to verify
+            // peer certs.
+            //serverContext.init(kmf.getKeyManagers(), ksm.getTrustManagers(), null);
+            serverContext.init(kmf.getKeyManagers(), null, null);
             return wrappedServerSocketFactory(serverContext.getServerSocketFactory());
         } catch (final NoSuchAlgorithmException e) {
             throw new Error("Could not create SSL server socket factory.", e);

@@ -873,6 +873,29 @@ public class LanternUtils {
         }
         return false;
     }
+
+    /**
+     * The completion of the native calls is dependent on OS process 
+     * scheduling, so we need to wait until files actually exist.
+     * 
+     * @param file The file to wait for.
+     */
+    public static void waitForFile(final File file) {
+        int i = 0;
+        while (!file.isFile() && i < 100) {
+            try {
+                Thread.sleep(80);
+                i++;
+            } catch (final InterruptedException e) {
+                LOG.error("Interrupted?", e);
+            }
+        }
+        if (!file.isFile()) {
+            LOG.error("Still could not create file at: {}", file);
+        } else {
+            LOG.info("Successfully created file at: {}", file);
+        }
+    }
 }
 
 
