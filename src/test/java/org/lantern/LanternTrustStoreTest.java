@@ -23,6 +23,8 @@ import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.barchart.udt.SocketUDT;
+
 public class LanternTrustStoreTest {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -73,6 +75,8 @@ public class LanternTrustStoreTest {
             e1.printStackTrace();
             return;
         }
+        
+        //final SSLSocketFactory socketFactory = LanternSocketsUtil.
         final Scheme sch = new Scheme("https", 443, socketFactory);
 
         //new SSLSocketFactory(SSLSocketFactory.getSocketFactory(), new LanternHostNameVerifier());
@@ -125,14 +129,15 @@ public class LanternTrustStoreTest {
         
         final HttpResponse response = client.execute(get);
         final int code = response.getStatusLine().getStatusCode();
-        if (code < 200 || code > 299) {
-            log.warn("Unexpected response code!!");
-        }
         final HttpEntity entity = response.getEntity();
         final String body = 
             IOUtils.toString(entity.getContent()).toLowerCase();
         EntityUtils.consume(entity);
 
+        if (code < 200 || code > 299) {
+            log.warn("Unexpected response code: "+code+" for "+uri+
+                " with body:\n"+body);
+        }
         get.releaseConnection();
         return body;
     }

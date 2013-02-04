@@ -81,7 +81,7 @@ public class Launcher {
     private Settings set;
     private Censored censored;
     
-    private static InternalState internalState;
+    private InternalState internalState;
     private final String[] commandLineArgs;
 
     public Launcher(final String... args) {
@@ -158,7 +158,6 @@ public class Launcher {
         }
         
         censored = instance(Censored.class);
-        threadPublicIpLookup();
         
         LOG.debug("Creating display...");
         final Display display;
@@ -187,8 +186,15 @@ public class Launcher {
         localCipherProvider = instance(LocalCipherProvider.class);
         plainTextAnsererRelayProxy = instance(PlainTestRelayHttpProxyServer.class);
         modelUtils = instance(ModelUtils.class);
+        
         localProxy = instance(LanternHttpProxyServer.class);
         internalState = instance(InternalState.class);
+
+        // We need to make sure the trust store is initialized before we
+        // do our public IP lookup.
+        instance(LanternTrustStore.class);
+        
+        threadPublicIpLookup();
         
         if (set.isUiEnabled()) {
             LOG.debug("Starting system tray..");
@@ -300,7 +306,7 @@ public class Launcher {
                 }
                 model.getConnectivity().setIp(ip.getHostAddress());
                 
-                final GeoData geo = modelUtils.getGeoData(ip.getHostAddress());
+                final GeoData geo = LanternUtils.getGeoData(ip.getHostAddress());
                 final Location loc = model.getLocation();
                 loc.setCountry(geo.getCountrycode());
                 loc.setLat(geo.getLatitude());
@@ -338,6 +344,10 @@ public class Launcher {
         final T inst = injector.getInstance(clazz);
         if (Shutdownable.class.isAssignableFrom(clazz)) {
             addShutdownHook((Shutdownable) inst);
+        }
+        if (inst == null) {
+            LOG.error("Could not load instance of "+clazz);
+            throw new NullPointerException("Could not load instance of "+clazz);
         }
         return inst;
     }

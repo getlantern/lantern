@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.security.SecureRandom;
-import java.util.Arrays;
 
 import javax.net.ssl.TrustManager;
 
@@ -55,12 +54,12 @@ public class LanternKeyStoreManager implements KeyStoreManager {
 
     @Inject
     public LanternKeyStoreManager(final Model model, 
-        final CertTracker certTracker, final LanternTrustStore trustStore) {
-        this(null, model, certTracker, trustStore);
+        final LanternTrustStore trustStore) {
+        this(null, model, trustStore);
     }
     
     public LanternKeyStoreManager(final File rootDir, final Model model, 
-        final CertTracker certTracker, final LanternTrustStore trustStore) {
+        final LanternTrustStore trustStore) {
         this.model = model;
         this.trustStore = trustStore;
         CONFIG_DIR = rootDir != null ? rootDir : LanternConstants.CONFIG_DIR;

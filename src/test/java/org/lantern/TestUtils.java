@@ -69,7 +69,7 @@ public class TestUtils {
 
     private static DefaultProxyTracker proxyTracker;
 
-    private static LanternClientSslContextFactory clientSslContextFactory;
+    private static LanternTrustStore trustStore;
 
     static {
         InputStream is = null;
@@ -113,7 +113,7 @@ public class TestUtils {
         modelUtils = injector.getInstance(ModelUtils.class);
         modelIo = injector.getInstance(ModelIo.class);
         proxyTracker = injector.getInstance(DefaultProxyTracker.class);
-        clientSslContextFactory = injector.getInstance(LanternClientSslContextFactory.class);
+        trustStore = injector.getInstance(LanternTrustStore.class);
         
         final Settings set = model.getSettings();
         set.setAccessToken(getAccessToken());
@@ -246,9 +246,9 @@ public class TestUtils {
         return proxyTracker;
     }
 
-    public static LanternClientSslContextFactory getClientSslContextFactory() {
+    public static LanternTrustStore getTrustStore() {
         if (!loaded) load();
-        return clientSslContextFactory;
+        return trustStore;
     }
 
 }
