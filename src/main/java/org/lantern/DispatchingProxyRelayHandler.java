@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 import org.apache.commons.lang.StringUtils;
@@ -78,7 +79,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final HttpsEverywhere httpsEverywhere;
 
-    private final LanternClientSslContextFactory sslFactory;
+    private final SSLContext sslContext;
 
     /**
      * Creates a new handler that reads incoming HTTP requests and dispatches
@@ -95,7 +96,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final AnonymousPeerProxyManager anonymousPeerProxyManager,
         final Stats stats, final Model model, final ProxyTracker proxyTracker,
         final HttpsEverywhere httpsEverywhere,
-        final LanternClientSslContextFactory sslFactory) {
+        final SSLContext sslContext) {
         this.clientChannelFactory = clientChannelFactory;
         this.channelGroup = channelGroup;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
@@ -104,7 +105,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         this.model = model;
         this.proxyTracker = proxyTracker;
         this.httpsEverywhere = httpsEverywhere;
-        this.sslFactory = sslFactory;
+        this.sslContext = sslContext;
         this.proxyRequestProcessor =
             new DefaultHttpRequestProcessor(proxyTracker,
                 new HttpRequestTransformer() {
@@ -124,7 +125,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     public InetSocketAddress getProxy() {
                         return proxyTracker.getProxy();
                     }
-                }, this.clientChannelFactory, this.channelGroup, this.stats, sslFactory);
+                }, this.clientChannelFactory, this.channelGroup, this.stats, sslContext);
         this.laeRequestProcessor =
             new DefaultHttpRequestProcessor(proxyTracker,
                 new LaeHttpRequestTransformer(), true,
@@ -138,7 +139,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     public InetSocketAddress getProxy() {
                         return proxyTracker.getLaeProxy();
                     }
-            }, this.clientChannelFactory, this.channelGroup, this.stats, sslFactory);
+            }, this.clientChannelFactory, this.channelGroup, this.stats, sslContext);
     }
 
     @Override
@@ -372,10 +373,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         
         // It's also necessary to use our own engine here, as we need to trust
         // the cert from the proxy.
-        //final LanternClientSslContextFactory sslFactory =
-        //    new LanternClientSslContextFactory(this.ksm);
-        final SSLEngine engine =
-            sslFactory.getClientContext().createSSLEngine();
+        final SSLEngine engine = sslContext.createSSLEngine();
         engine.setUseClientMode(true);
         
         final ChannelHandler statsHandler = new StatsTrackingHandler() {

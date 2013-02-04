@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
@@ -55,7 +56,8 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
 
     private final Stats stats;
 
-    private final LanternClientSslContextFactory sslFactory;
+    private final SSLContext sslContext;
+
 
     public DefaultHttpRequestProcessor( 
         final ProxyStatusListener proxyStatusListener, 
@@ -63,7 +65,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         final Proxy proxy, 
         final ClientSocketChannelFactory clientSocketChannelFactory,
         final ChannelGroup channelGroup, final Stats stats,
-        final LanternClientSslContextFactory sslFactory) {
+        final SSLContext sslContext) {
         this.proxyStatusListener = proxyStatusListener;
         this.transformer = transformer;
         this.isLae = isLae;
@@ -71,7 +73,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         this.clientSocketChannelFactory = clientSocketChannelFactory;
         this.channelGroup = channelGroup;
         this.stats = stats;
-        this.sslFactory = sslFactory;
+        this.sslContext = sslContext;
     }
     
     private boolean hasProxy() {
@@ -125,9 +127,8 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
             new ClientBootstrap(clientSocketChannelFactory);
         
         final ChannelPipeline pipeline = cb.getPipeline();
-        final SSLEngine engine;
+        final SSLEngine engine = this.sslContext.createSSLEngine();
         
-        engine = sslFactory.getClientContext().createSSLEngine();
         /*
         if (this.isLae) {
             log.info("Creating standard SSL engine");

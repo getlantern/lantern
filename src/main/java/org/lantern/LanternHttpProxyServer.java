@@ -7,6 +7,8 @@ import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.net.ssl.SSLContext;
+
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
@@ -54,15 +56,13 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     private final Stats stats;
 
-    private final LanternKeyStoreManager keyStoreManager;
-
     private final Model model;
 
     private final ProxyTracker proxyTracker;
 
     private final HttpsEverywhere httpsEverywhere;
 
-    private LanternClientSslContextFactory sslClientContextFactory;
+    private final SSLContext sslContext;
 
     /**
      * Creates a new proxy server.
@@ -82,10 +82,9 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         final TrustedPeerProxyManager trustedPeerProxyManager,
         final AnonymousPeerProxyManager anonymousPeerProxyManager,
         final Stats stats,
-        final LanternKeyStoreManager keyStoreManager,
         final Model model, final ProxyTracker proxyTracker,
         final HttpsEverywhere httpsEverywhere,
-        final LanternClientSslContextFactory sslClientContextFactory) {
+        final SSLContext sslContext) {
         this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.anonymousPeerProxyManager = anonymousPeerProxyManager;
         //this.setCookieObserver = setCookieObserver;
@@ -95,11 +94,10 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         this.timer = timer;
         this.channelGroup = channelGroup;
         this.stats = stats;
-        this.keyStoreManager = keyStoreManager;
+        this.sslContext = sslContext;
         this.model = model;
         this.proxyTracker = proxyTracker;
         this.httpsEverywhere = httpsEverywhere;
-        this.sslClientContextFactory = sslClientContextFactory;
 
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
@@ -172,7 +170,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                         channelGroup, trustedPeerProxyManager,
                         anonymousPeerProxyManager, stats, 
                         model, proxyTracker, httpsEverywhere, 
-                        sslClientContextFactory);
+                        sslContext);
                 
                 final ChannelPipeline pipeline = pipeline();
                 pipeline.addLast("decoder", 

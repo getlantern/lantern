@@ -177,7 +177,7 @@ public class LanternSocketsUtil {
             final SSLContext clientContext = SSLContext.getInstance("TLS");
             final KeyManagerFactory kmf = loadKeyManagerFactory(getSslAlgorithm());
             
-            clientContext.init(kmf.getKeyManagers(), ksm.getTrustManagers(), null);
+            clientContext.init(kmf.getKeyManagers(), null, null);
             return wrappedSocketFactory(clientContext.getSocketFactory());
         } catch (final NoSuchAlgorithmException e) {
             log.error("No TLS?", e);
@@ -271,7 +271,7 @@ public class LanternSocketsUtil {
                 final byte[] buffer = new byte[4096];
                 int n = 0;
                 try {
-                    log.info("READING FROM SOCKET: {}", sock);
+                    log.debug("READING FROM SOCKET: {}", sock);
                     if (sock.isClosed()) {
                         log.error("SOCKET IS CLOSED");
                         ProxyUtils.closeOnFlush(channel);

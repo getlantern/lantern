@@ -285,7 +285,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             peer = this.peers.get(userId);
         } else {
             final InetAddress ia = sock.getInetAddress();
-            final GeoData geo = modelUtils.getGeoData(ia.getHostAddress());
+            final GeoData geo = LanternUtils.getGeoData(ia.getHostAddress());
             peer = new Peer(userId, base64Cert, geo.getCountrycode(), false, 
                 false, false, geo.getLatitude(), geo.getLongitude());
             this.peers.put(userId, peer);
@@ -384,7 +384,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         if (this.peers.containsKey(userId)) {
             peer = this.peers.get(userId);
         } else {
-            final GeoData geo = modelUtils.getGeoData(
+            final GeoData geo = LanternUtils.getGeoData(
                 sock.getInetAddress().getHostAddress());
             peer = new Peer(userId, cert, geo.getCountrycode(), false, false, 
                 false, geo.getLatitude(), geo.getLongitude());

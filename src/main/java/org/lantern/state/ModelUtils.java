@@ -9,14 +9,16 @@ import java.net.URISyntaxException;
 import java.util.Properties;
 import java.util.Set;
 
+import javax.net.ssl.SSLPeerUnverifiedException;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.json.simple.JSONObject;
@@ -43,62 +45,11 @@ public class ModelUtils {
     
     private final Model model;
 
-    private final LanternHttpClient httpClient;
-    
     @Inject
-    public ModelUtils(final Model model, final LanternHttpClient httpClient) {
+    public ModelUtils(final Model model) {
         this.model = model;
-        this.httpClient = httpClient;
     }
     
-    /**
-     * Fetches the geo data for the specified IP.
-     * 
-     * @param ip The IP address to get the geo data for.
-     * @return The geo data.
-     */
-    public GeoData getGeoData(final String ip) {
-        final String query = 
-            "USE 'http://www.datatables.org/iplocation/ip.location.xml' " +
-            "AS ip.location; select CountryCode, Latitude,Longitude from " +
-            "ip.location where ip = '"+ip+"' and key = " +
-            "'a6a2704c6ebf0ee3a0c55d694431686c0b6944afd5b648627650ea1424365abb'";
-
-        final URIBuilder builder = new URIBuilder();
-        builder.setScheme("https").setHost("query.yahooapis.com").setPath(
-            "/v1/public/yql").setParameter("q", query).setParameter(
-                "format", "json");
-        
-        final HttpGet get = new HttpGet();
-        try {
-            final URI uri = builder.build();
-            get.setURI(uri);
-            final HttpResponse response = this.httpClient.execute(get);
-            final HttpEntity entity = response.getEntity();
-            final String body = 
-                IOUtils.toString(entity.getContent()).toLowerCase();
-            EntityUtils.consume(entity);
-            LOG.debug("GOT RESPONSE BODY FOR GEO IP LOOKUP:\n"+body);
-            
-            final ObjectMapper om = new ObjectMapper();
-            if (!body.contains("latitude")) {
-                LOG.warn("No latitude in response: {}", body);
-                return new GeoData();
-            }
-            final String parsed = StringUtils.substringAfterLast(body, "{");
-            final String full = 
-                "{"+StringUtils.substringBeforeLast(parsed, "\"}")+"\"}";
-            return om.readValue(full, GeoData.class);
-        } catch (final IOException e) {
-            LOG.warn("Could not connect to geo ip url?", e);
-        } catch (final URISyntaxException e) {
-            LOG.error("URI error", e);
-        } finally {
-            get.releaseConnection();
-        }
-        return new GeoData();
-    }
-
     /**
      * This is used for when the user disconnects and reconnects for any reason.
      * We store the users we know to have been in the closed beta so we don't
