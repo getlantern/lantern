@@ -26,6 +26,8 @@ func newStringStash(value string, stash _stash) *_stringStash {
 	return self
 }
 
+// read
+
 func (self *_stringStash) test(name string) bool {
 	// .length
 	if name == "length" {
@@ -85,3 +87,5 @@ func (self *_stringStash) enumerate(each func(string)) {
 	}
 	self._stash.enumerate(each)
 }
+
+// write

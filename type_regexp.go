@@ -228,6 +228,8 @@ func newRegExpStash(_regExpObject *_regExpObject, stash _stash) *_regExpStash {
 	return self
 }
 
+// read
+
 func (self *_regExpStash) test(name string) bool {
 	switch name {
 	case "global", "ignoreCase", "multiline", "lastIndex", "source":
@@ -252,16 +254,9 @@ func (self *_regExpStash) get(name string) Value {
 	return self._stash.get(name)
 }
 
-func (self *_regExpStash) put(name string, value Value) {
-	switch name {
-	case "global", "ignoreCase", "multiline", "source":
-		// TODO Is this good enough? Check DefineOwnProperty
-		panic(newTypeError())
-	case "lastIndex":
-		self._regExpObject.LastIndex = value
-		return
-	}
-	self._stash.put(name, value)
+func (self *_regExpStash) enumerate(each func(string)) {
+	// Skip global, ignoreCase, multiline, source, & lastIndex
+	self._stash.enumerate(each)
 }
 
 func (self *_regExpStash) property(name string) *_property {
@@ -280,7 +275,16 @@ func (self *_regExpStash) property(name string) *_property {
 	return self._stash.property(name)
 }
 
-func (self *_regExpStash) enumerate(each func(string)) {
-	// Skip global, ignoreCase, multiline, source, & lastIndex
-	self._stash.enumerate(each)
+// write
+
+func (self *_regExpStash) put(name string, value Value) {
+	switch name {
+	case "global", "ignoreCase", "multiline", "source":
+		// TODO Is this good enough? Check DefineOwnProperty
+		panic(newTypeError())
+	case "lastIndex":
+		self._regExpObject.LastIndex = value
+		return
+	}
+	self._stash.put(name, value)
 }

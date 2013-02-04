@@ -26,20 +26,7 @@ func newArrayStash(valueArray []Value, stash _stash) *_arrayStash {
 	return self
 }
 
-func (self *_arrayStash) canPut(name string) bool {
-	// length
-	if name == "length" {
-		return true
-	}
-
-	// .0, .1, .2, ...
-	index := stringToArrayIndex(name)
-	if index >= 0 {
-		return true
-	}
-
-	return self._stash.canPut(name)
-}
+// read
 
 func (self *_arrayStash) test(name string) bool {
 	// length
@@ -77,6 +64,60 @@ func (self *_arrayStash) get(name string) Value {
 	return self._stash.get(name)
 }
 
+func (self *_arrayStash) enumerate(each func(string)) {
+	// .0, .1, .2, ...
+	for index, _ := range self.valueArray {
+		if self.valueArray[index]._valueType == valueEmpty {
+			continue // A sparse array
+		}
+		name := strconv.FormatInt(int64(index), 10)
+		each(name)
+	}
+	self._stash.enumerate(each)
+}
+
+func (self *_arrayStash) property(name string) *_property {
+	// length
+	if name == "length" {
+		return &_property{
+			value: toValue(len(self.valueArray)),
+			mode:  0100, // +w-ec
+		}
+	}
+
+	// .0, .1, .2, ...
+	index := stringToArrayIndex(name)
+	if index >= 0 {
+		value := UndefinedValue()
+		if index < int64(len(self.valueArray)) {
+			value = self.valueArray[index]
+		}
+		return &_property{
+			value: value,
+			mode:  0111, // +wec
+		}
+	}
+
+	return self._stash.property(name)
+}
+
+// write
+
+func (self *_arrayStash) canPut(name string) bool {
+	// length
+	if name == "length" {
+		return true
+	}
+
+	// .0, .1, .2, ...
+	index := stringToArrayIndex(name)
+	if index >= 0 {
+		return true
+	}
+
+	return self._stash.canPut(name)
+}
+
 func (self *_arrayStash) put(name string, value Value) {
 	// length
 	if name == "length" {
@@ -112,43 +153,6 @@ func (self *_arrayStash) put(name string, value Value) {
 	self._stash.put(name, value)
 }
 
-func (self *_arrayStash) property(name string) *_property {
-	// length
-	if name == "length" {
-		return &_property{
-			value: toValue(len(self.valueArray)),
-			mode:  0100, // +w-ec
-		}
-	}
-
-	// .0, .1, .2, ...
-	index := stringToArrayIndex(name)
-	if index >= 0 {
-		value := UndefinedValue()
-		if index < int64(len(self.valueArray)) {
-			value = self.valueArray[index]
-		}
-		return &_property{
-			value: value,
-			mode:  0111, // +wec
-		}
-	}
-
-	return self._stash.property(name)
-}
-
-func (self *_arrayStash) enumerate(each func(string)) {
-	// .0, .1, .2, ...
-	for index, _ := range self.valueArray {
-		if self.valueArray[index]._valueType == valueEmpty {
-			continue // A sparse array
-		}
-		name := strconv.FormatInt(int64(index), 10)
-		each(name)
-	}
-	self._stash.enumerate(each)
-}
-
 func (self *_arrayStash) delete(name string) {
 	// length
 	if name == "length" {
@@ -162,5 +166,4 @@ func (self *_arrayStash) delete(name string) {
 			self.valueArray[index] = emptyValue()
 		}
 	}
-
 }
