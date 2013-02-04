@@ -13,6 +13,10 @@ import org.littleshoot.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+@Singleton
 public class LanternTrustStore {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -24,15 +28,24 @@ public class LanternTrustStore {
     
     private static final String ALG = "RSA";
     
+    /**
+     * We re-create a random trust store on each run. This requires that
+     * we re-negotiate keys with peers on new connections, which will not
+     * always be the case if the remote client is longer lived than we are 
+     * (i.e., the remote client thinks it has our key, but our key has changed).
+     */
     private static final File TRUSTSTORE_FILE = 
         new File(LanternConstants.CONFIG_DIR, 
             String.valueOf(new SecureRandom().nextLong()));
     
     private final CertTracker certTracker;
     
+    @Inject
     public LanternTrustStore(final CertTracker certTracker) {
         this.certTracker = certTracker;
         configureTrustStore();
+        System.setProperty("javax.net.ssl.trustStore", 
+            TRUSTSTORE_FILE.getAbsolutePath());
     }
 
     public void addBase64Cert(final String fullJid, final String base64Cert) 
@@ -88,7 +101,6 @@ public class LanternTrustStore {
         addCert(normalizedAlias, certFile);
         
         /*
-        // TODO: Check importcert versus straight import.
         final String importResult = LanternUtils.runKeytool("-importcert", 
             "-noprompt", "-alias", normalizedAlias, "-keystore", 
             TRUSTSTORE_FILE.getAbsolutePath(), 
@@ -111,13 +123,12 @@ public class LanternTrustStore {
         TRUSTSTORE_FILE.deleteOnExit();
         createTrustStore();
         addStaticCerts();
-        System.setProperty("javax.net.ssl.trustStore", 
-                TRUSTSTORE_FILE.getAbsolutePath());
+        log.debug("Created trust store!!");
     }
     
     private void createTrustStore() {
         if (TRUSTSTORE_FILE.isFile()) {
-            log.info("Trust store already exists");
+            log.error("Trust store already exists at "+TRUSTSTORE_FILE);
             return;
         }
         final String dummyCn = String.valueOf(new SecureRandom().nextLong());
@@ -149,6 +160,15 @@ public class LanternTrustStore {
             System.exit(1);
         }
         log.debug("Importing cert");
+        
+        // Quick not on '-import' versus '-importcert' from the oracle docs:
+        //
+        // "This command was named -import in previous releases. This old name 
+        // is still supported in this release and will be supported in future 
+        // releases, but for clarify the new name, -importcert, is preferred 
+        // going forward."
+        //
+        // We use import for backwards compatibility.
         final String result = LanternUtils.runKeytool("-import", 
             "-noprompt", "-file", cert.getName(), 
             "-alias", alias, "-keystore", 

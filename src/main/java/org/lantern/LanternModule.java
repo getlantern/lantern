@@ -5,9 +5,12 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.Security;
 import java.util.Timer;
 import java.util.concurrent.Executors;
 import java.util.zip.GZIPInputStream;
+
+import javax.net.ssl.SSLContext;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -85,9 +88,8 @@ public class LanternModule extends AbstractModule {
         bind(HttpsEverywhere.class);
         bind(Roster.class);
         bind(InteractionServlet.class);
+        bind(LanternTrustStore.class);
         bind(LanternKeyStoreManager.class);
-        bind(LanternClientSslContextFactory.class);
-        bind(LanternHttpClient.class);
         bind(SslHttpProxyServer.class);
         bind(PlainTestRelayHttpProxyServer.class);
         bind(PhotoServlet.class);
@@ -107,6 +109,24 @@ public class LanternModule extends AbstractModule {
             copyFireFoxExtension();
         } catch (final IOException e) {
             log.error("Could not copy FireFox extension?", e);
+        }
+    }
+    
+    @Provides @Singleton
+    SSLContext provideSslContext() {
+        String algorithm = 
+            Security.getProperty("ssl.KeyManagerFactory.algorithm");
+        if (algorithm == null) {
+            algorithm = "SunX509";
+        }
+
+        try {
+            final SSLContext clientContext = SSLContext.getInstance("TLS");
+            clientContext.init(null, null, null);
+            return clientContext;
+        } catch (final Exception e) {
+            throw new Error(
+                    "Failed to initialize the client-side SSLContext", e);
         }
     }
     

@@ -18,9 +18,7 @@ public class LanternHttpClientTest {
 
     @Test
     public void testHttpClient() throws Exception {
-        final LanternClientSslContextFactory clientFactory = 
-            TestUtils.getClientSslContextFactory();
-        final DefaultHttpClient client = new LanternHttpClient(clientFactory);
+        final DefaultHttpClient client = new LanternHttpClient();
         
         final String query = 
             "USE 'http://www.datatables.org/iplocation/ip.location.xml' " +
