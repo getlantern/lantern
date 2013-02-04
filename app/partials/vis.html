@@ -2,13 +2,13 @@
   <g id="countries">
     <g ng-repeat="d in countryGeometries">
       <title ui-if="d.alpha2">{{ d.alpha2 | i18n }}: {{ model.countries[d.alpha2].npeers.online.giveGet || 0 }} peers online, {{ model.countries[d.alpha2].npeers.online.give || 0 }} in Give Mode, {{ model.countries[d.alpha2].npeers.online.get || 0 }} in Get Mode</title><!-- XXX i18n -->
-      <path fill="{{ fillByCountry[d.alpha2] || 'rgba(0, 0, 0, 0)' }}" class="{{ d.alpha2 }}" d="{{ countryPaths[d.alpha2] }}"/>
+      <path ng-fill="{{ fillByCountry[d.alpha2] || 'rgba(0, 0, 0, 0)' }}" class="{{ d.alpha2 }}" ng-d="{{ countryPaths[d.alpha2] }}"/>
     </g>
   </g>
   <g id="peersCurrent">
     <g ng-repeat="peer in model.connectivity.peers.current">
-      <path d="M {{ self.x }} {{ self.y }} Q {{ controlpoint(peer).x }} {{ controlpoint(peer).y }} {{ project(peer).x }} {{ project(peer).y }}" class="connection"/>
-      <circle cx="{{ project(peer).x }}" cy="{{ project(peer).y }}" r="{{ peerR }}"
+      <path ng-d="M {{ self.x }} {{ self.y }} Q {{ controlpoint(peer).x }} {{ controlpoint(peer).y }} {{ project(peer).x }} {{ project(peer).y }}" class="connection"/>
+      <circle ng-cx="{{ project(peer).x }}" ng-cy="{{ project(peer).y }}" ng-r="{{ peerR }}"
               id="{{ peer.peerid }}" class="peer {{ peer.mode }}" filter="url(#blur)">
         <title>{{ peer | prettyUser }}</title>
       </circle>
@@ -16,7 +16,7 @@
     </g>
   </g>
   <!-- XXX show last seen locations of peers not connected to -->
-  <circle id="self" cx="{{ self.x }}" cy="{{ self.y }}" r="{{ selfR }}"
+  <circle id="self" ng-cx="{{ self.x }}" ng-cy="{{ self.y }}" ng-r="{{ selfR }}"
           class="{{ model.settings.mode }}" filter="url(#blur)">
     <title>{{ model.profile | prettyUser }}</title>
     <!--animate attributeType="CSS" attributeName="opacity" from=".5" to="1" dur="2s" repeatCount="indefinite"/-->
