@@ -1,4 +1,5 @@
 .PHONY: test assets todo fixme otto run test-all release test-synopsis test-i test262
+.PHONY: underscore
 
 export TERST_BASE=$(PWD)
 
@@ -35,6 +36,14 @@ TEST := -v --run Lexer
 TEST := -v --run Reflect
 TEST := -v --run _reflectSlice
 TEST := -v --run _reflect
+TEST := -v --run _underscore_arrays
+TEST := -v --run _underscore_chaining
+TEST := -v --run _underscore_collections
+TEST := -v --run _underscore_functions
+TEST := -v --run _underscore_objects
+TEST := -v --run _underscore_
+TEST := -v --run _underscore_utility_8\|9
+TEST := -v --run _underscore_utility
 TEST := .
 
 test: test-i
@@ -70,3 +79,6 @@ test-synopsis: .test test-i otto
 
 test262: .test
 	$(MAKE) -C .test/test262 test
+
+underscore:
+	$(MAKE) -C $@

@@ -8,14 +8,6 @@ import (
 	"testing"
 )
 
-func failSet(name string, value interface{}) {
-	err := testOtto.Set(name, value)
-	Is(err, nil)
-	if err != nil {
-		Terst().TestingT.FailNow()
-	}
-}
-
 type testStruct struct {
 	Abc bool
 	Def int

@@ -10,11 +10,24 @@ import (
 	"unicode/utf8"
 )
 
-var testOtto *Otto
+var (
+	_runTestWithOtto = struct {
+		Otto *Otto
+		test func(string, ...interface{}) Value
+	}{}
+)
+
+func failSet(name string, value interface{}) {
+	err := _runTestWithOtto.Otto.Set(name, value)
+	Is(err, nil)
+	if err != nil {
+		Terst().TestingT.FailNow()
+	}
+}
 
 func runTestWithOtto() (*Otto, func(string, ...interface{}) Value) {
+	cache := &_runTestWithOtto
 	Otto := New()
-	testOtto = Otto
 	test := func(name string, expect ...interface{}) Value {
 		raise := false
 		defer func() {
@@ -48,6 +61,8 @@ func runTestWithOtto() (*Otto, func(string, ...interface{}) Value) {
 		}
 		return value
 	}
+	cache.Otto = Otto
+	cache.test = test
 	return Otto, test
 }
 
