@@ -1,6 +1,7 @@
 package org.lantern;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
@@ -10,6 +11,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.concurrent.atomic.AtomicReference;
 
+import javax.net.ssl.SSLHandshakeException;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
 import javax.net.ssl.SSLSocket;
@@ -54,6 +56,11 @@ public class LanternSocketsUtilTest {
             testClient((SSLSocketFactory) SSLSocketFactory.getDefault(), data);
             fail("Should have failed!!\n"+ThreadUtils.dumpStack());
         } catch (Exception e) {
+            // Note there are other types of SSLHandshakeException other than
+            // client authentication errors (what we're after in this case),
+            // but checking specifically for that would involve reading the
+            // exception message, which likely varies across JVMs and platforms.
+            assertTrue(e instanceof SSLHandshakeException);
         }
     }
 
@@ -103,8 +110,9 @@ public class LanternSocketsUtilTest {
                             data.notifyAll();
                         }
                     }
-                } catch (IOException e) {
+                } catch (final SSLHandshakeException e) {
                     e.printStackTrace();
+                } catch (final IOException e) {
                 }
             }
         };
