@@ -114,13 +114,11 @@ public class LanternTrustStore {
         deleteCert(normalizedAlias);
         addCert(normalizedAlias, certFile);
         
-        // We need to reload the keystore with the latest data.
-        //this.trustStore = loadTrustStore();
-        
         // get rid of our imported file
         certFile.delete();
         certFile.deleteOnExit();
-        
+
+        // We need to reload the keystore with the latest data.
         onTrustStoreChanged();
     }
 
@@ -197,7 +195,7 @@ public class LanternTrustStore {
     private SSLContext provideSslContext() {
         final KeyManagerFactory kmf = loadKeyManagerFactory();
         try {
-            final SSLContext clientContext = SSLContext.getInstance("TLS");
+            final SSLContext context = SSLContext.getInstance("TLS");
             
             // Note that specifying null for the trust managers here simply
             // tells the JVM to load them from our trusted certs keystore.
@@ -210,8 +208,8 @@ public class LanternTrustStore {
             // all the JVM's default trusted certs and only trust the few 
             // certs we specify, and that file is generated on the fly
             // on each run, added to dynamically, and reloaded here.
-            clientContext.init(kmf.getKeyManagers(), null, null);
-            return clientContext;
+            context.init(kmf.getKeyManagers(), null, null);
+            return context;
         } catch (final Exception e) {
             throw new Error(
                     "Failed to initialize the client-side SSLContext", e);
