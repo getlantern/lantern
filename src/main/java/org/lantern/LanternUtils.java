@@ -787,6 +787,7 @@ public class LanternUtils {
                 final SocketAddress isa = 
                     new InetSocketAddress("127.0.0.1", port);
                 sock.connect(isa, 2000);
+                sock.close();
                 return;
             } catch (final IOException e) {
             }
