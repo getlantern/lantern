@@ -5,10 +5,20 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.Security;
+import java.security.UnrecoverableKeyException;
+import java.security.cert.CertificateException;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
 
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
+import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +38,9 @@ public class LanternTrustStore {
     
     private static final String ALG = "RSA";
     
+    private SSLContext sslContext;
+    private final KeyStoreManager ksm;
+    
     /**
      * We re-create a random trust store on each run. This requires that
      * we re-negotiate keys with peers on new connections, which will not
@@ -39,13 +52,22 @@ public class LanternTrustStore {
             String.valueOf(new SecureRandom().nextLong()));
     
     private final CertTracker certTracker;
-    
+
     @Inject
-    public LanternTrustStore(final CertTracker certTracker) {
+    public LanternTrustStore(final CertTracker certTracker, 
+            final KeyStoreManager ksm) {
         this.certTracker = certTracker;
+        this.ksm = ksm;
         configureTrustStore();
         System.setProperty("javax.net.ssl.trustStore", 
             TRUSTSTORE_FILE.getAbsolutePath());
+        onTrustStoreChanged();
+        Runtime.getRuntime().addShutdownHook(new Thread (new Runnable() {
+            @Override
+            public void run() {
+                LanternUtils.fullDelete(TRUSTSTORE_FILE);
+            }
+        }, "Keystore-Delete-Thread"));
     }
 
     public void addBase64Cert(final String fullJid, final String base64Cert) 
@@ -85,29 +107,12 @@ public class LanternTrustStore {
          [-storetype <storetype>] [-providername <name>]
          [-providerclass <provider_class_name> [-providerarg <arg>]] ...
          [-providerpath <pathlist>]
-    
          */
+        
         // Make sure we delete the old one (will fail when it doesn't exist -
         // this is expected).
-        final String deleteResult = LanternUtils.runKeytool("-delete", 
-            "-alias", normalizedAlias, "-keystore", 
-            TRUSTSTORE_FILE.getAbsolutePath(), "-storepass", PASS);
-        log.debug("Result of deleting old cert: {}", deleteResult);
-        
-        
-        // TODO: We should be able to just add it to the trust store here 
-        // without saving
-        
+        deleteCert(normalizedAlias);
         addCert(normalizedAlias, certFile);
-        
-        /*
-        final String importResult = LanternUtils.runKeytool("-importcert", 
-            "-noprompt", "-alias", normalizedAlias, "-keystore", 
-            TRUSTSTORE_FILE.getAbsolutePath(), 
-            "-file", certFile.getAbsolutePath(), 
-            "-keypass", PASS, "-storepass", PASS);
-        log.debug("Result of importing new cert: {}", importResult);
-        */
         
         // We need to reload the keystore with the latest data.
         //this.trustStore = loadTrustStore();
@@ -115,12 +120,16 @@ public class LanternTrustStore {
         // get rid of our imported file
         certFile.delete();
         certFile.deleteOnExit();
+        
+        onTrustStoreChanged();
     }
 
+    private void onTrustStoreChanged() {
+        sslContext = provideSslContext();
+    }
     
     private void configureTrustStore() {
-        TRUSTSTORE_FILE.delete();
-        TRUSTSTORE_FILE.deleteOnExit();
+        LanternUtils.fullDelete(TRUSTSTORE_FILE);
         createTrustStore();
         addStaticCerts();
         log.debug("Created trust store!!");
@@ -172,16 +181,77 @@ public class LanternTrustStore {
         final String result = LanternUtils.runKeytool("-import", 
             "-noprompt", "-file", cert.getName(), 
             "-alias", alias, "-keystore", 
-            TRUSTSTORE_FILE.getAbsolutePath(), "-storepass", PASS);
+            getTrustStorePath(), "-storepass", PASS);
         
         log.debug("Result of running keytool: {}", result);
     }
 
-    public String getTrustStorePath() {
+    private String getTrustStorePath() {
         return TRUSTSTORE_FILE.getAbsolutePath();
     }
 
-    public String getTrustStorePassword() {
-        return PASS;
+    public SSLContext getContext() {
+        return sslContext;
+    }
+    
+    private SSLContext provideSslContext() {
+        final KeyManagerFactory kmf = loadKeyManagerFactory();
+        try {
+            final SSLContext clientContext = SSLContext.getInstance("TLS");
+            
+            // Note that specifying null for the trust managers here simply
+            // tells the JVM to load them from our trusted certs keystore.
+            // We set that specially with our call to:
+            //
+            // System.setProperty("javax.net.ssl.trustStore", 
+            //     TRUSTSTORE_FILE.getAbsolutePath());
+            //
+            // This is the "safe" way to do it because we completely override
+            // all the JVM's default trusted certs and only trust the few 
+            // certs we specify, and that file is generated on the fly
+            // on each run, added to dynamically, and reloaded here.
+            clientContext.init(kmf.getKeyManagers(), null, null);
+            return clientContext;
+        } catch (final Exception e) {
+            throw new Error(
+                    "Failed to initialize the client-side SSLContext", e);
+        }
+    }
+    
+    private KeyManagerFactory loadKeyManagerFactory() {
+        String algorithm = 
+            Security.getProperty("ssl.KeyManagerFactory.algorithm");
+        if (algorithm == null) {
+            algorithm = "SunX509";
+        }
+        try {
+            final KeyStore ks = KeyStore.getInstance("JKS");
+            ks.load(ksm.keyStoreAsInputStream(), ksm.getKeyStorePassword());
+            
+            // Set up key manager factory to use our key store
+            final KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
+            kmf.init(ks, ksm.getCertificatePassword());
+            return kmf;
+        } catch (final KeyStoreException e) {
+            throw new Error("Key manager issue", e);
+        } catch (final UnrecoverableKeyException e) {
+            throw new Error("Key manager issue", e);
+        } catch (final NoSuchAlgorithmException e) {
+            throw new Error("Key manager issue", e);
+        } catch (final CertificateException e) {
+            throw new Error("Key manager issue", e);
+        } catch (final IOException e) {
+            throw new Error("Key manager issue", e);
+        }
+    }
+
+    public void deleteCert(final String alias) {
+        final String deleteResult = LanternUtils.runKeytool("-delete", 
+            "-alias", alias, 
+            "-keystore", getTrustStorePath(), 
+            "-storepass", PASS);
+    
+        log.debug("Result of deleting old cert: {}", deleteResult);
+        onTrustStoreChanged();
     }
 }

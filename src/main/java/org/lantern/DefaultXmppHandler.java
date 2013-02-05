@@ -174,7 +174,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final Censored censored;
 
-    private final CertTracker certTracker;
+    private final LanternTrustStore trustStore;
 
     /**
      * Creates a new XMPP handler.
@@ -190,7 +190,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final ModelUtils modelUtils,
         final ModelIo modelIo, final org.lantern.Roster roster,
         final ProxyTracker proxyTracker,
-        final Censored censored, final CertTracker certTracker) {
+        final Censored censored, 
+        final LanternTrustStore trustStore) {
         this.model = model;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.anonymousPeerProxyManager = anonymousPeerProxyManager;
@@ -204,7 +205,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.roster = roster;
         this.proxyTracker = proxyTracker;
         this.censored = censored;
-        this.certTracker = certTracker;
+        this.trustStore = trustStore;
         this.upnpService = new Upnp(stats);
         new GiveModeConnectivityHandler();
         Events.register(this);
@@ -1028,7 +1029,7 @@ public class DefaultXmppHandler implements XmppHandler {
                     LanternConstants.UTF8));
             try {
                 // Add the peer if we're able to add the cert.
-                this.keyStoreManager.addBase64Cert(msg.getFrom(), base64Cert);
+                this.trustStore.addBase64Cert(msg.getFrom(), base64Cert);
                 final String email = XmppUtils.jidToUser(msg.getFrom());
                 if (this.roster.isFullyOnRoster(email)) {
                     trustedPeerProxyManager.onPeer(uri, base64Cert);

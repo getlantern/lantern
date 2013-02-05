@@ -36,8 +36,8 @@ import org.slf4j.LoggerFactory;
 /**
  * Trust manager for Lantern connections.
  */
-public class LanternTrustManager implements X509TrustManager {
-
+public class LanternTrustManager {//implements X509TrustManager {
+/*
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     private final KeyStoreManager ksm;
@@ -45,14 +45,17 @@ public class LanternTrustManager implements X509TrustManager {
     private final File trustStoreFile;
     private final String password;
     private final CertTracker certTracker;
+    private final LanternTrustStore trustStore;
     
     public LanternTrustManager(final KeyStoreManager ksm, 
         final File trustStoreFile, final String password, 
-        final CertTracker certTracker) {
+        final CertTracker certTracker, 
+        final LanternTrustStore trustStore) {
         this.ksm = ksm;
         this.trustStoreFile = trustStoreFile;
         this.password = password;
         this.certTracker = certTracker;
+        this.trustStore = trustStore;
         addStaticCerts();
         
         // This has to go after the certs are added!!
@@ -82,7 +85,7 @@ public class LanternTrustManager implements X509TrustManager {
     private KeyStore getKs() {
         try {
             final KeyStore ks = KeyStore.getInstance("JKS");
-            ks.load(this.ksm.trustStoreAsInputStream(),
+            ks.load(this.trustStore.trustStoreAsInputStream(),
                     this.ksm.getKeyStorePassword());
             return ks;
         } catch (final KeyStoreException e) {
@@ -105,7 +108,6 @@ public class LanternTrustManager implements X509TrustManager {
         // to a file, and then use keytool to import it.
         
         // Here's the keytool doc:
-        /*
          * -importcert  [-v] [-noprompt] [-trustcacerts] [-protected]
          [-alias <alias>]
          [-file <cert_file>] [-keypass <keypass>]
@@ -113,7 +115,6 @@ public class LanternTrustManager implements X509TrustManager {
          [-storetype <storetype>] [-providername <name>]
          [-providerclass <provider_class_name> [-providerarg <arg>]] ...
          [-providerpath <pathlist>]
-         */
         final byte[] decoded = Base64.decodeBase64(base64Cert);
         final String normalizedAlias = 
             FileUtils.removeIllegalCharsFromFileName(fullJid);
@@ -128,14 +129,12 @@ public class LanternTrustManager implements X509TrustManager {
         } finally {
             IOUtils.closeQuietly(os);
         }
-        /*
          * -delete      [-v] [-protected] -alias <alias>
          [-keystore <keystore>] [-storepass <storepass>]
          [-storetype <storetype>] [-providername <name>]
          [-providerclass <provider_class_name> [-providerarg <arg>]] ...
          [-providerpath <pathlist>]
     
-         */
         // Make sure we delete the old one.
         final String deleteResult = LanternUtils.runKeytool("-delete", 
             "-alias", normalizedAlias, "-keystore", trustStoreFile.getAbsolutePath(), 
@@ -307,17 +306,7 @@ public class LanternTrustManager implements X509TrustManager {
 
 
     private static Pattern cnPattern = Pattern.compile("(?i)(cn=)([^,]*)");
-    
-    /**
-     * Returns the identity of the remote server as defined in the specified certificate. The
-     * identity is defined in the subjectDN of the certificate and it can also be defined in
-     * the subjectAltName extension of type "xmpp". When the extension is being used then the
-     * identity defined in the extension in going to be returned. Otherwise, the value stored in
-     * the subjectDN is returned.
-     *
-     * @param x509Certificate the certificate the holds the identity of the remote server.
-     * @return the identity of the remote server as defined in the specified certificate.
-     */
+
     private  Collection<String> getPeerIdentity(final X509Certificate x509Certificate) {
         String name = x509Certificate.getSubjectDN().getName();
         final Matcher matcher = cnPattern.matcher(name);
@@ -341,4 +330,5 @@ public class LanternTrustManager implements X509TrustManager {
     public KeyStore getTruststore() {
         return this.keyStore;
     }
+    */
 }

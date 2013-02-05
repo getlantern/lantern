@@ -24,6 +24,7 @@ import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
+import org.apache.http.client.HttpClient;
 import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
@@ -83,6 +84,9 @@ public class Launcher {
     private Censored censored;
     
     private InternalState internalState;
+    private HttpClient httpClient;
+    
+    
     private final String[] commandLineArgs;
 
     public Launcher(final String... args) {
@@ -190,9 +194,10 @@ public class Launcher {
         
         localProxy = instance(LanternHttpProxyServer.class);
         internalState = instance(InternalState.class);
+        httpClient = instance(LanternHttpClient.class);
 
         // We need to make sure the trust store is initialized before we
-        // do our public IP lookup.
+        // do our public IP lookup as well as modelUtils.
         instance(LanternTrustStore.class);
         
         threadPublicIpLookup();
@@ -307,7 +312,7 @@ public class Launcher {
                 }
                 model.getConnectivity().setIp(ip.getHostAddress());
                 
-                final GeoData geo = LanternUtils.getGeoData(ip.getHostAddress());
+                final GeoData geo = modelUtils.getGeoData(ip.getHostAddress());
                 final Location loc = model.getLocation();
                 loc.setCountry(geo.getCountrycode());
                 loc.setLat(geo.getLatitude());
@@ -620,7 +625,7 @@ public class Launcher {
             };
             final Appender bugAppender = new ExceptionalAppender(
                LanternConstants.GET_EXCEPTIONAL_API_KEY, callback,
-               new LanternHttpClient());
+               httpClient);
             
             BasicConfigurator.configure(bugAppender);
         } catch (final IOException e) {

@@ -25,11 +25,11 @@ public class LanternXmppUtil {
 
 
     private final Logger LOG = LoggerFactory.getLogger(getClass());
-    private final LanternKeyStoreManager keyStoreManager;
+    private final LanternTrustStore trustStore;
     
     @Inject
-    public LanternXmppUtil(final LanternKeyStoreManager keyStoreManager) {
-        this.keyStoreManager = keyStoreManager;
+    public LanternXmppUtil(final LanternTrustStore trustStore) {
+        this.trustStore = trustStore;
     }
     
     public ConnectionConfiguration xmppConfig() {
@@ -82,9 +82,8 @@ public class LanternXmppUtil {
         //config.setTruststorePath(tm.getTruststorePath());
         //config.setTruststorePassword(tm.getTruststorePassword());
         
-        final LanternTrustStore ts = this.keyStoreManager.getTrustStore();
-        config.setTruststorePath(ts.getTrustStorePath());
-        config.setTruststorePassword(ts.getTrustStorePassword());
+        //config.setTruststorePath(this.trustStore.getTrustStorePath());
+        //config.setTruststorePassword(this.trustStore.getTrustStorePassword());
         
         final String[] cipherSuites = new String[] {
             //"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",

@@ -33,7 +33,6 @@ import java.util.Scanner;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.crypto.Cipher;
-import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.net.ssl.SSLSocket;
 import javax.servlet.http.HttpServletRequest;
 
@@ -46,12 +45,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -69,7 +62,6 @@ import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
-import org.lantern.util.LanternHttpClient;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
@@ -904,57 +896,13 @@ public class LanternUtils {
             LOG.info("Successfully created file at: {}", file);
         }
     }
-    
-    /**
-     * Fetches the geo data for the specified IP.
-     * 
-     * @param ip The IP address to get the geo data for.
-     * @return The geo data.
-     */
-    public static GeoData getGeoData(final String ip) {
-        final String query = 
-            "USE 'http://www.datatables.org/iplocation/ip.location.xml' " +
-            "AS ip.location; select CountryCode, Latitude,Longitude from " +
-            "ip.location where ip = '"+ip+"' and key = " +
-            "'a6a2704c6ebf0ee3a0c55d694431686c0b6944afd5b648627650ea1424365abb'";
 
-        final URIBuilder builder = new URIBuilder();
-        builder.setScheme("https").setHost("query.yahooapis.com").setPath(
-            "/v1/public/yql").setParameter("q", query).setParameter(
-                "format", "json");
-        
-        
-        final HttpClient httpClient = new LanternHttpClient();
-        final HttpGet get = new HttpGet();
-        try {
-            final URI uri = builder.build();
-            get.setURI(uri);
-            final HttpResponse response = httpClient.execute(get);
-            final HttpEntity entity = response.getEntity();
-            final String body = 
-                IOUtils.toString(entity.getContent()).toLowerCase();
-            EntityUtils.consume(entity);
-            LOG.debug("GOT RESPONSE BODY FOR GEO IP LOOKUP:\n"+body);
-            
-            final ObjectMapper om = new ObjectMapper();
-            if (!body.contains("latitude")) {
-                LOG.warn("No latitude in response: {}", body);
-                return new GeoData();
-            }
-            final String parsed = StringUtils.substringAfterLast(body, "{");
-            final String full = 
-                "{"+StringUtils.substringBeforeLast(parsed, "\"}")+"\"}";
-            return om.readValue(full, GeoData.class);
-        } catch (final SSLPeerUnverifiedException ssl) {
-            LOG.warn("Peer cert not trusted?", ssl);
-        } catch (final IOException e) {
-            LOG.warn("Could not connect to geo ip url?", e);
-        } catch (final URISyntaxException e) {
-            LOG.error("URI error", e);
-        } finally {
-            get.releaseConnection();
+    
+    public static void fullDelete(final File file) {
+        file.deleteOnExit();
+        if (file.isFile() && !file.delete()) {
+            LOG.error("Could not delete file {}!!", file);
         }
-        return new GeoData();
     }
 }
 
