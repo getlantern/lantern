@@ -219,13 +219,13 @@ class TestingUtils {
         File keyStoreRoot = Files.createTempDir(); 
         return new LanternKeyStoreManager(keyStoreRoot);
     }
-    */
 
     public static SocketFactory newTlsSocketFactory(KeyStoreManager mgr) throws Exception{
         final SSLContext clientContext = SSLContext.getInstance("TLS");
         clientContext.init(null, mgr.getTrustManagers(), null);
         return clientContext.getSocketFactory();
     }
+    */
 
     /**
      * this mimics the portion of Launcher that starts the local browser proxy, 

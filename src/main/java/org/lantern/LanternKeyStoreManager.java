@@ -249,7 +249,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         }
     }
     
-    @Override
     public InputStream trustStoreAsInputStream() {
         try {
             return new FileInputStream(TRUSTSTORE_FILE);
@@ -269,13 +268,11 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         return PASS.toCharArray();
     }
     
-    @Override
     public void addBase64Cert(final String id, final String base64Cert) 
         throws IOException {
         this.lanternTrustManager.addBase64Cert(id, base64Cert);
     }
 
-    @Override
     public TrustManager[] getTrustManagers() {
         return Arrays.copyOf(trustManagers, trustManagers.length);
     }

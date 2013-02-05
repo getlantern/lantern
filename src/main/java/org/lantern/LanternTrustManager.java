@@ -28,7 +28,6 @@ import javax.net.ssl.X509TrustManager;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,13 +39,13 @@ public class LanternTrustManager implements X509TrustManager {
 
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final KeyStoreManager ksm;
+    private final LanternKeyStoreManager ksm;
     private KeyStore keyStore;
     private final File trustStoreFile;
     private final String password;
     private final CertTracker certTracker;
     
-    public LanternTrustManager(final KeyStoreManager ksm, 
+    public LanternTrustManager(final LanternKeyStoreManager ksm, 
         final File trustStoreFile, final String password, 
         final CertTracker certTracker) {
         this.ksm = ksm;
