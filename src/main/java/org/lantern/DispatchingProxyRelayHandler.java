@@ -79,7 +79,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final HttpsEverywhere httpsEverywhere;
 
-    private final SSLContext sslContext;
+    private final LanternTrustStore trustStore;
 
     /**
      * Creates a new handler that reads incoming HTTP requests and dispatches
@@ -96,7 +96,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final AnonymousPeerProxyManager anonymousPeerProxyManager,
         final Stats stats, final Model model, final ProxyTracker proxyTracker,
         final HttpsEverywhere httpsEverywhere,
-        final SSLContext sslContext) {
+        final LanternTrustStore trustStore) {
         this.clientChannelFactory = clientChannelFactory;
         this.channelGroup = channelGroup;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
@@ -105,7 +105,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         this.model = model;
         this.proxyTracker = proxyTracker;
         this.httpsEverywhere = httpsEverywhere;
-        this.sslContext = sslContext;
+        this.trustStore = trustStore;
         this.proxyRequestProcessor =
             new DefaultHttpRequestProcessor(proxyTracker,
                 new HttpRequestTransformer() {
@@ -125,7 +125,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     public InetSocketAddress getProxy() {
                         return proxyTracker.getProxy();
                     }
-                }, this.clientChannelFactory, this.channelGroup, this.stats, sslContext);
+                }, this.clientChannelFactory, this.channelGroup, this.stats, trustStore);
         this.laeRequestProcessor =
             new DefaultHttpRequestProcessor(proxyTracker,
                 new LaeHttpRequestTransformer(), true,
@@ -139,7 +139,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     public InetSocketAddress getProxy() {
                         return proxyTracker.getLaeProxy();
                     }
-            }, this.clientChannelFactory, this.channelGroup, this.stats, sslContext);
+            }, this.clientChannelFactory, this.channelGroup, this.stats, trustStore);
     }
 
     @Override
@@ -373,7 +373,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         
         // It's also necessary to use our own engine here, as we need to trust
         // the cert from the proxy.
-        final SSLEngine engine = sslContext.createSSLEngine();
+        final SSLEngine engine = trustStore.getContext().createSSLEngine();
         engine.setUseClientMode(true);
         
         final ChannelHandler statsHandler = new StatsTrackingHandler() {

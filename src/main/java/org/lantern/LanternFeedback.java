@@ -19,7 +19,18 @@ import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.util.EntityUtils;
 import org.lantern.util.LanternHttpClient;
 
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
+
+@Singleton
 public class LanternFeedback {
+    
+    private final HttpClient httpClient;
+
+    @Inject
+    public LanternFeedback(final HttpClient httpClient) {
+        this.httpClient = httpClient;
+    }
     
     public void submit(String message, String replyTo) throws IOException {
         Map <String, String> feedback = new HashMap<String, String>(); 
@@ -60,7 +71,6 @@ public class LanternFeedback {
             final UrlEncodedFormEntity entity = 
                 new UrlEncodedFormEntity(params, "UTF-8");
             post.setEntity(entity);
-            final HttpClient httpClient = new LanternHttpClient();
             final HttpResponse response = httpClient.execute(post);
 
             final int statusCode = response.getStatusLine().getStatusCode();

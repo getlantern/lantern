@@ -17,14 +17,6 @@ public class LanternHostNameVerifier extends AbstractVerifier {
         if (!host.equals(LanternConstants.FALLBACK_SERVER_HOST)) {
             super.verify(host, cns, subjectAlts, true);
         }
-        /*
-        System.out.println("HOST: "+host);
-        System.out.println("CNS: "+ Arrays.asList(cns));
-        if (subjectAlts != null) {
-            System.out.println("SubjectAlts: "+Arrays.asList(subjectAlts));
-        }
-        verify(host, cns, subjectAlts, true);
-        */
     }
 
     @Override

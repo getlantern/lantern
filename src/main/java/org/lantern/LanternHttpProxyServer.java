@@ -7,8 +7,6 @@ import java.net.InetSocketAddress;
 import java.util.Iterator;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import javax.net.ssl.SSLContext;
-
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
@@ -62,7 +60,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
 
     private final HttpsEverywhere httpsEverywhere;
 
-    private final SSLContext sslContext;
+    private final LanternTrustStore trustStore;
 
     /**
      * Creates a new proxy server.
@@ -84,7 +82,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         final Stats stats,
         final Model model, final ProxyTracker proxyTracker,
         final HttpsEverywhere httpsEverywhere,
-        final SSLContext sslContext) {
+        final LanternTrustStore trustStore) {
         this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.anonymousPeerProxyManager = anonymousPeerProxyManager;
         //this.setCookieObserver = setCookieObserver;
@@ -94,10 +92,10 @@ public class LanternHttpProxyServer implements HttpProxyServer {
         this.timer = timer;
         this.channelGroup = channelGroup;
         this.stats = stats;
-        this.sslContext = sslContext;
         this.model = model;
         this.proxyTracker = proxyTracker;
         this.httpsEverywhere = httpsEverywhere;
+        this.trustStore = trustStore;
 
         Thread.setDefaultUncaughtExceptionHandler(new UncaughtExceptionHandler() {
             @Override
@@ -170,7 +168,7 @@ public class LanternHttpProxyServer implements HttpProxyServer {
                         channelGroup, trustedPeerProxyManager,
                         anonymousPeerProxyManager, stats, 
                         model, proxyTracker, httpsEverywhere, 
-                        sslContext);
+                        trustStore);
                 
                 final ChannelPipeline pipeline = pipeline();
                 pipeline.addLast("decoder", 

@@ -1,19 +1,19 @@
 package org.lantern; 
 
-import com.google.common.io.Files;
+import static org.junit.Assert.assertTrue;
+
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.net.URI;
-import java.io.File;
-import javax.net.SocketFactory;
-import javax.net.ssl.SSLContext;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import javax.net.ssl.SSLEngine; 
+
+import javax.net.ssl.SSLEngine;
+
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBufferFactory;
@@ -39,25 +39,21 @@ import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.ServerSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioClientSocketChannelFactory;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
-import org.jboss.netty.handler.codec.http.CookieDecoder;
 import org.jboss.netty.handler.codec.http.Cookie;
+import org.jboss.netty.handler.codec.http.CookieDecoder;
 import org.jboss.netty.handler.codec.http.DefaultHttpRequest;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
-import org.jboss.netty.handler.codec.http.HttpHeaders; 
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
+import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.HttpResponseStatus;
-import org.jboss.netty.handler.codec.http.HttpRequestDecoder; 
 import org.jboss.netty.handler.codec.http.HttpVersion;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.jboss.netty.util.HashedWheelTimer;
 import org.jboss.netty.util.Timer;
-
-import static org.junit.Assert.*;
-import org.lantern.cookie.CookieFilter;
 import org.lantern.cookie.CookieTracker;
-import org.lantern.cookie.SetCookieObserver;
 import org.lantern.cookie.StoredCookie;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.ProxyCacheManager;
@@ -220,12 +216,6 @@ class TestingUtils {
         return new LanternKeyStoreManager(keyStoreRoot);
     }
     */
-
-    public static SocketFactory newTlsSocketFactory(KeyStoreManager mgr) throws Exception{
-        final SSLContext clientContext = SSLContext.getInstance("TLS");
-        clientContext.init(null, mgr.getTrustManagers(), null);
-        return clientContext.getSocketFactory();
-    }
 
     /**
      * this mimics the portion of Launcher that starts the local browser proxy, 

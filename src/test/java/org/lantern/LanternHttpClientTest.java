@@ -7,18 +7,17 @@ import java.net.URI;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
-import org.lantern.util.LanternHttpClient;
 
 public class LanternHttpClientTest {
 
     @Test
     public void testHttpClient() throws Exception {
-        final DefaultHttpClient client = new LanternHttpClient();
+        final HttpClient client = TestUtils.getHttpClient();
         
         final String query = 
             "USE 'http://www.datatables.org/iplocation/ip.location.xml' " +
@@ -40,7 +39,7 @@ public class LanternHttpClientTest {
             IOUtils.toString(entity.getContent()).toLowerCase();
         EntityUtils.consume(entity);
         
-        assertTrue("Unexpected body: "+body, !body.contains("latitude"));
+        assertTrue("Unexpected body: "+body, body.contains("latitude"));
 
     }
 
