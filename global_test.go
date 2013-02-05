@@ -77,3 +77,100 @@ func TestGlobalReadOnly(t *testing.T) {
 	test(`Number.POSITIVE_INFINITY = 1`, "1")
 	test(`Number.POSITIVE_INFINITY`, "Infinity")
 }
+
+func Test_isNaN(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`isNaN(0)`, "false")
+	test(`isNaN("Xyzzy")`, "true")
+	test(`isNaN()`, "true")
+	test(`isNaN(NaN)`, "true")
+	test(`isNaN(Infinity)`, "false")
+}
+
+func Test_isFinite(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`isFinite(0)`, "true")
+	test(`isFinite("Xyzzy")`, "false")
+	test(`isFinite()`, "false")
+	test(`isFinite(NaN)`, "false")
+	test(`isFinite(Infinity)`, "false")
+}
+
+func Test_parseInt(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`parseInt("0")`, "0")
+	test(`parseInt("11")`, "11")
+	test(`parseInt(" 11")`, "11")
+	test(`parseInt("11 ")`, "11")
+	test(`parseInt(" 11 ")`, "11")
+	test(`parseInt(" 11\n")`, "11")
+	test(`parseInt(" 11\n", 16)`, "17")
+	test(`parseInt("Xyzzy")`, "NaN")
+	test(`parseInt("0x0a")`, "10")
+	if false {
+		test(`parseInt(" 0x11\n", 16)`, "17")
+		// TODO parseInt should return 10 in this scenario
+		test(`parseInt("0x0aXyzzy")`, "10")
+	}
+	test(`parseInt("0x0a", Infinity)`, "10")
+}
+
+func Test_parseFloat(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`parseFloat("0")`, "0")
+	test(`parseFloat("11")`, "11")
+	test(`parseFloat(" 11")`, "11")
+	test(`parseFloat("11 ")`, "11")
+	test(`parseFloat(" 11 ")`, "11")
+	test(`parseFloat(" 11\n")`, "11")
+	test(`parseFloat(" 11\n", 16)`, "11")
+	test(`parseFloat("Xyzzy")`, "NaN")
+	test(`parseFloat("0x0a")`, "NaN")
+	test(`parseFloat("11.1")`, "11.1")
+	if false {
+		test(`parseFloat(" 0x11\n", 16)`, "17")
+		// TODO parseFloat should return 10 in this scenario
+		test(`parseFloat("0x0aXyzzy")`, "10")
+	}
+}
+
+func Test_encodeURI(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`encodeURI("http://example.com/ Nothing happens.")`, "http://example.com/%20Nothing%20happens.")
+	test(`encodeURI("http://example.com/ _^#")`, "http://example.com/%20_%5E#")
+}
+
+func Test_encodeURIComponent(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`encodeURIComponent("http://example.com/ Nothing happens.")`, "http%3A%2F%2Fexample.com%2F%20Nothing%20happens.")
+	test(`encodeURIComponent("http://example.com/ _^#")`, "http%3A%2F%2Fexample.com%2F%20_%5E%23")
+}
+
+func Test_decodeURI(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`decodeURI(encodeURI("http://example.com/ Nothing happens."))`, "http://example.com/ Nothing happens.")
+	test(`decodeURI(encodeURI("http://example.com/ _^#"))`, "http://example.com/ _^#")
+	test(`raise: decodeURI("http://example.com/ _^#%")`, "URIError: URI malformed")
+}
+
+func Test_decodeURIComponent(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`decodeURIComponent(encodeURI("http://example.com/ Nothing happens."))`, "http://example.com/ Nothing happens.")
+	test(`decodeURIComponent(encodeURI("http://example.com/ _^#"))`, "http://example.com/ _^#")
+}
