@@ -25,7 +25,7 @@ type Entry struct {
 #### func  Register
 
 ```go
-func Register(source string) *Entry
+func Register(source func() string) *Entry
 ```
 
 #### func (*Entry) Disable

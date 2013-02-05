@@ -29,7 +29,9 @@ import (
 	"github.com/robertkrimen/otto/registry"
 )
 
-var entry *registry.Entry = registry.Register(Source())
+var entry *registry.Entry = registry.Register(func() string {
+	return Source()
+})
 
 // Enable underscore runtime inclusion.
 func Enable() {
