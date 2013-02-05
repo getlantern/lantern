@@ -670,9 +670,8 @@ func Test_underscore_objects_22(t *testing.T) {
     ok(_.isFinite('12'), 'Numeric strings are numbers');
     ok(!_.isFinite('1a'), 'Non numeric strings are not numbers');
     ok(!_.isFinite(''), 'Empty strings are not numbers');
-    // FIXME
-    //var obj = new Number(5);
-    //ok(_.isFinite(obj), 'Number instances can be finite');
+    var obj = new Number(5);
+    ok(_.isFinite(obj), 'Number instances can be finite');
     ok(_.isFinite(0), '0 is Finite');
     ok(_.isFinite(123), 'Ints are Finite');
     ok(_.isFinite(-12.44), 'Floats are Finite');

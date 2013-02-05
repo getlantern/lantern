@@ -308,7 +308,7 @@ func Test_underscore_utility_11(t *testing.T) {
     strictEqual(_.result(obj, 'x'), 'x');
     strictEqual(_.result(obj, 'y'), 'x');
     strictEqual(_.result(obj, 'z'), undefined);
-    // FIXME
+    // FIXME: This functionality is being changed in the underscore master right now
     //strictEqual(_.result(null, 'x'), undefined);
   });
     `)

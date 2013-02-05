@@ -42,7 +42,7 @@ TEST := -v --run _underscore_collections
 TEST := -v --run _underscore_functions
 TEST := -v --run _underscore_objects
 TEST := -v --run _underscore_
-TEST := -v --run _underscore_utility_8\|9
+TEST := -v --run _parseFloat
 TEST := -v --run _underscore_utility
 TEST := .
 

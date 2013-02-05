@@ -2,6 +2,7 @@ package otto
 
 import (
 	"math"
+	"strconv"
 	time_ "time"
 )
 
@@ -275,6 +276,18 @@ func newContext() *_runtime {
 		"Number", builtinNumber,
 		builtinNewNumber,
 		self.Global.NumberPrototype,
+		"toString", func(call FunctionCall) Value {
+			// Will throw a TypeError if ThisObject is not a Number
+			value := call.thisClassObject("Number").primitiveValue()
+			radix := 10
+			if len(call.ArgumentList) > 0 {
+				radix = int(toInteger(call.Argument(0)))
+				if radix < 2 || radix > 36 {
+					panic(newRangeError("RangeError: toString() radix must be between 2 and 36"))
+				}
+			}
+			return toValue(strconv.FormatInt(toInteger(value), radix))
+		},
 		"valueOf", func(call FunctionCall) Value {
 			return *call.thisClassObject("Number").primitive
 		},

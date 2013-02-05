@@ -98,6 +98,7 @@ func Test_isFinite(t *testing.T) {
 	test(`isFinite()`, "false")
 	test(`isFinite(NaN)`, "false")
 	test(`isFinite(Infinity)`, "false")
+	test(`isFinite(new Number(451));`, "true")
 }
 
 func Test_parseInt(t *testing.T) {
