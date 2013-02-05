@@ -1,7 +1,9 @@
 package org.lantern;
 
 import java.net.InetSocketAddress;
+import java.security.NoSuchAlgorithmException;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;
@@ -100,8 +102,12 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
             log.info("Adding SSL for client connection");
             final SslContextFactory sslFactory = 
                 new SslContextFactory(this.keyStoreManager);
-            final SSLEngine engine =
-                sslFactory.getClientContext().createSSLEngine();
+            final SSLEngine engine;
+            try {
+                engine = SSLContext.getDefault().createSSLEngine();
+            } catch (NoSuchAlgorithmException e1) {
+                return;
+            }
             engine.setUseClientMode(true);
             pipeline.addLast("ssl", new SslHandler(engine));
         }
