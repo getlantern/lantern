@@ -234,6 +234,7 @@ public class JettyLauncher implements LanternService {
             is = new FileInputStream(file);
             os = resp.getOutputStream();
             resp.setContentLength((int) file.length());
+            resp.setContentType("application/x-ns-proxy-autoconfig");
             IOUtils.copyLarge(is, os);
         } catch (final IOException e) {
             log.error("Could not write response?", e);
