@@ -10,6 +10,7 @@ import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.HttpClient;
 import org.jivesoftware.smack.XMPPConnection;
 import org.lantern.http.JettyLauncher;
 import org.lantern.http.OauthUtils;
@@ -71,6 +72,8 @@ public class TestUtils {
 
     private static LanternTrustStore trustStore;
 
+    private static HttpClient httpClient;
+
     static {
         InputStream is = null;
         try {
@@ -114,6 +117,7 @@ public class TestUtils {
         modelIo = injector.getInstance(ModelIo.class);
         proxyTracker = injector.getInstance(DefaultProxyTracker.class);
         trustStore = injector.getInstance(LanternTrustStore.class);
+        httpClient = injector.getInstance(HttpClient.class);
         
         final Settings set = model.getSettings();
         set.setAccessToken(getAccessToken());
@@ -249,6 +253,11 @@ public class TestUtils {
     public static LanternTrustStore getTrustStore() {
         if (!loaded) load();
         return trustStore;
+    }
+
+    public static HttpClient getHttpClient() {
+        if (!loaded) load();
+        return httpClient;
     }
 
 }

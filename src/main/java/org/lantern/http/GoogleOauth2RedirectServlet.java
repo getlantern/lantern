@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.http.client.HttpClient;
 import org.lantern.Proxifier;
 import org.lantern.XmppHandler;
 import org.lantern.state.InternalState;
@@ -40,15 +41,19 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
 
     private final Proxifier proxifier;
 
+    private final HttpClient httpClient;
+
     @Inject
     public GoogleOauth2RedirectServlet(final XmppHandler handler, 
         final Model model, final InternalState internalState,
-        final ModelIo modelIo, final Proxifier proxifier) {
+        final ModelIo modelIo, final Proxifier proxifier,
+        final HttpClient httpClient) {
         this.handler = handler;
         this.model = model;
         this.internalState = internalState;
         this.modelIo = modelIo;
         this.proxifier = proxifier;
+        this.httpClient = httpClient;
     }
     
     @Override
@@ -79,8 +84,8 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         // stop it and start it only when we need oauth callbacks. If we
         // attempt to restart a stopped server, things get funky.
         final GoogleOauth2CallbackServer server = 
-            new GoogleOauth2CallbackServer(handler, model, 
-                this.internalState, this.modelIo, this.proxifier);
+            new GoogleOauth2CallbackServer(handler, model, this.internalState, 
+                this.modelIo, this.proxifier, this.httpClient);
         
         // Note that this call absolutely ensures the server is started.
         server.start();

@@ -7,13 +7,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.SecureRandom;
 
-import javax.net.ssl.TrustManager;
-
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.math.RandomUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.lantern.state.Model;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.FileUtils;
 import org.slf4j.Logger;
@@ -31,7 +28,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     
     public final File KEYSTORE_FILE;
     
-    private final File TRUSTSTORE_FILE;
     
     private final File CERT_FILE;
     
@@ -43,35 +39,18 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     private static final String ALG = "RSA";
 
     private String localCert;
-    
-    //private final TrustManager[] trustManagers;
-
-    //private final LanternTrustManager lanternTrustManager;
-
-    private final Model model;
-
-    private final LanternTrustStore trustStore;
 
     @Inject
-    public LanternKeyStoreManager(final Model model, 
-        final LanternTrustStore trustStore) {
-        this(null, model, trustStore);
+    public LanternKeyStoreManager() {
+        this(null);
     }
     
-    public LanternKeyStoreManager(final File rootDir, final Model model, 
-        final LanternTrustStore trustStore) {
-        this.model = model;
-        this.trustStore = trustStore;
+    public LanternKeyStoreManager(final File rootDir) {
         CONFIG_DIR = rootDir != null ? rootDir : LanternConstants.CONFIG_DIR;
-        KEYSTORE_FILE = 
-            new File(CONFIG_DIR, "lantern_keystore.jks");
-        TRUSTSTORE_FILE = 
-            new File(CONFIG_DIR, "lantern_truststore.jks");
-        CERT_FILE = 
-            new File(CONFIG_DIR, "local_lantern_cert");
+        KEYSTORE_FILE = new File(CONFIG_DIR, "lantern_keystore.jks");
+        CERT_FILE = new File(CONFIG_DIR, "local_lantern_cert");
         
-        fullDelete(KEYSTORE_FILE);
-        fullDelete(TRUSTSTORE_FILE);
+        LanternUtils.fullDelete(KEYSTORE_FILE);
 
         if (!CONFIG_DIR.isDirectory()) {
             if (!CONFIG_DIR.mkdir()) {
@@ -79,71 +58,19 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             }
         }
         reset();
-        //createTrustStore();
-        
-        /*
-        this.lanternTrustManager = 
-            new LanternTrustManager(this, TRUSTSTORE_FILE, PASS, certTracker);
-        
-        trustManagers = new TrustManager[] {
-            lanternTrustManager
-        };
-        */
         Runtime.getRuntime().addShutdownHook(new Thread (new Runnable() {
             @Override
             public void run() {
-                fullDelete(KEYSTORE_FILE);
-                fullDelete(TRUSTSTORE_FILE);
+                LanternUtils.fullDelete(KEYSTORE_FILE);
             }
         }, "Keystore-Delete-Thread"));
-    }
-    
-    private void fullDelete(final File file) {
-        file.deleteOnExit();
-        if (file.isFile() && !file.delete()) {
-            log.error("Could not delete file {}!!", file);
-        }
-    }
-
-    private void createTrustStore() {
-        if (TRUSTSTORE_FILE.isFile()) {
-            log.info("Trust store already exists");
-            return;
-        }
-        final String dummyCn = model.getNodeId();
-        log.debug("Dummy CN is: {}", dummyCn);
-        final String result = LanternUtils.runKeytool("-genkey", "-alias", 
-            "foo", "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG, 
-            "-dname", "CN="+dummyCn, "-keystore", 
-            TRUSTSTORE_FILE.getAbsolutePath(), "-keypass", PASS, 
-            "-storepass", PASS);
-        log.debug("Got result of creating trust store: {}", result);
     }
 
     private void reset() {
         log.debug("RESETTING KEYSTORE AND TRUSTSTORE!!");
-        if (KEYSTORE_FILE.isFile()) {
-            log.info("Deleting existing keystore file at: " +
-                KEYSTORE_FILE.getAbsolutePath());
-            KEYSTORE_FILE.delete();
-        }
-        
-        if (TRUSTSTORE_FILE.isFile()) {
-            log.info("Deleting existing truststore file at: " +
-                TRUSTSTORE_FILE.getAbsolutePath());
-            TRUSTSTORE_FILE.delete();
-        }
-        
+        LanternUtils.fullDelete(KEYSTORE_FILE);
         createKeyStore();
-
         LanternUtils.waitForFile(KEYSTORE_FILE);
-        /*
-        log.info("Importing cert");
-        nativeCall("keytool", "-import", "-noprompt", "-file", CERT_FILE.getName(), 
-            "-alias", AL, "-keystore", TRUSTSTORE_FILE.getName(), "-storepass", 
-            PASS);
-            */
-
     }
 
     private void createKeyStore() {
@@ -175,16 +102,23 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     private void generateLocalCert(final String jid) {
         final String normalizedAlias = 
                 FileUtils.removeIllegalCharsFromFileName(jid);
-        final String genKeyResult = getKey(normalizedAlias);
+        final String genKeyResult = 
+            LanternUtils.runKeytool("-genkey", "-alias", 
+                normalizedAlias, "-keysize", KEYSIZE, "-validity", "365", 
+                "-keyalg", ALG, 
+                "-dname", "CN="+normalizedAlias, "-keypass", PASS, "-storepass", 
+                PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
         
         log.info("Result of keytool -genkey call: {}", genKeyResult);
         
-        //waitForFile(KEYSTORE_FILE);
-        
         // Now grab our newly-generated cert. All of our trusted peers will
         // use this to connect.
+        // See: 
+        // http://docs.oracle.com/javase/6/docs/technotes/tools/solaris/keytool.html
+        // for a discussion of export versus exportcert (basically we use
+        // export for backwards compatibility).
         final String exportCertResult = LanternUtils.runKeytool(
-            "-exportcert", 
+            "-export", 
             "-alias", normalizedAlias, 
             "-keystore", KEYSTORE_FILE.getAbsolutePath(), 
             "-storepass", PASS, 
@@ -205,13 +139,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
         }
     }
 
-    private String getKey(final String normalizedAlias) {
-        return LanternUtils.runKeytool("-genkey", "-alias", 
-            normalizedAlias, "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG, 
-            "-dname", "CN="+normalizedAlias, "-keypass", PASS, "-storepass", 
-            PASS, "-keystore", KEYSTORE_FILE.getAbsolutePath());
-    }
-
     @Override
     public String getBase64Cert(final String id) {
         if (StringUtils.isBlank(localCert)) {
@@ -229,16 +156,6 @@ public class LanternKeyStoreManager implements KeyStoreManager {
             throw new Error("Could not find keystore file!!");
         }
     }
-    
-    @Override
-    public InputStream trustStoreAsInputStream() {
-        try {
-            return new FileInputStream(TRUSTSTORE_FILE);
-        } catch (final FileNotFoundException e) {
-            log.error("Trust store file not found", e);
-            throw new Error("Could not find truststore file!!");
-        }
-    }
 
     @Override
     public char[] getCertificatePassword() {
@@ -249,26 +166,4 @@ public class LanternKeyStoreManager implements KeyStoreManager {
     public char[] getKeyStorePassword() {
         return PASS.toCharArray();
     }
-    
-    @Override
-    public void addBase64Cert(final String id, final String base64Cert) 
-        throws IOException {
-        this.trustStore.addBase64Cert(id, base64Cert);
-    }
-
-    @Override
-    public TrustManager[] getTrustManagers() {
-        //return Arrays.copyOf(trustManagers, trustManagers.length);
-        return new TrustManager[] {};
-    }
-
-    public LanternTrustStore getTrustStore() {
-        return this.trustStore;
-    }
-
-    /*
-    public LanternTrustManager getTrustManager() {
-        return this.lanternTrustManager;
-    }
-    */
 }

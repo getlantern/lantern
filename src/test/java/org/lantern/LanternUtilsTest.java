@@ -47,20 +47,6 @@ public class LanternUtilsTest {
     private final AtomicReference<String> readOnServer = 
         new AtomicReference<String>("");
     
-    @Test
-    public void testGeoData() throws Exception {
-        new LanternTrustStore(new CertTracker() {
-            @Override
-            public String getCertForJid(String fullJid) {return null;}
-            @Override
-            public void addCert(String base64Cert, String fullJid) {}
-        });
-        final GeoData data = LanternUtils.getGeoData("86.170.128.133");
-        assertTrue(data.getLatitude() > 50.0);
-        assertTrue(data.getLongitude() < 3.0);
-        assertEquals("gb", data.getCountrycode());
-    }
-    
     @Test 
     public void testGoogleTalkReachable() throws Exception {
         assertTrue(LanternUtils.isGoogleTalkReachable());
@@ -125,7 +111,7 @@ public class LanternUtilsTest {
         
         // Since we're connecting to ourselves for testing, we need to add our 
         // own key to the *trust store* from the key store.
-        TestUtils.getKsm().addBase64Cert(xmpp.getJid(),
+        TestUtils.getTrustStore().addBase64Cert(xmpp.getJid(),
             TestUtils.getKsm().getBase64Cert(xmpp.getJid()));
                 
         

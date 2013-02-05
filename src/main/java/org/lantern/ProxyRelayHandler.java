@@ -20,7 +20,6 @@ import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
 import org.jboss.netty.handler.ssl.SslHandler;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.ProxyUtils;
-import org.littleshoot.proxy.SslContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -47,6 +46,8 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final ChannelGroup channelGroup;
 
+    private final LanternTrustStore trustStore;
+
     
     /**
      * Creates a new relayer to a proxy.
@@ -64,12 +65,14 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final ProxyStatusListener proxyStatusListener, 
         final KeyStoreManager keyStoreManager,
         final ClientSocketChannelFactory clientSocketChannelFactory,
-        final ChannelGroup channelGroup) {
+        final ChannelGroup channelGroup, 
+        final LanternTrustStore trustStore) {
         this.proxyAddress = proxyAddress;
         this.proxyStatusListener = proxyStatusListener;
         this.keyStoreManager = keyStoreManager;
         this.clientSocketChannelFactory = clientSocketChannelFactory;
         this.channelGroup = channelGroup;
+        this.trustStore = trustStore;
     }
     
     @Override
@@ -97,11 +100,11 @@ public class ProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final ChannelPipeline pipeline = cb.getPipeline();
         
         if (this.keyStoreManager != null) {
-            log.info("Adding SSL for client connection");
-            final SslContextFactory sslFactory = 
-                new SslContextFactory(this.keyStoreManager);
+            log.debug("Adding SSL for client connection");
+            //final SslContextFactory sslFactory = 
+            //    new SslContextFactory(this.keyStoreManager);
             final SSLEngine engine =
-                sslFactory.getClientContext().createSSLEngine();
+                this.trustStore.getContext().createSSLEngine();
             engine.setUseClientMode(true);
             pipeline.addLast("ssl", new SslHandler(engine));
         }
