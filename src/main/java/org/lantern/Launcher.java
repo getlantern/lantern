@@ -84,7 +84,7 @@ public class Launcher {
     private Censored censored;
     
     private InternalState internalState;
-    private HttpClient httpClient;
+    private LanternHttpClient httpClient;
     
     
     private final String[] commandLineArgs;

@@ -16,7 +16,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.utils.URIBuilder;
 import org.apache.http.util.EntityUtils;
@@ -27,6 +26,7 @@ import org.lantern.GeoData;
 import org.lantern.LanternConstants;
 import org.lantern.http.OauthUtils;
 import org.lantern.state.Settings.Mode;
+import org.lantern.util.LanternHttpClient;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,10 +44,10 @@ public class ModelUtils {
     
     private final Model model;
 
-    private final HttpClient httpClient;
+    private final LanternHttpClient httpClient;
 
     @Inject
-    public ModelUtils(final Model model, final HttpClient httpClient) {
+    public ModelUtils(final Model model, final LanternHttpClient httpClient) {
         this.model = model;
         this.httpClient = httpClient;
     }

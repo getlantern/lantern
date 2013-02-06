@@ -35,8 +35,7 @@ public class Proxifier implements LanternService {
     public class ProxyConfigurationError extends Exception {}
     public class ProxyConfigurationCancelled extends ProxyConfigurationError {};
     
-    private final Logger LOG = 
-        LoggerFactory.getLogger(Proxifier.class);
+    private final Logger LOG = LoggerFactory.getLogger(getClass());
     
     /**
      * File external processes can use to determine if Lantern is currently
