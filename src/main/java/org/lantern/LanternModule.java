@@ -12,7 +12,6 @@ import java.util.zip.GZIPInputStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
-import org.apache.http.client.HttpClient;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.channel.group.DefaultChannelGroup;
 import org.jboss.netty.channel.socket.ClientSocketChannelFactory;
@@ -89,7 +88,7 @@ public class LanternModule extends AbstractModule {
         bind(InteractionServlet.class);
         bind(LanternTrustStore.class);
         bind(KeyStoreManager.class).to(LanternKeyStoreManager.class);
-        bind(HttpClient.class).to(LanternHttpClient.class);
+        bind(LanternHttpClient.class);
         bind(SslHttpProxyServer.class);
         bind(PlainTestRelayHttpProxyServer.class);
         bind(PhotoServlet.class);

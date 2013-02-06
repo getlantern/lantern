@@ -16,6 +16,7 @@ import org.lantern.XmppHandler;
 import org.lantern.state.InternalState;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
+import org.lantern.util.LanternHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +44,12 @@ public class GoogleOauth2CallbackServer {
 
     private final Proxifier proxifier;
 
-    private final HttpClient httpClient;
+    private final LanternHttpClient httpClient;
     
     public GoogleOauth2CallbackServer(final XmppHandler xmppHandler,
         final Model model, final InternalState internalState,
         final ModelIo modelIo, final Proxifier proxifier,
-        final HttpClient httpClient) {
+        final LanternHttpClient httpClient) {
         this.xmppHandler = xmppHandler;
         this.model = model;
         this.internalState = internalState;
