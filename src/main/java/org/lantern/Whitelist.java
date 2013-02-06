@@ -33,10 +33,12 @@ public class Whitelist {
         "dropbox.com",
         "eff.org",
         "facebook.com",
+        "fbcdn.com",
         "flickr.com",
         "friendfeed.com",
         "freedomhouse.org",
         "getlantern.org",
+        "github.com",
         "google.com",
         "hrw.org", // Human Rights Watch
         "ifconfig.me",
