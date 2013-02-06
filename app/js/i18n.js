@@ -4,8 +4,8 @@ angular.module('app.i18n', [])
   .service('langSrvc', function(modelSrvc, getByPath, LANG, DEFAULT_LANG, DEFAULT_DIRECTION) {
     var model = modelSrvc.model;
     function lang() {
-      return getByPath(model, 'settings.lang') ||
-             getByPath(model, 'system.lang') ||
+      return getByPath(model, '/settings/lang') ||
+             getByPath(model, '/system/lang') ||
              DEFAULT_LANG;
     }
     function direction() {

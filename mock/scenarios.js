@@ -1,7 +1,6 @@
 var sleep = require('./node_modules/sleep'),
     _ = require('../app/lib/lodash.js')._,
     helpers = require('../app/js/helpers.js'),
-      merge = helpers.merge,
       makeLogger = helpers.makeLogger,
         log = makeLogger('scenarios'),
       randomChoice = helpers.randomChoice,
@@ -13,12 +12,11 @@ var sleep = require('./node_modules/sleep'),
         OS = ENUMS.OS;
 
 function make_simple_scenario(state) {
+  var patch = _.map(state, function(value, path) {
+    return {op: 'add', path: path, value: value};
+  });
   return function() {
-    var model = this.model, publishSync = this.publishSync;
-    for (var path in state) {
-      merge(model, state[path], path);
-      publishSync(path);
-    }
+    this.sync(patch);
   };
 }
 
@@ -27,71 +25,71 @@ exports.SCENARIOS = {
     _applyImmediately: true,
     windows: {
       desc: 'Windows',
-      func: make_simple_scenario({'system.os': OS.windows})
+      func: make_simple_scenario({'/system/os': OS.windows})
     },
     ubuntu: {
       desc: 'Ubuntu',
-      func: make_simple_scenario({'system.os': OS.ubuntu})
+      func: make_simple_scenario({'/system/os': OS.ubuntu})
     },
     osx: {
       desc: 'OS X',
-      func: make_simple_scenario({'system.os': OS.osx})
+      func: make_simple_scenario({'/system/os': OS.osx})
     }
   },
   internet: {
     _applyImmediately: true,
     true: {
       desc: 'internet: true',
-      func: make_simple_scenario({'connectivity.internet': true})
+      func: make_simple_scenario({'/connectivity/internet': true})
     },
     false: {
       desc: 'internet: false',
-      func: make_simple_scenario({'connectivity.internet': false})
+      func: make_simple_scenario({'/connectivity/internet': false})
     }
   },
   updateAvailable: {
     _applyImmediately: true,
     true: {
       desc: 'updateAvailable: true',
-      func: make_simple_scenario({'version.updateAvailable': true,
-              'version.latest': {
-                "major": 0,
-                "minor": 23,
-                "patch": 0,
-                "tag": "beta",
-                "git": "ac7de5f",
-                "releaseDate": "2013-1-30",
-                "installerUrl": "https://lantern.s3.amazonaws.com/lantern-0.23.0.dmg",
-                "installerSHA1": "b3d15ec2d190fac79e858f5dec57ba296ac85776",
-                "changes": [{
-                    "en": "(English translation of <a href=\"#\">feature x</a>)",
-                    "zh": "(Chinese translation of <a href=\"#\">feature x</a>)"
+      func: make_simple_scenario({'/version/updateAvailable': true,
+              '/version/latest': {
+                'major': 0,
+                'minor': 23,
+                'patch': 0,
+                'tag': 'beta',
+                'git': 'ac7de5f',
+                'releaseDate': '2013-1-30',
+                'installerUrl': 'https://lantern.s3.amazonaws.com/lantern-0.23.0.dmg',
+                'installerSHA1': 'b3d15ec2d190fac79e858f5dec57ba296ac85776',
+                'changes': [{
+                    'en': '(English translation of <a href=\'#\'>feature x</a>)',
+                    'zh': '(Chinese translation of <a href=\'#\'>feature x</a>)'
                   },{
-                    "en": "(English translation of <a href=\"#\">feature y</a>)",
-                    "zh": "(Chinese translation of <a href=\"#\">feature y</a>)"
+                    'en': '(English translation of <a href=\'#\'>feature y</a>)',
+                    'zh': '(Chinese translation of <a href=\'#\'>feature y</a>)'
                   }
                 ],
-                "modelSchema": {
-                  "major": 0,
-                  "minor": 0,
-                  "patch": 1
+                'modelSchema': {
+                  'major': 0,
+                  'minor': 0,
+                  'patch': 1
                 },
-                "httpApi": {
-                  "major": 0,
-                  "minor": 0,
-                  "patch": 1
+                'httpApi': {
+                  'major': 0,
+                  'minor': 0,
+                  'patch': 1
                 },
-                "bayeuxProtocol": {
-                  "major": 0,
-                  "minor": 0,
-                  "patch": 1
+                'bayeuxProtocol': {
+                  'major': 0,
+                  'minor': 0,
+                  'patch': 1
                 }
               }
             })
     },
     false: {
       desc: 'updateAvailable: false',
-      func: make_simple_scenario({'version.updateAvailable': false})
+      func: make_simple_scenario({'/version/updateAvailable': false})
     }
   },
   location: {
@@ -99,73 +97,73 @@ exports.SCENARIOS = {
     beijing: {
       desc: 'location: Beijing',
       func: make_simple_scenario({
-              location: {lat:39.904041, lon:116.407528, country:'CN'},
-              'connectivity.ip': '123.123.123.123'
+              '/location': {lat:39.904041, lon:116.407528, country:'CN'},
+              '/connectivity/ip': '123.123.123.123'
             })
     },
     nyc: {
       desc: 'location: NYC',
       func: make_simple_scenario({
-              location: {lat:40.7089, lon:-74.0012, country:'US'},
-              'connectivity.ip': '64.90.182.55'
+              '/location': {lat:40.7089, lon:-74.0012, country:'US'},
+              '/connectivity/ip': '64.90.182.55'
             })
     },
     paris: {
       desc: 'location: Paris',
       func: make_simple_scenario({
-              location: {lat:48.8667, lon:2.3333, country:'FR'},
-              'connectivity.ip': '78.250.177.119'
+              '/location': {lat:48.8667, lon:2.3333, country:'FR'},
+              '/connectivity/ip': '78.250.177.119'
             })
     }
   },
   gtalkAuthorized: {
     false: {
       desc: 'gtalkAuthorized: false',
-      func: make_simple_scenario({'connectivity.gtalkAuthorized': false})
+      func: make_simple_scenario({'/connectivity/gtalkAuthorized': false})
     },
     true: {
       desc: 'gtalkAuthorized: true',
-      func: make_simple_scenario({'connectivity.gtalkAuthorized': true,
-        'settings.email': 'user@example.com'})
+      func: make_simple_scenario({'/connectivity/gtalkAuthorized': true,
+        '/settings/email': 'user@example.com'})
     }
   },
   invited: {
     true: {
       desc: 'invited: true',
-      func: make_simple_scenario({'connectivity.invited': true})
+      func: make_simple_scenario({'/connectivity/invited': true})
     },
     false: {
       desc: 'invited: false',
-      func: make_simple_scenario({'connectivity.invited': false})
+      func: make_simple_scenario({'/connectivity/invited': false})
     }
   },
   ninvites: {
     0: {
       desc: 'ninvites: 0',
-      func: make_simple_scenario({'ninvites': 0})
+      func: make_simple_scenario({'/ninvites': 0})
     },
     10: {
       desc: 'ninvites: 10',
-      func: make_simple_scenario({'ninvites': 10})
+      func: make_simple_scenario({'/ninvites': 10})
     }
   },
   gtalkReachable: {
     false: {
       desc: 'gtalkReachable: false',
       func: function() {
-              this.updateModel({'connectivity.gtalk': CONNECTIVITY.connecting,
-                modal: MODAL.gtalkConnecting}, true);
-              this.updateModel({'connectivity.gtalk': CONNECTIVITY.notConnected,
-                modal: MODAL.gtalkUnreachable}, true);
+              this.sync({'/connectivity/gtalk': CONNECTIVITY.connecting,
+                '/modal': MODAL.gtalkConnecting});
+              this.sync({'/connectivity/gtalk': CONNECTIVITY.notConnected,
+                '/modal': MODAL.gtalkUnreachable});
             }
     },
     true: {
       desc: 'gtalkReachable: true',
       func: function() {
-              this.updateModel({'connectivity.gtalk': CONNECTIVITY.connecting,
-                modal: MODAL.gtalkConnecting}, true);
-              this.updateModel({'connectivity.gtalk': CONNECTIVITY.connected}, true);
-              this.updateModel({profile: {
+              this.sync({'/connectivity/gtalk': CONNECTIVITY.connecting,
+                '/modal': MODAL.gtalkConnecting});
+              this.sync({'/connectivity/gtalk': CONNECTIVITY.connected});
+              this.sync({'/profile': {
                 email: 'user@example.com',
                 name: 'Some User',
                 link: 'https://plus.google.com/1234567',
@@ -173,7 +171,7 @@ exports.SCENARIOS = {
                 gender: '',
                 birthday: '',
                 locale: 'en'
-              }}, true);
+              }});
             }
     }
   },
@@ -221,7 +219,7 @@ exports.SCENARIOS = {
                 statusMessage: 'Shanghai!',
                 }
               ];
-              this.updateModel({roster: roster}, true);
+              this.sync({'/roster': roster});
             }
     }
   },
@@ -247,7 +245,7 @@ exports.SCENARIOS = {
                            name: 'User 7',
                           }]
                 };
-              this.updateModel({friends: friends}, true);
+              this.sync({'/friends': friends});
             }
     }
   },
@@ -318,24 +316,24 @@ exports.SCENARIOS = {
                     type: 'desktop'
                   }
               ];
-              this.updateModel({
-                'connectivity.peers.current': [],
-                'connectivity.peers.lifetime': peers
-              }, true);
+              this.sync({
+                '/connectivity/peers/current': [],
+                '/connectivity/peers/lifetime': peers
+              });
               setInterval(function() {
-                var peersCurrent = getByPath(this_.model, 'connectivity.peers.current');
+                if (Math.random() < .75) return;
+                var peersCurrent = getByPath(this_.model, '/connectivity/peers/current');
                 //log('peersCurrent:', _.pluck(peersCurrent, 'peerid'));
                 if (_.isEmpty(peersCurrent)) {
                   var randomPeer = randomChoice(peers);
-                  this_.updateModel({'connectivity.peers.current.0': randomPeer}, true);
+                  this_.sync([{op: 'add', path: '/connectivity/peers/current/0', value: randomPeer}]);
                   //log('No current peers, added random peer', randomPeer.peerid);
                   return;
                 }
                 if (peersCurrent.length === peers.length) {
                   var i = _.random(peers.length - 1);
                   //log('Connected to all available peers, removing random peer', peersCurrent[i].peerid);
-                  peersCurrent.splice(i, 1);
-                  this_.publishSync('connectivity.peers.current');
+                  this_.sync([{op: 'remove', path: '/connectivity/peers/current/'+i}]);
                   return;
                 }
                 if (Math.random() < .5) { // add a random not connected peer
@@ -344,16 +342,14 @@ exports.SCENARIOS = {
                       peersnc = _.difference(peersall, peerscur),
                       randomPeerid = randomChoice(peersnc),
                       randomPeer = _.find(peers, function(p){ return p.peerid === randomPeerid; });
-                  peersCurrent.push(randomPeer);
-                  this_.publishSync('connectivity.peers.current.'+peersCurrent.length, true);
+                  this_.sync([{op: 'add', path: '/connectivity/peers/current/'+peersCurrent.length, value: randomPeer}]);
                   //log('heads: added random peer', randomPeerid);
                 } else { // remove a random connected peer
                   var i = _.random(peersCurrent.length - 1);
                   //log('tails: removing random peer', peersCurrent[i].peerid);
-                  peersCurrent.splice(i, 1);
-                  this_.publishSync('connectivity.peers.current');
+                  this_.sync([{op: 'remove', path: '/connectivity/peers/current/'+i}]);
                 }
-              }, 1000);
+              }, 2123);
             }
     }
   },
@@ -366,18 +362,18 @@ exports.SCENARIOS = {
           var country = randomChoice(this_.model.countries),
               stats = this_.model.countries[country],
               censors = stats.censors,
-              npeersOnlineGive = getByPath(stats, 'npeers.online.give',
+              npeersOnlineGive = getByPath(stats, '/npeers/online/give',
                                            censors ? 0 : _.random(0, 1000)),
-              npeersOnlineGet = getByPath(stats, 'npeers.online.get',
+              npeersOnlineGet = getByPath(stats, '/npeers/online/get',
                                 censors ? _.random(0, 1000) :_.random(0, 500)),
               npeersOnlineGive_ = censors ? npeersOnlineGive :
                                   Math.max(0, npeersOnlineGive + _.random(-50, 50)),
               npeersOnlineGet_ = Math.max(0, npeersOnlineGet + _.random(-50, 50)),
               update = {};
-          update['countries.'+country+'.npeers.online.give'] = npeersOnlineGive_;
-          update['countries.'+country+'.npeers.online.get'] = npeersOnlineGet_;
-          update['countries.'+country+'.npeers.online.giveGet'] = npeersOnlineGive_ + npeersOnlineGet_;
-          this_.updateMultiple(update);
+          update['/countries/'+country+'/npeers/online/give'] = npeersOnlineGive_;
+          update['/countries/'+country+'/npeers/online/get'] = npeersOnlineGet_;
+          update['/countries/'+country+'/npeers/online/giveGet'] = npeersOnlineGive_ + npeersOnlineGet_;
+          this_.sync(update);
         }, 1000);
       }
     }

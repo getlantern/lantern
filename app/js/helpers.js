@@ -1,18 +1,20 @@
 'use strict';
 
+function _require(path) {
+  if (typeof require != 'function') throw Error('Cannot require "'+path+'": "require" function not defined');
+  return require(path);
+}
+
 if (typeof inspect != 'function') {
   try {
-    var inspect = require('util').inspect;
-  } catch(e) {
+    var inspect = _require('util').inspect;
+  } catch (e) {
     var inspect = function(x) { return JSON.stringify(x); };
   }
 }
+
 if (typeof _ != 'function') {
-  try {
-    var _ = require('../lib/lodash.js')._;
-  } catch(e) {
-    console.error('No _ (lodash) object found. Functions requiring it will not work.');
-  }
+  var _ = _require('../lib/lodash.js')._;
 }
 
 function makeLogger(prefix) {
@@ -26,97 +28,112 @@ function makeLogger(prefix) {
 
 var log = makeLogger('helpers');
 
+function asjsonpatch(obj) {
+  return _.map(obj, function(value, path) {
+    return {op: 'replace', path: path, value: value};
+  });
+}
+
 function randomChoice(collection) {
   if (_.isArray(collection)) {
     return collection[_.random(0, collection.length-1)];
   } else if (_.isPlainObject(collection)) {
     return randomChoice(_.keys(collection));
   }
-  throw Error('randomChoice: expected array or plain object, got '+typeof collection);
+  throw Error('expected array or plain object, got '+typeof collection);
+}
+
+function _validateObj(obj) {
+  if (!_.isPlainObject(obj))
+    throw Error('expected plain object, got '+typeof obj);
+}
+
+function _validPath(path) {
+  if (!_.isString(path)) return false;
+  if (path === '/') return true;
+  var split = path.split('/');
+  if (split.length < 2) return false; // at least one '/'
+  if (split[0] !== '') return false; // starts with '/'
+  split.shift();
+  return _.all(split); // no empty components, e.g. '/foo/bar//baz'
+}
+
+function _validatePath(path) {
+  if (!_validPath(path)) throw Error('invalid path: '+path);
 }
 
 function getByPath(obj, path, defaultVal) {
-  path = (path || '').split('.');
-  for (var i=0, name=path[i];
-       name && !_.isUndefined(obj);
-       obj=name ? obj[name] : obj, name=path[++i]);
-  if (_.isUndefined(obj) && !_.isUndefined(defaultVal))
-    return defaultVal;
+  _validateObj(obj);
+  if (_.isUndefined(path)) path = '/';
+  if (path === '/') return obj;
+  _validatePath(path);
+  path = path.split('/');
+  for (var i=1, l=path.length, name=path[i]; i<l; name=path[++i]) {
+    if (name && _.isObject(obj) && name in obj) {
+      obj = obj[name];
+    } else {
+      return defaultVal;
+    }
+  }
   return obj;
 }
 
+function _get_parent_and_last(obj, path) {
+  path = path.split('/');
+  return {
+    last: path.pop(),
+    parent: path.length > 1 ? getByPath(obj, path.join('/')) : obj
+  };
+}
+
 function deleteByPath(obj, path) {
-  if (path == '') {
+  _validateObj(obj);
+  if (path === '/') {
     for (var key in obj)
       delete obj[key];
-    return;
+    return true;
   }
-  path = path.split('.');
-  var name = path[0], i = 0, l = path.length;
-  for (; i<l-1 && path[i+1]; ++i) {
-    try {
-      obj = obj[name];
-    } catch(e) {
-      log('deleteByPath(', obj, path, ') caused', e);
-      return; // XXX
-    }
-    name = path[i+1];
+  _validatePath(path);
+  var parent_last = _get_parent_and_last(obj, path),
+      parent = parent_last.parent,
+      last = parent_last.last;
+  if (_.isPlainObject(parent) && last in parent) {
+    delete parent[last];
+    return true;
   }
-  if (i == l - 1 && name && obj) { // XXX && obj check necessary?
-    delete obj[name];
+  return false;
+}
+
+function setByPath(obj, path, val) {
+  _validateObj(obj);
+  if (path === '/') throw Error('Cannot overwrite root object')
+  _validatePath(path);
+  var parent_last = _get_parent_and_last(obj, path),
+      parent = parent_last.parent,
+      last = parent_last.last;
+  if (_.isPlainObject(parent) && last in parent) {
+    parent[last] = val;
+  } else {
+    throw Error('"'+last+'" not in '+JSON.stringify(obj));
   }
 }
 
-function merge(dst, src, path) {
-  if (!_.isObject(dst)) {
-    throw Error('dst must be an object');
-  }
-  path = (path || '').split('.');
-  var lastdst, name, i = 0;
-  for (name=path[i]; path[i]; name=path[++i] || name) {
-    if (_.isUndefined(dst[name])) {
-      dst[name] = {};
-    }
-    if (path[i+1] && !_.isObject(dst[name])) {
-      //log('property', name, 'is', dst[name], 'not an object, setting to {}');
-      dst[name] = {};
-    }
-    lastdst = dst;
-    dst = dst[name];
-  }
-  if (!_.isObject(src)) {
-    if (!lastdst) {
-      throw Error("Can't merge non-object source into object at top level");
-    }
-    lastdst[name] = src;
-    return;
-  }
-  if (_.isArray(src)) {
-    if (!lastdst) {
-      throw Error("Can't merge array source into object at top level");
-    }
-    //log('src is array, replacing with dst rather than merging');
-    lastdst[name] = _.cloneDeep(src);
-    return;
-  }
-  for (var key in src) {
-    merge(dst, src[key], key);
-  }
-}
-
+// XXX DRY
 if (typeof angular == 'object' && angular && typeof angular.module == 'function') {
   angular.module('app.helpers', [])
     // XXX move app.services' logging stuff here?
+    .constant('asjsonpatch', asjsonpatch)
     .constant('randomChoice', randomChoice)
     .constant('getByPath', getByPath)
+    .constant('setByPath', setByPath)
     .constant('deleteByPath', deleteByPath)
-    .constant('merge', merge);
 } else if (typeof exports == 'object' && exports && typeof module == 'object' && module && module.exports == exports) {
   module.exports = {
     makeLogger: makeLogger,
+    asjsonpatch: asjsonpatch,
     randomChoice: randomChoice,
     getByPath: getByPath,
-    deleteByPath: deleteByPath,
-    merge: merge
+    setByPath: setByPath,
+    deleteByPath: deleteByPath
   };
 }

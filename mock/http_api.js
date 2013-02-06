@@ -3,12 +3,12 @@
 var url = require('url'),
     sleep = require('./node_modules/sleep'),
     _ = require('../app/lib/lodash.js')._,
+    jsonpatch = require('../app/lib/jsonpatch.js'),
     helpers = require('../app/js/helpers.js'),
       makeLogger = helpers.makeLogger,
         log = makeLogger('api'),
+      asjsonpatch = helpers.asjsonpatch,
       getByPath = helpers.getByPath,
-      deleteByPath = helpers.deleteByPath,
-      merge = helpers.merge,
     scenarios = require('./scenarios'),
       SCENARIOS = scenarios.SCENARIOS,
     constants = require('../app/js/constants.js'),
@@ -26,12 +26,12 @@ var SKIPSETUP = true,
     MODALSEQ_GIVE = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.finished, MODAL.none],
     MODALSEQ_GET = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.proxiedSites, MODAL.systemProxy, MODAL.finished, MODAL.none];
 
+// XXX refactor bayeuxbackend vs httpapi vs model
+// XXX better name?
 function ApiServlet(bayeuxBackend) {
-  this._bayeuxBackend = bayeuxBackend;
-  this.publishSync = bayeuxBackend.publishSync.bind(bayeuxBackend);
-  this.resetModel = bayeuxBackend.resetModel.bind(bayeuxBackend);
+  this.bayeuxBackend = bayeuxBackend;
   this.reset();
-  this._DEFAULT_PROXIED_SITES = bayeuxBackend.model.settings.proxiedSites.slice(0);
+  this.DEFAULT_PROXIED_SITES = bayeuxBackend.model.settings.proxiedSites.slice(0);
 }
 
 ApiServlet.VERSION = {
@@ -69,51 +69,34 @@ ApiServlet.prototype.reset = function() {
     lanternFriends: SKIPSETUP,
     finished: SKIPSETUP
   };
-  this.resetModel();
-  this.model = this._bayeuxBackend.model;
-  merge(this.model, {
-    version: {installed: {httpApi: ApiServlet.VERSION}},
-    mock: {scenarios: {applied: {}, all: SCENARIOS}}
-  });
+  this.bayeuxBackend.resetModel();
+  this.model = this.bayeuxBackend.model;
+  this.model.version.installed.httpApi = ApiServlet.VERSION;
+  this.model.mock = {scenarios: {applied: {}, all: SCENARIOS}};
   var applied = this._internalState.appliedScenarios;
   for (var groupKey in applied) {
-    var groupObj = getByPath(SCENARIOS, groupKey),
+    var groupObj = getByPath(SCENARIOS, '/'+groupKey),
         scenKey = applied[groupKey],
         scenObj = groupObj[scenKey];
     if (groupObj._applyImmediately || scenObj._applyImmediately)
       scenObj.func.call(this);
     this.model.mock.scenarios.applied[groupKey] = scenKey;
   }
-  this.publishSync();
+  this.sync();
   if (SKIPSETUP) {
-    this.updateModel({
-      'showVis': true,
-      'settings.mode': MODE.give
-    }, true);
+    this.sync({'/showVis': true, '/settings/mode': MODE.give});
     ApiServlet._handlerForModal[MODAL.authorize].call(this, INTERACTION.continue);
   }
 };
 
-// XXX better name for this
-ApiServlet.prototype.flattened = function(data) {
-  var update = {};
-  update[data.path] = data.value;
-  return update;
-};
-
-ApiServlet.prototype.updateModel = function(state, publish) {
-  for (var path in state) {
-    merge(this.model, state[path], path);
-    if (publish)
-      this.publishSync(path);
+ApiServlet.prototype.sync = function(patch) {
+  if (_.isArray(patch)) {
+    jsonpatch.apply(this.model, patch);
+  } else if (_.isPlainObject(patch)) {
+    patch = asjsonpatch(patch);
+    jsonpatch.apply(this.model, patch);
   }
-};
-
-ApiServlet.prototype.updateMultiple = function(state, publish) {
-  for (var path in state) {
-    merge(this.model, state[path], path);
-  }
-  this._bayeuxBackend.publishMultiple.call(this._bayeuxBackend, state);
+  this.bayeuxBackend.publishSync(patch);
 };
 
 /*
@@ -127,7 +110,7 @@ ApiServlet.prototype._advanceModal = function(backToIfNone) {
   for (var i=0; this._internalState.modalsCompleted[next=modalSeq[i++]];);
   if (backToIfNone && next == MODAL.none)
     next = backToIfNone;
-  this.updateModel({modal: next}, true);
+  this.sync({'/modal': next});
 };
 
 
@@ -158,15 +141,17 @@ _.forEach(_globalModals, function(modal, interaction) {
   ApiServlet._handlerForInteraction[interaction] = function(res, data) {
     if (this.model.modal == modal) return;
     this._internalState.lastModal = this.model.modal;
-    this.updateModel({modal: modal}, true);
+    this.sync({'/modal': modal});
   };
 });
 
 ApiServlet._handlerForInteraction[INTERACTION.close] = function(res, data) {
-  this.updateModel({modal: this._internalState.lastModal}, true);
+  this.sync({'/modal': this._internalState.lastModal});
   this._internalState.lastModal = MODAL.none;
 };
 
+// XXX update to new patch changes
+/*
 ApiServlet._handlerForInteraction[INTERACTION.developer] = function(res, data) {
   if (!_.isArray(data)) throw Error('Expected array');
   // XXX validate requested updates
@@ -180,6 +165,7 @@ ApiServlet._handlerForInteraction[INTERACTION.developer] = function(res, data) {
     this.publishSync(update.path);
   }
 };
+*/
 
 ApiServlet._handlerForModal = {};
 ApiServlet._handlerForModal[MODAL.contact] = function(interaction, res, data) {
@@ -191,55 +177,51 @@ ApiServlet._handlerForModal[MODAL.contact] = function(interaction, res, data) {
     log('received message:', data.message);
     // XXX notify user message was sent in an alert
   }
-  this.updateModel({modal: this._internalState.lastModal}, true);
+  this.sync({'/modal': this._internalState.lastModal});
   this._internalState.lastModal = MODAL.none;
 };
 
 ApiServlet._handlerForModal[MODAL.scenarios] = function(interaction, res, data) {
   if (interaction == INTERACTION.cancel) {
-    this.updateModel({modal: this._internalState.lastModal}, true);
+    this.sync({'/modal': this._internalState.lastModal});
     this._internalState.lastModal = MODAL.none;
     return;
   }
   if (interaction != INTERACTION.continue ||
-     (data.path && data.path != 'mock.scenarios.applied')) {
+     (data.path && data.path != '/mock/scenarios/applied')) {
     res.writeHead(400);
     return;
   }
   var appliedScenarios = data.value;
   for (var groupKey in appliedScenarios) {
     var scenKey = appliedScenarios[groupKey];
-    if (!getByPath(SCENARIOS, groupKey+'.'+scenKey)) {
-      log('No such scenario', groupKey+'.'+scenKey);
+    if (!getByPath(SCENARIOS, '/'+groupKey+'/'+scenKey)) {
+      log('No such scenario', '/'+groupKey+'/'+scenKey);
       res.writeHead(400);
       return;
     }
-    if (getByPath(this.model, 'mock.scenarios.applied.'+groupKey) != scenKey) {
-      var scen = getByPath(SCENARIOS, groupKey+'.'+scenKey);
+    if (getByPath(this.model, '/mock/scenarios/applied/'+groupKey) != scenKey) {
+      var scen = getByPath(SCENARIOS, '/'+groupKey+'/'+scenKey);
       log('applying scenario:', scen.desc);
       scen.func.call(this);
     }
   }
-  this.updateModel({'mock.scenarios.applied': appliedScenarios,
-    'mock.scenarios.prompt': '', 'modal': this._internalState.lastModal}, true);
+  this.sync({
+    '/mock/scenarios/applied': appliedScenarios,
+    '/mock/scenarios/prompt': '',
+    '/modal': this._internalState.lastModal});
   this._internalState.lastModal = MODAL.none;
 };
 
 
 ApiServlet._handlerForModal[MODAL.welcome] = function(interaction, res, data) {
-  // user can set language from welcome screen
-  if (interaction == INTERACTION.set && data &&
-      data.path == 'settings.lang' && data.value in LANG) {
-    this.updateModel(this.flattened(data), true);
-    return;
-  }
   if (!(interaction in MODE)) return res.writeHead(400);
   if (interaction == INTERACTION.give && this.inCensoringCountry()) {
     this._internalState.lastModal = MODAL.welcome;
-    this.updateModel({modal: MODAL.giveModeForbidden}, true);
+    this.sync({'/modal': MODAL.giveModeForbidden});
     return;
   }
-  this.updateModel({'settings.mode': interaction}, true);
+  this.sync({'/settings/mode': interaction});
   this._internalState.modalsCompleted[MODAL.welcome] = true;
   this._advanceModal();
 };
@@ -247,7 +229,7 @@ ApiServlet._handlerForModal[MODAL.welcome] = function(interaction, res, data) {
 ApiServlet._handlerForModal[MODAL.giveModeForbidden] = function(interaction, res) {
   if (interaction == INTERACTION.cancel || interaction == INTERACTION.continue) {
     if (interaction == INTERACTION.continue) {
-      this.updateModel({mode: MODE.get}, true);
+      this.sync({'/settings/mode': MODE.get});
       this._internalState.modalsCompleted[MODAL.welcome] = true;
     }
     this._advanceModal(this._internalState.lastModal);
@@ -260,61 +242,61 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
 
   // check for gtalk authorization
-  var scen = getByPath(this.model, 'mock.scenarios.applied.gtalkAuthorized');
-  scen = getByPath(SCENARIOS, 'gtalkAuthorized.'+scen);
+  var scen = getByPath(this.model, '/mock/scenarios/applied/gtalkAuthorized');
+  scen = getByPath(SCENARIOS, '/gtalkAuthorized/'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
-    this.updateModel({modal: MODAL.scenarios,
-      'mock.scenarios.prompt': 'No oauth scenario applied.'}, true);
+    this.sync({'/modal': MODAL.scenarios,
+      '/mock/scenarios/prompt': 'No oauth scenario applied.'});
     return;
   }
   log('applying gtalkAuthorized scenario', scen.desc);
   scen.func.call(this);
-  if (!getByPath(this.model, 'connectivity.gtalkAuthorized')) {
+  if (!getByPath(this.model, '/connectivity/gtalkAuthorized')) {
     log('Google Talk access not granted, user must authorize');
     return;
   }
 
   // check for lantern access
   // XXX show this in UI?
-  scen = getByPath(this.model, 'mock.scenarios.applied.invited');
-  scen = getByPath(SCENARIOS, 'invited.'+scen);
+  scen = getByPath(this.model, '/mock/scenarios/applied/invited');
+  scen = getByPath(SCENARIOS, '/invited/'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
-    this.updateModel({modal: MODAL.scenarios,
-      'mock.scenarios.prompt': 'No Lantern access scenario applied.'}, true);
+    this.sync({'/modal': MODAL.scenarios,
+      '/mock/scenarios/prompt': 'No Lantern access scenario applied.'});
     return;
   }
   log('applying Lantern access scenario', scen.desc);
   scen.func.call(this);
-  if (!getByPath(this.model, 'connectivity.invited')) {
-    this.updateModel({modal: MODAL.notInvited}, true);
+  if (!getByPath(this.model, '/connectivity/invited')) {
+    this.sync({'/modal': MODAL.notInvited});
     return;
   }
 
   // try connecting to google talk
-  scen = getByPath(this.model, 'mock.scenarios.applied.gtalkReachable');
-  scen = getByPath(SCENARIOS, 'gtalkReachable.'+scen);
+  scen = getByPath(this.model, '/mock/scenarios/applied/gtalkReachable');
+  scen = getByPath(SCENARIOS, '/gtalkReachable/'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
-    this.updateModel({modal: MODAL.scenarios,
-      'mock.scenarios.prompt': 'No gtalkReachable scenario applied.'}, true);
+    this.sync({'/modal': MODAL.scenarios,
+      '/mock/scenarios/prompt': 'No gtalkReachable scenario applied.'});
     return;
   }
   log('applying gtalkReachable scenario', scen.desc);
   scen.func.call(this);
-  if (getByPath(this.model, 'connectivity.gtalk') != CONNECTIVITY.connected) {
-    this.updateModel({modal: MODAL.gtalkUnreachable}, true);
+  if (getByPath(this.model, '/connectivity/gtalk') != CONNECTIVITY.connected) {
+    this.sync({'/modal': MODAL.gtalkUnreachable});
     return;
   }
 
   // fetch number of invites
-  scen = getByPath(this.model, 'mock.scenarios.applied.ninvites');
-  scen = getByPath(SCENARIOS, 'ninvites.'+scen);
+  scen = getByPath(this.model, '/mock/scenarios/applied/ninvites');
+  scen = getByPath(SCENARIOS, '/ninvites/'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
-    this.updateModel({modal: MODAL.scenarios,
-      'mock.scenarios.prompt': 'No ninvites scenario applied.'}, true);
+    this.sync({'/modal': MODAL.scenarios,
+      '/mock/scenarios/prompt': 'No ninvites scenario applied.'});
     return;
   }
   log('applying ninvites scenario', scen.desc);
@@ -322,24 +304,24 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
 
   // fetch roster
   // XXX show this in UI?
-  scen = getByPath(this.model, 'mock.scenarios.applied.roster');
-  scen = getByPath(SCENARIOS, 'roster.'+scen);
+  scen = getByPath(this.model, '/mock/scenarios/applied/roster');
+  scen = getByPath(SCENARIOS, '/roster/'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
-    this.updateModel({modal: MODAL.scenarios,
-      'mock.scenarios.prompt': 'No roster scenario applied.'}, true);
+    this.sync({'/modal': MODAL.scenarios,
+      '/mock/scenarios/prompt': 'No roster scenario applied.'});
     return;
   }
   log('applying roster scenario', scen.desc);
   scen.func.call(this);
 
   // fetch lantern friends
-  scen = getByPath(this.model, 'mock.scenarios.applied.friends');
-  scen = getByPath(SCENARIOS, 'friends.'+scen);
+  scen = getByPath(this.model, '/mock/scenarios/applied/friends');
+  scen = getByPath(SCENARIOS, '/friends/'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
-    this.updateModel({modal: MODAL.scenarios,
-      'mock.scenarios.prompt': 'No friends scenario applied.'}, true);
+    this.sync({'/modal': MODAL.scenarios,
+      '/mock/scenarios/prompt': 'No friends scenario applied.'});
     return;
   }
   log('applying friends scenario', scen.desc);
@@ -347,24 +329,24 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
 
   // peer discovery and connection
   // XXX show this in UI?
-  scen = getByPath(this.model, 'mock.scenarios.applied.peers');
-  scen = getByPath(SCENARIOS, 'peers.'+scen);
+  scen = getByPath(this.model, '/mock/scenarios/applied/peers');
+  scen = getByPath(SCENARIOS, '/peers/'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
-    this.updateModel({modal: MODAL.scenarios,
-      'mock.scenarios.prompt': 'No peers scenario applied.'}, true);
+    this.updateModel({'/modal': MODAL.scenarios,
+      '/mock/scenarios/prompt': 'No peers scenario applied.'});
     return;
   }
   log('applying peers scenario', scen.desc);
   scen.func.call(this);
 
   // country statistics
-  scen = getByPath(this.model, 'mock.scenarios.applied.countries');
-  scen = getByPath(SCENARIOS, 'countries.'+scen);
+  scen = getByPath(this.model, '/mock/scenarios/applied/countries');
+  scen = getByPath(SCENARIOS, '/countries/'+scen);
   if (!scen) {
     this._internalState.lastModal = MODAL.authorize;
-    this.updateModel({modal: MODAL.scenarios,
-      'mock.scenarios.prompt': 'No countries scenario applied.'}, true);
+    this.sync({'/modal': MODAL.scenarios,
+      '/mock/scenarios/prompt': 'No countries scenario applied.'});
     return;
   }
   log('applying countries scenario', scen.desc);
@@ -379,9 +361,9 @@ ApiServlet._handlerForModal[MODAL.proxiedSites] = function(interaction, res, dat
     this._internalState.modalsCompleted[MODAL.proxiedSites] = true;
     this._advanceModal(this._internalState.lastModal);
   } else if (interaction == INTERACTION.set) {
-    this.updateModel({'settings.proxiedSites': data.value}, true);
+    this.sync({'/settings/proxiedSites': data.value});
   } else if (interaction == INTERACTION.reset) {
-    this.updateModel({'settings.proxiedSites': this._DEFAULT_PROXIED_SITES}, true);
+    this.sync({'/settings/proxiedSites': this.DEFAULT_PROXIED_SITES});
   } else {
     res.writeHead(400);
   }
@@ -389,23 +371,16 @@ ApiServlet._handlerForModal[MODAL.proxiedSites] = function(interaction, res, dat
 
 ApiServlet._handlerForModal[MODAL.systemProxy] = function(interaction, res, data) {
   if (interaction != INTERACTION.continue ||
-      data.path != 'settings.systemProxy') {
+      data.path != '/settings/systemProxy') {
     res.writeHead(400);
     return;
   }
-  this.updateModel({'settings.systemProxy': data.value}, true);
+  this.sync({'/settings/systemProxy': data.value});
   if (data.value) sleep.usleep(750000);
   this._internalState.modalsCompleted[MODAL.systemProxy] = true;
   this._advanceModal(this._internalState.lastModal);
 };
 
-function _matchIndex(collection, item, field) {
-  for (var i=0, ii=collection[i]; ii; ii = collection[++i]) {
-    if (item[field] == ii[field])
-      return i;
-  }
-  return -1;
-}
 ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res, data) {
   if (interaction == INTERACTION.continue) {
     if (data && data.invite) {
@@ -419,24 +394,25 @@ ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res, d
           return res.writeHead(400);
         }
       }
-      this.updateModel({'ninvites': this.model.ninvites - data.invite.length}, true);
+      this.sync({'/ninvites': this.model.ninvites - data.invite.length});
       log('invitations will be sent to', data.invite);
+      // XXX display notification in UI
     }
     this._internalState.modalsCompleted[MODAL.lanternFriends] = true;
     this._advanceModal(this._internalState.lastModal);
   } else if (interaction == INTERACTION.accept ||
              interaction == INTERACTION.decline) {
-    var pending = getByPath(this.model, 'friends.pending', []),
-        i = _matchIndex(pending, data, 'email');
+    var pending = getByPath(this.model, '/friends/pending', []),
+        i = _.pluck(pending, 'email').indexOf(data.email);
     if (i == -1) return res.writeHead(400);
-    pending.splice(i, 1);
-    this.publishSync('friends.pending');
+    var patch = [{op: 'remove', path: '/friends/pending/'+i}];
     if (interaction == INTERACTION.accept) {
-      this.model.friends.current.push(data);
-      this.publishSync('friends.current.'+(this.model.friends.current.length-1));
-      this.model.roster.push(data);
-      this.publishSync('roster.'+(this.model.roster.length-1));
+      patch.push({op: 'add', value: data,
+        path: '/friends/current/'+(this.model.friends.current.length-1)});
+      patch.push({op: 'add', value: data,
+        path: '/roster/'+(this.model.roster.length-1)});
     }
+    this.sync(patch);
   } else {
     res.writeHead(400);
   }
@@ -444,9 +420,9 @@ ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res, d
 
 ApiServlet._handlerForModal[MODAL.gtalkUnreachable] = function(interaction, res) {
   if (interaction == INTERACTION.retry) {
-    this.updateModel({modal: MODAL.authorize}, true);
+    this.sync({'/modal': MODAL.authorize});
   } else if (interaction == INTERACTION.retryLater) {
-    this.updateModel({modal: MODAL.authorizeLater}, true);
+    this.sync({'/modal': MODAL.authorizeLater});
   } else {
     res.writeHead(400);
   }
@@ -457,14 +433,14 @@ ApiServlet._handlerForModal[MODAL.authorizeLater] = function(interaction, res) {
     res.writeHead(400);
     return;
   }
-  this.updateModel({modal: MODAL.none, showVis: true}, true);
+  this.sync({'/modal': MODAL.none, showVis: true});
 };
 
 ApiServlet._handlerForModal[MODAL.notInvited] = function(interaction, res) {
   if (interaction == INTERACTION.retry) {
-    this.updateModel({modal: MODAL.authorize}, true);
+    this.sync({'/modal': MODAL.authorize});
   } else if (interaction == INTERACTION.requestInvite) {
-    this.updateModel({modal: MODAL.requestInvite}, true);
+    this.sync({'/modal': MODAL.requestInvite});
   } else {
     res.writeHead(400);
   }
@@ -472,7 +448,7 @@ ApiServlet._handlerForModal[MODAL.notInvited] = function(interaction, res) {
 
 ApiServlet._handlerForModal[MODAL.requestSent] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
-  this.updateModel({modal: MODAL.none, showVis: true}, true);
+  this.sync({'/modal': MODAL.none, '/showVis': true});
 };
 
 ApiServlet._handlerForModal[MODAL.firstInviteReceived] = function(interaction, res) {
@@ -482,41 +458,40 @@ ApiServlet._handlerForModal[MODAL.firstInviteReceived] = function(interaction, r
 
 ApiServlet._handlerForModal[MODAL.finished] = function(interaction, res, data) {
   if (interaction == INTERACTION.set && data &&
-      data.path == ('settings.'+SETTING.autoReport) && _.isBoolean(data.value)) {
-    this.updateModel(this.flattened(data), true);
+      data.path == '/settings/autoReport' && _.isBoolean(data.value)) {
+    this.sync({'/settings/autoReport': data.value});
     return;
   }
   if (interaction != INTERACTION.continue) return res.writeHead(400);
   this._internalState.modalsCompleted[MODAL.finished] = true;
   this._advanceModal(this._internalState.lastModal);
-  this.updateModel({setupComplete: true, showVis: true}, true);
+  this.sync({'/setupComplete': true, '/showVis': true});
 };
 
 ApiServlet._handlerForModal[MODAL.settings] = function(interaction, res, data) {
+  this._internalState.lastModal = MODAL.settings;
   if (interaction in MODE) {
     if (interaction == MODE.give && this.inCensoringCountry()) {
-      this.updateModel({modal: MODAL.giveModeForbidden}, true);
+      this.sync({'/modal': MODAL.giveModeForbidden});
       res.writeHead(400);
       return;
     }
     var wasInGiveMode = this.inGiveMode();
     if (wasInGiveMode && this.model.settings.systemProxy)
       sleep.usleep(750000);
-    this.updateModel({'settings.mode': interaction}, true);
-    // switching from Give to Get for the first time should show unseen
-    // Get Mode modals
+    this.sync({'/settings/mode': interaction});
+    // switching from Give to Get for the first time shows unseen Get Mode modals
     this._advanceModal(MODAL.settings);
   } else if (interaction == INTERACTION.proxiedSites) {
-    this.updateModel({modal: MODAL.proxiedSites}, true);
+    this.sync({'/modal': MODAL.proxiedSites});
   } else if (interaction == INTERACTION.close) {
-    this.updateModel({modal: MODAL.none}, true);
+    this.sync({'/modal': MODAL.none});
   } else if (interaction == INTERACTION.reset) {
-    this.updateModel({modal: MODAL.confirmReset}, true);
+    this.sync({'/modal': MODAL.confirmReset});
   } else if (interaction == INTERACTION.set) {
-    var path = (data.path || '').split('.'),
-        settings = path[0], setting = path[1];
-    if (settings != 'settings' || !(setting in SETTING)) return res.writeHead(400);
-    this.updateModel(this.flattened(data), true);
+    var l = '/settings/'.length, setting = data.path.substring(l);
+    if (data.path.substring(0, l) != '/settings/' || !(setting in SETTING)) return res.writeHead(400);
+    this.sync(data); // XXX validate
   } else {
     res.writeHead(400);
   }
@@ -524,7 +499,7 @@ ApiServlet._handlerForModal[MODAL.settings] = function(interaction, res, data) {
 
 ApiServlet._handlerForModal[MODAL.confirmReset] = function(interaction, res) {
   if (interaction == INTERACTION.cancel) {
-    this.updateModel({modal: MODAL.settings}, true);
+    this.sync({'/modal': this._internalState.lastModal});
   } else if (interaction == INTERACTION.reset) {
     SKIPSETUP = false;
     this.reset();
@@ -532,7 +507,7 @@ ApiServlet._handlerForModal[MODAL.confirmReset] = function(interaction, res) {
     res.writeHead(400);
   }
 };
-    
+
 ApiServlet.prototype.handleRequest = function(req, res) {
   var self = this, handled = false;
   log(req.url.href);

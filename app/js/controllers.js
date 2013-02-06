@@ -76,7 +76,7 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
   };
 
   $scope.changeSetting = function(key, val) {
-    var update = {path: 'settings.'+key, value: val};
+    var update = {path: '/settings/'+key, value: val};
     return $scope.interaction(INTERACTION.set, update);
   };
 }

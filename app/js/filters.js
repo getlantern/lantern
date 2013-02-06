@@ -29,22 +29,21 @@ angular.module('app.filters', [])
       }
 
       // replace these array fields with their lengths
-      for (var path in {roster:0, 'settings.proxiedSites':0, 'friends.current':0, 'friends.pending':0}) {
-        var val = getByPath(state, path);
-        if (val && 'length' in val) {
-          merge(state, val.length, path);
-        }
-      }
+      _.forEach(['/roster', '/settings/proxiedSites', '/friends/current', '/friends/pending'], function(path) {
+        var obj = getByPath(state, path);
+        setByPath(state, path, obj.length);
+      });
 
       // strip identifying info from peers
-      for (var path in {'connectivity.peers.current':0, 'connectivity.peers.lifetime':0}) {
+      _.forEach(['/connectivity/peers/current', '/connectivity/peers/lifetime'], function(path) {
         var peers = getByPath(state, path);
-        if (!peers) continue;
-        peers = _.map(peers, function(peer) {
-          return _.omit(peer, 'email', 'peerid', 'ip', 'lat', 'lon');
-        });
-        merge(state, peers, path);
-      }
+        if (peers) {
+          peers = _.map(peers, function(peer) {
+            return _.omit(peer, 'email', 'peerid', 'ip', 'lat', 'lon');
+          });
+          setByPath(state, path, peers);
+        }
+      });
 
       return state;
     };

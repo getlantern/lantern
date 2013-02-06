@@ -40,96 +40,65 @@ channel, it should immediately publish a message to that channel with the
 necessary state to initialize the model like so:
 
 ```json
-{
-  "path":"",
-  "value":{
-    "foo":"bar",
-    ...
-}
+[{
+  "op": "add",
+  "path": "/foo",
+  "value": "bar"
+ },{
+  "op": "add",
+  "path": "/baz",
+  "value": "qux"
+ },{
+ ...
+}]
 ```
 
-All the relevant state is contained in the `value` field. The frontend will then
-merge `value` into its `model` object, and all the views bound to the updated
-fields will be updated. The `path` value of `""` indicates that `value` should
-be merged into `model` at the top level, rather than into a nested object;
-if `path` were instead set to `"foo"`, then `value` would instead be merged
-into a `model.foo` object.
+This [JSON PATCH](http://tools.ietf.org/html/draft-ietf-appsawg-json-patch-09)
+document instructs the frontend to add a `"foo"` field its (initially empty)
+`model` object with the value `"bar"`, a `"baz"` field with value `"qux"`, etc.
 
-After the merge, `model` will look like:
+After handling this update, the frontend's `model` would look like:
 
 ```json
 {
-  "foo":"bar",
+  "foo": "bar",
+  "baz": "qux",
   ...
 }
 ```
 
+and all the views bound to the updated fields would get updated.
+
 
 ### Subsequent publications: Updating the frontend model
 
-**XXX** *switch to [JSON Patch](tools.ietf.org/html/draft-ietf-appsawg-json-patch-09)*
-
-After initial state is published in full, updates to the state can be published
-a field at a time using the `path` variable at whatever granularity is desired.
-For instance, here is a fine-grained update to a deeply-nested field with an
-atomic `value` payload:
+After initial state is published in full, updates to the state can likewise be
+published using JSON PATCH, e.g.
 
 ```json
-{
-  "path":"foo.bar.baz",
-  "value":3456.78
-}
+[{
+  "op": "replace",
+  "path": "/foo/bar/baz",
+  "value": {"fleem": 3456.78}
+}]
 ```
-
-And here is a coarser-grained update:
 
 ```json
-{
-  "path":"foo.bar",
-  "value":{
-    "baz":3456.78,
-    "bux":1234.56
-    }
-}
+[{
+  "op": "remove",
+  "path": "/foo/bar/baz"
+}]
 ```
-
-This flexibility can allow for a significant reduction in the amount of data
-that must be serialized and deserialized to achieve a state synchronization.
-
-#### Deleting properties
-
-While adding a field which is not yet present can be represented in a very
-small message using the method above, removing a field using the method above
-can only be achieved by sending the whole containing object minus the field to
-be removed. To support this case more efficiently, the following can be used
-instead:
 
 ```json
-{
-  "path":"foo.bar.baz",
-  "delete":true
-}
+[{
+  "op": "add",
+  "path": "/someArray/25",
+  "value": "elementToInsert"
+}]
 ```
 
-#### Arrays
-
-To update a field whose value is an array, of course a replacement array could
-be sent in full, but because JavaScript arrays are just objects, an update to
-just one of its elements could also be achieved simply by using the index as
-the last component of the path. For instance,
-
-```json
-{
-  "path":"settings.proxiedSites.25",
-  "value":"twitter.com"
-}
-```
-
-would cause `model.settings.proxiedSites[25]` to be set to `"twitter.com"`.
-This requires the elements of an array to be maintained with the same ordering
-on the frontend as the backend, but this should be true anyway for faithful
-synchronization. The frontend can efficiently present such lists in sorted
-order via AngularJS without requiring them to be stored in sorted order.
+etc. 
 
 <hr>
 
@@ -719,8 +688,13 @@ the backend maintains on the frontend through comet publications:
   <tr><td><code>/interaction/<em>&lt;interactionid&gt;</em></code></td>
     <td>Notify the backend of the user interaction specified by
     <code>interactionid</code>, optionally passing additional requested updates
-    to the model in a json-encoded request body in the format of the update
-    protocol, e.g. <code>{"path": "foo.bar", "value": "baz"}</code></td></tr>
+    to the model in a JSON-encoded request body in the format of the update
+    protocol, e.g. <code>{"path": "/foo/bar", "value": "baz"}</code></td></tr>
+  <tr><td><code>/exception</code></td>
+    <td>Notify the backend of the exception described by the JSON-encoded
+    request body<br>
+    <strong>XXX <em>specify this</em></strong>
+    </td></tr>
 </table>
 
 <hr>

@@ -7,17 +7,13 @@ var fs = require('fs'),
     constants = require('../app/js/constants.js'),
       MODEL_SYNC_CHANNEL = constants.MODEL_SYNC_CHANNEL,
     helpers = require('../app/js/helpers.js'),
-      getByPath = helpers.getByPath,
-      merge = helpers.merge;
+      makeLogger = helpers.makeLogger,
+        log = makeLogger('bayeux');
 
-var log = helpers.makeLogger('bayeux');
-
-var RESETMODEL = JSON.parse(fs.readFileSync(__dirname+'/RESETMODEL.json'));
-
-
+// XXX better name?
 function BayeuxBackend() {
-  this._bayeux = new faye.NodeAdapter({mount: '/cometd', timeout: 45});
-  this._clients = {};
+  this.bayeux = new faye.NodeAdapter({mount: '/cometd', timeout: 45});
+  this.clients = {};
   this._bindCallbacks();
 }
 
@@ -27,44 +23,24 @@ BayeuxBackend.VERSION = {
   patch: 1
 };
 
-BayeuxBackend.prototype.attachServer = function(http_server) {
-  this._bayeux.attach(http_server);
-};
+var RESETMODEL = JSON.parse(fs.readFileSync(__dirname+'/RESETMODEL.json'));
+RESETMODEL.version.installed.bayeuxProtocol = BayeuxBackend.VERSION;
 
 BayeuxBackend.prototype.resetModel = function() {
   this.model = _.cloneDeep(RESETMODEL);
-  merge(this.model, {bayeuxProtocol: BayeuxBackend.VERSION}, 'version.installed');
 };
 
-BayeuxBackend.prototype.publishMultiple = function(state) {
-  if (_.isEmpty(this._clients)) {
-    //log('[publishSync]', 'no clients to publish to');
-    return;
-  }
-  var data = {state: state};
-  log('[publishMultiple]\n', data);
-  this._bayeux._server._engine.publish({channel: MODEL_SYNC_CHANNEL, data: data});
+BayeuxBackend.prototype.attachServer = function(http_server) {
+  this.bayeux.attach(http_server);
 };
 
-BayeuxBackend.prototype.publishSync = function(path, delete_) {
-  if (_.isEmpty(this._clients)) {
-    //log('[publishSync]', 'no clients to publish to');
-    return;
-  }
-  path = path || '';
-  var data = {path: path};
-  if (delete_) {
-    data.delete = true;
-  } else {
-    data.value = getByPath(this.model, path);
-  }
-  log('[publishSync]\n', data);
-  this._bayeux._server._engine.publish({channel: MODEL_SYNC_CHANNEL, data: data});
-  //this._bayeux.getClient().publish({ // XXX why doesn't this work?
+BayeuxBackend.prototype.publishSync = function(patch, clientId) {
+  if (_.isEmpty(this.clients)) return;
+  this.bayeux.getClient().publish(MODEL_SYNC_CHANNEL, patch);
 };
 
 BayeuxBackend.prototype._bindCallbacks = function() {
-  var self = this, bayeux = this._bayeux;
+  var this_ = this, bayeux = this.bayeux;
 
   bayeux.bind('handshake', function(clientId) {
     log('[handshake]', 'client:', clientId);
@@ -74,22 +50,24 @@ BayeuxBackend.prototype._bindCallbacks = function() {
 
   bayeux.bind('subscribe', function(clientId, channel) {
     log('[subscribe]', 'client:', clientId, 'channel:', channel);
-    if (channel == MODEL_SYNC_CHANNEL)
-      self._clients[clientId] = true;
-    self.publishSync(); // XXX publish only to this client
+    if (channel === MODEL_SYNC_CHANNEL)
+      this_.clients[clientId] = true;
+    var patch = [];
+    _.forEach(this_.model, function(value, key) {
+      patch.push({op: 'add', path: '/'+key, value: value});
+    });
+    this_.publishSync(patch, clientId);
   });
 
   bayeux.bind('unsubscribe', function(clientId, channel) {
     log('[unsubscribe]', 'client:', clientId, 'channel:', channel);
-    if (channel == MODEL_SYNC_CHANNEL)
-      delete self._clients[clientId];
+    if (channel === MODEL_SYNC_CHANNEL)
+      delete this_.clients[clientId];
   });
 
-  /*
   bayeux.bind('publish', function(clientId, channel, data) {
-    log('[publish]', 'client:', clientId, 'channel:', channel, 'data:', data);
+    log('[publish]', '\nclient:', clientId, '\nchannel:', channel, '\ndata:', data);
   });
-  */
 
   bayeux.bind('disconnect', function(clientId) {
     log('[disconnect]', 'client:', clientId);

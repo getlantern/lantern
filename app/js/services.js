@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('app.services', [])
-  // primitives wrapped in objects for mutatability
+  // primitives wrapped in objects for mutatability XXX this can be clearer
   .value('dev', {value: true}) // controls debug logging and developer panel
   .value('sanity', {value: true}) // triggers failure mode when false
   // more flexible log service
@@ -25,6 +25,7 @@ angular.module('app.services', [])
         log:   logLogger,
         warn:  extracted('warn'),
         error: extracted('error'),
+        // XXX angular now has support for console.debug?
         debug: function() { if (dev.value) logLogger.apply(logLogger, arguments); }
       };
     }
@@ -152,19 +153,11 @@ angular.module('app.services', [])
         model = {},
         syncSubscriptionKey;
 
+    // XXX use modelValidatorSrvc to validate update before accepting
     function handleSync(msg) {
-      // XXX use modelValidatorSrvc to validate update before accepting
-      var data = msg.data, path = data.path, value = data.value, state = data.state;
-      if (state) {
-        merge(model, state);
-      } else if (data.delete) {
-        deleteByPath(model, path);
-      } else {
-        deleteByPath(model, path);
-        merge(model, value, path);
-      }
+      jsonpatch.apply(model, msg.data);
       $rootScope.$apply();
-      //log.debug('handleSync applied sync:\npath:', path || '""', '\nvalue:', value, '\ndelete:', data.delete);
+      log.debug('[handleSync] applied patch', msg.data);
     }
 
     syncSubscriptionKey = {chan: MODEL_SYNC_CHANNEL, cb: handleSync};
@@ -172,7 +165,8 @@ angular.module('app.services', [])
 
     return {
       model: model,
-      // for SanityCtrl
+      // XXX ditch this?
+      // for SanityCtrl // XXX cleaner way to do this?
       disconnect: function() {
           log.debug('disconnecting');
           cometdSrvc.unsubscribe(syncSubscriptionKey);

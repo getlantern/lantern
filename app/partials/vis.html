@@ -12,14 +12,12 @@
               id="{{ peer.peerid }}" class="peer {{ peer.mode }}" filter="url(#blur)">
         <title>{{ peer | prettyUser }}</title>
       </circle>
-      <animate attributeType="CSS" attributeName="opacity" from="0" to="1" dur="3s" repeatCount="1"/>
     </g>
   </g>
   <!-- XXX show last seen locations of peers not connected to -->
   <circle id="self" ng-cx="{{ self.x }}" ng-cy="{{ self.y }}" ng-r="{{ selfR }}"
           class="{{ model.settings.mode }}" filter="url(#blur)">
     <title>{{ model.profile | prettyUser }}</title>
-    <!--animate attributeType="CSS" attributeName="opacity" from=".5" to="1" dur="2s" repeatCount="indefinite"/-->
   </circle>
   <defs>
     <filter id="blur">

@@ -92,9 +92,9 @@ function VisCtrl($scope, $window, logFactory, modelSrvc, CONFIG) {
                                                   CONFIG.style.getModeColor);
 
   function updateFill(country) {
-    var npeers = getByPath(model, 'countries.'+country+'.npeers.online');
+    var npeers = getByPath(model, '/countries/'+country+'/npeers/online');
     if (!npeers) return;
-    var censors = getByPath(model, 'countries.'+country).censors,
+    var censors = getByPath(model, '/countries/'+country).censors,
         scaledOpacity = countryOpacityScale(npeers.giveGet),
         colorPrefix, fill;
     if (_.isNaN(scaledOpacity)) {
@@ -114,6 +114,7 @@ function VisCtrl($scope, $window, logFactory, modelSrvc, CONFIG) {
     }
     fill = colorPrefix+(scaledOpacity||0)+')';
     $scope.fillByCountry[country] = fill;
+    log.debug('updated fill for country', country, 'to', fill);
   }
 
   var unwatchAllCountries = $scope.$watch('model.countries', function(countries) {
@@ -129,7 +130,7 @@ function VisCtrl($scope, $window, logFactory, modelSrvc, CONFIG) {
         } else {
           updateFill(country);
         }
-      });
+      }, true);
     });
   }, true);
 
