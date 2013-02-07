@@ -563,7 +563,7 @@ function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, modelSrvc) {
 
   function sanitized(obj) {
     if (!angular.isObject(obj)) {
-      throw Error('object expected');
+      throw new Error('object expected');
     }
     var san = angular.isArray(obj) ? [] : {};
     for (var key in obj) {

@@ -16,7 +16,8 @@ if (typeof jsonpatch != 'object') {
   var jsonpatch = require('../lib/jsonpatch.js');
 }
 var JSONPatch = jsonpatch.JSONPatch,
-    JSONPointer = jsonpatch.JSONPointer;
+    JSONPointer = jsonpatch.JSONPointer,
+    PatchApplyError = jsonpatch.PatchApplyError;
 
 function makeLogger(prefix) {
   return function() {
@@ -36,7 +37,7 @@ function randomChoice(collection) {
   } else if (_.isPlainObject(collection)) {
     return randomChoice(_.keys(collection));
   }
-  throw Error('expected array or plain object, got '+typeof collection);
+  throw new TypeError('expected array or plain object, got '+typeof collection);
 }
 
 function applyPatch(obj, patch) {
@@ -48,8 +49,7 @@ function getByPath(obj, path) {
   try {
     return (new JSONPointer(path)).get(obj);
   } catch (e) {
-    if (e.message !== 'Path not found in document')
-      throw e;
+    if (!(e instanceof PatchApplyError)) throw e;
   }
 }
 
