@@ -86,8 +86,8 @@ public class LanternModule extends AbstractModule {
         bind(HttpsEverywhere.class);
         bind(Roster.class);
         bind(InteractionServlet.class);
-        bind(LanternTrustStore.class);
         bind(KeyStoreManager.class).to(LanternKeyStoreManager.class);
+        bind(LanternTrustStore.class);
         bind(LanternHttpClient.class);
         bind(SslHttpProxyServer.class);
         bind(PlainTestRelayHttpProxyServer.class);

@@ -12,7 +12,6 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.message.BasicNameValuePair;
@@ -25,19 +24,19 @@ import com.google.inject.Singleton;
 @Singleton
 public class LanternFeedback {
     
-    private final HttpClient httpClient;
+    private final LanternHttpClient httpClient;
 
     @Inject
-    public LanternFeedback(final HttpClient httpClient) {
+    public LanternFeedback(final LanternHttpClient httpClient) {
         this.httpClient = httpClient;
     }
     
-    public void submit(String message, String replyTo) throws IOException {
-        Map <String, String> feedback = new HashMap<String, String>(); 
+    public int submit(String message, String replyTo) throws IOException {
+        final Map <String, String> feedback = new HashMap<String, String>(); 
         feedback.putAll(systemInfo());
         feedback.put("message", message);
         feedback.put("replyto", replyTo == null ? "" : replyTo);
-        submitFeedback(feedback);
+        return submitFeedback(feedback);
     }
 
     protected Map<String, String> systemInfo() {
@@ -64,7 +63,7 @@ public class LanternFeedback {
         return info;
     }
     
-    protected void postForm(String url, List<NameValuePair> params) 
+    private int postForm(String url, List<NameValuePair> params) 
             throws IOException {
         final HttpPost post = new HttpPost(url);
         try {
@@ -84,43 +83,44 @@ public class LanternFeedback {
                 final StringBuilder headerVals = new StringBuilder();
                 for (int i = 0; i < headers.length; i++) {
                     headerVals.append(headers[i].toString());
+                    headerVals.append("\n");
                 }
                 final String err = "Failed to submit feedback. Status was " + 
                         statusCode + ", headers " + headerVals.toString();
                 throw new IOException(err);
             }
-        } catch (final IOException e) {
-            throw e;
+            return statusCode;
         } finally {
-            post.releaseConnection();
+            post.reset();
         }
-  }
+    }
   
-  /**
-   * quick and dirty google spreadsheet submitter
-   */
-  private final static String FORM_URL = 
-      "https://docs.google.com/a/getlantern.org/spreadsheet/formResponse?formkey=dFl3UEhZV2pNcmFELU5jbTJ6eVhBMmc6MQ&amp;ifq";
-  private final String [] FORM_ORDER = {
-      "message",
-      "replyto",
-      "javaVersion",
-      "osName",
-      "osArch",
-      "osVersion",
-      "language",
-      "country",
-      "timeZone",
-      "diskSpace",
-      "lanternVersion"
-  };
-  protected void submitFeedback(Map<String, String> info) throws IOException {
-      final List<NameValuePair> params = new ArrayList<NameValuePair>(info.size());
-      for (int i = 0; i < FORM_ORDER.length; i++) {
-          final String key = FORM_ORDER[i];
-          final String paramName = "entry." + i + ".single"; // what the google form calls it
-          params.add(new BasicNameValuePair(paramName,info.get(key)));
-      }
-      postForm(FORM_URL, params);
-  }
+    /**
+     * quick and dirty google spreadsheet submitter
+     */
+    private final static String FORM_URL = 
+        "https://docs.google.com/a/getlantern.org/spreadsheet/formResponse?formkey=dFl3UEhZV2pNcmFELU5jbTJ6eVhBMmc6MQ&amp;ifq";
+    private final String [] FORM_ORDER = {
+        "message",
+        "replyto",
+        "javaVersion",
+        "osName",
+        "osArch",
+        "osVersion",
+        "language",
+        "country",
+        "timeZone",
+        "diskSpace",
+        "lanternVersion"
+    };
+    
+    private int submitFeedback(final Map<String, String> info) throws IOException {
+        final List<NameValuePair> params = new ArrayList<NameValuePair>(info.size());
+        for (int i = 0; i < FORM_ORDER.length; i++) {
+            final String key = FORM_ORDER[i];
+            final String paramName = "entry." + i + ".single"; // what the google form calls it
+            params.add(new BasicNameValuePair(paramName,info.get(key)));
+        }
+        return postForm(FORM_URL, params);
+    }
 }
