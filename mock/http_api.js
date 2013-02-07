@@ -21,7 +21,7 @@ var url = require('url'),
         OS = ENUMS.OS,
         SETTING = ENUMS.SETTING;
 
-var SKIPSETUP = true,
+var SKIPSETUP = false,
     MODALSEQ_GIVE = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.finished, MODAL.none],
     MODALSEQ_GET = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.proxiedSites, MODAL.systemProxy, MODAL.finished, MODAL.none];
 
@@ -368,7 +368,7 @@ ApiServlet._handlerForModal[MODAL.systemProxy] = function(interaction, res, data
   this.sync({'/settings/systemProxy': data});
   if (data.value) sleep.usleep(750000);
   this._internalState.modalsCompleted[MODAL.systemProxy] = true;
-  this._advanceModal(this._internalState.lastModal);
+  this._advanceModal();
 };
 
 ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res, data) {
@@ -389,10 +389,10 @@ ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res, d
       // XXX display notification in UI
     }
     this._internalState.modalsCompleted[MODAL.lanternFriends] = true;
-    this._advanceModal(this._internalState.lastModal);
+    this._advanceModal();
   } else if (interaction == INTERACTION.accept ||
              interaction == INTERACTION.decline) {
-    var pending = getByPath(this.model, '/friends/pending', []),
+    var pending = getByPath(this.model, '/friends/pending') || [],
         i = _.pluck(pending, 'email').indexOf(data.email);
     if (i == -1) return res.writeHead(400);
     var patch = [{op: 'remove', path: '/friends/pending/'+i}];
