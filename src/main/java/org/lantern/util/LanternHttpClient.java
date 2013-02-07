@@ -2,14 +2,12 @@ package org.lantern.util;
 
 import java.io.IOException;
 
-import org.apache.http.HttpException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.conn.routing.HttpRoutePlanner;
@@ -18,7 +16,6 @@ import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.protocol.HttpContext;
 import org.lantern.Censored;
 import org.lantern.LanternConstants;
 import org.lantern.LanternSocketsUtil;
@@ -49,6 +46,11 @@ public class LanternHttpClient implements HttpStrategy {
     private final DefaultHttpClient proxied = new DefaultHttpClient();
 
     private final Censored censored;
+
+    /**
+     * Whether or not to force censored mode.
+     */
+    private boolean forceCensored = false;
     
     @Inject
     public LanternHttpClient(final LanternSocketsUtil socketsUtil,
@@ -60,18 +62,7 @@ public class LanternHttpClient implements HttpStrategy {
             new HttpHost(LanternConstants.FALLBACK_SERVER_HOST, 
                 Integer.valueOf(LanternConstants.FALLBACK_SERVER_PORT), 
                 "https");
-        
-        proxied.setRoutePlanner(new HttpRoutePlanner() {
-
-            @Override
-            public HttpRoute determineRoute(HttpHost target,
-                    org.apache.http.HttpRequest request, HttpContext context)
-                    throws HttpException {
-                return new HttpRoute(target, null, proxy, 
-                        "https".equalsIgnoreCase(target.getSchemeName()));
-            }
-        });
-        //proxied.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
+        proxied.getParams().setParameter(ConnRoutePNames.DEFAULT_PROXY, proxy);
     }
     
     private void configureDefaults(final LanternSocketsUtil socketsUtil,
@@ -111,6 +102,7 @@ public class LanternHttpClient implements HttpStrategy {
     private HttpResponse execute(final HttpRequestBase request, 
         final HttpRequestBase backup) throws IOException, ClientProtocolException {
 
+        //return proxied.execute(request);
         // We currently disable creating a direct connection *in the 
         // censored case*. The problem is knowing what blocking looks like. 
         // On the one hand, and inability to
@@ -127,25 +119,10 @@ public class LanternHttpClient implements HttpStrategy {
         // versions? 
         
         // We currently just do this if we detect you're not censored.
-        if (!this.censored.isCensored()) {
-            // First try direct, then fall back to the proxy.
-            try {
-                return direct.execute(request);
-            } catch (final ClientProtocolException e) {
-                log.debug("Client error?", e);
-            } catch (final IOException e) {
-                log.debug("IO error?", e);
-            } finally {
-                log.debug("RESETTING");
-                request.reset();
-            }
+        if (!this.censored.isCensored() && !forceCensored) {
+            return direct.execute(request);
         }
-        try {
-            return proxied.execute(backup);
-        } finally {
-            log.debug("RESETTING");
-            backup.reset();
-        }
+        return proxied.execute(backup);
     }
 
     public DefaultHttpClient getDirect() {
@@ -154,5 +131,9 @@ public class LanternHttpClient implements HttpStrategy {
     
     public DefaultHttpClient getProxied() {
         return this.proxied;
+    }
+
+    public void setForceCensored(final boolean force) {
+        this.forceCensored = force;
     }
 }

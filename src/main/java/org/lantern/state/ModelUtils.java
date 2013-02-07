@@ -98,7 +98,7 @@ public class ModelUtils {
         } catch (final URISyntaxException e) {
             LOG.error("URI error", e);
         } finally {
-            get.releaseConnection();
+            get.reset();
         }
         return new GeoData();
     }

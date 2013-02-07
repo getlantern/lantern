@@ -10,7 +10,6 @@ import javax.security.auth.login.CredentialException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.client.HttpClient;
 import org.jivesoftware.smack.XMPPConnection;
 import org.lantern.http.JettyLauncher;
 import org.lantern.http.OauthUtils;
@@ -21,6 +20,7 @@ import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Settings;
+import org.lantern.util.LanternHttpClient;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.commom.xmpp.XmppUtils;
 
@@ -72,7 +72,7 @@ public class TestUtils {
 
     private static LanternTrustStore trustStore;
 
-    private static HttpClient httpClient;
+    private static LanternHttpClient httpClient;
 
     static {
         InputStream is = null;
@@ -117,7 +117,7 @@ public class TestUtils {
         modelIo = injector.getInstance(ModelIo.class);
         proxyTracker = injector.getInstance(DefaultProxyTracker.class);
         trustStore = injector.getInstance(LanternTrustStore.class);
-        httpClient = injector.getInstance(HttpClient.class);
+        httpClient = injector.getInstance(LanternHttpClient.class);
         
         final Settings set = model.getSettings();
         set.setAccessToken(getAccessToken());
@@ -255,7 +255,7 @@ public class TestUtils {
         return trustStore;
     }
 
-    public static HttpClient getHttpClient() {
+    public static LanternHttpClient getHttpClient() {
         if (!loaded) load();
         return httpClient;
     }

@@ -16,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
-import org.apache.http.client.HttpClient;
+import org.apache.http.StatusLine;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -149,7 +149,12 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         fetchEmail(allToks);
     }
 
-    private void fetchEmail(final Map<String, String> allToks) {
+    /**
+     * Fetches user's e-mail - only public for testing.
+     * 
+     * @param allToks OAuth tokens.
+     */
+    public int fetchEmail(final Map<String, String> allToks) {
         final String endpoint = 
             "https://www.googleapis.com/oauth2/v1/userinfo";
         final String accessToken = allToks.get("access_token");
@@ -159,24 +164,32 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
         try {
             log.debug("About to execute get!");
             final HttpResponse response = httpClient.execute(get);
-
-            log.debug("Got response status: {}", response.getStatusLine());
+            final StatusLine line = response.getStatusLine();
+            log.debug("Got response status: {}", line);
             final HttpEntity entity = response.getEntity();
             final String body = IOUtils.toString(entity.getContent());
             EntityUtils.consume(entity);
             log.debug("GOT RESPONSE BODY FOR EMAIL:\n"+body);
+            
+            final int code = line.getStatusCode();
+            if (code < 200 || code > 299) {
+                log.error("OAuth error?\n"+line);
+                return code;
+            }
+
             final ObjectMapper om = new ObjectMapper();
             final Profile profile = om.readValue(body, Profile.class);
             this.model.setProfile(profile);
             Events.sync(SyncPath.PROFILE, profile);
             final String email = profile.getEmail();
             this.model.getSettings().setEmail(email);
+            return code;
         } catch (final IOException e) {
             log.warn("Could not connect to Google?", e);
         } finally {
-            get.releaseConnection();
+            get.reset();
         }
-        
+        return -1;
     }
 
     private void connectToGoogleTalk(final Map<String, String> allToks) {
@@ -258,7 +271,7 @@ public class GoogleOauth2CallbackServlet extends HttpServlet {
             log.debug("Got oath data: {}", oauthToks);
             return oauthToks;
         } finally {
-            post.releaseConnection();
+            post.reset();
         }
     }
 
