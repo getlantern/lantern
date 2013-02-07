@@ -70,6 +70,7 @@ function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSr
       .success(function(data, status, headers, config) {
         log.debug('interaction(', interactionid, extra || '', ') successful');
       })
+      // XXX sub-controllers need to hook into this
       .error(function(data, status, headers, config) {
         log.error('interaction(', interactionid, extra, ') failed');
       });
@@ -223,8 +224,7 @@ function SystemProxyCtrl($scope, logFactory, MODAL, SETTING, INTERACTION) {
     $scope.sysproxyError = false;
     $scope.disableForm = true;
     $scope.submitButtonLabelKey = 'CONFIGURING';
-    var p = {path: 'settings.'+SETTING.systemProxy, value: $scope.systemProxy};
-    $scope.interaction(INTERACTION.continue, p).then(resetForm);
+    $scope.interaction(INTERACTION.continue, $scope.systemProxy).then(resetForm);
   };
 }
 

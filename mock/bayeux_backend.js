@@ -34,8 +34,9 @@ BayeuxBackend.prototype.attachServer = function(http_server) {
   this.bayeux.attach(http_server);
 };
 
-BayeuxBackend.prototype.publishSync = function(patch, clientId) {
+BayeuxBackend.prototype.publishSync = function(patch) {
   if (_.isEmpty(this.clients)) return;
+  if (!patch) patch = [{op: 'replace', path: '', value: this.model}];
   this.bayeux.getClient().publish(MODEL_SYNC_CHANNEL, patch);
 };
 
@@ -52,11 +53,7 @@ BayeuxBackend.prototype._bindCallbacks = function() {
     log('[subscribe]', 'client:', clientId, 'channel:', channel);
     if (channel === MODEL_SYNC_CHANNEL)
       this_.clients[clientId] = true;
-    var patch = [];
-    _.forEach(this_.model, function(value, key) {
-      patch.push({op: 'add', path: '/'+key, value: value});
-    });
-    this_.publishSync(patch, clientId);
+    this_.publishSync();
   });
 
   bayeux.bind('unsubscribe', function(clientId, channel) {
@@ -65,9 +62,11 @@ BayeuxBackend.prototype._bindCallbacks = function() {
       delete this_.clients[clientId];
   });
 
+  /*
   bayeux.bind('publish', function(clientId, channel, data) {
     log('[publish]', '\nclient:', clientId, '\nchannel:', channel, '\ndata:', data);
   });
+  */
 
   bayeux.bind('disconnect', function(clientId) {
     log('[disconnect]', 'client:', clientId);

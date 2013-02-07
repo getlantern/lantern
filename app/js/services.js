@@ -40,8 +40,8 @@ angular.module('app.services', [])
         subscriptions = [];
     cometd.configure({
       url: COMETD_URL,
-      backoffIncrement: 50,
-      maxBackoff: 500,
+      backoffIncrement: 100,
+      maxBackoff: 1000,
       //logLevel: 'debug',
       // XXX necessary to work with Faye backend when browser lacks websockets:
       // https://groups.google.com/d/msg/faye-users/8cr_4QZ-7cU/sKVLbCFDkEUJ
@@ -155,7 +155,13 @@ angular.module('app.services', [])
 
     // XXX use modelValidatorSrvc to validate update before accepting
     function handleSync(msg) {
-      jsonpatch.apply(model, msg.data);
+      var patch = msg.data;
+      if (patch[0].path === '') {
+        // XXX jsonpatch can't mutate root object
+        angular.copy(patch[0].value, model);
+      } else {
+        applyPatch(model, patch);
+      }
       $rootScope.$apply();
       log.debug('[handleSync] applied patch', msg.data);
     }

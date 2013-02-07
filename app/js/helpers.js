@@ -1,21 +1,22 @@
 'use strict';
 
-function _require(path) {
-  if (typeof require != 'function') throw Error('Cannot require "'+path+'": "require" function not defined');
-  return require(path);
-}
-
 if (typeof inspect != 'function') {
   try {
-    var inspect = _require('util').inspect;
+    var inspect = require('util').inspect;
   } catch (e) {
     var inspect = function(x) { return JSON.stringify(x); };
   }
 }
 
 if (typeof _ != 'function') {
-  var _ = _require('../lib/lodash.js')._;
+  var _ = require('../lib/lodash.js')._;
 }
+
+if (typeof jsonpatch != 'object') {
+  var jsonpatch = require('../lib/jsonpatch.js');
+}
+var JSONPatch = jsonpatch.JSONPatch,
+    JSONPointer = jsonpatch.JSONPointer;
 
 function makeLogger(prefix) {
   return function() {
@@ -28,11 +29,6 @@ function makeLogger(prefix) {
 
 var log = makeLogger('helpers');
 
-function asjsonpatch(obj) {
-  return _.map(obj, function(value, path) {
-    return {op: 'replace', path: path, value: value};
-  });
-}
 
 function randomChoice(collection) {
   if (_.isArray(collection)) {
@@ -41,6 +37,11 @@ function randomChoice(collection) {
     return randomChoice(_.keys(collection));
   }
   throw Error('expected array or plain object, got '+typeof collection);
+}
+
+function applyPatch(obj, patch) {
+  patch = new JSONPatch(patch, true); // mutate = true
+  patch.apply(obj);
 }
 
 function _validateObj(obj) {
@@ -122,16 +123,16 @@ function setByPath(obj, path, val) {
 if (typeof angular == 'object' && angular && typeof angular.module == 'function') {
   angular.module('app.helpers', [])
     // XXX move app.services' logging stuff here?
-    .constant('asjsonpatch', asjsonpatch)
     .constant('randomChoice', randomChoice)
+    .constant('applyPatch', applyPatch)
     .constant('getByPath', getByPath)
     .constant('setByPath', setByPath)
     .constant('deleteByPath', deleteByPath)
 } else if (typeof exports == 'object' && exports && typeof module == 'object' && module && module.exports == exports) {
   module.exports = {
     makeLogger: makeLogger,
-    asjsonpatch: asjsonpatch,
     randomChoice: randomChoice,
+    applyPatch: applyPatch,
     getByPath: getByPath,
     setByPath: setByPath,
     deleteByPath: deleteByPath

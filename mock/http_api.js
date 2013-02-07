@@ -3,11 +3,10 @@
 var url = require('url'),
     sleep = require('./node_modules/sleep'),
     _ = require('../app/lib/lodash.js')._,
-    jsonpatch = require('../app/lib/jsonpatch.js'),
     helpers = require('../app/js/helpers.js'),
       makeLogger = helpers.makeLogger,
         log = makeLogger('api'),
-      asjsonpatch = helpers.asjsonpatch,
+      applyPatch = helpers.applyPatch,
       getByPath = helpers.getByPath,
     scenarios = require('./scenarios'),
       SCENARIOS = scenarios.SCENARIOS,
@@ -84,18 +83,19 @@ ApiServlet.prototype.reset = function() {
   }
   this.sync();
   if (SKIPSETUP) {
-    this.sync({'/showVis': true, '/settings/mode': MODE.give});
     ApiServlet._handlerForModal[MODAL.authorize].call(this, INTERACTION.continue);
+    this._internalState.lastModal = MODAL.none;
+    this.sync({'/modal': MODAL.none, '/showVis': true, '/settings/mode': MODE.give});
   }
 };
 
 ApiServlet.prototype.sync = function(patch) {
-  if (_.isArray(patch)) {
-    jsonpatch.apply(this.model, patch);
-  } else if (_.isPlainObject(patch)) {
-    patch = asjsonpatch(patch);
-    jsonpatch.apply(this.model, patch);
+  if (_.isPlainObject(patch)) {
+    patch = _.map(patch, function(value, path) {
+      return {op: 'add', path: path, value: value};
+    });
   }
+  if (patch) applyPatch(this.model, patch);
   this.bayeuxBackend.publishSync(patch);
 };
 
@@ -241,11 +241,12 @@ ApiServlet._handlerForModal[MODAL.giveModeForbidden] = function(interaction, res
 ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
 
+  this._internalState.lastModal = MODAL.authorize;
+
   // check for gtalk authorization
   var scen = getByPath(this.model, '/mock/scenarios/applied/gtalkAuthorized');
   scen = getByPath(SCENARIOS, '/gtalkAuthorized/'+scen);
   if (!scen) {
-    this._internalState.lastModal = MODAL.authorize;
     this.sync({'/modal': MODAL.scenarios,
       '/mock/scenarios/prompt': 'No oauth scenario applied.'});
     return;
@@ -262,7 +263,6 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   scen = getByPath(this.model, '/mock/scenarios/applied/invited');
   scen = getByPath(SCENARIOS, '/invited/'+scen);
   if (!scen) {
-    this._internalState.lastModal = MODAL.authorize;
     this.sync({'/modal': MODAL.scenarios,
       '/mock/scenarios/prompt': 'No Lantern access scenario applied.'});
     return;
@@ -278,7 +278,6 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   scen = getByPath(this.model, '/mock/scenarios/applied/gtalkReachable');
   scen = getByPath(SCENARIOS, '/gtalkReachable/'+scen);
   if (!scen) {
-    this._internalState.lastModal = MODAL.authorize;
     this.sync({'/modal': MODAL.scenarios,
       '/mock/scenarios/prompt': 'No gtalkReachable scenario applied.'});
     return;
@@ -294,7 +293,6 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   scen = getByPath(this.model, '/mock/scenarios/applied/ninvites');
   scen = getByPath(SCENARIOS, '/ninvites/'+scen);
   if (!scen) {
-    this._internalState.lastModal = MODAL.authorize;
     this.sync({'/modal': MODAL.scenarios,
       '/mock/scenarios/prompt': 'No ninvites scenario applied.'});
     return;
@@ -307,7 +305,6 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   scen = getByPath(this.model, '/mock/scenarios/applied/roster');
   scen = getByPath(SCENARIOS, '/roster/'+scen);
   if (!scen) {
-    this._internalState.lastModal = MODAL.authorize;
     this.sync({'/modal': MODAL.scenarios,
       '/mock/scenarios/prompt': 'No roster scenario applied.'});
     return;
@@ -319,7 +316,6 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   scen = getByPath(this.model, '/mock/scenarios/applied/friends');
   scen = getByPath(SCENARIOS, '/friends/'+scen);
   if (!scen) {
-    this._internalState.lastModal = MODAL.authorize;
     this.sync({'/modal': MODAL.scenarios,
       '/mock/scenarios/prompt': 'No friends scenario applied.'});
     return;
@@ -332,7 +328,6 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   scen = getByPath(this.model, '/mock/scenarios/applied/peers');
   scen = getByPath(SCENARIOS, '/peers/'+scen);
   if (!scen) {
-    this._internalState.lastModal = MODAL.authorize;
     this.updateModel({'/modal': MODAL.scenarios,
       '/mock/scenarios/prompt': 'No peers scenario applied.'});
     return;
@@ -344,7 +339,6 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   scen = getByPath(this.model, '/mock/scenarios/applied/countries');
   scen = getByPath(SCENARIOS, '/countries/'+scen);
   if (!scen) {
-    this._internalState.lastModal = MODAL.authorize;
     this.sync({'/modal': MODAL.scenarios,
       '/mock/scenarios/prompt': 'No countries scenario applied.'});
     return;
@@ -370,12 +364,8 @@ ApiServlet._handlerForModal[MODAL.proxiedSites] = function(interaction, res, dat
 };
 
 ApiServlet._handlerForModal[MODAL.systemProxy] = function(interaction, res, data) {
-  if (interaction != INTERACTION.continue ||
-      data.path != '/settings/systemProxy') {
-    res.writeHead(400);
-    return;
-  }
-  this.sync({'/settings/systemProxy': data.value});
+  if (interaction != INTERACTION.continue) return res.writeHead(400);
+  this.sync({'/settings/systemProxy': data});
   if (data.value) sleep.usleep(750000);
   this._internalState.modalsCompleted[MODAL.systemProxy] = true;
   this._advanceModal(this._internalState.lastModal);
@@ -407,10 +397,8 @@ ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res, d
     if (i == -1) return res.writeHead(400);
     var patch = [{op: 'remove', path: '/friends/pending/'+i}];
     if (interaction == INTERACTION.accept) {
-      patch.push({op: 'add', value: data,
-        path: '/friends/current/'+(this.model.friends.current.length-1)});
-      patch.push({op: 'add', value: data,
-        path: '/roster/'+(this.model.roster.length-1)});
+      patch.push({op: 'add', value: data, path: '/friends/current/-'});
+      patch.push({op: 'add', value: data, path: '/roster/-'});
     }
     this.sync(patch);
   } else {
@@ -464,8 +452,8 @@ ApiServlet._handlerForModal[MODAL.finished] = function(interaction, res, data) {
   }
   if (interaction != INTERACTION.continue) return res.writeHead(400);
   this._internalState.modalsCompleted[MODAL.finished] = true;
-  this._advanceModal(this._internalState.lastModal);
-  this.sync({'/setupComplete': true, '/showVis': true});
+  this._internalState.lastModal = MODAL.none;
+  this.sync({'/modal': MODAL.none, '/setupComplete': true, '/showVis': true});
 };
 
 ApiServlet._handlerForModal[MODAL.settings] = function(interaction, res, data) {
@@ -490,8 +478,9 @@ ApiServlet._handlerForModal[MODAL.settings] = function(interaction, res, data) {
     this.sync({'/modal': MODAL.confirmReset});
   } else if (interaction == INTERACTION.set) {
     var l = '/settings/'.length, setting = data.path.substring(l);
-    if (data.path.substring(0, l) != '/settings/' || !(setting in SETTING)) return res.writeHead(400);
-    this.sync(data); // XXX validate
+    if (data.path.substring(0, l) != '/settings/' || !(setting in SETTING)) return res.writeHead(400); // XXX better validation
+    data.op = 'replace';
+    this.sync([data]);
   } else {
     res.writeHead(400);
   }

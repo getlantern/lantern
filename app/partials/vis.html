@@ -1,4 +1,4 @@
-<svg id="vis" ng-controller="VisCtrl" ng-show="model.showVis">
+<svg id="vis" ng-controller="VisCtrl" ui-if="model.showVis">
   <g id="countries">
     <g ng-repeat="d in countryGeometries">
       <title ui-if="d.alpha2">{{ d.alpha2 | i18n }}: {{ model.countries[d.alpha2].npeers.online.giveGet || 0 }} peers online, {{ model.countries[d.alpha2].npeers.online.give || 0 }} in Give Mode, {{ model.countries[d.alpha2].npeers.online.get || 0 }} in Get Mode</title><!-- XXX i18n -->

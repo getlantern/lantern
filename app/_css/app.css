@@ -6332,6 +6332,9 @@ html, body {
 }
 
 body {
+  background: black;
+}
+body.showVis {
   background: url('../img/bg.png?1351597515');
 }
 
