@@ -64,8 +64,6 @@ public class DefaultCensored implements Censored {
     @Inject
     public DefaultCensored(final LookupService lookupService) {
         this.lookupService = lookupService;
-        CENSORED.add("CU");
-        CENSORED.add("KP");
     }
 
     /**
@@ -186,7 +184,7 @@ public class DefaultCensored implements Censored {
     private boolean isMatch(final InetAddress address, 
         final Collection<String> countries) { 
         if (address == null) {
-            return false;
+            return true;
         }
         return countries.contains(countryCode(address));
     }

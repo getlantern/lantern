@@ -50,7 +50,7 @@ public class LanternSocketsUtil {
 
     @Inject
     public LanternSocketsUtil(final Stats stats, 
-            final LanternTrustStore trustStore) {
+        final LanternTrustStore trustStore) {
         this.stats = stats;
         this.trustStore = trustStore;
     }

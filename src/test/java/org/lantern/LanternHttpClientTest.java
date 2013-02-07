@@ -1,46 +1,146 @@
 package org.lantern;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
-import java.net.URI;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.io.IOUtils;
+import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
+import org.apache.http.StatusLine;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.util.EntityUtils;
+import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.junit.Test;
+import org.lantern.http.GoogleOauth2CallbackServlet;
+import org.lantern.state.ModelUtils;
+import org.lantern.util.LanternHttpClient;
 
 public class LanternHttpClientTest {
 
+    /**
+     * We've seen issues with HttpClient redirects from HTTPS sites to HTTP 
+     * sites. In practice though it shouldn't really affect us because none
+     * of the HTTPS sites we hit should do that, nor should we allow it.
+     * We just make sure to test all the sites we use to ensure this doesn't
+     * happen.
+     * 
+     * docs.google.com (feedback form)
+     * exceptional.io -- error reporting
+     * query.yahooapis.com (geo data lookup)
+     * www.googleapis.com
+     * lanternctrl.appspot.com (stats)
+     * 
+     * @throws Exception If any unexpected errors occur.
+     */
     @Test
-    public void testHttpClient() throws Exception {
-        final HttpClient client = TestUtils.getHttpClient();
+    public void testAllInternallyProxiedSites() throws Exception {
+        final LanternHttpClient client = TestUtils.getHttpClient();
+        client.setForceCensored(true);
         
-        final String query = 
-            "USE 'http://www.datatables.org/iplocation/ip.location.xml' " +
-            "AS ip.location; select CountryCode, Latitude,Longitude from " +
-            "ip.location where ip = '86.170.128.133' and key = " +
-            "'a6a2704c6ebf0ee3a0c55d694431686c0b6944afd5b648627650ea1424365abb'";
-
-        final URIBuilder builder = new URIBuilder();
-        builder.setScheme("https").setHost("query.yahooapis.com").setPath(
-            "/v1/public/yql").setParameter("q", query).setParameter(
-                "format", "json");
+        final ModelUtils modelUtils = TestUtils.getModelUtils();
+        final GeoData data = modelUtils.getGeoData("86.170.128.133");
+        assertTrue(data.getLatitude() > 50.0);
+        assertTrue(data.getLongitude() < 3.0);
+        assertEquals("gb", data.getCountrycode());
         
-        final HttpGet get = new HttpGet();
-        final URI uri = builder.build();
-        get.setURI(uri);
+        testExceptional(client);
+        testGoogleDocs(client);
+        testGoogleApis(client);
+        testStats(client);
+    }
+    
+    private void testStats(final LanternHttpClient client) throws Exception {
+        final String uri = "https://lanternctrl.appspot.com/stats";
+        
+        final HttpGet get = new HttpGet(uri);
         final HttpResponse response = client.execute(get);
-        final HttpEntity entity = response.getEntity();
-        final String body = 
-            IOUtils.toString(entity.getContent()).toLowerCase();
-        EntityUtils.consume(entity);
-        
-        assertTrue("Unexpected body: "+body, body.contains("latitude"));
-
+        final StatusLine line = response.getStatusLine();
+        final int code = line.getStatusCode();
+        get.reset();
+        assertEquals(200, code);
     }
 
+    private void testGoogleApis(final LanternHttpClient client) {
+        final GoogleOauth2CallbackServlet servlet = 
+            new GoogleOauth2CallbackServlet(null, null, null, null, null, 
+                null, client);
+        
+        final Map<String, String> allToks = new HashMap<String, String>();
+        allToks.put("access_token", "invalidcode");
+        final int code = servlet.fetchEmail(allToks);
+        
+        // Expected to be unauthorized with a bogus token -- we want to 
+        // make sure it gets there.
+        assertEquals(401, code);
+    }
+
+    private void testGoogleDocs(final LanternHttpClient client) 
+        throws Exception {
+        final LanternFeedback feedback = new LanternFeedback(client);
+        final int responseCode = 
+            feedback.submit("Testing", "lanternftw@gmail.com");
+        assertEquals(200, responseCode);
+    }
+
+    private void testExceptional(final LanternHttpClient client) 
+        throws Exception {
+        final String requestBody = "{request: {}}";
+        final String url = "https://www.exceptional.io/api/errors?" +
+             "api_key=77&protocol_version=6";
+        final HttpPost post = new HttpPost(url);
+        post.setHeader(HttpHeaders.Names.CONTENT_ENCODING, "gzip");
+        final ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        GZIPOutputStream gos = null;
+        InputStream is = null;
+        gos = new GZIPOutputStream(baos);
+        gos.write(requestBody.getBytes("UTF-8"));
+        gos.close();
+        post.setEntity(new ByteArrayEntity(baos.toByteArray()));
+        System.err.println("Sending data to server...");
+        final HttpResponse response = client.execute(post);
+        System.err.println("Sent data to server...");
+
+        final int statusCode = response.getStatusLine().getStatusCode();
+        final HttpEntity responseEntity = response.getEntity();
+        is = responseEntity.getContent();
+        if (statusCode < 200 || statusCode > 299) {
+            final String body = IOUtils.toString(is);
+            InputStream bais = null;
+            OutputStream fos = null;
+            try {
+                bais = new ByteArrayInputStream(body.getBytes());
+                fos = new FileOutputStream(new File("bug_error.html"));
+                IOUtils.copy(bais, fos);
+            } finally {
+                IOUtils.closeQuietly(bais);
+                IOUtils.closeQuietly(fos);
+            }
+            final Header[] headers = response.getAllHeaders();
+            for (int i = 0; i < headers.length; i++) {
+                System.err.println(headers[i]);
+            }
+            fail("Error connecting to exceptional?");
+        }
+
+        // We always have to read the body.
+        EntityUtils.consume(responseEntity);
+
+        IOUtils.closeQuietly(is);
+        IOUtils.closeQuietly(gos);
+        post.reset();
+    }
 }
