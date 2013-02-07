@@ -30,71 +30,44 @@ attempting to reconnect to the bayeux server if the connection is lost.
 ### Subscription
 
 Upon successful connection to the bayeux server, the frontend will request
-subscription to a channel named `/sync`.
+subscription to a channel named `/sync`. This is the channel over which the
+frontend receives updates to its (initially empty) model object from the
+backend.
 
 
-### Initial publication: Initializing the frontend model
+### State updates
 
 When the bayeux server honors a client's subscription request to the `/sync`
-channel, it should immediately publish a message to that channel with the
-necessary state to initialize the model like so:
+channel, it should immediately publish a [JSON
+PATCH](https://datatracker.ietf.org/doc/draft-ietf-appsawg-json-patch/) to the
+channel with the necessary state to populate the model:
 
 ```json
 [{
-  "op": "add",
-  "path": "/foo",
-  "value": "bar"
- },{
-  "op": "add",
-  "path": "/baz",
-  "value": "qux"
- },{
- ...
-}]
-```
-
-This [JSON PATCH](http://tools.ietf.org/html/draft-ietf-appsawg-json-patch-09)
-document instructs the frontend to add a `"foo"` field its (initially empty)
-`model` object with the value `"bar"`, a `"baz"` field with value `"qux"`, etc.
-
-After handling this update, the frontend's `model` would look like:
-
-```json
-{
-  "foo": "bar",
-  "baz": "qux",
+  "op": "replace",
+  "path": "",
+  "value": {
+    "system": {
+      "os": "...",
   ...
-}
+ }
+]
 ```
-
-and all the views bound to the updated fields would get updated.
-
-
-### Subsequent publications: Updating the frontend model
 
 After initial state is published in full, updates to the state can likewise be
 published using JSON PATCH, e.g.
 
 ```json
 [{
-  "op": "replace",
-  "path": "/foo/bar/baz",
-  "value": {"fleem": 3456.78}
-}]
-```
-
-```json
-[{
-  "op": "remove",
-  "path": "/foo/bar/baz"
-}]
-```
-
-```json
-[{
   "op": "add",
-  "path": "/someArray/25",
-  "value": "elementToInsert"
+  "path": "/friends/pending/-",
+  "value": {
+    "email": "user@example.com"
+  }
+},{
+  "op": "replace",
+  "path": "/ninvites",
+  "value": 0
 }]
 ```
 
