@@ -21,7 +21,7 @@ var url = require('url'),
         OS = ENUMS.OS,
         SETTING = ENUMS.SETTING;
 
-var SKIPSETUP = false,
+var SKIPSETUP = true,
     MODALSEQ_GIVE = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.finished, MODAL.none],
     MODALSEQ_GET = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.proxiedSites, MODAL.systemProxy, MODAL.finished, MODAL.none];
 
@@ -150,20 +150,15 @@ ApiServlet._handlerForInteraction[INTERACTION.close] = function(res, data) {
   this._internalState.lastModal = MODAL.none;
 };
 
-// XXX update to new patch changes
 /*
 ApiServlet._handlerForInteraction[INTERACTION.developer] = function(res, data) {
-  if (!_.isArray(data)) throw Error('Expected array');
-  // XXX validate requested updates
-  for (var i=0, update=data[i]; update; update=data[++i]) {
-    if (update.delete) {
-      deleteByPath(this.model, update.path);
-    } else {
-      deleteByPath(this.model, update.path);
-      merge(this.model, update.value, update.path);
-    }
-    this.publishSync(update.path);
+  if (!_.isArray(data)) {
+    log('Expected array, got', data);
+    res.writeHead(400);
+    return;
   }
+  // XXX validate
+  this.sync(data);
 };
 */
 

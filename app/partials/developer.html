@@ -18,7 +18,10 @@
 
 <div id="model" class="collapse"
      ng-controller="DevCtrl" ng-show="dev.value" lang="en" dir="ltr">
+  <!-- use javascript console to edit model instead
   <textarea ng-model="editableModel" x-update-on-blur
             ng-readonly="!mockBackend"
             ng-change="handleUpdate()"></textarea>
+  -->
+  <textarea readonly>{{ model | json }}</textarea>
 </div>

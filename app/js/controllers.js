@@ -554,6 +554,7 @@ function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, modelSrvc) {
   var log = logFactory('DevCtrl'),
       model = modelSrvc.model;
 
+  /*
   $scope.$watch('model', function() {
     if (angular.isDefined(model) && dev.value) {
       $scope.editableModel = angular.toJson(model, true);
@@ -579,49 +580,10 @@ function DevCtrl($scope, dev, logFactory, MODEL_SYNC_CHANNEL, modelSrvc) {
 
   $scope.handleUpdate = function() {
     log.debug('in handleUpdate');
-    var updates = [];
-    syncObject('', angular.fromJson($scope.editableModel), sanitized(model), updates);
-    if (updates.length) {
-      $scope.interaction(INTERACTION.developer, updates);
+    var patch = constructPatch(angular.fromJson($scope.editableModel), sanitized(model));
+    if (patch.length) {
+      $scope.interaction(INTERACTION.developer, patch);
     }
   };
-
-  function syncObject(parent, src, dst, updates) {
-    if (!_.isPlainObject(src) || !_.isPlainObject(dst)) {
-      throw Error('src and dst must be objects');
-    }
-
-    if (_.isEqual(src, dst))
-      return;
-
-    // remove deleted fields
-    for (var name in dst) {
-      var path = (parent ? parent + '.' : '') + name;
-      if (!(name in src)) {
-        updates.push({path: path, delete: true});
-        delete dst[name];
-      }
-    }
-
-    // merge updated fields
-    for (var name in src) {
-      var path = (parent ? parent + '.' : '') + name;
-      if (_.isEqual(src[name], dst[name])) {
-        continue;
-      }
-      if (angular.isArray(src[name])) {
-        updates.push({path: path, value: src[name]});
-        dst[name] = src[name].slice();
-      } else if (angular.isObject(src[name])) {
-        if (!angular.isObject(dst[name])) {
-          updates.push({path: path, delete: true});
-          dst[name] = {};
-        }
-        syncObject(path, src[name], dst[name], updates);
-      } else {
-        updates.push({path: path, value: src[name]});
-        dst[name] = src[name];
-      }
-    }
-  }
+  */
 }
