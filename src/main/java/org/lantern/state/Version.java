@@ -22,17 +22,17 @@ import com.google.common.eventbus.Subscribe;
 public class Version {
 
     private final Installed installed = new Installed();
-    
+
     private Map<String, Object> latest = new TreeMap<String, Object>();
-    
+
     public Version() {
         Events.register(this);
     }
-    
+
     @Subscribe
     public void onUpdate(final UpdateEvent updateEvent) {
         this.latest = updateEvent.getData();
-        Events.asyncEventBus().post(new SyncEvent(SyncPath.VERSION_UPDATED, 
+        Events.asyncEventBus().post(new SyncEvent(SyncPath.VERSION_UPDATED,
             this.latest));
         this.installed.setUpdateAvailable(true);
     }
@@ -48,27 +48,27 @@ public class Version {
     }
 
     public class Installed {
-        
+
         private final int major;
-        
+
         private final int minor;
 
         private final int patch;
-        
+
         private final String tag = "";
-        
+
         private final String git;
-                
+
         private final SemanticVersion httpApi = new SemanticVersion(0, 0, 1);
-        
+
         private final SemanticVersion stateSchema = new SemanticVersion(0, 0, 1);
-        
+
         private final SemanticVersion bayeuxProtocol = new SemanticVersion(0, 0, 1);
-        
+
         private final Date released;
-        
+
         private boolean updateAvailable = false;
-        
+
         public Installed() {
             if (NumberUtils.isNumber(LanternConstants.BUILD_TIME)) {
                 released = new Date(Long.parseLong(LanternConstants.BUILD_TIME));
@@ -88,8 +88,8 @@ public class Version {
                 git = StringUtils.substringAfter(parts[2], "-");
             }
         }
-        
-        
+
+
         public int getMajor() {
             return major;
         }
@@ -136,18 +136,18 @@ public class Version {
         public void setUpdateAvailable(boolean updateAvailable) {
             this.updateAvailable = updateAvailable;
         }
-        
+
     }
 
     public class SemanticVersion {
         private final int major;
-        
+
         private final int minor;
-        
+
         private final int patch;
-        
+
         private final boolean mock = true;
-        
+
         public SemanticVersion(final int major, final int minor, final int patch) {
             this.major = major;
             this.minor = minor;

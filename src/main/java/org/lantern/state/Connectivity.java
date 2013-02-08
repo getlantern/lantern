@@ -21,21 +21,21 @@ import com.google.common.eventbus.Subscribe;
  * Class representing data about Lantern's connectivity.
  */
 public class Connectivity {
-    
+
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     private GoogleTalkState gtalk = GoogleTalkState.notConnected;
-    
+
     private String ip = "";
-    
+
     private boolean gtalkAuthorized = false;
-    
+
     private boolean internet = false;
-    
+
     private boolean invited = false;
 
     private PeerProxyManager peerProxyManager;
-    
+
     public Connectivity() {
         Events.register(this);
     }
@@ -44,7 +44,7 @@ public class Connectivity {
     public GoogleTalkState getGTalk() {
         return gtalk;
     }
-    
+
     @JsonView({Run.class})
     public Collection<Peer> getPeers() {
         return Collections.emptyList();
@@ -55,28 +55,28 @@ public class Connectivity {
         return Collections.emptyList();
         */
     }
-    
+
     /*
     public Collection<Peer> getPeersCurrent() {
         //return peers(LanternHub.trustedPeerProxyManager());
         return Collections.emptyList();
     }
-    
+
     @JsonView({Run.class, Persistent.class})
     public Collection<Peer> getPeersLifetime() {
         //return peers(LanternHub.trustedPeerProxyManager());
         return Collections.emptyList();
     }
-    
+
     public Collection<Peer> getAnonymousPeers() {
         return Collections.emptyList();
     }
-    
+
     private Collection<Peer> peers(final PeerProxyManager ppm) {
         return ppm.getPeers().values();
     }
     */
-    
+
     @Subscribe
     public void onConnectedPeers(final ConnectedPeersEvent cpe) {
         if (this.peerProxyManager == null) {
