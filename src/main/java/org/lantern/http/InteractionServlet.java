@@ -35,7 +35,7 @@ import com.google.inject.Singleton;
 public class InteractionServlet extends HttpServlet {
 
     private final InternalState internalState;
-    
+
     private enum Interaction {
         GET,
         GIVE,
@@ -50,9 +50,9 @@ public class InteractionServlet extends HttpServlet {
         RETRY,
         REQUESTINVITE,
     }
-    
+
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     /**
      * Generated serialization ID.
      */
@@ -63,9 +63,9 @@ public class InteractionServlet extends HttpServlet {
     private final Model model;
 
     private final ModelIo modelIo;
-    
+
     @Inject
-    public InteractionServlet(final Model model, 
+    public InteractionServlet(final Model model,
         final ModelService modelService,
         final InternalState internalState,
         final ModelIo modelIo) {
@@ -74,22 +74,22 @@ public class InteractionServlet extends HttpServlet {
         this.internalState = internalState;
         this.modelIo = modelIo;
     }
-    
+
     @Override
-    protected void doGet(final HttpServletRequest req, 
-        final HttpServletResponse resp) throws ServletException, 
+    protected void doGet(final HttpServletRequest req,
+        final HttpServletResponse resp) throws ServletException,
         IOException {
         processRequest(req, resp);
     }
-    
+
     @Override
-    protected void doPost(final HttpServletRequest req, 
-        final HttpServletResponse resp) throws ServletException, 
+    protected void doPost(final HttpServletRequest req,
+        final HttpServletResponse resp) throws ServletException,
         IOException {
         processRequest(req, resp);
     }
-    
-    protected void processRequest(final HttpServletRequest req, 
+
+    protected void processRequest(final HttpServletRequest req,
         final HttpServletResponse resp) {
         final String uri = req.getRequestURI();
         log.debug("Received URI: {}", uri);
@@ -101,9 +101,9 @@ public class InteractionServlet extends HttpServlet {
             HttpUtils.sendClientError(resp, "interaction argument required!");
             return;
         }
-        
+
         log.debug("Headers: "+HttpUtils.getRequestHeaders(req));
-        
+
         final int cl = req.getContentLength();
         String json = "";
         if (cl > 0) {
@@ -113,10 +113,10 @@ public class InteractionServlet extends HttpServlet {
                 log.error("Could not parse json?");
             }
         }
-        
+
         log.debug("Body: '"+json+"'");
-        
-        final Interaction inter = 
+
+        final Interaction inter =
             Interaction.valueOf(interactionStr.toUpperCase());
         final Modal modal = this.model.getModal();
         switch (modal) {
@@ -268,7 +268,7 @@ public class InteractionServlet extends HttpServlet {
             case CONTINUE:
                 log.debug("Processing continue...applying JSON: {}", json);
                 applyJson(json);
-                
+
                 this.internalState.setModalCompleted(Modal.systemProxy);
                 this.internalState.advanceModal(null);
                 break;
@@ -363,7 +363,7 @@ public class InteractionServlet extends HttpServlet {
         Events.eventBus().post(new SyncEvent(SyncPath.MODE, mode));
         this.modelService.setMode(mode);
     }
-    
+
     private void handleReset() {
         // This posts the reset event to any classes that need to take action,
         // avoiding coupling this class to those classes.
@@ -389,5 +389,5 @@ public class InteractionServlet extends HttpServlet {
         model.setShowVis(base.isShowVis());
         modelIo.write();
     }
-   
+
 }

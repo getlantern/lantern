@@ -68,7 +68,6 @@ import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
-import org.lantern.util.LanternHttpClient;
 import org.lastbamboo.common.offer.answer.NoAnswerException;
 import org.lastbamboo.common.p2p.P2PClient;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
