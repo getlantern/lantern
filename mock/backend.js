@@ -1,7 +1,9 @@
 'use strict';
 
-var url = require('url'),
+var fs = require('fs'),
+    url = require('url'),
     sleep = require('./node_modules/sleep'),
+    faye = require('./node_modules/faye'),
     _ = require('../app/lib/lodash.js')._,
     helpers = require('../app/js/helpers.js'),
       makeLogger = helpers.makeLogger,
@@ -11,6 +13,7 @@ var url = require('url'),
     scenarios = require('./scenarios'),
       SCENARIOS = scenarios.SCENARIOS,
     constants = require('../app/js/constants.js'),
+      MODEL_SYNC_CHANNEL = constants.MODEL_SYNC_CHANNEL,
       EMAIL = constants.INPUT_PAT.EMAIL,
       LANG = constants.LANG,
       ENUMS = constants.ENUMS,
@@ -21,60 +24,64 @@ var url = require('url'),
         OS = ENUMS.OS,
         SETTING = ENUMS.SETTING;
 
-var SKIPSETUP = true,
+var SKIPSETUP = process.argv[2] === '--skip-setup' || process.argv[3] === '--skip-setup',
+    VERSION = {major: 0, minor: 0, patch: 1},
+    MOUNT_POINT = 'api',
+    RESET_MODEL = JSON.parse(fs.readFileSync(__dirname+'/RESET_MODEL.json')),
+    RESET_INTERNAL_STATE = {
+      lastModal: MODAL.none,
+      modalsCompleted: {
+        welcome: false,
+        authorize: false,
+        proxiedSites: false,
+        systemProxy: false,
+        lanternFriends: false,
+        finished: false
+      },
+      appliedScenarios: {
+        os: 'osx',
+        location: 'nyc',
+        internet: 'true',
+        updateAvailable: 'true',
+        gtalkAuthorized: 'true',
+        invited: 'true',
+        ninvites: '10',
+        gtalkReachable: 'true',
+        roster: 'roster1',
+        friends: 'friends1',
+        peers: 'peers1',
+        countries: 'countries1'
+      }
+    },
+    DEFAULT_PROXIED_SITES = RESET_MODEL.settings.proxiedSites.slice(0),
     MODALSEQ_GIVE = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.finished, MODAL.none],
     MODALSEQ_GET = [MODAL.welcome, MODAL.authorize, MODAL.lanternFriends, MODAL.proxiedSites, MODAL.systemProxy, MODAL.finished, MODAL.none];
 
-// XXX refactor bayeuxbackend vs httpapi vs model
-// XXX better name?
-function ApiServlet(bayeuxBackend) {
-  this.bayeuxBackend = bayeuxBackend;
+function MockBackend(bayeuxBackend) {
+  var this_ = this;
+  this.clients = {};
+  this.bayeux = new faye.NodeAdapter({mount: '/cometd', timeout: 45});
+  this.bayeux.bind('subscribe', function(clientId, channel) {
+    log('[subscribe]', 'client:', clientId, 'channel:', channel);
+    if (channel === MODEL_SYNC_CHANNEL) this_.clients[clientId] = true;
+    this_.sync();
+  });
+  this.bayeux.bind('unsubscribe', function(clientId, channel) {
+    log('[unsubscribe]', 'client:', clientId, 'channel:', channel);
+    if (channel === MODEL_SYNC_CHANNEL) delete this_.clients[clientId];
+  });
   this.reset();
-  this.DEFAULT_PROXIED_SITES = bayeuxBackend.model.settings.proxiedSites.slice(0);
 }
 
-ApiServlet.VERSION = {
-  major: 0,
-  minor: 0,
-  patch: 1
-  };
-ApiServlet.MOUNT_POINT = 'api';
-
-ApiServlet.RESET_INTERNAL_STATE = {
-  lastModal: MODAL.none,
-  appliedScenarios: {
-    os: 'osx',
-    location: 'nyc',
-    internet: 'true',
-    updateAvailable: 'true',
-    gtalkAuthorized: 'true',
-    invited: 'true',
-    ninvites: '10',
-    gtalkReachable: 'true',
-    roster: 'roster1',
-    friends: 'friends1',
-    peers: 'peers1',
-    countries: 'countries1'
-  }
-};
-
-ApiServlet.prototype.reset = function() {
-  this._internalState = _.cloneDeep(ApiServlet.RESET_INTERNAL_STATE);
-  this._internalState.modalsCompleted = {
-    welcome: SKIPSETUP,
-    authorize: SKIPSETUP,
-    proxiedSites: SKIPSETUP,
-    systemProxy: SKIPSETUP,
-    lanternFriends: SKIPSETUP,
-    finished: SKIPSETUP
-  };
-  this.bayeuxBackend.resetModel();
-  this.model = this.bayeuxBackend.model;
-  this.model.version.installed.httpApi = ApiServlet.VERSION;
+MockBackend.prototype.reset = function() {
+  this._internalState = _.cloneDeep(RESET_INTERNAL_STATE);
+  if (SKIPSETUP) for (var key in this._internalState.modalsCompleted) this._internalState.modalsCompleted[key] = true;
+  this.model = _.cloneDeep(RESET_MODEL);
+  this.model.version.installed.api = _.cloneDeep(VERSION);
   this.model.mock = {scenarios: {applied: {}, all: SCENARIOS}};
   var applied = this._internalState.appliedScenarios;
   for (var groupKey in applied) {
-    var groupObj = getByPath(SCENARIOS, '/'+groupKey),
+    var groupObj = SCENARIOS[groupKey],
         scenKey = applied[groupKey],
         scenObj = groupObj[scenKey];
     if (groupObj._applyImmediately || scenObj._applyImmediately)
@@ -83,20 +90,26 @@ ApiServlet.prototype.reset = function() {
   }
   this.sync();
   if (SKIPSETUP) {
-    ApiServlet._handlerForModal[MODAL.authorize].call(this, INTERACTION.continue);
+    MockBackend._handlerForModal[MODAL.authorize].call(this, INTERACTION.continue);
     this._internalState.lastModal = MODAL.none;
     this.sync({'/modal': MODAL.none, '/showVis': true, '/settings/mode': MODE.give});
   }
 };
 
-ApiServlet.prototype.sync = function(patch) {
+MockBackend.prototype.attachServer = function(http_server) {
+  this.bayeux.attach(http_server);
+};
+
+MockBackend.prototype.sync = function(patch) {
   if (_.isPlainObject(patch)) {
     patch = _.map(patch, function(value, path) {
       return {op: 'add', path: path, value: value};
     });
   }
   if (patch) applyPatch(this.model, patch);
-  this.bayeuxBackend.publishSync(patch);
+  if (_.isEmpty(this.clients)) return;
+  if (!patch) patch = [{op: 'replace', path: '', value: this.model}];
+  this.bayeux.getClient().publish(MODEL_SYNC_CHANNEL, patch);
 };
 
 /*
@@ -104,7 +117,7 @@ ApiServlet.prototype.sync = function(patch) {
  * Needed because some modals can be skipped if the user is
  * unable to complete them, but should be returned to later.
  * */
-ApiServlet.prototype._advanceModal = function(backToIfNone) {
+MockBackend.prototype._advanceModal = function(backToIfNone) {
   var modalSeq = this.inGiveMode() ? MODALSEQ_GIVE : MODALSEQ_GET,
       next;
   for (var i=0; this._internalState.modalsCompleted[next=modalSeq[i++]];);
@@ -114,20 +127,20 @@ ApiServlet.prototype._advanceModal = function(backToIfNone) {
 };
 
 
-ApiServlet.prototype.inCensoringCountry = function() {
+MockBackend.prototype.inCensoringCountry = function() {
   return this.model.countries[this.model.location.country].censors;
 };
 
-ApiServlet.prototype.inGiveMode = function() {
+MockBackend.prototype.inGiveMode = function() {
   return this.model.settings.mode == MODE.give;
 };
 
-ApiServlet.prototype.inGetMode = function() {
+MockBackend.prototype.inGetMode = function() {
   return this.model.settings.mode == MODE.get;
 };
 
 
-ApiServlet._handlerForInteraction = {};
+MockBackend._handlerForInteraction = {};
 
 var _globalModals = {};
 _globalModals[INTERACTION.updateAvailable] = MODAL.updateAvailable;
@@ -138,20 +151,19 @@ _globalModals[INTERACTION.proxiedSites] = MODAL.proxiedSites;
 _globalModals[INTERACTION.settings] = MODAL.settings;
 _globalModals[INTERACTION.scenarios] = MODAL.scenarios;
 _.forEach(_globalModals, function(modal, interaction) {
-  ApiServlet._handlerForInteraction[interaction] = function(res, data) {
+  MockBackend._handlerForInteraction[interaction] = function(res, data) {
     if (this.model.modal == modal) return;
     this._internalState.lastModal = this.model.modal;
     this.sync({'/modal': modal});
   };
 });
 
-ApiServlet._handlerForInteraction[INTERACTION.close] = function(res, data) {
+MockBackend._handlerForInteraction[INTERACTION.close] = function(res, data) {
   this.sync({'/modal': this._internalState.lastModal});
   this._internalState.lastModal = MODAL.none;
 };
 
-/*
-ApiServlet._handlerForInteraction[INTERACTION.developer] = function(res, data) {
+MockBackend._handlerForInteraction[INTERACTION.developer] = function(res, data) {
   if (!_.isArray(data)) {
     log('Expected array, got', data);
     res.writeHead(400);
@@ -160,10 +172,9 @@ ApiServlet._handlerForInteraction[INTERACTION.developer] = function(res, data) {
   // XXX validate
   this.sync(data);
 };
-*/
 
-ApiServlet._handlerForModal = {};
-ApiServlet._handlerForModal[MODAL.contact] = function(interaction, res, data) {
+MockBackend._handlerForModal = {};
+MockBackend._handlerForModal[MODAL.contact] = function(interaction, res, data) {
   if (interaction != INTERACTION.continue && interaction != INTERACTION.cancel) {
     res.writeHead(400);
     return;
@@ -176,7 +187,7 @@ ApiServlet._handlerForModal[MODAL.contact] = function(interaction, res, data) {
   this._internalState.lastModal = MODAL.none;
 };
 
-ApiServlet._handlerForModal[MODAL.scenarios] = function(interaction, res, data) {
+MockBackend._handlerForModal[MODAL.scenarios] = function(interaction, res, data) {
   if (interaction == INTERACTION.cancel) {
     this.sync({'/modal': this._internalState.lastModal});
     this._internalState.lastModal = MODAL.none;
@@ -209,7 +220,7 @@ ApiServlet._handlerForModal[MODAL.scenarios] = function(interaction, res, data) 
 };
 
 
-ApiServlet._handlerForModal[MODAL.welcome] = function(interaction, res, data) {
+MockBackend._handlerForModal[MODAL.welcome] = function(interaction, res, data) {
   if (!(interaction in MODE)) return res.writeHead(400);
   if (interaction == INTERACTION.give && this.inCensoringCountry()) {
     this._internalState.lastModal = MODAL.welcome;
@@ -221,7 +232,7 @@ ApiServlet._handlerForModal[MODAL.welcome] = function(interaction, res, data) {
   this._advanceModal();
 };
 
-ApiServlet._handlerForModal[MODAL.giveModeForbidden] = function(interaction, res) {
+MockBackend._handlerForModal[MODAL.giveModeForbidden] = function(interaction, res) {
   if (interaction == INTERACTION.cancel || interaction == INTERACTION.continue) {
     if (interaction == INTERACTION.continue) {
       this.sync({'/settings/mode': MODE.get});
@@ -233,7 +244,7 @@ ApiServlet._handlerForModal[MODAL.giveModeForbidden] = function(interaction, res
   }
 };
 
-ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
+MockBackend._handlerForModal[MODAL.authorize] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
 
   this._internalState.lastModal = MODAL.authorize;
@@ -345,20 +356,20 @@ ApiServlet._handlerForModal[MODAL.authorize] = function(interaction, res) {
   this._advanceModal(this._internalState.lastModal);
 };
 
-ApiServlet._handlerForModal[MODAL.proxiedSites] = function(interaction, res, data) {
+MockBackend._handlerForModal[MODAL.proxiedSites] = function(interaction, res, data) {
   if (interaction == INTERACTION.continue) {
     this._internalState.modalsCompleted[MODAL.proxiedSites] = true;
     this._advanceModal(this._internalState.lastModal);
   } else if (interaction == INTERACTION.set) {
     this.sync({'/settings/proxiedSites': data.value});
   } else if (interaction == INTERACTION.reset) {
-    this.sync({'/settings/proxiedSites': this.DEFAULT_PROXIED_SITES});
+    this.sync({'/settings/proxiedSites': DEFAULT_PROXIED_SITES});
   } else {
     res.writeHead(400);
   }
 };
 
-ApiServlet._handlerForModal[MODAL.systemProxy] = function(interaction, res, data) {
+MockBackend._handlerForModal[MODAL.systemProxy] = function(interaction, res, data) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
   this.sync({'/settings/systemProxy': data});
   if (data.value) sleep.usleep(750000);
@@ -366,7 +377,7 @@ ApiServlet._handlerForModal[MODAL.systemProxy] = function(interaction, res, data
   this._advanceModal();
 };
 
-ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res, data) {
+MockBackend._handlerForModal[MODAL.lanternFriends] = function(interaction, res, data) {
   if (interaction == INTERACTION.continue) {
     if (data && data.invite) {
       if (data.invite.length > this.model.ninvites) {
@@ -401,7 +412,7 @@ ApiServlet._handlerForModal[MODAL.lanternFriends] = function(interaction, res, d
   }
 };
 
-ApiServlet._handlerForModal[MODAL.gtalkUnreachable] = function(interaction, res) {
+MockBackend._handlerForModal[MODAL.gtalkUnreachable] = function(interaction, res) {
   if (interaction == INTERACTION.retry) {
     this.sync({'/modal': MODAL.authorize});
   } else if (interaction == INTERACTION.retryLater) {
@@ -411,7 +422,7 @@ ApiServlet._handlerForModal[MODAL.gtalkUnreachable] = function(interaction, res)
   }
 };
 
-ApiServlet._handlerForModal[MODAL.authorizeLater] = function(interaction, res) {
+MockBackend._handlerForModal[MODAL.authorizeLater] = function(interaction, res) {
   if (interaction != INTERACTION.continue) {
     res.writeHead(400);
     return;
@@ -419,7 +430,7 @@ ApiServlet._handlerForModal[MODAL.authorizeLater] = function(interaction, res) {
   this.sync({'/modal': MODAL.none, showVis: true});
 };
 
-ApiServlet._handlerForModal[MODAL.notInvited] = function(interaction, res) {
+MockBackend._handlerForModal[MODAL.notInvited] = function(interaction, res) {
   if (interaction == INTERACTION.retry) {
     this.sync({'/modal': MODAL.authorize});
   } else if (interaction == INTERACTION.requestInvite) {
@@ -429,17 +440,17 @@ ApiServlet._handlerForModal[MODAL.notInvited] = function(interaction, res) {
   }
 };
 
-ApiServlet._handlerForModal[MODAL.requestSent] = function(interaction, res) {
+MockBackend._handlerForModal[MODAL.requestSent] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
   this.sync({'/modal': MODAL.none, '/showVis': true});
 };
 
-ApiServlet._handlerForModal[MODAL.firstInviteReceived] = function(interaction, res) {
+MockBackend._handlerForModal[MODAL.firstInviteReceived] = function(interaction, res) {
   if (interaction != INTERACTION.continue) return res.writeHead(400);
   this._advanceModal(this._internalState.lastModal);
 };
 
-ApiServlet._handlerForModal[MODAL.finished] = function(interaction, res, data) {
+MockBackend._handlerForModal[MODAL.finished] = function(interaction, res, data) {
   if (interaction == INTERACTION.set && data &&
       data.path == '/settings/autoReport' && _.isBoolean(data.value)) {
     this.sync({'/settings/autoReport': data.value});
@@ -451,7 +462,7 @@ ApiServlet._handlerForModal[MODAL.finished] = function(interaction, res, data) {
   this.sync({'/modal': MODAL.none, '/setupComplete': true, '/showVis': true});
 };
 
-ApiServlet._handlerForModal[MODAL.settings] = function(interaction, res, data) {
+MockBackend._handlerForModal[MODAL.settings] = function(interaction, res, data) {
   this._internalState.lastModal = MODAL.settings;
   if (interaction in MODE) {
     if (interaction == MODE.give && this.inCensoringCountry()) {
@@ -481,7 +492,7 @@ ApiServlet._handlerForModal[MODAL.settings] = function(interaction, res, data) {
   }
 };
 
-ApiServlet._handlerForModal[MODAL.confirmReset] = function(interaction, res) {
+MockBackend._handlerForModal[MODAL.confirmReset] = function(interaction, res) {
   if (interaction == INTERACTION.cancel) {
     this.sync({'/modal': this._internalState.lastModal});
   } else if (interaction == INTERACTION.reset) {
@@ -492,7 +503,7 @@ ApiServlet._handlerForModal[MODAL.confirmReset] = function(interaction, res) {
   }
 };
 
-ApiServlet.prototype.handleRequest = function(req, res) {
+MockBackend.prototype.handleRequest = function(req, res) {
   var self = this, handled = false;
   log(req.url.href);
   // POST /api/<x.y.z>/interaction/<interactionid>
@@ -506,9 +517,9 @@ ApiServlet.prototype.handleRequest = function(req, res) {
         ver = (verstr || '').split('.'),
         interaction = parts[3],
         interactionid = parts[4];
-    if (mnt != ApiServlet.MOUNT_POINT ||
-        ver[0] != ApiServlet.VERSION.major ||
-        ver[1] != ApiServlet.VERSION.minor ||
+    if (mnt != MOUNT_POINT ||
+        ver[0] != VERSION.major ||
+        ver[1] != VERSION.minor ||
         interaction != 'interaction' ||
         !(interactionid in INTERACTION)) {
       res.writeHead(404);
@@ -527,14 +538,14 @@ ApiServlet.prototype.handleRequest = function(req, res) {
           }
         }
         if (!error) {
-          if (interactionid in ApiServlet._handlerForInteraction) {
-            var handler = ApiServlet._handlerForInteraction[interactionid];
+          if (interactionid in MockBackend._handlerForInteraction) {
+            var handler = MockBackend._handlerForInteraction[interactionid];
             if (handler)
               handler.call(self, res, data);
             else
               res.writeHead(404);
           } else {
-            var handler = ApiServlet._handlerForModal[self.model.modal];
+            var handler = MockBackend._handlerForModal[self.model.modal];
             if (handler)
               handler.call(self, interactionid, res, data);
             else
@@ -554,4 +565,4 @@ ApiServlet.prototype.handleRequest = function(req, res) {
 };
 
 
-exports.ApiServlet = ApiServlet;
+exports.MockBackend = MockBackend;

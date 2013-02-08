@@ -139,8 +139,7 @@ if (typeof angular == 'object' && angular && typeof angular.module == 'function'
     .constant('VER', [0, 0, 1]) // XXX pull from package.json or some such?
     .constant('REQUIRED_VERSIONS', {
       modelSchema: {major: 0, minor: 0},
-      httpApi: {major: 0, minor: 0},
-      bayeuxProtocol: {major: 0, minor: 0}
+      api: {major: 0, minor: 0}
     });
 } else if (typeof exports == 'object' && exports && typeof module == 'object' && module && module.exports == exports) {
   module.exports = {

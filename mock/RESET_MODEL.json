@@ -63,8 +63,7 @@
         "minor":0,
         "patch":1
       },
-      "httpApi":{},
-      "bayeuxProtocol":{}
+      "api":{}
     }
   },
   "countries":{

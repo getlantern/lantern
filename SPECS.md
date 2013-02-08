@@ -315,34 +315,19 @@ the backend maintains on the frontend through comet publications:
                   version published by the backend according to semantic
                   versioning (different major or minor)</small></strong>
                 </td></tr>
-              <tr><td><strong>httpApi</strong><br><em>object</em></td>
+              <tr><td><strong>api</strong><br><em>object</em></td>
                 <td>
                   <table>
                     <tr><td><strong>major</strong><br><em>int</em></td>
-                      <td>http api major version</td></tr>
+                      <td>api major version</td></tr>
                     <tr><td><strong>minor</strong><br><em>int</em></td>
-                      <td>http api minor version</td></tr>
+                      <td>api minor version</td></tr>
                     <tr><td><strong>patch</strong><br><em>int</em></td>
-                      <td>http api patch version</td></tr>
+                      <td>api patch version</td></tr>
                   </table><br><br>
                   <strong><small>The UI should display an 'unexpected state' error
-                  if its required http api version is incompatible with the
+                  if its required api version is incompatible with the
                   version published by the backend according to semantic
-                  versioning (different major or minor)</small></strong>
-                </td></tr>
-              <tr><td><strong>bayeuxProtocol</strong><br><em>object</em></td>
-                <td>
-                  <table>
-                    <tr><td><strong>major</strong><br><em>int</em></td>
-                      <td>bayeux protocol major version</td></tr>
-                    <tr><td><strong>minor</strong><br><em>int</em></td>
-                      <td>bayeux protocol minor version</td></tr>
-                    <tr><td><strong>patch</strong><br><em>int</em></td>
-                      <td>bayeux protocol patch version</td></tr>
-                  </table><br><br>
-                  <strong><small>The UI should display an 'unexpected state' error
-                  if its required bayeux protocol version is incompatible with
-                  the version published by the backend according to semantic
                   versioning (different major or minor)</small></strong>
                 </td></tr>
             </table>

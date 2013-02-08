@@ -158,7 +158,7 @@ angular.module('app.services', [])
     function handleSync(msg) {
       var patch = msg.data;
       if (patch[0].path === '') {
-        // XXX jsonpatch can't mutate root object
+        // XXX jsonpatch can't mutate root object https://github.com/dharmafly/jsonpatch.js/issues/10
         angular.copy(patch[0].value, model);
       } else {
         applyPatch(model, patch);
@@ -181,12 +181,12 @@ angular.module('app.services', [])
     };
   })
   .service('apiSrvc', function($http, REQUIRED_VERSIONS) {
-    var ver = [REQUIRED_VERSIONS.httpApi.major,
-               REQUIRED_VERSIONS.httpApi.minor].join('.');
+    var ver = [REQUIRED_VERSIONS.api.major,
+               REQUIRED_VERSIONS.api.minor].join('.');
     return {
       interaction: function(interactionid, data) {
         var url = ['', 'api', ver, 'interaction', interactionid].join('/');
-        return $http.post(url, data); // XXX need data || {}?
+        return $http.post(url, data);
       }
     };
   });

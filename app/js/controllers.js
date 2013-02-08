@@ -102,8 +102,8 @@ function SanityCtrl($scope, sanity, modelSrvc, cometdSrvc, MODAL, REQUIRED_VERSI
       for (var key in {major: 'major', minor: 'minor'}) {
         if (installed[module][key] != REQUIRED_VERSIONS[module][key]) {
           sanity.value = false;
-          log.error('Available version of', moduleName, installed[moduleName],
-           'incompatible with required version', requiredVer);
+          log.error('Available version of', module, installed[module],
+           'incompatible with required version', REQUIRED_VERSIONS[module]);
            return;
         }
       }

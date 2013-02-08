@@ -57,6 +57,10 @@ Start up the Node.js mock server simulating the Lantern backend:
 The new UI should now be available at
 [http://localhost:8000/app/index.html](http://localhost:8000/app/index.html)
 
+To skip the setup process and go straight to an already setup instance, run:
+
+    $ scripts/web-server.js --skip-setup
+
 
 ## Running tests
 

@@ -5,8 +5,7 @@ var util = require('util'),
     fs = require('fs'),
     url = require('url'),
     events = require('events');
-var BayeuxBackend = require('../mock/bayeux_backend').BayeuxBackend,
-    ApiServlet = require('../mock/http_api').ApiServlet;
+var MockBackend = require('../mock/backend').MockBackend;
 
 var DEFAULT_PORT = 8000;
 
@@ -37,11 +36,10 @@ function createServlet(Class) {
  */
 function HttpServer(handlers) {
   this.handlers = handlers;
-  this.bayeuxBackend = new BayeuxBackend();
-  var apiServlet = new ApiServlet(this.bayeuxBackend);
-  this.handlers['POST'] = apiServlet.handleRequest.bind(apiServlet);
+  var mockBackend = new MockBackend(this);
+  this.handlers.POST = mockBackend.handleRequest.bind(mockBackend);
   this.server = http.createServer(this.handleRequest_.bind(this));
-  this.bayeuxBackend.attachServer(this.server);
+  mockBackend.attachServer(this.server);
 }
 
 HttpServer.prototype.start = function(port) {
