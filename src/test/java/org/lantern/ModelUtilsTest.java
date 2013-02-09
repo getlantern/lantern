@@ -23,6 +23,7 @@ public class ModelUtilsTest {
         }, new LanternKeyStoreManager());
         */
         
+        System.setProperty("javax.net.debug", "ssl");
         final KeyStoreManager ksm = new LanternKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
         final LanternSocketsUtil socketsUtil = 
@@ -68,6 +69,8 @@ public class ModelUtilsTest {
         assertTrue(data.getLatitude() > 50.0);
         assertTrue(data.getLongitude() < 3.0);
         assertEquals("gb", data.getCountrycode());
+        
+        System.setProperty("javax.net.debug", "");
     }
 
 }

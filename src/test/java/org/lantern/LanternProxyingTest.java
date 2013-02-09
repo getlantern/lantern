@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
  * End-to-end proxying test to make sure we're able to proxy access to 
  * different sites.
  */
-@Ignore
+//@Ignore
 public class LanternProxyingTest {
 
     private final Logger log = LoggerFactory.getLogger(getClass());

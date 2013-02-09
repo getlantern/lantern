@@ -68,6 +68,7 @@ public class LanternSocketsUtilTest {
             // exception message, which likely varies across JVMs and platforms.
             assertTrue(e instanceof SSLHandshakeException);
         }
+        TestUtils.close();
     }
 
     private void testClient(final SSLSocketFactory client, 
