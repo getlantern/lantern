@@ -59,9 +59,9 @@ public class Version {
 
         private final String git;
 
-        private final SemanticVersion httpApi = new SemanticVersion(0, 0, 1);
+        private final SemanticVersion api = new SemanticVersion(0, 0, 1);
 
-        private final SemanticVersion stateSchema = new SemanticVersion(0, 0, 1);
+        private final SemanticVersion modelSchema = new SemanticVersion(0, 0, 1);
 
         private final SemanticVersion bayeuxProtocol = new SemanticVersion(0, 0, 1);
 
@@ -111,16 +111,16 @@ public class Version {
         }
 
         @JsonView({Run.class})
-        public SemanticVersion getHttpApi() {
-            return httpApi;
+        public SemanticVersion getApi() {
+            return api;
         }
 
         public Date getReleased() {
             return released;
         }
 
-        public SemanticVersion getStateSchema() {
-            return stateSchema;
+        public SemanticVersion getModelSchema() {
+            return modelSchema;
         }
 
         public SemanticVersion getBayeuxProtocol() {
