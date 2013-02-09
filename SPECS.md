@@ -49,9 +49,11 @@ channel with the necessary state to populate the model:
   "value": {
     "system": {
       "os": "...",
-  ...
- }
-]
+      ...
+    },
+    ...
+  }
+}]
 ```
 
 After initial state is published in full, updates to the state can likewise be
@@ -63,15 +65,12 @@ published using JSON PATCH, e.g.
   "path": "/friends/pending/-",
   "value": {
     "email": "user@example.com"
-  }
 },{
   "op": "replace",
   "path": "/ninvites",
   "value": 0
 }]
 ```
-
-etc. 
 
 <hr>
 
@@ -109,7 +108,7 @@ the backend maintains on the frontend through comet publications:
         <tr><td><strong>memory</strong><br>"4 GB 1333 MHz DDR3" | ...</td>
             <td>memory</td></tr>
         <tr><td><strong>bytesFree</strong><br>int</td>
-            <td>available bytes on disk</td></tr>
+            <td>available bytes on the disk Lantern writes to</td></tr>
         <tr><td><strong>graphics</strong><br>"Intel HD Graphics 3000 384 MB" | ...</td>
             <td>graphics</td></tr>
         <tr><td><strong>displays</strong><br>[[1280, 1024]] | ...</td>
@@ -145,7 +144,7 @@ the backend maintains on the frontend through comet publications:
     <td><strong>countries</strong><br><em>object</em></td>
     <td>
       <table>
-        <tr><td><strong>country code</strong><br>"UK" | "RU" | ...</td>
+        <tr><td><strong>&lt;COUNTRY-CODE&gt;</strong><br>"AD" | "AE" | "AF" | ...</td>
           <td>
             <table>
               <tr><td><strong>censors</strong><br><em>boolean</em></td>
@@ -300,7 +299,7 @@ the backend maintains on the frontend through comet publications:
     "zh": "(Chinese translation of <a href=\"#\">feature y</a>)"
   }
 ]</pre></td>
-              <tr><td><strong>stateSchema</strong><br><em>object</em></td>
+              <tr><td><strong>modelSchema</strong><br><em>object</em></td>
                 <td>
                   <table>
                     <tr><td><strong>major</strong><br><em>int</em></td>
@@ -311,7 +310,7 @@ the backend maintains on the frontend through comet publications:
                       <td>state schema patch version</td></tr>
                   </table><br><br>
                   <strong><small>The UI should display an 'unexpected state' error
-                  if its required state schema version is incompatible with the
+                  if its required model schema version is incompatible with the
                   version published by the backend according to semantic
                   versioning (different major or minor)</small></strong>
                 </td></tr>
@@ -558,8 +557,7 @@ the backend maintains on the frontend through comet publications:
     <td>
       <table>
         <tr><td><strong>current</strong><br><em>object[]</em></td>
-          <td>List of the user's Lantern friends, i.e. contacts on her roster
-            who are Lantern users.<br>
+          <td>
             <table>
               <tr><td><strong>email</strong><br><em>email</em></td>
                 <td>The friend's email address.</td>
@@ -570,9 +568,7 @@ the backend maintains on the frontend through comet publications:
             </table>
           </td></tr>
         <tr><td><strong>pending</strong><br><em>object[]</em></td>
-          <td>List of the user's pending Lantern friends, i.e. contacts not on
-            her roster who have invited her to connect on Lantern. <em>As in</em>
-            <code>profile</code>.</td></tr>
+          <td><em>As in</em> <code>current</code>.</td></tr>
       </table>
     </td>
   </tr>
@@ -613,25 +609,25 @@ the backend maintains on the frontend through comet publications:
           <td>Whether in give mode or get mode.</td>
         </tr>
         <tr>
-          <td><strong>proxyPort</strong><a href="note-get-mode-only"><sup>1</sup></a><br><em>int</em></td>
+          <td><strong>proxyPort</strong><a href="#note-get-mode-only"><sup>1</sup></a><br><em>int</em></td>
           <td>The port the Lantern http proxy is running on.</td>
         </tr>
         <tr>
-          <td><strong>systemProxy</strong><a href="note-get-mode-only"><sup>1</sup></a><br><em>boolean</em></td>
+          <td><strong>systemProxy</strong><a href="#note-get-mode-only"><sup>1</sup></a><br><em>boolean</em></td>
           <td>Whether to try to set Lantern as the system proxy.</td>
         </tr>
         <tr>
-          <td><strong>proxyAllSites</strong><a href="note-get-mode-only"><sup>1</sup></a><br><em>boolean</em></td>
+          <td><strong>proxyAllSites</strong><a href="#note-get-mode-only"><sup>1</sup></a><br><em>boolean</em></td>
           <td>Whether to proxy all sites or only those on
             <code>proxiedSites</code>.
           </td>
         </tr>
         <tr>
-          <td><strong>proxiedSites</strong><a href="note-get-mode-only"><sup>1</sup></a><br><em>string[]</em></td>
+          <td><strong>proxiedSites</strong><a href="#note-get-mode-only"><sup>1</sup></a><br><em>string[]</em></td>
           <td>List of domains to proxy traffic to.</td>
         </tr>
       </table>
-      <br><small><a name="note-get-mode-only">1</a> Only present when in "get" mode</small>
+      <br><small><a name="note-get-mode-only">1</a> Only used when in "get" mode</small>
     </td>
   </tr>
 </table>
@@ -641,17 +637,18 @@ the backend maintains on the frontend through comet publications:
 
 ## HTTP API
 
+All of the following endpoints should be accessed via POST request only.
 
 <table>
   <tr><td><code>/interaction/<em>&lt;interactionid&gt;</em></code></td>
     <td>Notify the backend of the user interaction specified by
-    <code>interactionid</code>, optionally passing additional requested updates
-    to the model in a JSON-encoded request body in the format of the update
-    protocol, e.g. <code>{"path": "/foo/bar", "value": "baz"}</code></td></tr>
+    <code>interactionid</code>, optionally passing associated data
+    in a JSON-encoded request body, e.g. <code>POST /interaction/set</code>
+    <br><br><code>{"path": "/settings/autoReport", "value": true}</code>
   <tr><td><code>/exception</code></td>
     <td>Notify the backend of the exception described by the JSON-encoded
     request body<br>
-    <strong>XXX <em>specify this</em></strong>
+    <strong>XXX implement this</strong>
     </td></tr>
 </table>
 
@@ -660,10 +657,10 @@ the backend maintains on the frontend through comet publications:
 
 ## Reference implementations
 
-lantern-ui's development server, invoked via `./scripts/web-server.js`,
-attaches a mock http api and bayeux backend to simulate a real backend.
-The mock implementations can be found in the `/mock` directory and can serve
-as reference implementations of these specifications.
+lantern-ui's development server includes a mock backend to facilitate testing
+and development (see [README.md](README.md)). The mock backend implementation,
+found in the `/mock` directory, can serve as a reference implementation of
+these specifications.
 
 <hr>
 
