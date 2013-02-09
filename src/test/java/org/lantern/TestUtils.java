@@ -4,6 +4,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Properties;
 
 import javax.security.auth.login.CredentialException;
@@ -74,6 +76,8 @@ public class TestUtils {
 
     private static LanternHttpClient httpClient;
 
+    private static Injector injector;
+
     static {
         InputStream is = null;
         try {
@@ -94,38 +98,68 @@ public class TestUtils {
         }
         //load();
     }
+    public static void load() {
+        load(false);
+    }
     
-    private static void load() {
+    public static void load(final boolean start) {
         loaded = true;
-        final Injector injector = Guice.createInjector(new LanternModule());
+        injector = Guice.createInjector(new LanternModule());
         
-        xmppHandler = injector.getInstance(DefaultXmppHandler.class);
-        socketsUtil = injector.getInstance(LanternSocketsUtil.class);
-        ksm = injector.getInstance(LanternKeyStoreManager.class);
-        lanternXmppUtil = injector.getInstance(LanternXmppUtil.class);
-        localCipherProvider = injector.getInstance(LocalCipherProvider.class);
-        encryptedFileService = injector.getInstance(EncryptedFileService.class);
-        model = injector.getInstance(Model.class);
-        jettyLauncher = injector.getInstance(JettyLauncher.class);
-        messageService = injector.getInstance(MessageService.class);
-        statsTracker = injector.getInstance(Stats.class);
-        roster = injector.getInstance(Roster.class);
-        modelService = injector.getInstance(ModelService.class);
-        anon = injector.getInstance(AnonymousPeerProxyManager.class);
-        proxifier = injector.getInstance(Proxifier.class);
-        modelUtils = injector.getInstance(ModelUtils.class);
-        modelIo = injector.getInstance(ModelIo.class);
-        proxyTracker = injector.getInstance(DefaultProxyTracker.class);
-        trustStore = injector.getInstance(LanternTrustStore.class);
-        httpClient = injector.getInstance(LanternHttpClient.class);
+        xmppHandler = instance(DefaultXmppHandler.class);
+        socketsUtil = instance(LanternSocketsUtil.class);
+        ksm = instance(LanternKeyStoreManager.class);
+        lanternXmppUtil = instance(LanternXmppUtil.class);
+        localCipherProvider = instance(LocalCipherProvider.class);
+        encryptedFileService = instance(EncryptedFileService.class);
+        model = instance(Model.class);
+        jettyLauncher = instance(JettyLauncher.class);
+        messageService = instance(MessageService.class);
+        statsTracker = instance(Stats.class);
+        roster = instance(Roster.class);
+        modelService = instance(ModelService.class);
+        anon = instance(AnonymousPeerProxyManager.class);
+        proxifier = instance(Proxifier.class);
+        modelUtils = instance(ModelUtils.class);
+        modelIo = instance(ModelIo.class);
+        proxyTracker = instance(DefaultProxyTracker.class);
+        trustStore = instance(LanternTrustStore.class);
+        httpClient = instance(LanternHttpClient.class);
         
         final Settings set = model.getSettings();
         set.setAccessToken(getAccessToken());
         set.setRefreshToken(getRefreshToken());
         set.setUseGoogleOAuth2(true);
-        xmppHandler.start();
+        
+        if (start) {
+            xmppHandler.start();
+        }
     }
     
+    private static <T> T instance(final Class<T> clazz) {
+        final T inst = injector.getInstance(clazz);
+        if (Shutdownable.class.isAssignableFrom(clazz)) {
+            addCloseHook((Shutdownable) inst);
+        }
+        if (inst == null) {
+            throw new NullPointerException("Could not load instance of "+clazz);
+        }
+        return inst;
+    }
+    
+    private static final Collection<Shutdownable> shutdownables =
+            new ArrayList<Shutdownable>();
+    
+    private static void addCloseHook(final Shutdownable inst) {
+        shutdownables.add(inst);
+    }
+    
+    public static void close() {
+        for (final Shutdownable shutdown : shutdownables) {
+            shutdown.stop();
+        }
+    }
+
     public static XMPPConnection xmppConnection() throws CredentialException, 
         IOException {
         final GoogleOAuth2Credentials creds = TestUtils.getGoogleOauthCreds();
@@ -258,6 +292,10 @@ public class TestUtils {
     public static LanternHttpClient getHttpClient() {
         if (!loaded) load();
         return httpClient;
+    }
+
+    public static LanternTrustStore buildTrustStore() {
+        return new LanternTrustStore(null, new LanternKeyStoreManager());
     }
 
 }

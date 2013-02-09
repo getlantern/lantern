@@ -19,6 +19,7 @@ import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
+import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.ThreadUtils;
 
 public class LanternSocketsUtilTest {
@@ -31,12 +32,17 @@ public class LanternSocketsUtilTest {
     public void testMutualAuthentication() throws Exception {
         //System.setProperty("javax.net.debug", "all");
         //System.setProperty("javax.net.debug", "ssl");
-        final LanternKeyStoreManager ksm = TestUtils.getKsm();
-        final LanternTrustStore trustStore = TestUtils.getTrustStore();
+        //final LanternKeyStoreManager ksm = TestUtils.getKsm();
+        //final LanternTrustStore trustStore = TestUtils.getTrustStore();
+        
+        final KeyStoreManager ksm = new LanternKeyStoreManager();
+        final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
+        //final LanternTrustStore trustStore = TestUtils.buildTrustStore();
         final String testId = "test@gmail.com/somejidresource";
         trustStore.addBase64Cert(testId, ksm.getBase64Cert(testId));
         
-        final LanternSocketsUtil util = TestUtils.getSocketsUtil();
+        final LanternSocketsUtil util = new LanternSocketsUtil(null, trustStore);
+        //final LanternSocketsUtil util = TestUtils.getSocketsUtil();
         
         final AtomicReference<String> data = new AtomicReference<String>();
         accept(util, data);
