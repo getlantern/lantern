@@ -192,7 +192,7 @@ public class DefaultCensored implements Censored {
     private String countryCode(final InetAddress address) {
         final com.maxmind.geoip.Country country = 
             lookupService.getCountry(address);
-        LOG.info("Country is: {}", country.getName());
+        LOG.debug("Country is: {}", country.getName());
         return country.getCode().trim();
     }
 }
