@@ -70,58 +70,6 @@ public class LanternTrustStore {
         }, "Keystore-Delete-Thread"));
     }
 
-    public void addBase64Cert(final String fullJid, final String base64Cert) 
-        throws IOException {
-        log.debug("Adding base 64 cert");
-        this.certTracker.addCert(base64Cert, fullJid);
-        // Alright, we need to decode the certificate from base 64, write it
-        // to a file, and then use keytool to import it.
-        
-        // Here's the keytool doc:
-        /*
-         * -importcert  [-v] [-noprompt] [-trustcacerts] [-protected]
-         [-alias <alias>]
-         [-file <cert_file>] [-keypass <keypass>]
-         [-keystore <keystore>] [-storepass <storepass>]
-         [-storetype <storetype>] [-providername <name>]
-         [-providerclass <provider_class_name> [-providerarg <arg>]] ...
-         [-providerpath <pathlist>]
-         */
-        final byte[] decoded = Base64.decodeBase64(base64Cert);
-        final String normalizedAlias = 
-            FileUtils.removeIllegalCharsFromFileName(fullJid);
-        final File certFile = new File(normalizedAlias);
-        OutputStream os = null;
-        try {
-            os = new FileOutputStream(certFile);
-            IOUtils.copy(new ByteArrayInputStream(decoded), os);
-        } catch (final IOException e) {
-            log.error("Could not write to file: " + certFile, e);
-            throw e;
-        } finally {
-            IOUtils.closeQuietly(os);
-        }
-        /*
-         * -delete      [-v] [-protected] -alias <alias>
-         [-keystore <keystore>] [-storepass <storepass>]
-         [-storetype <storetype>] [-providername <name>]
-         [-providerclass <provider_class_name> [-providerarg <arg>]] ...
-         [-providerpath <pathlist>]
-         */
-        
-        // Make sure we delete the old one (will fail when it doesn't exist -
-        // this is expected).
-        deleteCert(normalizedAlias);
-        addCert(normalizedAlias, certFile);
-        
-        // get rid of our imported file
-        certFile.delete();
-        certFile.deleteOnExit();
-
-        // We need to reload the keystore with the latest data.
-        onTrustStoreChanged();
-    }
-
     private void onTrustStoreChanged() {
         sslContext = provideSslContext();
     }
@@ -182,6 +130,61 @@ public class LanternTrustStore {
             getTrustStorePath(), "-storepass", PASS);
         
         log.debug("Result of running keytool: {}", result);
+    }
+    
+
+    public void addBase64Cert(final String fullJid, final String base64Cert) 
+        throws IOException {
+        log.debug("Adding base 64 cert");
+        if (this.certTracker != null) {
+            this.certTracker.addCert(base64Cert, fullJid);
+        }
+        // Alright, we need to decode the certificate from base 64, write it
+        // to a file, and then use keytool to import it.
+        
+        // Here's the keytool doc:
+        /*
+         * -importcert  [-v] [-noprompt] [-trustcacerts] [-protected]
+         [-alias <alias>]
+         [-file <cert_file>] [-keypass <keypass>]
+         [-keystore <keystore>] [-storepass <storepass>]
+         [-storetype <storetype>] [-providername <name>]
+         [-providerclass <provider_class_name> [-providerarg <arg>]] ...
+         [-providerpath <pathlist>]
+         */
+        final byte[] decoded = Base64.decodeBase64(base64Cert);
+        final String normalizedAlias = 
+            FileUtils.removeIllegalCharsFromFileName(fullJid);
+        final File certFile = new File(normalizedAlias);
+        OutputStream os = null;
+        try {
+            os = new FileOutputStream(certFile);
+            IOUtils.copy(new ByteArrayInputStream(decoded), os);
+        } catch (final IOException e) {
+            log.error("Could not write to file: " + certFile, e);
+            throw e;
+        } finally {
+            IOUtils.closeQuietly(os);
+        }
+        /*
+         * -delete      [-v] [-protected] -alias <alias>
+         [-keystore <keystore>] [-storepass <storepass>]
+         [-storetype <storetype>] [-providername <name>]
+         [-providerclass <provider_class_name> [-providerarg <arg>]] ...
+         [-providerpath <pathlist>]
+         */
+        
+        // Make sure we delete the old one (will fail when it doesn't exist -
+        // this is expected).
+        deleteCert(normalizedAlias);
+        addCert(normalizedAlias, certFile);
+        
+        // get rid of our imported file
+        certFile.delete();
+        certFile.deleteOnExit();
+
+        // We need to reload the keystore with the latest data.
+        onTrustStoreChanged();
     }
 
     private String getTrustStorePath() {

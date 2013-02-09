@@ -26,6 +26,7 @@ public class DefaultXmppHandlerTest {
      */
     @Test 
     public void testControllerMessages() throws Exception {
+        TestUtils.load(true);
         final Model model = TestUtils.getModel();
         final org.lantern.state.Settings settings = model.getSettings();
         settings.setProxies(new HashSet<String>());

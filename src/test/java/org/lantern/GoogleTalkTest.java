@@ -13,6 +13,7 @@ public class GoogleTalkTest {
     
     @Test
     public void testGoogleTalk() throws Exception {
+        TestUtils.load(true);
         TestUtils.getModel().getSettings().setUseAnonymousPeers(false);
         TestUtils.getModel().getSettings().setUseTrustedPeers(false);
         //final String email = TestUtils.loadTestEmail();
