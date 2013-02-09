@@ -439,6 +439,8 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
     tags: [],
     tokenSeparators: [',', ' '],
     multiple: true,
+    closeOnSelect: false,
+  //selectOnBlur: true, // requires select2 3.3
     maximumSelectionSize: function() {
       return model.ninvites || 0;
     },

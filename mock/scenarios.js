@@ -321,7 +321,7 @@ exports.SCENARIOS = {
                 '/connectivity/peers/lifetime': peers
               });
               setInterval(function() {
-                if (Math.random() < .75) return;
+                if (Math.random() < .75 || !this_.model.showVis) return;
                 var peersCurrent = getByPath(this_.model, '/connectivity/peers/current');
                 //log('peersCurrent:', _.pluck(peersCurrent, 'peerid'));
                 if (_.isEmpty(peersCurrent)) {
@@ -357,24 +357,44 @@ exports.SCENARIOS = {
     countries1: {
       desc: 'countries1',
       func: function() {
-        var this_ = this;
+        var this_ = this,
+            update = {};
+
+        // do this on reset
+        _.forEach(this.model.countries, function(_, country) {
+          updateCountry(country, update);
+        });
+        this_.sync(update);
+
         setInterval(function() {
-          var country = randomChoice(this_.model.countries),
-              stats = this_.model.countries[country],
-              censors = stats.censors,
-              npeersOnlineGive = getByPath(stats, '/npeers/online/give',
-                                           censors ? 0 : _.random(0, 1000)),
-              npeersOnlineGet = getByPath(stats, '/npeers/online/get',
-                                censors ? _.random(0, 1000) :_.random(0, 500)),
-              npeersOnlineGive_ = censors ? npeersOnlineGive :
-                                  Math.max(0, npeersOnlineGive + _.random(-50, 50)),
-              npeersOnlineGet_ = Math.max(0, npeersOnlineGet + _.random(-50, 50)),
-              update = {};
-          update['/countries/'+country+'/npeers/online/give'] = npeersOnlineGive_;
-          update['/countries/'+country+'/npeers/online/get'] = npeersOnlineGet_;
-          update['/countries/'+country+'/npeers/online/giveGet'] = npeersOnlineGive_ + npeersOnlineGet_;
+          if (!this_.model.showVis) return;
+          var update = {}, ncountries = _.random(0, 15);
+          for (var i=0; i<ncountries; ++i) {
+            var country = randomChoice(this_.model.countries);
+            updateCountry(country, update);
+          }
           this_.sync(update);
         }, 1000);
+
+        function updateCountry(country, update) {
+          var stats = this_.model.countries[country],
+              censors = stats.censors,
+              npeersOnlineGive = getByPath(stats, '/npeers/online/give'),
+              npeersOnlineGet = getByPath(stats, '/npeers/online/get');
+          if (_.isUndefined(npeersOnlineGive)) {
+            npeersOnlineGive = npeersOnlineGive || censors ? 0 : _.random(0, 1000);
+            npeersOnlineGet = npeersOnlineGet || censors ? _.random(0, 1000) : _.random(0, 500);
+          }
+          npeersOnlineGive = censors ? npeersOnlineGive : Math.max(0, npeersOnlineGive + _.random(-100, 100));
+          npeersOnlineGet = Math.max(0, npeersOnlineGet + _.random(-100, 100)),
+          update['/countries/'+country+'/npeers'] = {
+            online: {
+              give: npeersOnlineGive,
+              get: npeersOnlineGet,
+              giveGet: npeersOnlineGive + npeersOnlineGet
+            }
+          };
+        }
       }
     }
   }

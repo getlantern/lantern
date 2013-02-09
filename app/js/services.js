@@ -43,7 +43,6 @@ angular.module('app.services', [])
       //logLevel: 'debug',
       backoffIncrement: 100,
       maxBackoff: 500,
-      maxNetworkDelay: 100,
       // necessary to work with Faye backend when browser lacks websockets:
       // https://groups.google.com/d/msg/faye-users/8cr_4QZ-7cU/sKVLbCFDkEUJ
       appendMessageTypeToURL: false
@@ -164,7 +163,7 @@ angular.module('app.services', [])
         applyPatch(model, patch);
       }
       $rootScope.$apply();
-      log.debug('[handleSync] applied patch', msg.data);
+      //log.debug('[handleSync] applied patch', msg.data);
     }
 
     syncSubscriptionKey = {chan: MODEL_SYNC_CHANNEL, cb: handleSync};

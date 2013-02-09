@@ -333,24 +333,18 @@ MockBackend._handlerForModal[MODAL.authorize] = function(interaction, res) {
   // XXX show this in UI?
   scen = getByPath(this.model, '/mock/scenarios/applied/peers');
   scen = getByPath(SCENARIOS, '/peers/'+scen);
-  if (!scen) {
-    this.updateModel({'/modal': MODAL.scenarios,
-      '/mock/scenarios/prompt': 'No peers scenario applied.'});
-    return;
+  if (scen) {
+    log('applying peers scenario', scen.desc);
+    scen.func.call(this);
   }
-  log('applying peers scenario', scen.desc);
-  scen.func.call(this);
 
   // country statistics
   scen = getByPath(this.model, '/mock/scenarios/applied/countries');
   scen = getByPath(SCENARIOS, '/countries/'+scen);
-  if (!scen) {
-    this.sync({'/modal': MODAL.scenarios,
-      '/mock/scenarios/prompt': 'No countries scenario applied.'});
-    return;
+  if (scen) {
+    log('applying countries scenario', scen.desc);
+    scen.func.call(this);
   }
-  log('applying countries scenario', scen.desc);
-  scen.func.call(this);
 
   this._internalState.modalsCompleted[MODAL.authorize] = true;
   this._advanceModal(this._internalState.lastModal);

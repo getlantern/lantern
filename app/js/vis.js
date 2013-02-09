@@ -114,7 +114,7 @@ function VisCtrl($scope, $window, logFactory, modelSrvc, CONFIG) {
     }
     fill = colorPrefix+(scaledOpacity||0)+')';
     $scope.fillByCountry[country] = fill;
-    log.debug('updated fill for country', country, 'to', fill);
+    //log.debug('updated fill for country', country, 'to', fill);
   }
 
   var unwatchAllCountries = $scope.$watch('model.countries', function(countries) {
