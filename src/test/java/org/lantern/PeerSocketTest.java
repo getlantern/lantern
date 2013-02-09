@@ -26,6 +26,7 @@ public class PeerSocketTest {
         // this test to work. In the future we'll likely develop a test
         // framework that simulates things like unpredictable network latency
         // and doesn't require live tests over the network.
+        TestUtils.load(true);
         final DefaultXmppHandler xmpp = TestUtils.getXmppHandler();
         xmpp.connect();
 

@@ -104,6 +104,7 @@ public class LanternUtilsTest {
             //"SSL_RSA_WITH_RC4_128_SHA",
             //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
         });
+        TestUtils.load(true);
         final XmppHandler xmpp = TestUtils.getXmppHandler();
         // We have to actually connect because the ID we use in the keystore
         // is our XMPP JID.
@@ -210,7 +211,7 @@ public class LanternUtilsTest {
         
         final Collection<InetSocketAddress> servers = 
             XmppUtils.googleStunServers(conn);
-        LOG.info("Retrieved {} STUN servers", servers.size());
+        LOG.debug("Retrieved {} STUN servers", servers.size());
         assertTrue(!servers.isEmpty());
         
         final Roster roster = conn.getRoster();
@@ -218,19 +219,19 @@ public class LanternUtilsTest {
             
             @Override
             public void entriesDeleted(final Collection<String> addresses) {
-                LOG.info("Entries deleted");
+                LOG.debug("Entries deleted");
             }
             @Override
             public void entriesUpdated(final Collection<String> addresses) {
-                LOG.info("Entries updated: {}", addresses);
+                LOG.debug("Entries updated: {}", addresses);
             }
             @Override
             public void presenceChanged(final Presence presence) {
-                LOG.info("Processing presence changed: {}", presence);
+                LOG.debug("Processing presence changed: {}", presence);
             }
             @Override
             public void entriesAdded(final Collection<String> addresses) {
-                LOG.info("Entries added: "+addresses);
+                LOG.debug("Entries added: "+addresses);
                 for (final String address : addresses) {
                     //presences.add(address);
                 }
@@ -244,10 +245,10 @@ public class LanternUtilsTest {
     public void testOtrMode() throws Exception {
         final XMPPConnection conn = TestUtils.xmppConnection();
         final String activateResponse = LanternUtils.activateOtr(conn).toXML();
-        LOG.info("Got response: {}", activateResponse);
+        LOG.debug("Got response: {}", activateResponse);
         
         final String allOtr = XmppUtils.getOtr(conn).toXML();
-        LOG.info("All OTR: {}", allOtr);
+        LOG.debug("All OTR: {}", allOtr);
         
         assertTrue("Unexpected response: "+allOtr, 
             allOtr.contains("google:nosave"));

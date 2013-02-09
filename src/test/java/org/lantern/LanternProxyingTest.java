@@ -1,6 +1,5 @@
 package org.lantern;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -16,6 +15,7 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
  * End-to-end proxying test to make sure we're able to proxy access to 
  * different sites.
  */
+@Ignore
 public class LanternProxyingTest {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -71,7 +72,7 @@ public class LanternProxyingTest {
         final HttpGet get = new HttpGet("http://"+url);
         //get.setHeader(HttpHeaders.Names.CONTENT_RANGE, "Range: bytes=0-1999999");
         //get.setHeader(HttpHeaders.Names.HOST, "rlanternz.appspot.com");
-    //    get.setHeader("Lantern-Version", "lantern_version_tok");
+        //get.setHeader("Lantern-Version", "lantern_version_tok");
         
         // Some sites require more standard headers to be present.
         get.setHeader("User-Agent", "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.7; rv:15.0) Gecko/20100101 Firefox/15.0");

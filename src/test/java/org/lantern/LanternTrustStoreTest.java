@@ -26,6 +26,7 @@ public class LanternTrustStoreTest {
     
     @Test
     public void testSites() throws Exception {
+        System.setProperty("javax.net.debug", "ssl");
         final LanternTrustStore trustStore = TestUtils.getTrustStore();
         final LanternSocketsUtil socketsUtil = TestUtils.getSocketsUtil();
         final SSLSocketFactory socketFactory = 
@@ -39,8 +40,8 @@ public class LanternTrustStoreTest {
         client.getConnectionManager().getSchemeRegistry().register(sch);
         
         client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 
-            50000);
-        client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 120000);
+            20000);
+        client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 30000);
 
         final String[] success = {"talk.google.com", "lanternctrl.appspot.com",
             "docs.google.com", "www.exceptional.io", "www.googleapis.com",
@@ -54,6 +55,7 @@ public class LanternTrustStoreTest {
         // just try to minimize the attack surface as much as possible.
         final String[] failure = {"chase.com"};
         for (final String uri : success) {
+            System.err.println("Trying: "+uri);
             try {
                 final String body = trySite(client, uri);
                 log.debug("SUCCESS BODY: "+body);
@@ -108,7 +110,7 @@ public class LanternTrustStoreTest {
             log.warn("Unexpected response code: "+code+" for "+uri+
                 " with body:\n"+body);
         }
-        get.releaseConnection();
+        get.reset();
         return body;
     }
 
