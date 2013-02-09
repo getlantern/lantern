@@ -16,6 +16,7 @@ import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
 import org.junit.Test;
 import org.lantern.util.LanternHostNameVerifier;
+import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,8 +28,12 @@ public class LanternTrustStoreTest {
     @Test
     public void testSites() throws Exception {
         System.setProperty("javax.net.debug", "ssl");
-        final LanternTrustStore trustStore = TestUtils.getTrustStore();
-        final LanternSocketsUtil socketsUtil = TestUtils.getSocketsUtil();
+        final KeyStoreManager ksm = new LanternKeyStoreManager();
+        final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
+        final LanternSocketsUtil socketsUtil = 
+            new LanternSocketsUtil(null, trustStore);
+        //final LanternTrustStore trustStore = TestUtils.getTrustStore();
+        //final LanternSocketsUtil socketsUtil = TestUtils.getSocketsUtil();
         final SSLSocketFactory socketFactory = 
             new SSLSocketFactory(socketsUtil.newTlsSocketFactory(), 
                 new LanternHostNameVerifier());
@@ -92,6 +97,7 @@ public class LanternTrustStoreTest {
                 // Expected since we should no longer trust talk.google.com
             }
         }
+        //TestUtils.close();
     }
 
     private String trySite(final HttpClient client, final String uri) 
