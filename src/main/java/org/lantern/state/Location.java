@@ -12,7 +12,7 @@ public class Location {
     private String country = "";
 
     private double lat = 0;
-    
+
     private double lon = 0;
 
     @JsonView({Run.class})
@@ -22,10 +22,10 @@ public class Location {
 
     public void setCountry(final String country) {
         if (country != null) {
-            this.country = country.toLowerCase();
+            this.country = country.toUpperCase();
         }
     }
-    
+
     @JsonView({Run.class, Persistent.class})
     public double getLat() {
         return lat;
