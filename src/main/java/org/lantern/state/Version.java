@@ -6,6 +6,7 @@ import java.util.TreeMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternConstants;
 import org.lantern.event.Events;
@@ -65,15 +66,15 @@ public class Version {
 
         private final SemanticVersion bayeuxProtocol = new SemanticVersion(0, 0, 1);
 
-        private final Date released;
+        private final Date releaseDate;
 
         private boolean updateAvailable = false;
 
         public Installed() {
             if (NumberUtils.isNumber(LanternConstants.BUILD_TIME)) {
-                released = new Date(Long.parseLong(LanternConstants.BUILD_TIME));
+                releaseDate = new Date(Long.parseLong(LanternConstants.BUILD_TIME));
             } else {
-                released = new Date(System.currentTimeMillis());
+                releaseDate = new Date(System.currentTimeMillis());
             }
             if ("lantern_version_tok".equals(LanternConstants.VERSION)) {
                 major = 0;
@@ -115,8 +116,9 @@ public class Version {
             return api;
         }
 
-        public Date getReleased() {
-            return released;
+        @JsonSerialize(using=DateSerializer.class)
+        public Date getReleaseDate() {
+            return releaseDate;
         }
 
         public SemanticVersion getModelSchema() {
