@@ -119,6 +119,7 @@ public class InteractionServlet extends HttpServlet {
         final Interaction inter =
             Interaction.valueOf(interactionStr.toUpperCase());
         final Modal modal = this.model.getModal();
+
         switch (modal) {
         case welcome:
             switch (inter) {
@@ -191,9 +192,16 @@ public class InteractionServlet extends HttpServlet {
                 log.debug("Processing settings in none");
                 Events.syncModal(model, Modal.settings);
                 break;
-            default:
+            case PROXIEDSITES:
+                log.debug("Processing proxied sites in none");
+                Events.syncModal(model, Modal.proxiedSites);
+                break;
+            case LANTERNFRIENDS:
                 log.debug("Processing friends in none");
                 Events.syncModal(model, Modal.lanternFriends);
+                break;
+            default:
+                log.debug("Unktnown modal in none");
                 break;
             }
             break;
