@@ -52,10 +52,10 @@ public class JsonModelModifier {
     }
 
     private String getMethodForPath(final String path) {
-        if (!path.contains(".")) {
+        if (!path.contains("/")) {
             return path;
         }
-        return StringUtils.substringAfter(path, ".");
+        return StringUtils.substringAfter(path, "/");
     }
 
     private void setProperty(final Object bean,

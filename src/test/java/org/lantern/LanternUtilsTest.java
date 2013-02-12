@@ -67,11 +67,11 @@ public class LanternUtilsTest {
 
         assertFalse(model.isLaunchd());
         Object obj = LanternUtils.getTargetForPath(model,
-            "version.installed.major");
+            "/version/installed/major");
 
         assertEquals(model.getVersion().getInstalled(), obj);
 
-        obj = LanternUtils.getTargetForPath(model, "settings.mode");
+        obj = LanternUtils.getTargetForPath(model, "/settings/mode");
 
         assertEquals(model.getSettings(), obj);
     }
