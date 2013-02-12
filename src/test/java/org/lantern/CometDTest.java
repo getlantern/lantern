@@ -73,9 +73,10 @@ public class CometDTest {
             @Override
             public void onMessage(final ClientSessionChannel channel, 
                 final Message message) {
-                final Map<String, Object> map = message.getDataAsMap();
+                Object[] data = (Object[]) message.getData();
+                @SuppressWarnings("unchecked")
+                final Map<String, Object> map = (Map<String, Object>) data[0];
                 //data.set(map);
-                
                 final String path = (String) map.get("path");
                 messagePath.set(path);
                 
@@ -103,7 +104,7 @@ public class CometDTest {
         Events.asyncEventBus().post(new UpdateEvent(updateJson));
         
         waitForBoolean(hasMessage);
-        assertEquals("version.latest", messagePath.get());
+        assertEquals("/version.latest", messagePath.get());
         hasMessage.set(false);
         messagePath.set("none");
     }
