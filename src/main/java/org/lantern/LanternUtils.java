@@ -84,29 +84,29 @@ import com.google.common.io.Files;
  */
 public class LanternUtils {
 
-    
-    private static final Logger LOG = 
+
+    private static final Logger LOG =
         LoggerFactory.getLogger(LanternUtils.class);
-    
+
     private static final SecureRandom secureRandom = new SecureRandom();
 
     private static String MAC_ADDRESS;
-    
+
     public static boolean isDevMode() {
         return LanternConstants.VERSION.equals("lantern_version_tok");
     }
-    
+
     public static String jidToUserId(final String fullId) {
         return fullId.split("/")[0];
     }
-    
+
     public static String jidToInstanceId(final String fullId) {
         return fullId.split("/")[1];
     }
-    
+
     /**
      * Helper method that ensures all written requests are properly recorded.
-     * 
+     *
      * @param request The request.
      */
     public static void writeRequest(final Queue<HttpRequest> httpRequests,
@@ -115,8 +115,8 @@ public class LanternUtils {
         LOG.debug("Writing request: {}", request);
         LanternUtils.genericWrite(request, cf);
     }
-    
-    public static void genericWrite(final Object message, 
+
+    public static void genericWrite(final Object message,
         final ChannelFuture future) {
         final Channel ch = future.getChannel();
         if (ch.isConnected()) {
@@ -124,7 +124,7 @@ public class LanternUtils {
         } else {
             future.addListener(new ChannelFutureListener() {
                 @Override
-                public void operationComplete(final ChannelFuture cf) 
+                public void operationComplete(final ChannelFuture cf)
                     throws Exception {
                     if (cf.isSuccess()) {
                         ch.write(message);
@@ -133,7 +133,7 @@ public class LanternUtils {
             });
         }
     }
-    
+
     /*
     public static Socket openRawOutgoingPeerSocket(
         final URI uri, final P2PClient p2pClient,
@@ -141,13 +141,13 @@ public class LanternUtils {
         return openOutgoingPeerSocket(uri, p2pClient, peerFailureCount, true);
     }
     */
-    
-    public static Socket openOutgoingPeerSocket(final URI uri, 
-        final P2PClient p2pClient, 
+
+    public static Socket openOutgoingPeerSocket(final URI uri,
+        final P2PClient p2pClient,
         final Map<URI, AtomicInteger> peerFailureCount) throws IOException {
         return openOutgoingPeerSocket(uri, p2pClient, peerFailureCount, false);
     }
-    
+
     private static Socket openOutgoingPeerSocket(
         final URI uri, final P2PClient p2pClient,
         final Map<URI, AtomicInteger> peerFailureCount,
@@ -157,7 +157,7 @@ public class LanternUtils {
             LOG.info("P2P client is null. Testing?");
             throw new IOException("P2P client not connected");
         }
-        
+
         // Start the connection attempt.
         try {
             LOG.info("Creating a new socket to {}", uri);
@@ -167,13 +167,13 @@ public class LanternUtils {
             } else {
                 sock = p2pClient.newSocket(uri);
             }
-            
+
             // Note that it's OK that this prints SSL_NULL_WITH_NULL_NULL --
             // the handshake doesn't actually happen until the first IO, so
             // the SSL ciphers and such should be all null at this point.
             LOG.debug("Got outgoing peer socket {}", sock);
             if (sock instanceof SSLSocket) {
-                LOG.debug("Socket has ciphers {}", 
+                LOG.debug("Socket has ciphers {}",
                     ((SSLSocket)sock).getEnabledCipherSuites());
             } else {
                 LOG.warn("Not an SSL socket...");
@@ -194,14 +194,14 @@ public class LanternUtils {
             else if (count.incrementAndGet() > 5) {
                 LOG.info("Got a bunch of failures in a row to this peer. " +
                     "Removing it.");
-                
-                // We still reset it back to zero. Note this all should 
+
+                // We still reset it back to zero. Note this all should
                 // ideally never happen, and we should be able to use the
                 // XMPP presence alerts to determine if peers are still valid
                 // or not.
                 peerFailureCount.put(uri, new AtomicInteger(0));
                 //proxyStatusListener.onCouldNotConnectToPeer(uri);
-            } 
+            }
             throw new IOExceptionWithCause(nae);
         } catch (final IOException ioe) {
             //proxyStatusListener.onCouldNotConnectToPeer(uri);
@@ -209,7 +209,7 @@ public class LanternUtils {
             throw ioe;
         }
     }
-    
+
     /*
     public static String getMacAddress() {
         if (MAC_ADDRESS != null) {
@@ -226,7 +226,7 @@ public class LanternUtils {
             final NetworkInterface ni = nis.nextElement();
             try {
                 if (!ni.isUp()) {
-                    LOG.info("Ignoring interface that's not up: {}", 
+                    LOG.info("Ignoring interface that's not up: {}",
                         ni.getDisplayName());
                     continue;
                 }
@@ -241,7 +241,7 @@ public class LanternUtils {
         }
         try {
             LOG.warn("Returning custom MAC address");
-            return macMe(InetAddress.getLocalHost().getHostAddress() + 
+            return macMe(InetAddress.getLocalHost().getHostAddress() +
                     System.currentTimeMillis());
         } catch (final UnknownHostException e) {
             final byte[] bytes = new byte[24];
@@ -265,7 +265,7 @@ public class LanternUtils {
     }
 
     private static String macMe(final byte[] mac) {
-        // We wrap the MAC in a SHA-1 to avoid distributing actual 
+        // We wrap the MAC in a SHA-1 to avoid distributing actual
         // MAC addresses.
         final MessageDigest md = new Sha1();
         md.update(mac);
@@ -273,21 +273,21 @@ public class LanternUtils {
         MAC_ADDRESS = Base64.encodeBase64URLSafeString(raw);
         return MAC_ADDRESS;
     }
-    
-    
+
+
     /**
      * This is the local proxy port data is relayed to on the "server" side
      * of P2P connections.
-     * 
+     *
      * NOT IN CONSTANTS BECAUSE LanternUtils INITIALIZES THE LOGGER, WHICH
-     * CAN'T HAPPEN IN CONSTANTS DUE TO THE CONFIGURATION SEQUENCE IN 
+     * CAN'T HAPPEN IN CONSTANTS DUE TO THE CONFIGURATION SEQUENCE IN
      * PRODUCTION.
      */
-    public static final int PLAINTEXT_LOCALHOST_PROXY_PORT = 
+    public static final int PLAINTEXT_LOCALHOST_PROXY_PORT =
         LanternUtils.randomPort();
 
     public static boolean isTransferEncodingChunked(final HttpMessage m) {
-        final List<String> chunked = 
+        final List<String> chunked =
             m.getHeaders(HttpHeaders.Names.TRANSFER_ENCODING);
         if (chunked.isEmpty()) {
             return false;
@@ -305,7 +305,7 @@ public class LanternUtils {
         final String userid = jidToUserId(jabberid);
         return LanternConstants.LANTERN_JID.equals(userid);
     }
-    
+
 
     public static boolean isLanternJid(final String from) {
         // Here's the format we're looking for: "-lan-"
@@ -321,7 +321,7 @@ public class LanternUtils {
      * request encoder.
      */
     private static final class RequestEncoder extends HttpRequestEncoder {
-        private ChannelBuffer encode(final HttpRequest request, 
+        private ChannelBuffer encode(final HttpRequest request,
             final Channel ch) throws Exception {
             return (ChannelBuffer) super.encode(null, ch, request);
         }
@@ -344,7 +344,7 @@ public class LanternUtils {
     public static Collection<String> toHttpsCandidates(final String uriStr) {
         final Collection<String> segments = new LinkedHashSet<String>();
         try {
-            final org.apache.commons.httpclient.URI uri = 
+            final org.apache.commons.httpclient.URI uri =
                 new org.apache.commons.httpclient.URI(uriStr, false);
             final String host = uri.getHost();
             //LOG.info("Using host: {}", host);
@@ -359,9 +359,9 @@ public class LanternUtils {
                 segments.add(segment);
                 segmented[i] = tmp;
             }
-            
+
             for (int i = 1; i < segmented.length - 1; i++) {
-                final String segment = 
+                final String segment =
                     "*." + StringUtils.join(segmented, '.', i, segmented.length);//segmented.slice(i,segmented.length).join(".");
                 //LOG.info("Checking segment: {}", segment);
                 segments.add(segment);
@@ -384,12 +384,12 @@ public class LanternUtils {
             }
         }
     }
-    
+
     public static boolean hasNetworkConnection() {
         LOG.debug("Checking for network connection by looking up public IP");
-        final InetAddress ip = 
+        final InetAddress ip =
             new PublicIpAddress().getPublicIpAddress();
-        
+
         LOG.debug("Returning result: "+ip);
         return ip != null;
     }
@@ -400,7 +400,7 @@ public class LanternUtils {
             return -1;
         }
         for (int i = 0; i < 20; i++) {
-            // The +1 on the random int is because 
+            // The +1 on the random int is because
             // Math.abs(Integer.MIN_VALUE) == Integer.MIN_VALUE -- caught
             // by FindBugs.
             final int randomPort = 1024 + (Math.abs(secureRandom.nextInt() + 1) % 60000);
@@ -420,9 +420,9 @@ public class LanternUtils {
                     }
                 }
             }
-            
+
         }
-        
+
         // If we can't grab one of our securely chosen random ports, use
         // whatever port the OS assigns.
         ServerSocket sock = null;
@@ -443,8 +443,8 @@ public class LanternUtils {
             }
         }
     }
-    
-    /** 
+
+    /**
      * Execute keytool, returning the output.
      */
     public static String runKeytool(final String... args) {
@@ -460,9 +460,9 @@ public class LanternUtils {
     private static String findKeytoolPath() {
 
         if (SystemUtils.IS_OS_MAC_OSX) {
-            // try to explicitly select the 1.6 keytool -- 
-            // The user may have 1.5 selected as the default 
-            // javavm (default in os x 10.5.8) 
+            // try to explicitly select the 1.6 keytool --
+            // The user may have 1.5 selected as the default
+            // javavm (default in os x 10.5.8)
             // in this case, the default location below will
             // point to the 1.5 keytool instead.
             final File keytool16 = new File(
@@ -470,7 +470,7 @@ public class LanternUtils {
             if (keytool16.exists()) {
                 return keytool16.getAbsolutePath();
             }
-        } 
+        }
         final File jh = new File(System.getProperty("java.home"), "bin");
         if (jh.isDirectory()) {
             final String name;
@@ -487,7 +487,7 @@ public class LanternUtils {
         } else {
             LOG.warn("java.home/bin not a directory? "+jh);
         }
-        
+
         final File defaultLocation = new File("/usr/bin/keytool");
         if (defaultLocation.exists()) {
             return defaultLocation.getAbsolutePath();
@@ -499,15 +499,15 @@ public class LanternUtils {
         LOG.error("Could not find keytool?!?!?!?");
         return null;
     }
-    
+
     public static Packet activateOtr(final XMPPConnection conn) {
         return XmppUtils.goOffTheRecord(LanternConstants.LANTERN_JID, conn);
     }
-    
+
     public static Packet deactivateOtr(final XMPPConnection conn) {
         return XmppUtils.goOnTheRecord(LanternConstants.LANTERN_JID, conn);
     }
-    
+
     public static void browseUrl(final String uri) {
         if( !Desktop.isDesktopSupported() ) {
             LOG.error("Desktop not supported?");
@@ -526,7 +526,7 @@ public class LanternUtils {
             LOG.warn("Could not load URI", e);
         }
     }
-    
+
     public static char[] readPasswordCLI() throws IOException {
         Console console = System.console();
         if (console == null) {
@@ -540,7 +540,7 @@ public class LanternUtils {
             throw new IOException("Could not read pass from console", e);
         }
     }
-    
+
     public static String readLineCLI() throws IOException {
         Console console = System.console();
         if (console == null) {
@@ -552,7 +552,7 @@ public class LanternUtils {
             throw new IOException("Could not read line from console", e);
         }
     }
-        
+
     public static String readLineCliNoConsole() {
         LOG.debug("No console -- using System.in...");
         final Scanner sc = new Scanner(System.in, "UTF-8");
@@ -562,7 +562,7 @@ public class LanternUtils {
     }
 
     public static String jsonify(final Object all) {
-        
+
         final ObjectMapper mapper = new ObjectMapper();
         mapper.configure(Feature.INDENT_OUTPUT, true);
         //mapper.configure(Feature.SORT_PROPERTIES_ALPHABETICALLY, false);
@@ -578,7 +578,7 @@ public class LanternUtils {
         }
         return "";
     }
-    
+
     public static String jsonify(final Object all, final Class<?> view) {
         final ObjectMapper mapper = new ObjectMapper();
         mapper.configure(Feature.INDENT_OUTPUT, true);
@@ -594,11 +594,11 @@ public class LanternUtils {
         }
         return "";
     }
-    
+
     /**
      * Returns <code>true</code> if the specified string is either "true" or
      * "on" ignoring case.
-     * 
+     *
      * @param val The string in question.
      * @return <code>true</code> if the specified string is either "true" or
      * "on" ignoring case, otherwise <code>false</code>.
@@ -610,7 +610,7 @@ public class LanternUtils {
     /**
      * Returns <code>true</code> if the specified string is either "false" or
      * "off" ignoring case.
-     * 
+     *
      * @param val The string in question.
      * @return <code>true</code> if the specified string is either "false" or
      * "off" ignoring case, otherwise <code>false</code>.
@@ -619,22 +619,22 @@ public class LanternUtils {
         return checkTrueOrFalse(val, "false", "off");
     }
 
-    private static boolean checkTrueOrFalse(final String val, 
+    private static boolean checkTrueOrFalse(final String val,
         final String str1, final String str2) {
         final String str = val.trim();
-        return StringUtils.isNotBlank(str) && 
+        return StringUtils.isNotBlank(str) &&
             (str.equalsIgnoreCase(str1) || str.equalsIgnoreCase(str2));
     }
 
     /**
      * Replaces the first instance of the specified regex in the given file
      * with the replacement string and writes out the new complete file.
-     * 
+     *
      * @param file The file to modify.
      * @param regex The regular expression to search for.
      * @param replacement The replacement string.
      */
-    public static void replaceInFile(final File file, 
+    public static void replaceInFile(final File file,
         final String regex, final String replacement) {
         LOG.debug("Replacing "+regex+" with "+replacement+" in "+file);
         try {
@@ -646,13 +646,13 @@ public class LanternUtils {
         }
     }
 
-    public static void loadJarLibrary(final Class<?> jarRepresentative, 
+    public static void loadJarLibrary(final Class<?> jarRepresentative,
         final String fileName) throws IOException {
         File tempDir = null;
-        InputStream is = null; 
+        InputStream is = null;
         try {
             tempDir = Files.createTempDir();
-            final File tempLib = new File(tempDir, fileName); 
+            final File tempLib = new File(tempDir, fileName);
             is = jarRepresentative.getResourceAsStream("/" + fileName);
             FileUtils.copyInputStreamToFile(is, tempLib);
             System.load(tempLib.getAbsolutePath());
@@ -661,10 +661,10 @@ public class LanternUtils {
             IOUtils.closeQuietly(is);
         }
     }
-    
-    public static String fileInJarToString(final String fileName) 
+
+    public static String fileInJarToString(final String fileName)
         throws IOException {
-        InputStream is = null; 
+        InputStream is = null;
         try {
             is = LanternUtils.class.getResourceAsStream("/" + fileName);
             return IOUtils.toString(is);
@@ -683,7 +683,7 @@ public class LanternUtils {
     /**
      * Creates a typed object from the specified string. If the string is a
      * boolean, this returns a boolean, if an int, an int, etc.
-     * 
+     *
      * @param val The string.
      * @return A typed object.
      */
@@ -694,21 +694,21 @@ public class LanternUtils {
             return false;
         } else if (NumberUtils.isNumber(val)) {
             return Integer.parseInt(val);
-        } 
+        }
         return val;
     }
     /**
      * Prints request headers.
-     * 
+     *
      * @param request The request.
      */
     public static void printRequestHeaders(final HttpServletRequest request) {
         LOG.info(getRequestHeaders(request).toString());
     }
-    
+
     /**
      * Gets request headers as a string.
-     * 
+     *
      * @param request The request.
      * @return The request headers as a string.
      */
@@ -727,7 +727,7 @@ public class LanternUtils {
         }
         return sb.toString();
     }
-    
+
     public static void zeroFill(char[] array) {
         if (array != null) {
             Arrays.fill(array, '\0');
@@ -739,8 +739,8 @@ public class LanternUtils {
             Arrays.fill(array, (byte) 0);
         }
     }
-    
-    
+
+
     public static boolean isUnlimitedKeyStrength() {
         try {
             return Cipher.getMaxAllowedKeyLength("AES") == Integer.MAX_VALUE;
@@ -766,7 +766,7 @@ public class LanternUtils {
         */
         return isEmail;
     }
-    
+
     public static boolean isGoogleTalkReachable() {
         final Socket sock = new Socket();
         try {
@@ -776,7 +776,7 @@ public class LanternUtils {
             return false;
         }
     }
-    
+
     public static Point getScreenCenter(final int width, final int height) {
         final Toolkit toolkit = Toolkit.getDefaultToolkit();
         final Dimension screenSize = toolkit.getScreenSize();
@@ -790,7 +790,7 @@ public class LanternUtils {
         while (attempts < 10000) {
             final Socket sock = new Socket();
             try {
-                final SocketAddress isa = 
+                final SocketAddress isa =
                     new InetSocketAddress("127.0.0.1", port);
                 sock.connect(isa, 2000);
                 return;
@@ -818,26 +818,26 @@ public class LanternUtils {
      * in particular on Ubuntu we require the user to re-authenticate for
      * oauth each time because saving those credentials encrypted to disk
      * would require the user to re-enter a Lantern password each time, which
-     * is no better and is arguably worse than them just re-authenticating 
+     * is no better and is arguably worse than them just re-authenticating
      * for new oauth tokens with google.
-     * 
+     *
      * @return <code>true</code> if credentials should be persisted to disk,
      * otherwise <code>false</code>.
      */
     public static boolean persistCredentials() {
         return !SystemUtils.IS_OS_LINUX;
     }
-    
+
 
     /**
      * Accesses the object to set a property on with a nested dot notation as
      * in object1.object2.
-     * 
+     *
      * Public for testing. Note this is actually not use in favor of
      * ModelMutables that consolidates all accessible methods.
      */
-    public static Object getTargetForPath(final Object root, final String path) 
-        throws IllegalAccessException, InvocationTargetException, 
+    public static Object getTargetForPath(final Object root, final String path)
+        throws IllegalAccessException, InvocationTargetException,
         NoSuchMethodException {
         if (!path.contains(".")) {
             return root;
@@ -852,19 +852,19 @@ public class LanternUtils {
     }
 
     public static boolean isLocalHost(final Channel channel) {
-        final InetSocketAddress remote = 
+        final InetSocketAddress remote =
             (InetSocketAddress) channel.getRemoteAddress();
         return remote.getAddress().isLoopbackAddress();
     }
 
     public static boolean isLocalHost(final Socket sock) {
-        final InetSocketAddress remote = 
+        final InetSocketAddress remote =
             (InetSocketAddress) sock.getRemoteSocketAddress();
         return remote.getAddress().isLoopbackAddress();
     }
-    
+
     public static GeoData getGeoData(final String ip) {
-        final String query = 
+        final String query =
             "USE 'http://www.datatables.org/iplocation/ip.location.xml' " +
             "AS ip.location; select CountryCode, Latitude,Longitude from " +
             "ip.location where ip = '"+ip+"' and key = " +
@@ -874,7 +874,7 @@ public class LanternUtils {
         builder.setScheme("https").setHost("query.yahooapis.com").setPath(
             "/v1/public/yql").setParameter("q", query).setParameter(
                 "format", "json");
-        
+
         final HttpGet get = new HttpGet();
         try {
             final URI uri = builder.build();
@@ -882,18 +882,18 @@ public class LanternUtils {
             get.setURI(uri);
             final HttpResponse response = client.execute(get);
             final HttpEntity entity = response.getEntity();
-            final String body = 
+            final String body =
                 IOUtils.toString(entity.getContent()).toLowerCase();
             EntityUtils.consume(entity);
             LOG.debug("GOT RESPONSE BODY FOR GEO IP LOOKUP:\n"+body);
-            
+
             final ObjectMapper om = new ObjectMapper();
             if (!body.contains("latitude")) {
                 LOG.warn("No latitude in response: {}", body);
                 return new GeoData();
             }
             final String parsed = StringUtils.substringAfterLast(body, "{");
-            final String full = 
+            final String full =
                 "{"+StringUtils.substringBeforeLast(parsed, "\"}")+"\"}";
             return om.readValue(full, GeoData.class);
         } catch (final IOException e) {
@@ -909,9 +909,9 @@ public class LanternUtils {
     /**
      * Returns whether or not the string is either true of false. If it's some
      * other random string, this returns false.
-     * 
+     *
      * @param str The string to test.
-     * @return <code>true</code> if the string is either true or false 
+     * @return <code>true</code> if the string is either true or false
      * (or on or off), otherwise false.
      */
     public static boolean isTrueOrFalse(final String str) {
