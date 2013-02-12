@@ -373,7 +373,7 @@ exports.SCENARIOS = {
             var country = randomChoice(this_.model.countries);
             updateCountry(country, update);
           }
-          this_.sync(update);
+          if (ncountries) this_.sync(update);
         }, 1000);
 
         function updateCountry(country, update) {

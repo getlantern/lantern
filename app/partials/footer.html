@@ -10,7 +10,8 @@
     <div id="stats-personal">
       <strong>your stats:</strong>
       <span ng-show="model.connectivity.peers.lifetime.length">
-        <a rel="tooltip" data-original-title="{{ 'ENABLE_AUTOREPORT_SUGGESTION' | i18n }}" ui-jq="tooltip" ng-show="!model.settings.autoReport">
+        <a rel="tooltip" ui-jq="tooltip" data-original-title="{{ 'ENABLE_AUTOREPORT_SUGGESTION' | i18n }}"
+           ng-show="!model.settings.autoReport">
           <i class="icon-info-sign"></i>
         </a>
         {{ model.settings.email }} ·
@@ -51,7 +52,7 @@
     <button type="button" class="btn btn-large btn-inverse"
             ng-click="interaction(INTERACTION.lanternFriends)"
             ng-class="{active: model.modal == MODAL.lanternFriends}"
-            ui-jq="tooltip" rel="tooltip" data-original-title="Lantern friends">
+            ui-jq="tooltip" data-original-title="{{ 'LANTERN_FRIENDS' | i18n }}">
       <!-- i class="icon-group"></i -->
       <i class="lsf-icon lsf-friends"></i>
     </button>
@@ -59,14 +60,14 @@
             ng-show="inGetMode"
             ng-click="interaction(INTERACTION.proxiedSites)"
             ng-class="{active: model.modal == MODAL.proxiedSites}"
-            ui-jq="tooltip" rel="tooltip" data-original-title="Proxied Sites">
+            ui-jq="tooltip" data-original-title="{{ 'PROXIED_SITES_TITLE' | i18n }}">
       <!-- i class="icon-cogs"></i -->
       <i class="lsf-icon lsf-web"></i>
     </button>
     <button type="button" class="btn btn-large btn-inverse"
             ng-click="interaction(INTERACTION.settings)"
             ng-class="{active: model.modal == MODAL.settings}"
-            ui-jq="tooltip" rel="tooltip" data-original-title="Settings">
+            ui-jq="tooltip" data-original-title="{{ 'SETTINGS' | i18n }}">
       <!-- i class="icon-cogs"></i -->
       <i class="lsf-icon lsf-gear"></i>
     </button>

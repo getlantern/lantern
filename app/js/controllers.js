@@ -5,13 +5,14 @@
 // XXX use data-loading-text instead of submitButtonLabelKey below?
 // see http://twitter.github.com/bootstrap/javascript.html#buttons
 
-function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, DEFAULT_AVATAR_URL, ENUMS, EXTERNAL_URL, $window) {
+function RootCtrl(dev, sanity, $scope, logFactory, modelSrvc, cometdSrvc, langSrvc, LANG, apiSrvc, DEFAULT_AVATAR_URL, ENUMS, EXTERNAL_URL, VER, $window) {
   var log = logFactory('RootCtrl'),
       model = $scope.model = modelSrvc.model,
       MODE = ENUMS.MODE,
       CONNECTIVITY = ENUMS.CONNECTIVITY;
   $scope.modelSrvc = modelSrvc;
   $scope.cometdSrvc = cometdSrvc;
+  $scope.versionFrontend = VER.join('.');
   $scope.dev = dev;
   if (dev.value) {
     $window.model = model; // easier interactive debugging
@@ -111,61 +112,8 @@ function SanityCtrl($scope, sanity, modelSrvc, cometdSrvc, MODAL, REQUIRED_VERSI
   }, true);
 }
 
-function SettingsLoadFailureCtrl($scope, MODAL) {
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.settingsLoadFailure;
-  }, true);
-}
-
-function WelcomeCtrl($scope, modelSrvc, logFactory, MODAL) {
-  var log = logFactory('WelcomeCtrl'),
-      model = $scope.model = modelSrvc.model;
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.welcome;
-  }, true);
-}
-
-function AuthorizeCtrl($scope, logFactory, MODAL) {
-  var log = logFactory('AuthorizeCtrl');
-
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.authorize;
-  }, true);
-}
-
-function GtalkConnectingCtrl($scope, logFactory, MODAL) {
-  var log = logFactory('GtalkConnectingCtrl');
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.gtalkConnecting;
-  }, true);
-}
-
-function GtalkUnreachableCtrl($scope, logFactory, MODAL) {
-  var log = logFactory('GtalkUnreachableCtrl');
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.gtalkUnreachable;
-  }, true);
-}
-
-function NotInvitedCtrl($scope, logFactory, MODAL) {
-  var log = logFactory('NotInvitedCtrl');
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.notInvited;
-  }, true);
-}
-
 function RequestInviteCtrl($scope, logFactory, MODAL, INTERACTION) {
   var log = logFactory('RequestInviteCtrl');
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.requestInvite;
-  }, true);
 
   $scope.sendToLanternDevs = false;
   $scope.disableForm = false;
@@ -187,29 +135,8 @@ function RequestInviteCtrl($scope, logFactory, MODAL, INTERACTION) {
   };
 }
 
-function RequestSentCtrl($scope, logFactory, MODAL) {
-  var log = logFactory('RequestSentCtrl');
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.requestSent;
-  }, true);
-}
-
-function FirstInviteReceivedCtrl($scope, logFactory, MODAL) {
-  var log = logFactory('FirstInviteReceivedCtrl');
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.firstInviteReceived;
-  }, true);
-}
-
 function SystemProxyCtrl($scope, logFactory, MODAL, SETTING, INTERACTION) {
   var log = logFactory('SystemProxyCtrl');
-
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.systemProxy;
-  }, true);
 
   $scope.systemProxy = true;
   $scope.disableForm = false;
@@ -228,14 +155,6 @@ function SystemProxyCtrl($scope, logFactory, MODAL, SETTING, INTERACTION) {
   };
 }
 
-function FinishedCtrl($scope, MODAL) {
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.finished;
-  }, true);
-  $scope.autoReport = true;
-}
-
 function ContactCtrl($scope, MODAL, $filter, CONTACT_FORM_MAXLEN) {
   $scope.CONTACT_FORM_MAXLEN = CONTACT_FORM_MAXLEN;
 
@@ -252,11 +171,6 @@ function ContactCtrl($scope, MODAL, $filter, CONTACT_FORM_MAXLEN) {
 
 function SettingsCtrl($scope, modelSrvc, logFactory, MODAL) {
   var log = logFactory('SettingsCtrl');
-
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.settings;
-  }, true);
 
   $scope.$watch('model.settings.runAtSystemStart', function(runAtSystemStart) {
     $scope.runAtSystemStart = runAtSystemStart;
@@ -285,25 +199,16 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
   var log = logFactory('ProxiedSitesCtrl'),
       DOMAIN = INPUT_PAT.DOMAIN,
       IPV4 = INPUT_PAT.IPV4,
-      DELAY = 1000, // milliseconds
-      nproxiedSitesMax = 1000, // default value, should be overwritten below
+      DELAY = 1000,
+      nproxiedSitesMax = 1000,
       sendUpdatePromise,
       original,
       normalized;
 
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.proxiedSites;
-  }, true);
-
-  $scope.updating = false;
-  $scope.$watch('updating', function(updating) {
-    $scope.submitButtonLabelKey = updating ? 'UPDATING' : 'CONTINUE';
-  }, true);
-
   function updateComplete() {
     $scope.updating = false;
     $scope.dirty = false;
+    $scope.submitButtonLabelKey = 'CONTINUE';
   }
 
   function makeValid() {
@@ -331,7 +236,11 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
   }
 
   $scope.validate = function(value) {
-    if (angular.isUndefined(value)) return;
+    if (!value || !value.length) {
+      $scope.errorLabelKey = 'ERROR_ONE_REQUIRED';
+      $scope.errorCause = '';
+      return false;
+    }
     if (angular.isString(value)) value = value.split('\n');
     normalized = [];
     var uniq = {};
@@ -366,6 +275,7 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
 
   $scope.handleUpdate = function() {
     $scope.dirty = true;
+    $scope.submitButtonLabelKey = 'WAITING';
     if (sendUpdatePromise) {
       $timeout.cancel(sendUpdatePromise);
     }
@@ -382,7 +292,11 @@ function ProxiedSitesCtrl($scope, $timeout, logFactory, MODAL, SETTING, INTERACT
         return;
       }
       $scope.updating = true;
-      $scope.changeSetting(SETTING.proxiedSites, normalized).then(updateComplete);
+      $scope.submitButtonLabelKey = 'UPDATING';
+      $timeout(function() {
+        log.debug('sending update');
+        $scope.changeSetting(SETTING.proxiedSites, normalized).then(updateComplete);
+      }, DELAY);
     }, DELAY);
   };
 }
@@ -391,11 +305,6 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
   var log = logFactory('LanternFriendsCtrl'),
       model = modelSrvc.model,
       EMAIL = INPUT_PAT.EMAIL;
-
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.lanternFriends;
-  }, true);
 
   $scope.invitees = [];
 
@@ -439,7 +348,6 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
     tags: [],
     tokenSeparators: [',', ' '],
     multiple: true,
-    closeOnSelect: false,
   //selectOnBlur: true, // requires select2 3.3
     maximumSelectionSize: function() {
       return model.ninvites || 0;
@@ -485,50 +393,9 @@ function LanternFriendsCtrl($scope, modelSrvc, logFactory, MODE, MODAL, $filter,
   };
 }
 
-function AuthorizeLaterCtrl($scope, logFactory, MODAL) {
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.authorizeLater;
-  }, true);
-}
-
-function AboutCtrl($scope, logFactory, MODAL, VER) {
-  $scope.versionFrontend = VER.join('.');
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.about;
-  }, true);
-}
-
-function UpdateAvailableCtrl($scope, logFactory, MODAL) {
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.updateAvailable;
-  }, true);
-}
-
-function ConfirmResetCtrl($scope, logFactory, MODAL) {
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.confirmReset;
-  }, true);
-}
-
-function GiveModeForbiddenCtrl($scope, logFactory, MODAL) {
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.giveModeForbidden;
-  }, true);
-}
-
 function ScenariosCtrl($scope, $timeout, logFactory, modelSrvc, dev, MODAL, INTERACTION) {
   var log = logFactory('ScenariosCtrl'),
       model = modelSrvc.model;
-
-  $scope.show = false;
-  $scope.$watch('model.modal', function(modal) {
-    $scope.show = modal == MODAL.scenarios;
-  }, true);
 
   $scope.$watch('model.mock.scenarios.applied', function(applied) {
     if (applied) {
