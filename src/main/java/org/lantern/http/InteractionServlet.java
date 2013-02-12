@@ -227,11 +227,11 @@ public class InteractionServlet extends HttpServlet {
                 break;
             case CONTINUE:
                 applyJson(json);
+                this.internalState.setModalCompleted(Modal.proxiedSites);
+                this.internalState.advanceModal(null);
                 break;
             case SET:
                 applyJson(json);
-                this.internalState.setModalCompleted(Modal.proxiedSites);
-                this.internalState.advanceModal(null);
                 break;
             default:
                 log.error("Did not handle interaction {}, for modal {} with " +
