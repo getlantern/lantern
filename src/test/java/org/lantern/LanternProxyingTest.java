@@ -107,7 +107,7 @@ public class LanternProxyingTest {
             throw e;
         } catch (final IOException e) {
             log.warn("IO error connecting to "+url, e);
-            throw e;
+            return false;
         }
         if (200 !=  response.getStatusLine().getStatusCode()) {
             return false;
