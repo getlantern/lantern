@@ -220,16 +220,23 @@ public class InteractionServlet extends HttpServlet {
             break;
         case proxiedSites:
             switch (inter) {
+            case RESET:
+                this.modelService.resetProxiedSites();
+                this.internalState.setModalCompleted(Modal.proxiedSites);
+                this.internalState.advanceModal(null);
+                break;
             case CONTINUE:
-                log.debug("Processing continue");
-                // How should we actually set the proxied sites here?
+                applyJson(json);
+                break;
+            case SET:
+                applyJson(json);
                 this.internalState.setModalCompleted(Modal.proxiedSites);
                 this.internalState.advanceModal(null);
                 break;
             default:
-                log.error("Did not handle interaction for modal {} with " +
-                    "params: {}", modal, params);
-                HttpUtils.sendClientError(resp, "give or get required");
+                log.error("Did not handle interaction {}, for modal {} with " +
+                    "params: {}", inter, modal, params);
+                HttpUtils.sendClientError(resp, "unexpected interaction for proxied sites");
                 break;
             }
             break;

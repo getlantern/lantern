@@ -9,7 +9,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.lantern.LanternUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,10 +37,10 @@ public class JsonModelModifier {
             final String path = (String) map.get("path");
             //final Object target = getTargetForPath(this.modelService, path);
             final String key = getMethodForPath(path);
-            
-            final String val = String.valueOf(map.get("value"));
+
+            final Object val = map.get("value");
             setProperty(modelService, key, val, true);
-            
+
             //setProperty(modelService, key, val, true);
         } catch (final JsonParseException e) {
             log.error("Problem handling JSON:"+json, e);
@@ -59,18 +58,11 @@ public class JsonModelModifier {
         return StringUtils.substringAfter(path, ".");
     }
 
-    private void setProperty(final Object bean, 
-        final String key, final String val, final boolean determineType) {
-        log.info("Setting {} property on {} to "+val, key, bean);
-        final Object obj;
-        if (determineType) {
-            obj = LanternUtils.toTyped(val);
-        } else {
-            obj = val;
-        }
+    private void setProperty(final Object bean,
+        final String key, final Object obj, final boolean determineType) {
+        log.info("Setting {} property on {} to "+obj, key, bean);
         try {
             PropertyUtils.setSimpleProperty(bean, key, obj);
-            //PropertyUtils.setProperty(bean, key, obj);
         } catch (final IllegalAccessException e) {
             log.error("Could not set property '"+key+"' to '"+obj+"'", e);
         } catch (final InvocationTargetException e) {
