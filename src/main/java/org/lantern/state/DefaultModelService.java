@@ -121,7 +121,20 @@ public class DefaultModelService implements ModelService {
             log.error("Error changing startAtLogin? Result: "+result);
         }
     }
-    
+
+    @Override
+    public void resetProxiedSites() {
+        Settings settings = model.getSettings();
+        settings.getWhitelist().reset();
+        proxifier.refresh();
+    }
+
+    @Override
+    public void setProxiedSites(List<String> proxiedSites) {
+        model.getSettings().setProxiedSites(proxiedSites.toArray(new String[0]));
+        proxifier.refresh();
+    }
+
     @Override
     public void setProxyAllSites(final boolean proxyAll) {
         this.model.getSettings().setProxyAllSites(proxyAll);
