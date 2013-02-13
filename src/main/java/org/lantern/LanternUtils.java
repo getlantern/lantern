@@ -830,8 +830,8 @@ public class LanternUtils {
 
 
     /**
-     * Accesses the object to set a property on with a nested dot notation as
-     * in object1.object2.
+     * Accesses the object to set a property on with a trivial json-pointer
+     * syntax as in /object1/object2.
      *
      * Public for testing. Note this is actually not use in favor of
      * ModelMutables that consolidates all accessible methods.
@@ -839,13 +839,18 @@ public class LanternUtils {
     public static Object getTargetForPath(final Object root, final String path)
         throws IllegalAccessException, InvocationTargetException,
         NoSuchMethodException {
-        if (!path.contains(".")) {
+        if (!path.contains("/")) {
             return root;
         }
-        final String curProp = StringUtils.substringBefore(path, ".");
-        final Object propObject = PropertyUtils.getProperty(root, curProp);
-        final String nextProp = StringUtils.substringAfter(path, ".");
-        if (nextProp.contains(".")) {
+        final String curProp = StringUtils.substringBefore(path, "/");
+        final Object propObject;
+        if (curProp.isEmpty()) {
+            propObject = root;
+        } else {
+            propObject = PropertyUtils.getProperty(root, curProp);
+        }
+        final String nextProp = StringUtils.substringAfter(path, "/");
+        if (nextProp.contains("/")) {
             return getTargetForPath(propObject, nextProp);
         }
         return propObject;
