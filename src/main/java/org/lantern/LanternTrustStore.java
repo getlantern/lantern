@@ -100,7 +100,7 @@ public class LanternTrustStore {
     
     private void addStaticCerts() {
         addCert("digicerthighassurancerootca", "certs/DigiCertHighAssuranceCA-3.cer");
-        addCert("littleproxy", "certs/littleporxy.cer");
+        addCert("littleproxy", "certs/littleproxy.cer");
         addCert("equifaxsecureca", "certs/equifaxsecureca.cer");
     }
 
@@ -125,7 +125,7 @@ public class LanternTrustStore {
         //
         // We use import for backwards compatibility.
         final String result = LanternUtils.runKeytool("-import", 
-            "-noprompt", "-file", cert.getName(), 
+            "-noprompt", "-file", cert.getAbsolutePath(), 
             "-alias", alias, "-keystore", 
             getTrustStorePath(), "-storepass", PASS);
         
