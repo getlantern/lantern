@@ -241,7 +241,24 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case requestInvite:
-            log.error("Porcessing request invite");
+            log.error("Processing request invite");
+            switch (inter) {
+            case CANCEL:
+                this.internalState.setModalCompleted(Modal.requestInvite);
+                this.internalState.advanceModal(Modal.notInvited);
+                break;
+            case CONTINUE:
+                applyJson(json);
+                this.internalState.setModalCompleted(Modal.proxiedSites);
+                //TODO: need to do something here
+                this.internalState.advanceModal(null);
+                break;
+            default:
+                log.error("Did not handle interaction {}, for modal {} with " +
+                    "params: {}", inter, modal, params);
+                HttpUtils.sendClientError(resp, "unexpected interaction for request invite");
+                break;
+            }
             break;
         case requestSent:
             log.debug("Process request sent");
