@@ -74,7 +74,7 @@ public class LanternHttpClient implements HttpStrategy {
         // we need to reload the trust store and this is the only way to
         // achieve that in conjunction with HttpClient.
         final SSLSocketFactory socketFactory = 
-            new SSLSocketFactory(socketsUtil.newTlsSocketFactory(), 
+            new SSLSocketFactory(socketsUtil.newTlsSocketFactoryJavaCipherSuites(), 
                 new LanternHostNameVerifier());
         final Scheme sch = new Scheme("https", 443, socketFactory);
         httpClient.getConnectionManager().getSchemeRegistry().register(sch);

@@ -3,6 +3,9 @@ package org.lantern;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -15,7 +18,6 @@ import org.apache.http.conn.params.ConnRoutePNames;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.util.EntityUtils;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,7 +54,10 @@ public class LanternProxyingTest {
         proxy.start();
         */
         
-        final String[] censored = Whitelist.SITES;
+        final Collection<String> censored = new HashSet<String>();
+        censored.addAll(Arrays.asList(Whitelist.SITES));
+        censored.remove("getlantern.org");
+        
         final HttpClient client = new DefaultHttpClient();
         int good = 0;
         for (final String site : censored) {
@@ -61,7 +66,7 @@ public class LanternProxyingTest {
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT) ? 1 : 0;
         }
         //allow at most five failures
-        assertTrue ("Too many failures", good >= censored.length - 5);
+        assertTrue ("Too many failures", good >= censored.size() - 5);
         //log.info("Stopping proxy");
         //proxy.stop();
         //Launcher.stop();
