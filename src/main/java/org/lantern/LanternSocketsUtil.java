@@ -54,13 +54,27 @@ public class LanternSocketsUtil {
         this.stats = stats;
         this.trustStore = trustStore;
     }
+    
 
+    public SSLServerSocketFactory newTlsServerSocketFactoryJavaCipherSuites() {
+        log.debug("Creating TLS server socket factory with default java " +
+            "cipher suites");
+        return newTlsServerSocketFactory(null);
+    }
+    
     public SSLServerSocketFactory newTlsServerSocketFactory() {
         log.debug("Creating TLS server socket factory");
-        return wrappedServerSocketFactory();
+        return newTlsServerSocketFactory(IceConfig.getCipherSuites());
+    }
+    
+    public SSLServerSocketFactory newTlsServerSocketFactory(
+        final String[] cipherSuites) {
+        log.debug("Creating TLS server socket factory");
+        return wrappedServerSocketFactory(cipherSuites);
     }
 
-    private SSLServerSocketFactory wrappedServerSocketFactory() {
+    private SSLServerSocketFactory wrappedServerSocketFactory(
+        final String[] cipherSuites) {
         return new SSLServerSocketFactory() {
             @Override
             public ServerSocket createServerSocket() throws IOException {
@@ -106,9 +120,8 @@ public class LanternSocketsUtil {
             
             private void configure(final SSLServerSocket ssl) {
                 ssl.setNeedClientAuth(true);
-                final String[] suites = IceConfig.getCipherSuites();
-                if (suites != null && suites.length > 0) {
-                    ssl.setEnabledCipherSuites(suites);
+                if (cipherSuites != null && cipherSuites.length > 0) {
+                    ssl.setEnabledCipherSuites(cipherSuites);
                 }
             }
         };
@@ -118,12 +131,22 @@ public class LanternSocketsUtil {
         return this.trustStore.getContext().getServerSocketFactory();
     }
 
+    public SSLSocketFactory newTlsSocketFactoryJavaCipherSuites() {
+        log.debug("Creating TLS socket factory with default java cipher suites");
+        return newTlsSocketFactory(null);
+    }
+    
     public SSLSocketFactory newTlsSocketFactory() {
         log.debug("Creating TLS socket factory");
-        return wrappedSocketFactory();
+        return newTlsSocketFactory(IceConfig.getCipherSuites());
+    }
+    
+    public SSLSocketFactory newTlsSocketFactory(final String[] cipherSuites) {
+        log.debug("Creating TLS socket factory");
+        return wrappedSocketFactory(cipherSuites);
     }
 
-    private SSLSocketFactory wrappedSocketFactory() {
+    private SSLSocketFactory wrappedSocketFactory(final String[] cipherSuites) {
         return new SSLSocketFactory() {
             @Override
             public Socket createSocket() throws IOException {
@@ -189,9 +212,8 @@ public class LanternSocketsUtil {
             
             private void configure(final SSLSocket sock) {
                 sock.setNeedClientAuth(true);
-                final String[] suites = IceConfig.getCipherSuites();
-                if (suites != null && suites.length > 0) {
-                    sock.setEnabledCipherSuites(suites);
+                if (cipherSuites != null && cipherSuites.length > 0) {
+                    sock.setEnabledCipherSuites(cipherSuites);
                 }
             }
         };
