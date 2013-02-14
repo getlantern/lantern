@@ -65,6 +65,7 @@ published using JSON PATCH, e.g.
   "path": "/friends/pending/-",
   "value": {
     "email": "user@example.com"
+  }
 },{
   "op": "replace",
   "path": "/ninvites",

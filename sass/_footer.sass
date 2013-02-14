@@ -50,9 +50,15 @@ $npendingOffsetRight: 36px
     +position(false, $globalNavPosRight + ($npendingIndexGiveMode * $globalNavBtnWidth) + $npendingOffsetRight, $npendingPosBottom)
 
 #stats
-  strong
+  +inline-block
+  margin: 0
+  width: 650px
+  text-align: left
+  dt
     color: lighten($grayLight, 10%)
-    font-weight: normal
+    font-weight: bold
+  dd
+    margin-left: 170px
 
 #version
   +smaller

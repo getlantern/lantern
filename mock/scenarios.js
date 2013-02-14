@@ -321,20 +321,76 @@ exports.SCENARIOS = {
                 '/connectivity/peers/lifetime': peers
               });
               setInterval(function() {
-                if (Math.random() < .75 || !this_.model.showVis) return;
-                var peersCurrent = getByPath(this_.model, '/connectivity/peers/current');
+                if (!this_.model.setupComplete) return;
+                var mode = getByPath(this_.model, '/settings/mode'),
+                    peersCurrent = getByPath(this_.model, '/connectivity/peers/current'),
+                    update = [];
                 //log('peersCurrent:', _.pluck(peersCurrent, 'peerid'));
+                _.forEach(peersCurrent, function(peer, i) {
+                  if (peer.mode === mode) {
+                    peer.bpsUp = 0; peer.bpsDn = 0; peer.bpsUpDn = 0;
+                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bpsUp', value: 0});
+                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bpsDn', value: 0});
+                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bpsUpDn', value: 0});
+                  } else {
+                    var bpsUp = peer.bpsUp || 0,
+                        bpsDn = peer.bpsDn || 0,
+                        bpsUpDn = peer.bpsUpDn || 0,
+                        bytesUp = getByPath(this_.model, '/transfers/bytesUp') || 0,
+                        bytesDn = getByPath(this_.model, '/transfers/bytesDn') || 0,
+                        bytesUpDn = getByPath(this_.model, '/transfers/bytesUpDn') || 0;
+                    bpsUp = Math.max(0, bpsUp + _.random(-1024*2, 1024*2));
+                    bpsDn = Math.max(0, bpsDn + _.random(-1024*2, 1024*2));
+                    bpsUpDn = bpsUp + bpsDn;
+                    peer.bpsUp = bpsUp;
+                    peer.bpsDn = bpsDn;
+                    peer.bpsUpDn = bpsUpDn;
+                    peer.bytesUp = (peer.bytesUp || 0) + bpsUp;
+                    peer.bytesDn = (peer.bytesDn || 0) + bpsDn;
+                    peer.bytesUpDn = (peer.bytesUpDn || 0) + bpsUpDn;
+                    bytesUp += bpsUp;
+                    bytesDn += bpsDn;
+                    bytesUpDn += bpsUpDn;
+                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bpsUp', value: bpsUp});
+                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bpsDn', value: bpsDn});
+                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bpsUpDn', value: bpsUpDn});
+                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bytesUp', value: peer.bytesUp});
+                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bytesDn', value: peer.bytesDn});
+                    update.push({op: 'add', path: '/connectivity/peers/current/'+i+'/bytesUpDn', value: peer.bytesUpDn});
+                    update.push({op: 'add', path: '/transfers/bytesUp', value: bytesUp});
+                    update.push({op: 'add', path: '/transfers/bytesDn', value: bytesDn});
+                    update.push({op: 'add', path: '/transfers/bytesUpDn', value: bytesUpDn});
+                    //log('update:', update);
+                  }
+                });
+
+                function done() {
+                  var bpsUp = 0, bpsDn = 0, bpsUpDn = 0;
+                  for (var i=0, p=peersCurrent[i]; p; p=peersCurrent[++i]) {
+                    bpsUp += p.bpsUp;
+                    bpsDn += p.bpsDn;
+                    bpsUpDn += p.bpsUpDn;
+                  }
+                  update.push({op: 'add', path: '/transfers/bpsUp', value: bpsUp});
+                  update.push({op: 'add', path: '/transfers/bpsDn', value: bpsDn});
+                  update.push({op: 'add', path: '/transfers/bpsUpDn', value: bpsUpDn});
+                  this_.sync(update);
+                }
+
+                if (Math.random() < .5) {
+                  return done();
+                }
                 if (_.isEmpty(peersCurrent)) {
                   var randomPeer = randomChoice(peers);
-                  this_.sync([{op: 'add', path: '/connectivity/peers/current/0', value: randomPeer}]);
+                  update.push({op: 'add', path: '/connectivity/peers/current/0', value: randomPeer});
                   //log('No current peers, added random peer', randomPeer.peerid);
-                  return;
+                  return done();
                 }
                 if (peersCurrent.length === peers.length) {
                   var i = _.random(peers.length - 1);
                   //log('Connected to all available peers, removing random peer', peersCurrent[i].peerid);
-                  this_.sync([{op: 'remove', path: '/connectivity/peers/current/'+i}]);
-                  return;
+                  update.push({op: 'remove', path: '/connectivity/peers/current/'+i});
+                  return done();
                 }
                 if (Math.random() < .5) { // add a random not connected peer
                   var peersall = _.pluck(peers, 'peerid'),
@@ -342,14 +398,15 @@ exports.SCENARIOS = {
                       peersnc = _.difference(peersall, peerscur),
                       randomPeerid = randomChoice(peersnc),
                       randomPeer = _.find(peers, function(p){ return p.peerid === randomPeerid; });
-                  this_.sync([{op: 'add', path: '/connectivity/peers/current/'+peersCurrent.length, value: randomPeer}]);
+                  update.push({op: 'add', path: '/connectivity/peers/current/'+peersCurrent.length, value: randomPeer});
                   //log('heads: added random peer', randomPeerid);
                 } else { // remove a random connected peer
                   var i = _.random(peersCurrent.length - 1);
                   //log('tails: removing random peer', peersCurrent[i].peerid);
-                  this_.sync([{op: 'remove', path: '/connectivity/peers/current/'+i}]);
+                  update.push({op: 'remove', path: '/connectivity/peers/current/'+i});
                 }
-              }, 2123);
+                return done();
+              }, 1000);
             }
     }
   },
@@ -358,35 +415,42 @@ exports.SCENARIOS = {
       desc: 'countries1',
       func: function() {
         var this_ = this,
-            update = {};
+            update = {},
+            initialCountries = ['US', 'CA', 'CN', 'IR', 'DE', 'GB', 'SE', 'TH'];
 
         // do this on reset
-        _.forEach(this.model.countries, function(_, country) {
-          updateCountry(country, update);
+        _.forEach(this.model.countries, function(__, country) {
+          if (Math.random() < .1 || _.contains(initialCountries, country))
+            updateCountry(country, update);
         });
         this_.sync(update);
 
         setInterval(function() {
           if (!this_.model.showVis) return;
-          var update = {}, ncountries = _.random(0, 15);
+          var update = {}, ncountries = _.random(0, 5);
           for (var i=0; i<ncountries; ++i) {
-            var country = randomChoice(this_.model.countries);
+            var country = randomChoice(Math.random() < .25 ?
+              this_.model.countries : initialCountries
+            );
             updateCountry(country, update);
           }
           if (ncountries) this_.sync(update);
-        }, 1000);
+        }, 60000);
 
         function updateCountry(country, update) {
           var stats = this_.model.countries[country],
               censors = stats.censors,
               npeersOnlineGive = getByPath(stats, '/npeers/online/give'),
-              npeersOnlineGet = getByPath(stats, '/npeers/online/get');
+              npeersOnlineGet = getByPath(stats, '/npeers/online/get'),
+              npeersOnlineGlobal = getByPath(this_.model, '/global/nusers/online'),
+              giveDelta = censors ? 0 : _.random(-Math.min(50, npeersOnlineGive), 50),
+              getDelta = _.random(-Math.min(50, npeersOnlineGet), 50);
           if (_.isUndefined(npeersOnlineGive)) {
-            npeersOnlineGive = npeersOnlineGive || censors ? 0 : _.random(0, 1000);
-            npeersOnlineGet = npeersOnlineGet || censors ? _.random(0, 1000) : _.random(0, 500);
+            npeersOnlineGive = npeersOnlineGive || censors ? 0 : _.random(0, 100);
+            npeersOnlineGet = npeersOnlineGet || censors ? _.random(0, 100) : _.random(0, 50);
           }
-          npeersOnlineGive = censors ? npeersOnlineGive : Math.max(0, npeersOnlineGive + _.random(-100, 100));
-          npeersOnlineGet = Math.max(0, npeersOnlineGet + _.random(-100, 100)),
+          npeersOnlineGive += giveDelta;
+          npeersOnlineGet += getDelta;
           update['/countries/'+country+'/npeers'] = {
             online: {
               give: npeersOnlineGive,
@@ -394,6 +458,8 @@ exports.SCENARIOS = {
               giveGet: npeersOnlineGive + npeersOnlineGet
             }
           };
+          npeersOnlineGlobal += giveDelta + getDelta;
+          this_.sync({'/global/nusers/online': npeersOnlineGlobal});
         }
       }
     }

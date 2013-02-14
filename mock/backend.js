@@ -92,7 +92,7 @@ MockBackend.prototype.reset = function() {
   if (SKIPSETUP) {
     MockBackend._handlerForModal[MODAL.authorize].call(this, INTERACTION.continue);
     this._internalState.lastModal = MODAL.none;
-    this.sync({'/modal': MODAL.none, '/showVis': true, '/settings/mode': MODE.give});
+    this.sync({'/modal': MODAL.none, '/showVis': true, '/setupComplete': true, '/settings/mode': MODE.give});
   }
 };
 
@@ -106,10 +106,11 @@ MockBackend.prototype.sync = function(patch) {
       return {op: 'add', path: path, value: value};
     });
   }
-  if (patch) applyPatch(this.model, patch);
+  if (patch && patch.length) applyPatch(this.model, patch);
   if (_.isEmpty(this.clients)) return;
   if (!patch) patch = [{op: 'replace', path: '', value: this.model}];
-  this.bayeux.getClient().publish(MODEL_SYNC_CHANNEL, patch);
+  if (patch && patch.length)
+    this.bayeux.getClient().publish(MODEL_SYNC_CHANNEL, patch);
 };
 
 /*

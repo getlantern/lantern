@@ -17,7 +17,7 @@ var directives = angular.module('app.directives', [])
   });
 
 // XXX https://github.com/angular/angular.js/issues/1050#issuecomment-9650293
-angular.forEach(['cx', 'cy', 'd', 'fill', 'r'], function(name) {
+angular.forEach(['x', 'y', 'cx', 'cy', 'd', 'fill', 'r'], function(name) {
   var ngName = 'ng' + name[0].toUpperCase() + name.slice(1);
   directives.directive(ngName, function() {
     return function(scope, element, attrs) {

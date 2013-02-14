@@ -6910,6 +6910,10 @@ textarea.bugReport {
   stroke: #1e3d4b;
 }
 
+circle {
+  filter: url(#blur);
+}
+
 circle.give {
   fill: #00ff80;
 }
@@ -6923,6 +6927,35 @@ path.connection {
   stroke-width: 1;
   stroke: white;
   opacity: 0.25;
+}
+
+g.transferring *, #self.transferring {
+  -webkit-animation-name: pulse_1_to_point5;
+  -webkit-animation-duration: 3s;
+  -webkit-animation-iteration-count: infinite;
+  -webkit-animation-timing-function: linear;
+}
+
+@-webkit-keyframes pulse_1_to_point5 {
+  from {
+    opacity: 1;
+  }
+
+  40% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 #footer {
@@ -6990,9 +7023,20 @@ body.giveMode #npending {
   bottom: 7.5px;
 }
 
-#stats strong {
+#stats {
+  display: -moz-inline-stack;
+  display: inline-block;
+  vertical-align: middle;
+  margin: 0;
+  width: 650px;
+  text-align: left;
+}
+#stats dt {
   color: #b3b3b3;
-  font-weight: normal;
+  font-weight: bold;
+}
+#stats dd {
+  margin-left: 170px;
 }
 
 #version {

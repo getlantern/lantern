@@ -6,6 +6,9 @@
   stroke-width: 1
   stroke: rgb(30, 61, 75)
 
+circle
+  filter: url(#blur)
+
 circle.give
   fill: $giveModeColor
 
@@ -18,11 +21,24 @@ path.connection
   stroke: #fff
   opacity: .25
 
-//circle.peer, #self
-//  -webkit-animation-iteration-count: infinite
-//
-//#self
-//  -webkit-animation-duration: 2s
-//
-//circle.peer
-//  -webkit-animation-duration: 2.5s
+=pulsing($name: pulse_1_to_point5, $duration: 3s)
+  -webkit-animation-name: $name
+  -webkit-animation-duration: $duration
+  -webkit-animation-iteration-count: infinite
+  -webkit-animation-timing-function: linear
+
+g.transferring *, #self.transferring
+  +pulsing
+
+// XXX parameterize
+@-webkit-keyframes pulse_1_to_point5
+  from
+    opacity: 1
+  40%
+    opacity: 1
+  50%
+    opacity: .5
+  60%
+    opacity: 1
+  to
+    opacity: 1

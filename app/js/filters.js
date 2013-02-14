@@ -16,6 +16,28 @@ angular.module('app.filters', [])
       return obj.email || obj.peerid;
     };
   })
+  .filter('prettyBytes', function($filter) {
+    return function(nbytes, dimensionInput, showUnits) {
+      if (_.isNaN(nbytes)) return nbytes;
+      if (_.isUndefined(dimensionInput)) dimensionInput = nbytes;
+      if (_.isUndefined(showUnits)) showUnits = true;
+      var dimBase = byteDimension(dimensionInput),
+          dim = dimBase.dim,
+          base = dimBase.base,
+          quotient = $filter('number')(nbytes / base);
+      return showUnits ? quotient+' '+dim // XXX i18n?
+                       : quotient;
+    };
+  })
+  .filter('prettyBps', function($filter) {
+    return function(nbytes, dimensionInput, showUnits) {
+      if (_.isNaN(nbytes)) return nbytes;
+      if (_.isUndefined(showUnits)) showUnits = true;
+      var bytes = $filter('prettyBytes')(nbytes, dimensionInput, showUnits);
+      return showUnits ? bytes+'/'+'s' // XXX i18n?
+                       : bytes;
+    };
+  })
   .filter('reportedState', function() {
     return function(model) {
       var state = _.cloneDeep(model);

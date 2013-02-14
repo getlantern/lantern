@@ -66,6 +66,14 @@
       "api":{}
     }
   },
+  "global":{
+    "nusers":{
+      "online":0,
+      "ever":123456789
+    },
+    "npeers":{},
+    "bytesEver":1234567890
+  },
   "countries":{
     "AD": {"censors": false},
     "AE": {"censors": false},

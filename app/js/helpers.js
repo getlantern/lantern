@@ -30,6 +30,15 @@ function makeLogger(prefix) {
 
 var log = makeLogger('helpers');
 
+var byteDimensions = {P: 1024*1024*1024*1024*1024, T: 1024*1024*1024*1024, G: 1024*1024*1024, M: 1024*1024, K: 1024, B: 1};
+function byteDimension(nbytes) {
+  var dim, base;
+  for (dim in byteDimensions) { // assumes largest units first
+    base = byteDimensions[dim];
+    if (nbytes > base) break;
+  }
+  return {dim: dim, base: base};
+}
 
 function randomChoice(collection) {
   if (_.isArray(collection)) {
@@ -53,7 +62,7 @@ function getByPath(obj, path) {
   }
 }
 
-var _export = [makeLogger, randomChoice, applyPatch, getByPath];
+var _export = [makeLogger, byteDimension, randomChoice, applyPatch, getByPath];
 if (typeof angular == 'object' && angular && typeof angular.module == 'function') {
   var module = angular.module('app.helpers', []);
   _.forEach(_export, function(func) {

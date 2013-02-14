@@ -1,34 +1,33 @@
 <!-- XXX i18n -->
 <div id="footer">
-  <div id="stats" ng-show="model.showVis">
-    <div id="stats-global">
-      <strong>global stats:</strong>
-      861 users online in 17 countries ·
-      1,031,235 users total ·
-      8.3 petabytes transferred
-    </div>
-    <div id="stats-personal">
-      <strong>your stats:</strong>
-      <span ng-show="model.connectivity.peers.lifetime.length">
-        <a rel="tooltip" ui-jq="tooltip" data-original-title="{{ 'ENABLE_AUTOREPORT_SUGGESTION' | i18n }}"
-           ng-show="!model.settings.autoReport">
-          <i class="icon-info-sign"></i>
-        </a>
-        {{ model.settings.email }} ·
-        {{ model.connectivity.gtalk }} to Google Talk ·
-        XXX Lantern friends online ·
-        connected to {{ model.connectivity.peers.current.length }} peers in {{ ncountries || 'XXX' }} countries ·
-        {{ model.transfers.bpsUp }} M/s up ·
-        {{ model.transfers.bpsDn }} M/s down ·
-        {{ model.transfers.bytesTotal || 'XXX M' }} lifetime
-      </span>
-      <span ng-hide="model.connectivity.peers.lifetime.length">
-        {{ model.connectivity.gtalk }} to Google Talk ·
-        <i class="icon-info-sign warning-colored"></i>
-        Lantern will be able to display your stats once you have connected to some peers.
-      </span>
-    </div>
-  </div>
+  <dl id="stats" class="dl-horizontal" ng-show="model.showVis">
+    <dt>
+      <a rel="tooltip" ui-jq="tooltip" data-original-title="{{ 'ENABLE_AUTOREPORT_SUGGESTION' | i18n }}"
+         ng-show="!model.settings.autoReport">
+        <i class="icon-info-sign"></i>
+      </a>
+      {{ model.settings.email }}
+    </dt>
+    <dd>
+      {{ model.connectivity.gtalk }} to Google Talk ·
+      {{ model.transfers.bytesUpDn | prettyBytes }} transferred lifetime ·
+      <!--
+      XXX Lantern friends online ·
+      {{ model.transfers.bpsUpDn | prettyBps }} ·
+      -->
+      <i class="icon icon-upload-alt"></i> {{ model.transfers.bpsUp | prettyBps:model.transfers.bpsUpDn }} ·
+      <i class="icon icon-download-alt"></i> {{ model.transfers.bpsDn | prettyBps:model.transfers.bpsUpDn }}
+    </dd>
+
+    <dt>
+      global stats
+    </dt>
+    <dd>
+    {{ model.global.nusers.online | number }} users online <!-- XXX in 17 countries --> ·
+    {{ model.global.nusers.ever | number }} users total ·
+    {{ model.global.bytesEver | prettyBytes }} transferred
+    </dd>
+  </dl>
 
   <div id="version">
     Lantern {{ mockBackend && '(mock backend)' || '' }} {{ model.version.installed | version }}

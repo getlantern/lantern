@@ -6,19 +6,29 @@
     </g>
   </g>
   <g id="peersCurrent">
-    <g ng-repeat="peer in model.connectivity.peers.current">
+    <g ng-repeat="peer in model.connectivity.peers.current" class="{{ peer.bpsUpDn && 'transferring' || '' }}">
       <path ng-d="M {{ self.x }} {{ self.y }} Q {{ controlpoint(peer).x }} {{ controlpoint(peer).y }} {{ project(peer).x }} {{ project(peer).y }}" class="connection"/>
       <circle ng-cx="{{ project(peer).x }}" ng-cy="{{ project(peer).y }}" ng-r="{{ peerR }}"
-              id="{{ peer.peerid }}" class="peer {{ peer.mode }}" filter="url(#blur)">
+              id="{{ peer.peerid }}" class="peer {{ peer.mode }}">
         <title>{{ peer | prettyUser }}</title>
       </circle>
+      <!--
+      <text ng-x="{{ project(peer).x - 10 }}" ng-y="{{ project(peer).y + 20 }}" fill="rgba(255, 255, 255, .5)" ui-if="peer.bpsUpDn">
+        {{ peer.bpsUpDn }} B/s
+      </text>
+      -->
     </g>
   </g>
   <!-- XXX show last seen locations of peers not connected to -->
   <circle id="self" ng-cx="{{ self.x }}" ng-cy="{{ self.y }}" ng-r="{{ selfR }}"
-          class="{{ model.settings.mode }}" filter="url(#blur)">
+          class="{{ model.settings.mode }} {{ model.transfers.bpsUpDn && 'transferring' || ''}}">
     <title>{{ model.profile | prettyUser }}</title>
   </circle>
+  <!--
+  <text ng-x="{{ self.x - 10 }}" ng-y="{{ self.y + 20 }}" fill="rgba(255, 255, 255, .5)" ui-if="model.transfers.bpsUpDn">
+    {{ model.transfers.bpsUpDn }} B/s
+  </text>
+  -->
   <defs>
     <filter id="blur">
       <feGaussianBlur stdDeviation="1" />
