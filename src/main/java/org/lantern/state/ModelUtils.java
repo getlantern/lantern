@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -45,6 +47,9 @@ public class ModelUtils {
     private final Model model;
 
     private final LanternHttpClient httpClient;
+    
+    private final Map<String, GeoData> geoCache = 
+        new HashMap<String, GeoData>();
 
     @Inject
     public ModelUtils(final Model model, final LanternHttpClient httpClient) {
@@ -59,6 +64,9 @@ public class ModelUtils {
      * @return The geo data.
      */
     public GeoData getGeoData(final String ip) {
+        if (geoCache.containsKey(ip)) {
+            return geoCache.get(ip);
+        }
         final String query = 
             "USE 'http://www.datatables.org/iplocation/ip.location.xml' " +
             "AS ip.location; select CountryCode, Latitude,Longitude from " +
@@ -69,7 +77,6 @@ public class ModelUtils {
         builder.setScheme("https").setHost("query.yahooapis.com").setPath(
             "/v1/public/yql").setParameter("q", query).setParameter(
                 "format", "json");
-        
         
         final HttpGet get = new HttpGet();
         try {
@@ -90,7 +97,9 @@ public class ModelUtils {
             final String parsed = StringUtils.substringAfterLast(body, "{");
             final String full = 
                 "{"+StringUtils.substringBeforeLast(parsed, "\"}")+"\"}";
-            return om.readValue(full, GeoData.class);
+            final GeoData result = om.readValue(full, GeoData.class);
+            geoCache.put(ip, result);
+            return result;
         } catch (final SSLPeerUnverifiedException ssl) {
             LOG.warn("Peer cert not trusted?", ssl);
         } catch (final IOException e) {
