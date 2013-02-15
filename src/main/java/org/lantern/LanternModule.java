@@ -58,7 +58,9 @@ import com.maxmind.geoip.LookupService;
 
 public class LanternModule extends AbstractModule { 
     
-    private final Logger log = LoggerFactory.getLogger(getClass());
+    private static final Logger log = 
+        LoggerFactory.getLogger(LanternModule.class);
+    
     @Override 
     protected void configure() {
         // Tweak Netty naming...
@@ -112,7 +114,7 @@ public class LanternModule extends AbstractModule {
     }
     
     @Provides @Singleton
-    LookupService provideLookupService() {
+    public static LookupService provideLookupService() {
         final File unzipped = 
                 new File(LanternConstants.DATA_DIR, "GeoIP.dat");
         if (!unzipped.isFile())  {
@@ -140,7 +142,8 @@ public class LanternModule extends AbstractModule {
     }
     
     @Provides @Singleton
-    EncryptedFileService provideEncryptedService(final LocalCipherProvider lcp) {
+    public static EncryptedFileService provideEncryptedService(
+        final LocalCipherProvider lcp) {
         if (SystemUtils.IS_OS_LINUX) {
             // On linux we don't store any oauth data on disk and instead 
             // simply rely on the user re-entering his or her oauth credentials
@@ -171,7 +174,7 @@ public class LanternModule extends AbstractModule {
     }
     
     @Provides  @Singleton
-    LocalCipherProvider provideLocalCipher() {
+    public static LocalCipherProvider provideLocalCipher() {
         final LocalCipherProvider lcp; 
         
         /*
