@@ -45,11 +45,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
 import org.apache.commons.lang.math.NumberUtils;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.ObjectWriter;
-import org.codehaus.jackson.map.SerializationConfig.Feature;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
@@ -88,14 +83,6 @@ public class LanternUtils {
 
     public static boolean isDevMode() {
         return LanternConstants.VERSION.equals("lantern_version_tok");
-    }
-
-    public static String jidToUserId(final String fullId) {
-        return fullId.split("/")[0];
-    }
-
-    public static String jidToInstanceId(final String fullId) {
-        return fullId.split("/")[1];
     }
 
     /**
@@ -291,21 +278,6 @@ public class LanternUtils {
             if (v.equalsIgnoreCase(HttpHeaders.Values.CHUNKED)) {
                 return true;
             }
-        }
-        return false;
-    }
-
-    public static boolean isLanternHub(final String jabberid) {
-        final String userid = jidToUserId(jabberid);
-        return LanternConstants.LANTERN_JID.equals(userid);
-    }
-
-
-    public static boolean isLanternJid(final String from) {
-        // Here's the format we're looking for: "-lan-"
-        if (from.contains("/"+LanternConstants.UNCENSORED_ID)) {
-            LOG.info("Returning Lantern TRUE for from: {}", from);
-            return true;
         }
         return false;
     }
@@ -555,40 +527,6 @@ public class LanternUtils {
         return sc.nextLine();
     }
 
-    public static String jsonify(final Object all) {
-
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(Feature.INDENT_OUTPUT, true);
-        //mapper.configure(Feature.SORT_PROPERTIES_ALPHABETICALLY, false);
-
-        try {
-            return mapper.writeValueAsString(all);
-        } catch (final JsonGenerationException e) {
-            LOG.warn("Error generating JSON", e);
-        } catch (final JsonMappingException e) {
-            LOG.warn("Error generating JSON", e);
-        } catch (final IOException e) {
-            LOG.warn("Error generating JSON", e);
-        }
-        return "";
-    }
-
-    public static String jsonify(final Object all, final Class<?> view) {
-        final ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(Feature.INDENT_OUTPUT, true);
-        final ObjectWriter writer = mapper.writerWithView(view);
-        try {
-            return writer.writeValueAsString(all);
-        } catch (final JsonGenerationException e) {
-            LOG.warn("Error generating JSON", e);
-        } catch (final JsonMappingException e) {
-            LOG.warn("Error generating JSON", e);
-        } catch (final IOException e) {
-            LOG.warn("Error generating JSON", e);
-        }
-        return "";
-    }
-
     /**
      * Returns <code>true</code> if the specified string is either "true" or
      * "on" ignoring case.
@@ -665,13 +603,6 @@ public class LanternUtils {
         } finally {
             IOUtils.closeQuietly(is);
         }
-    }
-
-    public static String jidToEmail(final String jid) {
-        if (jid.contains("/")) {
-            return StringUtils.substringBefore(jid, "/");
-        }
-        return jid;
     }
 
     /**
