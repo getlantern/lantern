@@ -21,12 +21,12 @@ import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class LanternTrustStoreTest {
+public class TrustStoreTest {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     @Test
-    public void testSites() throws Exception {
+    public void testSites() {//throws Exception {
         System.setProperty("javax.net.debug", "ssl");
         final KeyStoreManager ksm = new LanternKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
@@ -43,12 +43,10 @@ public class LanternTrustStoreTest {
 
         final HttpClient client = new DefaultHttpClient();
         client.getConnectionManager().getSchemeRegistry().register(sch);
-        
-        client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 
-            20000);
+        client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 20000);
         client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 30000);
 
-        final String[] success = {"talk.google.com", "lanternctrl.appspot.com",
+        final String[] success = {//"talk.google.com", "lanternctrl.appspot.com",
             "docs.google.com", "www.exceptional.io", "www.googleapis.com",
             "query.yahooapis.com", 
             LanternConstants.FALLBACK_SERVER_HOST+":"+
@@ -57,7 +55,7 @@ public class LanternTrustStoreTest {
         // URIs that should fail (signing certs we don't trust). Note this would
         // succeed (with the test failing as a result) with the normal root CAs,
         // which trust more signing certs than ours, such as verisign. We
-        // just try to minimize the attack surface as much as possible.
+        // just try to minimize the attack surface as much aLs possible.
         final String[] failure = {"chase.com"};
         for (final String uri : success) {
             System.err.println("Trying: "+uri);
@@ -66,7 +64,7 @@ public class LanternTrustStoreTest {
                 log.debug("SUCCESS BODY: "+body);
             } catch (Exception e) {
                 log.error("Stack:\n"+ThreadUtils.dumpStack(e));
-                fail("Unexpected exception!\n"+ThreadUtils.dumpStack(e)+
+                fail("Unexpected exception on "+uri+"!\n"+ThreadUtils.dumpStack(e)+
                     "\n\nFAILED ON: "+uri);
             }
         }
@@ -119,5 +117,4 @@ public class LanternTrustStoreTest {
         get.reset();
         return body;
     }
-
 }

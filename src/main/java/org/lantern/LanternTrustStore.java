@@ -109,29 +109,9 @@ public class LanternTrustStore {
         addCert(alias, cert);
     }
 
-    private void addCert(final String alias, final File cert) {
-        if (!cert.isFile()) {
-            log.error("No cert at "+cert);
-            System.exit(1);
-        }
-        log.debug("Importing cert");
-        
-        // Quick not on '-import' versus '-importcert' from the oracle docs:
-        //
-        // "This command was named -import in previous releases. This old name 
-        // is still supported in this release and will be supported in future 
-        // releases, but for clarify the new name, -importcert, is preferred 
-        // going forward."
-        //
-        // We use import for backwards compatibility.
-        final String result = LanternUtils.runKeytool("-import", 
-            "-noprompt", "-file", cert.getAbsolutePath(), 
-            "-alias", alias, "-keystore", 
-            getTrustStorePath(), "-storepass", PASS);
-        
-        log.debug("Result of running keytool: {}", result);
+    public void addCert(final String alias, final File cert) {
+        LanternUtils.addCert(alias, cert, TRUSTSTORE_FILE, PASS);
     }
-    
 
     public void addBase64Cert(final String fullJid, final String base64Cert) 
         throws IOException {

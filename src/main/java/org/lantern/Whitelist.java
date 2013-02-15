@@ -40,6 +40,7 @@ public class Whitelist {
         "getlantern.org",
         "github.com",
         "google.com",
+        "greatfire.org",
         "hrw.org", // Human Rights Watch
         "ifconfig.me",
         "igfw.net",
