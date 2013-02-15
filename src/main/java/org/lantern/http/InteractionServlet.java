@@ -35,7 +35,7 @@ import com.google.inject.Singleton;
 public class InteractionServlet extends HttpServlet {
 
     private final InternalState internalState;
-    
+
     private enum Interaction {
         GET,
         GIVE,
@@ -50,9 +50,9 @@ public class InteractionServlet extends HttpServlet {
         RETRY,
         REQUESTINVITE,
     }
-    
+
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     /**
      * Generated serialization ID.
      */
@@ -63,9 +63,9 @@ public class InteractionServlet extends HttpServlet {
     private final Model model;
 
     private final ModelIo modelIo;
-    
+
     @Inject
-    public InteractionServlet(final Model model, 
+    public InteractionServlet(final Model model,
         final ModelService modelService,
         final InternalState internalState,
         final ModelIo modelIo) {
@@ -74,22 +74,22 @@ public class InteractionServlet extends HttpServlet {
         this.internalState = internalState;
         this.modelIo = modelIo;
     }
-    
+
     @Override
-    protected void doGet(final HttpServletRequest req, 
-        final HttpServletResponse resp) throws ServletException, 
+    protected void doGet(final HttpServletRequest req,
+        final HttpServletResponse resp) throws ServletException,
         IOException {
         processRequest(req, resp);
     }
-    
+
     @Override
-    protected void doPost(final HttpServletRequest req, 
-        final HttpServletResponse resp) throws ServletException, 
+    protected void doPost(final HttpServletRequest req,
+        final HttpServletResponse resp) throws ServletException,
         IOException {
         processRequest(req, resp);
     }
-    
-    protected void processRequest(final HttpServletRequest req, 
+
+    protected void processRequest(final HttpServletRequest req,
         final HttpServletResponse resp) {
         final String uri = req.getRequestURI();
         log.debug("Received URI: {}", uri);
@@ -101,9 +101,9 @@ public class InteractionServlet extends HttpServlet {
             HttpUtils.sendClientError(resp, "interaction argument required!");
             return;
         }
-        
+
         log.debug("Headers: "+HttpUtils.getRequestHeaders(req));
-        
+
         final int cl = req.getContentLength();
         String json = "";
         if (cl > 0) {
@@ -113,12 +113,13 @@ public class InteractionServlet extends HttpServlet {
                 log.error("Could not parse json?");
             }
         }
-        
+
         log.debug("Body: '"+json+"'");
-        
-        final Interaction inter = 
+
+        final Interaction inter =
             Interaction.valueOf(interactionStr.toUpperCase());
         final Modal modal = this.model.getModal();
+
         switch (modal) {
         case welcome:
             switch (inter) {
@@ -191,9 +192,16 @@ public class InteractionServlet extends HttpServlet {
                 log.debug("Processing settings in none");
                 Events.syncModal(model, Modal.settings);
                 break;
-            default:
+            case PROXIEDSITES:
+                log.debug("Processing proxied sites in none");
+                Events.syncModal(model, Modal.proxiedSites);
+                break;
+            case LANTERNFRIENDS:
                 log.debug("Processing friends in none");
                 Events.syncModal(model, Modal.lanternFriends);
+                break;
+            default:
+                log.debug("Unktnown modal in none");
                 break;
             }
             break;
@@ -212,21 +220,45 @@ public class InteractionServlet extends HttpServlet {
             break;
         case proxiedSites:
             switch (inter) {
-            case CONTINUE:
-                log.debug("Processing continue");
-                // How should we actually set the proxied sites here?
+            case RESET:
+                this.modelService.resetProxiedSites();
                 this.internalState.setModalCompleted(Modal.proxiedSites);
                 this.internalState.advanceModal(null);
                 break;
+            case CONTINUE:
+                applyJson(json);
+                this.internalState.setModalCompleted(Modal.proxiedSites);
+                this.internalState.advanceModal(null);
+                break;
+            case SET:
+                applyJson(json);
+                break;
             default:
-                log.error("Did not handle interaction for modal {} with " +
-                    "params: {}", modal, params);
-                HttpUtils.sendClientError(resp, "give or get required");
+                log.error("Did not handle interaction {}, for modal {} with " +
+                    "params: {}", inter, modal, params);
+                HttpUtils.sendClientError(resp, "unexpected interaction for proxied sites");
                 break;
             }
             break;
         case requestInvite:
-            log.error("Porcessing request invite");
+            log.error("Processing request invite");
+            switch (inter) {
+            case CANCEL:
+                this.internalState.setModalCompleted(Modal.requestInvite);
+                this.internalState.advanceModal(Modal.notInvited);
+                break;
+            case CONTINUE:
+                applyJson(json);
+                this.internalState.setModalCompleted(Modal.proxiedSites);
+                //TODO: need to do something here
+                this.internalState.advanceModal(null);
+                break;
+            default:
+                log.error("Did not handle interaction {}, for modal {} with " +
+                    "params: {}", inter, modal, params);
+                HttpUtils.sendClientError(resp, "unexpected interaction for request invite");
+                break;
+            }
             break;
         case requestSent:
             log.debug("Process request sent");
@@ -268,7 +300,7 @@ public class InteractionServlet extends HttpServlet {
             case CONTINUE:
                 log.debug("Processing continue...applying JSON: {}", json);
                 applyJson(json);
-                
+
                 this.internalState.setModalCompleted(Modal.systemProxy);
                 this.internalState.advanceModal(null);
                 break;
@@ -363,7 +395,7 @@ public class InteractionServlet extends HttpServlet {
         Events.eventBus().post(new SyncEvent(SyncPath.MODE, mode));
         this.modelService.setMode(mode);
     }
-    
+
     private void handleReset() {
         // This posts the reset event to any classes that need to take action,
         // avoiding coupling this class to those classes.
@@ -389,5 +421,5 @@ public class InteractionServlet extends HttpServlet {
         model.setShowVis(base.isShowVis());
         modelIo.write();
     }
-   
+
 }

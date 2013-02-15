@@ -1,6 +1,7 @@
 package org.lantern.state;
 
 import org.cometd.bayeux.server.ServerSession;
+import org.lantern.event.SyncType;
 
 /**
  * Interface for supporting various methods of syncing with clients using some
@@ -8,6 +9,7 @@ import org.cometd.bayeux.server.ServerSession;
  */
 public interface SyncStrategy {
 
-    void sync(boolean force, ServerSession session, String path, Object value);
+    void sync(ServerSession session, SyncType syncType, String path,
+            Object value);
 
 }

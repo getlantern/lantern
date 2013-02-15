@@ -6,6 +6,7 @@ import java.util.TreeMap;
 
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.LanternConstants;
 import org.lantern.event.Events;
@@ -22,17 +23,17 @@ import com.google.common.eventbus.Subscribe;
 public class Version {
 
     private final Installed installed = new Installed();
-    
+
     private Map<String, Object> latest = new TreeMap<String, Object>();
-    
+
     public Version() {
         Events.register(this);
     }
-    
+
     @Subscribe
     public void onUpdate(final UpdateEvent updateEvent) {
         this.latest = updateEvent.getData();
-        Events.asyncEventBus().post(new SyncEvent(SyncPath.VERSION_UPDATED, 
+        Events.asyncEventBus().post(new SyncEvent(SyncPath.VERSION_UPDATED,
             this.latest));
         this.installed.setUpdateAvailable(true);
     }
@@ -48,32 +49,32 @@ public class Version {
     }
 
     public class Installed {
-        
+
         private final int major;
-        
+
         private final int minor;
 
         private final int patch;
-        
+
         private final String tag = "";
-        
+
         private final String git;
-                
-        private final SemanticVersion httpApi = new SemanticVersion(0, 0, 1);
-        
-        private final SemanticVersion stateSchema = new SemanticVersion(0, 0, 1);
-        
+
+        private final SemanticVersion api = new SemanticVersion(0, 0, 1);
+
+        private final SemanticVersion modelSchema = new SemanticVersion(0, 0, 1);
+
         private final SemanticVersion bayeuxProtocol = new SemanticVersion(0, 0, 1);
-        
-        private final Date released;
-        
+
+        private final Date releaseDate;
+
         private boolean updateAvailable = false;
-        
+
         public Installed() {
             if (NumberUtils.isNumber(LanternConstants.BUILD_TIME)) {
-                released = new Date(Long.parseLong(LanternConstants.BUILD_TIME));
+                releaseDate = new Date(Long.parseLong(LanternConstants.BUILD_TIME));
             } else {
-                released = new Date(System.currentTimeMillis());
+                releaseDate = new Date(System.currentTimeMillis());
             }
             if ("lantern_version_tok".equals(LanternConstants.VERSION)) {
                 major = 0;
@@ -88,8 +89,8 @@ public class Version {
                 git = StringUtils.substringAfter(parts[2], "-");
             }
         }
-        
-        
+
+
         public int getMajor() {
             return major;
         }
@@ -111,16 +112,17 @@ public class Version {
         }
 
         @JsonView({Run.class})
-        public SemanticVersion getHttpApi() {
-            return httpApi;
+        public SemanticVersion getApi() {
+            return api;
         }
 
-        public Date getReleased() {
-            return released;
+        @JsonSerialize(using=DateSerializer.class)
+        public Date getReleaseDate() {
+            return releaseDate;
         }
 
-        public SemanticVersion getStateSchema() {
-            return stateSchema;
+        public SemanticVersion getModelSchema() {
+            return modelSchema;
         }
 
         public SemanticVersion getBayeuxProtocol() {
@@ -136,18 +138,18 @@ public class Version {
         public void setUpdateAvailable(boolean updateAvailable) {
             this.updateAvailable = updateAvailable;
         }
-        
+
     }
 
     public class SemanticVersion {
         private final int major;
-        
+
         private final int minor;
-        
+
         private final int patch;
-        
+
         private final boolean mock = true;
-        
+
         public SemanticVersion(final int major, final int minor, final int patch) {
             this.major = major;
             this.minor = minor;

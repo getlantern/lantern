@@ -3,9 +3,9 @@ package org.lantern;
 public class GeoData {
 
     private String countrycode = "";
-    
+
     private double latitude = 0.0;
-    
+
     private double longitude = 0.0;
 
     public double getLatitude() {
@@ -29,9 +29,9 @@ public class GeoData {
     }
 
     public void setCountrycode(String countrycode) {
-        this.countrycode = countrycode;
+        this.countrycode = countrycode.toUpperCase();
     }
-    
+
 
     @Override
     public String toString() {

@@ -11,25 +11,25 @@ import org.lantern.state.Settings.Mode;
 public interface ModelService {
 
     //void setCountry(Country country);
-    
+
     //void setGetMode(boolean getMode);
-    
+
     //void setMode(boolean getMode);
-    
+
     void setRunAtSystemStart(boolean start);
-    
+
     void setSystemProxy(boolean isSystemProxy);
-    
+
     void setAutoReport(boolean report);
-    
+
     //void setAutoConnect(boolean autoConnect);
-    
+
     //void setPort(int port);
 
     //void setEmail(String email);
-    
+
     //void setPassword(String password);
-    
+
     //void setSavePassword(boolean savePassword);
 
     void setProxyAllSites(boolean proxyAll);
@@ -37,5 +37,9 @@ public interface ModelService {
     void setMode(Mode mode);
 
     void invite(List<String> emails);
+
+    void setProxiedSites(List<String> proxiedSites);
+
+    void resetProxiedSites();
 
 }

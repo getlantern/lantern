@@ -1,6 +1,7 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 import org.lantern.state.JsonModelModifier;
@@ -14,9 +15,9 @@ public class JsonModelModifierTest {
     public void test() {
         final ModelService mm = TestUtils.getModelService();
         final JsonModelModifier mod = new JsonModelModifier(mm);
-        
+
         final Model model = TestUtils.getModel();
-        
+
         assertFalse(model.isLaunchd());
         //String json = "{\"path\":\"launchd\",\"value\":true}";
         //mod.applyJson(json);
@@ -26,8 +27,8 @@ public class JsonModelModifierTest {
         final Settings set = model.getSettings();
         set.setSystemProxy(true);
         assertTrue(set.isSystemProxy());
-        
-        String json = "{\"path\":\"settings.systemProxy\",\"value\":false}";
+
+        String json = "{\"path\":\"settings/systemProxy\",\"value\":false}";
         mod.applyJson(json);
         assertFalse("Model modifier didn't modify!", set.isSystemProxy());
     }

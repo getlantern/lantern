@@ -1,9 +1,11 @@
 package org.lantern.state;
 
 import java.security.SecureRandom;
+import java.util.List;
 
 import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
+import org.lantern.Country;
 import org.lantern.LanternConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,42 +17,44 @@ import org.slf4j.LoggerFactory;
 public class Model {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     public static class Persistent {}
-    
+
     public static class Run {}
-    
+
     private final SystemData system = new SystemData();
-    
+
     private final Version version = new Version();
-    
+
     private final Location location = new Location();
-    
+
     private boolean showVis = false;
-    
-    private final boolean dev = 
+
+    private final boolean dev =
         LanternConstants.VERSION.equals("lantern_version_tok");
-    
+
     private int ninvites = 0;
-    
+
     private Modal modal = Modal.welcome;
-    
+
     private Settings settings = new Settings();
-    
+
     private Connectivity connectivity = new Connectivity();
-    
+
     private Profile profile = new Profile();
-    
+
     private boolean setupComplete;
-    
+
     private int nproxiedSitesMax = 2000;
 
     private boolean launchd;
 
     private boolean cache;
-    
+
     private String nodeId = String.valueOf(new SecureRandom().nextLong());
-    
+
+    private List<Country> countries = Country.allCountries();
+
     public SystemData getSystem() {
         return system;
     }
@@ -93,7 +97,7 @@ public class Model {
     public boolean isShowVis() {
         return showVis;
     }
-    
+
     public void setShowVis(boolean showVis) {
         this.showVis = showVis;
     }
@@ -162,5 +166,13 @@ public class Model {
 
     public void setNproxiedSitesMax(int nproxiedSitesMax) {
         this.nproxiedSitesMax = nproxiedSitesMax;
+    }
+
+    public List<Country> getCountries() {
+        return countries;
+    }
+
+    public void setCountries(List<Country> countries) {
+        this.countries = countries;
     }
 }

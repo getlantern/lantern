@@ -215,7 +215,6 @@ class TestingUtils {
         File keyStoreRoot = Files.createTempDir(); 
         return new LanternKeyStoreManager(keyStoreRoot);
     }
-    */
 
     /**
      * this mimics the portion of Launcher that starts the local browser proxy, 
