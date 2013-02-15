@@ -38,8 +38,7 @@ public class DefaultXmppHandlerTest {
         proxyTracker.clear();
         handler.connect();
         
-        
-        LOG.info("Checking for proxies in settings: {}", settings);
+        LOG.debug("Checking for proxies in settings: {}", settings);
         int count = 0;
         while (proxyTracker.isEmpty() && count < 200) {
             if (!proxyTracker.isEmpty()) break;

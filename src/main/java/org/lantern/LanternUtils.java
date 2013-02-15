@@ -905,6 +905,31 @@ public class LanternUtils {
             LOG.error("Could not delete file {}!!", file);
         }
     }
+    
+    
+    public static void addCert(final String alias, final File cert, 
+        final File trustStore, final String storePass) {
+        if (!cert.isFile()) {
+            LOG.error("No cert at "+cert);
+            System.exit(1);
+        }
+        LOG.debug("Importing cert");
+        
+        // Quick not on '-import' versus '-importcert' from the oracle docs:
+        //
+        // "This command was named -import in previous releases. This old name 
+        // is still supported in this release and will be supported in future 
+        // releases, but for clarify the new name, -importcert, is preferred 
+        // going forward."
+        //
+        // We use import for backwards compatibility.
+        final String result = LanternUtils.runKeytool("-import", 
+            "-noprompt", "-file", cert.getAbsolutePath(), 
+            "-alias", alias, "-keystore", 
+            trustStore.getAbsolutePath(), "-storepass", storePass);
+        
+        LOG.debug("Result of running keytool: {}", result);
+    }
 }
 
 

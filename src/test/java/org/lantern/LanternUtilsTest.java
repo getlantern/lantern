@@ -28,6 +28,7 @@ import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smackx.packet.VCard;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.lantern.state.Model;
 import org.lastbamboo.common.offer.answer.IceConfig;
@@ -38,6 +39,7 @@ import org.slf4j.LoggerFactory;
 /**
  * Test for Lantern utilities.
  */
+//@Ignore
 public class LanternUtilsTest {
     
     private static Logger LOG = LoggerFactory.getLogger(LanternUtilsTest.class);
@@ -49,12 +51,13 @@ public class LanternUtilsTest {
     
     @Test 
     public void testGoogleTalkReachable() throws Exception {
+        LOG.debug("Testing gtalk reachability");
         assertTrue(LanternUtils.isGoogleTalkReachable());
     }
     
     @Test
     public void testGetTargetForPath() throws Exception {
-        
+        LOG.debug("Testing getTarget");
         final Model model = TestUtils.getModel();
         
         assertFalse(model.isLaunchd());
@@ -70,6 +73,7 @@ public class LanternUtilsTest {
     
     @Test
     public void testIsJid() throws Exception {
+        LOG.debug("Testing jid");
         String id = "2bgg8h04men25@id.talk.google.com";
         assertTrue(!LanternUtils.isNotJid(id));
         
@@ -82,6 +86,7 @@ public class LanternUtilsTest {
     
     @Test 
     public void testVCard() throws Exception {
+        LOG.debug("Testing vcard");
         final XMPPConnection conn = TestUtils.xmppConnection();
         assertTrue(conn.isAuthenticated());
         final VCard vcard = XmppUtils.getVCard(conn, TestUtils.getUserName());
@@ -97,6 +102,7 @@ public class LanternUtilsTest {
     
     @Test
     public void testSSL() throws Exception {
+        LOG.debug("Testing SSL...");
         Security.addProvider(new BouncyCastleProvider());
         IceConfig.setCipherSuites(new String[] {
             //"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
@@ -196,6 +202,7 @@ public class LanternUtilsTest {
     
     @Test
     public void testReplaceInFile() throws Exception {
+        LOG.debug("Testing replaceInFile...");
         final File temp = File.createTempFile(String.valueOf(hashCode()), "test");
         temp.deleteOnExit();
         final String data = "blah blah blah <true/> blah blah";
@@ -207,6 +214,7 @@ public class LanternUtilsTest {
     
     @Test 
     public void testGoogleStunServers() throws Exception {
+        LOG.debug("Testing STUN servers...");
         final XMPPConnection conn = TestUtils.xmppConnection();
         
         final Collection<InetSocketAddress> servers = 
@@ -243,7 +251,17 @@ public class LanternUtilsTest {
     
     @Test 
     public void testOtrMode() throws Exception {
+        LOG.debug("Testing OTR mode...");
+        System.setProperty("javax.net.debug", "ssl");
+        /*
+        final File certsFile = new File("src/test/resources/cacerts");
+        if (!certsFile.isFile()) {
+            throw new IllegalStateException("COULD NOT FIND CACERTS!!");
+        }
+        System.setProperty("javax.net.ssl.trustStore", certsFile.getCanonicalPath());
+        */
         final XMPPConnection conn = TestUtils.xmppConnection();
+        //System.setProperty("javax.net.ssl.trustStore", certsFile.getCanonicalPath());
         final String activateResponse = LanternUtils.activateOtr(conn).toXML();
         LOG.debug("Got response: {}", activateResponse);
         
