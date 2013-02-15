@@ -17,7 +17,7 @@ import com.google.common.util.concurrent.ThreadFactoryBuilder;
 public class Events {
 
     private static final Logger LOG = LoggerFactory.getLogger(Events.class);
-    
+
     private static final EventBus eventBus = new EventBus();
 
     private static final AsyncEventBus asyncEventBus =
@@ -29,8 +29,8 @@ public class Events {
         asyncEventBus.register(toRegister);
         eventBus.register(toRegister);
     }
-    
-    
+
+
     public static EventBus eventBus() {
         return eventBus;
     }
@@ -42,7 +42,7 @@ public class Events {
     /**
      * Convenience method for syncing a new modal both with the state model
      * and with the frontend.
-     * 
+     *
      * @param model The state model.
      * @param modal The modal to set.
      */
@@ -53,23 +53,23 @@ public class Events {
 
     /**
      * Convenience method for syncing the current modal with the frontend.
-     * 
+     *
      * @param model The state model.
      */
     public static void syncModal(final Model model) {
         Events.asyncEventBus().post(new SyncEvent(SyncPath.MODAL, model.getModal()));
     }
-    
+
     /**
      * Convenience method for syncing the current modal with the frontend.
      */
     public static void syncRoster(final Roster roster) {
         // This is done synchronously because we need the roster array on the
-        // frontend to be in sync with the backend in order to index into it 
+        // frontend to be in sync with the backend in order to index into it
         // on roster updates.
         Events.eventBus().post(new SyncEvent(SyncPath.ROSTER, roster.getEntries()));
     }
-    
+
 
     public static void syncRosterEntry(final LanternRosterEntry entry, final int index) {
         final String path = SyncPath.ROSTER.getPath()+"."+index;
@@ -90,5 +90,10 @@ public class Events {
 
     public static void syncNInvites(final Integer ninvites) {
         sync(SyncPath.NINVITES, ninvites);
+    }
+
+
+    public static void syncAdd(String path, Object value) {
+        Events.asyncEventBus().post(new SyncEvent(SyncType.ADD, path, value));
     }
 }

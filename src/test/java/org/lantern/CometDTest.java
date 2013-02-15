@@ -44,12 +44,12 @@ public class CometDTest {
 
         // Prepare the transport
         final Map<String, Object> options = new HashMap<String, Object>();
-        final ClientTransport transport = 
+        final ClientTransport transport =
             LongPollingTransport.create(options, httpClient);
 
-        final ClientSession session = 
+        final ClientSession session =
             new BayeuxClient("http://127.0.0.1:"+port+"/cometd", transport);
-        
+
         final AtomicBoolean handshake = new AtomicBoolean(false);
         session.getChannel(Channel.META_HANDSHAKE).addListener(
             new ClientSessionChannel.MessageListener() {
@@ -65,20 +65,21 @@ public class CometDTest {
         session.handshake();
         waitForBoolean(handshake);
         assertTrue("Could not handshake?", handshake.get());
-        
+
         final AtomicBoolean hasMessage = new AtomicBoolean(false);
         final AtomicReference<String> messagePath = new AtomicReference<String>("none");
         final MessageListener ml = new MessageListener() {
-            
+
             @Override
-            public void onMessage(final ClientSessionChannel channel, 
+            public void onMessage(final ClientSessionChannel channel,
                 final Message message) {
-                final Map<String, Object> map = message.getDataAsMap();
+                Object[] data = (Object[]) message.getData();
+                @SuppressWarnings("unchecked")
+                final Map<String, Object> map = (Map<String, Object>) data[0];
                 //data.set(map);
-                
                 final String path = (String) map.get("path");
                 messagePath.set(path);
-                
+
                 hasMessage.set(true);
             }
         };
@@ -89,36 +90,36 @@ public class CometDTest {
         assertEquals("", messagePath.get());
         hasMessage.set(false);
         messagePath.set("none");
-        
-        final Map<String,Object> updateJson = 
+
+        final Map<String,Object> updateJson =
             new LinkedHashMap<String,Object>();
         updateJson.put(LanternConstants.UPDATE_VERSION_KEY, 0.20);
-        updateJson.put(LanternConstants.UPDATE_RELEASED_KEY, 
+        updateJson.put(LanternConstants.UPDATE_RELEASED_KEY,
             "2012-10-31T11:15:00Z");
-        updateJson.put(LanternConstants.UPDATE_URL_KEY, 
+        updateJson.put(LanternConstants.UPDATE_URL_KEY,
             "http://s3.amazonaws.com/lantern/latest.dmg");
-        updateJson.put(LanternConstants.UPDATE_MESSAGE_KEY, 
+        updateJson.put(LanternConstants.UPDATE_MESSAGE_KEY,
             "test update");
-        
+
         Events.asyncEventBus().post(new UpdateEvent(updateJson));
-        
+
         waitForBoolean(hasMessage);
-        assertEquals("version.latest", messagePath.get());
+        assertEquals("/version/latest", messagePath.get());
         hasMessage.set(false);
         messagePath.set("none");
     }
 
     private AtomicReference<Map<String, Object>> subscribe(
         final ClientSession session, final MessageListener ml) {
-        
-        final AtomicReference<Map<String, Object>> data = 
+
+        final AtomicReference<Map<String, Object>> data =
             new AtomicReference<Map<String,Object>>();
-        
+
         session.getChannel("/sync").subscribe(ml);
         return data;
     }
 
-    private void waitForBoolean(final AtomicBoolean bool) 
+    private void waitForBoolean(final AtomicBoolean bool)
         throws InterruptedException {
         int tries = 0;
         while (tries < 200) {
@@ -135,7 +136,7 @@ public class CometDTest {
         // The order of getting things from the injector matters unfortunately,
         // so we have to do the below.
         //injector.getInstance(DefaultXmppHandler.class);
-        //final JettyLauncher jl = injector.getInstance(JettyLauncher.class); 
+        //final JettyLauncher jl = injector.getInstance(JettyLauncher.class);
         final Runnable runner = new Runnable() {
             @Override
             public void run() {

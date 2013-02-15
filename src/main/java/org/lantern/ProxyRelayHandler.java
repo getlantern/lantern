@@ -1,7 +1,9 @@
 package org.lantern;
 
 import java.net.InetSocketAddress;
+import java.security.NoSuchAlgorithmException;
 
+import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 import org.jboss.netty.bootstrap.ClientBootstrap;

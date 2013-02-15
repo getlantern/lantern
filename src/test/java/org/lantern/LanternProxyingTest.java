@@ -1,6 +1,6 @@
 package org.lantern;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.io.IOException;
@@ -23,13 +23,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * End-to-end proxying test to make sure we're able to proxy access to 
+ * End-to-end proxying test to make sure we're able to proxy access to
  * different sites.
  */
 public class LanternProxyingTest {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     @Test
     public void testWithHttpClient() throws Exception {
         //System.setProperty("javax.net.debug", "ssl");
@@ -77,7 +77,7 @@ public class LanternProxyingTest {
         int good = 0;
         for (final String site : censored) {
             log.warn("TESTING SITE: {}", site);
-            good += testWhitelistedSite(site, client, 
+            good += testWhitelistedSite(site, client,
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT) ? 1 : 0;
         }
         //allow at most five failures
@@ -86,8 +86,8 @@ public class LanternProxyingTest {
         //proxy.stop();
         //Launcher.stop();
     }
-    
-    private boolean testWhitelistedSite(final String url, final HttpClient client, 
+
+    private boolean testWhitelistedSite(final String url, final HttpClient client,
         final int proxyPort) throws Exception {
         final HttpGet get = new HttpGet("http://"+url);
         
@@ -111,12 +111,12 @@ public class LanternProxyingTest {
             throw e;
         } catch (final IOException e) {
             log.warn("IO error connecting to "+url, e);
-            throw e;
+            return false;
         }
         if (200 !=  response.getStatusLine().getStatusCode()) {
             return false;
         }
-        
+
         log.debug("Consuming entity");
         final HttpEntity entity = response.getEntity();
         final String raw = IOUtils.toString(entity.getContent());

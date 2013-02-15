@@ -47,23 +47,23 @@ import com.google.inject.Singleton;
 public class Roster implements RosterListener {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
-    private Map<String, LanternRosterEntry> rosterEntries = 
+
+    private Map<String, LanternRosterEntry> rosterEntries =
         new ConcurrentSkipListMap<String, LanternRosterEntry>();
-    
+
     /**
      * Map of e-mail address of the requester to their full profile.
      */
-    private final Map<String, Profile> incomingSubscriptionRequests = 
+    private final Map<String, Profile> incomingSubscriptionRequests =
         new TreeMap<String, Profile>();
 
     private volatile boolean populated;
-    
-    private final RandomRoutingTable kscopeRoutingTable = 
+
+    private final RandomRoutingTable kscopeRoutingTable =
         new BasicRandomRoutingTable();
 
     private org.jivesoftware.smack.Roster smackRoster;
-    
+
     /**
      * Locally-stored set of users we've invited.
      */
@@ -91,11 +91,11 @@ public class Roster implements RosterListener {
                 ros.addRosterListener(Roster.this);
                 final Collection<RosterEntry> unordered = ros.getEntries();
                 log.debug("Got roster entries!!");
-                
+
                 rosterEntries = getRosterEntries(unordered);
-                
+
                 for (final RosterEntry entry : unordered) {
-                    final Iterator<Presence> presences = 
+                    final Iterator<Presence> presences =
                         ros.getPresences(entry.getUser());
                     while (presences.hasNext()) {
                         final Presence p = presences.next();
@@ -117,7 +117,7 @@ public class Roster implements RosterListener {
      * We call this dynamically instead of using a constant because the API
      * PORT is set at startup, and we don't want to create a race condition
      * for retrieving it.
-     * 
+     *
      * @return The base URL for photos.
      */
     private String photoUrlBase() {
@@ -126,10 +126,10 @@ public class Roster implements RosterListener {
 
     private Map<String, LanternRosterEntry> getRosterEntries(
         final Collection<RosterEntry> unordered) {
-        final Map<String, LanternRosterEntry> entries = 
+        final Map<String, LanternRosterEntry> entries =
             new ConcurrentSkipListMap<String, LanternRosterEntry>();
         for (final RosterEntry entry : unordered) {
-            final LanternRosterEntry lre = 
+            final LanternRosterEntry lre =
                 new LanternRosterEntry(entry, photoUrlBase(), this);
             if (LanternUtils.isNotJid(lre.getEmail())) {
                 entries.put(lre.getEmail(), lre);
@@ -137,8 +137,8 @@ public class Roster implements RosterListener {
         }
         return entries;
     }
-    
-    private void processPresence(final Presence presence, final boolean sync, 
+
+    private void processPresence(final Presence presence, final boolean sync,
         final boolean updateIndex) {
         final String from = presence.getFrom();
         log.debug("Got presence: {}", presence.toXML());
@@ -153,8 +153,8 @@ public class Roster implements RosterListener {
             onPresence(presence, sync, updateIndex);
         }
     }
-    
-    private void onPresence(final Presence pres, final boolean sync, 
+
+    private void onPresence(final Presence pres, final boolean sync,
         final boolean updateIndex) {
         final String email = LanternUtils.jidToEmail(pres.getFrom());
         final LanternRosterEntry entry = this.rosterEntries.get(email);
@@ -169,19 +169,19 @@ public class Roster implements RosterListener {
             // This may be someone we have subscribed to who we're just now
             // getting the presence for.
             log.info("Adding non-roster presence: {}", email);
-            addEntry(new LanternRosterEntry(pres, photoUrlBase(), this),  
+            addEntry(new LanternRosterEntry(pres, photoUrlBase(), this),
                 updateIndex);
         }
-        
+
     }
 
     /**
      * Adds an entry, updating roster indexes. This should not be
      * called internally, as there should be more fine-grained control
      * over index building.
-     * 
+     *
      * NOTE: Public for testing.
-     * 
+     *
      * @param entry The entry to add.
      */
     public void addEntry(final LanternRosterEntry entry) {
@@ -191,18 +191,18 @@ public class Roster implements RosterListener {
         } else {
             log.info("Not adding entry for {}", entry);
         }
-        
+
         log.info("Finished adding entry for {}", entry);
 
         //if (LanternUtils.isLanternJid(pres.getEmail()))
         //this.kscopeRoutingTable
     }
-    
+
     /**
      * Adds an entry, optionally updating roster indexes.
-     * 
+     *
      * NOTE: Public for testing.
-     * 
+     *
      * @param entry The entry to add.
      * @param updateIndex Whether or not to update the index.
      */
@@ -214,18 +214,18 @@ public class Roster implements RosterListener {
         } else {
             log.info("Not adding entry for {}", entry);
         }
-        
+
         log.info("Finished adding entry for {}", entry);
     }
-    
-    private void putNewElement(final LanternRosterEntry entry, 
+
+    private void putNewElement(final LanternRosterEntry entry,
         final boolean updateIndex) {
-        // Completely new roster entries are quite rare, so we do all the 
+        // Completely new roster entries are quite rare, so we do all the
         // work here to set the indexes for each entry.
         synchronized(this.rosterEntries) {
-            final LanternRosterEntry elem = 
+            final LanternRosterEntry elem =
                 this.rosterEntries.put(entry.getEmail(), entry);
-            
+
             // Only update the index if the element was actually added!
             if (elem == null) {
                 if (updateIndex) {
@@ -234,10 +234,10 @@ public class Roster implements RosterListener {
             }
         }
     }
-    
+
     private void updateIndex() {
         synchronized(this.rosterEntries) {
-            final Set<LanternRosterEntry> sortedEntries = 
+            final Set<LanternRosterEntry> sortedEntries =
                     new TreeSet<LanternRosterEntry>();
             sortedEntries.addAll(rosterEntries.values());
             int index = 0;
@@ -254,7 +254,7 @@ public class Roster implements RosterListener {
             return ImmutableSortedSet.copyOf(this.rosterEntries.values());
         }
     }
-    
+
     public void setEntries(final Map<String, LanternRosterEntry> entries) {
         synchronized (this.rosterEntries) {
             this.rosterEntries.clear();
@@ -279,7 +279,7 @@ public class Roster implements RosterListener {
             final Profile prof = mapper.readValue(json, Profile.class);
             incomingSubscriptionRequests.put(prof.getEmail(), prof);
             synchronized (incomingSubscriptionRequests) {
-                syncSubscriptionRequests();
+                sendAddSubscriptionRequest(prof);
             }
         } catch (final JsonParseException e) {
             log.warn("Error parsing json", e);
@@ -289,10 +289,14 @@ public class Roster implements RosterListener {
             log.warn("Error reading json", e);
         }
     }
-    
+
+
+    private void sendAddSubscriptionRequest(Profile prof) {
+        Events.syncAdd(SyncPath.SUBSCRIPTION_REQUESTS + "." + prof.getEmail(), prof);
+    }
 
     private void syncSubscriptionRequests() {
-        Events.sync(SyncPath.SUBSCRIPTION_REQUESTS, 
+        Events.sync(SyncPath.SUBSCRIPTION_REQUESTS,
                 ImmutableMap.copyOf(incomingSubscriptionRequests));
     }
 
@@ -353,12 +357,12 @@ public class Roster implements RosterListener {
         log.debug("Got presence changed event.");
         processPresence(pres, true, true);
     }
-    
+
 
     public boolean populated() {
         return this.populated;
     }
-    
+
     public void reset() {
         this.incomingSubscriptionRequests.clear();
         synchronized (rosterEntries) {
@@ -371,7 +375,7 @@ public class Roster implements RosterListener {
     /**
      * Returns whether or not the given peer is on the roster with no pending
      * subscription states.
-     * 
+     *
      * @param email The email of the peer.
      * @return <code>true</code> if the peer is on the roster with no pending
      * subscription states, otherwise <code>false</code>.
@@ -382,43 +386,43 @@ public class Roster implements RosterListener {
             return false;
         }
         final String subscriptionStatus = entry.getSubscriptionStatus();
-        
+
         // If we're not still trying to subscribe or unsubscribe to this node,
         // then it is a legitimate entry.
         if (StringUtils.isBlank(subscriptionStatus)) {
             return true;
-        } 
-        
+        }
+
         return false;
     }
-    
+
     public boolean autoAcceptSubscription(final String from) {
         final LanternRosterEntry entry = this.rosterEntries.get(from);
         if (entry == null) {
             return false;
         }
         final String subscriptionStatus = entry.getSubscriptionStatus();
-        
+
         // If we're not still trying to subscribe or unsubscribe to this node,
         // then it is a legitimate entry.
         if (StringUtils.isBlank(subscriptionStatus)) {
             return true;
-        } 
-        
+        }
+
         // Otherwise only auto-allow subscription requests if we've requested
         // to subscribe to them.
         return subscriptionStatus.equalsIgnoreCase("subscribe");
     }
-    
+
     @Subscribe
     public void onReset(final ResetEvent event) {
         reset();
     }
-    
+
     public void setInvited(final Set<String> invited) {
         this.invited = invited;
     }
-    
+
     @JsonView({Persistent.class})
     public Set<String> getInvited() {
         return invited;

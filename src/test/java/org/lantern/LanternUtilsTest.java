@@ -41,12 +41,12 @@ import org.slf4j.LoggerFactory;
  */
 //@Ignore
 public class LanternUtilsTest {
-    
+
     private static Logger LOG = LoggerFactory.getLogger(LanternUtilsTest.class);
-    
+
     private final String msg = "oh hi";
-    
-    private final AtomicReference<String> readOnServer = 
+
+    private final AtomicReference<String> readOnServer =
         new AtomicReference<String>("");
     
     @Test 
@@ -54,37 +54,37 @@ public class LanternUtilsTest {
         LOG.debug("Testing gtalk reachability");
         assertTrue(LanternUtils.isGoogleTalkReachable());
     }
-    
+
     @Test
     public void testGetTargetForPath() throws Exception {
         LOG.debug("Testing getTarget");
         final Model model = TestUtils.getModel();
-        
+
         assertFalse(model.isLaunchd());
-        Object obj = LanternUtils.getTargetForPath(model, 
-            "version.installed.major");
-        
+        Object obj = LanternUtils.getTargetForPath(model,
+            "/version/installed/major");
+
         assertEquals(model.getVersion().getInstalled(), obj);
-        
-        obj = LanternUtils.getTargetForPath(model, "settings.mode");
-        
+
+        obj = LanternUtils.getTargetForPath(model, "/settings/mode");
+
         assertEquals(model.getSettings(), obj);
     }
-    
+
     @Test
     public void testIsJid() throws Exception {
         LOG.debug("Testing jid");
         String id = "2bgg8h04men25@id.talk.google.com";
         assertTrue(!LanternUtils.isNotJid(id));
-        
+
         id = "2bgg8h04men25@public.talk.google.com";
         assertTrue(!LanternUtils.isNotJid(id));
-        
+
         id = "testuser@gmail.com";
         assertTrue(LanternUtils.isNotJid(id));
     }
-    
-    @Test 
+
+    @Test
     public void testVCard() throws Exception {
         LOG.debug("Testing vcard");
         final XMPPConnection conn = TestUtils.xmppConnection();
@@ -93,13 +93,13 @@ public class LanternUtilsTest {
         assertTrue(vcard != null);
         final String full = vcard.getField("FN");
         assertTrue(StringUtils.isNotBlank(full));
-        
+
         // The photo might be null with test accounts!
         //final byte[] photo = vcard.getAvatar();
         //assertTrue(photo != null);
         //assertTrue(!(photo.length == 0));
     }
-    
+
     @Test
     public void testSSL() throws Exception {
         LOG.debug("Testing SSL...");
@@ -115,54 +115,54 @@ public class LanternUtilsTest {
         // We have to actually connect because the ID we use in the keystore
         // is our XMPP JID.
         xmpp.connect();
-        
-        // Since we're connecting to ourselves for testing, we need to add our 
+
+        // Since we're connecting to ourselves for testing, we need to add our
         // own key to the *trust store* from the key store.
         TestUtils.getTrustStore().addBase64Cert(xmpp.getJid(),
             TestUtils.getKsm().getBase64Cert(xmpp.getJid()));
-                
-        
-        final SocketFactory clientFactory = 
+
+
+        final SocketFactory clientFactory =
             TestUtils.getSocketsUtil().newTlsSocketFactory();
-        final ServerSocketFactory serverFactory = 
+        final ServerSocketFactory serverFactory =
             TestUtils.getSocketsUtil().newTlsServerSocketFactory();
-        
+
         final SocketAddress endpoint =
-            new InetSocketAddress("127.0.0.1", LanternUtils.randomPort()); 
-        
-        final SSLServerSocket ss = 
+            new InetSocketAddress("127.0.0.1", LanternUtils.randomPort());
+
+        final SSLServerSocket ss =
             (SSLServerSocket) serverFactory.createServerSocket();
         ss.bind(endpoint);
-        
+
         acceptIncoming(ss);
         Thread.sleep(400);
-        
+
         final SSLSocket client = (SSLSocket) clientFactory.createSocket();
-        
+
         client.connect(endpoint, 2000);
-        
+
         assertTrue(client.isConnected());
-        
+
         synchronized (readOnServer) {
             final OutputStream os = client.getOutputStream();
             os.write(msg.getBytes("UTF-8"));
             os.close();
             readOnServer.wait(2000);
         }
-        
+
         assertEquals(msg, readOnServer.get());
     }
-    
+
     private void acceptIncoming(final SSLServerSocket ss) {
         final Runnable runner = new Runnable() {
 
             @Override
             public void run() {
                 try {
-                    
+
                     final SSLSocket sock = (SSLSocket) ss.accept();
-                    
-                    LOG.debug("Incoming cipher list..." + 
+
+                    LOG.debug("Incoming cipher list..." +
                         Arrays.asList(sock.getEnabledCipherSuites()));
                     final InputStream is = sock.getInputStream();
                     final int length = msg.getBytes("UTF-8").length;
@@ -185,21 +185,21 @@ public class LanternUtilsTest {
         t.setDaemon(true);
         t.start();
     }
-    
-    @Test 
+
+    @Test
     public void testToTypes() throws Exception {
         assertEquals(String.class, LanternUtils.toTyped("33fga").getClass());
         assertEquals(Integer.class, LanternUtils.toTyped("21314").getClass());
         assertEquals(String.class, LanternUtils.toTyped("2a3b").getClass());
-        
+
         assertEquals(Boolean.class, LanternUtils.toTyped("true").getClass());
         assertEquals(Boolean.class, LanternUtils.toTyped("false").getClass());
         assertEquals(Boolean.class, LanternUtils.toTyped("on").getClass());
         assertEquals(Boolean.class, LanternUtils.toTyped("off").getClass());
-        
+
         assertEquals(String.class, LanternUtils.toTyped("2222a").getClass());
     }
-    
+
     @Test
     public void testReplaceInFile() throws Exception {
         LOG.debug("Testing replaceInFile...");
@@ -211,20 +211,20 @@ public class LanternUtilsTest {
         final String newFile = FileUtils.readFileToString(temp, "UTF-8");
         assertEquals("blah blah blah <false/> blah blah", newFile);
     }
-    
-    @Test 
+
+    @Test
     public void testGoogleStunServers() throws Exception {
         LOG.debug("Testing STUN servers...");
         final XMPPConnection conn = TestUtils.xmppConnection();
-        
-        final Collection<InetSocketAddress> servers = 
+
+        final Collection<InetSocketAddress> servers =
             XmppUtils.googleStunServers(conn);
         LOG.debug("Retrieved {} STUN servers", servers.size());
         assertTrue(!servers.isEmpty());
-        
+
         final Roster roster = conn.getRoster();
         roster.addRosterListener(new RosterListener() {
-            
+
             @Override
             public void entriesDeleted(final Collection<String> addresses) {
                 LOG.debug("Entries deleted");
@@ -245,11 +245,11 @@ public class LanternUtilsTest {
                 }
             }
         });
-        
+
         //Thread.sleep(40000);
     }
-    
-    @Test 
+
+    @Test
     public void testOtrMode() throws Exception {
         LOG.debug("Testing OTR mode...");
         System.setProperty("javax.net.debug", "ssl");
@@ -271,19 +271,19 @@ public class LanternUtilsTest {
         assertTrue("Unexpected response: "+allOtr, 
             allOtr.contains("google:nosave"));
     }
-    
 
-    @Test 
+
+    @Test
     public void testToHttpsCandidates() throws Exception {
-        Collection<String> candidates = 
+        Collection<String> candidates =
             LanternUtils.toHttpsCandidates("http://www.google.com");
         assertTrue(candidates.contains("www.google.com"));
         assertTrue(candidates.contains("*.google.com"));
         assertTrue(candidates.contains("www.*.com"));
         assertTrue(candidates.contains("www.google.*"));
         assertEquals(4, candidates.size());
-        
-        candidates = 
+
+        candidates =
             LanternUtils.toHttpsCandidates("http://test.www.google.com");
         assertTrue(candidates.contains("test.www.google.com"));
         assertTrue(candidates.contains("*.www.google.com"));
