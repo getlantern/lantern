@@ -69,7 +69,8 @@ public class Launcher {
     private JettyLauncher jettyLauncher;
     private XmppHandler xmpp;
     private BrowserService browserService;
-    
+    private final StatsUpdater statsUpdater = new StatsUpdater();
+
     private SslHttpProxyServer sslProxy;
     
     private LocalCipherProvider localCipherProvider;
@@ -222,7 +223,8 @@ public class Launcher {
         sslProxy.start(false, false);
         localProxy.start();
         plainTextAnsererRelayProxy.start(true, false);
-        
+        statsUpdater.start();
+
         gnomeAutoStart();
         
         // Use our stored STUN servers if available.
