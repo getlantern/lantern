@@ -64,11 +64,11 @@ public class ModelUtilsTest {
                 return null;
             }
         });
-        final ModelUtils modelUtils = new ModelUtils(null, httpClient);//TestUtils.getModelUtils();
+        final ModelUtils modelUtils = new ModelUtils(null, httpClient);
         final GeoData data = modelUtils.getGeoData("86.170.128.133");
         assertTrue(data.getLatitude() > 50.0);
         assertTrue(data.getLongitude() < 3.0);
-        assertEquals("gb", data.getCountrycode());
+        assertEquals("GB", data.getCountrycode());
         
         System.setProperty("javax.net.debug", "");
     }
