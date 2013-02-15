@@ -8,7 +8,7 @@ import java.util.concurrent.ThreadFactory;
 
 import org.cometd.bayeux.client.ClientSessionChannel;
 import org.cometd.bayeux.server.ServerSession;
-import org.lantern.LanternUtils;
+import org.lantern.JsonUtils;
 import org.lantern.event.SyncType;
 import org.lantern.state.Model.Run;
 import org.slf4j.Logger;
@@ -48,7 +48,7 @@ public class CometDSyncStrategy implements SyncStrategy {
 
         final SyncData data = new SyncData(op.toString().toLowerCase(), path, value);
         final List<SyncData> ops = Arrays.asList(data);
-        final String json = LanternUtils.jsonify(ops, Run.class);
+        final String json = JsonUtils.jsonify(ops, Run.class);
 
         if (!path.equals(SyncPath.ROSTER.getPath())) {
             log.debug("Sending state to frontend:\n{}", json);

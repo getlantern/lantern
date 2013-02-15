@@ -498,7 +498,7 @@ public class DefaultXmppHandler implements XmppHandler {
 
                 final Type type = pres.getType();
                 // Allow subscription requests from the lantern bot.
-                if (LanternUtils.isLanternHub(from)) {
+                if (LanternXmppUtils.isLanternHub(from)) {
                     if (type == Type.subscribe) {
                         final Presence packet = 
                             new Presence(Presence.Type.subscribed);
@@ -588,7 +588,7 @@ public class DefaultXmppHandler implements XmppHandler {
                     }
                     
                     // Now turn the advertisement into JSON.
-                    final String payload = LanternUtils.jsonify(ad);
+                    final String payload = JsonUtils.jsonify(ad);
                     
                     LOG.info("Sending kscope payload: {}", payload);
                     final BasicTrustGraphAdvertisement message =
@@ -857,7 +857,7 @@ public class DefaultXmppHandler implements XmppHandler {
         
         //if (!LanternHub.settings().isGetMode()) {
             forHub.setProperty("mode", model.getSettings().getMode().toString());
-            final String str = LanternUtils.jsonify(stats);
+            final String str = JsonUtils.jsonify(stats);
             LOG.debug("Reporting data: {}", str);
             if (!this.lastJson.equals(str)) {
                 this.lastJson = str;
@@ -1171,7 +1171,7 @@ public class DefaultXmppHandler implements XmppHandler {
         final Profile prof = this.model.getProfile();
         pres.setProperty(LanternConstants.INVITER_NAME, prof.getName());
         
-        final String json = LanternUtils.jsonify(prof);
+        final String json = JsonUtils.jsonify(prof);
         pres.setProperty(XmppMessageConstants.PROFILE, json);
 
         invited.add(email);
@@ -1200,7 +1200,7 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.info("Sending subscribe message to: {}", jid);
         final Presence packet = new Presence(Presence.Type.subscribe);
         packet.setTo(jid);
-        final String json = LanternUtils.jsonify(this.model.getProfile());
+        final String json = JsonUtils.jsonify(this.model.getProfile());
         packet.setProperty(XmppMessageConstants.PROFILE, json);
         final XMPPConnection conn = this.client.get().getXmppConnection();
         conn.sendPacket(packet);
