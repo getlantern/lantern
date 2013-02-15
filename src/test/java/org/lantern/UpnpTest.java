@@ -1,7 +1,6 @@
 package org.lantern;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,9 +17,11 @@ import org.apache.commons.httpclient.HttpMethod;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.lastbamboo.common.portmapping.PortMapListener;
 import org.lastbamboo.common.portmapping.PortMappingProtocol;
+import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +30,8 @@ public class UpnpTest {
 
     @Test
     public void testUpnp() throws Exception {
-        System.setProperty("java.util.logging.config.file",
-                "src/test/resources/logging.properties");
+        //System.setProperty("java.util.logging.config.file",
+        //        "src/test/resources/logging.properties");
         final Upnp up = new Upnp(TestUtils.getStatsTracker());
         final AtomicBoolean mapped = new AtomicBoolean(false);
         final AtomicBoolean error = new AtomicBoolean(false);
@@ -67,6 +68,10 @@ public class UpnpTest {
         }
 
         String ip = up.getPublicIpAddress();
+        if (StringUtils.isBlank(ip)) {
+            log.warn("NO PUBLIC IP FROM ROUTER!!");
+            ip = new PublicIpAddress().getPublicIpAddress().getHostAddress();
+        }
 
         // Set up a local HTTP server on the local port, so that we can check
         // said port from the outside.
