@@ -106,6 +106,7 @@ public class LanternModule extends AbstractModule {
         bind(AppIndicatorTray.class);
         bind(LanternApi.class).to(DefaultLanternApi.class);
         bind(LanternHttpProxyServer.class);
+        bind(StatsUpdater.class);
         
         try {
             copyFireFoxExtension();

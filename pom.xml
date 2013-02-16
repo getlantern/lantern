@@ -321,6 +321,11 @@
       <version>2.7</version>
     </dependency>
 
+    <dependency>
+      <groupId>org.getlantern</groupId>
+      <artifactId>lantern-common</artifactId>
+      <version>0.1-SNAPSHOT</version>
+    </dependency>
   </dependencies>
 
   <prerequisites>

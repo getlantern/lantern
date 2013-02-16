@@ -55,6 +55,8 @@ public class Model {
 
     private List<Country> countries = Country.allCountries();
 
+    private final Global global = new Global();
+
     public SystemData getSystem() {
         return system;
     }
@@ -174,5 +176,9 @@ public class Model {
 
     public void setCountries(List<Country> countries) {
         this.countries = countries;
+    }
+
+    public Global getGlobal() {
+        return global;
     }
 }
