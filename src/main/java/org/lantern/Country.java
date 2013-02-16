@@ -3,11 +3,20 @@ package org.lantern;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.lantern.state.NPeers;
+import org.lantern.state.NUsers;
+
 public class Country {
 
     private String code;
     private String name;
     private boolean censoring;
+
+    private long bps;
+    private long bytesEver;
+
+    private NUsers nusers = new NUsers();
+    private NPeers npeers = new NPeers();
 
     private static String[] countryTable = {
         "AD", "ANDORRA",
@@ -306,6 +315,38 @@ public class Country {
             allCountries.add(new Country(countryCode, countryName, isCensored));
         }
         return allCountries;
+    }
+
+    public long getBps() {
+        return bps;
+    }
+
+    public void setBps(long bps) {
+        this.bps = bps;
+    }
+
+    public long getBytesEver() {
+        return bytesEver;
+    }
+
+    public void setBytesEver(long bytesEver) {
+        this.bytesEver = bytesEver;
+    }
+
+    public NUsers getNusers() {
+        return nusers;
+    }
+
+    public void setNusers(NUsers nusers) {
+        this.nusers = nusers;
+    }
+
+    public NPeers getNpeers() {
+        return npeers;
+    }
+
+    public void setNpeers(NPeers npeers) {
+        this.npeers = npeers;
     }
 
 }
