@@ -142,9 +142,9 @@ public class Roster implements RosterListener {
         final boolean updateIndex) {
         final String from = presence.getFrom();
         log.debug("Got presence: {}", presence.toXML());
-        if (LanternUtils.isLanternHub(from)) {
+        if (LanternXmppUtils.isLanternHub(from)) {
             log.info("Got Lantern hub presence");
-        } else if (LanternUtils.isLanternJid(from)) {
+        } else if (LanternXmppUtils.isLanternJid(from)) {
             Events.eventBus().post(new UpdatePresenceEvent(presence));
             final TrustGraphNodeId id = new BasicTrustGraphNodeId(from);
             this.kscopeRoutingTable.addNeighbor(id);
@@ -156,7 +156,7 @@ public class Roster implements RosterListener {
 
     private void onPresence(final Presence pres, final boolean sync,
         final boolean updateIndex) {
-        final String email = LanternUtils.jidToEmail(pres.getFrom());
+        final String email = LanternXmppUtils.jidToEmail(pres.getFrom());
         final LanternRosterEntry entry = this.rosterEntries.get(email);
         if (entry != null) {
             entry.setAvailable(pres.isAvailable());
@@ -330,7 +330,7 @@ public class Roster implements RosterListener {
     public void entriesDeleted(final Collection<String> entries) {
         log.debug("Roster entries deleted: {}", entries);
         for (final String entry : entries) {
-            final String email = LanternUtils.jidToEmail(entry);
+            final String email = LanternXmppUtils.jidToEmail(entry);
             synchronized (rosterEntries) {
                 rosterEntries.remove(email);
             }

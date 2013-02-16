@@ -18,9 +18,9 @@ import org.slf4j.LoggerFactory;
 public class JsonModelModifier {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    private final ModelService modelService;
+    private final Object modelService;
 
-    public JsonModelModifier(final ModelService model) {
+    public JsonModelModifier(final Object model) {
         this.modelService = model;
     }
 

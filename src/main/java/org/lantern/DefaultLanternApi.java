@@ -393,7 +393,7 @@ public class DefaultLanternApi implements LanternApi {
     }
 
     private void returnSettings(final HttpServletResponse resp) {
-        final String json = LanternUtils.jsonify(model, Model.Run.class);
+        final String json = JsonUtils.jsonify(model, Model.Run.class);
         returnJson(resp, json);
     }
 
@@ -414,7 +414,7 @@ public class DefaultLanternApi implements LanternApi {
     }
 
     private void returnJson(final HttpServletResponse resp, final Object obj) {
-        final String json = LanternUtils.jsonify(obj, Run.class);
+        final String json = JsonUtils.jsonify(obj, Run.class);
         returnJson(resp, json);
     }
     

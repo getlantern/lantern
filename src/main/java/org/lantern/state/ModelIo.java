@@ -9,6 +9,7 @@ import java.security.GeneralSecurityException;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.jackson.map.ObjectMapper;
+import org.lantern.JsonUtils;
 import org.lantern.LanternConstants;
 import org.lantern.LanternUtils;
 import org.lantern.Shutdownable;
@@ -134,7 +135,7 @@ public class ModelIo implements Provider<Model>, Shutdownable {
                 toWrite.getConnectivity().setGtalkAuthorized(false);
                 
             }
-            final String json = LanternUtils.jsonify(toWrite, 
+            final String json = JsonUtils.jsonify(toWrite,
                 Model.Persistent.class);
             //log.info("Writing JSON: \n{}", json);
             os = encryptedFileService.localEncryptOutputStream(this.modelFile);
