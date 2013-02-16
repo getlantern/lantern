@@ -11,10 +11,10 @@ import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.util.EntityUtils;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.lantern.state.Model;
+import org.lantern.util.LanternHttpClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,13 +25,16 @@ public class StatsUpdater extends Thread {
 
     private final Model model;
 
+    private final LanternHttpClient client;
+
     private static final long SLEEP_INTERVAL = 60 * 1000;
 
     @Inject
-    public StatsUpdater(Model model) {
+    public StatsUpdater(Model model, LanternHttpClient client) {
         super();
         setDaemon(true);
         this.model = model;
+        this.client = client;
     }
 
     @Override
@@ -51,7 +54,6 @@ public class StatsUpdater extends Thread {
         final HttpGet get = new HttpGet();
         try {
             final URI uri = new URI(LanternConstants.STATS_URL);
-            final DefaultHttpClient client = new DefaultHttpClient();
             get.setURI(uri);
             final HttpResponse response = client.execute(get);
             final HttpEntity entity = response.getEntity();
