@@ -11,11 +11,12 @@ import java.io.FileWriter;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+@Ignore
 public class ResourceBundleTest {
     
     private final Logger log = LoggerFactory.getLogger(getClass());

@@ -2,6 +2,7 @@ package org.lantern;
 
 import static org.junit.Assert.fail;
 
+import java.io.File;
 import java.net.URI;
 
 import org.apache.commons.io.IOUtils;
@@ -21,13 +22,14 @@ import org.littleshoot.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TrustStoreTest {
+public class LanternTrustStoreTest {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
     
     @Test
     public void testSites() {//throws Exception {
-        System.setProperty("javax.net.debug", "ssl");
+        log.error("CONFIGURED TRUSTSTORE: "+System.getProperty("javax.net.ssl.trustStore"));
+        //System.setProperty("javax.net.debug", "ssl");
         final KeyStoreManager ksm = new LanternKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
         final LanternSocketsUtil socketsUtil = 
@@ -38,6 +40,7 @@ public class TrustStoreTest {
             new SSLSocketFactory(socketsUtil.newTlsSocketFactory(), 
                 new LanternHostNameVerifier());
         
+        log.error("CONFIGURED TRUSTSTORE: "+System.getProperty("javax.net.ssl.trustStore"));
         //final SSLSocketFactory socketFactory = LanternSocketsUtil.
         final Scheme sch = new Scheme("https", 443, socketFactory);
 
@@ -95,6 +98,8 @@ public class TrustStoreTest {
                 // Expected since we should no longer trust talk.google.com
             }
         }
+        // We need to add this back as otherwise it can affect other tests!
+        trustStore.addCert("equifaxsecureca", new File("certs/equifaxsecureca.cer"));
         //TestUtils.close();
     }
 

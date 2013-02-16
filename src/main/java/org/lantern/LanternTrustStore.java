@@ -33,7 +33,7 @@ public class LanternTrustStore {
 
     private static final String KEYSIZE = "2048";
     
-    private static final String PASS = 
+    public static final String PASS = 
         String.valueOf(new SecureRandom().nextLong());
     
     private static final String ALG = "RSA";
@@ -47,7 +47,7 @@ public class LanternTrustStore {
      * always be the case if the remote client is longer lived than we are 
      * (i.e., the remote client thinks it has our key, but our key has changed).
      */
-    private static final File TRUSTSTORE_FILE = 
+    public static final File TRUSTSTORE_FILE = 
         new File(LanternConstants.CONFIG_DIR, 
             String.valueOf(new SecureRandom().nextLong()));
     
@@ -115,7 +115,7 @@ public class LanternTrustStore {
 
     public void addBase64Cert(final String fullJid, final String base64Cert) 
         throws IOException {
-        log.debug("Adding base 64 cert");
+        log.debug("Adding base 64 cert to store: {}", TRUSTSTORE_FILE);
         if (this.certTracker != null) {
             this.certTracker.addCert(base64Cert, fullJid);
         }

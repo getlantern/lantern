@@ -48,6 +48,6 @@ public class DefaultXmppHandlerTest {
         
         assertTrue("Should have received proxies from the controller", 
             !proxyTracker.isEmpty());
-        TestUtils.close();
+        //TestUtils.close();
     }
 }

@@ -39,6 +39,7 @@ import org.lantern.state.DefaultModelService;
 import org.lantern.state.Model;
 import org.lantern.state.ModelIo;
 import org.lantern.state.ModelService;
+import org.lantern.state.DefaultModelUtils;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.SyncService;
 import org.lantern.state.SyncStrategy;
@@ -68,7 +69,7 @@ public class LanternModule extends AbstractModule {
                 ThreadNameDeterminer.CURRENT);
         
         bind(org.jboss.netty.util.Timer.class).to(HashedWheelTimer.class);
-        bind(ModelUtils.class);
+        bind(ModelUtils.class).to(DefaultModelUtils.class);
         bind(HttpRequestFilter.class).to(PublicIpsOnlyRequestFilter.class);
         bind(Stats.class).to(StatsTracker.class);
         bind(LanternSocketsUtil.class);

@@ -1,7 +1,6 @@
 package org.lantern;
 
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,12 +33,11 @@ public class LanternProxyingTest {
     @Test
     public void testWithHttpClient() throws Exception {
         //System.setProperty("javax.net.debug", "ssl");
-        final Launcher launcher = 
-            new Launcher(new String[]{"--disable-ui", "--force-get", 
+        new Launcher(new String[]{"--disable-ui", "--force-get", 
             "--refresh-tok", TestUtils.getRefreshToken(), 
             "--access-tok", TestUtils.getAccessToken(), 
             "--disable-trusted-peers", "--disable-anon-peers"});
-        launcher.run();
+        //launcher.run();
 
         Thread.sleep(500);
         

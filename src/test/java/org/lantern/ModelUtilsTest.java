@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.util.Collection;
 
 import org.junit.Test;
-import org.lantern.state.ModelUtils;
+import org.lantern.state.DefaultModelUtils;
 import org.lantern.util.LanternHttpClient;
 import org.littleshoot.proxy.KeyStoreManager;
 
@@ -23,7 +23,7 @@ public class ModelUtilsTest {
         }, new LanternKeyStoreManager());
         */
         
-        System.setProperty("javax.net.debug", "ssl");
+        //System.setProperty("javax.net.debug", "ssl");
         final KeyStoreManager ksm = new LanternKeyStoreManager();
         final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
         final LanternSocketsUtil socketsUtil = 
@@ -64,7 +64,7 @@ public class ModelUtilsTest {
                 return null;
             }
         });
-        final ModelUtils modelUtils = new ModelUtils(null, httpClient);
+        final DefaultModelUtils modelUtils = new DefaultModelUtils(null, httpClient);
         final GeoData data = modelUtils.getGeoData("86.170.128.133");
         assertTrue(data.getLatitude() > 50.0);
         assertTrue(data.getLongitude() < 3.0);

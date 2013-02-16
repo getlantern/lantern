@@ -3,6 +3,8 @@ package org.lantern;
 import java.util.Collection;
 import java.util.Set;
 import static org.junit.Assert.*;
+
+import org.junit.Ignore;
 import org.junit.Test;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandler;
@@ -19,7 +21,7 @@ import static org.lantern.TestingUtils.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
+@Ignore
 public class SetCookieObserverHandlerTest {
     
     @Test
