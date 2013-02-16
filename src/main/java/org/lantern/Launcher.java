@@ -69,7 +69,7 @@ public class Launcher {
     private JettyLauncher jettyLauncher;
     private XmppHandler xmpp;
     private BrowserService browserService;
-    private final StatsUpdater statsUpdater = new StatsUpdater();
+    private StatsUpdater statsUpdater;
 
     private SslHttpProxyServer sslProxy;
     
@@ -223,6 +223,8 @@ public class Launcher {
         sslProxy.start(false, false);
         localProxy.start();
         plainTextAnsererRelayProxy.start(true, false);
+
+        statsUpdater = instance(StatsUpdater.class);
         statsUpdater.start();
 
         gnomeAutoStart();
