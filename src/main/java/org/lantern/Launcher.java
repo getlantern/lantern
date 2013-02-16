@@ -24,7 +24,6 @@ import org.apache.commons.cli.UnrecognizedOptionException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.SystemUtils;
-import org.apache.http.client.HttpClient;
 import org.apache.log4j.Appender;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.PropertyConfigurator;
@@ -63,7 +62,7 @@ import com.google.inject.Injector;
  */
 public class Launcher {
 
-    private Logger LOG;
+    private static Logger LOG;
     private boolean lanternStarted = false;
     private LanternHttpProxyServer localProxy;
     private PlainTestRelayHttpProxyServer plainTextAnsererRelayProxy;
@@ -405,16 +404,23 @@ public class Launcher {
             }
         }
     }
+    
+    public static String CIPHER_SUITE_LOW_BIT = 
+            "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA";
 
-    private void configureCipherSuites() {
+    public static String CIPHER_SUITE_HIGH_BIT = 
+            "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA";
+    
+    public static void configureCipherSuites() {
         Security.addProvider(new BouncyCastleProvider());
         if (!LanternUtils.isUnlimitedKeyStrength()) {
             if (!SystemUtils.IS_OS_WINDOWS_VISTA) {
-                LOG.error("No policy files on non-Vista machine!!");
+                log("No policy files on non-Vista machine!!");
             }
-            LOG.info("Reverting to weaker ciphers on Vista");
+            log("Reverting to weaker ciphers on Vista");
             IceConfig.setCipherSuites(new String[] {
-                "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
+                    CIPHER_SUITE_LOW_BIT
+                //"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA"
                 //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
             });
         } else {
@@ -425,7 +431,8 @@ public class Launcher {
             // copy the unlimited strength policy files on Vista, so we have 
             // to revert back to 128.
             IceConfig.setCipherSuites(new String[] {
-                "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+                    CIPHER_SUITE_HIGH_BIT
+                //"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
                 //"TLS_DHE_RSA_WITH_AES_128_CBC_SHA"
                 //"TLS_RSA_WITH_RC4_128_SHA"
                 //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
@@ -434,6 +441,14 @@ public class Launcher {
     }
     
     
+    private static void log(final String msg) {
+        if (LOG != null) {
+            LOG.error(msg);
+        } else {
+            System.err.println(msg);
+        }
+    }
+
     private static Collection<InetSocketAddress> toSocketAddresses(
         final Collection<String> stunServers) {
         final Collection<InetSocketAddress> isas = 

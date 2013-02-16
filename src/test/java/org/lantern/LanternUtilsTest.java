@@ -28,7 +28,7 @@ import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smackx.packet.VCard;
-import org.junit.Ignore;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.lantern.state.Model;
 import org.lastbamboo.common.offer.answer.IceConfig;
@@ -49,15 +49,21 @@ public class LanternUtilsTest {
     private final AtomicReference<String> readOnServer =
         new AtomicReference<String>("");
     
+    @BeforeClass
+    public static void setup() throws Exception {
+        TestUtils.load(true);
+        System.setProperty("javax.net.debug", "ssl");
+    }
+    
     @Test 
     public void testGoogleTalkReachable() throws Exception {
-        LOG.debug("Testing gtalk reachability");
+        LOG.warn(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing gtalk reachability");
         assertTrue(LanternUtils.isGoogleTalkReachable());
     }
 
     @Test
     public void testGetTargetForPath() throws Exception {
-        LOG.debug("Testing getTarget");
+        LOG.warn(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing getTarget");
         final Model model = TestUtils.getModel();
 
         assertFalse(model.isLaunchd());
@@ -73,7 +79,7 @@ public class LanternUtilsTest {
 
     @Test
     public void testIsJid() throws Exception {
-        LOG.debug("Testing jid");
+        LOG.warn(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing jid");
         String id = "2bgg8h04men25@id.talk.google.com";
         assertTrue(!LanternUtils.isNotJid(id));
 
@@ -86,7 +92,7 @@ public class LanternUtilsTest {
 
     @Test
     public void testVCard() throws Exception {
-        LOG.debug("Testing vcard");
+        LOG.warn(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing vcard");
         final XMPPConnection conn = TestUtils.xmppConnection();
         assertTrue(conn.isAuthenticated());
         final VCard vcard = XmppUtils.getVCard(conn, TestUtils.getUserName());
@@ -102,24 +108,34 @@ public class LanternUtilsTest {
 
     @Test
     public void testSSL() throws Exception {
-        LOG.debug("Testing SSL...");
+        final LanternKeyStoreManager ksm = TestUtils.getKsm();
+        System.setProperty("javax.net.debug", "ssl");
+        LOG.warn(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing SSL...");
+        Launcher.configureCipherSuites();
+        /*
         Security.addProvider(new BouncyCastleProvider());
         IceConfig.setCipherSuites(new String[] {
             //"TLS_DHE_RSA_WITH_AES_256_CBC_SHA",
-            "TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+            //"TLS_DHE_RSA_WITH_AES_128_CBC_SHA",
+                Launcher.CIPHER_SUITE_LOW_BIT,
             //"SSL_RSA_WITH_RC4_128_SHA",
             //"TLS_ECDHE_RSA_WITH_RC4_128_SHA"
         });
-        TestUtils.load(true);
+        */
         final XmppHandler xmpp = TestUtils.getXmppHandler();
         // We have to actually connect because the ID we use in the keystore
         // is our XMPP JID.
         xmpp.connect();
 
+        LOG.warn(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing SSL...");
         // Since we're connecting to ourselves for testing, we need to add our
         // own key to the *trust store* from the key store.
-        TestUtils.getTrustStore().addBase64Cert(xmpp.getJid(),
-            TestUtils.getKsm().getBase64Cert(xmpp.getJid()));
+        
+        final LanternTrustStore ts = TestUtils.getTrustStore();
+        LOG.warn("ADDING TO TS: "+LanternTrustStore.TRUSTSTORE_FILE);
+        LOG.warn("KSM: "+ksm);
+        LOG.warn("KSM KEYSTORE: "+ksm.KEYSTORE_FILE);
+        ts.addBase64Cert(xmpp.getJid(), ksm.getBase64Cert(xmpp.getJid()));
 
 
         final SocketFactory clientFactory =
@@ -132,17 +148,23 @@ public class LanternUtilsTest {
 
         final SSLServerSocket ss =
             (SSLServerSocket) serverFactory.createServerSocket();
+        
+        LOG.warn("SUPPORTED: "+Arrays.asList(ss.getSupportedCipherSuites()));
         ss.bind(endpoint);
 
         acceptIncoming(ss);
         Thread.sleep(400);
 
         final SSLSocket client = (SSLSocket) clientFactory.createSocket();
-
+        LOG.warn("CLIENT SUPPORTED: "+Arrays.asList(client.getSupportedCipherSuites()));
+        client.setSoTimeout(30000);
         client.connect(endpoint, 2000);
 
+        LOG.warn(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing SSL...");
+        Thread.sleep(20000);
         assertTrue(client.isConnected());
 
+        LOG.warn(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing SSL...");
         synchronized (readOnServer) {
             final OutputStream os = client.getOutputStream();
             os.write(msg.getBytes("UTF-8"));
@@ -176,7 +198,7 @@ public class LanternUtilsTest {
                         readOnServer.set(read.trim());
                         readOnServer.notifyAll();
                     }
-                } catch (IOException e) {
+                } catch (final IOException e) {
                     e.printStackTrace();
                 }
             }
@@ -202,7 +224,7 @@ public class LanternUtilsTest {
 
     @Test
     public void testReplaceInFile() throws Exception {
-        LOG.debug("Testing replaceInFile...");
+        LOG.warn(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing replaceInFile...");
         final File temp = File.createTempFile(String.valueOf(hashCode()), "test");
         temp.deleteOnExit();
         final String data = "blah blah blah <true/> blah blah";
@@ -214,7 +236,7 @@ public class LanternUtilsTest {
 
     @Test
     public void testGoogleStunServers() throws Exception {
-        LOG.debug("Testing STUN servers...");
+        LOG.warn(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing STUN servers...");
         final XMPPConnection conn = TestUtils.xmppConnection();
 
         final Collection<InetSocketAddress> servers =
@@ -251,8 +273,8 @@ public class LanternUtilsTest {
 
     @Test
     public void testOtrMode() throws Exception {
-        LOG.debug("Testing OTR mode...");
-        System.setProperty("javax.net.debug", "ssl");
+        LOG.warn(System.getProperty("javax.net.ssl.trustStore")+" "+LanternTrustStore.PASS+" Testing OTR mode...");
+        //System.setProperty("javax.net.debug", "ssl");
         /*
         final File certsFile = new File("src/test/resources/cacerts");
         if (!certsFile.isFile()) {

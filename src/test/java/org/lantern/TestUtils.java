@@ -25,6 +25,8 @@ import org.lantern.state.Settings;
 import org.lantern.util.LanternHttpClient;
 import org.littleshoot.commom.xmpp.GoogleOAuth2Credentials;
 import org.littleshoot.commom.xmpp.XmppUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.api.client.googleapis.auth.oauth2.GoogleClientSecrets.Details;
 import com.google.inject.Guice;
@@ -32,6 +34,8 @@ import com.google.inject.Injector;
 
 public class TestUtils {
 
+    private static final Logger LOG = LoggerFactory.getLogger(TestUtils.class);
+    
     private static final File privatePropsFile = 
         LanternConstants.TEST_PROPS;
     
@@ -78,6 +82,8 @@ public class TestUtils {
 
     private static Injector injector;
 
+    private static boolean started = false;
+
     static {
         InputStream is = null;
         try {
@@ -103,6 +109,13 @@ public class TestUtils {
     }
     
     public static void load(final boolean start) {
+        if (loaded) {
+            LOG.warn("ALREADY LOADED. HOW THE HECK DOES SUREFIRE CLASSLOADING WORK?");
+            if (!started) {
+                start(start);
+            }
+            return;
+        }
         loaded = true;
         injector = Guice.createInjector(new LanternModule());
         
@@ -130,12 +143,16 @@ public class TestUtils {
         set.setAccessToken(getAccessToken());
         set.setRefreshToken(getRefreshToken());
         set.setUseGoogleOAuth2(true);
-        
+        start(start);
+    }
+    
+    private static void start(final boolean start) {
         if (start) {
+            started = true;
             xmppHandler.start();
         }
     }
-    
+
     private static <T> T instance(final Class<T> clazz) {
         final T inst = injector.getInstance(clazz);
         if (Shutdownable.class.isAssignableFrom(clazz)) {
@@ -154,11 +171,13 @@ public class TestUtils {
         shutdownables.add(inst);
     }
     
+    /*
     public static void close() {
         for (final Shutdownable shutdown : shutdownables) {
             shutdown.stop();
         }
     }
+    */
 
     public static XMPPConnection xmppConnection() throws CredentialException, 
         IOException {

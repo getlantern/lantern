@@ -69,8 +69,9 @@ public class UpnpTest {
 
         String ip = up.getPublicIpAddress();
         if (StringUtils.isBlank(ip)) {
-            log.warn("NO PUBLIC IP FROM ROUTER!!");
-            ip = new PublicIpAddress().getPublicIpAddress().getHostAddress();
+            log.warn("NO PUBLIC IP FROM ROUTER!! DOUBLE NATTED?");
+            return;
+            //ip = new PublicIpAddress().getPublicIpAddress().getHostAddress();
         }
 
         // Set up a local HTTP server on the local port, so that we can check

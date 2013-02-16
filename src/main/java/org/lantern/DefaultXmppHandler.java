@@ -329,6 +329,10 @@ public class DefaultXmppHandler implements XmppHandler {
                 return;
             }
         }
+        if (isLoggedIn()) {
+            LOG.warn("Already logged in!! Not connecting");
+            return;
+        }
         LOG.debug("Connecting to XMPP servers...");
         if (this.modelUtils.isOauthConfigured()) {
         //if (this.model.getSettings().isUseGoogleOAuth2()) {
