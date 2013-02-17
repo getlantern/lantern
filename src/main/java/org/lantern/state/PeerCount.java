@@ -4,8 +4,11 @@ class PeerCount {
     public int give;
     public int get;
 
+    private int giveGet;
+    
     public int getGiveGet() {
-        return give + get;
+        //return give + get;
+        return giveGet;
     }
 
     /*

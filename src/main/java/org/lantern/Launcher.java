@@ -116,8 +116,19 @@ public class Launcher {
      * @param args Any command line arguments.
      */
     public static void main(final String... args) {
+        main(true, args);
+    }
+    
+    /**
+     * Starts the proxy from the command line.
+     * 
+     * @param args Any command line arguments.
+     */
+    public static void main(final boolean configureLogger, final String... args) {
         final Launcher launcher = new Launcher(args);
-        launcher.configureDefaultLogger();
+        if (configureLogger) {
+            launcher.configureDefaultLogger();
+        }
         launcher.run();
     }
 

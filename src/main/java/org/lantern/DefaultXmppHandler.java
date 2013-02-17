@@ -71,7 +71,6 @@ import org.lastbamboo.common.portmapping.NatPmpService;
 import org.lastbamboo.common.portmapping.UpnpService;
 import org.lastbamboo.common.stun.client.PublicIpAddress;
 import org.lastbamboo.common.stun.client.StunServerRepository;
-import org.littleshoot.commom.xmpp.PasswordCredentials;
 import org.littleshoot.commom.xmpp.XmppCredentials;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
 import org.littleshoot.commom.xmpp.XmppUtils;
@@ -131,10 +130,6 @@ public class DefaultXmppHandler implements XmppHandler {
     private String hubAddress;
 
     private GoogleTalkState state;
-
-    private String lastUserName;
-
-    private String lastPass;
 
     private NatPmpService natPmpService;
 
@@ -387,9 +382,7 @@ public class DefaultXmppHandler implements XmppHandler {
     @Override
     public void connect(final String email, final String pass) 
         throws IOException, CredentialException, NotInClosedBetaException {
-        this.lastUserName = email;
-        this.lastPass = pass;
-        connect(new PasswordCredentials(email, pass, getResource()));
+        //connect(new PasswordCredentials(email, pass, getResource()));
     }
 
     private String getResource() {

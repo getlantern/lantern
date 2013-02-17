@@ -19,9 +19,12 @@ import javax.net.ssl.SSLSocketFactory;
 
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
+import org.junit.experimental.categories.Category;
+import org.lantern.TestCategories.TrustStoreTests;
 import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.util.ThreadUtils;
 
+@Category(TrustStoreTests.class)
 public class LanternSocketsUtilTest {
 
     private static final int SERVER_PORT = LanternUtils.randomPort();

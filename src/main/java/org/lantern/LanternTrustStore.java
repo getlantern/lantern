@@ -2,8 +2,11 @@ package org.lantern;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
@@ -12,6 +15,7 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.security.UnrecoverableKeyException;
 import java.security.cert.CertificateException;
+import java.util.Enumeration;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -234,5 +238,36 @@ public class LanternTrustStore {
     
         log.debug("Result of deleting old cert: {}", deleteResult);
         onTrustStoreChanged();
+    }
+
+    public static void listEntries(final File keyStore, final String pass) {
+        InputStream is = null;
+        try {
+            is = new FileInputStream(keyStore);
+            final KeyStore ks = KeyStore.getInstance(KeyStore.getDefaultType());
+            ks.load(is, pass.toCharArray());
+            final Enumeration<String> aliases = ks.aliases();
+            while (aliases.hasMoreElements()) {
+                final String alias = aliases.nextElement();
+                //System.err.println(alias+": "+ks.getCertificate(alias));
+                System.err.println(alias);
+            }
+        } catch (final KeyStoreException e) {
+            e.printStackTrace();
+        } catch (final NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (final CertificateException e) {
+            e.printStackTrace();
+        } catch (final FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (final IOException e) {
+            e.printStackTrace();
+        } finally {
+            IOUtils.closeQuietly(is);
+        }
+    }
+    
+    public void listEntries() {
+        listEntries(TRUSTSTORE_FILE, PASS);
     }
 }
