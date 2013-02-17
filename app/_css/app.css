@@ -6470,6 +6470,7 @@ label.checkbox.inline, label.radio.inline {
   *background-color: #fff010;
   /* Darken IE7 buttons by default so they stand out more given they won't have borders */
   filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
+  color: #b3aa1e;
 }
 .btn-dev:hover, .btn-dev:active, .btn-dev.active, .btn-dev.disabled, .btn-dev[disabled] {
   color: white;
@@ -6478,10 +6479,6 @@ label.checkbox.inline, label.radio.inline {
 }
 .btn-dev:active, .btn-dev.active {
   background-color: #dcce00 \9;
-}
-
-.btn-dev {
-  color: #b3aa1e;
 }
 
 a.never-underlined {
@@ -6900,7 +6897,7 @@ textarea.bugReport {
   margin-top: 24px;
 }
 
-#vis {
+#vis, #vis-container {
   display: block;
   height: 100%;
 }
@@ -6971,6 +6968,12 @@ g.transferring *, #self.transferring {
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
   word-spacing: 0.3ex;
+  -webkit-transition: opacity 0.5s ease;
+  transition: opacity 0.5s ease;
+  opacity: 0.5;
+}
+#footer:hover {
+  opacity: 1;
 }
 
 body.showVis #footer {
@@ -7028,7 +7031,7 @@ body.giveMode #npending {
   display: inline-block;
   vertical-align: middle;
   margin: 0;
-  width: 650px;
+  width: 700px;
   text-align: left;
 }
 #stats dt {
@@ -7037,18 +7040,21 @@ body.giveMode #npending {
 }
 #stats dd {
   margin-left: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-#version {
+#last {
   font-size: 10.5px;
   z-index: 1051;
   color: white;
 }
-#version a {
+#last a {
   color: white;
 }
-#version a.update-available {
-  color: #c09853;
+#last .update-available * {
+  color: red;
 }
 
 #scenarios .modal-header {
@@ -7071,6 +7077,12 @@ body.giveMode #npending {
   top: 20px;
   left: 20px;
   z-index: 1051;
+}
+#dev-buttons button {
+  text-shadow: none;
+}
+#dev-buttons button:hover {
+  color: black;
 }
 
 #model {

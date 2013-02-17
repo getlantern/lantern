@@ -29,21 +29,17 @@
     </dd>
   </dl>
 
-  <div id="version">
+  <div id="last">
     Lantern {{ mockBackend && '(mock backend)' || '' }} {{ model.version.installed | version }}
-    <span ng-show="model.version.updateAvailable">
-      · <i class="icon-exclamation-sign warning-colored"></i>
-      <a ng-click="interaction(INTERACTION.updateAvailable)" class="update-available">
-        Update available<!-- XXX -->
-      </a>
+    <span ng-show="model.version.updateAvailable" class="update-available">
+      · <i class="icon-exclamation-sign"></i>
+      <a ng-click="interaction(INTERACTION.updateAvailable)">Update available</a>
     </span>
     <span>
       · <a ng-click="interaction(INTERACTION.about)">About</a>
     </span>
     <span>
-      · <a ng-click="interaction(INTERACTION.contact)">
-        Contact
-      </a>
+      · <a ng-click="interaction(INTERACTION.contact)">Contact</a>
     </span>
   </div>
 
@@ -51,7 +47,8 @@
     <button type="button" class="btn btn-large btn-inverse"
             ng-click="interaction(INTERACTION.lanternFriends)"
             ng-class="{active: model.modal == MODAL.lanternFriends}"
-            ui-jq="tooltip" data-original-title="{{ 'LANTERN_FRIENDS' | i18n }}">
+            ui-jq="tooltip" data-original-title="{{ 'LANTERN_FRIENDS' | i18n }}"
+            ui-options="{placement: 'top'}">
       <!-- i class="icon-group"></i -->
       <i class="lsf-icon lsf-friends"></i>
     </button>
@@ -59,14 +56,16 @@
             ng-show="inGetMode"
             ng-click="interaction(INTERACTION.proxiedSites)"
             ng-class="{active: model.modal == MODAL.proxiedSites}"
-            ui-jq="tooltip" data-original-title="{{ 'PROXIED_SITES_TITLE' | i18n }}">
+            ui-jq="tooltip" data-original-title="{{ 'PROXIED_SITES_TITLE' | i18n }}"
+            ui-options="{placement: 'top'}">
       <!-- i class="icon-cogs"></i -->
       <i class="lsf-icon lsf-web"></i>
     </button>
     <button type="button" class="btn btn-large btn-inverse"
             ng-click="interaction(INTERACTION.settings)"
             ng-class="{active: model.modal == MODAL.settings}"
-            ui-jq="tooltip" data-original-title="{{ 'SETTINGS' | i18n }}">
+            ui-jq="tooltip" data-original-title="{{ 'SETTINGS' | i18n }}"
+            ui-options="{placement: 'top'}">
       <!-- i class="icon-cogs"></i -->
       <i class="lsf-icon lsf-gear"></i>
     </button>

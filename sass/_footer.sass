@@ -1,3 +1,4 @@
+
 #footer
   +size(100%, false)
   +position(false, 0, 0, 0)
@@ -7,6 +8,11 @@
   +text-shadow($black 1px 1px 1px)
   +box-sizing(border-box)
   word-spacing: .3ex
+  +single-transition(opacity, 0.5s, ease)
+  $opacityMouseOut: .5
+  opacity: $opacityMouseOut
+  &:hover
+    opacity: 1
 
 body.showVis #footer
   padding: 10px 0 0
@@ -52,19 +58,22 @@ $npendingOffsetRight: 36px
 #stats
   +inline-block
   margin: 0
-  width: 650px
+  width: 700px
   text-align: left
   dt
     color: lighten($grayLight, 10%)
     font-weight: bold
   dd
     margin-left: 170px
+    overflow: hidden
+    text-overflow: ellipsis
+    white-space: nowrap
 
-#version
+#last
   +smaller
   +aboveModal
   color: $white
   a
     color: $white
-  a.update-available
-    +warning-colored
+  .update-available *
+    color: #f00

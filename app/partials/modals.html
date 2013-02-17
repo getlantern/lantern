@@ -526,17 +526,17 @@ You should have received a copy of the GNU General Public License along with thi
   </div>
   <div class="modal-body">
     <dl class="dl-horizontal">
-      <dt>{{ 'MODE' | i18n }}</dt>
-      <dd>
+      <dt ng-hide="inCensoringCountry">{{ 'MODE' | i18n }}</dt>
+      <dd ng-hide="inCensoringCountry">
         <div class="btn-group">
-          <button type="button" class="btn btn-mini"
+          <button type="button" class="btn btn-mini btn-success"
                   ng-class="{active: inGiveMode}"
                   ng-disabled="inGiveMode"
                   ng-click="interaction(MODE.give)">
                   <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
                   {{ 'GIVE_ACCESS' | i18n }}
           </button>
-          <button type="button" class="btn btn-mini"
+          <button type="button" class="btn btn-mini btn-warning"
                   ng-class="{active: inGetMode}"
                   ng-disabled="inGetMode"
                   ng-click="interaction(MODE.get)">
