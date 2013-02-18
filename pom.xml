@@ -45,7 +45,6 @@
       <groupId>com.barchart.udt</groupId>
       <artifactId>barchart-udt4-bundle</artifactId>
       <version>1.0.3-SNAPSHOT</version>
-      <scope>test</scope>
     </dependency>
 -->
     <dependency>
