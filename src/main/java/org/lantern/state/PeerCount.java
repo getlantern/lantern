@@ -1,20 +1,11 @@
 package org.lantern.state;
 
-class PeerCount {
-    public int give;
-    public int get;
+import org.codehaus.jackson.map.annotate.JsonDeserialize;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
-    private int giveGet;
-    
-    public int getGiveGet() {
-        //return give + get;
-        return giveGet;
-    }
-
-    /*
-     * This setter intentionally does nothing; it's only here because otherwise
-     * Jackson will complain
-     */
-    public void setGiveGet() {
-    }
+@JsonSerialize(using=PeerCountSerializer.class)
+@JsonDeserialize(using=PeerCountDeserializer.class)
+public class PeerCount {
+    public long give;
+    public long get;
 }
