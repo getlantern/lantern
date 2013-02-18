@@ -168,10 +168,17 @@ func (self *_parser) ConsumeNull() *_valueNode {
 	return node
 }
 
+func (self *_parser) throwUnexpectedError(token _token) {
+	if futureKeywordTable[token.Kind] {
+		panic(token.newSyntaxError("Unexpected reserved word"))
+	}
+	panic(token.newSyntaxError("Unexpected token %s", token.Kind))
+}
+
 func (self *_parser) ConsumeIdentifier() *_identifierNode {
 	token := self.Next()
 	if token.Kind != "identifier" {
-		panic(token.newSyntaxError("Unexpected token %s", token.Kind))
+		self.throwUnexpectedError(token) // panic
 	}
 	node := newIdentifierNode(token.Text)
 	self.markNode(node)

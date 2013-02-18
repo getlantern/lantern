@@ -276,4 +276,11 @@ Second line \
 		"illegal",
 	)
 
+	test(`var if var class`,
+		"var",
+		"if",
+		"var",
+		"class",
+	)
+
 }

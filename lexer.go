@@ -42,6 +42,21 @@ var keywordTable map[string]bool = boolFields(`
 	const
 `)
 
+var futureKeywordTable map[string]bool = boolFields(`
+    class
+    enum
+    export
+    extends
+    import
+    super
+`)
+
+func init() {
+	for keyword, _ := range futureKeywordTable {
+		keywordTable[keyword] = true
+	}
+}
+
 var punctuatorTable map[string]bool
 
 func init() {
