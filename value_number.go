@@ -182,7 +182,7 @@ func toInteger(value Value) int64 {
 }
 
 // ECMA 262: 9.5
-func toI32(value Value) int32 {
+func toInt32(value Value) int32 {
 	{
 		switch value := value.value.(type) {
 		case int8:
@@ -212,7 +212,7 @@ func toI32(value Value) int32 {
 	return int32(remainder)
 }
 
-func toUI32(value Value) uint32 {
+func toUint32(value Value) uint32 {
 	{
 		switch value := value.value.(type) {
 		case int8:
@@ -243,7 +243,7 @@ func toUI32(value Value) uint32 {
 	return uint32(remainder)
 }
 
-func toUI16(value Value) uint16 {
+func toUint16(value Value) uint16 {
 	{
 		switch value := value.value.(type) {
 		case int8:

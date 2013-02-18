@@ -121,7 +121,7 @@ func (self *_arrayStash) canPut(name string) bool {
 func (self *_arrayStash) put(name string, value Value) {
 	// length
 	if name == "length" {
-		value := uint(toUI32(value))
+		value := uint(toUint32(value))
 		length := uint(len(self.valueArray))
 		if value > length {
 			valueArray := make([]Value, value)

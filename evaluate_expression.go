@@ -71,7 +71,7 @@ func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
 		}
 		return TrueValue()
 	case "~":
-		integerValue := toI32(targetValue)
+		integerValue := toInt32(targetValue)
 		return toValue(^integerValue)
 	case "+":
 		return toValue(targetValue.toFloat())
@@ -226,26 +226,26 @@ func (self *_runtime) calculateBinaryOperation(operator string, left Value, righ
 	// Bitwise
 	case "&":
 		rightValue := self.GetValue(right)
-		return toValue(toI32(leftValue) & toI32(rightValue))
+		return toValue(toInt32(leftValue) & toInt32(rightValue))
 	case "|":
 		rightValue := self.GetValue(right)
-		return toValue(toI32(leftValue) | toI32(rightValue))
+		return toValue(toInt32(leftValue) | toInt32(rightValue))
 	case "^":
 		rightValue := self.GetValue(right)
-		return toValue(toI32(leftValue) ^ toI32(rightValue))
+		return toValue(toInt32(leftValue) ^ toInt32(rightValue))
 
 	// Shift
 	// (Masking of 0x1f is to restrict the shift to a maximum of 31 places)
 	case "<<":
 		rightValue := self.GetValue(right)
-		return toValue(toI32(leftValue) << (toUI32(rightValue) & 0x1f))
+		return toValue(toInt32(leftValue) << (toUint32(rightValue) & 0x1f))
 	case ">>":
 		rightValue := self.GetValue(right)
-		return toValue(toI32(leftValue) >> (toUI32(rightValue) & 0x1f))
+		return toValue(toInt32(leftValue) >> (toUint32(rightValue) & 0x1f))
 	case ">>>":
 		rightValue := self.GetValue(right)
 		// Shifting an unsigned integer is a logical shift
-		return toValue(toUI32(leftValue) >> (toUI32(rightValue) & 0x1f))
+		return toValue(toUint32(leftValue) >> (toUint32(rightValue) & 0x1f))
 
 	case "instanceof":
 		rightValue := self.GetValue(right)

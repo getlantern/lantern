@@ -87,18 +87,18 @@ func TestToString(t *testing.T) {
 	Is(toValue(false), "false")
 }
 
-func TestToI32(t *testing.T) {
+func Test_toInt32(t *testing.T) {
 	Terst(t)
 
-	Is(toI32(toValue(0)), "0")
-	Is(toI32(toValue(1)), "1")
-	Is(toI32(toValue(-2147483649.0)), "2147483647")
-	Is(toI32(toValue(-4294967297.0)), "-1")
-	Is(toI32(toValue(-4294967296.0)), "0")
-	Is(toI32(toValue(-4294967295.0)), "1")
+	Is(toInt32(toValue(0)), "0")
+	Is(toInt32(toValue(1)), "1")
+	Is(toInt32(toValue(-2147483649.0)), "2147483647")
+	Is(toInt32(toValue(-4294967297.0)), "-1")
+	Is(toInt32(toValue(-4294967296.0)), "0")
+	Is(toInt32(toValue(-4294967295.0)), "1")
 }
 
-func TestsameValue(t *testing.T) {
+func Test_sameValue(t *testing.T) {
 	Terst(t)
 
 	IsFalse(sameValue(positiveZeroValue(), negativeZeroValue()))

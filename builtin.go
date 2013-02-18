@@ -50,7 +50,7 @@ func builtinGlobal_parseInt(call FunctionCall) Value {
 	radix := call.Argument(1)
 	radixValue := 0
 	if radix.IsDefined() {
-		radixValue = int(toI32(radix))
+		radixValue = int(toInt32(radix))
 	}
 	value, err := strconv.ParseInt(string_, radixValue, 64)
 	if err != nil {
@@ -241,7 +241,7 @@ func builtinFunction_apply(call FunctionCall) Value {
 
 	arrayObject := argumentList._object()
 	thisObject := call.thisObject()
-	length := uint(toUI32(arrayObject.get("length")))
+	length := uint(toUint32(arrayObject.get("length")))
 	valueArray := make([]Value, length)
 	for index := uint(0); index < length; index++ {
 		valueArray[index] = arrayObject.get(arrayIndexToString(index))
@@ -295,7 +295,7 @@ func builtinNewString(self *_object, _ Value, argumentList []Value) Value {
 func builtinString_fromCharCode(call FunctionCall) Value {
 	chrList := make([]uint16, len(call.ArgumentList))
 	for index, value := range call.ArgumentList {
-		chrList[index] = toUI16(value)
+		chrList[index] = toUint16(value)
 	}
 	return toValue(string(utf16.Decode(chrList)))
 }
@@ -555,7 +555,7 @@ func builtinString_split(call FunctionCall) Value {
 	limitValue := call.Argument(1)
 	limit := -1
 	if limitValue.IsDefined() {
-		limit = int(toUI32(limitValue))
+		limit = int(toUint32(limitValue))
 	}
 
 	if limit == 0 {
@@ -741,7 +741,7 @@ func builtinNewArrayNative(runtime *_runtime, argumentList []Value) *_object {
 	if len(argumentList) == 1 {
 		value := argumentList[0]
 		if value.IsNumber() {
-			numberValue := uint(toUI32(value))
+			numberValue := uint(toUint32(value))
 			if float64(numberValue) == toFloat(value) {
 				valueArray = make([]Value, numberValue)
 			} else {
@@ -782,7 +782,7 @@ func builtinArray_concat(call FunctionCall) Value {
 
 func builtinArray_shift(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := uint(toUI32(thisObject.get("length")))
+	length := uint(toUint32(thisObject.get("length")))
 	if 0 == length {
 		thisObject.put("length", toValue(length), true)
 		return UndefinedValue()
@@ -805,7 +805,7 @@ func builtinArray_shift(call FunctionCall) Value {
 func builtinArray_push(call FunctionCall) Value {
 	thisObject := call.thisObject()
 	itemList := call.ArgumentList
-	index := uint(toUI32(thisObject.get("length")))
+	index := uint(toUint32(thisObject.get("length")))
 	for len(itemList) > 0 {
 		thisObject.put(arrayIndexToString(index), itemList[0], true)
 		itemList = itemList[1:]
@@ -818,7 +818,7 @@ func builtinArray_push(call FunctionCall) Value {
 
 func builtinArray_pop(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := uint(toUI32(thisObject.get("length")))
+	length := uint(toUint32(thisObject.get("length")))
 	if 0 == length {
 		thisObject.put("length", toValue(length), true)
 		return UndefinedValue()
@@ -842,7 +842,7 @@ func builtinArray_join(call FunctionCall) Value {
 		return toValue(builtinArray_joinNative(stash.valueArray, separator))
 	}
 	// Generic .join
-	length := uint(toUI32(thisObject.get("length")))
+	length := uint(toUint32(thisObject.get("length")))
 	if length == 0 {
 		return toValue("")
 	}
@@ -917,7 +917,7 @@ func rangeStartLength(source []Value, size uint) (start, length int64) {
 
 func builtinArray_splice(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := uint(toUI32(thisObject.get("length")))
+	length := uint(toUint32(thisObject.get("length")))
 
 	start := valueToArrayIndex(call.Argument(0), length, false)
 	deleteCount := valueToArrayIndex(call.Argument(1), length-start, true)
@@ -994,7 +994,7 @@ func builtinArray_splice(call FunctionCall) Value {
 func builtinArray_slice(call FunctionCall) Value {
 	thisObject := call.thisObject()
 
-	length := uint(toUI32(thisObject.get("length")))
+	length := uint(toUint32(thisObject.get("length")))
 	start, end := rangeStartEnd(call.ArgumentList, length, false)
 
 	if start >= end {
@@ -1021,7 +1021,7 @@ func builtinArray_slice(call FunctionCall) Value {
 
 func builtinArray_unshift(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := uint(toUI32(thisObject.get("length")))
+	length := uint(toUint32(thisObject.get("length")))
 	itemList := call.ArgumentList
 	itemCount := uint(len(itemList))
 
@@ -1046,7 +1046,7 @@ func builtinArray_unshift(call FunctionCall) Value {
 
 func builtinArray_reverse(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := uint(toUI32(thisObject.get("length")))
+	length := uint(toUint32(thisObject.get("length")))
 
 	lower := struct {
 		name   string
@@ -1136,7 +1136,7 @@ func sortCompare(thisObject *_object, index0, index1 uint, compare *_object) int
 		return 1
 	}
 
-	return int(toI32(compare.Call(UndefinedValue(), []Value{x, y})))
+	return int(toInt32(compare.Call(UndefinedValue(), []Value{x, y})))
 }
 
 func arraySortSwap(thisObject *_object, index0, index1 uint) {
@@ -1196,7 +1196,7 @@ func arraySortQuickSort(thisObject *_object, left, right uint, compare *_object)
 
 func builtinArray_sort(call FunctionCall) Value {
 	thisObject := call.thisObject()
-	length := uint(toUI32(thisObject.get("length")))
+	length := uint(toUint32(thisObject.get("length")))
 	compareValue := call.Argument(0)
 	compare := compareValue._object()
 	if compareValue.IsUndefined() {
