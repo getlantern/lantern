@@ -63,10 +63,10 @@
     <p>{{ 'WELCOME_PROMPT' | i18n }}</p>
     <p>
       <button type="button" ng-hide="inCensoringCountry" ng-click="interaction(MODE.give)"
-        class="btn btn-large btn-primary btn-{{inCensoringCountry && 'warning' || 'give-mode' }}">
+        class="btn btn-large btn-{{inCensoringCountry && 'warning' || 'give-inverse' }}">
         <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
         {{ 'GIVE_ACCESS' | i18n }}</button>
-      <button type="button" class="btn btn-large btn-primary btn-get-mode" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
+      <button type="button" class="btn btn-large btn-get-inverse" ng-click="interaction(MODE.get)">{{ 'GET_ACCESS' | i18n }}</button>
     </p>
   </div>
 </div>
@@ -263,8 +263,8 @@
           {{ 'SYSTEM_PROXY_FALSE' | i18n }}
         </label>
         <div class="control-extra">
-          {{ 'HTTP_PROXY_PORT' | i18n }}
-          {{ model.settings.proxyPort }}. <!-- XXX interpolate this variable -->
+          {{ 'PAC_FILE_LOC' | i18n }}
+          <strong>{{ model.settings.pacUrl }}</strong>
         </div>
       </div>
     </div>
@@ -529,14 +529,14 @@ You should have received a copy of the GNU General Public License along with thi
       <dt ng-hide="inCensoringCountry">{{ 'MODE' | i18n }}</dt>
       <dd ng-hide="inCensoringCountry">
         <div class="btn-group">
-          <button type="button" class="btn btn-mini btn-success"
+          <button type="button" class="btn btn-mini btn-give"
                   ng-class="{active: inGiveMode}"
                   ng-disabled="inGiveMode"
                   ng-click="interaction(MODE.give)">
                   <i ng-show="inCensoringCountry" class="icon-warning-sign"></i>
                   {{ 'GIVE_ACCESS' | i18n }}
           </button>
-          <button type="button" class="btn btn-mini btn-warning"
+          <button type="button" class="btn btn-mini btn-get"
                   ng-class="{active: inGetMode}"
                   ng-disabled="inGetMode"
                   ng-click="interaction(MODE.get)">
@@ -553,16 +553,17 @@ You should have received a copy of the GNU General Public License along with thi
           {{ 'AUTO_START' | i18n }}
         </label>
 
-        <label class="checkbox inline" style="margin-top:-7px"><!-- XXX inline style -->
-          <input type="checkbox" ng-model="autoReport"
-                 ng-click="changeSetting(SETTING.autoReport, autoReport)">
-          {{ 'AUTOREPORT_ENABLE' | i18n }}
-        </label>
-        <label class="checkbox inline" style="margin-left:-5px; padding:0 0 0 1px"><!-- XXX inline style -->
+        <div>
+          <label class="checkbox inline" style="margin-top:-7px"><!-- XXX inline style -->
+            <input type="checkbox" ng-model="autoReport"
+                   ng-click="changeSetting(SETTING.autoReport, autoReport)">
+            {{ 'AUTOREPORT_ENABLE' | i18n }}
+          </label>
+          <!-- XXX space between label and anchor inconsistent between ubuntu and os x -->
           <a rel="tooltip" ui-jq="tooltip" data-original-title="{{ 'AUTOREPORT_PROMPT' | i18n }}">
             <i class="icon-question-sign"></i>
           </a>
-        </label>
+        </div>
 
         <div id="autoreport-warning" ui-toggle="!model.settings.autoReport"
              class="noHeightWhenHidden">
@@ -571,8 +572,8 @@ You should have received a copy of the GNU General Public License along with thi
         </div>
       </dd>
 
-      <dt ui-toggle="inGetMode">{{ 'PROXY' | i18n }}</dt>
-      <dd ui-toggle="inGetMode" id="proxy-settings">
+      <dt ui-toggle="inGetMode" class="noHeightWhenHidden">{{ 'PROXY' | i18n }}</dt>
+      <dd ui-toggle="inGetMode" class="noHeightWhenHidden" id="proxy-settings">
         <button type="button" class="btn btn-mini"
                 ng-click="interaction(INTERACTION.proxiedSites)">
           <!--i class="lsf-icon lsf-web"></i-->
@@ -581,21 +582,25 @@ You should have received a copy of the GNU General Public License along with thi
         <br>
         <details ng-open="proxyAdvancedExpanded"><!-- XXX ng-open not yet implemented: https://github.com/angular/angular.js/issues/1797 -->
           <summary class="small">{{ 'ADVANCED' | i18n }}</summary>
-          <label class="checkbox">
-            <input type="checkbox" ng-model="proxyAllSites"
-                   ng-click="changeSetting(SETTING.proxyAllSites, proxyAllSites)">
-              {{'PROXY_ALL_TRAFFIC' | i18n }}
-              <a rel="tooltip" ui-jq="tooltip" data-original-title="{{ 'PROXIED_SITES_PROMPT' | i18n }}"><i class="icon icon-question-sign" style="font-size: 14px"></i></a><!-- XXX inline style -->
-          </label>
+          <div>
+            <label class="checkbox inline" style="margin-top:-9px"><!-- XXX inline style -->
+              <input type="checkbox" ng-model="proxyAllSites"
+                     ng-click="changeSetting(SETTING.proxyAllSites, proxyAllSites)">
+                {{'PROXY_ALL_TRAFFIC' | i18n }}
+            </label>
+            <!-- XXX space between label and anchor inconsistent between ubuntu and os x -->
+            <a rel="tooltip" ui-jq="tooltip" data-original-title="{{ 'PROXIED_SITES_PROMPT' | i18n }}"><i class="icon icon-question-sign" style="font-size: 14px"></i></a><!-- XXX inline style -->
+          </div>
           <div>
             <label class="checkbox">
               <input type="checkbox" ng-model="systemProxy"
                      ng-click="changeSetting(SETTING.systemProxy, systemProxy)">
               {{ 'SET_AS_SYSTEM_PROXY' | i18n }}
             </label>
-            <div class="indented" ui-toggle="!systemProxy">
+            <div class="indented noHeightWhenHidden" ui-toggle="!systemProxy">
               <i class="icon-info-sign"></i>
-              {{ 'LANTERN_PORT' | i18n }} {{ model.settings.proxyPort }}<!-- XXX interpolate -->
+              {{ 'PAC_FILE_LOC' | i18n }}
+              <strong>{{ model.settings.pacUrl }}</strong>
             </div>
           </div>
         </details>

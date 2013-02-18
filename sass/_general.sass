@@ -56,10 +56,18 @@ label.checkbox.inline, label.radio.inline
 .tooltip-inner
   font-size: $baseFontSize * .9
 
-.btn-give-mode
+.btn-give
+  color: $giveModeColorAccent
+
+.btn-get
+  color: $getModeColorAccent
+
+.btn-give-inverse
+  color: #fff
   +ctb-buttonBackground($giveModeColor, $giveModeColorAccent)
 
-.btn-get-mode
+.btn-get-inverse
+  color: #fff
   +ctb-buttonBackground($getModeColor, $getModeColorAccent)
 
 .btn-dev
@@ -92,7 +100,10 @@ a.disabled:hover
   +single-transition(all, 0.5s, ease)
 
 .ui-hide.noHeightWhenHidden
+  margin: 0 !important
   height: 0 !important
+  line-height: 0 !important
+  overflow: hidden !important
   //+transition(none)
 
 .ui-hide

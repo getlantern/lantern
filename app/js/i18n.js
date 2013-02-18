@@ -111,7 +111,7 @@ angular.module('app.i18n', [])
       SYSTEM_PROXY_TRUE: 'Set Lantern as my system proxy (recommended)',
       ADMIN_PW_PROMPT: 'You may be prompted for an administrator password.',
       SYSTEM_PROXY_FALSE: 'I will manually configure my browser to use Lantern.',
-      HTTP_PROXY_PORT: 'Lantern’s HTTP proxy runs on port', // XXX interpolate the variable
+      PAC_FILE_LOC: 'Lantern PAC file url:',
       SYSTEM_PROXY_ERROR: 'Proxy configuration failed',
       FINISHED_TITLE: 'Finished!',
       FINISHED_PROMPT: 'Thank you for joining Lantern. Your participation at this early stage is invaluable.',
@@ -143,7 +143,6 @@ angular.module('app.i18n', [])
       //HTTPS_EVERYWHERE_LABEL: 'For your security, http requests to this site will automatically be converted to https requests using rulesets from HTTPS Everywhere.',
       ADVANCED: 'Advanced',
       PROXY_ALL_TRAFFIC: 'Proxy all traffic (not recommended)',
-      LANTERN_PORT: 'Lantern is running on port', // XXX interpolate
       APP: 'App',
       SAVE_GTALK_PASSWORD: 'Securely save Google Talk password',
       AUTO_START: 'Run Lantern automatically on startup',

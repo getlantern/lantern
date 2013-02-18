@@ -614,6 +614,10 @@ the backend maintains on the frontend through comet publications:
           <td>The port the Lantern http proxy is running on.</td>
         </tr>
         <tr>
+          <td><strong>pacUrl</strong><a href="#note-get-mode-only"><sup>1</sup></a><br><em>url</em></td>
+          <td>The url of Lantern's pac file.</td>
+        </tr>
+        <tr>
           <td><strong>systemProxy</strong><a href="#note-get-mode-only"><sup>1</sup></a><br><em>boolean</em></td>
           <td>Whether to try to set Lantern as the system proxy.</td>
         </tr>

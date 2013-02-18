@@ -39,6 +39,7 @@
     "runAtSystemStart":true,
     "autoReport":true,
     "proxyPort":8787,
+    "pacUrl":"http://localhost:8787/lantern.pac",
     "systemProxy":true,
     "proxyAllSites":false,
     "proxiedSites":["blocked.com"]

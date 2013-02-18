@@ -39,7 +39,7 @@ html {
 }
 
 a:focus {
-  outline: thin dotted #333;
+  outline: thin dotted #333333;
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
@@ -143,7 +143,7 @@ textarea {
 @media print {
   * {
     text-shadow: none !important;
-    color: #000 !important;
+    color: black !important;
     background: transparent !important;
     box-shadow: none !important;
   }
@@ -169,7 +169,7 @@ textarea {
 
   pre,
   blockquote {
-    border: 1px solid #999;
+    border: 1px solid #999999;
     page-break-inside: avoid;
   }
 
@@ -230,7 +230,7 @@ a:hover {
 .img-polaroid {
   padding: 4px;
   background-color: #fff;
-  border: 1px solid #ccc;
+  border: 1px solid #cccccc;
   border: 1px solid rgba(0, 0, 0, 0.2);
   -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -880,7 +880,7 @@ pre {
   white-space: pre;
   white-space: pre-wrap;
   background-color: #f5f5f5;
-  border: 1px solid #ccc;
+  border: 1px solid #cccccc;
   border: 1px solid rgba(0, 0, 0, 0.15);
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
@@ -1086,7 +1086,7 @@ select:focus,
 input[type="file"]:focus,
 input[type="radio"]:focus,
 input[type="checkbox"]:focus {
-  outline: thin dotted #333;
+  outline: thin dotted #333333;
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
@@ -1558,7 +1558,7 @@ select:focus:invalid:focus {
   text-align: center;
   text-shadow: 0 1px 0 white;
   background-color: #eeeeee;
-  border: 1px solid #ccc;
+  border: 1px solid #cccccc;
 }
 .input-append .add-on,
 .input-append .btn,
@@ -2180,7 +2180,7 @@ li [class*=" icon-"].icon-large, .nav li [class^="icon-"].icon-large,
 
 ul.icons {
   list-style-type: none;
-  text-indent: -0.75em;
+  text-indent: -.75em;
 }
 ul.icons li [class^="icon-"],
 ul.icons li [class*=" icon-"] {
@@ -2193,7 +2193,7 @@ ul.icons li [class*=" icon-"] {
 
 .icon-border {
   border: solid 1px #eeeeee;
-  padding: .2em .25em .15em;
+  padding: 0.2em 0.25em 0.15em;
   -webkit-border-radius: 3px;
   -moz-border-radius: 3px;
   border-radius: 3px;
@@ -3397,7 +3397,7 @@ ul.icons li [class*=" icon-"] {
   margin: 2px 0 0;
   list-style: none;
   background-color: white;
-  border: 1px solid #ccc;
+  border: 1px solid #cccccc;
   border: 1px solid rgba(0, 0, 0, 0.2);
   *border-right-width: 2px;
   *border-bottom-width: 2px;
@@ -3712,7 +3712,7 @@ button.close {
   transition: background-position 0.1s linear;
 }
 .btn:focus {
-  outline: thin dotted #333;
+  outline: thin dotted #333333;
   outline: 5px auto -webkit-focus-ring-color;
   outline-offset: -2px;
 }
@@ -4440,7 +4440,7 @@ input[type="submit"].btn.btn-mini {
 }
 
 .nav-tabs {
-  border-bottom: 1px solid #ddd;
+  border-bottom: 1px solid #dddddd;
 }
 
 .nav-tabs > li {
@@ -4464,7 +4464,7 @@ input[type="submit"].btn.btn-mini {
 .nav-tabs > .active > a:hover {
   color: #555555;
   background-color: white;
-  border: 1px solid #ddd;
+  border: 1px solid #dddddd;
   border-bottom-color: transparent;
   cursor: default;
 }
@@ -4498,7 +4498,7 @@ input[type="submit"].btn.btn-mini {
 }
 
 .nav-tabs.nav-stacked > li > a {
-  border: 1px solid #ddd;
+  border: 1px solid #dddddd;
   -webkit-border-radius: 0;
   -moz-border-radius: 0;
   border-radius: 0;
@@ -4631,7 +4631,7 @@ input[type="submit"].btn.btn-mini {
 }
 
 .tabs-below > .nav-tabs {
-  border-top: 1px solid #ddd;
+  border-top: 1px solid #dddddd;
 }
 
 .tabs-below > .nav-tabs > li {
@@ -4651,7 +4651,7 @@ input[type="submit"].btn.btn-mini {
 
 .tabs-below > .nav-tabs > .active > a,
 .tabs-below > .nav-tabs > .active > a:hover {
-  border-color: transparent #ddd #ddd #ddd;
+  border-color: transparent #dddddd #dddddd #dddddd;
 }
 
 .tabs-left > .nav-tabs > li,
@@ -4669,7 +4669,7 @@ input[type="submit"].btn.btn-mini {
 .tabs-left > .nav-tabs {
   float: left;
   margin-right: 19px;
-  border-right: 1px solid #ddd;
+  border-right: 1px solid #dddddd;
 }
 
 .tabs-left > .nav-tabs > li > a {
@@ -4685,14 +4685,14 @@ input[type="submit"].btn.btn-mini {
 
 .tabs-left > .nav-tabs .active > a,
 .tabs-left > .nav-tabs .active > a:hover {
-  border-color: #ddd transparent #ddd #ddd;
+  border-color: #dddddd transparent #dddddd #dddddd;
   *border-right-color: white;
 }
 
 .tabs-right > .nav-tabs {
   float: right;
   margin-left: 19px;
-  border-left: 1px solid #ddd;
+  border-left: 1px solid #dddddd;
 }
 
 .tabs-right > .nav-tabs > li > a {
@@ -4708,7 +4708,7 @@ input[type="submit"].btn.btn-mini {
 
 .tabs-right > .nav-tabs .active > a,
 .tabs-right > .nav-tabs .active > a:hover {
-  border-color: #ddd #ddd #ddd transparent;
+  border-color: #dddddd #dddddd #dddddd transparent;
   *border-left-color: white;
 }
 
@@ -5036,7 +5036,7 @@ input[type="submit"].btn.btn-mini {
   display: inline-block;
   border-left: 7px solid transparent;
   border-right: 7px solid transparent;
-  border-bottom: 7px solid #ccc;
+  border-bottom: 7px solid #cccccc;
   border-bottom-color: rgba(0, 0, 0, 0.2);
   position: absolute;
   top: -7px;
@@ -5054,7 +5054,7 @@ input[type="submit"].btn.btn-mini {
 }
 
 .navbar-fixed-bottom .nav > li > .dropdown-menu:before {
-  border-top: 7px solid #ccc;
+  border-top: 7px solid #cccccc;
   border-top-color: rgba(0, 0, 0, 0.2);
   border-bottom: 0;
   bottom: -7px;
@@ -5430,7 +5430,7 @@ input[type="submit"].btn.btn-mini {
   display: inline-block;
   padding: 5px 14px;
   background-color: #fff;
-  border: 1px solid #ddd;
+  border: 1px solid #dddddd;
   -webkit-border-radius: 15px;
   -moz-border-radius: 15px;
   border-radius: 15px;
@@ -5486,9 +5486,9 @@ input[type="submit"].btn.btn-mini {
   width: 560px;
   margin-left: -280px;
   background-color: white;
-  border: 1px solid #999;
+  border: 1px solid #999999;
   border: 1px solid rgba(0, 0, 0, 0.3);
-  *border: 1px solid #999;
+  *border: 1px solid #999999;
   /* IE6-7 */
   -webkit-border-radius: 6px;
   -moz-border-radius: 6px;
@@ -5514,7 +5514,7 @@ input[type="submit"].btn.btn-mini {
 
 .modal-header {
   padding: 9px 15px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid #eeeeee;
 }
 .modal-header .close {
   margin-top: 2px;
@@ -5540,7 +5540,7 @@ input[type="submit"].btn.btn-mini {
   margin-bottom: 0;
   text-align: right;
   background-color: #f5f5f5;
-  border-top: 1px solid #ddd;
+  border-top: 1px solid #dddddd;
   -webkit-border-radius: 0 0 6px 6px;
   -moz-border-radius: 0 0 6px 6px;
   border-radius: 0 0 6px 6px;
@@ -5657,7 +5657,7 @@ input[type="submit"].btn.btn-mini {
   -webkit-background-clip: padding-box;
   -moz-background-clip: padding;
   background-clip: padding-box;
-  border: 1px solid #ccc;
+  border: 1px solid #cccccc;
   border: 1px solid rgba(0, 0, 0, 0.2);
   -webkit-border-radius: 6px;
   -moz-border-radius: 6px;
@@ -5801,7 +5801,7 @@ input[type="submit"].btn.btn-mini {
   display: block;
   padding: 4px;
   line-height: 18px;
-  border: 1px solid #ddd;
+  border: 1px solid #dddddd;
   -webkit-border-radius: 4px;
   -moz-border-radius: 4px;
   border-radius: 4px;
@@ -6402,7 +6402,16 @@ label.checkbox.inline, label.radio.inline {
   font-size: 12.6px;
 }
 
-.btn-give-mode {
+.btn-give {
+  color: #00994d;
+}
+
+.btn-get {
+  color: #cc8800;
+}
+
+.btn-give-inverse {
+  color: white;
   color: white;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
   background-color: #00d86c;
@@ -6419,39 +6428,40 @@ label.checkbox.inline, label.radio.inline {
   /* Darken IE7 buttons by default so they stand out more given they won't have borders */
   filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
 }
-.btn-give-mode:hover, .btn-give-mode:active, .btn-give-mode.active, .btn-give-mode.disabled, .btn-give-mode[disabled] {
+.btn-give-inverse:hover, .btn-give-inverse:active, .btn-give-inverse.active, .btn-give-inverse.disabled, .btn-give-inverse[disabled] {
   color: white;
   background-color: #00994d;
   *background-color: #008040;
 }
-.btn-give-mode:active, .btn-give-mode.active {
+.btn-give-inverse:active, .btn-give-inverse.active {
   background-color: #006633 \9;
 }
 
-.btn-get-mode {
+.btn-get-inverse {
+  color: white;
   color: white;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-  background-color: #ffc552;
-  background-image: -moz-linear-gradient(top, #ffcc66, #ffbb33);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffcc66), to(#ffbb33));
-  background-image: -webkit-linear-gradient(top, #ffcc66, #ffbb33);
-  background-image: -o-linear-gradient(top, #ffcc66, #ffbb33);
-  background-image: linear-gradient(to bottom, #ffcc66, #ffbb33);
+  background-color: #ebb23f;
+  background-image: -moz-linear-gradient(top, #ffcc66, #cc8800);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#ffcc66), to(#cc8800));
+  background-image: -webkit-linear-gradient(top, #ffcc66, #cc8800);
+  background-image: -o-linear-gradient(top, #ffcc66, #cc8800);
+  background-image: linear-gradient(to bottom, #ffcc66, #cc8800);
   background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffca61', endColorstr='#ffb92e', GradientType=0);
-  border-color: #ffbb33 #ffbb33 #e59900;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffca61', endColorstr='#c78500', GradientType=0);
+  border-color: #cc8800 #cc8800 #7f5500;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-  *background-color: #ffbb33;
+  *background-color: #cc8800;
   /* Darken IE7 buttons by default so they stand out more given they won't have borders */
   filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
 }
-.btn-get-mode:hover, .btn-get-mode:active, .btn-get-mode.active, .btn-get-mode.disabled, .btn-get-mode[disabled] {
+.btn-get-inverse:hover, .btn-get-inverse:active, .btn-get-inverse.active, .btn-get-inverse.disabled, .btn-get-inverse[disabled] {
   color: white;
-  background-color: #ffbb33;
-  *background-color: #ffb31a;
+  background-color: #cc8800;
+  *background-color: #b27700;
 }
-.btn-get-mode:active, .btn-get-mode.active {
-  background-color: #ffaa00 \9;
+.btn-get-inverse:active, .btn-get-inverse.active {
+  background-color: #996600 \9;
 }
 
 .btn-dev {
@@ -6523,7 +6533,10 @@ a.disabled:hover {
 }
 
 .ui-hide.noHeightWhenHidden {
+  margin: 0 !important;
   height: 0 !important;
+  line-height: 0 !important;
+  overflow: hidden !important;
 }
 
 .ui-hide {
@@ -7092,7 +7105,7 @@ body.giveMode #npending {
   left: 20px;
   z-index: 1051;
   width: 500px;
-  overflow: scroll;
+  overflow: hidden;
   background-color: white;
   opacity: 0.9;
   -webkit-border-radius: 5px;
@@ -7111,7 +7124,7 @@ body.giveMode #npending {
 #model textarea {
   font-size: 10.5px;
   font-family: Monaco, Menlo, Consolas, "Courier New", monospace;
-  overflow: scroll;
+  overflow: auto;
   display: block;
   width: 100%;
   height: 100%;
