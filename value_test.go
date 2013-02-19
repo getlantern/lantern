@@ -90,12 +90,64 @@ func TestToString(t *testing.T) {
 func Test_toInt32(t *testing.T) {
 	Terst(t)
 
-	Is(toInt32(toValue(0)), "0")
-	Is(toInt32(toValue(1)), "1")
-	Is(toInt32(toValue(-2147483649.0)), "2147483647")
-	Is(toInt32(toValue(-4294967297.0)), "-1")
-	Is(toInt32(toValue(-4294967296.0)), "0")
-	Is(toInt32(toValue(-4294967295.0)), "1")
+	test := []interface{}{
+		0, int32(0),
+		1, int32(1),
+		-2147483649.0, int32(2147483647),
+		-4294967297.0, int32(-1),
+		-4294967296.0, int32(0),
+		-4294967295.0, int32(1),
+		math.Inf(+1), int32(0),
+		math.Inf(-1), int32(0),
+	}
+	for index := 0; index < len(test)/2; index++ {
+		Like(
+			toInt32(toValue(test[index*2])),
+			test[index*2+1].(int32),
+		)
+	}
+}
+
+func Test_toUint32(t *testing.T) {
+	Terst(t)
+
+	test := []interface{}{
+		0, uint32(0),
+		1, uint32(1),
+		-2147483649.0, uint32(2147483647),
+		-4294967297.0, uint32(4294967295),
+		-4294967296.0, uint32(0),
+		-4294967295.0, uint32(1),
+		math.Inf(+1), uint32(0),
+		math.Inf(-1), uint32(0),
+	}
+	for index := 0; index < len(test)/2; index++ {
+		Like(
+			toUint32(toValue(test[index*2])),
+			test[index*2+1].(uint32),
+		)
+	}
+}
+
+func Test_toUint16(t *testing.T) {
+	Terst(t)
+
+	test := []interface{}{
+		0, uint16(0),
+		1, uint16(1),
+		-2147483649.0, uint16(65535),
+		-4294967297.0, uint16(65535),
+		-4294967296.0, uint16(0),
+		-4294967295.0, uint16(1),
+		math.Inf(+1), uint16(0),
+		math.Inf(-1), uint16(0),
+	}
+	for index := 0; index < len(test)/2; index++ {
+		Like(
+			toUint16(toValue(test[index*2])),
+			test[index*2+1].(uint16),
+		)
+	}
 }
 
 func Test_sameValue(t *testing.T) {
