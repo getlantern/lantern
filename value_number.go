@@ -140,6 +140,27 @@ const (
 	_MinInt64_  float64 = math.MinInt64
 )
 
+type _integer float64
+
+func (self _integer) isInfinity() bool {
+	return math.IsInf(float64(self), 0)
+}
+
+func (self _integer) infinity() int {
+	if math.IsInf(float64(self), 0) {
+		if math.IsInf(float64(self), 1) {
+			return +1
+		}
+		return -1
+	}
+	return 0
+}
+
+// A "safe" replacement for toInteger
+func _toInteger(value Value) _integer {
+	return _integer(toIntegerFloat(value))
+}
+
 func toIntegerFloat(value Value) float64 {
 	floatValue := value.toFloat()
 	if math.IsNaN(floatValue) {

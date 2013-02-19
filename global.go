@@ -281,10 +281,11 @@ func newContext() *_runtime {
 			value := call.thisClassObject("Number").primitiveValue()
 			radix := 10
 			if len(call.ArgumentList) > 0 {
-				radix = int(toInteger(call.Argument(0)))
-				if radix < 2 || radix > 36 {
+				integer := _toInteger(call.Argument(0))
+				if integer < 2 || integer > 36 {
 					panic(newRangeError("RangeError: toString() radix must be between 2 and 36"))
 				}
+				radix = int(integer)
 			}
 			return toValue(strconv.FormatInt(toInteger(value), radix))
 		},
