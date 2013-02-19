@@ -25,4 +25,8 @@ func TestNumber_toString(t *testing.T) {
 	test(`raise:
         new Number(451).toString(1);
     `, "RangeError: RangeError: toString() radix must be between 2 and 36")
+
+	test(`raise:
+        new Number(451).toString(Infinity);
+    `, "RangeError: RangeError: toString() radix must be between 2 and 36")
 }
