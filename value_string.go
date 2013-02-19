@@ -19,6 +19,24 @@ func floatToString(value float64, bitsize int) string {
 	return strconv.FormatFloat(value, 'g', -1, bitsize)
 }
 
+func numberToStringRadix(value Value, radix int) string {
+	integer := _toInteger(value)
+	if integer.isNaN() {
+		return "NaN"
+	}
+	if kind := integer.infinity(); kind != 0 {
+		if kind > 0 {
+			return "Infinity"
+		} else {
+			return "-Infinity"
+		}
+	}
+	// FIXME This is so broken
+	// Need to do proper radix conversion for floats, ...
+	// This truncates large floats (so bad).
+	return strconv.FormatInt(int64(integer), radix)
+}
+
 func toString(value Value) string {
 	if value._valueType == valueString {
 		return value.value.(string)

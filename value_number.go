@@ -142,6 +142,10 @@ const (
 
 type _integer float64
 
+func (self _integer) isNaN() bool {
+	return math.IsNaN(float64(self))
+}
+
 func (self _integer) isInfinity() bool {
 	return math.IsInf(float64(self), 0)
 }

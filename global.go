@@ -2,7 +2,6 @@ package otto
 
 import (
 	"math"
-	"strconv"
 	time_ "time"
 )
 
@@ -287,7 +286,10 @@ func newContext() *_runtime {
 				}
 				radix = int(integer)
 			}
-			return toValue(strconv.FormatInt(toInteger(value), radix))
+			if radix == 10 {
+				return toValue(toString(value))
+			}
+			return toValue(numberToStringRadix(value, radix))
 		},
 		"valueOf", func(call FunctionCall) Value {
 			return *call.thisClassObject("Number").primitive
