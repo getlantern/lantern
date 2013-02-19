@@ -1,6 +1,6 @@
 /**
  * @license
- * Lo-Dash 1.0.0 (Custom Build) <http://lodash.com/>
+ * Lo-Dash 1.0.1 (Custom Build) <http://lodash.com/>
  * Build: `lodash modern -o ./dist/lodash.js`
  * Copyright 2012-2013 The Dojo Foundation <http://dojofoundation.org/>
  * Based on Underscore.js 1.4.4 <http://underscorejs.org/>
@@ -11,6 +11,9 @@
 
   /** Detect free variable `exports` */
   var freeExports = typeof exports == 'object' && exports;
+
+  /** Detect free variable `module` */
+  var freeModule = typeof module == 'object' && module && module.exports == freeExports && module;
 
   /** Detect free variable `global` and use it as `window` */
   var freeGlobal = typeof global == 'object' && global;
@@ -56,7 +59,7 @@
    * Used to match ES6 template delimiters
    * http://people.mozilla.org/~jorendorff/es6-draft.html#sec-7.8.6
    */
-  var reEsTemplate = /\$\{((?:(?=\\?)\\?[\s\S])*?)\}/g;
+  var reEsTemplate = /\$\{([^\\}]*(?:\\.[^\\}]*)*)\}/g;
 
   /** Used to match "interpolate" template delimiters */
   var reInterpolate = /<%=([\s\S]+?)%>/g;
@@ -292,7 +295,7 @@
     '\n  }  ';
      } else {
     __p += '\n  for (index in iterable) {';
-        if ( obj.useHas) {
+        if (obj.useHas) {
     __p += '\n    if (';
           if (obj.useHas) {
     __p += 'hasOwnProperty.call(iterable, index)';
@@ -302,7 +305,7 @@
     __p += 
     (obj.loop ) +
     ';    ';
-     if ( obj.useHas) {
+     if (obj.useHas) {
     __p += '\n    }';
      } ;
     __p += '\n  }  ';
@@ -910,12 +913,10 @@
     'top':
       defaultsIteratorOptions.top.replace(';',
         ';\n' +
-        'if (argsLength > 2) {\n' +
-        "  if (typeof args[argsLength - 2] == 'function') {\n" +
-        '    var callback = createCallback(args[--argsLength - 1], args[argsLength--], 2);\n' +
-        "  } else if (typeof args[argsLength - 1] == 'function') {\n" +
-        '    callback = args[--argsLength];\n' +
-        '  }\n' +
+        "if (argsLength > 3 && typeof args[argsLength - 2] == 'function') {\n" +
+        '  var callback = createCallback(args[--argsLength - 1], args[argsLength--], 2);\n' +
+        "} else if (argsLength > 2 && typeof args[argsLength - 1] == 'function') {\n" +
+        '  callback = args[--argsLength];\n' +
         '}'
       ),
     'loop': 'result[index] = callback ? callback(result[index], iterable[index]) : iterable[index]'
@@ -1420,16 +1421,27 @@
 
     // recursively compare objects and arrays (susceptible to call stack limits)
     if (isArr) {
-      // compare lengths to determine if a deep comparison is necessary
+      length = a.length;
       size = b.length;
-      result = whereIndicator || size == a.length;
 
-      if (result) {
-        // deep compare the contents, ignoring non-numeric properties
-        while (size--) {
-          if (!(result = isEqual(a[size], b[size], callback, thisArg, stackA, stackB))) {
-            break;
+      // compare lengths to determine if a deep comparison is necessary
+      result = size == a.length;
+      if (!result && !whereIndicator) {
+        return result;
+      }
+      // deep compare the contents, ignoring non-numeric properties
+      while (size--) {
+        var index = length,
+            value = b[size];
+
+        if (whereIndicator) {
+          while (index--) {
+            if ((result = isEqual(a[index], value, callback, thisArg, stackA, stackB))) {
+              break;
+            }
           }
+        } else if (!(result = isEqual(a[size], value, callback, thisArg, stackA, stackB))) {
+          break;
         }
       }
       return result;
@@ -1772,12 +1784,10 @@
       if (typeof deepIndicator != 'number') {
         length = args.length;
       }
-      if (length > 2) {
-        if (typeof args[length - 2] == 'function') {
-          callback = createCallback(args[--length - 1], args[length--], 2);
-        } else if (typeof args[length - 1] == 'function') {
-          callback = args[--length];
-        }
+      if (length > 3 && typeof args[length - 2] == 'function') {
+        callback = createCallback(args[--length - 1], args[length--], 2);
+      } else if (length > 2 && typeof args[length - 1] == 'function') {
+        callback = args[--length];
       }
     }
     while (++index < length) {
@@ -1984,7 +1994,7 @@
   /*--------------------------------------------------------------------------*/
 
   /**
-   * Creates an array of elements from the specified index(es), or keys, of the
+   * Creates an array of elements from the specified indexes, or keys, of the
    * `collection`. Indexes may be specified as individual arguments or as arrays
    * of indexes.
    *
@@ -1992,7 +2002,7 @@
    * @memberOf _
    * @category Collections
    * @param {Array|Object|String} collection The collection to iterate over.
-   * @param {Array|Number|String} [index1, index2, ...] The index(es) of
+   * @param {Array|Number|String} [index1, index2, ...] The indexes of
    *  `collection` to retrieve, either as individual arguments or arrays.
    * @returns {Array} Returns a new array of elements corresponding to the
    *  provided indexes.
@@ -4071,6 +4081,10 @@
     var args = slice(arguments, 1);
     return setTimeout(function() { func.apply(undefined, args); }, 1);
   }
+  // use `setImmediate` if it's available in Node.js
+  if (isV8 && freeModule && typeof setImmediate == 'function') {
+    defer = bind(setImmediate, window);
+  }
 
   /**
    * Creates a function that memoizes the result of `func`. If `resolver` is
@@ -4576,7 +4590,7 @@
       (isEvaluating
         ? ', __j = Array.prototype.join;\n' +
           "function print() { __p += __j.call(arguments, '') }\n"
-        : (hasVariable ? '' : ', __d = ' + variable + '.' + variable + ' || ' + variable) + ';\n'
+        : ';\n'
       ) +
       source +
       'return __p\n}';
@@ -4902,7 +4916,7 @@
    * @memberOf _
    * @type String
    */
-  lodash.VERSION = '1.0.0';
+  lodash.VERSION = '1.0.1';
 
   // add "Chaining" functions to the wrapper
   lodash.prototype.toString = wrapperToString;
@@ -4954,8 +4968,8 @@
   // check for `exports` after `define` in case a build optimizer adds an `exports` object
   else if (freeExports) {
     // in Node.js or RingoJS v0.8.0+
-    if (typeof module == 'object' && module && module.exports == freeExports) {
-      (module.exports = lodash)._ = lodash;
+    if (freeModule) {
+      (freeModule.exports = lodash)._ = lodash;
     }
     // in Narwhal or RingoJS v0.7.0-
     else {
