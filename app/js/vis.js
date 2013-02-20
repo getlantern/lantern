@@ -2,8 +2,10 @@
 
 angular.module('app.vis', [])
   .constant('CONFIG', {
-    scale: 1400,
-    translate: [500, 350],
+    //scale: 1400,
+    scale: 248,
+    clipAngle: 87,
+    //translate: [500, 350],
     style: {
       giveModeColor: '#00ff80',
       getModeColor: '#ffcc66',
@@ -27,9 +29,12 @@ angular.module('app.vis', [])
 function VisCtrl($scope, $window, logFactory, modelSrvc, CONFIG) {
   var log = logFactory('VisCtrl'),
       model = modelSrvc.model,
-      projection = d3.geo.mercator()
+      //projection = d3.geo.mercator()
+      //               .scale(CONFIG.scale)
+      //               .translate(CONFIG.translate),
+      projection = d3.geo.orthographic()
                      .scale(CONFIG.scale)
-                     .translate(CONFIG.translate),
+                     .clipAngle(CONFIG.clipAngle),
       path = d3.geo.path().projection(projection),
       zoom = d3.behavior.zoom(),
       svg = d3.select('svg'),
@@ -97,10 +102,6 @@ function VisCtrl($scope, $window, logFactory, modelSrvc, CONFIG) {
     var censors = getByPath(model, '/countries/'+country).censors,
         scaledOpacity = countryOpacityScale(npeers.giveGet),
         colorPrefix, fill;
-    if (_.isNaN(scaledOpacity)) {
-      log.error('scaledOpacity is NaN');
-      debugger;
-    }
     if (censors) {
       if (npeers.giveGet !== npeers.get) {
         log.warn('npeers.giveGet (', npeers.giveGet, ') !== npeers.get (', npeers.get, ') for censoring country', country);

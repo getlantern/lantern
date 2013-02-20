@@ -15,14 +15,14 @@ necessary. Please keep that in mind when accessing the public demo.
 
 ## Overview
 
-This is the repository for the new UI of
+This is the repository for the UI of
 [Lantern](https://github.com/getlantern/lantern). It is maintained as
 a separate repository to facilitate development. This code can be run
 independently of Lantern's Java backend with a lightweight node.js http server
 using [Faye](http://faye.jcoglan.com/) to implement Lantern's bayeux server.
 
 See [SPECS.md](https://github.com/getlantern/lantern-ui/blob/master/SPECS.md)
-for specifications of the state and the state transitions developed for the new
+for specifications of the state and the state transitions developed for the
 UI (work in progress).
 
 
@@ -54,10 +54,10 @@ Start up the Node.js mock server simulating the Lantern backend:
     $ scripts/web-server.js
     Bayeux-attached http server running at...
 
-The new UI should now be available at
+The UI should now be available at
 [http://localhost:8000/app/index.html](http://localhost:8000/app/index.html)
 
-To skip the setup process and go straight to an already setup instance, run:
+To skip the setup process and go straight to an already set up instance, run:
 
     $ scripts/web-server.js --skip-setup
 
@@ -87,5 +87,5 @@ and a work-in-progress http API to simulate the Lantern backend.
 [Specs](https://github.com/getlantern/lantern-ui/blob/master/SPECS.md) are
 currently being developed to represent the full state of the application at any
 given time, as well as transitions between states. The specs are being
-developed in parallel to the new UI and are currently changing frequently to
+developed in parallel to the UI and are currently changing frequently to
 meet its needs.
