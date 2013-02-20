@@ -337,16 +337,16 @@ func builtinString_indexOf(call FunctionCall) Value {
 	if 2 > len(call.ArgumentList) {
 		return toValue(strings.Index(value, target))
 	}
-	start := toInteger(call.Argument(1))
+	start := float64(_toInteger(call.Argument(1)))
 	if 0 > start {
 		start = 0
-	} else if start >= int64(len(value)) {
+	} else if start >= float64(len(value)) {
 		if target == "" {
 			return toValue(len(value))
 		}
 		return toValue(-1)
 	}
-	return toValue(strings.Index(value[start:], target))
+	return toValue(strings.Index(value[int(start):], target))
 }
 
 func builtinString_lastIndexOf(call FunctionCall) Value {

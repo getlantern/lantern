@@ -66,6 +66,8 @@ func TestString_indexOf(t *testing.T) {
 	test(`"abc".indexOf("a")`, "0")
 	test(`"abc".indexOf("bc")`, "1")
 	test(`"abc".indexOf("bc", 11)`, "-1")
+	test(`"$$abcdabcd".indexOf("ab", function(){return -Infinity;}())`, "2")
+	test(`"$$abcdabcd".indexOf("ab", function(){return NaN;}())`, "2")
 }
 
 func TestString_lastIndexOf(t *testing.T) {
