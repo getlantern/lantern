@@ -184,6 +184,7 @@ func TestString_substring(t *testing.T) {
 	test(`"abc".substring(-1,11)`, "abc")
 	test(`"abc".substring(11,1)`, "bc")
 	test(`"abc".substring(1)`, "bc")
+	test(`"abc".substring(Infinity, Infinity)`, "")
 }
 
 func TestString_toCase(t *testing.T) {
