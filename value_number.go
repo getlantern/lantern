@@ -142,8 +142,8 @@ const (
 
 type _integer float64
 
-func (self _integer) isNaN() bool {
-	return math.IsNaN(float64(self))
+func (self _integer) float() float64 {
+	return float64(self)
 }
 
 func (self _integer) isInfinity() bool {
@@ -162,20 +162,20 @@ func (self _integer) infinity() int {
 
 // A "safe" replacement for toInteger
 func _toInteger(value Value) _integer {
-	return _integer(toIntegerFloat(value))
+	float := value.toFloat()
+	if math.IsInf(float, 0) {
+	} else if math.IsNaN(float) {
+		float = 0
+	} else if float > 0 {
+		float = math.Floor(float)
+	} else {
+		float = math.Ceil(float)
+	}
+	return _integer(float)
 }
 
 func toIntegerFloat(value Value) float64 {
-	floatValue := value.toFloat()
-	if math.IsNaN(floatValue) {
-		return 0
-	} else if math.IsInf(floatValue, 0) {
-		return floatValue
-	}
-	if floatValue > 0 {
-		return math.Floor(floatValue)
-	}
-	return math.Ceil(floatValue)
+	return float64(_toInteger(value))
 }
 
 func toInteger(value Value) int64 {
