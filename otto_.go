@@ -60,30 +60,61 @@ func valueOfArrayIndex(list []Value, index int) Value {
 	return UndefinedValue()
 }
 
-func valueToArrayIndex(indexValue Value, length uint, negativeIsZero bool) uint {
+// A range index can be anything from 0 up to length. It is NOT safe to use as an index
+// to an array, but is useful for slicing and in some ECMA algorithms.
+func valueToRangeIndex(indexValue Value, length uint, negativeIsZero bool) uint {
 	index := toIntegerFloat(indexValue)
-	if !negativeIsZero {
-		if 0 > length {
-			return uint(index)
-		}
-		if 0 > index {
-			index = math.Max(index+float64(length), 0)
-		} else {
-			index = math.Min(index, float64(length))
-		}
-		return uint(index)
-	}
-	{
+	if negativeIsZero {
 		index := uint(math.Max(index, 0))
-		if 0 > length {
-			return index
-		}
 		// minimum(index, length)
-		if index > length {
+		if index >= length {
 			return length
 		}
 		return index
 	}
+
+	if index < 0 {
+		index = math.Max(index+float64(length), 0)
+	} else {
+		index = math.Min(index, float64(length))
+	}
+	return uint(index)
+}
+
+func rangeStartEnd(array []Value, size uint, negativeIsZero bool) (start, end uint) {
+	start = valueToRangeIndex(valueOfArrayIndex(array, 0), size, negativeIsZero)
+	if len(array) == 1 {
+		// If there is only the start argument, then end = size
+		end = size
+		return
+	}
+
+	// Assuming the argument is undefined...
+	end = size
+	endValue := valueOfArrayIndex(array, 1)
+	if !endValue.IsUndefined() {
+		// Which it is not, so get the value as an array index
+		end = valueToRangeIndex(endValue, size, negativeIsZero)
+	}
+	return
+}
+
+func rangeStartLength(source []Value, size uint) (start, length int64) {
+	start = int64(valueToRangeIndex(valueOfArrayIndex(source, 0), size, false))
+
+	// Assume the second argument is missing or undefined
+	length = int64(size)
+	if len(source) == 1 {
+		// If there is only the start argument, then length = size
+		return
+	}
+
+	lengthValue := valueOfArrayIndex(source, 1)
+	if !lengthValue.IsUndefined() {
+		// Which it is not, so get the value as an array index
+		length = toInteger(lengthValue)
+	}
+	return
 }
 
 func boolFields(input string) (result map[string]bool) {

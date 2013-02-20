@@ -654,7 +654,7 @@ func builtinString_slice(call FunctionCall) Value {
 
 	length := uint(len(target))
 	start, end := rangeStartEnd(call.ArgumentList, length, false)
-	if 0 >= end-start {
+	if start >= length || end-start <= 0 {
 		return toValue("")
 	}
 	return toValue(target[start:end])
@@ -665,8 +665,6 @@ func builtinString_substring(call FunctionCall) Value {
 	target := toString(call.This)
 
 	length := uint(len(target))
-	//start := valueToArrayIndex(call.Argument(0), size, false)
-	//end := valueToArrayIndex(call.Argument(1), size, false)
 	start, end := rangeStartEnd(call.ArgumentList, length, true)
 	if start > end {
 		start, end = end, start
@@ -879,48 +877,12 @@ func builtinArray_joinNative(valueArray []Value, separator string) string {
 	return strings.Join(stringList, separator)
 }
 
-func rangeStartEnd(source []Value, size uint, negativeIsZero bool) (start, end uint) {
-	start = valueToArrayIndex(valueOfArrayIndex(source, 0), size, negativeIsZero)
-	if len(source) == 1 {
-		// If there is only the start argument, then end = size
-		end = size
-		return
-	}
-
-	// Assuming the argument is undefined...
-	end = size
-	endValue := valueOfArrayIndex(source, 1)
-	if !endValue.IsUndefined() {
-		// Which it is not, so get the value as an array index
-		end = valueToArrayIndex(endValue, size, negativeIsZero)
-	}
-	return
-}
-
-func rangeStartLength(source []Value, size uint) (start, length int64) {
-	start = int64(valueToArrayIndex(valueOfArrayIndex(source, 0), size, false))
-
-	// Assume the second argument is missing or undefined
-	length = int64(size)
-	if len(source) == 1 {
-		// If there is only the start argument, then length = size
-		return
-	}
-
-	lengthValue := valueOfArrayIndex(source, 1)
-	if !lengthValue.IsUndefined() {
-		// Which it is not, so get the value as an array index
-		length = toInteger(lengthValue)
-	}
-	return
-}
-
 func builtinArray_splice(call FunctionCall) Value {
 	thisObject := call.thisObject()
 	length := uint(toUint32(thisObject.get("length")))
 
-	start := valueToArrayIndex(call.Argument(0), length, false)
-	deleteCount := valueToArrayIndex(call.Argument(1), length-start, true)
+	start := valueToRangeIndex(call.Argument(0), length, false)
+	deleteCount := valueToRangeIndex(call.Argument(1), length-start, true)
 	valueArray := make([]Value, deleteCount)
 
 	for index := uint(0); index < deleteCount; index++ {

@@ -169,6 +169,7 @@ func TestString_slice(t *testing.T) {
 	test(`"abc".slice(0,11)`, "abc")
 	test(`"abc".slice(0,-1)`, "ab")
 	test(`"abc".slice(-1,11)`, "c")
+	test(`abc = "abc"; abc.slice(abc.length+1, 0)`, "")
 }
 
 func TestString_substring(t *testing.T) {
