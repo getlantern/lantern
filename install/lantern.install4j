@@ -43,7 +43,7 @@
         </exclude>
       </dirEntry>
       <fileEntry mountPoint="25" file="../GeoIP.dat.gz" overwriteMode="2" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="true" overrideUninstallMode="false" />
-      <dirEntry mountPoint="25" file="../certs" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="direct" subDirectory="certs" excludeSuffixes="" dirMode="755" overrideDirMode="false">
+      <dirEntry mountPoint="25" file="../certs" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="certs" excludeSuffixes="" dirMode="755" overrideDirMode="false">
         <exclude />
       </dirEntry>
       <dirEntry mountPoint="25" file="../https" overwriteMode="4" shared="false" fileMode="644" uninstallMode="0" overrideFileMode="false" overrideOverwriteMode="false" overrideUninstallMode="false" entryMode="subdir" subDirectory="https" excludeSuffixes="" dirMode="755" overrideDirMode="false">
