@@ -162,11 +162,11 @@ func builtinArray_splice(call FunctionCall) Value {
 	length := uint(toUint32(thisObject.get("length")))
 
 	start := valueToRangeIndex(call.Argument(0), length, false)
-	deleteCount := valueToRangeIndex(call.Argument(1), length-start, true)
+	deleteCount := valueToRangeIndex(call.Argument(1), uint(int64(length)-start), true)
 	valueArray := make([]Value, deleteCount)
 
-	for index := uint(0); index < deleteCount; index++ {
-		indexString := arrayIndexToString(start + index)
+	for index := int64(0); index < deleteCount; index++ {
+		indexString := arrayIndexToString(uint(start + index))
 		if thisObject.hasProperty(indexString) {
 			valueArray[index] = thisObject.get(indexString)
 		}
@@ -177,7 +177,7 @@ func builtinArray_splice(call FunctionCall) Value {
 	// length 8 - delete 4 @ start 1
 
 	itemList := []Value{}
-	itemCount := uint(len(call.ArgumentList))
+	itemCount := int64(len(call.ArgumentList))
 	if itemCount > 2 {
 		itemCount -= 2 // Less the first two arguments
 		itemList = call.ArgumentList[2:]
@@ -186,14 +186,15 @@ func builtinArray_splice(call FunctionCall) Value {
 	}
 	if itemCount < deleteCount {
 		// The Object/Array is shrinking
-		stop := length - deleteCount // The new length of the Object/Array before
+		stop := int64(length) - deleteCount
+		// The new length of the Object/Array before
 		// appending the itemList remainder
 		// Stopping at the lower bound of the insertion:
 		// Move an item from the after the deleted portion
 		// to a position after the inserted portion
 		for index := start; index < stop; index++ {
-			from := arrayIndexToString(index + deleteCount) // Position just after deletion
-			to := arrayIndexToString(index + itemCount)     // Position just after splice (insertion)
+			from := arrayIndexToString(uint(index + deleteCount)) // Position just after deletion
+			to := arrayIndexToString(uint(index + itemCount))     // Position just after splice (insertion)
 			if thisObject.hasProperty(from) {
 				thisObject.put(to, thisObject.get(from), true)
 			} else {
@@ -203,8 +204,8 @@ func builtinArray_splice(call FunctionCall) Value {
 		// Delete off the end
 		// We don't bother to delete below <stop + itemCount> (if any) since those
 		// will be overwritten anyway
-		for index := length; index > (stop + itemCount); index-- {
-			thisObject.delete(arrayIndexToString(index-1), true)
+		for index := int64(length); index > (stop + itemCount); index-- {
+			thisObject.delete(arrayIndexToString(uint(index-1)), true)
 		}
 	} else if itemCount > deleteCount {
 		// The Object/Array is growing
@@ -214,9 +215,9 @@ func builtinArray_splice(call FunctionCall) Value {
 		// Starting from the upper bound of the deletion:
 		// Move an item from the after the deleted portion
 		// to a position after the inserted portion
-		for index := length - deleteCount; index > start; index-- {
-			from := arrayIndexToString(index + deleteCount - 1)
-			to := arrayIndexToString(index + itemCount - 1)
+		for index := int64(length) - deleteCount; index > start; index-- {
+			from := arrayIndexToString(uint(index + deleteCount - 1))
+			to := arrayIndexToString(uint(index + itemCount - 1))
 			if thisObject.hasProperty(from) {
 				thisObject.put(to, thisObject.get(from), true)
 			} else {
@@ -225,10 +226,10 @@ func builtinArray_splice(call FunctionCall) Value {
 		}
 	}
 
-	for index := uint(0); index < itemCount; index++ {
-		thisObject.put(arrayIndexToString(index+start), itemList[index], true)
+	for index := int64(0); index < itemCount; index++ {
+		thisObject.put(arrayIndexToString(uint(index+start)), itemList[index], true)
 	}
-	thisObject.put("length", toValue(length+itemCount-deleteCount), true)
+	thisObject.put("length", toValue(uint(int64(length)+itemCount-deleteCount)), true)
 
 	return toValue(call.runtime.newArray(valueArray))
 }
@@ -250,8 +251,8 @@ func builtinArray_slice(call FunctionCall) Value {
 	if _arrayStash, ok := thisObject.stash.(*_arrayStash); ok {
 		copy(sliceValueArray, _arrayStash.valueArray[start:start+sliceLength])
 	} else {
-		for index := uint(0); index < sliceLength; index++ {
-			from := arrayIndexToString(index + start)
+		for index := int64(0); index < sliceLength; index++ {
+			from := arrayIndexToString(uint(index + start))
 			if thisObject.hasProperty(from) {
 				sliceValueArray[index] = thisObject.get(from)
 			}

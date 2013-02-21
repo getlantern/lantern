@@ -62,35 +62,38 @@ func valueOfArrayIndex(list []Value, index int) Value {
 
 // A range index can be anything from 0 up to length. It is NOT safe to use as an index
 // to an array, but is useful for slicing and in some ECMA algorithms.
-func valueToRangeIndex(indexValue Value, length uint, negativeIsZero bool) uint {
-	index := toIntegerFloat(indexValue)
-	if negativeIsZero {
-		index := uint(math.Max(index, 0))
-		// minimum(index, length)
-		if index >= length {
-			return length
+func valueToRangeIndex(indexValue Value, length uint, negativeIsZero bool) int64 {
+	{
+		index := toIntegerFloat(indexValue)
+		length := float64(length)
+		if negativeIsZero {
+			index := math.Max(index, 0)
+			// minimum(index, length)
+			if index >= length {
+				index = length
+			}
+			return int64(uint(index))
 		}
-		return index
-	}
 
-	if index < 0 {
-		index = math.Max(index+float64(length), 0)
-	} else {
-		index = math.Min(index, float64(length))
+		if index < 0 {
+			index = math.Max(index+length, 0)
+		} else {
+			index = math.Min(index, length)
+		}
+		return int64(uint(index))
 	}
-	return uint(index)
 }
 
-func rangeStartEnd(array []Value, size uint, negativeIsZero bool) (start, end uint) {
+func rangeStartEnd(array []Value, size uint, negativeIsZero bool) (start, end int64) {
 	start = valueToRangeIndex(valueOfArrayIndex(array, 0), size, negativeIsZero)
 	if len(array) == 1 {
 		// If there is only the start argument, then end = size
-		end = size
+		end = int64(size)
 		return
 	}
 
 	// Assuming the argument is undefined...
-	end = size
+	end = int64(size)
 	endValue := valueOfArrayIndex(array, 1)
 	if !endValue.IsUndefined() {
 		// Which it is not, so get the value as an array index

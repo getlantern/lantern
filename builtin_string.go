@@ -388,7 +388,7 @@ func builtinString_slice(call FunctionCall) Value {
 
 	length := uint(len(target))
 	start, end := rangeStartEnd(call.ArgumentList, length, false)
-	if start >= length || end-start <= 0 {
+	if end-start <= 0 {
 		return toValue("")
 	}
 	return toValue(target[start:end])

@@ -45,6 +45,8 @@ TEST := -v --run _underscore_
 TEST := -v --run _parseFloat
 TEST := -v --run _underscore_utility
 TEST := -v --run Array_splice
+TEST := -v --run String_substring
+TEST := -v --run String_slice
 TEST := .
 
 test: test-i
