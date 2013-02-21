@@ -20,6 +20,8 @@ public class LaePinnedCertTest {
         LoggerFactory.getLogger(LaePinnedCertTest.class);
     
     @Test public void testPinnedCert() throws Exception {
+        System.setProperty("javax.net.ssl.trustStore",
+                LanternTrustStore.TRUSTSTORE_FILE.getAbsolutePath());
         final LanternSocketsUtil socketsUtil = TestUtils.getSocketsUtil();
         final SSLSocketFactory tls = socketsUtil.newTlsSocketFactory();
         final SSLSocket sock = (SSLSocket) tls.createSocket();
