@@ -14,6 +14,11 @@ func TestString_fromCharCode(t *testing.T) {
 	test(`String.fromCharCode("88", 121, 122, 122.05, 121)`, "Xyzzy")
 	test(`String.fromCharCode("88", 121, 122, NaN, 121)`, "Xyz\x00y")
 	test(`String.fromCharCode("0x21")`, "!")
+	test(`String.fromCharCode(-1).charCodeAt(0)`, "65535")
+	test(`String.fromCharCode(65535).charCodeAt(0)`, "65535")
+	test(`String.fromCharCode(65534).charCodeAt(0)`, "65534")
+	test(`String.fromCharCode(4294967295).charCodeAt(0)`, "65535")
+	test(`String.fromCharCode(4294967294).charCodeAt(0)`, "65534")
 }
 
 func TestString_substr(t *testing.T) {

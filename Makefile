@@ -47,6 +47,7 @@ TEST := -v --run _underscore_utility
 TEST := -v --run Array_splice
 TEST := -v --run String_substring
 TEST := -v --run String_slice
+TEST := -v --run String_fromCharCode
 TEST := .
 
 test: test-i

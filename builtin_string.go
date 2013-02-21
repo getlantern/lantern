@@ -37,21 +37,23 @@ func builtinString_fromCharCode(call FunctionCall) Value {
 func builtinString_charAt(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
 	value := toString(call.This)
+	value16 := utf16.Encode([]rune(value))
 	index := toInteger(call.Argument(0))
-	if 0 > index || index >= int64(len(value)) {
+	if 0 > index || index >= int64(len(value16)) {
 		return toValue("")
 	}
-	return toValue(string(value[index]))
+	return toValue(string(value16[index]))
 }
 
 func builtinString_charCodeAt(call FunctionCall) Value {
 	checkObjectCoercible(call.This)
 	value := toString(call.This)
+	value16 := utf16.Encode([]rune(value))
 	index := toInteger(call.Argument(0))
-	if 0 > index || index >= int64(len(value)) {
+	if 0 > index || index >= int64(len(value16)) {
 		return NaNValue()
 	}
-	return toValue(value[index])
+	return toValue(value16[index])
 }
 
 func builtinString_concat(call FunctionCall) Value {
