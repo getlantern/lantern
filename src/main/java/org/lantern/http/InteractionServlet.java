@@ -298,8 +298,7 @@ public class InteractionServlet extends HttpServlet {
         case systemProxy:
             switch (inter) {
             case CONTINUE:
-                log.debug("Processing continue...applying JSON: {}", json);
-                applyJson(json);
+                log.debug("Processing continue in systemProxy", json);
 
                 this.internalState.setModalCompleted(Modal.systemProxy);
                 this.internalState.advanceModal(null);
