@@ -77,13 +77,12 @@ func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
 		return toValue(targetValue.toFloat())
 	case "-":
 		value := targetValue.toFloat()
-		if value == 0 {
-			if math.Signbit(value) {
-				return positiveZeroValue()
-			}
-			return negativeZeroValue()
+		// TODO Test this
+		sign := float64(-1)
+		if math.Signbit(value) {
+			sign = 1
 		}
-		return toValue(-value)
+		return toValue(math.Copysign(value, sign))
 	case "++=": // Prefix ++
 		resultValue := toValue(+1 + targetValue.toFloat())
 		self.PutValue(target.reference(), resultValue)
