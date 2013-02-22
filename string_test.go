@@ -20,6 +20,9 @@ func TestString(t *testing.T) {
 	test("ghi", "16")
 	test(`"".length`, "0")
 	test(`"a\uFFFFbc".length`, "4")
+	test(`String(+0)`, "0")
+	test(`String(-0)`, "0")
+	test(`""+-0`, "0")
 }
 
 func TestString_charAt(t *testing.T) {

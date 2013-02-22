@@ -28,7 +28,7 @@ func numberToStringRadix(value Value, radix int) string {
 	} else if math.IsInf(float, -1) {
 		return "-Infinity"
 	}
-	// FIXME This is so broken
+	// FIXME This is very broken
 	// Need to do proper radix conversion for floats, ...
 	// This truncates large floats (so bad).
 	return strconv.FormatInt(int64(float), radix)
@@ -68,8 +68,14 @@ func toString(value Value) string {
 	case uint64:
 		return strconv.FormatUint(value, 10)
 	case float32:
+		if value == 0 {
+			return "0" // Take care not to return -0
+		}
 		return floatToString(float64(value), 32)
 	case float64:
+		if value == 0 {
+			return "0" // Take care not to return -0
+		}
 		return floatToString(value, 64)
 	case string:
 		return value

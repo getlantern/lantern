@@ -283,4 +283,9 @@ Second line \
 		"class",
 	)
 
+	test(`-0`,
+		"-",
+		"number 0",
+	)
+
 }

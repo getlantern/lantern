@@ -24,7 +24,7 @@ func TestMath_ceil(t *testing.T) {
 
 	test := runTest()
 	test(`Math.ceil(-11)`, "-11")
-	test(`Math.ceil(-0.5)`, "-0")
+	test(`Math.ceil(-0.5)`, "0")
 	test(`Math.ceil(1.5)`, "2")
 }
 
