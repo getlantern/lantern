@@ -3,8 +3,11 @@ package otto
 import (
 	"fmt"
 	"math"
+	"regexp"
 	"strconv"
 )
+
+var matchLeading0Exponent = regexp.MustCompile(`([eE][\+\-])0+([1-9])`)
 
 func floatToString(value float64, bitsize int) string {
 	// TODO Fit to ECMA-262 9.8.1 specification
@@ -17,8 +20,8 @@ func floatToString(value float64, bitsize int) string {
 		return "Infinity"
 	}
 	exponent := math.Log10(math.Abs(value))
-	if exponent > 21 || exponent < -6 {
-		return strconv.FormatFloat(value, 'g', -1, bitsize)
+	if exponent >= 21 || exponent < -6 {
+		return matchLeading0Exponent.ReplaceAllString(strconv.FormatFloat(value, 'g', -1, bitsize), "$1$2")
 	}
 	return strconv.FormatFloat(value, 'f', -1, bitsize)
 }
