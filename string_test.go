@@ -199,3 +199,15 @@ func TestString_toCase(t *testing.T) {
 	test(`"abc".toUpperCase()`, "ABC")
 	test(`"ABC".toUpperCase()`, "ABC")
 }
+
+func Test_floatToString(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`String(-1234567890)`, "-1234567890")
+	test(`-+String(-(-1234567890))`, "-1234567890")
+	test(`String(-1e128)`, "-1e+128")
+	test(`String(0.12345)`, "0.12345")
+	test(`String(-0.00000012345)`, "-1.2345e-07")
+	test(`String(0.0000012345)`, "0.0000012345")
+}

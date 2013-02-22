@@ -41,7 +41,7 @@ func TestDate(t *testing.T) {
 	test(`abc.setFullYear(2011); abc.toUTCString()`, "Sun, 25 Sep 2011 23:38:33 UTC")
 	test(`new Date(12564504e5).toUTCString()`, "Sun, 25 Oct 2009 06:00:00 UTC")
 	test(`new Date(2009, 9, 25).toUTCString()`, "Sun, 25 Oct 2009 00:00:00 UTC")
-	test(`+(new Date(2009, 9, 25))`, "1.2564288e+12")
+	test(`+(new Date(2009, 9, 25))`, "1256428800000")
 
 	test(`abc = new Date(12564504e5); abc.setMilliseconds(2001); abc.toUTCString()`, "Sun, 25 Oct 2009 06:00:02 UTC")
 

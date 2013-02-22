@@ -7,7 +7,7 @@ import (
 )
 
 func floatToString(value float64, bitsize int) string {
-	// TODO Reimplement according to ECMA-262 9.8.1
+	// TODO Fit to ECMA-262 9.8.1 specification
 	if math.IsNaN(value) {
 		return "NaN"
 	} else if math.IsInf(value, 0) {
@@ -16,7 +16,11 @@ func floatToString(value float64, bitsize int) string {
 		}
 		return "Infinity"
 	}
-	return strconv.FormatFloat(value, 'g', -1, bitsize)
+	exponent := math.Log10(math.Abs(value))
+	if exponent > 21 || exponent < -6 {
+		return strconv.FormatFloat(value, 'g', -1, bitsize)
+	}
+	return strconv.FormatFloat(value, 'f', -1, bitsize)
 }
 
 func numberToStringRadix(value Value, radix int) string {

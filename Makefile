@@ -49,6 +49,7 @@ TEST := -v --run String_slice
 TEST := -v --run String_fromCharCode
 TEST := -v --run Lexer\|Parse
 TEST := -v --run ^TestString$$
+TEST := -v --run _floatToString
 TEST := .
 
 test: test-i
