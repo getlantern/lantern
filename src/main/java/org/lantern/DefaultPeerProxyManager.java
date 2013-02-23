@@ -23,6 +23,7 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.group.ChannelGroup;
+import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.lantern.event.ConnectedPeersEvent;
 import org.lantern.event.Events;
 import org.lantern.event.IncomingSocketEvent;
@@ -40,12 +41,15 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.Subscribe;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import com.maxmind.geoip.LookupService;
 
 /**
  * Class the keeps track of P2P connections to peers, dispatching them and
  * creating new ones as needed.
  */
+@Singleton
 public class DefaultPeerProxyManager implements PeerProxyManager {
     
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -74,8 +78,6 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     private final Map<String, Peer> peers = 
         Collections.synchronizedMap(new TreeMap<String, Peer>());
 
-    private final boolean anon;
-    
     /**
      * Online peers we've exchanged certs with.
      */
@@ -97,12 +99,12 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
 
     private final ModelUtils modelUtils;
     
-    public DefaultPeerProxyManager(final boolean anon, 
-        final ChannelGroup channelGroup, final XmppHandler xmppHandler,
+    @Inject
+    public DefaultPeerProxyManager(final ChannelGroup channelGroup, 
+        final XmppHandler xmppHandler,
         final Stats stats, final LanternSocketsUtil socketsUtil,
         final Model model, final LookupService lookupService,
         final CertTracker certTracker, final ModelUtils modelUtils) {
-        this.anon = anon;
         this.channelGroup = channelGroup;
         this.xmppHandler = xmppHandler;
         this.stats = stats;
@@ -128,7 +130,8 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             // This means there's no socket available.
             return null;
         }
-        if (!peerSocket.getRequestProcessor().processRequest(browserToProxyChannel, ctx, me)) {
+        if (!peerSocket.getRequestProcessor().processRequest(
+            browserToProxyChannel, ctx, (HttpRequest) me.getMessage())) {
             log.info("Peer could not process the request...");
             // We return null here because that's how the dispatcher knows of
             // failures on peers.
@@ -173,7 +176,6 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                 return null;
             }
             if (cts == null) {
-                log.info("No peer sockets available!! TRUSTED: "+!anon);
                 return null;
             }
             final Socket s = cts.getSocket();
@@ -222,11 +224,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             log.debug("Ingoring peer when we're in give mode");
             return;
         }
-        if (this.anon && !model.getSettings().isUseAnonymousPeers()) {
-            log.debug("Ignoring anonymous peer");
-            return;
-        }
-        if (!this.anon && !model.getSettings().isUseTrustedPeers()) {
+        if (!model.getSettings().isUseTrustedPeers()) {
             log.debug("Ignoring trusted peer");
             return;
         }
@@ -273,7 +271,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         final long startTime, final Socket sock, final boolean addToSocketsInUse, 
         final boolean incoming) {
         final PeerSocketWrapper ts = 
-            new PeerSocketWrapper(peerUri, startTime, sock, this.anon, 
+            new PeerSocketWrapper(peerUri, startTime, sock, 
                 this.channelGroup, this.stats, this.socketsUtil, incoming);
         
         if (addToSocketsInUse) {
@@ -327,7 +325,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     
     @Override
     public String toString() {
-        return getClass().getSimpleName()+"-"+hashCode()+" anon: "+anon;
+        return getClass().getSimpleName()+"-"+hashCode();
     }
     
     @Subscribe
@@ -376,7 +374,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         // is bogus.
         final PeerSocketWrapper ts = 
             new PeerSocketWrapper(peerUri, System.currentTimeMillis(), 
-                sock, this.anon, this.channelGroup, this.stats, 
+                sock, this.channelGroup, this.stats, 
                 this.socketsUtil, event.isIncoming());
         
         final Peer peer;

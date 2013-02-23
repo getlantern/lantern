@@ -24,20 +24,20 @@ public class DefaultPeerProxyManagerTest {
         final long time4 = 3;
         
 
-        final TrustedPeerProxyManager anon = TestUtils.getTrusted();
+        final DefaultPeerProxyManager anon = TestUtils.getTrusted();
         final Stats stats = TestUtils.getStatsTracker();
         final LanternSocketsUtil sockets = TestUtils.getSocketsUtil();
         final PeerSocketWrapper cts1 = 
-            new PeerSocketWrapper(peerUri, time4, new Socket(), true, 
+            new PeerSocketWrapper(peerUri, time4, new Socket(), 
                 channelGroup, stats, sockets, false);
         final PeerSocketWrapper cts2 = 
-            new PeerSocketWrapper(peerUri, time3, new Socket(), true, 
+            new PeerSocketWrapper(peerUri, time3, new Socket(), 
                 channelGroup, stats, sockets, false);
         final PeerSocketWrapper cts3 = 
-            new PeerSocketWrapper(peerUri, time2, new Socket(), true, 
+            new PeerSocketWrapper(peerUri, time2, new Socket(), 
                 channelGroup, stats, sockets, false);
         final PeerSocketWrapper cts4 = 
-            new PeerSocketWrapper(peerUri, time1, new Socket(), true, 
+            new PeerSocketWrapper(peerUri, time1, new Socket(), 
                 channelGroup, stats, sockets, false);
         
         anon.timedSockets.add(cts1);

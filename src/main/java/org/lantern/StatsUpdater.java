@@ -79,10 +79,8 @@ public class StatsUpdater extends Thread {
             log.error("stats format error", e);
         } catch (InvocationTargetException e) {
             log.error("stats format error", e);
-        } catch (Exception e) {
-            e.printStackTrace();
         } finally {
-            get.releaseConnection();
+            get.reset();
         }
     }
 

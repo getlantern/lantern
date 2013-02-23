@@ -58,7 +58,7 @@ public class PeerSocketChannel extends AbstractChannel implements SocketChannel 
             Channels.fireChannelConnected(this, getRemoteAddress());
         
             // start an oio worker for ourself...
-            Runnable runner = new PeerReadingWorker(this);
+            final Runnable runner = new PeerReadingWorker(this);
             final Thread peerReadingThread = 
                 new Thread(runner, "Peer-Data-Reading-Thread");
             peerReadingThread.setDaemon(true);

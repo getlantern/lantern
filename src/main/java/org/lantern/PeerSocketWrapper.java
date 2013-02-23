@@ -40,7 +40,7 @@ public class PeerSocketWrapper implements PeerSocketData, ByteTracker {
     private final boolean incoming;
 
     public PeerSocketWrapper(final URI peerUri, 
-        final long startTime, final Socket sock, final boolean anon, 
+        final long startTime, final Socket sock, 
         final ChannelGroup channelGroup, final Stats stats, 
         final LanternSocketsUtil socketsUtil, 
         final boolean incoming) {
@@ -51,15 +51,9 @@ public class PeerSocketWrapper implements PeerSocketData, ByteTracker {
         this.stats = stats;
         this.incoming = incoming;
         this.connectionTime = System.currentTimeMillis() - startTime;
-        if (anon) {
-            this.requestProcessor = 
-                new PeerHttpConnectRequestProcessor(sock, channelGroup, this, 
-                    socketsUtil);
-        } else {
-            this.requestProcessor = 
-                new PeerChannelHttpRequestProcessor(sock, channelGroup, this);
-                //new PeerHttpRequestProcessor(sock);
-        }
+        this.requestProcessor = 
+            new PeerChannelHttpRequestProcessor(sock, channelGroup, this, 
+                socketsUtil);
     }
 
     @JsonIgnore
