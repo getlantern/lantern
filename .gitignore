@@ -15,3 +15,7 @@ log.txt*
 target/
 dashboard/assets/*.pac
 lib/bin
+install/lantern-32.deb
+install/md5sums
+install/output.txt
+install/updates.xml
