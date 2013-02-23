@@ -5,6 +5,18 @@ import (
 	"testing"
 )
 
+func TestMath_acos(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.acos(NaN)`, "NaN")
+	test(`Math.acos(2)`, "NaN")
+	test(`Math.acos(-2)`, "NaN")
+	test(`1/Math.acos(1)`, "Infinity")
+
+	test(`Math.acos(0.5)`, "1.0471975511965976")
+}
+
 func TestMath_ceil(t *testing.T) {
 	Terst(t)
 

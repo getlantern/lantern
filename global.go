@@ -310,13 +310,14 @@ func newContext() *_runtime {
 
 	self.Global.Math = self.newGlobalObject(
 		"Math",
-		"max", 2, builtinMath_max,
-		"min", 2, builtinMath_min,
+		"acos", 1, builtinMath_acos,
 		"ceil", 1, builtinMath_ceil,
 		"exp", 1, builtinMath_exp,
 		"floor", 1, builtinMath_floor,
-		"random", 0, builtinMath_random,
+		"max", 2, builtinMath_max,
+		"min", 2, builtinMath_min,
 		"pow", 2, builtinMath_pow,
+		"random", 0, builtinMath_random,
 		_propertyMode(0),
 		"E", toValue(math.E),
 		"LN10", toValue(math.Ln10),
