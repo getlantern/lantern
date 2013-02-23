@@ -50,6 +50,7 @@ TEST := -v --run String_fromCharCode
 TEST := -v --run Lexer\|Parse
 TEST := -v --run ^TestString$$
 TEST := -v --run _floatToString
+TEST := -v --run FunctionArguments
 TEST := .
 
 test: test-i

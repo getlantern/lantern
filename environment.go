@@ -23,16 +23,17 @@ type _environment interface {
 // _functionEnvironment
 
 type _functionEnvironment struct {
-	_objectEnvironment
+	_declarativeEnvironment
 	arguments           *_object
 	indexOfArgumentName map[string]string
 }
 
 func (runtime *_runtime) newFunctionEnvironment(outer _environment) *_functionEnvironment {
 	return &_functionEnvironment{
-		_objectEnvironment: _objectEnvironment{
-			outer:  outer,
-			Object: runtime.newObject(),
+		_declarativeEnvironment: _declarativeEnvironment{
+			runtime: runtime,
+			outer:   outer,
+			stash:   map[string]*_declarativeProperty{},
 		},
 	}
 }
@@ -40,7 +41,7 @@ func (runtime *_runtime) newFunctionEnvironment(outer _environment) *_functionEn
 func (self *_functionEnvironment) newReference(name string, strict bool) _reference {
 	index, exists := self.indexOfArgumentName[name]
 	if !exists {
-		return self._objectEnvironment.newReference(name, strict)
+		return self._declarativeEnvironment.newReference(name, strict)
 	}
 	return newArgumentReference(self.arguments, index, strict)
 }
@@ -50,7 +51,7 @@ func (self *_functionEnvironment) HasBinding(name string) bool {
 	if exists {
 		return true
 	}
-	return self.Object.hasProperty(name)
+	return self._declarativeEnvironment.HasBinding(name)
 }
 
 // _objectEnvironment
