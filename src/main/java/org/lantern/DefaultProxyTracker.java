@@ -50,15 +50,15 @@ public class DefaultProxyTracker implements ProxyTracker {
     private final Queue<ProxyHolder> laeProxies =
         new ConcurrentLinkedQueue<ProxyHolder>();
 
-    private final TrustedPeerProxyManager trustedPeerProxyManager;
+    private final PeerProxyManager peerProxyManager;
 
     private final Model model;
 
     @Inject
     public DefaultProxyTracker(final Model model,
-        final TrustedPeerProxyManager trustedPeerProxyManager) {
+        final PeerProxyManager trustedPeerProxyManager) {
         this.model = model;
-        this.trustedPeerProxyManager = trustedPeerProxyManager;
+        this.peerProxyManager = trustedPeerProxyManager;
 
         addGeneralProxy(LanternConstants.FALLBACK_SERVER_HOST+":"+
             LanternConstants.FALLBACK_SERVER_PORT);
@@ -227,7 +227,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         removePeerUri(uri);
         removeAnonymousPeerUri(uri);
         //if (LanternHub.getTrustedContactsManager().isJidTrusted(uri.toASCIIString())) {
-            trustedPeerProxyManager.removePeer(uri);
+            peerProxyManager.removePeer(uri);
         //} else {
         //    LanternHub.anonymousPeerProxyManager().removePeer(uri);
         //}

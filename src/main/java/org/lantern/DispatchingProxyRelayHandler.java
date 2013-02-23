@@ -236,7 +236,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             log.debug("Trying to send {} to LAE proxy", request.getUri());
             if (useLae() && isLae(request) && 
                 this.laeRequestProcessor.processRequest(browserToProxyChannel, 
-                    ctx, me)) {
+                    ctx, request)) {
                 log.info("Sent {} to LAE proxy", request.getUri());
                 return this.laeRequestProcessor;
             } 
@@ -247,7 +247,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             log.debug("Trying to send {} to standard proxy", request.getUri());
             if (useStandardProxies() && 
                 this.proxyRequestProcessor.processRequest(
-                        browserToProxyChannel, ctx, me)) {
+                        browserToProxyChannel, ctx, request)) {
                 log.info("Used standard proxy");
                 return this.proxyRequestProcessor;
             }

@@ -1,7 +1,9 @@
 package org.lantern;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandler;
@@ -14,6 +16,7 @@ import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.group.ChannelGroup;
 import org.jboss.netty.handler.codec.http.HttpChunk;
+import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jboss.netty.handler.codec.http.HttpResponseDecoder;
@@ -36,59 +39,120 @@ public class PeerChannelHttpRequestProcessor implements HttpRequestProcessor {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
 
-    private volatile boolean startedCopying;
     private volatile PeerSocketChannel peerChannel;
     
     private final Socket sock;
     private final PeerSink peerSink = new PeerSink();
+    
+    private final AtomicBoolean configured = new AtomicBoolean(false);
 
     private final ChannelGroup channelGroup;
 
     private final ByteTracker byteTracker;
 
+    private final LanternSocketsUtil socketsUtil;
+
     public PeerChannelHttpRequestProcessor(final Socket sock, 
-        final ChannelGroup channelGroup, final ByteTracker byteTracker) {
+        final ChannelGroup channelGroup, final ByteTracker byteTracker,
+        final LanternSocketsUtil socketsUtil) {
         this.sock = sock;
         this.channelGroup = channelGroup;
         this.byteTracker = byteTracker;
+        this.socketsUtil = socketsUtil;
     }
 
     @Override
     public boolean processRequest(final Channel browserToProxyChannel,
-        final ChannelHandlerContext ctx, final MessageEvent me) 
+        final ChannelHandlerContext ctx, final HttpRequest request) 
         throws IOException {
-        if (!startedCopying) {
-            final ChannelHandler stats = new StatsTrackingHandler() {
-                @Override
-                public void addUpBytes(final long bytes) {
-                    byteTracker.addUpBytes(bytes);
-                }
-                @Override
-                public void addDownBytes(final long bytes) {
-                    byteTracker.addDownBytes(bytes);
-                }
-            };
-            
-            final ChannelPipeline pipeline = Channels.pipeline();
-            pipeline.addLast("stats", stats);
-            pipeline.addLast("decoder", new HttpResponseDecoder());
-            pipeline.addLast("encoder", new HttpRequestEncoder());
-            pipeline.addLast("relay", 
-                new RelayToBrowserHandler(browserToProxyChannel));
+        final HttpMethod method = request.getMethod();
 
+        final ChannelPipeline pipeline = Channels.pipeline();
+        if (!configured.getAndSet(true)) {
+            
+            if (method == HttpMethod.CONNECT) {
+                configureConnect(browserToProxyChannel);
+            } else {
+                configureStandard(pipeline, browserToProxyChannel);
+            }
+            
+        }
+        
+        if (method == HttpMethod.CONNECT) {
+            try {
+                final OutputStream os = this.sock.getOutputStream();
+                final byte[] data = LanternUtils.toByteBuffer(request, ctx);
+                log.debug("Writing {} bytes on peer socket...", data.length);
+                os.write(data);
+                
+                // Remember this could be any kind of underlying socket here, 
+                // including a UDP socket with an OutputStream that might not
+                // have truly written then bytes even though it's theoretically
+                // blocking.
+                byteTracker.addUpBytes(data.length);
+            } catch (final IOException e) {
+                log.error("Could not write to stream?", e);
+                return false;
+            } catch (final Exception e) {
+                log.error("Could not encode request?", e);
+                return false;
+            }
+        } else {
             this.peerChannel = new PeerSocketChannel(pipeline, peerSink, sock);
             this.peerChannel.simulateConnect();
-            startedCopying = true;
+            Channels.write(peerChannel, request);
         }
 
-        final HttpRequest request = (HttpRequest) me.getMessage();
-        Channels.write(peerChannel, request);
         
         // We return true in all these case to preserve the behavior before
         // the change to return a boolean. The point of returning a boolean
         // was more to consolidate the check for the existence of a proxy with
         // the request processing.
         return true;
+    }
+
+    private void configureConnect(final Channel browserToProxyChannel) {
+        browserToProxyChannel.setReadable(false);
+        // We tell the socket to record stats here because traffic
+        // returning to the browser is just shuttled through 
+        // a SocketHttpConnectRelayingHandler and the normal 
+        // encoder that records stats is removed from the 
+        // browserToProxyChannel pipeline.
+        this.socketsUtil.startReading(this.sock, browserToProxyChannel, true);
+        
+        log.info("Got an outbound socket on request handler hash {} to {}", 
+            hashCode(), this.sock);
+            
+        final ChannelPipeline browserPipeline = 
+            browserToProxyChannel.getPipeline();
+        browserPipeline.remove("encoder");
+        browserPipeline.remove("decoder");
+        browserPipeline.remove("handler");
+        
+        browserPipeline.addLast("handler", 
+            new SocketHttpConnectRelayingHandler(this.sock, 
+                this.channelGroup));
+        browserToProxyChannel.setReadable(true);
+    }
+
+    private void configureStandard(final ChannelPipeline pipeline, 
+        final Channel browserToProxyChannel) {
+        final ChannelHandler stats = new StatsTrackingHandler() {
+            @Override
+            public void addUpBytes(final long bytes) {
+                byteTracker.addUpBytes(bytes);
+            }
+            @Override
+            public void addDownBytes(final long bytes) {
+                byteTracker.addDownBytes(bytes);
+            }
+        };
+        
+        pipeline.addLast("stats", stats);
+        pipeline.addLast("decoder", new HttpResponseDecoder());
+        pipeline.addLast("encoder", new HttpRequestEncoder());
+        pipeline.addLast("relay", 
+            new RelayToBrowserHandler(browserToProxyChannel));
     }
 
     @Override

@@ -64,7 +64,7 @@ public class TestUtils {
 
     private static ModelService modelService;
     
-    private static TrustedPeerProxyManager trusted;
+    private static DefaultPeerProxyManager peerProxyManager;
     
     private static Proxifier proxifier;
     
@@ -131,7 +131,7 @@ public class TestUtils {
         statsTracker = instance(Stats.class);
         roster = instance(Roster.class);
         modelService = instance(ModelService.class);
-        trusted = instance(TrustedPeerProxyManager.class);
+        peerProxyManager = instance(DefaultPeerProxyManager.class);
         proxifier = instance(Proxifier.class);
         modelUtils = instance(ModelUtils.class);
         modelIo = instance(ModelIo.class);
@@ -278,9 +278,9 @@ public class TestUtils {
         return modelService;
     }
 
-    public static TrustedPeerProxyManager getTrusted() {
+    public static DefaultPeerProxyManager getTrusted() {
         if (!loaded) load();
-        return trusted;
+        return peerProxyManager;
     }
     
     public static Proxifier getProxifier() {

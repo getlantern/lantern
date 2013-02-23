@@ -87,11 +87,10 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
 
     @Override
     public boolean processRequest(final Channel browserToProxyChannel,
-        final ChannelHandlerContext ctx, final MessageEvent me) {
+        final ChannelHandlerContext ctx, final HttpRequest request) {
         if (!hasProxy()) {
             return false;
         }
-        final HttpRequest request = (HttpRequest) me.getMessage();
         if (cf == null) {
             cf = openOutgoingChannel(browserToProxyChannel, request);
         }
