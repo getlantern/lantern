@@ -63,9 +63,6 @@ func builtinMath_ceil(call FunctionCall) Value {
 
 func builtinMath_floor(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
-	if math.IsNaN(number) {
-		return NaNValue()
-	}
 	return toValue(math.Floor(number))
 }
 

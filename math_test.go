@@ -43,6 +43,12 @@ func TestMath_floor(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+	test(`Math.floor(NaN)`, "NaN")
+	test(`Math.floor(+0)`, "0")
+	test(`1/Math.floor(-0)`, "-Infinity")
+	test(`Math.floor(Infinity)`, "Infinity")
+	test(`Math.floor(-Infinity)`, "-Infinity")
+
 	test(`Math.floor(-11)`, "-11")
 	test(`Math.floor(-0.5)`, "-1")
 	test(`Math.floor(1.5)`, "1")
