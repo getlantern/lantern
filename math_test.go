@@ -30,6 +30,19 @@ func TestMath_asin(t *testing.T) {
 	test(`Math.asin(0.5)`, "0.5235987755982989")
 }
 
+func TestMath_atan(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.atan(NaN)`, "NaN")
+	test(`1/Math.atan(0)`, "Infinity")
+	test(`1/Math.atan(-0)`, "-Infinity")
+	test(`Math.atan(Infinity)`, "1.5707963267948966")
+	test(`Math.atan(-Infinity)`, "-1.5707963267948966")
+
+	test(`Math.atan(0.5)`, "0.46364760900080604")
+}
+
 func TestMath_ceil(t *testing.T) {
 	Terst(t)
 

@@ -17,6 +17,11 @@ func builtinMath_asin(call FunctionCall) Value {
 	return toValue(math.Asin(number))
 }
 
+func builtinMath_atan(call FunctionCall) Value {
+	number := toFloat(call.Argument(0))
+	return toValue(math.Atan(number))
+}
+
 func builtinMath_ceil(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
 	return toValue(math.Ceil(number))
