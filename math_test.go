@@ -17,6 +17,19 @@ func TestMath_acos(t *testing.T) {
 	test(`Math.acos(0.5)`, "1.0471975511965976")
 }
 
+func TestMath_asin(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.asin(NaN)`, "NaN")
+	test(`Math.asin(2)`, "NaN")
+	test(`Math.asin(-2)`, "NaN")
+	test(`1/Math.asin(0)`, "Infinity")
+	test(`1/Math.asin(-0)`, "-Infinity")
+
+	test(`Math.asin(0.5)`, "0.5235987755982989")
+}
+
 func TestMath_ceil(t *testing.T) {
 	Terst(t)
 
