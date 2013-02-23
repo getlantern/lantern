@@ -7,27 +7,40 @@ import (
 
 // Math
 
+func builtinMath_ceil(call FunctionCall) Value {
+	number := toFloat(call.Argument(0))
+	return toValue(math.Ceil(number))
+}
+
+func builtinMath_exp(call FunctionCall) Value {
+	number := toFloat(call.Argument(0))
+	return toValue(math.Exp(number))
+}
+
+func builtinMath_floor(call FunctionCall) Value {
+	number := toFloat(call.Argument(0))
+	return toValue(math.Floor(number))
+}
+
 func builtinMath_max(call FunctionCall) Value {
 	switch len(call.ArgumentList) {
 	case 0:
 		return negativeInfinityValue()
 	case 1:
 		return toValue(toFloat(call.ArgumentList[0]))
-	default:
-		result := toFloat(call.ArgumentList[0])
-		if math.IsNaN(result) {
+	}
+	result := toFloat(call.ArgumentList[0])
+	if math.IsNaN(result) {
+		return NaNValue()
+	}
+	for _, value := range call.ArgumentList[1:] {
+		value := toFloat(value)
+		if math.IsNaN(value) {
 			return NaNValue()
 		}
-		for _, value := range call.ArgumentList[1:] {
-			value := toFloat(value)
-			if math.IsNaN(value) {
-				return NaNValue()
-			}
-			result = math.Max(result, value)
-		}
-		return toValue(result)
+		result = math.Max(result, value)
 	}
-	return UndefinedValue()
+	return toValue(result)
 }
 
 func builtinMath_min(call FunctionCall) Value {
@@ -36,35 +49,19 @@ func builtinMath_min(call FunctionCall) Value {
 		return positiveInfinityValue()
 	case 1:
 		return toValue(toFloat(call.ArgumentList[0]))
-	default:
-		result := toFloat(call.ArgumentList[0])
-		if math.IsNaN(result) {
+	}
+	result := toFloat(call.ArgumentList[0])
+	if math.IsNaN(result) {
+		return NaNValue()
+	}
+	for _, value := range call.ArgumentList[1:] {
+		value := toFloat(value)
+		if math.IsNaN(value) {
 			return NaNValue()
 		}
-		for _, value := range call.ArgumentList[1:] {
-			value := toFloat(value)
-			if math.IsNaN(value) {
-				return NaNValue()
-			}
-			result = math.Min(result, value)
-		}
-		return toValue(result)
+		result = math.Min(result, value)
 	}
-	return UndefinedValue()
-}
-
-func builtinMath_ceil(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
-	return toValue(math.Ceil(number))
-}
-
-func builtinMath_floor(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
-	return toValue(math.Floor(number))
-}
-
-func builtinMath_random(call FunctionCall) Value {
-	return toValue(rand.Float64())
+	return toValue(result)
 }
 
 func builtinMath_pow(call FunctionCall) Value {
@@ -72,7 +69,6 @@ func builtinMath_pow(call FunctionCall) Value {
 	return toValue(math.Pow(toFloat(call.Argument(0)), toFloat(call.Argument(1))))
 }
 
-func builtinMath_exp(call FunctionCall) Value {
-	number := toFloat(call.Argument(0))
-	return toValue(math.Exp(number))
+func builtinMath_random(call FunctionCall) Value {
+	return toValue(rand.Float64())
 }
