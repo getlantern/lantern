@@ -24,7 +24,7 @@ public class DefaultPeerProxyManagerTest {
         final long time4 = 3;
         
 
-        final AnonymousPeerProxyManager anon = TestUtils.getAnon();
+        final TrustedPeerProxyManager anon = TestUtils.getTrusted();
         final Stats stats = TestUtils.getStatsTracker();
         final LanternSocketsUtil sockets = TestUtils.getSocketsUtil();
         final PeerSocketWrapper cts1 = 

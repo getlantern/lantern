@@ -143,8 +143,6 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final PeerProxyManager trustedPeerProxyManager;
 
-    private final PeerProxyManager anonymousPeerProxyManager;
-
     private final Timer timer;
 
     private final Stats stats;
@@ -176,8 +174,7 @@ public class DefaultXmppHandler implements XmppHandler {
      */
     @Inject
     public DefaultXmppHandler(final Model model,
-        final TrustedPeerProxyManager trustedPeerProxyManager,
-        final AnonymousPeerProxyManager anonymousPeerProxyManager,
+        final PeerProxyManager trustedPeerProxyManager,
         final Timer updateTimer, final Stats stats,
         final LanternKeyStoreManager keyStoreManager,
         final LanternSocketsUtil socketsUtil,
@@ -189,7 +186,6 @@ public class DefaultXmppHandler implements XmppHandler {
         final LanternTrustStore trustStore) {
         this.model = model;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
-        this.anonymousPeerProxyManager = anonymousPeerProxyManager;
         this.timer = updateTimer;
         this.stats = stats;
         this.keyStoreManager = keyStoreManager;
@@ -1028,12 +1024,7 @@ public class DefaultXmppHandler implements XmppHandler {
             try {
                 // Add the peer if we're able to add the cert.
                 this.trustStore.addBase64Cert(msg.getFrom(), base64Cert);
-                final String email = XmppUtils.jidToUser(msg.getFrom());
-                if (this.roster.isFullyOnRoster(email)) {
-                    trustedPeerProxyManager.onPeer(uri, base64Cert);
-                } else {
-                    anonymousPeerProxyManager.onPeer(uri, base64Cert);
-                }
+                trustedPeerProxyManager.onPeer(uri, base64Cert);
             } catch (final IOException e) {
                 LOG.error("Could not add cert??", e);
             }

@@ -100,7 +100,6 @@ public class LanternModule extends AbstractModule {
         bind(ProxyTracker.class).to(DefaultProxyTracker.class);
         bind(XmppHandler.class).to(DefaultXmppHandler.class);
         bind(TrustedPeerProxyManager.class);
-        bind(AnonymousPeerProxyManager.class);
         bind(GoogleOauth2RedirectServlet.class);
         bind(JettyLauncher.class);
         bind(AppIndicatorTray.class);

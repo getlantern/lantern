@@ -64,7 +64,7 @@ public class TestUtils {
 
     private static ModelService modelService;
     
-    private static AnonymousPeerProxyManager anon;
+    private static TrustedPeerProxyManager trusted;
     
     private static Proxifier proxifier;
     
@@ -131,7 +131,7 @@ public class TestUtils {
         statsTracker = instance(Stats.class);
         roster = instance(Roster.class);
         modelService = instance(ModelService.class);
-        anon = instance(AnonymousPeerProxyManager.class);
+        trusted = instance(TrustedPeerProxyManager.class);
         proxifier = instance(Proxifier.class);
         modelUtils = instance(ModelUtils.class);
         modelIo = instance(ModelIo.class);
@@ -278,9 +278,9 @@ public class TestUtils {
         return modelService;
     }
 
-    public static AnonymousPeerProxyManager getAnon() {
+    public static TrustedPeerProxyManager getTrusted() {
         if (!loaded) load();
-        return anon;
+        return trusted;
     }
     
     public static Proxifier getProxifier() {
