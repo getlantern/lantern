@@ -32,6 +32,8 @@ public class UdtSslTest {
     
     private final String msg = "testing";
     
+    private static final int COUNT = 200;
+    
     @Test
     public void testSslOverUdt() throws Exception {
         final LanternKeyStoreManager ksm = TestUtils.getKsm();
@@ -65,9 +67,13 @@ public class UdtSslTest {
         sslSocket.setUseClientMode(true);
         sslSocket.startHandshake();
         
+        final StringBuilder expected = new StringBuilder();
         synchronized (readOnServer) {
             final OutputStream os = sslSocket.getOutputStream();
-            os.write(msg.getBytes("UTF-8"));
+            for (int i = 0;i < COUNT; i++) {
+                os.write(msg.getBytes("UTF-8"));
+                expected.append(msg);
+            }
             os.flush();
             os.close();
             
@@ -77,7 +83,7 @@ public class UdtSslTest {
                 count++;
             }
         }
-        assertEquals(msg, readOnServer.get());
+        assertEquals(expected.toString(), readOnServer.get());
         
         // TODO: TEST CERTS BEING ADDED *AFTER* THE FACTORIES ARE SET UP!!
     }
@@ -126,12 +132,18 @@ public class UdtSslTest {
         sslSocket.startHandshake();
         
         final InputStream is = sslSocket.getInputStream();
-        final int length = msg.getBytes("UTF-8").length;
+        final int length = msg.getBytes("UTF-8").length * COUNT;
         final byte[] data = new byte[length];
         for (int i = 0; i < length; i++) {
             final int cur = is.read();
             data[i] = (byte) cur;
         }
+        final OutputStream os = sslSocket.getOutputStream();
+        for (int i = 0; i < COUNT; i++) {
+            os.write(msg.getBytes("UTF-8"));
+        }
+        os.flush();
+        
         is.close();
         
         
