@@ -23,6 +23,13 @@ func TestMath_ceil(t *testing.T) {
 	Terst(t)
 
 	test := runTest()
+	test(`Math.ceil(NaN)`, "NaN")
+	test(`Math.ceil(+0)`, "0")
+	test(`1/Math.ceil(-0)`, "-Infinity")
+	test(`Math.ceil(Infinity)`, "Infinity")
+	test(`Math.ceil(-Infinity)`, "-Infinity")
+	test(`1/Math.ceil(-0.5)`, "-Infinity")
+
 	test(`Math.ceil(-11)`, "-11")
 	test(`Math.ceil(-0.5)`, "0")
 	test(`Math.ceil(1.5)`, "2")

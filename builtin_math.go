@@ -55,9 +55,6 @@ func builtinMath_min(call FunctionCall) Value {
 
 func builtinMath_ceil(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
-	if math.IsNaN(number) {
-		return NaNValue()
-	}
 	return toValue(math.Ceil(number))
 }
 
