@@ -22,6 +22,18 @@ func builtinMath_atan(call FunctionCall) Value {
 	return toValue(math.Atan(number))
 }
 
+func builtinMath_atan2(call FunctionCall) Value {
+	y := toFloat(call.Argument(0))
+	if math.IsNaN(y) {
+		return NaNValue()
+	}
+	x := toFloat(call.Argument(1))
+	if math.IsNaN(x) {
+		return NaNValue()
+	}
+	return toValue(math.Atan2(y, x))
+}
+
 func builtinMath_ceil(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
 	return toValue(math.Ceil(number))

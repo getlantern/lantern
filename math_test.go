@@ -43,6 +43,44 @@ func TestMath_atan(t *testing.T) {
 	test(`Math.atan(0.5)`, "0.46364760900080604")
 }
 
+func TestMath_atan2(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.atan2()`, "NaN")
+	test(`Math.atan2(NaN)`, "NaN")
+	test(`Math.atan2(0, NaN)`, "NaN")
+
+	test(`Math.atan2(1, 0)`, "1.5707963267948966")
+	test(`Math.atan2(1, -0)`, "1.5707963267948966")
+
+	test(`1/Math.atan2(0, 1)`, "Infinity")
+	test(`1/Math.atan2(0, 0)`, "Infinity")
+	test(`Math.atan2(0, -0)`, "3.141592653589793")
+	test(`Math.atan2(0, -1)`, "3.141592653589793")
+
+	test(`1/Math.atan2(-0, 1)`, "-Infinity")
+	test(`1/Math.atan2(-0, 0)`, "-Infinity")
+	test(`Math.atan2(-0, -0)`, "-3.141592653589793")
+	test(`Math.atan2(-0, -1)`, "-3.141592653589793")
+
+	test(`Math.atan2(-1, 0)`, "-1.5707963267948966")
+	test(`Math.atan2(-1, -0)`, "-1.5707963267948966")
+
+	test(`1/Math.atan2(1, Infinity)`, "Infinity")
+	test(`Math.atan2(1, -Infinity)`, "3.141592653589793")
+	test(`1/Math.atan2(-1, Infinity)`, "-Infinity")
+	test(`Math.atan2(-1, -Infinity)`, "-3.141592653589793")
+
+	test(`Math.atan2(Infinity, 1)`, "1.5707963267948966")
+	test(`Math.atan2(-Infinity, 1)`, "-1.5707963267948966")
+
+	test(`Math.atan2(Infinity, Infinity)`, "0.7853981633974483")
+	test(`Math.atan2(Infinity, -Infinity)`, "2.356194490192345")
+	test(`Math.atan2(-Infinity, Infinity)`, "-0.7853981633974483")
+	test(`Math.atan2(-Infinity, -Infinity)`, "-2.356194490192345")
+}
+
 func TestMath_ceil(t *testing.T) {
 	Terst(t)
 
