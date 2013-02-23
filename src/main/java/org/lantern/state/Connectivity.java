@@ -47,13 +47,11 @@ public class Connectivity {
 
     @JsonView({Run.class})
     public Collection<Peer> getPeers() {
-        return Collections.emptyList();
-        /*
+        //return Collections.emptyList();
         if (this.peerProxyManager != null) {
             return this.peerProxyManager.getPeers();
         }
         return Collections.emptyList();
-        */
     }
 
     /*

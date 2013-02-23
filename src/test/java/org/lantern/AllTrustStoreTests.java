@@ -11,7 +11,8 @@ import org.junit.runners.Suite.SuiteClasses;
 //@SuiteClasses({
 //  AllTests.class,
 //})
-@SuiteClasses({ LanternUtilsTest.class, LanternTrustStoreTest.class })
+@SuiteClasses({ LanternUtilsTest.class, LanternTrustStoreTest.class, 
+    UdtSslTest.class})
 
 /**
  * There seem to be several common problems with these tests. First, sometimes 

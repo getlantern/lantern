@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
 import org.apache.commons.lang.StringUtils;
@@ -69,8 +68,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final PeerProxyManager trustedPeerProxyManager;
 
-    private final PeerProxyManager anonymousPeerProxyManager;
-
     private final Stats stats;
 
     private final Model model;
@@ -92,15 +89,13 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     public DispatchingProxyRelayHandler(
         final ClientSocketChannelFactory clientChannelFactory,
         final ChannelGroup channelGroup,
-        final TrustedPeerProxyManager trustedPeerProxyManager,
-        final AnonymousPeerProxyManager anonymousPeerProxyManager,
+        final PeerProxyManager trustedPeerProxyManager,
         final Stats stats, final Model model, final ProxyTracker proxyTracker,
         final HttpsEverywhere httpsEverywhere,
         final LanternTrustStore trustStore) {
         this.clientChannelFactory = clientChannelFactory;
         this.channelGroup = channelGroup;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
-        this.anonymousPeerProxyManager = anonymousPeerProxyManager;
         this.stats = stats;
         this.model = model;
         this.proxyTracker = proxyTracker;
@@ -222,42 +217,12 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final ChannelHandlerContext ctx, final MessageEvent me) {
         final HttpRequest request = (HttpRequest) me.getMessage();
         log.debug("Dispatching request");
-        if (request.getMethod() == HttpMethod.CONNECT) {
-            try {
-                if (this.model.getSettings().isUseAnonymousPeers() && 
-                    anonymousPeerProxyManager.processRequest(
-                //if (LanternHub.settings().isUseTrustedPeers() && 
-                //    LanternHub.getProxyProvider().getTrustedPeerProxyManager().processRequest(
-                        browserToProxyChannel, ctx, me) != null) {
-                    log.info("Processed CONNECT on peer...returning");
-                    return null;
-                } else if (useStandardProxies()){
-                    // We need to forward the CONNECT request from this proxy 
-                    // to an external proxy that can handle it. We effectively 
-                    // want to relay all traffic in this case without doing 
-                    // anything on our own other than direct the CONNECT 
-                    // request to the correct proxy.
-                    centralConnect(request);
-                    return null;
-                }
-            } catch (final IOException e) {
-                log.warn("Could not send CONNECT to anonymous proxy", e);
-                // This will happen whenever the server's giving us bad
-                // anonymous proxies, which could happen quite often.
-                // We should fall back to central.
-                if (useStandardProxies()) {
-                    centralConnect(request);
-                }
-                return null;
-            }
-
-        }
         try {
             if (this.model.getSettings().isUseTrustedPeers()) {
-                final PeerProxyManager provider = trustedPeerProxyManager;
-                if (provider != null) {
+                if (trustedPeerProxyManager != null) {
                     log.info("Sending {} to trusted peers", request.getUri());
-                    final HttpRequestProcessor rp = provider.processRequest(
+                    final HttpRequestProcessor rp = 
+                        trustedPeerProxyManager.processRequest(
                             browserToProxyChannel, ctx, me);
                     if (rp != null) {
                         return rp;
@@ -268,7 +233,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             log.info("Caught exception processing request", e);
         }
         try {
-            log.info("Trying to send {} to LAE proxy", request.getUri());
+            log.debug("Trying to send {} to LAE proxy", request.getUri());
             if (useLae() && isLae(request) && 
                 this.laeRequestProcessor.processRequest(browserToProxyChannel, 
                     ctx, me)) {
@@ -276,10 +241,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 return this.laeRequestProcessor;
             } 
         } catch (final IOException e) {
-            log.info("Caught exception processing request", e);
+            log.debug("Caught exception processing request", e);
         }
         try {
-            log.info("Trying to send {} to standard proxy", request.getUri());
+            log.debug("Trying to send {} to standard proxy", request.getUri());
             if (useStandardProxies() && 
                 this.proxyRequestProcessor.processRequest(
                         browserToProxyChannel, ctx, me)) {
