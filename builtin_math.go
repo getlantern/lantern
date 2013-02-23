@@ -66,7 +66,12 @@ func builtinMath_min(call FunctionCall) Value {
 
 func builtinMath_pow(call FunctionCall) Value {
 	// TODO Make sure this works according to the specification (15.8.2.13)
-	return toValue(math.Pow(toFloat(call.Argument(0)), toFloat(call.Argument(1))))
+	x := toFloat(call.Argument(0))
+	y := toFloat(call.Argument(1))
+	if x == 1 && math.IsInf(y, 0) {
+		return NaNValue()
+	}
+	return toValue(math.Pow(x, y))
 }
 
 func builtinMath_random(call FunctionCall) Value {

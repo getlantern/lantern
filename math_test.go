@@ -5,20 +5,6 @@ import (
 	"testing"
 )
 
-func TestMath_max(t *testing.T) {
-	Terst(t)
-
-	test := runTest()
-	test(`Math.max(-11, -1, 0, 1, 2, 3, 11)`, "11")
-}
-
-func TestMath_min(t *testing.T) {
-	Terst(t)
-
-	test := runTest()
-	test(`Math.min(-11, -1, 0, 1, 2, 3, 11)`, "-11")
-}
-
 func TestMath_ceil(t *testing.T) {
 	Terst(t)
 
@@ -59,4 +45,50 @@ func TestMath_floor(t *testing.T) {
 	test(`Math.floor(-11)`, "-11")
 	test(`Math.floor(-0.5)`, "-1")
 	test(`Math.floor(1.5)`, "1")
+}
+
+func TestMath_max(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.max(-11, -1, 0, 1, 2, 3, 11)`, "11")
+}
+
+func TestMath_min(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.min(-11, -1, 0, 1, 2, 3, 11)`, "-11")
+}
+
+func TestMath_pow(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.pow(0, NaN)`, "NaN")
+	test(`Math.pow(0, 0)`, "1")
+	test(`Math.pow(NaN, 0)`, "1")
+	test(`Math.pow(0, -0)`, "1")
+	test(`Math.pow(NaN, -0)`, "1")
+	test(`Math.pow(NaN, 1)`, "NaN")
+	test(`Math.pow(2, Infinity)`, "Infinity")
+	test(`1/Math.pow(2, -Infinity)`, "Infinity")
+	test(`Math.pow(1, Infinity)`, "NaN")
+	test(`Math.pow(1, -Infinity)`, "NaN")
+	test(`1/Math.pow(0.1, Infinity)`, "Infinity")
+	test(`Math.pow(0.1, -Infinity)`, "Infinity")
+	test(`Math.pow(Infinity, 1)`, "Infinity")
+	test(`1/Math.pow(Infinity, -1)`, "Infinity")
+	test(`Math.pow(-Infinity, 1)`, "-Infinity")
+	test(`Math.pow(-Infinity, 2)`, "Infinity")
+	test(`1/Math.pow(-Infinity, -1)`, "-Infinity")
+	test(`1/Math.pow(-Infinity, -2)`, "Infinity")
+	test(`1/Math.pow(0, 1)`, "Infinity")
+	test(`Math.pow(0, -1)`, "Infinity")
+	test(`1/Math.pow(-0, 1)`, "-Infinity")
+	test(`1/Math.pow(-0, 2)`, "Infinity")
+	test(`Math.pow(-0, -1)`, "-Infinity")
+	test(`Math.pow(-0, -2)`, "Infinity")
+	test(`Math.pow(-1, 0.1)`, "NaN")
+
 }
