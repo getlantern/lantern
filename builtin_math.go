@@ -77,3 +77,8 @@ func builtinMath_pow(call FunctionCall) Value {
 	// TODO Make sure this works according to the specification (15.8.2.13)
 	return toValue(math.Pow(toFloat(call.Argument(0)), toFloat(call.Argument(1))))
 }
+
+func builtinMath_exp(call FunctionCall) Value {
+	number := toFloat(call.Argument(0))
+	return toValue(math.Exp(number))
+}

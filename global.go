@@ -313,6 +313,7 @@ func newContext() *_runtime {
 		"max", 2, builtinMath_max,
 		"min", 2, builtinMath_min,
 		"ceil", 1, builtinMath_ceil,
+		"exp", 1, builtinMath_exp,
 		"floor", 1, builtinMath_floor,
 		"random", 0, builtinMath_random,
 		"pow", 2, builtinMath_pow,

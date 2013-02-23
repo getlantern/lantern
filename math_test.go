@@ -28,6 +28,17 @@ func TestMath_ceil(t *testing.T) {
 	test(`Math.ceil(1.5)`, "2")
 }
 
+func TestMath_exp(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.exp(NaN)`, "NaN")
+	test(`Math.exp(+0)`, "1")
+	test(`Math.exp(-0)`, "1")
+	test(`Math.exp(Infinity)`, "Infinity")
+	test(`Math.exp(-Infinity)`, "0")
+}
+
 func TestMath_floor(t *testing.T) {
 	Terst(t)
 
