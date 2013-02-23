@@ -34,6 +34,11 @@ func builtinMath_atan2(call FunctionCall) Value {
 	return toValue(math.Atan2(y, x))
 }
 
+func builtinMath_cos(call FunctionCall) Value {
+	number := toFloat(call.Argument(0))
+	return toValue(math.Cos(number))
+}
+
 func builtinMath_ceil(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
 	return toValue(math.Ceil(number))

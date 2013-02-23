@@ -315,6 +315,7 @@ func newContext() *_runtime {
 		"atan", 1, builtinMath_atan,
 		"atan2", 1, builtinMath_atan2,
 		"ceil", 1, builtinMath_ceil,
+		"cos", 1, builtinMath_cos,
 		"exp", 1, builtinMath_exp,
 		"floor", 1, builtinMath_floor,
 		"max", 2, builtinMath_max,

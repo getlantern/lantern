@@ -97,6 +97,19 @@ func TestMath_ceil(t *testing.T) {
 	test(`Math.ceil(1.5)`, "2")
 }
 
+func TestMath_cos(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.cos(NaN)`, "NaN")
+	test(`Math.cos(+0)`, "1")
+	test(`Math.cos(-0)`, "1")
+	test(`Math.cos(Infinity)`, "NaN")
+	test(`Math.cos(-Infinity)`, "NaN")
+
+	test(`Math.cos(0.5)`, "0.8775825618903728")
+}
+
 func TestMath_exp(t *testing.T) {
 	Terst(t)
 
