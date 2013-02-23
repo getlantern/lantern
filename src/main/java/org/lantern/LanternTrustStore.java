@@ -36,34 +36,34 @@ public class LanternTrustStore {
     private final Logger log = LoggerFactory.getLogger(getClass());
 
     private static final String KEYSIZE = "2048";
-    
-    public static final String PASS = 
+
+    public static final String PASS =
         String.valueOf(new SecureRandom().nextLong());
-    
+
     private static final String ALG = "RSA";
-    
+
     private SSLContext sslContext;
     private final KeyStoreManager ksm;
-    
+
     /**
      * We re-create a random trust store on each run. This requires that
      * we re-negotiate keys with peers on new connections, which will not
-     * always be the case if the remote client is longer lived than we are 
+     * always be the case if the remote client is longer lived than we are
      * (i.e., the remote client thinks it has our key, but our key has changed).
      */
-    public static final File TRUSTSTORE_FILE = 
-        new File(LanternConstants.CONFIG_DIR, 
+    public static final File TRUSTSTORE_FILE =
+        new File(LanternConstants.CONFIG_DIR,
             String.valueOf(new SecureRandom().nextLong()));
-    
+
     private final CertTracker certTracker;
 
     @Inject
-    public LanternTrustStore(final CertTracker certTracker, 
+    public LanternTrustStore(final CertTracker certTracker,
             final KeyStoreManager ksm) {
         this.certTracker = certTracker;
         this.ksm = ksm;
         configureTrustStore();
-        System.setProperty("javax.net.ssl.trustStore", 
+        System.setProperty("javax.net.ssl.trustStore",
             TRUSTSTORE_FILE.getAbsolutePath());
         onTrustStoreChanged();
         Runtime.getRuntime().addShutdownHook(new Thread (new Runnable() {
@@ -77,14 +77,14 @@ public class LanternTrustStore {
     private void onTrustStoreChanged() {
         sslContext = provideSslContext();
     }
-    
+
     private void configureTrustStore() {
         LanternUtils.fullDelete(TRUSTSTORE_FILE);
         createTrustStore();
         addStaticCerts();
         log.debug("Created trust store!!");
     }
-    
+
     private void createTrustStore() {
         if (TRUSTSTORE_FILE.isFile()) {
             log.error("Trust store already exists at "+TRUSTSTORE_FILE);
@@ -93,15 +93,15 @@ public class LanternTrustStore {
         final String dummyCn = String.valueOf(new SecureRandom().nextLong());
         //final String dummyCn = model.getNodeId();
         log.debug("Dummy CN is: {}", dummyCn);
-        final String result = LanternUtils.runKeytool("-genkey", "-alias", 
-            "foo", "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG, 
-            "-dname", "CN="+dummyCn, "-keystore", 
-            TRUSTSTORE_FILE.getAbsolutePath(), "-keypass", PASS, 
+        final String result = LanternUtils.runKeytool("-genkey", "-alias",
+            "foo", "-keysize", KEYSIZE, "-validity", "365", "-keyalg", ALG,
+            "-dname", "CN="+dummyCn, "-keystore",
+            TRUSTSTORE_FILE.getAbsolutePath(), "-keypass", PASS,
             "-storepass", PASS);
         log.debug("Got result of creating trust store: {}", result);
         LanternUtils.waitForFile(TRUSTSTORE_FILE);
     }
-    
+
     private void addStaticCerts() {
         addCert("digicerthighassurancerootca", "certs/DigiCertHighAssuranceCA-3.cer");
         addCert("littleproxy", "certs/littleproxy.cer");
@@ -117,7 +117,7 @@ public class LanternTrustStore {
         LanternUtils.addCert(alias, cert, TRUSTSTORE_FILE, PASS);
     }
 
-    public void addBase64Cert(final String fullJid, final String base64Cert) 
+    public void addBase64Cert(final String fullJid, final String base64Cert)
         throws IOException {
         log.debug("Adding base 64 cert to store: {}", TRUSTSTORE_FILE);
         if (this.certTracker != null) {
@@ -125,7 +125,7 @@ public class LanternTrustStore {
         }
         // Alright, we need to decode the certificate from base 64, write it
         // to a file, and then use keytool to import it.
-        
+
         // Here's the keytool doc:
         /*
          * -importcert  [-v] [-noprompt] [-trustcacerts] [-protected]
@@ -137,7 +137,7 @@ public class LanternTrustStore {
          [-providerpath <pathlist>]
          */
         final byte[] decoded = Base64.decodeBase64(base64Cert);
-        final String normalizedAlias = 
+        final String normalizedAlias =
             FileUtils.removeIllegalCharsFromFileName(fullJid);
         final File certFile = new File(normalizedAlias);
         OutputStream os = null;
@@ -157,12 +157,12 @@ public class LanternTrustStore {
          [-providerclass <provider_class_name> [-providerarg <arg>]] ...
          [-providerpath <pathlist>]
          */
-        
+
         // Make sure we delete the old one (will fail when it doesn't exist -
         // this is expected).
         deleteCert(normalizedAlias);
         addCert(normalizedAlias, certFile);
-        
+
         // get rid of our imported file
         certFile.delete();
         certFile.deleteOnExit();
@@ -178,21 +178,21 @@ public class LanternTrustStore {
     public SSLContext getContext() {
         return sslContext;
     }
-    
+
     private SSLContext provideSslContext() {
         final KeyManagerFactory kmf = loadKeyManagerFactory();
         try {
             final SSLContext context = SSLContext.getInstance("TLS");
-            
+
             // Note that specifying null for the trust managers here simply
             // tells the JVM to load them from our trusted certs keystore.
             // We set that specially with our call to:
             //
-            // System.setProperty("javax.net.ssl.trustStore", 
+            // System.setProperty("javax.net.ssl.trustStore",
             //     TRUSTSTORE_FILE.getAbsolutePath());
             //
             // This is the "safe" way to do it because we completely override
-            // all the JVM's default trusted certs and only trust the few 
+            // all the JVM's default trusted certs and only trust the few
             // certs we specify, and that file is generated on the fly
             // on each run, added to dynamically, and reloaded here.
             context.init(kmf.getKeyManagers(), null, null);
@@ -202,9 +202,9 @@ public class LanternTrustStore {
                     "Failed to initialize the client-side SSLContext", e);
         }
     }
-    
+
     private KeyManagerFactory loadKeyManagerFactory() {
-        String algorithm = 
+        String algorithm =
             Security.getProperty("ssl.KeyManagerFactory.algorithm");
         if (algorithm == null) {
             algorithm = "SunX509";
@@ -212,10 +212,11 @@ public class LanternTrustStore {
         try {
             final KeyStore ks = KeyStore.getInstance("JKS");
             ks.load(ksm.keyStoreAsInputStream(), ksm.getKeyStorePassword());
-            
+
             // Set up key manager factory to use our key store
             final KeyManagerFactory kmf = KeyManagerFactory.getInstance(algorithm);
             kmf.init(ks, ksm.getCertificatePassword());
+
             return kmf;
         } catch (final KeyStoreException e) {
             throw new Error("Key manager issue", e);
@@ -231,11 +232,11 @@ public class LanternTrustStore {
     }
 
     public void deleteCert(final String alias) {
-        final String deleteResult = LanternUtils.runKeytool("-delete", 
-            "-alias", alias, 
-            "-keystore", getTrustStorePath(), 
+        final String deleteResult = LanternUtils.runKeytool("-delete",
+            "-alias", alias,
+            "-keystore", getTrustStorePath(),
             "-storepass", PASS);
-    
+
         log.debug("Result of deleting old cert: {}", deleteResult);
         onTrustStoreChanged();
     }
@@ -266,7 +267,7 @@ public class LanternTrustStore {
             IOUtils.closeQuietly(is);
         }
     }
-    
+
     public void listEntries() {
         listEntries(TRUSTSTORE_FILE, PASS);
     }

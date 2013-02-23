@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public class LanternTrustStoreTest {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     @Test
     public void testSites() {//throws Exception {
         //System.setProperty("javax.net.debug", "ssl");
@@ -35,20 +35,22 @@ public class LanternTrustStoreTest {
         //System.setProperty("javax.net.debug", "ssl");
         //final KeyStoreManager ksm = new LanternKeyStoreManager();
         //final LanternTrustStore trustStore = new LanternTrustStore(null, ksm);
-        //final LanternSocketsUtil socketsUtil = 
+        //final LanternSocketsUtil socketsUtil =
             //new LanternSocketsUtil(null, trustStore);
         //final LanternTrustStore trustStore = TestUtils.getTrustStore();
         //final LanternSocketsUtil socketsUtil = TestUtils.getSocketsUtil();
-        //final SSLSocketFactory socketFactory = 
-            //new SSLSocketFactory(socketsUtil.newTlsSocketFactory(), 
+        //final SSLSocketFactory socketFactory =
+            //new SSLSocketFactory(socketsUtil.newTlsSocketFactory(),
               //  new LanternHostNameVerifier());
-        
+
         final LanternTrustStore trustStore = TestUtils.getTrustStore();
-        
+        System.setProperty("javax.net.ssl.trustStore",
+                LanternTrustStore.TRUSTSTORE_FILE.getAbsolutePath());
+
         trustStore.listEntries();
         final LanternSocketsUtil socketsUtil = TestUtils.getSocketsUtil();
-        final SSLSocketFactory socketFactory = 
-            new SSLSocketFactory(socketsUtil.newTlsSocketFactoryJavaCipherSuites(), 
+        final SSLSocketFactory socketFactory =
+            new SSLSocketFactory(socketsUtil.newTlsSocketFactoryJavaCipherSuites(),
                 new LanternHostNameVerifier());
         log.debug("CONFIGURED TRUSTSTORE: "+System.getProperty("javax.net.ssl.trustStore"));
         //final SSLSocketFactory socketFactory = LanternSocketsUtil.
@@ -59,19 +61,18 @@ public class LanternTrustStoreTest {
         client.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 20000);
         client.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 30000);
 
-        final String[] success = {"talk.google.com", 
+        final String[] success = {"talk.google.com",
             "lanternctrl.appspot.com", "docs.google.com",  "www.googleapis.com", //"www.exceptional.io",
-            "query.yahooapis.com", 
+            "query.yahooapis.com",
             LanternConstants.FALLBACK_SERVER_HOST+":"+
             LanternConstants.FALLBACK_SERVER_PORT};
-        
+
         // URIs that should fail (signing certs we don't trust). Note this would
         // succeed (with the test failing as a result) with the normal root CAs,
         // which trust more signing certs than ours, such as verisign. We
         // just try to minimize the attack surface as much aLs possible.
         final String[] failure = {"chase.com"};
         for (final String uri : success) {
-            System.err.println("Trying: "+uri);
             try {
                 final String body = trySite(client, uri);
                 log.debug("SUCCESS BODY: "+body);
@@ -90,15 +91,15 @@ public class LanternTrustStoreTest {
                 e.printStackTrace();
             }
         }
-        
+
         // Now we want to *modify the trust store at runtime* and make sure
         // those changes take effect.
         // THIS IS EXTREMELY IMPORTANT AS LANTERN RELIES ON THIS FOR ALL
         // P2P CONNECTIONS!!
         trustStore.deleteCert("equifaxsecureca");
-        
+
         final String[] noLongerSuccess = {"talk.google.com"};
-        
+
         for (final String uri : noLongerSuccess) {
             try {
                 final String body = trySite(client, uri);
@@ -113,15 +114,15 @@ public class LanternTrustStoreTest {
         //TestUtils.close();
     }
 
-    private String trySite(final HttpClient client, final String uri) 
+    private String trySite(final HttpClient client, final String uri)
         throws Exception {
         final HttpGet get = new HttpGet();
         get.setURI(new URI("https://"+uri));
-        
+
         final HttpResponse response = client.execute(get);
         final int code = response.getStatusLine().getStatusCode();
         final HttpEntity entity = response.getEntity();
-        final String body = 
+        final String body =
             IOUtils.toString(entity.getContent()).toLowerCase();
         EntityUtils.consume(entity);
 
