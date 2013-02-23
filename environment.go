@@ -185,7 +185,7 @@ func (self *_declarativeEnvironment) SetMutableBinding(name string, value Value,
 
 func (self *_declarativeEnvironment) SetValue(name string, value Value, throw bool) {
 	if !self.HasBinding(name) {
-		self.CreateMutableBinding(name, true) // Deletable by default
+		self.CreateMutableBinding(name, false) // NOT deletable by default
 	}
 	self.SetMutableBinding(name, value, throw)
 }
