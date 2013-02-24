@@ -2,87 +2,106 @@
 
 angular.module('app.vis', [])
   .constant('CONFIG', {
-    //scale: 1400,
-    scale: 248,
-    clipAngle: 87,
-    //translate: [500, 350],
     style: {
+      countryOpacityMax: .5,
+      countryOpacityMin: .1,
+      countryBaseColor: 'rgba(0, 0, 0, .1)',
       giveModeColor: '#00ff80',
       getModeColor: '#ffcc66',
-      countryOpacityMin: 0,
-      countryOpacityMax: .5,
-      self: {
-        r: 5
-      },
-      peer: {
-        r: 3
-      },
-      connection: {
-        heightFactor: .3
-      }
     },
     source: {
       world: 'data/world.json'
     }
   });
 
-function VisCtrl($scope, $window, logFactory, modelSrvc, CONFIG) {
+function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONFIG) {
   var log = logFactory('VisCtrl'),
       model = modelSrvc.model,
-      //projection = d3.geo.mercator()
-      //               .scale(CONFIG.scale)
-      //               .translate(CONFIG.translate),
-      projection = d3.geo.orthographic()
-                     .scale(CONFIG.scale)
-                     .clipAngle(CONFIG.clipAngle),
-      path = d3.geo.path().projection(projection),
-      zoom = d3.behavior.zoom(),
-      svg = d3.select('svg'),
-      layers = {
-        countries: svg.select('#countries'),
-        self: svg.select('#self')
-      };
-
-  $scope.CONFIG = CONFIG;
-  $scope.project = function(latlon) {
-    if (!latlon) return latlon;
-    var p = projection([latlon.lon, latlon.lat]);
-    return {x: p[0], y: p[1]};
-  };
-
-  $scope.selfR = CONFIG.style.self.r;
-  $scope.peerR = CONFIG.style.peer.r;
-
-  var abs = Math.abs,
+      abs = Math.abs,
       min = Math.min,
-      heightFactor = CONFIG.style.connection.heightFactor;
+      dim = {},
+      $vis = $('#vis'),
+      projection = d3.geo.orthographic()
+                     .clipAngle(90)
+                     .precision(0),
+      λ = d3.scale.linear().range([-180, 180]),
+      φ = d3.scale.linear().range([90, -90]),
+      zoom = d3.behavior.zoom().scaleExtent([50, 1000]).on('zoom', handleZoom),
+      path = d3.geo.path().projection(projection),
+      greatArc = d3.geo.greatArc(),
+      dragging = false, lastX, lastY;
+
+  d3.select('#vis').call(zoom).on('mousedown', function() {
+    dragging = true;
+    lastX = d3.event.x;
+    lastY = d3.event.y;
+  }).on('mousemove', function() {
+    if (!dragging) return;
+    var current = projection.rotate(),
+        dx = d3.event.x - lastX,
+        dy = d3.event.y - lastY;
+    projection.rotate([current[0]+λ(dx), current[1]+φ(dy)]);
+    lastX = d3.event.x;
+    lastY = d3.event.y;
+    $scope.$apply();
+  }).on('mouseup', function() {
+    dragging = false;
+  });
+
+  //function rotateWest() {
+  //  projection.rotate([-λ(velocity * (Date.now() - then)), 0]);
+  //}
+  //d3.timer(rotateWest);
+
+  $scope.path = path;
+  $scope.countryBaseColor = CONFIG.style.countryBaseColor;
 
   queue()
     .defer(d3.json, CONFIG.source.world)
     .await(dataFetched);
 
-  $scope.countryPaths = {};
   function dataFetched(error, world) {
     $scope.countryGeometries = topojson.object(world, world.objects.countries).geometries;
-    var paths = $scope.countryPaths, geoms = $scope.countryGeometries;
-    for (var i=0, d=geoms[i]; d; d=geoms[++i]) {
-      paths[d.alpha2] = path(d);
-    }
+    //borders = topojson.mesh(world, world.objects.countries, function(a, b) { return a.id !== b.id; });
   }
 
-  function redraw() {
-    log.debug('in redraw');
-    var scale     = d3.event.scale,
-        translate = d3.event.translate;
-    zoom.translate();
-    svg.attr('transform', 'translate(' + translate + ') scale(' + scale + ')');
-    // resize, recenter, redraw
+  function handleResize() {
+    dim.width = $vis.width();
+    dim.height = $vis.height();
+    dim.radius = Math.min(dim.width, dim.height) >> 1;
+    λ.domain([-dim.width, dim.width]);
+    φ.domain([-dim.height, dim.height]);
+    projection.scale(dim.radius-2).translate([dim.width/2, dim.height/2]);
+    zoom.scale(projection.scale());
   }
-  //d3.select($window).on('resize', redraw); // XXX
+  handleResize();
+  d3.select($window).on('resize', handleResize);
+
+  // XXX look at http://bl.ocks.org/mbostock/4987520
+  function handleZoom() {
+    projection.scale(d3.event.scale);
+    $scope.$apply();
+  }
+
+  $scope.pathGlobe = function() {
+    return path({type: 'Sphere'});
+  };
+
+  $scope.pathConnection = function(peer) {
+    return path(greatArc({source: [model.location.lon, model.location.lat], target: [peer.lon, peer.lat]}));
+  };
+
+  $scope.pathPeer = function(peer) {
+    return path({type: 'Point', coordinates: [peer.lon, peer.lat]});
+  };
+
+  $scope.pathSelf = function() {
+    return path({type: 'Point', coordinates: [model.location.lon, model.location.lat]});
+  };
 
   $scope.$watch('model.location', function(loc) {
     if (!loc) return;
-    $scope.self = $scope.project(loc);
+    projection.rotate([-loc.lon, 0]);
   }, true);
 
   $scope.fillByCountry = {};
@@ -121,13 +140,13 @@ function VisCtrl($scope, $window, logFactory, modelSrvc, CONFIG) {
   var unwatchAllCountries = $scope.$watch('model.countries', function(countries) {
     if (!countries) return;
     unwatchAllCountries();
-    _.forEach(countries, function(stats, country) {
+    _.each(countries, function(stats, country) {
       $scope.$watch('model.countries.'+country+'.npeers.online', function(npeers) {
         if (!npeers) return;
         if (npeers.giveGet > maxGiveGet) {
           maxGiveGet = npeers.giveGet;
           countryOpacityScale.domain([0, maxGiveGet]);
-          _.forEach(countries, updateFill);
+          _.each(countries, updateFill);
         } else {
           updateFill(country);
         }
@@ -135,14 +154,5 @@ function VisCtrl($scope, $window, logFactory, modelSrvc, CONFIG) {
     });
   }, true);
 
-  function _controlpoint(x1, y1, x2, y2) {
-    return {x: abs(x1 + x2) / 2,
-            y: min(y2, y1) - abs(x2 - x1) * heightFactor};
-  }
-
-  $scope.controlpoint = function(peer) {
-    if (!peer) return peer;
-    var projected = $scope.project(peer);
-    return _controlpoint($scope.self.x, $scope.self.y, projected.x, projected.y);
-  };
+  // XXX show last seen locations of peers not connected to
 }

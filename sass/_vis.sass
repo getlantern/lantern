@@ -1,19 +1,28 @@
-#vis, #vis-container
-  display: block
+$outlineColor: rgb(30, 61, 75)
+
+#vis-container
   height: 100%
+
+#vis
+  height: 100%
+  display: block
+
+#water
+  $waterColor: rgba(6, 21, 50, .1)
+  fill: $waterColor
 
 #countries path
   stroke-width: 1
-  stroke: rgb(30, 61, 75)
+  stroke: $outlineColor
 
-circle
-  filter: url(#blur)
+.peer.get, #self.get
+  fill: $getModeColor
 
-circle.give
+.peer.give, #self.give
   fill: $giveModeColor
 
-circle.get
-  fill: $getModeColor
+#self, .peer
+  filter: url(#blur)
 
 path.connection
   fill: none
@@ -21,24 +30,5 @@ path.connection
   stroke: #fff
   opacity: .25
 
-=pulsing($name: pulse_1_to_point5, $duration: 3s)
-  -webkit-animation-name: $name
-  -webkit-animation-duration: $duration
-  -webkit-animation-iteration-count: infinite
-  -webkit-animation-timing-function: linear
-
-g.transferring *, #self.transferring
-  +pulsing
-
-// XXX parameterize
-@-webkit-keyframes pulse_1_to_point5
-  from
-    opacity: 1
-  40%
-    opacity: 1
-  50%
-    opacity: .5
-  60%
-    opacity: 1
-  to
-    opacity: 1
+g.transferring path.connection
+  opacity: 1

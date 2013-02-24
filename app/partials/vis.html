@@ -1,34 +1,22 @@
 <svg id="vis" ng-controller="VisCtrl" ui-if="model.showVis">
+  <path id="water" ng-d="{{ pathGlobe() }}"/>
   <g id="countries">
     <g ng-repeat="d in countryGeometries">
-      <title ui-if="d.alpha2">{{ d.alpha2 | i18n }}: {{ model.countries[d.alpha2].npeers.online.giveGet || 0 }} peers online, {{ model.countries[d.alpha2].npeers.online.give || 0 }} in Give Mode, {{ model.countries[d.alpha2].npeers.online.get || 0 }} in Get Mode</title><!-- XXX i18n -->
-      <path ng-fill="{{ fillByCountry[d.alpha2] || 'rgba(0, 0, 0, 0)' }}" class="{{ d.alpha2 }}" ng-d="{{ countryPaths[d.alpha2] }}"/>
+      <title ui-if="d.alpha2">{{ d.alpha2 | i18n }}: {{ model.countries[d.alpha2].npeers.online.giveGet || 0 }} peers online, {{ model.countries[d.alpha2].npeers.online.give || 0 }} in Give Mode, {{ model.countries[d.alpha2].npeers.online.get || 0 }} in Get Mode</title>
+      <path ng-fill="{{ fillByCountry[d.alpha2] || countryBaseColor }}" class="{{ d.alpha2 }}" ng-d="{{ path(d) }}"/>
     </g>
   </g>
   <g id="peersCurrent">
     <g ng-repeat="peer in model.connectivity.peers.current" class="{{ peer.bpsUpDn && 'transferring' || '' }}">
-      <path ng-d="M {{ self.x }} {{ self.y }} Q {{ controlpoint(peer).x }} {{ controlpoint(peer).y }} {{ project(peer).x }} {{ project(peer).y }}" class="connection"/>
-      <circle ng-cx="{{ project(peer).x }}" ng-cy="{{ project(peer).y }}" ng-r="{{ peerR }}"
-              id="{{ peer.peerid }}" class="peer {{ peer.mode }}">
+      <path ng-d="{{ pathConnection(peer) }}" class="connection"/>
+      <path ng-d="{{ pathPeer(peer) }}" id="{{ peer.peerid }}" class="peer {{ peer.mode }}" fill="none">
         <title>{{ peer | prettyUser }}</title>
-      </circle>
-      <!--
-      <text ng-x="{{ project(peer).x - 10 }}" ng-y="{{ project(peer).y + 20 }}" fill="rgba(255, 255, 255, .5)" ui-if="peer.bpsUpDn">
-        {{ peer.bpsUpDn }} B/s
-      </text>
-      -->
+      </path>
     </g>
   </g>
-  <!-- XXX show last seen locations of peers not connected to -->
-  <circle id="self" ng-cx="{{ self.x }}" ng-cy="{{ self.y }}" ng-r="{{ selfR }}"
-          class="{{ model.settings.mode }} {{ model.transfers.bpsUpDn && 'transferring' || ''}}">
+  <path id="self" ng-d="{{ pathSelf() }}" class="{{ model.settings.mode }} {{ model.transfers.bpsUpDn && 'transferring' || ''}}">
     <title>{{ model.profile | prettyUser }}</title>
-  </circle>
-  <!--
-  <text ng-x="{{ self.x - 10 }}" ng-y="{{ self.y + 20 }}" fill="rgba(255, 255, 255, .5)" ui-if="model.transfers.bpsUpDn">
-    {{ model.transfers.bpsUpDn }} B/s
-  </text>
-  -->
+  </path>
   <defs>
     <filter id="blur">
       <feGaussianBlur stdDeviation="1" />
