@@ -175,3 +175,17 @@ func Test_decodeURIComponent(t *testing.T) {
 	test(`decodeURIComponent(encodeURI("http://example.com/ Nothing happens."))`, "http://example.com/ Nothing happens.")
 	test(`decodeURIComponent(encodeURI("http://example.com/ _^#"))`, "http://example.com/ _^#")
 }
+
+func TestGlobal_notEnumerable(t *testing.T) {
+	Terst(t)
+	test := runTest()
+	test(`
+        var found = [];
+        for (var test in this) {
+            if (test === 'NaN' || test === 'undefined' || test === 'Infinity' ) {
+                found.push(test)
+            }
+        }
+        found;
+    `, "")
+}

@@ -651,6 +651,7 @@ func newContext() *_runtime {
 
 		// TODO Is _propertyMode(0) compatible with 3?
 		// _propertyMode(0),
+		_propertyMode(101),
 		"undefined", UndefinedValue(),
 		"NaN", NaNValue(),
 		"Infinity", positiveInfinityValue(),
