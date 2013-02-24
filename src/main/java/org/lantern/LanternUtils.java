@@ -52,6 +52,7 @@ import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpMessage;
+import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
 import org.jivesoftware.smack.XMPPConnection;
@@ -865,6 +866,10 @@ public class LanternUtils {
             trustStore.getAbsolutePath(), "-storepass", storePass);
         
         LOG.debug("Result of running keytool: {}", result);
+    }
+
+    public static boolean isConnect(final HttpRequest request) {
+        return request.getMethod() == HttpMethod.CONNECT;
     }
 }
 
