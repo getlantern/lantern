@@ -40,6 +40,12 @@
 
 
   <dependencies>
+    <dependency>
+      <groupId>com.barchart.udt</groupId>
+      <artifactId>barchart-udt-bundle</artifactId>
+      <version>2.2.2</version>
+    </dependency>
+
 <!--
     <dependency>
       <groupId>com.barchart.udt</groupId>
@@ -284,20 +290,20 @@
     </dependency>
 
     <dependency>
-      <groupId>fr.free.miniupnp</groupId>
-      <artifactId>miniupnp-java</artifactId>
+      <groupId>${miniupnp.groupId}</groupId>
+      <artifactId>${arch.artifactId}</artifactId>
       <version>1.7</version>
     </dependency>
 
     <dependency>
-      <groupId>fr.free.miniupnp.natpmp</groupId>
-      <artifactId>natpmp-java</artifactId>
+      <groupId>${natpmp.groupId}</groupId>
+      <artifactId>${arch.artifactId}</artifactId>
       <version>1.7</version>
     </dependency>
 
     <dependency>
       <groupId>${swt.groupId}</groupId>
-      <artifactId>${swt.artifactId}</artifactId>
+      <artifactId>${arch.artifactId}</artifactId>
       <version>4.2.1</version>
     </dependency>
 
@@ -605,6 +611,8 @@
       </activation>
       <properties>
         <swt.groupId>org.eclipse.swt.cocoa</swt.groupId>
+        <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-mac</miniupnp.groupId>
+        <natpmp.groupId>fr.free.miniupnp.natpmp-java-mac</natpmp.groupId>
       </properties>
     </profile>
     <profile>
@@ -616,8 +624,11 @@
       </activation>
       <properties>
         <swt.groupId>org.eclipse.swt.win32.win32</swt.groupId>
-        <swt.artifactId>x86</swt.artifactId>
         <unix.artifactId>unix-java-x86</unix.artifactId> 
+        <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-win</miniupnp.groupId>
+        <natpmp.groupId>fr.free.miniupnp.natpmp-java-win</natpmp.groupId>
+
+        <arch.artifactId>x86</arch.artifactId>
      </properties>
     </profile>
     
@@ -630,6 +641,8 @@
       </activation>
       <properties>
         <swt.groupId>org.eclipse.swt.gtk.linux</swt.groupId>
+        <miniupnp.groupId>fr.free.miniupnp.miniupnp-java-linux</miniupnp.groupId>
+        <natpmp.groupId>fr.free.miniupnp.natpmp-java-linux</natpmp.groupId>
       </properties>
     </profile>
    <!-- 
@@ -655,7 +668,7 @@
         </property>
       </activation>
       <properties>
-        <swt.artifactId>x86</swt.artifactId>
+        <arch.artifactId>x86</arch.artifactId>
         <unix.artifactId>unix-java-x86</unix.artifactId>
       </properties>
     </profile>
@@ -669,7 +682,7 @@
         </property>
       </activation>
       <properties>
-        <swt.artifactId>x86_64</swt.artifactId>
+        <arch.artifactId>x86_64</arch.artifactId>
         <unix.artifactId>unix-java-x86_64</unix.artifactId>
       </properties>
     </profile>
