@@ -122,32 +122,28 @@ func (self *_runtime) _callNode(environment *_functionEnvironment, node *_functi
 
 	self.declare("function", node.FunctionList)
 
-	if node.ArgumentsIsParameter {
-		for i, name := range node.ParameterList {
-			value := UndefinedValue()
-			if i < len(argumentList) {
-				value = argumentList[i]
-			}
-			self.localSet(name, value)
+	indexOfParameterName := make([]string, len(node.ParameterList))
+
+	for index, name := range node.ParameterList {
+		value := UndefinedValue()
+		if index < len(argumentList) {
+			value = argumentList[index]
 		}
-	} else {
-		// FIXME Why does this work before but not after?
-		for index := len(argumentList); index < len(node.ParameterList); index++ {
-			name := node.ParameterList[index]
-			self.localSet(name, UndefinedValue())
-		}
-		arguments := self.newArgumentsObject(argumentList)
+		indexOfParameterName[index] = name
+		self.localSet(name, value)
+	}
+
+	if !node.ArgumentsIsParameter {
+		arguments := self.newArgumentsObject(indexOfParameterName, environment, len(argumentList))
 		environment.arguments = arguments
 		self.localSet("arguments", toValue(arguments))
-		indexOfArgumentName := map[string]string{}
 		for index, _ := range argumentList {
-			if index >= len(node.ParameterList) {
-				break
+			if index < len(node.ParameterList) {
+				continue
 			}
-			name := node.ParameterList[index]
-			indexOfArgumentName[name] = strconv.FormatInt(int64(index), 10)
+			indexAsString := strconv.FormatInt(int64(index), 10)
+			arguments.set(indexAsString, argumentList[index], false)
 		}
-		environment.indexOfArgumentName = indexOfArgumentName
 	}
 
 	self.declare("variable", node.VariableList)

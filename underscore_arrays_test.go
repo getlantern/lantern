@@ -343,4 +343,3 @@ func Test_underscore_arrays_15(t *testing.T) {
   });
     `)
 }
-

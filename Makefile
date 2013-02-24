@@ -50,7 +50,10 @@ TEST := -v --run String_fromCharCode
 TEST := -v --run Lexer\|Parse
 TEST := -v --run ^TestString$$
 TEST := -v --run _floatToString
+TEST := -v --run Array_sliceArguments
+TEST := -v --run _underscore_arrays_5
 TEST := -v --run FunctionArguments
+TEST := -v --run _underscore_utility_11
 TEST := .
 
 test: test-i

@@ -42,4 +42,12 @@ func TestFunctionArguments(t *testing.T) {
         }
         abc(1);
     `, "1")
+
+	// Test typeof of a function argument
+	test(`
+        function abc(def, ghi, jkl){
+            return typeof jkl
+        }
+        abc("1st", "2nd", "3rd", "4th", "5th");
+    `, "string")
 }

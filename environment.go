@@ -38,21 +38,21 @@ func (runtime *_runtime) newFunctionEnvironment(outer _environment) *_functionEn
 	}
 }
 
-func (self *_functionEnvironment) newReference(name string, strict bool) _reference {
-	index, exists := self.indexOfArgumentName[name]
-	if !exists {
-		return self._declarativeEnvironment.newReference(name, strict)
-	}
-	return newArgumentReference(self.arguments, index, strict)
-}
+//func (self *_functionEnvironment) newReference(name string, strict bool) _reference {
+//    index, exists := self.indexOfArgumentName[name]
+//    if !exists {
+//        return self._declarativeEnvironment.newReference(name, strict)
+//    }
+//    return newArgumentReference(self.arguments, index, strict)
+//}
 
-func (self *_functionEnvironment) HasBinding(name string) bool {
-	_, exists := self.indexOfArgumentName[name]
-	if exists {
-		return true
-	}
-	return self._declarativeEnvironment.HasBinding(name)
-}
+//func (self *_functionEnvironment) HasBinding(name string) bool {
+//    _, exists := self.indexOfArgumentName[name]
+//    if exists {
+//        return true
+//    }
+//    return self._declarativeEnvironment.HasBinding(name)
+//}
 
 // _objectEnvironment
 
