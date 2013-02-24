@@ -120,8 +120,6 @@ func (self *_runtime) PutValue(reference _reference, value Value) {
 
 func (self *_runtime) _callNode(environment *_functionEnvironment, node *_functionNode, this Value, argumentList []Value) Value {
 
-	self.declare("function", node.FunctionList)
-
 	indexOfParameterName := make([]string, len(node.ParameterList))
 
 	for index, name := range node.ParameterList {
@@ -146,6 +144,7 @@ func (self *_runtime) _callNode(environment *_functionEnvironment, node *_functi
 		}
 	}
 
+	self.declare("function", node.FunctionList)
 	self.declare("variable", node.VariableList)
 
 	self.evaluateBody(node.Body)

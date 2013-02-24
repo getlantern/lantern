@@ -51,3 +51,21 @@ func TestFunctionArguments(t *testing.T) {
         abc("1st", "2nd", "3rd", "4th", "5th");
     `, "string")
 }
+
+func TestFunctionDeclarationInFunction(t *testing.T) {
+	Terst(t)
+
+	// Function declarations happen AFTER parameter/argument declarations
+	// That is, a function declared within a function will shadow/overwrite
+	// declared parameters
+	test := runTest()
+	test(`
+        function abc(def){
+            return def;
+            function def(){
+                return 1;
+            }
+        }
+        typeof abc();
+    `, "function")
+}
