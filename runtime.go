@@ -121,6 +121,11 @@ func (self *_runtime) PutValue(reference _reference, value Value) {
 func (self *_runtime) _callNode(environment *_functionEnvironment, node *_functionNode, this Value, argumentList []Value) Value {
 
 	indexOfParameterName := make([]string, len(node.ParameterList))
+	// function(abc, def, ghi)
+	// indexOfParameterName[0] = "abc"
+	// indexOfParameterName[1] = "def"
+	// indexOfParameterName[2] = "ghi"
+	// ...
 
 	for index, name := range node.ParameterList {
 		value := UndefinedValue()

@@ -7,17 +7,7 @@ import (
 func (runtime *_runtime) newArgumentsObject(indexOfParameterName []string, environment _environment, length int) *_object {
 	self := runtime.newClassObject("Arguments")
 	self.prototype = runtime.Global.ObjectPrototype
-
 	self.stash = newArgumentsStash(indexOfParameterName, environment, self.stash)
-	//for index, value := range argumentList {
-	//    // TODO Write test for runtime.GetValue(value)
-	//    // The problem here is possible reference nesting, is this the right place to GetValue?
-	//    // FIXME This is sort of hack-y
-	//    // 2012-02-23:
-	//    // Not using this because we arguments should not be configurable (i.e. DontDelete)
-	//    // self.set(arrayIndexToString(uint(index)), runtime.GetValue(value), false)
-	//    self.stash.set(arrayIndexToString(uint(index)), runtime.GetValue(value), 0110)
-	//}
 	self.stash.set("length", toValue(length), 0101)
 
 	return self
@@ -25,7 +15,12 @@ func (runtime *_runtime) newArgumentsObject(indexOfParameterName []string, envir
 
 type _argumentsStash struct {
 	indexOfParameterName []string
-	environment          _environment
+	// function(abc, def, ghi)
+	// indexOfParameterName[0] = "abc"
+	// indexOfParameterName[1] = "def"
+	// indexOfParameterName[2] = "ghi"
+	// ...
+	environment _environment
 	_stash
 }
 
