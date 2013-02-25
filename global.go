@@ -637,6 +637,7 @@ func newContext() *_runtime {
 	)
 
 	self.GlobalObject.write(
+		_propertyMode(101),
 		"Object", toValue(self.Global.Object),
 		"Function", toValue(self.Global.Function),
 		"Array", toValue(self.Global.Array),
@@ -796,7 +797,7 @@ func (runtime *_runtime) defineError(name string) func(Value) *_object {
 		return error
 	}
 
-	runtime.GlobalObject.set(name, toValue(runtime.newGlobalFunction(
+	runtime.GlobalObject.stash.set(name, toValue(runtime.newGlobalFunction(
 		1,
 		// e.g. TypeError( ... )
 		name,
@@ -808,7 +809,7 @@ func (runtime *_runtime) defineError(name string) func(Value) *_object {
 			return toValue(errorFunction(valueOfArrayIndex(argumentList, 0)))
 		},
 		prototype,
-	)), false)
+	)), 0101)
 
 	return errorFunction
 }

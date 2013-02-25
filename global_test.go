@@ -176,13 +176,44 @@ func Test_decodeURIComponent(t *testing.T) {
 	test(`decodeURIComponent(encodeURI("http://example.com/ _^#"))`, "http://example.com/ _^#")
 }
 
-func TestGlobal_notEnumerable(t *testing.T) {
+func TestGlobal_skipEnumeration(t *testing.T) {
 	Terst(t)
+
 	test := runTest()
 	test(`
         var found = [];
         for (var test in this) {
-            if (test === 'NaN' || test === 'undefined' || test === 'Infinity' ) {
+            if (false ||
+                test === 'NaN' ||
+                test === 'undefined' ||
+                test === 'Infinity' ||
+                false) {
+                found.push(test)
+            }
+        }
+        found;
+    `, "")
+
+	test(`
+        var found = [];
+        for (var test in this) {
+            if (false ||
+                test === 'Object' ||
+                test === 'Function' ||
+                test === 'String' ||
+                test === 'Number' ||
+                test === 'Array' ||
+                test === 'Boolean' ||
+                test === 'Date' ||
+                test === 'RegExp' ||
+                test === 'Error' ||
+                test === 'EvalError' ||
+                test === 'RangeError' ||
+                test === 'ReferenceError' ||
+                test === 'SyntaxError' ||
+                test === 'TypeError' ||
+                test === 'URIError' ||
+                false) {
                 found.push(test)
             }
         }
