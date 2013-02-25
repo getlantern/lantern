@@ -20,13 +20,12 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
       abs = Math.abs,
       min = Math.min,
       dim = {},
-      $vis = $('#vis'),
+      $svg = $('#vis svg'),
       projections = {
         orthographic: d3.geo.orthographic().clipAngle(90),
         mercator: d3.geo.mercator()
       },
-      projectionKey = 'mercator',
-      projection = projections[projectionKey],
+      projection = projections['mercator'],
       λ = d3.scale.linear().range([-180, 180]),
       φ = d3.scale.linear().range([90, -90]),
       zoom = d3.behavior.zoom().scaleExtent([50, 1000]).on('zoom', handleZoom),
@@ -37,7 +36,21 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
   // disable adaptive resampling to allow transitions (http://bl.ocks.org/mbostock/3711652)
   _.each(projections, function(p) { p.precision(0); });
 
-  d3.select('#vis').call(zoom).on('mousedown', function() {
+  $scope.projectionKey = 'mercator';
+  $scope.path = path;
+  $scope.countryBaseColor = CONFIG.style.countryBaseColor;
+
+  $scope.setProjection = function(key) {
+    if (!(key in projections)) {
+      log.error('invalid projection:', key);
+      return;
+    }
+    $scope.projectionKey = key;
+    projection = projections[key];
+    path.projection(projection);
+  };
+
+  d3.select('#vis svg').call(zoom).on('mousedown', function() {
     dragging = true;
     lastX = d3.event.x;
     lastY = d3.event.y;
@@ -45,7 +58,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     if (!dragging) return;
     var dx = d3.event.x - lastX,
         dy = d3.event.y - lastY;
-    switch (projectionKey) {
+    switch ($scope.projectionKey) {
       case 'orthographic':
         var current = projection.rotate();
         projection.rotate([current[0]+λ(dx), current[1]+φ(dy)]);
@@ -65,9 +78,6 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
   //}
   //d3.timer(rotateWest);
 
-  $scope.path = path;
-  $scope.countryBaseColor = CONFIG.style.countryBaseColor;
-
   queue()
     .defer(d3.json, CONFIG.source.world)
     .await(dataFetched);
@@ -79,11 +89,11 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
 
   // XXX this clobbers any zooming and panning the user did on resize
   function handleResize() {
-    dim.width = $vis.width();
-    dim.height = $vis.height();
+    dim.width = $svg.width();
+    dim.height = $svg.height();
     λ.domain([-dim.width, dim.width]);
     φ.domain([-dim.height, dim.height]);
-    switch (projectionKey) {
+    switch ($scope.projectionKey) {
       case 'orthographic':
         dim.radius = Math.min(dim.width, dim.height) >> 1;
         projection.scale(dim.radius-2);
@@ -108,7 +118,17 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
   };
 
   $scope.pathConnection = function(peer) {
-    return path(greatArc({source: [model.location.lon, model.location.lat], target: [peer.lon, peer.lat]}));
+    switch ($scope.projectionKey) {
+      case 'orthographic':
+        return path(greatArc({source: [model.location.lon, model.location.lat], target: [peer.lon, peer.lat]}));
+      case 'mercator':
+        var pSelf = projection([model.location.lon, model.location.lat]),
+            pPeer = projection([peer.lon, peer.lat]),
+            xS = pSelf[0], yS = pSelf[1], xP = pPeer[0], yP = pPeer[1],
+            controlPoint = [abs(xS+xP)/2, min(yS, yP) - abs(xP-xS)*.3],
+            xC = controlPoint[0], yC = controlPoint[1];
+        return 'M'+xS+' '+yS+'Q'+xC+' '+yC+' '+xP+' '+yP;
+    }
   };
 
   $scope.pathPeer = function(peer) {

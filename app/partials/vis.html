@@ -1,4 +1,5 @@
-<svg id="vis" ng-controller="VisCtrl" ui-if="model.showVis">
+<div id="vis" ng-controller="VisCtrl" ui-if="model.showVis">
+<svg>
   <path id="water" ng-d="{{ pathGlobe() }}"/>
   <g id="countries">
     <g ng-repeat="d in countryGeometries">
@@ -23,3 +24,19 @@
     </filter>
   </defs>
 </svg>
+
+<div id="projectionButtons" class="btn-group">
+  <button class="btn btn-inverse"
+          ng-class="{active: projectionKey == 'mercator'}"
+          ng-disabled="projectionKey == 'mercator'"
+          ng-click="setProjection('mercator')">
+          <i class="icon icon-picture"></i><!-- XXX -->
+  </button>
+  <button class="btn btn-inverse"
+          ng-class="{active: projectionKey == 'orthographic'}"
+          ng-disabled="projectionKey == 'orthographic'"
+          ng-click="setProjection('orthographic')">
+    <i class="icon icon-globe"></i>
+  </button>
+</div>
+</div>

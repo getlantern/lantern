@@ -6910,6 +6910,12 @@ textarea.bugReport {
   margin-top: 24px;
 }
 
+#projectionButtons {
+  position: absolute;
+  bottom: 75px;
+  left: 25px;
+}
+
 #vis-container {
   height: 100%;
 }
