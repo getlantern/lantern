@@ -21,9 +21,12 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
       min = Math.min,
       dim = {},
       $vis = $('#vis'),
-      projection = d3.geo.orthographic()
-                     .clipAngle(90)
-                     .precision(0),
+      projections = {
+        orthographic: d3.geo.orthographic().clipAngle(90),
+        mercator: d3.geo.mercator()
+      },
+      projectionKey = 'mercator',
+      projection = projections[projectionKey],
       λ = d3.scale.linear().range([-180, 180]),
       φ = d3.scale.linear().range([90, -90]),
       zoom = d3.behavior.zoom().scaleExtent([50, 1000]).on('zoom', handleZoom),
@@ -31,16 +34,25 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
       greatArc = d3.geo.greatArc(),
       dragging = false, lastX, lastY;
 
+  // disable adaptive resampling to allow transitions (http://bl.ocks.org/mbostock/3711652)
+  _.each(projections, function(p) { p.precision(0); });
+
   d3.select('#vis').call(zoom).on('mousedown', function() {
     dragging = true;
     lastX = d3.event.x;
     lastY = d3.event.y;
   }).on('mousemove', function() {
     if (!dragging) return;
-    var current = projection.rotate(),
-        dx = d3.event.x - lastX,
+    var dx = d3.event.x - lastX,
         dy = d3.event.y - lastY;
-    projection.rotate([current[0]+λ(dx), current[1]+φ(dy)]);
+    switch (projectionKey) {
+      case 'orthographic':
+        var current = projection.rotate();
+        projection.rotate([current[0]+λ(dx), current[1]+φ(dy)]);
+        break;
+      case 'mercator':
+        // XXX
+    }
     lastX = d3.event.x;
     lastY = d3.event.y;
     $scope.$apply();
@@ -65,13 +77,21 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     //borders = topojson.mesh(world, world.objects.countries, function(a, b) { return a.id !== b.id; });
   }
 
+  // XXX this clobbers any zooming and panning the user did on resize
   function handleResize() {
     dim.width = $vis.width();
     dim.height = $vis.height();
-    dim.radius = Math.min(dim.width, dim.height) >> 1;
     λ.domain([-dim.width, dim.width]);
     φ.domain([-dim.height, dim.height]);
-    projection.scale(dim.radius-2).translate([dim.width/2, dim.height/2]);
+    switch (projectionKey) {
+      case 'orthographic':
+        dim.radius = Math.min(dim.width, dim.height) >> 1;
+        projection.scale(dim.radius-2);
+        break;
+      case 'mercator':
+        projection.scale(Math.min(dim.width, dim.height));
+    }
+    projection.translate([dim.width/2, dim.height/2]);
     zoom.scale(projection.scale());
   }
   handleResize();
