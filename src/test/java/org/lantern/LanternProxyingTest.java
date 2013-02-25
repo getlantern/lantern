@@ -49,6 +49,10 @@ public class LanternProxyingTest {
         if (!certsFile.isFile()) {
             throw new IllegalStateException("COULD NOT FIND CACERTS!!");
         }
+        
+        // We set this back to the global trust store because in this case 
+        // we're testing a bunch of sites, not just the ones lantern accesses
+        // internally.
         System.setProperty("javax.net.ssl.trustStore", certsFile.getCanonicalPath());
         
         LanternUtils.waitForServer(LanternConstants.LANTERN_LOCALHOST_HTTP_PORT);
@@ -80,7 +84,7 @@ public class LanternProxyingTest {
                 LanternConstants.LANTERN_LOCALHOST_HTTP_PORT) ? 1 : 0;
         }
         //allow at most five failures
-        assertEquals("Too many failures", censored.size(), good);
+        assertEquals("There were site failures", censored.size(), good);
         //log.info("Stopping proxy");
         //proxy.stop();
         //Launcher.stop();

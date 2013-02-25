@@ -36,8 +36,7 @@ public class TestUtils {
 
     private static final Logger LOG = LoggerFactory.getLogger(TestUtils.class);
     
-    private static final File privatePropsFile = 
-        LanternConstants.TEST_PROPS;
+    private static final File privatePropsFile;
     
     private static final Properties privateProps = new Properties();
 
@@ -85,24 +84,30 @@ public class TestUtils {
     private static boolean started = false;
 
     static {
-        InputStream is = null;
-        try {
-            is = new FileInputStream(privatePropsFile);
-            privateProps.load(is);
-        } catch (final IOException e) {
-            System.err.println("NO PRIVATE PROPS FILE AT "+
-                privatePropsFile.getAbsolutePath());
-            e.printStackTrace();
-        } finally {
-            IOUtils.closeQuietly(is);
+        if (LanternConstants.TEST_PROPS.isFile()) {
+            privatePropsFile = LanternConstants.TEST_PROPS;
+        } else {
+            privatePropsFile = LanternConstants.TEST_PROPS2;
         }
-        
-        if (StringUtils.isBlank(getRefreshToken()) ||
-            StringUtils.isBlank(getAccessToken())) {
-            System.err.println("NO REFRESH OR ACCESS TOKENS!!");
-            //throw new Error("Tokens not in "+privatePropsFile);
+        if (privatePropsFile.isFile()) {
+            InputStream is = null;
+            try {
+                is = new FileInputStream(privatePropsFile);
+                privateProps.load(is);
+            } catch (final IOException e) {
+                System.err.println("NO PRIVATE PROPS FILE AT "+
+                    privatePropsFile.getAbsolutePath());
+                e.printStackTrace();
+            } finally {
+                IOUtils.closeQuietly(is);
+            }
+            
+            if (StringUtils.isBlank(getRefreshToken()) ||
+                StringUtils.isBlank(getAccessToken())) {
+                System.err.println("NO REFRESH OR ACCESS TOKENS!!");
+                //throw new Error("Tokens not in "+privatePropsFile);
+            }
         }
-        //load();
     }
     public static void load() {
         load(false);
