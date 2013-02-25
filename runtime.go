@@ -114,7 +114,7 @@ func (self *_runtime) PutValue(reference _reference, value Value) {
 	if !reference.PutValue(value) {
 		// Why? -- If reference.Base == nil
 		strict := false
-		self.GlobalObject.set(reference.Name(), value, strict)
+		self.GlobalObject.set(reference.GetName(), value, strict)
 	}
 }
 

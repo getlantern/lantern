@@ -59,8 +59,7 @@ func (self *_runtime) evaluateRegExp(node *_regExpNode) Value {
 func (self *_runtime) evaluateUnaryOperation(node *_unaryOperationNode) Value {
 
 	target := self.evaluate(node.Target)
-	// TODO CanResolve? Match this to IsUnresolva...
-	if node.Operator == "typeof" && target._valueType == valueReference && !target.reference().CanResolve() {
+	if node.Operator == "typeof" && target._valueType == valueReference && target.reference().IsUnresolvable() {
 		return toValue("undefined")
 	}
 	targetValue := self.GetValue(target)
@@ -495,9 +494,11 @@ func (self *_runtime) evaluateCall(node *_callNode) Value {
 	this := UndefinedValue()
 	calleeReference := callee.reference()
 	if calleeReference != nil {
-		calleeObject := calleeReference.GetBase()
-		if calleeObject != nil {
+		if calleeReference.IsPropertyReference() {
+			calleeObject := calleeReference.GetBase().(*_object)
 			this = toValue(calleeObject)
+		} else {
+			// TODO ImplictThisValue
 		}
 	}
 	if !calleeValue.IsFunction() {
