@@ -84,6 +84,7 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         if (this.proxyAddress != null) {
             return true;
         }
+        log.info("No proxy!");
         return false;
     }
 
@@ -103,8 +104,10 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
                 cf = openOutgoingChannel(browserToProxyChannel, request);
             }
         }
-        this.transformer.transform(request, proxyAddress);
-        LanternUtils.writeRequest(this.httpRequests, request, cf);
+        if (!connect) {
+            this.transformer.transform(request, proxyAddress);
+            LanternUtils.writeRequest(this.httpRequests, request, cf);
+        }
         return true;
     }
     
@@ -168,7 +171,6 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
     
     private ChannelFuture openOutgoingConnectChannel(
         final Channel browserToProxyChannel, final HttpRequest request) {
-        
         browserToProxyChannel.setReadable(false);
 
         // Start the connection attempt.
@@ -180,7 +182,6 @@ public class DefaultHttpRequestProcessor implements HttpRequestProcessor {
         pipeline.addLast("handler", 
             new HttpConnectRelayingHandler(browserToProxyChannel, 
                 this.channelGroup));
-
         log.debug("Connecting to relay proxy {} for {}", proxyAddress, request.getUri());
         final ChannelFuture connectFuture = cb.connect(proxyAddress);
         log.debug("Got an outbound channel on: {}", hashCode());

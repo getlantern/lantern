@@ -4,17 +4,9 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLEngine;
-
 import org.apache.commons.lang.StringUtils;
-import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.Channel;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
-import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
@@ -25,11 +17,8 @@ import org.jboss.netty.handler.codec.http.HttpChunk;
 import org.jboss.netty.handler.codec.http.HttpHeaders.Names;
 import org.jboss.netty.handler.codec.http.HttpMethod;
 import org.jboss.netty.handler.codec.http.HttpRequest;
-import org.jboss.netty.handler.codec.http.HttpRequestEncoder;
-import org.jboss.netty.handler.ssl.SslHandler;
 import org.lantern.httpseverywhere.HttpsEverywhere;
 import org.lantern.state.Model;
-import org.littleshoot.proxy.HttpConnectRelayingHandler;
 import org.littleshoot.proxy.ProxyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,11 +33,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     
     private volatile long messagesReceived = 0L;
 
-    /**
-     * Outgoing channel that handles incoming HTTP Connect requests.
-     */
-    private ChannelFuture httpConnectChannelFuture;
-    
     private Channel browserToProxyChannel;
 
     // http://code.google.com/appengine/docs/quotas.html:
@@ -93,39 +77,19 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final ClientSocketChannelFactory clientChannelFactory,
         final ChannelGroup channelGroup,
         final PeerProxyManager trustedPeerProxyManager,
-        //final PeerProxyManager anonymousPeerProxyManager,
         final Stats stats, final Model model, final ProxyTracker proxyTracker,
         final HttpsEverywhere httpsEverywhere,
         final LanternTrustStore trustStore) {
         this.clientChannelFactory = clientChannelFactory;
         this.channelGroup = channelGroup;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
-        //this.anonymousPeerProxyManager = anonymousPeerProxyManager;
         this.stats = stats;
         this.model = model;
         this.proxyTracker = proxyTracker;
         this.httpsEverywhere = httpsEverywhere;
         this.trustStore = trustStore;
-        this.proxyRequestProcessor =
-            new DefaultHttpRequestProcessor(proxyTracker,
-                new HttpRequestTransformer() {
-                    @Override
-                    public void transform(final HttpRequest request, 
-                        final InetSocketAddress proxyAddress) {
-                        // Does nothing.
-                    }
-                }, false,
-                new Proxy() {
-                    @Override
-                    public URI getPeerProxy() {
-                        throw new UnsupportedOperationException(
-                            "Peer proxy not supported here.");
-                    }
-                    @Override
-                    public InetSocketAddress getProxy() {
-                        return proxyTracker.getProxy();
-                    }
-                }, this.clientChannelFactory, this.channelGroup, this.stats, trustStore);
+        
+        this.proxyRequestProcessor = newRequestProcessor();
         this.laeRequestProcessor =
             new DefaultHttpRequestProcessor(proxyTracker,
                 new LaeHttpRequestTransformer(), true,
@@ -140,6 +104,35 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                         return proxyTracker.getLaeProxy();
                     }
             }, this.clientChannelFactory, this.channelGroup, this.stats, trustStore);
+    }
+
+    /**
+     * Creates new default request processors to avoid worrying about holding
+     * state across calls.
+     * 
+     * @return The processor.
+     */
+    private HttpRequestProcessor newRequestProcessor() {
+        return new DefaultHttpRequestProcessor(this.proxyTracker,
+            new HttpRequestTransformer() {
+                @Override
+                public void transform(final HttpRequest request, 
+                    final InetSocketAddress proxyAddress) {
+                    // Does nothing.
+                }
+            }, false,
+            new Proxy() {
+                @Override
+                public URI getPeerProxy() {
+                    throw new UnsupportedOperationException(
+                        "Peer proxy not supported here.");
+                }
+                @Override
+                public InetSocketAddress getProxy() {
+                    return proxyTracker.getProxy();
+                }
+            }, this.clientChannelFactory, this.channelGroup, this.stats, 
+            this.trustStore);
     }
 
     @Override
@@ -237,7 +230,8 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                     // want to relay all traffic in this case without doing 
                     // anything on our own other than direct the CONNECT 
                     // request to the correct proxy.
-                    centralConnect(request);
+                    newRequestProcessor().processRequest(
+                            browserToProxyChannel, ctx, request);
                     return null;
                 }
             } catch (final IOException e) {
@@ -246,7 +240,12 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 // anonymous proxies, which could happen quite often.
                 // We should fall back to central.
                 if (useStandardProxies()) {
-                    centralConnect(request);
+                    try {
+                        newRequestProcessor().processRequest(
+                                browserToProxyChannel, ctx, request);
+                    } catch (final IOException e1) {
+                        log.warn("Could not connect");
+                    }
                 }
                 return null;
             }
@@ -303,20 +302,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         return this.model.getSettings().isUseLaeProxies() && model.getSettings().isUseCloudProxies();
     }
 
-    private void centralConnect(final HttpRequest request) {
-        if (this.httpConnectChannelFuture == null) {
-            log.debug("Opening HTTP CONNECT tunnel");
-            try {
-                this.httpConnectChannelFuture = 
-                    openHttpConnectChannelToCentralProxy(request);
-            } catch (final IOException e) {
-                log.error("Could not open CONNECT channel", e);
-            }
-        } else {
-            log.error("Outbound channel already assigned?");
-        }
-    }
-
     private boolean isLae(final HttpRequest request) {
         final String uri = request.getUri();
         if (uri.contains("youtube.com")) {
@@ -356,107 +341,6 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         log.debug("Got incoming channel");
         this.browserToProxyChannel = e.getChannel();
         this.channelGroup.add(this.browserToProxyChannel);
-    }
-    
-    private ChannelFuture openHttpConnectChannelToCentralProxy(
-        final HttpRequest request) throws IOException {
-        this.browserToProxyChannel.setReadable(false);
-
-        // Start the connection attempt.
-        final ClientBootstrap cb = 
-            new ClientBootstrap(this.clientChannelFactory);
-        
-        final ChannelPipeline pipeline = cb.getPipeline();
-        
-        // This is slightly odd, as we tunnel SSL inside SSL, but we'd 
-        // otherwise just be running an open CONNECT proxy.
-        
-        // It's also necessary to use our own engine here, as we need to trust
-        // the cert from the proxy.
-        final SSLEngine engine = trustStore.getContext().createSSLEngine();
-        engine.setUseClientMode(true);
-        
-        final ChannelHandler statsHandler = new StatsTrackingHandler() {
-            @Override
-            public void addDownBytes(long bytes) {
-                // contributes to local download rate
-                stats.addDownBytesViaProxies(bytes);
-            }
-
-            @Override
-            public void addUpBytes(long bytes) {
-                stats.addUpBytesViaProxies(bytes);
-            }
-        };        
-
-        pipeline.addLast("stats", statsHandler);
-        pipeline.addLast("ssl", new SslHandler(engine));
-        pipeline.addLast("encoder", new HttpRequestEncoder());
-        pipeline.addLast("handler", 
-            new HttpConnectRelayingHandler(this.browserToProxyChannel, 
-                this.channelGroup));
-        final InetSocketAddress isa = proxyTracker.getProxy();
-        if (isa == null) {
-            log.error("NO PROXY AVAILABLE?");
-            ProxyUtils.closeOnFlush(browserToProxyChannel);
-            throw new IOException("No proxy to use for CONNECT?");
-        }
-        log.debug("Connecting to relay proxy {} for {}", isa, request.getUri());
-        final ChannelFuture cf = cb.connect(isa);
-        log.debug("Got an outbound channel on: {}", hashCode());
-        
-        final ChannelPipeline browserPipeline = 
-            browserToProxyChannel.getPipeline();
-        remove(browserPipeline, "encoder");
-        remove(browserPipeline, "decoder");
-        remove(browserPipeline, "handler");
-        remove(browserPipeline, "encoder");
-        browserPipeline.addLast("handler", 
-            new HttpConnectRelayingHandler(cf.getChannel(), 
-                this.channelGroup));
-        
-        // This is handy, as set readable to false while the channel is 
-        // connecting ensures we won't get any incoming messages until
-        // we're fully connected.
-        cf.addListener(new ChannelFutureListener() {
-            @Override
-            public void operationComplete(final ChannelFuture future) 
-                throws Exception {
-                if (future.isSuccess()) {
-                    cf.getChannel().write(request).addListener(
-                        new ChannelFutureListener() {
-                            @Override
-                            public void operationComplete(
-                                final ChannelFuture channelFuture) 
-                                throws Exception {
-                                // we're using HTTP connect here, so we need
-                                // to remove the encoder and start reading
-                                // from the inbound channel only when we've
-                                // used the original encoder to properly encode
-                                // the CONNECT request.
-                                pipeline.remove("encoder");
-                                
-                                // Begin to accept incoming traffic.
-                                browserToProxyChannel.setReadable(true);
-                            }
-                    });
-                    
-                } else {
-                    // Close the connection if the connection attempt has failed.
-                    browserToProxyChannel.close();
-                    proxyTracker.onCouldNotConnect(isa);
-                }
-            }
-        });
-        
-        return cf;
-    }
-
-    private void remove(final ChannelPipeline cp, final String name) {
-        final ChannelHandler ch = cp.get(name);
-        if (ch != null) {
-            cp.remove(name);
-        }
     }
 
     @Override 

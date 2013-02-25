@@ -10,7 +10,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.apache.http.client.HttpClient;
+import org.lantern.Censored;
 import org.lantern.Proxifier;
 import org.lantern.XmppHandler;
 import org.lantern.state.InternalState;
@@ -44,17 +44,21 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
 
     private final LanternHttpClient httpClient;
 
+    private final Censored censored;
+
     @Inject
     public GoogleOauth2RedirectServlet(final XmppHandler handler, 
         final Model model, final InternalState internalState,
         final ModelIo modelIo, final Proxifier proxifier,
-        final LanternHttpClient httpClient) {
+        final LanternHttpClient httpClient,
+        final Censored censored) {
         this.handler = handler;
         this.model = model;
         this.internalState = internalState;
         this.modelIo = modelIo;
         this.proxifier = proxifier;
         this.httpClient = httpClient;
+        this.censored = censored;
     }
     
     @Override
@@ -78,7 +82,9 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         log.debug("Params: {}", params);
         log.debug("Headers: {}", HttpUtils.toHeaderMap(req));
         log.debug("Query string: {}", req.getQueryString());
-        proxifier.proxyGoogle();
+        if (this.censored.isCensored()) {
+            proxifier.proxyGoogle();
+        }
         final String location = newGtalkOauthUrl();
         
         // We have to completely recreate the server each time because we
@@ -91,7 +97,7 @@ public class GoogleOauth2RedirectServlet extends HttpServlet {
         // Note that this call absolutely ensures the server is started.
         server.start();
         
-        log.debug("Sending redirect...");
+        log.debug("Sending redirect to {}", location);
         resp.sendRedirect(location);
     }
 
