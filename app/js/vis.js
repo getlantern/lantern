@@ -27,7 +27,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
       },
       projection = projections['mercator'],
       λ = d3.scale.linear().range([-180, 180]),
-      φ = d3.scale.linear().range([90, -90]),
+      φ = d3.scale.linear().range([-90, 90]),
       zoom = d3.behavior.zoom().scaleExtent([50, 1000]).on('zoom', handleZoom),
       path = d3.geo.path().projection(projection),
       greatArc = d3.geo.greatArc(),
@@ -45,9 +45,18 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
       log.error('invalid projection:', key);
       return;
     }
+    // XXX check this:
+    switch (key) {
+      case 'mercator':
+        φ.range([-90, 90]);
+        break;
+      case 'orthographic':
+        φ.range([90, -90]);
+    }
     $scope.projectionKey = key;
     projection = projections[key];
     path.projection(projection);
+    handleResize();
   };
 
   d3.select('#vis svg').call(zoom).on('mousedown', function() {
@@ -64,7 +73,8 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
         projection.rotate([current[0]+λ(dx), current[1]+φ(dy)]);
         break;
       case 'mercator':
-        // XXX
+        var current = projection.translate();
+        projection.translate([current[0]+dx, current[1]+dy]);
     }
     lastX = d3.event.x;
     lastY = d3.event.y;
@@ -99,7 +109,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
         projection.scale(dim.radius-2);
         break;
       case 'mercator':
-        projection.scale(Math.min(dim.width, dim.height));
+        projection.scale(Math.max(dim.width, dim.height));
     }
     projection.translate([dim.width/2, dim.height/2]);
     zoom.scale(projection.scale());
