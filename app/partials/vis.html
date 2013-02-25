@@ -2,10 +2,12 @@
 <svg>
   <path id="water" ng-d="{{ pathGlobe() }}"/>
   <g id="countries">
+    <!--
     <g ng-repeat="d in countryGeometries">
       <title ui-if="d.alpha2">{{ d.alpha2 | i18n }}: {{ model.countries[d.alpha2].npeers.online.giveGet || 0 }} peers online, {{ model.countries[d.alpha2].npeers.online.give || 0 }} in Give Mode, {{ model.countries[d.alpha2].npeers.online.get || 0 }} in Get Mode</title>
       <path ng-fill="{{ fillByCountry[d.alpha2] || countryBaseColor }}" class="{{ d.alpha2 }}" ng-d="{{ path(d) }}"/>
     </g>
+    -->
   </g>
   <g id="peersCurrent">
     <g ng-repeat="peer in model.connectivity.peers.current" class="{{ peer.bpsUpDn && 'transferring' || '' }}">

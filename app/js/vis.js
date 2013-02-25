@@ -3,9 +3,11 @@
 angular.module('app.vis', [])
   .constant('CONFIG', {
     style: {
+      countryStroke: 'rgb(30, 61, 75)',
+      countryFillDefault: 'rgb(0, 0, 0)',
+      countryFillOpacityDefault: '.1',
       countryOpacityMax: .5,
       countryOpacityMin: .1,
-      countryBaseColor: 'rgba(0, 0, 0, .1)',
       giveModeColor: '#00ff80',
       getModeColor: '#ffcc66',
     },
@@ -26,19 +28,21 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
         mercator: d3.geo.mercator()
       },
       projection = projections['mercator'],
-      λ = d3.scale.linear().range([-180, 180]),
-      φ = d3.scale.linear().range([-90, 90]),
-      zoom = d3.behavior.zoom().scaleExtent([50, 1000]).on('zoom', handleZoom),
+      λ = d3.scale.linear().range([-180, 180]).clamp(true),
+      φ = d3.scale.linear().range([-90, 90]).clamp(true),
+      zoom = d3.behavior.zoom().on('zoom', handleZoom),
       path = d3.geo.path().projection(projection),
       greatArc = d3.geo.greatArc(),
+      fillByCountry = {}, fillOpacityByCountry = {},
+      countryPaths,
       dragging = false, lastX, lastY;
 
   // disable adaptive resampling to allow transitions (http://bl.ocks.org/mbostock/3711652)
   _.each(projections, function(p) { p.precision(0); });
 
   $scope.projectionKey = 'mercator';
-  $scope.path = path;
-  $scope.countryBaseColor = CONFIG.style.countryBaseColor;
+
+  handleResize();
 
   $scope.setProjection = function(key) {
     if (!(key in projections)) {
@@ -59,6 +63,15 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     handleResize();
   };
 
+  function pathForData(d) {
+    // XXX https://bugs.webkit.org/show_bug.cgi?id=110691
+    return path(d) || 'M0 0';
+  }
+
+  function updateCountryPaths() {
+    countryPaths.attr('d', pathForData);
+  }
+
   d3.select('#vis svg').call(zoom).on('mousedown', function() {
     dragging = true;
     lastX = d3.event.x;
@@ -78,7 +91,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     }
     lastX = d3.event.x;
     lastY = d3.event.y;
-    $scope.$apply();
+    updateCountryPaths();
   }).on('mouseup', function() {
     dragging = false;
   });
@@ -93,7 +106,14 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     .await(dataFetched);
 
   function dataFetched(error, world) {
-    $scope.countryGeometries = topojson.object(world, world.objects.countries).geometries;
+    var countryGeometries = topojson.object(world, world.objects.countries).geometries;
+    countryPaths = d3.select('#countries').selectAll('path')
+      .data(countryGeometries).enter().append('path')
+        .attr('stroke', CONFIG.style.countryStroke)
+        .attr('class', function(d) { return d.alpha2; })
+        .attr('fill', function(d) { return fillByCountry[d.alpha2] || CONFIG.style.countryFillDefault; })
+        .attr('fill-opacity', function(d) { return fillOpacityByCountry[d.alpha2] || CONFIG.style.countryFillOpacityDefault; })
+        .attr('d', pathForData);
     //borders = topojson.mesh(world, world.objects.countries, function(a, b) { return a.id !== b.id; });
   }
 
@@ -113,14 +133,14 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     }
     projection.translate([dim.width/2, dim.height/2]);
     zoom.scale(projection.scale());
+    if (countryPaths) updateCountryPaths();
   }
-  handleResize();
   d3.select($window).on('resize', handleResize);
 
   // XXX look at http://bl.ocks.org/mbostock/4987520
   function handleZoom() {
     projection.scale(d3.event.scale);
-    $scope.$apply();
+    updateCountryPaths();
   }
 
   $scope.pathGlobe = function() {
@@ -154,14 +174,10 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     projection.rotate([-loc.lon, 0]);
   }, true);
 
-  $scope.fillByCountry = {};
   var maxGiveGet = 0,
-      countryOpacityScale = d3.scale.linear()
-                              .range([CONFIG.style.countryOpacityMin, CONFIG.style.countryOpacityMax])
-                              .clamp(true),
-      countryFillScale = d3.scale.linear(),
-      GMC = d3.rgb(CONFIG.style.getModeColor),
-      getModeColorPrefix = 'rgba('+GMC.r+','+GMC.g+','+GMC.b+',',
+      countryOpacityScale = d3.scale.linear().clamp(true)
+        .range([CONFIG.style.countryOpacityMin, CONFIG.style.countryOpacityMax]),
+      countryFillScale = d3.scale.linear().clamp(true),
       countryFillInterpolator = d3.interpolateRgb(CONFIG.style.giveModeColor,
                                                   CONFIG.style.getModeColor);
 
@@ -170,20 +186,24 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     if (!npeers) return;
     var censors = getByPath(model, '/countries/'+country).censors,
         scaledOpacity = countryOpacityScale(npeers.giveGet),
-        colorPrefix, fill;
+        fill;
     if (censors) {
+      fill = CONFIG.style.getModeColor;
       if (npeers.giveGet !== npeers.get) {
         log.warn('npeers.giveGet (', npeers.giveGet, ') !== npeers.get (', npeers.get, ') for censoring country', country);
+        // XXX POST to exceptional notifier
       }
-      colorPrefix = getModeColorPrefix;
     } else {
       countryFillScale.domain([-npeers.giveGet, npeers.giveGet]);
-      var scaledFill = countryFillScale(npeers.get - npeers.give),
-          color = d3.rgb(countryFillInterpolator(scaledFill));
-      colorPrefix = 'rgba('+color.r+','+color.g+','+color.b+',';
+      var scaledFill = countryFillScale(npeers.get - npeers.give);
+      fill = d3.rgb(countryFillInterpolator(scaledFill));
     }
-    fill = colorPrefix+(scaledOpacity||0)+')';
-    $scope.fillByCountry[country] = fill;
+    fillByCountry[country] = fill;
+    fillOpacityByCountry[country] = scaledOpacity;
+    d3.select('path.'+country).attr('stroke', '#fff')
+       .transition().duration(1000).attr('fill', fill)
+       .transition().duration(1000).attr('fill-opacity', scaledOpacity)
+       .transition().duration(250).attr('stroke', CONFIG.style.countryStroke)
     //log.debug('updated fill for country', country, 'to', fill);
   }
 
