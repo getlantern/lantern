@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
@@ -43,7 +43,7 @@ public class DefaultProxyTracker implements ProxyTracker {
      * established connections with some of them. The main purpose of this is
      * to avoid exchanging keys multiple times.
      */
-    private final Set<URI> peerProxySet = new HashSet<URI>();
+    private final Set<String> peerProxySet = new HashSet<String>();
 
     private final Set<ProxyHolder> laeProxySet =
         new HashSet<ProxyHolder>();
@@ -60,9 +60,14 @@ public class DefaultProxyTracker implements ProxyTracker {
         this.model = model;
         this.peerProxyManager = trustedPeerProxyManager;
 
-        addGeneralProxy(LanternConstants.FALLBACK_SERVER_HOST+":"+
-            LanternConstants.FALLBACK_SERVER_PORT);
+        addFallbackProxy();
         Events.register(this);
+    }
+
+    private void addFallbackProxy() {
+        addProxy(InetSocketAddress.createUnresolved(
+            LanternConstants.FALLBACK_SERVER_HOST, 
+            Integer.parseInt(LanternConstants.FALLBACK_SERVER_PORT)));
     }
 
     @Override
@@ -79,8 +84,7 @@ public class DefaultProxyTracker implements ProxyTracker {
         this.laeProxies.clear();
 
         // We need to add the fallback proxy back in.
-        addGeneralProxy(LanternConstants.FALLBACK_SERVER_HOST+":"+
-                LanternConstants.FALLBACK_SERVER_PORT);
+        addFallbackProxy();
     }
 
     @Override
@@ -90,7 +94,7 @@ public class DefaultProxyTracker implements ProxyTracker {
 
 
     @Override
-    public boolean addPeerProxy(final URI peerUri) {
+    public boolean addJidProxy(final String peerUri) {
         log.info("Considering peer proxy");
         synchronized (peerProxySet) {
             // We purely do this to keep track of which peers we've attempted
@@ -118,14 +122,24 @@ public class DefaultProxyTracker implements ProxyTracker {
         addProxyWithChecks(this.laeProxySet, this.laeProxies,
             new ProxyHolder(cur, new InetSocketAddress(cur, 443)), cur);
     }
+    
+    @Override
+    public void addProxy(final String hostPort) {
+        log.debug("Adding proxy as string: {}", hostPort);
+        final String hostname = 
+            StringUtils.substringBefore(hostPort, ":");
+        final int port = 
+            Integer.parseInt(StringUtils.substringAfter(hostPort, ":"));
+        final InetSocketAddress isa = 
+            InetSocketAddress.createUnresolved(hostname, port);
+        addProxyWithChecks(proxySet, proxies, new ProxyHolder(hostname, isa),
+                hostPort);
+    }
 
     @Override
-    public void addGeneralProxy(final String cur) {
-        final String hostname = StringUtils.substringBefore(cur, ":");
-        final int port = Integer.parseInt(StringUtils.substringAfter(cur, ":"));
-        final InetSocketAddress isa = new InetSocketAddress(hostname, port);
-        addProxyWithChecks(proxySet, proxies, new ProxyHolder(hostname, isa),
-            cur);
+    public void addProxy(final InetSocketAddress isa) {
+        log.debug("Adding proxy: {}", isa);
+        addProxy(isa.getHostName() + ":"+isa.getPort());
     }
 
     private InetSocketAddress getProxy(final Queue<ProxyHolder> queue) {
@@ -234,17 +248,17 @@ public class DefaultProxyTracker implements ProxyTracker {
     }
 
     private void removePeerUri(final URI peerUri) {
-        log.info("Removing peer with URI: {}", peerUri);
+        log.debug("Removing peer with URI: {}", peerUri);
         //remove(peerUri, this.establishedPeerProxies);
     }
 
     private void removeAnonymousPeerUri(final URI peerUri) {
-        log.info("Removing anonymous peer with URI: {}", peerUri);
+        log.debug("Removing anonymous peer with URI: {}", peerUri);
         //remove(peerUri, this.establishedAnonymousProxies);
     }
 
     private void remove(final URI peerUri, final Queue<URI> queue) {
-        log.info("Removing peer with URI: {}", peerUri);
+        log.debug("Removing peer with URI: {}", peerUri);
         queue.remove(peerUri);
     }
 

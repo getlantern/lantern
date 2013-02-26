@@ -1,5 +1,6 @@
 package org.lantern;
 
+import java.net.InetSocketAddress;
 import java.net.URI;
 
 /**
@@ -13,12 +14,15 @@ public interface ProxyTracker extends ProxyStatusListener, ProxyProvider{
 
     void clearPeerProxySet();
 
-    boolean addPeerProxy(URI peerUri);
-
     void addLaeProxy(String cur);
 
-    void addGeneralProxy(String cur);
-
+    void addProxy(String hostPort);
+    
+    void addProxy(InetSocketAddress iae);
+    
+    boolean addJidProxy(String jid);
+    
     void removePeer(URI uri);
+
 
 }
