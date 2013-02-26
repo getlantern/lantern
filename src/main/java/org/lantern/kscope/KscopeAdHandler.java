@@ -1,6 +1,5 @@
-package org.lantern;
+package org.lantern.kscope;
 
-import org.lantern.kscope.LanternKscopeAdvertisement;
 
 public interface KscopeAdHandler {
 

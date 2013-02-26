@@ -56,6 +56,7 @@ import org.lantern.event.GoogleTalkStateEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdateEvent;
 import org.lantern.event.UpdatePresenceEvent;
+import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.kscope.LanternKscopeAdvertisement;
 import org.lantern.kscope.LanternTrustGraphNode;
 import org.lantern.state.Model;

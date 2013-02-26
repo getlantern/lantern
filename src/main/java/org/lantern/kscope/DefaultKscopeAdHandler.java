@@ -1,10 +1,11 @@
-package org.lantern;
+package org.lantern.kscope;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.lantern.kscope.LanternKscopeAdvertisement;
+import org.lantern.LanternTrustStore;
+import org.lantern.ProxyTracker;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
