@@ -1,4 +1,3 @@
-
 #footer
   +size(100%, false)
   +position(false, 0, 0, 0)
@@ -7,15 +6,12 @@
   +small
   +text-shadow($black 1px 1px 1px)
   +box-sizing(border-box)
-  word-spacing: .3ex
-  +single-transition(opacity, 0.5s, ease)
-  $opacityMouseOut: .5
-  opacity: $opacityMouseOut
-  &:hover
-    opacity: 1
+  +opaqueOnMouseover
+  background: linear-gradient(rgba(0, 0, 0, .2), rgba(0, 0, 0, .75))
+  line-height: $baseFontSize * 1.5
 
 body.showVis #footer
-  padding: 10px 0 0
+  padding: 12px 0
   outline: 1px solid rgba(0, 0, 0, .5)
   border-top: 1px solid rgba(255, 255, 255, .1)
   color: $grayLight
@@ -55,21 +51,7 @@ $npendingOffsetRight: 36px
   body.giveMode &
     +position(false, $globalNavPosRight + ($npendingIndexGiveMode * $globalNavBtnWidth) + $npendingOffsetRight, $npendingPosBottom)
 
-#stats
-  +inline-block
-  margin: 0
-  width: 700px
-  text-align: left
-  dt
-    color: lighten($grayLight, 10%)
-    font-weight: bold
-  dd
-    margin-left: 170px
-    overflow: hidden
-    text-overflow: ellipsis
-    white-space: nowrap
-
-#last
+#appInfo
   +smaller
   +aboveModal
   color: $white

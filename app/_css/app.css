@@ -6910,6 +6910,38 @@ textarea.bugReport {
   margin-top: 24px;
 }
 
+#topbar {
+  opacity: 0.75;
+  -webkit-transition: opacity 0.5s ease;
+  transition: opacity 0.5s ease;
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  background: url('../img/bg-topbar.png?1361900869') repeat-x;
+  padding: 10px;
+  color: white;
+  text-shadow: 0 1px 1px black, 0 1px 1px 0 black;
+  text-shadow: 0 1px 1px 0 black, 0 1px 1px 0 black;
+}
+#topbar:hover {
+  opacity: 1;
+}
+#topbar div {
+  display: -moz-inline-stack;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+#bpsUpDn {
+  font-size: 11.9px;
+  float: right;
+  opacity: 0.5;
+}
+#bpsUpDn div {
+  margin-left: 5px;
+}
+
 #projectionButtons {
   position: absolute;
   bottom: 75px;
@@ -6986,17 +7018,18 @@ g.transferring path.connection {
   text-shadow: black 1px 1px 1px;
   -webkit-box-sizing: border-box;
   box-sizing: border-box;
-  word-spacing: 0.3ex;
+  opacity: 0.5;
   -webkit-transition: opacity 0.5s ease;
   transition: opacity 0.5s ease;
-  opacity: 0.5;
+  background: linear-gradient(rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.75));
+  line-height: 21px;
 }
 #footer:hover {
   opacity: 1;
 }
 
 body.showVis #footer {
-  padding: 10px 0 0;
+  padding: 12px 0;
   outline: 1px solid rgba(0, 0, 0, 0.5);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
   color: #999999;
@@ -7045,34 +7078,15 @@ body.giveMode #npending {
   bottom: 7.5px;
 }
 
-#stats {
-  display: -moz-inline-stack;
-  display: inline-block;
-  vertical-align: middle;
-  margin: 0;
-  width: 700px;
-  text-align: left;
-}
-#stats dt {
-  color: #b3b3b3;
-  font-weight: bold;
-}
-#stats dd {
-  margin-left: 170px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-#last {
+#appInfo {
   font-size: 10.5px;
   z-index: 1051;
   color: white;
 }
-#last a {
+#appInfo a {
   color: white;
 }
-#last .update-available * {
+#appInfo .update-available * {
   color: red;
 }
 
@@ -7080,9 +7094,18 @@ body.giveMode #npending {
   background-color: #fff343;
 }
 
+#developer {
+  opacity: 0.5;
+  -webkit-transition: opacity 0.5s ease;
+  transition: opacity 0.5s ease;
+}
+#developer:hover {
+  opacity: 1;
+}
+
 #dev-label {
   position: absolute;
-  top: 2px;
+  top: 120px;
   left: 25px;
   z-index: 1051;
   font-size: 10.5px;
@@ -7093,7 +7116,7 @@ body.giveMode #npending {
 
 #dev-buttons {
   position: absolute;
-  top: 20px;
+  top: 138px;
   left: 20px;
   z-index: 1051;
 }
@@ -7106,8 +7129,8 @@ body.giveMode #npending {
 
 #model {
   position: absolute;
-  top: 41px;
-  bottom: 41px;
+  top: 160px;
+  bottom: 60px;
   left: 20px;
   z-index: 1051;
   width: 500px;

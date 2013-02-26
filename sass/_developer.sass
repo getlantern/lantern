@@ -3,8 +3,13 @@
 #scenarios .modal-header
   background-color: $devModeColor
 
+#developer
+  +opaqueOnMouseover
+
+$marginTop: 120px
+
 #dev-label
-  +position(2px, false, false, 25px)
+  +position($marginTop, false, false, 25px)
   +aboveModal
   +smaller
   color: $devModeColor
@@ -12,7 +17,7 @@
   text-shadow: 0 1px 0 #000
 
 #dev-buttons
-  +position(20px, false, false, 20px)
+  +position($marginTop + 18px, false, false, 20px)
   +aboveModal
   button
     text-shadow: none
@@ -20,7 +25,7 @@
       color: #000
 
 #model
-  +position(41px, false, 41px, 20px)
+  +position($marginTop + 40px, false, 60px, 20px)
   +aboveModal
   width: 500px
   overflow: hidden

@@ -1,0 +1,13 @@
+<div id="topbar" ng-show="model.showVis">
+  <div>
+    {{ model.settings.email }}
+  </div>
+  <div id="bpsUpDn">
+    <div>
+      <i class="icon icon-upload-alt"></i> {{ model.transfers.bpsUp | prettyBps:model.transfers.bpsUpDn }}
+    </div>
+    <div>
+      <i class="icon icon-download-alt"></i> {{ model.transfers.bpsDn | prettyBps:model.transfers.bpsUpDn }}
+    </div>
+  </div>
+</div>

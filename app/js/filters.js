@@ -24,7 +24,7 @@ angular.module('app.filters', [])
       var dimBase = byteDimension(dimensionInput),
           dim = dimBase.dim,
           base = dimBase.base,
-          quotient = $filter('number')(nbytes / base);
+          quotient = $filter('number')(nbytes / base, 1);
       return showUnits ? quotient+' '+dim // XXX i18n?
                        : quotient;
     };

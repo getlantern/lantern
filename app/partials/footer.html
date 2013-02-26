@@ -1,35 +1,12 @@
 <!-- XXX i18n -->
 <div id="footer">
-  <dl id="stats" class="dl-horizontal" ng-show="model.showVis">
-    <dt>
-      <a rel="tooltip" ui-jq="tooltip" data-original-title="{{ 'ENABLE_AUTOREPORT_SUGGESTION' | i18n }}"
-         ng-show="!model.settings.autoReport">
-        <i class="icon-info-sign"></i>
-      </a>
-      {{ model.settings.email }}
-    </dt>
-    <dd>
-      {{ model.connectivity.gtalk }} to Google Talk ·
-      {{ model.transfers.bytesUpDn | prettyBytes }} transferred lifetime ·
-      <!--
-      XXX Lantern friends online ·
-      {{ model.transfers.bpsUpDn | prettyBps }} ·
-      -->
-      <i class="icon icon-upload-alt"></i> {{ model.transfers.bpsUp | prettyBps:model.transfers.bpsUpDn }} ·
-      <i class="icon icon-download-alt"></i> {{ model.transfers.bpsDn | prettyBps:model.transfers.bpsUpDn }}
-    </dd>
-
-    <dt>
-      global stats
-    </dt>
-    <dd>
+  <div id="statsGlobal" ng-show="model.showVis">
     {{ model.global.nusers.online | number }} users online <!-- XXX in 17 countries --> ·
     {{ model.global.nusers.ever | number }} users total ·
     {{ model.global.bytesEver | prettyBytes }} transferred
-    </dd>
-  </dl>
+  </div>
 
-  <div id="last">
+  <div id="appInfo">
     Lantern {{ mockBackend && '(mock backend)' || '' }} {{ model.version.installed | version }}
     <span ng-show="model.version.updateAvailable" class="update-available">
       · <i class="icon-exclamation-sign"></i>
