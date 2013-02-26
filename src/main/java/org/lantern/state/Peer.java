@@ -8,9 +8,9 @@ import java.util.Locale;
  */
 public class Peer {
 
-    private String userId;
+    private String userId = "";
 
-    private String country;
+    private String country = "";
     
     public enum Type {
         desktop,
@@ -33,18 +33,25 @@ public class Peer {
 
     private boolean mapped;
 
-    private String ip;
+    private String ip = "";
     
     private Mode mode;
+    
+    public Peer() {
+        
+    }
     
     public Peer(final String userId,
         final String countryCode, 
         final boolean mapped, final double latitude, 
-        final double longitude, final Type type) {
+        final double longitude, final Type type,
+        final String ip, final Mode mode) {
         this.mapped = mapped;
         this.latitude = latitude;
         this.longitude = longitude;
         this.userId = userId;
+        this.ip = ip;
+        this.mode = mode;
         this.type = type.toString();
         this.country = countryCode.toLowerCase(Locale.US);
         
@@ -107,6 +114,22 @@ public class Peer {
 
     public void setMapped(boolean mapped) {
         this.mapped = mapped;
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
+    }
+
+    public Mode getMode() {
+        return mode;
+    }
+
+    public void setMode(Mode mode) {
+        this.mode = mode;
     }
 
 }
