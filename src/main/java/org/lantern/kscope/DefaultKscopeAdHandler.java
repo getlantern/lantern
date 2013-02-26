@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.lantern.LanternTrustStore;
 import org.lantern.ProxyTracker;
+import org.kaleidoscope.RandomRoutingTable;
 
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
@@ -17,12 +18,15 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
         new ConcurrentHashMap<String, LanternKscopeAdvertisement>();
     private final ProxyTracker proxyTracker;
     private final LanternTrustStore trustStore;
+    private final RandomRoutingTable routingTable;
     
     @Inject
     public DefaultKscopeAdHandler(final ProxyTracker proxyTracker,
-        final LanternTrustStore trustStore) {
+        final LanternTrustStore trustStore,
+        final RandomRoutingTable routingTable) {
         this.proxyTracker = proxyTracker;
         this.trustStore = trustStore;
+        this.routingTable = routingTable;
     }
     
     @Override
