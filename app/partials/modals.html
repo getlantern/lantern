@@ -97,7 +97,7 @@
     <h3>{{ 'GTALK_CONNECTING_TITLE' | i18n }}</h3>
   </div>
   <div class="modal-body">
-    <p class="centered" ng-show="gtalkConnecting">
+    <p class="centered" ng-show="gtalkConnecting || !model.connectivity.lanternController">
       <!-- XXX progress bar would be nice here -->
       <i class="icon-spinner icon-spin icon-large"></i>
     </p>

@@ -130,7 +130,8 @@ exports.SCENARIOS = {
   invited: {
     true: {
       desc: 'invited: true',
-      func: make_simple_scenario({'/connectivity/invited': true})
+      func: make_simple_scenario({'/connectivity/lanternController': true,
+        '/connectivity/invited': true})
     },
     false: {
       desc: 'invited: false',

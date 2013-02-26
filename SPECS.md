@@ -391,6 +391,10 @@ the backend maintains on the frontend through comet publications:
             Google Talk account.</td>
         </tr>
         <tr>
+          <td><strong>lanternController</strong><br><em>boolean</em></td>
+          <td>Whether the user has ever been contacted by Lantern Controller.</td>
+        </tr>
+        <tr>
           <td><strong>invited</strong><br><em>boolean</em></td>
           <td>Whether the user has been invited to Lantern.</td>
         </tr>
