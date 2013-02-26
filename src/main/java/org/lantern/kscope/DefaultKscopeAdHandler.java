@@ -2,7 +2,6 @@ package org.lantern.kscope;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.lantern.XmppHandler;
@@ -30,7 +29,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
      * Map of kscope advertisements for which we are awaiting corresponding
      * certificates.
      */
-    private final Map<String, LanternKscopeAdvertisement> awaitingCerts = 
+    private final ConcurrentHashMap<String, LanternKscopeAdvertisement> awaitingCerts = 
         new ConcurrentHashMap<String, LanternKscopeAdvertisement>();
     private final ProxyTracker proxyTracker;
     private final LanternTrustStore trustStore;

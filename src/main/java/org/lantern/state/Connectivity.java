@@ -3,6 +3,7 @@ package org.lantern.state;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.GoogleTalkState;
 import org.lantern.PeerProxyManager;
@@ -35,6 +36,8 @@ public class Connectivity {
     private boolean invited = false;
 
     private PeerProxyManager peerProxyManager;
+    
+    private Peers peerCollector = new Peers();
 
     public Connectivity() {
         Events.register(this);
@@ -47,11 +50,7 @@ public class Connectivity {
 
     @JsonView({Run.class})
     public Collection<Peer> getPeers() {
-        //return Collections.emptyList();
-        if (this.peerProxyManager != null) {
-            return this.peerProxyManager.getPeers();
-        }
-        return Collections.emptyList();
+        return this.peerCollector.getPeers();
     }
 
     /*
@@ -129,5 +128,15 @@ public class Connectivity {
 
     public void setInvited(boolean invited) {
         this.invited = invited;
+    }
+
+    
+    @JsonView({Persistent.class})
+    public Peers getPeerCollector() {
+        return peerCollector;
+    }
+
+    public void setPeerCollector(Peers peerCollector) {
+        this.peerCollector = peerCollector;
     }
 }
