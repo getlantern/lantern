@@ -37,7 +37,7 @@ public class Connectivity {
 
     private PeerProxyManager peerProxyManager;
     
-    private Peers peers = new Peers();
+    private Peers peerCollector = new Peers();
 
     public Connectivity() {
         Events.register(this);
@@ -47,19 +47,10 @@ public class Connectivity {
     public GoogleTalkState getGTalk() {
         return gtalk;
     }
-    
-    @JsonView({Persistent.class})
-    public Peers getAllPeers() {
-        return peers;
-    }
 
     @JsonView({Run.class})
     public Collection<Peer> getPeers() {
-        //return Collections.emptyList();
-        if (this.peerProxyManager != null) {
-            return this.peerProxyManager.getPeers();
-        }
-        return Collections.emptyList();
+        return this.peerCollector.getPeers();
     }
 
     /*
@@ -137,5 +128,15 @@ public class Connectivity {
 
     public void setInvited(boolean invited) {
         this.invited = invited;
+    }
+
+    
+    @JsonView({Persistent.class})
+    public Peers getPeerCollector() {
+        return peerCollector;
+    }
+
+    public void setPeerCollector(Peers peerCollector) {
+        this.peerCollector = peerCollector;
     }
 }
