@@ -33,6 +33,10 @@ public class Peer {
 
     private boolean mapped;
 
+    private String ip;
+    
+    private Mode mode;
+    
     public Peer(final String userId,
         final String countryCode, 
         final boolean mapped, final double latitude, 
