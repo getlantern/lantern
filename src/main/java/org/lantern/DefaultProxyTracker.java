@@ -15,6 +15,7 @@ import org.lantern.event.Events;
 import org.lantern.event.ProxyConnectionEvent;
 import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
+import org.lantern.state.Peer.Type;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,20 +55,23 @@ public class DefaultProxyTracker implements ProxyTracker {
 
     private final Model model;
 
+    private final PeerFactory peerFactory;
+
     @Inject
     public DefaultProxyTracker(final Model model,
-        final PeerProxyManager trustedPeerProxyManager) {
+        final PeerProxyManager trustedPeerProxyManager,
+        final PeerFactory peerFactory) {
         this.model = model;
         this.peerProxyManager = trustedPeerProxyManager;
-
+        this.peerFactory = peerFactory;
+        
         addFallbackProxy();
         Events.register(this);
     }
 
     private void addFallbackProxy() {
-        addProxy(InetSocketAddress.createUnresolved(
-            LanternConstants.FALLBACK_SERVER_HOST, 
-            Integer.parseInt(LanternConstants.FALLBACK_SERVER_PORT)));
+        addProxy(LanternConstants.FALLBACK_SERVER_HOST, 
+            Integer.parseInt(LanternConstants.FALLBACK_SERVER_PORT), Type.cloud);
     }
 
     @Override
@@ -97,10 +101,6 @@ public class DefaultProxyTracker implements ProxyTracker {
     public boolean addJidProxy(final String peerUri) {
         log.info("Considering peer proxy");
         synchronized (peerProxySet) {
-            // We purely do this to keep track of which peers we've attempted
-            // to establish connections to. This is to avoid exchanging certs
-            // multiple times.
-
             // TODO: I believe this excludes exchanging keys with peers who
             // are on multiple machines when the peer URI is a general JID and
             // not an instance JID.
@@ -131,23 +131,25 @@ public class DefaultProxyTracker implements ProxyTracker {
         final int port = 
             Integer.parseInt(StringUtils.substringAfter(hostPort, ":"));
         
-        addProxy(hostname, port);
+        addProxy(hostname, port, Type.desktop);
     }
 
 
     @Override
     public void addProxy(final InetSocketAddress isa) {
         log.debug("Adding proxy: {}", isa);
-        addProxy(isa.getHostName(), isa.getPort());
+        addProxy(isa.getHostName(), isa.getPort(), Type.desktop);
     }
     
-    private void addProxy(final String host, final int port) {
+    private void addProxy(final String host, final int port, final Type type) {
         final InetSocketAddress isa = 
             InetSocketAddress.createUnresolved(host, port);
         addProxyWithChecks(proxySet, proxies, new ProxyHolder(host, isa),
                 isa.toString());
+        
+        this.peerFactory.addPeer("", host, port, type);
     }
-
+    
     private InetSocketAddress getProxy(final Queue<ProxyHolder> queue) {
         synchronized (queue) {
             if (queue.isEmpty()) {
