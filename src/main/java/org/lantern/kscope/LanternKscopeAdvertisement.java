@@ -1,4 +1,4 @@
-package org.lantern.ksope;
+package org.lantern.kscope;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;

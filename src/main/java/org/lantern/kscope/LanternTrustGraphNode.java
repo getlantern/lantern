@@ -1,4 +1,4 @@
-package org.lantern.ksope;
+package org.lantern.kscope;
 
 import org.jivesoftware.smack.packet.Message;
 import org.kaleidoscope.TrustGraphAdvertisement;
