@@ -32,6 +32,7 @@ import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Peer;
+import org.lantern.state.Peer.Type;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.SyncPath;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
@@ -284,8 +285,8 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         } else {
             final InetAddress ia = sock.getInetAddress();
             final GeoData geo = modelUtils.getGeoData(ia.getHostAddress());
-            peer = new Peer(userId, base64Cert, geo.getCountrycode(), false, 
-                false, false, geo.getLatitude(), geo.getLongitude());
+            peer = new Peer(userId, geo.getCountrycode(), false, 
+                false, false, geo.getLatitude(), geo.getLongitude(), Type.desktop);
             this.peers.put(userId, peer);
         }
         peer.addSocket(ts);
@@ -384,8 +385,8 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         } else {
             final GeoData geo = modelUtils.getGeoData(
                 sock.getInetAddress().getHostAddress());
-            peer = new Peer(userId, cert, geo.getCountrycode(), false, false, 
-                false, geo.getLatitude(), geo.getLongitude());
+            peer = new Peer(userId, geo.getCountrycode(), false, false, 
+                false, geo.getLatitude(), geo.getLongitude(), Type.desktop);
             this.peers.put(userId, peer);
         }
         peer.addSocket(ts);
