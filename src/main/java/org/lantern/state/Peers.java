@@ -23,4 +23,12 @@ public class Peers {
         }
     }
 
+    public void reset() {
+        synchronized(this.peers) {
+            for (final Peer peer : this.peers) {
+                peer.setOnline(false);
+            }
+        }
+    }
+
 }

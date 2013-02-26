@@ -84,6 +84,10 @@ public class ModelIo implements Provider<Model>, Shutdownable {
                     read.setModal(Modal.authorize);
                 }
             }
+            
+            // Make sure all peers are considered offline at startup.
+            final Peers peers = read.getConnectivity().getPeerCollector();
+            peers.reset();
             return read;
         } catch (final IOException e) {
             log.error("Could not read model", e);
