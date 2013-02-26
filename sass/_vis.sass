@@ -13,7 +13,17 @@
   fill: $waterColor
 
 #countries path
-  stroke-width: 1
+  +single-transition(all, 0.5s, ease)
+  fill: #000
+  fill-opacity: .2
+  stroke: rgb(30, 61, 75)
+  stroke-width: 1px
+  stroke-opacity: 0
+  &.updating
+    stroke: #fff
+    stroke-opacity: .5
+  &:hover
+    stroke-opacity: 1
   &.AQ // antarctica
     display: none
 
@@ -28,8 +38,9 @@
 
 path.connection
   fill: none
-  stroke-width: 1
+  stroke-width: 1px
   stroke: #fff
+  +single-transition(opacity, 0.5s, ease)
   opacity: .25
 
 g.transferring path.connection

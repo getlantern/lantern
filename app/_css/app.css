@@ -6403,7 +6403,7 @@ label.checkbox.inline, label.radio.inline {
 }
 
 .btn-give {
-  color: #00994d;
+  color: #528e2f;
 }
 
 .btn-get {
@@ -6414,27 +6414,27 @@ label.checkbox.inline, label.radio.inline {
   color: white;
   color: white;
   text-shadow: 0 -1px 0 rgba(0, 0, 0, 0.25);
-  background-color: #00d86c;
-  background-image: -moz-linear-gradient(top, #00ff80, #00994d);
-  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#00ff80), to(#00994d));
-  background-image: -webkit-linear-gradient(top, #00ff80, #00994d);
-  background-image: -o-linear-gradient(top, #00ff80, #00994d);
-  background-image: linear-gradient(to bottom, #00ff80, #00994d);
+  background-color: #70b249;
+  background-image: -moz-linear-gradient(top, #83c95a, #528e2f);
+  background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#83c95a), to(#528e2f));
+  background-image: -webkit-linear-gradient(top, #83c95a, #528e2f);
+  background-image: -o-linear-gradient(top, #83c95a, #528e2f);
+  background-image: linear-gradient(to bottom, #83c95a, #528e2f);
   background-repeat: repeat-x;
-  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#00fa7d', endColorstr='#00944a', GradientType=0);
-  border-color: #00994d #00994d #004d26;
+  filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#80c856', endColorstr='#508b2d', GradientType=0);
+  border-color: #528e2f #528e2f #31551c;
   border-color: rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.1) rgba(0, 0, 0, 0.25);
-  *background-color: #00994d;
+  *background-color: #528e2f;
   /* Darken IE7 buttons by default so they stand out more given they won't have borders */
   filter: progid:DXImageTransform.Microsoft.gradient(enabled=false);
 }
 .btn-give-inverse:hover, .btn-give-inverse:active, .btn-give-inverse.active, .btn-give-inverse.disabled, .btn-give-inverse[disabled] {
   color: white;
-  background-color: #00994d;
-  *background-color: #008040;
+  background-color: #528e2f;
+  *background-color: #477b28;
 }
 .btn-give-inverse:active, .btn-give-inverse.active {
-  background-color: #006633 \9;
+  background-color: #3c6822 \9;
 }
 
 .btn-get-inverse {
@@ -6930,7 +6930,20 @@ textarea.bugReport {
 }
 
 #countries path {
-  stroke-width: 1;
+  -webkit-transition: all 0.5s ease;
+  transition: all 0.5s ease;
+  fill: black;
+  fill-opacity: 0.2;
+  stroke: #1e3d4b;
+  stroke-width: 1px;
+  stroke-opacity: 0;
+}
+#countries path.updating {
+  stroke: white;
+  stroke-opacity: 0.5;
+}
+#countries path:hover {
+  stroke-opacity: 1;
 }
 #countries path.AQ {
   display: none;
@@ -6941,7 +6954,7 @@ textarea.bugReport {
 }
 
 .peer.give, #self.give {
-  fill: #00ff80;
+  fill: #83c95a;
 }
 
 #self, .peer {
@@ -6950,8 +6963,10 @@ textarea.bugReport {
 
 path.connection {
   fill: none;
-  stroke-width: 1;
+  stroke-width: 1px;
   stroke: white;
+  -webkit-transition: opacity 0.5s ease;
+  transition: opacity 0.5s ease;
   opacity: 0.25;
 }
 

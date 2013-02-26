@@ -3,13 +3,12 @@
 angular.module('app.vis', [])
   .constant('CONFIG', {
     style: {
-      countryStroke: 'rgb(30, 61, 75)',
-      countryFillDefault: 'rgb(0, 0, 0)',
-      countryFillOpacityDefault: '.1',
-      countryOpacityMax: .5,
+      countryOpacityMax: .25,
       countryOpacityMin: .1,
-      giveModeColor: '#00ff80',
+      giveModeColor: '#aad092',
       getModeColor: '#ffcc66',
+      pointRadiusSelf: 5,
+      pointRadiusPeer: 3
     },
     source: {
       world: 'data/world.json'
@@ -28,14 +27,13 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
         mercator: d3.geo.mercator()
       },
       projection = projections['mercator'],
-      λ = d3.scale.linear().range([-180, 180]).clamp(true),
-      φ = d3.scale.linear().range([-90, 90]).clamp(true),
-      zoom = d3.behavior.zoom().on('zoom', handleZoom),
+      //λ = d3.scale.linear().range([-180, 180]).clamp(true),
+      //φ = d3.scale.linear().range([-90, 90]).clamp(true),
+      //zoom = d3.behavior.zoom().on('zoom', handleZoom),
       path = d3.geo.path().projection(projection),
       greatArc = d3.geo.greatArc(),
-      fillByCountry = {}, fillOpacityByCountry = {},
-      countryPaths,
-      dragging = false, lastX, lastY;
+      countryPaths;
+      //dragging = false, lastX, lastY;
 
   // disable adaptive resampling to allow transitions (http://bl.ocks.org/mbostock/3711652)
   _.each(projections, function(p) { p.precision(0); });
@@ -44,6 +42,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
 
   handleResize();
 
+  /*
   $scope.setProjection = function(key) {
     if (!(key in projections)) {
       log.error('invalid projection:', key);
@@ -62,6 +61,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     path.projection(projection);
     handleResize();
   };
+  */
 
   function pathForData(d) {
     // XXX https://bugs.webkit.org/show_bug.cgi?id=110691
@@ -72,6 +72,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     countryPaths.attr('d', pathForData);
   }
 
+  /*
   d3.select('#vis svg').call(zoom).on('mousedown', function() {
     dragging = true;
     lastX = d3.event.x;
@@ -95,6 +96,7 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
   }).on('mouseup', function() {
     dragging = false;
   });
+  */
 
   //function rotateWest() {
   //  projection.rotate([-λ(velocity * (Date.now() - then)), 0]);
@@ -109,20 +111,16 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
     var countryGeometries = topojson.object(world, world.objects.countries).geometries;
     countryPaths = d3.select('#countries').selectAll('path')
       .data(countryGeometries).enter().append('path')
-        .attr('stroke', CONFIG.style.countryStroke)
         .attr('class', function(d) { return d.alpha2; })
-        .attr('fill', function(d) { return fillByCountry[d.alpha2] || CONFIG.style.countryFillDefault; })
-        .attr('fill-opacity', function(d) { return fillOpacityByCountry[d.alpha2] || CONFIG.style.countryFillOpacityDefault; })
         .attr('d', pathForData);
     //borders = topojson.mesh(world, world.objects.countries, function(a, b) { return a.id !== b.id; });
   }
 
-  // XXX this clobbers any zooming and panning the user did on resize
   function handleResize() {
     dim.width = $svg.width();
     dim.height = $svg.height();
-    λ.domain([-dim.width, dim.width]);
-    φ.domain([-dim.height, dim.height]);
+    //λ.domain([-dim.width, dim.width]);
+    //φ.domain([-dim.height, dim.height]);
     switch ($scope.projectionKey) {
       case 'orthographic':
         dim.radius = Math.min(dim.width, dim.height) >> 1;
@@ -131,17 +129,20 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
       case 'mercator':
         projection.scale(Math.max(dim.width, dim.height));
     }
-    projection.translate([dim.width/2, dim.height/2]);
-    zoom.scale(projection.scale());
+    projection.translate([dim.width >> 1, dim.height >> 1]);
+    //zoom.scale(projection.scale());
     if (countryPaths) updateCountryPaths();
   }
   d3.select($window).on('resize', handleResize);
 
+  /*
+  // XXX recenter around cursor
   // XXX look at http://bl.ocks.org/mbostock/4987520
   function handleZoom() {
     projection.scale(d3.event.scale);
     updateCountryPaths();
   }
+  */
 
   $scope.pathGlobe = function() {
     return path({type: 'Sphere'});
@@ -162,16 +163,18 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
   };
 
   $scope.pathPeer = function(peer) {
+    path.pointRadius(CONFIG.style.pointRadiusPeer);
     return path({type: 'Point', coordinates: [peer.lon, peer.lat]});
   };
 
   $scope.pathSelf = function() {
+    path.pointRadius(CONFIG.style.pointRadiusSelf);
     return path({type: 'Point', coordinates: [model.location.lon, model.location.lat]});
   };
 
   $scope.$watch('model.location', function(loc) {
     if (!loc) return;
-    projection.rotate([-loc.lon, 0]);
+    if ($scope.projectionKey === 'orthographic') projection.rotate([-loc.lon, 0]);
   }, true);
 
   var maxGiveGet = 0,
@@ -198,12 +201,9 @@ function VisCtrl($scope, $window, $timeout, $filter, logFactory, modelSrvc, CONF
       var scaledFill = countryFillScale(npeers.get - npeers.give);
       fill = d3.rgb(countryFillInterpolator(scaledFill));
     }
-    fillByCountry[country] = fill;
-    fillOpacityByCountry[country] = scaledOpacity;
-    d3.select('path.'+country).attr('stroke', '#fff')
-       .transition().duration(1000).attr('fill', fill)
-       .transition().duration(1000).attr('fill-opacity', scaledOpacity)
-       .transition().duration(250).attr('stroke', CONFIG.style.countryStroke)
+    var element = d3.select('path.'+country);
+    element.classed('updating', true).style('fill', fill);
+    setTimeout(function() { element.classed('updating', false); }, 500);
     //log.debug('updated fill for country', country, 'to', fill);
   }
 
