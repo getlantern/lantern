@@ -86,4 +86,51 @@ public class LanternKscopeAdvertisement {
             return false;
         }
     }
+    
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + ((address == null) ? 0 : address.hashCode());
+        result = prime * result + ((jid == null) ? 0 : jid.hashCode());
+        result = prime * result
+                + ((localAddress == null) ? 0 : localAddress.hashCode());
+        result = prime * result + port;
+        result = prime * result + ttl;
+        result = prime * result + version;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        LanternKscopeAdvertisement other = (LanternKscopeAdvertisement) obj;
+        if (address == null) {
+            if (other.address != null)
+                return false;
+        } else if (!address.equals(other.address))
+            return false;
+        if (jid == null) {
+            if (other.jid != null)
+                return false;
+        } else if (!jid.equals(other.jid))
+            return false;
+        if (localAddress == null) {
+            if (other.localAddress != null)
+                return false;
+        } else if (!localAddress.equals(other.localAddress))
+            return false;
+        if (port != other.port)
+            return false;
+        if (ttl != other.ttl)
+            return false;
+        if (version != other.version)
+            return false;
+        return true;
+    }
 }

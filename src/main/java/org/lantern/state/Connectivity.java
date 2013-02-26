@@ -3,6 +3,7 @@ package org.lantern.state;
 import java.util.Collection;
 import java.util.Collections;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
 import org.codehaus.jackson.map.annotate.JsonView;
 import org.lantern.GoogleTalkState;
 import org.lantern.PeerProxyManager;
@@ -35,6 +36,8 @@ public class Connectivity {
     private boolean invited = false;
 
     private PeerProxyManager peerProxyManager;
+    
+    private Peers peers = new Peers();
 
     public Connectivity() {
         Events.register(this);
@@ -43,6 +46,11 @@ public class Connectivity {
     @JsonView({Run.class})
     public GoogleTalkState getGTalk() {
         return gtalk;
+    }
+    
+    @JsonView({Persistent.class})
+    public Peers getAllPeers() {
+        return peers;
     }
 
     @JsonView({Run.class})

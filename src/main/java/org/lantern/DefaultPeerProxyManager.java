@@ -207,7 +207,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                     if (peer == null) {
                         log.warn("Could not find matching peer data?");
                     } else {
-                        peer.removeSocket(cts);
+                        //peer.removeSocket(cts);
                     }
                 }
             }
@@ -278,6 +278,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         if (addToSocketsInUse) {
             this.timedSockets.add(ts);
         }
+        /*
         final Peer peer;
         final String userId = XmppUtils.jidToUser(peerUri.toASCIIString());
         if (this.peers.containsKey(userId)) {
@@ -292,6 +293,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         peer.addSocket(ts);
         
         syncPeers();
+        */
     }
 
     @Override
@@ -378,6 +380,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                 sock, this.channelGroup, this.stats, 
                 this.socketsUtil, event.isIncoming());
         
+        /*
         final Peer peer;
         final String userId = XmppUtils.jidToUser(peerUri.toASCIIString());
         if (this.peers.containsKey(userId)) {
@@ -392,6 +395,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         peer.addSocket(ts);
         
         syncPeers();
+        */
     }
 
     private void syncPeers() {

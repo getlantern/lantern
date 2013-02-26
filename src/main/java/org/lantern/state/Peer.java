@@ -1,12 +1,6 @@
 package org.lantern.state;
 
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Locale;
-
-import org.lantern.PeerSocketWrapper;
-
-import com.google.common.collect.ImmutableSet;
 
 /**
  * Class containing data for an individual peer, including active connections,
@@ -14,17 +8,9 @@ import com.google.common.collect.ImmutableSet;
  */
 public class Peer {
 
-    private final String userId;
+    private String userId;
 
-    private final String country;
-    
-    private final boolean incoming;
-
-    private final boolean natPmp;
-    
-    private final boolean upnp;
-    
-    private int connectionAttempts = 0;
+    private String country;
     
     public enum Type {
         desktop,
@@ -32,90 +18,87 @@ public class Peer {
         laeproxy
     }
     
-    private final Collection<PeerSocketWrapper> sockets = 
-        new HashSet<PeerSocketWrapper>();
+    //private final Collection<PeerSocketWrapper> sockets = 
+    //    new HashSet<PeerSocketWrapper>();
 
     //private final String base64Cert;
 
-    private final double latitude;
+    private double latitude;
 
-    private final double longitude;
+    private double longitude;
     
-    private final String type;
+    private String type;
+    
+    private boolean online;
+
+    private boolean mapped;
 
     public Peer(final String userId,
         final String countryCode, 
-        final boolean incoming, 
-        final boolean natPmp, final boolean upnp, final double latitude, 
+        final boolean mapped, final double latitude, 
         final double longitude, final Type type) {
-        //Preconditions.checkArgument(StringUtils.isNotBlank(base64Cert), 
-                //"No cert?");
+        this.mapped = mapped;
         this.latitude = latitude;
         this.longitude = longitude;
         this.userId = userId;
         this.type = type.toString();
-        //this.base64Cert = base64Cert;
         this.country = countryCode.toLowerCase(Locale.US);
-        this.incoming = incoming;
-        this.natPmp = natPmp;
-        this.upnp = upnp;
     }
 
     public String getUserId() {
         return userId;
     }
 
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
     public String getCountry() {
         return country;
     }
 
-    public Collection<PeerSocketWrapper> getSockets() {
-        synchronized (sockets) {
-            return ImmutableSet.copyOf(sockets);
-        }
-    }
-
-    public void removeSocket(final PeerSocketWrapper cts) {
-        synchronized (sockets) {
-            this.sockets.remove(cts);
-        }
-    }
-
-    public void addSocket(final PeerSocketWrapper cts) {
-        synchronized (sockets) {
-            this.sockets.add(cts);
-        }
-    }
-
-    public boolean isIncoming() {
-        return incoming;
-    }
-
-    public boolean isNatPmp() {
-        return natPmp;
-    }
-
-    public boolean isUpnp() {
-        return upnp;
-    }
-
-    public int getConnectionAttempts() {
-        return connectionAttempts;
-    }
-
-    public void incrementConnectionAttempts() {
-        this.connectionAttempts++;
+    public void setCountry(String country) {
+        this.country = country;
     }
 
     public double getLatitude() {
         return latitude;
     }
 
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
     public double getLongitude() {
         return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 
     public String getType() {
         return type;
     }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public boolean isOnline() {
+        return online;
+    }
+
+    public void setOnline(boolean online) {
+        this.online = online;
+    }
+
+    public boolean isMapped() {
+        return mapped;
+    }
+
+    public void setMapped(boolean mapped) {
+        this.mapped = mapped;
+    }
+
 }
