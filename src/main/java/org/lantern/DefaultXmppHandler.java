@@ -585,7 +585,7 @@ public class DefaultXmppHandler implements XmppHandler {
                     
                     final TrustGraphNode tgn = 
                         new LanternTrustGraphNode(DefaultXmppHandler.this);
-                    tgn.advertiseSelf(message);
+                    //tgn.advertiseSelf(message);
                 }
             };
             // We delay this to make sure we've successfully loaded all roster
@@ -984,6 +984,8 @@ public class DefaultXmppHandler implements XmppHandler {
             } else {
                 addPeerProxy(new URI(ad.getJid()));
             }
+
+            //relayKscopeAd(ad);
             
         } catch (final JsonParseException e) {
             LOG.warn("Could not parse JSON", e);

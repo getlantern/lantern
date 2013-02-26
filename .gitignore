@@ -19,3 +19,6 @@ install/lantern-32.deb
 install/md5sums
 install/output.txt
 install/updates.xml
+logs
+tags
+src//tags
