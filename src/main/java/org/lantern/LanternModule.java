@@ -27,6 +27,8 @@ import org.lantern.http.JettyLauncher;
 import org.lantern.http.LanternApi;
 import org.lantern.http.PhotoServlet;
 import org.lantern.httpseverywhere.HttpsEverywhere;
+import org.lantern.kscope.DefaultKscopeAdHandler;
+import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.privacy.DefaultEncryptedFileService;
 import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.lantern.privacy.EncryptedFileService;
