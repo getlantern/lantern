@@ -49,6 +49,8 @@ public class InteractionServlet extends HttpServlet {
         LANTERNFRIENDS,
         RETRY,
         REQUESTINVITE,
+        CONTACT,
+        ABOUT
     }
 
     private final Logger log = LoggerFactory.getLogger(getClass());
@@ -139,7 +141,9 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case about:
-            log.error("Processing about...");
+            this.internalState.setModalCompleted(Modal.finished);
+            this.internalState.advanceModal(null);
+            Events.syncModel(this.model);
             break;
         case authorize:
             log.error("Processing authorize modal...");
@@ -199,6 +203,14 @@ public class InteractionServlet extends HttpServlet {
             case LANTERNFRIENDS:
                 log.debug("Processing friends in none");
                 Events.syncModal(model, Modal.lanternFriends);
+                break;
+            case ABOUT:
+                log.debug("Processing about in none");
+                Events.syncModal(model, Modal.about);
+                break;
+            case CONTACT:
+                log.debug("Processing contact in none");
+                Events.syncModal(model, Modal.contactDevs);
                 break;
             default:
                 log.debug("Unktnown modal in none");
@@ -337,8 +349,9 @@ public class InteractionServlet extends HttpServlet {
             }
             break;
         case contactDevs:
-            log.error("Did not handle interaction for modal {} with " +
-                    "params: {}", modal, params);
+            this.internalState.setModalCompleted(Modal.finished);
+            this.internalState.advanceModal(null);
+            Events.syncModel(this.model);
             break;
         case giveModeForbidden:
             log.error("Did not handle interaction for modal {} with " +
