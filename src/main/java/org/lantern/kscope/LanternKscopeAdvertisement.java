@@ -93,6 +93,7 @@ public class LanternKscopeAdvertisement {
 
     public String getLanternVersion() {
         return lanternVersion;
+    }
     
     @Override
     public int hashCode() {
