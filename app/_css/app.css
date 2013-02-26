@@ -6932,6 +6932,9 @@ textarea.bugReport {
 #countries path {
   stroke-width: 1;
 }
+#countries path.AQ {
+  display: none;
+}
 
 .peer.get, #self.get {
   fill: #ffcc66;
