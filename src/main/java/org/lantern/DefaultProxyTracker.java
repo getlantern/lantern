@@ -130,16 +130,22 @@ public class DefaultProxyTracker implements ProxyTracker {
             StringUtils.substringBefore(hostPort, ":");
         final int port = 
             Integer.parseInt(StringUtils.substringAfter(hostPort, ":"));
-        final InetSocketAddress isa = 
-            InetSocketAddress.createUnresolved(hostname, port);
-        addProxyWithChecks(proxySet, proxies, new ProxyHolder(hostname, isa),
-                hostPort);
+        
+        addProxy(hostname, port);
     }
+
 
     @Override
     public void addProxy(final InetSocketAddress isa) {
         log.debug("Adding proxy: {}", isa);
-        addProxy(isa.getHostName() + ":"+isa.getPort());
+        addProxy(isa.getHostName(), isa.getPort());
+    }
+    
+    private void addProxy(final String host, final int port) {
+        final InetSocketAddress isa = 
+            InetSocketAddress.createUnresolved(host, port);
+        addProxyWithChecks(proxySet, proxies, new ProxyHolder(host, isa),
+                isa.toString());
     }
 
     private InetSocketAddress getProxy(final Queue<ProxyHolder> queue) {
