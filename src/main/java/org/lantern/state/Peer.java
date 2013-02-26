@@ -37,6 +37,8 @@ public class Peer {
     
     private Mode mode;
     
+    private boolean connected;
+    
     public Peer() {
         
     }
@@ -130,6 +132,14 @@ public class Peer {
 
     public void setMode(Mode mode) {
         this.mode = mode;
+    }
+
+    public boolean isConnected() {
+        return connected;
+    }
+
+    public void setConnected(boolean connected) {
+        this.connected = connected;
     }
 
 }
