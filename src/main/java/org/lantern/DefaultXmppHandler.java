@@ -903,12 +903,6 @@ public class DefaultXmppHandler implements XmppHandler {
     */
     
 
-    private void addPeerProxy(final URI peerUri) {
-        if (this.proxyTracker.addJidProxy(peerUri.toASCIIString())) {
-            sendAndRequestCert(peerUri);
-        }
-    }
-    
     @Subscribe
     public void onUpdatePresenceEvent(final UpdatePresenceEvent upe) {
         // This was originally added to decouple the roster from this class.
@@ -992,8 +986,6 @@ public class DefaultXmppHandler implements XmppHandler {
             } else {
                 addPeerProxy(new URI(ad.getJid()));
             }
-
-            //relayKscopeAd(ad);
             */
             
         } catch (final JsonParseException e) {
@@ -1072,13 +1064,17 @@ public class DefaultXmppHandler implements XmppHandler {
         }
         if (cur.startsWith(emailId+"/")) {
             try {
-                addPeerProxy(new URI(cur));
+                // This will get added to the proxy tracker when we get the
+                // cert back.
+                sendAndRequestCert(new URI(cur));
             } catch (final URISyntaxException e) {
                 LOG.error("Error with proxy URI", e);
             }
         } else if (cur.contains("@")) {
             try {
-                addPeerProxy(new URI(cur));
+                // This will get added to the proxy tracker when we get the
+                // cert back.
+                sendAndRequestCert(new URI(cur));
             } catch (final URISyntaxException e) {
                 LOG.error("Error with proxy URI", e);
             }
