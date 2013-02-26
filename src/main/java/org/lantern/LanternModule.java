@@ -27,6 +27,8 @@ import org.lantern.http.JettyLauncher;
 import org.lantern.http.LanternApi;
 import org.lantern.http.PhotoServlet;
 import org.lantern.httpseverywhere.HttpsEverywhere;
+import org.lantern.kscope.DefaultKscopeAdHandler;
+import org.lantern.kscope.KscopeAdHandler;
 import org.lantern.privacy.DefaultEncryptedFileService;
 import org.lantern.privacy.DefaultLocalCipherProvider;
 import org.lantern.privacy.EncryptedFileService;
@@ -77,6 +79,7 @@ public class LanternModule extends AbstractModule {
         bind(LanternSocketsUtil.class);
         bind(LanternXmppUtil.class);
         bind(MessageService.class).to(SwtMessageService.class);
+        bind(KscopeAdHandler.class).to(DefaultKscopeAdHandler.class);
         
         bind(Proxifier.class);
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);

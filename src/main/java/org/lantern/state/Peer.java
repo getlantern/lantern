@@ -4,10 +4,8 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Locale;
 
-import org.apache.commons.lang3.StringUtils;
 import org.lantern.PeerSocketWrapper;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -28,26 +26,35 @@ public class Peer {
     
     private int connectionAttempts = 0;
     
+    public enum Type {
+        desktop,
+        cloud,
+        laeproxy
+    }
+    
     private final Collection<PeerSocketWrapper> sockets = 
         new HashSet<PeerSocketWrapper>();
 
-    private final String base64Cert;
+    //private final String base64Cert;
 
     private final double latitude;
 
     private final double longitude;
+    
+    private final String type;
 
     public Peer(final String userId,
-        final String base64Cert, final String countryCode, 
+        final String countryCode, 
         final boolean incoming, 
         final boolean natPmp, final boolean upnp, final double latitude, 
-        final double longitude) {
-        Preconditions.checkArgument(StringUtils.isNotBlank(base64Cert), 
-                "No cert?");
+        final double longitude, final Type type) {
+        //Preconditions.checkArgument(StringUtils.isNotBlank(base64Cert), 
+                //"No cert?");
         this.latitude = latitude;
         this.longitude = longitude;
         this.userId = userId;
-        this.base64Cert = base64Cert;
+        this.type = type.toString();
+        //this.base64Cert = base64Cert;
         this.country = countryCode.toLowerCase(Locale.US);
         this.incoming = incoming;
         this.natPmp = natPmp;
@@ -100,15 +107,15 @@ public class Peer {
         this.connectionAttempts++;
     }
 
-    public String getBase64Cert() {
-        return base64Cert;
-    }
-
     public double getLatitude() {
         return latitude;
     }
 
     public double getLongitude() {
         return longitude;
+    }
+
+    public String getType() {
+        return type;
     }
 }
