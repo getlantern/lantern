@@ -43,6 +43,10 @@ public class Peer {
         this.userId = userId;
         this.type = type.toString();
         this.country = countryCode.toLowerCase(Locale.US);
+        
+        // Peers are online when constructed this way (because we presumably 
+        // just received some type of message from them).
+        this.online = true;
     }
 
     public String getUserId() {
