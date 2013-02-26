@@ -26,6 +26,8 @@ public class LanternKscopeAdvertisement {
 
     private final String localAddress;
 
+    private final String lanternVersion = LanternConstants.VERSION;
+
     public static LanternKscopeAdvertisement makeRelayAd(
             LanternKscopeAdvertisement ad) {
         return new LanternKscopeAdvertisement(ad.getJid(), ad.getAddress(),
@@ -87,5 +89,9 @@ public class LanternKscopeAdvertisement {
         } catch (final UnknownHostException e) {
             return false;
         }
+    }
+
+    public String getLanternVersion() {
+        return lanternVersion;
     }
 }
