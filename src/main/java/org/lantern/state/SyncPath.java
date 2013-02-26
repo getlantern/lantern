@@ -13,6 +13,7 @@ public enum SyncPath {
     PROFILE("profile"),
     MODE("settings/mode"),
     CONNECTIVITY_GTALK("connectivity/gtalk"),
+    CONNECTIVITY_LANTERN_CONTROLLER("connectivity/lanternController"),
     PEERS("connectivity/peers"),
     INVITED("connectivity/invited"),
     NINVITES("ninvites"),
