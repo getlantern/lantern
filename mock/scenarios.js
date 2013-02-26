@@ -418,7 +418,7 @@ exports.SCENARIOS = {
             update = {},
             initialCountries = ['US', 'CA', 'CN', 'IR', 'DE', 'GB', 'SE', 'TH'];
 
-        // do this on reset
+        // XXX do this on reset
         _.forEach(this.model.countries, function(__, country) {
           if (Math.random() < .1 || _.contains(initialCountries, country))
             updateCountry(country, update);
@@ -429,8 +429,8 @@ exports.SCENARIOS = {
           if (!this_.model.showVis) return;
           var update = {}, ncountries = _.random(0, 5);
           for (var i=0; i<ncountries; ++i) {
-            var country = randomChoice(Math.random() < .25 ?
-              this_.model.countries : initialCountries
+            var country = randomChoice(/*Math.random() < .25 ?
+              this_.model.countries :*/ initialCountries
             );
             updateCountry(country, update);
           }

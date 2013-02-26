@@ -1,15 +1,16 @@
 #projectionButtons
   +position(false, false, 75px, 25px)
 
-#vis-container
+#vis-container, #vis
   height: 100%
 
-#vis
+#map
+  width: 100%
   height: 100%
   display: block
 
-#water
-  $waterColor: rgba(6, 21, 50, .1)
+$waterColor: rgba(6, 21, 50, .1)
+#globe
   fill: $waterColor
 
 #countries path
@@ -32,9 +33,6 @@
 
 .peer.give, #self.give
   fill: $giveModeColor
-
-#self, .peer
-  filter: url(#blur)
 
 path.connection
   fill: none

@@ -1,46 +1,37 @@
 <div id="vis" ng-controller="VisCtrl" ui-if="model.showVis">
-<svg>
-  <path id="water" ng-d="{{ pathGlobe() }}"/>
-  <g id="countries">
-    <!--
-    <g ng-repeat="d in countryGeometries">
-      <title ui-if="d.alpha2">{{ d.alpha2 | i18n }}: {{ model.countries[d.alpha2].npeers.online.giveGet || 0 }} peers online, {{ model.countries[d.alpha2].npeers.online.give || 0 }} in Give Mode, {{ model.countries[d.alpha2].npeers.online.get || 0 }} in Get Mode</title>
-      <path ng-fill="{{ fillByCountry[d.alpha2] || countryBaseColor }}" class="{{ d.alpha2 }}" ng-d="{{ path(d) }}"/>
-    </g>
-    -->
-  </g>
-  <g id="peersCurrent">
-    <g ng-repeat="peer in model.connectivity.peers.current" class="{{ peer.bpsUpDn && 'transferring' || '' }}">
-      <path ng-d="{{ pathConnection(peer) }}" class="connection"/>
-      <path ng-d="{{ pathPeer(peer) }}" id="{{ peer.peerid }}" class="peer {{ peer.mode }}" fill="none">
-        <title>{{ peer | prettyUser }}</title>
-      </path>
-    </g>
-  </g>
-  <path id="self" ng-d="{{ pathSelf() }}" class="{{ model.settings.mode }} {{ model.transfers.bpsUpDn && 'transferring' || ''}}">
-    <title>{{ model.profile | prettyUser }}</title>
-  </path>
-  <defs>
-    <filter id="blur">
+  <svg id="map">
+    <path id="globe"/>
+    <g id="countries"></g>
+    <g id="peers"></g>
+    <path id="self" class="{{ model.settings.mode }} {{ model.transfers.bpsUpDn && 'transferring' || ''}}">
+      <title>{{ model.profile | prettyUser }}</title>
+    </path>
+
+    <filter id="defaultBlur">
       <feGaussianBlur stdDeviation="1" />
     </filter>
-  </defs>
-</svg>
+  </svg>
 
-<!--
-<div id="projectionButtons" class="btn-group">
-  <button class="btn btn-inverse"
-          ng-class="{active: projectionKey == 'mercator'}"
-          ng-disabled="projectionKey == 'mercator'"
-          ng-click="setProjection('mercator')">
-          <i class="icon icon-picture"></i><!-- XXX -->
-  </button>
-  <button class="btn btn-inverse"
-          ng-class="{active: projectionKey == 'orthographic'}"
-          ng-disabled="projectionKey == 'orthographic'"
-          ng-click="setProjection('orthographic')">
-    <i class="icon icon-globe"></i>
-  </button>
-</div>
--->
+  <style>
+    #self, .peer {
+      filter: url(#defaultBlur)
+    }
+  </style>
+
+  <!--
+  <div id="projectionButtons" class="btn-group">
+    <button class="btn btn-inverse"
+            ng-class="{active: projectionKey == 'mercator'}"
+            ng-disabled="projectionKey == 'mercator'"
+            ng-click="setProjection('mercator')">
+            <i class="icon icon-picture"></i>
+    </button>
+    <button class="btn btn-inverse"
+            ng-class="{active: projectionKey == 'orthographic'}"
+            ng-disabled="projectionKey == 'orthographic'"
+            ng-click="setProjection('orthographic')">
+      <i class="icon icon-globe"></i>
+    </button>
+  </div>
+  -->
 </div>

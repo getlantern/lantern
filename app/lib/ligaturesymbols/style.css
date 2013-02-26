@@ -31,7 +31,7 @@
 }
 .lsf-icon:before {
   content:attr(title);
-  margin-right:0.3em;
+  /*margin-right:0.3em;*/
   font-size:130%;
   font-family: 'LigatureSymbols';
   -webkit-text-rendering: optimizeLegibility;
