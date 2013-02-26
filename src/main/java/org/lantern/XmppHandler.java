@@ -6,6 +6,7 @@ import javax.security.auth.login.CredentialException;
 
 import org.jivesoftware.smack.packet.Presence;
 import org.littleshoot.commom.xmpp.XmppP2PClient;
+import org.lastbamboo.common.ice.MappedServerSocket;
 
 /**
  * Interface for dealing with any XMPP interaction in Lantern.
@@ -86,4 +87,6 @@ public interface XmppHandler extends LanternService {
     void stop();
 
     String getJid();
+
+    MappedServerSocket getMappedServer();
 }

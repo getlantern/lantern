@@ -207,6 +207,10 @@ public class DefaultXmppHandler implements XmppHandler {
         Events.register(this);
         //setupJmx();
     }
+
+    public MappedServerSocket getMappedServer() {
+        return mappedServer;
+    }
    
 
     @Override
@@ -590,7 +594,7 @@ public class DefaultXmppHandler implements XmppHandler {
                     
                     final TrustGraphNode tgn = 
                         new LanternTrustGraphNode(DefaultXmppHandler.this);
-                    //tgn.advertiseSelf(message);
+                    tgn.advertiseSelf(message);
                 }
             };
             // We delay this to make sure we've successfully loaded all roster
@@ -954,7 +958,7 @@ public class DefaultXmppHandler implements XmppHandler {
                     (String) msg.getProperty(
                         LanternConstants.KSCOPE_ADVERTISEMENT_KEY);
                 if (StringUtils.isNotBlank(payload)) {
-                    processKscopePayload(payload);
+                    processKscopePayload(from, payload);
                 } else {
                     LOG.error("kscope ad with no payload? "+msg.toXML());
                 }
@@ -965,29 +969,14 @@ public class DefaultXmppHandler implements XmppHandler {
         }
     }
     
-    private void processKscopePayload(final String payload) {
+    private void processKscopePayload(final String from, final String payload) {
         final ObjectMapper mapper = new ObjectMapper();
         try {
             final LanternKscopeAdvertisement ad = 
                 mapper.readValue(payload, LanternKscopeAdvertisement.class);
             
             sendAndRequestCert(new URI(ad.getJid()));
-            this.kscopeAdHandler.handleAd(ad);
-            // If the ad includes a mapped port, include it as straight proxy.
-            /*
-            if (ad.hasMappedEndpoint()) {
-                //final String proxy = ad.getAddress() + ":" + ad.getPort();
-                
-                // We still want to do mutual authentication in all cases, so
-                // we need to do the certificate exchange here.
-                sendAndRequestCert(new URI(ad.getJid()));
-                this.proxyTracker.addProxy(
-                    InetSocketAddress.createUnresolved(ad.getAddress(), ad.getPort()));
-            } else {
-                addPeerProxy(new URI(ad.getJid()));
-            }
-            */
-            
+            this.kscopeAdHandler.handleAd(from, ad);
         } catch (final JsonParseException e) {
             LOG.warn("Could not parse JSON", e);
         } catch (final JsonMappingException e) {

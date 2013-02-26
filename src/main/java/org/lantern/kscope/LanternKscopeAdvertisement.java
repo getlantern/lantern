@@ -3,6 +3,8 @@ package org.lantern.kscope;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import org.kaleidoscope.TrustGraphNode;
+
 /**
  * Advertisement for a Lantern node to be distributed using the Kaleidoscope
  * limited advertisement protocol.
@@ -10,7 +12,7 @@ import java.net.UnknownHostException;
 public class LanternKscopeAdvertisement {
 
     public static final int CURRENT_VERSION = 1;
-    public static final int DEFAULT_TTL = 5;
+    public static final int DEFAULT_TTL = 1;
 
     private final String jid;
 

@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentSkipListMap;
+import java.net.InetAddress;
 
 import org.apache.commons.lang3.StringUtils;
 import org.codehaus.jackson.JsonParseException;
@@ -21,15 +22,23 @@ import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
 import org.kaleidoscope.RandomRoutingTable;
 import org.kaleidoscope.TrustGraphNodeId;
+import org.kaleidoscope.TrustGraphNode;
 import org.kaleidoscope.BasicTrustGraphNodeId;
+import org.kaleidoscope.BasicTrustGraphAdvertisement;
+import org.lantern.kscope.LanternKscopeAdvertisement;
+import org.lantern.kscope.LanternTrustGraphNode;
+import org.lantern.XmppHandler;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
+import org.lantern.state.Model;
 import org.lantern.state.Model.Persistent;
 import org.lantern.state.Profile;
 import org.lantern.state.StaticSettings;
 import org.lantern.state.SyncPath;
 import org.littleshoot.commom.xmpp.XmppUtils;
+import org.lastbamboo.common.stun.client.PublicIpAddress;
+import org.lastbamboo.common.ice.MappedServerSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +68,8 @@ public class Roster implements RosterListener {
     private volatile boolean populated;
 
     private final RandomRoutingTable kscopeRoutingTable;
+    private final XmppHandler xmppHandler;
+    private final Model model;
 
     private org.jivesoftware.smack.Roster smackRoster;
 
@@ -71,8 +82,12 @@ public class Roster implements RosterListener {
      * Creates a new roster.
      */
     @Inject
-    public Roster(final RandomRoutingTable routingTable) {
+    public Roster(final RandomRoutingTable routingTable, 
+            final XmppHandler xmppHandler,
+            final Model model) {
         this.kscopeRoutingTable = routingTable;
+        this.xmppHandler = xmppHandler;
+        this.model = model;
         Events.register(this);
     }
 
@@ -145,8 +160,39 @@ public class Roster implements RosterListener {
             log.info("Got Lantern hub presence");
         } else if (LanternXmppUtils.isLanternJid(from)) {
             Events.eventBus().post(new UpdatePresenceEvent(presence));
+
+            // immediately add to kscope routing table and
+            // send kscope ad to new roster entry
             final TrustGraphNodeId id = new BasicTrustGraphNodeId(from);
             this.kscopeRoutingTable.addNeighbor(id);
+
+            final TrustGraphNodeId tgnid = new BasicTrustGraphNodeId(
+                    model.getNodeId());
+
+            final InetAddress address = 
+                new PublicIpAddress().getPublicIpAddress();
+
+            final String user = xmppHandler.getJid();
+            final LanternKscopeAdvertisement ad;
+            if(xmppHandler.getMappedServer().isPortMapped()) {
+                ad = new LanternKscopeAdvertisement(user, address, 
+                    xmppHandler.getMappedServer().getMappedPort()
+                );
+            } else {
+                ad = new LanternKscopeAdvertisement(user);
+            }
+
+            final String adPayload = JsonUtils.jsonify(ad);
+            final BasicTrustGraphAdvertisement message =
+                new BasicTrustGraphAdvertisement(id, adPayload, 
+                    LanternTrustGraphNode.DEFAULT_MIN_ROUTE_LENGTH
+            );
+
+            final TrustGraphNode tgn = 
+                new LanternTrustGraphNode(xmppHandler);
+            log.debug("Sending ad to newly online roster entry {}.", id);
+            tgn.sendAdvertisement(message, id, ad.getTtl()); 
+
             onPresence(presence, sync, updateIndex);
         } else {
             onPresence(presence, sync, updateIndex);

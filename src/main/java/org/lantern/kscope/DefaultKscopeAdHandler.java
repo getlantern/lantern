@@ -5,9 +5,15 @@ import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.lantern.XmppHandler;
 import org.kaleidoscope.RandomRoutingTable;
+import org.kaleidoscope.TrustGraphNodeId;
+import org.kaleidoscope.TrustGraphNode;
+import org.kaleidoscope.BasicTrustGraphNodeId;
+import org.kaleidoscope.BasicTrustGraphAdvertisement;
 import org.lantern.LanternTrustStore;
 import org.lantern.ProxyTracker;
+import org.lantern.JsonUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,6 +24,7 @@ import com.google.inject.Singleton;
 public class DefaultKscopeAdHandler implements KscopeAdHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
+    private final XmppHandler xmppHandler;
     
     /**
      * Map of kscope advertisements for which we are awaiting corresponding
@@ -32,15 +39,46 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
     @Inject
     public DefaultKscopeAdHandler(final ProxyTracker proxyTracker,
         final LanternTrustStore trustStore,
-        final RandomRoutingTable routingTable) {
+        final RandomRoutingTable routingTable,
+        final XmppHandler xmppHandler) {
         this.proxyTracker = proxyTracker;
         this.trustStore = trustStore;
         this.routingTable = routingTable;
+        this.xmppHandler = xmppHandler;
     }
     
     @Override
-    public void handleAd(final LanternKscopeAdvertisement ad) {
+    public void handleAd(final String from, 
+            final LanternKscopeAdvertisement ad) {
+        log.debug("*** got kscope ad from {} for {}", from, ad.getJid());
         awaitingCerts.put(ad.getJid(), ad);
+
+        // do we want to relay this?
+        int inboundTtl = ad.getTtl();
+        if(inboundTtl <= 0) {
+            log.debug("End of the line for kscope ad for {} from {}.", 
+                ad.getJid(), from
+            );
+            return;
+        }
+        TrustGraphNodeId nid = new BasicTrustGraphNodeId(ad.getJid());
+        TrustGraphNodeId nextNid = routingTable.getNextHop(nid);
+        if(nextNid == null) {
+            log.error("Could not relay ad: Node ID not in routing table");
+            return;
+        }
+        LanternKscopeAdvertisement relayAd = 
+            LanternKscopeAdvertisement.makeRelayAd(ad);
+
+        final String relayAdPayload = JsonUtils.jsonify(relayAd);
+        final BasicTrustGraphAdvertisement message =
+            new BasicTrustGraphAdvertisement(nextNid, relayAdPayload, 
+                relayAd.getTtl()
+            );
+
+        final TrustGraphNode tgn = 
+            new LanternTrustGraphNode(xmppHandler);
+        tgn.sendAdvertisement(message, nextNid, relayAd.getTtl()); 
     }
     
     @Override
@@ -59,6 +97,7 @@ public class DefaultKscopeAdHandler implements KscopeAdHandler {
             } else {
                 this.proxyTracker.addJidProxy(ad.getJid());
             }
+            awaitingCerts.remove(jid);
         } else {
             // This could happen if we negotiated certs in some way other than
             // in response to a kscope ad, such as for peers from the 
