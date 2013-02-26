@@ -19,10 +19,9 @@ import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.packet.Presence;
-import org.kaleidoscope.BasicRandomRoutingTable;
-import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.kaleidoscope.RandomRoutingTable;
 import org.kaleidoscope.TrustGraphNodeId;
+import org.kaleidoscope.BasicTrustGraphNodeId;
 import org.lantern.event.Events;
 import org.lantern.event.ResetEvent;
 import org.lantern.event.UpdatePresenceEvent;
@@ -59,8 +58,7 @@ public class Roster implements RosterListener {
 
     private volatile boolean populated;
 
-    private final RandomRoutingTable kscopeRoutingTable =
-        new BasicRandomRoutingTable();
+    private final RandomRoutingTable kscopeRoutingTable;
 
     private org.jivesoftware.smack.Roster smackRoster;
 
@@ -73,7 +71,8 @@ public class Roster implements RosterListener {
      * Creates a new roster.
      */
     @Inject
-    public Roster() {
+    public Roster(final RandomRoutingTable routingTable) {
+        this.kscopeRoutingTable = routingTable;
         Events.register(this);
     }
 

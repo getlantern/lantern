@@ -50,6 +50,8 @@ import org.littleshoot.proxy.KeyStoreManager;
 import org.littleshoot.proxy.PublicIpsOnlyRequestFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.kaleidoscope.RandomRoutingTable;
+import org.kaleidoscope.BasicRandomRoutingTable;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.google.inject.AbstractModule;
@@ -84,6 +86,8 @@ public class LanternModule extends AbstractModule {
         bind(Model.class).toProvider(ModelIo.class).in(Singleton.class);
         
         bind(ModelService.class).to(DefaultModelService.class);
+
+        bind(RandomRoutingTable.class).to(BasicRandomRoutingTable.class);
         
         bind(CertTracker.class).to(DefaultCertTracker.class);
         bind(HttpsEverywhere.class);
