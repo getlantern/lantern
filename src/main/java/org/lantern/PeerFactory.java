@@ -5,6 +5,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 import org.lantern.event.Events;
+import org.lantern.state.Mode;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Peer;
@@ -53,7 +54,7 @@ public class PeerFactory {
 
             @Override
             public void run() {
-                final Peer peer = newPeer(userId, ip, port, type);
+                final Peer peer = newGiveModePeer(userId, ip, port, type);
                 peers.addPeer(peer);
                 Events.sync(SyncPath.PEERS, peers.getPeers());
             }
@@ -61,11 +62,12 @@ public class PeerFactory {
         });
     }
     
-    private Peer newPeer(final String userId, final String ip, final int port, 
+    private Peer newGiveModePeer(final String userId, final String ip, final int port, 
         final Type type) {
         final GeoData geo = modelUtils.getGeoData(ip);
+        
         return new Peer(userId, geo.getCountrycode(), true, geo.getLatitude(), 
-            geo.getLongitude(), type);
+            geo.getLongitude(), type, ip, Mode.give);
     }
     
     /*
