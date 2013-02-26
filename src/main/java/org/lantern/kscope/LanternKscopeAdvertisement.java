@@ -4,6 +4,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import org.kaleidoscope.TrustGraphNode;
+import org.lantern.LanternConstants;
 
 /**
  * Advertisement for a Lantern node to be distributed using the Kaleidoscope
