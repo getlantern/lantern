@@ -390,7 +390,7 @@ public class DefaultXmppHandler implements XmppHandler {
         LOG.debug("Connecting to XMPP servers with user name and password...");
         this.closedBetaEvent = null;
         final InetSocketAddress plainTextProxyRelayAddress = 
-            new InetSocketAddress("127.0.0.1", 
+            InetSocketAddress.createUnresolved("127.0.0.1", 
                 LanternUtils.PLAINTEXT_LOCALHOST_PROXY_PORT);
         
         final SessionSocketListener sessionListener = new SessionSocketListener() {
@@ -899,7 +899,7 @@ public class DefaultXmppHandler implements XmppHandler {
     
 
     private void addPeerProxy(final URI peerUri) {
-        if (this.proxyTracker.addPeerProxy(peerUri)) {
+        if (this.proxyTracker.addJidProxy(peerUri.toASCIIString())) {
             sendAndRequestCert(peerUri);
         }
     }
@@ -974,10 +974,16 @@ public class DefaultXmppHandler implements XmppHandler {
             
             // If the ad includes a mapped port, include it as straight proxy.
             if (ad.hasMappedEndpoint()) {
-                final String proxy = ad.getAddress() + ":" + ad.getPort();
-                this.proxyTracker.addGeneralProxy(proxy);
+                //final String proxy = ad.getAddress() + ":" + ad.getPort();
+                
+                // We still want to do mutual authentication in all cases, so
+                // we need to do the certificate exchange here.
+                sendAndRequestCert(new URI(ad.getJid()));
+                this.proxyTracker.addProxy(
+                    InetSocketAddress.createUnresolved(ad.getAddress(), ad.getPort()));
+            } else {
+                addPeerProxy(new URI(ad.getJid()));
             }
-            addPeerProxy(new URI(ad.getJid()));
             
         } catch (final JsonParseException e) {
             LOG.warn("Could not parse JSON", e);
@@ -1041,7 +1047,7 @@ public class DefaultXmppHandler implements XmppHandler {
             return;
         }
         if (!cur.contains("@")) {
-            this.proxyTracker.addGeneralProxy(cur);
+            this.proxyTracker.addProxy(cur);
             return;
         }
         if (!isLoggedIn()) {
