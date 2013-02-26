@@ -70,6 +70,11 @@ public class ModelUtilsTest {
         assertTrue(data.getLongitude() < 3.0);
         assertEquals("GB", data.getCountrycode());
         
+        final GeoData data2 = modelUtils.getGeoData("87.170.128.133");
+        assertTrue(data2.getLatitude() > 50.0);
+        assertTrue(data2.getLongitude() > 13.0);
+        assertEquals("DE", data2.getCountrycode());
+        
         System.setProperty("javax.net.debug", "");
     }
 
