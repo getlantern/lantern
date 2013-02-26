@@ -75,6 +75,7 @@ public class LanternModule extends AbstractModule {
         bind(LanternSocketsUtil.class);
         bind(LanternXmppUtil.class);
         bind(MessageService.class).to(SwtMessageService.class);
+        bind(KscopeAdHandler.class).to(DefaultKscopeAdHandler.class);
         
         bind(Proxifier.class);
         bind(SyncStrategy.class).to(CometDSyncStrategy.class);

@@ -169,6 +169,8 @@ public class DefaultXmppHandler implements XmppHandler {
 
     private final LanternTrustStore trustStore;
 
+    private KscopeAdHandler kscopeAdHandler;
+
     /**
      * Creates a new XMPP handler.
      */
@@ -183,7 +185,8 @@ public class DefaultXmppHandler implements XmppHandler {
         final ModelIo modelIo, final org.lantern.Roster roster,
         final ProxyTracker proxyTracker,
         final Censored censored, 
-        final LanternTrustStore trustStore) {
+        final LanternTrustStore trustStore,
+        final KscopeAdHandler kscopeAdHandler) {
         this.model = model;
         this.trustedPeerProxyManager = trustedPeerProxyManager;
         this.timer = updateTimer;
@@ -197,6 +200,7 @@ public class DefaultXmppHandler implements XmppHandler {
         this.proxyTracker = proxyTracker;
         this.censored = censored;
         this.trustStore = trustStore;
+        this.kscopeAdHandler = kscopeAdHandler;
         this.upnpService = new Upnp(stats);
         new GiveModeConnectivityHandler();
         Events.register(this);
@@ -972,7 +976,10 @@ public class DefaultXmppHandler implements XmppHandler {
             final LanternKscopeAdvertisement ad = 
                 mapper.readValue(payload, LanternKscopeAdvertisement.class);
             
+            sendAndRequestCert(new URI(ad.getJid()));
+            this.kscopeAdHandler.handleAd(ad);
             // If the ad includes a mapped port, include it as straight proxy.
+            /*
             if (ad.hasMappedEndpoint()) {
                 //final String proxy = ad.getAddress() + ":" + ad.getPort();
                 
@@ -984,6 +991,7 @@ public class DefaultXmppHandler implements XmppHandler {
             } else {
                 addPeerProxy(new URI(ad.getJid()));
             }
+            */
             
         } catch (final JsonParseException e) {
             LOG.warn("Could not parse JSON", e);
@@ -1027,13 +1035,8 @@ public class DefaultXmppHandler implements XmppHandler {
             LOG.debug("Got certificate:\n"+
                 new String(Base64.decodeBase64(base64Cert), 
                     LanternConstants.UTF8));
-            try {
-                // Add the peer if we're able to add the cert.
-                this.trustStore.addBase64Cert(msg.getFrom(), base64Cert);
-                trustedPeerProxyManager.onPeer(uri, base64Cert);
-            } catch (final IOException e) {
-                LOG.error("Could not add cert??", e);
-            }
+            // Add the peer if we're able to add the cert.
+            this.kscopeAdHandler.onBase64Cert(msg.getFrom(), base64Cert);
         } else {
             LOG.error("No cert for peer?");
         }
