@@ -115,6 +115,15 @@ func builtinMath_random(call FunctionCall) Value {
 	return toValue(rand.Float64())
 }
 
+func builtinMath_round(call FunctionCall) Value {
+	number := toFloat(call.Argument(0))
+	value := math.Floor(number + 0.5)
+	if value == 0 {
+		value = math.Copysign(0, number)
+	}
+	return toValue(value)
+}
+
 func builtinMath_sin(call FunctionCall) Value {
 	number := toFloat(call.Argument(0))
 	return toValue(math.Sin(number))

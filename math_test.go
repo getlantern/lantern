@@ -195,6 +195,22 @@ func TestMath_pow(t *testing.T) {
 	test(`Math.pow(-1, 0.1)`, "NaN")
 }
 
+func TestMath_round(t *testing.T) {
+	Terst(t)
+
+	test := runTest()
+	test(`Math.round(NaN)`, "NaN")
+	test(`1/Math.round(0)`, "Infinity")
+	test(`1/Math.round(-0)`, "-Infinity")
+	test(`Math.round(Infinity)`, "Infinity")
+	test(`Math.round(-Infinity)`, "-Infinity")
+	test(`1/Math.round(0.1)`, "Infinity")
+	test(`1/Math.round(-0.1)`, "-Infinity")
+
+	test(`Math.round(3.5)`, "4")
+	test(`Math.round(-3.5)`, "-3")
+}
+
 func TestMath_sin(t *testing.T) {
 	Terst(t)
 

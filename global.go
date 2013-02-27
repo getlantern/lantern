@@ -323,6 +323,7 @@ func newContext() *_runtime {
 		"min", 2, builtinMath_min,
 		"pow", 2, builtinMath_pow,
 		"random", 0, builtinMath_random,
+		"round", 1, builtinMath_round,
 		"sin", 1, builtinMath_sin,
 		"sqrt", 1, builtinMath_sqrt,
 		"tan", 1, builtinMath_tan,
