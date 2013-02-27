@@ -15,24 +15,28 @@ public class LanternKscopeAdvertisement {
     public static final int CURRENT_VERSION = 1;
     public static final int DEFAULT_TTL = 1;
 
-    private final String jid;
+    private String jid;
 
-    private final int ttl;
+    private int ttl;
     
-    private final String address;
+    private String address;
 
-    private final int port;
+    private int port;
 
-    private final int version;
+    private int version;
 
-    private final String localAddress;
+    private String localAddress;
 
-    private final String lanternVersion = LanternConstants.VERSION;
+    private String lanternVersion = LanternConstants.VERSION;
 
     public static LanternKscopeAdvertisement makeRelayAd(
             LanternKscopeAdvertisement ad) {
         return new LanternKscopeAdvertisement(ad.getJid(), ad.getAddress(),
             ad.getPort(), ad.getLocalAddress());
+    }
+
+    public LanternKscopeAdvertisement() {
+        this("", "", 0, "");
     }
 
     public LanternKscopeAdvertisement(final String jid) {
@@ -63,24 +67,48 @@ public class LanternKscopeAdvertisement {
         return jid;
     }
 
+    public void setJid(String jid) {
+        this.jid = jid;
+    }
+
     public String getAddress() {
         return address;
+    }
+
+    public void setAddress(String addr) {
+        this.address = addr;
     }
 
     public int getPort() {
         return port;
     }
 
+    public void setPort(int port) {
+        this.port = port;
+    }
+
     public int getVersion() {
         return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
     }
 
     public String getLocalAddress() {
         return localAddress;
     }
 
+    public void setLocalAddress(String localAddress) {
+        this.localAddress = localAddress;
+    }
+
     public int getTtl() {
         return ttl;
+    }
+
+    public void setTtl(int ttl) {
+        this.ttl = ttl;
     }
 
     public boolean hasMappedEndpoint() {

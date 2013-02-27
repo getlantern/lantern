@@ -17,6 +17,11 @@ import org.jivesoftware.smack.packet.Presence.Type;
 import org.junit.Test;
 import org.lantern.event.Events;
 import org.lantern.event.SyncEvent;
+import org.lantern.state.Model;
+import org.lantern.XmppHandler;
+
+import org.kaleidoscope.RandomRoutingTable;
+import org.kaleidoscope.BasicRandomRoutingTable;
 
 import com.google.common.eventbus.Subscribe;
 
@@ -27,7 +32,11 @@ public class RosterTest {
     @Test
     public void testIndexedSync() throws Exception {
         Events.register(this);
-        final Roster roster = new Roster();
+        TestUtils.load(true);
+        RandomRoutingTable routingTable = new BasicRandomRoutingTable();
+        XmppHandler xmppHandler = TestUtils.getXmppHandler();
+        Model model = TestUtils.getModel();
+        final Roster roster = new Roster(routingTable, xmppHandler, model);
         
         final String url = "http://127.0.0.1:2174/photo/";
         final Map<String, LanternRosterEntry> entries = 
