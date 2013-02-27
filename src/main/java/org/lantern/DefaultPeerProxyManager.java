@@ -1,7 +1,6 @@
 package org.lantern;
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.Socket;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -32,11 +31,9 @@ import org.lantern.event.ResetEvent;
 import org.lantern.state.Model;
 import org.lantern.state.ModelUtils;
 import org.lantern.state.Peer;
-import org.lantern.state.Peer.Type;
 import org.lantern.state.Settings.Mode;
 import org.lantern.state.SyncPath;
 import org.lastbamboo.common.p2p.P2PConnectionEvent;
-import org.littleshoot.commom.xmpp.XmppUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,31 +49,31 @@ import com.maxmind.geoip.LookupService;
  */
 @Singleton
 public class DefaultPeerProxyManager implements PeerProxyManager {
-    
+
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     private final Executor exec = Executors.newCachedThreadPool(
         new ThreadFactoryBuilder().setDaemon(true).setNameFormat(
             "P2P-Socket-Creation-Thread-%d").build());
-    
+
     /**
-     * Priority queue of sockets ordered by how long it took them to be 
+     * Priority queue of sockets ordered by how long it took them to be
      * established.
-     * 
+     *
      * Package-access for easier testing.
      */
-    final PriorityBlockingQueue<PeerSocketWrapper> timedSockets = 
-        new PriorityBlockingQueue<PeerSocketWrapper>(40, 
+    final PriorityBlockingQueue<PeerSocketWrapper> timedSockets =
+        new PriorityBlockingQueue<PeerSocketWrapper>(40,
             new Comparator<PeerSocketWrapper>() {
 
             @Override
-            public int compare(final PeerSocketWrapper cts1, 
+            public int compare(final PeerSocketWrapper cts1,
                 final PeerSocketWrapper cts2) {
                 return cts1.getConnectionTime().compareTo(cts2.getConnectionTime());
             }
         });
-    
-    private final Map<String, Peer> peers = 
+
+    private final Map<String, Peer> peers =
         Collections.synchronizedMap(new TreeMap<String, Peer>());
 
     /**
@@ -99,9 +96,9 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
     private final CertTracker certTracker;
 
     private final ModelUtils modelUtils;
-    
+
     @Inject
-    public DefaultPeerProxyManager(final ChannelGroup channelGroup, 
+    public DefaultPeerProxyManager(final ChannelGroup channelGroup,
         final XmppHandler xmppHandler,
         final Stats stats, final LanternSocketsUtil socketsUtil,
         final Model model, final LookupService lookupService,
@@ -119,11 +116,11 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
 
     @Override
     public HttpRequestProcessor processRequest(
-        final Channel browserToProxyChannel, final ChannelHandlerContext ctx, 
+        final Channel browserToProxyChannel, final ChannelHandlerContext ctx,
         final MessageEvent me) throws IOException {
-        log.debug("Processing request...sockets in queue {} on this {}", 
+        log.debug("Processing request...sockets in queue {} on this {}",
             this.timedSockets.size(), this);
-        
+
         final PeerSocketWrapper peerSocket;
         try {
             peerSocket = selectSocket();
@@ -136,12 +133,12 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             log.info("Peer could not process the request...");
             // We return null here because that's how the dispatcher knows of
             // failures on peers.
-            
+
             // TODO: We could also move on to other peers in this case instead
             // of falling back to centralized nodes.
             return null;
         }
-        
+
         // When we use sockets we replace them.
         final int socketsToFetch;
         if (this.timedSockets.size() > 20) {
@@ -153,7 +150,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         } else {
             socketsToFetch = 3;
         }
-        final String cert = 
+        final String cert =
             this.certTracker.getCertForJid(peerSocket.getPeerUri().toASCIIString());
         onPeer(peerSocket.getPeerUri(), cert, socketsToFetch);
         return peerSocket.getRequestProcessor();
@@ -187,12 +184,12 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                 }
             }
         }
-        
+
         log.info("Could not find connected socket");
         throw new IOException("No availabe connected sockets in "+
             this.timedSockets);
     }
-    
+
 
     private void pruneSockets() {
         final Iterator<PeerSocketWrapper> iter = this.timedSockets.iterator();
@@ -202,7 +199,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             if (sock != null) {
                 if (sock.isClosed()) {
                     iter.remove();
-                    final Peer peer = 
+                    final Peer peer =
                         this.peers.get(cts.getPeerUri().toASCIIString());
                     if (peer == null) {
                         log.warn("Could not find matching peer data?");
@@ -219,7 +216,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         onPeer(peerUri, base64Cert, 6);
     }
 
-    private void onPeer(final URI peerUri, final String base64Cert, 
+    private void onPeer(final URI peerUri, final String base64Cert,
         final int sockets) {
         if (model.getSettings().getMode() == Mode.give) {
             log.debug("Ingoring peer when we're in give mode");
@@ -229,12 +226,12 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             log.debug("Ignoring trusted peer");
             return;
         }
-        log.debug("Received peer URI {}...attempting {} connections...", 
+        log.debug("Received peer URI {}...attempting {} connections...",
             peerUri, sockets);
-        
+
         certPeers.put(peerUri, base64Cert);
         // Unclear how this count will be used for now.
-        final Map<URI, AtomicInteger> peerFailureCount = 
+        final Map<URI, AtomicInteger> peerFailureCount =
             new HashMap<URI, AtomicInteger>();
         exec.execute(new Runnable() {
             @Override
@@ -249,7 +246,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
 
 
                         final Socket sock = LanternUtils.openOutgoingPeerSocket(
-                            peerUri, xmppHandler.getP2PClient(), 
+                            peerUri, xmppHandler.getP2PClient(),
                             peerFailureCount);
                         log.info("Got socket and adding it for peer: {}", peerUri);
                         addConnectedPeer(peerUri, base64Cert, now, sock, true, false);
@@ -263,18 +260,18 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
                     }
                 } catch (final IOException e) {
                     log.info("Could not create peer socket", e);
-                }                
+                }
             }
         });
     }
 
-    private void addConnectedPeer(final URI peerUri, final String base64Cert, 
-        final long startTime, final Socket sock, final boolean addToSocketsInUse, 
+    private void addConnectedPeer(final URI peerUri, final String base64Cert,
+        final long startTime, final Socket sock, final boolean addToSocketsInUse,
         final boolean incoming) {
-        final PeerSocketWrapper ts = 
-            new PeerSocketWrapper(peerUri, startTime, sock, 
+        final PeerSocketWrapper ts =
+            new PeerSocketWrapper(peerUri, startTime, sock,
                 this.channelGroup, this.stats, this.socketsUtil, incoming);
-        
+
         if (addToSocketsInUse) {
             this.timedSockets.add(ts);
         }
@@ -286,12 +283,12 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         } else {
             final InetAddress ia = sock.getInetAddress();
             final GeoData geo = modelUtils.getGeoData(ia.getHostAddress());
-            peer = new Peer(userId, geo.getCountrycode(), false, 
+            peer = new Peer(userId, geo.getCountrycode(), false,
                 false, false, geo.getLatitude(), geo.getLongitude(), Type.desktop);
             this.peers.put(userId, peer);
         }
         peer.addSocket(ts);
-        
+
         syncPeers();
         */
     }
@@ -302,7 +299,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         this.peers.remove(uri);
         syncPeers();
     }
-    
+
     @Override
     public void closeAll() {
         for (final PeerSocketWrapper sock : this.timedSockets) {
@@ -316,7 +313,7 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             return peers.values();
         }
     }
-    
+
     @Subscribe
     public void onReset(final ResetEvent event) {
         this.peers.clear();
@@ -324,34 +321,34 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         closeAll();
         this.timedSockets.clear();
     }
-    
-    
+
+
     @Override
     public String toString() {
         return getClass().getSimpleName()+"-"+hashCode();
     }
-    
+
     @Subscribe
     public void onIncomingSocket(final IncomingSocketEvent event) {
-        final Channel ch = event.getChannel();
+        event.getChannel();
         if (event.isOpen()) {
-            
+
         } else {
-            
+
         }
     }
-    
+
     /**
      * Track P2P connection events. Note this only tracks peers we're able
      * to directly connect to, not all peers we know about. Responding to these
      * events is necessary because it's the only way we can track incoming
      * sockets.
-     * 
-     * Note this still does not cover incoming connections directly to a 
+     *
+     * Note this still does not cover incoming connections directly to a
      * port-mapped HTTP proxy. Those can only be identified by corresponding
      * certs, and those may or may not be availabe depending on if the IP was
      * cached across sessions.
-     * 
+     *
      * @param event The P2P connection event.
      */
     @Subscribe
@@ -365,21 +362,17 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
             log.error("Could not read peer URI?", event.getJid());
             return;
         }
-        
+
         final String cert = this.certTracker.getCertForJid(fullJid);
         if (StringUtils.isBlank(cert)) {
             log.warn("No cert for {} in {}", fullJid, this.certTracker);
         }
-        
+
         final Socket sock = event.getSocket();
-        // TODO: How the hell do we know we're getting notifications from 
-        // anonymous peers? We don't here, so the "this.anon" argument below
-        // is bogus.
-        final PeerSocketWrapper ts = 
-            new PeerSocketWrapper(peerUri, System.currentTimeMillis(), 
-                sock, this.channelGroup, this.stats, 
-                this.socketsUtil, event.isIncoming());
-        
+        new PeerSocketWrapper(peerUri, System.currentTimeMillis(),
+            sock, this.channelGroup, this.stats,
+            this.socketsUtil, event.isIncoming());
+
         /*
         final Peer peer;
         final String userId = XmppUtils.jidToUser(peerUri.toASCIIString());
@@ -388,12 +381,12 @@ public class DefaultPeerProxyManager implements PeerProxyManager {
         } else {
             final GeoData geo = modelUtils.getGeoData(
                 sock.getInetAddress().getHostAddress());
-            peer = new Peer(userId, geo.getCountrycode(), false, false, 
+            peer = new Peer(userId, geo.getCountrycode(), false, false,
                 false, geo.getLatitude(), geo.getLongitude(), Type.desktop);
             this.peers.put(userId, peer);
         }
         peer.addSocket(ts);
-        
+
         syncPeers();
         */
     }

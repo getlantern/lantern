@@ -24,13 +24,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Handler that relays traffic to another proxy, dispatching between 
+ * Handler that relays traffic to another proxy, dispatching between
  * appropriate proxies depending on the type of request.
  */
 public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
 
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     private volatile long messagesReceived = 0L;
 
     private Channel browserToProxyChannel;
@@ -38,11 +38,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     // http://code.google.com/appengine/docs/quotas.html:
     // "Each incoming HTTP request can be no larger than 32MB"
     private static final long REQUEST_SIZE_LIMIT = 1024 * 1024 * 32 - 4096;
-    
+
     private final HttpRequestProcessor proxyRequestProcessor;
-    
+
     private final HttpRequestProcessor laeRequestProcessor;
-    
+
     private HttpRequestProcessor currentRequestProcessor;
 
     private boolean readingChunks;
@@ -68,7 +68,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     /**
      * Creates a new handler that reads incoming HTTP requests and dispatches
      * them to proxies as appropriate.
-     * 
+     *
      * @param clientChannelFactory The factory for creating outgoing channels
      * to external sites.
      * @param channelGroup Keeps track of channels to close on shutdown.
@@ -88,7 +88,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         this.proxyTracker = proxyTracker;
         this.httpsEverywhere = httpsEverywhere;
         this.trustStore = trustStore;
-        
+
         this.proxyRequestProcessor = newRequestProcessor();
         this.laeRequestProcessor =
             new DefaultHttpRequestProcessor(proxyTracker,
@@ -109,14 +109,14 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     /**
      * Creates new default request processors to avoid worrying about holding
      * state across calls.
-     * 
+     *
      * @return The processor.
      */
     private HttpRequestProcessor newRequestProcessor() {
         return new DefaultHttpRequestProcessor(this.proxyTracker,
             new HttpRequestTransformer() {
                 @Override
-                public void transform(final HttpRequest request, 
+                public void transform(final HttpRequest request,
                     final InetSocketAddress proxyAddress) {
                     // Does nothing.
                 }
@@ -131,27 +131,27 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
                 public InetSocketAddress getProxy() {
                     return proxyTracker.getProxy();
                 }
-            }, this.clientChannelFactory, this.channelGroup, this.stats, 
+            }, this.clientChannelFactory, this.channelGroup, this.stats,
             this.trustStore);
     }
 
     @Override
-    public void messageReceived(final ChannelHandlerContext ctx, 
+    public void messageReceived(final ChannelHandlerContext ctx,
         final MessageEvent me) {
         messagesReceived++;
         log.debug("Received {} total messages", messagesReceived);
         if (!readingChunks) {
             log.debug("Reading HTTP request (not a chunk)...");
             this.currentRequestProcessor = dispatchRequest(ctx, me);
-        } 
+        }
         else {
             log.debug("Reading chunks...");
             try {
                 final HttpChunk chunk = (HttpChunk) me.getMessage();
-                
-                // Remember this will typically be a persistent connection, 
-                // so we'll get another request after we're read the last 
-                // chunk. So we need to reset it back to no longer read in 
+
+                // Remember this will typically be a persistent connection,
+                // so we'll get another request after we're read the last
+                // chunk. So we need to reset it back to no longer read in
                 // chunk mode.
                 if (chunk.isLast()) {
                     this.readingChunks = false;
@@ -174,7 +174,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         final HttpRequest request = (HttpRequest)me.getMessage();
         final String uri = request.getUri();
         log.info("URI is: {}", uri);
-        
+
         // We need to set this outside of proxying rules because we first
         // send incoming messages down chunked versus unchunked paths and
         // then send them down proxied versus unproxied paths.
@@ -183,13 +183,13 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         } else {
             readingChunks = false;
         }
-        
+
         // If it's an HTTP request, see if we can redirect it to HTTPS.
         /*
         final String https = httpsEverywhere.toHttps(uri);
         if (!https.equals(uri)) {
-            final HttpResponse response = 
-                new DefaultHttpResponse(request.getProtocolVersion(), 
+            final HttpResponse response =
+                new DefaultHttpResponse(request.getProtocolVersion(),
                     HttpResponseStatus.MOVED_PERMANENTLY);
             response.setProtocolVersion(HttpVersion.HTTP_1_0);
             response.setHeader(HttpHeaders.Names.LOCATION, https);
@@ -197,11 +197,11 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             log.info("Sending HTTPS redirect response!!");
             browserToProxyChannel.write(response);
             ProxyUtils.closeOnFlush(browserToProxyChannel);
-            // Note this redirect should result in a new HTTPS request 
+            // Note this redirect should result in a new HTTPS request
             // coming in on this connection or a new connection -- in fact
-            // this redirect should always result in an HTTP CONNECT 
+            // this redirect should always result in an HTTP CONNECT
             // request as a result of the redirect. That new request
-            // will not attempt to use the existing processor, so it's 
+            // will not attempt to use the existing processor, so it's
             // not an issue to return null here.
             return null;
         }
@@ -210,25 +210,25 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         this.stats.incrementProxiedRequests();
         return dispatchProxyRequest(ctx, me);
     }
-    
+
     private HttpRequestProcessor dispatchProxyRequest(
         final ChannelHandlerContext ctx, final MessageEvent me) {
         final HttpRequest request = (HttpRequest) me.getMessage();
         log.debug("Dispatching request");
         if (request.getMethod() == HttpMethod.CONNECT) {
             try {
-                if (this.model.getSettings().isUseAnonymousPeers() && 
+                if (this.model.getSettings().isUseAnonymousPeers() &&
                     trustedPeerProxyManager.processRequest(
-                //if (LanternHub.settings().isUseTrustedPeers() && 
+                //if (LanternHub.settings().isUseTrustedPeers() &&
                 //    LanternHub.getProxyProvider().getTrustedPeerProxyManager().processRequest(
                         browserToProxyChannel, ctx, me) != null) {
                     log.info("Processed CONNECT on peer...returning");
                     return null;
                 } else if (useStandardProxies()){
-                    // We need to forward the CONNECT request from this proxy 
-                    // to an external proxy that can handle it. We effectively 
-                    // want to relay all traffic in this case without doing 
-                    // anything on our own other than direct the CONNECT 
+                    // We need to forward the CONNECT request from this proxy
+                    // to an external proxy that can handle it. We effectively
+                    // want to relay all traffic in this case without doing
+                    // anything on our own other than direct the CONNECT
                     // request to the correct proxy.
                     newRequestProcessor().processRequest(
                             browserToProxyChannel, ctx, request);
@@ -268,18 +268,18 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         }
         try {
             log.info("Trying to send {} to LAE proxy", request.getUri());
-            if (useLae() && isLae(request) && 
-                this.laeRequestProcessor.processRequest(browserToProxyChannel, 
+            if (useLae() && isLae(request) &&
+                this.laeRequestProcessor.processRequest(browserToProxyChannel,
                     ctx, request)) {
                 log.info("Sent {} to LAE proxy", request.getUri());
                 return this.laeRequestProcessor;
-            } 
+            }
         } catch (final IOException e) {
             log.info("Caught exception processing request", e);
         }
         try {
             log.info("Trying to send {} to standard proxy", request.getUri());
-            if (useStandardProxies() && 
+            if (useStandardProxies() &&
                 this.proxyRequestProcessor.processRequest(
                         browserToProxyChannel, ctx, request)) {
                 log.info("Used standard proxy");
@@ -288,7 +288,7 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         } catch (final IOException e) {
             log.info("Caught exception processing request", e);
         }
-        
+
         log.warn("No proxy could process the request {}", me.getMessage());
         // Not much we can do if no proxy can handle it.
         return null;
@@ -319,10 +319,10 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
             return false;
         }
         if (method == HttpMethod.POST) {
-            final String contentLength = 
+            final String contentLength =
                 request.getHeader(Names.CONTENT_LENGTH);
             if (StringUtils.isBlank(contentLength)) {
-                // If it's a post without a content length, we want to be 
+                // If it's a post without a content length, we want to be
                 // cautious.
                 return false;
             }
@@ -336,15 +336,15 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
     }
 
     @Override
-    public void channelOpen(final ChannelHandlerContext ctx, 
+    public void channelOpen(final ChannelHandlerContext ctx,
         final ChannelStateEvent e) {
         log.debug("Got incoming channel");
         this.browserToProxyChannel = e.getChannel();
         this.channelGroup.add(this.browserToProxyChannel);
     }
 
-    @Override 
-    public void channelClosed(final ChannelHandlerContext ctx, 
+    @Override
+    public void channelClosed(final ChannelHandlerContext ctx,
         final ChannelStateEvent e) {
         log.debug("Got inbound channel closed. Closing outbound.");
         //this.trustedPeerRequestProcessor.close();
@@ -355,12 +355,12 @@ public class DispatchingProxyRelayHandler extends SimpleChannelUpstreamHandler {
         this.proxyRequestProcessor.close();
         this.laeRequestProcessor.close();
     }
-    
+
     @Override
-    public void exceptionCaught(final ChannelHandlerContext ctx, 
+    public void exceptionCaught(final ChannelHandlerContext ctx,
         final ExceptionEvent e) throws Exception {
         log.info("Caught exception on INBOUND channel", e.getCause());
         ProxyUtils.closeOnFlush(this.browserToProxyChannel);
     }
-    
+
 }

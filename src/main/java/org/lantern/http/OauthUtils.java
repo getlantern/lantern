@@ -46,35 +46,35 @@ public class OauthUtils {
             IOUtils.closeQuietly(is);
         }
     }
-    
+
     /**
      * Utility class for making an Oauth request to a Google service.
-     * 
+     *
      * @param access The access token.
      * @param refresh The refresh token.
      * @param encodedUrl The URL to visit.
-     * 
+     *
      * @return The {@link HttpResponse}.
      * @throws IOException If there's an error loading the client secrets or
      * accessing the service.
      */
-    public static HttpResponse googleOauth(final String access, 
+    public static HttpResponse googleOauth(final String access,
         final String refresh, final String encodedUrl) throws IOException{
-        
+
         final GoogleClientSecrets creds = OauthUtils.loadClientSecrets();
-        final CredentialRefreshListener refreshListener = 
+        final CredentialRefreshListener refreshListener =
             new CredentialRefreshListener() {
-                
+
                 @Override
                 public void onTokenResponse(final Credential credential,
                     final TokenResponse tokenResponse) throws IOException {
                     LOG.info("Got token response...sending event");
                     Events.eventBus().post(new TokenResponseEvent(tokenResponse));
                 }
-                
+
                 @Override
                 public void onTokenErrorResponse(final Credential credential,
-                    final TokenErrorResponse tokenErrorResponse) 
+                    final TokenErrorResponse tokenErrorResponse)
                     throws IOException {
                     LOG.warn("Error response:\n"+
                             tokenErrorResponse.toPrettyString());
@@ -85,16 +85,16 @@ public class OauthUtils {
             setJsonFactory(new JacksonFactory()).
             addRefreshListener(refreshListener).
             setClientAuthentication(new ClientParametersAuthentication(
-                creds.getInstalled().getClientId(), 
+                creds.getInstalled().getClientId(),
                 creds.getInstalled().getClientSecret())).build();
-        
+
         gc.setAccessToken(access);
         gc.setRefreshToken(refresh);
 
         final GenericUrl url = new GenericUrl(encodedUrl);
-        final HttpRequestFactory requestFactory = 
+        final HttpRequestFactory requestFactory =
             gc.getTransport().createRequestFactory(gc);
         return requestFactory.buildGetRequest(url).execute();
-        
+
     }
 }

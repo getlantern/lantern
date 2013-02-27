@@ -18,15 +18,15 @@ import org.slf4j.LoggerFactory;
 
 @Ignore
 public class ResourceBundleTest {
-    
+
     private final Logger log = LoggerFactory.getLogger(getClass());
-    
+
     @Test
     public void convertBasePo() throws Exception {
         final File po = new File("po/en.po");
-        final File rb = 
+        final File rb =
             new File("src/main/resources/LanternResourceBundle.properties");
-        
+
         final BufferedWriter bw = new BufferedWriter(new FileWriter(rb));
         final BufferedReader br = new BufferedReader(new FileReader(po));
         String line = br.readLine();
@@ -57,7 +57,7 @@ public class ResourceBundleTest {
                 final int length = Math.min(key.length(), LanternConstants.I18N_KEY_LENGTH);
                 final String normalizedKey = key.substring(0, length);
                 final String full = normalizedKey + "=" + line+"\n";
-                
+
                 // Ignore it if it's the initial configuration line.
                 if (!normalizedKey.isEmpty()) {
                     bw.write(full);
@@ -70,11 +70,11 @@ public class ResourceBundleTest {
         final String text = IOUtils.toString(new FileReader(rb));
         assertTrue(text.contains("You_appear_to_be_r"));
     }
-    
-    @Test 
+
+    @Test
     public void convertPos() throws Exception {
         final File[] pos = new File("po").listFiles(new FileFilter() {
-            
+
             @Override
             public boolean accept(final File pathname) {
                 final String name = pathname.getName();
@@ -83,7 +83,7 @@ public class ResourceBundleTest {
         });
         for (final File po : pos) {
             final String name = po.getName();
-            final String localName = 
+            final String localName =
                 StringUtils.substringBeforeLast(name, ".po");
             final File dir = new File("src/main/resources");
             final File rb = new File(dir, "LanternResourceBundle_"+localName+".properties");
@@ -92,9 +92,9 @@ public class ResourceBundleTest {
             assertTrue("Expected text not in: "+rb, text.contains("You_appear_to_be_r"));
         }
     }
-    
+
     private void convertPo(final File po, final File rb) throws Exception {
-        
+
         final BufferedWriter bw = new BufferedWriter(new FileWriter(rb));
         final BufferedReader br = new BufferedReader(new FileReader(po));
         String line = br.readLine();
@@ -127,7 +127,7 @@ public class ResourceBundleTest {
                 final String normalizedKey = key.substring(0, length);
                 log.info("KEY: "+normalizedKey);
                 final String full = normalizedKey + "=" + trans+"\n";
-                
+
                 // Ignore it if it's the initial configuration line.
                 if (!normalizedKey.isEmpty()) {
                     bw.write(full);
